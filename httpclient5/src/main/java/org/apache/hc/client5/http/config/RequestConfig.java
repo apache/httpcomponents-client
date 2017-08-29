@@ -34,7 +34,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 
 /**
  *  Immutable class encapsulating request configuration items.
@@ -42,9 +42,9 @@ import org.apache.hc.core5.util.TimeValue;
 @Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class RequestConfig implements Cloneable {
 
-    private static final TimeValue DEFAULT_CONNECTION_REQUEST_TIMEOUT = TimeValue.ofMinutes(3);
-    private static final TimeValue DEFAULT_CONNECT_TIMEOUT = TimeValue.ofMinutes(3);
-    private static final TimeValue DEFAULT_SOCKET_TIMEOUT = TimeValue.NEG_ONE_MILLISECONDS;
+    private static final Timeout DEFAULT_CONNECTION_REQUEST_TIMEOUT = Timeout.ofMinutes(3);
+    private static final Timeout DEFAULT_CONNECT_TIMEOUT = Timeout.ofMinutes(3);
+    private static final Timeout DEFAULT_SOCKET_TIMEOUT = Timeout.ZERO_MILLISECONDS;
 
     public static final RequestConfig DEFAULT = new Builder().build();
 
@@ -58,9 +58,9 @@ public class RequestConfig implements Cloneable {
     private final boolean authenticationEnabled;
     private final Collection<String> targetPreferredAuthSchemes;
     private final Collection<String> proxyPreferredAuthSchemes;
-    private final TimeValue connectionRequestTimeout;
-    private final TimeValue connectTimeout;
-    private final TimeValue socketTimeout;
+    private final Timeout connectionRequestTimeout;
+    private final Timeout connectTimeout;
+    private final Timeout socketTimeout;
     private final boolean contentCompressionEnabled;
 
     /**
@@ -82,9 +82,9 @@ public class RequestConfig implements Cloneable {
             final boolean authenticationEnabled,
             final Collection<String> targetPreferredAuthSchemes,
             final Collection<String> proxyPreferredAuthSchemes,
-            final TimeValue connectionRequestTimeout,
-            final TimeValue connectTimeout,
-            final TimeValue socketTimeout,
+            final Timeout connectionRequestTimeout,
+            final Timeout connectTimeout,
+            final Timeout socketTimeout,
             final boolean contentCompressionEnabled) {
         super();
         this.expectContinueEnabled = expectContinueEnabled;
@@ -242,7 +242,7 @@ public class RequestConfig implements Cloneable {
      * Default: 3 minutes.
      * </p>
      */
-    public TimeValue getConnectionRequestTimeout() {
+    public Timeout getConnectionRequestTimeout() {
         return connectionRequestTimeout;
     }
 
@@ -257,7 +257,7 @@ public class RequestConfig implements Cloneable {
      * Default: 3 minutes
      * </p>
      */
-    public TimeValue getConnectTimeout() {
+    public Timeout getConnectTimeout() {
         return connectTimeout;
     }
 
@@ -273,7 +273,7 @@ public class RequestConfig implements Cloneable {
      * Default: no timeout.
      * </p>
      */
-    public TimeValue getSocketTimeout() {
+    public Timeout getSocketTimeout() {
         return socketTimeout;
     }
 
@@ -350,9 +350,9 @@ public class RequestConfig implements Cloneable {
         private boolean authenticationEnabled;
         private Collection<String> targetPreferredAuthSchemes;
         private Collection<String> proxyPreferredAuthSchemes;
-        private TimeValue connectionRequestTimeout;
-        private TimeValue connectTimeout;
-        private TimeValue socketTimeout;
+        private Timeout connectionRequestTimeout;
+        private Timeout connectTimeout;
+        private Timeout socketTimeout;
         private boolean contentCompressionEnabled;
 
         Builder() {
@@ -416,33 +416,33 @@ public class RequestConfig implements Cloneable {
             return this;
         }
 
-        public Builder setConnectionRequestTimeout(final TimeValue connectionRequestTimeout) {
+        public Builder setConnectionRequestTimeout(final Timeout connectionRequestTimeout) {
             this.connectionRequestTimeout = connectionRequestTimeout;
             return this;
         }
 
         public Builder setConnectionRequestTimeout(final long connectionRequestTimeout, final TimeUnit timeUnit) {
-            this.connectionRequestTimeout = TimeValue.of(connectionRequestTimeout, timeUnit);
+            this.connectionRequestTimeout = Timeout.of(connectionRequestTimeout, timeUnit);
             return this;
         }
 
-        public Builder setConnectTimeout(final TimeValue connectTimeout) {
+        public Builder setConnectTimeout(final Timeout connectTimeout) {
             this.connectTimeout = connectTimeout;
             return this;
         }
 
         public Builder setConnectTimeout(final long connectTimeout, final TimeUnit timeUnit) {
-            this.connectTimeout = TimeValue.of(connectTimeout, timeUnit);
+            this.connectTimeout = Timeout.of(connectTimeout, timeUnit);
             return this;
         }
 
-        public Builder setSocketTimeout(final TimeValue socketTimeout) {
+        public Builder setSocketTimeout(final Timeout socketTimeout) {
             this.socketTimeout = socketTimeout;
             return this;
         }
 
         public Builder setSocketTimeout(final long socketTimeout, final TimeUnit timeUnit) {
-            this.socketTimeout = TimeValue.of(socketTimeout, timeUnit);
+            this.socketTimeout = Timeout.of(socketTimeout, timeUnit);
             return this;
         }
 

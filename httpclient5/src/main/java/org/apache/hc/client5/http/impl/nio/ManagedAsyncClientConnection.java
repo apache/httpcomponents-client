@@ -43,7 +43,7 @@ import org.apache.hc.core5.http.nio.command.ShutdownCommand;
 import org.apache.hc.core5.io.ShutdownType;
 import org.apache.hc.core5.reactor.Command;
 import org.apache.hc.core5.reactor.IOEventHandler;
-import org.apache.hc.core5.reactor.TlsCapableIOSession;
+import org.apache.hc.core5.reactor.IOSession;
 import org.apache.hc.core5.reactor.ssl.SSLBufferManagement;
 import org.apache.hc.core5.reactor.ssl.SSLSessionInitializer;
 import org.apache.hc.core5.reactor.ssl.SSLSessionVerifier;
@@ -57,10 +57,10 @@ final class ManagedAsyncClientConnection implements Identifiable, HttpConnection
 
     private final Logger log = LogManager.getLogger(getClass());
 
-    private final TlsCapableIOSession ioSession;
+    private final IOSession ioSession;
     private final AtomicBoolean closed;
 
-    public ManagedAsyncClientConnection(final TlsCapableIOSession ioSession) {
+    public ManagedAsyncClientConnection(final IOSession ioSession) {
         this.ioSession = ioSession;
         this.closed = new AtomicBoolean();
     }
@@ -144,17 +144,21 @@ final class ManagedAsyncClientConnection implements Identifiable, HttpConnection
         if (log.isDebugEnabled()) {
             log.debug(getId() + ": start TLS");
         }
-        ioSession.startTls(sslContext, sslBufferManagement, initializer, verifier);
+        if (ioSession instanceof TransportSecurityLayer) {
+            ((TransportSecurityLayer) ioSession).startTls(sslContext, sslBufferManagement, initializer, verifier);
+        } else {
+            throw new UnsupportedOperationException("TLS upgrade not supported");
+        }
     }
 
     @Override
     public TlsDetails getTlsDetails() {
-        return ioSession.getTlsDetails();
+        return ioSession instanceof TransportSecurityLayer ? ((TransportSecurityLayer) ioSession).getTlsDetails() : null;
     }
 
     @Override
     public SSLSession getSSLSession() {
-        final TlsDetails tlsDetails = ioSession.getTlsDetails();
+        final TlsDetails tlsDetails = getTlsDetails();
         return tlsDetails != null ? tlsDetails.getSSLSession() : null;
     }
 

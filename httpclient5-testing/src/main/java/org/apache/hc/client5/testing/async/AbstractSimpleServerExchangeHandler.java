@@ -34,12 +34,12 @@ import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.nio.AsyncRequestConsumer;
+import org.apache.hc.core5.http.nio.AsyncServerRequestHandler;
+import org.apache.hc.core5.http.nio.BasicResponseProducer;
 import org.apache.hc.core5.http.nio.entity.StringAsyncEntityConsumer;
 import org.apache.hc.core5.http.nio.entity.StringAsyncEntityProducer;
 import org.apache.hc.core5.http.nio.support.AbstractAsyncRequesterConsumer;
 import org.apache.hc.core5.http.nio.support.AbstractServerExchangeHandler;
-import org.apache.hc.core5.http.nio.support.BasicAsyncResponseProducer;
-import org.apache.hc.core5.http.nio.support.ResponseTrigger;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.protocol.HttpCoreContext;
 
@@ -67,10 +67,10 @@ public abstract class AbstractSimpleServerExchangeHandler extends AbstractServer
     @Override
     protected final void handle(
             final SimpleHttpRequest request,
-            final ResponseTrigger responseTrigger,
+            final AsyncServerRequestHandler.ResponseTrigger responseTrigger,
             final HttpContext context) throws HttpException, IOException {
         final SimpleHttpResponse response = handle(request, HttpCoreContext.adapt(context));
-        responseTrigger.submitResponse(new BasicAsyncResponseProducer(
+        responseTrigger.submitResponse(new BasicResponseProducer(
                 response,
                 response.getBody() != null ? new StringAsyncEntityProducer(response.getBody(), response.getContentType()) : null));
 

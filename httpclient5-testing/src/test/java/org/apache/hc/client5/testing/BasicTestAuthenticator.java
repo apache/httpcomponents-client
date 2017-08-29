@@ -25,30 +25,30 @@
  *
  */
 
-package org.apache.hc.client5.testing.auth;
+package org.apache.hc.client5.testing;
 
-import java.io.IOException;
+import java.util.Objects;
 
-import org.apache.hc.core5.http.EntityDetails;
-import org.apache.hc.core5.http.HttpException;
-import org.apache.hc.core5.http.HttpHeaders;
-import org.apache.hc.core5.http.HttpResponse;
-import org.apache.hc.core5.http.HttpResponseInterceptor;
-import org.apache.hc.core5.http.HttpStatus;
-import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.client5.testing.auth.Authenticator;
+import org.apache.hc.core5.net.URIAuthority;
 
-public class ResponseBasicUnauthorized implements HttpResponseInterceptor {
+public class BasicTestAuthenticator implements Authenticator {
+
+    private final String userToken;
+    private final String realm;
+
+    public BasicTestAuthenticator(final String userToken, final String realm) {
+        this.userToken = userToken;
+        this.realm = realm;
+    }
+
+    public boolean authenticate(final URIAuthority authority, final String requestUri, final String credentials) {
+        return Objects.equals(userToken, credentials);
+    }
 
     @Override
-    public void process(
-            final HttpResponse response,
-            final EntityDetails entityDetails,
-            final HttpContext context) throws HttpException, IOException {
-        if (response.getCode() == HttpStatus.SC_UNAUTHORIZED) {
-            if (!response.containsHeader(HttpHeaders.WWW_AUTHENTICATE)) {
-                response.addHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"test realm\"");
-            }
-        }
+    public String getRealm(final URIAuthority authority, final String requestUri) {
+        return realm;
     }
 
 }

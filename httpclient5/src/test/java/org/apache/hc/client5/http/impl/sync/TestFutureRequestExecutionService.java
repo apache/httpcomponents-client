@@ -49,8 +49,8 @@ import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.impl.bootstrap.HttpServer;
 import org.apache.hc.core5.http.impl.bootstrap.ServerBootstrap;
+import org.apache.hc.core5.http.io.HttpClientResponseHandler;
 import org.apache.hc.core5.http.io.HttpRequestHandler;
-import org.apache.hc.core5.http.io.ResponseHandler;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.junit.After;
 import org.junit.Assert;
@@ -69,7 +69,7 @@ public class TestFutureRequestExecutionService {
     @Before
     public void before() throws Exception {
         this.localServer = ServerBootstrap.bootstrap()
-                .registerHandler("/wait", new HttpRequestHandler() {
+                .register("/wait", new HttpRequestHandler() {
 
             @Override
             public void handle(
@@ -190,7 +190,7 @@ public class TestFutureRequestExecutionService {
     }
 
 
-    private final class OkidokiHandler implements ResponseHandler<Boolean> {
+    private final class OkidokiHandler implements HttpClientResponseHandler<Boolean> {
         @Override
         public Boolean handleResponse(
                 final ClassicHttpResponse response) throws IOException {

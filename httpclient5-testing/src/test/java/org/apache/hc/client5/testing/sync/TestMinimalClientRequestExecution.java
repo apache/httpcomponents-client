@@ -72,7 +72,7 @@ public class TestMinimalClientRequestExecution extends LocalServerTestBase {
 
     @Test
     public void testNonCompliantURI() throws Exception {
-        this.serverBootstrap.registerHandler("*", new SimpleService());
+        this.server.registerHandler("*", new SimpleService());
         this.httpclient = HttpClients.createMinimal();
         final HttpHost target = start();
 

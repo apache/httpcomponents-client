@@ -225,7 +225,7 @@ public class Executor {
      * or discarded using {@link Response#discardContent()}, otherwise the
      * connection used for the request might not be released to the pool.
      *
-     * @see Response#handleResponse(org.apache.hc.core5.http.io.ResponseHandler)
+     * @see Response#handleResponse(org.apache.hc.core5.http.io.HttpClientResponseHandler)
      * @see Response#discardContent()
      */
     public Response execute(

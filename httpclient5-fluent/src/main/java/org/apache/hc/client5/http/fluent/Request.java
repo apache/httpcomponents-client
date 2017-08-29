@@ -66,7 +66,7 @@ import org.apache.hc.core5.http.io.entity.FileEntity;
 import org.apache.hc.core5.http.io.entity.InputStreamEntity;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.net.URLEncodedUtils;
-import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 
 public class Request {
 
@@ -76,8 +76,8 @@ public class Request {
 
     private final HttpUriRequestBase request;
     private Boolean useExpectContinue;
-    private TimeValue socketTmeout;
-    private TimeValue connectTimeout;
+    private Timeout socketTmeout;
+    private Timeout connectTimeout;
     private HttpHost proxy;
 
     private SimpleDateFormat dateFormatter;
@@ -283,12 +283,12 @@ public class Request {
 
     //// HTTP connection parameter operations
 
-    public Request socketTimeout(final TimeValue timeout) {
+    public Request socketTimeout(final Timeout timeout) {
         this.socketTmeout = timeout;
         return this;
     }
 
-    public Request connectTimeout(final TimeValue timeout) {
+    public Request connectTimeout(final Timeout timeout) {
         this.connectTimeout = timeout;
         return this;
     }

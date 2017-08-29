@@ -35,7 +35,7 @@ import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpResponse;
-import org.apache.hc.core5.http.io.ResponseHandler;
+import org.apache.hc.core5.http.io.HttpClientResponseHandler;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.junit.Assert;
 import org.junit.Before;
@@ -119,7 +119,7 @@ public class TestCloseableHttpClient {
         Mockito.when(client.doExecute(
                 new HttpHost("somehost", 444, "https"), httpget, null)).thenReturn(response);
 
-        final ResponseHandler<HttpResponse> handler = Mockito.mock(ResponseHandler.class);
+        final HttpClientResponseHandler<HttpResponse> handler = Mockito.mock(HttpClientResponseHandler.class);
 
         client.execute(httpget, handler);
 
@@ -139,7 +139,7 @@ public class TestCloseableHttpClient {
         Mockito.when(client.doExecute(
                 new HttpHost("somehost", 444, "https"), httpget, null)).thenReturn(response);
 
-        final ResponseHandler<HttpResponse> handler = Mockito.mock(ResponseHandler.class);
+        final HttpClientResponseHandler<HttpResponse> handler = Mockito.mock(HttpClientResponseHandler.class);
 
         Mockito.when(handler.handleResponse(response)).thenThrow(new IOException());
 
@@ -163,7 +163,7 @@ public class TestCloseableHttpClient {
         Mockito.when(client.doExecute(
                 new HttpHost("somehost", 444, "https"), httpget, null)).thenReturn(response);
 
-        final ResponseHandler<HttpResponse> handler = Mockito.mock(ResponseHandler.class);
+        final HttpClientResponseHandler<HttpResponse> handler = Mockito.mock(HttpClientResponseHandler.class);
 
         Mockito.when(handler.handleResponse(response)).thenThrow(new RuntimeException());
 

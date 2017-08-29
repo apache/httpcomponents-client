@@ -41,7 +41,7 @@ import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.message.StatusLine;
 import org.apache.hc.core5.io.ShutdownType;
 import org.apache.hc.core5.reactor.IOReactorConfig;
-import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 
 /**
  * Example of asynchronous HTTP/1.1 request execution with response streaming.
@@ -51,7 +51,7 @@ public class AsyncClientHttpExchangeStreaming {
     public static void main(final String[] args) throws Exception {
 
         final IOReactorConfig ioReactorConfig = IOReactorConfig.custom()
-                .setSoTimeout(TimeValue.ofSeconds(5))
+                .setSoTimeout(Timeout.ofSeconds(5))
                 .build();
 
         final CloseableHttpAsyncClient client = HttpAsyncClients.custom()

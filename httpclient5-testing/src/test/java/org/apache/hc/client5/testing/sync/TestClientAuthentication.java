@@ -30,6 +30,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
@@ -37,6 +38,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.apache.hc.client5.http.auth.AuthCache;
 import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.AuthScheme;
+import org.apache.hc.client5.http.auth.AuthSchemeProvider;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.Credentials;
@@ -45,17 +47,21 @@ import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.auth.BasicAuthCache;
 import org.apache.hc.client5.http.impl.auth.BasicScheme;
+import org.apache.hc.client5.http.impl.auth.BasicSchemeFactory;
 import org.apache.hc.client5.http.impl.protocol.DefaultAuthenticationStrategy;
 import org.apache.hc.client5.http.impl.sync.BasicCredentialsProvider;
+import org.apache.hc.client5.http.impl.sync.CloseableHttpResponse;
 import org.apache.hc.client5.http.protocol.ClientProtocolException;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.protocol.NonRepeatableRequestException;
 import org.apache.hc.client5.http.sync.methods.HttpGet;
 import org.apache.hc.client5.http.sync.methods.HttpPost;
 import org.apache.hc.client5.http.sync.methods.HttpPut;
-import org.apache.hc.client5.testing.auth.BasicAuthTokenExtractor;
-import org.apache.hc.client5.testing.auth.RequestBasicAuth;
-import org.apache.hc.client5.testing.auth.ResponseBasicUnauthorized;
+import org.apache.hc.client5.testing.BasicTestAuthenticator;
+import org.apache.hc.client5.testing.auth.Authenticator;
+import org.apache.hc.client5.testing.classic.AuthenticatingDecorator;
+import org.apache.hc.client5.testing.classic.EchoHandler;
+import org.apache.hc.core5.function.Decorator;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.EndpointDetails;
@@ -65,18 +71,19 @@ import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.config.Registry;
+import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.impl.HttpProcessors;
-import org.apache.hc.core5.http.io.HttpExpectationVerifier;
 import org.apache.hc.core5.http.io.HttpRequestHandler;
+import org.apache.hc.core5.http.io.HttpServerRequestHandler;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.InputStreamEntity;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.protocol.HttpCoreContext;
-import org.apache.hc.core5.http.protocol.HttpProcessor;
+import org.apache.hc.core5.net.URIAuthority;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -84,56 +91,19 @@ import org.junit.Test;
  */
 public class TestClientAuthentication extends LocalServerTestBase {
 
-    @Before @Override
-    public void setUp() throws Exception {
-        super.setUp();
-        final HttpProcessor httpproc = HttpProcessors.customServer(null)
-            .add(new RequestBasicAuth())
-            .add(new ResponseBasicUnauthorized()).build();
-        this.serverBootstrap.setHttpProcessor(httpproc);
+    public HttpHost start(final Authenticator authenticator) throws IOException {
+        return super.start(null, new Decorator<HttpServerRequestHandler>() {
+
+            @Override
+            public HttpServerRequestHandler decorate(final HttpServerRequestHandler requestHandler) {
+                return new AuthenticatingDecorator(requestHandler, authenticator);
+            }
+
+        });
     }
 
-    static class AuthHandler implements HttpRequestHandler {
-
-        @Override
-        public void handle(
-                final ClassicHttpRequest request,
-                final ClassicHttpResponse response,
-                final HttpContext context) throws HttpException, IOException {
-            final String creds = (String) context.getAttribute("creds");
-            if (creds == null || !creds.equals("test:test")) {
-                response.setCode(HttpStatus.SC_UNAUTHORIZED);
-            } else {
-                response.setCode(HttpStatus.SC_OK);
-                final StringEntity entity = new StringEntity("success", StandardCharsets.US_ASCII);
-                response.setEntity(entity);
-            }
-        }
-
-    }
-
-    static class AuthExpectationVerifier implements HttpExpectationVerifier {
-
-        private final BasicAuthTokenExtractor authTokenExtractor;
-
-        public AuthExpectationVerifier() {
-            super();
-            this.authTokenExtractor = new BasicAuthTokenExtractor();
-        }
-
-        @Override
-        public void verify(
-                final ClassicHttpRequest request,
-                final ClassicHttpResponse response,
-                final HttpContext context) throws HttpException {
-            final String creds = this.authTokenExtractor.extract(request);
-            if (creds == null || !creds.equals("test:test")) {
-                response.setCode(HttpStatus.SC_UNAUTHORIZED);
-            } else {
-                response.setCode(HttpStatus.SC_CONTINUE);
-            }
-        }
-
+    public HttpHost start() throws IOException {
+        return start(new BasicTestAuthenticator("test:test", "test realm"));
     }
 
     static class TestCredentialsProvider implements CredentialsProvider {
@@ -160,8 +130,7 @@ public class TestClientAuthentication extends LocalServerTestBase {
 
     @Test
     public void testBasicAuthenticationNoCreds() throws Exception {
-        this.serverBootstrap.registerHandler("*", new AuthHandler());
-
+        this.server.registerHandler("*", new EchoHandler());
         final HttpHost target = start();
 
         final HttpClientContext context = HttpClientContext.create();
@@ -181,8 +150,7 @@ public class TestClientAuthentication extends LocalServerTestBase {
 
     @Test
     public void testBasicAuthenticationFailure() throws Exception {
-        this.serverBootstrap.registerHandler("*", new AuthHandler());
-
+        this.server.registerHandler("*", new EchoHandler());
         final HttpHost target = start();
 
         final HttpClientContext context = HttpClientContext.create();
@@ -203,8 +171,7 @@ public class TestClientAuthentication extends LocalServerTestBase {
 
     @Test
     public void testBasicAuthenticationSuccess() throws Exception {
-        this.serverBootstrap.registerHandler("*", new AuthHandler());
-
+        this.server.registerHandler("*", new EchoHandler());
         final HttpGet httpget = new HttpGet("/");
         final HttpClientContext context = HttpClientContext.create();
         final TestCredentialsProvider credsProvider = new TestCredentialsProvider(
@@ -225,13 +192,7 @@ public class TestClientAuthentication extends LocalServerTestBase {
 
     @Test
     public void testBasicAuthenticationSuccessOnNonRepeatablePutExpectContinue() throws Exception {
-        final HttpProcessor httpproc = HttpProcessors.customServer(null)
-            .add(new RequestBasicAuth())
-            .add(new ResponseBasicUnauthorized()).build();
-        this.serverBootstrap.setHttpProcessor(httpproc)
-            .setExpectationVerifier(new AuthExpectationVerifier())
-            .registerHandler("*", new AuthHandler());
-
+        this.server.registerHandler("*", new EchoHandler());
         final HttpHost target = start();
 
         final RequestConfig config = RequestConfig.custom()
@@ -256,11 +217,10 @@ public class TestClientAuthentication extends LocalServerTestBase {
 
     @Test(expected=ClientProtocolException.class)
     public void testBasicAuthenticationFailureOnNonRepeatablePutDontExpectContinue() throws Exception {
-        this.serverBootstrap.registerHandler("*", new AuthHandler());
-
+        this.server.registerHandler("*", new EchoHandler());
         final HttpHost target = start();
 
-        final RequestConfig config = RequestConfig.custom().setExpectContinueEnabled(true).build();
+        final RequestConfig config = RequestConfig.custom().setExpectContinueEnabled(false).build();
         final HttpPut httpput = new HttpPut("/");
         httpput.setConfig(config);
         httpput.setEntity(new InputStreamEntity(
@@ -286,8 +246,7 @@ public class TestClientAuthentication extends LocalServerTestBase {
 
     @Test
     public void testBasicAuthenticationSuccessOnRepeatablePost() throws Exception {
-        this.serverBootstrap.registerHandler("*", new AuthHandler());
-
+        this.server.registerHandler("*", new EchoHandler());
         final HttpHost target = start();
 
         final HttpPost httppost = new HttpPost("/");
@@ -310,8 +269,7 @@ public class TestClientAuthentication extends LocalServerTestBase {
 
     @Test(expected=ClientProtocolException.class)
     public void testBasicAuthenticationFailureOnNonRepeatablePost() throws Exception {
-        this.serverBootstrap.registerHandler("*", new AuthHandler());
-
+        this.server.registerHandler("*", new EchoHandler());
         final HttpHost target = start();
 
         final HttpPost httppost = new HttpPost("/");
@@ -362,8 +320,7 @@ public class TestClientAuthentication extends LocalServerTestBase {
 
     @Test
     public void testBasicAuthenticationCredentialsCaching() throws Exception {
-        this.serverBootstrap.registerHandler("*", new AuthHandler());
-
+        this.server.registerHandler("*", new EchoHandler());
         final TestTargetAuthenticationStrategy authStrategy = new TestTargetAuthenticationStrategy();
         this.clientBuilder.setTargetAuthenticationStrategy(authStrategy);
 
@@ -392,43 +349,34 @@ public class TestClientAuthentication extends LocalServerTestBase {
         Assert.assertEquals(1, authStrategy.getCount());
     }
 
-    static class RealmAuthHandler implements HttpRequestHandler {
-
-        final String realm;
-        final String realmCreds;
-
-        public RealmAuthHandler(final String realm, final String realmCreds) {
-            this.realm = realm;
-            this.realmCreds = realmCreds;
-        }
-
-        @Override
-        public void handle(
-                final ClassicHttpRequest request,
-                final ClassicHttpResponse response,
-                final HttpContext context) throws HttpException, IOException {
-            final String givenCreds = (String) context.getAttribute("creds");
-            if (givenCreds == null || !givenCreds.equals(this.realmCreds)) {
-                response.setCode(HttpStatus.SC_UNAUTHORIZED);
-                response.addHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"" + this.realm + "\"");
-            } else {
-                response.setCode(HttpStatus.SC_OK);
-                final StringEntity entity = new StringEntity("success", StandardCharsets.US_ASCII);
-                response.setEntity(entity);
-            }
-        }
-
-    }
-
     @Test
     public void testAuthenticationCredentialsCachingReauthenticationOnDifferentRealm() throws Exception {
-        this.serverBootstrap.registerHandler("/this", new RealmAuthHandler("this realm", "test:this"));
-        this.serverBootstrap.registerHandler("/that", new RealmAuthHandler("that realm", "test:that"));
+        this.server.registerHandler("*", new EchoHandler());
+        final HttpHost target = start(new Authenticator() {
 
-        this.server = this.serverBootstrap.create();
-        this.server.start();
+            @Override
+            public boolean authenticate(final URIAuthority authority, final String requestUri, final String credentials) {
+                if (requestUri.equals("/this")) {
+                    return "test:this".equals(credentials);
+                } else if (requestUri.equals("/that")) {
+                    return "test:that".equals(credentials);
+                } else {
+                    return "test:test".equals(credentials);
+                }
+            }
 
-        final HttpHost target = new HttpHost("localhost", this.server.getLocalPort(), this.scheme.name());
+            @Override
+            public String getRealm(final URIAuthority authority, final String requestUri) {
+                if (requestUri.equals("/this")) {
+                    return "this realm";
+                } else if (requestUri.equals("/that")) {
+                    return "that realm";
+                } else {
+                    return "test realm";
+                }
+            }
+
+        });
 
         final TestTargetAuthenticationStrategy authStrategy = new TestTargetAuthenticationStrategy();
         final BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
@@ -472,8 +420,7 @@ public class TestClientAuthentication extends LocalServerTestBase {
 
     @Test
     public void testAuthenticationUserinfoInRequestSuccess() throws Exception {
-        this.serverBootstrap.registerHandler("*", new AuthHandler());
-
+        this.server.registerHandler("*", new EchoHandler());
         final HttpHost target = start();
         final HttpGet httpget = new HttpGet("http://test:test@" +  target.toHostString() + "/");
 
@@ -487,8 +434,7 @@ public class TestClientAuthentication extends LocalServerTestBase {
 
     @Test
     public void testAuthenticationUserinfoInRequestFailure() throws Exception {
-        this.serverBootstrap.registerHandler("*", new AuthHandler());
-
+        this.server.registerHandler("*", new EchoHandler());
         final HttpHost target = start();
         final HttpGet httpget = new HttpGet("http://test:all-wrong@" +  target.toHostString() + "/");
 
@@ -500,36 +446,39 @@ public class TestClientAuthentication extends LocalServerTestBase {
         EntityUtils.consume(entity);
     }
 
-    private static class RedirectHandler implements HttpRequestHandler {
-
-        public RedirectHandler() {
-            super();
-        }
-
-        @Override
-        public void handle(
-                final ClassicHttpRequest request,
-                final ClassicHttpResponse response,
-                final HttpContext context) throws HttpException, IOException {
-            final EndpointDetails endpoint = (EndpointDetails) context.getAttribute(HttpCoreContext.CONNECTION_ENDPOINT);
-            final InetSocketAddress socketAddress = (InetSocketAddress) endpoint.getLocalAddress();
-            final String localhost = socketAddress.getHostName();
-            final int port = socketAddress.getPort();
-            response.setCode(HttpStatus.SC_MOVED_PERMANENTLY);
-            response.addHeader(new BasicHeader("Location",
-                    "http://test:test@" + localhost + ":" + port + "/"));
-        }
-
-    }
-
     @Test
     public void testAuthenticationUserinfoInRedirectSuccess() throws Exception {
-        this.serverBootstrap.registerHandler("*", new AuthHandler());
-        this.serverBootstrap.registerHandler("/thatway", new RedirectHandler());
+        this.server.registerHandler("/*", new EchoHandler());
+        this.server.registerHandler("/thatway", new HttpRequestHandler() {
 
-        final HttpHost target = start();
+            @Override
+            public void handle(
+                    final ClassicHttpRequest request,
+                    final ClassicHttpResponse response,
+                    final HttpContext context) throws HttpException, IOException {
+                final EndpointDetails endpoint = (EndpointDetails) context.getAttribute(HttpCoreContext.CONNECTION_ENDPOINT);
+                final InetSocketAddress socketAddress = (InetSocketAddress) endpoint.getLocalAddress();
+                final String localhost = socketAddress.getHostName();
+                final int port = socketAddress.getPort();
+                response.setCode(HttpStatus.SC_MOVED_PERMANENTLY);
+                response.addHeader(new BasicHeader("Location", "http://test:test@" + localhost + ":" + port + "/secure"));
+            }
 
-        final HttpGet httpget = new HttpGet("http://" +  target.toHostString() + "/thatway");
+        });
+
+        final HttpHost target = start(new BasicTestAuthenticator("test:test", "test realm") {
+
+            @Override
+            public boolean authenticate(final URIAuthority authority, final String requestUri, final String credentials) {
+                if (requestUri.equals("/secure") || requestUri.startsWith("/secure/")) {
+                    return super.authenticate(authority, requestUri, credentials);
+                } else {
+                    return true;
+                }
+            }
+        });
+
+        final HttpGet httpget = new HttpGet("/thatway");
         final HttpClientContext context = HttpClientContext.create();
 
         final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context);
@@ -539,29 +488,19 @@ public class TestClientAuthentication extends LocalServerTestBase {
         EntityUtils.consume(entity);
     }
 
-    static class CountingAuthHandler implements HttpRequestHandler {
+    static class CountingAuthenticator extends BasicTestAuthenticator {
 
         private final AtomicLong count;
 
-        public CountingAuthHandler() {
-            super();
+        public CountingAuthenticator(final String userToken, final String realm) {
+            super(userToken, realm);
             this.count = new AtomicLong();
         }
 
         @Override
-        public void handle(
-                final ClassicHttpRequest request,
-                final ClassicHttpResponse response,
-                final HttpContext context) throws HttpException, IOException {
+        public boolean authenticate(final URIAuthority authority, final String requestUri, final String credentials) {
             this.count.incrementAndGet();
-            final String creds = (String) context.getAttribute("creds");
-            if (creds == null || !creds.equals("test:test")) {
-                response.setCode(HttpStatus.SC_UNAUTHORIZED);
-            } else {
-                response.setCode(HttpStatus.SC_OK);
-                final StringEntity entity = new StringEntity("success", StandardCharsets.US_ASCII);
-                response.setEntity(entity);
-            }
+            return super.authenticate(authority, requestUri, credentials);
         }
 
         public long getCount() {
@@ -572,10 +511,9 @@ public class TestClientAuthentication extends LocalServerTestBase {
 
     @Test
     public void testPreemptiveAuthentication() throws Exception {
-        final CountingAuthHandler requestHandler = new CountingAuthHandler();
-        this.serverBootstrap.registerHandler("*", requestHandler);
-
-        final HttpHost target = start();
+        this.server.registerHandler("*", new EchoHandler());
+        final CountingAuthenticator countingAuthenticator = new CountingAuthenticator("test:test", "test realm");
+        final HttpHost target = start(countingAuthenticator);
 
         final BasicScheme basicScheme = new BasicScheme();
         basicScheme.initPreemptive(new UsernamePasswordCredentials("test", "test".toCharArray()));
@@ -591,15 +529,15 @@ public class TestClientAuthentication extends LocalServerTestBase {
         Assert.assertNotNull(entity1);
         EntityUtils.consume(entity1);
 
-        Assert.assertEquals(1, requestHandler.getCount());
+        Assert.assertEquals(1, countingAuthenticator.getCount());
     }
 
     @Test
     public void testPreemptiveAuthenticationFailure() throws Exception {
-        final CountingAuthHandler requestHandler = new CountingAuthHandler();
-        this.serverBootstrap.registerHandler("*", requestHandler);
+        this.server.registerHandler("*", new EchoHandler());
+        final CountingAuthenticator countingAuthenticator = new CountingAuthenticator("test:test", "test realm");
 
-        final HttpHost target = start();
+        final HttpHost target = start(countingAuthenticator);
 
         final HttpClientContext context = HttpClientContext.create();
         final AuthCache authCache = new BasicAuthCache();
@@ -617,7 +555,7 @@ public class TestClientAuthentication extends LocalServerTestBase {
         Assert.assertNotNull(entity1);
         EntityUtils.consume(entity1);
 
-        Assert.assertEquals(1, requestHandler.getCount());
+        Assert.assertEquals(1, countingAuthenticator.getCount());
     }
 
     static class ProxyAuthHandler implements HttpRequestHandler {
@@ -641,9 +579,9 @@ public class TestClientAuthentication extends LocalServerTestBase {
 
     @Test
     public void testAuthenticationTargetAsProxy() throws Exception {
-        this.serverBootstrap.registerHandler("*", new ProxyAuthHandler());
+        this.server.registerHandler("*", new ProxyAuthHandler());
 
-        final HttpHost target = start();
+        final HttpHost target = super.start();
 
         final HttpClientContext context = HttpClientContext.create();
         final TestCredentialsProvider credsProvider = new TestCredentialsProvider(null);
@@ -657,31 +595,27 @@ public class TestClientAuthentication extends LocalServerTestBase {
         EntityUtils.consume(entity);
     }
 
-    static class ClosingAuthHandler implements HttpRequestHandler {
-
-        @Override
-        public void handle(
-                final ClassicHttpRequest request,
-                final ClassicHttpResponse response,
-                final HttpContext context) throws HttpException, IOException {
-            final String creds = (String) context.getAttribute("creds");
-            if (creds == null || !creds.equals("test:test")) {
-                response.setCode(HttpStatus.SC_UNAUTHORIZED);
-            } else {
-                response.setCode(HttpStatus.SC_OK);
-                final StringEntity entity = new StringEntity("success", StandardCharsets.US_ASCII);
-                response.setEntity(entity);
-                response.setHeader(HttpHeaders.CONNECTION, HeaderElements.CLOSE);
-            }
-        }
-
-    }
-
     @Test
     public void testConnectionCloseAfterAuthenticationSuccess() throws Exception {
-        this.serverBootstrap.registerHandler("*", new ClosingAuthHandler());
+        this.server.registerHandler("*", new EchoHandler());
 
-        final HttpHost target = start();
+        final HttpHost target = start(
+                HttpProcessors.server(),
+                new Decorator<HttpServerRequestHandler>() {
+
+                    @Override
+                    public HttpServerRequestHandler decorate(final HttpServerRequestHandler requestHandler) {
+                        return new AuthenticatingDecorator(requestHandler, new BasicTestAuthenticator("test:test", "test realm")) {
+
+                            @Override
+                            protected void customizeUnauthorizedResponse(final ClassicHttpResponse unauthorized) {
+                                unauthorized.addHeader(HttpHeaders.CONNECTION, HeaderElements.CLOSE);
+                            }
+
+                        };
+                    }
+
+                });
 
         final HttpClientContext context = HttpClientContext.create();
         final BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
@@ -696,6 +630,130 @@ public class TestClientAuthentication extends LocalServerTestBase {
             EntityUtils.consume(response.getEntity());
             Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
         }
+    }
+
+    @Test
+    public void testReauthentication() throws Exception {
+        this.server.registerHandler("*", new EchoHandler());
+
+        final BasicSchemeFactory myBasicAuthSchemeFactory = new BasicSchemeFactory() {
+
+            @Override
+            public AuthScheme create(final HttpContext context) {
+                return new BasicScheme() {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public String getName() {
+                        return "MyBasic";
+                    }
+
+                };
+            }
+
+        };
+
+        final TestCredentialsProvider credsProvider = new TestCredentialsProvider(
+                new UsernamePasswordCredentials("test", "test".toCharArray()));
+
+        final RequestConfig config = RequestConfig.custom()
+                .setTargetPreferredAuthSchemes(Arrays.asList("MyBasic"))
+                .build();
+        final Registry<AuthSchemeProvider> authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
+                .register("MyBasic", myBasicAuthSchemeFactory)
+                .build();
+        this.httpclient = this.clientBuilder
+                .setDefaultAuthSchemeRegistry(authSchemeRegistry)
+                .setDefaultCredentialsProvider(credsProvider)
+                .build();
+
+        final Authenticator authenticator = new BasicTestAuthenticator("test:test", "test realm") {
+
+            private final AtomicLong count = new AtomicLong(0);
+
+            @Override
+            public boolean authenticate(final URIAuthority authority, final String requestUri, final String credentials) {
+                final boolean authenticated = super.authenticate(authority, requestUri, credentials);
+                if (authenticated) {
+                    if (this.count.incrementAndGet() % 4 != 0) {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                } else {
+                    return false;
+                }
+            }
+        };
+
+        final HttpHost target = start(
+                HttpProcessors.server(),
+                new Decorator<HttpServerRequestHandler>() {
+
+                    @Override
+                    public HttpServerRequestHandler decorate(final HttpServerRequestHandler requestHandler) {
+                        return new AuthenticatingDecorator(requestHandler, authenticator) {
+
+                            @Override
+                            protected void customizeUnauthorizedResponse(final ClassicHttpResponse unauthorized) {
+                                unauthorized.removeHeaders(HttpHeaders.WWW_AUTHENTICATE);
+                                unauthorized.addHeader(HttpHeaders.WWW_AUTHENTICATE, "MyBasic realm=\"test realm\"");
+                            }
+
+                        };
+                    }
+
+                });
+
+        final HttpClientContext context = HttpClientContext.create();
+        for (int i = 0; i < 10; i++) {
+            final HttpGet httpget = new HttpGet("/");
+            httpget.setConfig(config);
+            try (final CloseableHttpResponse response = this.httpclient.execute(target, httpget, context)) {
+                final HttpEntity entity = response.getEntity();
+                Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
+                Assert.assertNotNull(entity);
+                EntityUtils.consume(entity);
+            }
+        }
+    }
+
+    @Test
+    public void testAuthenticationFallback() throws Exception {
+        this.server.registerHandler("*", new EchoHandler());
+
+        final HttpHost target = start(
+                HttpProcessors.server(),
+                new Decorator<HttpServerRequestHandler>() {
+
+                    @Override
+                    public HttpServerRequestHandler decorate(final HttpServerRequestHandler requestHandler) {
+                        return new AuthenticatingDecorator(requestHandler, new BasicTestAuthenticator("test:test", "test realm")) {
+
+                            @Override
+                            protected void customizeUnauthorizedResponse(final ClassicHttpResponse unauthorized) {
+                                unauthorized.addHeader(HttpHeaders.WWW_AUTHENTICATE, "Digest realm=\"test realm\" invalid");
+                            }
+
+                        };
+                    }
+
+                });
+
+        final HttpClientContext context = HttpClientContext.create();
+        final TestCredentialsProvider credsProvider = new TestCredentialsProvider(
+                new UsernamePasswordCredentials("test", "test".toCharArray()));
+        context.setCredentialsProvider(credsProvider);
+        final HttpGet httpget = new HttpGet("/");
+
+        final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context);
+        final HttpEntity entity = response.getEntity();
+        Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
+        Assert.assertNotNull(entity);
+        EntityUtils.consume(entity);
+        final AuthScope authscope = credsProvider.getAuthScope();
+        Assert.assertNotNull(authscope);
+        Assert.assertEquals("test realm", authscope.getRealm());
     }
 
 }

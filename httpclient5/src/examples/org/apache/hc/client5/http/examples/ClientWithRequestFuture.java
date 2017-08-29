@@ -43,7 +43,7 @@ import org.apache.hc.client5.http.sync.methods.HttpGet;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
-import org.apache.hc.core5.http.io.ResponseHandler;
+import org.apache.hc.core5.http.io.HttpClientResponseHandler;
 
 public class ClientWithRequestFuture {
 
@@ -59,8 +59,8 @@ public class ClientWithRequestFuture {
         final ExecutorService execService = Executors.newFixedThreadPool(5);
         try (FutureRequestExecutionService requestExecService = new FutureRequestExecutionService(
                 httpclient, execService)) {
-            // Because things are asynchronous, you must provide a ResponseHandler
-            final ResponseHandler<Boolean> handler = new ResponseHandler<Boolean>() {
+            // Because things are asynchronous, you must provide a HttpClientResponseHandler
+            final HttpClientResponseHandler<Boolean> handler = new HttpClientResponseHandler<Boolean>() {
                 @Override
                 public Boolean handleResponse(final ClassicHttpResponse response) throws IOException {
                     // simply return true if the status was OK

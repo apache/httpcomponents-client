@@ -32,7 +32,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.hc.client5.http.sync.HttpClient;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.ClassicHttpRequest;
-import org.apache.hc.core5.http.io.ResponseHandler;
+import org.apache.hc.core5.http.io.HttpClientResponseHandler;
 import org.apache.hc.core5.http.protocol.HttpContext;
 
 class HttpRequestTaskCallable<V> implements Callable<V> {
@@ -46,7 +46,7 @@ class HttpRequestTaskCallable<V> implements Callable<V> {
     private long ended = -1;
 
     private final HttpContext context;
-    private final ResponseHandler<V> responseHandler;
+    private final HttpClientResponseHandler<V> responseHandler;
     private final FutureCallback<V> callback;
 
     private final FutureRequestExecutionMetrics metrics;
@@ -55,7 +55,7 @@ class HttpRequestTaskCallable<V> implements Callable<V> {
             final HttpClient httpClient,
             final ClassicHttpRequest request,
             final HttpContext context,
-            final ResponseHandler<V> responseHandler,
+            final HttpClientResponseHandler<V> responseHandler,
             final FutureCallback<V> callback,
             final FutureRequestExecutionMetrics metrics) {
         this.httpclient = httpClient;

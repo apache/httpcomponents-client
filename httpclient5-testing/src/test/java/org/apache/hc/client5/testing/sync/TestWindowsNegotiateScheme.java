@@ -48,9 +48,7 @@ import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.io.HttpRequestHandler;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.protocol.HttpContext;
-import org.junit.After;
 import org.junit.Assume;
-import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -58,10 +56,9 @@ import org.junit.Test;
  */
 public class TestWindowsNegotiateScheme extends LocalServerTestBase {
 
-    @Before @Override
-    public void setUp() throws Exception {
-        super.setUp();
-        this.serverBootstrap.registerHandler("/", new HttpRequestHandler() {
+    @Test(timeout=30000) // this timeout (in ms) needs to be extended if you're actively debugging the code
+    public void testNoInfiniteLoopOnSPNOutsideDomain() throws Exception {
+        this.server.registerHandler("/", new HttpRequestHandler() {
 
             @Override
             public void handle(
@@ -73,15 +70,6 @@ public class TestWindowsNegotiateScheme extends LocalServerTestBase {
             }
 
         });
-    }
-
-    @After @Override
-    public void shutDown() throws Exception {
-        super.shutDown();
-    }
-
-    @Test(timeout=30000) // this timeout (in ms) needs to be extended if you're actively debugging the code
-    public void testNoInfiniteLoopOnSPNOutsideDomain() throws Exception {
         Assume.assumeTrue("Test can only be run on Windows", WinHttpClients.isWinAuthAvailable());
 
         // HTTPCLIENT-1545

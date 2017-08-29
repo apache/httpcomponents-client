@@ -32,43 +32,30 @@ import java.nio.charset.StandardCharsets;
 import org.apache.commons.codec.BinaryDecoder;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Base64;
-import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
-import org.apache.hc.core5.http.HttpHeaders;
-import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.ProtocolException;
 
 public class BasicAuthTokenExtractor {
 
-    public String extract(final HttpRequest request) throws HttpException {
-        String auth = null;
-
-        final Header h = request.getFirstHeader(HttpHeaders.AUTHORIZATION);
-        if (h != null) {
-            final String s = h.getValue();
-            if (s != null) {
-                auth = s.trim();
-            }
-        }
-
-        if (auth != null) {
-            final int i = auth.indexOf(' ');
+    public String extract(final String challengeResponse) throws HttpException {
+        if (challengeResponse != null) {
+            final int i = challengeResponse.indexOf(' ');
             if (i == -1) {
-                throw new ProtocolException("Invalid Authorization header: " + auth);
+                throw new ProtocolException("Invalid challenge response: " + challengeResponse);
             }
-            final String authscheme = auth.substring(0, i);
+            final String authscheme = challengeResponse.substring(0, i);
             if (authscheme.equalsIgnoreCase("basic")) {
-                final String s = auth.substring(i + 1).trim();
+                final String s = challengeResponse.substring(i + 1).trim();
                 try {
                     final byte[] credsRaw = s.getBytes(StandardCharsets.US_ASCII);
                     final BinaryDecoder codec = new Base64();
-                    auth = new String(codec.decode(credsRaw), StandardCharsets.US_ASCII);
+                    return new String(codec.decode(credsRaw), StandardCharsets.US_ASCII);
                 } catch (final DecoderException ex) {
                     throw new ProtocolException("Malformed BASIC credentials");
                 }
             }
         }
-        return auth;
+        return null;
     }
 
 }

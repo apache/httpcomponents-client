@@ -48,6 +48,7 @@ import org.apache.hc.core5.http.nio.DataStreamChannel;
 import org.apache.hc.core5.http.nio.ResponseChannel;
 import org.apache.hc.core5.http.nio.entity.BasicAsyncEntityConsumer;
 import org.apache.hc.core5.http.nio.entity.BasicAsyncEntityProducer;
+import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.Asserts;
 
 /**
@@ -76,7 +77,8 @@ public class AsyncEchoHandler implements AsyncServerExchangeHandler {
     public void handleRequest(
             final HttpRequest request,
             final EntityDetails entityDetails,
-            final ResponseChannel responseChannel) throws HttpException, IOException {
+            final ResponseChannel responseChannel,
+            final HttpContext context) throws HttpException, IOException {
         final String method = request.getMethod();
         if (!"GET".equalsIgnoreCase(method) &&
                 !"HEAD".equalsIgnoreCase(method) &&

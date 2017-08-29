@@ -34,16 +34,15 @@ import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.nio.AsyncDataProducer;
 import org.apache.hc.core5.http.nio.AsyncEntityProducer;
 import org.apache.hc.core5.http.nio.DataStreamChannel;
-import org.apache.hc.core5.util.Args;
 
-public class BasicAsyncEntityProducer implements AsyncEntityProducer {
+final class InternalAsyncEntityProducer implements AsyncEntityProducer {
 
     private final AsyncDataProducer dataProducer;
     private final EntityDetails entityDetails;
 
-    BasicAsyncEntityProducer(final AsyncDataProducer dataProducer, final EntityDetails entityDetails) {
-        this.dataProducer = Args.notNull(dataProducer, "Data producer");
-        this.entityDetails = Args.notNull(entityDetails, "Entity details");
+    InternalAsyncEntityProducer(final AsyncDataProducer dataProducer, final EntityDetails entityDetails) {
+        this.dataProducer = dataProducer;
+        this.entityDetails = entityDetails;
     }
 
     @Override

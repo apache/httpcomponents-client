@@ -41,7 +41,7 @@ import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpStatus;
-import org.apache.hc.core5.http.io.ResponseHandler;
+import org.apache.hc.core5.http.io.HttpClientResponseHandler;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
@@ -54,7 +54,7 @@ public class FluentResponseHandling {
 
     public static void main(String[] args)throws Exception {
         Document result = Request.Get("http://somehost/content")
-                .execute().handleResponse(new ResponseHandler<Document>() {
+                .execute().handleResponse(new HttpClientResponseHandler<Document>() {
 
             @Override
             public Document handleResponse(final ClassicHttpResponse response) throws IOException {

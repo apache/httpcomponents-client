@@ -41,8 +41,8 @@ import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.io.HttpClientResponseHandler;
 import org.apache.hc.core5.http.io.HttpRequestHandler;
-import org.apache.hc.core5.http.io.ResponseHandler;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.protocol.HttpContext;
@@ -52,10 +52,9 @@ import org.junit.Test;
 
 public class TestFluent extends LocalServerTestBase {
 
-    @Before @Override
+    @Before
     public void setUp() throws Exception {
-        super.setUp();
-        this.serverBootstrap.registerHandler("/", new HttpRequestHandler() {
+        this.server.registerHandler("/", new HttpRequestHandler() {
 
             @Override
             public void handle(
@@ -66,7 +65,7 @@ public class TestFluent extends LocalServerTestBase {
             }
 
         });
-        this.serverBootstrap.registerHandler("/echo", new HttpRequestHandler() {
+        this.server.registerHandler("/echo", new HttpRequestHandler() {
 
             @Override
             public void handle(
@@ -155,7 +154,7 @@ public class TestFluent extends LocalServerTestBase {
             Request.Get(baseURL + "/").execute().returnContent();
             Request.Get(baseURL + "/").execute().returnResponse();
             Request.Get(baseURL + "/").execute().discardContent();
-            Request.Get(baseURL + "/").execute().handleResponse(new ResponseHandler<Object>() {
+            Request.Get(baseURL + "/").execute().handleResponse(new HttpClientResponseHandler<Object>() {
 
                 @Override
                 public Object handleResponse(

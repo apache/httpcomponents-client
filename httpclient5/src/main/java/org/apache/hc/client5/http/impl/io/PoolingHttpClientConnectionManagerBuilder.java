@@ -39,7 +39,7 @@ import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.config.SocketConfig;
 import org.apache.hc.core5.http.io.HttpConnectionFactory;
 import org.apache.hc.core5.pool.ConnPoolListener;
-import org.apache.hc.core5.pool.ConnPoolPolicy;
+import org.apache.hc.core5.pool.PoolReusePolicy;
 import org.apache.hc.core5.util.TimeValue;
 
 /**
@@ -74,7 +74,7 @@ public class PoolingHttpClientConnectionManagerBuilder {
     private LayeredConnectionSocketFactory sslSocketFactory;
     private SchemePortResolver schemePortResolver;
     private DnsResolver dnsResolver;
-    private ConnPoolPolicy connPoolPolicy;
+    private PoolReusePolicy poolReusePolicy;
     private ConnPoolListener<HttpRoute> connPoolListener;
     private SocketConfig defaultSocketConfig;
 
@@ -129,10 +129,10 @@ public class PoolingHttpClientConnectionManagerBuilder {
     }
 
     /**
-     * Assigns {@link ConnPoolPolicy} value.
+     * Assigns {@link PoolReusePolicy} value.
      */
-    public final PoolingHttpClientConnectionManagerBuilder setConnPoolPolicy(final ConnPoolPolicy connPoolPolicy) {
-        this.connPoolPolicy = connPoolPolicy;
+    public final PoolingHttpClientConnectionManagerBuilder setConnPoolPolicy(final PoolReusePolicy poolReusePolicy) {
+        this.poolReusePolicy = poolReusePolicy;
         return this;
     }
 
@@ -209,7 +209,7 @@ public class PoolingHttpClientConnectionManagerBuilder {
                 connectionFactory,
                 schemePortResolver,
                 dnsResolver,
-                connPoolPolicy,
+                poolReusePolicy,
                 connPoolListener,
                 timeToLive != null ? timeToLive : TimeValue.NEG_ONE_MILLISECONDS);
         poolingmgr.setValidateAfterInactivity(this.validateAfterInactivity);

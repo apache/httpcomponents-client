@@ -35,24 +35,24 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpStatus;
-import org.apache.hc.core5.http.io.ResponseHandler;
+import org.apache.hc.core5.http.io.HttpClientResponseHandler;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 
 /**
- * A generic {@link ResponseHandler} that works with the response entity
+ * A generic {@link HttpClientResponseHandler} that works with the response entity
  * for successful (2xx) responses. If the response code was &gt;= 300, the response
  * body is consumed and an {@link HttpResponseException} is thrown.
  * <p>
  * If this is used with
  * {@link org.apache.hc.client5.http.sync.HttpClient#execute(org.apache.hc.core5.http.ClassicHttpRequest,
- * ResponseHandler)},
+ * HttpClientResponseHandler)},
  * HttpClient may handle redirects (3xx responses) internally.
  * </p>
  *
  * @since 4.4
  */
 @Contract(threading = ThreadingBehavior.IMMUTABLE)
-public abstract class AbstractResponseHandler<T> implements ResponseHandler<T> {
+public abstract class AbstractHttpClientResponseHandler<T> implements HttpClientResponseHandler<T> {
 
     /**
      * Read the entity from the response body and pass it to the entity handler

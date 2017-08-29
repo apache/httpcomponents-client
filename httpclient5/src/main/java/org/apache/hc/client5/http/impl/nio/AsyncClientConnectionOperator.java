@@ -27,15 +27,14 @@
 
 package org.apache.hc.client5.http.impl.nio;
 
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
-import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.hc.client5.http.ConnectTimeoutException;
 import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.HttpHostConnectException;
 import org.apache.hc.client5.http.SchemePortResolver;
@@ -48,9 +47,7 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
 import org.apache.hc.core5.reactor.ConnectionInitiator;
-import org.apache.hc.core5.reactor.SessionRequest;
-import org.apache.hc.core5.reactor.SessionRequestCallback;
-import org.apache.hc.core5.reactor.TlsCapableIOSession;
+import org.apache.hc.core5.reactor.IOSession;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TimeValue;
 
@@ -101,16 +98,16 @@ final class AsyncClientConnectionOperator {
             void executeNext() {
                 final int index = attempt.getAndIncrement();
                 final InetSocketAddress remoteAddress = new InetSocketAddress(remoteAddresses[index], port);
-                final SessionRequest sessionRequest = connectionInitiator.connect(
+                final Future<IOSession> sessionFuture = connectionInitiator.connect(
                         host,
                         remoteAddress,
                         localAddress,
+                        connectTimeout,
                         attachment,
-                        new SessionRequestCallback() {
+                        new FutureCallback<IOSession>() {
 
                             @Override
-                            public void completed(final SessionRequest request) {
-                                final TlsCapableIOSession session = request.getSession();
+                            public void completed(final IOSession session) {
                                 final ManagedAsyncClientConnection connection = new ManagedAsyncClientConnection(session);
                                 if (tlsStrategy != null) {
                                     tlsStrategy.upgrade(
@@ -118,33 +115,31 @@ final class AsyncClientConnectionOperator {
                                             host,
                                             session.getLocalAddress(),
                                             session.getRemoteAddress(),
-                                            request.getAttachment());
+                                            attachment);
                                 }
                                 future.completed(connection);
                             }
 
                             @Override
-                            public void failed(final SessionRequest request) {
+                            public void failed(final Exception cause) {
                                 if (attempt.get() >= remoteAddresses.length) {
-                                    future.failed(new HttpHostConnectException(request.getException(), host, remoteAddresses));
+                                    if (cause instanceof IOException) {
+                                        future.failed(new HttpHostConnectException((IOException) cause, host, remoteAddresses));
+                                    } else {
+                                        future.failed(cause);
+                                    }
                                 } else {
                                     executeNext();
                                 }
                             }
 
                             @Override
-                            public void timeout(final SessionRequest request) {
-                                future.failed(new ConnectTimeoutException(new SocketException(), host, remoteAddresses));
-                            }
-
-                            @Override
-                            public void cancelled(final SessionRequest request) {
+                            public void cancelled() {
                                 future.cancel();
                             }
 
                         });
-                future.setDependency(sessionRequest);
-                sessionRequest.setConnectTimeout(connectTimeout.toMillisIntBound());
+                future.setDependency(sessionFuture);
             }
 
             @Override

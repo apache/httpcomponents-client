@@ -36,7 +36,7 @@ import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.ClassicHttpRequest;
-import org.apache.hc.core5.http.io.ResponseHandler;
+import org.apache.hc.core5.http.io.HttpClientResponseHandler;
 import org.apache.hc.core5.http.protocol.HttpContext;
 
 /**
@@ -78,15 +78,15 @@ public class FutureRequestExecutionService implements Closeable {
      *
      * @param request
      *            request to execute
-     * @param responseHandler
+     * @param HttpClientResponseHandler
      *            handler that will process the response.
      * @return HttpAsyncClientFutureTask for the scheduled request.
      */
     public <T> HttpRequestFutureTask<T> execute(
             final ClassicHttpRequest request,
             final HttpContext context,
-            final ResponseHandler<T> responseHandler) {
-        return execute(request, context, responseHandler, null);
+            final HttpClientResponseHandler<T> HttpClientResponseHandler) {
+        return execute(request, context, HttpClientResponseHandler, null);
     }
 
     /**
@@ -98,7 +98,7 @@ public class FutureRequestExecutionService implements Closeable {
      *            request to execute
      * @param context
      *            optional context; use null if not needed.
-     * @param responseHandler
+     * @param HttpClientResponseHandler
      *            handler that will process the response.
      * @param callback
      *            callback handler that will be called when the request is scheduled,
@@ -108,14 +108,14 @@ public class FutureRequestExecutionService implements Closeable {
     public <T> HttpRequestFutureTask<T> execute(
             final ClassicHttpRequest request,
             final HttpContext context,
-            final ResponseHandler<T> responseHandler,
+            final HttpClientResponseHandler<T> HttpClientResponseHandler,
             final FutureCallback<T> callback) {
         if(closed.get()) {
             throw new IllegalStateException("Close has been called on this httpclient instance.");
         }
         metrics.getScheduledConnections().incrementAndGet();
         final HttpRequestTaskCallable<T> callable = new HttpRequestTaskCallable<>(
-                httpclient, request, context, responseHandler, callback, metrics);
+                httpclient, request, context, HttpClientResponseHandler, callback, metrics);
         final HttpRequestFutureTask<T> httpRequestFutureTask = new HttpRequestFutureTask<>(
                 request, callable);
         executorService.execute(httpRequestFutureTask);

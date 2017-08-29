@@ -29,7 +29,7 @@ package org.apache.hc.client5.http.impl;
 
 import java.io.InputStream;
 
-import org.apache.hc.client5.http.impl.sync.BasicResponseHandler;
+import org.apache.hc.client5.http.impl.sync.BasicHttpClientResponseHandler;
 import org.apache.hc.client5.http.protocol.HttpResponseException;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpEntity;
@@ -39,7 +39,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 /**
- * Unit tests for {@link BasicResponseHandler}.
+ * Unit tests for {@link BasicHttpClientResponseHandler}.
  */
 @SuppressWarnings("boxing") // test code
 public class TestBasicResponseHandler {
@@ -51,7 +51,7 @@ public class TestBasicResponseHandler {
         Mockito.when(response.getCode()).thenReturn(200);
         Mockito.when(response.getEntity()).thenReturn(entity);
 
-        final BasicResponseHandler handler = new BasicResponseHandler();
+        final BasicHttpClientResponseHandler handler = new BasicHttpClientResponseHandler();
         final String s = handler.handleResponse(response);
         Assert.assertEquals("stuff", s);
     }
@@ -66,7 +66,7 @@ public class TestBasicResponseHandler {
         Mockito.when(response.getCode()).thenReturn(404);
         Mockito.when(response.getEntity()).thenReturn(entity);
 
-        final BasicResponseHandler handler = new BasicResponseHandler();
+        final BasicHttpClientResponseHandler handler = new BasicHttpClientResponseHandler();
         try {
             handler.handleResponse(response);
             Assert.fail("HttpResponseException expected");

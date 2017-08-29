@@ -40,6 +40,7 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.io.ShutdownType;
 import org.apache.hc.core5.reactor.IOReactorConfig;
 import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 
 /**
  * Example demonstrating how to evict expired and idle connections
@@ -50,7 +51,7 @@ public class AsyncClientConnectionEviction {
     public static void main(final String[] args) throws Exception {
 
         final IOReactorConfig ioReactorConfig = IOReactorConfig.custom()
-                .setSoTimeout(TimeValue.ofSeconds(5))
+                .setSoTimeout(Timeout.ofSeconds(5))
                 .build();
 
         final CloseableHttpAsyncClient client = HttpAsyncClients.custom()

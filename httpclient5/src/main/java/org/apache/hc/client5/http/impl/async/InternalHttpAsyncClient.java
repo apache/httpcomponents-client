@@ -53,6 +53,8 @@ import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.core5.http.ProtocolVersion;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.nio.AsyncClientExchangeHandler;
 import org.apache.hc.core5.http.nio.AsyncDataConsumer;
@@ -150,9 +152,9 @@ class InternalHttpAsyncClient extends AbstractHttpAsyncClientBase {
             log.debug(exchangeId + ": preparing request execution");
         }
 
-        //TODO remove when fixed in HttpCore
-        if (route.isTunnelled()) {
-            throw new HttpException("HTTP tunneling not supported");
+        final ProtocolVersion protocolVersion = clientContext.getProtocolVersion();
+        if (route.isTunnelled() && protocolVersion.greaterEquals(HttpVersion.HTTP_2_0)) {
+            throw new HttpException("HTTP/2 tunneling not supported");
         }
 
         setupContext(clientContext);
@@ -160,7 +162,7 @@ class InternalHttpAsyncClient extends AbstractHttpAsyncClientBase {
         final AsyncExecChain.Scope scope = new AsyncExecChain.Scope(exchangeId, route, request, clientContext, execRuntime);
         execChain.execute(
                 ExecSupport.copy(request),
-                entityDetails != null ? new BasicAsyncEntityProducer(exchangeHandler, entityDetails) : null,
+                entityDetails != null ? new InternalAsyncEntityProducer(exchangeHandler, entityDetails) : null,
                 scope,
                 new AsyncExecCallback() {
 

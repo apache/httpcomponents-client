@@ -81,6 +81,7 @@ import org.apache.hc.core5.http.message.LineParser;
 import org.apache.hc.core5.ssl.SSLContexts;
 import org.apache.hc.core5.util.CharArrayBuffer;
 import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 
 /**
  * This example demonstrates how to customize and configure the most common aspects
@@ -208,9 +209,9 @@ public class ClientConfiguration {
             // Request configuration can be overridden at the request level.
             // They will take precedence over the one set at the client level.
             final RequestConfig requestConfig = RequestConfig.copy(defaultRequestConfig)
-                    .setSocketTimeout(TimeValue.ofSeconds(5))
-                    .setConnectTimeout(TimeValue.ofSeconds(5))
-                    .setConnectionRequestTimeout(TimeValue.ofSeconds(5))
+                    .setSocketTimeout(Timeout.ofSeconds(5))
+                    .setConnectTimeout(Timeout.ofSeconds(5))
+                    .setConnectionRequestTimeout(Timeout.ofSeconds(5))
                     .setProxy(new HttpHost("myotherproxy", 8080))
                     .build();
             httpget.setConfig(requestConfig);

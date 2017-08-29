@@ -55,7 +55,7 @@ public class TestCookieVirtualHost extends LocalServerTestBase {
 
     @Test
     public void testCookieMatchingWithVirtualHosts() throws Exception {
-        this.serverBootstrap.registerHandler("*", new HttpRequestHandler() {
+        this.server.registerHandlerVirtual("app.mydomain.fr", "*", new HttpRequestHandler() {
             @Override
             public void handle(
                     final ClassicHttpRequest request,

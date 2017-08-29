@@ -32,7 +32,6 @@ import java.net.URI;
 
 import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
 import org.apache.hc.client5.http.sync.methods.HttpGet;
-import org.apache.hc.client5.testing.classic.RandomHandler;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.Header;
@@ -53,11 +52,6 @@ public class TestConnectionReuse extends LocalServerTestBase {
 
     @Test
     public void testReuseOfPersistentConnections() throws Exception {
-        final HttpProcessor httpproc = HttpProcessors.customServer(null).build();
-
-        this.serverBootstrap.setHttpProcessor(httpproc)
-                .registerHandler("/random/*", new RandomHandler());
-
         this.connManager.setMaxTotal(5);
         this.connManager.setDefaultMaxPerRoute(5);
 
@@ -101,16 +95,13 @@ public class TestConnectionReuse extends LocalServerTestBase {
 
     @Test
     public void testReuseOfClosedConnections() throws Exception {
-        final HttpProcessor httpproc = HttpProcessors.customServer(null)
-                .add(new AlwaysCloseConn()).build();
-
-        this.serverBootstrap.setHttpProcessor(httpproc)
-                .registerHandler("/random/*", new RandomHandler());
-
         this.connManager.setMaxTotal(5);
         this.connManager.setDefaultMaxPerRoute(5);
 
-        final HttpHost target = start();
+        final HttpProcessor httpproc = HttpProcessors.customServer(null)
+                .add(new AlwaysCloseConn())
+                .build();
+        final HttpHost target = start(httpproc, null);
 
         final WorkerThread[] workers = new WorkerThread[10];
         for (int i = 0; i < workers.length; i++) {
@@ -138,11 +129,6 @@ public class TestConnectionReuse extends LocalServerTestBase {
 
     @Test
     public void testReuseOfAbortedConnections() throws Exception {
-        final HttpProcessor httpproc = HttpProcessors.customServer(null).build();
-
-        this.serverBootstrap.setHttpProcessor(httpproc)
-                .registerHandler("/random/*", new RandomHandler());
-
         this.connManager.setMaxTotal(5);
         this.connManager.setDefaultMaxPerRoute(5);
 
@@ -174,16 +160,13 @@ public class TestConnectionReuse extends LocalServerTestBase {
 
     @Test
     public void testKeepAliveHeaderRespected() throws Exception {
-        final HttpProcessor httpproc = HttpProcessors.customServer(null)
-                .add(new ResponseKeepAlive()).build();
-
-        this.serverBootstrap.setHttpProcessor(httpproc)
-                .registerHandler("/random/*", new RandomHandler());
-
         this.connManager.setMaxTotal(1);
         this.connManager.setDefaultMaxPerRoute(1);
 
-        final HttpHost target = start();
+        final HttpProcessor httpproc = HttpProcessors.customServer(null)
+                .add(new ResponseKeepAlive())
+                .build();
+        final HttpHost target = start(httpproc, null);
 
         ClassicHttpResponse response = this.httpclient.execute(target, new HttpGet("/random/2000"));
         EntityUtils.consume(response.getEntity());

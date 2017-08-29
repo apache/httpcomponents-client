@@ -27,34 +27,30 @@
 
 package org.apache.hc.client5.testing.sync;
 
+import java.io.IOException;
+import java.util.concurrent.TimeUnit;
+
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.sync.HttpClientBuilder;
 import org.apache.hc.client5.testing.SSLTestContexts;
 import org.apache.hc.client5.testing.classic.EchoHandler;
 import org.apache.hc.client5.testing.classic.RandomHandler;
+import org.apache.hc.core5.function.Decorator;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.config.SocketConfig;
-import org.apache.hc.core5.http.impl.bootstrap.HttpServer;
-import org.apache.hc.core5.http.impl.bootstrap.ServerBootstrap;
+import org.apache.hc.core5.http.io.HttpServerRequestHandler;
+import org.apache.hc.core5.http.protocol.HttpProcessor;
 import org.apache.hc.core5.io.ShutdownType;
-import org.apache.hc.core5.util.TimeValue;
-import org.junit.After;
-import org.junit.Before;
+import org.apache.hc.core5.testing.classic.ClassicTestServer;
+import org.junit.Rule;
+import org.junit.rules.ExternalResource;
 
 /**
  * Base class for tests using local test server. The server will not be started per default.
  */
 public abstract class LocalServerTestBase {
-
-    protected final URIScheme scheme;
-
-    protected ServerBootstrap serverBootstrap;
-    protected HttpServer server;
-    protected PoolingHttpClientConnectionManager connManager;
-    protected HttpClientBuilder clientBuilder;
-    protected CloseableHttpClient httpclient;
 
     public LocalServerTestBase(final URIScheme scheme) {
         this.scheme = scheme;
@@ -64,48 +60,81 @@ public abstract class LocalServerTestBase {
         this(URIScheme.HTTP);
     }
 
-    public String getSchemeName() {
-        return this.scheme.name();
-    }
+    protected final URIScheme scheme;
 
-    @Before
-    public void setUp() throws Exception {
-        final SocketConfig socketConfig = SocketConfig.custom()
-                .setSoTimeout(TimeValue.ofSeconds(15))
-                .build();
-        this.serverBootstrap = ServerBootstrap.bootstrap()
-                .setSocketConfig(socketConfig)
-                .registerHandler("/echo/*", new EchoHandler())
-                .registerHandler("/random/*", new RandomHandler());
-        if (this.scheme.equals(URIScheme.HTTPS)) {
-            this.serverBootstrap.setSslContext(SSLTestContexts.createServerSSLContext());
+    protected ClassicTestServer server;
+
+    @Rule
+    public ExternalResource serverResource = new ExternalResource() {
+
+        @Override
+        protected void before() throws Throwable {
+            server = new ClassicTestServer(
+                    scheme == URIScheme.HTTPS ? SSLTestContexts.createServerSSLContext() : null,
+                    SocketConfig.custom()
+                            .setSoTimeout(5, TimeUnit.SECONDS)
+                            .build());
+            server.registerHandler("/echo/*", new EchoHandler());
+            server.registerHandler("/random/*", new RandomHandler());
         }
 
-        this.connManager = new PoolingHttpClientConnectionManager();
-        this.connManager.setDefaultSocketConfig(socketConfig);
-        this.clientBuilder = HttpClientBuilder.create()
-                .setConnectionManager(this.connManager);
-    }
-
-    @After
-    public void shutDown() throws Exception {
-        if (this.httpclient != null) {
-            this.httpclient.close();
+        @Override
+        protected void after() {
+            if (server != null) {
+                try {
+                    server.shutdown(ShutdownType.IMMEDIATE);
+                    server = null;
+                } catch (final Exception ignore) {
+                }
+            }
         }
-        if (this.server != null) {
-            this.server.shutdown(ShutdownType.IMMEDIATE);
-        }
-    }
 
-    public HttpHost start() throws Exception {
-        this.server = this.serverBootstrap.create();
-        this.server.start();
+    };
+
+    protected PoolingHttpClientConnectionManager connManager;
+    protected HttpClientBuilder clientBuilder;
+    protected CloseableHttpClient httpclient;
+
+    @Rule
+    public ExternalResource clientResource = new ExternalResource() {
+
+        @Override
+        protected void before() throws Throwable {
+            connManager = new PoolingHttpClientConnectionManager();
+            connManager.setDefaultSocketConfig(SocketConfig.custom()
+                    .setSoTimeout(5, TimeUnit.SECONDS)
+                    .build());
+            clientBuilder = HttpClientBuilder.create()
+                    .setConnectionManager(connManager);
+        }
+
+        @Override
+        protected void after() {
+            if (httpclient != null) {
+                try {
+                    httpclient.close();
+                    httpclient = null;
+                } catch (final Exception ignore) {
+                }
+            }
+        }
+
+    };
+
+    public HttpHost start(
+            final HttpProcessor httpProcessor,
+            final Decorator<HttpServerRequestHandler> handlerDecorator) throws IOException {
+        this.server.start(httpProcessor, handlerDecorator);
 
         if (this.httpclient == null) {
             this.httpclient = this.clientBuilder.build();
         }
 
-        return new HttpHost("localhost", this.server.getLocalPort(), this.scheme.name());
+        return new HttpHost("localhost", this.server.getPort(), this.scheme.name());
+    }
+
+    public HttpHost start() throws Exception {
+        return start(null, null);
     }
 
 }

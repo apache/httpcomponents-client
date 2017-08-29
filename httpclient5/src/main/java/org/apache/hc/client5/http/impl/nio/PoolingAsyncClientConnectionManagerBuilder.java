@@ -27,6 +27,9 @@
 
 package org.apache.hc.client5.http.impl.nio;
 
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+
 import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.SchemePortResolver;
@@ -34,11 +37,8 @@ import org.apache.hc.client5.http.ssl.H2TlsStrategy;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
 import org.apache.hc.core5.pool.ConnPoolListener;
-import org.apache.hc.core5.pool.ConnPoolPolicy;
+import org.apache.hc.core5.pool.PoolReusePolicy;
 import org.apache.hc.core5.util.TimeValue;
-
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 
 /**
  * Builder for {@link PoolingAsyncClientConnectionManager} instances.
@@ -71,7 +71,7 @@ public class PoolingAsyncClientConnectionManagerBuilder {
     private TlsStrategy tlsStrategy;
     private SchemePortResolver schemePortResolver;
     private DnsResolver dnsResolver;
-    private ConnPoolPolicy connPoolPolicy;
+    private PoolReusePolicy poolReusePolicy;
     private ConnPoolListener<HttpRoute> connPoolListener;
 
     private boolean systemProperties;
@@ -116,10 +116,10 @@ public class PoolingAsyncClientConnectionManagerBuilder {
     }
 
     /**
-     * Assigns {@link ConnPoolPolicy} value.
+     * Assigns {@link PoolReusePolicy} value.
      */
-    public final PoolingAsyncClientConnectionManagerBuilder setConnPoolPolicy(final ConnPoolPolicy connPoolPolicy) {
-        this.connPoolPolicy = connPoolPolicy;
+    public final PoolingAsyncClientConnectionManagerBuilder setConnPoolPolicy(final PoolReusePolicy connPoolPolicy) {
+        this.poolReusePolicy = poolReusePolicy;
         return this;
     }
 
@@ -184,7 +184,7 @@ public class PoolingAsyncClientConnectionManagerBuilder {
                 schemePortResolver,
                 dnsResolver,
                 timeToLive,
-                connPoolPolicy,
+                poolReusePolicy,
                 connPoolListener);
         poolingmgr.setValidateAfterInactivity(this.validateAfterInactivity);
         if (maxConnTotal > 0) {

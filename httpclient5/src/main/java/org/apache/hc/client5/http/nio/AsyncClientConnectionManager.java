@@ -34,6 +34,7 @@ import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.reactor.ConnectionInitiator;
 import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 
 /**
  * Represents a manager of persistent non-blocking client connections.
@@ -76,7 +77,7 @@ public interface AsyncClientConnectionManager extends Closeable {
     Future<AsyncConnectionEndpoint> lease(
             HttpRoute route,
             Object state,
-            TimeValue timeout,
+            Timeout timeout,
             FutureCallback<AsyncConnectionEndpoint> callback);
 
     /**

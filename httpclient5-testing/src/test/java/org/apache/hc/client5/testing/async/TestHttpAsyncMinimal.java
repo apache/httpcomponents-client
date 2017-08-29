@@ -168,10 +168,10 @@ public class TestHttpAsyncMinimal {
         } else {
             server.start(H1Config.DEFAULT);
         }
-        final ListenerEndpoint listener = server.listen(new InetSocketAddress(0));
+        final Future<ListenerEndpoint> endpointFuture = server.listen(new InetSocketAddress(0));
         httpclient.start();
-        listener.waitFor();
-        final InetSocketAddress address = (InetSocketAddress) listener.getAddress();
+        final ListenerEndpoint endpoint = endpointFuture.get();
+        final InetSocketAddress address = (InetSocketAddress) endpoint.getAddress();
         return new HttpHost("localhost", address.getPort(), scheme.name());
     }
 

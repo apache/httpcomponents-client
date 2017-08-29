@@ -763,8 +763,8 @@ public class TestAsyncRedirects extends IntegrationTestBase {
             });
 
             secondServer.start();
-            final ListenerEndpoint endpoint2 = secondServer.listen(new InetSocketAddress(0));
-            endpoint2.waitFor();
+            final Future<ListenerEndpoint> endpointFuture = secondServer.listen(new InetSocketAddress(0));
+            final ListenerEndpoint endpoint2 = endpointFuture.get();
 
             final InetSocketAddress address2 = (InetSocketAddress) endpoint2.getAddress();
             final HttpHost initialTarget = new HttpHost("localhost", address2.getPort(), scheme.name());

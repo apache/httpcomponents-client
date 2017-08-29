@@ -47,7 +47,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import junit.framework.AssertionFailedError;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.cache.CacheResponseStatus;
 import org.apache.hc.client5.http.cache.HttpCacheContext;
@@ -71,7 +70,7 @@ import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.HttpVersion;
-import org.apache.hc.core5.http.io.ResponseHandler;
+import org.apache.hc.core5.http.io.HttpClientResponseHandler;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.InputStreamEntity;
 import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
@@ -84,6 +83,8 @@ import org.easymock.IExpectationSetters;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import junit.framework.AssertionFailedError;
 
 @SuppressWarnings("boxing") // test code
 public abstract class TestCachingExecChain {
@@ -100,7 +101,7 @@ public abstract class TestCachingExecChain {
     protected ResponseCachingPolicy mockResponsePolicy;
     protected HttpCacheEntry mockCacheEntry;
     protected CachedHttpResponseGenerator mockResponseGenerator;
-    private ResponseHandler<Object> mockHandler;
+    private HttpClientResponseHandler<Object> mockHandler;
     private ClassicHttpRequest mockUriRequest;
     private ClassicHttpResponse mockCachedResponse;
     protected ConditionalRequestBuilder mockConditionalRequestBuilder;
@@ -126,7 +127,7 @@ public abstract class TestCachingExecChain {
         mockCache = createNiceMock(HttpCache.class);
         mockSuitabilityChecker = createNiceMock(CachedResponseSuitabilityChecker.class);
         mockResponsePolicy = createNiceMock(ResponseCachingPolicy.class);
-        mockHandler = createNiceMock(ResponseHandler.class);
+        mockHandler = createNiceMock(HttpClientResponseHandler.class);
         mockUriRequest = createNiceMock(ClassicHttpRequest.class);
         mockCacheEntry = createNiceMock(HttpCacheEntry.class);
         mockResponseGenerator = createNiceMock(CachedHttpResponseGenerator.class);

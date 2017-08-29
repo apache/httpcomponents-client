@@ -38,20 +38,20 @@ import org.apache.hc.core5.http.ParseException;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 
 /**
- * A {@link org.apache.hc.core5.http.io.ResponseHandler} that returns the response body as a String
+ * A {@link org.apache.hc.core5.http.io.HttpClientResponseHandler} that returns the response body as a String
  * for successful (2xx) responses. If the response code was &gt;= 300, the response
  * body is consumed and an {@link org.apache.hc.client5.http.protocol.HttpResponseException} is thrown.
  * <p>
  * If this is used with
  * {@link org.apache.hc.client5.http.sync.HttpClient#execute(
- *  org.apache.hc.core5.http.ClassicHttpRequest, org.apache.hc.core5.http.io.ResponseHandler)},
+ *  org.apache.hc.core5.http.ClassicHttpRequest, org.apache.hc.core5.http.io.HttpClientResponseHandler)},
  * HttpClient may handle redirects (3xx responses) internally.
  * </p>
  *
  * @since 4.0
  */
 @Contract(threading = ThreadingBehavior.IMMUTABLE)
-public class BasicResponseHandler extends AbstractResponseHandler<String> {
+public class BasicHttpClientResponseHandler extends AbstractHttpClientResponseHandler<String> {
 
     /**
      * Returns the entity as a body as a String.

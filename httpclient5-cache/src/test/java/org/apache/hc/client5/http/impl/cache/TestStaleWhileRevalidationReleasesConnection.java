@@ -81,7 +81,7 @@ public class TestStaleWhileRevalidationReleasesConnection {
                 .setSocketConfig(SocketConfig.custom()
                         .setSoTimeout(5, TimeUnit.SECONDS)
                         .build())
-                .registerHandler(url + "*", new EchoViaHeaderHandler())
+                .register(url + "*", new EchoViaHeaderHandler())
                 .create();
         this.localServer.start();
 

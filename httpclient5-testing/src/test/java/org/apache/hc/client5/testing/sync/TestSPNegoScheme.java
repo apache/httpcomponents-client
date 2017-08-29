@@ -149,7 +149,7 @@ public class TestSPNegoScheme extends LocalServerTestBase {
      */
     @Test
     public void testDontTryToAuthenticateEndlessly() throws Exception {
-        this.serverBootstrap.registerHandler("*", new PleaseNegotiateService());
+        this.server.registerHandler("*", new PleaseNegotiateService());
         final HttpHost target = start();
 
         final AuthSchemeProvider nsf = new NegotiateSchemeProviderWithMockGssManager();
@@ -179,7 +179,7 @@ public class TestSPNegoScheme extends LocalServerTestBase {
      */
     @Test
     public void testNoTokenGeneratedError() throws Exception {
-        this.serverBootstrap.registerHandler("*", new PleaseNegotiateService());
+        this.server.registerHandler("*", new PleaseNegotiateService());
         final HttpHost target = start();
 
         final AuthSchemeProvider nsf = new NegotiateSchemeProviderWithMockGssManager();

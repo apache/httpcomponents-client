@@ -62,7 +62,7 @@ public abstract class CloseableHttpAsyncClient implements HttpAsyncClient, Close
 
     public abstract IOReactorStatus getStatus();
 
-    public abstract List<ExceptionEvent> getAuditLog();
+    public abstract List<ExceptionEvent> getExceptionLog();
 
     public abstract void awaitShutdown(TimeValue waitTime) throws InterruptedException;
 

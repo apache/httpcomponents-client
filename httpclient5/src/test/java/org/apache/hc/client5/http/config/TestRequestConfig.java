@@ -33,6 +33,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -47,9 +48,9 @@ public class TestRequestConfig {
     @Test
     public void testDefaults() {
         final RequestConfig config = RequestConfig.DEFAULT;
-        Assert.assertEquals(TimeValue.NEG_ONE_MILLISECONDS, config.getSocketTimeout());
-        Assert.assertEquals(TimeValue.ofMinutes(3), config.getConnectTimeout());
-        Assert.assertEquals(TimeValue.ofMinutes(3), config.getConnectionRequestTimeout());
+        Assert.assertEquals(Timeout.ZERO_MILLISECONDS, config.getSocketTimeout());
+        Assert.assertEquals(Timeout.ofMinutes(3), config.getConnectTimeout());
+        Assert.assertEquals(Timeout.ofMinutes(3), config.getConnectionRequestTimeout());
         Assert.assertEquals(false, config.isExpectContinueEnabled());
         Assert.assertEquals(true, config.isAuthenticationEnabled());
         Assert.assertEquals(true, config.isRedirectsEnabled());

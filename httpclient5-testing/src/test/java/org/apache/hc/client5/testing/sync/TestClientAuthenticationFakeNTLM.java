@@ -66,7 +66,7 @@ public class TestClientAuthenticationFakeNTLM extends LocalServerTestBase {
 
     @Test
     public void testNTLMAuthenticationFailure() throws Exception {
-        this.serverBootstrap.registerHandler("*", new NtlmResponseHandler());
+        this.server.registerHandler("*", new NtlmResponseHandler());
 
         final HttpHost target = start();
 
@@ -112,7 +112,7 @@ public class TestClientAuthenticationFakeNTLM extends LocalServerTestBase {
 
     @Test
     public void testNTLMv1Type2Message() throws Exception {
-        this.serverBootstrap.registerHandler("*", new NtlmType2MessageResponseHandler("TlRMTVNTUAACAA" +
+        this.server.registerHandler("*", new NtlmType2MessageResponseHandler("TlRMTVNTUAACAA" +
                 "AADAAMADgAAAAzggLiASNFZ4mrze8AAAAAAAAAAAAAAAAAAAAABgBwFwAAAA9T" +
                 "AGUAcgB2AGUAcgA="));
         final HttpHost target = start();
@@ -136,7 +136,7 @@ public class TestClientAuthenticationFakeNTLM extends LocalServerTestBase {
 
     @Test
     public void testNTLMv2Type2Message() throws Exception {
-        this.serverBootstrap.registerHandler("*", new NtlmType2MessageResponseHandler("TlRMTVNTUAACAA" +
+        this.server.registerHandler("*", new NtlmType2MessageResponseHandler("TlRMTVNTUAACAA" +
                 "AADAAMADgAAAAzgoriASNFZ4mrze8AAAAAAAAAACQAJABEAAAABgBwFwAAAA9T" +
                 "AGUAcgB2AGUAcgACAAwARABvAG0AYQBpAG4AAQAMAFMAZQByAHYAZQByAAAAAAA="));
         final HttpHost target = start();
@@ -179,7 +179,7 @@ public class TestClientAuthenticationFakeNTLM extends LocalServerTestBase {
 
     @Test
     public void testNTLMType2MessageOnlyAuthenticationFailure() throws Exception {
-        this.serverBootstrap.registerHandler("*", new NtlmType2MessageOnlyResponseHandler("TlRMTVNTUAACAA" +
+        this.server.registerHandler("*", new NtlmType2MessageOnlyResponseHandler("TlRMTVNTUAACAA" +
                 "AADAAMADgAAAAzggLiASNFZ4mrze8AAAAAAAAAAAAAAAAAAAAABgBwFwAAAA9T" +
                 "AGUAcgB2AGUAcgA="));
 
@@ -200,7 +200,7 @@ public class TestClientAuthenticationFakeNTLM extends LocalServerTestBase {
 
     @Test
     public void testNTLMType2NonUnicodeMessageOnlyAuthenticationFailure() throws Exception {
-        this.serverBootstrap.registerHandler("*", new NtlmType2MessageOnlyResponseHandler("TlRMTVNTUAACAA" +
+        this.server.registerHandler("*", new NtlmType2MessageOnlyResponseHandler("TlRMTVNTUAACAA" +
                 "AABgAGADgAAAAyggLiASNFZ4mrze8AAAAAAAAAAAAAAAAAAAAABgBwFwAAAA9T" +
                 "ZXJ2ZXI="));
 

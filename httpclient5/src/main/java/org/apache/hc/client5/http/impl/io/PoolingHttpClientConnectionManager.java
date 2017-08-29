@@ -65,8 +65,8 @@ import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.io.ShutdownType;
 import org.apache.hc.core5.pool.ConnPoolControl;
 import org.apache.hc.core5.pool.ConnPoolListener;
-import org.apache.hc.core5.pool.ConnPoolPolicy;
 import org.apache.hc.core5.pool.PoolEntry;
+import org.apache.hc.core5.pool.PoolReusePolicy;
 import org.apache.hc.core5.pool.PoolStats;
 import org.apache.hc.core5.pool.StrictConnPool;
 import org.apache.hc.core5.util.Args;
@@ -128,7 +128,7 @@ public class PoolingHttpClientConnectionManager
     }
 
     public PoolingHttpClientConnectionManager(final TimeValue timeToLive) {
-        this(getDefaultRegistry(), null, null ,null, ConnPoolPolicy.LIFO, null, timeToLive);
+        this(getDefaultRegistry(), null, null ,null, PoolReusePolicy.LIFO, null, timeToLive);
     }
 
     public PoolingHttpClientConnectionManager(
@@ -157,7 +157,7 @@ public class PoolingHttpClientConnectionManager
             final Registry<ConnectionSocketFactory> socketFactoryRegistry,
             final HttpConnectionFactory<ManagedHttpClientConnection> connFactory,
             final DnsResolver dnsResolver) {
-        this(socketFactoryRegistry, connFactory, null, dnsResolver, ConnPoolPolicy.LIFO, null, TimeValue.NEG_ONE_MILLISECONDS);
+        this(socketFactoryRegistry, connFactory, null, dnsResolver, PoolReusePolicy.LIFO, null, TimeValue.NEG_ONE_MILLISECONDS);
     }
 
     public PoolingHttpClientConnectionManager(
@@ -165,24 +165,24 @@ public class PoolingHttpClientConnectionManager
             final HttpConnectionFactory<ManagedHttpClientConnection> connFactory,
             final SchemePortResolver schemePortResolver,
             final DnsResolver dnsResolver,
-            final ConnPoolPolicy connPoolPolicy,
+            final PoolReusePolicy poolReusePolicy,
             final ConnPoolListener<HttpRoute> connPoolListener,
             final TimeValue timeToLive) {
         this(new DefaultHttpClientConnectionOperator(socketFactoryRegistry, schemePortResolver, dnsResolver),
-            connFactory, connPoolPolicy, connPoolListener, timeToLive);
+            connFactory, poolReusePolicy, connPoolListener, timeToLive);
     }
 
     public PoolingHttpClientConnectionManager(
             final HttpClientConnectionOperator httpClientConnectionOperator,
             final HttpConnectionFactory<ManagedHttpClientConnection> connFactory,
-            final ConnPoolPolicy connPoolPolicy,
+            final PoolReusePolicy poolReusePolicy,
             final ConnPoolListener<HttpRoute> connPoolListener,
             final TimeValue timeToLive) {
         super();
         this.connectionOperator = Args.notNull(httpClientConnectionOperator, "Connection operator");
         this.connFactory = connFactory != null ? connFactory : ManagedHttpClientConnectionFactory.INSTANCE;
         this.pool = new StrictConnPool<>(
-                DEFAULT_MAX_CONNECTIONS_PER_ROUTE, DEFAULT_MAX_TOTAL_CONNECTIONS, timeToLive, connPoolPolicy, connPoolListener);
+                DEFAULT_MAX_CONNECTIONS_PER_ROUTE, DEFAULT_MAX_TOTAL_CONNECTIONS, timeToLive, poolReusePolicy, connPoolListener);
         this.closed = new AtomicBoolean(false);
     }
 

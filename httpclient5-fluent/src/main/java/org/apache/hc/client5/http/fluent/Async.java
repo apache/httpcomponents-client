@@ -30,7 +30,7 @@ import java.util.concurrent.Future;
 
 import org.apache.hc.core5.concurrent.BasicFuture;
 import org.apache.hc.core5.concurrent.FutureCallback;
-import org.apache.hc.core5.http.io.ResponseHandler;
+import org.apache.hc.core5.http.io.HttpClientResponseHandler;
 
 public class Async {
 
@@ -60,13 +60,13 @@ public class Async {
         private final BasicFuture<T> future;
         private final Request request;
         private final Executor executor;
-        private final ResponseHandler<T> handler;
+        private final HttpClientResponseHandler<T> handler;
 
         ExecRunnable(
                 final BasicFuture<T> future,
                 final Request request,
                 final Executor executor,
-                final ResponseHandler<T> handler) {
+                final HttpClientResponseHandler<T> handler) {
             super();
             this.future = future;
             this.request = request;
@@ -88,7 +88,7 @@ public class Async {
     }
 
     public <T> Future<T> execute(
-            final Request request, final ResponseHandler<T> handler, final FutureCallback<T> callback) {
+            final Request request, final HttpClientResponseHandler<T> handler, final FutureCallback<T> callback) {
         final BasicFuture<T> future = new BasicFuture<>(callback);
         final ExecRunnable<T> runnable = new ExecRunnable<>(
                 future,
@@ -105,7 +105,7 @@ public class Async {
         return future;
     }
 
-    public <T> Future<T> execute(final Request request, final ResponseHandler<T> handler) {
+    public <T> Future<T> execute(final Request request, final HttpClientResponseHandler<T> handler) {
         return execute(request, handler, null);
     }
 

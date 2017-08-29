@@ -26,7 +26,6 @@
  */
 package org.apache.hc.client5.testing.async;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -52,18 +51,16 @@ import org.apache.hc.client5.http.impl.protocol.DefaultAuthenticationStrategy;
 import org.apache.hc.client5.http.impl.sync.BasicCredentialsProvider;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.sync.methods.HttpGet;
-import org.apache.hc.client5.testing.auth.RequestBasicAuth;
-import org.apache.hc.client5.testing.auth.ResponseBasicUnauthorized;
+import org.apache.hc.client5.testing.BasicTestAuthenticator;
+import org.apache.hc.client5.testing.auth.Authenticator;
+import org.apache.hc.core5.function.Decorator;
 import org.apache.hc.core5.function.Supplier;
 import org.apache.hc.core5.http.ContentType;
-import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.HeaderElements;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
-import org.apache.hc.core5.http.HttpResponseInterceptor;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.config.H1Config;
@@ -71,13 +68,10 @@ import org.apache.hc.core5.http.config.Registry;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.impl.HttpProcessors;
 import org.apache.hc.core5.http.message.BasicHeader;
-import org.apache.hc.core5.http.message.BasicHttpResponse;
-import org.apache.hc.core5.http.nio.AsyncResponseProducer;
 import org.apache.hc.core5.http.nio.AsyncServerExchangeHandler;
-import org.apache.hc.core5.http.nio.entity.StringAsyncEntityProducer;
-import org.apache.hc.core5.http.nio.support.BasicAsyncResponseProducer;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.protocol.HttpCoreContext;
+import org.apache.hc.core5.net.URIAuthority;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -100,41 +94,17 @@ public class TestClientAuthentication extends IntegrationTestBase {
 
     @Override
     public HttpHost start() throws Exception {
-        return super.start(HttpProcessors.customServer(null)
-                .add(new RequestBasicAuth())
-                .add(new ResponseBasicUnauthorized())
-                .build(),
+        return super.start(
+                HttpProcessors.server(),
+                new Decorator<AsyncServerExchangeHandler>() {
+
+                    @Override
+                    public AsyncServerExchangeHandler decorate(final AsyncServerExchangeHandler requestHandler) {
+                        return new AuthenticatingAsyncDecorator(requestHandler, new BasicTestAuthenticator("test:test", "test realm"));
+                    }
+
+                },
                 H1Config.DEFAULT);
-    }
-
-    static class AuthHandler extends AbstractSimpleServerExchangeHandler {
-
-        private final boolean keepAlive;
-
-        AuthHandler(final boolean keepAlive) {
-            super();
-            this.keepAlive = keepAlive;
-        }
-
-        AuthHandler() {
-            this(true);
-        }
-
-        @Override
-        protected SimpleHttpResponse handle(
-                final SimpleHttpRequest request,
-                final HttpCoreContext context) throws HttpException {
-            final String creds = (String) context.getAttribute("creds");
-            final SimpleHttpResponse response;
-            if (creds == null || !creds.equals("test:test")) {
-                response = new SimpleHttpResponse(HttpStatus.SC_UNAUTHORIZED);
-            } else {
-                response = new SimpleHttpResponse(HttpStatus.SC_OK, "success", ContentType.TEXT_PLAIN);
-            }
-            response.setHeader(HttpHeaders.CONNECTION, this.keepAlive ? HeaderElements.KEEP_ALIVE : HeaderElements.CLOSE);
-            return response;
-        }
-
     }
 
     static class TestCredentialsProvider implements CredentialsStore {
@@ -173,7 +143,7 @@ public class TestClientAuthentication extends IntegrationTestBase {
 
             @Override
             public AsyncServerExchangeHandler get() {
-                return new AuthHandler();
+                return new AsyncEchoHandler();
             }
 
         });
@@ -199,7 +169,7 @@ public class TestClientAuthentication extends IntegrationTestBase {
 
             @Override
             public AsyncServerExchangeHandler get() {
-                return new AuthHandler();
+                return new AsyncEchoHandler();
             }
 
         });
@@ -226,7 +196,7 @@ public class TestClientAuthentication extends IntegrationTestBase {
 
             @Override
             public AsyncServerExchangeHandler get() {
-                return new AuthHandler();
+                return new AsyncEchoHandler();
             }
 
         });
@@ -253,11 +223,27 @@ public class TestClientAuthentication extends IntegrationTestBase {
 
             @Override
             public AsyncServerExchangeHandler get() {
-                return new AuthHandler(false);
+                return new AsyncEchoHandler();
             }
 
         });
-        final HttpHost target = start();
+        final HttpHost target = start(
+                HttpProcessors.server(),
+                new Decorator<AsyncServerExchangeHandler>() {
+
+                    @Override
+                    public AsyncServerExchangeHandler decorate(final AsyncServerExchangeHandler exchangeHandler) {
+                        return new AuthenticatingAsyncDecorator(exchangeHandler, new BasicTestAuthenticator("test:test", "test realm")) {
+
+                            @Override
+                            protected void customizeUnauthorizedResponse(final HttpResponse unauthorized) {
+                                unauthorized.addHeader(HttpHeaders.CONNECTION, HeaderElements.CLOSE);
+                            }
+                        };
+                    }
+
+                },
+                H1Config.DEFAULT);
 
         final TestCredentialsProvider credsProvider = new TestCredentialsProvider(
                 new UsernamePasswordCredentials("test", "test".toCharArray()));
@@ -280,23 +266,7 @@ public class TestClientAuthentication extends IntegrationTestBase {
 
             @Override
             public AsyncServerExchangeHandler get() {
-                return new AuthHandler() {
-
-                    @Override
-                    protected AsyncResponseProducer verify(
-                            final HttpRequest request,
-                            final HttpContext context) throws IOException, HttpException {
-
-                        final String creds = (String) context.getAttribute("creds");
-                        if (creds == null || !creds.equals("test:test")) {
-                            return new BasicAsyncResponseProducer(new BasicHttpResponse(HttpStatus.SC_UNAUTHORIZED),
-                                    new StringAsyncEntityProducer("Unauthorized"));
-                        } else {
-                            return null;
-                        }
-                    }
-
-                };
+                return new AsyncEchoHandler();
             }
 
         });
@@ -321,23 +291,7 @@ public class TestClientAuthentication extends IntegrationTestBase {
 
             @Override
             public AsyncServerExchangeHandler get() {
-                return new AuthHandler() {
-
-                    @Override
-                    protected AsyncResponseProducer verify(
-                            final HttpRequest request,
-                            final HttpContext context) throws IOException, HttpException {
-
-                        final String creds = (String) context.getAttribute("creds");
-                        if (creds == null || !creds.equals("test:test")) {
-                            return new BasicAsyncResponseProducer(new BasicHttpResponse(HttpStatus.SC_UNAUTHORIZED),
-                                    new StringAsyncEntityProducer("Unauthorized"));
-                        } else {
-                            return null;
-                        }
-                    }
-
-                };
+                return new AsyncEchoHandler();
             }
 
         });
@@ -365,7 +319,7 @@ public class TestClientAuthentication extends IntegrationTestBase {
 
             @Override
             public AsyncServerExchangeHandler get() {
-                return new AuthHandler();
+                return new AsyncEchoHandler();
             }
 
         });
@@ -409,7 +363,7 @@ public class TestClientAuthentication extends IntegrationTestBase {
 
             @Override
             public AsyncServerExchangeHandler get() {
-                return new AuthHandler();
+                return new AsyncEchoHandler();
             }
 
         });
@@ -422,7 +376,6 @@ public class TestClientAuthentication extends IntegrationTestBase {
 
         Assert.assertNotNull(response);
         Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
-        Assert.assertEquals("success", response.getBody());
     }
 
     @Test
@@ -431,7 +384,7 @@ public class TestClientAuthentication extends IntegrationTestBase {
 
             @Override
             public AsyncServerExchangeHandler get() {
-                return new AuthHandler();
+                return new AsyncEchoHandler();
             }
 
         });
@@ -452,7 +405,7 @@ public class TestClientAuthentication extends IntegrationTestBase {
 
             @Override
             public AsyncServerExchangeHandler get() {
-                return new AuthHandler();
+                return new AsyncEchoHandler();
             }
 
         });
@@ -482,42 +435,18 @@ public class TestClientAuthentication extends IntegrationTestBase {
 
         Assert.assertNotNull(response);
         Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
-        Assert.assertEquals("success", response.getBody());
     }
 
     @Test
     public void testReauthentication() throws Exception {
-        final AtomicLong count = new AtomicLong(0);
-
         server.register("*", new Supplier<AsyncServerExchangeHandler>() {
 
             @Override
             public AsyncServerExchangeHandler get() {
-
-                return new AbstractSimpleServerExchangeHandler() {
-
-                    @Override
-                    protected SimpleHttpResponse handle(
-                            final SimpleHttpRequest request,
-                            final HttpCoreContext context) throws HttpException {
-                        final String creds = (String) context.getAttribute("creds");
-                        if (creds == null || !creds.equals("test:test")) {
-                            return new SimpleHttpResponse(HttpStatus.SC_UNAUTHORIZED);
-                        } else {
-                            // Make client re-authenticate on each fourth request
-                            if (count.incrementAndGet() % 4 == 0) {
-                                return new SimpleHttpResponse(HttpStatus.SC_UNAUTHORIZED);
-                            } else {
-                                return new SimpleHttpResponse(HttpStatus.SC_OK, "success", ContentType.TEXT_PLAIN);
-                            }
-                        }
-                    }
-
-                };
+                return new AsyncEchoHandler();
             }
 
         });
-
         final TestCredentialsProvider credsProvider = new TestCredentialsProvider(
                 new UsernamePasswordCredentials("test", "test".toCharArray()));
 
@@ -540,23 +469,43 @@ public class TestClientAuthentication extends IntegrationTestBase {
                 .build();
         this.clientBuilder.setDefaultAuthSchemeRegistry(authSchemeRegistry);
 
-        final HttpHost target = start(HttpProcessors.customServer(null)
-                        .add(new RequestBasicAuth())
-                        .add(new HttpResponseInterceptor() {
+        final Authenticator authenticator = new BasicTestAuthenticator("test:test", "test realm") {
+
+            private final AtomicLong count = new AtomicLong(0);
+
+            @Override
+            public boolean authenticate(final URIAuthority authority, final String requestUri, final String credentials) {
+                final boolean authenticated = super.authenticate(authority, requestUri, credentials);
+                if (authenticated) {
+                    if (this.count.incrementAndGet() % 4 != 0) {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                } else {
+                    return false;
+                }
+            }
+        };
+
+        final HttpHost target = start(
+                HttpProcessors.server(),
+                new Decorator<AsyncServerExchangeHandler>() {
+
+                    @Override
+                    public AsyncServerExchangeHandler decorate(final AsyncServerExchangeHandler exchangeHandler) {
+                        return new AuthenticatingAsyncDecorator(exchangeHandler, authenticator) {
 
                             @Override
-                            public void process(
-                                    final HttpResponse response,
-                                    final EntityDetails entityDetails,
-                                    final HttpContext context) throws HttpException, IOException {
-                                if (response.getCode() == HttpStatus.SC_UNAUTHORIZED) {
-                                    response.addHeader(HttpHeaders.WWW_AUTHENTICATE, "MyBasic realm=\"test realm\"");
-                                }
+                            protected void customizeUnauthorizedResponse(final HttpResponse unauthorized) {
+                                unauthorized.removeHeaders(HttpHeaders.WWW_AUTHENTICATE);
+                                unauthorized.addHeader(HttpHeaders.WWW_AUTHENTICATE, "MyBasic realm=\"test realm\"");
                             }
 
-                        })
-                        .build(),
-                H1Config.DEFAULT);
+                        };
+                    }
+
+                }, H1Config.DEFAULT);
 
         final RequestConfig config = RequestConfig.custom()
                 .setTargetPreferredAuthSchemes(Arrays.asList("MyBasic"))
@@ -583,31 +532,27 @@ public class TestClientAuthentication extends IntegrationTestBase {
 
             @Override
             public AsyncServerExchangeHandler get() {
-
-                return new AuthHandler();
+                return new AsyncEchoHandler();
             }
 
         });
+        final HttpHost target = start(
+                HttpProcessors.server(),
+                new Decorator<AsyncServerExchangeHandler>() {
 
-        final HttpHost target = start(HttpProcessors.customServer(null)
-                        .add(new RequestBasicAuth())
-                        .add(new HttpResponseInterceptor() {
+                    @Override
+                    public AsyncServerExchangeHandler decorate(final AsyncServerExchangeHandler exchangeHandler) {
+                        return new AuthenticatingAsyncDecorator(exchangeHandler, new BasicTestAuthenticator("test:test", "test realm")) {
 
                             @Override
-                            public void process(
-                                    final HttpResponse response,
-                                    final EntityDetails entityDetails,
-                                    final HttpContext context) throws HttpException, IOException {
-                                if (response.getCode() == HttpStatus.SC_UNAUTHORIZED) {
-                                    response.addHeader(HttpHeaders.WWW_AUTHENTICATE, "Digest realm=\"test realm\" invalid");
-                                    response.addHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"test realm\"");
-                                }
+                            protected void customizeUnauthorizedResponse(final HttpResponse unauthorized) {
+                                unauthorized.addHeader(HttpHeaders.WWW_AUTHENTICATE, "Digest realm=\"test realm\" invalid");
                             }
 
-                        })
-                        .build(),
-                H1Config.DEFAULT);
+                        };
+                    }
 
+                }, H1Config.DEFAULT);
 
         final TestCredentialsProvider credsProvider = new TestCredentialsProvider(
                 new UsernamePasswordCredentials("test", "test".toCharArray()));
@@ -618,7 +563,6 @@ public class TestClientAuthentication extends IntegrationTestBase {
         final SimpleHttpResponse response = future.get();
         Assert.assertNotNull(response);
         Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
-        Assert.assertEquals("success", response.getBody());
         final AuthScope authscope = credsProvider.getAuthScope();
         Assert.assertNotNull(authscope);
         Assert.assertEquals("test realm", authscope.getRealm());

@@ -48,7 +48,7 @@ import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.apache.hc.core5.http2.config.H2Config;
 import org.apache.hc.core5.io.ShutdownType;
 import org.apache.hc.core5.reactor.IOReactorConfig;
-import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 
 /**
  * This example demonstrates handling of HTTP/2 message exchanges pushed by the server.
@@ -58,7 +58,7 @@ public class AsyncClientHttp2ServerPush {
     public static void main(final String[] args) throws Exception {
 
         final IOReactorConfig ioReactorConfig = IOReactorConfig.custom()
-                .setSoTimeout(TimeValue.ofSeconds(5))
+                .setSoTimeout(Timeout.ofSeconds(5))
                 .build();
 
         final H2Config h2Config = H2Config.custom()

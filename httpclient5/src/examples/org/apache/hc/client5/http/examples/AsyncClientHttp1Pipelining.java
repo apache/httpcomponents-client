@@ -42,7 +42,7 @@ import org.apache.hc.core5.http.config.H1Config;
 import org.apache.hc.core5.http.nio.AsyncClientEndpoint;
 import org.apache.hc.core5.io.ShutdownType;
 import org.apache.hc.core5.reactor.IOReactorConfig;
-import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 
 /**
  * This example demonstrates pipelined execution of multiple HTTP/1.1 message exchanges.
@@ -52,7 +52,7 @@ public class AsyncClientHttp1Pipelining {
     public static void main(final String[] args) throws Exception {
 
         final IOReactorConfig ioReactorConfig = IOReactorConfig.custom()
-                .setSoTimeout(TimeValue.ofSeconds(5))
+                .setSoTimeout(Timeout.ofSeconds(5))
                 .build();
 
         final MinimalHttpAsyncClient client = HttpAsyncClients.createMinimal(H1Config.DEFAULT, ioReactorConfig);

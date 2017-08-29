@@ -42,7 +42,7 @@ import org.apache.hc.core5.http.nio.AsyncClientEndpoint;
 import org.apache.hc.core5.http2.config.H2Config;
 import org.apache.hc.core5.io.ShutdownType;
 import org.apache.hc.core5.reactor.IOReactorConfig;
-import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 
 /**
  * This example demonstrates concurrent (multiplexed) execution of multiple
@@ -53,7 +53,7 @@ public class AsyncClientHttp2Multiplexing {
     public static void main(final String[] args) throws Exception {
 
         final IOReactorConfig ioReactorConfig = IOReactorConfig.custom()
-                .setSoTimeout(TimeValue.ofSeconds(5))
+                .setSoTimeout(Timeout.ofSeconds(5))
                 .build();
 
         final MinimalHttpAsyncClient client = HttpAsyncClients.createMinimal(H2Config.DEFAULT, ioReactorConfig);

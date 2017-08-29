@@ -53,7 +53,6 @@ import org.apache.hc.client5.http.impl.DefaultConnectionKeepAliveStrategy;
 import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
 import org.apache.hc.client5.http.impl.DefaultUserTokenHandler;
 import org.apache.hc.client5.http.impl.IdleConnectionEvictor;
-import org.apache.hc.client5.http.impl.NamedElementChain;
 import org.apache.hc.client5.http.impl.NoopUserTokenHandler;
 import org.apache.hc.client5.http.impl.auth.BasicSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.CredSspSchemeFactory;
@@ -97,6 +96,7 @@ import org.apache.hc.core5.http.HttpResponseInterceptor;
 import org.apache.hc.core5.http.config.CharCodingConfig;
 import org.apache.hc.core5.http.config.H1Config;
 import org.apache.hc.core5.http.config.Lookup;
+import org.apache.hc.core5.http.config.NamedElementChain;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.impl.DefaultConnectionReuseStrategy;
 import org.apache.hc.core5.http.nio.AsyncPushConsumer;
@@ -118,7 +118,6 @@ import org.apache.hc.core5.pool.ConnPoolControl;
 import org.apache.hc.core5.reactor.DefaultConnectingIOReactor;
 import org.apache.hc.core5.reactor.IOEventHandlerFactory;
 import org.apache.hc.core5.reactor.IOReactorConfig;
-import org.apache.hc.core5.reactor.IOReactorException;
 import org.apache.hc.core5.reactor.IOSession;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TimeValue;
@@ -904,7 +903,7 @@ public class HttpAsyncClientBuilder {
                 new HandlerFactory<AsyncPushConsumer>() {
 
                     @Override
-                    public AsyncPushConsumer create(final HttpRequest request) throws HttpException {
+                    public AsyncPushConsumer create(final HttpRequest request, final HttpContext context) throws HttpException {
                         return pushConsumerRegistry.get(request);
                     }
 
@@ -914,23 +913,20 @@ public class HttpAsyncClientBuilder {
                 h1Config != null ? h1Config : H1Config.DEFAULT,
                 charCodingConfig != null ? charCodingConfig : CharCodingConfig.DEFAULT,
                 reuseStrategyCopy);
-        final DefaultConnectingIOReactor ioReactor;
-        try {
-            ioReactor = new DefaultConnectingIOReactor(
-                    ioEventHandlerFactory,
-                    ioReactorConfig != null ? ioReactorConfig : IOReactorConfig.DEFAULT,
-                    threadFactory != null ? threadFactory : new DefaultThreadFactory("httpclient-dispatch", true),
-                    new Callback<IOSession>() {
+        final DefaultConnectingIOReactor ioReactor = new DefaultConnectingIOReactor(
+                ioEventHandlerFactory,
+                ioReactorConfig != null ? ioReactorConfig : IOReactorConfig.DEFAULT,
+                threadFactory != null ? threadFactory : new DefaultThreadFactory("httpclient-dispatch", true),
+                null,
+                null,
+                new Callback<IOSession>() {
 
-                        @Override
-                        public void execute(final IOSession ioSession) {
-                            ioSession.addFirst(new ShutdownCommand(ShutdownType.GRACEFUL));
-                        }
+                    @Override
+                    public void execute(final IOSession ioSession) {
+                        ioSession.addFirst(new ShutdownCommand(ShutdownType.GRACEFUL));
+                    }
 
-                    });
-        } catch (final IOReactorException ex) {
-            throw new IllegalStateException(ex.getMessage(), ex);
-        }
+                });
 
         if (execInterceptors != null) {
             for (final ExecInterceptorEntry entry: execInterceptors) {

@@ -27,29 +27,12 @@
 
 package org.apache.hc.client5.testing.auth;
 
-import java.io.IOException;
+import org.apache.hc.core5.net.URIAuthority;
 
-import org.apache.hc.core5.http.EntityDetails;
-import org.apache.hc.core5.http.HttpException;
-import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.HttpRequestInterceptor;
-import org.apache.hc.core5.http.protocol.HttpContext;
+public interface Authenticator {
 
-public class RequestBasicAuth implements HttpRequestInterceptor {
+    boolean authenticate(URIAuthority authority, String requestUri, String credentials);
 
-    private final BasicAuthTokenExtractor authTokenExtractor;
-
-    public RequestBasicAuth() {
-        super();
-        this.authTokenExtractor = new BasicAuthTokenExtractor();
-    }
-
-    @Override
-    public void process(
-            final HttpRequest request,
-            final EntityDetails entityDetails,
-            final HttpContext context) throws HttpException, IOException {
-        context.setAttribute("creds", this.authTokenExtractor.extract(request));
-    }
+    String getRealm(URIAuthority authority, String requestUri);
 
 }
