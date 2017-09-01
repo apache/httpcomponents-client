@@ -27,10 +27,12 @@
 package org.apache.hc.client5.http.impl;
 
 import org.apache.hc.client5.http.HttpRoute;
+import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.pool.ConnPoolControl;
 import org.apache.hc.core5.pool.PoolStats;
 import org.apache.hc.core5.util.Identifiable;
 
+@Internal
 public final class ConnPoolSupport {
 
     public static String getId(final Object object) {

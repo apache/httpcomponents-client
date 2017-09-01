@@ -248,7 +248,7 @@ class InternalHttpAsyncClient extends AbstractHttpAsyncClientBase {
 
                     final HttpHost target = routePlanner.determineTargetHost(request, clientContext);
                     final HttpRoute route = routePlanner.determineRoute(target, clientContext);
-                    final String exchangeId = "ex-" + Long.toHexString(ExecSupport.getNextExecNumber());
+                    final String exchangeId = String.format("ex-%08X", ExecSupport.getNextExecNumber());
                     final AsyncExecRuntime execRuntime = new AsyncExecRuntimeImpl(log, connmgr, getConnectionInitiator(), versionPolicy);
                     executeChain(exchangeId, execChain, route, request, entityDetails, exchangeHandler, clientContext, execRuntime);
                 }

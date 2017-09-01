@@ -25,10 +25,12 @@
  *
  */
 
-package org.apache.hc.client5.http.impl.logging;
+package org.apache.hc.client5.http.impl.io;
 
 import java.io.IOException;
 import java.io.InputStream;
+
+import org.apache.hc.client5.http.impl.Wire;
 
 class LoggingInputStream extends InputStream {
 

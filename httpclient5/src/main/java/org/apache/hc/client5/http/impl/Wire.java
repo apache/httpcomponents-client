@@ -25,14 +25,16 @@
  *
  */
 
-package org.apache.hc.client5.http.impl.logging;
+package org.apache.hc.client5.http.impl;
 
 import java.nio.ByteBuffer;
 
+import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.util.Args;
 import org.apache.logging.log4j.Logger;
 
-class Wire {
+@Internal
+public class Wire {
 
     private static final int MAX_STRING_BUILDER_SIZE = 2048;
 
@@ -73,7 +75,7 @@ class Wire {
     private final Logger log;
     private final String id;
 
-    Wire(final Logger log, final String id) {
+    public Wire(final Logger log, final String id) {
         super();
         this.log = log;
         this.id = id;

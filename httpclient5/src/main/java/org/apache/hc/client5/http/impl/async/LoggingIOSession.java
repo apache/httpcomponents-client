@@ -25,7 +25,7 @@
  *
  */
 
-package org.apache.hc.client5.http.impl.logging;
+package org.apache.hc.client5.http.impl.async;
 
 import java.io.IOException;
 import java.net.SocketAddress;
@@ -35,6 +35,7 @@ import java.nio.channels.SelectionKey;
 
 import javax.net.ssl.SSLContext;
 
+import org.apache.hc.client5.http.impl.Wire;
 import org.apache.hc.core5.io.ShutdownType;
 import org.apache.hc.core5.reactor.Command;
 import org.apache.hc.core5.reactor.IOEventHandler;
@@ -45,7 +46,7 @@ import org.apache.hc.core5.reactor.ssl.SSLSessionVerifier;
 import org.apache.hc.core5.reactor.ssl.TlsDetails;
 import org.apache.logging.log4j.Logger;
 
-public class LoggingIOSession implements TlsCapableIOSession {
+class LoggingIOSession implements TlsCapableIOSession {
 
     private final Logger log;
     private final Wire wirelog;

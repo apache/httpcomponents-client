@@ -31,12 +31,10 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 
 import org.apache.hc.client5.http.DnsResolver;
-import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.ssl.H2TlsStrategy;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
-import org.apache.hc.core5.pool.ConnPoolListener;
 import org.apache.hc.core5.pool.PoolReusePolicy;
 import org.apache.hc.core5.util.TimeValue;
 
@@ -72,7 +70,6 @@ public class PoolingAsyncClientConnectionManagerBuilder {
     private SchemePortResolver schemePortResolver;
     private DnsResolver dnsResolver;
     private PoolReusePolicy poolReusePolicy;
-    private ConnPoolListener<HttpRoute> connPoolListener;
 
     private boolean systemProperties;
 
@@ -120,14 +117,6 @@ public class PoolingAsyncClientConnectionManagerBuilder {
      */
     public final PoolingAsyncClientConnectionManagerBuilder setConnPoolPolicy(final PoolReusePolicy connPoolPolicy) {
         this.poolReusePolicy = poolReusePolicy;
-        return this;
-    }
-
-    /**
-     * Assigns {@link ConnPoolListener} instance.
-     */
-    public final PoolingAsyncClientConnectionManagerBuilder setConnPoolListener(final ConnPoolListener<HttpRoute> connPoolListener) {
-        this.connPoolListener = connPoolListener;
         return this;
     }
 
@@ -184,8 +173,7 @@ public class PoolingAsyncClientConnectionManagerBuilder {
                 schemePortResolver,
                 dnsResolver,
                 timeToLive,
-                poolReusePolicy,
-                connPoolListener);
+                poolReusePolicy);
         poolingmgr.setValidateAfterInactivity(this.validateAfterInactivity);
         if (maxConnTotal > 0) {
             poolingmgr.setMaxTotal(maxConnTotal);

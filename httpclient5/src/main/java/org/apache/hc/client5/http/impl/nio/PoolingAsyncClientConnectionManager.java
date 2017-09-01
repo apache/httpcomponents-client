@@ -58,7 +58,6 @@ import org.apache.hc.core5.http2.nio.command.PingCommand;
 import org.apache.hc.core5.http2.nio.support.BasicPingHandler;
 import org.apache.hc.core5.io.ShutdownType;
 import org.apache.hc.core5.pool.ConnPoolControl;
-import org.apache.hc.core5.pool.ConnPoolListener;
 import org.apache.hc.core5.pool.PoolEntry;
 import org.apache.hc.core5.pool.PoolReusePolicy;
 import org.apache.hc.core5.pool.PoolStats;
@@ -106,10 +105,9 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
             final SchemePortResolver schemePortResolver,
             final DnsResolver dnsResolver,
             final TimeValue timeToLive,
-            final PoolReusePolicy poolReusePolicy,
-            final ConnPoolListener<HttpRoute> connPoolListener) {
+            final PoolReusePolicy poolReusePolicy) {
         this.connectionOperator = new AsyncClientConnectionOperator(schemePortResolver, dnsResolver, tlsStrategyLookup);
-        this.pool = new StrictConnPool<>(20, 50, timeToLive, poolReusePolicy != null ? poolReusePolicy : PoolReusePolicy.LIFO, connPoolListener);
+        this.pool = new StrictConnPool<>(20, 50, timeToLive, poolReusePolicy != null ? poolReusePolicy : PoolReusePolicy.LIFO, null);
         this.closed = new AtomicBoolean(false);
     }
 
@@ -400,7 +398,7 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
 
         InternalConnectionEndpoint(final PoolEntry<HttpRoute, ManagedAsyncClientConnection> poolEntry) {
             this.poolEntryRef = new AtomicReference<>(poolEntry);
-            this.id = "ep-" + Long.toHexString(COUNT.incrementAndGet());
+            this.id = String.format("ep-%08X", COUNT.getAndIncrement());
         }
 
         @Override

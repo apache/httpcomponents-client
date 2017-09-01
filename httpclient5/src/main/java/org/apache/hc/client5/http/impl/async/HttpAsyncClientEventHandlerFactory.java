@@ -32,8 +32,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.apache.hc.client5.http.impl.ConnPoolSupport;
-import org.apache.hc.client5.http.impl.logging.LogAppendable;
-import org.apache.hc.client5.http.impl.logging.LoggingIOSession;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.ConnectionReuseStrategy;

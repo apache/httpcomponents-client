@@ -25,7 +25,7 @@
  *
  */
 
-package org.apache.hc.client5.http.impl.logging;
+package org.apache.hc.client5.http.impl.async;
 
 import java.io.IOException;
 

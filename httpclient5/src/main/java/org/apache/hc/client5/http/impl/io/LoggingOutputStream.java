@@ -25,10 +25,12 @@
  *
  */
 
-package org.apache.hc.client5.http.impl.logging;
+package org.apache.hc.client5.http.impl.io;
 
 import java.io.IOException;
 import java.io.OutputStream;
+
+import org.apache.hc.client5.http.impl.Wire;
 
 /**
  * Internal class.

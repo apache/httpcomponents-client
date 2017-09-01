@@ -25,17 +25,18 @@
  *
  */
 
-package org.apache.hc.client5.http.impl.logging;
+package org.apache.hc.client5.http.impl.io;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 
+import org.apache.hc.client5.http.impl.Wire;
 import org.apache.hc.core5.http.impl.io.SocketHolder;
 import org.apache.logging.log4j.Logger;
 
-public class LoggingSocketHolder extends SocketHolder {
+class LoggingSocketHolder extends SocketHolder {
 
     private final Wire wire;
 

@@ -37,7 +37,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
 
-import org.apache.hc.client5.http.impl.logging.LoggingSocketHolder;
 import org.apache.hc.client5.http.io.ManagedHttpClientConnection;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
