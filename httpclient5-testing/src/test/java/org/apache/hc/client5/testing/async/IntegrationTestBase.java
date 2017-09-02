@@ -30,6 +30,7 @@ package org.apache.hc.client5.testing.async;
 import java.net.InetSocketAddress;
 import java.util.concurrent.Future;
 
+import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder;
 import org.apache.hc.core5.function.Decorator;
@@ -62,7 +63,13 @@ public abstract class IntegrationTestBase extends LocalAsyncServerTestBase {
 
         @Override
         protected void before() throws Throwable {
-            clientBuilder = HttpAsyncClientBuilder.create().setConnectionManager(connManager);
+            clientBuilder = HttpAsyncClientBuilder.create()
+                    .setDefaultRequestConfig(RequestConfig.custom()
+                            .setSocketTimeout(TIMEOUT)
+                            .setConnectTimeout(TIMEOUT)
+                            .setConnectionRequestTimeout(TIMEOUT)
+                            .build())
+                    .setConnectionManager(connManager);
         }
 
         @Override

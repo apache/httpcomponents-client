@@ -37,10 +37,14 @@ import org.apache.hc.core5.http.nio.AsyncServerExchangeHandler;
 import org.apache.hc.core5.reactor.IOReactorConfig;
 import org.apache.hc.core5.testing.nio.Http2TestServer;
 import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 import org.junit.Rule;
 import org.junit.rules.ExternalResource;
 
 public abstract class LocalAsyncServerTestBase {
+
+    public static final Timeout TIMEOUT = Timeout.ofSeconds(30);
+    public static final Timeout LONG_TIMEOUT = Timeout.ofSeconds(60);
 
     protected final URIScheme scheme;
 
@@ -61,7 +65,9 @@ public abstract class LocalAsyncServerTestBase {
         @Override
         protected void before() throws Throwable {
             server = new Http2TestServer(
-                    IOReactorConfig.DEFAULT,
+                    IOReactorConfig.custom()
+                        .setSoTimeout(TIMEOUT)
+                        .build(),
                     scheme == URIScheme.HTTPS ? SSLTestContexts.createServerSSLContext() : null);
             server.register("/echo/*", new Supplier<AsyncServerExchangeHandler>() {
 

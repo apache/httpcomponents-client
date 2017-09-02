@@ -97,7 +97,7 @@ public class TestAsyncStatefulConnManagement extends IntegrationTestBase {
             worker.start();
         }
         for (final HttpWorker worker : workers) {
-            worker.join(10000);
+            worker.join(LONG_TIMEOUT.toMillis());
         }
         for (final HttpWorker worker : workers) {
             final Exception ex = worker.getException();

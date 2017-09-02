@@ -28,8 +28,8 @@
 package org.apache.hc.client5.testing.sync;
 
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
 
+import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.sync.HttpClientBuilder;
@@ -44,6 +44,7 @@ import org.apache.hc.core5.http.io.HttpServerRequestHandler;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
 import org.apache.hc.core5.io.ShutdownType;
 import org.apache.hc.core5.testing.classic.ClassicTestServer;
+import org.apache.hc.core5.util.Timeout;
 import org.junit.Rule;
 import org.junit.rules.ExternalResource;
 
@@ -51,6 +52,9 @@ import org.junit.rules.ExternalResource;
  * Base class for tests using local test server. The server will not be started per default.
  */
 public abstract class LocalServerTestBase {
+
+    public static final Timeout TIMEOUT = Timeout.ofSeconds(30);
+    public static final Timeout LONG_TIMEOUT = Timeout.ofSeconds(60);
 
     public LocalServerTestBase(final URIScheme scheme) {
         this.scheme = scheme;
@@ -72,7 +76,7 @@ public abstract class LocalServerTestBase {
             server = new ClassicTestServer(
                     scheme == URIScheme.HTTPS ? SSLTestContexts.createServerSSLContext() : null,
                     SocketConfig.custom()
-                            .setSoTimeout(5, TimeUnit.SECONDS)
+                            .setSoTimeout(TIMEOUT)
                             .build());
             server.registerHandler("/echo/*", new EchoHandler());
             server.registerHandler("/random/*", new RandomHandler());
@@ -102,9 +106,14 @@ public abstract class LocalServerTestBase {
         protected void before() throws Throwable {
             connManager = new PoolingHttpClientConnectionManager();
             connManager.setDefaultSocketConfig(SocketConfig.custom()
-                    .setSoTimeout(5, TimeUnit.SECONDS)
+                    .setSoTimeout(TIMEOUT)
                     .build());
             clientBuilder = HttpClientBuilder.create()
+                    .setDefaultRequestConfig(RequestConfig.custom()
+                        .setSocketTimeout(TIMEOUT)
+                        .setConnectTimeout(TIMEOUT)
+                        .setConnectionRequestTimeout(TIMEOUT)
+                        .build())
                     .setConnectionManager(connManager);
         }
 
