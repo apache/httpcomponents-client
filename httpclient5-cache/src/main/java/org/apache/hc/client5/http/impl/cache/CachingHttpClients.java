@@ -29,7 +29,7 @@ package org.apache.hc.client5.http.impl.cache;
 
 import java.io.File;
 
-import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 

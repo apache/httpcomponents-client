@@ -35,7 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.osgi.services.CachingHttpClientBuilderFactory;
 import org.apache.hc.client5.http.osgi.services.HttpClientBuilderFactory;
 import org.apache.hc.client5.http.osgi.services.ProxyConfiguration;

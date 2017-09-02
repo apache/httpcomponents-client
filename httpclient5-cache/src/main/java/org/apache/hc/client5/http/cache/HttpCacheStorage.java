@@ -31,7 +31,7 @@ import java.io.IOException;
 /**
  * New storage backends should implement this {@link HttpCacheStorage}
  * interface. They can then be plugged into the existing caching
- * {@link org.apache.hc.client5.http.sync.HttpClient} implementation.
+ * {@link org.apache.hc.client5.http.classic.HttpClient} implementation.
  *
  * @since 4.1
  */

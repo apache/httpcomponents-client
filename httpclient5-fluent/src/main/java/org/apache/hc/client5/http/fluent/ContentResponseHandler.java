@@ -28,7 +28,7 @@ package org.apache.hc.client5.http.fluent;
 
 import java.io.IOException;
 
-import org.apache.hc.client5.http.impl.sync.AbstractHttpClientResponseHandler;
+import org.apache.hc.client5.http.impl.classic.AbstractHttpClientResponseHandler;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 

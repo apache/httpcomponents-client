@@ -29,7 +29,7 @@ package org.apache.hc.client5.http.impl.cache;
 import java.util.Date;
 import java.util.Random;
 
-import org.apache.hc.client5.http.sync.methods.HttpOptions;
+import org.apache.hc.client5.http.classic.methods.HttpOptions;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;

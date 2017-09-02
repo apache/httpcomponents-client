@@ -35,7 +35,7 @@ import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
-import org.apache.hc.client5.http.impl.sync.ProxyClient;
+import org.apache.hc.client5.http.impl.classic.ProxyClient;
 import org.apache.hc.core5.http.HttpHost;
 
 /**

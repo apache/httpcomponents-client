@@ -29,7 +29,6 @@ package org.apache.hc.client5.http.impl.auth;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
-import org.apache.hc.client5.http.impl.sync.BasicCredentialsProvider;
 import org.apache.hc.core5.http.HttpHost;
 import org.junit.Assert;
 import org.junit.Test;

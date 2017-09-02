@@ -27,7 +27,7 @@
 package org.apache.hc.client5.http.impl;
 
 import org.apache.hc.client5.http.HttpRoute;
-import org.apache.hc.client5.http.protocol.UserTokenHandler;
+import org.apache.hc.client5.http.UserTokenHandler;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.protocol.HttpContext;

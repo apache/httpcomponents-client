@@ -30,11 +30,11 @@ import java.io.IOException;
 import java.util.HashMap;
 
 import org.apache.hc.client5.http.HttpRoute;
+import org.apache.hc.client5.http.classic.ExecChain;
+import org.apache.hc.client5.http.classic.ExecChainHandler;
+import org.apache.hc.client5.http.classic.ExecRuntime;
 import org.apache.hc.client5.http.impl.ExecSupport;
-import org.apache.hc.client5.http.sync.ExecRuntime;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
-import org.apache.hc.client5.http.sync.ExecChain;
-import org.apache.hc.client5.http.sync.ExecChainHandler;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpEntity;

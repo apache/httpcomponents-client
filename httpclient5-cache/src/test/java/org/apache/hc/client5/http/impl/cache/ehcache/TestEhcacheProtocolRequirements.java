@@ -27,11 +27,11 @@
 package org.apache.hc.client5.http.impl.cache.ehcache;
 
 import org.apache.hc.client5.http.cache.HttpCacheStorage;
+import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.impl.cache.CacheConfig;
 import org.apache.hc.client5.http.impl.cache.CachingExec;
 import org.apache.hc.client5.http.impl.cache.HeapResourceFactory;
 import org.apache.hc.client5.http.impl.cache.TestProtocolRequirements;
-import org.apache.hc.client5.http.sync.ExecChain;
 import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.AfterClass;

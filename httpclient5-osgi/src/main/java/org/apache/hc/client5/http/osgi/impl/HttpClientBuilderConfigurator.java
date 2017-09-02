@@ -30,8 +30,8 @@ import static org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory.getSocke
 
 import java.util.List;
 
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
-import org.apache.hc.client5.http.impl.sync.HttpClientBuilder;
 import org.apache.hc.client5.http.osgi.services.ProxyConfiguration;
 import org.apache.hc.client5.http.osgi.services.TrustedHostsConfiguration;
 import org.apache.hc.client5.http.socket.ConnectionSocketFactory;

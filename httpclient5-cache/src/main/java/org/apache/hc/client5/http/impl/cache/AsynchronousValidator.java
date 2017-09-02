@@ -34,7 +34,7 @@ import java.util.Set;
 import java.util.concurrent.RejectedExecutionException;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
-import org.apache.hc.client5.http.sync.ExecChain;
+import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.logging.log4j.LogManager;

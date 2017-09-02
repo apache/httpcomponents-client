@@ -31,12 +31,12 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.List;
 
-import org.apache.hc.client5.http.protocol.ClientProtocolException;
+import org.apache.hc.client5.http.ClientProtocolException;
+import org.apache.hc.client5.http.HttpRequestRetryHandler;
+import org.apache.hc.client5.http.NonRepeatableRequestException;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
-import org.apache.hc.client5.http.protocol.NonRepeatableRequestException;
-import org.apache.hc.client5.http.sync.HttpRequestRetryHandler;
-import org.apache.hc.client5.http.sync.methods.HttpGet;
-import org.apache.hc.client5.http.sync.methods.HttpPost;
 import org.apache.hc.client5.http.utils.URIUtils;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;

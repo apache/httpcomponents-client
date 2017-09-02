@@ -26,8 +26,8 @@
  */
 package org.apache.hc.client5.http.osgi.impl;
 
-import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.sync.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.osgi.services.HttpClientBuilderFactory;
 
 /**

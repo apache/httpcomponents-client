@@ -26,7 +26,7 @@
  */
 package org.apache.hc.client5.http.osgi.services;
 
-import org.apache.hc.client5.http.impl.sync.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 
 /**
  * @since 4.3

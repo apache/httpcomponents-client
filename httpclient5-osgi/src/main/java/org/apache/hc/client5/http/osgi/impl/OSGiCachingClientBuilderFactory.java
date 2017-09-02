@@ -27,7 +27,7 @@
 package org.apache.hc.client5.http.osgi.impl;
 
 import org.apache.hc.client5.http.impl.cache.CachingHttpClientBuilder;
-import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.osgi.services.CachingHttpClientBuilderFactory;
 
 /**

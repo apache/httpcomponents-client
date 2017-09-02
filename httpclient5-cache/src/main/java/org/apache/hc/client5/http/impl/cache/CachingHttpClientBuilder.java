@@ -33,13 +33,13 @@ import java.io.IOException;
 import org.apache.hc.client5.http.cache.HttpCacheInvalidator;
 import org.apache.hc.client5.http.cache.HttpCacheStorage;
 import org.apache.hc.client5.http.cache.ResourceFactory;
-import org.apache.hc.client5.http.impl.sync.ChainElements;
-import org.apache.hc.client5.http.impl.sync.HttpClientBuilder;
-import org.apache.hc.client5.http.sync.ExecChainHandler;
+import org.apache.hc.client5.http.classic.ExecChainHandler;
+import org.apache.hc.client5.http.impl.ChainElements;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.core5.http.config.NamedElementChain;
 
 /**
- * Builder for {@link org.apache.hc.client5.http.impl.sync.CloseableHttpClient}
+ * Builder for {@link org.apache.hc.client5.http.impl.classic.CloseableHttpClient}
  * instances capable of client-side caching.
  *
  * @since 4.3

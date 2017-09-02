@@ -32,15 +32,15 @@ import org.apache.hc.client5.http.auth.AuthSchemeProvider;
 import org.apache.hc.client5.http.config.AuthSchemes;
 import org.apache.hc.client5.http.impl.auth.BasicSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.DigestSchemeFactory;
-import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.sync.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.core5.http.config.Registry;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 
 import com.sun.jna.platform.win32.Sspi;
 
 /**
- * Factory methods for {@link org.apache.hc.client5.http.impl.sync.CloseableHttpClient} instances configured to use integrated
+ * Factory methods for {@link org.apache.hc.client5.http.impl.classic.CloseableHttpClient} instances configured to use integrated
  * Windows authentication by default.
  *
  * @since 4.4

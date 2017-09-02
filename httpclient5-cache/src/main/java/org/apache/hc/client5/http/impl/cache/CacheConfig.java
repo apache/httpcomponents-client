@@ -29,7 +29,7 @@ package org.apache.hc.client5.http.impl.cache;
 import org.apache.hc.core5.util.Args;
 
 /**
- * <p>Java Beans-style configuration for caching {@link org.apache.hc.client5.http.sync.HttpClient}.
+ * <p>Java Beans-style configuration for caching {@link org.apache.hc.client5.http.classic.HttpClient}.
  * Any class in the caching module that has configuration options should take a
  * {@link CacheConfig} argument in one of its constructors. A
  * {@code CacheConfig} instance has sane and conservative defaults, so the
@@ -38,7 +38,7 @@ import org.apache.hc.core5.util.Args;
  *
  * <p><b>N.B.</b> This class is only for caching-specific configuration; to
  * configure the behavior of the rest of the client, configure the
- * {@link org.apache.hc.client5.http.sync.HttpClient} used as the &quot;backend&quot;
+ * {@link org.apache.hc.client5.http.classic.HttpClient} used as the &quot;backend&quot;
  * for the {@code CachingHttpClient}.</p>
  *
  * <p>Cache configuration can be grouped into the following categories:</p>

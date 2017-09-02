@@ -31,9 +31,9 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.Charset;
 
+import org.apache.hc.client5.http.ClientProtocolException;
 import org.apache.hc.client5.http.fluent.Content;
 import org.apache.hc.client5.http.fluent.Request;
-import org.apache.hc.client5.http.protocol.ClientProtocolException;
 import org.apache.hc.client5.testing.sync.LocalServerTestBase;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;

@@ -31,6 +31,7 @@ import java.net.URI;
 import java.util.List;
 
 import org.apache.hc.client5.http.HttpRoute;
+import org.apache.hc.client5.http.RedirectException;
 import org.apache.hc.client5.http.StandardMethods;
 import org.apache.hc.client5.http.async.AsyncExecCallback;
 import org.apache.hc.client5.http.async.AsyncExecChain;
@@ -39,7 +40,6 @@ import org.apache.hc.client5.http.auth.AuthExchange;
 import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
-import org.apache.hc.client5.http.protocol.RedirectException;
 import org.apache.hc.client5.http.protocol.RedirectStrategy;
 import org.apache.hc.client5.http.routing.HttpRoutePlanner;
 import org.apache.hc.client5.http.utils.URIUtils;
