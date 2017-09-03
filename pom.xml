@@ -25,10 +25,11 @@
    <http://www.apache.org />.
  --><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <parent>
-    <artifactId>project</artifactId>
     <groupId>org.apache.httpcomponents</groupId>
+    <artifactId>project</artifactId>
+    <!-- Version 0: <artifactId>httpcomponents-parent</artifactId> -->
     <version>8</version>
-    <relativePath>../project/pom.xml</relativePath>
+    <relativePath>../httpcomponents-parent/pom.xml</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.apache.httpcomponents.client5</groupId>
