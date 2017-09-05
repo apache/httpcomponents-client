@@ -43,6 +43,7 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
 import org.apache.hc.core5.io.ShutdownType;
 import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 import org.apache.logging.log4j.Logger;
 import org.junit.Assert;
 import org.junit.Before;
@@ -88,7 +89,7 @@ public class TestExecRuntimeImpl {
         context.setRequestConfig(config);
         final HttpRoute route = new HttpRoute(new HttpHost("host", 80));
 
-        Mockito.when(mgr.lease(route, null)).thenReturn(leaseRequest);
+        Mockito.when(mgr.lease(Mockito.eq(route), Mockito.<Timeout>any(), Mockito.any())).thenReturn(leaseRequest);
         Mockito.when(leaseRequest.get(
                 Mockito.anyLong(), Mockito.<TimeUnit>any())).thenReturn(connectionEndpoint);
 
@@ -109,7 +110,7 @@ public class TestExecRuntimeImpl {
     public void testAcquireEndpointAlreadyAcquired() throws Exception {
         final HttpClientContext context = HttpClientContext.create();
 
-        Mockito.when(mgr.lease(route, null)).thenReturn(leaseRequest);
+        Mockito.when(mgr.lease(Mockito.eq(route), Mockito.<Timeout>any(), Mockito.any())).thenReturn(leaseRequest);
         Mockito.when(leaseRequest.get(
                 Mockito.anyLong(), Mockito.<TimeUnit>any())).thenReturn(connectionEndpoint);
 
@@ -125,7 +126,7 @@ public class TestExecRuntimeImpl {
     public void testAcquireEndpointLeaseRequestTimeout() throws Exception {
         final HttpClientContext context = HttpClientContext.create();
 
-        Mockito.when(mgr.lease(route, null)).thenReturn(leaseRequest);
+        Mockito.when(mgr.lease(Mockito.eq(route), Mockito.<Timeout>any(), Mockito.any())).thenReturn(leaseRequest);
         Mockito.when(leaseRequest.get(
                 Mockito.anyLong(), Mockito.<TimeUnit>any())).thenThrow(new TimeoutException());
 
@@ -136,7 +137,7 @@ public class TestExecRuntimeImpl {
     public void testAcquireEndpointLeaseRequestFailure() throws Exception {
         final HttpClientContext context = HttpClientContext.create();
 
-        Mockito.when(mgr.lease(route, null)).thenReturn(leaseRequest);
+        Mockito.when(mgr.lease(Mockito.eq(route), Mockito.<Timeout>any(), Mockito.any())).thenReturn(leaseRequest);
         Mockito.when(leaseRequest.get(
                 Mockito.anyLong(), Mockito.<TimeUnit>any())).thenThrow(new ExecutionException(new IllegalStateException()));
 
@@ -146,7 +147,7 @@ public class TestExecRuntimeImpl {
     @Test
     public void testAbortEndpoint() throws Exception {
         final HttpClientContext context = HttpClientContext.create();
-        Mockito.when(mgr.lease(route, null)).thenReturn(leaseRequest);
+        Mockito.when(mgr.lease(Mockito.eq(route), Mockito.<Timeout>any(), Mockito.any())).thenReturn(leaseRequest);
         Mockito.when(leaseRequest.get(
                 Mockito.anyLong(), Mockito.<TimeUnit>any())).thenReturn(connectionEndpoint);
 
@@ -172,7 +173,7 @@ public class TestExecRuntimeImpl {
     public void testCancell() throws Exception {
         final HttpClientContext context = HttpClientContext.create();
 
-        Mockito.when(mgr.lease(route, null)).thenReturn(leaseRequest);
+        Mockito.when(mgr.lease(Mockito.eq(route), Mockito.<Timeout>any(), Mockito.any())).thenReturn(leaseRequest);
         Mockito.when(leaseRequest.get(
                 Mockito.anyLong(), Mockito.<TimeUnit>any())).thenReturn(connectionEndpoint);
 
@@ -199,7 +200,7 @@ public class TestExecRuntimeImpl {
     public void testReleaseEndpointReusable() throws Exception {
         final HttpClientContext context = HttpClientContext.create();
 
-        Mockito.when(mgr.lease(route, null)).thenReturn(leaseRequest);
+        Mockito.when(mgr.lease(Mockito.eq(route), Mockito.<Timeout>any(), Mockito.any())).thenReturn(leaseRequest);
         Mockito.when(leaseRequest.get(
                 Mockito.anyLong(), Mockito.<TimeUnit>any())).thenReturn(connectionEndpoint);
 
@@ -229,7 +230,7 @@ public class TestExecRuntimeImpl {
     public void testReleaseEndpointNonReusable() throws Exception {
         final HttpClientContext context = HttpClientContext.create();
 
-        Mockito.when(mgr.lease(route, null)).thenReturn(leaseRequest);
+        Mockito.when(mgr.lease(Mockito.eq(route), Mockito.<Timeout>any(), Mockito.any())).thenReturn(leaseRequest);
         Mockito.when(leaseRequest.get(
                 Mockito.anyLong(), Mockito.<TimeUnit>any())).thenReturn(connectionEndpoint);
 
@@ -265,7 +266,7 @@ public class TestExecRuntimeImpl {
                 .build();
         context.setRequestConfig(config);
 
-        Mockito.when(mgr.lease(route, null)).thenReturn(leaseRequest);
+        Mockito.when(mgr.lease(Mockito.eq(route), Mockito.<Timeout>any(), Mockito.any())).thenReturn(leaseRequest);
         Mockito.when(leaseRequest.get(
                 Mockito.anyLong(), Mockito.<TimeUnit>any())).thenReturn(connectionEndpoint);
 
@@ -285,7 +286,7 @@ public class TestExecRuntimeImpl {
     public void testDisonnectEndpoint() throws Exception {
         final HttpClientContext context = HttpClientContext.create();
 
-        Mockito.when(mgr.lease(route, null)).thenReturn(leaseRequest);
+        Mockito.when(mgr.lease(Mockito.eq(route), Mockito.<Timeout>any(), Mockito.any())).thenReturn(leaseRequest);
         Mockito.when(leaseRequest.get(
                 Mockito.anyLong(), Mockito.<TimeUnit>any())).thenReturn(connectionEndpoint);
 

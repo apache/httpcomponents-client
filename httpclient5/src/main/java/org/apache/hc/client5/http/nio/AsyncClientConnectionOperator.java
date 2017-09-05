@@ -25,40 +25,31 @@
  *
  */
 
-package org.apache.hc.client5.http.io;
+package org.apache.hc.client5.http.nio;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.util.concurrent.Future;
 
 import org.apache.hc.core5.annotation.Internal;
+import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.config.SocketConfig;
-import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.reactor.ConnectionInitiator;
 import org.apache.hc.core5.util.TimeValue;
 
 /**
- * Connection operator that performs connection connect and upgrade operations. Usually, components
- * participating in these operations are registry of {@link org.apache.hc.client5.http.socket.ConnectionSocketFactory},
- * {@link org.apache.hc.client5.http.SchemePortResolver} and {@link org.apache.hc.client5.http.DnsResolver}.
- * In general, HTTP client user should not provide implementations of this interface, as HttpClient will use the
- * default one that covers most of the cases needed for majority of users.
- *
- * @since 4.4
+ * @since 5.0
  */
 @Internal
-public interface HttpClientConnectionOperator {
+public interface AsyncClientConnectionOperator {
 
-    void connect(
-            ManagedHttpClientConnection conn,
+    Future<ManagedAsyncClientConnection> connect(
+            ConnectionInitiator connectionInitiator,
             HttpHost host,
-            InetSocketAddress localAddress,
+            SocketAddress localAddress,
             TimeValue connectTimeout,
-            SocketConfig socketConfig,
-            HttpContext context) throws IOException;
+            Object attachment,
+            FutureCallback<ManagedAsyncClientConnection> callback);
 
-    void upgrade(
-            ManagedHttpClientConnection conn,
-            HttpHost host,
-            HttpContext context) throws IOException;
+    void upgrade(ManagedAsyncClientConnection connection, HttpHost host, Object attachment);
 
 }

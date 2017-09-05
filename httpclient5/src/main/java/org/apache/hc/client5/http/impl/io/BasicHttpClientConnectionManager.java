@@ -65,6 +65,7 @@ import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.Asserts;
 import org.apache.hc.core5.util.LangUtils;
 import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -181,8 +182,12 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
         this.socketConfig = socketConfig != null ? socketConfig : SocketConfig.DEFAULT;
     }
 
-    @Override
     public LeaseRequest lease(final HttpRoute route, final Object state) {
+        return lease(route, Timeout.DISABLED, state);
+    }
+
+    @Override
+    public LeaseRequest lease(final HttpRoute route, final Timeout requestTimeout, final Object state) {
         return new LeaseRequest() {
 
             @Override

@@ -71,13 +71,13 @@ public interface AsyncClientConnectionManager extends Closeable {
      * @param route HTTP route of the requested connection.
      * @param state expected state of the connection or {@code null}
      *              if the connection is not expected to carry any state.
-     * @param timeout lease request timeout.
+     * @param requestTimeout lease request timeout.
      * @param callback result callback.
      */
     Future<AsyncConnectionEndpoint> lease(
             HttpRoute route,
             Object state,
-            Timeout timeout,
+            Timeout requestTimeout,
             FutureCallback<AsyncConnectionEndpoint> callback);
 
     /**

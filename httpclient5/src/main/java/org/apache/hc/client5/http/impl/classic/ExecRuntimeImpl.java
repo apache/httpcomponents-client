@@ -49,6 +49,7 @@ import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
 import org.apache.hc.core5.io.ShutdownType;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 import org.apache.logging.log4j.Logger;
 
 class ExecRuntimeImpl implements ExecRuntime, Cancellable {
@@ -92,7 +93,9 @@ class ExecRuntimeImpl implements ExecRuntime, Cancellable {
     public void acquireConnection(final HttpRoute route, final Object object, final HttpClientContext context) throws IOException {
         Args.notNull(route, "Route");
         if (endpointRef.get() == null) {
-            final LeaseRequest connRequest = manager.lease(route, object);
+            final RequestConfig requestConfig = context.getRequestConfig();
+            final Timeout requestTimeout = requestConfig.getConnectionRequestTimeout();
+            final LeaseRequest connRequest = manager.lease(route, requestTimeout, object);
             state = object;
             if (cancellableAware != null) {
                 if (cancellableAware.isCancelled()) {
@@ -102,9 +105,7 @@ class ExecRuntimeImpl implements ExecRuntime, Cancellable {
                 cancellableAware.setCancellable(connRequest);
             }
             try {
-                final RequestConfig requestConfig = context.getRequestConfig();
-                final TimeValue timeout = requestConfig.getConnectionRequestTimeout();
-                final ConnectionEndpoint connectionEndpoint = connRequest.get(timeout.getDuration(), timeout.getTimeUnit());
+                final ConnectionEndpoint connectionEndpoint = connRequest.get(requestTimeout.getDuration(), requestTimeout.getTimeUnit());
                 endpointRef.set(connectionEndpoint);
                 reusable = connectionEndpoint.isConnected();
                 if (cancellableAware != null) {

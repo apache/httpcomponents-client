@@ -41,6 +41,9 @@ import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.SystemDefaultDnsResolver;
 import org.apache.hc.client5.http.UnsupportedSchemeException;
 import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
+import org.apache.hc.client5.http.nio.AsyncClientConnectionOperator;
+import org.apache.hc.client5.http.nio.ManagedAsyncClientConnection;
+import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.concurrent.ComplexFuture;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.HttpHost;
@@ -51,21 +54,28 @@ import org.apache.hc.core5.reactor.IOSession;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TimeValue;
 
-final class AsyncClientConnectionOperator {
+/**
+ * Default {@link AsyncClientConnectionOperator} implementation.
+ *
+ * @since 5.0
+ */
+@Internal
+final class DefaultAsyncClientConnectionOperator implements AsyncClientConnectionOperator {
 
     private final SchemePortResolver schemePortResolver;
     private final DnsResolver dnsResolver;
     private final Lookup<TlsStrategy> tlsStrategyLookup;
 
-    AsyncClientConnectionOperator(
+    DefaultAsyncClientConnectionOperator(
+            final Lookup<TlsStrategy> tlsStrategyLookup,
             final SchemePortResolver schemePortResolver,
-            final DnsResolver dnsResolver,
-            final Lookup<TlsStrategy> tlsStrategyLookup) {
+            final DnsResolver dnsResolver) {
+        this.tlsStrategyLookup = Args.notNull(tlsStrategyLookup, "TLS strategy lookup");
         this.schemePortResolver = schemePortResolver != null ? schemePortResolver : DefaultSchemePortResolver.INSTANCE;
         this.dnsResolver = dnsResolver != null ? dnsResolver : SystemDefaultDnsResolver.INSTANCE;
-        this.tlsStrategyLookup = tlsStrategyLookup;
     }
 
+    @Override
     public Future<ManagedAsyncClientConnection> connect(
             final ConnectionInitiator connectionInitiator,
             final HttpHost host,
@@ -108,7 +118,7 @@ final class AsyncClientConnectionOperator {
 
                             @Override
                             public void completed(final IOSession session) {
-                                final ManagedAsyncClientConnection connection = new ManagedAsyncClientConnection(session);
+                                final DefaultManagedAsyncClientConnection connection = new DefaultManagedAsyncClientConnection(session);
                                 if (tlsStrategy != null) {
                                     tlsStrategy.upgrade(
                                             connection,
@@ -152,6 +162,7 @@ final class AsyncClientConnectionOperator {
         return future;
     }
 
+    @Override
     public void upgrade(final ManagedAsyncClientConnection connection, final HttpHost host, final Object attachment) {
         final TlsStrategy tlsStrategy = tlsStrategyLookup != null ? tlsStrategyLookup.lookup(host.getSchemeName()) : null;
         if (tlsStrategy != null) {

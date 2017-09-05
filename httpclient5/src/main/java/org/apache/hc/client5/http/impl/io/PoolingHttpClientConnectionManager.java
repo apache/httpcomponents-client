@@ -27,7 +27,6 @@
 package org.apache.hc.client5.http.impl.io;
 
 import java.io.IOException;
-import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -49,13 +48,12 @@ import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
 import org.apache.hc.client5.http.socket.PlainConnectionSocketFactory;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
 import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
-import org.apache.hc.core5.function.Callback;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.config.Registry;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.config.SocketConfig;
@@ -64,6 +62,9 @@ import org.apache.hc.core5.http.io.HttpConnectionFactory;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.io.ShutdownType;
 import org.apache.hc.core5.pool.ConnPoolControl;
+import org.apache.hc.core5.pool.LaxConnPool;
+import org.apache.hc.core5.pool.ManagedConnPool;
+import org.apache.hc.core5.pool.PoolConcurrencyPolicy;
 import org.apache.hc.core5.pool.PoolEntry;
 import org.apache.hc.core5.pool.PoolReusePolicy;
 import org.apache.hc.core5.pool.PoolStats;
@@ -71,6 +72,7 @@ import org.apache.hc.core5.pool.StrictConnPool;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.Asserts;
 import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -107,95 +109,113 @@ public class PoolingHttpClientConnectionManager
     public static final int DEFAULT_MAX_TOTAL_CONNECTIONS = 25;
     public static final int DEFAULT_MAX_CONNECTIONS_PER_ROUTE = 5;
 
-    private final StrictConnPool<HttpRoute, ManagedHttpClientConnection> pool;
-    private final HttpConnectionFactory<ManagedHttpClientConnection> connFactory;
     private final HttpClientConnectionOperator connectionOperator;
+    private final ManagedConnPool<HttpRoute, ManagedHttpClientConnection> pool;
+    private final HttpConnectionFactory<ManagedHttpClientConnection> connFactory;
     private final AtomicBoolean closed;
 
     private volatile SocketConfig defaultSocketConfig;
     private volatile TimeValue validateAfterInactivity;
 
-    private static Registry<ConnectionSocketFactory> getDefaultRegistry() {
-        return RegistryBuilder.<ConnectionSocketFactory>create()
+    public PoolingHttpClientConnectionManager() {
+        this(RegistryBuilder.<ConnectionSocketFactory>create()
                 .register("http", PlainConnectionSocketFactory.getSocketFactory())
                 .register("https", SSLConnectionSocketFactory.getSocketFactory())
-                .build();
-    }
-
-    public PoolingHttpClientConnectionManager() {
-        this(getDefaultRegistry());
-    }
-
-    public PoolingHttpClientConnectionManager(final TimeValue timeToLive) {
-        this(getDefaultRegistry(), null, null ,null, PoolReusePolicy.LIFO, timeToLive);
+                .build());
     }
 
     public PoolingHttpClientConnectionManager(
             final Registry<ConnectionSocketFactory> socketFactoryRegistry) {
-        this(socketFactoryRegistry, null, null);
-    }
-
-    public PoolingHttpClientConnectionManager(
-            final Registry<ConnectionSocketFactory> socketFactoryRegistry,
-            final DnsResolver dnsResolver) {
-        this(socketFactoryRegistry, null, dnsResolver);
+        this(socketFactoryRegistry, null);
     }
 
     public PoolingHttpClientConnectionManager(
             final Registry<ConnectionSocketFactory> socketFactoryRegistry,
             final HttpConnectionFactory<ManagedHttpClientConnection> connFactory) {
-        this(socketFactoryRegistry, connFactory, null);
+        this(socketFactoryRegistry, PoolConcurrencyPolicy.STRICT, TimeValue.NEG_ONE_MILLISECONDS, connFactory);
     }
 
     public PoolingHttpClientConnectionManager(
+            final Registry<ConnectionSocketFactory> socketFactoryRegistry,
+            final PoolConcurrencyPolicy poolConcurrencyPolicy,
+            final TimeValue timeToLive,
             final HttpConnectionFactory<ManagedHttpClientConnection> connFactory) {
-        this(getDefaultRegistry(), connFactory, null);
+        this(socketFactoryRegistry, poolConcurrencyPolicy, PoolReusePolicy.LIFO, timeToLive, connFactory);
     }
 
     public PoolingHttpClientConnectionManager(
             final Registry<ConnectionSocketFactory> socketFactoryRegistry,
-            final HttpConnectionFactory<ManagedHttpClientConnection> connFactory,
-            final DnsResolver dnsResolver) {
-        this(socketFactoryRegistry, connFactory, null, dnsResolver, PoolReusePolicy.LIFO, TimeValue.NEG_ONE_MILLISECONDS);
+            final PoolConcurrencyPolicy poolConcurrencyPolicy,
+            final PoolReusePolicy poolReusePolicy,
+            final TimeValue timeToLive) {
+        this(socketFactoryRegistry, poolConcurrencyPolicy, poolReusePolicy, timeToLive, null);
     }
 
     public PoolingHttpClientConnectionManager(
             final Registry<ConnectionSocketFactory> socketFactoryRegistry,
-            final HttpConnectionFactory<ManagedHttpClientConnection> connFactory,
+            final PoolConcurrencyPolicy poolConcurrencyPolicy,
+            final PoolReusePolicy poolReusePolicy,
+            final TimeValue timeToLive,
+            final HttpConnectionFactory<ManagedHttpClientConnection> connFactory) {
+        this(socketFactoryRegistry, poolConcurrencyPolicy, poolReusePolicy, timeToLive, null, null, connFactory);
+    }
+
+    public PoolingHttpClientConnectionManager(
+            final Registry<ConnectionSocketFactory> socketFactoryRegistry,
+            final PoolConcurrencyPolicy poolConcurrencyPolicy,
+            final PoolReusePolicy poolReusePolicy,
+            final TimeValue timeToLive,
             final SchemePortResolver schemePortResolver,
             final DnsResolver dnsResolver,
-            final PoolReusePolicy poolReusePolicy,
-            final TimeValue timeToLive) {
+            final HttpConnectionFactory<ManagedHttpClientConnection> connFactory) {
         this(new DefaultHttpClientConnectionOperator(socketFactoryRegistry, schemePortResolver, dnsResolver),
-            connFactory, poolReusePolicy, timeToLive);
+                poolConcurrencyPolicy,
+                poolReusePolicy,
+                timeToLive,
+                connFactory);
     }
 
-    public PoolingHttpClientConnectionManager(
+    @Internal
+    protected PoolingHttpClientConnectionManager(
             final HttpClientConnectionOperator httpClientConnectionOperator,
-            final HttpConnectionFactory<ManagedHttpClientConnection> connFactory,
+            final PoolConcurrencyPolicy poolConcurrencyPolicy,
             final PoolReusePolicy poolReusePolicy,
-            final TimeValue timeToLive) {
+            final TimeValue timeToLive,
+            final HttpConnectionFactory<ManagedHttpClientConnection> connFactory) {
         super();
         this.connectionOperator = Args.notNull(httpClientConnectionOperator, "Connection operator");
+        switch (poolConcurrencyPolicy != null ? poolConcurrencyPolicy : PoolConcurrencyPolicy.STRICT) {
+            case STRICT:
+                this.pool = new StrictConnPool<>(
+                        DEFAULT_MAX_CONNECTIONS_PER_ROUTE,
+                        DEFAULT_MAX_TOTAL_CONNECTIONS,
+                        timeToLive,
+                        poolReusePolicy,
+                        null);
+                break;
+            case LAX:
+                this.pool = new LaxConnPool<>(
+                        DEFAULT_MAX_CONNECTIONS_PER_ROUTE,
+                        timeToLive,
+                        poolReusePolicy,
+                        null);
+                break;
+            default:
+                throw new IllegalArgumentException("Unexpected PoolConcurrencyPolicy value: " + poolConcurrencyPolicy);
+        }
         this.connFactory = connFactory != null ? connFactory : ManagedHttpClientConnectionFactory.INSTANCE;
-        this.pool = new StrictConnPool<>(DEFAULT_MAX_CONNECTIONS_PER_ROUTE, DEFAULT_MAX_TOTAL_CONNECTIONS, timeToLive,
-                poolReusePolicy, null);
         this.closed = new AtomicBoolean(false);
     }
 
-    /**
-     * Visible for test.
-     */
-    PoolingHttpClientConnectionManager(
-            final StrictConnPool<HttpRoute, ManagedHttpClientConnection> pool,
-            final Lookup<ConnectionSocketFactory> socketFactoryRegistry,
-            final SchemePortResolver schemePortResolver,
-            final DnsResolver dnsResolver) {
+    @Internal
+    protected PoolingHttpClientConnectionManager(
+            final HttpClientConnectionOperator httpClientConnectionOperator,
+            final ManagedConnPool<HttpRoute, ManagedHttpClientConnection> pool,
+            final HttpConnectionFactory<ManagedHttpClientConnection> connFactory) {
         super();
-        this.connectionOperator = new DefaultHttpClientConnectionOperator(
-                socketFactoryRegistry, schemePortResolver, dnsResolver);
-        this.connFactory = ManagedHttpClientConnectionFactory.INSTANCE;
-        this.pool = pool;
+        this.connectionOperator = Args.notNull(httpClientConnectionOperator, "Connection operator");
+        this.pool = Args.notNull(pool, "Connection pool");
+        this.connFactory = connFactory != null ? connFactory : ManagedHttpClientConnectionFactory.INSTANCE;
         this.closed = new AtomicBoolean(false);
     }
 
@@ -225,15 +245,24 @@ public class PoolingHttpClientConnectionManager
         }
     }
 
+    public LeaseRequest lease(final HttpRoute route, final Object state) {
+        return lease(route, Timeout.DISABLED, state);
+    }
+
     @Override
     public LeaseRequest lease(
             final HttpRoute route,
+            final Timeout requestTimeout,
             final Object state) {
         Args.notNull(route, "HTTP route");
         if (this.log.isDebugEnabled()) {
             this.log.debug("Connection request: " + ConnPoolSupport.formatStats(null, route, state, this.pool));
         }
-        final Future<PoolEntry<HttpRoute, ManagedHttpClientConnection>> leaseFuture = this.pool.lease(route, state, null);
+        //TODO: fix me.
+        if (log.isWarnEnabled() && Timeout.isPositive(requestTimeout)) {
+            log.warn("Connection request timeout is not supported");
+        }
+        final Future<PoolEntry<HttpRoute, ManagedHttpClientConnection>> leaseFuture = this.pool.lease(route, state, /** requestTimeout, */ null);
         return new LeaseRequest() {
 
             private volatile ConnectionEndpoint endpoint;
@@ -391,14 +420,6 @@ public class PoolingHttpClientConnectionManager
         this.pool.closeExpired();
     }
 
-    protected void enumAvailable(final Callback<PoolEntry<HttpRoute, ManagedHttpClientConnection>> callback) {
-        this.pool.enumAvailable(callback);
-    }
-
-    protected void enumLeased(final Callback<PoolEntry<HttpRoute, ManagedHttpClientConnection>> callback) {
-        this.pool.enumLeased(callback);
-    }
-
     @Override
     public int getMaxTotal() {
         return this.pool.getMaxTotal();
@@ -437,13 +458,6 @@ public class PoolingHttpClientConnectionManager
     @Override
     public PoolStats getStats(final HttpRoute route) {
         return this.pool.getStats(route);
-    }
-
-    /**
-     * @since 4.4
-     */
-    public Set<HttpRoute> getRoutes() {
-        return this.pool.getRoutes();
     }
 
     public SocketConfig getDefaultSocketConfig() {

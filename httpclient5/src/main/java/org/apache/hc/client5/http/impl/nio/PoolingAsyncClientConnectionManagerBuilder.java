@@ -35,6 +35,7 @@ import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.ssl.H2TlsStrategy;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
+import org.apache.hc.core5.pool.PoolConcurrencyPolicy;
 import org.apache.hc.core5.pool.PoolReusePolicy;
 import org.apache.hc.core5.util.TimeValue;
 
@@ -69,6 +70,7 @@ public class PoolingAsyncClientConnectionManagerBuilder {
     private TlsStrategy tlsStrategy;
     private SchemePortResolver schemePortResolver;
     private DnsResolver dnsResolver;
+    private PoolConcurrencyPolicy poolConcurrencyPolicy;
     private PoolReusePolicy poolReusePolicy;
 
     private boolean systemProperties;
@@ -109,6 +111,14 @@ public class PoolingAsyncClientConnectionManagerBuilder {
      */
     public final PoolingAsyncClientConnectionManagerBuilder setSchemePortResolver(final SchemePortResolver schemePortResolver) {
         this.schemePortResolver = schemePortResolver;
+        return this;
+    }
+
+    /**
+     * Assigns {@link PoolConcurrencyPolicy} value.
+     */
+    public final PoolingAsyncClientConnectionManagerBuilder setPoolConcurrencyPolicy(final PoolConcurrencyPolicy poolConcurrencyPolicy) {
+        this.poolConcurrencyPolicy = poolConcurrencyPolicy;
         return this;
     }
 
@@ -165,15 +175,29 @@ public class PoolingAsyncClientConnectionManagerBuilder {
     }
 
     public PoolingAsyncClientConnectionManager build() {
+        final TlsStrategy tlsStrategyCopy;
+        if (tlsStrategy != null) {
+            tlsStrategyCopy = tlsStrategy;
+        } else if (systemProperties) {
+            tlsStrategyCopy = AccessController.doPrivileged(new PrivilegedAction<TlsStrategy>() {
+                @Override
+                public TlsStrategy run() {
+                    return H2TlsStrategy.getSystemDefault();
+                }
+            });
+        } else {
+            tlsStrategyCopy = H2TlsStrategy.getDefault();
+        }
         @SuppressWarnings("resource")
         final PoolingAsyncClientConnectionManager poolingmgr = new PoolingAsyncClientConnectionManager(
                 RegistryBuilder.<TlsStrategy>create()
-                        .register("https", getTlsStrategy())
+                        .register("https", tlsStrategyCopy)
                         .build(),
-                schemePortResolver,
-                dnsResolver,
+                poolConcurrencyPolicy,
+                poolReusePolicy,
                 timeToLive,
-                poolReusePolicy);
+                schemePortResolver,
+                dnsResolver);
         poolingmgr.setValidateAfterInactivity(this.validateAfterInactivity);
         if (maxConnTotal > 0) {
             poolingmgr.setMaxTotal(maxConnTotal);
@@ -184,18 +208,4 @@ public class PoolingAsyncClientConnectionManagerBuilder {
         return poolingmgr;
     }
 
-    private TlsStrategy getTlsStrategy() {
-        if (tlsStrategy != null) {
-            return tlsStrategy;
-        } else if (systemProperties) {
-            return AccessController.doPrivileged(new PrivilegedAction<TlsStrategy>() {
-                @Override
-                public TlsStrategy run() {
-                    return H2TlsStrategy.getSystemDefault();
-                }
-            });
-        } else {
-            return H2TlsStrategy.getDefault();
-        }
-    }
 }

@@ -32,6 +32,7 @@ import java.io.IOException;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 
 /**
  * Represents a manager of persistent client connections.
@@ -64,10 +65,12 @@ public interface HttpClientConnectionManager extends Closeable {
      * executed a {@code CONNECT} method to all intermediate proxy hops.
      *
      * @param route HTTP route of the requested connection.
+     * @param requestTimeout lease request timeout.
      * @param state expected state of the connection or {@code null}
      *              if the connection is not expected to carry any state.
+     * @since 5.0
      */
-    LeaseRequest lease(HttpRoute route, Object state);
+    LeaseRequest lease(HttpRoute route, Timeout requestTimeout, Object state);
 
     /**
      * Releases the endpoint back to the manager making it potentially

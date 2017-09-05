@@ -32,6 +32,7 @@ import java.net.Socket;
 
 import javax.net.ssl.SSLSession;
 
+import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.http.io.HttpClientConnection;
 
 /**
@@ -42,6 +43,7 @@ import org.apache.hc.core5.http.io.HttpClientConnection;
  *
  * @since 4.3
  */
+@Internal
 public interface ManagedHttpClientConnection extends HttpClientConnection {
 
     /**

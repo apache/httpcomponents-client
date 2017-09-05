@@ -78,6 +78,8 @@ import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.BasicLineParser;
 import org.apache.hc.core5.http.message.LineParser;
+import org.apache.hc.core5.pool.PoolConcurrencyPolicy;
+import org.apache.hc.core5.pool.PoolReusePolicy;
 import org.apache.hc.core5.ssl.SSLContexts;
 import org.apache.hc.core5.util.CharArrayBuffer;
 import org.apache.hc.core5.util.TimeValue;
@@ -166,7 +168,8 @@ public class ClientConfiguration {
 
         // Create a connection manager with custom configuration.
         final PoolingHttpClientConnectionManager connManager = new PoolingHttpClientConnectionManager(
-                socketFactoryRegistry, connFactory, dnsResolver);
+                socketFactoryRegistry, PoolConcurrencyPolicy.STRICT, PoolReusePolicy.LIFO, TimeValue.ofMinutes(5),
+                null, dnsResolver, null);
 
         // Create socket configuration
         final SocketConfig socketConfig = SocketConfig.custom()

@@ -27,7 +27,6 @@
 
 package org.apache.hc.client5.testing.sync;
 
-import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -35,10 +34,14 @@ import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.io.ConnectionEndpoint;
 import org.apache.hc.client5.http.io.LeaseRequest;
+import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
+import org.apache.hc.client5.http.socket.PlainConnectionSocketFactory;
+import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
 import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 import org.apache.hc.core5.http.protocol.BasicHttpContext;
@@ -48,6 +51,8 @@ import org.apache.hc.core5.http.protocol.HttpProcessor;
 import org.apache.hc.core5.http.protocol.RequestConnControl;
 import org.apache.hc.core5.http.protocol.RequestContent;
 import org.apache.hc.core5.http.protocol.RequestTargetHost;
+import org.apache.hc.core5.pool.PoolConcurrencyPolicy;
+import org.apache.hc.core5.pool.PoolReusePolicy;
 import org.apache.hc.core5.util.TimeValue;
 import org.junit.Assert;
 import org.junit.Test;
@@ -220,21 +225,18 @@ public class TestConnectionManagement extends LocalServerTestBase {
         final ConnectionEndpoint endpoint1 = leaseRequest1.get(0, TimeUnit.MILLISECONDS);
         this.connManager.connect(endpoint1, TimeValue.NEG_ONE_MILLISECONDS, context);
 
-        Assert.assertEquals(Collections.singleton(route), this.connManager.getRoutes());
         Assert.assertEquals(1, this.connManager.getTotalStats().getLeased());
         Assert.assertEquals(1, this.connManager.getStats(route).getLeased());
 
         this.connManager.release(endpoint1, null, TimeValue.ofMillis(100));
 
         // Released, still active.
-        Assert.assertEquals(Collections.singleton(route), this.connManager.getRoutes());
         Assert.assertEquals(1, this.connManager.getTotalStats().getAvailable());
         Assert.assertEquals(1, this.connManager.getStats(route).getAvailable());
 
         this.connManager.closeExpired();
 
         // Time has not expired yet.
-        Assert.assertEquals(Collections.singleton(route), this.connManager.getRoutes());
         Assert.assertEquals(1, this.connManager.getTotalStats().getAvailable());
         Assert.assertEquals(1, this.connManager.getStats(route).getAvailable());
 
@@ -243,7 +245,6 @@ public class TestConnectionManagement extends LocalServerTestBase {
         this.connManager.closeExpired();
 
         // Time expired now, connections are destroyed.
-        Assert.assertEquals(Collections.emptySet(), this.connManager.getRoutes());
         Assert.assertEquals(0, this.connManager.getTotalStats().getAvailable());
         Assert.assertEquals(0, this.connManager.getStats(route).getAvailable());
 
@@ -253,7 +254,14 @@ public class TestConnectionManagement extends LocalServerTestBase {
     @Test
     public void testCloseExpiredTTLConnections() throws Exception {
 
-        this.connManager = new PoolingHttpClientConnectionManager(TimeValue.ofMillis(100));
+        this.connManager = new PoolingHttpClientConnectionManager(
+                RegistryBuilder.<ConnectionSocketFactory>create()
+                        .register("http", PlainConnectionSocketFactory.getSocketFactory())
+                        .register("https", SSLConnectionSocketFactory.getSocketFactory())
+                        .build(),
+                PoolConcurrencyPolicy.STRICT,
+                PoolReusePolicy.LIFO,
+                TimeValue.ofMillis(100));
         this.clientBuilder.setConnectionManager(this.connManager);
 
         this.connManager.setMaxTotal(1);
@@ -266,21 +274,18 @@ public class TestConnectionManagement extends LocalServerTestBase {
         final ConnectionEndpoint endpoint1 = leaseRequest1.get(0, TimeUnit.MILLISECONDS);
         this.connManager.connect(endpoint1, TimeValue.NEG_ONE_MILLISECONDS, context);
 
-        Assert.assertEquals(Collections.singleton(route), this.connManager.getRoutes());
         Assert.assertEquals(1, this.connManager.getTotalStats().getLeased());
         Assert.assertEquals(1, this.connManager.getStats(route).getLeased());
         // Release, let remain idle for forever
         this.connManager.release(endpoint1, null, TimeValue.NEG_ONE_MILLISECONDS);
 
         // Released, still active.
-        Assert.assertEquals(Collections.singleton(route), this.connManager.getRoutes());
         Assert.assertEquals(1, this.connManager.getTotalStats().getAvailable());
         Assert.assertEquals(1, this.connManager.getStats(route).getAvailable());
 
         this.connManager.closeExpired();
 
         // Time has not expired yet.
-        Assert.assertEquals(Collections.singleton(route), this.connManager.getRoutes());
         Assert.assertEquals(1, this.connManager.getTotalStats().getAvailable());
         Assert.assertEquals(1, this.connManager.getStats(route).getAvailable());
 
@@ -289,7 +294,6 @@ public class TestConnectionManagement extends LocalServerTestBase {
         this.connManager.closeExpired();
 
         // TTL expired now, connections are destroyed.
-        Assert.assertEquals(Collections.emptySet(), this.connManager.getRoutes());
         Assert.assertEquals(0, this.connManager.getTotalStats().getAvailable());
         Assert.assertEquals(0, this.connManager.getStats(route).getAvailable());
 

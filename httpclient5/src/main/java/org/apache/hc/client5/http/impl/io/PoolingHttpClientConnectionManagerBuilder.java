@@ -37,6 +37,7 @@ import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.config.SocketConfig;
 import org.apache.hc.core5.http.io.HttpConnectionFactory;
+import org.apache.hc.core5.pool.PoolConcurrencyPolicy;
 import org.apache.hc.core5.pool.PoolReusePolicy;
 import org.apache.hc.core5.util.TimeValue;
 
@@ -72,6 +73,7 @@ public class PoolingHttpClientConnectionManagerBuilder {
     private LayeredConnectionSocketFactory sslSocketFactory;
     private SchemePortResolver schemePortResolver;
     private DnsResolver dnsResolver;
+    private PoolConcurrencyPolicy poolConcurrencyPolicy;
     private PoolReusePolicy poolReusePolicy;
     private SocketConfig defaultSocketConfig;
 
@@ -122,6 +124,14 @@ public class PoolingHttpClientConnectionManagerBuilder {
      */
     public final PoolingHttpClientConnectionManagerBuilder setSchemePortResolver(final SchemePortResolver schemePortResolver) {
         this.schemePortResolver = schemePortResolver;
+        return this;
+    }
+
+    /**
+     * Assigns {@link PoolConcurrencyPolicy} value.
+     */
+    public final PoolingHttpClientConnectionManagerBuilder setPoolConcurrencyPolicy(final PoolConcurrencyPolicy poolConcurrencyPolicy) {
+        this.poolConcurrencyPolicy = poolConcurrencyPolicy;
         return this;
     }
 
@@ -195,11 +205,12 @@ public class PoolingHttpClientConnectionManagerBuilder {
                                         SSLConnectionSocketFactory.getSystemSocketFactory() :
                                         SSLConnectionSocketFactory.getSocketFactory()))
                         .build(),
-                connectionFactory,
+                poolConcurrencyPolicy,
+                poolReusePolicy,
+                timeToLive != null ? timeToLive : TimeValue.NEG_ONE_MILLISECONDS,
                 schemePortResolver,
                 dnsResolver,
-                poolReusePolicy,
-                timeToLive != null ? timeToLive : TimeValue.NEG_ONE_MILLISECONDS);
+                connectionFactory);
         poolingmgr.setValidateAfterInactivity(this.validateAfterInactivity);
         if (defaultSocketConfig != null) {
             poolingmgr.setDefaultSocketConfig(defaultSocketConfig);

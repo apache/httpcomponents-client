@@ -56,9 +56,10 @@ import org.apache.logging.log4j.Logger;
 
 /**
  * Default {@link ManagedHttpClientConnection} implementation.
+ *
  * @since 4.3
  */
-public class DefaultManagedHttpClientConnection
+final class DefaultManagedHttpClientConnection
         extends DefaultBHttpClientConnection implements ManagedHttpClientConnection, Identifiable {
 
     private final Logger log = LogManager.getLogger(DefaultManagedHttpClientConnection.class);

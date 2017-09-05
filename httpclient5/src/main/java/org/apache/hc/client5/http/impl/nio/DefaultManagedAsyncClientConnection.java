@@ -35,6 +35,8 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
 
 import org.apache.hc.client5.http.impl.ConnPoolSupport;
+import org.apache.hc.client5.http.nio.ManagedAsyncClientConnection;
+import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.http.EndpointDetails;
 import org.apache.hc.core5.http.HttpConnection;
 import org.apache.hc.core5.http.HttpVersion;
@@ -53,14 +55,20 @@ import org.apache.hc.core5.util.Identifiable;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-final class ManagedAsyncClientConnection implements Identifiable, HttpConnection, TransportSecurityLayer {
+/**
+ * Default {@link ManagedAsyncClientConnection} implementation.
+ *
+ * @since 5.0
+ */
+@Internal
+final class DefaultManagedAsyncClientConnection implements ManagedAsyncClientConnection, Identifiable {
 
     private final Logger log = LogManager.getLogger(getClass());
 
     private final IOSession ioSession;
     private final AtomicBoolean closed;
 
-    public ManagedAsyncClientConnection(final IOSession ioSession) {
+    public DefaultManagedAsyncClientConnection(final IOSession ioSession) {
         this.ioSession = ioSession;
         this.closed = new AtomicBoolean();
     }
@@ -162,6 +170,7 @@ final class ManagedAsyncClientConnection implements Identifiable, HttpConnection
         return tlsDetails != null ? tlsDetails.getSSLSession() : null;
     }
 
+    @Override
     public void submitPriorityCommand(final Command command) {
         if (log.isDebugEnabled()) {
             log.debug(getId() + ": priority command " + command);
@@ -169,6 +178,7 @@ final class ManagedAsyncClientConnection implements Identifiable, HttpConnection
         ioSession.addFirst(command);
     }
 
+    @Override
     public void submitCommand(final Command command) {
         if (log.isDebugEnabled()) {
             log.debug(getId() + ": command " + command);
