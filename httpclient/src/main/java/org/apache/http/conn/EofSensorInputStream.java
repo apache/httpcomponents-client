@@ -26,6 +26,7 @@
  */
 package org.apache.http.conn;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -117,6 +118,9 @@ public class EofSensorInputStream extends InputStream implements ConnectionRelea
             try {
                 l = wrappedStream.read();
                 checkEOF(l);
+            } catch (final EOFException ex) {
+                // NOOP
+                checkEOF(l);
             } catch (final IOException ex) {
                 checkAbort();
                 throw ex;
@@ -133,6 +137,8 @@ public class EofSensorInputStream extends InputStream implements ConnectionRelea
         if (isReadAllowed()) {
             try {
                 l = wrappedStream.read(b,  off,  len);
+                checkEOF(l);
+            } catch (final EOFException ex) {
                 checkEOF(l);
             } catch (final IOException ex) {
                 checkAbort();
