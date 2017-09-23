@@ -26,7 +26,7 @@
  */
 package org.apache.hc.client5.http.cache;
 
-import java.io.IOException;
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.Serializable;
 
@@ -36,25 +36,40 @@ import java.io.Serializable;
  *
  * @since 4.1
  */
-public interface Resource extends Serializable {
+public abstract class Resource implements Serializable {
 
     /**
-     * Returns an {@link InputStream} from which the response
-     * body can be read.
-     * @throws IOException
+     * Returns resource content as a {@link InputStream}.
+     *
+     * @throws ResourceIOException
      */
-    InputStream getInputStream() throws IOException;
+    public InputStream getInputStream() throws ResourceIOException {
+        return new ByteArrayInputStream(get());
+    }
+
+    /**
+     * Returns resource content as a byte array.
+     * <p>
+     * Please note for memory efficiency some resource implementations
+     * may return a reference to the underlying byte array. The returned
+     * value should be treated as immutable.
+     *
+     * @throws ResourceIOException
+     *
+     * @since 5.0
+     */
+    public abstract byte[] get() throws ResourceIOException;
 
     /**
      * Returns the length in bytes of the response body.
      */
-    long length();
+    public abstract long length();
 
     /**
      * Indicates the system no longer needs to keep this
      * response body and any system resources associated with
      * it may be reclaimed.
      */
-    void dispose();
+    public abstract void dispose();
 
 }

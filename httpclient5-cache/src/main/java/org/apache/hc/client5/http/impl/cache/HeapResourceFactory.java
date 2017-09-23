@@ -26,15 +26,12 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-
-import org.apache.hc.client5.http.cache.InputLimit;
 import org.apache.hc.client5.http.cache.Resource;
 import org.apache.hc.client5.http.cache.ResourceFactory;
+import org.apache.hc.client5.http.cache.ResourceIOException;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.util.Args;
 
 /**
  * Generates {@link Resource} instances stored entirely in heap.
@@ -47,40 +44,23 @@ public class HeapResourceFactory implements ResourceFactory {
     @Override
     public Resource generate(
             final String requestId,
-            final InputStream instream,
-            final InputLimit limit) throws IOException {
-        final ByteArrayOutputStream outstream = new ByteArrayOutputStream();
-        final byte[] buf = new byte[2048];
-        long total = 0;
-        int l;
-        while ((l = instream.read(buf)) != -1) {
-            outstream.write(buf, 0, l);
-            total += l;
-            if (limit != null && total > limit.getValue()) {
-                limit.reached();
-                break;
-            }
-        }
-        return createResource(outstream.toByteArray());
+            final byte[] content, final int off, final int len) throws ResourceIOException {
+        final byte[] copy = new byte[len];
+        System.arraycopy(content, off, copy, 0, len);
+        return new HeapResource(copy);
+    }
+
+    @Override
+    public Resource generate(final String requestId, final byte[] content) {
+        return new HeapResource(content != null ? content.clone() : null);
     }
 
     @Override
     public Resource copy(
             final String requestId,
-            final Resource resource) throws IOException {
-        final byte[] body;
-        if (resource instanceof HeapResource) {
-            body = ((HeapResource) resource).getByteArray();
-        } else {
-            final ByteArrayOutputStream outstream = new ByteArrayOutputStream();
-            IOUtils.copyAndClose(resource.getInputStream(), outstream);
-            body = outstream.toByteArray();
-        }
-        return createResource(body);
-    }
-
-    Resource createResource(final byte[] buf) {
-        return new HeapResource(buf);
+            final Resource resource) throws ResourceIOException {
+        Args.notNull(resource, "Resource");
+        return new HeapResource(resource.get());
     }
 
 }

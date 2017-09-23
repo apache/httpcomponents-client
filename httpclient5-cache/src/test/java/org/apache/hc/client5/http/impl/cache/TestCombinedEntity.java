@@ -32,8 +32,9 @@ import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
 
-import org.apache.hc.client5.http.cache.Resource;
+import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.util.ByteArrayBuffer;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -41,21 +42,25 @@ public class TestCombinedEntity {
 
     @Test
     public void testCombinedEntityBasics() throws Exception {
-        final Resource resource = mock(Resource.class);
-        when(resource.getInputStream()).thenReturn(
-                new ByteArrayInputStream(new byte[] { 1, 2, 3, 4, 5 }));
+        final HttpEntity httpEntity = mock(HttpEntity.class);
+        when(httpEntity.getContent()).thenReturn(
+                new ByteArrayInputStream(new byte[] { 6, 7, 8, 9, 10 }));
 
-        final ByteArrayInputStream instream = new ByteArrayInputStream(new byte[] { 6, 7, 8, 9, 10 });
-        final CombinedEntity entity = new CombinedEntity(resource, instream);
+        final ByteArrayBuffer buf = new ByteArrayBuffer(1024);
+        final byte[] tmp = new byte[] { 1, 2, 3, 4, 5 };
+        buf.append(tmp, 0, tmp.length);
+        final CombinedEntity entity = new CombinedEntity(httpEntity, buf);
         Assert.assertEquals(-1, entity.getContentLength());
         Assert.assertFalse(entity.isRepeatable());
         Assert.assertTrue(entity.isStreaming());
 
-        final byte[] result = EntityUtils.toByteArray(entity);
-        Assert.assertArrayEquals(new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }, result);
+        Assert.assertArrayEquals(new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }, EntityUtils.toByteArray(entity));
 
-        verify(resource).getInputStream();
-        verify(resource).dispose();
+        verify(httpEntity).getContent();
+
+        entity.close();
+
+        verify(httpEntity).close();
     }
 
 }

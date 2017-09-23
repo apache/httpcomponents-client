@@ -27,6 +27,7 @@
 package org.apache.hc.client5.http.impl.cache;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
@@ -44,6 +45,7 @@ import org.apache.hc.client5.http.cache.Resource;
 import org.apache.hc.client5.http.cache.ResourceFactory;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
@@ -51,6 +53,7 @@ import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
 import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
+import org.apache.hc.core5.util.ByteArrayBuffer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -288,41 +291,38 @@ class BasicHttpCache implements HttpCache {
             final ClassicHttpResponse originResponse,
             final Date requestSent,
             final Date responseReceived) throws IOException {
-
-        boolean closeOriginResponse = true;
-        final SizeLimitedResponseReader responseReader = getResponseReader(request, originResponse);
-        try {
-            responseReader.readResponse();
-
-            if (responseReader.isLimitReached()) {
-                closeOriginResponse = false;
-                return responseReader.getReconstructedResponse();
+        final Resource resource;
+        final HttpEntity entity = originResponse.getEntity();
+        if (entity != null) {
+            final ByteArrayBuffer buf = new ByteArrayBuffer(1024);
+            final InputStream instream = entity.getContent();
+            final byte[] tmp = new byte[2048];
+            long total = 0;
+            int l;
+            while ((l = instream.read(tmp)) != -1) {
+                buf.append(tmp, 0, l);
+                total += l;
+                if (total > maxObjectSizeBytes) {
+                    originResponse.setEntity(new CombinedEntity(entity, buf));
+                    return originResponse;
+                }
             }
-
-            final Resource resource = responseReader.getResource();
-            if (isIncompleteResponse(originResponse, resource)) {
-                return generateIncompleteResponseError(originResponse, resource);
-            }
-
-            final HttpCacheEntry entry = new HttpCacheEntry(
-                    requestSent,
-                    responseReceived,
-                    originResponse.getCode(),
-                    originResponse.getAllHeaders(),
-                    resource);
-            storeInCache(host, request, entry);
-            return responseGenerator.generateResponse(request, entry);
-        } finally {
-            if (closeOriginResponse) {
-                originResponse.close();
-            }
+            resource = resourceFactory.generate(request.getRequestUri(), buf.array(), 0, buf.length());
+        } else {
+            resource = null;
         }
-    }
-
-    SizeLimitedResponseReader getResponseReader(final HttpRequest request,
-            final ClassicHttpResponse backEndResponse) {
-        return new SizeLimitedResponseReader(
-                resourceFactory, maxObjectSizeBytes, request, backEndResponse);
+        originResponse.close();
+        if (isIncompleteResponse(originResponse, resource)) {
+            return generateIncompleteResponseError(originResponse, resource);
+        }
+        final HttpCacheEntry entry = new HttpCacheEntry(
+                requestSent,
+                responseReceived,
+                originResponse.getCode(),
+                originResponse.getAllHeaders(),
+                resource);
+        storeInCache(host, request, entry);
+        return responseGenerator.generateResponse(request, entry);
     }
 
     @Override

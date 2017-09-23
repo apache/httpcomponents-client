@@ -29,13 +29,13 @@ package org.apache.hc.client5.http.impl.cache;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 
-import org.apache.hc.client5.http.cache.InputLimit;
 import org.apache.hc.client5.http.cache.Resource;
 import org.apache.hc.client5.http.cache.ResourceFactory;
+import org.apache.hc.client5.http.cache.ResourceIOException;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.util.Args;
 
 /**
  * Generates {@link Resource} instances whose body is stored in a temporary file.
@@ -73,37 +73,41 @@ public class FileResourceFactory implements ResourceFactory {
     @Override
     public Resource generate(
             final String requestId,
-            final InputStream instream,
-            final InputLimit limit) throws IOException {
+            final byte[] content, final int off, final int len) throws ResourceIOException {
+        Args.notNull(requestId, "Request id");
         final File file = generateUniqueCacheFile(requestId);
         try (FileOutputStream outstream = new FileOutputStream(file)) {
-            final byte[] buf = new byte[2048];
-            long total = 0;
-            int l;
-            while ((l = instream.read(buf)) != -1) {
-                outstream.write(buf, 0, l);
-                total += l;
-                if (limit != null && total > limit.getValue()) {
-                    limit.reached();
-                    break;
-                }
+            if (content != null) {
+                outstream.write(content, off, len);
             }
+        } catch (final IOException ex) {
+            throw new ResourceIOException(ex.getMessage(), ex);
         }
         return new FileResource(file);
     }
 
     @Override
+    public Resource generate(final String requestId, final byte[] content) throws ResourceIOException {
+        Args.notNull(content, "Content");
+        return generate(requestId, content, 0, content.length);
+    }
+
+    @Override
     public Resource copy(
             final String requestId,
-            final Resource resource) throws IOException {
+            final Resource resource) throws ResourceIOException {
         final File file = generateUniqueCacheFile(requestId);
 
-        if (resource instanceof FileResource) {
-            final File src = ((FileResource) resource).getFile();
-            IOUtils.copyFile(src, file);
-        } else {
-            final FileOutputStream out = new FileOutputStream(file);
-            IOUtils.copyAndClose(resource.getInputStream(), out);
+        try {
+            if (resource instanceof FileResource) {
+                final File src = ((FileResource) resource).getFile();
+                IOUtils.copyFile(src, file);
+            } else {
+                final FileOutputStream out = new FileOutputStream(file);
+                IOUtils.copyAndClose(resource.getInputStream(), out);
+            }
+        } catch (final IOException ex) {
+            throw new ResourceIOException(ex.getMessage(), ex);
         }
         return new FileResource(file);
     }

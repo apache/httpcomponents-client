@@ -35,7 +35,6 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
 import java.util.HashMap;
@@ -359,7 +358,7 @@ public class TestBasicHttpCache {
 
         final ClassicHttpResponse result = impl.cacheAndReturnResponse(host, request, originResponse, requestSent, responseReceived);
         assertEquals(0, backing.map.size());
-        assertTrue(HttpTestUtils.semanticallyTransparent(originResponse, result));
+        assertSame(originResponse, result);
     }
 
 
@@ -521,53 +520,10 @@ public class TestBasicHttpCache {
         assertTrue(inputStream.wasClosed());
     }
 
-    static class DisposableResource implements Resource {
-
-        private static final long serialVersionUID = 1L;
-
-        private final byte[] b;
-        private boolean dispoased;
-
-        public DisposableResource(final byte[] b) {
-            super();
-            this.b = b;
-        }
-
-        byte[] getByteArray() {
-            return this.b;
-        }
-
-        @Override
-        public InputStream getInputStream() throws IOException {
-            if (dispoased) {
-                throw new IOException("Already dispoased");
-            }
-            return new ByteArrayInputStream(this.b);
-        }
-
-        @Override
-        public long length() {
-            return this.b.length;
-        }
-
-        @Override
-        public void dispose() {
-            this.dispoased = true;
-        }
-
-    }
-
     @Test
     public void testEntryUpdate() throws Exception {
 
-        final HeapResourceFactory rf = new HeapResourceFactory() {
-
-            @Override
-            Resource createResource(final byte[] buf) {
-                return new DisposableResource(buf);
-            }
-
-        };
+        final HeapResourceFactory rf = new HeapResourceFactory();
 
         impl = new BasicHttpCache(rf, backing, CacheConfig.DEFAULT);
 

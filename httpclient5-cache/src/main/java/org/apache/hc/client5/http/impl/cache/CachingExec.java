@@ -298,7 +298,7 @@ public class CachingExec implements ExecChainHandler {
             final ExecChain.Scope scope,
             final ExecChain chain,
             final HttpCacheEntry entry,
-            final Date now) throws HttpException {
+            final Date now) throws HttpException, IOException {
 
         final HttpClientContext context = scope.clientContext;
         try {

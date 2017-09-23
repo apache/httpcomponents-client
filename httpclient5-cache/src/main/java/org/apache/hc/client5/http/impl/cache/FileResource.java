@@ -28,12 +28,17 @@ package org.apache.hc.client5.http.impl.cache;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.hc.client5.http.cache.Resource;
+import org.apache.hc.client5.http.cache.ResourceIOException;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.util.Args;
+import org.apache.hc.core5.util.ByteArrayBuffer;
 
 /**
  * Cache resource backed by a file.
@@ -41,41 +46,70 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
  * @since 4.1
  */
 @Contract(threading = ThreadingBehavior.SAFE)
-public class FileResource implements Resource {
+public class FileResource extends Resource {
 
     private static final long serialVersionUID = 4132244415919043397L;
 
-    private final File file;
-
-    private volatile boolean disposed;
+    private final AtomicReference<File> fileRef;
 
     public FileResource(final File file) {
         super();
-        this.file = file;
-        this.disposed = false;
+        this.fileRef = new AtomicReference<>(Args.notNull(file, "File"));
     }
 
-    synchronized File getFile() {
-        return this.file;
-    }
-
-    @Override
-    public synchronized InputStream getInputStream() throws IOException {
-        return new FileInputStream(this.file);
+    File getFile() {
+        return this.fileRef.get();
     }
 
     @Override
-    public synchronized long length() {
-        return this.file.length();
-    }
-
-    @Override
-    public synchronized void dispose() {
-        if (this.disposed) {
-            return;
+    public byte[] get() throws ResourceIOException {
+        final File file = this.fileRef.get();
+        if (file == null) {
+            throw new ResourceIOException("Resouce already dispoased");
         }
-        this.disposed = true;
-        this.file.delete();
+        try (final InputStream in = new FileInputStream(file)) {
+            final ByteArrayBuffer buf = new ByteArrayBuffer(1024);
+            final byte[] tmp = new byte[2048];
+            int len;
+            while ((len = in.read(tmp)) != -1) {
+                buf.append(tmp, 0, len);
+            }
+            return buf.toByteArray();
+        } catch (final IOException ex) {
+            throw new ResourceIOException(ex.getMessage(), ex);
+        }
+    }
+
+    @Override
+    public InputStream getInputStream() throws ResourceIOException {
+        final File file = this.fileRef.get();
+        if (file != null) {
+            try {
+                return new FileInputStream(file);
+            } catch (final FileNotFoundException ex) {
+                throw new ResourceIOException(ex.getMessage(), ex);
+            }
+        } else {
+            throw new ResourceIOException("Resouce already dispoased");
+        }
+    }
+
+    @Override
+    public long length() {
+        final File file = this.fileRef.get();
+        if (file != null) {
+            return file.length();
+        } else {
+            return -1;
+        }
+    }
+
+    @Override
+    public void dispose() {
+        final File file = this.fileRef.getAndSet(null);
+        if (file != null) {
+            file.delete();
+        }
     }
 
 }

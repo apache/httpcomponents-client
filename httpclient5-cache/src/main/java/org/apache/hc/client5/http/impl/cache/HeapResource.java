@@ -26,10 +26,10 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.hc.client5.http.cache.Resource;
+import org.apache.hc.client5.http.cache.ResourceIOException;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 
@@ -39,33 +39,40 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
  * @since 4.1
  */
 @Contract(threading = ThreadingBehavior.IMMUTABLE)
-public class HeapResource implements Resource {
+public class HeapResource extends Resource {
 
     private static final long serialVersionUID = -2078599905620463394L;
 
-    private final byte[] b;
+    private final AtomicReference<byte[]> arrayRef;
 
     public HeapResource(final byte[] b) {
         super();
-        this.b = b;
-    }
-
-    byte[] getByteArray() {
-        return this.b;
+        this.arrayRef = new AtomicReference<>(b);
     }
 
     @Override
-    public InputStream getInputStream() {
-        return new ByteArrayInputStream(this.b);
+    public byte[] get() throws ResourceIOException {
+        final byte[] byteArray = this.arrayRef.get();
+        if (byteArray != null) {
+            return byteArray;
+        } else {
+            throw new ResourceIOException("Resouce already dispoased");
+        }
     }
 
     @Override
     public long length() {
-        return this.b.length;
+        final byte[] byteArray = this.arrayRef.get();
+        if (byteArray != null) {
+            return byteArray.length;
+        } else {
+            return -1;
+        }
     }
 
     @Override
     public void dispose() {
+        this.arrayRef.set(null);
     }
 
 }
