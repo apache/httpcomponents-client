@@ -27,13 +27,14 @@
 
 package org.apache.http.entity.mime;
 
-import java.util.List;
-
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.content.AbstractContentBody;
 import org.apache.http.entity.mime.content.ContentBody;
 import org.apache.http.util.Args;
 import org.apache.http.util.Asserts;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * Builder for individual {@link org.apache.http.entity.mime.FormBodyPart}s.
@@ -74,11 +75,21 @@ public class FormBodyPartBuilder {
         return this;
     }
 
-    public FormBodyPartBuilder addField(final String name, final String value) {
+    public FormBodyPartBuilder addField(final String name, final String value, final Map<MIME.HeaderFieldParam, String> parameters) {
         Args.notNull(name, "Field name");
-        this.header.addField(new MinimalField(name, value));
+		MinimalField minimalField = new MinimalField(name, value);
+		if(parameters != null) {
+			minimalField.setParameters(parameters);
+		}
+		this.header.addField(minimalField);
         return this;
     }
+
+	public FormBodyPartBuilder addField(final String name, final String value) {
+		Args.notNull(name, "Field name");
+		this.header.addField(new MinimalField(name, value));
+		return this;
+	}
 
     public FormBodyPartBuilder setField(final String name, final String value) {
         Args.notNull(name, "Field name");
@@ -101,16 +112,12 @@ public class FormBodyPartBuilder {
             headerCopy.addField(field);
         }
         if (headerCopy.getField(MIME.CONTENT_DISPOSITION) == null) {
-            final StringBuilder buffer = new StringBuilder();
-            buffer.append("form-data; name=\"");
-            buffer.append(encodeForHeader(this.name));
-            buffer.append("\"");
-            if (this.body.getFilename() != null) {
-                buffer.append("; filename=\"");
-                buffer.append(encodeForHeader(this.body.getFilename()));
-                buffer.append("\"");
-            }
-            headerCopy.addField(new MinimalField(MIME.CONTENT_DISPOSITION, buffer.toString()));
+			MinimalField cp = new MinimalField(MIME.CONTENT_DISPOSITION, "form-data");
+			cp.addParameter(MIME.HeaderFieldParam.NAME, this.name);
+			if(this.body.getFilename() != null) {
+				cp.addParameter(MIME.HeaderFieldParam.FILENAME, this.body.getFilename());
+			}
+			headerCopy.addField(cp);
         }
         if (headerCopy.getField(MIME.CONTENT_TYPE) == null) {
             final ContentType contentType;
