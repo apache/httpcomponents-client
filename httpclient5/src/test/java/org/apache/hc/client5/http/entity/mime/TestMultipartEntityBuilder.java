@@ -28,11 +28,14 @@
 package org.apache.hc.client5.http.entity.mime;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.http.message.BasicNameValuePair;
 import org.junit.Assert;
 import org.junit.Test;
@@ -113,6 +116,34 @@ public class TestMultipartEntityBuilder {
         Assert.assertNotNull(entity);
         Assert.assertEquals("multipart/form-data; boundary=blah-blah; charset=UTF-8; my=stuff",
                 entity.getContentType());
+    }
+
+    @Test
+    public void testMultipartWriteTo() throws Exception {
+        final List<NameValuePair> parameters = new ArrayList<>();
+        parameters.add(new BasicNameValuePair(MIME.FIELD_PARAM_NAME, "test"));
+        parameters.add(new BasicNameValuePair(MIME.FIELD_PARAM_FILENAME, "hello world"));
+        final MultipartFormEntity entity = MultipartEntityBuilder.create()
+                .setStrictMode()
+                .setBoundary("xxxxxxxxxxxxxxxxxxxxxxxx")
+                .addPart(new FormBodyPartBuilder()
+                        .setName("test")
+                        .setBody(new StringBody("hello world", ContentType.TEXT_PLAIN))
+                        .addField("Content-Disposition", "multipart/form-data", parameters)
+                        .build())
+                .buildEntity();
+
+
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        entity.getMultipart().writeTo(out);
+        out.close();
+        Assert.assertEquals("--xxxxxxxxxxxxxxxxxxxxxxxx\r\n" +
+                "Content-Disposition: multipart/form-data; name=\"test\"; filename=\"hello world\"\r\n" +
+                "Content-Type: text/plain; charset=ISO-8859-1\r\n" +
+                "Content-Transfer-Encoding: 8bit\r\n" +
+                "\r\n" +
+                "hello world\r\n" +
+                "--xxxxxxxxxxxxxxxxxxxxxxxx--\r\n", out.toString(StandardCharsets.US_ASCII.name()));
     }
 
 }

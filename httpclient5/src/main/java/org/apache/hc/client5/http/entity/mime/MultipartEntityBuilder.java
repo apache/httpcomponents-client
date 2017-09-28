@@ -30,6 +30,7 @@ package org.apache.hc.client5.http.entity.mime;
 import java.io.File;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -216,7 +217,7 @@ public class MultipartEntityBuilder {
                 form = new HttpRFC6532Multipart(charsetCopy, boundaryCopy, bodyPartsCopy);
                 break;
             default:
-                form = new HttpStrictMultipart(charsetCopy, boundaryCopy, bodyPartsCopy);
+                form = new HttpStrictMultipart(StandardCharsets.US_ASCII, boundaryCopy, bodyPartsCopy);
         }
         return new MultipartFormEntity(form, contentTypeCopy, form.getTotalLength());
     }
