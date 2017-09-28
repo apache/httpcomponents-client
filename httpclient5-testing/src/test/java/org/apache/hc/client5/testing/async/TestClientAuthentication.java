@@ -218,6 +218,34 @@ public class TestClientAuthentication extends IntegrationTestBase {
     }
 
     @Test
+    public void testBasicAuthenticationWithEntitySuccess() throws Exception {
+        server.register("*", new Supplier<AsyncServerExchangeHandler>() {
+
+            @Override
+            public AsyncServerExchangeHandler get() {
+                return new AsyncEchoHandler();
+            }
+
+        });
+        final HttpHost target = start();
+
+        final TestCredentialsProvider credsProvider = new TestCredentialsProvider(
+                new UsernamePasswordCredentials("test", "test".toCharArray()));
+        final HttpClientContext context = HttpClientContext.create();
+        context.setCredentialsProvider(credsProvider);
+
+        final Future<SimpleHttpResponse> future = httpclient.execute(
+                SimpleHttpRequest.put(target, "/", "Some important stuff", ContentType.TEXT_PLAIN), context, null);
+        final HttpResponse response = future.get();
+
+        Assert.assertNotNull(response);
+        Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
+        final AuthScope authscope = credsProvider.getAuthScope();
+        Assert.assertNotNull(authscope);
+        Assert.assertEquals("test realm", authscope.getRealm());
+    }
+
+    @Test
     public void testBasicAuthenticationSuccessNonPersistentConnection() throws Exception {
         server.register("*", new Supplier<AsyncServerExchangeHandler>() {
 
@@ -276,6 +304,7 @@ public class TestClientAuthentication extends IntegrationTestBase {
                 new UsernamePasswordCredentials("test", "all-wrong".toCharArray()));
         final HttpClientContext context = HttpClientContext.create();
         context.setCredentialsProvider(credsProvider);
+        context.setRequestConfig(RequestConfig.custom().setExpectContinueEnabled(true).build());
 
         final Future<SimpleHttpResponse> future = httpclient.execute(
                 SimpleHttpRequest.put(target, "/", "Some important stuff", ContentType.TEXT_PLAIN), context, null);
@@ -301,6 +330,7 @@ public class TestClientAuthentication extends IntegrationTestBase {
                 new UsernamePasswordCredentials("test", "test".toCharArray()));
         final HttpClientContext context = HttpClientContext.create();
         context.setCredentialsProvider(credsProvider);
+        context.setRequestConfig(RequestConfig.custom().setExpectContinueEnabled(true).build());
 
         final Future<SimpleHttpResponse> future = httpclient.execute(
                 SimpleHttpRequest.put(target, "/", "Some important stuff", ContentType.TEXT_PLAIN), context, null);
