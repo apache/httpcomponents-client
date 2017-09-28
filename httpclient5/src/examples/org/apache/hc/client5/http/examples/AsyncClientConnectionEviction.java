@@ -66,8 +66,8 @@ public class AsyncClientConnectionEviction {
 
         final SimpleHttpRequest request = SimpleHttpRequest.get(target, "/");
         final Future<SimpleHttpResponse> future1 = client.execute(
-                new SimpleRequestProducer(request),
-                new SimpleResponseConsumer(),
+                SimpleRequestProducer.create(request, null),
+                SimpleResponseConsumer.create(),
                 new FutureCallback<SimpleHttpResponse>() {
 
                     @Override
@@ -95,8 +95,8 @@ public class AsyncClientConnectionEviction {
         // Previous connection should get evicted from the pool by now
 
         final Future<SimpleHttpResponse> future2 = client.execute(
-                new SimpleRequestProducer(request),
-                new SimpleResponseConsumer(),
+                SimpleRequestProducer.create(request, null),
+                SimpleResponseConsumer.create(),
                 new FutureCallback<SimpleHttpResponse>() {
 
                     @Override

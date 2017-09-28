@@ -122,9 +122,11 @@ public class TestAsyncRedirects extends IntegrationTestBase {
                     }
                     return response;
                 } else if (path.equals("/newlocation/")) {
-                    return new SimpleHttpResponse(HttpStatus.SC_OK, "Successful redirect", ContentType.TEXT_PLAIN);
+                    final SimpleHttpResponse response = new SimpleHttpResponse(HttpStatus.SC_OK);
+                    response.setBodyText("Successful redirect", ContentType.TEXT_PLAIN);
+                    return response;
                 } else {
-                    return new SimpleHttpResponse(HttpStatus.SC_NOT_FOUND, null, null);
+                    return new SimpleHttpResponse(HttpStatus.SC_NOT_FOUND);
                 }
             } catch (final URISyntaxException ex) {
                 throw new ProtocolException(ex.getMessage(), ex);
@@ -154,7 +156,7 @@ public class TestAsyncRedirects extends IntegrationTestBase {
                     response.addHeader(new BasicHeader("Location", "/circular-oldlocation"));
                     return response;
                 } else {
-                    return new SimpleHttpResponse(HttpStatus.SC_NOT_FOUND, null, null);
+                    return new SimpleHttpResponse(HttpStatus.SC_NOT_FOUND);
                 }
             } catch (final URISyntaxException ex) {
                 throw new ProtocolException(ex.getMessage(), ex);
@@ -176,7 +178,9 @@ public class TestAsyncRedirects extends IntegrationTestBase {
                     response.addHeader(new BasicHeader("Location", "/relativelocation/"));
                     return response;
                 } else if (path.equals("/relativelocation/")) {
-                    return new SimpleHttpResponse(HttpStatus.SC_OK, "Successful redirect", ContentType.TEXT_PLAIN);
+                    final SimpleHttpResponse response = new SimpleHttpResponse(HttpStatus.SC_OK);
+                    response.setBodyText("Successful redirect", ContentType.TEXT_PLAIN);
+                    return response;
                 } else {
                     return new SimpleHttpResponse(HttpStatus.SC_NOT_FOUND);
                 }
@@ -199,7 +203,9 @@ public class TestAsyncRedirects extends IntegrationTestBase {
                     response.addHeader(new BasicHeader("Location", "relativelocation"));
                     return response;
                 } else if (path.equals("/test/relativelocation")) {
-                    return new SimpleHttpResponse(HttpStatus.SC_OK, "Successful redirect", ContentType.TEXT_PLAIN);
+                    final SimpleHttpResponse response = new SimpleHttpResponse(HttpStatus.SC_OK);
+                    response.setBodyText("Successful redirect", ContentType.TEXT_PLAIN);
+                    return response;
                 } else {
                     return new SimpleHttpResponse(HttpStatus.SC_NOT_FOUND);
                 }
@@ -450,9 +456,8 @@ public class TestAsyncRedirects extends IntegrationTestBase {
                 .setMaxRedirects(5).build();
         try {
             final Future<SimpleHttpResponse> future = httpclient.execute(
-                    new SimpleRequestProducer(
-                            SimpleHttpRequest.get(target, "/circular-oldlocation/"), config),
-                    new SimpleResponseConsumer(), null);
+                    SimpleRequestProducer.create(SimpleHttpRequest.get(target, "/circular-oldlocation/"), config),
+                    SimpleResponseConsumer.create(), null);
             future.get();
         } catch (final ExecutionException e) {
             Assert.assertTrue(e.getCause() instanceof RedirectException);
@@ -477,9 +482,8 @@ public class TestAsyncRedirects extends IntegrationTestBase {
                 .build();
         try {
             final Future<SimpleHttpResponse> future = httpclient.execute(
-                    new SimpleRequestProducer(
-                            SimpleHttpRequest.get(target, "/circular-oldlocation/"), config),
-                    new SimpleResponseConsumer(), null);
+                    SimpleRequestProducer.create(SimpleHttpRequest.get(target, "/circular-oldlocation/"), config),
+                    SimpleResponseConsumer.create(), null);
             future.get();
         } catch (final ExecutionException e) {
             Assert.assertTrue(e.getCause() instanceof CircularRedirectException);
@@ -501,8 +505,9 @@ public class TestAsyncRedirects extends IntegrationTestBase {
 
         final HttpClientContext context = HttpClientContext.create();
 
-        final Future<SimpleHttpResponse> future = httpclient.execute(
-                SimpleHttpRequest.post(target, "/oldlocation/", "stuff", ContentType.TEXT_PLAIN), context, null);
+        final SimpleHttpRequest post = SimpleHttpRequest.post(target, "/oldlocation/");
+        post.setBodyText("stuff", ContentType.TEXT_PLAIN);
+        final Future<SimpleHttpResponse> future = httpclient.execute(post, context, null);
         final HttpResponse response = future.get();
         Assert.assertNotNull(response);
 
@@ -585,7 +590,9 @@ public class TestAsyncRedirects extends IntegrationTestBase {
                     response.addHeader(new BasicHeader("Location", url));
                     return response;
                 } else if (path.equals("/relativelocation/")) {
-                    return new SimpleHttpResponse(HttpStatus.SC_OK, "Successful redirect", ContentType.TEXT_PLAIN);
+                    final SimpleHttpResponse response = new SimpleHttpResponse(HttpStatus.SC_OK);
+                    response.setBodyText("Successful redirect", ContentType.TEXT_PLAIN);
+                    return response;
                 } else {
                     return new SimpleHttpResponse(HttpStatus.SC_NOT_FOUND);
                 }
@@ -793,7 +800,9 @@ public class TestAsyncRedirects extends IntegrationTestBase {
                 final URI requestURI = request.getUri();
                 final String path = requestURI.getPath();
                 if (path.equals("/rome")) {
-                    return new SimpleHttpResponse(HttpStatus.SC_OK, "Successful redirect", ContentType.TEXT_PLAIN);
+                    final SimpleHttpResponse response = new SimpleHttpResponse(HttpStatus.SC_OK);
+                    response.setBodyText("Successful redirect", ContentType.TEXT_PLAIN);
+                    return response;
                 } else {
                     final SimpleHttpResponse response = new SimpleHttpResponse(HttpStatus.SC_MOVED_TEMPORARILY);
                     response.addHeader(new BasicHeader("Location", "/rome"));

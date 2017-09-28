@@ -27,51 +27,58 @@
 
 package org.apache.hc.client5.http.async.methods;
 
+import java.util.Iterator;
+
 import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.message.BasicHttpResponse;
-import org.apache.hc.core5.http.message.HttpResponseWrapper;
+import org.apache.hc.core5.util.Args;
 
-public final class SimpleHttpResponse extends HttpResponseWrapper {
+public final class SimpleHttpResponse extends BasicHttpResponse {
 
-    private final String body;
-    private final ContentType contentType;
-
-    public SimpleHttpResponse(
-            final HttpResponse head,
-            final String body,
-            final ContentType contentType) {
-        super(head);
-        this.body = body;
-        this.contentType = contentType;
-    }
-
-    public SimpleHttpResponse(
-            final int code,
-            final String reasonPhrase,
-            final String body,
-            final ContentType contentType) {
-        super(new BasicHttpResponse(code, reasonPhrase));
-        this.body = body;
-        this.contentType = contentType;
-    }
-
-    public SimpleHttpResponse(final int code, final String body, final ContentType contentType) {
-        super(new BasicHttpResponse(code));
-        this.body = body;
-        this.contentType = contentType;
-    }
+    private SimpleBody body;
 
     public SimpleHttpResponse(final int code) {
-        this(code, null, null);
+        super(code);
     }
 
-    public String getBody() {
+    public static SimpleHttpResponse copy(final HttpResponse original) {
+        Args.notNull(original, "HTTP response");
+        final SimpleHttpResponse copy = new SimpleHttpResponse(original.getCode());
+        copy.setVersion(original.getVersion());
+        for (final Iterator<Header> it = original.headerIterator(); it.hasNext(); ) {
+            copy.addHeader(it.next());
+        }
+        return copy;
+    }
+
+    public void setBody(final SimpleBody body) {
+        this.body = body;
+    }
+
+    public void setBodyBytes(final byte[] bodyBytes, final ContentType contentType) {
+        this.body = SimpleBody.create(bodyBytes, contentType);
+    }
+
+    public void setBodyText(final String bodyText, final ContentType contentType) {
+        this.body = SimpleBody.create(bodyText, contentType);
+    }
+
+    public SimpleBody getBody() {
         return body;
     }
 
     public ContentType getContentType() {
-        return contentType;
+        return body != null ? body.getContentType() : null;
+    }
+
+    public String getBodyText() {
+        return body != null ? body.getBodyText() : null;
+    }
+
+    public byte[] getBodyBytes() {
+        return body != null ? body.getBodyBytes() : null;
     }
 
 }

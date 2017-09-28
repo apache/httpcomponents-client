@@ -93,7 +93,7 @@ public class AsyncClientMessageTrailers {
                 .build();
         final Future<SimpleHttpResponse> future = client.execute(
                 requestProducer,
-                new SimpleResponseConsumer(),
+                SimpleResponseConsumer.create(),
                 new FutureCallback<SimpleHttpResponse>() {
 
                     @Override

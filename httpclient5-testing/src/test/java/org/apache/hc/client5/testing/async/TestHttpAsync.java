@@ -78,7 +78,7 @@ public class TestHttpAsync extends IntegrationTestBase {
             final SimpleHttpResponse response = future.get();
             Assert.assertThat(response, CoreMatchers.notNullValue());
             Assert.assertThat(response.getCode(), CoreMatchers.equalTo(200));
-            final String body = response.getBody();
+            final String body = response.getBodyText();
             Assert.assertThat(body, CoreMatchers.notNullValue());
             Assert.assertThat(body.length(), CoreMatchers.equalTo(2048));
         }
@@ -93,7 +93,7 @@ public class TestHttpAsync extends IntegrationTestBase {
             final SimpleHttpResponse response = future.get();
             Assert.assertThat(response, CoreMatchers.notNullValue());
             Assert.assertThat(response.getCode(), CoreMatchers.equalTo(200));
-            final String body = response.getBody();
+            final String body = response.getBodyText();
             Assert.assertThat(body, CoreMatchers.nullValue());
         }
     }
@@ -108,7 +108,7 @@ public class TestHttpAsync extends IntegrationTestBase {
             final SimpleHttpResponse response = future.get();
             Assert.assertThat(response, CoreMatchers.notNullValue());
             Assert.assertThat(response.getCode(), CoreMatchers.equalTo(200));
-            final String body = response.getBody();
+            final String body = response.getBodyText();
             Assert.assertThat(body, CoreMatchers.notNullValue());
             Assert.assertThat(body.length(), CoreMatchers.equalTo(2048));
         }
@@ -209,7 +209,7 @@ public class TestHttpAsync extends IntegrationTestBase {
         final SimpleHttpResponse response1 = future1.get();
         Assert.assertThat(response1, CoreMatchers.notNullValue());
         Assert.assertThat(response1.getCode(), CoreMatchers.equalTo(200));
-        final String body1 = response1.getBody();
+        final String body1 = response1.getBodyText();
         Assert.assertThat(body1, CoreMatchers.notNullValue());
         Assert.assertThat(body1.length(), CoreMatchers.equalTo(2048));
 
@@ -224,7 +224,7 @@ public class TestHttpAsync extends IntegrationTestBase {
             final SimpleHttpResponse response2 = future2.get();
             Assert.assertThat(response2, CoreMatchers.notNullValue());
             Assert.assertThat(response2.getCode(), CoreMatchers.equalTo(200));
-            final String body2 = response2.getBody();
+            final String body2 = response2.getBodyText();
             Assert.assertThat(body2, CoreMatchers.notNullValue());
             Assert.assertThat(body2.length(), CoreMatchers.equalTo(2048));
         }
@@ -234,7 +234,7 @@ public class TestHttpAsync extends IntegrationTestBase {
         final SimpleHttpResponse response3 = future3.get();
         Assert.assertThat(response3, CoreMatchers.notNullValue());
         Assert.assertThat(response3.getCode(), CoreMatchers.equalTo(200));
-        final String body3 = response3.getBody();
+        final String body3 = response3.getBodyText();
         Assert.assertThat(body3, CoreMatchers.notNullValue());
         Assert.assertThat(body3.length(), CoreMatchers.equalTo(2048));
     }

@@ -28,174 +28,190 @@
 package org.apache.hc.client5.http.async.methods;
 
 import java.net.URI;
+import java.util.Iterator;
 
 import org.apache.hc.client5.http.StandardMethods;
 import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
-import org.apache.hc.core5.http.message.HttpRequestWrapper;
 import org.apache.hc.core5.util.Args;
 
-public final class SimpleHttpRequest extends HttpRequestWrapper {
+public final class SimpleHttpRequest extends BasicHttpRequest {
 
-    private final String body;
-    private final ContentType contentType;
+    private SimpleBody body;
 
     public static SimpleHttpRequest get(final URI requestUri) {
         Args.notNull(requestUri, "Request URI");
-        return new SimpleHttpRequest(StandardMethods.GET, requestUri, null, null);
+        return new SimpleHttpRequest(StandardMethods.GET, requestUri);
     }
 
     public static SimpleHttpRequest get(final String requestUri) {
-        return new SimpleHttpRequest(StandardMethods.GET, URI.create(requestUri), null, null);
+        return new SimpleHttpRequest(StandardMethods.GET, URI.create(requestUri));
     }
 
     public static SimpleHttpRequest get(final HttpHost host, final String path) {
         Args.notNull(host, "Host");
-        return new SimpleHttpRequest(StandardMethods.GET, host, path, null, null);
+        return new SimpleHttpRequest(StandardMethods.GET, host, path);
+    }
+
+    public static SimpleHttpRequest post(final URI requestUri) {
+        Args.notNull(requestUri, "Request URI");
+        return new SimpleHttpRequest(StandardMethods.POST, requestUri);
+    }
+
+    public static SimpleHttpRequest post(final String requestUri) {
+        return new SimpleHttpRequest(StandardMethods.POST, URI.create(requestUri));
+    }
+
+    public static SimpleHttpRequest post(final HttpHost host, final String path) {
+        Args.notNull(host, "Host");
+        return new SimpleHttpRequest(StandardMethods.POST, host, path);
+    }
+
+    public static SimpleHttpRequest put(final URI requestUri) {
+        Args.notNull(requestUri, "Request URI");
+        return new SimpleHttpRequest(StandardMethods.PUT, requestUri);
+    }
+
+    public static SimpleHttpRequest put(final String requestUri) {
+        return new SimpleHttpRequest(StandardMethods.PUT, URI.create(requestUri));
+    }
+
+    public static SimpleHttpRequest put(final HttpHost host, final String path) {
+        Args.notNull(host, "Host");
+        return new SimpleHttpRequest(StandardMethods.PUT, host, path);
     }
 
     public static SimpleHttpRequest head(final URI requestUri) {
         Args.notNull(requestUri, "Request URI");
-        return new SimpleHttpRequest(StandardMethods.HEAD, requestUri, null, null);
+        return new SimpleHttpRequest(StandardMethods.HEAD, requestUri);
     }
 
     public static SimpleHttpRequest head(final String requestUri) {
-        return new SimpleHttpRequest(StandardMethods.HEAD, URI.create(requestUri), null, null);
+        return new SimpleHttpRequest(StandardMethods.HEAD, URI.create(requestUri));
     }
 
     public static SimpleHttpRequest head(final HttpHost host, final String path) {
         Args.notNull(host, "Host");
-        return new SimpleHttpRequest(StandardMethods.HEAD, host, path, null, null);
-    }
-
-    public static SimpleHttpRequest post(final URI requestUri, final String body, final ContentType contentType) {
-        Args.notNull(requestUri, "Request URI");
-        return new SimpleHttpRequest(StandardMethods.POST, requestUri, body, contentType);
-    }
-
-    public static SimpleHttpRequest post(final String requestUri, final String body, final ContentType contentType) {
-        return new SimpleHttpRequest(StandardMethods.POST, URI.create(requestUri), body, contentType);
-    }
-
-    public static SimpleHttpRequest post(final HttpHost host, final String path, final String body, final ContentType contentType) {
-        Args.notNull(host, "Host");
-        return new SimpleHttpRequest(StandardMethods.POST, host, path, body, contentType);
-    }
-
-    public static SimpleHttpRequest PUT(final URI requestUri, final String body, final ContentType contentType) {
-        Args.notNull(requestUri, "Request URI");
-        return new SimpleHttpRequest(StandardMethods.PUT, requestUri, body, contentType);
-    }
-
-    public static SimpleHttpRequest put(final String requestUri, final String body, final ContentType contentType) {
-        return new SimpleHttpRequest(StandardMethods.PUT, URI.create(requestUri), body, contentType);
-    }
-
-    public static SimpleHttpRequest put(final HttpHost host, final String path, final String body, final ContentType contentType) {
-        Args.notNull(host, "Host");
-        return new SimpleHttpRequest(StandardMethods.PUT, host, path, body, contentType);
+        return new SimpleHttpRequest(StandardMethods.HEAD, host, path);
     }
 
     public static SimpleHttpRequest delete(final URI requestUri) {
         Args.notNull(requestUri, "Request URI");
-        return new SimpleHttpRequest(StandardMethods.DELETE, requestUri, null, null);
+        return new SimpleHttpRequest(StandardMethods.DELETE, requestUri);
     }
 
     public static SimpleHttpRequest delete(final String requestUri) {
-        return new SimpleHttpRequest(StandardMethods.DELETE, URI.create(requestUri), null, null);
+        return new SimpleHttpRequest(StandardMethods.DELETE, URI.create(requestUri));
     }
 
     public static SimpleHttpRequest delete(final HttpHost host, final String path) {
         Args.notNull(host, "Host");
-        return new SimpleHttpRequest(StandardMethods.DELETE, host, path, null, null);
+        return new SimpleHttpRequest(StandardMethods.DELETE, host, path);
     }
 
     public static SimpleHttpRequest trace(final URI requestUri) {
         Args.notNull(requestUri, "Request URI");
-        return new SimpleHttpRequest(StandardMethods.TRACE, requestUri, null, null);
+        return new SimpleHttpRequest(StandardMethods.TRACE, requestUri);
     }
 
     public static SimpleHttpRequest trace(final String requestUri) {
-        return new SimpleHttpRequest(StandardMethods.TRACE, URI.create(requestUri), null, null);
+        return new SimpleHttpRequest(StandardMethods.TRACE, URI.create(requestUri));
     }
 
     public static SimpleHttpRequest trace(final HttpHost host, final String path) {
         Args.notNull(host, "Host");
-        return new SimpleHttpRequest(StandardMethods.TRACE, host, path, null, null);
+        return new SimpleHttpRequest(StandardMethods.TRACE, host, path);
     }
 
     public static SimpleHttpRequest options(final URI requestUri) {
         Args.notNull(requestUri, "Request URI");
-        return new SimpleHttpRequest(StandardMethods.OPTIONS, requestUri, null, null);
+        return new SimpleHttpRequest(StandardMethods.OPTIONS, requestUri);
     }
 
     public static SimpleHttpRequest options(final String requestUri) {
-        return new SimpleHttpRequest(StandardMethods.OPTIONS, URI.create(requestUri), null, null);
+        return new SimpleHttpRequest(StandardMethods.OPTIONS, URI.create(requestUri));
     }
 
     public static SimpleHttpRequest options(final HttpHost host, final String path) {
         Args.notNull(host, "Host");
-        return new SimpleHttpRequest(StandardMethods.OPTIONS, host, path, null, null);
+        return new SimpleHttpRequest(StandardMethods.OPTIONS, host, path);
     }
 
-    public static SimpleHttpRequest patch(final URI requestUri, final String body, final ContentType contentType) {
+    public static SimpleHttpRequest patch(final URI requestUri) {
         Args.notNull(requestUri, "Request URI");
-        return new SimpleHttpRequest(StandardMethods.PATCH, requestUri, body, contentType);
+        return new SimpleHttpRequest(StandardMethods.PATCH, requestUri);
     }
 
-    public static SimpleHttpRequest patch(final String requestUri, final String body, final ContentType contentType) {
-        return new SimpleHttpRequest(StandardMethods.PATCH, URI.create(requestUri), body, contentType);
+    public static SimpleHttpRequest patch(final String requestUri) {
+        return new SimpleHttpRequest(StandardMethods.PATCH, URI.create(requestUri));
     }
 
-    public static SimpleHttpRequest patch(final HttpHost host, final String path, final String body, final ContentType contentType) {
+    public static SimpleHttpRequest patch(final HttpHost host, final String path) {
         Args.notNull(host, "Host");
-        return new SimpleHttpRequest(StandardMethods.PATCH, host, path, body, contentType);
+        return new SimpleHttpRequest(StandardMethods.PATCH, host, path);
     }
 
-    public SimpleHttpRequest(final HttpRequest head, final String body, final ContentType contentType) {
-        super(head);
+    public static SimpleHttpRequest copy(final HttpRequest original) {
+        Args.notNull(original, "HTTP request");
+        final SimpleHttpRequest copy = new SimpleHttpRequest(original.getMethod(), original.getRequestUri());
+        copy.setVersion(original.getVersion());
+        for (final Iterator<Header> it = original.headerIterator(); it.hasNext(); ) {
+            copy.addHeader(it.next());
+        }
+        copy.setScheme(original.getScheme());
+        copy.setAuthority(original.getAuthority());
+        return copy;
+    }
+
+    public SimpleHttpRequest(final String method, final String path) {
+        super(method, path);
+    }
+
+    public SimpleHttpRequest(final String method, final HttpHost host, final String path) {
+        super(method, host, path);
+    }
+
+    public SimpleHttpRequest(final String method, final URI requestUri) {
+        super(method, requestUri);
+    }
+
+    SimpleHttpRequest(final StandardMethods method, final URI requestUri) {
+        this(method.name(), requestUri);
+    }
+
+    SimpleHttpRequest(final StandardMethods method, final HttpHost host, final String path) {
+        this(method.name(), host, path);
+    }
+
+    public void setBody(final SimpleBody body) {
         this.body = body;
-        this.contentType = contentType;
     }
 
-    public SimpleHttpRequest(
-            final String method,
-            final HttpHost host,
-            final String path,
-            final String body,
-            final ContentType contentType) {
-        super(new BasicHttpRequest(method, host, path));
-        this.body = body;
-        this.contentType = contentType;
+    public void setBodyBytes(final byte[] bodyBytes, final ContentType contentType) {
+        this.body = SimpleBody.create(bodyBytes, contentType);
     }
 
-    SimpleHttpRequest(
-            final StandardMethods method,
-            final HttpHost host,
-            final String path,
-            final String body,
-            final ContentType contentType) {
-        this(method.name(), host, path, body, contentType);
+    public void setBodyText(final String bodyText, final ContentType contentType) {
+        this.body = SimpleBody.create(bodyText, contentType);
     }
 
-    public SimpleHttpRequest(final String method, final URI requestUri, final String body, final ContentType contentType) {
-        super(new BasicHttpRequest(method, requestUri));
-        this.body = body;
-        this.contentType = contentType;
-    }
-
-    SimpleHttpRequest(final StandardMethods method, final URI requestUri, final String body, final ContentType contentType) {
-        this(method.name(), requestUri, body, contentType);
-    }
-
-    public String getBody() {
+    public SimpleBody getBody() {
         return body;
     }
 
     public ContentType getContentType() {
-        return contentType;
+        return body != null ? body.getContentType() : null;
+    }
+
+    public String getBodyText() {
+        return body != null ? body.getBodyText() : null;
+    }
+
+    public byte[] getBodyBytes() {
+        return body != null ? body.getBodyBytes() : null;
     }
 
 }

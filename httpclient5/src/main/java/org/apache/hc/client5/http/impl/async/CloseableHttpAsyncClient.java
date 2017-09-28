@@ -48,6 +48,7 @@ import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.io.ShutdownType;
 import org.apache.hc.core5.reactor.ExceptionEvent;
 import org.apache.hc.core5.reactor.IOReactorStatus;
+import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TimeValue;
 
 /**
@@ -85,8 +86,9 @@ public abstract class CloseableHttpAsyncClient implements HttpAsyncClient, Close
             final SimpleHttpRequest request,
             final HttpContext context,
             final FutureCallback<SimpleHttpResponse> callback) {
+        Args.notNull(request, "Request");
         final BasicFuture<SimpleHttpResponse> future = new BasicFuture<>(callback);
-        execute(new SimpleRequestProducer(request), new SimpleResponseConsumer(), context, new FutureCallback<SimpleHttpResponse>() {
+        execute(SimpleRequestProducer.create(request, null), SimpleResponseConsumer.create(), context, new FutureCallback<SimpleHttpResponse>() {
 
             @Override
             public void completed(final SimpleHttpResponse response) {

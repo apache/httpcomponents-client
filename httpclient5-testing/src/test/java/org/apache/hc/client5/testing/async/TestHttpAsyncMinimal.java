@@ -189,7 +189,7 @@ public class TestHttpAsyncMinimal {
             final SimpleHttpResponse response = future.get();
             Assert.assertThat(response, CoreMatchers.notNullValue());
             Assert.assertThat(response.getCode(), CoreMatchers.equalTo(200));
-            final String body = response.getBody();
+            final String body = response.getBodyText();
             Assert.assertThat(body, CoreMatchers.notNullValue());
             Assert.assertThat(body.length(), CoreMatchers.equalTo(2048));
         }
@@ -204,7 +204,7 @@ public class TestHttpAsyncMinimal {
             final SimpleHttpResponse response = future.get();
             Assert.assertThat(response, CoreMatchers.notNullValue());
             Assert.assertThat(response.getCode(), CoreMatchers.equalTo(200));
-            final String body = response.getBody();
+            final String body = response.getBodyText();
             Assert.assertThat(body, CoreMatchers.nullValue());
         }
     }

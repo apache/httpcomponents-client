@@ -62,7 +62,9 @@ public class TestAsyncStatefulConnManagement extends IntegrationTestBase {
                     protected SimpleHttpResponse handle(
                             final SimpleHttpRequest request,
                             final HttpCoreContext context) throws HttpException {
-                        return new SimpleHttpResponse(HttpStatus.SC_OK, "Whatever", ContentType.TEXT_PLAIN);
+                        final SimpleHttpResponse response = new SimpleHttpResponse(HttpStatus.SC_OK);
+                        response.setBodyText("Whatever", ContentType.TEXT_PLAIN);
+                        return response;
                     }
                 };
             }
@@ -185,7 +187,9 @@ public class TestAsyncStatefulConnManagement extends IntegrationTestBase {
                     protected SimpleHttpResponse handle(
                             final SimpleHttpRequest request,
                             final HttpCoreContext context) throws HttpException {
-                        return new SimpleHttpResponse(HttpStatus.SC_OK, "Whatever", ContentType.TEXT_PLAIN);
+                        final SimpleHttpResponse response = new SimpleHttpResponse(HttpStatus.SC_OK);
+                        response.setBodyText("Whatever", ContentType.TEXT_PLAIN);
+                        return response;
                     }
                 };
             }

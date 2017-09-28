@@ -234,8 +234,9 @@ public class TestClientAuthentication extends IntegrationTestBase {
         final HttpClientContext context = HttpClientContext.create();
         context.setCredentialsProvider(credsProvider);
 
-        final Future<SimpleHttpResponse> future = httpclient.execute(
-                SimpleHttpRequest.put(target, "/", "Some important stuff", ContentType.TEXT_PLAIN), context, null);
+        final SimpleHttpRequest put = SimpleHttpRequest.put(target, "/");
+        put.setBodyText("Some important stuff", ContentType.TEXT_PLAIN);
+        final Future<SimpleHttpResponse> future = httpclient.execute(put, context, null);
         final HttpResponse response = future.get();
 
         Assert.assertNotNull(response);
@@ -306,8 +307,9 @@ public class TestClientAuthentication extends IntegrationTestBase {
         context.setCredentialsProvider(credsProvider);
         context.setRequestConfig(RequestConfig.custom().setExpectContinueEnabled(true).build());
 
-        final Future<SimpleHttpResponse> future = httpclient.execute(
-                SimpleHttpRequest.put(target, "/", "Some important stuff", ContentType.TEXT_PLAIN), context, null);
+        final SimpleHttpRequest put = SimpleHttpRequest.put(target, "/");
+        put.setBodyText("Some important stuff", ContentType.TEXT_PLAIN);
+        final Future<SimpleHttpResponse> future = httpclient.execute(put, context, null);
         final HttpResponse response = future.get();
 
         Assert.assertNotNull(response);
@@ -332,8 +334,9 @@ public class TestClientAuthentication extends IntegrationTestBase {
         context.setCredentialsProvider(credsProvider);
         context.setRequestConfig(RequestConfig.custom().setExpectContinueEnabled(true).build());
 
-        final Future<SimpleHttpResponse> future = httpclient.execute(
-                SimpleHttpRequest.put(target, "/", "Some important stuff", ContentType.TEXT_PLAIN), context, null);
+        final SimpleHttpRequest put = SimpleHttpRequest.put(target, "/");
+        put.setBodyText("Some important stuff", ContentType.TEXT_PLAIN);
+        final Future<SimpleHttpResponse> future = httpclient.execute(put, context, null);
         final HttpResponse response = future.get();
 
         Assert.assertNotNull(response);
@@ -547,8 +550,8 @@ public class TestClientAuthentication extends IntegrationTestBase {
             final HttpGet httpget = new HttpGet("/");
             httpget.setConfig(config);
             final Future<SimpleHttpResponse> future = httpclient.execute(
-                    new SimpleRequestProducer(SimpleHttpRequest.get(target, "/"), config),
-                    new SimpleResponseConsumer(),
+                    SimpleRequestProducer.create(SimpleHttpRequest.get(target, "/"), config),
+                    SimpleResponseConsumer.create(),
                     context, null);
             final SimpleHttpResponse response = future.get();
             Assert.assertNotNull(response);

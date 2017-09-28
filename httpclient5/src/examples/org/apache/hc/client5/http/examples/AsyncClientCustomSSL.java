@@ -105,8 +105,8 @@ public class AsyncClientCustomSSL {
 
             final SimpleHttpRequest request = SimpleHttpRequest.get(target, requestUri);
             final Future<SimpleHttpResponse> future = client.execute(
-                    new SimpleRequestProducer(request),
-                    new SimpleResponseConsumer(),
+                    SimpleRequestProducer.create(request, null),
+                    SimpleResponseConsumer.create(),
                     clientContext,
                     new FutureCallback<SimpleHttpResponse>() {
 

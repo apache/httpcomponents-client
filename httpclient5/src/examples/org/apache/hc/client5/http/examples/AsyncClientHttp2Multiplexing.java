@@ -70,8 +70,8 @@ public class AsyncClientHttp2Multiplexing {
             for (final String requestUri: requestUris) {
                 final SimpleHttpRequest request = SimpleHttpRequest.get(target, requestUri);
                 endpoint.execute(
-                        new SimpleRequestProducer(request),
-                        new SimpleResponseConsumer(),
+                        SimpleRequestProducer.create(request, null),
+                        SimpleResponseConsumer.create(),
                         new FutureCallback<SimpleHttpResponse>() {
 
                             @Override

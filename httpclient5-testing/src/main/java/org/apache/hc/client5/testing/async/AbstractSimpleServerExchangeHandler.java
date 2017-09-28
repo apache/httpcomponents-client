@@ -28,15 +28,18 @@ package org.apache.hc.client5.testing.async;
 
 import java.io.IOException;
 
+import org.apache.hc.client5.http.async.methods.SimpleBody;
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.nio.AsyncEntityProducer;
 import org.apache.hc.core5.http.nio.AsyncRequestConsumer;
 import org.apache.hc.core5.http.nio.AsyncServerRequestHandler;
 import org.apache.hc.core5.http.nio.BasicResponseProducer;
-import org.apache.hc.core5.http.nio.entity.StringAsyncEntityConsumer;
+import org.apache.hc.core5.http.nio.entity.BasicAsyncEntityConsumer;
+import org.apache.hc.core5.http.nio.entity.BasicAsyncEntityProducer;
 import org.apache.hc.core5.http.nio.entity.StringAsyncEntityProducer;
 import org.apache.hc.core5.http.nio.support.AbstractAsyncRequesterConsumer;
 import org.apache.hc.core5.http.nio.support.AbstractServerExchangeHandler;
@@ -51,14 +54,18 @@ public abstract class AbstractSimpleServerExchangeHandler extends AbstractServer
     protected final AsyncRequestConsumer<SimpleHttpRequest> supplyConsumer(
             final HttpRequest request,
             final HttpContext context) throws HttpException {
-        return new AbstractAsyncRequesterConsumer<SimpleHttpRequest, String>(new StringAsyncEntityConsumer()) {
+        return new AbstractAsyncRequesterConsumer<SimpleHttpRequest, byte[]>(new BasicAsyncEntityConsumer()) {
 
             @Override
             protected SimpleHttpRequest buildResult(
                     final HttpRequest request,
-                    final String entity,
+                    final byte[] body,
                     final ContentType contentType) {
-                return new SimpleHttpRequest(request, entity, contentType);
+                final SimpleHttpRequest simpleRequest = SimpleHttpRequest.copy(request);
+                if (body != null) {
+                    simpleRequest.setBodyBytes(body, contentType);
+                }
+                return simpleRequest;
             }
 
         };
@@ -70,9 +77,18 @@ public abstract class AbstractSimpleServerExchangeHandler extends AbstractServer
             final AsyncServerRequestHandler.ResponseTrigger responseTrigger,
             final HttpContext context) throws HttpException, IOException {
         final SimpleHttpResponse response = handle(request, HttpCoreContext.adapt(context));
-        responseTrigger.submitResponse(new BasicResponseProducer(
-                response,
-                response.getBody() != null ? new StringAsyncEntityProducer(response.getBody(), response.getContentType()) : null));
+        final SimpleBody body = response.getBody();
+        final AsyncEntityProducer entityProducer;
+        if (body != null) {
+            if (body.isText()) {
+                entityProducer = new StringAsyncEntityProducer(body.getBodyText(), body.getContentType());
+            } else {
+                entityProducer = new BasicAsyncEntityProducer(body.getBodyBytes(), body.getContentType());
+            }
+        } else {
+            entityProducer = null;
+        }
+        responseTrigger.submitResponse(new BasicResponseProducer(response, entityProducer));
 
     }
 
