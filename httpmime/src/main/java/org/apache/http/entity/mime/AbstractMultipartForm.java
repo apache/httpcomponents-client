@@ -48,7 +48,7 @@ import org.apache.http.util.ByteArrayBuffer;
  */
 abstract class AbstractMultipartForm {
 
-    private static ByteArrayBuffer encode(
+    static ByteArrayBuffer encode(
             final Charset charset, final String string) {
         final ByteBuffer encoded = charset.encode(CharBuffer.wrap(string));
         final ByteArrayBuffer bab = new ByteArrayBuffer(encoded.remaining());
@@ -56,24 +56,24 @@ abstract class AbstractMultipartForm {
         return bab;
     }
 
-    private static void writeBytes(
+    static void writeBytes(
             final ByteArrayBuffer b, final OutputStream out) throws IOException {
         out.write(b.buffer(), 0, b.length());
     }
 
-    private static void writeBytes(
+    static void writeBytes(
             final String s, final Charset charset, final OutputStream out) throws IOException {
         final ByteArrayBuffer b = encode(charset, s);
         writeBytes(b, out);
     }
 
-    private static void writeBytes(
+    static void writeBytes(
             final String s, final OutputStream out) throws IOException {
         final ByteArrayBuffer b = encode(MIME.DEFAULT_CHARSET, s);
         writeBytes(b, out);
     }
 
-    protected static void writeField(
+    static void writeField(
             final MinimalField field, final OutputStream out) throws IOException {
         writeBytes(field.getName(), out);
         writeBytes(FIELD_SEP, out);
@@ -81,7 +81,7 @@ abstract class AbstractMultipartForm {
         writeBytes(CR_LF, out);
     }
 
-    protected static void writeField(
+    static void writeField(
             final MinimalField field, final Charset charset, final OutputStream out) throws IOException {
         writeBytes(field.getName(), charset, out);
         writeBytes(FIELD_SEP, out);
@@ -89,9 +89,9 @@ abstract class AbstractMultipartForm {
         writeBytes(CR_LF, out);
     }
 
-    private static final ByteArrayBuffer FIELD_SEP = encode(MIME.DEFAULT_CHARSET, ": ");
-    private static final ByteArrayBuffer CR_LF = encode(MIME.DEFAULT_CHARSET, "\r\n");
-    private static final ByteArrayBuffer TWO_DASHES = encode(MIME.DEFAULT_CHARSET, "--");
+    static final ByteArrayBuffer FIELD_SEP = encode(MIME.DEFAULT_CHARSET, ": ");
+    static final ByteArrayBuffer CR_LF = encode(MIME.DEFAULT_CHARSET, "\r\n");
+    static final ByteArrayBuffer TWO_DASHES = encode(MIME.DEFAULT_CHARSET, "--");
 
     final Charset charset;
     final String boundary;

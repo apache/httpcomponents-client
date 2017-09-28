@@ -69,6 +69,13 @@ public class MinimalField {
         return this.name;
     }
 
+    /**
+     * @since 4.6
+     */
+    public String getValue() {
+        return this.value;
+    }
+
     public String getBody() {
         final StringBuilder sb = new StringBuilder();
         sb.append(this.value);
