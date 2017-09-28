@@ -134,6 +134,7 @@ public class TestMultipartEntityBuilder {
     	cpParams.put(MIME.HeaderFieldParam.FILENAME, "hello κόσμε!%");
 
     	final MultipartFormEntity entity = MultipartEntityBuilder.create()
+			.setMode(HttpMultipartMode.RFC7578)
 			.addPart(new FormBodyPartBuilder()
 				.setName("test")
 				.setBody(new StringBody("hello world", ContentType.TEXT_PLAIN))
@@ -146,7 +147,7 @@ public class TestMultipartEntityBuilder {
 		entity.getMultipart().writeTo(out);
 		out.close();
 		String result = out.toString(Consts.ASCII.name());
-		Assert.assertTrue(result, result.contains("filename=hello%20%CE%BA%CF%8C%CF%83%CE%BC%CE%B5!%25"));
+		Assert.assertTrue(result, result.contains("filename=\"hello%20%CE%BA%CF%8C%CF%83%CE%BC%CE%B5!%25\""));
 	}
 
 }
