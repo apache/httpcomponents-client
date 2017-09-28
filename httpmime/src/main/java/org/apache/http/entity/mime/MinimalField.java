@@ -27,6 +27,12 @@
 
 package org.apache.http.entity.mime;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import org.apache.http.NameValuePair;
+
 /**
  * Minimal MIME field.
  *
@@ -36,11 +42,27 @@ public class MinimalField {
 
     private final String name;
     private final String value;
+    private final List<NameValuePair> parameters;
 
     public MinimalField(final String name, final String value) {
         super();
         this.name = name;
         this.value = value;
+        this.parameters = Collections.emptyList();
+    }
+
+    /**
+     * @since 4.6
+     */
+    public MinimalField(final String name, final String value, final List<NameValuePair> parameters) {
+        this.name = name;
+        this.value = value;
+        this.parameters = parameters != null ?
+                Collections.unmodifiableList(new ArrayList<NameValuePair>(parameters)) : Collections.<NameValuePair>emptyList();
+    }
+
+    public MinimalField(final MinimalField from) {
+        this(from.name, from.value, from.parameters);
     }
 
     public String getName() {
@@ -48,7 +70,21 @@ public class MinimalField {
     }
 
     public String getBody() {
-        return this.value;
+        final StringBuilder sb = new StringBuilder();
+        sb.append(this.value);
+        for (int i = 0; i < this.parameters.size(); i++) {
+            final NameValuePair parameter = this.parameters.get(i);
+            sb.append("; ");
+            sb.append(parameter.getName());
+            sb.append("=\"");
+            sb.append(parameter.getValue());
+            sb.append("\"");
+        }
+        return sb.toString();
+    }
+
+    public List<NameValuePair> getParameters() {
+        return this.parameters;
     }
 
     @Override
@@ -56,7 +92,7 @@ public class MinimalField {
         final StringBuilder buffer = new StringBuilder();
         buffer.append(this.name);
         buffer.append(": ");
-        buffer.append(this.value);
+        buffer.append(this.getBody());
         return buffer.toString();
     }
 

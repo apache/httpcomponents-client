@@ -35,6 +35,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
+import org.apache.http.Consts;
 import org.apache.http.HttpEntity;
 import org.apache.http.NameValuePair;
 import org.apache.http.entity.ContentType;
@@ -231,7 +232,7 @@ public class MultipartEntityBuilder {
                 form = new HttpRFC6532Multipart(charsetCopy, boundaryCopy, bodyPartsCopy);
                 break;
             default:
-                form = new HttpStrictMultipart(charsetCopy, boundaryCopy, bodyPartsCopy);
+                form = new HttpStrictMultipart(Consts.ASCII, boundaryCopy, bodyPartsCopy);
         }
         return new MultipartFormEntity(form, contentTypeCopy, form.getTotalLength());
     }
