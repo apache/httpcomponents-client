@@ -216,6 +216,12 @@ public class MultipartEntityBuilder {
             case RFC6532:
                 form = new HttpRFC6532Multipart(charsetCopy, boundaryCopy, bodyPartsCopy);
                 break;
+            case RFC7578:
+                if (charsetCopy == null) {
+                    charsetCopy = StandardCharsets.UTF_8;
+                }
+                form = new HttpRFC7578Multipart(charsetCopy, boundaryCopy, bodyPartsCopy);
+                break;
             default:
                 form = new HttpStrictMultipart(StandardCharsets.US_ASCII, boundaryCopy, bodyPartsCopy);
         }
