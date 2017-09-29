@@ -39,7 +39,7 @@ import java.util.TreeMap;
 public class MinimalField {
 
     private final String name;
-	private final String value;
+    private final String value;
     private Map<MIME.HeaderFieldParam, String> parameters;
 
     public MinimalField(final String name, final String value) {
@@ -49,41 +49,37 @@ public class MinimalField {
         this.parameters = new TreeMap<MIME.HeaderFieldParam, String>();
     }
 
-	public MinimalField(MinimalField from) {
-		this.name = from.name;
-		this.value = from.value;
-		this.parameters = new TreeMap<MIME.HeaderFieldParam, String>(from.parameters);
-	}
+    public MinimalField(final String name, final String value, final Map<MIME.HeaderFieldParam, String> parameters) {
+        this.name = name;
+        this.value = value;
+        this.parameters = new TreeMap<MIME.HeaderFieldParam, String>(parameters);
+    }
 
-	public String getName() {
+    public MinimalField(final MinimalField from) {
+        this(from.name, from.value, from.parameters);
+    }
+
+    public String getName() {
         return this.name;
     }
 
     public String getBody() {
-		StringBuilder sb = new StringBuilder();
-		sb.append(this.value);
-		for (Iterator<Map.Entry<MIME.HeaderFieldParam, String>> it = this.parameters.entrySet().iterator(); it.hasNext(); ) {
-			Map.Entry<MIME.HeaderFieldParam, String> next = it.next();
-			sb.append("; ");
-			sb.append(next.getKey().getName());
-			sb.append("=\"");
-			sb.append(next.getValue());
-			sb.append("\"");
-		}
-		return sb.toString();
+        final StringBuilder sb = new StringBuilder();
+        sb.append(this.value);
+        for (final Iterator<Map.Entry<MIME.HeaderFieldParam, String>> it = this.parameters.entrySet().iterator(); it.hasNext(); ) {
+            final Map.Entry<MIME.HeaderFieldParam, String> next = it.next();
+            sb.append("; ");
+            sb.append(next.getKey().getName());
+            sb.append("=\"");
+            sb.append(next.getValue());
+            sb.append("\"");
+        }
+        return sb.toString();
     }
 
-	public Map<MIME.HeaderFieldParam, String> getParameters() {
-		return parameters;
-	}
-
-	public void setParameters(Map<MIME.HeaderFieldParam, String> parameters) {
-    	this.parameters = parameters;
-	}
-
-	public void addParameter(MIME.HeaderFieldParam paramName, String paramValue) {
-    	parameters.put(paramName, paramValue);
-	}
+    public Map<MIME.HeaderFieldParam, String> getParameters() {
+        return parameters;
+    }
 
     @Override
     public String toString() {

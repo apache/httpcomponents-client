@@ -39,7 +39,7 @@ public enum HttpMultipartMode {
     BROWSER_COMPATIBLE,
     /** RFC 6532 compliant */
     RFC6532,
-	/** RFC 7578 compliant */
-	RFC7578
+    /** RFC 7578 compliant */
+    RFC7578
 
 }
