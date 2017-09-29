@@ -27,6 +27,10 @@
 
 package org.apache.http.entity.mime;
 
+import java.util.Iterator;
+import java.util.Map;
+import java.util.TreeMap;
+
 /**
  * Minimal MIME field.
  *
@@ -36,11 +40,23 @@ public class MinimalField {
 
     private final String name;
     private final String value;
+    private Map<MIME.HeaderFieldParam, String> parameters;
 
     public MinimalField(final String name, final String value) {
         super();
         this.name = name;
         this.value = value;
+        this.parameters = new TreeMap<MIME.HeaderFieldParam, String>();
+    }
+
+    public MinimalField(final String name, final String value, final Map<MIME.HeaderFieldParam, String> parameters) {
+        this.name = name;
+        this.value = value;
+        this.parameters = new TreeMap<MIME.HeaderFieldParam, String>(parameters);
+    }
+
+    public MinimalField(final MinimalField from) {
+        this(from.name, from.value, from.parameters);
     }
 
     public String getName() {
@@ -48,7 +64,21 @@ public class MinimalField {
     }
 
     public String getBody() {
-        return this.value;
+        final StringBuilder sb = new StringBuilder();
+        sb.append(this.value);
+        for (final Iterator<Map.Entry<MIME.HeaderFieldParam, String>> it = this.parameters.entrySet().iterator(); it.hasNext(); ) {
+            final Map.Entry<MIME.HeaderFieldParam, String> next = it.next();
+            sb.append("; ");
+            sb.append(next.getKey().getName());
+            sb.append("=\"");
+            sb.append(next.getValue());
+            sb.append("\"");
+        }
+        return sb.toString();
+    }
+
+    public Map<MIME.HeaderFieldParam, String> getParameters() {
+        return parameters;
     }
 
     @Override
@@ -56,7 +86,7 @@ public class MinimalField {
         final StringBuilder buffer = new StringBuilder();
         buffer.append(this.name);
         buffer.append(": ");
-        buffer.append(this.value);
+        buffer.append(this.getBody());
         return buffer.toString();
     }
 

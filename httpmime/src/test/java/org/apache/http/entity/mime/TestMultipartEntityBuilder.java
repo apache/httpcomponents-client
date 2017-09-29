@@ -28,12 +28,16 @@
 package org.apache.http.entity.mime;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.util.List;
 
+import java.util.Map;
+import java.util.TreeMap;
 import org.apache.http.Consts;
 import org.apache.http.Header;
 import org.apache.http.entity.ContentType;
+import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.message.BasicNameValuePair;
 import org.junit.Assert;
 import org.junit.Test;
@@ -121,6 +125,29 @@ public class TestMultipartEntityBuilder {
         Assert.assertNotNull(contentType);
         Assert.assertEquals("multipart/form-data; boundary=blah-blah; charset=UTF-8; my=stuff",
                 contentType.getValue());
+    }
+
+    @Test
+    public void testMultipartContentDispositionFollowingRFC7578() throws Exception {
+        final Map<MIME.HeaderFieldParam, String> cpParams = new TreeMap<MIME.HeaderFieldParam, String>();
+        cpParams.put(MIME.HeaderFieldParam.NAME, "test");
+        cpParams.put(MIME.HeaderFieldParam.FILENAME, "hello κόσμε!%");
+
+        final MultipartFormEntity entity = MultipartEntityBuilder.create()
+            .setMode(HttpMultipartMode.RFC7578)
+            .addPart(new FormBodyPartBuilder()
+                .setName("test")
+                .setBody(new StringBody("hello world", ContentType.TEXT_PLAIN))
+                .addField("Content-Disposition", "multipart/form-data", cpParams)
+                .build())
+            .buildEntity();
+
+
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        entity.getMultipart().writeTo(out);
+        out.close();
+        final String result = out.toString(Consts.ASCII.name());
+        Assert.assertTrue(result, result.contains("filename=\"hello%20%CE%BA%CF%8C%CF%83%CE%BC%CE%B5!%25\""));
     }
 
 }

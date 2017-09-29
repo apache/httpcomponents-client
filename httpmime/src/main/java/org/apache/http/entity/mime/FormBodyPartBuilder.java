@@ -28,7 +28,9 @@
 package org.apache.http.entity.mime;
 
 import java.util.List;
+import java.util.Map;
 
+import java.util.TreeMap;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.content.AbstractContentBody;
 import org.apache.http.entity.mime.content.ContentBody;
@@ -74,6 +76,12 @@ public class FormBodyPartBuilder {
         return this;
     }
 
+    public FormBodyPartBuilder addField(final String name, final String value, final Map<MIME.HeaderFieldParam, String> parameters) {
+        Args.notNull(name, "Field name");
+        this.header.addField(new MinimalField(name, value, parameters));
+        return this;
+    }
+
     public FormBodyPartBuilder addField(final String name, final String value) {
         Args.notNull(name, "Field name");
         this.header.addField(new MinimalField(name, value));
@@ -101,16 +109,12 @@ public class FormBodyPartBuilder {
             headerCopy.addField(field);
         }
         if (headerCopy.getField(MIME.CONTENT_DISPOSITION) == null) {
-            final StringBuilder buffer = new StringBuilder();
-            buffer.append("form-data; name=\"");
-            buffer.append(encodeForHeader(this.name));
-            buffer.append("\"");
+            final Map<MIME.HeaderFieldParam, String> fieldParameters = new TreeMap<MIME.HeaderFieldParam, String>();
+            fieldParameters.put(MIME.HeaderFieldParam.NAME, this.name);
             if (this.body.getFilename() != null) {
-                buffer.append("; filename=\"");
-                buffer.append(encodeForHeader(this.body.getFilename()));
-                buffer.append("\"");
+                fieldParameters.put(MIME.HeaderFieldParam.FILENAME, this.body.getFilename());
             }
-            headerCopy.addField(new MinimalField(MIME.CONTENT_DISPOSITION, buffer.toString()));
+            headerCopy.addField(new MinimalField(MIME.CONTENT_DISPOSITION, "form-data", fieldParameters));
         }
         if (headerCopy.getField(MIME.CONTENT_TYPE) == null) {
             final ContentType contentType;
@@ -136,21 +140,6 @@ public class FormBodyPartBuilder {
             headerCopy.addField(new MinimalField(MIME.CONTENT_TRANSFER_ENC, body.getTransferEncoding()));
         }
         return new FormBodyPart(this.name, this.body, headerCopy);
-    }
-
-    private static String encodeForHeader(final String headerName) {
-        if (headerName == null) {
-            return null;
-        }
-        final StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < headerName.length(); i++) {
-            final char x = headerName.charAt(i);
-            if (x == '"' || x == '\\' || x == '\r') {
-                sb.append("\\");
-            }
-            sb.append(x);
-        }
-        return sb.toString();
     }
 
 }
