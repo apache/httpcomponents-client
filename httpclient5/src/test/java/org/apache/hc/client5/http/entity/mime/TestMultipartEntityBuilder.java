@@ -140,7 +140,6 @@ public class TestMultipartEntityBuilder {
         Assert.assertEquals("--xxxxxxxxxxxxxxxxxxxxxxxx\r\n" +
                 "Content-Disposition: multipart/form-data; name=\"test\"; filename=\"hello world\"\r\n" +
                 "Content-Type: text/plain; charset=ISO-8859-1\r\n" +
-                "Content-Transfer-Encoding: 8bit\r\n" +
                 "\r\n" +
                 "hello world\r\n" +
                 "--xxxxxxxxxxxxxxxxxxxxxxxx--\r\n", out.toString(StandardCharsets.US_ASCII.name()));
@@ -167,7 +166,6 @@ public class TestMultipartEntityBuilder {
         Assert.assertEquals("--xxxxxxxxxxxxxxxxxxxxxxxx\r\n" +
                 "Content-Disposition: multipart/form-data; name=\"test\"; filename=\"hello%20%CE%BA%CF%8C%CF%83%CE%BC%CE%B5!%25\"\r\n" +
                 "Content-Type: text/plain; charset=ISO-8859-1\r\n" +
-                "Content-Transfer-Encoding: 8bit\r\n" +
                 "\r\n" +
                 "hello world\r\n" +
                 "--xxxxxxxxxxxxxxxxxxxxxxxx--\r\n", out.toString(StandardCharsets.US_ASCII.name()));

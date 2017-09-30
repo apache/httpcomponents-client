@@ -34,6 +34,10 @@ package org.apache.hc.client5.http.entity.mime;
 public final class MIME {
 
     public static final String CONTENT_TYPE          = "Content-Type";
+    /**
+     * @deprecated Deprecated per RFC 7578, section 4.7. Do not use
+     */
+    @Deprecated
     public static final String CONTENT_TRANSFER_ENC  = "Content-Transfer-Encoding";
     public static final String CONTENT_DISPOSITION   = "Content-Disposition";
 

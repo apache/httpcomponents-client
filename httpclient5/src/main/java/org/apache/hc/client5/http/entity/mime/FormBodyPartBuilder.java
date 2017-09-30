@@ -137,10 +137,6 @@ public class FormBodyPartBuilder {
                 headerCopy.addField(new MinimalField(MIME.CONTENT_TYPE, buffer.toString()));
             }
         }
-        if (headerCopy.getField(MIME.CONTENT_TRANSFER_ENC) == null) {
-            // TE cannot be null
-            headerCopy.addField(new MinimalField(MIME.CONTENT_TRANSFER_ENC, body.getTransferEncoding()));
-        }
         return new FormBodyPart(this.name, this.body, headerCopy);
     }
 
