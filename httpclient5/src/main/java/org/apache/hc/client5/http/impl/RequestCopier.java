@@ -26,14 +26,28 @@
  */
 package org.apache.hc.client5.http.impl;
 
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.Iterator;
 
-public final class ExecSupport {
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.message.BasicHttpRequest;
 
-    private static final AtomicLong COUNT = new AtomicLong(0);
+public final class RequestCopier implements MessageCopier<HttpRequest> {
 
-    public static long getNextExecNumber() {
-        return COUNT.incrementAndGet();
+    public static final RequestCopier INSTANCE = new RequestCopier();
+
+    public HttpRequest copy(final HttpRequest original) {
+        if (original == null) {
+            return null;
+        }
+        final BasicHttpRequest copy = new BasicHttpRequest(original.getMethod(), original.getPath());
+        copy.setVersion(original.getVersion());
+        for (final Iterator<Header> it = original.headerIterator(); it.hasNext(); ) {
+            copy.addHeader(it.next());
+        }
+        copy.setScheme(original.getScheme());
+        copy.setAuthority(original.getAuthority());
+        return copy;
     }
 
 }

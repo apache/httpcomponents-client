@@ -36,7 +36,7 @@ import org.apache.hc.client5.http.ClientProtocolException;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpHead;
-import org.apache.hc.client5.http.impl.ExecSupport;
+import org.apache.hc.client5.http.impl.classic.ClassicRequestCopier;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
@@ -92,7 +92,7 @@ public class TestResponseProtocolCompliance {
     @Test
     public void consumesBodyIfOriginSendsOneInResponseToHEAD() throws Exception {
         final HttpHead req = new HttpHead("http://foo.example.com/");
-        final ClassicHttpRequest wrapper = ExecSupport.copy(req);
+        final ClassicHttpRequest wrapper = ClassicRequestCopier.INSTANCE.copy(req);
         final int nbytes = 128;
         final ClassicHttpResponse resp = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
         setMinimalResponseHeaders(resp);
@@ -110,7 +110,7 @@ public class TestResponseProtocolCompliance {
     @Test(expected=ClientProtocolException.class)
     public void throwsExceptionIfOriginReturnsPartialResponseWhenNotRequested() throws Exception {
         final HttpGet req = new HttpGet("http://foo.example.com/");
-        final ClassicHttpRequest wrapper = ExecSupport.copy(req);
+        final ClassicHttpRequest wrapper = ClassicRequestCopier.INSTANCE.copy(req);
         final int nbytes = 128;
         final ClassicHttpResponse resp = makePartialResponse(nbytes);
         resp.setEntity(HttpTestUtils.makeBody(nbytes));
@@ -121,7 +121,7 @@ public class TestResponseProtocolCompliance {
     @Test
     public void consumesPartialContentFromOriginEvenIfNotRequested() throws Exception {
         final HttpGet req = new HttpGet("http://foo.example.com/");
-        final ClassicHttpRequest wrapper = ExecSupport.copy(req);
+        final ClassicHttpRequest wrapper = ClassicRequestCopier.INSTANCE.copy(req);
         final int nbytes = 128;
         final ClassicHttpResponse resp = makePartialResponse(nbytes);
 
@@ -144,7 +144,7 @@ public class TestResponseProtocolCompliance {
         req.setHeader("Content-Type", "application/octet-stream");
         final HttpEntity postBody = new ByteArrayEntity(HttpTestUtils.getRandomBytes(nbytes));
         req.setEntity(postBody);
-        final ClassicHttpRequest wrapper = ExecSupport.copy(req);
+        final ClassicHttpRequest wrapper = ClassicRequestCopier.INSTANCE.copy(req);
 
         final ClassicHttpResponse resp = new BasicClassicHttpResponse(HttpStatus.SC_CONTINUE, "Continue");
         final Flag closed = new Flag();

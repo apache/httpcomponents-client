@@ -24,16 +24,18 @@
  * <http://www.apache.org/>.
  *
  */
+
 package org.apache.hc.client5.http.impl;
 
-import java.util.concurrent.atomic.AtomicLong;
+import org.apache.hc.core5.http.HttpMessage;
 
-public final class ExecSupport {
+/**
+ * Abstract HTTP message cloner.
+ *
+ * @since 5.0
+ */
+public interface MessageCopier<T extends HttpMessage> {
 
-    private static final AtomicLong COUNT = new AtomicLong(0);
-
-    public static long getNextExecNumber() {
-        return COUNT.incrementAndGet();
-    }
+    T copy(T object);
 
 }

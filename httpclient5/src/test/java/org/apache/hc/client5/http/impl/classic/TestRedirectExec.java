@@ -122,7 +122,7 @@ public class TestRedirectExec {
                 Mockito.eq(target),
                 Mockito.<HttpClientContext>any())).thenReturn(route);
 
-        final ExecChain.Scope scope = new ExecChain.Scope(route, request, endpoint, context);
+        final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
         redirectExec.execute(request, scope, chain);
 
         final ArgumentCaptor<ClassicHttpRequest> reqCaptor = ArgumentCaptor.forClass(
@@ -171,7 +171,7 @@ public class TestRedirectExec {
                 Mockito.eq(target),
                 Mockito.<HttpClientContext>any())).thenReturn(route);
 
-        final ExecChain.Scope scope = new ExecChain.Scope(route, request, endpoint, context);
+        final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
         redirectExec.execute(request, scope, chain);
     }
 
@@ -202,7 +202,7 @@ public class TestRedirectExec {
                 Mockito.eq(target),
                 Mockito.<HttpClientContext>any())).thenReturn(route);
 
-        final ExecChain.Scope scope = new ExecChain.Scope(route, request, endpoint, context);
+        final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
         redirectExec.execute(request, scope, chain);
     }
 
@@ -248,7 +248,7 @@ public class TestRedirectExec {
                 Mockito.eq(otherHost),
                 Mockito.<HttpClientContext>any())).thenReturn(new HttpRoute(otherHost));
 
-        final ExecChain.Scope scope = new ExecChain.Scope(route, request, endpoint, context);
+        final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
         redirectExec.execute(request, scope, chain);
 
         final AuthExchange authExchange1 = context.getAuthExchange(target);
@@ -280,7 +280,7 @@ public class TestRedirectExec {
                 Mockito.same(response1),
                 Mockito.<HttpClientContext>any()));
 
-        final ExecChain.Scope scope = new ExecChain.Scope(route, request, endpoint, context);
+        final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
         try {
             redirectExec.execute(request, scope, chain);
         } catch (final Exception ex) {
@@ -313,7 +313,7 @@ public class TestRedirectExec {
                 Mockito.same(response1),
                 Mockito.<HttpClientContext>any());
 
-        final ExecChain.Scope scope = new ExecChain.Scope(route, request, endpoint, context);
+        final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
         try {
             redirectExec.execute(request, scope, chain);
         } catch (final Exception ex) {

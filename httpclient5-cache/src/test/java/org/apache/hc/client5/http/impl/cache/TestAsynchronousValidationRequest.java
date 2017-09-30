@@ -75,7 +75,7 @@ public class TestAsynchronousValidationRequest {
         execChain = mock(ExecChain.class);
         mockCacheEntry = mock(HttpCacheEntry.class);
         mockResponse = mock(ClassicHttpResponse.class);
-        scope = new ExecChain.Scope(route, request, mockEndpoint, context);
+        scope = new ExecChain.Scope("test", route, request, mockEndpoint, context);
     }
 
     @Test

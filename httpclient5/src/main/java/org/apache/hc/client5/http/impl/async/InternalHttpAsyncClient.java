@@ -43,6 +43,7 @@ import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.cookie.CookieSpecProvider;
 import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.client5.http.impl.ExecSupport;
+import org.apache.hc.client5.http.impl.RequestCopier;
 import org.apache.hc.client5.http.nio.AsyncClientConnectionManager;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.routing.HttpRoutePlanner;
@@ -161,7 +162,7 @@ class InternalHttpAsyncClient extends AbstractHttpAsyncClientBase {
 
         final AsyncExecChain.Scope scope = new AsyncExecChain.Scope(exchangeId, route, request, clientContext, execRuntime);
         execChain.execute(
-                ExecSupport.copy(request),
+                RequestCopier.INSTANCE.copy(request),
                 entityDetails != null ? new InternalAsyncEntityProducer(exchangeHandler, entityDetails) : null,
                 scope,
                 new AsyncExecCallback() {

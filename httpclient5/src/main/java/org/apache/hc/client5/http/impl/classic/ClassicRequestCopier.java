@@ -24,16 +24,32 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.hc.client5.http.impl;
+package org.apache.hc.client5.http.impl.classic;
 
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.Iterator;
 
-public final class ExecSupport {
+import org.apache.hc.client5.http.impl.MessageCopier;
+import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 
-    private static final AtomicLong COUNT = new AtomicLong(0);
+public final class ClassicRequestCopier implements MessageCopier<ClassicHttpRequest> {
 
-    public static long getNextExecNumber() {
-        return COUNT.incrementAndGet();
+    public static final ClassicRequestCopier INSTANCE = new ClassicRequestCopier();
+
+    public ClassicHttpRequest copy(final ClassicHttpRequest original) {
+        if (original == null) {
+            return null;
+        }
+        final BasicClassicHttpRequest copy = new BasicClassicHttpRequest(original.getMethod(), original.getPath());
+        copy.setVersion(original.getVersion());
+        for (final Iterator<Header> it = original.headerIterator(); it.hasNext(); ) {
+            copy.addHeader(it.next());
+        }
+        copy.setScheme(original.getScheme());
+        copy.setAuthority(original.getAuthority());
+        copy.setEntity(original.getEntity());
+        return copy;
     }
 
 }

@@ -38,7 +38,6 @@ import org.apache.hc.client5.http.classic.ExecRuntime;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.entity.EntityBuilder;
-import org.apache.hc.client5.http.impl.ExecSupport;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.Header;
@@ -104,8 +103,8 @@ public class TestRetryExec {
                 Mockito.<IOException>any(),
                 Mockito.eq(1),
                 Mockito.<HttpContext>any())).thenReturn(Boolean.TRUE);
-        final ExecChain.Scope scope = new ExecChain.Scope(route, originalRequest, endpoint, context);
-        final ClassicHttpRequest request = ExecSupport.copy(originalRequest);
+        final ExecChain.Scope scope = new ExecChain.Scope("test", route, originalRequest, endpoint, context);
+        final ClassicHttpRequest request = ClassicRequestCopier.INSTANCE.copy(originalRequest);
         try {
             retryExec.execute(request, scope, chain);
         } catch (final IOException ex) {
@@ -127,8 +126,8 @@ public class TestRetryExec {
                 Mockito.<ExecChain.Scope>any())).thenThrow(new IOException("Ka-boom"));
         Mockito.when(endpoint.isExecutionAborted()).thenReturn(true);
 
-        final ExecChain.Scope scope = new ExecChain.Scope(route, originalRequest, endpoint, context);
-        final ClassicHttpRequest request = ExecSupport.copy(originalRequest);
+        final ExecChain.Scope scope = new ExecChain.Scope("test", route, originalRequest, endpoint, context);
+        final ClassicHttpRequest request = ClassicRequestCopier.INSTANCE.copy(originalRequest);
         try {
             retryExec.execute(request, scope, chain);
         } catch (final IOException ex) {
@@ -172,8 +171,8 @@ public class TestRetryExec {
                 Mockito.<IOException>any(),
                 Mockito.eq(1),
                 Mockito.<HttpContext>any())).thenReturn(Boolean.TRUE);
-        final ExecChain.Scope scope = new ExecChain.Scope(route, originalRequest, endpoint, context);
-        final ClassicHttpRequest request = ExecSupport.copy(originalRequest);
+        final ExecChain.Scope scope = new ExecChain.Scope("test", route, originalRequest, endpoint, context);
+        final ClassicHttpRequest request = ClassicRequestCopier.INSTANCE.copy(originalRequest);
         try {
             retryExec.execute(request, scope, chain);
         } catch (final IOException ex) {

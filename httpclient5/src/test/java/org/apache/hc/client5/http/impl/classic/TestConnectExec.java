@@ -114,7 +114,7 @@ public class TestConnectExec {
                 Mockito.same(request),
                 Mockito.same(response),
                 Mockito.<HttpClientContext>any())).thenReturn(false);
-        final ExecChain.Scope scope = new ExecChain.Scope(route, request, execRuntime, context);
+        final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
         exec.execute(request, scope, execChain);
         Mockito.verify(execRuntime).acquireConnection(route, "Blah", context);
         Mockito.verify(execRuntime).connect(context);
@@ -130,7 +130,7 @@ public class TestConnectExec {
         Mockito.doAnswer(connectionState.connectAnswer()).when(execRuntime).connect(Mockito.<HttpClientContext>any());
         Mockito.when(execRuntime.isConnected()).thenAnswer(connectionState.isConnectedAnswer());
 
-        final ExecChain.Scope scope = new ExecChain.Scope(route, request, execRuntime, context);
+        final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
         exec.execute(request, scope, execChain);
 
         Mockito.verify(execRuntime).connect(context);
@@ -147,7 +147,7 @@ public class TestConnectExec {
         Mockito.doAnswer(connectionState.connectAnswer()).when(execRuntime).connect(Mockito.<HttpClientContext>any());
         Mockito.when(execRuntime.isConnected()).thenAnswer(connectionState.isConnectedAnswer());
 
-        final ExecChain.Scope scope = new ExecChain.Scope(route, request, execRuntime, context);
+        final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
         exec.execute(request, scope, execChain);
 
         Mockito.verify(execRuntime).connect(context);
@@ -168,7 +168,7 @@ public class TestConnectExec {
                 Mockito.<ClassicHttpRequest>any(),
                 Mockito.<HttpClientContext>any())).thenReturn(response);
 
-        final ExecChain.Scope scope = new ExecChain.Scope(route, request, execRuntime, context);
+        final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
         exec.execute(request, scope, execChain);
 
         Mockito.verify(execRuntime).connect(context);
@@ -197,7 +197,7 @@ public class TestConnectExec {
                 Mockito.<ClassicHttpRequest>any(),
                 Mockito.<HttpClientContext>any())).thenReturn(response);
 
-        final ExecChain.Scope scope = new ExecChain.Scope(route, request, execRuntime, context);
+        final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
         exec.execute(request, scope, execChain);
     }
 
@@ -216,7 +216,7 @@ public class TestConnectExec {
                 Mockito.<ClassicHttpRequest>any(),
                 Mockito.<HttpClientContext>any())).thenReturn(response);
 
-        final ExecChain.Scope scope = new ExecChain.Scope(route, request, execRuntime, context);
+        final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
         try {
             exec.execute(request, scope, execChain);
         } catch (final TunnelRefusedException ex) {
@@ -260,7 +260,7 @@ public class TestConnectExec {
                 Mockito.<Map<String, AuthChallenge>>any(),
                 Mockito.<HttpClientContext>any())).thenReturn(Collections.<AuthScheme>singletonList(new BasicScheme()));
 
-        final ExecChain.Scope scope = new ExecChain.Scope(route, request, execRuntime, context);
+        final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
         exec.execute(request, scope, execChain);
 
         Mockito.verify(execRuntime).connect(context);
@@ -300,7 +300,7 @@ public class TestConnectExec {
                 Mockito.<Map<String, AuthChallenge>>any(),
                 Mockito.<HttpClientContext>any())).thenReturn(Collections.<AuthScheme>singletonList(new BasicScheme()));
 
-        final ExecChain.Scope scope = new ExecChain.Scope(route, request, execRuntime, context);
+        final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
         exec.execute(request, scope, execChain);
 
         Mockito.verify(execRuntime).connect(context);
@@ -321,7 +321,7 @@ public class TestConnectExec {
         Mockito.doAnswer(connectionState.connectAnswer()).when(execRuntime).connect(Mockito.<HttpClientContext>any());
         Mockito.when(execRuntime.isConnected()).thenAnswer(connectionState.isConnectedAnswer());
 
-        final ExecChain.Scope scope = new ExecChain.Scope(route, request, execRuntime, context);
+        final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
         exec.execute(request, scope, execChain);
     }
 

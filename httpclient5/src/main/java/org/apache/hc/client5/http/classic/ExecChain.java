@@ -40,12 +40,14 @@ public interface ExecChain {
 
     final class Scope {
 
+        public final String exchangeId;
         public final HttpRoute route;
         public final ClassicHttpRequest originalRequest;
         public final ExecRuntime execRuntime;
         public final HttpClientContext clientContext;
 
-        public Scope(final HttpRoute route, final ClassicHttpRequest originalRequest, final ExecRuntime execRuntime, final HttpClientContext clientContext) {
+        public Scope(final String exchangeId, final HttpRoute route, final ClassicHttpRequest originalRequest, final ExecRuntime execRuntime, final HttpClientContext clientContext) {
+            this.exchangeId = Args.notNull(exchangeId, "Exchange id");
             this.route = Args.notNull(route, "Route");
             this.originalRequest = Args.notNull(originalRequest, "Original request");
             this.execRuntime = Args.notNull(execRuntime, "Exec runtime");

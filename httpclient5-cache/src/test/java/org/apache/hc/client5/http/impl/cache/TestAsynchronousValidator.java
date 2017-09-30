@@ -82,7 +82,7 @@ public class TestAsynchronousValidator {
         mockEndpoint = mock(ExecRuntime.class);
         mockCacheEntry = mock(HttpCacheEntry.class);
         mockSchedulingStrategy = mock(SchedulingStrategy.class);
-        scope = new ExecChain.Scope(route, request, mockEndpoint, context);
+        scope = new ExecChain.Scope("test", route, request, mockEndpoint, context);
     }
 
     @Test
@@ -167,9 +167,9 @@ public class TestAsynchronousValidator {
                 new BasicHeaderIterator(variantHeaders, HeaderConstants.VARY));
         mockSchedulingStrategy.schedule(isA(AsynchronousValidationRequest.class));
 
-        impl.revalidateCacheEntry(mockClient, host, req1, new ExecChain.Scope(route, req1, mockEndpoint, context),
+        impl.revalidateCacheEntry(mockClient, host, req1, new ExecChain.Scope("test", route, req1, mockEndpoint, context),
                 mockExecChain, mockCacheEntry);
-        impl.revalidateCacheEntry(mockClient, host, req2, new ExecChain.Scope(route, req2, mockEndpoint, context),
+        impl.revalidateCacheEntry(mockClient, host, req2, new ExecChain.Scope("test", route, req2, mockEndpoint, context),
                 mockExecChain, mockCacheEntry);
 
         verify(mockCacheEntry, times(2)).hasVariants();

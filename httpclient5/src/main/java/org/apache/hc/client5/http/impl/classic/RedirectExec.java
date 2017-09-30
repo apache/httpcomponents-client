@@ -159,6 +159,7 @@ final class RedirectExec implements ExecChainHandler {
                         }
                         currentRoute = this.routePlanner.determineRoute(newTarget, context);
                         currentScope = new ExecChain.Scope(
+                                currentScope.exchangeId,
                                 currentRoute,
                                 currentScope.originalRequest,
                                 currentScope.execRuntime,

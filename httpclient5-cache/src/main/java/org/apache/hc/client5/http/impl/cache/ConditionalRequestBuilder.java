@@ -31,7 +31,7 @@ import java.util.Map;
 
 import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
-import org.apache.hc.client5.http.impl.ExecSupport;
+import org.apache.hc.client5.http.impl.classic.ClassicRequestCopier;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.ClassicHttpRequest;
@@ -59,7 +59,7 @@ class ConditionalRequestBuilder {
      */
     public ClassicHttpRequest buildConditionalRequest(final ClassicHttpRequest request, final HttpCacheEntry cacheEntry)
             throws ProtocolException {
-        final ClassicHttpRequest newRequest = ExecSupport.copy(request);
+        final ClassicHttpRequest newRequest = ClassicRequestCopier.INSTANCE.copy(request);
         newRequest.setHeaders(request.getAllHeaders());
         final Header eTag = cacheEntry.getFirstHeader(HeaderConstants.ETAG);
         if (eTag != null) {
@@ -99,7 +99,7 @@ class ConditionalRequestBuilder {
      */
     public ClassicHttpRequest buildConditionalRequestFromVariants(final ClassicHttpRequest request,
                                                               final Map<String, Variant> variants) {
-        final ClassicHttpRequest newRequest = ExecSupport.copy(request);
+        final ClassicHttpRequest newRequest = ClassicRequestCopier.INSTANCE.copy(request);
         newRequest.setHeaders(request.getAllHeaders());
 
         // we do not support partial content so all etags are used
@@ -128,7 +128,7 @@ class ConditionalRequestBuilder {
      * @return an unconditional validation request
      */
     public ClassicHttpRequest buildUnconditionalRequest(final ClassicHttpRequest request) {
-        final ClassicHttpRequest newRequest = ExecSupport.copy(request);
+        final ClassicHttpRequest newRequest = ClassicRequestCopier.INSTANCE.copy(request);
         newRequest.addHeader(HeaderConstants.CACHE_CONTROL,HeaderConstants.CACHE_CONTROL_NO_CACHE);
         newRequest.addHeader(HeaderConstants.PRAGMA,HeaderConstants.CACHE_CONTROL_NO_CACHE);
         newRequest.removeHeaders(HeaderConstants.IF_RANGE);

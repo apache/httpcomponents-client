@@ -58,7 +58,7 @@ import org.apache.hc.client5.http.classic.ExecChainHandler;
 import org.apache.hc.client5.http.classic.ExecRuntime;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpOptions;
-import org.apache.hc.client5.http.impl.ExecSupport;
+import org.apache.hc.client5.http.impl.classic.ClassicRequestCopier;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.ClassicHttpRequest;
@@ -162,7 +162,8 @@ public abstract class TestCachingExecChain {
     public abstract ExecChainHandler createCachingExecChain(HttpCache cache, CacheConfig config);
 
     protected ClassicHttpResponse execute(final ClassicHttpRequest request) throws IOException, HttpException {
-        return impl.execute(ExecSupport.copy(request), new ExecChain.Scope(route, request, mockEndpoint, context), mockExecChain);
+        return impl.execute(ClassicRequestCopier.INSTANCE.copy(request), new ExecChain.Scope(
+                "test", route, request, mockEndpoint, context), mockExecChain);
     }
 
     public static ClassicHttpRequest eqRequest(final ClassicHttpRequest in) {
@@ -1349,8 +1350,8 @@ public abstract class TestCachingExecChain {
         backend.setResponse(response);
         impl = createCachingExecChain(new BasicHttpCache(), CacheConfig.DEFAULT);
         final HttpClientContext ctx = HttpClientContext.create();
-        impl.execute(request, new ExecChain.Scope(route, request, mockEndpoint, context), backend);
-        impl.execute(request, new ExecChain.Scope(route, request, mockEndpoint, ctx), backend);
+        impl.execute(request, new ExecChain.Scope("test", route, request, mockEndpoint, context), backend);
+        impl.execute(request, new ExecChain.Scope("test", route, request, mockEndpoint, ctx), backend);
     }
 
     @Test
@@ -1361,8 +1362,8 @@ public abstract class TestCachingExecChain {
         backend.setResponse(response);
         impl = createCachingExecChain(new BasicHttpCache(), CacheConfig.DEFAULT);
         final HttpClientContext ctx = HttpClientContext.create();
-        impl.execute(request, new ExecChain.Scope(route, request, mockEndpoint, context), backend);
-        impl.execute(request, new ExecChain.Scope(route, request, mockEndpoint, ctx), backend);
+        impl.execute(request, new ExecChain.Scope("test", route, request, mockEndpoint, context), backend);
+        impl.execute(request, new ExecChain.Scope("test", route, request, mockEndpoint, ctx), backend);
     }
 
     @Test
@@ -1373,8 +1374,8 @@ public abstract class TestCachingExecChain {
         backend.setResponse(response);
         impl = createCachingExecChain(new BasicHttpCache(), CacheConfig.DEFAULT);
         final HttpClientContext ctx = HttpClientContext.create();
-        impl.execute(request, new ExecChain.Scope(route, request, mockEndpoint, context), backend);
-        impl.execute(request, new ExecChain.Scope(route, request, mockEndpoint, ctx), backend);
+        impl.execute(request, new ExecChain.Scope("test", route, request, mockEndpoint, context), backend);
+        impl.execute(request, new ExecChain.Scope("test", route, request, mockEndpoint, ctx), backend);
         assertEquals(route, ctx.getHttpRoute());
     }
 
@@ -1386,8 +1387,8 @@ public abstract class TestCachingExecChain {
         backend.setResponse(response);
         impl = createCachingExecChain(new BasicHttpCache(), CacheConfig.DEFAULT);
         final HttpClientContext ctx = HttpClientContext.create();
-        impl.execute(request, new ExecChain.Scope(route, request, mockEndpoint, context), backend);
-        impl.execute(request, new ExecChain.Scope(route, request, mockEndpoint, ctx), backend);
+        impl.execute(request, new ExecChain.Scope("test", route, request, mockEndpoint, context), backend);
+        impl.execute(request, new ExecChain.Scope("test", route, request, mockEndpoint, ctx), backend);
         if (!HttpTestUtils.equivalent(request, ctx.getRequest())) {
             assertSame(request, ctx.getRequest());
         }
@@ -1401,8 +1402,8 @@ public abstract class TestCachingExecChain {
         backend.setResponse(response);
         impl = createCachingExecChain(new BasicHttpCache(), CacheConfig.DEFAULT);
         final HttpClientContext ctx = HttpClientContext.create();
-        impl.execute(request, new ExecChain.Scope(route, request, mockEndpoint, context), backend);
-        final ClassicHttpResponse result = impl.execute(request, new ExecChain.Scope(route, request, mockEndpoint, ctx), null);
+        impl.execute(request, new ExecChain.Scope("test", route, request, mockEndpoint, context), backend);
+        final ClassicHttpResponse result = impl.execute(request, new ExecChain.Scope("test", route, request, mockEndpoint, ctx), null);
         if (!HttpTestUtils.equivalent(result, ctx.getResponse())) {
             assertSame(result, ctx.getResponse());
         }
@@ -1416,8 +1417,8 @@ public abstract class TestCachingExecChain {
         backend.setResponse(response);
         impl = createCachingExecChain(new BasicHttpCache(), CacheConfig.DEFAULT);
         final HttpClientContext ctx = HttpClientContext.create();
-        impl.execute(request, new ExecChain.Scope(route, request, mockEndpoint, context), backend);
-        impl.execute(request, new ExecChain.Scope(route, request, mockEndpoint, ctx), backend);
+        impl.execute(request, new ExecChain.Scope("test", route, request, mockEndpoint, context), backend);
+        impl.execute(request, new ExecChain.Scope("test", route, request, mockEndpoint, ctx), backend);
     }
 
     @Test
@@ -1428,8 +1429,8 @@ public abstract class TestCachingExecChain {
         final DummyBackend backend = new DummyBackend();
         backend.setResponse(response);
         impl = createCachingExecChain(new BasicHttpCache(), CacheConfig.DEFAULT);
-        impl.execute(request, new ExecChain.Scope(route, request, mockEndpoint, context), backend);
-        impl.execute(request, new ExecChain.Scope(route, request, mockEndpoint, context), backend);
+        impl.execute(request, new ExecChain.Scope("test", route, request, mockEndpoint, context), backend);
+        impl.execute(request, new ExecChain.Scope("test", route, request, mockEndpoint, context), backend);
         assertEquals(1, backend.getExecutions());
     }
 
@@ -1581,12 +1582,12 @@ public abstract class TestCachingExecChain {
         response.setHeader("Cache-Control", "max-age=3600");
         backend.setResponse(response);
         impl = createCachingExecChain(new BasicHttpCache(), CacheConfig.DEFAULT);
-        impl.execute(request, new ExecChain.Scope(route, request, mockEndpoint, context), backend);
+        impl.execute(request, new ExecChain.Scope("test", route, request, mockEndpoint, context), backend);
         assertEquals(1, backend.getExecutions());
         request.setAuthority(new URIAuthority("bar.example.com"));
-        impl.execute(request, new ExecChain.Scope(route, request, mockEndpoint, context), backend);
+        impl.execute(request, new ExecChain.Scope("test", route, request, mockEndpoint, context), backend);
         assertEquals(2, backend.getExecutions());
-        impl.execute(request, new ExecChain.Scope(route, request, mockEndpoint, context), backend);
+        impl.execute(request, new ExecChain.Scope("test", route, request, mockEndpoint, context), backend);
         assertEquals(2, backend.getExecutions());
     }
 

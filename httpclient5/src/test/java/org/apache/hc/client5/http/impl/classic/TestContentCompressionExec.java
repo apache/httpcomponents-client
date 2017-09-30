@@ -69,7 +69,7 @@ public class TestContentCompressionExec {
     public void setup() {
         host = new HttpHost("somehost", 80);
         context = HttpClientContext.create();
-        scope = new ExecChain.Scope(new HttpRoute(host), originaRequest, execRuntime, context);
+        scope = new ExecChain.Scope("test", new HttpRoute(host), originaRequest, execRuntime, context);
         impl = new ContentCompressionExec();
     }
 

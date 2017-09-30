@@ -34,7 +34,6 @@ import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.NonRepeatableRequestException;
 import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecChainHandler;
-import org.apache.hc.client5.http.impl.ExecSupport;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
@@ -106,7 +105,7 @@ final class RetryExec implements ExecChainHandler {
                         throw new NonRepeatableRequestException("Cannot retry request " +
                                 "with a non-repeatable request entity", ex);
                     }
-                    currentRequest = ExecSupport.copy(scope.originalRequest);
+                    currentRequest = ClassicRequestCopier.INSTANCE.copy(scope.originalRequest);
                     if (this.log.isInfoEnabled()) {
                         this.log.info("Retrying request to " + route);
                     }

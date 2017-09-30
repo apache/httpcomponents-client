@@ -33,7 +33,6 @@ import java.io.InterruptedIOException;
 import org.apache.hc.client5.http.ServiceUnavailableRetryStrategy;
 import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecChainHandler;
-import org.apache.hc.client5.http.impl.ExecSupport;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
@@ -101,7 +100,7 @@ final class ServiceUnavailableRetryExec implements ExecChainHandler {
                             throw new InterruptedIOException();
                         }
                     }
-                    currentRequest = ExecSupport.copy(scope.originalRequest);
+                    currentRequest = ClassicRequestCopier.INSTANCE.copy(scope.originalRequest);
                 } else {
                     return response;
                 }

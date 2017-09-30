@@ -164,7 +164,7 @@ public class TestExponentialBackingOffSchedulingStrategy {
         final HttpRoute route = new HttpRoute(host);
         final ClassicHttpRequest request = new BasicClassicHttpRequest("GET", "/");
         final HttpClientContext context = new HttpClientContext();
-        final ExecChain.Scope scope = new ExecChain.Scope(route, request, mock(ExecRuntime.class), context);
+        final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, mock(ExecRuntime.class), context);
         return new AsynchronousValidationRequest(mockValidator, cachingHttpClient, host, request,
                 scope, mock(ExecChain.class), null, "identifier", errorCount);
     }

@@ -116,7 +116,7 @@ public class TestHttpCacheJiraNumber1147 {
         final BasicHttpCache cache = new BasicHttpCache(resourceFactory, httpCacheStorage, cacheConfig);
         final ExecChainHandler t = createCachingExecChain(cache, cacheConfig);
 
-        final ExecChain.Scope scope = new ExecChain.Scope(route, get, mockEndpoint, context);
+        final ExecChain.Scope scope = new ExecChain.Scope("teset", route, get, mockEndpoint, context);
         final ClassicHttpResponse response1 = t.execute(get, scope, mockExecChain);
         Assert.assertEquals(200, response1.getCode());
         IOUtils.consume(response1.getEntity());

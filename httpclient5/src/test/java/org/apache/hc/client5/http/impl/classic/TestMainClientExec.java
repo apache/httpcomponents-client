@@ -96,7 +96,7 @@ public class TestMainClientExec {
                 Mockito.same(response),
                 Mockito.<HttpClientContext>any())).thenReturn(false);
 
-        final ExecChain.Scope scope = new ExecChain.Scope(route, request, endpoint, context);
+        final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
         final ClassicHttpResponse finalResponse = mainClientExec.execute(request, scope, null);
         Mockito.verify(endpoint).execute(request, context);
         Mockito.verify(endpoint, Mockito.times(1)).markConnectionNonReusable();
@@ -124,7 +124,7 @@ public class TestMainClientExec {
                 Mockito.same(response),
                 Mockito.<HttpClientContext>any())).thenReturn(false);
 
-        final ExecChain.Scope scope = new ExecChain.Scope(route, request, endpoint, context);
+        final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
         final ClassicHttpResponse finalResponse = mainClientExec.execute(request, scope, null);
 
         Mockito.verify(endpoint).execute(request, context);
@@ -160,7 +160,7 @@ public class TestMainClientExec {
                 Mockito.same(response),
                 Mockito.<HttpClientContext>any())).thenReturn(TimeValue.ofMillis(678L));
 
-        final ExecChain.Scope scope = new ExecChain.Scope(route, request, endpoint, context);
+        final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
         final ClassicHttpResponse finalResponse = mainClientExec.execute(request, scope, null);
 
         Mockito.verify(endpoint).execute(request, context);
@@ -192,7 +192,7 @@ public class TestMainClientExec {
                 Mockito.same(response),
                 Mockito.<HttpClientContext>any())).thenReturn(TimeValue.ofMillis(678L));
 
-        final ExecChain.Scope scope = new ExecChain.Scope(route, request, endpoint, context);
+        final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
         final ClassicHttpResponse finalResponse = mainClientExec.execute(request, scope, null);
 
         Mockito.verify(endpoint).execute(request, context);
@@ -224,7 +224,7 @@ public class TestMainClientExec {
                 Mockito.same(response),
                 Mockito.<HttpClientContext>any())).thenReturn(Boolean.FALSE);
 
-        final ExecChain.Scope scope = new ExecChain.Scope(route, request, endpoint, context);
+        final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
         final ClassicHttpResponse finalResponse = mainClientExec.execute(request, scope, null);
         Mockito.verify(endpoint, Mockito.times(1)).execute(request, context);
         Mockito.verify(endpoint, Mockito.never()).disconnect();
@@ -248,7 +248,7 @@ public class TestMainClientExec {
                 Mockito.same(request),
                 Mockito.<HttpClientContext>any())).thenThrow(new ConnectionShutdownException());
 
-        final ExecChain.Scope scope = new ExecChain.Scope(route, request, endpoint, context);
+        final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
         try {
             mainClientExec.execute(request, scope, null);
         } catch (Exception ex) {
@@ -267,7 +267,7 @@ public class TestMainClientExec {
                 Mockito.same(request),
                 Mockito.<HttpClientContext>any())).thenThrow(new RuntimeException("Ka-boom"));
 
-        final ExecChain.Scope scope = new ExecChain.Scope(route, request, endpoint, context);
+        final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
         try {
             mainClientExec.execute(request, scope, null);
         } catch (final Exception ex) {
@@ -286,7 +286,7 @@ public class TestMainClientExec {
                 Mockito.same(request),
                 Mockito.<HttpClientContext>any())).thenThrow(new HttpException("Ka-boom"));
 
-        final ExecChain.Scope scope = new ExecChain.Scope(route, request, endpoint, context);
+        final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
         try {
             mainClientExec.execute(request, scope, null);
         } catch (final Exception ex) {
@@ -305,7 +305,7 @@ public class TestMainClientExec {
                 Mockito.same(request),
                 Mockito.<HttpClientContext>any())).thenThrow(new IOException("Ka-boom"));
 
-        final ExecChain.Scope scope = new ExecChain.Scope(route, request, endpoint, context);
+        final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
         try {
             mainClientExec.execute(request, scope, null);
         } catch (final Exception ex) {

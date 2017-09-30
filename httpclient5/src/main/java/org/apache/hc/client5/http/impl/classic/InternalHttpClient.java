@@ -157,10 +157,11 @@ class InternalHttpClient extends CloseableHttpClient implements Configurable {
             }
             setupContext(localcontext);
             final HttpRoute route = determineRoute(target, request, localcontext);
+            final String exchangeId = String.format("ex-%08X", ExecSupport.getNextExecNumber());
             final ExecRuntime execRuntime = new ExecRuntimeImpl(log, connManager, requestExecutor,
                     request instanceof CancellableAware ? (CancellableAware) request : null);
-            final ExecChain.Scope scope = new ExecChain.Scope(route, request, execRuntime, localcontext);
-            final ClassicHttpResponse response = this.execChain.execute(ExecSupport.copy(request), scope);
+            final ExecChain.Scope scope = new ExecChain.Scope(exchangeId, route, request, execRuntime, localcontext);
+            final ClassicHttpResponse response = this.execChain.execute(ClassicRequestCopier.INSTANCE.copy(request), scope);
             return CloseableHttpResponse.adapt(response);
         } catch (final HttpException httpException) {
             throw new ClientProtocolException(httpException.getMessage(), httpException);

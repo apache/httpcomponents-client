@@ -91,7 +91,7 @@ public class TestCachingExec extends TestCachingExecChain {
     public void setUp() {
         super.setUp();
 
-        scope = new ExecChain.Scope(route, request, mockEndpoint, context);
+        scope = new ExecChain.Scope("test", route, request, mockEndpoint, context);
         mockBackendResponse = createNiceMock(ClassicHttpResponse.class);
 
         requestDate = new Date(System.currentTimeMillis() - 1000);

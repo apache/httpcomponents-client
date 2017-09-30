@@ -257,6 +257,9 @@ class RequestProtocolCompliance {
 
     protected boolean requestMinorVersionIsTooHighMajorVersionsMatch(final HttpRequest request) {
         final ProtocolVersion requestProtocol = request.getVersion();
+        if (requestProtocol == null) {
+            return false;
+        }
         if (requestProtocol.getMajor() != HttpVersion.HTTP_1_1.getMajor()) {
             return false;
         }
@@ -269,7 +272,8 @@ class RequestProtocolCompliance {
     }
 
     protected boolean requestVersionIsTooLow(final HttpRequest request) {
-        return request.getVersion().compareToVersion(HttpVersion.HTTP_1_1) < 0;
+        final ProtocolVersion requestProtocol = request.getVersion();
+        return requestProtocol != null && requestProtocol.compareToVersion(HttpVersion.HTTP_1_1) < 0;
     }
 
     /**

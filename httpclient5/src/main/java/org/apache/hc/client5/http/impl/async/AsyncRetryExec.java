@@ -33,7 +33,7 @@ import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.async.AsyncExecCallback;
 import org.apache.hc.client5.http.async.AsyncExecChain;
 import org.apache.hc.client5.http.async.AsyncExecChainHandler;
-import org.apache.hc.client5.http.impl.ExecSupport;
+import org.apache.hc.client5.http.impl.RequestCopier;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.HttpException;
@@ -64,7 +64,7 @@ class AsyncRetryExec implements AsyncExecChainHandler {
             final AsyncExecChain chain,
             final AsyncExecCallback asyncExecCallback) throws HttpException, IOException {
 
-        chain.proceed(ExecSupport.copy(request), entityProducer, scope, new AsyncExecCallback() {
+        chain.proceed(RequestCopier.INSTANCE.copy(request), entityProducer, scope, new AsyncExecCallback() {
 
             @Override
             public AsyncDataConsumer handleResponse(

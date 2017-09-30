@@ -87,7 +87,7 @@ public class TestServiceUnavailableRetryExec {
                 Mockito.<HttpResponse>any(),
                 Mockito.<HttpContext>any())).thenReturn(0L);
 
-        final ExecChain.Scope scope = new ExecChain.Scope(route, request, endpoint, context);
+        final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
         retryExec.execute(request, scope, chain);
 
         Mockito.verify(chain, Mockito.times(2)).proceed(
@@ -110,7 +110,7 @@ public class TestServiceUnavailableRetryExec {
                 Mockito.<HttpResponse>any(),
                 Mockito.anyInt(),
                 Mockito.<HttpContext>any());
-        final ExecChain.Scope scope = new ExecChain.Scope(route, request, endpoint, context);
+        final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
         try {
             retryExec.execute(request, scope, chain);
         } catch (final Exception ex) {
@@ -138,7 +138,7 @@ public class TestServiceUnavailableRetryExec {
                 Mockito.anyInt(),
                 Mockito.<HttpContext>any())).thenReturn(Boolean.TRUE, Boolean.FALSE);
 
-        final ExecChain.Scope scope = new ExecChain.Scope(route, request, endpoint, context);
+        final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
         final ClassicHttpResponse finalResponse = retryExec.execute(request, scope, chain);
 
         Assert.assertSame(response, finalResponse);
