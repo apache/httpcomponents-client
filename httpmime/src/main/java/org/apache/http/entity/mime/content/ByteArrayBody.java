@@ -103,6 +103,7 @@ public class ByteArrayBody extends AbstractContentBody {
     }
 
     @Override
+    @Deprecated
     public String getTransferEncoding() {
         return MIME.ENC_BINARY;
     }

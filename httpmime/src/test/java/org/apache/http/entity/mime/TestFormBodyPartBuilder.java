@@ -30,6 +30,7 @@ package org.apache.http.entity.mime;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
+
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.entity.mime.content.StringBody;
@@ -52,8 +53,7 @@ public class TestFormBodyPartBuilder {
         Assert.assertNotNull(header);
         assertFields(Arrays.asList(
                         new MinimalField("Content-Disposition", "form-data; name=\"blah\""),
-                        new MinimalField("Content-Type", "text/plain; charset=ISO-8859-1"),
-                        new MinimalField("Content-Transfer-Encoding", "8bit")),
+                        new MinimalField("Content-Type", "text/plain; charset=ISO-8859-1")),
                 header.getFields());
     }
 
@@ -72,8 +72,7 @@ public class TestFormBodyPartBuilder {
         Assert.assertNotNull(header1);
         assertFields(Arrays.asList(
                         new MinimalField("Content-Disposition", "form-data; name=\"blah\""),
-                        new MinimalField("Content-Type", "text/plain; charset=ISO-8859-1"),
-                        new MinimalField("Content-Transfer-Encoding", "8bit")),
+                        new MinimalField("Content-Type", "text/plain; charset=ISO-8859-1")),
                 header1.getFields());
         final FileBody fileBody = new FileBody(new File("/path/stuff.bin"), ContentType.DEFAULT_BINARY);
         final FormBodyPart bodyPart2 = builder
@@ -88,8 +87,7 @@ public class TestFormBodyPartBuilder {
         Assert.assertNotNull(header2);
         assertFields(Arrays.asList(
                         new MinimalField("Content-Disposition", "form-data; name=\"yada\"; filename=\"stuff.bin\""),
-                        new MinimalField("Content-Type", "application/octet-stream"),
-                        new MinimalField("Content-Transfer-Encoding", "binary")),
+                        new MinimalField("Content-Type", "application/octet-stream")),
                 header2.getFields());
     }
 
@@ -118,8 +116,7 @@ public class TestFormBodyPartBuilder {
                 new MinimalField("header3", "blah"),
                 new MinimalField("header3", "blah"),
                 new MinimalField("Content-Disposition", "form-data; name=\"blah\""),
-                new MinimalField("Content-Type", "text/plain; charset=ISO-8859-1"),
-                new MinimalField("Content-Transfer-Encoding", "8bit")),
+                new MinimalField("Content-Type", "text/plain; charset=ISO-8859-1")),
                 header1.getFields());
 
         final FormBodyPart bodyPart2 = builder
@@ -135,8 +132,7 @@ public class TestFormBodyPartBuilder {
                         new MinimalField("header1", "blah"),
                         new MinimalField("header2", "yada"),
                         new MinimalField("Content-Disposition", "form-data; name=\"blah\""),
-                        new MinimalField("Content-Type", "text/plain; charset=ISO-8859-1"),
-                        new MinimalField("Content-Transfer-Encoding", "8bit")),
+                        new MinimalField("Content-Type", "text/plain; charset=ISO-8859-1")),
                 header2.getFields());
 
         final FormBodyPart bodyPart3 = builder

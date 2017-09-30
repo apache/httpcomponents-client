@@ -87,8 +87,6 @@ public class TestMultipartContentBody {
         Assert.assertEquals("application", b1.getMediaType());
         Assert.assertEquals("octet-stream", b1.getSubType());
 
-        Assert.assertEquals(MIME.ENC_BINARY, b1.getTransferEncoding());
-
         final InputStreamBody b2 = new InputStreamBody(
                 new ByteArrayInputStream(stuff), ContentType.create("some/stuff"), "stuff");
         Assert.assertEquals(-1, b2.getContentLength());
@@ -97,8 +95,6 @@ public class TestMultipartContentBody {
         Assert.assertEquals("some/stuff", b2.getMimeType());
         Assert.assertEquals("some", b2.getMediaType());
         Assert.assertEquals("stuff", b2.getSubType());
-
-        Assert.assertEquals(MIME.ENC_BINARY, b2.getTransferEncoding());
     }
 
 }
