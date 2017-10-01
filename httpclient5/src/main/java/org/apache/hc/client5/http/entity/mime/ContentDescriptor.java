@@ -73,16 +73,6 @@ public interface ContentDescriptor {
     String getCharset();
 
     /**
-     * Returns the body descriptors transfer encoding.
-     * @return The transfer encoding. Must not be null, but "7bit",
-     *   if no transfer-encoding was specified.
-     *
-     * @deprecated Deprecated per RFC 7578, section 4.7. Do not use
-     */
-    @Deprecated
-    String getTransferEncoding();
-
-    /**
      * Returns the body descriptors content-length.
      * @return Content length, if known, or -1, to indicate the absence of a
      *   content-length header.

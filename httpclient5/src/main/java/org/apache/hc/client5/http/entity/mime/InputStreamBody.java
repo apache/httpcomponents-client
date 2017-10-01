@@ -96,11 +96,6 @@ public class InputStreamBody extends AbstractContentBody {
     }
 
     @Override
-    public String getTransferEncoding() {
-        return MIME.ENC_BINARY;
-    }
-
-    @Override
     public long getContentLength() {
         return this.contentLength;
     }

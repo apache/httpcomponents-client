@@ -87,12 +87,6 @@ public class ByteArrayBody extends AbstractContentBody {
     }
 
     @Override
-    @Deprecated
-    public String getTransferEncoding() {
-        return MIME.ENC_BINARY;
-    }
-
-    @Override
     public long getContentLength() {
         return data.length;
     }

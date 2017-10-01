@@ -80,11 +80,6 @@ public class StringBody extends AbstractContentBody {
     }
 
     @Override
-    public String getTransferEncoding() {
-        return MIME.ENC_8BIT;
-    }
-
-    @Override
     public long getContentLength() {
         return this.content.length;
     }
