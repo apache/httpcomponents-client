@@ -37,6 +37,7 @@ import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.AuthCache;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.impl.auth.BasicScheme;
+import org.apache.http.impl.auth.DigestScheme;
 import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.message.BasicHttpRequest;
@@ -55,6 +56,8 @@ public class TestRequestAuthCache {
     private AuthScope authscope2;
     private BasicScheme authscheme1;
     private BasicScheme authscheme2;
+    private DigestScheme digestAuthscheme1;
+    private DigestScheme digestAuthscheme2;
     private BasicCredentialsProvider credProvider;
     private AuthState targetState;
     private AuthState proxyState;
@@ -71,6 +74,8 @@ public class TestRequestAuthCache {
         this.authscope2 = new AuthScope(this.proxy);
         this.authscheme1 = new BasicScheme();
         this.authscheme2 = new BasicScheme();
+        this.digestAuthscheme1 = new DigestScheme();
+        this.digestAuthscheme2 = new DigestScheme();
 
         this.credProvider.setCredentials(this.authscope1, this.creds1);
         this.credProvider.setCredentials(this.authscope2, this.creds2);
@@ -115,6 +120,33 @@ public class TestRequestAuthCache {
         Assert.assertNotNull(this.targetState.getAuthScheme());
         Assert.assertSame(this.creds1, this.targetState.getCredentials());
         Assert.assertNotNull(this.proxyState.getAuthScheme());
+        Assert.assertSame(this.creds2, this.proxyState.getCredentials());
+    }
+
+    @Test
+    public void testPreemptiveTargetAndProxyAuthDigest() throws Exception {
+        final HttpRequest request = new BasicHttpRequest("GET", "/");
+
+        final HttpClientContext context = HttpClientContext.create();
+        context.setAttribute(HttpClientContext.CREDS_PROVIDER, this.credProvider);
+        context.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, this.target);
+        context.setAttribute(HttpClientContext.HTTP_ROUTE, new HttpRoute(this.target, null, this.proxy, false));
+        context.setAttribute(HttpClientContext.TARGET_AUTH_STATE, this.targetState);
+        context.setAttribute(HttpClientContext.PROXY_AUTH_STATE, this.proxyState);
+
+        final AuthCache authCache = new BasicAuthCache();
+        authCache.put(this.target, this.digestAuthscheme1);
+        authCache.put(this.proxy, this.digestAuthscheme2);
+
+        context.setAttribute(HttpClientContext.AUTH_CACHE, authCache);
+
+        final HttpRequestInterceptor interceptor = new RequestAuthCache();
+        interceptor.process(request, context);
+        Assert.assertNotNull(this.targetState.getAuthScheme());
+        Assert.assertSame(this.targetState.getState(), AuthProtocolState.CHALLENGED);
+        Assert.assertSame(this.creds1, this.targetState.getCredentials());
+        Assert.assertNotNull(this.proxyState.getAuthScheme());
+        Assert.assertSame(this.proxyState.getState(), AuthProtocolState.CHALLENGED);
         Assert.assertSame(this.creds2, this.proxyState.getCredentials());
     }
 
