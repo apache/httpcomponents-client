@@ -26,22 +26,23 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
+import java.io.IOException;
 import java.util.Date;
 
+import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
+import org.apache.hc.client5.http.cache.Resource;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
-import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.Header;
-import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.HttpVersion;
-import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
 import org.apache.hc.core5.http.message.BasicHeader;
 
 /**
@@ -59,28 +60,27 @@ class CachedHttpResponseGenerator {
         this.validityStrategy = validityStrategy;
     }
 
-    CachedHttpResponseGenerator() {
-        this(new CacheValidityPolicy());
-    }
-
     /**
-     * If I was able to use a {@link CacheEntity} to response to the {@link HttpRequest} then
-     * generate an {@link HttpResponse} based on the cache entry.
+     * If it is legal to use cached content in response response to the {@link HttpRequest} then
+     * generate an {@link HttpResponse} based on {@link HttpCacheEntry}.
      * @param request {@link HttpRequest} to generate the response for
-     * @param entry {@link CacheEntity} to transform into an {@link HttpResponse}
-     * @return {@link HttpResponse} that was constructed
+     * @param entry {@link HttpCacheEntry} to transform into an {@link HttpResponse}
+     * @return {@link SimpleHttpResponse} constructed response
      */
-    ClassicHttpResponse generateResponse(final HttpRequest request, final HttpCacheEntry entry) {
+    SimpleHttpResponse generateResponse(final HttpRequest request, final HttpCacheEntry entry) throws IOException {
         final Date now = new Date();
-        final ClassicHttpResponse response = new BasicClassicHttpResponse(entry.getStatus());
+        final SimpleHttpResponse response = new SimpleHttpResponse(entry.getStatus());
         response.setVersion(HttpVersion.DEFAULT);
 
         response.setHeaders(entry.getAllHeaders());
 
         if (responseShouldContainEntity(request, entry)) {
-            final HttpEntity entity = new CacheEntity(entry);
-            addMissingContentLengthHeader(response, entity);
-            response.setEntity(entity);
+            final Resource resource = entry.getResource();
+            final Header h = entry.getFirstHeader(HttpHeaders.CONTENT_TYPE);
+            final ContentType contentType = h != null ? ContentType.parse(h.getValue()) : null;
+            final byte[] content = resource.get();
+            addMissingContentLengthHeader(response, content);
+            response.setBodyBytes(content, contentType);
         }
 
         final long age = this.validityStrategy.getCurrentAgeSecs(entry, now);
@@ -96,12 +96,12 @@ class CachedHttpResponseGenerator {
     }
 
     /**
-     * Generate a 304 - Not Modified response from a {@link CacheEntity}.  This should be
+     * Generate a 304 - Not Modified response from the {@link HttpCacheEntry}. This should be
      * used to respond to conditional requests, when the entry exists or has been re-validated.
      */
-    ClassicHttpResponse generateNotModifiedResponse(final HttpCacheEntry entry) {
+    SimpleHttpResponse generateNotModifiedResponse(final HttpCacheEntry entry) {
 
-        final ClassicHttpResponse response = new BasicClassicHttpResponse(HttpStatus.SC_NOT_MODIFIED, "Not Modified");
+        final SimpleHttpResponse response = new SimpleHttpResponse(HttpStatus.SC_NOT_MODIFIED, "Not Modified");
 
         // The response MUST include the following headers
         //  (http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html)
@@ -109,7 +109,7 @@ class CachedHttpResponseGenerator {
         // - Date, unless its omission is required by section 14.8.1
         Header dateHeader = entry.getFirstHeader(HttpHeaders.DATE);
         if (dateHeader == null) {
-             dateHeader = new BasicHeader(HttpHeaders.DATE, DateUtils.formatDate(new Date()));
+            dateHeader = new BasicHeader(HttpHeaders.DATE, DateUtils.formatDate(new Date()));
         }
         response.addHeader(dateHeader);
 
@@ -146,16 +146,13 @@ class CachedHttpResponseGenerator {
         return response;
     }
 
-    private void addMissingContentLengthHeader(final HttpResponse response, final HttpEntity entity) {
+    private void addMissingContentLengthHeader(final HttpResponse response, final byte[] body) {
         if (transferEncodingIsPresent(response)) {
             return;
         }
-
-        Header contentLength = response.getFirstHeader(HttpHeaders.CONTENT_LENGTH);
+        final Header contentLength = response.getFirstHeader(HttpHeaders.CONTENT_LENGTH);
         if (contentLength == null) {
-            contentLength = new BasicHeader(HttpHeaders.CONTENT_LENGTH, Long.toString(entity
-                    .getContentLength()));
-            response.setHeader(contentLength);
+            response.setHeader(HttpHeaders.CONTENT_LENGTH, Integer.toString(body.length));
         }
     }
 
@@ -173,23 +170,23 @@ class CachedHttpResponseGenerator {
      * that a problem occured.
      *
      * @param errorCheck What type of error should I get
-     * @return The {@link ClassicHttpResponse} that is the error generated
+     * @return The {@link HttpResponse} that is the error generated
      */
-    public ClassicHttpResponse getErrorForRequest(final RequestProtocolError errorCheck) {
+    public SimpleHttpResponse getErrorForRequest(final RequestProtocolError errorCheck) {
         switch (errorCheck) {
             case BODY_BUT_NO_LENGTH_ERROR:
-                return new BasicClassicHttpResponse(HttpStatus.SC_LENGTH_REQUIRED, "");
+                return SimpleHttpResponse.create(HttpStatus.SC_LENGTH_REQUIRED);
 
             case WEAK_ETAG_AND_RANGE_ERROR:
-                return new BasicClassicHttpResponse(HttpStatus.SC_BAD_REQUEST,
-                        "Weak eTag not compatible with byte range");
+                return SimpleHttpResponse.create(HttpStatus.SC_BAD_REQUEST,
+                        "Weak eTag not compatible with byte range", ContentType.DEFAULT_TEXT);
 
             case WEAK_ETAG_ON_PUTDELETE_METHOD_ERROR:
-                return new BasicClassicHttpResponse(HttpStatus.SC_BAD_REQUEST,
+                return SimpleHttpResponse.create(HttpStatus.SC_BAD_REQUEST,
                         "Weak eTag not compatible with PUT or DELETE requests");
 
             case NO_CACHE_DIRECTIVE_WITH_FIELD_NAME:
-                return new BasicClassicHttpResponse(HttpStatus.SC_BAD_REQUEST,
+                return SimpleHttpResponse.create(HttpStatus.SC_BAD_REQUEST,
                         "No-Cache directive MUST NOT include a field name");
 
             default:

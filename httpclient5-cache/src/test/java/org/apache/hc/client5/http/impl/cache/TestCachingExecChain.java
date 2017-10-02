@@ -50,6 +50,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.apache.hc.client5.http.HttpRoute;
+import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.cache.CacheResponseStatus;
 import org.apache.hc.client5.http.cache.HttpCacheContext;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
@@ -312,7 +313,7 @@ public abstract class TestCachingExecChain {
         requestPolicyAllowsCaching(true);
         getCacheEntryReturns(mockCacheEntry);
         cacheEntrySuitable(true);
-        responseIsGeneratedFromCache(HttpTestUtils.make200Response());
+        responseIsGeneratedFromCache(SimpleHttpResponse.create(HttpStatus.SC_OK));
         requestIsFatallyNonCompliant(null);
         entryHasStaleness(0L);
 
@@ -350,7 +351,7 @@ public abstract class TestCachingExecChain {
         requestPolicyAllowsCaching(true);
         cacheEntrySuitable(true);
         getCacheEntryReturns(mockCacheEntry);
-        responseIsGeneratedFromCache(HttpTestUtils.make200Response());
+        responseIsGeneratedFromCache(SimpleHttpResponse.create(HttpStatus.SC_OK));
         entryHasStaleness(0L);
 
         replayMocks();
@@ -1351,7 +1352,7 @@ public abstract class TestCachingExecChain {
         originResponse.setHeader("ETag", "\"etag\"");
 
         final HttpCacheEntry httpCacheEntry = HttpTestUtils.makeCacheEntry();
-        final ClassicHttpResponse response = HttpTestUtils.make200Response();
+        final SimpleHttpResponse response = SimpleHttpResponse.create(HttpStatus.SC_OK);
 
         EasyMock.expect(mockCache.createCacheEntry(
                 eq(host),
@@ -1410,7 +1411,7 @@ public abstract class TestCachingExecChain {
         requestPolicyAllowsCaching(true);
         getCacheEntryReturns(entry);
         cacheEntrySuitable(true);
-        responseIsGeneratedFromCache(HttpTestUtils.make200Response());
+        responseIsGeneratedFromCache(SimpleHttpResponse.create(HttpStatus.SC_OK));
         entryHasStaleness(0);
 
         replayMocks();
@@ -1745,7 +1746,7 @@ public abstract class TestCachingExecChain {
             .andReturn(staleness);
     }
 
-    protected void responseIsGeneratedFromCache(final ClassicHttpResponse cachedResponse) throws IOException {
+    protected void responseIsGeneratedFromCache(final SimpleHttpResponse cachedResponse) throws IOException {
         expect(
             mockResponseGenerator.generateResponse(
                     (ClassicHttpRequest) anyObject(),

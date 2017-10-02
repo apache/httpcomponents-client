@@ -44,6 +44,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
@@ -290,7 +291,7 @@ public class TestCachingExec extends TestCachingExecChain {
                 eq(responseDate)))
             .andReturn(updatedEntry);
         expect(mockSuitabilityChecker.isConditional(request)).andReturn(false);
-        responseIsGeneratedFromCache(HttpTestUtils.make200Response());
+        responseIsGeneratedFromCache(SimpleHttpResponse.create(HttpStatus.SC_OK));
 
         replayMocks();
         impl.revalidateCacheEntry(host, request, scope, mockExecChain, entry);
@@ -396,7 +397,7 @@ public class TestCachingExec extends TestCachingExecChain {
         cacheEntrySuitable(true);
         cacheEntryValidatable(true);
 
-        responseIsGeneratedFromCache(HttpTestUtils.make200Response());
+        responseIsGeneratedFromCache(SimpleHttpResponse.create(HttpStatus.SC_OK));
 
         replayMocks();
         impl.execute(request, scope, mockExecChain);

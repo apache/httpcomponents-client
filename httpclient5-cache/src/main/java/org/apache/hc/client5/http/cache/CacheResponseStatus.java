@@ -49,6 +49,9 @@ public enum CacheResponseStatus {
     /** The response was generated from the cache after validating the
      * entry with the origin server.
      */
-    VALIDATED
+    VALIDATED,
+
+    /** The response came from an upstream server after a cache failure */
+    FAILURE
 
 }

@@ -35,9 +35,9 @@ import static org.mockito.Mockito.when;
 import java.util.Date;
 import java.util.HashMap;
 
+import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.core5.http.ClassicHttpRequest;
-import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.junit.Assert;
@@ -61,11 +61,11 @@ public class TestCachedHttpResponseGenerator {
     }
 
     @Test
-    public void testResponseHasContentLength() {
+    public void testResponseHasContentLength() throws Exception {
         final byte[] buf = new byte[] { 1, 2, 3, 4, 5 };
         final HttpCacheEntry entry1 = HttpTestUtils.makeCacheEntry(buf);
 
-        final ClassicHttpResponse response = impl.generateResponse(request, entry1);
+        final SimpleHttpResponse response = impl.generateResponse(request, entry1);
 
         final Header length = response.getFirstHeader("Content-Length");
         Assert.assertNotNull("Content-Length Header is missing", length);
@@ -75,13 +75,13 @@ public class TestCachedHttpResponseGenerator {
     }
 
     @Test
-    public void testContentLengthIsNotAddedWhenTransferEncodingIsPresent() {
+    public void testContentLengthIsNotAddedWhenTransferEncodingIsPresent() throws Exception {
 
         final Header[] hdrs = new Header[] { new BasicHeader("Transfer-Encoding", "chunked") };
         final byte[] buf = new byte[] { 1, 2, 3, 4, 5 };
         final HttpCacheEntry entry1 = HttpTestUtils.makeCacheEntry(hdrs, buf);
 
-        final ClassicHttpResponse response = impl.generateResponse(request, entry1);
+        final SimpleHttpResponse response = impl.generateResponse(request, entry1);
 
         final Header length = response.getFirstHeader("Content-Length");
 
@@ -89,8 +89,8 @@ public class TestCachedHttpResponseGenerator {
     }
 
     @Test
-    public void testResponseMatchesCacheEntry() {
-        final ClassicHttpResponse response = impl.generateResponse(request, entry);
+    public void testResponseMatchesCacheEntry() throws Exception {
+        final SimpleHttpResponse response = impl.generateResponse(request, entry);
 
         Assert.assertTrue(response.containsHeader("Content-Length"));
 
@@ -100,17 +100,17 @@ public class TestCachedHttpResponseGenerator {
     }
 
     @Test
-    public void testResponseStatusCodeMatchesCacheEntry() {
-        final ClassicHttpResponse response = impl.generateResponse(request, entry);
+    public void testResponseStatusCodeMatchesCacheEntry() throws Exception {
+        final SimpleHttpResponse response = impl.generateResponse(request, entry);
 
         Assert.assertEquals(entry.getStatus(), response.getCode());
     }
 
     @Test
-    public void testAgeHeaderIsPopulatedWithCurrentAgeOfCacheEntryIfNonZero() {
+    public void testAgeHeaderIsPopulatedWithCurrentAgeOfCacheEntryIfNonZero() throws Exception {
         currentAge(10L);
 
-        final ClassicHttpResponse response = impl.generateResponse(request, entry);
+        final SimpleHttpResponse response = impl.generateResponse(request, entry);
 
         verify(mockValidityPolicy).getCurrentAgeSecs(same(entry), isA(Date.class));
 
@@ -120,10 +120,10 @@ public class TestCachedHttpResponseGenerator {
     }
 
     @Test
-    public void testAgeHeaderIsNotPopulatedIfCurrentAgeOfCacheEntryIsZero() {
+    public void testAgeHeaderIsNotPopulatedIfCurrentAgeOfCacheEntryIsZero() throws Exception {
         currentAge(0L);
 
-        final ClassicHttpResponse response = impl.generateResponse(request, entry);
+        final SimpleHttpResponse response = impl.generateResponse(request, entry);
 
         verify(mockValidityPolicy).getCurrentAgeSecs(same(entry), isA(Date.class));
 
@@ -132,10 +132,10 @@ public class TestCachedHttpResponseGenerator {
     }
 
     @Test
-    public void testAgeHeaderIsPopulatedWithMaxAgeIfCurrentAgeTooBig() {
+    public void testAgeHeaderIsPopulatedWithMaxAgeIfCurrentAgeTooBig() throws Exception {
         currentAge(CacheValidityPolicy.MAX_AGE + 1L);
 
-        final ClassicHttpResponse response = impl.generateResponse(request, entry);
+        final SimpleHttpResponse response = impl.generateResponse(request, entry);
 
         verify(mockValidityPolicy).getCurrentAgeSecs(same(entry), isA(Date.class));
 
@@ -152,17 +152,17 @@ public class TestCachedHttpResponseGenerator {
 
     @Test
     public void testResponseContainsEntityToServeGETRequestIfEntryContainsResource() throws Exception {
-        final ClassicHttpResponse response = impl.generateResponse(request, entry);
+        final SimpleHttpResponse response = impl.generateResponse(request, entry);
 
-        Assert.assertNotNull(response.getEntity());
+        Assert.assertNotNull(response.getBody());
     }
 
     @Test
     public void testResponseDoesNotContainEntityToServeHEADRequestIfEntryContainsResource() throws Exception {
         final ClassicHttpRequest headRequest = HttpTestUtils.makeDefaultHEADRequest();
-        final ClassicHttpResponse response = impl.generateResponse(headRequest, entry);
+        final SimpleHttpResponse response = impl.generateResponse(headRequest, entry);
 
-        Assert.assertNull(response.getEntity());
+        Assert.assertNull(response.getBody());
     }
 
 }

@@ -36,13 +36,14 @@ import java.io.File;
 import java.util.Date;
 
 import org.apache.hc.client5.http.HttpRoute;
+import org.apache.hc.client5.http.cache.CacheResponseStatus;
+import org.apache.hc.client5.http.cache.HttpCacheContext;
 import org.apache.hc.client5.http.cache.HttpCacheStorage;
 import org.apache.hc.client5.http.cache.ResourceFactory;
 import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecChainHandler;
 import org.apache.hc.client5.http.classic.ExecRuntime;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
-import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
@@ -52,6 +53,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 public class TestHttpCacheJiraNumber1147 {
 
@@ -97,7 +99,7 @@ public class TestHttpCacheJiraNumber1147 {
         final HttpHost target = new HttpHost("somehost", 80);
         final HttpRoute route = new HttpRoute(target);
         final ClassicHttpRequest get = new HttpGet("http://somehost/");
-        final HttpClientContext context = HttpClientContext.create();
+        final HttpCacheContext context = HttpCacheContext.create();
 
         final Date now = new Date();
         final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
@@ -132,9 +134,10 @@ public class TestHttpCacheJiraNumber1147 {
         Assert.assertEquals(200, response2.getCode());
         IOUtils.consume(response2.getEntity());
 
-        verify(mockExecChain).proceed(
+        verify(mockExecChain, Mockito.times(2)).proceed(
                 isA(ClassicHttpRequest.class),
                 isA(ExecChain.Scope.class));
+        Assert.assertEquals(CacheResponseStatus.FAILURE, context.getCacheResponseStatus());
     }
 
     protected ExecChainHandler createCachingExecChain(final BasicHttpCache cache, final CacheConfig config) {
