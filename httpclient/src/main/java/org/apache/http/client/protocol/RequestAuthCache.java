@@ -44,6 +44,7 @@ import org.apache.http.auth.AuthState;
 import org.apache.http.auth.Credentials;
 import org.apache.http.client.AuthCache;
 import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.config.AuthSchemes;
 import org.apache.http.conn.routing.RouteInfo;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.Args;
@@ -135,7 +136,8 @@ public class RequestAuthCache implements HttpRequestInterceptor {
         final Credentials creds = credsProvider.getCredentials(authScope);
 
         if (creds != null) {
-            if ("BASIC".equalsIgnoreCase(authScheme.getSchemeName())) {
+            if (AuthSchemes.BASIC.equalsIgnoreCase(authScheme.getSchemeName())
+                    || AuthSchemes.DIGEST.equalsIgnoreCase(authScheme.getSchemeName())) {
                 authState.setState(AuthProtocolState.CHALLENGED);
             } else {
                 authState.setState(AuthProtocolState.SUCCESS);
