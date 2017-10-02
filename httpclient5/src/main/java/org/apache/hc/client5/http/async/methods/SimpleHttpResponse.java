@@ -43,6 +43,10 @@ public final class SimpleHttpResponse extends BasicHttpResponse {
         super(code);
     }
 
+    public SimpleHttpResponse(final int code, final String reasonPhrase) {
+        super(code, reasonPhrase);
+    }
+
     public static SimpleHttpResponse copy(final HttpResponse original) {
         Args.notNull(original, "HTTP response");
         final SimpleHttpResponse copy = new SimpleHttpResponse(original.getCode());
@@ -51,6 +55,34 @@ public final class SimpleHttpResponse extends BasicHttpResponse {
             copy.addHeader(it.next());
         }
         return copy;
+    }
+
+    public static SimpleHttpResponse create(final int code) {
+        return new SimpleHttpResponse(code);
+    }
+
+    public static SimpleHttpResponse create(final int code, final String content, final ContentType contentType) {
+        final SimpleHttpResponse response = new SimpleHttpResponse(code);
+        if (content != null) {
+            response.setBodyText(content, contentType);
+        }
+        return response;
+    }
+
+    public static SimpleHttpResponse create(final int code, final String content) {
+        return create(code, content, ContentType.TEXT_PLAIN);
+    }
+
+    public static SimpleHttpResponse create(final int code, final byte[] content, final ContentType contentType) {
+        final SimpleHttpResponse response = new SimpleHttpResponse(code);
+        if (content != null) {
+            response.setBodyBytes(content, contentType);
+        }
+        return response;
+    }
+
+    public static SimpleHttpResponse create(final int code, final byte[] content) {
+        return create(code, content, ContentType.TEXT_PLAIN);
     }
 
     public void setBody(final SimpleBody body) {

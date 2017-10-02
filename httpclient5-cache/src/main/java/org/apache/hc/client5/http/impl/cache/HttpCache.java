@@ -31,10 +31,10 @@ import java.util.Date;
 import java.util.Map;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
-import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.util.ByteArrayBuffer;
 
 /**
  * @since 4.1
@@ -94,14 +94,19 @@ interface HttpCache {
      * @param host
      * @param request
      * @param originResponse
+     * @param content
      * @param requestSent
      * @param responseReceived
-     * @return the {@link HttpResponse}
+     * @return new {@link HttpCacheEntry}
      * @throws IOException
      */
-    ClassicHttpResponse cacheAndReturnResponse(HttpHost host,
-                                               HttpRequest request, ClassicHttpResponse originResponse,
-                                               Date requestSent, Date responseReceived)
+    HttpCacheEntry createCacheEntry(
+            HttpHost host,
+            HttpRequest request,
+            HttpResponse originResponse,
+            ByteArrayBuffer content,
+            Date requestSent,
+            Date responseReceived)
         throws IOException;
 
     /**

@@ -27,6 +27,7 @@
 package org.apache.hc.client5.http.impl.cache;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -49,8 +50,10 @@ import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HeaderElement;
+import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
@@ -60,12 +63,14 @@ import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.ProtocolVersion;
+import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
 import org.apache.hc.core5.http.message.MessageSupport;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.protocol.HttpCoreContext;
 import org.apache.hc.core5.net.URIAuthority;
 import org.apache.hc.core5.util.Args;
+import org.apache.hc.core5.util.ByteArrayBuffer;
 import org.apache.hc.core5.util.VersionInfo;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -155,7 +160,7 @@ public class CachingExec implements ExecChainHandler {
             final ResourceFactory resourceFactory,
             final HttpCacheStorage storage,
             final CacheConfig config) {
-        this(new BasicHttpCache(resourceFactory, storage, config), config);
+        this(new BasicHttpCache(resourceFactory, storage), config);
     }
 
     public CachingExec() {
@@ -423,7 +428,7 @@ public class CachingExec implements ExecChainHandler {
             final ClassicHttpRequest request,
             final HttpContext context,
             final HttpCacheEntry entry,
-            final Date now) {
+            final Date now) throws IOException {
         if (staleResponseNotAllowed(request, entry, now)) {
             return generateGatewayTimeout(context);
         } else {
@@ -723,48 +728,52 @@ public class CachingExec implements ExecChainHandler {
 
         Date requestDate = getCurrentDate();
         ClassicHttpResponse backendResponse = chain.proceed(conditionalRequest, scope);
-        Date responseDate = getCurrentDate();
+        try {
+            Date responseDate = getCurrentDate();
 
-        if (revalidationResponseIsTooOld(backendResponse, cacheEntry)) {
-            backendResponse.close();
-            final ClassicHttpRequest unconditional = conditionalRequestBuilder.buildUnconditionalRequest(
-                    scope.originalRequest);
-            requestDate = getCurrentDate();
-            backendResponse = chain.proceed(unconditional, scope);
-            responseDate = getCurrentDate();
-        }
-
-        backendResponse.addHeader(HeaderConstants.VIA, generateViaHeader(backendResponse));
-
-        final int statusCode = backendResponse.getCode();
-        if (statusCode == HttpStatus.SC_NOT_MODIFIED || statusCode == HttpStatus.SC_OK) {
-            recordCacheUpdate(scope.clientContext);
-        }
-
-        if (statusCode == HttpStatus.SC_NOT_MODIFIED) {
-            final HttpCacheEntry updatedEntry = responseCache.updateCacheEntry(
-                    target, request, cacheEntry,
-                    backendResponse, requestDate, responseDate);
-            if (suitabilityChecker.isConditional(request)
-                    && suitabilityChecker.allConditionalsMatch(request, updatedEntry, new Date())) {
-                return responseGenerator
-                        .generateNotModifiedResponse(updatedEntry);
-            }
-            return responseGenerator.generateResponse(request, updatedEntry);
-        }
-
-        if (staleIfErrorAppliesTo(statusCode)
-            && !staleResponseNotAllowed(request, cacheEntry, getCurrentDate())
-            && validityPolicy.mayReturnStaleIfError(request, cacheEntry, responseDate)) {
-            try {
-                final ClassicHttpResponse cachedResponse = responseGenerator.generateResponse(request, cacheEntry);
-                cachedResponse.addHeader(HeaderConstants.WARNING, "110 localhost \"Response is stale\"");
-                return cachedResponse;
-            } finally {
+            if (revalidationResponseIsTooOld(backendResponse, cacheEntry)) {
                 backendResponse.close();
+                final ClassicHttpRequest unconditional = conditionalRequestBuilder.buildUnconditionalRequest(
+                        scope.originalRequest);
+                requestDate = getCurrentDate();
+                backendResponse = chain.proceed(unconditional, scope);
+                responseDate = getCurrentDate();
             }
+
+            backendResponse.addHeader(HeaderConstants.VIA, generateViaHeader(backendResponse));
+
+            final int statusCode = backendResponse.getCode();
+            if (statusCode == HttpStatus.SC_NOT_MODIFIED || statusCode == HttpStatus.SC_OK) {
+                recordCacheUpdate(scope.clientContext);
+            }
+
+            if (statusCode == HttpStatus.SC_NOT_MODIFIED) {
+                final HttpCacheEntry updatedEntry = responseCache.updateCacheEntry(
+                        target, request, cacheEntry,
+                        backendResponse, requestDate, responseDate);
+                if (suitabilityChecker.isConditional(request)
+                        && suitabilityChecker.allConditionalsMatch(request, updatedEntry, new Date())) {
+                    return responseGenerator.generateNotModifiedResponse(updatedEntry);
+                }
+                return responseGenerator.generateResponse(request, updatedEntry);
+            }
+
+            if (staleIfErrorAppliesTo(statusCode)
+                    && !staleResponseNotAllowed(request, cacheEntry, getCurrentDate())
+                    && validityPolicy.mayReturnStaleIfError(request, cacheEntry, responseDate)) {
+                try {
+                    final ClassicHttpResponse cachedResponse = responseGenerator.generateResponse(request, cacheEntry);
+                    cachedResponse.addHeader(HeaderConstants.WARNING, "110 localhost \"Response is stale\"");
+                    return cachedResponse;
+                } finally {
+                    backendResponse.close();
+                }
+            }
+            return handleBackendResponse(target, conditionalRequest, scope, requestDate, responseDate, backendResponse);
+        } catch (final IOException | RuntimeException ex) {
+            backendResponse.close();
+            throw ex;
         }
-        return handleBackendResponse(target, conditionalRequest, scope, requestDate, responseDate, backendResponse);
     }
 
     private boolean staleIfErrorAppliesTo(final int statusCode) {
@@ -772,6 +781,66 @@ public class CachingExec implements ExecChainHandler {
                 || statusCode == HttpStatus.SC_BAD_GATEWAY
                 || statusCode == HttpStatus.SC_SERVICE_UNAVAILABLE
                 || statusCode == HttpStatus.SC_GATEWAY_TIMEOUT;
+    }
+
+    boolean isIncompleteResponse(final HttpResponse resp, final ByteArrayBuffer buffer) {
+        if (buffer == null) {
+            return false;
+        }
+        final int status = resp.getCode();
+        if (status != HttpStatus.SC_OK && status != HttpStatus.SC_PARTIAL_CONTENT) {
+            return false;
+        }
+        final Header hdr = resp.getFirstHeader(HttpHeaders.CONTENT_LENGTH);
+        if (hdr == null) {
+            return false;
+        }
+        final int contentLength;
+        try {
+            contentLength = Integer.parseInt(hdr.getValue());
+        } catch (final NumberFormatException nfe) {
+            return false;
+        }
+        return buffer.length() < contentLength;
+    }
+
+    public ClassicHttpResponse cacheAndReturnResponse(
+            final HttpHost target,
+            final HttpRequest request,
+            final ClassicHttpResponse backendResponse,
+            final Date requestSent,
+            final Date responseReceived) throws IOException {        final ByteArrayBuffer buf;
+        final HttpEntity entity = backendResponse.getEntity();
+        if (entity != null) {
+            buf = new ByteArrayBuffer(1024);
+            final InputStream instream = entity.getContent();
+            final byte[] tmp = new byte[2048];
+            long total = 0;
+            int l;
+            while ((l = instream.read(tmp)) != -1) {
+                buf.append(tmp, 0, l);
+                total += l;
+                if (total > cacheConfig.getMaxObjectSize()) {
+                    backendResponse.setEntity(new CombinedEntity(entity, buf));
+                    return backendResponse;
+                }
+            }
+        } else {
+            buf = null;
+        }
+        if (buf != null && isIncompleteResponse(backendResponse, buf)) {
+            final Header h = backendResponse.getFirstHeader(HttpHeaders.CONTENT_LENGTH);
+            final ClassicHttpResponse error = new BasicClassicHttpResponse(HttpStatus.SC_BAD_GATEWAY, "Bad Gateway");
+            final String msg = String.format("Received incomplete response " +
+                            "with Content-Length %s but actual body length %d",
+                    h != null ? h.getValue() : null, buf.length());
+            error.setEntity(new StringEntity(msg, ContentType.TEXT_PLAIN));
+            backendResponse.close();
+            return error;
+        }
+        backendResponse.close();
+        final HttpCacheEntry entry = responseCache.createCacheEntry(target, request, backendResponse, buf, requestSent, responseReceived);
+        return responseGenerator.generateResponse(request, entry);
     }
 
     ClassicHttpResponse handleBackendResponse(
@@ -789,7 +858,7 @@ public class CachingExec implements ExecChainHandler {
         responseCache.flushInvalidatedCacheEntriesFor(target, request, backendResponse);
         if (cacheable && !alreadyHaveNewerCacheEntry(target, request, backendResponse)) {
             storeRequestIfModifiedSinceFor304Response(request, backendResponse);
-            return responseCache.cacheAndReturnResponse(target, request, backendResponse, requestDate, responseDate);
+            return cacheAndReturnResponse(target, request, backendResponse, requestDate, responseDate);
         }
         if (!cacheable) {
             try {

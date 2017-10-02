@@ -113,7 +113,7 @@ public class TestHttpCacheJiraNumber1147 {
                 isA(ClassicHttpRequest.class),
                 isA(ExecChain.Scope.class))).thenReturn(response);
 
-        final BasicHttpCache cache = new BasicHttpCache(resourceFactory, httpCacheStorage, cacheConfig);
+        final BasicHttpCache cache = new BasicHttpCache(resourceFactory, httpCacheStorage);
         final ExecChainHandler t = createCachingExecChain(cache, cacheConfig);
 
         final ExecChain.Scope scope = new ExecChain.Scope("teset", route, get, mockEndpoint, context);

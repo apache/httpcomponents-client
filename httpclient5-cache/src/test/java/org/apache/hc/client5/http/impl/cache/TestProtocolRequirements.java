@@ -56,6 +56,7 @@ import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.MessageSupport;
+import org.apache.hc.core5.util.ByteArrayBuffer;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.junit.Assert;
@@ -2617,7 +2618,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         validated.setHeader("Content-Length", "128");
         validated.setEntity(new ByteArrayEntity(bytes));
 
-        final ClassicHttpResponse reconstructed = HttpTestUtils.make200Response();
+        final HttpCacheEntry cacheEntry = HttpTestUtils.makeCacheEntry();
 
         final Capture<ClassicHttpRequest> cap = new Capture<>();
 
@@ -2633,12 +2634,13 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         EasyMock.expect(mockCache.getCacheEntry(
                 EasyMock.isA(HttpHost.class),
                 EasyMock.isA(ClassicHttpRequest.class))).andReturn(entry).times(0, 1);
-        EasyMock.expect(mockCache.cacheAndReturnResponse(
+        EasyMock.expect(mockCache.createCacheEntry(
                 EasyMock.isA(HttpHost.class),
                 EasyMock.isA(ClassicHttpRequest.class),
                 eqCloseableResponse(validated),
+                EasyMock.isA(ByteArrayBuffer.class),
                 EasyMock.isA(Date.class),
-                EasyMock.isA(Date.class))).andReturn(reconstructed).times(0, 1);
+                EasyMock.isA(Date.class))).andReturn(cacheEntry).times(0, 1);
 
         replayMocks();
         final ClassicHttpResponse result = execute(request);

@@ -52,6 +52,7 @@ import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.MessageSupport;
+import org.apache.hc.core5.util.ByteArrayBuffer;
 import org.apache.hc.core5.util.LangUtils;
 import org.junit.Assert;
 
@@ -241,6 +242,13 @@ public class HttpTestUtils {
         final byte[] bytes = new byte[nbytes];
         new Random().nextBytes(bytes);
         return bytes;
+    }
+
+    public static ByteArrayBuffer getRandomBuffer(final int nbytes) {
+        final ByteArrayBuffer buf = new ByteArrayBuffer(nbytes);
+        buf.setLength(nbytes);
+        new Random().nextBytes(buf.array());
+        return buf;
     }
 
     /** Generates a response body with random content.

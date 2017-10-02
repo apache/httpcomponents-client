@@ -290,7 +290,7 @@ public class TestCachingExec extends TestCachingExecChain {
                 eq(responseDate)))
             .andReturn(updatedEntry);
         expect(mockSuitabilityChecker.isConditional(request)).andReturn(false);
-        responseIsGeneratedFromCache();
+        responseIsGeneratedFromCache(HttpTestUtils.make200Response());
 
         replayMocks();
         impl.revalidateCacheEntry(host, request, scope, mockExecChain, entry);
@@ -396,14 +396,11 @@ public class TestCachingExec extends TestCachingExecChain {
         cacheEntrySuitable(true);
         cacheEntryValidatable(true);
 
-        expect(mockResponseGenerator.generateResponse(isA(HttpRequest.class), isA(HttpCacheEntry.class)))
-                .andReturn(mockBackendResponse);
+        responseIsGeneratedFromCache(HttpTestUtils.make200Response());
 
         replayMocks();
-        final HttpResponse result = impl.execute(request, scope, mockExecChain);
+        impl.execute(request, scope, mockExecChain);
         verifyMocks();
-
-        Assert.assertSame(mockBackendResponse, result);
     }
 
     private IExpectationSetters<ClassicHttpResponse> implExpectsAnyRequestAndReturn(

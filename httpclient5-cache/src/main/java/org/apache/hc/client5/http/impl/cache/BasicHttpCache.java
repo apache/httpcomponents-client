@@ -27,7 +27,6 @@
 package org.apache.hc.client5.http.impl.cache;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
@@ -43,16 +42,10 @@ import org.apache.hc.client5.http.cache.HttpCacheUpdateCallback;
 import org.apache.hc.client5.http.cache.HttpCacheUpdateException;
 import org.apache.hc.client5.http.cache.Resource;
 import org.apache.hc.client5.http.cache.ResourceFactory;
-import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.Header;
-import org.apache.hc.core5.http.HttpEntity;
-import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
-import org.apache.hc.core5.http.HttpStatus;
-import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
-import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
 import org.apache.hc.core5.util.ByteArrayBuffer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -65,9 +58,7 @@ class BasicHttpCache implements HttpCache {
 
     private final CacheKeyGenerator uriExtractor;
     private final ResourceFactory resourceFactory;
-    private final long maxObjectSizeBytes;
     private final CacheEntryUpdater cacheEntryUpdater;
-    private final CachedHttpResponseGenerator responseGenerator;
     private final HttpCacheInvalidator cacheInvalidator;
     private final HttpCacheStorage storage;
 
@@ -76,14 +67,11 @@ class BasicHttpCache implements HttpCache {
     public BasicHttpCache(
             final ResourceFactory resourceFactory,
             final HttpCacheStorage storage,
-            final CacheConfig config,
             final CacheKeyGenerator uriExtractor,
             final HttpCacheInvalidator cacheInvalidator) {
         this.resourceFactory = resourceFactory;
         this.uriExtractor = uriExtractor;
         this.cacheEntryUpdater = new CacheEntryUpdater(resourceFactory);
-        this.maxObjectSizeBytes = config.getMaxObjectSize();
-        this.responseGenerator = new CachedHttpResponseGenerator();
         this.storage = storage;
         this.cacheInvalidator = cacheInvalidator;
     }
@@ -91,21 +79,16 @@ class BasicHttpCache implements HttpCache {
     public BasicHttpCache(
             final ResourceFactory resourceFactory,
             final HttpCacheStorage storage,
-            final CacheConfig config,
             final CacheKeyGenerator uriExtractor) {
-        this( resourceFactory, storage, config, uriExtractor,
-                new CacheInvalidator(uriExtractor, storage));
+        this(resourceFactory, storage, uriExtractor, new CacheInvalidator(uriExtractor, storage));
     }
 
-    public BasicHttpCache(
-            final ResourceFactory resourceFactory,
-            final HttpCacheStorage storage,
-            final CacheConfig config) {
-        this( resourceFactory, storage, config, new CacheKeyGenerator());
+    public BasicHttpCache(final ResourceFactory resourceFactory, final HttpCacheStorage storage) {
+        this( resourceFactory, storage, new CacheKeyGenerator());
     }
 
     public BasicHttpCache(final CacheConfig config) {
-        this(new HeapResourceFactory(), new BasicHttpCacheStorage(config), config);
+        this(new HeapResourceFactory(), new BasicHttpCacheStorage(config));
     }
 
     public BasicHttpCache() {
@@ -194,42 +177,6 @@ class BasicHttpCache implements HttpCache {
         }
     }
 
-    boolean isIncompleteResponse(final HttpResponse resp, final Resource resource) {
-        final int status = resp.getCode();
-        if (status != HttpStatus.SC_OK
-            && status != HttpStatus.SC_PARTIAL_CONTENT) {
-            return false;
-        }
-        final Header hdr = resp.getFirstHeader(HttpHeaders.CONTENT_LENGTH);
-        if (hdr == null) {
-            return false;
-        }
-        final int contentLength;
-        try {
-            contentLength = Integer.parseInt(hdr.getValue());
-        } catch (final NumberFormatException nfe) {
-            return false;
-        }
-        if (resource == null) {
-            return false;
-        }
-        return (resource.length() < contentLength);
-    }
-
-    ClassicHttpResponse generateIncompleteResponseError(
-            final HttpResponse response, final Resource resource) {
-        final Integer contentLength = Integer.valueOf(response.getFirstHeader(HttpHeaders.CONTENT_LENGTH).getValue());
-        final ClassicHttpResponse error = new BasicClassicHttpResponse(HttpStatus.SC_BAD_GATEWAY, "Bad Gateway");
-        error.setHeader("Content-Type","text/plain;charset=UTF-8");
-        final String msg = String.format("Received incomplete response " +
-                "with Content-Length %d but actual body length %d",
-                contentLength, resource.length());
-        final byte[] msgBytes = msg.getBytes();
-        error.setHeader("Content-Length", Integer.toString(msgBytes.length));
-        error.setEntity(new ByteArrayEntity(msgBytes));
-        return error;
-    }
-
     HttpCacheEntry doGetUpdatedParentEntry(
             final String requestId,
             final HttpCacheEntry existing,
@@ -284,36 +231,18 @@ class BasicHttpCache implements HttpCache {
         return updatedEntry;
     }
 
-    @Override
-    public ClassicHttpResponse cacheAndReturnResponse(
+    public HttpCacheEntry createCacheEntry(
             final HttpHost host,
             final HttpRequest request,
-            final ClassicHttpResponse originResponse,
+            final HttpResponse originResponse,
+            final ByteArrayBuffer content,
             final Date requestSent,
             final Date responseReceived) throws IOException {
         final Resource resource;
-        final HttpEntity entity = originResponse.getEntity();
-        if (entity != null) {
-            final ByteArrayBuffer buf = new ByteArrayBuffer(1024);
-            final InputStream instream = entity.getContent();
-            final byte[] tmp = new byte[2048];
-            long total = 0;
-            int l;
-            while ((l = instream.read(tmp)) != -1) {
-                buf.append(tmp, 0, l);
-                total += l;
-                if (total > maxObjectSizeBytes) {
-                    originResponse.setEntity(new CombinedEntity(entity, buf));
-                    return originResponse;
-                }
-            }
-            resource = resourceFactory.generate(request.getRequestUri(), buf.array(), 0, buf.length());
+        if (content != null) {
+            resource = resourceFactory.generate(request.getRequestUri(), content.array(), 0, content.length());
         } else {
             resource = null;
-        }
-        originResponse.close();
-        if (isIncompleteResponse(originResponse, resource)) {
-            return generateIncompleteResponseError(originResponse, resource);
         }
         final HttpCacheEntry entry = new HttpCacheEntry(
                 requestSent,
@@ -322,7 +251,7 @@ class BasicHttpCache implements HttpCache {
                 originResponse.getAllHeaders(),
                 resource);
         storeInCache(host, request, entry);
-        return responseGenerator.generateResponse(request, entry);
+        return entry;
     }
 
     @Override

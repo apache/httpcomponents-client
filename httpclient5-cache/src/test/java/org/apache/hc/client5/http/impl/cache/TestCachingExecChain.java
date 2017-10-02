@@ -31,10 +31,12 @@ import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.isA;
+import static org.easymock.EasyMock.same;
 import static org.easymock.classextension.EasyMock.createNiceMock;
 import static org.easymock.classextension.EasyMock.replay;
 import static org.easymock.classextension.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
@@ -54,7 +56,6 @@ import org.apache.hc.client5.http.cache.HttpCacheContext;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.HttpCacheStorage;
 import org.apache.hc.client5.http.classic.ExecChain;
-import org.apache.hc.client5.http.classic.ExecChainHandler;
 import org.apache.hc.client5.http.classic.ExecRuntime;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpOptions;
@@ -77,6 +78,7 @@ import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.net.URIAuthority;
+import org.apache.hc.core5.util.ByteArrayBuffer;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.easymock.IExpectationSetters;
@@ -89,7 +91,7 @@ import junit.framework.AssertionFailedError;
 @SuppressWarnings("boxing") // test code
 public abstract class TestCachingExecChain {
 
-    private ExecChainHandler impl;
+    private CachingExec impl;
 
     protected CacheValidityPolicy mockValidityPolicy;
     protected CacheableRequestPolicy mockRequestPolicy;
@@ -103,7 +105,6 @@ public abstract class TestCachingExecChain {
     protected CachedHttpResponseGenerator mockResponseGenerator;
     private HttpClientResponseHandler<Object> mockHandler;
     private ClassicHttpRequest mockUriRequest;
-    private ClassicHttpResponse mockCachedResponse;
     protected ConditionalRequestBuilder mockConditionalRequestBuilder;
     private HttpRequest mockConditionalRequest;
     protected ResponseProtocolCompliance mockResponseProtocolCompliance;
@@ -131,7 +132,6 @@ public abstract class TestCachingExecChain {
         mockUriRequest = createNiceMock(ClassicHttpRequest.class);
         mockCacheEntry = createNiceMock(HttpCacheEntry.class);
         mockResponseGenerator = createNiceMock(CachedHttpResponseGenerator.class);
-        mockCachedResponse = createNiceMock(ClassicHttpResponse.class);
         mockConditionalRequestBuilder = createNiceMock(ConditionalRequestBuilder.class);
         mockConditionalRequest = createNiceMock(HttpRequest.class);
         mockResponseProtocolCompliance = createNiceMock(ResponseProtocolCompliance.class);
@@ -151,7 +151,7 @@ public abstract class TestCachingExecChain {
             mockRequestProtocolCompliance, config, asyncValidator);
     }
 
-    public abstract ExecChainHandler createCachingExecChain(HttpCache responseCache, CacheValidityPolicy validityPolicy,
+    public abstract CachingExec createCachingExecChain(HttpCache responseCache, CacheValidityPolicy validityPolicy,
                                                             ResponseCachingPolicy responseCachingPolicy, CachedHttpResponseGenerator responseGenerator,
                                                             CacheableRequestPolicy cacheableRequestPolicy,
                                                             CachedResponseSuitabilityChecker suitabilityChecker,
@@ -159,7 +159,7 @@ public abstract class TestCachingExecChain {
                                                             ResponseProtocolCompliance responseCompliance, RequestProtocolCompliance requestCompliance,
                                                             CacheConfig config, AsynchronousValidator asynchRevalidator);
 
-    public abstract ExecChainHandler createCachingExecChain(HttpCache cache, CacheConfig config);
+    public abstract CachingExec createCachingExecChain(HttpCache cache, CacheConfig config);
 
     protected ClassicHttpResponse execute(final ClassicHttpRequest request) throws IOException, HttpException {
         return impl.execute(ClassicRequestCopier.INSTANCE.copy(request), new ExecChain.Scope(
@@ -187,7 +187,6 @@ public abstract class TestCachingExecChain {
         replay(mockCache);
         replay(mockHandler);
         replay(mockUriRequest);
-        replay(mockCachedResponse);
         replay(mockConditionalRequestBuilder);
         replay(mockConditionalRequest);
         replay(mockResponseProtocolCompliance);
@@ -206,7 +205,6 @@ public abstract class TestCachingExecChain {
         verify(mockCache);
         verify(mockHandler);
         verify(mockUriRequest);
-        verify(mockCachedResponse);
         verify(mockConditionalRequestBuilder);
         verify(mockConditionalRequest);
         verify(mockResponseProtocolCompliance);
@@ -314,22 +312,20 @@ public abstract class TestCachingExecChain {
         requestPolicyAllowsCaching(true);
         getCacheEntryReturns(mockCacheEntry);
         cacheEntrySuitable(true);
-        responseIsGeneratedFromCache();
+        responseIsGeneratedFromCache(HttpTestUtils.make200Response());
         requestIsFatallyNonCompliant(null);
         entryHasStaleness(0L);
 
         replayMocks();
         final ClassicHttpResponse result = execute(request);
         verifyMocks();
-
-        Assert.assertSame(mockCachedResponse, result);
     }
 
     @Test
     public void testNonCacheableResponseIsNotCachedAndIsReturnedAsIs() throws Exception {
         final CacheConfig configDefault = CacheConfig.DEFAULT;
         impl = createCachingExecChain(new BasicHttpCache(new HeapResourceFactory(),
-            mockStorage, configDefault), configDefault);
+            mockStorage), configDefault);
 
         final ClassicHttpRequest req1 = HttpTestUtils.makeDefaultRequest();
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
@@ -354,7 +350,7 @@ public abstract class TestCachingExecChain {
         requestPolicyAllowsCaching(true);
         cacheEntrySuitable(true);
         getCacheEntryReturns(mockCacheEntry);
-        responseIsGeneratedFromCache();
+        responseIsGeneratedFromCache(HttpTestUtils.make200Response());
         entryHasStaleness(0L);
 
         replayMocks();
@@ -1265,31 +1261,134 @@ public abstract class TestCachingExecChain {
     }
 
     @Test
-    public void testTreatsCacheIOExceptionsAsCacheMiss() throws Exception {
+    public void testRecognizesComplete200Response()
+            throws Exception {
+        final ClassicHttpResponse resp = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
+        final ByteArrayBuffer buf = HttpTestUtils.getRandomBuffer(128);
+        resp.setHeader("Content-Length","128");
+        assertFalse(impl.isIncompleteResponse(resp, buf));
+    }
 
-        impl = createCachingExecChain(mockCache, CacheConfig.DEFAULT);
-        final ClassicHttpResponse resp = HttpTestUtils.make200Response();
+    @Test
+    public void testRecognizesComplete206Response()
+            throws Exception {
+        final ClassicHttpResponse resp = new BasicClassicHttpResponse(HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
+        final ByteArrayBuffer buf = HttpTestUtils.getRandomBuffer(128);
+        resp.setHeader("Content-Length","128");
+        resp.setHeader("Content-Range","bytes 0-127/255");
+        assertFalse(impl.isIncompleteResponse(resp, buf));
+    }
 
-        mockCache.flushInvalidatedCacheEntriesFor(host, request);
-        expectLastCall().andThrow(new IOException()).anyTimes();
-        mockCache.flushInvalidatedCacheEntriesFor(isA(HttpHost.class), isA(HttpRequest.class),
-            isA(HttpResponse.class));
-        expectLastCall().anyTimes();
-        expect(mockCache.getCacheEntry(eq(host), isA(HttpRequest.class))).andThrow(
-            new IOException()).anyTimes();
-        expect(mockCache.getVariantCacheEntriesWithEtags(eq(host), isA(HttpRequest.class)))
-            .andThrow(new IOException()).anyTimes();
-        expect(
-            mockCache.cacheAndReturnResponse(eq(host), isA(HttpRequest.class),
-                isA(ClassicHttpResponse.class), isA(Date.class), isA(Date.class)))
-            .andReturn(resp).anyTimes();
-        expect(
-            mockExecChain.proceed(isA(ClassicHttpRequest.class), isA(ExecChain.Scope.class))).andReturn(resp);
+    @Test
+    public void testRecognizesIncomplete200Response()
+            throws Exception {
+        final ClassicHttpResponse resp = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
+        final ByteArrayBuffer buf = HttpTestUtils.getRandomBuffer(128);
+        resp.setHeader("Content-Length","256");
+
+        assertTrue(impl.isIncompleteResponse(resp, buf));
+    }
+
+    @Test
+    public void testIgnoresIncompleteNon200Or206Responses()
+            throws Exception {
+        final ClassicHttpResponse resp = new BasicClassicHttpResponse(HttpStatus.SC_FORBIDDEN, "Forbidden");
+        final ByteArrayBuffer buf = HttpTestUtils.getRandomBuffer(128);
+        resp.setHeader("Content-Length","256");
+
+        assertFalse(impl.isIncompleteResponse(resp, buf));
+    }
+
+    @Test
+    public void testResponsesWithoutExplicitContentLengthAreComplete()
+            throws Exception {
+        final ClassicHttpResponse resp = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
+        final ByteArrayBuffer buf = HttpTestUtils.getRandomBuffer(128);
+
+        assertFalse(impl.isIncompleteResponse(resp, buf));
+    }
+
+    @Test
+    public void testResponsesWithUnparseableContentLengthHeaderAreComplete()
+            throws Exception {
+        final ClassicHttpResponse resp = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
+        final ByteArrayBuffer buf = HttpTestUtils.getRandomBuffer(128);
+        resp.setHeader("Content-Length","foo");
+        assertFalse(impl.isIncompleteResponse(resp, buf));
+    }
+
+    @Test
+    public void testNullResourcesAreComplete()
+            throws Exception {
+        final ClassicHttpResponse resp = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
+        resp.setHeader("Content-Length","256");
+
+        assertFalse(impl.isIncompleteResponse(resp, null));
+    }
+
+    @Test
+    public void testTooLargeResponsesAreNotCached() throws Exception {
+        mockCache = EasyMock.createStrictMock(HttpCache.class);
+        impl = createCachingExecChain(mockCache, mockValidityPolicy,
+                mockResponsePolicy, mockResponseGenerator, mockRequestPolicy, mockSuitabilityChecker,
+                mockConditionalRequestBuilder, mockResponseProtocolCompliance,
+                mockRequestProtocolCompliance, config, asyncValidator);
+
+        final HttpHost host = new HttpHost("foo.example.com");
+        final HttpRequest request = new HttpGet("http://foo.example.com/bar");
+
+        final Date now = new Date();
+        final Date requestSent = new Date(now.getTime() - 3 * 1000L);
+        final Date responseGenerated = new Date(now.getTime() - 2 * 1000L);
+        final Date responseReceived = new Date(now.getTime() - 1 * 1000L);
+
+        final ClassicHttpResponse originResponse = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
+        originResponse.setEntity(HttpTestUtils.makeBody(CacheConfig.DEFAULT_MAX_OBJECT_SIZE_BYTES + 1));
+        originResponse.setHeader("Cache-Control","public, max-age=3600");
+        originResponse.setHeader("Date", DateUtils.formatDate(responseGenerated));
+        originResponse.setHeader("ETag", "\"etag\"");
 
         replayMocks();
-        final ClassicHttpResponse result = execute(request);
+
+        impl.cacheAndReturnResponse(host, request, originResponse, requestSent, responseReceived);
+
         verifyMocks();
-        Assert.assertSame(resp, result);
+    }
+
+    @Test
+    public void testSmallEnoughResponsesAreCached() throws Exception {
+        final HttpHost host = new HttpHost("foo.example.com");
+        final HttpRequest request = new HttpGet("http://foo.example.com/bar");
+
+        final Date now = new Date();
+        final Date requestSent = new Date(now.getTime() - 3 * 1000L);
+        final Date responseGenerated = new Date(now.getTime() - 2 * 1000L);
+        final Date responseReceived = new Date(now.getTime() - 1 * 1000L);
+
+        final ClassicHttpResponse originResponse = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
+        originResponse.setEntity(HttpTestUtils.makeBody(CacheConfig.DEFAULT_MAX_OBJECT_SIZE_BYTES - 1));
+        originResponse.setHeader("Cache-Control","public, max-age=3600");
+        originResponse.setHeader("Date", DateUtils.formatDate(responseGenerated));
+        originResponse.setHeader("ETag", "\"etag\"");
+
+        final HttpCacheEntry httpCacheEntry = HttpTestUtils.makeCacheEntry();
+        final ClassicHttpResponse response = HttpTestUtils.make200Response();
+
+        EasyMock.expect(mockCache.createCacheEntry(
+                eq(host),
+                same(request),
+                same(originResponse),
+                isA(ByteArrayBuffer.class),
+                eq(requestSent),
+                eq(responseReceived))).andReturn(httpCacheEntry).once();
+        EasyMock.expect(mockResponseGenerator.generateResponse(
+                same(request),
+                same(httpCacheEntry))).andReturn(response).once();
+        replayMocks();
+
+        impl.cacheAndReturnResponse(host, request, originResponse, requestSent, responseReceived);
+
+        verifyMocks();
     }
 
     @Test
@@ -1332,14 +1431,12 @@ public abstract class TestCachingExecChain {
         requestPolicyAllowsCaching(true);
         getCacheEntryReturns(entry);
         cacheEntrySuitable(true);
-        responseIsGeneratedFromCache();
+        responseIsGeneratedFromCache(HttpTestUtils.make200Response());
         entryHasStaleness(0);
 
         replayMocks();
         final ClassicHttpResponse resp = execute(request);
         verifyMocks();
-
-        Assert.assertSame(mockCachedResponse, resp);
     }
 
     @Test
@@ -1669,10 +1766,11 @@ public abstract class TestCachingExecChain {
             .andReturn(staleness);
     }
 
-    protected void responseIsGeneratedFromCache() {
+    protected void responseIsGeneratedFromCache(final ClassicHttpResponse cachedResponse) throws IOException {
         expect(
-            mockResponseGenerator.generateResponse((ClassicHttpRequest) anyObject(), (HttpCacheEntry) anyObject()))
-            .andReturn(mockCachedResponse);
+            mockResponseGenerator.generateResponse(
+                    (ClassicHttpRequest) anyObject(),
+                    (HttpCacheEntry) anyObject())).andReturn(cachedResponse);
     }
 
     protected void doesNotFlushCache() throws IOException {

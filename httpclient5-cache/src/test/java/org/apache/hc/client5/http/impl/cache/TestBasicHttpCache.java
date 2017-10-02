@@ -31,18 +31,13 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
-import org.apache.hc.client5.http.cache.Resource;
 import org.apache.hc.client5.http.classic.methods.HttpDelete;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpHead;
@@ -50,16 +45,14 @@ import org.apache.hc.client5.http.classic.methods.HttpOptions;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.classic.methods.HttpTrace;
 import org.apache.hc.client5.http.utils.DateUtils;
-import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.Header;
-import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
-import org.apache.hc.core5.http.io.entity.BasicHttpEntity;
-import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
-import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
 import org.apache.hc.core5.http.message.BasicHeader;
+import org.apache.hc.core5.http.message.BasicHttpResponse;
+import org.apache.hc.core5.util.ByteArrayBuffer;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -72,7 +65,7 @@ public class TestBasicHttpCache {
     @Before
     public void setUp() throws Exception {
         backing = new SimpleHttpCacheStorage();
-        impl = new BasicHttpCache(new HeapResourceFactory(), backing, CacheConfig.DEFAULT);
+        impl = new BasicHttpCache(new HeapResourceFactory(), backing);
     }
 
     @Test
@@ -136,7 +129,7 @@ public class TestBasicHttpCache {
             throws Exception {
         final HttpHost host = new HttpHost("foo.example.com");
         final HttpRequest req = new HttpPost("/foo");
-        final ClassicHttpResponse resp = HttpTestUtils.make200Response();
+        final HttpResponse resp = HttpTestUtils.make200Response();
         resp.setHeader("Content-Location", "/bar");
         resp.setHeader(HeaderConstants.ETAG, "\"etag\"");
         final String key = (new CacheKeyGenerator()).generateKey(host, new HttpGet("/bar"));
@@ -158,7 +151,7 @@ public class TestBasicHttpCache {
             throws Exception {
         final HttpHost host = new HttpHost("foo.example.com");
         final HttpRequest req = new HttpGet("/foo");
-        final ClassicHttpResponse resp = HttpTestUtils.make200Response();
+        final HttpResponse resp = HttpTestUtils.make200Response();
         resp.setHeader("Content-Location", "/bar");
         final String key = (new CacheKeyGenerator()).generateKey(host, new HttpGet("/bar"));
 
@@ -186,127 +179,6 @@ public class TestBasicHttpCache {
         impl.flushCacheEntriesFor(host, req);
 
         assertNull(backing.map.get(key));
-    }
-
-    @Test
-    public void testRecognizesComplete200Response()
-        throws Exception {
-        final ClassicHttpResponse resp = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
-        final byte[] bytes = HttpTestUtils.getRandomBytes(128);
-        resp.setEntity(new ByteArrayEntity(bytes));
-        resp.setHeader("Content-Length","128");
-        final Resource resource = new HeapResource(bytes);
-
-        assertFalse(impl.isIncompleteResponse(resp, resource));
-    }
-
-    @Test
-    public void testRecognizesComplete206Response()
-        throws Exception {
-        final ClassicHttpResponse resp = new BasicClassicHttpResponse(HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
-        final byte[] bytes = HttpTestUtils.getRandomBytes(128);
-        final Resource resource = new HeapResource(bytes);
-        resp.setEntity(new ByteArrayEntity(bytes));
-        resp.setHeader("Content-Length","128");
-        resp.setHeader("Content-Range","bytes 0-127/255");
-
-        assertFalse(impl.isIncompleteResponse(resp, resource));
-    }
-
-    @Test
-    public void testRecognizesIncomplete200Response()
-        throws Exception {
-        final ClassicHttpResponse resp = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
-        final byte[] bytes = HttpTestUtils.getRandomBytes(128);
-        final Resource resource = new HeapResource(bytes);
-        resp.setEntity(new ByteArrayEntity(bytes));
-        resp.setHeader("Content-Length","256");
-
-        assertTrue(impl.isIncompleteResponse(resp, resource));
-    }
-
-    @Test
-    public void testIgnoresIncompleteNon200Or206Responses()
-        throws Exception {
-        final ClassicHttpResponse resp = new BasicClassicHttpResponse(HttpStatus.SC_FORBIDDEN, "Forbidden");
-        final byte[] bytes = HttpTestUtils.getRandomBytes(128);
-        final Resource resource = new HeapResource(bytes);
-        resp.setEntity(new ByteArrayEntity(bytes));
-        resp.setHeader("Content-Length","256");
-
-        assertFalse(impl.isIncompleteResponse(resp, resource));
-    }
-
-    @Test
-    public void testResponsesWithoutExplicitContentLengthAreComplete()
-        throws Exception {
-        final ClassicHttpResponse resp = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
-        final byte[] bytes = HttpTestUtils.getRandomBytes(128);
-        final Resource resource = new HeapResource(bytes);
-        resp.setEntity(new ByteArrayEntity(bytes));
-
-        assertFalse(impl.isIncompleteResponse(resp, resource));
-    }
-
-    @Test
-    public void testResponsesWithUnparseableContentLengthHeaderAreComplete()
-        throws Exception {
-        final ClassicHttpResponse resp = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
-        final byte[] bytes = HttpTestUtils.getRandomBytes(128);
-        final Resource resource = new HeapResource(bytes);
-        resp.setHeader("Content-Length","foo");
-        resp.setEntity(new ByteArrayEntity(bytes));
-
-        assertFalse(impl.isIncompleteResponse(resp, resource));
-    }
-
-    @Test
-    public void testNullResourcesAreComplete()
-        throws Exception {
-        final ClassicHttpResponse resp = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
-        resp.setHeader("Content-Length","256");
-
-        assertFalse(impl.isIncompleteResponse(resp, null));
-    }
-
-    @Test
-    public void testIncompleteResponseErrorProvidesPlainTextErrorMessage()
-        throws Exception {
-        final ClassicHttpResponse resp = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
-        final byte[] bytes = HttpTestUtils.getRandomBytes(128);
-        final Resource resource = new HeapResource(bytes);
-        resp.setEntity(new ByteArrayEntity(bytes));
-        resp.setHeader("Content-Length","256");
-
-        final ClassicHttpResponse result = impl.generateIncompleteResponseError(resp, resource);
-        final Header ctype = result.getFirstHeader("Content-Type");
-        assertEquals("text/plain;charset=UTF-8", ctype.getValue());
-    }
-
-    @Test
-    public void testIncompleteResponseErrorProvidesNonEmptyErrorMessage()
-        throws Exception {
-        final ClassicHttpResponse resp = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
-        final byte[] bytes = HttpTestUtils.getRandomBytes(128);
-        final Resource resource = new HeapResource(bytes);
-        resp.setEntity(new ByteArrayEntity(bytes));
-        resp.setHeader("Content-Length","256");
-
-        final ClassicHttpResponse result = impl.generateIncompleteResponseError(resp, resource);
-        final int clen = Integer.parseInt(result.getFirstHeader("Content-Length").getValue());
-        assertTrue(clen > 0);
-        final HttpEntity body = result.getEntity();
-        if (body.getContentLength() < 0) {
-            final InputStream is = body.getContent();
-            int bytes_read = 0;
-            while((is.read()) != -1) {
-                bytes_read++;
-            }
-            is.close();
-            assertEquals(clen, bytes_read);
-        } else {
-            assertTrue(body.getContentLength() == clen);
-        }
     }
 
     @Test
@@ -341,50 +213,6 @@ public class TestBasicHttpCache {
     }
 
     @Test
-    public void testTooLargeResponsesAreNotCached() throws Exception {
-        final HttpHost host = new HttpHost("foo.example.com");
-        final HttpRequest request = new HttpGet("http://foo.example.com/bar");
-
-        final Date now = new Date();
-        final Date requestSent = new Date(now.getTime() - 3 * 1000L);
-        final Date responseGenerated = new Date(now.getTime() - 2 * 1000L);
-        final Date responseReceived = new Date(now.getTime() - 1 * 1000L);
-
-        final ClassicHttpResponse originResponse = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
-        originResponse.setEntity(HttpTestUtils.makeBody(CacheConfig.DEFAULT_MAX_OBJECT_SIZE_BYTES + 1));
-        originResponse.setHeader("Cache-Control","public, max-age=3600");
-        originResponse.setHeader("Date", DateUtils.formatDate(responseGenerated));
-        originResponse.setHeader("ETag", "\"etag\"");
-
-        final ClassicHttpResponse result = impl.cacheAndReturnResponse(host, request, originResponse, requestSent, responseReceived);
-        assertEquals(0, backing.map.size());
-        assertSame(originResponse, result);
-    }
-
-
-    @Test
-    public void testSmallEnoughResponsesAreCached() throws Exception {
-        final HttpHost host = new HttpHost("foo.example.com");
-        final HttpRequest request = new HttpGet("http://foo.example.com/bar");
-
-        final Date now = new Date();
-        final Date requestSent = new Date(now.getTime() - 3 * 1000L);
-        final Date responseGenerated = new Date(now.getTime() - 2 * 1000L);
-        final Date responseReceived = new Date(now.getTime() - 1 * 1000L);
-
-        final ClassicHttpResponse originResponse = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
-        originResponse.setEntity(HttpTestUtils.makeBody(CacheConfig.DEFAULT_MAX_OBJECT_SIZE_BYTES - 1));
-        originResponse.setHeader("Cache-Control","public, max-age=3600");
-        originResponse.setHeader("Date", DateUtils.formatDate(responseGenerated));
-        originResponse.setHeader("ETag", "\"etag\"");
-
-        final ClassicHttpResponse result = impl.cacheAndReturnResponse(host, request, originResponse, requestSent, responseReceived);
-        assertEquals(1, backing.map.size());
-        assertTrue(backing.map.containsKey((new CacheKeyGenerator()).generateKey(host, request)));
-        assertTrue(HttpTestUtils.semanticallyTransparent(originResponse, result));
-    }
-
-    @Test
     public void testGetCacheEntryReturnsNullOnCacheMiss() throws Exception {
         final HttpHost host = new HttpHost("foo.example.com");
         final HttpRequest request = new HttpGet("http://foo.example.com/bar");
@@ -410,20 +238,21 @@ public class TestBasicHttpCache {
     @Test
     public void testGetCacheEntryReturnsNullIfNoVariantInCache() throws Exception {
         final HttpHost host = new HttpHost("foo.example.com");
-        final HttpRequest request = new HttpGet("http://foo.example.com/bar");
 
         final HttpRequest origRequest = new HttpGet("http://foo.example.com/bar");
         origRequest.setHeader("Accept-Encoding","gzip");
 
-        final ClassicHttpResponse origResponse = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
-        origResponse.setEntity(HttpTestUtils.makeBody(128));
+        final ByteArrayBuffer buf = HttpTestUtils.getRandomBuffer(128);
+        final HttpResponse origResponse = new BasicHttpResponse(HttpStatus.SC_OK, "OK");
         origResponse.setHeader("Date", DateUtils.formatDate(new Date()));
         origResponse.setHeader("Cache-Control", "max-age=3600, public");
         origResponse.setHeader("ETag", "\"etag\"");
         origResponse.setHeader("Vary", "Accept-Encoding");
         origResponse.setHeader("Content-Encoding","gzip");
 
-        impl.cacheAndReturnResponse(host, origRequest, origResponse, new Date(), new Date());
+        impl.createCacheEntry(host, origRequest, origResponse, buf, new Date(), new Date());
+
+        final HttpRequest request = new HttpGet("http://foo.example.com/bar");
         final HttpCacheEntry result = impl.getCacheEntry(host, request);
         assertNull(result);
     }
@@ -431,21 +260,22 @@ public class TestBasicHttpCache {
     @Test
     public void testGetCacheEntryReturnsVariantIfPresentInCache() throws Exception {
         final HttpHost host = new HttpHost("foo.example.com");
-        final HttpRequest request = new HttpGet("http://foo.example.com/bar");
-        request.setHeader("Accept-Encoding","gzip");
 
         final HttpRequest origRequest = new HttpGet("http://foo.example.com/bar");
         origRequest.setHeader("Accept-Encoding","gzip");
 
-        final ClassicHttpResponse origResponse = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
-        origResponse.setEntity(HttpTestUtils.makeBody(128));
+        final ByteArrayBuffer buf = HttpTestUtils.getRandomBuffer(128);
+        final HttpResponse origResponse = new BasicHttpResponse(HttpStatus.SC_OK, "OK");
         origResponse.setHeader("Date", DateUtils.formatDate(new Date()));
         origResponse.setHeader("Cache-Control", "max-age=3600, public");
         origResponse.setHeader("ETag", "\"etag\"");
         origResponse.setHeader("Vary", "Accept-Encoding");
         origResponse.setHeader("Content-Encoding","gzip");
 
-        impl.cacheAndReturnResponse(host, origRequest, origResponse, new Date(), new Date());
+        impl.createCacheEntry(host, origRequest, origResponse, buf, new Date(), new Date());
+
+        final HttpRequest request = new HttpGet("http://foo.example.com/bar");
+        request.setHeader("Accept-Encoding","gzip");
         final HttpCacheEntry result = impl.getCacheEntry(host, request);
         assertNotNull(result);
     }
@@ -467,7 +297,7 @@ public class TestBasicHttpCache {
         final HttpRequest req1 = new HttpGet("http://foo.example.com/bar");
         req1.setHeader("Accept-Encoding", "gzip");
 
-        final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
+        final HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Date", DateUtils.formatDate(new Date()));
         resp1.setHeader("Cache-Control", "max-age=3600, public");
         resp1.setHeader("ETag", "\"etag1\"");
@@ -478,7 +308,7 @@ public class TestBasicHttpCache {
         final HttpRequest req2 = new HttpGet("http://foo.example.com/bar");
         req2.setHeader("Accept-Encoding", "identity");
 
-        final ClassicHttpResponse resp2 = HttpTestUtils.make200Response();
+        final HttpResponse resp2 = HttpTestUtils.make200Response();
         resp2.setHeader("Date", DateUtils.formatDate(new Date()));
         resp2.setHeader("Cache-Control", "max-age=3600, public");
         resp2.setHeader("ETag", "\"etag2\"");
@@ -486,65 +316,14 @@ public class TestBasicHttpCache {
         resp2.setHeader("Content-Encoding","gzip");
         resp2.setHeader("Vary", "Accept-Encoding");
 
-        impl.cacheAndReturnResponse(host, req1, resp1, new Date(), new Date());
-        impl.cacheAndReturnResponse(host, req2, resp2, new Date(), new Date());
+        impl.createCacheEntry(host, req1, resp1, null, new Date(), new Date());
+        impl.createCacheEntry(host, req2, resp2, null, new Date(), new Date());
 
         final Map<String,Variant> variants = impl.getVariantCacheEntriesWithEtags(host, req1);
 
         assertNotNull(variants);
         assertEquals(2, variants.size());
 
-    }
-
-    @Test
-    public void testOriginalResponseWithNoContentSizeHeaderIsReleased() throws Exception {
-        final HttpHost host = new HttpHost("foo.example.com");
-        final HttpRequest request = new HttpGet("http://foo.example.com/bar");
-
-        final Date now = new Date();
-        final Date requestSent = new Date(now.getTime() - 3 * 1000L);
-        final Date responseGenerated = new Date(now.getTime() - 2 * 1000L);
-        final Date responseReceived = new Date(now.getTime() - 1 * 1000L);
-
-        final ClassicHttpResponse originResponse = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
-        final BasicHttpEntity entity = new BasicHttpEntity();
-        final ConsumableInputStream inputStream = new ConsumableInputStream(new ByteArrayInputStream(HttpTestUtils.getRandomBytes(CacheConfig.DEFAULT_MAX_OBJECT_SIZE_BYTES - 1)));
-        entity.setContent(inputStream);
-        originResponse.setEntity(entity);
-        originResponse.setHeader("Cache-Control","public, max-age=3600");
-        originResponse.setHeader("Date", DateUtils.formatDate(responseGenerated));
-        originResponse.setHeader("ETag", "\"etag\"");
-
-        final ClassicHttpResponse result = impl.cacheAndReturnResponse(host, request, originResponse, requestSent, responseReceived);
-        IOUtils.consume(result.getEntity());
-        assertTrue(inputStream.wasClosed());
-    }
-
-    @Test
-    public void testEntryUpdate() throws Exception {
-
-        final HeapResourceFactory rf = new HeapResourceFactory();
-
-        impl = new BasicHttpCache(rf, backing, CacheConfig.DEFAULT);
-
-        final HttpHost host = new HttpHost("foo.example.com");
-
-        final HttpRequest origRequest = new HttpGet("http://foo.example.com/bar");
-        origRequest.setHeader("Accept-Encoding","gzip");
-
-        final ClassicHttpResponse origResponse = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
-        origResponse.setEntity(HttpTestUtils.makeBody(128));
-        origResponse.setHeader("Date", DateUtils.formatDate(new Date()));
-        origResponse.setHeader("Cache-Control", "max-age=3600, public");
-        origResponse.setHeader("ETag", "\"etag\"");
-        origResponse.setHeader("Vary", "Accept-Encoding");
-        origResponse.setHeader("Content-Encoding","gzip");
-
-        final ClassicHttpResponse response = impl.cacheAndReturnResponse(
-                host, origRequest, origResponse, new Date(), new Date());
-        final HttpEntity entity = response.getEntity();
-        Assert.assertNotNull(entity);
-        IOUtils.copyAndClose(entity.getContent(), new ByteArrayOutputStream());
     }
 
 }

@@ -147,7 +147,7 @@ public class CachingHttpClientBuilder extends HttpClientBuilder {
         final CacheKeyGenerator uriExtractor = new CacheKeyGenerator();
         final HttpCache httpCache = new BasicHttpCache(
                 resourceFactoryCopy,
-                storageCopy, config,
+                storageCopy,
                 uriExtractor,
                 this.httpCacheInvalidator != null ? this.httpCacheInvalidator : new CacheInvalidator(uriExtractor, storageCopy));
 
