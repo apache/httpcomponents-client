@@ -44,6 +44,7 @@ import org.apache.hc.client5.http.cache.HttpCacheStorage;
 import org.apache.hc.client5.http.cache.ResourceFactory;
 import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecChainHandler;
+import org.apache.hc.client5.http.impl.classic.ClassicRequestCopier;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.annotation.Contract;
@@ -120,7 +121,7 @@ public class CachingExec implements ExecChainHandler {
     private final CachedHttpResponseGenerator responseGenerator;
     private final CacheableRequestPolicy cacheableRequestPolicy;
     private final CachedResponseSuitabilityChecker suitabilityChecker;
-    private final ConditionalRequestBuilder conditionalRequestBuilder;
+    private final ConditionalRequestBuilder<ClassicHttpRequest> conditionalRequestBuilder;
     private final ResponseProtocolCompliance responseCompliance;
     private final RequestProtocolCompliance requestCompliance;
     private final ResponseCachingPolicy responseCachingPolicy;
@@ -147,7 +148,7 @@ public class CachingExec implements ExecChainHandler {
         this.responseGenerator = new CachedHttpResponseGenerator(this.validityPolicy);
         this.cacheableRequestPolicy = new CacheableRequestPolicy();
         this.suitabilityChecker = new CachedResponseSuitabilityChecker(this.validityPolicy, this.cacheConfig);
-        this.conditionalRequestBuilder = new ConditionalRequestBuilder();
+        this.conditionalRequestBuilder = new ConditionalRequestBuilder<>(ClassicRequestCopier.INSTANCE);
         this.responseCompliance = new ResponseProtocolCompliance();
         this.requestCompliance = new RequestProtocolCompliance(this.cacheConfig.isWeakETagOnPutDeleteAllowed());
         this.responseCachingPolicy = new ResponseCachingPolicy(
@@ -174,7 +175,7 @@ public class CachingExec implements ExecChainHandler {
             final CachedHttpResponseGenerator responseGenerator,
             final CacheableRequestPolicy cacheableRequestPolicy,
             final CachedResponseSuitabilityChecker suitabilityChecker,
-            final ConditionalRequestBuilder conditionalRequestBuilder,
+            final ConditionalRequestBuilder<ClassicHttpRequest> conditionalRequestBuilder,
             final ResponseProtocolCompliance responseCompliance,
             final RequestProtocolCompliance requestCompliance,
             final CacheConfig config,

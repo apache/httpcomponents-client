@@ -105,7 +105,7 @@ public class TestCachingExec extends TestCachingExecChain {
             final CachedHttpResponseGenerator mockResponseGenerator,
             final CacheableRequestPolicy mockRequestPolicy,
             final CachedResponseSuitabilityChecker mockSuitabilityChecker,
-            final ConditionalRequestBuilder mockConditionalRequestBuilder,
+            final ConditionalRequestBuilder<ClassicHttpRequest> mockConditionalRequestBuilder,
             final ResponseProtocolCompliance mockResponseProtocolCompliance,
             final RequestProtocolCompliance mockRequestProtocolCompliance,
             final CacheConfig config, final AsynchronousValidator asyncValidator) {

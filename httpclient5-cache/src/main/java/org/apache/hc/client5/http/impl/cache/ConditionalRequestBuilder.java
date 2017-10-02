@@ -31,12 +31,12 @@ import java.util.Map;
 
 import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
-import org.apache.hc.client5.http.impl.classic.ClassicRequestCopier;
+import org.apache.hc.client5.http.impl.MessageCopier;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
-import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HeaderElement;
+import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.message.MessageSupport;
 
@@ -44,7 +44,13 @@ import org.apache.hc.core5.http.message.MessageSupport;
  * @since 4.1
  */
 @Contract(threading = ThreadingBehavior.IMMUTABLE)
-class ConditionalRequestBuilder {
+class ConditionalRequestBuilder<T extends HttpRequest> {
+
+    private final MessageCopier<T> messageCopier;
+
+    ConditionalRequestBuilder(final MessageCopier<T> messageCopier) {
+        this.messageCopier = messageCopier;
+    }
 
     /**
      * When a {@link HttpCacheEntry} is stale but 'might' be used as a response
@@ -57,9 +63,8 @@ class ConditionalRequestBuilder {
      * @return the wrapped request
      * @throws ProtocolException when I am unable to build a new origin request.
      */
-    public ClassicHttpRequest buildConditionalRequest(final ClassicHttpRequest request, final HttpCacheEntry cacheEntry)
-            throws ProtocolException {
-        final ClassicHttpRequest newRequest = ClassicRequestCopier.INSTANCE.copy(request);
+    public T buildConditionalRequest(final T request, final HttpCacheEntry cacheEntry) throws ProtocolException {
+        final T newRequest = messageCopier.copy(request);
         newRequest.setHeaders(request.getAllHeaders());
         final Header eTag = cacheEntry.getFirstHeader(HeaderConstants.ETAG);
         if (eTag != null) {
@@ -97,9 +102,8 @@ class ConditionalRequestBuilder {
      * @param variants
      * @return the wrapped request
      */
-    public ClassicHttpRequest buildConditionalRequestFromVariants(final ClassicHttpRequest request,
-                                                              final Map<String, Variant> variants) {
-        final ClassicHttpRequest newRequest = ClassicRequestCopier.INSTANCE.copy(request);
+    public T buildConditionalRequestFromVariants(final T request, final Map<String, Variant> variants) {
+        final T newRequest = messageCopier.copy(request);
         newRequest.setHeaders(request.getAllHeaders());
 
         // we do not support partial content so all etags are used
@@ -127,8 +131,8 @@ class ConditionalRequestBuilder {
      * @param request client request we are trying to satisfy
      * @return an unconditional validation request
      */
-    public ClassicHttpRequest buildUnconditionalRequest(final ClassicHttpRequest request) {
-        final ClassicHttpRequest newRequest = ClassicRequestCopier.INSTANCE.copy(request);
+    public T buildUnconditionalRequest(final T request) {
+        final T newRequest = messageCopier.copy(request);
         newRequest.addHeader(HeaderConstants.CACHE_CONTROL,HeaderConstants.CACHE_CONTROL_NO_CACHE);
         newRequest.addHeader(HeaderConstants.PRAGMA,HeaderConstants.CACHE_CONTROL_NO_CACHE);
         newRequest.removeHeaders(HeaderConstants.IF_RANGE);

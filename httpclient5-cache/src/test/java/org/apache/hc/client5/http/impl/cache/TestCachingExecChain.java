@@ -105,7 +105,7 @@ public abstract class TestCachingExecChain {
     protected CachedHttpResponseGenerator mockResponseGenerator;
     private HttpClientResponseHandler<Object> mockHandler;
     private ClassicHttpRequest mockUriRequest;
-    protected ConditionalRequestBuilder mockConditionalRequestBuilder;
+    protected ConditionalRequestBuilder<ClassicHttpRequest> mockConditionalRequestBuilder;
     private HttpRequest mockConditionalRequest;
     protected ResponseProtocolCompliance mockResponseProtocolCompliance;
     protected RequestProtocolCompliance mockRequestProtocolCompliance;
@@ -151,13 +151,14 @@ public abstract class TestCachingExecChain {
             mockRequestProtocolCompliance, config, asyncValidator);
     }
 
-    public abstract CachingExec createCachingExecChain(HttpCache responseCache, CacheValidityPolicy validityPolicy,
-                                                            ResponseCachingPolicy responseCachingPolicy, CachedHttpResponseGenerator responseGenerator,
-                                                            CacheableRequestPolicy cacheableRequestPolicy,
-                                                            CachedResponseSuitabilityChecker suitabilityChecker,
-                                                            ConditionalRequestBuilder conditionalRequestBuilder,
-                                                            ResponseProtocolCompliance responseCompliance, RequestProtocolCompliance requestCompliance,
-                                                            CacheConfig config, AsynchronousValidator asynchRevalidator);
+    public abstract CachingExec createCachingExecChain(
+            HttpCache responseCache, CacheValidityPolicy validityPolicy,
+            ResponseCachingPolicy responseCachingPolicy, CachedHttpResponseGenerator responseGenerator,
+            CacheableRequestPolicy cacheableRequestPolicy,
+            CachedResponseSuitabilityChecker suitabilityChecker,
+            ConditionalRequestBuilder<ClassicHttpRequest> conditionalRequestBuilder,
+            ResponseProtocolCompliance responseCompliance, RequestProtocolCompliance requestCompliance,
+            CacheConfig config, AsynchronousValidator asynchRevalidator);
 
     public abstract CachingExec createCachingExecChain(HttpCache cache, CacheConfig config);
 
