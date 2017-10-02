@@ -642,39 +642,6 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     }
 
     /*
-     * "A client MUST NOT send an Expect request-header field (section 14.20)
-     * with the '100-continue' expectation if it does not intend to send a
-     * request body."
-     *
-     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec8.html#sec8.2.3
-     */
-    @Test
-    public void testExpect100ContinueIsNotSentIfThereIsNoRequestBody() throws Exception {
-        request.addHeader("Expect", "100-continue");
-        final Capture<ClassicHttpRequest> reqCap = new Capture<>();
-        EasyMock.expect(
-                mockExecChain.proceed(
-                        EasyMock.capture(reqCap),
-                        EasyMock.isA(ExecChain.Scope.class))).andReturn(originResponse);
-
-        replayMocks();
-        execute(request);
-        verifyMocks();
-        final ClassicHttpRequest forwarded = reqCap.getValue();
-        boolean foundExpectContinue = false;
-
-        final Iterator<HeaderElement> it = MessageSupport.iterate(forwarded, HttpHeaders.EXPECT);
-        while (it.hasNext()) {
-            final HeaderElement elt = it.next();
-            if ("100-continue".equalsIgnoreCase(elt.getName())) {
-                foundExpectContinue = true;
-                break;
-            }
-        }
-        Assert.assertFalse(foundExpectContinue);
-    }
-
-    /*
      * "If a proxy receives a request that includes an Expect request- header
      * field with the '100-continue' expectation, and the proxy either knows
      * that the next-hop server complies with HTTP/1.1 or higher, or does not
@@ -1031,32 +998,6 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     }
 
     /*
-     * "A TRACE request MUST NOT include an entity."
-     *
-     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.8
-     */
-    @Test
-    public void testForwardedTRACERequestsDoNotIncludeAnEntity() throws Exception {
-        final BasicClassicHttpRequest trace = new BasicClassicHttpRequest("TRACE", "/");
-        trace.setEntity(HttpTestUtils.makeBody(entityLength));
-        trace.setHeader("Content-Length", Integer.toString(entityLength));
-
-        final Capture<ClassicHttpRequest> reqCap = new Capture<>();
-
-        EasyMock.expect(
-                mockExecChain.proceed(
-                        EasyMock.capture(reqCap),
-                        EasyMock.isA(ExecChain.Scope.class))).andReturn(originResponse);
-
-        replayMocks();
-        execute(trace);
-        verifyMocks();
-
-        final ClassicHttpRequest bodyReq = reqCap.getValue();
-        Assert.assertTrue(bodyReq.getEntity() == null || bodyReq.getEntity().getContentLength() == 0);
-    }
-
-    /*
      * "9.8 TRACE ... Responses to this method MUST NOT be cached."
      *
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.8
@@ -1101,32 +1042,6 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         final ClassicHttpResponse result = execute(request);
 
         verifyMocks();
-
-        Assert.assertTrue(result.getEntity() == null || result.getEntity().getContentLength() == 0);
-    }
-
-    /*
-     * "10.2.6 205 Reset Content ... The response MUST NOT include an entity."
-     *
-     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.2.6
-     */
-    @Test
-    public void test205ResponsesDoNotContainMessageBodies() throws Exception {
-        originResponse = new BasicClassicHttpResponse(HttpStatus.SC_RESET_CONTENT, "Reset Content");
-        originResponse.setEntity(HttpTestUtils.makeBody(entityLength));
-
-        EasyMock.expect(
-                mockExecChain.proceed(
-                        EasyMock.isA(ClassicHttpRequest.class),
-                        EasyMock.isA(ExecChain.Scope.class))).andReturn(originResponse);
-
-        replayMocks();
-
-        final ClassicHttpResponse result = execute(request);
-
-        verifyMocks();
-
-        Assert.assertTrue(result.getEntity() == null || result.getEntity().getContentLength() == 0);
     }
 
     /*
@@ -1704,8 +1619,6 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         final ClassicHttpResponse result = execute(request);
 
         verifyMocks();
-
-        Assert.assertTrue(result.getEntity() == null || result.getEntity().getContentLength() == 0);
     }
 
     /*

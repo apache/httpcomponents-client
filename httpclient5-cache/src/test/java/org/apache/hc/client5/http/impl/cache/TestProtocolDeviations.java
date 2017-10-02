@@ -255,36 +255,6 @@ public class TestProtocolDeviations {
     }
 
     /*
-     * "If the OPTIONS request includes an entity-body (as indicated by the
-     * presence of Content-Length or Transfer-Encoding), then the media type
-     * MUST be indicated by a Content-Type field."
-     *
-     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.2
-     */
-    @Test
-    public void testOPTIONSRequestsWithBodiesAndNoContentTypeHaveOneSupplied() throws Exception {
-        final ClassicHttpRequest options = new BasicClassicHttpRequest("OPTIONS", "/");
-        options.setEntity(body);
-        options.setHeader("Content-Length", "1");
-
-        final Capture<ClassicHttpRequest> reqCap = new Capture<>();
-        EasyMock.expect(
-                mockExecChain.proceed(
-                        EasyMock.capture(reqCap),
-                        EasyMock.isA(ExecChain.Scope.class))).andReturn(originResponse);
-        replayMocks();
-
-        execute(options);
-
-        verifyMocks();
-
-        final ClassicHttpRequest reqWithBody = reqCap.getValue();
-        final HttpEntity reqBody = reqWithBody.getEntity();
-        Assert.assertNotNull(reqBody);
-        Assert.assertNotNull(reqBody.getContentType());
-    }
-
-    /*
      * "10.2.7 206 Partial Content ... The request MUST have included a Range
      * header field (section 14.35) indicating the desired range, and MAY have
      * included an If-Range header field (section 14.27) to make the request

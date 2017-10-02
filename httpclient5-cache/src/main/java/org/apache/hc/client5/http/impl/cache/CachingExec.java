@@ -360,7 +360,7 @@ public class CachingExec implements ExecChainHandler {
 
         for (final RequestProtocolError error : fatalError) {
             setResponseStatus(context, CacheResponseStatus.CACHE_MODULE_RESPONSE);
-            fatalErrorResponse = requestCompliance.getErrorForRequest(error);
+            fatalErrorResponse = responseGenerator.getErrorForRequest(error);
         }
         return fatalErrorResponse;
     }

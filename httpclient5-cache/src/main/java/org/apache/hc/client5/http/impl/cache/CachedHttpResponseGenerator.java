@@ -168,4 +168,35 @@ class CachedHttpResponseGenerator {
         return request.getMethod().equals(HeaderConstants.GET_METHOD) && cacheEntry.getResource() != null;
     }
 
+    /**
+     * Extract error information about the {@link HttpRequest} telling the 'caller'
+     * that a problem occured.
+     *
+     * @param errorCheck What type of error should I get
+     * @return The {@link ClassicHttpResponse} that is the error generated
+     */
+    public ClassicHttpResponse getErrorForRequest(final RequestProtocolError errorCheck) {
+        switch (errorCheck) {
+            case BODY_BUT_NO_LENGTH_ERROR:
+                return new BasicClassicHttpResponse(HttpStatus.SC_LENGTH_REQUIRED, "");
+
+            case WEAK_ETAG_AND_RANGE_ERROR:
+                return new BasicClassicHttpResponse(HttpStatus.SC_BAD_REQUEST,
+                        "Weak eTag not compatible with byte range");
+
+            case WEAK_ETAG_ON_PUTDELETE_METHOD_ERROR:
+                return new BasicClassicHttpResponse(HttpStatus.SC_BAD_REQUEST,
+                        "Weak eTag not compatible with PUT or DELETE requests");
+
+            case NO_CACHE_DIRECTIVE_WITH_FIELD_NAME:
+                return new BasicClassicHttpResponse(HttpStatus.SC_BAD_REQUEST,
+                        "No-Cache directive MUST NOT include a field name");
+
+            default:
+                throw new IllegalStateException(
+                        "The request was compliant, therefore no error can be generated for it.");
+
+        }
+    }
+
 }

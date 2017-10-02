@@ -49,7 +49,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.hc.client5.http.ClientProtocolException;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.cache.CacheResponseStatus;
 import org.apache.hc.client5.http.cache.HttpCacheContext;
@@ -357,27 +356,6 @@ public abstract class TestCachingExecChain {
         replayMocks();
         execute(request);
         verifyMocks();
-    }
-
-    @Test
-    public void testNonCompliantRequestWrapsAndReThrowsProtocolException() throws Exception {
-
-        final ClientProtocolException expected = new ClientProtocolException("ouch");
-
-        requestIsFatallyNonCompliant(null);
-        mockRequestProtocolCompliance.makeRequestCompliant((ClassicHttpRequest) anyObject());
-        expectLastCall().andThrow(expected);
-
-        boolean gotException = false;
-        replayMocks();
-        try {
-            execute(request);
-        } catch (final ClientProtocolException ex) {
-            Assert.assertSame(expected, ex);
-            gotException = true;
-        }
-        verifyMocks();
-        Assert.assertTrue(gotException);
     }
 
     @Test
