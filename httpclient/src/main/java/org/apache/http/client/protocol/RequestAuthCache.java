@@ -135,7 +135,7 @@ public class RequestAuthCache implements HttpRequestInterceptor {
         final Credentials creds = credsProvider.getCredentials(authScope);
 
         if (creds != null) {
-            if ("BASIC".equalsIgnoreCase(authScheme.getSchemeName())) {
+            if ("BASIC".equalsIgnoreCase(authScheme.getSchemeName()) || "DIGEST".equalsIgnoreCase(authScheme.getSchemeName())) {
                 authState.setState(AuthProtocolState.CHALLENGED);
             } else {
                 authState.setState(AuthProtocolState.SUCCESS);
