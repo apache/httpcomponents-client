@@ -48,6 +48,7 @@ import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
 import org.junit.After;
 import org.junit.Assert;
@@ -121,7 +122,7 @@ public class TestHttpCacheJiraNumber1147 {
         final ExecChain.Scope scope = new ExecChain.Scope("teset", route, get, mockEndpoint, context);
         final ClassicHttpResponse response1 = t.execute(get, scope, mockExecChain);
         Assert.assertEquals(200, response1.getCode());
-        IOUtils.consume(response1.getEntity());
+        EntityUtils.consume(response1.getEntity());
 
         verify(mockExecChain).proceed(isA(ClassicHttpRequest.class), isA(ExecChain.Scope.class));
 
@@ -132,7 +133,7 @@ public class TestHttpCacheJiraNumber1147 {
 
         final ClassicHttpResponse response2 = t.execute(get, scope, mockExecChain);
         Assert.assertEquals(200, response2.getCode());
-        IOUtils.consume(response2.getEntity());
+        EntityUtils.consume(response2.getEntity());
 
         verify(mockExecChain, Mockito.times(2)).proceed(
                 isA(ClassicHttpRequest.class),

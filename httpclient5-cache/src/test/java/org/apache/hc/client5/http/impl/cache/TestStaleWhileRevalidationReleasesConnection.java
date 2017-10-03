@@ -34,7 +34,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.hc.client5.http.ClientProtocolException;
 import org.apache.hc.client5.http.cache.CacheResponseStatus;
 import org.apache.hc.client5.http.cache.HttpCacheContext;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
@@ -53,6 +52,7 @@ import org.apache.hc.core5.http.impl.bootstrap.HttpServer;
 import org.apache.hc.core5.http.impl.bootstrap.ServerBootstrap;
 import org.apache.hc.core5.http.io.HttpRequestHandler;
 import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.junit.After;
@@ -198,17 +198,14 @@ public class TestStaleWhileRevalidationReleasesConnection {
         try {
             response = cachingClient.execute(httpget, localContext);
             return null;
-        } catch (final ClientProtocolException e1) {
-            return e1;
         } catch (final IOException e1) {
             return e1;
         } finally {
             if(response!=null) {
                 final HttpEntity entity = response.getEntity();
                 try {
-                    IOUtils.consume(entity);
-                } catch (final IOException e) {
-                    e.printStackTrace();
+                    EntityUtils.consume(entity);
+                } catch (final IOException ingnore) {
                 }
             }
         }

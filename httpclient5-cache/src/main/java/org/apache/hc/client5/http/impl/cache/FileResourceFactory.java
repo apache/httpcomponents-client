@@ -29,6 +29,9 @@ package org.apache.hc.client5.http.impl.cache;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.RandomAccessFile;
+import java.nio.channels.FileChannel;
 
 import org.apache.hc.client5.http.cache.Resource;
 import org.apache.hc.client5.http.cache.ResourceFactory;
@@ -97,14 +100,23 @@ public class FileResourceFactory implements ResourceFactory {
             final String requestId,
             final Resource resource) throws ResourceIOException {
         final File file = generateUniqueCacheFile(requestId);
-
         try {
             if (resource instanceof FileResource) {
-                final File src = ((FileResource) resource).getFile();
-                IOUtils.copyFile(src, file);
+                try (final RandomAccessFile srcFile = new RandomAccessFile(((FileResource) resource).getFile(), "r");
+                     final RandomAccessFile dstFile = new RandomAccessFile(file, "rw");
+                     final FileChannel src = srcFile.getChannel();
+                     final FileChannel dst = dstFile.getChannel()) {
+                    src.transferTo(0, srcFile.length(), dst);
+                }
             } else {
-                final FileOutputStream out = new FileOutputStream(file);
-                IOUtils.copyAndClose(resource.getInputStream(), out);
+                try (final FileOutputStream out = new FileOutputStream(file);
+                     final InputStream in = resource.getInputStream()) {
+                    final byte[] buf = new byte[2048];
+                    int len;
+                    while ((len = in.read(buf)) != -1) {
+                        out.write(buf, 0, len);
+                    }
+                }
             }
         } catch (final IOException ex) {
             throw new ResourceIOException(ex.getMessage(), ex);
