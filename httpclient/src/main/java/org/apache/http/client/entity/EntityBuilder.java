@@ -100,13 +100,15 @@ public class EntityBuilder {
     }
 
     /**
-     * Sets entity content as a string. This method is mutually exclusive with
-     * {@link #setBinary(byte[])},
-     * {@link #setStream(java.io.InputStream)} ,
-     * {@link #setSerializable(java.io.Serializable)} ,
-     * {@link #setParameters(java.util.List)},
-     * {@link #setParameters(org.apache.http.NameValuePair...)}
-     * {@link #setFile(java.io.File)} methods.
+     * Sets entity content as a string. This method is mutually exclusive with:
+     * <ul>
+     * <li>{@link #setBinary(byte[])}</li>
+     * <li>{@link #setStream(java.io.InputStream)}</li>
+     * <li>{@link #setSerializable(java.io.Serializable)}</li>
+     * <li>{@link #setParameters(java.util.List)}</li>
+     * <li>{@link #setParameters(org.apache.http.NameValuePair...)}</li>
+     * <li>{@link #setFile(java.io.File)}</li>
+     * <ul>
      */
     public EntityBuilder setText(final String text) {
         clearContent();
@@ -123,13 +125,16 @@ public class EntityBuilder {
     }
 
     /**
-     * Sets entity content as a byte array. This method is mutually exclusive with
-     * {@link #setText(String)},
-     * {@link #setStream(java.io.InputStream)} ,
-     * {@link #setSerializable(java.io.Serializable)} ,
-     * {@link #setParameters(java.util.List)},
-     * {@link #setParameters(org.apache.http.NameValuePair...)}
-     * {@link #setFile(java.io.File)} methods.
+     * Sets entity content as a byte array. This method is mutually exclusive
+     * with:
+     * <ul>
+     * <li>{@link #setText(String)}</li>
+     * <li>{@link #setStream(java.io.InputStream)}</li>
+     * <li>{@link #setSerializable(java.io.Serializable)}</li>
+     * <li>{@link #setParameters(java.util.List)}</li>
+     * <li>{@link #setParameters(org.apache.http.NameValuePair...)}</li>
+     * <li>{@link #setFile(java.io.File)}</li>
+     * </ul>
      */
     public EntityBuilder setBinary(final byte[] binary) {
         clearContent();
@@ -146,13 +151,16 @@ public class EntityBuilder {
     }
 
     /**
-     * Sets entity content as a {@link InputStream}. This method is mutually exclusive with
-     * {@link #setText(String)},
-     * {@link #setBinary(byte[])},
-     * {@link #setSerializable(java.io.Serializable)} ,
-     * {@link #setParameters(java.util.List)},
-     * {@link #setParameters(org.apache.http.NameValuePair...)}
-     * {@link #setFile(java.io.File)} methods.
+     * Sets entity content as a {@link InputStream}. This method is mutually
+     * exclusive with:
+     * <ul>
+     * <li>{@link #setText(String)}</li>
+     * <li>{@link #setBinary(byte[])}</li>
+     * <li>{@link #setSerializable(java.io.Serializable)}</li>
+     * <li>{@link #setParameters(java.util.List)}</li>
+     * <li>{@link #setParameters(org.apache.http.NameValuePair...)}</li>
+     * <li>{@link #setFile(java.io.File)}</li>
+     * </ul>
      */
     public EntityBuilder setStream(final InputStream stream) {
         clearContent();
@@ -170,12 +178,15 @@ public class EntityBuilder {
     }
 
     /**
-     * Sets entity content as a parameter list. This method is mutually exclusive with
-     * {@link #setText(String)},
-     * {@link #setBinary(byte[])},
-     * {@link #setStream(java.io.InputStream)} ,
-     * {@link #setSerializable(java.io.Serializable)} ,
-     * {@link #setFile(java.io.File)} methods.
+     * Sets entity content as a parameter list. This method is mutually
+     * exclusive with:
+     * <ul>
+     * <li>{@link #setText(String)}</li>
+     * <li>{@link #setBinary(byte[])}</li>
+     * <li>{@link #setStream(java.io.InputStream)}</li>
+     * <li>{@link #setSerializable(java.io.Serializable)}</li>
+     * <li>{@link #setFile(java.io.File)}</li>
+     * </ul>
      */
     public EntityBuilder setParameters(final List<NameValuePair> parameters) {
         clearContent();
@@ -184,12 +195,14 @@ public class EntityBuilder {
     }
 
     /**
-     * Sets entity content as a parameter list. This method is mutually exclusive with
-     * {@link #setText(String)},
-     * {@link #setBinary(byte[])},
-     * {@link #setStream(java.io.InputStream)} ,
-     * {@link #setSerializable(java.io.Serializable)} ,
-     * {@link #setFile(java.io.File)} methods.
+     * Sets entity content as a parameter list. This method is mutually exclusive with:
+     * <ul>
+     * <li>{@link #setText(String)}</li>
+     * <li>{@link #setBinary(byte[])}</li>
+     * <li>{@link #setStream(java.io.InputStream)}</li>
+     * <li>{@link #setSerializable(java.io.Serializable)}</li>
+     * <li>{@link #setFile(java.io.File)}</li>
+     * </ul>
      */
     public EntityBuilder setParameters(final NameValuePair... parameters) {
         return setParameters(Arrays.asList(parameters));
@@ -204,13 +217,15 @@ public class EntityBuilder {
     }
 
     /**
-     * Sets entity content as a {@link Serializable}. This method is mutually exclusive with
-     * {@link #setText(String)},
-     * {@link #setBinary(byte[])},
-     * {@link #setStream(java.io.InputStream)} ,
-     * {@link #setParameters(java.util.List)},
-     * {@link #setParameters(org.apache.http.NameValuePair...)}
-     * {@link #setFile(java.io.File)} methods.
+     * Sets entity content as a {@link Serializable}. This method is mutually exclusive with:
+     * <ul>
+     * <li>{@link #setText(String)}</li>
+     * <li>{@link #setBinary(byte[])}</li>
+     * <li>{@link #setStream(java.io.InputStream)}</li>
+     * <li>{@link #setParameters(java.util.List)}</li>
+     * <li>{@link #setParameters(org.apache.http.NameValuePair...)}</li>
+     * <li>{@link #setFile(java.io.File)}</li>
+     * </ul>
      */
     public EntityBuilder setSerializable(final Serializable serializable) {
         clearContent();
@@ -227,13 +242,15 @@ public class EntityBuilder {
     }
 
     /**
-     * Sets entity content as a {@link File}. This method is mutually exclusive with
-     * {@link #setText(String)},
-     * {@link #setBinary(byte[])},
-     * {@link #setStream(java.io.InputStream)} ,
-     * {@link #setParameters(java.util.List)},
-     * {@link #setParameters(org.apache.http.NameValuePair...)}
-     * {@link #setSerializable(java.io.Serializable)} methods.
+     * Sets entity content as a {@link File}. This method is mutually exclusive with:
+     * <ul>
+     * <li>{@link #setText(String)}</li>
+     * <li>{@link #setBinary(byte[])}</li>
+     * <li>{@link #setStream(java.io.InputStream)}</li>
+     * <li>{@link #setParameters(java.util.List)}</li>
+     * <li>{@link #setParameters(org.apache.http.NameValuePair...)}</li>
+     * <li>{@link #setSerializable(java.io.Serializable)}</li>
+     * <ul>
      */
     public EntityBuilder setFile(final File file) {
         clearContent();
