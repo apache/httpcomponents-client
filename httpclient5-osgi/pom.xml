@@ -174,7 +174,6 @@
 
       <plugin>
         <artifactId>maven-project-info-reports-plugin</artifactId>
-        <version>${hc.project-info.version}</version>
         <inherited>false</inherited>
         <reportSets>
           <reportSet>

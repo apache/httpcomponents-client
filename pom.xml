@@ -26,9 +26,8 @@
  --><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <parent>
     <groupId>org.apache.httpcomponents</groupId>
-    <artifactId>project</artifactId>
-    <!-- Version 9: <artifactId>httpcomponents-parent</artifactId> -->
-    <version>8</version>
+    <artifactId>httpcomponents-parent</artifactId>
+    <version>9</version>
     <relativePath>../httpcomponents-parent/pom.xml</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
@@ -80,7 +79,6 @@
     <mockito.version>2.7.22</mockito.version>
     <jna.version>4.2.1</jna.version>
     <hc.stylecheck.version>1</hc.stylecheck.version>
-    <hc.rat.version>0.12</hc.rat.version>
   </properties>
 
   <dependencyManagement>
@@ -383,7 +381,6 @@
       <plugin>
         <groupId>org.apache.rat</groupId>
         <artifactId>apache-rat-plugin</artifactId>
-        <version>${hc.rat.version}</version>
         <executions>
           <execution>
             <phase>verify</phase>
@@ -412,7 +409,6 @@
 
       <plugin>
         <artifactId>maven-project-info-reports-plugin</artifactId>
-        <version>${hc.project-info.version}</version>
         <inherited>false</inherited>
         <reportSets>
           <reportSet>
