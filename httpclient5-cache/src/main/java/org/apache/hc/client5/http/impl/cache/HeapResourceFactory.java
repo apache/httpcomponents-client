@@ -41,6 +41,8 @@ import org.apache.hc.core5.util.Args;
 @Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class HeapResourceFactory implements ResourceFactory {
 
+    public static final HeapResourceFactory INSTANCE = new HeapResourceFactory();
+
     @Override
     public Resource generate(
             final String requestId,

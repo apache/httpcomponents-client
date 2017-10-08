@@ -50,7 +50,6 @@ public class CachingHttpClientBuilder extends HttpClientBuilder {
     private HttpCacheStorage storage;
     private File cacheDir;
     private CacheConfig cacheConfig;
-    private SchedulingStrategy schedulingStrategy;
     private HttpCacheInvalidator httpCacheInvalidator;
     private boolean deleteCache;
 
@@ -84,12 +83,6 @@ public class CachingHttpClientBuilder extends HttpClientBuilder {
     public final CachingHttpClientBuilder setCacheConfig(
             final CacheConfig cacheConfig) {
         this.cacheConfig = cacheConfig;
-        return this;
-    }
-
-    public final CachingHttpClientBuilder setSchedulingStrategy(
-            final SchedulingStrategy schedulingStrategy) {
-        this.schedulingStrategy = schedulingStrategy;
         return this;
     }
 
@@ -137,13 +130,6 @@ public class CachingHttpClientBuilder extends HttpClientBuilder {
                 storageCopy = managedStorage;
             }
         }
-        final AsynchronousValidator revalidator;
-        if (config.getAsynchronousWorkersMax() > 0) {
-            revalidator = new AsynchronousValidator(schedulingStrategy != null ? schedulingStrategy : new ImmediateSchedulingStrategy(config));
-            addCloseable(revalidator);
-        } else {
-            revalidator = null;
-        }
         final CacheKeyGenerator uriExtractor = new CacheKeyGenerator();
         final HttpCache httpCache = new BasicHttpCache(
                 resourceFactoryCopy,
@@ -151,7 +137,7 @@ public class CachingHttpClientBuilder extends HttpClientBuilder {
                 uriExtractor,
                 this.httpCacheInvalidator != null ? this.httpCacheInvalidator : new CacheInvalidator(uriExtractor, storageCopy));
 
-        final CachingExec cachingExec = new CachingExec(httpCache, config, revalidator);
+        final CachingExec cachingExec = new CachingExec(httpCache, config);
         execChainDefinition.addAfter(ChainElements.PROTOCOL.name(), cachingExec, "CACHING");
     }
 

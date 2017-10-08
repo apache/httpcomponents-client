@@ -36,7 +36,6 @@ import static org.easymock.classextension.EasyMock.createNiceMock;
 import static org.easymock.classextension.EasyMock.replay;
 import static org.easymock.classextension.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
@@ -110,7 +109,6 @@ public abstract class TestCachingExecChain {
     protected ResponseProtocolCompliance mockResponseProtocolCompliance;
     protected RequestProtocolCompliance mockRequestProtocolCompliance;
     protected CacheConfig config;
-    protected AsynchronousValidator asyncValidator;
 
     protected HttpRoute route;
     protected HttpHost host;
@@ -138,7 +136,6 @@ public abstract class TestCachingExecChain {
         mockRequestProtocolCompliance = createNiceMock(RequestProtocolCompliance.class);
         mockStorage = createNiceMock(HttpCacheStorage.class);
         config = CacheConfig.DEFAULT;
-        asyncValidator = new AsynchronousValidator(config);
 
         host = new HttpHost("foo.example.com", 80);
         route = new HttpRoute(host);
@@ -148,7 +145,7 @@ public abstract class TestCachingExecChain {
         impl = createCachingExecChain(mockCache, mockValidityPolicy,
             mockResponsePolicy, mockResponseGenerator, mockRequestPolicy, mockSuitabilityChecker,
             mockConditionalRequestBuilder, mockResponseProtocolCompliance,
-            mockRequestProtocolCompliance, config, asyncValidator);
+            mockRequestProtocolCompliance, config);
     }
 
     public abstract CachingExec createCachingExecChain(
@@ -158,7 +155,7 @@ public abstract class TestCachingExecChain {
             CachedResponseSuitabilityChecker suitabilityChecker,
             ConditionalRequestBuilder<ClassicHttpRequest> conditionalRequestBuilder,
             ResponseProtocolCompliance responseCompliance, RequestProtocolCompliance requestCompliance,
-            CacheConfig config, AsynchronousValidator asynchRevalidator);
+            CacheConfig config);
 
     public abstract CachingExec createCachingExecChain(HttpCache cache, CacheConfig config);
 
@@ -1241,78 +1238,12 @@ public abstract class TestCachingExecChain {
     }
 
     @Test
-    public void testRecognizesComplete200Response()
-            throws Exception {
-        final ClassicHttpResponse resp = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
-        final ByteArrayBuffer buf = HttpTestUtils.getRandomBuffer(128);
-        resp.setHeader("Content-Length","128");
-        assertFalse(impl.isIncompleteResponse(resp, buf));
-    }
-
-    @Test
-    public void testRecognizesComplete206Response()
-            throws Exception {
-        final ClassicHttpResponse resp = new BasicClassicHttpResponse(HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
-        final ByteArrayBuffer buf = HttpTestUtils.getRandomBuffer(128);
-        resp.setHeader("Content-Length","128");
-        resp.setHeader("Content-Range","bytes 0-127/255");
-        assertFalse(impl.isIncompleteResponse(resp, buf));
-    }
-
-    @Test
-    public void testRecognizesIncomplete200Response()
-            throws Exception {
-        final ClassicHttpResponse resp = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
-        final ByteArrayBuffer buf = HttpTestUtils.getRandomBuffer(128);
-        resp.setHeader("Content-Length","256");
-
-        assertTrue(impl.isIncompleteResponse(resp, buf));
-    }
-
-    @Test
-    public void testIgnoresIncompleteNon200Or206Responses()
-            throws Exception {
-        final ClassicHttpResponse resp = new BasicClassicHttpResponse(HttpStatus.SC_FORBIDDEN, "Forbidden");
-        final ByteArrayBuffer buf = HttpTestUtils.getRandomBuffer(128);
-        resp.setHeader("Content-Length","256");
-
-        assertFalse(impl.isIncompleteResponse(resp, buf));
-    }
-
-    @Test
-    public void testResponsesWithoutExplicitContentLengthAreComplete()
-            throws Exception {
-        final ClassicHttpResponse resp = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
-        final ByteArrayBuffer buf = HttpTestUtils.getRandomBuffer(128);
-
-        assertFalse(impl.isIncompleteResponse(resp, buf));
-    }
-
-    @Test
-    public void testResponsesWithUnparseableContentLengthHeaderAreComplete()
-            throws Exception {
-        final ClassicHttpResponse resp = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
-        final ByteArrayBuffer buf = HttpTestUtils.getRandomBuffer(128);
-        resp.setHeader("Content-Length","foo");
-        assertFalse(impl.isIncompleteResponse(resp, buf));
-    }
-
-    @Test
-    public void testNullResourcesAreComplete()
-            throws Exception {
-        final ClassicHttpResponse resp = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
-        resp.setHeader("Content-Length","256");
-
-        assertFalse(impl.isIncompleteResponse(resp, null));
-    }
-
-    @Test
     public void testTooLargeResponsesAreNotCached() throws Exception {
         mockCache = EasyMock.createStrictMock(HttpCache.class);
         impl = createCachingExecChain(mockCache, mockValidityPolicy,
                 mockResponsePolicy, mockResponseGenerator, mockRequestPolicy, mockSuitabilityChecker,
                 mockConditionalRequestBuilder, mockResponseProtocolCompliance,
-                mockRequestProtocolCompliance, config, asyncValidator);
+                mockRequestProtocolCompliance, config);
 
         final HttpHost host = new HttpHost("foo.example.com");
         final HttpRequest request = new HttpGet("http://foo.example.com/bar");

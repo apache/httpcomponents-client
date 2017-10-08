@@ -4145,38 +4145,6 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         }
     }
 
-    /* "A cache that receives an incomplete response (for example,
-     * with fewer bytes of data than specified in a Content-Length
-     * header) MAY store the response. However, the cache MUST treat
-     * this as a partial response. Partial responses MAY be combined
-     * as described in section 13.5.4; the result might be a full
-     * response or might still be partial. A cache MUST NOT return a
-     * partial response to a client without explicitly marking it as
-     * such, using the 206 (Partial Content) status code. A cache MUST
-     * NOT return a partial response using a status code of 200 (OK)."
-     *
-     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.8
-     */
-    @Test
-    public void testIncompleteResponseMustNotBeReturnedToClientWithoutMarkingItAs206() throws Exception {
-        originResponse.setEntity(HttpTestUtils.makeBody(128));
-        originResponse.setHeader("Content-Length","256");
-
-        backendExpectsAnyRequest().andReturn(originResponse);
-
-        replayMocks();
-        final ClassicHttpResponse result = execute(request);
-        verifyMocks();
-
-        final int status = result.getCode();
-        Assert.assertFalse(HttpStatus.SC_OK == status);
-        if (status > 200 && status <= 299
-            && HttpTestUtils.equivalent(originResponse.getEntity(),
-                                        result.getEntity())) {
-            Assert.assertTrue(HttpStatus.SC_PARTIAL_CONTENT == status);
-        }
-    }
-
     /* "Some HTTP methods MUST cause a cache to invalidate an
      * entity. This is either the entity referred to by the
      * Request-URI, or by the Location or Content-Location headers (if
