@@ -26,7 +26,6 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
@@ -42,6 +41,7 @@ import org.apache.hc.client5.http.cache.HttpCacheUpdateCallback;
 import org.apache.hc.client5.http.cache.HttpCacheUpdateException;
 import org.apache.hc.client5.http.cache.Resource;
 import org.apache.hc.client5.http.cache.ResourceFactory;
+import org.apache.hc.client5.http.cache.ResourceIOException;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
@@ -96,8 +96,7 @@ class BasicHttpCache implements HttpCache {
     }
 
     @Override
-    public void flushCacheEntriesFor(final HttpHost host, final HttpRequest request)
-            throws IOException {
+    public void flushCacheEntriesFor(final HttpHost host, final HttpRequest request) throws ResourceIOException {
         if (!safeRequestMethods.contains(request.getMethod())) {
             final String uri = uriExtractor.generateKey(host, request);
             storage.removeEntry(uri);
@@ -112,7 +111,7 @@ class BasicHttpCache implements HttpCache {
     }
 
     void storeInCache(
-            final HttpHost target, final HttpRequest request, final HttpCacheEntry entry) throws IOException {
+            final HttpHost target, final HttpRequest request, final HttpCacheEntry entry) throws ResourceIOException {
         if (entry.hasVariants()) {
             storeVariantEntry(target, request, entry);
         } else {
@@ -121,7 +120,7 @@ class BasicHttpCache implements HttpCache {
     }
 
     void storeNonVariantEntry(
-            final HttpHost target, final HttpRequest req, final HttpCacheEntry entry) throws IOException {
+            final HttpHost target, final HttpRequest req, final HttpCacheEntry entry) throws ResourceIOException {
         final String uri = uriExtractor.generateKey(target, req);
         storage.putEntry(uri, entry);
     }
@@ -129,7 +128,7 @@ class BasicHttpCache implements HttpCache {
     void storeVariantEntry(
             final HttpHost target,
             final HttpRequest req,
-            final HttpCacheEntry entry) throws IOException {
+            final HttpCacheEntry entry) throws ResourceIOException {
         final String parentURI = uriExtractor.generateKey(target, req);
         final String variantURI = uriExtractor.generateVariantURI(target, req, entry);
         storage.putEntry(variantURI, entry);
@@ -137,7 +136,7 @@ class BasicHttpCache implements HttpCache {
         final HttpCacheUpdateCallback callback = new HttpCacheUpdateCallback() {
 
             @Override
-            public HttpCacheEntry update(final HttpCacheEntry existing) throws IOException {
+            public HttpCacheEntry update(final HttpCacheEntry existing) throws ResourceIOException {
                 return doGetUpdatedParentEntry(
                         req.getRequestUri(), existing, entry,
                         uriExtractor.generateVariantKey(req, entry),
@@ -154,8 +153,8 @@ class BasicHttpCache implements HttpCache {
     }
 
     @Override
-    public void reuseVariantEntryFor(final HttpHost target, final HttpRequest req,
-            final Variant variant) throws IOException {
+    public void reuseVariantEntryFor(
+            final HttpHost target, final HttpRequest req, final Variant variant) throws ResourceIOException {
         final String parentCacheKey = uriExtractor.generateKey(target, req);
         final HttpCacheEntry entry = variant.getEntry();
         final String variantKey = uriExtractor.generateVariantKey(req, entry);
@@ -164,7 +163,7 @@ class BasicHttpCache implements HttpCache {
         final HttpCacheUpdateCallback callback = new HttpCacheUpdateCallback() {
             @Override
             public HttpCacheEntry update(final HttpCacheEntry existing)
-                    throws IOException {
+                    throws ResourceIOException {
                 return doGetUpdatedParentEntry(req.getRequestUri(),
                         existing, entry, variantKey, variantCacheKey);
             }
@@ -182,7 +181,7 @@ class BasicHttpCache implements HttpCache {
             final HttpCacheEntry existing,
             final HttpCacheEntry entry,
             final String variantKey,
-            final String variantCacheKey) throws IOException {
+            final String variantCacheKey) throws ResourceIOException {
         HttpCacheEntry src = existing;
         if (src == null) {
             src = entry;
@@ -204,9 +203,13 @@ class BasicHttpCache implements HttpCache {
     }
 
     @Override
-    public HttpCacheEntry updateCacheEntry(final HttpHost target, final HttpRequest request,
-            final HttpCacheEntry stale, final HttpResponse originResponse,
-            final Date requestSent, final Date responseReceived) throws IOException {
+    public HttpCacheEntry updateCacheEntry(
+            final HttpHost target,
+            final HttpRequest request,
+            final HttpCacheEntry stale,
+            final HttpResponse originResponse,
+            final Date requestSent,
+            final Date responseReceived) throws ResourceIOException {
         final HttpCacheEntry updatedEntry = cacheEntryUpdater.updateCacheEntry(
                 request.getRequestUri(),
                 stale,
@@ -220,7 +223,7 @@ class BasicHttpCache implements HttpCache {
     @Override
     public HttpCacheEntry updateVariantCacheEntry(final HttpHost target, final HttpRequest request,
             final HttpCacheEntry stale, final HttpResponse originResponse,
-            final Date requestSent, final Date responseReceived, final String cacheKey) throws IOException {
+            final Date requestSent, final Date responseReceived, final String cacheKey) throws ResourceIOException {
         final HttpCacheEntry updatedEntry = cacheEntryUpdater.updateCacheEntry(
                 request.getRequestUri(),
                 stale,
@@ -237,7 +240,7 @@ class BasicHttpCache implements HttpCache {
             final HttpResponse originResponse,
             final ByteArrayBuffer content,
             final Date requestSent,
-            final Date responseReceived) throws IOException {
+            final Date responseReceived) throws ResourceIOException {
         final Resource resource;
         if (content != null) {
             resource = resourceFactory.generate(request.getRequestUri(), content.array(), 0, content.length());
@@ -255,7 +258,7 @@ class BasicHttpCache implements HttpCache {
     }
 
     @Override
-    public HttpCacheEntry getCacheEntry(final HttpHost host, final HttpRequest request) throws IOException {
+    public HttpCacheEntry getCacheEntry(final HttpHost host, final HttpRequest request) throws ResourceIOException {
         final HttpCacheEntry root = storage.getEntry(uriExtractor.generateKey(host, request));
         if (root == null) {
             return null;
@@ -272,13 +275,13 @@ class BasicHttpCache implements HttpCache {
 
     @Override
     public void flushInvalidatedCacheEntriesFor(final HttpHost host,
-            final HttpRequest request) throws IOException {
+            final HttpRequest request) throws ResourceIOException {
         cacheInvalidator.flushInvalidatedCacheEntries(host, request);
     }
 
     @Override
     public Map<String, Variant> getVariantCacheEntriesWithEtags(final HttpHost host, final HttpRequest request)
-            throws IOException {
+            throws ResourceIOException {
         final Map<String,Variant> variants = new HashMap<>();
         final HttpCacheEntry root = storage.getEntry(uriExtractor.generateKey(host, request));
         if (root == null || !root.hasVariants()) {
@@ -294,7 +297,7 @@ class BasicHttpCache implements HttpCache {
 
     private void addVariantWithEtag(final String variantKey,
             final String variantCacheKey, final Map<String, Variant> variants)
-            throws IOException {
+            throws ResourceIOException {
         final HttpCacheEntry entry = storage.getEntry(variantCacheKey);
         if (entry == null) {
             return;

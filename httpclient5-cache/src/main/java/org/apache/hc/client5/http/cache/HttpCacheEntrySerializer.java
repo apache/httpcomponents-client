@@ -26,7 +26,6 @@
  */
 package org.apache.hc.client5.http.cache;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
@@ -40,15 +39,15 @@ public interface HttpCacheEntrySerializer {
     /**
      * Serializes the given entry to a byte representation on the
      * given {@link OutputStream}.
-     * @throws IOException
+     * @throws ResourceIOException
      */
-    void writeTo(HttpCacheEntry entry, OutputStream os) throws IOException;
+    void writeTo(HttpCacheEntry entry, OutputStream os) throws ResourceIOException;
 
     /**
      * Deserializes a byte representation of a cache entry by reading
      * from the given {@link InputStream}.
-     * @throws IOException
+     * @throws ResourceIOException
      */
-    HttpCacheEntry readFrom(InputStream is) throws IOException;
+    HttpCacheEntry readFrom(InputStream is) throws ResourceIOException;
 
 }

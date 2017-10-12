@@ -26,11 +26,10 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
-import java.io.IOException;
-
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.HttpCacheStorage;
 import org.apache.hc.client5.http.cache.HttpCacheUpdateCallback;
+import org.apache.hc.client5.http.cache.ResourceIOException;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 
@@ -63,7 +62,8 @@ public class BasicHttpCacheStorage implements HttpCacheStorage {
      *            HttpCacheEntry to place in the cache
      */
     @Override
-    public synchronized void putEntry(final String url, final HttpCacheEntry entry) throws IOException {
+    public synchronized void putEntry(
+            final String url, final HttpCacheEntry entry) throws ResourceIOException {
         entries.put(url, entry);
     }
 
@@ -75,7 +75,7 @@ public class BasicHttpCacheStorage implements HttpCacheStorage {
      * @return HttpCacheEntry if one exists, or null for cache miss
      */
     @Override
-    public synchronized HttpCacheEntry getEntry(final String url) throws IOException {
+    public synchronized HttpCacheEntry getEntry(final String url) throws ResourceIOException {
         return entries.get(url);
     }
 
@@ -86,14 +86,14 @@ public class BasicHttpCacheStorage implements HttpCacheStorage {
      *            Url that is the cache key
      */
     @Override
-    public synchronized void removeEntry(final String url) throws IOException {
+    public synchronized void removeEntry(final String url) throws ResourceIOException {
         entries.remove(url);
     }
 
     @Override
     public synchronized void updateEntry(
             final String url,
-            final HttpCacheUpdateCallback callback) throws IOException {
+            final HttpCacheUpdateCallback callback) throws ResourceIOException {
         final HttpCacheEntry existingEntry = entries.get(url);
         entries.put(url, callback.update(existingEntry));
     }

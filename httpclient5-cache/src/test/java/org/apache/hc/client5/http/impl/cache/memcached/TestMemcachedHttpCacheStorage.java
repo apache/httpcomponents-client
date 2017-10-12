@@ -117,7 +117,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
         verify(mockKeyHashingScheme).hash(url);
     }
 
-    public void testThrowsIOExceptionWhenMemcachedPutTimesOut() {
+    public void testThrowsIOExceptionWhenMemcachedPutTimesOut() throws Exception {
         final String url = "foo";
         final String key = "key";
         final HttpCacheEntry value = HttpTestUtils.makeCacheEntry();
@@ -145,7 +145,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
     }
 
     @Test
-    public void testCachePutThrowsIOExceptionIfCannotSerializeEntry() {
+    public void testCachePutThrowsIOExceptionIfCannotSerializeEntry() throws Exception {
         final String url = "foo";
         final String key = "key";
         final HttpCacheEntry value = HttpTestUtils.makeCacheEntry();
@@ -167,8 +167,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
     }
 
     @Test
-    public void testSuccessfulCacheGet() throws
-            IOException {
+    public void testSuccessfulCacheGet() throws Exception {
         final String url = "foo";
         final String key = "key";
         final byte[] serialized = HttpTestUtils.getRandomBytes(128);
@@ -194,8 +193,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
     }
 
     @Test
-    public void testTreatsNoneByteArrayFromMemcachedAsCacheMiss() throws
-            IOException {
+    public void testTreatsNoneByteArrayFromMemcachedAsCacheMiss() throws Exception {
         final String url = "foo";
         final String key = "key";
 
@@ -211,8 +209,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
     }
 
     @Test
-    public void testTreatsNullFromMemcachedAsCacheMiss() throws
-            IOException {
+    public void testTreatsNullFromMemcachedAsCacheMiss() throws Exception {
         final String url = "foo";
         final String key = "key";
 
@@ -228,8 +225,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
     }
 
     @Test
-    public void testTreatsAsCacheMissIfCannotReconstituteEntry() throws
-            IOException {
+    public void testTreatsAsCacheMissIfCannotReconstituteEntry() throws Exception {
         final String url = "foo";
         final String key = "key";
         final byte[] serialized = HttpTestUtils.getRandomBytes(128);
@@ -249,8 +245,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
     }
 
     @Test
-    public void testTreatsAsCacheMissIfCantHashStorageKey() throws
-            IOException {
+    public void testTreatsAsCacheMissIfCantHashStorageKey() throws Exception {
         final String url = "foo";
 
         when(mockKeyHashingScheme.hash(url)).thenThrow(new MemcachedKeyHashingException(new Exception()));

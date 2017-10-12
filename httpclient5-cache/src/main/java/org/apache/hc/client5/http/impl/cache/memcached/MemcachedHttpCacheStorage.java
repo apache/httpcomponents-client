@@ -33,6 +33,7 @@ import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.HttpCacheStorage;
 import org.apache.hc.client5.http.cache.HttpCacheUpdateCallback;
 import org.apache.hc.client5.http.cache.HttpCacheUpdateException;
+import org.apache.hc.client5.http.cache.ResourceIOException;
 import org.apache.hc.client5.http.impl.cache.CacheConfig;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -142,7 +143,7 @@ public class MemcachedHttpCacheStorage implements HttpCacheStorage {
     }
 
     @Override
-    public void putEntry(final String url, final HttpCacheEntry entry) throws IOException  {
+    public void putEntry(final String url, final HttpCacheEntry entry) throws ResourceIOException {
         final byte[] bytes = serializeEntry(url, entry);
         final String key = getCacheKey(url);
         if (key == null) {
@@ -163,15 +164,9 @@ public class MemcachedHttpCacheStorage implements HttpCacheStorage {
         }
     }
 
-    private byte[] serializeEntry(final String url, final HttpCacheEntry hce) throws IOException {
+    private byte[] serializeEntry(final String url, final HttpCacheEntry hce) throws ResourceIOException {
         final MemcachedCacheEntry mce = memcachedCacheEntryFactory.getMemcachedCacheEntry(url, hce);
-        try {
-            return mce.toByteArray();
-        } catch (final MemcachedSerializationException mse) {
-            final IOException ioe = new IOException();
-            ioe.initCause(mse);
-            throw ioe;
-        }
+        return mce.toByteArray();
     }
 
     private byte[] convertToByteArray(final Object o) {
@@ -200,7 +195,7 @@ public class MemcachedHttpCacheStorage implements HttpCacheStorage {
     }
 
     @Override
-    public HttpCacheEntry getEntry(final String url) throws IOException {
+    public HttpCacheEntry getEntry(final String url) throws ResourceIOException {
         final String key = getCacheKey(url);
         if (key == null) {
             return null;
@@ -217,7 +212,7 @@ public class MemcachedHttpCacheStorage implements HttpCacheStorage {
     }
 
     @Override
-    public void removeEntry(final String url) throws IOException {
+    public void removeEntry(final String url) throws ResourceIOException {
         final String key = getCacheKey(url);
         if (key == null) {
             return;
@@ -231,7 +226,7 @@ public class MemcachedHttpCacheStorage implements HttpCacheStorage {
 
     @Override
     public void updateEntry(final String url, final HttpCacheUpdateCallback callback)
-            throws HttpCacheUpdateException, IOException {
+            throws HttpCacheUpdateException, ResourceIOException {
         int numRetries = 0;
         final String key = getCacheKey(url);
         if (key == null) {

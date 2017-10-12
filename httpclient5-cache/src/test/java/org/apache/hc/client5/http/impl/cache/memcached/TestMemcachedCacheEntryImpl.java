@@ -59,7 +59,7 @@ public class TestMemcachedCacheEntryImpl {
     }
 
     @Test
-    public void canBeSerialized() {
+    public void canBeSerialized() throws Exception {
         final byte[] bytes = impl.toByteArray();
         assertNotNull(bytes);
         assertTrue(bytes.length > 0);
@@ -88,7 +88,7 @@ public class TestMemcachedCacheEntryImpl {
     }
 
     @Test(expected=MemcachedSerializationException.class)
-    public void cannotReconstituteFromGarbage() {
+    public void cannotReconstituteFromGarbage() throws Exception {
         impl = new MemcachedCacheEntryImpl();
         final byte[] bytes = HttpTestUtils.getRandomBytes(128);
         impl.set(bytes);

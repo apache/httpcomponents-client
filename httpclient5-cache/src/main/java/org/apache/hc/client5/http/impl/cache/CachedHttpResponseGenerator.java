@@ -26,13 +26,13 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
-import java.io.IOException;
 import java.util.Date;
 
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.Resource;
+import org.apache.hc.client5.http.cache.ResourceIOException;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
@@ -67,7 +67,7 @@ class CachedHttpResponseGenerator {
      * @param entry {@link HttpCacheEntry} to transform into an {@link HttpResponse}
      * @return {@link SimpleHttpResponse} constructed response
      */
-    SimpleHttpResponse generateResponse(final HttpRequest request, final HttpCacheEntry entry) throws IOException {
+    SimpleHttpResponse generateResponse(final HttpRequest request, final HttpCacheEntry entry) throws ResourceIOException {
         final Date now = new Date();
         final SimpleHttpResponse response = new SimpleHttpResponse(entry.getStatus());
         response.setVersion(HttpVersion.DEFAULT);

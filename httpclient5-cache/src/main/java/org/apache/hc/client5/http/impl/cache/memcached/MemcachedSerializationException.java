@@ -26,16 +26,16 @@
  */
 package org.apache.hc.client5.http.impl.cache.memcached;
 
+import org.apache.hc.client5.http.cache.ResourceIOException;
+
 /**
  * Raised when there is a problem serializing or deserializing cache
  * entries into a byte representation suitable for memcached storage.
  */
-public class MemcachedSerializationException extends RuntimeException {
-
-    private static final long serialVersionUID = 2201652990656412236L;
+public class MemcachedSerializationException extends ResourceIOException {
 
     public MemcachedSerializationException(final Throwable cause) {
-        super(cause);
+        super(cause != null ? cause.getMessage() : null, cause);
     }
 
 }

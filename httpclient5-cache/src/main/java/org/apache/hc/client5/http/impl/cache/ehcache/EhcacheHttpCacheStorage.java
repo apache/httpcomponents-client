@@ -28,13 +28,13 @@ package org.apache.hc.client5.http.impl.cache.ehcache;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.HttpCacheEntrySerializer;
 import org.apache.hc.client5.http.cache.HttpCacheStorage;
 import org.apache.hc.client5.http.cache.HttpCacheUpdateCallback;
 import org.apache.hc.client5.http.cache.HttpCacheUpdateException;
+import org.apache.hc.client5.http.cache.ResourceIOException;
 import org.apache.hc.client5.http.impl.cache.CacheConfig;
 import org.apache.hc.client5.http.impl.cache.DefaultHttpCacheEntrySerializer;
 
@@ -102,14 +102,14 @@ public class EhcacheHttpCacheStorage implements HttpCacheStorage {
     }
 
     @Override
-    public synchronized void putEntry(final String key, final HttpCacheEntry entry) throws IOException {
+    public synchronized void putEntry(final String key, final HttpCacheEntry entry) throws ResourceIOException {
         final ByteArrayOutputStream bos = new ByteArrayOutputStream();
         serializer.writeTo(entry, bos);
         cache.put(new Element(key, bos.toByteArray()));
     }
 
     @Override
-    public synchronized HttpCacheEntry getEntry(final String key) throws IOException {
+    public synchronized HttpCacheEntry getEntry(final String key) throws ResourceIOException {
         final Element e = cache.get(key);
         if(e == null){
             return null;
@@ -125,8 +125,8 @@ public class EhcacheHttpCacheStorage implements HttpCacheStorage {
     }
 
     @Override
-    public synchronized void updateEntry(final String key, final HttpCacheUpdateCallback callback)
-            throws IOException, HttpCacheUpdateException {
+    public synchronized void updateEntry(
+            final String key, final HttpCacheUpdateCallback callback) throws ResourceIOException, HttpCacheUpdateException {
         int numRetries = 0;
         do{
             final Element oldElement = cache.get(key);

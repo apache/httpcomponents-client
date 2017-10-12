@@ -39,8 +39,9 @@ public interface MemcachedCacheEntry {
 
     /**
      * Returns a serialized representation of the current cache entry.
-     */
-    byte[] toByteArray();
+     * @throws MemcachedSerializationException if serialization fails.
+     *   */
+    byte[] toByteArray() throws MemcachedSerializationException;
 
     /**
      * Returns the storage key associated with this entry. May return
@@ -71,6 +72,6 @@ public interface MemcachedCacheEntry {
      *   fails. In this case, the prior values for {{@link #getStorageKey()}
      *   and {@link #getHttpCacheEntry()} should remain unchanged.
      */
-    void set(byte[] bytes);
+    void set(byte[] bytes) throws MemcachedSerializationException ;
 
 }

@@ -26,7 +26,6 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -37,6 +36,7 @@ import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.Resource;
 import org.apache.hc.client5.http.cache.ResourceFactory;
+import org.apache.hc.client5.http.cache.ResourceIOException;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
@@ -77,14 +77,14 @@ class CacheEntryUpdater {
      * @param responseDate When the response was gotten
      * @param response The HttpResponse from the backend server call
      * @return HttpCacheEntry an updated version of the cache entry
-     * @throws java.io.IOException if something bad happens while trying to read the body from the original entry
+     * @throws ResourceIOException if something bad happens while trying to read the body from the original entry
      */
     public HttpCacheEntry updateCacheEntry(
             final String requestId,
             final HttpCacheEntry entry,
             final Date requestDate,
             final Date responseDate,
-            final HttpResponse response) throws IOException {
+            final HttpResponse response) throws ResourceIOException {
         Args.check(response.getCode() == HttpStatus.SC_NOT_MODIFIED,
                 "Response must have 304 status code");
         final Header[] mergedHeaders = mergeHeaders(entry, response);

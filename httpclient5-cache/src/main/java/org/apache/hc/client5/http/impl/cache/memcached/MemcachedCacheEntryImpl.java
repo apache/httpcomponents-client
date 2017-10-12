@@ -56,7 +56,7 @@ public class MemcachedCacheEntryImpl implements MemcachedCacheEntry {
      * @see org.apache.http.impl.client.cache.memcached.MemcachedCacheEntry#toByteArray()
      */
     @Override
-    synchronized public byte[] toByteArray() {
+    synchronized public byte[] toByteArray() throws MemcachedSerializationException {
         final ByteArrayOutputStream bos = new ByteArrayOutputStream();
         final ObjectOutputStream oos;
         try {
@@ -90,7 +90,7 @@ public class MemcachedCacheEntryImpl implements MemcachedCacheEntry {
      * @see org.apache.http.impl.client.cache.memcached.MemcachedCacheEntry#set(byte[])
      */
     @Override
-    synchronized public void set(final byte[] bytes) {
+    synchronized public void set(final byte[] bytes) throws MemcachedSerializationException {
         final ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
         final ObjectInputStream ois;
         final String s;

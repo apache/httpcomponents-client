@@ -33,8 +33,8 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
-import org.apache.hc.client5.http.cache.HttpCacheEntrySerializationException;
 import org.apache.hc.client5.http.cache.HttpCacheEntrySerializer;
+import org.apache.hc.client5.http.cache.ResourceIOException;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 
@@ -50,18 +50,20 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
 public class DefaultHttpCacheEntrySerializer implements HttpCacheEntrySerializer {
 
     @Override
-    public void writeTo(final HttpCacheEntry cacheEntry, final OutputStream os) throws IOException {
-        try (ObjectOutputStream oos = new ObjectOutputStream(os)) {
+    public void writeTo(final HttpCacheEntry cacheEntry, final OutputStream os) throws ResourceIOException {
+        try (final ObjectOutputStream oos = new ObjectOutputStream(os)) {
             oos.writeObject(cacheEntry);
+        } catch (final IOException ex) {
+            throw new ResourceIOException(ex.getMessage(), ex);
         }
     }
 
     @Override
-    public HttpCacheEntry readFrom(final InputStream is) throws IOException {
-        try (ObjectInputStream ois = new ObjectInputStream(is)) {
+    public HttpCacheEntry readFrom(final InputStream is) throws ResourceIOException {
+        try (final ObjectInputStream ois = new ObjectInputStream(is)) {
             return (HttpCacheEntry) ois.readObject();
-        } catch (final ClassNotFoundException ex) {
-            throw new HttpCacheEntrySerializationException("Class not found: " + ex.getMessage(), ex);
+        } catch (final IOException | ClassNotFoundException ex) {
+            throw new ResourceIOException(ex.getMessage(), ex);
         }
     }
 

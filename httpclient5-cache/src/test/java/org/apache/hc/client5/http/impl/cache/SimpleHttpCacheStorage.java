@@ -26,13 +26,13 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.HttpCacheStorage;
 import org.apache.hc.client5.http.cache.HttpCacheUpdateCallback;
+import org.apache.hc.client5.http.cache.ResourceIOException;
 
 class SimpleHttpCacheStorage implements HttpCacheStorage {
 
@@ -43,23 +43,23 @@ class SimpleHttpCacheStorage implements HttpCacheStorage {
     }
 
     @Override
-    public void putEntry(final String key, final HttpCacheEntry entry) throws IOException {
+    public void putEntry(final String key, final HttpCacheEntry entry) throws ResourceIOException {
         map.put(key, entry);
     }
 
     @Override
-    public HttpCacheEntry getEntry(final String key) throws IOException {
+    public HttpCacheEntry getEntry(final String key) throws ResourceIOException {
         return map.get(key);
     }
 
     @Override
-    public void removeEntry(final String key) throws IOException {
+    public void removeEntry(final String key) throws ResourceIOException {
         map.remove(key);
     }
 
     @Override
-    public void updateEntry(final String key, final HttpCacheUpdateCallback callback)
-            throws IOException {
+    public void updateEntry(
+            final String key, final HttpCacheUpdateCallback callback) throws ResourceIOException {
         final HttpCacheEntry v1 = map.get(key);
         final HttpCacheEntry v2 = callback.update(v1);
         map.put(key,v2);

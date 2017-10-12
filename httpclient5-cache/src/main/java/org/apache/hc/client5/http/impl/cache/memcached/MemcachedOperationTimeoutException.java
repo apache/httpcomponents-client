@@ -26,18 +26,15 @@
  */
 package org.apache.hc.client5.http.impl.cache.memcached;
 
-import java.io.IOException;
+import org.apache.hc.client5.http.cache.ResourceIOException;
 
 /**
  * Raised when memcached times out on us.
  */
-class MemcachedOperationTimeoutException extends IOException {
-
-    private static final long serialVersionUID = 1608334789051537010L;
+class MemcachedOperationTimeoutException extends ResourceIOException {
 
     public MemcachedOperationTimeoutException(final Throwable cause) {
-        super(cause.getMessage());
-        initCause(cause);
+        super(cause != null ? cause.getMessage() : null, cause);
     }
 
 }

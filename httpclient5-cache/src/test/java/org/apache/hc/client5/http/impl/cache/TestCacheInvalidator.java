@@ -39,6 +39,7 @@ import java.util.Map;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.HttpCacheStorage;
+import org.apache.hc.client5.http.cache.ResourceIOException;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
@@ -667,7 +668,7 @@ public class TestCacheInvalidator {
 
     private void cacheReturnsExceptionForUri(final String theUri) throws IOException {
         when(mockStorage.getEntry(theUri)).thenThrow(
-                new IOException("TOTAL FAIL"));
+                new ResourceIOException("TOTAL FAIL"));
     }
 
     private void cacheEntryisForMethod(final String httpMethod) {
