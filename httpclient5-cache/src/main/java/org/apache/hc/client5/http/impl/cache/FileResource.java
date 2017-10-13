@@ -51,10 +51,13 @@ public class FileResource extends Resource {
     private static final long serialVersionUID = 4132244415919043397L;
 
     private final AtomicReference<File> fileRef;
+    private final long len;
 
     public FileResource(final File file) {
         super();
-        this.fileRef = new AtomicReference<>(Args.notNull(file, "File"));
+        Args.notNull(file, "File");
+        this.fileRef = new AtomicReference<>(file);
+        this.len = file.length();
     }
 
     File getFile() {
@@ -96,12 +99,7 @@ public class FileResource extends Resource {
 
     @Override
     public long length() {
-        final File file = this.fileRef.get();
-        if (file != null) {
-            return file.length();
-        } else {
-            return -1;
-        }
+        return len;
     }
 
     @Override

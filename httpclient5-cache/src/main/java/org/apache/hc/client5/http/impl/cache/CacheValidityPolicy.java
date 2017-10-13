@@ -31,8 +31,8 @@ import java.util.Iterator;
 
 import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
+import org.apache.hc.client5.http.cache.Resource;
 import org.apache.hc.client5.http.utils.DateUtils;
-import org.apache.hc.core5.http.message.MessageSupport;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.Header;
@@ -40,6 +40,7 @@ import org.apache.hc.core5.http.HeaderElement;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.MessageHeaders;
+import org.apache.hc.core5.http.message.MessageSupport;
 
 /**
  * @since 4.1
@@ -180,23 +181,6 @@ class CacheValidityPolicy {
         return DateUtils.parseDate(dateHdr.getValue());
     }
 
-    protected long getContentLengthValue(final HttpCacheEntry entry) {
-        final Header cl = entry.getFirstHeader(HttpHeaders.CONTENT_LENGTH);
-        if (cl == null) {
-            return -1;
-        }
-
-        try {
-            return Long.parseLong(cl.getValue());
-        } catch (final NumberFormatException ex) {
-            return -1;
-        }
-    }
-
-    protected boolean hasContentLengthHeader(final HttpCacheEntry entry) {
-        return null != entry.getFirstHeader(HttpHeaders.CONTENT_LENGTH);
-    }
-
     /**
      * This matters for deciding whether the cache entry is valid to serve as a
      * response. If these values do not match, we might have a partial response
@@ -205,8 +189,21 @@ class CacheValidityPolicy {
      * @return boolean indicating whether actual length matches Content-Length
      */
     protected boolean contentLengthHeaderMatchesActualLength(final HttpCacheEntry entry) {
-        return !hasContentLengthHeader(entry) ||
-                (entry.getResource() != null && getContentLengthValue(entry) == entry.getResource().length());
+        final Header h = entry.getFirstHeader(HttpHeaders.CONTENT_LENGTH);
+        if (h != null) {
+            try {
+                final long responseLen = Long.parseLong(h.getValue());
+                final Resource resource = entry.getResource();
+                if (resource == null) {
+                    return false;
+                }
+                final long resourceLen = resource.length();
+                return responseLen == resourceLen;
+            } catch (final NumberFormatException ex) {
+                return false;
+            }
+        }
+        return true;
     }
 
     protected long getApparentAgeSecs(final HttpCacheEntry entry) {

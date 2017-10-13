@@ -135,7 +135,7 @@ public class TestHttpCacheJiraNumber1147 {
         Assert.assertEquals(200, response2.getCode());
         EntityUtils.consume(response2.getEntity());
 
-        verify(mockExecChain, Mockito.times(2)).proceed(
+        verify(mockExecChain, Mockito.times(1)).proceed(
                 isA(ClassicHttpRequest.class),
                 isA(ExecChain.Scope.class));
         Assert.assertEquals(CacheResponseStatus.FAILURE, context.getCacheResponseStatus());

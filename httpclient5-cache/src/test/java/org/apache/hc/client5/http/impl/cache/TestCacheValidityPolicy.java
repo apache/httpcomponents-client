@@ -362,13 +362,6 @@ public class TestCacheValidityPolicy {
     }
 
     @Test
-    public void testMalformedContentLengthReturnsNegativeOne() {
-        final Header[] headers = new Header[] { new BasicHeader("Content-Length", "asdf") };
-        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers);
-        assertEquals(-1, impl.getContentLengthValue(entry));
-    }
-
-    @Test
     public void testNegativeAgeHeaderValueReturnsMaxAge() {
         final Header[] headers = new Header[] { new BasicHeader("Age", "-100") };
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers);
