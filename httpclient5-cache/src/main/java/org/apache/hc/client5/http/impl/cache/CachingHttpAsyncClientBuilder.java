@@ -30,21 +30,21 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 
+import org.apache.hc.client5.http.async.AsyncExecChainHandler;
 import org.apache.hc.client5.http.cache.HttpCacheInvalidator;
 import org.apache.hc.client5.http.cache.HttpCacheStorage;
 import org.apache.hc.client5.http.cache.ResourceFactory;
-import org.apache.hc.client5.http.classic.ExecChainHandler;
 import org.apache.hc.client5.http.impl.ChainElements;
-import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder;
 import org.apache.hc.core5.http.config.NamedElementChain;
 
 /**
- * Builder for {@link org.apache.hc.client5.http.impl.classic.CloseableHttpClient}
+ * Builder for {@link org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient}
  * instances capable of client-side caching.
  *
- * @since 4.3
+ * @since 5.0
  */
-public class CachingHttpClientBuilder extends HttpClientBuilder {
+public class CachingHttpAsyncClientBuilder extends HttpAsyncClientBuilder {
 
     private ResourceFactory resourceFactory;
     private HttpCacheStorage storage;
@@ -53,52 +53,52 @@ public class CachingHttpClientBuilder extends HttpClientBuilder {
     private HttpCacheInvalidator httpCacheInvalidator;
     private boolean deleteCache;
 
-    public static CachingHttpClientBuilder create() {
-        return new CachingHttpClientBuilder();
+    public static CachingHttpAsyncClientBuilder create() {
+        return new CachingHttpAsyncClientBuilder();
     }
 
-    protected CachingHttpClientBuilder() {
+    protected CachingHttpAsyncClientBuilder() {
         super();
         this.deleteCache = true;
     }
 
-    public final CachingHttpClientBuilder setResourceFactory(
+    public final CachingHttpAsyncClientBuilder setResourceFactory(
             final ResourceFactory resourceFactory) {
         this.resourceFactory = resourceFactory;
         return this;
     }
 
-    public final CachingHttpClientBuilder setHttpCacheStorage(
+    public final CachingHttpAsyncClientBuilder setHttpCacheStorage(
             final HttpCacheStorage storage) {
         this.storage = storage;
         return this;
     }
 
-    public final CachingHttpClientBuilder setCacheDir(
+    public final CachingHttpAsyncClientBuilder setCacheDir(
             final File cacheDir) {
         this.cacheDir = cacheDir;
         return this;
     }
 
-    public final CachingHttpClientBuilder setCacheConfig(
+    public final CachingHttpAsyncClientBuilder setCacheConfig(
             final CacheConfig cacheConfig) {
         this.cacheConfig = cacheConfig;
         return this;
     }
 
-    public final CachingHttpClientBuilder setHttpCacheInvalidator(
+    public final CachingHttpAsyncClientBuilder setHttpCacheInvalidator(
             final HttpCacheInvalidator cacheInvalidator) {
         this.httpCacheInvalidator = cacheInvalidator;
         return this;
     }
 
-    public CachingHttpClientBuilder setDeleteCache(final boolean deleteCache) {
+    public CachingHttpAsyncClientBuilder setDeleteCache(final boolean deleteCache) {
         this.deleteCache = deleteCache;
         return this;
     }
 
     @Override
-    protected void customizeExecChain(final NamedElementChain<ExecChainHandler> execChainDefinition) {
+    protected void customizeExecChain(final NamedElementChain<AsyncExecChainHandler> execChainDefinition) {
         final CacheConfig config = this.cacheConfig != null ? this.cacheConfig : CacheConfig.DEFAULT;
         // We copy the instance fields to avoid changing them, and rename to avoid accidental use of the wrong version
         ResourceFactory resourceFactoryCopy = this.resourceFactory;
@@ -137,7 +137,7 @@ public class CachingHttpClientBuilder extends HttpClientBuilder {
                 uriExtractor,
                 this.httpCacheInvalidator != null ? this.httpCacheInvalidator : new CacheInvalidator(uriExtractor, storageCopy));
 
-        final CachingExec cachingExec = new CachingExec(httpCache, config);
+        final AsyncCachingExec cachingExec = new AsyncCachingExec(httpCache, config);
         execChainDefinition.addBefore(ChainElements.PROTOCOL.name(), cachingExec, ChainElements.CACHING.name());
     }
 
