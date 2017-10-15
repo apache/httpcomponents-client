@@ -64,13 +64,13 @@ class CacheInvalidator implements HttpCacheInvalidator {
      * Create a new {@link CacheInvalidator} for a given {@link HttpCache} and
      * {@link CacheKeyGenerator}.
      *
-     * @param uriExtractor Provides identifiers for the keys to store cache entries
+     * @param cacheKeyGenerator Provides identifiers for the keys to store cache entries
      * @param storage the cache to store items away in
      */
     public CacheInvalidator(
-            final CacheKeyGenerator uriExtractor,
+            final CacheKeyGenerator cacheKeyGenerator,
             final HttpCacheStorage storage) {
-        this.cacheKeyGenerator = uriExtractor;
+        this.cacheKeyGenerator = cacheKeyGenerator;
         this.storage = storage;
     }
 
@@ -83,18 +83,20 @@ class CacheInvalidator implements HttpCacheInvalidator {
      */
     @Override
     public void flushInvalidatedCacheEntries(final HttpHost host, final HttpRequest req)  {
-        final String theUri = cacheKeyGenerator.generateKey(host, req);
-        final HttpCacheEntry parent = getEntry(theUri);
+        final String key = cacheKeyGenerator.generateKey(host, req);
+        final HttpCacheEntry parent = getEntry(key);
 
         if (requestShouldNotBeCached(req) || shouldInvalidateHeadCacheEntry(req, parent)) {
-            log.debug("Invalidating parent cache entry: " + parent);
+            if (log.isDebugEnabled()) {
+                log.debug("Invalidating parent cache entry: " + parent);
+            }
             if (parent != null) {
                 for (final String variantURI : parent.getVariantMap().values()) {
                     flushEntry(variantURI);
                 }
-                flushEntry(theUri);
+                flushEntry(key);
             }
-            final URL reqURL = getAbsoluteURL(theUri);
+            final URL reqURL = getAbsoluteURL(key);
             if (reqURL == null) {
                 log.error("Couldn't transform request into valid URL");
                 return;

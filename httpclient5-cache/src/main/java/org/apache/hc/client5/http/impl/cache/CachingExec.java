@@ -213,7 +213,7 @@ public class CachingExec extends CachingExecBase implements ExecChainHandler {
 
         final Date requestDate = getCurrentDate();
 
-        log.trace("Calling the backend");
+        log.debug("Calling the backend");
         final ClassicHttpResponse backendResponse = chain.proceed(request, scope);
         try {
             backendResponse.addHeader("Via", generateViaHeader(backendResponse));
@@ -337,7 +337,6 @@ public class CachingExec extends CachingExecBase implements ExecChainHandler {
             final Date responseDate,
             final ClassicHttpResponse backendResponse) throws IOException {
 
-        log.trace("Handling Backend response");
         responseCompliance.ensureProtocolCompliance(scope.originalRequest, request, backendResponse);
 
         final boolean cacheable = responseCachingPolicy.isResponseCacheable(request, backendResponse);
@@ -347,6 +346,7 @@ public class CachingExec extends CachingExecBase implements ExecChainHandler {
             return cacheAndReturnResponse(target, request, backendResponse, requestDate, responseDate);
         }
         if (!cacheable) {
+            log.debug("Backend response is not cacheable");
             try {
                 responseCache.flushCacheEntriesFor(target, request);
             } catch (final IOException ioe) {
@@ -362,6 +362,7 @@ public class CachingExec extends CachingExecBase implements ExecChainHandler {
             final ClassicHttpResponse backendResponse,
             final Date requestSent,
             final Date responseReceived) throws IOException {
+        log.debug("Caching backend response");
         final ByteArrayBuffer buf;
         final HttpEntity entity = backendResponse.getEntity();
         if (entity != null) {
@@ -374,6 +375,7 @@ public class CachingExec extends CachingExecBase implements ExecChainHandler {
                 buf.append(tmp, 0, l);
                 total += l;
                 if (total > cacheConfig.getMaxObjectSize()) {
+                    log.debug("Backend response content length exceeds maximum");
                     backendResponse.setEntity(new CombinedEntity(entity, buf));
                     return backendResponse;
                 }
@@ -383,6 +385,7 @@ public class CachingExec extends CachingExecBase implements ExecChainHandler {
         }
         backendResponse.close();
         final HttpCacheEntry entry = responseCache.createCacheEntry(target, request, backendResponse, buf, requestSent, responseReceived);
+        log.debug("Backend response successfully cached");
         return convert(responseGenerator.generateResponse(request, entry));
     }
 

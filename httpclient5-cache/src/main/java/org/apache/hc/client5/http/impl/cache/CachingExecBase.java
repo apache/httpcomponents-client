@@ -177,21 +177,21 @@ public class CachingExecBase {
     void recordCacheMiss(final HttpHost target, final HttpRequest request) {
         cacheMisses.getAndIncrement();
         if (log.isTraceEnabled()) {
-            log.trace("Cache miss [host: " + target + "; uri: " + request.getRequestUri() + "]");
+            log.debug("Cache miss [host: " + target + "; uri: " + request.getRequestUri() + "]");
         }
     }
 
     void recordCacheHit(final HttpHost target, final HttpRequest request) {
         cacheHits.getAndIncrement();
         if (log.isTraceEnabled()) {
-            log.trace("Cache hit [host: " + target + "; uri: " + request.getRequestUri() + "]");
+            log.debug("Cache hit [host: " + target + "; uri: " + request.getRequestUri() + "]");
         }
     }
 
     void recordCacheFailure(final HttpHost target, final HttpRequest request) {
         cacheMisses.getAndIncrement();
         if (log.isTraceEnabled()) {
-            log.trace("Cache failure [host: " + target + "; uri: " + request.getRequestUri() + "]");
+            log.debug("Cache failure [host: " + target + "; uri: " + request.getRequestUri() + "]");
         }
     }
 
@@ -266,7 +266,7 @@ public class CachingExecBase {
         while (it.hasNext()) {
             final HeaderElement elt = it.next();
             if ("only-if-cached".equals(elt.getName())) {
-                log.trace("Request marked only-if-cached");
+                log.debug("Request marked only-if-cached");
                 return false;
             }
         }

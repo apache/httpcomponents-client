@@ -61,37 +61,34 @@ class CacheableRequestPolicy {
 
         final ProtocolVersion pv = request.getVersion() != null ? request.getVersion() : HttpVersion.DEFAULT;
         if (HttpVersion.HTTP_1_1.compareToVersion(pv) != 0) {
-            log.trace("non-HTTP/1.1 request was not serveable from cache");
+            log.debug("non-HTTP/1.1 request is not serveable from cache");
             return false;
         }
 
-        if (!(method.equals(HeaderConstants.GET_METHOD) || method
-                .equals(HeaderConstants.HEAD_METHOD))) {
-            log.trace("non-GET or non-HEAD request was not serveable from cache");
+        if (!method.equals(HeaderConstants.GET_METHOD) && !method.equals(HeaderConstants.HEAD_METHOD)) {
+            log.debug(method + " request is not serveable from cache");
             return false;
         }
 
-        if (request.getHeaders(HeaderConstants.PRAGMA).length > 0) {
-            log.trace("request with Pragma header was not serveable from cache");
+        if (request.containsHeaders(HeaderConstants.PRAGMA) > 0) {
+            log.debug("request with Pragma header is not serveable from cache");
             return false;
         }
 
         final Iterator<HeaderElement> it = MessageSupport.iterate(request, HeaderConstants.CACHE_CONTROL);
         while (it.hasNext()) {
             final HeaderElement cacheControlElement = it.next();
-            if (HeaderConstants.CACHE_CONTROL_NO_STORE.equalsIgnoreCase(cacheControlElement
-                    .getName())) {
-                log.trace("Request with no-store was not serveable from cache");
+            if (HeaderConstants.CACHE_CONTROL_NO_STORE.equalsIgnoreCase(cacheControlElement.getName())) {
+                log.debug("Request with no-store is not serveable from cache");
                 return false;
             }
-            if (HeaderConstants.CACHE_CONTROL_NO_CACHE.equalsIgnoreCase(cacheControlElement
-                    .getName())) {
-                log.trace("Request with no-cache was not serveable from cache");
+            if (HeaderConstants.CACHE_CONTROL_NO_CACHE.equalsIgnoreCase(cacheControlElement.getName())) {
+                log.debug("Request with no-cache is not serveable from cache");
                 return false;
             }
         }
 
-        log.trace("Request was serveable from cache");
+        log.debug("Request is serveable from cache");
         return true;
     }
 

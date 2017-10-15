@@ -238,7 +238,7 @@ public class AsyncCachingExec extends CachingExecBase implements AsyncExecChainH
             final AsyncExecChain.Scope scope,
             final AsyncExecChain chain,
             final InternalCallback asyncExecCallback) throws HttpException, IOException {
-        log.trace("Calling the backend");
+        log.debug("Calling the backend");
         final Date requestDate = getCurrentDate();
         chain.proceed(request, entityProducer, scope, new AsyncExecCallback() {
 
@@ -253,7 +253,6 @@ public class AsyncCachingExec extends CachingExecBase implements AsyncExecChainH
                 final Date responseDate = getCurrentDate();
                 backendResponse.addHeader("Via", generateViaHeader(backendResponse));
 
-                log.trace("Handling Backend response");
                 responseCompliance.ensureProtocolCompliance(scope.originalRequest, request, backendResponse);
 
                 final boolean cacheable = asyncExecCallback.cacheResponse(backendResponse)
@@ -265,6 +264,7 @@ public class AsyncCachingExec extends CachingExecBase implements AsyncExecChainH
                         bufferRef.set(new ByteArrayBuffer(1024));
                     }
                 } else {
+                    log.debug("Backend response is not cacheable");
                     try {
                         responseCache.flushCacheEntriesFor(target, request);
                     } catch (final IOException ioe) {
@@ -272,10 +272,12 @@ public class AsyncCachingExec extends CachingExecBase implements AsyncExecChainH
                     }
                 }
                 if (bufferRef.get() != null) {
+                    log.debug("Caching backend response");
                     if (entityDetails == null) {
                         scope.execRuntime.releaseConnection();
                         final HttpCacheEntry entry = responseCache.createCacheEntry(
                                 target, request, backendResponse, null, requestDate, responseDate);
+                        log.debug("Backend response successfully cached");
                         responseRef.set(responseGenerator.generateResponse(request, entry));
                         return null;
                     } else {
@@ -303,6 +305,7 @@ public class AsyncCachingExec extends CachingExecBase implements AsyncExecChainH
                                         }
                                     }
                                     if (buffer.length() > cacheConfig.getMaxObjectSize()) {
+                                        log.debug("Backend response content length exceeds maximum");
                                         // Over the max limit. Stop buffering and forward the response
                                         // along with all the data buffered so far to the caller.
                                         bufferRef.set(null);
@@ -339,6 +342,7 @@ public class AsyncCachingExec extends CachingExecBase implements AsyncExecChainH
                                 if (buffer != null) {
                                     final HttpCacheEntry entry = responseCache.createCacheEntry(
                                             target, request, backendResponse, buffer, requestDate, responseDate);
+                                    log.debug("Backend response successfully cached");
                                     responseRef.set(responseGenerator.generateResponse(request, entry));
                                 }
                             }

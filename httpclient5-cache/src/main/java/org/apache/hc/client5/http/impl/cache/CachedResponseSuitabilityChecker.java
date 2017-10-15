@@ -146,7 +146,7 @@ class CachedResponseSuitabilityChecker {
      */
     public boolean canCachedResponseBeUsed(final HttpHost host, final HttpRequest request, final HttpCacheEntry entry, final Date now) {
         if (!isFreshEnough(entry, request, now)) {
-            log.trace("Cache entry was not fresh enough");
+            log.debug("Cache entry is not fresh enough");
             return false;
         }
 
@@ -156,15 +156,17 @@ class CachedResponseSuitabilityChecker {
         }
 
         if (hasUnsupportedConditionalHeaders(request)) {
-            log.debug("Request contained conditional headers we don't handle");
+            log.debug("Request contains unsupported conditional headers");
             return false;
         }
 
         if (!isConditional(request) && entry.getStatus() == HttpStatus.SC_NOT_MODIFIED) {
+            log.debug("Unconditional request and non-modified cached response");
             return false;
         }
 
         if (isConditional(request) && !allConditionalsMatch(request, entry, now)) {
+            log.debug("Conditional request and with mismatched conditions");
             return false;
         }
 
@@ -177,12 +179,12 @@ class CachedResponseSuitabilityChecker {
         while (it.hasNext()) {
             final HeaderElement elt = it.next();
             if (HeaderConstants.CACHE_CONTROL_NO_CACHE.equals(elt.getName())) {
-                log.trace("Response contained NO CACHE directive, cache was not suitable");
+                log.debug("Response contained NO CACHE directive, cache was not suitable");
                 return false;
             }
 
             if (HeaderConstants.CACHE_CONTROL_NO_STORE.equals(elt.getName())) {
-                log.trace("Response contained NO STORE directive, cache was not suitable");
+                log.debug("Response contained NO STORE directive, cache was not suitable");
                 return false;
             }
 
@@ -190,7 +192,7 @@ class CachedResponseSuitabilityChecker {
                 try {
                     final int maxage = Integer.parseInt(elt.getValue());
                     if (validityStrategy.getCurrentAgeSecs(entry, now) > maxage) {
-                        log.trace("Response from cache was NOT suitable due to max age");
+                        log.debug("Response from cache was NOT suitable due to max age");
                         return false;
                     }
                 } catch (final NumberFormatException ex) {
@@ -204,7 +206,7 @@ class CachedResponseSuitabilityChecker {
                 try {
                     final int maxstale = Integer.parseInt(elt.getValue());
                     if (validityStrategy.getFreshnessLifetimeSecs(entry) > maxstale) {
-                        log.trace("Response from cache was not suitable due to Max stale freshness");
+                        log.debug("Response from cache was not suitable due to Max stale freshness");
                         return false;
                     }
                 } catch (final NumberFormatException ex) {
@@ -223,7 +225,7 @@ class CachedResponseSuitabilityChecker {
                     final long age = validityStrategy.getCurrentAgeSecs(entry, now);
                     final long freshness = validityStrategy.getFreshnessLifetimeSecs(entry);
                     if (freshness - age < minfresh) {
-                        log.trace("Response from cache was not suitable due to min fresh " +
+                        log.debug("Response from cache was not suitable due to min fresh " +
                                 "freshness requirement");
                         return false;
                     }
@@ -235,7 +237,7 @@ class CachedResponseSuitabilityChecker {
             }
         }
 
-        log.trace("Response from cache was suitable");
+        log.debug("Response from cache was suitable");
         return true;
     }
 
