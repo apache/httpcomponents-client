@@ -354,7 +354,8 @@ public class CachingExecBase {
             return false;
         }
 
-        if (!"0".equals(request.getFirstHeader(HeaderConstants.MAX_FORWARDS).getValue())) {
+        final Header h = request.getFirstHeader(HeaderConstants.MAX_FORWARDS);
+        if (!"0".equals(h != null ? h.getValue() : null)) {
             return false;
         }
 
