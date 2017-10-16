@@ -47,6 +47,7 @@ import org.apache.hc.core5.http.HeaderElement;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.message.MessageSupport;
+import org.apache.hc.core5.net.URIAuthority;
 import org.apache.hc.core5.net.URIBuilder;
 
 /**
@@ -86,14 +87,34 @@ class CacheKeyGenerator {
      * @return String the extracted URI
      */
     public String generateKey(final HttpHost host, final HttpRequest req) {
+        final StringBuilder buf = new StringBuilder();
+        final URIAuthority authority = req.getAuthority();
+        if (authority != null) {
+            final String scheme = req.getScheme();
+            buf.append(scheme != null ? scheme : "http").append("://");
+            buf.append(authority.getHostName());
+            if (authority.getPort() >= 0) {
+                buf.append(":").append(authority.getPort());
+            }
+        }
+        final String path = req.getPath();
+        if (path == null) {
+            buf.append("/");
+        } else {
+            if (buf.length() > 0 && !path.startsWith("/")) {
+                buf.append("/");
+            }
+            buf.append(path);
+        }
+        final String s = buf.toString();
         try {
-            URI uri = req.getUri();
+            URI uri = new URI(s);
             if (!uri.isAbsolute()) {
                 uri = URIUtils.rewriteURI(uri, host);
             }
             return normalize(uri).toASCIIString();
         } catch (final URISyntaxException ex) {
-            return req.getRequestUri();
+            return s;
         }
     }
 
