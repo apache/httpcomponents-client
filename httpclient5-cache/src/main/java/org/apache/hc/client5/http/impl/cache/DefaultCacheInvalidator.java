@@ -54,7 +54,7 @@ import org.apache.logging.log4j.Logger;
  * @since 4.1
  */
 @Contract(threading = ThreadingBehavior.IMMUTABLE)
-class CacheInvalidator implements HttpCacheInvalidator {
+class DefaultCacheInvalidator implements HttpCacheInvalidator {
 
     private final HttpCacheStorage storage;
     private final CacheKeyGenerator cacheKeyGenerator;
@@ -62,13 +62,13 @@ class CacheInvalidator implements HttpCacheInvalidator {
     private final Logger log = LogManager.getLogger(getClass());
 
     /**
-     * Create a new {@link CacheInvalidator} for a given {@link HttpCache} and
+     * Create a new {@link DefaultCacheInvalidator} for a given {@link HttpCache} and
      * {@link CacheKeyGenerator}.
      *
      * @param cacheKeyGenerator Provides identifiers for the keys to store cache entries
      * @param storage the cache to store items away in
      */
-    public CacheInvalidator(
+    public DefaultCacheInvalidator(
             final CacheKeyGenerator cacheKeyGenerator,
             final HttpCacheStorage storage) {
         this.cacheKeyGenerator = cacheKeyGenerator;

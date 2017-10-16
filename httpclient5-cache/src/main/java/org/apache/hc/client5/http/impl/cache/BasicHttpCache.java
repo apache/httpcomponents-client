@@ -80,7 +80,7 @@ class BasicHttpCache implements HttpCache {
             final ResourceFactory resourceFactory,
             final HttpCacheStorage storage,
             final CacheKeyGenerator uriExtractor) {
-        this(resourceFactory, storage, uriExtractor, new CacheInvalidator(uriExtractor, storage));
+        this(resourceFactory, storage, uriExtractor, new DefaultCacheInvalidator(uriExtractor, storage));
     }
 
     public BasicHttpCache(final ResourceFactory resourceFactory, final HttpCacheStorage storage) {

@@ -135,7 +135,7 @@ public class CachingHttpClientBuilder extends HttpClientBuilder {
                 resourceFactoryCopy,
                 storageCopy,
                 uriExtractor,
-                this.httpCacheInvalidator != null ? this.httpCacheInvalidator : new CacheInvalidator(uriExtractor, storageCopy));
+                this.httpCacheInvalidator != null ? this.httpCacheInvalidator : new DefaultCacheInvalidator(uriExtractor, storageCopy));
 
         final CachingExec cachingExec = new CachingExec(httpCache, config);
         execChainDefinition.addBefore(ChainElements.PROTOCOL.name(), cachingExec, ChainElements.CACHING.name());

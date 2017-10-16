@@ -46,16 +46,15 @@ import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpStatus;
-import org.apache.hc.core5.http.ProtocolVersion;
 import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.junit.Before;
 import org.junit.Test;
 
-public class TestCacheInvalidator {
+public class TestDefaultCacheInvalidator {
 
-    private CacheInvalidator impl;
+    private DefaultCacheInvalidator impl;
     private HttpCacheStorage mockStorage;
     private HttpHost host;
     private CacheKeyGenerator cacheKeyGenerator;
@@ -78,7 +77,7 @@ public class TestCacheInvalidator {
         request = HttpTestUtils.makeDefaultRequest();
         response = HttpTestUtils.make200Response();
 
-        impl = new CacheInvalidator(cacheKeyGenerator, mockStorage);
+        impl = new DefaultCacheInvalidator(cacheKeyGenerator, mockStorage);
     }
 
     // Tests
@@ -205,7 +204,7 @@ public class TestCacheInvalidator {
 
     @Test
     public void testInvalidatesHEADCacheEntryIfSubsequentGETRequestsAreMadeToTheSameURI() throws Exception {
-        impl = new CacheInvalidator(cacheKeyGenerator, mockStorage);
+        impl = new DefaultCacheInvalidator(cacheKeyGenerator, mockStorage);
         final String theURI = "http://foo.example.com:80/";
         request = new BasicClassicHttpRequest("GET", theURI);
 
@@ -223,7 +222,7 @@ public class TestCacheInvalidator {
 
     @Test
     public void testInvalidatesVariantHEADCacheEntriesIfSubsequentGETRequestsAreMadeToTheSameURI() throws Exception {
-        impl = new CacheInvalidator(cacheKeyGenerator, mockStorage);
+        impl = new DefaultCacheInvalidator(cacheKeyGenerator, mockStorage);
         final String theURI = "http://foo.example.com:80/";
         request = new BasicClassicHttpRequest("GET", theURI);
         final String theVariantKey = "{Accept-Encoding=gzip%2Cdeflate&User-Agent=Apache-HttpClient}";
@@ -258,7 +257,7 @@ public class TestCacheInvalidator {
 
     @Test
     public void testDoesNotInvalidateHEADCacheEntryIfSubsequentHEADRequestsAreMadeToTheSameURI() throws Exception {
-        impl = new CacheInvalidator(cacheKeyGenerator, mockStorage);
+        impl = new DefaultCacheInvalidator(cacheKeyGenerator, mockStorage);
         final String theURI = "http://foo.example.com:80/";
         request = new BasicClassicHttpRequest("HEAD", theURI);
 
@@ -272,7 +271,7 @@ public class TestCacheInvalidator {
 
     @Test
     public void testDoesNotInvalidateGETCacheEntryIfSubsequentGETRequestsAreMadeToTheSameURI() throws Exception {
-        impl = new CacheInvalidator(cacheKeyGenerator, mockStorage);
+        impl = new DefaultCacheInvalidator(cacheKeyGenerator, mockStorage);
         final String theURI = "http://foo.example.com:80/";
         request = new BasicClassicHttpRequest("GET", theURI);
 
