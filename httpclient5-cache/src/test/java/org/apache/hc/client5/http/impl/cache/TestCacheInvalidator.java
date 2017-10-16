@@ -32,7 +32,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
-import java.net.URL;
+import java.net.URI;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -54,8 +54,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class TestCacheInvalidator {
-
-    private static final ProtocolVersion HTTP_1_1 = new ProtocolVersion("HTTP", 1, 1);
 
     private CacheInvalidator impl;
     private HttpCacheStorage mockStorage;
@@ -141,7 +139,7 @@ public class TestCacheInvalidator {
         verify(mockEntry).getVariantMap();
         verify(mockStorage).getEntry(theUri);
         verify(mockStorage).removeEntry(theUri);
-        verify(mockStorage).removeEntry(cacheKeyGenerator.generateKey(new URL(contentLocation)));
+        verify(mockStorage).removeEntry(cacheKeyGenerator.generateKey(new URI(contentLocation)));
     }
 
     @Test

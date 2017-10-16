@@ -29,7 +29,6 @@ package org.apache.hc.client5.http.impl.cache;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -118,14 +117,14 @@ class CacheKeyGenerator {
         }
     }
 
-    public String generateKey(final URL url) {
-        if (url == null) {
+    public String generateKey(final URI uri) {
+        if (uri == null) {
             return null;
         }
         try {
-            return normalize(url.toURI()).toASCIIString();
+            return normalize(uri).toASCIIString();
         } catch (final URISyntaxException ex) {
-            return url.toString();
+            return uri.toString();
         }
     }
 
