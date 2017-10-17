@@ -26,17 +26,12 @@
  */
 package org.apache.hc.client5.http.impl.cache.ehcache;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-
-import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.HttpCacheEntrySerializer;
-import org.apache.hc.client5.http.cache.HttpCacheStorage;
-import org.apache.hc.client5.http.cache.HttpCacheUpdateCallback;
-import org.apache.hc.client5.http.cache.HttpCacheUpdateException;
 import org.apache.hc.client5.http.cache.ResourceIOException;
+import org.apache.hc.client5.http.impl.cache.AbstractBinaryCacheStorage;
 import org.apache.hc.client5.http.impl.cache.CacheConfig;
-import org.apache.hc.client5.http.impl.cache.DefaultHttpCacheEntrySerializer;
+import org.apache.hc.client5.http.impl.cache.ByteArrayCacheEntrySerializer;
+import org.apache.hc.core5.util.Args;
 
 import net.sf.ehcache.Ehcache;
 import net.sf.ehcache.Element;
@@ -58,31 +53,17 @@ import net.sf.ehcache.Element;
  * itself.</p>
  * @since 4.1
  */
-public class EhcacheHttpCacheStorage implements HttpCacheStorage {
+public class EhcacheHttpCacheStorage extends AbstractBinaryCacheStorage<Element> {
 
     private final Ehcache cache;
-    private final HttpCacheEntrySerializer serializer;
-    private final int maxUpdateRetries;
 
     /**
      * Constructs a storage backend using the provided Ehcache
      * with default configuration options.
      * @param cache where to store cached origin responses
      */
-    public EhcacheHttpCacheStorage(final Ehcache cache) {
-        this(cache, CacheConfig.DEFAULT, new DefaultHttpCacheEntrySerializer());
-    }
-
-    /**
-     * Constructs a storage backend using the provided Ehcache
-     * with the given configuration options.
-     * @param cache where to store cached origin responses
-     * @param config cache storage configuration options - note that
-     *   the setting for max object size <b>will be ignored</b> and
-     *   should be configured in the Ehcache instead.
-     */
-    public EhcacheHttpCacheStorage(final Ehcache cache, final CacheConfig config){
-        this(cache, config, new DefaultHttpCacheEntrySerializer());
+    public EhcacheHttpCacheStorage(final Ehcache cache){
+        this(cache, CacheConfig.DEFAULT, ByteArrayCacheEntrySerializer.INSTANCE);
     }
 
     /**
@@ -95,67 +76,60 @@ public class EhcacheHttpCacheStorage implements HttpCacheStorage {
      *   should be configured in the Ehcache instead.
      * @param serializer alternative serialization mechanism
      */
-    public EhcacheHttpCacheStorage(final Ehcache cache, final CacheConfig config, final HttpCacheEntrySerializer serializer){
-        this.cache = cache;
-        this.maxUpdateRetries = config.getMaxUpdateRetries();
-        this.serializer = serializer;
+    public EhcacheHttpCacheStorage(
+            final Ehcache cache,
+            final CacheConfig config,
+            final HttpCacheEntrySerializer<byte[]> serializer) {
+        super((config != null ? config : CacheConfig.DEFAULT).getMaxUpdateRetries(), serializer);
+        this.cache = Args.notNull(cache, "Ehcache");
     }
 
     @Override
-    public synchronized void putEntry(final String key, final HttpCacheEntry entry) throws ResourceIOException {
-        final ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        serializer.writeTo(entry, bos);
-        cache.put(new Element(key, bos.toByteArray()));
+    protected String digestToStorageKey(final String key) {
+        return key;
     }
 
     @Override
-    public synchronized HttpCacheEntry getEntry(final String key) throws ResourceIOException {
-        final Element e = cache.get(key);
-        if(e == null){
+    protected void store(final String storageKey, final byte[] storageObject) throws ResourceIOException {
+        cache.put(new Element(storageKey, storageKey));
+    }
+
+    private byte[] castAsByteArray(final Object storageObject) throws ResourceIOException {
+        if (storageObject == null) {
             return null;
         }
-
-        final byte[] data = (byte[])e.getObjectValue();
-        return serializer.readFrom(new ByteArrayInputStream(data));
+        if (storageObject instanceof byte[]) {
+            return (byte[]) storageObject;
+        } else {
+            throw new ResourceIOException("Unexpected cache content: " + storageObject.getClass());
+        }
     }
 
     @Override
-    public synchronized void removeEntry(final String key) {
-        cache.remove(key);
+    protected byte[] restore(final String storageKey) throws ResourceIOException {
+        final Element element = cache.get(storageKey);
+        return element != null ? castAsByteArray(element.getObjectValue()) : null;
     }
 
     @Override
-    public synchronized void updateEntry(
-            final String key, final HttpCacheUpdateCallback callback) throws ResourceIOException, HttpCacheUpdateException {
-        int numRetries = 0;
-        do{
-            final Element oldElement = cache.get(key);
-
-            HttpCacheEntry existingEntry = null;
-            if(oldElement != null){
-                final byte[] data = (byte[])oldElement.getObjectValue();
-                existingEntry = serializer.readFrom(new ByteArrayInputStream(data));
-            }
-
-            final HttpCacheEntry updatedEntry = callback.update(existingEntry);
-
-            if (existingEntry == null) {
-                putEntry(key, updatedEntry);
-                return;
-            } else {
-                // Attempt to do a CAS replace, if we fail then retry
-                // While this operation should work fine within this instance, multiple instances
-                //  could trample each others' data
-                final ByteArrayOutputStream bos = new ByteArrayOutputStream();
-                serializer.writeTo(updatedEntry, bos);
-                final Element newElement = new Element(key, bos.toByteArray());
-                if (cache.replace(oldElement, newElement)) {
-                    return;
-                }else{
-                    numRetries++;
-                }
-            }
-        }while(numRetries <= maxUpdateRetries);
-        throw new HttpCacheUpdateException("Failed to processChallenge");
+    protected Element getForUpdateCAS(final String storageKey) throws ResourceIOException {
+        return cache.get(storageKey);
     }
+
+    @Override
+    protected byte[] getStorageObject(final Element element) throws ResourceIOException {
+        return castAsByteArray(element.getObjectValue());
+    }
+
+    @Override
+    protected boolean updateCAS(final String storageKey, final Element element, final byte[] storageObject) throws ResourceIOException {
+        final Element newElement = new Element(storageKey, storageObject);
+        return cache.replace(element, newElement);
+    }
+
+    @Override
+    protected void delete(final String storageKey) throws ResourceIOException {
+        cache.remove(storageKey);
+    }
+
 }

@@ -24,18 +24,23 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.hc.client5.http.impl.cache.memcached;
+package org.apache.hc.client5.http.impl.cache;
 
-import org.apache.hc.client5.http.cache.ResourceIOException;
+import org.apache.hc.client5.http.cache.HttpCacheEntrySerializer;
 
 /**
- * Raised when there is a problem serializing or deserializing cache
- * entries into a byte representation suitable for memcached storage.
+ * Abstract cache backend for serialized binary objects capable of CAS (compare-and-swap) updates.
+ *
+ * @since 5.0
  */
-public class MemcachedSerializationException extends ResourceIOException {
+public abstract class AbstractBinaryCacheStorage<CAS> extends AbstractSerializingCacheStorage<byte[], CAS> {
 
-    public MemcachedSerializationException(final Throwable cause) {
-        super(cause != null ? cause.getMessage() : null, cause);
+    public AbstractBinaryCacheStorage(final int maxUpdateRetries, final HttpCacheEntrySerializer<byte[]> serializer) {
+        super(maxUpdateRetries, serializer);
+    }
+
+    public AbstractBinaryCacheStorage(final int maxUpdateRetries) {
+        super(maxUpdateRetries, ByteArrayCacheEntrySerializer.INSTANCE);
     }
 
 }

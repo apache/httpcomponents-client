@@ -24,25 +24,33 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.hc.client5.http.impl.cache.memcached;
+package org.apache.hc.client5.http.cache;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
+import java.io.Serializable;
 
-import org.apache.hc.client5.http.cache.HttpCacheEntry;
-import org.apache.hc.client5.http.impl.cache.HttpTestUtils;
-import org.junit.Test;
+import org.apache.hc.core5.util.Args;
 
-public class TestMemcachedCacheEntryFactoryImpl {
+public final class HttpCacheStorageEntry implements Serializable {
 
-    @Test
-    public void createsMemcachedCacheEntryImpls() {
-        final String key = "key";
-        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
-        final MemcachedCacheEntryFactoryImpl impl = new MemcachedCacheEntryFactoryImpl();
-        final MemcachedCacheEntry result = impl.getMemcachedCacheEntry(key, entry);
-        assertNotNull(result);
-        assertSame(key, result.getStorageKey());
-        assertSame(entry, result.getHttpCacheEntry());
+    private final String key;
+    private final HttpCacheEntry content;
+
+    public HttpCacheStorageEntry(final String key, final HttpCacheEntry content) {
+        this.key = key;
+        this.content = Args.notNull(content, "Cache entry");
     }
+
+    public String getKey() {
+        return key;
+    }
+
+    public HttpCacheEntry getContent() {
+        return content;
+    }
+
+    @Override
+    public String toString() {
+        return "[key=" + key + "; content=" + content + "]";
+    }
+
 }
