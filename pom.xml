@@ -72,7 +72,7 @@
     <log4j.version>2.8.2</log4j.version>
     <commons-codec.version>1.10</commons-codec.version>
     <ehcache.version>3.4.0</ehcache.version>
-    <memcached.version>2.12.0</memcached.version>
+    <memcached.version>2.12.3</memcached.version>
     <slf4j.version>1.7.13</slf4j.version>
     <junit.version>4.12</junit.version>
     <easymock.version>2.5.2</easymock.version>
