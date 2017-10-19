@@ -124,33 +124,6 @@ public class TestRequestAuthCache {
     }
 
     @Test
-    public void testPreemptiveTargetAndProxyAuthDigest() throws Exception {
-        final HttpRequest request = new BasicHttpRequest("GET", "/");
-
-        final HttpClientContext context = HttpClientContext.create();
-        context.setAttribute(HttpClientContext.CREDS_PROVIDER, this.credProvider);
-        context.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, this.target);
-        context.setAttribute(HttpClientContext.HTTP_ROUTE, new HttpRoute(this.target, null, this.proxy, false));
-        context.setAttribute(HttpClientContext.TARGET_AUTH_STATE, this.targetState);
-        context.setAttribute(HttpClientContext.PROXY_AUTH_STATE, this.proxyState);
-
-        final AuthCache authCache = new BasicAuthCache();
-        authCache.put(this.target, this.digestAuthscheme1);
-        authCache.put(this.proxy, this.digestAuthscheme2);
-
-        context.setAttribute(HttpClientContext.AUTH_CACHE, authCache);
-
-        final HttpRequestInterceptor interceptor = new RequestAuthCache();
-        interceptor.process(request, context);
-        Assert.assertNotNull(this.targetState.getAuthScheme());
-        Assert.assertSame(this.targetState.getState(), AuthProtocolState.CHALLENGED);
-        Assert.assertSame(this.creds1, this.targetState.getCredentials());
-        Assert.assertNotNull(this.proxyState.getAuthScheme());
-        Assert.assertSame(this.proxyState.getState(), AuthProtocolState.CHALLENGED);
-        Assert.assertSame(this.creds2, this.proxyState.getCredentials());
-    }
-
-    @Test
     public void testCredentialsProviderNotSet() throws Exception {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
 
