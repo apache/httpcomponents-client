@@ -27,14 +27,14 @@
 package org.apache.hc.client5.http.impl.cache.ehcache;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntrySerializer;
+import org.apache.hc.client5.http.cache.HttpCacheStorageEntry;
 import org.apache.hc.client5.http.cache.ResourceIOException;
-import org.apache.hc.client5.http.impl.cache.AbstractBinaryCacheStorage;
-import org.apache.hc.client5.http.impl.cache.CacheConfig;
+import org.apache.hc.client5.http.impl.cache.AbstractSerializingCacheStorage;
 import org.apache.hc.client5.http.impl.cache.ByteArrayCacheEntrySerializer;
+import org.apache.hc.client5.http.impl.cache.CacheConfig;
+import org.apache.hc.client5.http.impl.cache.NoopCacheEntrySerializer;
 import org.apache.hc.core5.util.Args;
-
-import net.sf.ehcache.Ehcache;
-import net.sf.ehcache.Element;
+import org.ehcache.Cache;
 
 /**
  * <p>This class is a storage backend for cache entries that uses the
@@ -53,18 +53,29 @@ import net.sf.ehcache.Element;
  * itself.</p>
  * @since 4.1
  */
-public class EhcacheHttpCacheStorage extends AbstractBinaryCacheStorage<Element> {
-
-    private final Ehcache cache;
+public class EhcacheHttpCacheStorage<T> extends AbstractSerializingCacheStorage<T, T> {
 
     /**
-     * Constructs a storage backend using the provided Ehcache
-     * with default configuration options.
-     * @param cache where to store cached origin responses
+     * Creates cache that stores {@link HttpCacheStorageEntry}s without direct serialization.
+     *
+     * @since 5.0
      */
-    public EhcacheHttpCacheStorage(final Ehcache cache){
-        this(cache, CacheConfig.DEFAULT, ByteArrayCacheEntrySerializer.INSTANCE);
+    public static EhcacheHttpCacheStorage<HttpCacheStorageEntry> createObjectCache(
+            final Cache<String, HttpCacheStorageEntry> cache, final CacheConfig config) {
+        return new EhcacheHttpCacheStorage<>(cache, config, NoopCacheEntrySerializer.INSTANCE);
     }
+
+    /**
+     * Creates cache that stores serialized {@link HttpCacheStorageEntry}s.
+     *
+     * @since 5.0
+     */
+    public static EhcacheHttpCacheStorage<byte[]> createSerializedCache(
+            final Cache<String, byte[]> cache, final CacheConfig config) {
+        return new EhcacheHttpCacheStorage<>(cache, config, ByteArrayCacheEntrySerializer.INSTANCE);
+    }
+
+    private final Cache<String, T> cache;
 
     /**
      * Constructs a storage backend using the provided Ehcache
@@ -77,9 +88,9 @@ public class EhcacheHttpCacheStorage extends AbstractBinaryCacheStorage<Element>
      * @param serializer alternative serialization mechanism
      */
     public EhcacheHttpCacheStorage(
-            final Ehcache cache,
+            final Cache<String, T> cache,
             final CacheConfig config,
-            final HttpCacheEntrySerializer<byte[]> serializer) {
+            final HttpCacheEntrySerializer<T> serializer) {
         super((config != null ? config : CacheConfig.DEFAULT).getMaxUpdateRetries(), serializer);
         this.cache = Args.notNull(cache, "Ehcache");
     }
@@ -90,41 +101,29 @@ public class EhcacheHttpCacheStorage extends AbstractBinaryCacheStorage<Element>
     }
 
     @Override
-    protected void store(final String storageKey, final byte[] storageObject) throws ResourceIOException {
-        cache.put(new Element(storageKey, storageKey));
-    }
-
-    private byte[] castAsByteArray(final Object storageObject) throws ResourceIOException {
-        if (storageObject == null) {
-            return null;
-        }
-        if (storageObject instanceof byte[]) {
-            return (byte[]) storageObject;
-        } else {
-            throw new ResourceIOException("Unexpected cache content: " + storageObject.getClass());
-        }
+    protected void store(final String storageKey, final T storageObject) throws ResourceIOException {
+        cache.put(storageKey, storageObject);
     }
 
     @Override
-    protected byte[] restore(final String storageKey) throws ResourceIOException {
-        final Element element = cache.get(storageKey);
-        return element != null ? castAsByteArray(element.getObjectValue()) : null;
-    }
-
-    @Override
-    protected Element getForUpdateCAS(final String storageKey) throws ResourceIOException {
+    protected T restore(final String storageKey) throws ResourceIOException {
         return cache.get(storageKey);
     }
 
     @Override
-    protected byte[] getStorageObject(final Element element) throws ResourceIOException {
-        return castAsByteArray(element.getObjectValue());
+    protected T getForUpdateCAS(final String storageKey) throws ResourceIOException {
+        return cache.get(storageKey);
     }
 
     @Override
-    protected boolean updateCAS(final String storageKey, final Element element, final byte[] storageObject) throws ResourceIOException {
-        final Element newElement = new Element(storageKey, storageObject);
-        return cache.replace(element, newElement);
+    protected T getStorageObject(final T element) throws ResourceIOException {
+        return element;
+    }
+
+    @Override
+    protected boolean updateCAS(
+            final String storageKey, final T oldStorageObject, final T storageObject) throws ResourceIOException {
+        return cache.replace(storageKey, oldStorageObject, storageObject);
     }
 
     @Override

@@ -136,7 +136,7 @@
                 org.osgi.service.cm,
                 org.apache.logging.log4j;version=${log4j.osgi.import.version},
                 org.apache.hc.core5.*;version=${httpcore.osgi.import.version},
-                net.sf.ehcache.*;resolution:=optional,
+                org.ehcache.*;resolution:=optional,
                 net.spy.memcached.*;resolution:=optional
             </Import-Package>
             <Bundle-Activator>org.apache.hc.client5.http.osgi.impl.HttpProxyConfigurationActivator</Bundle-Activator>

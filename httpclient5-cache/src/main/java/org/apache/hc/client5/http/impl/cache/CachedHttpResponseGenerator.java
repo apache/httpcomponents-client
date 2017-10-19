@@ -46,7 +46,7 @@ import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.message.BasicHeader;
 
 /**
- * Rebuilds an {@link HttpResponse} from a {@link net.sf.ehcache.CacheEntry}
+ * Rebuilds an {@link HttpResponse} from a {@link HttpCacheEntry}
  *
  * @since 4.1
  */

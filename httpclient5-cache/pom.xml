@@ -56,8 +56,8 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>net.sf.ehcache</groupId>
-      <artifactId>ehcache-core</artifactId>
+      <groupId>org.ehcache.modules</groupId>
+      <artifactId>ehcache-api</artifactId>
       <scope>compile</scope>
       <optional>true</optional>
     </dependency>
