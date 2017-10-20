@@ -237,8 +237,7 @@ abstract class AuthenticationStrategyImpl implements AuthenticationStrategy {
             return false;
         }
         final String schemeName = authScheme.getSchemeName();
-        return schemeName.equalsIgnoreCase(AuthSchemes.BASIC) ||
-                schemeName.equalsIgnoreCase(AuthSchemes.DIGEST);
+        return schemeName.equalsIgnoreCase(AuthSchemes.BASIC);
     }
 
     @Override
