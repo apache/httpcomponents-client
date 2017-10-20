@@ -167,8 +167,7 @@ class AuthenticationStrategyAdaptor implements AuthenticationStrategy {
             return false;
         }
         final String schemeName = authScheme.getSchemeName();
-        return schemeName.equalsIgnoreCase(AuthPolicy.BASIC) ||
-                schemeName.equalsIgnoreCase(AuthPolicy.DIGEST);
+        return schemeName.equalsIgnoreCase(AuthPolicy.BASIC);
     }
 
     public AuthenticationHandler getHandler() {
