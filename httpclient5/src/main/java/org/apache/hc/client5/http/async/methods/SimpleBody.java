@@ -95,5 +95,11 @@ public final class SimpleBody {
         return bodyAsBytes != null;
     }
 
+    @Override
+    public String toString() {
+        return "content length=" + (bodyAsBytes != null ? bodyAsBytes.length : "chunked") +
+                ", content type=" + contentType;
+    }
+
 }
 
