@@ -220,15 +220,6 @@ public class PoolingHttpClientConnectionManager
     }
 
     @Override
-    protected void finalize() throws Throwable {
-        try {
-            close();
-        } finally {
-            super.finalize();
-        }
-    }
-
-    @Override
     public void close() {
         if (this.closed.compareAndSet(false, true)) {
             this.log.debug("Connection manager is shutting down");

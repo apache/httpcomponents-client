@@ -186,15 +186,6 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
     }
 
     @Override
-    protected void finalize() throws Throwable {
-        try {
-            close();
-        } finally {
-            super.finalize();
-        }
-    }
-
-    @Override
     public void close() {
         if (closed.compareAndSet(false, true)) {
             log.debug("Connection manager is shutting down");

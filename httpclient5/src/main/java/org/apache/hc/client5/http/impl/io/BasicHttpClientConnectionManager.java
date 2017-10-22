@@ -151,15 +151,6 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
     }
 
     @Override
-    protected void finalize() throws Throwable {
-        try {
-            close();
-        } finally { // Make sure we call overridden method even if shutdown barfs
-            super.finalize();
-        }
-    }
-
-    @Override
     public void close() {
         if (this.closed.compareAndSet(false, true)) {
             shutdownConnection();
