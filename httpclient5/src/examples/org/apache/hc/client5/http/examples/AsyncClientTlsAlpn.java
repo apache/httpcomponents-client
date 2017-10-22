@@ -46,15 +46,16 @@ import org.apache.hc.client5.http.ssl.H2TlsStrategy;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
+import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.apache.hc.core5.io.ShutdownType;
 import org.apache.hc.core5.ssl.SSLContexts;
 import org.apache.hc.core5.ssl.TrustStrategy;
 
 /**
- * This example demonstrates how to create secure connections with a custom SSL
- * context.
+ * This example demonstrates how to avoid the illegal reflective access operation warning
+ * when running with Oracle JRE 9 or newer.
  */
-public class AsyncClientCustomSSL {
+public class AsyncClientTlsAlpn {
 
     public final static void main(final String[] args) throws Exception {
         // Trust standard CA and those trusted by our custom strategy
@@ -66,7 +67,7 @@ public class AsyncClientCustomSSL {
                             final X509Certificate[] chain,
                             final String authType) throws CertificateException {
                         final X509Certificate cert = chain[0];
-                        return "CN=httpbin.org".equalsIgnoreCase(cert.getSubjectDN().getName());
+                        return "CN=http2bin.org".equalsIgnoreCase(cert.getSubjectDN().getName());
                     }
 
                 })
@@ -87,12 +88,13 @@ public class AsyncClientCustomSSL {
                 .setTlsStrategy(tlsStrategy)
                 .build();
         try (CloseableHttpAsyncClient client = HttpAsyncClients.custom()
+                .setVersionPolicy(HttpVersionPolicy.NEGOTIATE)
                 .setConnectionManager(cm)
                 .build()) {
 
             client.start();
 
-            final HttpHost target = new HttpHost("httpbin.org", 443, "https");
+            final HttpHost target = new HttpHost("http2bin.org", 443, "https");
             final String requestUri = "/";
             final HttpClientContext clientContext = HttpClientContext.create();
 
