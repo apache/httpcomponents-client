@@ -316,7 +316,8 @@ public class HttpAuthenticator {
 
     private boolean isCachable(final AuthScheme authScheme) {
         final String schemeName = authScheme.getName();
-        return schemeName.equalsIgnoreCase(AuthSchemes.BASIC);
+        return schemeName.equalsIgnoreCase(AuthSchemes.BASIC) ||
+               schemeName.equalsIgnoreCase(AuthSchemes.DIGEST);
     }
 
     private void updateCache(final HttpHost host, final AuthScheme authScheme, final HttpClientContext clientContext) {
