@@ -39,6 +39,7 @@ import org.apache.http.auth.AUTH;
 import org.apache.http.auth.AuthenticationException;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.InvalidCredentialsException;
+import org.apache.http.auth.KerberosConfig;
 import org.apache.http.auth.KerberosCredentials;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.client.protocol.HttpClientContext;
@@ -69,8 +70,7 @@ public abstract class GGSSchemeBase extends AuthSchemeBase {
     private final Log log = LogFactory.getLog(getClass());
 
     private final Base64 base64codec;
-    private final boolean stripPort;
-    private final boolean useCanonicalHostname;
+    private final KerberosConfig config;
 
     /** Authentication process state */
     private State state;
@@ -78,20 +78,27 @@ public abstract class GGSSchemeBase extends AuthSchemeBase {
     /** base64 decoded challenge **/
     private byte[] token;
 
-    GGSSchemeBase(final boolean stripPort, final boolean useCanonicalHostname) {
+    GGSSchemeBase(final KerberosConfig config) {
         super();
         this.base64codec = new Base64(0);
-        this.stripPort = stripPort;
-        this.useCanonicalHostname = useCanonicalHostname;
+        this.config = config != null ? config : KerberosConfig.DEFAULT;
         this.state = State.UNINITIATED;
     }
 
+    GGSSchemeBase(final boolean stripPort, final boolean useCanonicalHostname) {
+        this(KerberosConfig.custom()
+                .setStripPort(stripPort)
+                .setUseCanonicalHostname(useCanonicalHostname).build());
+    }
+
     GGSSchemeBase(final boolean stripPort) {
-        this(stripPort, true);
+        this(KerberosConfig.custom()
+                .setStripPort(stripPort)
+                .setUseCanonicalHostname(true).build());
     }
 
     GGSSchemeBase() {
-        this(true,true);
+        this(KerberosConfig.DEFAULT);
     }
 
     protected GSSManager getManager() {
@@ -135,6 +142,9 @@ public abstract class GGSSchemeBase extends AuthSchemeBase {
         final GSSContext gssContext = manager.createContext(serverName.canonicalize(oid), oid, gssCredential,
                 GSSContext.DEFAULT_LIFETIME);
         gssContext.requestMutualAuth(true);
+        if (config.getRequestDelegCreds() != KerberosConfig.Option.DEFAULT) {
+            gssContext.requestCredDeleg(config.getRequestDelegCreds() == KerberosConfig.Option.ENABLE);
+        }
         return gssContext;
     }
     /**
@@ -201,7 +211,7 @@ public abstract class GGSSchemeBase extends AuthSchemeBase {
                 final String authServer;
                 String hostname = host.getHostName();
 
-                if (this.useCanonicalHostname){
+                if (config.getUseCanonicalHostname() != KerberosConfig.Option.DISABLE){
                     try {
                          //TODO: uncomment this statement and delete the resolveCanonicalHostname,
                          //TODO: as soon canonical hostname resolving is implemented in the SystemDefaultDnsResolver
@@ -211,7 +221,7 @@ public abstract class GGSSchemeBase extends AuthSchemeBase {
                     } catch (final UnknownHostException ignore){
                     }
                 }
-                if (this.stripPort) { // || host.getPort()==80 || host.getPort()==443) {
+                if (config.getStripPort() != KerberosConfig.Option.DISABLE) { // || host.getPort()==80 || host.getPort()==443) {
                     authServer = hostname;
                 } else {
                     authServer = hostname + ":" + host.getPort();

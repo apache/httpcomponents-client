@@ -30,6 +30,7 @@ import org.apache.http.Header;
 import org.apache.http.HttpRequest;
 import org.apache.http.auth.AuthenticationException;
 import org.apache.http.auth.Credentials;
+import org.apache.http.auth.KerberosConfig;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.Args;
 import org.ietf.jgss.GSSException;
@@ -43,6 +44,13 @@ import org.ietf.jgss.Oid;
 public class KerberosScheme extends GGSSchemeBase {
 
     private static final String KERBEROS_OID = "1.2.840.113554.1.2.2";
+
+    /**
+     * @since 4.6
+     */
+    public KerberosScheme(final KerberosConfig config) {
+        super(config);
+    }
 
     /**
      * @since 4.4

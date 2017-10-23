@@ -31,6 +31,7 @@ import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthSchemeFactory;
 import org.apache.http.auth.AuthSchemeProvider;
+import org.apache.http.auth.KerberosConfig;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
 
@@ -44,22 +45,33 @@ import org.apache.http.protocol.HttpContext;
 @SuppressWarnings("deprecation")
 public class KerberosSchemeFactory implements AuthSchemeFactory, AuthSchemeProvider {
 
-    private final boolean stripPort;
-    private final boolean useCanonicalHostname;
+    private final KerberosConfig config;
+
+    /**
+     * @since 4.6
+     */
+    public KerberosSchemeFactory(final KerberosConfig config) {
+        super();
+        this.config = config != null ? config : KerberosConfig.DEFAULT;
+    }
 
     /**
      * @since 4.4
      */
     public KerberosSchemeFactory(final boolean stripPort, final boolean useCanonicalHostname) {
         super();
-        this.stripPort = stripPort;
-        this.useCanonicalHostname = useCanonicalHostname;
+        this.config = KerberosConfig.custom()
+                .setStripPort(stripPort)
+                .setUseCanonicalHostname(useCanonicalHostname)
+                .build();
     }
 
     public KerberosSchemeFactory(final boolean stripPort) {
         super();
-        this.stripPort = stripPort;
-        this.useCanonicalHostname = true;
+        this.config = KerberosConfig.custom()
+                .setStripPort(stripPort)
+                .setUseCanonicalHostname(true)
+                .build();
     }
 
     public KerberosSchemeFactory() {
@@ -67,21 +79,21 @@ public class KerberosSchemeFactory implements AuthSchemeFactory, AuthSchemeProvi
     }
 
     public boolean isStripPort() {
-        return stripPort;
+        return config.getStripPort() != KerberosConfig.Option.DISABLE;
     }
 
     public boolean isUseCanonicalHostname() {
-        return useCanonicalHostname;
+        return config.getUseCanonicalHostname() != KerberosConfig.Option.DISABLE;
     }
 
     @Override
     public AuthScheme newInstance(final HttpParams params) {
-        return new KerberosScheme(this.stripPort, this.useCanonicalHostname);
+        return new KerberosScheme(config);
     }
 
     @Override
     public AuthScheme create(final HttpContext context) {
-        return new KerberosScheme(this.stripPort, this.useCanonicalHostname);
+        return new KerberosScheme(config);
     }
 
 }
