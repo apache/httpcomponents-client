@@ -29,10 +29,12 @@ package org.apache.hc.client5.testing.sync;
 import java.io.IOException;
 import java.security.Principal;
 
+import org.apache.hc.client5.http.SystemDefaultDnsResolver;
 import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.AuthSchemeProvider;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.Credentials;
+import org.apache.hc.client5.http.auth.KerberosConfig;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.config.AuthSchemes;
 import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
@@ -94,7 +96,7 @@ public class TestSPNegoScheme extends LocalServerTestBase {
         GSSContext context = Mockito.mock(GSSContext.class);
 
         NegotiateSchemeWithMockGssManager() throws Exception {
-            super(true);
+            super(KerberosConfig.DEFAULT, SystemDefaultDnsResolver.INSTANCE);
             Mockito.when(context.initSecContext(
                     ArgumentMatchers.<byte[]>any(), ArgumentMatchers.anyInt(), ArgumentMatchers.anyInt()))
                     .thenReturn("12345678".getBytes());

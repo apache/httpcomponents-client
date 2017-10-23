@@ -47,6 +47,7 @@ import org.apache.hc.client5.http.SystemDefaultDnsResolver;
 import org.apache.hc.client5.http.UserTokenHandler;
 import org.apache.hc.client5.http.auth.AuthSchemeProvider;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
+import org.apache.hc.client5.http.auth.KerberosConfig;
 import org.apache.hc.client5.http.classic.BackoffManager;
 import org.apache.hc.client5.http.classic.ConnectionBackoffStrategy;
 import org.apache.hc.client5.http.classic.ExecChainHandler;
@@ -952,8 +953,8 @@ public class HttpClientBuilder {
                 .register(AuthSchemes.DIGEST, new DigestSchemeFactory())
                 .register(AuthSchemes.CREDSSP, new CredSspSchemeFactory())
                 .register(AuthSchemes.NTLM, new NTLMSchemeFactory())
-                .register(AuthSchemes.SPNEGO, new SPNegoSchemeFactory(SystemDefaultDnsResolver.INSTANCE, true, true))
-                .register(AuthSchemes.KERBEROS, new KerberosSchemeFactory(SystemDefaultDnsResolver.INSTANCE, true, true))
+                .register(AuthSchemes.SPNEGO, new SPNegoSchemeFactory(KerberosConfig.DEFAULT, SystemDefaultDnsResolver.INSTANCE))
+                .register(AuthSchemes.KERBEROS, new KerberosSchemeFactory(KerberosConfig.DEFAULT, SystemDefaultDnsResolver.INSTANCE))
                 .build();
         }
         Lookup<CookieSpecProvider> cookieSpecRegistryCopy = this.cookieSpecRegistry;

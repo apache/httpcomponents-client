@@ -40,6 +40,7 @@ import org.apache.hc.client5.http.auth.AuthSchemeProvider;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.Credentials;
+import org.apache.hc.client5.http.auth.KerberosConfig;
 import org.apache.hc.client5.http.config.AuthSchemes;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.DefaultAuthenticationStrategy;
@@ -117,8 +118,8 @@ public class ProxyClient {
                 .register(AuthSchemes.BASIC, new BasicSchemeFactory())
                 .register(AuthSchemes.DIGEST, new DigestSchemeFactory())
                 .register(AuthSchemes.NTLM, new NTLMSchemeFactory())
-                .register(AuthSchemes.SPNEGO, new SPNegoSchemeFactory(SystemDefaultDnsResolver.INSTANCE, true, true))
-                .register(AuthSchemes.KERBEROS, new KerberosSchemeFactory(SystemDefaultDnsResolver.INSTANCE, true, true))
+                .register(AuthSchemes.SPNEGO, new SPNegoSchemeFactory(KerberosConfig.DEFAULT, SystemDefaultDnsResolver.INSTANCE))
+                .register(AuthSchemes.KERBEROS, new KerberosSchemeFactory(KerberosConfig.DEFAULT, SystemDefaultDnsResolver.INSTANCE))
                 .build();
         this.reuseStrategy = new DefaultConnectionReuseStrategy();
     }

@@ -29,6 +29,7 @@ package org.apache.hc.client5.http.impl.auth;
 import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.AuthSchemeProvider;
+import org.apache.hc.client5.http.auth.KerberosConfig;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.protocol.HttpContext;
@@ -42,23 +43,21 @@ import org.apache.hc.core5.http.protocol.HttpContext;
 @Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class KerberosSchemeFactory implements AuthSchemeProvider {
 
+    private final KerberosConfig config;
     private final DnsResolver dnsResolver;
-    private final boolean stripPort;
-    private final boolean useCanonicalHostname;
 
     /**
-     * @since 4.4
+     * @since 5.0
      */
-    public KerberosSchemeFactory(final DnsResolver dnsResolver, final boolean stripPort, final boolean useCanonicalHostname) {
+    public KerberosSchemeFactory(final KerberosConfig config, final DnsResolver dnsResolver) {
         super();
+        this.config = config;
         this.dnsResolver = dnsResolver;
-        this.stripPort = stripPort;
-        this.useCanonicalHostname = useCanonicalHostname;
     }
 
     @Override
     public AuthScheme create(final HttpContext context) {
-        return new KerberosScheme(this.dnsResolver, this.stripPort, this.useCanonicalHostname);
+        return new KerberosScheme(this.config, this.dnsResolver);
     }
 
 }

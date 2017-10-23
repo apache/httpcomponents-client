@@ -27,6 +27,7 @@
 package org.apache.hc.client5.http.impl.auth;
 
 import org.apache.hc.client5.http.DnsResolver;
+import org.apache.hc.client5.http.auth.KerberosConfig;
 import org.ietf.jgss.GSSException;
 import org.ietf.jgss.Oid;
 
@@ -40,14 +41,10 @@ public class KerberosScheme extends GGSSchemeBase {
     private static final String KERBEROS_OID = "1.2.840.113554.1.2.2";
 
     /**
-     * @since 4.4
+     * @since 5.0
      */
-    public KerberosScheme(final DnsResolver dnsResolver, final boolean stripPort, final boolean useCanonicalHostname) {
-        super(dnsResolver, stripPort, useCanonicalHostname);
-    }
-
-    public KerberosScheme(final boolean stripPort) {
-        super(stripPort);
+    public KerberosScheme(final KerberosConfig config, final DnsResolver dnsResolver) {
+        super(config, dnsResolver);
     }
 
     public KerberosScheme() {

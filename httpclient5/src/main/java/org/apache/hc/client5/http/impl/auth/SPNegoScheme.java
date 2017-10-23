@@ -27,6 +27,7 @@
 package org.apache.hc.client5.http.impl.auth;
 
 import org.apache.hc.client5.http.DnsResolver;
+import org.apache.hc.client5.http.auth.KerberosConfig;
 import org.ietf.jgss.GSSException;
 import org.ietf.jgss.Oid;
 
@@ -41,14 +42,10 @@ public class SPNegoScheme extends GGSSchemeBase {
     private static final String SPNEGO_OID = "1.3.6.1.5.5.2";
 
     /**
-     * @since 4.4
+     * @since 5.0
      */
-    public SPNegoScheme(final DnsResolver dnsResolver, final boolean stripPort, final boolean useCanonicalHostname) {
-        super(dnsResolver, stripPort, useCanonicalHostname);
-    }
-
-    public SPNegoScheme(final boolean stripPort) {
-        super(stripPort);
+    public SPNegoScheme(final KerberosConfig config, final DnsResolver dnsResolver) {
+        super(config, dnsResolver);
     }
 
     public SPNegoScheme() {
