@@ -152,7 +152,7 @@ public class URIBuilder {
             }
             if (this.encodedQuery != null) {
                 sb.append("?").append(this.encodedQuery);
-            } else if (this.queryParams != null) {
+            } else if (this.queryParams != null && !this.queryParams.isEmpty()) {
                 sb.append("?").append(encodeUrlForm(this.queryParams));
             } else if (this.query != null) {
                 sb.append("?").append(encodeUric(this.query));
