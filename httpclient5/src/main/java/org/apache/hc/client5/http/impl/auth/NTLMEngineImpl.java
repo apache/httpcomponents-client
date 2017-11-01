@@ -1812,7 +1812,7 @@ final class NTLMEngineImpl implements NTLMEngine {
                 final MessageDigest md5 = getMD5();
                 channelBindingsHash = md5.digest( channelBindingStruct );
             }
-            catch ( CertificateEncodingException | NoSuchAlgorithmException e )
+            catch (final CertificateEncodingException | NoSuchAlgorithmException e )
             {
                 throw new NTLMEngineException( e.getMessage(), e );
             }

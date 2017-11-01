@@ -101,7 +101,7 @@ class AsyncRetryExec implements AsyncExecChainHandler {
                             scope.execRuntime.discardConnection();
                             internalExecute(execCount + 1, request, entityProducer, scope, chain, asyncExecCallback);
                             return;
-                        } catch (IOException | HttpException ex) {
+                        } catch (final IOException | HttpException ex) {
                             log.error(ex.getMessage(), ex);
                         }
                     }

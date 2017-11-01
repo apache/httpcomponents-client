@@ -106,7 +106,7 @@ public class SystemDefaultCredentialsProvider implements CredentialsStore {
         try {
             final URI uri = request != null ? request.getUri() : null;
             targetHostURL = uri != null ? uri.toURL() : null;
-        } catch (URISyntaxException | MalformedURLException ignore) {
+        } catch (final URISyntaxException | MalformedURLException ignore) {
             targetHostURL = null;
         }
         // use null addr, because the authentication fails if it does not exactly match the expected realm's host

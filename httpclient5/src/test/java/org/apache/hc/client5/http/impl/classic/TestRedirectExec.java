@@ -336,7 +336,7 @@ public class TestRedirectExec {
         public boolean matches(final ClassicHttpRequest argument) {
             try {
                 return requestUri.equals(argument.getUri());
-            } catch (URISyntaxException e) {
+            } catch (final URISyntaxException ex) {
                 return false;
             }
         }

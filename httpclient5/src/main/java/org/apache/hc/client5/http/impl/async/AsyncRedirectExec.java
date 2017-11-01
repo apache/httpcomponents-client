@@ -171,7 +171,7 @@ class AsyncRedirectExec implements AsyncExecChainHandler {
                             scope.execRuntime.releaseConnection();
                         }
                         internalExecute(state, chain, asyncExecCallback);
-                    } catch (IOException | HttpException ex) {
+                    } catch (final IOException | HttpException ex) {
                         asyncExecCallback.failed(ex);
                     }
                 }

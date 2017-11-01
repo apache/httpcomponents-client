@@ -233,8 +233,9 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
                     @Override
                     public void completed(final PoolEntry<HttpRoute, ManagedAsyncClientConnection> poolEntry) {
                         final ManagedAsyncClientConnection connection = poolEntry.getConnection();
-                        if (TimeValue.isPositive(validateAfterInactivity) && connection != null &&
-                                poolEntry.getUpdated() + validateAfterInactivity.toMillis() <= System.currentTimeMillis()) {
+                        final TimeValue timeValue = PoolingAsyncClientConnectionManager.this.validateAfterInactivity;
+                        if (TimeValue.isPositive(timeValue) && connection != null &&
+                                poolEntry.getUpdated() + timeValue.toMillis() <= System.currentTimeMillis()) {
                             final ProtocolVersion protocolVersion = connection.getProtocolVersion();
                             if (HttpVersion.HTTP_2_0.greaterEquals(protocolVersion)) {
                                 connection.submitPriorityCommand(new PingCommand(new BasicPingHandler(new Callback<Boolean>() {

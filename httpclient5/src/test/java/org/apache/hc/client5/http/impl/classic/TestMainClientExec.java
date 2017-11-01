@@ -251,7 +251,7 @@ public class TestMainClientExec {
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
         try {
             mainClientExec.execute(request, scope, null);
-        } catch (Exception ex) {
+        } catch (final Exception ex) {
             Mockito.verify(endpoint).discardConnection();
             throw ex;
         }

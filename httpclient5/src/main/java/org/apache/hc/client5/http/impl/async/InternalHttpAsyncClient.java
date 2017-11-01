@@ -256,7 +256,7 @@ class InternalHttpAsyncClient extends AbstractHttpAsyncClientBase {
 
             });
 
-        } catch (HttpException | IOException ex) {
+        } catch (final HttpException | IOException ex) {
             future.failed(ex);
         }
         return future;

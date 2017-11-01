@@ -101,7 +101,7 @@ public class TestRedirects extends LocalServerTestBase {
                     response.setCode(HttpStatus.SC_NOT_FOUND);
                 }
 
-            } catch (URISyntaxException ex) {
+            } catch (final URISyntaxException ex) {
                 throw new ProtocolException(ex.getMessage(), ex);
             }
         }

@@ -98,7 +98,7 @@ class ResponseEntityProxy extends HttpEntityWrapper implements EofSensorWatcher 
                 super.writeTo(outstream);
             }
             releaseConnection();
-        } catch (IOException | RuntimeException ex) {
+        } catch (final IOException | RuntimeException ex) {
             discardConnection();
             throw ex;
         } finally {
@@ -115,7 +115,7 @@ class ResponseEntityProxy extends HttpEntityWrapper implements EofSensorWatcher 
                 wrapped.close();
             }
             releaseConnection();
-        } catch (IOException | RuntimeException ex) {
+        } catch (final IOException | RuntimeException ex) {
             discardConnection();
             throw ex;
         } finally {
@@ -140,7 +140,7 @@ class ResponseEntityProxy extends HttpEntityWrapper implements EofSensorWatcher 
                     throw ex;
                 }
             }
-        } catch (IOException | RuntimeException ex) {
+        } catch (final IOException | RuntimeException ex) {
             discardConnection();
             throw ex;
         } finally {

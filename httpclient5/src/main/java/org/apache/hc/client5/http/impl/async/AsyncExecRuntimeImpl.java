@@ -248,7 +248,7 @@ class AsyncExecRuntimeImpl implements AsyncExecRuntime {
                     }
                     try {
                         endpoint.execute(exchangeHandler, context);
-                    } catch (RuntimeException ex) {
+                    } catch (final RuntimeException ex) {
                         failed(ex);
                     }
                 }

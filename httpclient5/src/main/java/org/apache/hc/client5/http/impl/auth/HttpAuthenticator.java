@@ -234,7 +234,7 @@ public class HttpAuthenticator {
                 if (authScheme.isResponseReady(host, credsProvider, context)) {
                     authOptions.add(authScheme);
                 }
-            } catch (AuthenticationException | MalformedChallengeException ex) {
+            } catch (final AuthenticationException | MalformedChallengeException ex) {
                 if (this.log.isWarnEnabled()) {
                     this.log.warn(ex.getMessage());
                 }
