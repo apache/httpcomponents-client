@@ -173,6 +173,12 @@ public class AsyncRandomHandler implements AsyncServerExchangeHandler {
 
         @Override
         public void releaseResources() {
+            remaining = length;
+        }
+
+        @Override
+        public boolean isRepeatable() {
+            return true;
         }
 
         @Override

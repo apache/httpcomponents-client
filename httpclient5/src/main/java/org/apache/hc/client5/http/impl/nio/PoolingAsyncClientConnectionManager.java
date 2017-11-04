@@ -29,6 +29,7 @@ package org.apache.hc.client5.http.impl.nio;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -212,12 +213,8 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
             log.debug("Connection request: " + ConnPoolSupport.formatStats(null, route, state, pool));
         }
         final ComplexFuture<AsyncConnectionEndpoint> resultFuture = new ComplexFuture<>(callback);
-        //TODO: fix me.
-        if (log.isWarnEnabled() && Timeout.isPositive(requestTimeout)) {
-            log.warn("Connection request timeout is not supported");
-        }
         final Future<PoolEntry<HttpRoute, ManagedAsyncClientConnection>> leaseFuture = pool.lease(
-                route, state, /** requestTimeout, **/ new FutureCallback<PoolEntry<HttpRoute, ManagedAsyncClientConnection>>() {
+                route, state, requestTimeout, new FutureCallback<PoolEntry<HttpRoute, ManagedAsyncClientConnection>>() {
 
                     void leaseCompleted(final PoolEntry<HttpRoute, ManagedAsyncClientConnection> poolEntry) {
                         if (log.isDebugEnabled()) {
@@ -392,6 +389,11 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
         if (log.isDebugEnabled()) {
             log.debug(ConnPoolSupport.getId(internalEndpoint) + ": upgraded " + ConnPoolSupport.getId(connection));
         }
+    }
+
+    @Override
+    public Set<HttpRoute> getRoutes() {
+        return pool.getRoutes();
     }
 
     @Override

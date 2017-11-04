@@ -27,6 +27,7 @@
 package org.apache.hc.client5.http.impl.io;
 
 import java.io.IOException;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -249,11 +250,7 @@ public class PoolingHttpClientConnectionManager
         if (this.log.isDebugEnabled()) {
             this.log.debug("Connection request: " + ConnPoolSupport.formatStats(null, route, state, this.pool));
         }
-        //TODO: fix me.
-        if (log.isWarnEnabled() && Timeout.isPositive(requestTimeout)) {
-            log.warn("Connection request timeout is not supported");
-        }
-        final Future<PoolEntry<HttpRoute, ManagedHttpClientConnection>> leaseFuture = this.pool.lease(route, state, /** requestTimeout, */ null);
+        final Future<PoolEntry<HttpRoute, ManagedHttpClientConnection>> leaseFuture = this.pool.lease(route, state, requestTimeout, null);
         return new LeaseRequest() {
 
             private volatile ConnectionEndpoint endpoint;
@@ -409,6 +406,11 @@ public class PoolingHttpClientConnectionManager
     public void closeExpired() {
         this.log.debug("Closing expired connections");
         this.pool.closeExpired();
+    }
+
+    @Override
+    public Set<HttpRoute> getRoutes() {
+        return this.pool.getRoutes();
     }
 
     @Override

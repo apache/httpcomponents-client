@@ -71,6 +71,11 @@ final class InternalAsyncEntityProducer implements AsyncEntityProducer {
     }
 
     @Override
+    public boolean isRepeatable() {
+        return false;
+    }
+
+    @Override
     public boolean isChunked() {
         return entityDetails.isChunked();
     }
