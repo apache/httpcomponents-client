@@ -34,11 +34,13 @@ import org.apache.hc.client5.http.auth.AuthExchange;
 import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.AuthSchemeProvider;
 import org.apache.hc.client5.http.auth.AuthScope;
+import org.apache.hc.client5.http.auth.AuthStateCacheable;
 import org.apache.hc.client5.http.auth.AuthenticationException;
 import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
+import org.apache.hc.client5.http.config.AuthSchemes;
 import org.apache.hc.client5.http.impl.DefaultAuthenticationStrategy;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.http.HttpHeaders;
@@ -56,13 +58,24 @@ import org.apache.hc.core5.http.protocol.HttpContext;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Answers;
 import org.mockito.Mockito;
 
 @SuppressWarnings({"boxing","static-access"})
 public class TestHttpAuthenticator {
 
+    @AuthStateCacheable
+    abstract class CacheableAuthState implements AuthScheme {
+
+        @Override
+        public String getName() {
+            return AuthSchemes.BASIC;
+        }
+
+    }
+
     private AuthExchange authExchange;
-    private AuthScheme authScheme;
+    private CacheableAuthState authScheme;
     private HttpContext context;
     private HttpHost defaultHost;
     private CredentialsProvider credentialsProvider;
@@ -73,8 +86,8 @@ public class TestHttpAuthenticator {
     @Before
     public void setUp() throws Exception {
         this.authExchange = new AuthExchange();
-        this.authScheme = Mockito.mock(AuthScheme.class);
-        Mockito.when(this.authScheme.getName()).thenReturn("Basic");
+        this.authScheme = Mockito.mock(CacheableAuthState.class, Mockito.withSettings()
+                .defaultAnswer(Answers.CALLS_REAL_METHODS));
         Mockito.when(this.authScheme.isChallengeComplete()).thenReturn(Boolean.TRUE);
         this.context = new BasicHttpContext();
         this.defaultHost = new HttpHost("localhost", 80);
