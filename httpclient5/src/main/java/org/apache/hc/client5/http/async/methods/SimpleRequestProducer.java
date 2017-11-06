@@ -47,16 +47,7 @@ public final class SimpleRequestProducer extends DefaultAsyncRequestProducer {
             if (body.isText()) {
                 entityProducer = new StringAsyncEntityProducer(body.getBodyText(), body.getContentType());
             } else {
-                entityProducer = new BasicAsyncEntityProducer(body.getBodyBytes(), body.getContentType()) {
-
-                    //TODO: return the actual content length once
-                    // the entity producers made repeatable in HttpCore
-                    @Override
-                    public long getContentLength() {
-                        return -1;
-                    }
-
-                };
+                entityProducer = new BasicAsyncEntityProducer(body.getBodyBytes(), body.getContentType());
             }
         } else {
             entityProducer = null;

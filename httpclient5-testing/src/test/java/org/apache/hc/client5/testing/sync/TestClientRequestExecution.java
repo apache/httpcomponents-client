@@ -31,9 +31,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.List;
 
-import org.apache.hc.client5.http.ClientProtocolException;
 import org.apache.hc.client5.http.HttpRequestRetryHandler;
-import org.apache.hc.client5.http.NonRepeatableRequestException;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
@@ -161,7 +159,7 @@ public class TestClientRequestExecution extends LocalServerTestBase {
         Assert.assertEquals(1, myheaders.length);
     }
 
-    @Test(expected=ClientProtocolException.class)
+    @Test(expected=IOException.class)
     public void testNonRepeatableEntity() throws Exception {
         this.server.registerHandler("*", new SimpleService());
 
@@ -192,16 +190,7 @@ public class TestClientRequestExecution extends LocalServerTestBase {
                 new ByteArrayInputStream(
                         new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 } ),
                         -1));
-
-        try {
-            this.httpclient.execute(target, httppost, context);
-        } catch (final ClientProtocolException ex) {
-            Assert.assertTrue(ex.getCause() instanceof NonRepeatableRequestException);
-            final NonRepeatableRequestException nonRepeat = (NonRepeatableRequestException)ex.getCause();
-            Assert.assertTrue(nonRepeat.getCause() instanceof IOException);
-            Assert.assertEquals("a message showing that this failed", nonRepeat.getCause().getMessage());
-            throw ex;
-        }
+        this.httpclient.execute(target, httppost, context);
     }
 
     @Test

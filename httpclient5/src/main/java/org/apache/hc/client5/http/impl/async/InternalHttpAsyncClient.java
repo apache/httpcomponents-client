@@ -38,6 +38,7 @@ import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.async.AsyncExecCallback;
 import org.apache.hc.client5.http.async.AsyncExecChain;
 import org.apache.hc.client5.http.async.AsyncExecRuntime;
+import org.apache.hc.client5.http.async.methods.SimpleRequestProducer;
 import org.apache.hc.client5.http.auth.AuthSchemeProvider;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.config.Configurable;
@@ -201,7 +202,8 @@ class InternalHttpAsyncClient extends AbstractHttpAsyncClientBase {
 
                                 @Override
                                 public boolean isRepeatable() {
-                                    return false;
+                                    //TODO: use AsyncRequestProducer#isRepeatable once available
+                                    return requestProducer instanceof SimpleRequestProducer;
                                 }
 
                                 @Override

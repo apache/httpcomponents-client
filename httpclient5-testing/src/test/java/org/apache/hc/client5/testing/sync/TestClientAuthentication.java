@@ -35,8 +35,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.apache.hc.client5.http.ClientProtocolException;
-import org.apache.hc.client5.http.NonRepeatableRequestException;
 import org.apache.hc.client5.http.auth.AuthCache;
 import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.AuthScheme;
@@ -215,7 +213,7 @@ public class TestClientAuthentication extends LocalServerTestBase {
         Assert.assertNotNull(entity);
     }
 
-    @Test(expected=ClientProtocolException.class)
+    @Test
     public void testBasicAuthenticationFailureOnNonRepeatablePutDontExpectContinue() throws Exception {
         this.server.registerHandler("*", new EchoHandler());
         final HttpHost target = start();
@@ -233,15 +231,11 @@ public class TestClientAuthentication extends LocalServerTestBase {
                 new UsernamePasswordCredentials("test", "boom".toCharArray()));
         context.setCredentialsProvider(credsProvider);
 
-        try {
-            this.httpclient.execute(target, httpput, context);
-            Assert.fail("ClientProtocolException should have been thrown");
-        } catch (final ClientProtocolException ex) {
-            final Throwable cause = ex.getCause();
-            Assert.assertNotNull(cause);
-            Assert.assertTrue(cause instanceof NonRepeatableRequestException);
-            throw ex;
-        }
+        final CloseableHttpResponse response = this.httpclient.execute(target, httpput, context);
+        final HttpEntity entity = response.getEntity();
+        Assert.assertEquals(401, response.getCode());
+        Assert.assertNotNull(entity);
+        EntityUtils.consume(entity);
     }
 
     @Test
@@ -267,7 +261,7 @@ public class TestClientAuthentication extends LocalServerTestBase {
         Assert.assertEquals("test realm", authscope.getRealm());
     }
 
-    @Test(expected=ClientProtocolException.class)
+    @Test
     public void testBasicAuthenticationFailureOnNonRepeatablePost() throws Exception {
         this.server.registerHandler("*", new EchoHandler());
         final HttpHost target = start();
@@ -278,19 +272,18 @@ public class TestClientAuthentication extends LocalServerTestBase {
                         new byte[] { 0,1,2,3,4,5,6,7,8,9 }), -1));
 
         final HttpClientContext context = HttpClientContext.create();
+        context.setRequestConfig(RequestConfig.custom()
+                .setExpectContinueEnabled(false)
+                .build());
         final TestCredentialsProvider credsProvider = new TestCredentialsProvider(
                 new UsernamePasswordCredentials("test", "test".toCharArray()));
         context.setCredentialsProvider(credsProvider);
 
-        try {
-            this.httpclient.execute(target, httppost, context);
-            Assert.fail("ClientProtocolException should have been thrown");
-        } catch (final ClientProtocolException ex) {
-            final Throwable cause = ex.getCause();
-            Assert.assertNotNull(cause);
-            Assert.assertTrue(cause instanceof NonRepeatableRequestException);
-            throw ex;
-        }
+        final CloseableHttpResponse response = this.httpclient.execute(target, httppost, context);
+        final HttpEntity entity = response.getEntity();
+        Assert.assertEquals(401, response.getCode());
+        Assert.assertNotNull(entity);
+        EntityUtils.consume(entity);
     }
 
     static class TestTargetAuthenticationStrategy extends DefaultAuthenticationStrategy {

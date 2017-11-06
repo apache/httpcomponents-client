@@ -83,7 +83,9 @@ class AsyncRetryExec implements AsyncExecChainHandler {
                 if (cause instanceof IOException) {
                     final HttpRoute route = scope.route;
                     final HttpClientContext clientContext = scope.clientContext;
-                    if (retryHandler.retryRequest(request, (IOException) cause, execCount, clientContext)) {
+                    if (entityProducer != null && !entityProducer.isRepeatable()) {
+                        log.debug("Cannot retry non-repeatable request");
+                    } else if (retryHandler.retryRequest(request, (IOException) cause, execCount, clientContext)) {
                         if (log.isInfoEnabled()) {
                             log.info("I/O exception ("+ cause.getClass().getName() +
                                     ") caught when processing request to "
@@ -99,6 +101,9 @@ class AsyncRetryExec implements AsyncExecChainHandler {
                         }
                         try {
                             scope.execRuntime.discardConnection();
+                            if (entityProducer != null) {
+                                entityProducer.releaseResources();
+                            }
                             internalExecute(execCount + 1, request, entityProducer, scope, chain, asyncExecCallback);
                             return;
                         } catch (final IOException | HttpException ex) {

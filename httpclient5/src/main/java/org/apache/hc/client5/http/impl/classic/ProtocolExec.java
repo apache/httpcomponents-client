@@ -34,7 +34,6 @@ import java.util.Iterator;
 
 import org.apache.hc.client5.http.AuthenticationStrategy;
 import org.apache.hc.client5.http.HttpRoute;
-import org.apache.hc.client5.http.NonRepeatableRequestException;
 import org.apache.hc.client5.http.StandardMethods;
 import org.apache.hc.client5.http.auth.AuthExchange;
 import org.apache.hc.client5.http.auth.ChallengeType;
@@ -138,15 +137,7 @@ final class ProtocolExec implements ExecChainHandler {
             final AuthExchange targetAuthExchange = context.getAuthExchange(target);
             final AuthExchange proxyAuthExchange = proxy != null ? context.getAuthExchange(proxy) : new AuthExchange();
 
-            for (int execCount = 1;; execCount++) {
-
-                if (execCount > 1) {
-                    final HttpEntity entity = request.getEntity();
-                    if (entity != null && !entity.isRepeatable()) {
-                        throw new NonRepeatableRequestException("Cannot retry request " +
-                                "with a non-repeatable request entity.");
-                    }
-                }
+            for (;;) {
 
                 // Run request protocol interceptors
                 context.setAttribute(HttpClientContext.HTTP_ROUTE, route);
@@ -176,12 +167,16 @@ final class ProtocolExec implements ExecChainHandler {
                     // Do not perform authentication for TRACE request
                     return response;
                 }
-
+                final HttpEntity requestEntity = request.getEntity();
+                if (requestEntity != null && !requestEntity.isRepeatable()) {
+                    log.debug("Cannot retry non-repeatable request");
+                    return response;
+                }
                 if (needAuthentication(targetAuthExchange, proxyAuthExchange, route, request, response, context)) {
                     // Make sure the response body is fully consumed, if present
-                    final HttpEntity entity = response.getEntity();
+                    final HttpEntity responseEntity = response.getEntity();
                     if (execRuntime.isConnectionReusable()) {
-                        EntityUtils.consume(entity);
+                        EntityUtils.consume(responseEntity);
                     } else {
                         execRuntime.disconnect();
                         if (proxyAuthExchange.getState() == AuthExchange.State.SUCCESS

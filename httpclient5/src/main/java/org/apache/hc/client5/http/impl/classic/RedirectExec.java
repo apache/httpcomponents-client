@@ -49,6 +49,7 @@ import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpStatus;
@@ -110,7 +111,11 @@ final class RedirectExec implements ExecChainHandler {
             final ClassicHttpResponse response = chain.proceed(currentRequest, currentScope);
             try {
                 if (config.isRedirectsEnabled() && this.redirectStrategy.isRedirected(request, response, context)) {
-
+                    final HttpEntity requestEntity = request.getEntity();
+                    if (requestEntity != null && !requestEntity.isRepeatable()) {
+                        this.log.debug("Cannot redirect non-repeatable request");
+                        return response;
+                    }
                     if (redirectCount >= maxRedirects) {
                         throw new RedirectException("Maximum redirects ("+ maxRedirects + ") exceeded");
                     }
