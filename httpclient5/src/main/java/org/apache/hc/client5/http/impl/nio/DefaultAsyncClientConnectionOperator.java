@@ -27,18 +27,13 @@
 
 package org.apache.hc.client5.http.impl.nio;
 
-import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
-import java.net.UnknownHostException;
 import java.util.concurrent.Future;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.hc.client5.http.DnsResolver;
-import org.apache.hc.client5.http.HttpHostConnectException;
 import org.apache.hc.client5.http.SchemePortResolver;
-import org.apache.hc.client5.http.SystemDefaultDnsResolver;
 import org.apache.hc.client5.http.UnsupportedSchemeException;
 import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
 import org.apache.hc.client5.http.nio.AsyncClientConnectionOperator;
@@ -63,7 +58,7 @@ import org.apache.hc.core5.util.TimeValue;
 final class DefaultAsyncClientConnectionOperator implements AsyncClientConnectionOperator {
 
     private final SchemePortResolver schemePortResolver;
-    private final DnsResolver dnsResolver;
+    private final MultihomeIOSessionRequester sessionRequester;
     private final Lookup<TlsStrategy> tlsStrategyLookup;
 
     DefaultAsyncClientConnectionOperator(
@@ -72,7 +67,7 @@ final class DefaultAsyncClientConnectionOperator implements AsyncClientConnectio
             final DnsResolver dnsResolver) {
         this.tlsStrategyLookup = Args.notNull(tlsStrategyLookup, "TLS strategy lookup");
         this.schemePortResolver = schemePortResolver != null ? schemePortResolver : DefaultSchemePortResolver.INSTANCE;
-        this.dnsResolver = dnsResolver != null ? dnsResolver : SystemDefaultDnsResolver.INSTANCE;
+        this.sessionRequester = new MultihomeIOSessionRequester(dnsResolver);
     }
 
     @Override
@@ -86,79 +81,51 @@ final class DefaultAsyncClientConnectionOperator implements AsyncClientConnectio
         Args.notNull(connectionInitiator, "Connection initiator");
         Args.notNull(host, "Host");
         final ComplexFuture<ManagedAsyncClientConnection> future = new ComplexFuture<>(callback);
-        final InetAddress[] remoteAddresses;
+        final HttpHost remoteEndpoint;
         try {
-            remoteAddresses = dnsResolver.resolve(host.getHostName());
-        } catch (final UnknownHostException ex) {
-            future.failed(ex);
-            return future;
-        }
-        final int port;
-        try {
-            port = schemePortResolver.resolve(host);
+            remoteEndpoint = host.getPort() > 0 ? host :
+                    new HttpHost(host.getHostName(), schemePortResolver.resolve(host), host.getSchemeName());
         } catch (final UnsupportedSchemeException ex) {
             future.failed(ex);
             return future;
         }
+        final InetAddress remoteAddress = host.getAddress();
         final TlsStrategy tlsStrategy = tlsStrategyLookup != null ? tlsStrategyLookup.lookup(host.getSchemeName()) : null;
-        final Runnable runnable = new Runnable() {
+        final Future<IOSession> sessionFuture = sessionRequester.connect(
+                connectionInitiator,
+                remoteEndpoint,
+                remoteAddress != null ? new InetSocketAddress(remoteAddress, remoteEndpoint.getPort()) : null,
+                localAddress,
+                connectTimeout,
+                attachment,
+                new FutureCallback<IOSession>() {
 
-            private final AtomicInteger attempt = new AtomicInteger(0);
+                    @Override
+                    public void completed(final IOSession session) {
+                        final DefaultManagedAsyncClientConnection connection = new DefaultManagedAsyncClientConnection(session);
+                        if (tlsStrategy != null) {
+                            tlsStrategy.upgrade(
+                                    connection,
+                                    host,
+                                    session.getLocalAddress(),
+                                    session.getRemoteAddress(),
+                                    attachment);
+                        }
+                        future.completed(connection);
+                    }
 
-            void executeNext() {
-                final int index = attempt.getAndIncrement();
-                final InetSocketAddress remoteAddress = new InetSocketAddress(remoteAddresses[index], port);
-                final Future<IOSession> sessionFuture = connectionInitiator.connect(
-                        host,
-                        remoteAddress,
-                        localAddress,
-                        connectTimeout,
-                        attachment,
-                        new FutureCallback<IOSession>() {
+                    @Override
+                    public void failed(final Exception ex) {
+                        future.failed(ex);
+                    }
 
-                            @Override
-                            public void completed(final IOSession session) {
-                                final DefaultManagedAsyncClientConnection connection = new DefaultManagedAsyncClientConnection(session);
-                                if (tlsStrategy != null) {
-                                    tlsStrategy.upgrade(
-                                            connection,
-                                            host,
-                                            session.getLocalAddress(),
-                                            session.getRemoteAddress(),
-                                            attachment);
-                                }
-                                future.completed(connection);
-                            }
+                    @Override
+                    public void cancelled() {
+                        future.cancel();
+                    }
 
-                            @Override
-                            public void failed(final Exception cause) {
-                                if (attempt.get() >= remoteAddresses.length) {
-                                    if (cause instanceof IOException) {
-                                        future.failed(new HttpHostConnectException((IOException) cause, host, remoteAddresses));
-                                    } else {
-                                        future.failed(cause);
-                                    }
-                                } else {
-                                    executeNext();
-                                }
-                            }
-
-                            @Override
-                            public void cancelled() {
-                                future.cancel();
-                            }
-
-                        });
-                future.setDependency(sessionFuture);
-            }
-
-            @Override
-            public void run() {
-                executeNext();
-            }
-
-        };
-        runnable.run();
+                });
+        future.setDependency(sessionFuture);
         return future;
     }
 

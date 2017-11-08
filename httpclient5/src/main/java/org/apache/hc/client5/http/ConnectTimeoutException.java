@@ -32,7 +32,7 @@ import java.io.InterruptedIOException;
 import java.net.InetAddress;
 import java.util.Arrays;
 
-import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.net.NamedEndpoint;
 
 /**
  * A timeout while connecting to an HTTP server or waiting for an
@@ -45,14 +45,14 @@ public class ConnectTimeoutException extends InterruptedIOException {
 
     private static final long serialVersionUID = -4816682903149535989L;
 
-    private final HttpHost host;
+    private final NamedEndpoint namedEndpoint;
 
     /**
      * Creates a ConnectTimeoutException with a {@code null} detail message.
      */
     public ConnectTimeoutException() {
         super();
-        this.host = null;
+        this.namedEndpoint = null;
     }
 
     /**
@@ -60,7 +60,7 @@ public class ConnectTimeoutException extends InterruptedIOException {
      */
     public ConnectTimeoutException(final String message) {
         super(message);
-        this.host = null;
+        this.namedEndpoint = null;
     }
 
     /**
@@ -70,23 +70,23 @@ public class ConnectTimeoutException extends InterruptedIOException {
      */
     public ConnectTimeoutException(
             final IOException cause,
-            final HttpHost host,
+            final NamedEndpoint namedEndpoint,
             final InetAddress... remoteAddresses) {
         super("Connect to " +
-                (host != null ? host.toHostString() : "remote host") +
+                (namedEndpoint != null ? namedEndpoint : "remote endpoint") +
                 (remoteAddresses != null && remoteAddresses.length > 0 ?
                         " " + Arrays.asList(remoteAddresses) : "") +
                 ((cause != null && cause.getMessage() != null) ?
                         " failed: " + cause.getMessage() : " timed out"));
-        this.host = host;
+        this.namedEndpoint = namedEndpoint;
         initCause(cause);
     }
 
     /**
-     * @since 4.3
+     * @since 5.0
      */
-    public HttpHost getHost() {
-        return host;
+    public NamedEndpoint getHost() {
+        return this.namedEndpoint;
     }
 
 }
