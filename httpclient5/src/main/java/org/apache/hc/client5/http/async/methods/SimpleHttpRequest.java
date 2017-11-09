@@ -31,15 +31,16 @@ import java.net.URI;
 import java.util.Iterator;
 
 import org.apache.hc.client5.http.StandardMethods;
+import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.message.BasicHttpRequest;
 import org.apache.hc.core5.util.Args;
 
-public final class SimpleHttpRequest extends BasicHttpRequest {
+public final class SimpleHttpRequest extends ConfigurableHttpRequest {
 
+    private RequestConfig requestConfig;
     private SimpleBody body;
 
     public static SimpleHttpRequest get(final URI requestUri) {

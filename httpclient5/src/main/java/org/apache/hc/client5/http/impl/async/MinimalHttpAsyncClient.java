@@ -202,25 +202,25 @@ public class MinimalHttpAsyncClient extends AbstractHttpAsyncClientBase {
             final HttpContext context,
             final FutureCallback<T> callback) {
         ensureRunning();
-        final HttpClientContext clientContext = HttpClientContext.adapt(context);
-        RequestConfig requestConfig = null;
-        if (requestProducer instanceof Configurable) {
-            requestConfig = ((Configurable) requestProducer).getConfig();
-        }
-        if (requestConfig != null) {
-            clientContext.setRequestConfig(requestConfig);
-        } else {
-            requestConfig = clientContext.getRequestConfig();
-        }
         final ComplexFuture<T> resultFuture = new ComplexFuture<>(callback);
+        final HttpClientContext clientContext = HttpClientContext.adapt(context);
         try {
-            final Timeout connectTimeout = requestConfig.getConnectTimeout();
             requestProducer.sendRequest(new RequestChannel() {
 
                 @Override
                 public void sendRequest(
                         final HttpRequest request,
                         final EntityDetails entityDetails) throws HttpException, IOException {
+                    RequestConfig requestConfig = null;
+                    if (request instanceof Configurable) {
+                        requestConfig = ((Configurable) request).getConfig();
+                    }
+                    if (requestConfig != null) {
+                        clientContext.setRequestConfig(requestConfig);
+                    } else {
+                        requestConfig = clientContext.getRequestConfig();
+                    }
+                    final Timeout connectTimeout = requestConfig.getConnectTimeout();
                     final HttpHost target = new HttpHost(request.getAuthority(), request.getScheme());
                     final Future<AsyncConnectionEndpoint> leaseFuture = leaseEndpoint(target, connectTimeout, clientContext,
                             new FutureCallback<AsyncConnectionEndpoint>() {

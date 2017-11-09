@@ -153,15 +153,6 @@ class InternalHttpAsyncClient extends AbstractHttpAsyncClientBase {
         final BasicFuture<T> future = new BasicFuture<>(callback);
         try {
             final HttpClientContext clientContext = HttpClientContext.adapt(context);
-
-            RequestConfig requestConfig = null;
-            if (requestProducer instanceof Configurable) {
-                requestConfig = ((Configurable) requestProducer).getConfig();
-            }
-            if (requestConfig != null) {
-                clientContext.setRequestConfig(requestConfig);
-            }
-
             requestProducer.sendRequest(new RequestChannel() {
 
                 @Override
@@ -169,6 +160,13 @@ class InternalHttpAsyncClient extends AbstractHttpAsyncClientBase {
                         final HttpRequest request,
                         final EntityDetails entityDetails) throws HttpException, IOException {
 
+                    RequestConfig requestConfig = null;
+                    if (request instanceof Configurable) {
+                        requestConfig = ((Configurable) request).getConfig();
+                    }
+                    if (requestConfig != null) {
+                        clientContext.setRequestConfig(requestConfig);
+                    }
                     final HttpHost target = routePlanner.determineTargetHost(request, clientContext);
                     final HttpRoute route = routePlanner.determineRoute(target, clientContext);
                     final String exchangeId = String.format("ex-%08X", ExecSupport.getNextExecNumber());

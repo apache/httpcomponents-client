@@ -88,7 +88,7 @@ public abstract class CloseableHttpAsyncClient implements HttpAsyncClient, Close
             final FutureCallback<SimpleHttpResponse> callback) {
         Args.notNull(request, "Request");
         final BasicFuture<SimpleHttpResponse> future = new BasicFuture<>(callback);
-        execute(SimpleRequestProducer.create(request, null), SimpleResponseConsumer.create(), context, new FutureCallback<SimpleHttpResponse>() {
+        execute(SimpleRequestProducer.create(request), SimpleResponseConsumer.create(), context, new FutureCallback<SimpleHttpResponse>() {
 
             @Override
             public void completed(final SimpleHttpResponse response) {

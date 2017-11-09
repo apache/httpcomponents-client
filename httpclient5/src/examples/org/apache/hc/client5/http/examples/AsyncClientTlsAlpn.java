@@ -100,7 +100,7 @@ public class AsyncClientTlsAlpn {
 
             final SimpleHttpRequest request = SimpleHttpRequest.get(target, requestUri);
             final Future<SimpleHttpResponse> future = client.execute(
-                    SimpleRequestProducer.create(request, null),
+                    SimpleRequestProducer.create(request),
                     SimpleResponseConsumer.create(),
                     clientContext,
                     new FutureCallback<SimpleHttpResponse>() {

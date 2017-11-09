@@ -35,8 +35,6 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
-import org.apache.hc.client5.http.async.methods.SimpleRequestProducer;
-import org.apache.hc.client5.http.async.methods.SimpleResponseConsumer;
 import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.AuthSchemeProvider;
@@ -45,7 +43,6 @@ import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.CredentialsStore;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
-import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.DefaultAuthenticationStrategy;
 import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
@@ -547,12 +544,9 @@ public class TestClientAuthentication extends IntegrationTestBase {
         context.setCredentialsProvider(credsProvider);
 
         for (int i = 0; i < 10; i++) {
-            final HttpGet httpget = new HttpGet("/");
-            httpget.setConfig(config);
-            final Future<SimpleHttpResponse> future = httpclient.execute(
-                    SimpleRequestProducer.create(SimpleHttpRequest.get(target, "/"), config),
-                    SimpleResponseConsumer.create(),
-                    context, null);
+            final SimpleHttpRequest request = SimpleHttpRequest.get(target, "/");
+            request.setConfig(config);
+            final Future<SimpleHttpResponse> future = httpclient.execute(request, context, null);
             final SimpleHttpResponse response = future.get();
             Assert.assertNotNull(response);
             Assert.assertEquals(HttpStatus.SC_OK, response.getCode());

@@ -24,30 +24,40 @@
  * <http://www.apache.org/>.
  *
  */
+
 package org.apache.hc.client5.http.async.methods;
+
+import java.net.URI;
 
 import org.apache.hc.client5.http.config.Configurable;
 import org.apache.hc.client5.http.config.RequestConfig;
-import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.nio.AsyncEntityProducer;
-import org.apache.hc.core5.http.nio.BasicRequestProducer;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.message.BasicHttpRequest;
 
-public class DefaultAsyncRequestProducer extends BasicRequestProducer implements Configurable {
+public class ConfigurableHttpRequest extends BasicHttpRequest implements Configurable {
 
-    private final RequestConfig config;
+    private RequestConfig requestConfig;
 
-    public DefaultAsyncRequestProducer(final HttpRequest request, final AsyncEntityProducer entityProducer, final RequestConfig config) {
-        super(request, entityProducer);
-        this.config = config;
+    public ConfigurableHttpRequest(final String method, final String path) {
+        super(method, path);
     }
 
-    public DefaultAsyncRequestProducer(final HttpRequest request, final AsyncEntityProducer entityProducer) {
-        this(request, entityProducer, null);
+    public ConfigurableHttpRequest(final String method, final HttpHost host, final String path) {
+        super(method, host, path);
+    }
+
+    public ConfigurableHttpRequest(final String method, final URI requestUri) {
+        super(method, requestUri);
     }
 
     @Override
     public RequestConfig getConfig() {
-        return config;
+        return requestConfig;
+    }
+
+    public void setConfig(final RequestConfig requestConfig) {
+        this.requestConfig = requestConfig;
     }
 
 }
+

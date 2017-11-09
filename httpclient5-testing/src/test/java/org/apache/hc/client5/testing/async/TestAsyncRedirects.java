@@ -42,8 +42,6 @@ import org.apache.hc.client5.http.CircularRedirectException;
 import org.apache.hc.client5.http.RedirectException;
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
-import org.apache.hc.client5.http.async.methods.SimpleRequestProducer;
-import org.apache.hc.client5.http.async.methods.SimpleResponseConsumer;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.cookie.BasicCookieStore;
 import org.apache.hc.client5.http.cookie.CookieStore;
@@ -455,9 +453,9 @@ public class TestAsyncRedirects extends IntegrationTestBase {
                 .setCircularRedirectsAllowed(true)
                 .setMaxRedirects(5).build();
         try {
-            final Future<SimpleHttpResponse> future = httpclient.execute(
-                    SimpleRequestProducer.create(SimpleHttpRequest.get(target, "/circular-oldlocation/"), config),
-                    SimpleResponseConsumer.create(), null);
+            final SimpleHttpRequest request = SimpleHttpRequest.get(target, "/circular-oldlocation/");
+            request.setConfig(config);
+            final Future<SimpleHttpResponse> future = httpclient.execute(request, null);
             future.get();
         } catch (final ExecutionException e) {
             Assert.assertTrue(e.getCause() instanceof RedirectException);
@@ -481,9 +479,9 @@ public class TestAsyncRedirects extends IntegrationTestBase {
                 .setCircularRedirectsAllowed(false)
                 .build();
         try {
-            final Future<SimpleHttpResponse> future = httpclient.execute(
-                    SimpleRequestProducer.create(SimpleHttpRequest.get(target, "/circular-oldlocation/"), config),
-                    SimpleResponseConsumer.create(), null);
+            final SimpleHttpRequest request = SimpleHttpRequest.get(target, "/circular-oldlocation/");
+            request.setConfig(config);
+            final Future<SimpleHttpResponse> future = httpclient.execute(request, null);
             future.get();
         } catch (final ExecutionException e) {
             Assert.assertTrue(e.getCause() instanceof CircularRedirectException);

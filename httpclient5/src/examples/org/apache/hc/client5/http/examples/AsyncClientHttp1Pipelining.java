@@ -69,7 +69,7 @@ public class AsyncClientHttp1Pipelining {
             for (final String requestUri: requestUris) {
                 final SimpleHttpRequest request = SimpleHttpRequest.get(target, requestUri);
                 endpoint.execute(
-                        SimpleRequestProducer.create(request, null),
+                        SimpleRequestProducer.create(request),
                         SimpleResponseConsumer.create(),
                         new FutureCallback<SimpleHttpResponse>() {
 
