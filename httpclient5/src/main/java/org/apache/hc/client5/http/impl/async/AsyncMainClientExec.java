@@ -216,9 +216,14 @@ class AsyncMainClientExec implements AsyncExecChainHandler {
 
         };
 
-        execRuntime.execute(
-                log.isDebugEnabled() ? new LoggingAsyncClientExchangeHandler(log, exchangeId, internalExchangeHandler) : internalExchangeHandler,
-                clientContext);
+        if (log.isDebugEnabled()) {
+            execRuntime.execute(
+                    new LoggingAsyncClientExchangeHandler(log, exchangeId, internalExchangeHandler),
+                    clientContext);
+        } else {
+            execRuntime.execute(
+                    internalExchangeHandler, clientContext);
+        }
     }
 
 }
