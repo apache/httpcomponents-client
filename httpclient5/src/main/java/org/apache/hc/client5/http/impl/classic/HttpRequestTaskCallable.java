@@ -27,6 +27,7 @@
 package org.apache.hc.client5.http.impl.classic;
 
 import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.hc.client5.http.classic.HttpClient;
@@ -107,7 +108,7 @@ class HttpRequestTaskCallable<V> implements Callable<V> {
                 metrics.getActiveConnections().decrementAndGet();
             }
         } else {
-            throw new IllegalStateException("call has been cancelled");
+            throw new CancellationException();
         }
     }
 
