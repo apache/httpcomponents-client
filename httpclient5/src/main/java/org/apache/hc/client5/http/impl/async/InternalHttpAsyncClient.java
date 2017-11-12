@@ -33,6 +33,7 @@ import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.async.AsyncExecCallback;
@@ -183,6 +184,7 @@ class InternalHttpAsyncClient extends AbstractHttpAsyncClientBase {
                     setupContext(clientContext);
 
                     final AsyncExecChain.Scope scope = new AsyncExecChain.Scope(exchangeId, route, request, clientContext, execRuntime);
+                    final AtomicReference<T> resultRef = new AtomicReference<>(null);
                     final AtomicBoolean outputTerminated = new AtomicBoolean(false);
                     execChain.execute(
                             RequestCopier.INSTANCE.copy(request),
@@ -255,24 +257,26 @@ class InternalHttpAsyncClient extends AbstractHttpAsyncClientBase {
                                         outputTerminated.set(true);
                                         requestProducer.releaseResources();
                                     }
-                                    responseConsumer.consumeResponse(response, entityDetails, new FutureCallback<T>() {
+                                    responseConsumer.consumeResponse(response, entityDetails,
+                                            //TODO: eliminate this callback after upgrade to HttpCore 5.0b2
+                                            new FutureCallback<T>() {
 
-                                        @Override
-                                        public void completed(final T result) {
-                                            future.completed(result);
-                                        }
+                                                @Override
+                                                public void completed(final T result) {
+                                                    resultRef.set(result);
+                                                }
 
-                                        @Override
-                                        public void failed(final Exception ex) {
-                                            future.failed(ex);
-                                        }
+                                                @Override
+                                                public void failed(final Exception ex) {
+                                                    future.failed(ex);
+                                                }
 
-                                        @Override
-                                        public void cancelled() {
-                                            future.cancel();
-                                        }
+                                                @Override
+                                                public void cancelled() {
+                                                    future.cancel();
+                                                }
 
-                                    });
+                                            });
                                     return responseConsumer;
                                 }
 
@@ -282,10 +286,11 @@ class InternalHttpAsyncClient extends AbstractHttpAsyncClientBase {
                                         log.debug(exchangeId + ": message exchange successfully completed");
                                     }
                                     try {
+                                        execRuntime.releaseConnection();
+                                        future.completed(resultRef.getAndSet(null));
+                                    } finally {
                                         responseConsumer.releaseResources();
                                         requestProducer.releaseResources();
-                                    } finally {
-                                        execRuntime.releaseConnection();
                                     }
                                 }
 
@@ -295,15 +300,15 @@ class InternalHttpAsyncClient extends AbstractHttpAsyncClientBase {
                                         log.debug(exchangeId + ": request failed: " + cause.getMessage());
                                     }
                                     try {
+                                        execRuntime.discardConnection();
+                                        responseConsumer.failed(cause);
+                                    } finally {
                                         try {
                                             future.failed(cause);
-                                            responseConsumer.failed(cause);
                                         } finally {
                                             responseConsumer.releaseResources();
                                             requestProducer.releaseResources();
                                         }
-                                    } finally {
-                                        execRuntime.discardConnection();
                                     }
                                 }
 

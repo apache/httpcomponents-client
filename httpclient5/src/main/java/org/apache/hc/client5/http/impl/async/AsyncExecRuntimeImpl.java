@@ -108,6 +108,21 @@ class AsyncExecRuntimeImpl implements AsyncExecRuntime {
         }
     }
 
+    private void discardEndpoint(final AsyncConnectionEndpoint endpoint) {
+        try {
+            endpoint.shutdown();
+            if (log.isDebugEnabled()) {
+                log.debug(ConnPoolSupport.getId(endpoint) + ": discarding endpoint");
+            }
+        } catch (final IOException ex) {
+            if (log.isDebugEnabled()) {
+                log.debug(ConnPoolSupport.getId(endpoint) + ": " + ex.getMessage(), ex);
+            }
+        } finally {
+            manager.release(endpoint, null, TimeValue.ZERO_MILLISECONDS);
+        }
+    }
+
     @Override
     public void releaseConnection() {
         final AsyncConnectionEndpoint endpoint = endpointRef.getAndSet(null);
@@ -118,18 +133,7 @@ class AsyncExecRuntimeImpl implements AsyncExecRuntime {
                 }
                 manager.release(endpoint, state, validDuration);
             } else {
-                try {
-                    if (log.isDebugEnabled()) {
-                        log.debug(ConnPoolSupport.getId(endpoint) + ": releasing invalid endpoint");
-                    }
-                    endpoint.close();
-                } catch (final IOException ex) {
-                    if (log.isDebugEnabled()) {
-                        log.debug(ConnPoolSupport.getId(endpoint) + ": " + ex.getMessage(), ex);
-                    }
-                } finally {
-                    manager.release(endpoint, null, TimeValue.ZERO_MILLISECONDS);
-                }
+                discardEndpoint(endpoint);
             }
         }
     }
@@ -138,19 +142,22 @@ class AsyncExecRuntimeImpl implements AsyncExecRuntime {
     public void discardConnection() {
         final AsyncConnectionEndpoint endpoint = endpointRef.getAndSet(null);
         if (endpoint != null) {
-            try {
-                endpoint.shutdown();
-                if (log.isDebugEnabled()) {
-                    log.debug(ConnPoolSupport.getId(endpoint) + ": discarding endpoint");
-                }
-            } catch (final IOException ex) {
-                if (log.isDebugEnabled()) {
-                    log.debug(ConnPoolSupport.getId(endpoint) + ": " + ex.getMessage(), ex);
-                }
-            } finally {
-                manager.release(endpoint, null, TimeValue.ZERO_MILLISECONDS);
+            discardEndpoint(endpoint);
+        }
+    }
+
+    @Override
+    public boolean validateConnection() {
+        if (reusable) {
+            final AsyncConnectionEndpoint endpoint = endpointRef.get();
+            return endpoint != null && endpoint.isConnected();
+        } else {
+            final AsyncConnectionEndpoint endpoint = endpointRef.getAndSet(null);
+            if (endpoint != null) {
+                discardEndpoint(endpoint);
             }
         }
+        return false;
     }
 
     AsyncConnectionEndpoint ensureValid() {
@@ -165,22 +172,6 @@ class AsyncExecRuntimeImpl implements AsyncExecRuntime {
     public boolean isConnected() {
         final AsyncConnectionEndpoint endpoint = endpointRef.get();
         return endpoint != null && endpoint.isConnected();
-    }
-
-    @Override
-    public void disconnect() {
-        final AsyncConnectionEndpoint endpoint = endpointRef.get();
-        if (endpoint != null) {
-            try {
-                endpoint.close();
-            } catch (final IOException ex) {
-                if (log.isDebugEnabled()) {
-                    log.debug(ConnPoolSupport.getId(endpoint) + ": " + ex.getMessage(), ex);
-                }
-                discardConnection();
-            }
-        }
-
     }
 
     @Override
@@ -269,34 +260,17 @@ class AsyncExecRuntimeImpl implements AsyncExecRuntime {
     }
 
     @Override
-    public boolean validateConnection() {
-        final AsyncConnectionEndpoint endpoint = endpointRef.get();
-        return endpoint != null && endpoint.isConnected();
-    }
-
-    @Override
-    public boolean isConnectionReusable() {
-        return reusable;
-    }
-
-    @Override
-    public void markConnectionReusable() {
+    public void markConnectionReusable(final Object newState, final TimeValue newValidDuration) {
         reusable = true;
+        state = newState;
+        validDuration = newValidDuration;
     }
 
     @Override
     public void markConnectionNonReusable() {
         reusable = false;
-    }
-
-    @Override
-    public void setConnectionState(final Object state) {
-        this.state = state;
-    }
-
-    @Override
-    public void setConnectionValidFor(final TimeValue duration) {
-        validDuration = duration;
+        state = null;
+        validDuration = null;
     }
 
 }
