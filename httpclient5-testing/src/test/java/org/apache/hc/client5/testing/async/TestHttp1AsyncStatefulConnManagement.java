@@ -32,8 +32,14 @@ import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.UserTokenHandler;
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
+import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
+import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder;
+import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManager;
+import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.client5.http.ssl.H2TlsStrategy;
+import org.apache.hc.client5.testing.SSLTestContexts;
 import org.apache.hc.core5.function.Supplier;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.EndpointDetails;
@@ -41,14 +47,66 @@ import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.config.H1Config;
 import org.apache.hc.core5.http.nio.AsyncServerExchangeHandler;
 import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.protocol.HttpCoreContext;
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExternalResource;
 
-public class TestAsyncStatefulConnManagement extends IntegrationTestBase {
+public class TestHttp1AsyncStatefulConnManagement extends AbstractIntegrationTestBase<CloseableHttpAsyncClient> {
+
+    protected HttpAsyncClientBuilder clientBuilder;
+    protected PoolingAsyncClientConnectionManager connManager;
+
+    @Rule
+    public ExternalResource connManagerResource = new ExternalResource() {
+
+        @Override
+        protected void before() throws Throwable {
+            connManager = PoolingAsyncClientConnectionManagerBuilder.create()
+                    .setTlsStrategy(new H2TlsStrategy(SSLTestContexts.createClientSSLContext()))
+                    .build();
+        }
+
+        @Override
+        protected void after() {
+            if (connManager != null) {
+                connManager.close();
+                connManager = null;
+            }
+        }
+
+    };
+
+    @Rule
+    public ExternalResource clientResource = new ExternalResource() {
+
+        @Override
+        protected void before() throws Throwable {
+            clientBuilder = HttpAsyncClientBuilder.create()
+                    .setDefaultRequestConfig(RequestConfig.custom()
+                            .setSocketTimeout(TIMEOUT)
+                            .setConnectTimeout(TIMEOUT)
+                            .setConnectionRequestTimeout(TIMEOUT)
+                            .build())
+                    .setConnectionManager(connManager);
+        }
+
+    };
+
+    @Override
+    protected CloseableHttpAsyncClient createClient() throws Exception {
+        return clientBuilder.build();
+    }
+
+    @Override
+    public HttpHost start() throws Exception {
+        return super.start(null, H1Config.DEFAULT);
+    }
 
     @Test
     public void testStatefulConnections() throws Exception {

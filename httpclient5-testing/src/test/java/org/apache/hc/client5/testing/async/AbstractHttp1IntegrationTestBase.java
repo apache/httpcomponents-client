@@ -33,6 +33,10 @@ import java.util.concurrent.Future;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder;
+import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManager;
+import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.ssl.H2TlsStrategy;
+import org.apache.hc.client5.testing.SSLTestContexts;
 import org.apache.hc.core5.function.Decorator;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.URIScheme;
@@ -45,18 +49,39 @@ import org.apache.hc.core5.reactor.ListenerEndpoint;
 import org.junit.Rule;
 import org.junit.rules.ExternalResource;
 
-public abstract class IntegrationTestBase extends LocalAsyncServerTestBase {
+public abstract class AbstractHttp1IntegrationTestBase extends AbstractServerTestBase {
 
-    public IntegrationTestBase(final URIScheme scheme) {
+    public AbstractHttp1IntegrationTestBase(final URIScheme scheme) {
         super(scheme);
     }
 
-    public IntegrationTestBase() {
+    public AbstractHttp1IntegrationTestBase() {
         super(URIScheme.HTTP);
     }
 
     protected HttpAsyncClientBuilder clientBuilder;
+    protected PoolingAsyncClientConnectionManager connManager;
     protected CloseableHttpAsyncClient httpclient;
+
+    @Rule
+    public ExternalResource connManagerResource = new ExternalResource() {
+
+        @Override
+        protected void before() throws Throwable {
+            connManager = PoolingAsyncClientConnectionManagerBuilder.create()
+                    .setTlsStrategy(new H2TlsStrategy(SSLTestContexts.createClientSSLContext()))
+                    .build();
+        }
+
+        @Override
+        protected void after() {
+            if (connManager != null) {
+                connManager.close();
+                connManager = null;
+            }
+        }
+
+    };
 
     @Rule
     public ExternalResource clientResource = new ExternalResource() {

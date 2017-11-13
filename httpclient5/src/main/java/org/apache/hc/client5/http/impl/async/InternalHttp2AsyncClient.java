@@ -37,32 +37,27 @@ import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.cookie.CookieSpecProvider;
 import org.apache.hc.client5.http.cookie.CookieStore;
-import org.apache.hc.client5.http.nio.AsyncClientConnectionManager;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.routing.HttpRoutePlanner;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.HttpVersion;
-import org.apache.hc.core5.http.ProtocolVersion;
 import org.apache.hc.core5.http.config.Lookup;
-import org.apache.hc.core5.http2.HttpVersionPolicy;
+import org.apache.hc.core5.http2.nio.pool.H2ConnPool;
 import org.apache.hc.core5.reactor.DefaultConnectingIOReactor;
 
-class InternalHttpAsyncClient extends InternalAbstractHttpAsyncClient {
+class InternalHttp2AsyncClient extends InternalAbstractHttpAsyncClient {
 
-    private final AsyncClientConnectionManager connmgr;
     private final HttpRoutePlanner routePlanner;
-    private final HttpVersionPolicy versionPolicy;
+    private final H2ConnPool connPool;
 
-    InternalHttpAsyncClient(
+    InternalHttp2AsyncClient(
             final DefaultConnectingIOReactor ioReactor,
             final AsyncExecChainElement execChain,
             final AsyncPushConsumerRegistry pushConsumerRegistry,
             final ThreadFactory threadFactory,
-            final AsyncClientConnectionManager connmgr,
+            final H2ConnPool connPool,
             final HttpRoutePlanner routePlanner,
-            final HttpVersionPolicy versionPolicy,
             final Lookup<CookieSpecProvider> cookieSpecRegistry,
             final Lookup<AuthSchemeProvider> authSchemeRegistry,
             final CookieStore cookieStore,
@@ -71,22 +66,20 @@ class InternalHttpAsyncClient extends InternalAbstractHttpAsyncClient {
             final List<Closeable> closeables) {
         super(ioReactor, pushConsumerRegistry, threadFactory, execChain,
                 cookieSpecRegistry, authSchemeRegistry, cookieStore, credentialsProvider, defaultConfig, closeables);
-        this.connmgr = connmgr;
+        this.connPool = connPool;
         this.routePlanner = routePlanner;
-        this.versionPolicy = versionPolicy;
     }
 
     @Override
     AsyncExecRuntime crerateAsyncExecRuntime() {
-        return new InternalHttpAsyncExecRuntime(log, connmgr, getConnectionInitiator(), versionPolicy);
+        return new InternalHttp2AsyncExecRuntime(log, connPool);
     }
 
     @Override
     HttpRoute determineRoute(final HttpRequest request, final HttpClientContext clientContext) throws HttpException {
         final HttpHost target = routePlanner.determineTargetHost(request, clientContext);
         final HttpRoute route = routePlanner.determineRoute(target, clientContext);
-        final ProtocolVersion protocolVersion = clientContext.getProtocolVersion();
-        if (route.isTunnelled() && protocolVersion.greaterEquals(HttpVersion.HTTP_2_0)) {
+        if (route.isTunnelled()) {
             throw new HttpException("HTTP/2 tunneling not supported");
         }
         return route;

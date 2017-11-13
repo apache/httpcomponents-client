@@ -27,12 +27,12 @@
 package org.apache.hc.client5.testing.async;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.apache.hc.client5.http.AuthenticationStrategy;
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.auth.AuthChallenge;
@@ -45,6 +45,7 @@ import org.apache.hc.client5.http.auth.CredentialsStore;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.DefaultAuthenticationStrategy;
+import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
 import org.apache.hc.client5.http.impl.auth.BasicScheme;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
@@ -53,14 +54,15 @@ import org.apache.hc.client5.testing.auth.Authenticator;
 import org.apache.hc.core5.function.Decorator;
 import org.apache.hc.core5.function.Supplier;
 import org.apache.hc.core5.http.ContentType;
-import org.apache.hc.core5.http.HeaderElements;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.config.H1Config;
+import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.config.Registry;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.impl.HttpProcessors;
@@ -68,41 +70,51 @@ import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.nio.AsyncServerExchangeHandler;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.protocol.HttpCoreContext;
+import org.apache.hc.core5.http2.config.H2Config;
+import org.apache.hc.core5.http2.impl.Http2Processors;
 import org.apache.hc.core5.net.URIAuthority;
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 
-@RunWith(Parameterized.class)
-public class TestClientAuthentication extends IntegrationTestBase {
+public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableHttpAsyncClient> extends AbstractIntegrationTestBase<T> {
 
-    @Parameterized.Parameters(name = "{0}")
-    public static Collection<Object[]> protocols() {
-        return Arrays.asList(new Object[][]{
-                {URIScheme.HTTP},
-                {URIScheme.HTTPS},
-        });
-    }
+    protected final HttpVersion protocolVersion;
 
-    public TestClientAuthentication(final URIScheme scheme) {
+    public AbstractHttpAsyncClientAuthentication(final URIScheme scheme, final HttpVersion protocolVersion) {
         super(scheme);
+        this.protocolVersion = protocolVersion;
     }
 
     @Override
-    public HttpHost start() throws Exception {
-        return super.start(
-                HttpProcessors.server(),
-                new Decorator<AsyncServerExchangeHandler>() {
+    public final HttpHost start() throws Exception {
+        return start(new Decorator<AsyncServerExchangeHandler>() {
 
-                    @Override
-                    public AsyncServerExchangeHandler decorate(final AsyncServerExchangeHandler requestHandler) {
-                        return new AuthenticatingAsyncDecorator(requestHandler, new BasicTestAuthenticator("test:test", "test realm"));
-                    }
+            @Override
+            public AsyncServerExchangeHandler decorate(final AsyncServerExchangeHandler requestHandler) {
+                return new AuthenticatingAsyncDecorator(requestHandler, new BasicTestAuthenticator("test:test", "test realm"));
+            }
 
-                },
-                H1Config.DEFAULT);
+        });
     }
+
+    public final HttpHost start(
+            final Decorator<AsyncServerExchangeHandler> exchangeHandlerDecorator) throws Exception {
+        if (protocolVersion.greaterEquals(HttpVersion.HTTP_2_0)) {
+            return super.start(
+                    Http2Processors.server(),
+                    exchangeHandlerDecorator,
+                    H2Config.DEFAULT);
+        } else {
+            return super.start(
+                    HttpProcessors.server(),
+                    exchangeHandlerDecorator,
+                    H1Config.DEFAULT);
+        }
+    }
+
+    abstract void setDefaultAuthSchemeRegistry(Lookup<AuthSchemeProvider> authSchemeRegistry);
+
+    abstract void setTargetAuthenticationStrategy(AuthenticationStrategy targetAuthStrategy);
 
     static class TestCredentialsProvider implements CredentialsStore {
 
@@ -244,49 +256,6 @@ public class TestClientAuthentication extends IntegrationTestBase {
     }
 
     @Test
-    public void testBasicAuthenticationSuccessNonPersistentConnection() throws Exception {
-        server.register("*", new Supplier<AsyncServerExchangeHandler>() {
-
-            @Override
-            public AsyncServerExchangeHandler get() {
-                return new AsyncEchoHandler();
-            }
-
-        });
-        final HttpHost target = start(
-                HttpProcessors.server(),
-                new Decorator<AsyncServerExchangeHandler>() {
-
-                    @Override
-                    public AsyncServerExchangeHandler decorate(final AsyncServerExchangeHandler exchangeHandler) {
-                        return new AuthenticatingAsyncDecorator(exchangeHandler, new BasicTestAuthenticator("test:test", "test realm")) {
-
-                            @Override
-                            protected void customizeUnauthorizedResponse(final HttpResponse unauthorized) {
-                                unauthorized.addHeader(HttpHeaders.CONNECTION, HeaderElements.CLOSE);
-                            }
-                        };
-                    }
-
-                },
-                H1Config.DEFAULT);
-
-        final TestCredentialsProvider credsProvider = new TestCredentialsProvider(
-                new UsernamePasswordCredentials("test", "test".toCharArray()));
-        final HttpClientContext context = HttpClientContext.create();
-        context.setCredentialsProvider(credsProvider);
-
-        final Future<SimpleHttpResponse> future = httpclient.execute(SimpleHttpRequest.get(target, "/"), context, null);
-        final HttpResponse response = future.get();
-
-        Assert.assertNotNull(response);
-        Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
-        final AuthScope authscope = credsProvider.getAuthScope();
-        Assert.assertNotNull(authscope);
-        Assert.assertEquals("test realm", authscope.getRealm());
-    }
-
-    @Test
     public void testBasicAuthenticationExpectationFailure() throws Exception {
         server.register("*", new Supplier<AsyncServerExchangeHandler>() {
 
@@ -355,7 +324,7 @@ public class TestClientAuthentication extends IntegrationTestBase {
         });
 
         final AtomicLong count = new AtomicLong(0);
-        this.clientBuilder.setTargetAuthenticationStrategy(new DefaultAuthenticationStrategy() {
+        setTargetAuthenticationStrategy(new DefaultAuthenticationStrategy() {
 
             @Override
             public List<AuthScheme> select(
@@ -497,7 +466,7 @@ public class TestClientAuthentication extends IntegrationTestBase {
 
                 })
                 .build();
-        this.clientBuilder.setDefaultAuthSchemeRegistry(authSchemeRegistry);
+        setDefaultAuthSchemeRegistry(authSchemeRegistry);
 
         final Authenticator authenticator = new BasicTestAuthenticator("test:test", "test realm") {
 
@@ -519,7 +488,6 @@ public class TestClientAuthentication extends IntegrationTestBase {
         };
 
         final HttpHost target = start(
-                HttpProcessors.server(),
                 new Decorator<AsyncServerExchangeHandler>() {
 
                     @Override
@@ -535,7 +503,7 @@ public class TestClientAuthentication extends IntegrationTestBase {
                         };
                     }
 
-                }, H1Config.DEFAULT);
+                });
 
         final RequestConfig config = RequestConfig.custom()
                 .setTargetPreferredAuthSchemes(Arrays.asList("MyBasic"))
@@ -564,7 +532,6 @@ public class TestClientAuthentication extends IntegrationTestBase {
 
         });
         final HttpHost target = start(
-                HttpProcessors.server(),
                 new Decorator<AsyncServerExchangeHandler>() {
 
                     @Override
@@ -579,7 +546,7 @@ public class TestClientAuthentication extends IntegrationTestBase {
                         };
                     }
 
-                }, H1Config.DEFAULT);
+                });
 
         final TestCredentialsProvider credsProvider = new TestCredentialsProvider(
                 new UsernamePasswordCredentials("test", "test".toCharArray()));

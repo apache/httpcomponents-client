@@ -29,39 +29,55 @@ package org.apache.hc.client5.testing.async;
 import java.util.Arrays;
 import java.util.Collection;
 
-import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
-import org.apache.hc.client5.http.impl.async.MinimalHttp2AsyncClient;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
+import org.apache.hc.client5.http.impl.async.Http2AsyncClientBuilder;
 import org.apache.hc.client5.http.ssl.H2TlsStrategy;
 import org.apache.hc.client5.testing.SSLTestContexts;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http2.config.H2Config;
-import org.apache.hc.core5.reactor.IOReactorConfig;
+import org.junit.Rule;
+import org.junit.rules.ExternalResource;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 @RunWith(Parameterized.class)
-public class TestHttp2AsyncMinimal extends AbstractHttpAsyncFundamentalsTest<MinimalHttp2AsyncClient> {
+public class TestHttp2Async extends AbstractHttpAsyncFundamentalsTest<CloseableHttpAsyncClient> {
 
-    @Parameterized.Parameters(name = "{0}")
+    @Parameterized.Parameters(name = "HTTP/2 {0}")
     public static Collection<Object[]> protocols() {
         return Arrays.asList(new Object[][]{
                 { URIScheme.HTTP },
-                { URIScheme.HTTPS },
+                { URIScheme.HTTPS }
         });
     }
 
-    public TestHttp2AsyncMinimal(final URIScheme scheme) {
+    protected Http2AsyncClientBuilder clientBuilder;
+
+    @Rule
+    public ExternalResource clientResource = new ExternalResource() {
+
+        @Override
+        protected void before() throws Throwable {
+            clientBuilder = Http2AsyncClientBuilder.create()
+                    .setDefaultRequestConfig(RequestConfig.custom()
+                            .setSocketTimeout(TIMEOUT)
+                            .setConnectTimeout(TIMEOUT)
+                            .setConnectionRequestTimeout(TIMEOUT)
+                            .build())
+                    .setTlsStrategy(new H2TlsStrategy(SSLTestContexts.createClientSSLContext()));
+        }
+
+    };
+
+    public TestHttp2Async(final URIScheme scheme) {
         super(scheme);
     }
 
     @Override
-    protected MinimalHttp2AsyncClient createClient() throws Exception {
-        final IOReactorConfig ioReactorConfig = IOReactorConfig.custom()
-                .setSoTimeout(TIMEOUT)
-                .build();
-        return HttpAsyncClients.createHttp2Minimal(
-                H2Config.DEFAULT, ioReactorConfig, new H2TlsStrategy(SSLTestContexts.createClientSSLContext()));
+    protected CloseableHttpAsyncClient createClient() {
+        return clientBuilder.build();
     }
 
     @Override

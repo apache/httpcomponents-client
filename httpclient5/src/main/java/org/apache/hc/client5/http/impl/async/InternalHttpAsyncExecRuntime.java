@@ -45,7 +45,7 @@ import org.apache.hc.core5.reactor.ConnectionInitiator;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.logging.log4j.Logger;
 
-class AsyncExecRuntimeImpl implements AsyncExecRuntime {
+class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
 
     private final Logger log;
     private final AsyncClientConnectionManager manager;
@@ -56,7 +56,7 @@ class AsyncExecRuntimeImpl implements AsyncExecRuntime {
     private volatile Object state;
     private volatile TimeValue validDuration;
 
-    AsyncExecRuntimeImpl(
+    InternalHttpAsyncExecRuntime(
             final Logger log,
             final AsyncClientConnectionManager manager,
             final ConnectionInitiator connectionInitiator,
@@ -90,7 +90,7 @@ class AsyncExecRuntimeImpl implements AsyncExecRuntime {
                 public void completed(final AsyncConnectionEndpoint connectionEndpoint) {
                     endpointRef.set(connectionEndpoint);
                     reusable = connectionEndpoint.isConnected();
-                    callback.completed(AsyncExecRuntimeImpl.this);
+                    callback.completed(InternalHttpAsyncExecRuntime.this);
                 }
 
                 @Override
@@ -197,7 +197,7 @@ class AsyncExecRuntimeImpl implements AsyncExecRuntime {
                             if (TimeValue.isPositive(socketTimeout)) {
                                 endpoint.setSocketTimeout(socketTimeout.toMillisIntBound());
                             }
-                            callback.completed(AsyncExecRuntimeImpl.this);
+                            callback.completed(InternalHttpAsyncExecRuntime.this);
                         }
 
                         @Override

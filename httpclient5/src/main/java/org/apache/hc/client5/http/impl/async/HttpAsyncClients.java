@@ -88,6 +88,31 @@ public class HttpAsyncClients {
         return HttpAsyncClientBuilder.create().useSystemProperties().build();
     }
 
+    /**
+     * Creates builder object for construction of custom HTTP/2
+     * {@link CloseableHttpAsyncClient} instances optimized for HTTP/2 protocol
+     * and message multiplexing
+     */
+    public static Http2AsyncClientBuilder customHttp2() {
+        return Http2AsyncClientBuilder.create();
+    }
+
+    /**
+     * Creates HTTP/2 {@link CloseableHttpAsyncClient} instance with default configuration
+     * optimized for HTTP/2 protocol and message multiplexing.
+     */
+    public static CloseableHttpAsyncClient createHttp2Default() {
+        return Http2AsyncClientBuilder.create().build();
+    }
+
+    /**
+     * Creates HTTP/2 {@link CloseableHttpAsyncClient} instance with default configuration and
+     * system properties optimized for HTTP/2 protocol and message multiplexing.
+     */
+    public static CloseableHttpAsyncClient createHttp2System() {
+        return Http2AsyncClientBuilder.create().useSystemProperties().build();
+    }
+
     private static HttpProcessor createMinimalProtocolProcessor() {
         return new DefaultHttpProcessor(
                 new H2RequestContent(),
@@ -220,7 +245,7 @@ public class HttpAsyncClients {
             final TlsStrategy tlsStrategy) {
         final AsyncPushConsumerRegistry pushConsumerRegistry = new AsyncPushConsumerRegistry();
         return createMinimalHttp2AsyncClientImpl(
-                new HttpAsyncClientEventHandlerFactory(
+                new Http2AsyncClientEventHandlerFactory(
                         createMinimalProtocolProcessor(),
                         new HandlerFactory<AsyncPushConsumer>() {
 
@@ -230,11 +255,8 @@ public class HttpAsyncClients {
                             }
 
                         },
-                        HttpVersionPolicy.FORCE_HTTP_2,
                         h2Config,
-                        null,
-                        CharCodingConfig.DEFAULT,
-                        DefaultConnectionReuseStrategy.INSTANCE),
+                        CharCodingConfig.DEFAULT),
                 pushConsumerRegistry,
                 ioReactorConfig,
                 dnsResolver,

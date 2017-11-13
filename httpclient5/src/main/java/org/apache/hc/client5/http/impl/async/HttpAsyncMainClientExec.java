@@ -58,14 +58,14 @@ import org.apache.hc.core5.util.TimeValue;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-class AsyncMainClientExec implements AsyncExecChainHandler {
+class HttpAsyncMainClientExec implements AsyncExecChainHandler {
 
     private final Logger log = LogManager.getLogger(getClass());
 
     private final ConnectionKeepAliveStrategy keepAliveStrategy;
     private final UserTokenHandler userTokenHandler;
 
-    AsyncMainClientExec(final ConnectionKeepAliveStrategy keepAliveStrategy, final UserTokenHandler userTokenHandler) {
+    HttpAsyncMainClientExec(final ConnectionKeepAliveStrategy keepAliveStrategy, final UserTokenHandler userTokenHandler) {
         this.keepAliveStrategy = keepAliveStrategy;
         this.userTokenHandler = userTokenHandler;
     }
