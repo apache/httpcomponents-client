@@ -32,10 +32,10 @@ import java.util.Collection;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.Http2AsyncClientBuilder;
-import org.apache.hc.client5.http.ssl.H2TlsStrategy;
 import org.apache.hc.client5.testing.SSLTestContexts;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.URIScheme;
+import org.apache.hc.core5.http.nio.ssl.BasicClientTlsStrategy;
 import org.apache.hc.core5.http2.config.H2Config;
 import org.junit.Rule;
 import org.junit.rules.ExternalResource;
@@ -66,7 +66,7 @@ public class TestHttp2Async extends AbstractHttpAsyncFundamentalsTest<CloseableH
                             .setConnectTimeout(TIMEOUT)
                             .setConnectionRequestTimeout(TIMEOUT)
                             .build())
-                    .setTlsStrategy(new H2TlsStrategy(SSLTestContexts.createClientSSLContext()));
+                    .setTlsStrategy(new BasicClientTlsStrategy(SSLTestContexts.createClientSSLContext()));
         }
 
     };
