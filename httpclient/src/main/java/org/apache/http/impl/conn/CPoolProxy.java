@@ -29,6 +29,7 @@ package org.apache.http.impl.conn;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.net.ssl.SSLSession;
 
@@ -46,25 +47,23 @@ import org.apache.http.protocol.HttpContext;
  */
 class CPoolProxy implements ManagedHttpClientConnection, HttpContext {
 
-    private volatile CPoolEntry poolEntry;
+    private final AtomicReference<CPoolEntry> poolEntryRef;
 
     CPoolProxy(final CPoolEntry entry) {
         super();
-        this.poolEntry = entry;
+        this.poolEntryRef = new AtomicReference<CPoolEntry>(entry);
     }
 
     CPoolEntry getPoolEntry() {
-        return this.poolEntry;
+        return this.poolEntryRef.get();
     }
 
     CPoolEntry detach() {
-        final CPoolEntry local = this.poolEntry;
-        this.poolEntry = null;
-        return local;
+        return this.poolEntryRef.getAndSet(null);
     }
 
     ManagedHttpClientConnection getConnection() {
-        final CPoolEntry local = this.poolEntry;
+        final CPoolEntry local = this.poolEntryRef.get();
         if (local == null) {
             return null;
         }
@@ -81,7 +80,7 @@ class CPoolProxy implements ManagedHttpClientConnection, HttpContext {
 
     @Override
     public void close() throws IOException {
-        final CPoolEntry local = this.poolEntry;
+        final CPoolEntry local = this.poolEntryRef.get();
         if (local != null) {
             local.closeConnection();
         }
@@ -89,7 +88,7 @@ class CPoolProxy implements ManagedHttpClientConnection, HttpContext {
 
     @Override
     public void shutdown() throws IOException {
-        final CPoolEntry local = this.poolEntry;
+        final CPoolEntry local = this.poolEntryRef.get();
         if (local != null) {
             local.shutdownConnection();
         }
@@ -97,7 +96,7 @@ class CPoolProxy implements ManagedHttpClientConnection, HttpContext {
 
     @Override
     public boolean isOpen() {
-        final CPoolEntry local = this.poolEntry;
+        final CPoolEntry local = this.poolEntryRef.get();
         if (local != null) {
             return !local.isClosed();
         } else {
