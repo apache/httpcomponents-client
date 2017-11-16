@@ -258,6 +258,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
         if (this.conn == null) {
             this.conn = this.connFactory.create(route, this.connConfig);
         }
+        this.conn.setSocketTimeout(this.socketConfig.getSoTimeout());
         this.leased = true;
         return this.conn;
     }
@@ -284,6 +285,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
                 this.expiry = Long.MAX_VALUE;
             } else {
                 this.state = state;
+                this.conn.setSocketTimeout(0);
                 if (this.log.isDebugEnabled()) {
                     final String s;
                     if (keepalive > 0) {
