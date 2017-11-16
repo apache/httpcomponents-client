@@ -28,7 +28,6 @@ package org.apache.http.impl.conn;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -246,6 +245,17 @@ public class PoolingHttpClientConnectionManager
         return buf.toString();
     }
 
+    private SocketConfig resolveSocketConfig(final HttpHost host) {
+        SocketConfig socketConfig = this.configData.getSocketConfig(host);
+        if (socketConfig == null) {
+            socketConfig = this.configData.getDefaultSocketConfig();
+        }
+        if (socketConfig == null) {
+            socketConfig = SocketConfig.DEFAULT;
+        }
+        return socketConfig;
+    }
+
     @Override
     public ConnectionRequest requestConnection(
             final HttpRoute route,
@@ -266,7 +276,18 @@ public class PoolingHttpClientConnectionManager
             public HttpClientConnection get(
                     final long timeout,
                     final TimeUnit tunit) throws InterruptedException, ExecutionException, ConnectionPoolTimeoutException {
-                return leaseConnection(future, timeout, tunit);
+                final HttpClientConnection conn = leaseConnection(future, timeout, tunit);
+                if (conn.isOpen()) {
+                    final HttpHost host;
+                    if (route.getProxyHost() != null) {
+                        host = route.getProxyHost();
+                    } else {
+                        host = route.getTargetHost();
+                    }
+                    final SocketConfig socketConfig = resolveSocketConfig(host);
+                    conn.setSocketTimeout(socketConfig.getSoTimeout());
+                }
+                return conn;
             }
 
         };
@@ -319,6 +340,7 @@ public class PoolingHttpClientConnectionManager
                         }
                         this.log.debug("Connection " + format(entry) + " can be kept alive " + s);
                     }
+                    conn.setSocketTimeout(0);
                 }
             } finally {
                 this.pool.release(entry, conn.isOpen() && entry.isRouteComplete());
@@ -348,16 +370,8 @@ public class PoolingHttpClientConnectionManager
         } else {
             host = route.getTargetHost();
         }
-        final InetSocketAddress localAddress = route.getLocalSocketAddress();
-        SocketConfig socketConfig = this.configData.getSocketConfig(host);
-        if (socketConfig == null) {
-            socketConfig = this.configData.getDefaultSocketConfig();
-        }
-        if (socketConfig == null) {
-            socketConfig = SocketConfig.DEFAULT;
-        }
         this.connectionOperator.connect(
-                conn, host, localAddress, connectTimeout, socketConfig, context);
+                conn, host, route.getLocalSocketAddress(), connectTimeout, resolveSocketConfig(host), context);
     }
 
     @Override
