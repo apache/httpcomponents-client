@@ -69,6 +69,8 @@ final class DefaultManagedHttpClientConnection
     private final String id;
     private final AtomicBoolean closed;
 
+    private int socketTimeout;
+
     public DefaultManagedHttpClientConnection(
             final String id,
             final CharsetDecoder chardecoder,
@@ -101,6 +103,7 @@ final class DefaultManagedHttpClientConnection
             throw new InterruptedIOException("Connection already shutdown");
         }
         super.bind(socketHolder);
+        socketTimeout = socketHolder.getSocket().getSoTimeout();
     }
 
     @Override
@@ -150,6 +153,7 @@ final class DefaultManagedHttpClientConnection
     @Override
     public void bind(final Socket socket) throws IOException {
         super.bind(this.wirelog.isDebugEnabled() ? new LoggingSocketHolder(socket, this.id, this.wirelog) : new SocketHolder(socket));
+        socketTimeout = socket.getSoTimeout();
     }
 
     @Override
@@ -172,6 +176,16 @@ final class DefaultManagedHttpClientConnection
                 this.headerlog.debug(this.id + " >> " + header.toString());
             }
         }
+    }
+
+    @Override
+    public void passivate() {
+        super.setSocketTimeout(0);
+    }
+
+    @Override
+    public void activate() {
+        super.setSocketTimeout(socketTimeout);
     }
 
 }

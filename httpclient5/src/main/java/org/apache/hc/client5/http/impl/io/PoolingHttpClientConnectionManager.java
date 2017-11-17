@@ -291,7 +291,10 @@ public class PoolingHttpClientConnectionManager
                             }
                         }
                     }
-                    if (!poolEntry.hasConnection()) {
+                    final ManagedHttpClientConnection conn = poolEntry.getConnection();
+                    if (conn != null) {
+                        conn.activate();
+                    } else {
                         poolEntry.assignConnection(connFactory.createConnection(null));
                     }
                     if (log.isDebugEnabled()) {
@@ -335,6 +338,7 @@ public class PoolingHttpClientConnectionManager
             if (reusable) {
                 entry.updateState(state);
                 entry.updateExpiry(keepAlive);
+                conn.passivate();
                 if (this.log.isDebugEnabled()) {
                     final String s;
                     if (TimeValue.isPositive(keepAlive)) {

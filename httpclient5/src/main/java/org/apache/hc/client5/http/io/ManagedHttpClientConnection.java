@@ -72,4 +72,18 @@ public interface ManagedHttpClientConnection extends HttpClientConnection {
      */
     SSLSession getSSLSession();
 
+    /**
+     * Puts the connection into idle mode.
+     *
+     * @since 5.0
+     */
+    void passivate();
+
+    /**
+     * Restores the connection from idle mode.
+     *
+     * @since 5.0
+     */
+    void activate();
+
 }

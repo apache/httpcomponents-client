@@ -217,12 +217,16 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
                 route, state, requestTimeout, new FutureCallback<PoolEntry<HttpRoute, ManagedAsyncClientConnection>>() {
 
                     void leaseCompleted(final PoolEntry<HttpRoute, ManagedAsyncClientConnection> poolEntry) {
+                        final ManagedAsyncClientConnection connection = poolEntry.getConnection();
+                        if (connection != null) {
+                            connection.activate();
+                        }
                         if (log.isDebugEnabled()) {
-                            log.debug("Connection leased: " + ConnPoolSupport.formatStats(poolEntry.getConnection(), route, state, pool));
+                            log.debug("Connection leased: " + ConnPoolSupport.formatStats(connection, route, state, pool));
                         }
                         final AsyncConnectionEndpoint endpoint = new InternalConnectionEndpoint(poolEntry);
                         if (log.isDebugEnabled()) {
-                            log.debug(ConnPoolSupport.getId(endpoint) + ": acquired " + ConnPoolSupport.getId(poolEntry.getConnection()));
+                            log.debug(ConnPoolSupport.getId(endpoint) + ": acquired " + ConnPoolSupport.getId(connection));
                         }
                         resultFuture.completed(endpoint);
                     }
@@ -296,6 +300,7 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
             if (reusable) {
                 entry.updateState(state);
                 entry.updateExpiry(keepAlive);
+                connection.passivate();
                 if (log.isDebugEnabled()) {
                     final String s;
                     if (TimeValue.isPositive(keepAlive)) {
