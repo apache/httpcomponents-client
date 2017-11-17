@@ -27,7 +27,6 @@
 
 package org.apache.hc.client5.http.config;
 
-import java.net.InetAddress;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
@@ -57,7 +56,6 @@ public class TestRequestConfig {
         Assert.assertEquals(false, config.isCircularRedirectsAllowed());
         Assert.assertEquals(50, config.getMaxRedirects());
         Assert.assertEquals(null, config.getCookieSpec());
-        Assert.assertEquals(null, config.getLocalAddress());
         Assert.assertEquals(null, config.getProxy());
         Assert.assertEquals(null, config.getTargetPreferredAuthSchemes());
         Assert.assertEquals(null, config.getProxyPreferredAuthSchemes());
@@ -76,7 +74,6 @@ public class TestRequestConfig {
                 .setCircularRedirectsAllowed(true)
                 .setMaxRedirects(100)
                 .setCookieSpec(CookieSpecs.STANDARD)
-                .setLocalAddress(InetAddress.getLocalHost())
                 .setProxy(new HttpHost("someproxy"))
                 .setTargetPreferredAuthSchemes(Arrays.asList(AuthSchemes.NTLM))
                 .setProxyPreferredAuthSchemes(Arrays.asList(AuthSchemes.DIGEST))
@@ -92,7 +89,6 @@ public class TestRequestConfig {
         Assert.assertEquals(true, config.isCircularRedirectsAllowed());
         Assert.assertEquals(100, config.getMaxRedirects());
         Assert.assertEquals(CookieSpecs.STANDARD, config.getCookieSpec());
-        Assert.assertEquals(InetAddress.getLocalHost(), config.getLocalAddress());
         Assert.assertEquals(new HttpHost("someproxy"), config.getProxy());
         Assert.assertEquals(Arrays.asList(AuthSchemes.NTLM), config.getTargetPreferredAuthSchemes());
         Assert.assertEquals(Arrays.asList(AuthSchemes.DIGEST), config.getProxyPreferredAuthSchemes());

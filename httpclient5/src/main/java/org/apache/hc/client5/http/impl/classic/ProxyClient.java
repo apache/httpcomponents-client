@@ -148,7 +148,7 @@ public class ProxyClient {
         }
         final HttpRoute route = new HttpRoute(
                 host,
-                this.requestConfig.getLocalAddress(),
+                null,
                 proxy, false, TunnelType.TUNNELLED, LayerType.PLAIN);
 
         final ManagedHttpClientConnection conn = this.connFactory.createConnection(null);

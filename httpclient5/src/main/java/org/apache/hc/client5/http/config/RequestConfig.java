@@ -27,7 +27,6 @@
 
 package org.apache.hc.client5.http.config;
 
-import java.net.InetAddress;
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 
@@ -50,7 +49,6 @@ public class RequestConfig implements Cloneable {
 
     private final boolean expectContinueEnabled;
     private final HttpHost proxy;
-    private final InetAddress localAddress;
     private final String cookieSpec;
     private final boolean redirectsEnabled;
     private final boolean circularRedirectsAllowed;
@@ -67,14 +65,13 @@ public class RequestConfig implements Cloneable {
      * Intended for CDI compatibility
     */
     protected RequestConfig() {
-        this(false, null, null, null, false, false, 0, false, null, null,
+        this(false, null, null, false, false, 0, false, null, null,
                 DEFAULT_CONNECTION_REQUEST_TIMEOUT, DEFAULT_CONNECT_TIMEOUT, DEFAULT_SOCKET_TIMEOUT, false);
     }
 
     RequestConfig(
             final boolean expectContinueEnabled,
             final HttpHost proxy,
-            final InetAddress localAddress,
             final String cookieSpec,
             final boolean redirectsEnabled,
             final boolean circularRedirectsAllowed,
@@ -89,7 +86,6 @@ public class RequestConfig implements Cloneable {
         super();
         this.expectContinueEnabled = expectContinueEnabled;
         this.proxy = proxy;
-        this.localAddress = localAddress;
         this.cookieSpec = cookieSpec;
         this.redirectsEnabled = redirectsEnabled;
         this.circularRedirectsAllowed = circularRedirectsAllowed;
@@ -137,21 +133,6 @@ public class RequestConfig implements Cloneable {
      */
     public HttpHost getProxy() {
         return proxy;
-    }
-
-    /**
-     * Returns local address to be used for request execution.
-     * <p>
-     * On machines with multiple network interfaces, this parameter
-     * can be used to select the network interface from which the
-     * connection originates.
-     * </p>
-     * <p>
-     * Default: {@code null}
-     * </p>
-     */
-    public InetAddress getLocalAddress() {
-        return localAddress;
     }
 
     /**
@@ -300,7 +281,6 @@ public class RequestConfig implements Cloneable {
         builder.append("[");
         builder.append("expectContinueEnabled=").append(expectContinueEnabled);
         builder.append(", proxy=").append(proxy);
-        builder.append(", localAddress=").append(localAddress);
         builder.append(", cookieSpec=").append(cookieSpec);
         builder.append(", redirectsEnabled=").append(redirectsEnabled);
         builder.append(", maxRedirects=").append(maxRedirects);
@@ -324,7 +304,6 @@ public class RequestConfig implements Cloneable {
         return new Builder()
             .setExpectContinueEnabled(config.isExpectContinueEnabled())
             .setProxy(config.getProxy())
-            .setLocalAddress(config.getLocalAddress())
             .setCookieSpec(config.getCookieSpec())
             .setRedirectsEnabled(config.isRedirectsEnabled())
             .setCircularRedirectsAllowed(config.isCircularRedirectsAllowed())
@@ -342,7 +321,6 @@ public class RequestConfig implements Cloneable {
 
         private boolean expectContinueEnabled;
         private HttpHost proxy;
-        private InetAddress localAddress;
         private String cookieSpec;
         private boolean redirectsEnabled;
         private boolean circularRedirectsAllowed;
@@ -373,11 +351,6 @@ public class RequestConfig implements Cloneable {
 
         public Builder setProxy(final HttpHost proxy) {
             this.proxy = proxy;
-            return this;
-        }
-
-        public Builder setLocalAddress(final InetAddress localAddress) {
-            this.localAddress = localAddress;
             return this;
         }
 
@@ -455,7 +428,6 @@ public class RequestConfig implements Cloneable {
             return new RequestConfig(
                     expectContinueEnabled,
                     proxy,
-                    localAddress,
                     cookieSpec,
                     redirectsEnabled,
                     circularRedirectsAllowed,

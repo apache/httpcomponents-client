@@ -63,13 +63,12 @@ public class DefaultRoutePlanner implements HttpRoutePlanner {
     }
 
     @Override
-    public HttpRoute determineRoute(final HttpHost host, final HttpContext context) throws HttpException {
+    public final HttpRoute determineRoute(final HttpHost host, final HttpContext context) throws HttpException {
         if (host == null) {
             throw new ProtocolException("Target host is not specified");
         }
         final HttpClientContext clientContext = HttpClientContext.adapt(context);
         final RequestConfig config = clientContext.getRequestConfig();
-        final InetAddress local = config.getLocalAddress();
         HttpHost proxy = config.getProxy();
         if (proxy == null) {
             proxy = determineProxy(host, context);
@@ -90,14 +89,14 @@ public class DefaultRoutePlanner implements HttpRoutePlanner {
         }
         final boolean secure = target.getSchemeName().equalsIgnoreCase("https");
         if (proxy == null) {
-            return new HttpRoute(target, local, secure);
+            return new HttpRoute(target, determineLocalAddress(target, context), secure);
         } else {
-            return new HttpRoute(target, local, proxy, secure);
+            return new HttpRoute(target, determineLocalAddress(proxy, context), proxy, secure);
         }
     }
 
     @Override
-    public HttpHost determineTargetHost(final HttpRequest request, final HttpContext context) throws HttpException {
+    public final HttpHost determineTargetHost(final HttpRequest request, final HttpContext context) throws HttpException {
         final URIAuthority authority = request.getAuthority();
         if (authority != null) {
             final String scheme = request.getScheme();
@@ -117,6 +116,17 @@ public class DefaultRoutePlanner implements HttpRoutePlanner {
      */
     protected HttpHost determineProxy(
             final HttpHost target,
+            final HttpContext context) throws HttpException {
+        return null;
+    }
+
+    /**
+     * This implementation returns null.
+     *
+     * @throws HttpException may be thrown if overridden
+     */
+    protected InetAddress determineLocalAddress(
+            final HttpHost firstHop,
             final HttpContext context) throws HttpException {
         return null;
     }
