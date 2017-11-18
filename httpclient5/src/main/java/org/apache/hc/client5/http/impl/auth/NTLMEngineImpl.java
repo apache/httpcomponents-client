@@ -270,7 +270,7 @@ final class NTLMEngineImpl implements NTLMEngine {
 
     private static int readULong(final byte[] src, final int index) throws NTLMEngineException {
         if (src.length < index + 4) {
-            throw new NTLMEngineException("NTLM authentication - buffer too small for DWORD");
+            return 0;
         }
         return (src[index] & 0xff) | ((src[index + 1] & 0xff) << 8)
                 | ((src[index + 2] & 0xff) << 16) | ((src[index + 3] & 0xff) << 24);
@@ -278,7 +278,7 @@ final class NTLMEngineImpl implements NTLMEngine {
 
     private static int readUShort(final byte[] src, final int index) throws NTLMEngineException {
         if (src.length < index + 2) {
-            throw new NTLMEngineException("NTLM authentication - buffer too small for WORD");
+            return 0;
         }
         return (src[index] & 0xff) | ((src[index + 1] & 0xff) << 8);
     }
@@ -287,8 +287,7 @@ final class NTLMEngineImpl implements NTLMEngine {
         final int length = readUShort(src, index);
         final int offset = readULong(src, index + 4);
         if (src.length < offset + length) {
-            throw new NTLMEngineException(
-                    "NTLM authentication - buffer too small for data item");
+            return new byte[length];
         }
         final byte[] buffer = new byte[length];
         System.arraycopy(src, offset, buffer, 0, length);
