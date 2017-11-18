@@ -106,8 +106,7 @@ public class TestHttp1ClientAuthentication extends AbstractHttpAsyncClientAuthen
         protected void before() throws Throwable {
             clientBuilder = HttpAsyncClientBuilder.create()
                     .setDefaultRequestConfig(RequestConfig.custom()
-                            .setSocketTimeout(TIMEOUT)
-                            .setConnectTimeout(TIMEOUT)
+                            .setConnectionTimeout(TIMEOUT)
                             .setConnectionRequestTimeout(TIMEOUT)
                             .build())
                     .setConnectionManager(connManager);

@@ -90,8 +90,7 @@ public abstract class AbstractHttp1IntegrationTestBase extends AbstractServerTes
         protected void before() throws Throwable {
             clientBuilder = HttpAsyncClientBuilder.create()
                     .setDefaultRequestConfig(RequestConfig.custom()
-                            .setSocketTimeout(TIMEOUT)
-                            .setConnectTimeout(TIMEOUT)
+                            .setConnectionTimeout(TIMEOUT)
                             .setConnectionRequestTimeout(TIMEOUT)
                             .build())
                     .setConnectionManager(connManager);

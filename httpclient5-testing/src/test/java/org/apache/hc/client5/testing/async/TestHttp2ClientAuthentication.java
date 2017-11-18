@@ -66,8 +66,7 @@ public class TestHttp2ClientAuthentication extends AbstractHttpAsyncClientAuthen
         protected void before() throws Throwable {
             clientBuilder = Http2AsyncClientBuilder.create()
                     .setDefaultRequestConfig(RequestConfig.custom()
-                            .setSocketTimeout(TIMEOUT)
-                            .setConnectTimeout(TIMEOUT)
+                            .setConnectionTimeout(TIMEOUT)
                             .setConnectionRequestTimeout(TIMEOUT)
                             .build())
                     .setTlsStrategy(new H2TlsStrategy(SSLTestContexts.createClientSSLContext()));

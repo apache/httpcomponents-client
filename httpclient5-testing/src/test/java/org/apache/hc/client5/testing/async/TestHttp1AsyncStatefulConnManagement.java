@@ -89,8 +89,7 @@ public class TestHttp1AsyncStatefulConnManagement extends AbstractIntegrationTes
         protected void before() throws Throwable {
             clientBuilder = HttpAsyncClientBuilder.create()
                     .setDefaultRequestConfig(RequestConfig.custom()
-                            .setSocketTimeout(TIMEOUT)
-                            .setConnectTimeout(TIMEOUT)
+                            .setConnectionTimeout(TIMEOUT)
                             .setConnectionRequestTimeout(TIMEOUT)
                             .build())
                     .setConnectionManager(connManager);

@@ -94,8 +94,7 @@ public class TestHttp1Async extends AbstractHttpAsyncFundamentalsTest<CloseableH
         protected void before() throws Throwable {
             clientBuilder = HttpAsyncClientBuilder.create()
                     .setDefaultRequestConfig(RequestConfig.custom()
-                            .setSocketTimeout(TIMEOUT)
-                            .setConnectTimeout(TIMEOUT)
+                            .setConnectionTimeout(TIMEOUT)
                             .setConnectionRequestTimeout(TIMEOUT)
                             .build())
                     .setConnectionManager(connManager);

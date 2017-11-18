@@ -47,8 +47,7 @@ public class TestRequestConfig {
     @Test
     public void testDefaults() {
         final RequestConfig config = RequestConfig.DEFAULT;
-        Assert.assertEquals(Timeout.ZERO_MILLISECONDS, config.getSocketTimeout());
-        Assert.assertEquals(Timeout.ofMinutes(3), config.getConnectTimeout());
+        Assert.assertEquals(Timeout.ofMinutes(3), config.getConnectionTimeout());
         Assert.assertEquals(Timeout.ofMinutes(3), config.getConnectionRequestTimeout());
         Assert.assertEquals(false, config.isExpectContinueEnabled());
         Assert.assertEquals(true, config.isAuthenticationEnabled());
@@ -65,7 +64,6 @@ public class TestRequestConfig {
     @Test
     public void testBuildAndCopy() throws Exception {
         final RequestConfig config0 = RequestConfig.custom()
-                .setSocketTimeout(22, TimeUnit.MILLISECONDS)
                 .setConnectTimeout(33, TimeUnit.MILLISECONDS)
                 .setConnectionRequestTimeout(44, TimeUnit.MILLISECONDS)
                 .setExpectContinueEnabled(true)
@@ -80,8 +78,7 @@ public class TestRequestConfig {
                 .setContentCompressionEnabled(false)
                 .build();
         final RequestConfig config = RequestConfig.copy(config0).build();
-        Assert.assertEquals(TimeValue.ofMillis(22), config.getSocketTimeout());
-        Assert.assertEquals(TimeValue.ofMillis(33), config.getConnectTimeout());
+        Assert.assertEquals(TimeValue.ofMillis(33), config.getConnectionTimeout());
         Assert.assertEquals(TimeValue.ofMillis(44), config.getConnectionRequestTimeout());
         Assert.assertEquals(true, config.isExpectContinueEnabled());
         Assert.assertEquals(false, config.isAuthenticationEnabled());

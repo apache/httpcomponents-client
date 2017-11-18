@@ -62,8 +62,7 @@ public class TestHttp2Async extends AbstractHttpAsyncFundamentalsTest<CloseableH
         protected void before() throws Throwable {
             clientBuilder = Http2AsyncClientBuilder.create()
                     .setDefaultRequestConfig(RequestConfig.custom()
-                            .setSocketTimeout(TIMEOUT)
-                            .setConnectTimeout(TIMEOUT)
+                            .setConnectionTimeout(TIMEOUT)
                             .setConnectionRequestTimeout(TIMEOUT)
                             .build())
                     .setTlsStrategy(new BasicClientTlsStrategy(SSLTestContexts.createClientSSLContext()));

@@ -183,19 +183,19 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
             callback.completed(this);
         } else {
             final RequestConfig requestConfig = context.getRequestConfig();
+            final TimeValue timeout = requestConfig.getConnectionTimeout();
             manager.connect(
                     endpoint,
                     connectionInitiator,
-                    requestConfig.getConnectTimeout(),
+                    timeout,
                     versionPolicy,
                     context,
                     new FutureCallback<AsyncConnectionEndpoint>() {
 
                         @Override
                         public void completed(final AsyncConnectionEndpoint endpoint) {
-                            final TimeValue socketTimeout = requestConfig.getSocketTimeout();
-                            if (TimeValue.isPositive(socketTimeout)) {
-                                endpoint.setSocketTimeout(socketTimeout.toMillisIntBound());
+                            if (TimeValue.isPositive(timeout)) {
+                                endpoint.setSocketTimeout(timeout.toMillisIntBound());
                             }
                             callback.completed(InternalHttpAsyncExecRuntime.this);
                         }

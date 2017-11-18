@@ -133,7 +133,7 @@ public final class MinimalHttp2AsyncClient extends AbstractMinimalHttpAsyncClien
                     } else {
                         requestConfig = clientContext.getRequestConfig();
                     }
-                    final Timeout connectTimeout = requestConfig.getConnectTimeout();
+                    final Timeout connectTimeout = requestConfig.getConnectionTimeout();
                     final HttpHost target = new HttpHost(request.getAuthority(), request.getScheme());
 
                     final Future<IOSession> sessionFuture = connPool.getSession(target, connectTimeout, new FutureCallback<IOSession>() {

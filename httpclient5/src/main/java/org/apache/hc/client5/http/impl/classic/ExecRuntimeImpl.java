@@ -149,11 +149,10 @@ class ExecRuntimeImpl implements ExecRuntime, Cancellable {
             }
         }
         final RequestConfig requestConfig = context.getRequestConfig();
-        final TimeValue connectTimeout = requestConfig.getConnectTimeout();
-        manager.connect(endpoint, connectTimeout, context);
-        final TimeValue socketTimeout = requestConfig.getSocketTimeout();
-        if (socketTimeout.getDuration() >= 0) {
-            endpoint.setSocketTimeout(socketTimeout.toMillisIntBound());
+        final TimeValue timeout = requestConfig.getConnectionTimeout();
+        manager.connect(endpoint, timeout, context);
+        if (TimeValue.isPositive(timeout)) {
+            endpoint.setSocketTimeout(timeout.toMillisIntBound());
         }
     }
 
