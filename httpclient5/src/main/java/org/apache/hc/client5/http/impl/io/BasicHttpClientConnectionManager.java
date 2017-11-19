@@ -151,15 +151,6 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
     }
 
     @Override
-    protected void finalize() throws Throwable {
-        try {
-            close();
-        } finally { // Make sure we call overridden method even if shutdown barfs
-            super.finalize();
-        }
-    }
-
-    @Override
     public void close() {
         if (this.closed.compareAndSet(false, true)) {
             shutdownConnection();
@@ -254,6 +245,8 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
         checkExpiry();
         if (this.conn == null) {
             this.conn = this.connFactory.createConnection(null);
+        } else {
+            this.conn.activate();
         }
         this.leased = true;
         return this.conn;
@@ -293,6 +286,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
                 }
             } else {
                 this.state = state;
+                conn.passivate();
                 if (TimeValue.isPositive(keepAlive)) {
                     if (this.log.isDebugEnabled()) {
                         this.log.debug("Connection can be kept alive for " + keepAlive);

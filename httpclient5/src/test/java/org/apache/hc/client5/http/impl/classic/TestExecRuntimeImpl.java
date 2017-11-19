@@ -83,7 +83,6 @@ public class TestExecRuntimeImpl {
         final HttpClientContext context = HttpClientContext.create();
         final RequestConfig config = RequestConfig.custom()
                 .setConnectTimeout(123, TimeUnit.MILLISECONDS)
-                .setSocketTimeout(234, TimeUnit.MILLISECONDS)
                 .setConnectionRequestTimeout(345, TimeUnit.MILLISECONDS)
                 .build();
         context.setRequestConfig(config);
@@ -261,7 +260,6 @@ public class TestExecRuntimeImpl {
         final HttpClientContext context = HttpClientContext.create();
         final RequestConfig config = RequestConfig.custom()
                 .setConnectTimeout(123, TimeUnit.MILLISECONDS)
-                .setSocketTimeout(234, TimeUnit.MILLISECONDS)
                 .setConnectionRequestTimeout(345, TimeUnit.MILLISECONDS)
                 .build();
         context.setRequestConfig(config);
@@ -279,7 +277,7 @@ public class TestExecRuntimeImpl {
         execRuntime.connect(context);
 
         Mockito.verify(mgr).connect(connectionEndpoint, TimeValue.ofMillis(123), context);
-        Mockito.verify(connectionEndpoint).setSocketTimeout(234);
+        Mockito.verify(connectionEndpoint).setSocketTimeout(123);
     }
 
     @Test

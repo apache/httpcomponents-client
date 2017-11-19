@@ -29,10 +29,6 @@ package org.apache.hc.client5.testing.async;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
@@ -42,11 +38,10 @@ import org.apache.hc.client5.http.CircularRedirectException;
 import org.apache.hc.client5.http.RedirectException;
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
-import org.apache.hc.client5.http.async.methods.SimpleRequestProducer;
-import org.apache.hc.client5.http.async.methods.SimpleResponseConsumer;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.cookie.BasicCookieStore;
 import org.apache.hc.client5.http.cookie.CookieStore;
+import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.cookie.BasicClientCookie;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.testing.SSLTestContexts;
@@ -54,7 +49,6 @@ import org.apache.hc.core5.function.Supplier;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
-import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
@@ -71,40 +65,20 @@ import org.apache.hc.core5.testing.nio.Http2TestServer;
 import org.apache.hc.core5.util.TimeValue;
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 
-/**
- * Redirection test cases.
- */
-@RunWith(Parameterized.class)
-public class TestAsyncRedirects extends IntegrationTestBase {
+public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsyncClient> extends AbstractIntegrationTestBase<T> {
 
-    @Parameterized.Parameters(name = "{0}")
-    public static Collection<Object[]> protocols() {
-        return Arrays.asList(new Object[][]{
-                {URIScheme.HTTP},
-                {URIScheme.HTTPS},
-        });
-    }
-
-    public TestAsyncRedirects(final URIScheme scheme) {
+    public AbstractHttpAsyncRedirectsTest(final URIScheme scheme) {
         super(scheme);
     }
 
     static class BasicRedirectService extends AbstractSimpleServerExchangeHandler {
 
         private final int statuscode;
-        private final boolean keepAlive;
-
-        public BasicRedirectService(final int statuscode, final boolean keepAlive) {
-            super();
-            this.statuscode = statuscode;
-            this.keepAlive = keepAlive;
-        }
 
         public BasicRedirectService(final int statuscode) {
-            this(statuscode, true);
+            super();
+            this.statuscode = statuscode;
         }
 
         @Override
@@ -117,9 +91,6 @@ public class TestAsyncRedirects extends IntegrationTestBase {
                     final SimpleHttpResponse response = new SimpleHttpResponse(statuscode);
                     response.addHeader(new BasicHeader("Location",
                             new URIBuilder(requestURI).setPath("/newlocation/").build()));
-                    if (!keepAlive) {
-                        response.addHeader(new BasicHeader("Connection", "close"));
-                    }
                     return response;
                 } else if (path.equals("/newlocation/")) {
                     final SimpleHttpResponse response = new SimpleHttpResponse(HttpStatus.SC_OK);
@@ -222,7 +193,7 @@ public class TestAsyncRedirects extends IntegrationTestBase {
 
             @Override
             public AsyncServerExchangeHandler get() {
-                return new BasicRedirectService(HttpStatus.SC_MULTIPLE_CHOICES, false);
+                return new BasicRedirectService(HttpStatus.SC_MULTIPLE_CHOICES);
             }
 
         });
@@ -241,37 +212,12 @@ public class TestAsyncRedirects extends IntegrationTestBase {
     }
 
     @Test
-    public void testBasicRedirect301KeepAlive() throws Exception {
+    public void testBasicRedirect301() throws Exception {
         server.register("*", new Supplier<AsyncServerExchangeHandler>() {
 
             @Override
             public AsyncServerExchangeHandler get() {
-                return new BasicRedirectService(HttpStatus.SC_MOVED_PERMANENTLY, true);
-            }
-
-        });
-
-        final HttpHost target = start();
-        final HttpClientContext context = HttpClientContext.create();
-        final Future<SimpleHttpResponse> future = httpclient.execute(
-                SimpleHttpRequest.get(target, "/oldlocation/"), context, null);
-        final HttpResponse response = future.get();
-        Assert.assertNotNull(response);
-
-        final HttpRequest request = context.getRequest();
-
-        Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
-        Assert.assertEquals("/newlocation/", request.getRequestUri());
-        Assert.assertEquals(target, new HttpHost(request.getAuthority(), request.getScheme()));
-    }
-
-    @Test
-    public void testBasicRedirect301NoKeepAlive() throws Exception {
-        server.register("*", new Supplier<AsyncServerExchangeHandler>() {
-
-            @Override
-            public AsyncServerExchangeHandler get() {
-                return new BasicRedirectService(HttpStatus.SC_MOVED_PERMANENTLY, false);
+                return new BasicRedirectService(HttpStatus.SC_MOVED_PERMANENTLY);
             }
 
         });
@@ -455,9 +401,9 @@ public class TestAsyncRedirects extends IntegrationTestBase {
                 .setCircularRedirectsAllowed(true)
                 .setMaxRedirects(5).build();
         try {
-            final Future<SimpleHttpResponse> future = httpclient.execute(
-                    SimpleRequestProducer.create(SimpleHttpRequest.get(target, "/circular-oldlocation/"), config),
-                    SimpleResponseConsumer.create(), null);
+            final SimpleHttpRequest request = SimpleHttpRequest.get(target, "/circular-oldlocation/");
+            request.setConfig(config);
+            final Future<SimpleHttpResponse> future = httpclient.execute(request, null);
             future.get();
         } catch (final ExecutionException e) {
             Assert.assertTrue(e.getCause() instanceof RedirectException);
@@ -481,9 +427,9 @@ public class TestAsyncRedirects extends IntegrationTestBase {
                 .setCircularRedirectsAllowed(false)
                 .build();
         try {
-            final Future<SimpleHttpResponse> future = httpclient.execute(
-                    SimpleRequestProducer.create(SimpleHttpRequest.get(target, "/circular-oldlocation/"), config),
-                    SimpleResponseConsumer.create(), null);
+            final SimpleHttpRequest request = SimpleHttpRequest.get(target, "/circular-oldlocation/");
+            request.setConfig(config);
+            final Future<SimpleHttpResponse> future = httpclient.execute(request, null);
             future.get();
         } catch (final ExecutionException e) {
             Assert.assertTrue(e.getCause() instanceof CircularRedirectException);
@@ -681,39 +627,6 @@ public class TestAsyncRedirects extends IntegrationTestBase {
 
         final Header[] headers = request.getHeaders("Cookie");
         Assert.assertEquals("There can only be one (cookie)", 1, headers.length);
-    }
-
-    @Test
-    public void testDefaultHeadersRedirect() throws Exception {
-        server.register("*", new Supplier<AsyncServerExchangeHandler>() {
-
-            @Override
-            public AsyncServerExchangeHandler get() {
-                return new BasicRedirectService(HttpStatus.SC_MOVED_TEMPORARILY);
-            }
-
-        });
-
-        final List<Header> defaultHeaders = new ArrayList<>(1);
-        defaultHeaders.add(new BasicHeader(HttpHeaders.USER_AGENT, "my-test-client"));
-        clientBuilder.setDefaultHeaders(defaultHeaders);
-
-        final HttpHost target = start();
-
-        final HttpClientContext context = HttpClientContext.create();
-
-        final Future<SimpleHttpResponse> future = httpclient.execute(
-                SimpleHttpRequest.get(target, "/oldlocation/"), context, null);
-        final HttpResponse response = future.get();
-        Assert.assertNotNull(response);
-
-        final HttpRequest request = context.getRequest();
-
-        Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
-        Assert.assertEquals("/newlocation/", request.getRequestUri());
-
-        final Header header = request.getFirstHeader(HttpHeaders.USER_AGENT);
-        Assert.assertEquals("my-test-client", header.getValue());
     }
 
     static class CrossSiteRedirectService extends AbstractSimpleServerExchangeHandler {

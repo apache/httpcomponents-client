@@ -24,47 +24,16 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.hc.client5.http;
+package org.apache.hc.client5.http.auth;
 
-import org.apache.hc.core5.http.ProtocolException;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-/**
- * Signals failure to retry the request due to non-repeatable request
- * entity.
- *
- *
- * @since 4.0
- */
-public class NonRepeatableRequestException extends ProtocolException {
-
-    private static final long serialVersionUID = 82685265288806048L;
-
-    /**
-     * Creates a new NonRepeatableEntityException with a {@code null} detail message.
-     */
-    public NonRepeatableRequestException() {
-        super();
-    }
-
-    /**
-     * Creates a new NonRepeatableEntityException with the specified detail message.
-     *
-     * @param message The exception detail message
-     */
-    public NonRepeatableRequestException(final String message) {
-        super(message);
-    }
-
-    /**
-     * Creates a new NonRepeatableEntityException with the specified detail message.
-     *
-     * @param message The exception detail message
-     * @param cause the cause
-     */
-    public NonRepeatableRequestException(final String message, final Throwable cause) {
-        super(message, cause);
-    }
-
-
-
+@Documented
+@Target({ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface AuthStateCacheable {
 }

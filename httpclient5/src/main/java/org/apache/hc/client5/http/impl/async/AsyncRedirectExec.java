@@ -166,13 +166,19 @@ class AsyncRedirectExec implements AsyncExecChainHandler {
                 if (state.redirectURI == null) {
                     asyncExecCallback.completed();
                 } else {
-                    try {
-                        if (state.reroute) {
-                            scope.execRuntime.releaseConnection();
+                    final AsyncEntityProducer entityProducer = state.currentEntityProducer;
+                    if (entityProducer != null && !entityProducer.isRepeatable()) {
+                        log.debug("Cannot redirect non-repeatable request");
+                        asyncExecCallback.completed();
+                    } else {
+                        try {
+                            if (state.reroute) {
+                                scope.execRuntime.releaseConnection();
+                            }
+                            internalExecute(state, chain, asyncExecCallback);
+                        } catch (final IOException | HttpException ex) {
+                            asyncExecCallback.failed(ex);
                         }
-                        internalExecute(state, chain, asyncExecCallback);
-                    } catch (IOException | HttpException ex) {
-                        asyncExecCallback.failed(ex);
                     }
                 }
             }

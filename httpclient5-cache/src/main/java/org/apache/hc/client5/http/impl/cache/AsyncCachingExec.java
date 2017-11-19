@@ -156,7 +156,7 @@ public class AsyncCachingExec extends CachingExecBase implements AsyncExecChainH
 
         final URIAuthority authority = request.getAuthority();
         final String scheme = request.getScheme();
-        final HttpHost target = authority != null ? new HttpHost(authority, scheme) : route.getTargetHost();;
+        final HttpHost target = authority != null ? new HttpHost(authority, scheme) : route.getTargetHost();
         final String via = generateViaHeader(request);
 
         // default response context

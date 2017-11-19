@@ -27,7 +27,7 @@
   <parent>
     <groupId>org.apache.httpcomponents</groupId>
     <artifactId>httpcomponents-parent</artifactId>
-    <version>9</version>
+    <version>10</version>
     <relativePath>../httpcomponents-parent/pom.xml</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
@@ -68,7 +68,7 @@
   <properties>
     <maven.compiler.source>1.7</maven.compiler.source>
     <maven.compiler.target>1.7</maven.compiler.target>
-    <httpcore.version>5.0-alpha4</httpcore.version>
+    <httpcore.version>5.0-beta1</httpcore.version>
     <log4j.version>2.9.1</log4j.version>
     <commons-codec.version>1.10</commons-codec.version>
     <ehcache.version>3.4.0</ehcache.version>
@@ -319,14 +319,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
-        <version>2.9.1</version>
-        <dependencies>
-          <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>hc-stylecheck</artifactId>
-            <version>${hc.stylecheck.version}</version>
-          </dependency>
-        </dependencies>
         <configuration>
           <encoding>UTF-8</encoding>
         </configuration>

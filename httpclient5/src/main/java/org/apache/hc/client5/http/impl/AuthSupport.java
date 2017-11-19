@@ -73,7 +73,7 @@ public class AuthSupport {
         Args.notNull(route, "Route");
         final URIAuthority authority = request.getAuthority();
         final String scheme = request.getScheme();
-        final HttpHost target = authority != null ? new HttpHost(authority, scheme) : route.getTargetHost();;
+        final HttpHost target = authority != null ? new HttpHost(authority, scheme) : route.getTargetHost();
         if (target.getPort() < 0) {
             return new HttpHost(
                     target.getHostName(),

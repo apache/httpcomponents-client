@@ -66,7 +66,7 @@ public class AsyncClientCustomSSL {
                             final X509Certificate[] chain,
                             final String authType) throws CertificateException {
                         final X509Certificate cert = chain[0];
-                        return "CN=http2bin.org".equalsIgnoreCase(cert.getSubjectDN().getName());
+                        return "CN=httpbin.org".equalsIgnoreCase(cert.getSubjectDN().getName());
                     }
 
                 })
@@ -75,15 +75,8 @@ public class AsyncClientCustomSSL {
                 sslcontext,
                 H2TlsStrategy.getDefaultHostnameVerifier()) {
 
-            // IMPORTANT
-            // In order for HTTP/2 protocol negotiation to succeed one must allow access
-            // to Java 9 specific properties of SSLEngine via reflection
-            // by adding the following line to the JVM arguments
-            //
-            // --add-opens java.base/sun.security.ssl=ALL-UNNAMED
-            //
-            // or uncomment the method below
-
+            // IMPORTANT uncomment the following method when running Java 9 or older
+            // in order to avoid the illegal reflective access operation warning
 //            @Override
 //            protected TlsDetails createTlsDetails(final SSLEngine sslEngine) {
 //                return new TlsDetails(sslEngine.getSession(), sslEngine.getApplicationProtocol());
@@ -99,13 +92,13 @@ public class AsyncClientCustomSSL {
 
             client.start();
 
-            final HttpHost target = new HttpHost("http2bin.org", 443, "https");
+            final HttpHost target = new HttpHost("httpbin.org", 443, "https");
             final String requestUri = "/";
             final HttpClientContext clientContext = HttpClientContext.create();
 
             final SimpleHttpRequest request = SimpleHttpRequest.get(target, requestUri);
             final Future<SimpleHttpResponse> future = client.execute(
-                    SimpleRequestProducer.create(request, null),
+                    SimpleRequestProducer.create(request),
                     SimpleResponseConsumer.create(),
                     clientContext,
                     new FutureCallback<SimpleHttpResponse>() {

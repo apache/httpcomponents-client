@@ -39,4 +39,14 @@ public interface ManagedAsyncClientConnection extends HttpConnection, TransportS
 
     void submitCommand(Command command);
 
+    /**
+     * Puts the connection into idle mode.
+     */
+    void passivate();
+
+    /**
+     * Restores the connection from idle mode.
+     */
+    void activate();
+
 }

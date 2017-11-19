@@ -268,7 +268,7 @@ public final class DefaultHostnameVerifier implements HttpClientHostnameVerifier
                         if (value != null) {
                             return value.toString();
                         }
-                    } catch (NoSuchElementException | NamingException ignore) {
+                    } catch (final NoSuchElementException | NamingException ignore) {
                         // ignore exception
                     }
                 }

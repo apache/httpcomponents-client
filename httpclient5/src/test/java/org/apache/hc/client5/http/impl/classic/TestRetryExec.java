@@ -32,7 +32,6 @@ import java.io.IOException;
 
 import org.apache.hc.client5.http.HttpRequestRetryHandler;
 import org.apache.hc.client5.http.HttpRoute;
-import org.apache.hc.client5.http.NonRepeatableRequestException;
 import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecRuntime;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
@@ -144,7 +143,7 @@ public class TestRetryExec {
         }
     }
 
-    @Test(expected = NonRepeatableRequestException.class)
+    @Test(expected = IOException.class)
     public void testNonRepeatableRequest() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpPost originalRequest = new HttpPost("/test");

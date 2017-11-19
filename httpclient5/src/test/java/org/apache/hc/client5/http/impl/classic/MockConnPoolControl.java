@@ -26,7 +26,9 @@
  */
 package org.apache.hc.client5.http.impl.classic;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.hc.client5.http.HttpRoute;
@@ -107,6 +109,11 @@ public final class MockConnPoolControl implements ConnPoolControl<HttpRoute> {
         }
         this.maxPerHostMap.clear();
         this.maxPerHostMap.putAll(map);
+    }
+
+    @Override
+    public Set<HttpRoute> getRoutes() {
+        return new HashSet<>(this.maxPerHostMap.keySet());
     }
 
     @Override

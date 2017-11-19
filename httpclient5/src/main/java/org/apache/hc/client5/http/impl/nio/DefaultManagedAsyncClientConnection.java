@@ -66,10 +66,12 @@ final class DefaultManagedAsyncClientConnection implements ManagedAsyncClientCon
     private final Logger log = LogManager.getLogger(getClass());
 
     private final IOSession ioSession;
+    private final int socketTimeout;
     private final AtomicBoolean closed;
 
     public DefaultManagedAsyncClientConnection(final IOSession ioSession) {
         this.ioSession = ioSession;
+        this.socketTimeout = ioSession.getSocketTimeout();
         this.closed = new AtomicBoolean();
     }
 
@@ -184,6 +186,16 @@ final class DefaultManagedAsyncClientConnection implements ManagedAsyncClientCon
             log.debug(getId() + ": command " + command);
         }
         ioSession.addLast(command);
+    }
+
+    @Override
+    public void passivate() {
+        ioSession.setSocketTimeout(0);
+    }
+
+    @Override
+    public void activate() {
+        ioSession.setSocketTimeout(socketTimeout);
     }
 
 }

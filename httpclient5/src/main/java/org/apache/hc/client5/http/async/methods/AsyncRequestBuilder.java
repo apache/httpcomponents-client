@@ -43,11 +43,11 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.http.ProtocolVersion;
 import org.apache.hc.core5.http.message.BasicHeader;
-import org.apache.hc.core5.http.message.BasicHttpRequest;
 import org.apache.hc.core5.http.message.BasicNameValuePair;
 import org.apache.hc.core5.http.message.HeaderGroup;
 import org.apache.hc.core5.http.nio.AsyncEntityProducer;
 import org.apache.hc.core5.http.nio.AsyncRequestProducer;
+import org.apache.hc.core5.http.nio.BasicRequestProducer;
 import org.apache.hc.core5.http.nio.entity.BasicAsyncEntityProducer;
 import org.apache.hc.core5.http.nio.entity.StringAsyncEntityProducer;
 import org.apache.hc.core5.net.URIBuilder;
@@ -429,16 +429,17 @@ public class AsyncRequestBuilder {
                 }
             }
         }
-        final BasicHttpRequest request = host != null ?
-                new BasicHttpRequest(method, host, !TextUtils.isBlank(path) ? path : "/") :
-                new BasicHttpRequest(method, uri != null ? uri : URI.create("/"));
+        final ConfigurableHttpRequest request = host != null ?
+                new ConfigurableHttpRequest(method, host, !TextUtils.isBlank(path) ? path : "/") :
+                new ConfigurableHttpRequest(method, uri != null ? uri : URI.create("/"));
         if (this.headergroup != null) {
             request.setHeaders(this.headergroup.getAllHeaders());
         }
         if (version != null) {
             request.setVersion(version);
         }
-        return new DefaultAsyncRequestProducer(request, entityProducerCopy, config);
+        request.setConfig(config);
+        return new BasicRequestProducer(request, entityProducerCopy);
     }
 
 }

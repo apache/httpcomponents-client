@@ -58,9 +58,9 @@ public interface AsyncExecRuntime {
 
     void discardConnection();
 
-    boolean isConnected();
+    boolean validateConnection();
 
-    void disconnect();
+    boolean isConnected();
 
     void connect(
             HttpClientContext clientContext,
@@ -75,16 +75,8 @@ public interface AsyncExecRuntime {
             AsyncClientExchangeHandler exchangeHandler,
             HttpClientContext context);
 
-    boolean validateConnection();
-
-    boolean isConnectionReusable();
-
-    void markConnectionReusable();
+    void markConnectionReusable(Object state, TimeValue duration);
 
     void markConnectionNonReusable();
-
-    void setConnectionState(Object state);
-
-    void setConnectionValidFor(TimeValue duration);
 
 }

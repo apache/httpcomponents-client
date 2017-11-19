@@ -207,16 +207,24 @@ class AsyncProtocolExec implements AsyncExecChainHandler {
                 }
 
                 if (challenged.get()) {
-                    // Reset request headers
-                    final HttpRequest original = scope.originalRequest;
-                    request.setHeaders();
-                    for (final Iterator<Header> it = original.headerIterator(); it.hasNext(); ) {
-                        request.addHeader(it.next());
-                    }
-                    try {
-                        internalExecute(challenged, request, entityProducer, scope, chain, asyncExecCallback);
-                    } catch (final HttpException | IOException ex) {
-                        asyncExecCallback.failed(ex);
+                    if (entityProducer != null && !entityProducer.isRepeatable()) {
+                        log.debug("Cannot retry non-repeatable request");
+                        asyncExecCallback.completed();
+                    } else {
+                        // Reset request headers
+                        final HttpRequest original = scope.originalRequest;
+                        request.setHeaders();
+                        for (final Iterator<Header> it = original.headerIterator(); it.hasNext(); ) {
+                            request.addHeader(it.next());
+                        }
+                        try {
+                            if (entityProducer != null) {
+                                entityProducer.releaseResources();
+                            }
+                            internalExecute(challenged, request, entityProducer, scope, chain, asyncExecCallback);
+                        } catch (final HttpException | IOException ex) {
+                            asyncExecCallback.failed(ex);
+                        }
                     }
                 } else {
                     asyncExecCallback.completed();

@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.nio.ByteBuffer;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.hc.client5.http.ConnectionKeepAliveStrategy;
@@ -45,6 +46,7 @@ import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.message.RequestLine;
 import org.apache.hc.core5.http.nio.AsyncClientExchangeHandler;
 import org.apache.hc.core5.http.nio.AsyncDataConsumer;
@@ -56,14 +58,14 @@ import org.apache.hc.core5.util.TimeValue;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-class AsyncMainClientExec implements AsyncExecChainHandler {
+class HttpAsyncMainClientExec implements AsyncExecChainHandler {
 
     private final Logger log = LogManager.getLogger(getClass());
 
     private final ConnectionKeepAliveStrategy keepAliveStrategy;
     private final UserTokenHandler userTokenHandler;
 
-    AsyncMainClientExec(final ConnectionKeepAliveStrategy keepAliveStrategy, final UserTokenHandler userTokenHandler) {
+    HttpAsyncMainClientExec(final ConnectionKeepAliveStrategy keepAliveStrategy, final UserTokenHandler userTokenHandler) {
         this.keepAliveStrategy = keepAliveStrategy;
         this.userTokenHandler = userTokenHandler;
     }
@@ -84,6 +86,7 @@ class AsyncMainClientExec implements AsyncExecChainHandler {
             log.debug(exchangeId + ": executing " + new RequestLine(request));
         }
 
+        final AtomicInteger messageCountDown = new AtomicInteger(2);
         final AsyncClientExchangeHandler internalExchangeHandler = new AsyncClientExchangeHandler() {
 
             private final AtomicReference<AsyncDataConsumer> entityConsumerRef = new AtomicReference<>(null);
@@ -110,6 +113,9 @@ class AsyncMainClientExec implements AsyncExecChainHandler {
             @Override
             public void produceRequest(final RequestChannel channel) throws HttpException, IOException {
                 channel.sendRequest(request, entityProducer);
+                if (entityProducer == null) {
+                    messageCountDown.decrementAndGet();
+                }
             }
 
             @Override
@@ -119,7 +125,35 @@ class AsyncMainClientExec implements AsyncExecChainHandler {
 
             @Override
             public void produce(final DataStreamChannel channel) throws IOException {
-                entityProducer.produce(channel);
+                entityProducer.produce(new DataStreamChannel() {
+
+                    @Override
+                    public void requestOutput() {
+                        channel.requestOutput();
+                    }
+
+                    @Override
+                    public int write(final ByteBuffer src) throws IOException {
+                        return channel.write(src);
+                    }
+
+                    @Override
+                    public void endStream(final List<? extends Header> trailers) throws IOException {
+                        channel.endStream(trailers);
+                        if (messageCountDown.decrementAndGet() <= 0) {
+                            asyncExecCallback.completed();
+                        }
+                    }
+
+                    @Override
+                    public void endStream() throws IOException {
+                        channel.endStream();
+                        if (messageCountDown.decrementAndGet() <= 0) {
+                            asyncExecCallback.completed();
+                        }
+                    }
+
+                });
             }
 
             @Override
@@ -129,24 +163,21 @@ class AsyncMainClientExec implements AsyncExecChainHandler {
             @Override
             public void consumeResponse(final HttpResponse response, final EntityDetails entityDetails) throws HttpException, IOException {
                 entityConsumerRef.set(asyncExecCallback.handleResponse(response, entityDetails));
-                execRuntime.markConnectionReusable();
-                final TimeValue duration = keepAliveStrategy.getKeepAliveDuration(response, clientContext);
-                execRuntime.setConnectionValidFor(duration);
+                if (response.getCode() >= HttpStatus.SC_CLIENT_ERROR) {
+                    messageCountDown.decrementAndGet();
+                }
+                final TimeValue keepAliveDuration = keepAliveStrategy.getKeepAliveDuration(response, clientContext);
                 Object userToken = clientContext.getUserToken();
                 if (userToken == null) {
                     userToken = userTokenHandler.getUserToken(route, clientContext);
                     clientContext.setAttribute(HttpClientContext.USER_TOKEN, userToken);
                 }
-                if (userToken != null) {
-                    execRuntime.setConnectionState(userToken);
-                }
+                execRuntime.markConnectionReusable(userToken, keepAliveDuration);
                 if (entityDetails == null) {
-                    if (!execRuntime.isConnectionReusable()) {
-                        execRuntime.discardConnection();
-                    } else {
-                        execRuntime.validateConnection();
+                    execRuntime.validateConnection();
+                    if (messageCountDown.decrementAndGet() <= 0) {
+                        asyncExecCallback.completed();
                     }
-                    asyncExecCallback.completed();
                 }
             }
 
@@ -174,24 +205,25 @@ class AsyncMainClientExec implements AsyncExecChainHandler {
             public void streamEnd(final List<? extends Header> trailers) throws HttpException, IOException {
                 final AsyncDataConsumer entityConsumer = entityConsumerRef.getAndSet(null);
                 if (entityConsumer != null) {
-                    // Release connection early
-                    execRuntime.releaseConnection();
                     entityConsumer.streamEnd(trailers);
                 } else {
-                    if (!execRuntime.isConnectionReusable()) {
-                        execRuntime.discardConnection();
-                    } else {
-                        execRuntime.validateConnection();
-                    }
+                    execRuntime.validateConnection();
                 }
-                asyncExecCallback.completed();
+                if (messageCountDown.decrementAndGet() <= 0) {
+                    asyncExecCallback.completed();
+                }
             }
 
         };
 
-        execRuntime.execute(
-                log.isDebugEnabled() ? new LoggingAsyncClientExchangeHandler(log, exchangeId, internalExchangeHandler) : internalExchangeHandler,
-                clientContext);
+        if (log.isDebugEnabled()) {
+            execRuntime.execute(
+                    new LoggingAsyncClientExchangeHandler(log, exchangeId, internalExchangeHandler),
+                    clientContext);
+        } else {
+            execRuntime.execute(
+                    internalExchangeHandler, clientContext);
+        }
     }
 
 }

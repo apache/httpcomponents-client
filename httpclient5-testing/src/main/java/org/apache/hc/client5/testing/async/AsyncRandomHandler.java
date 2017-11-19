@@ -90,7 +90,7 @@ public class AsyncRandomHandler implements AsyncServerExchangeHandler {
         final URI uri;
         try {
             uri = request.getUri();
-        } catch (URISyntaxException ex) {
+        } catch (final URISyntaxException ex) {
             throw new ProtocolException(ex.getMessage(), ex);
         }
         final String path = uri.getPath();
@@ -173,6 +173,12 @@ public class AsyncRandomHandler implements AsyncServerExchangeHandler {
 
         @Override
         public void releaseResources() {
+            remaining = length;
+        }
+
+        @Override
+        public boolean isRepeatable() {
+            return true;
         }
 
         @Override

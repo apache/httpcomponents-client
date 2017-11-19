@@ -177,10 +177,10 @@ public class HttpAsyncClientCompatibilityTest {
                 } else {
                     logResult(TestResult.NOK, options, "(status " + code + ")");
                 }
-            } catch (ExecutionException ex) {
+            } catch (final ExecutionException ex) {
                 final Throwable cause = ex.getCause();
                 logResult(TestResult.NOK, options, "(" + cause.getMessage() + ")");
-            } catch (TimeoutException ex) {
+            } catch (final TimeoutException ex) {
                 logResult(TestResult.NOK, options, "(time out)");
             }
         }
@@ -191,7 +191,7 @@ public class HttpAsyncClientCompatibilityTest {
             context.setCredentialsProvider(credentialsProvider);
 
             final String[] requestUris = new String[] {"/", "/news.html", "/status.html"};
-            for (String requestUri: requestUris) {
+            for (final String requestUri: requestUris) {
                 final SimpleHttpRequest httpGet = SimpleHttpRequest.get(target, requestUri);
                 final Future<SimpleHttpResponse> future = client.execute(httpGet, context, null);
                 try {
@@ -202,10 +202,10 @@ public class HttpAsyncClientCompatibilityTest {
                     } else {
                         logResult(TestResult.NOK, httpGet, "(status " + code + ")");
                     }
-                } catch (ExecutionException ex) {
+                } catch (final ExecutionException ex) {
                     final Throwable cause = ex.getCause();
                     logResult(TestResult.NOK, httpGet, "(" + cause.getMessage() + ")");
-                } catch (TimeoutException ex) {
+                } catch (final TimeoutException ex) {
                     logResult(TestResult.NOK, httpGet, "(time out)");
                 }
             }
@@ -229,10 +229,10 @@ public class HttpAsyncClientCompatibilityTest {
                 } else {
                     logResult(TestResult.NOK, httpGetSecret, "(status " + code + ")");
                 }
-            } catch (ExecutionException ex) {
+            } catch (final ExecutionException ex) {
                 final Throwable cause = ex.getCause();
                 logResult(TestResult.NOK, httpGetSecret, "(" + cause.getMessage() + ")");
-            } catch (TimeoutException ex) {
+            } catch (final TimeoutException ex) {
                 logResult(TestResult.NOK, httpGetSecret, "(time out)");
             }
         }
@@ -255,10 +255,10 @@ public class HttpAsyncClientCompatibilityTest {
                 } else {
                     logResult(TestResult.NOK, httpGetSecret, "(status " + code + ")");
                 }
-            } catch (ExecutionException ex) {
+            } catch (final ExecutionException ex) {
                 final Throwable cause = ex.getCause();
                 logResult(TestResult.NOK, httpGetSecret, "(" + cause.getMessage() + ")");
-            } catch (TimeoutException ex) {
+            } catch (final TimeoutException ex) {
                 logResult(TestResult.NOK, httpGetSecret, "(time out)");
             }
         }
@@ -281,10 +281,10 @@ public class HttpAsyncClientCompatibilityTest {
                 } else {
                     logResult(TestResult.NOK, httpGetSecret, "(status " + code + ")");
                 }
-            } catch (ExecutionException ex) {
+            } catch (final ExecutionException ex) {
                 final Throwable cause = ex.getCause();
                 logResult(TestResult.NOK, httpGetSecret, "(" + cause.getMessage() + ")");
-            } catch (TimeoutException ex) {
+            } catch (final TimeoutException ex) {
                 logResult(TestResult.NOK, httpGetSecret, "(time out)");
             }
         }
@@ -309,10 +309,10 @@ public class HttpAsyncClientCompatibilityTest {
                 } else {
                     logResult(TestResult.NOK, httpGetSecret, "(status " + code + ")");
                 }
-            } catch (ExecutionException ex) {
+            } catch (final ExecutionException ex) {
                 final Throwable cause = ex.getCause();
                 logResult(TestResult.NOK, httpGetSecret, "(" + cause.getMessage() + ")");
-            } catch (TimeoutException ex) {
+            } catch (final TimeoutException ex) {
                 logResult(TestResult.NOK, httpGetSecret, "(time out)");
             }
         }

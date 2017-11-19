@@ -71,7 +71,7 @@ import org.apache.logging.log4j.Logger;
  * @since 5.0
  */
 @Contract(threading = ThreadingBehavior.IMMUTABLE)
-public class HttpAsyncClientEventHandlerFactory implements IOEventHandlerFactory {
+class HttpAsyncClientEventHandlerFactory implements IOEventHandlerFactory {
 
     private final Logger streamLog = LogManager.getLogger(InternalHttpAsyncClient.class);
     private final Logger wireLog = LogManager.getLogger("org.apache.hc.client5.http.wire");

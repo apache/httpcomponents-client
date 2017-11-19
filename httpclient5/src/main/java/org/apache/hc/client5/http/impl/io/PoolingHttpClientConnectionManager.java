@@ -27,6 +27,7 @@
 package org.apache.hc.client5.http.impl.io;
 
 import java.io.IOException;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -220,15 +221,6 @@ public class PoolingHttpClientConnectionManager
     }
 
     @Override
-    protected void finalize() throws Throwable {
-        try {
-            close();
-        } finally {
-            super.finalize();
-        }
-    }
-
-    @Override
     public void close() {
         if (this.closed.compareAndSet(false, true)) {
             this.log.debug("Connection manager is shutting down");
@@ -258,11 +250,7 @@ public class PoolingHttpClientConnectionManager
         if (this.log.isDebugEnabled()) {
             this.log.debug("Connection request: " + ConnPoolSupport.formatStats(null, route, state, this.pool));
         }
-        //TODO: fix me.
-        if (log.isWarnEnabled() && Timeout.isPositive(requestTimeout)) {
-            log.warn("Connection request timeout is not supported");
-        }
-        final Future<PoolEntry<HttpRoute, ManagedHttpClientConnection>> leaseFuture = this.pool.lease(route, state, /** requestTimeout, */ null);
+        final Future<PoolEntry<HttpRoute, ManagedHttpClientConnection>> leaseFuture = this.pool.lease(route, state, requestTimeout, null);
         return new LeaseRequest() {
 
             private volatile ConnectionEndpoint endpoint;
@@ -303,7 +291,10 @@ public class PoolingHttpClientConnectionManager
                             }
                         }
                     }
-                    if (!poolEntry.hasConnection()) {
+                    final ManagedHttpClientConnection conn = poolEntry.getConnection();
+                    if (conn != null) {
+                        conn.activate();
+                    } else {
                         poolEntry.assignConnection(connFactory.createConnection(null));
                     }
                     if (log.isDebugEnabled()) {
@@ -347,6 +338,7 @@ public class PoolingHttpClientConnectionManager
             if (reusable) {
                 entry.updateState(state);
                 entry.updateExpiry(keepAlive);
+                conn.passivate();
                 if (this.log.isDebugEnabled()) {
                     final String s;
                     if (TimeValue.isPositive(keepAlive)) {
@@ -418,6 +410,11 @@ public class PoolingHttpClientConnectionManager
     public void closeExpired() {
         this.log.debug("Closing expired connections");
         this.pool.closeExpired();
+    }
+
+    @Override
+    public Set<HttpRoute> getRoutes() {
+        return this.pool.getRoutes();
     }
 
     @Override

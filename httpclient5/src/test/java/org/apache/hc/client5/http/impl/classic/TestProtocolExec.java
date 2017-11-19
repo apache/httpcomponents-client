@@ -36,7 +36,6 @@ import java.util.Map;
 
 import org.apache.hc.client5.http.AuthenticationStrategy;
 import org.apache.hc.client5.http.HttpRoute;
-import org.apache.hc.client5.http.NonRepeatableRequestException;
 import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.AuthExchange;
 import org.apache.hc.client5.http.auth.AuthScheme;
@@ -295,7 +294,7 @@ public class TestProtocolExec {
         Assert.assertNull(proxyAuthExchange.getAuthScheme());
     }
 
-    @Test(expected = NonRepeatableRequestException.class)
+    @Test
     public void testExecEntityEnclosingRequest() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpClientContext context = new HttpClientContext();
@@ -335,7 +334,8 @@ public class TestProtocolExec {
                 Mockito.<HttpClientContext>any())).thenReturn(Collections.<AuthScheme>singletonList(new BasicScheme()));
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
-        protocolExec.execute(request, scope, chain);
+        final ClassicHttpResponse response = protocolExec.execute(request, scope, chain);
+        Assert.assertEquals(401, response.getCode());
     }
 
 }

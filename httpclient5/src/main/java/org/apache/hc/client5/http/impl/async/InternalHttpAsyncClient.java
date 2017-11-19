@@ -27,58 +27,33 @@
 package org.apache.hc.client5.http.impl.async;
 
 import java.io.Closeable;
-import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 
 import org.apache.hc.client5.http.HttpRoute;
-import org.apache.hc.client5.http.async.AsyncExecCallback;
-import org.apache.hc.client5.http.async.AsyncExecChain;
 import org.apache.hc.client5.http.async.AsyncExecRuntime;
 import org.apache.hc.client5.http.auth.AuthSchemeProvider;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
-import org.apache.hc.client5.http.config.Configurable;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.cookie.CookieSpecProvider;
 import org.apache.hc.client5.http.cookie.CookieStore;
-import org.apache.hc.client5.http.impl.ExecSupport;
-import org.apache.hc.client5.http.impl.RequestCopier;
 import org.apache.hc.client5.http.nio.AsyncClientConnectionManager;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.routing.HttpRoutePlanner;
-import org.apache.hc.core5.concurrent.BasicFuture;
-import org.apache.hc.core5.concurrent.FutureCallback;
-import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.ProtocolVersion;
 import org.apache.hc.core5.http.config.Lookup;
-import org.apache.hc.core5.http.nio.AsyncClientExchangeHandler;
-import org.apache.hc.core5.http.nio.AsyncDataConsumer;
-import org.apache.hc.core5.http.nio.AsyncRequestProducer;
-import org.apache.hc.core5.http.nio.AsyncResponseConsumer;
-import org.apache.hc.core5.http.nio.RequestChannel;
-import org.apache.hc.core5.http.nio.support.BasicClientExchangeHandler;
-import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.apache.hc.core5.reactor.DefaultConnectingIOReactor;
 
-class InternalHttpAsyncClient extends AbstractHttpAsyncClientBase {
+class InternalHttpAsyncClient extends InternalAbstractHttpAsyncClient {
 
     private final AsyncClientConnectionManager connmgr;
-    private final AsyncExecChainElement execChain;
     private final HttpRoutePlanner routePlanner;
     private final HttpVersionPolicy versionPolicy;
-    private final Lookup<CookieSpecProvider> cookieSpecRegistry;
-    private final Lookup<AuthSchemeProvider> authSchemeRegistry;
-    private final CookieStore cookieStore;
-    private final CredentialsProvider credentialsProvider;
-    private final RequestConfig defaultConfig;
-    private final List<Closeable> closeables;
 
     InternalHttpAsyncClient(
             final DefaultConnectingIOReactor ioReactor,
@@ -94,172 +69,27 @@ class InternalHttpAsyncClient extends AbstractHttpAsyncClientBase {
             final CredentialsProvider credentialsProvider,
             final RequestConfig defaultConfig,
             final List<Closeable> closeables) {
-        super(ioReactor, pushConsumerRegistry, threadFactory);
+        super(ioReactor, pushConsumerRegistry, threadFactory, execChain,
+                cookieSpecRegistry, authSchemeRegistry, cookieStore, credentialsProvider, defaultConfig, closeables);
         this.connmgr = connmgr;
-        this.execChain = execChain;
         this.routePlanner = routePlanner;
         this.versionPolicy = versionPolicy;
-        this.cookieSpecRegistry = cookieSpecRegistry;
-        this.authSchemeRegistry = authSchemeRegistry;
-        this.cookieStore = cookieStore;
-        this.credentialsProvider = credentialsProvider;
-        this.defaultConfig = defaultConfig;
-        this.closeables = closeables;
     }
 
     @Override
-    public void close() {
-        super.close();
-        if (closeables != null) {
-            for (final Closeable closeable: closeables) {
-                try {
-                    closeable.close();
-                } catch (final IOException ex) {
-                    log.error(ex.getMessage(), ex);
-                }
-            }
-        }
+    AsyncExecRuntime crerateAsyncExecRuntime() {
+        return new InternalHttpAsyncExecRuntime(log, connmgr, getConnectionInitiator(), versionPolicy);
     }
 
-    private void setupContext(final HttpClientContext context) {
-        if (context.getAttribute(HttpClientContext.AUTHSCHEME_REGISTRY) == null) {
-            context.setAttribute(HttpClientContext.AUTHSCHEME_REGISTRY, authSchemeRegistry);
-        }
-        if (context.getAttribute(HttpClientContext.COOKIESPEC_REGISTRY) == null) {
-            context.setAttribute(HttpClientContext.COOKIESPEC_REGISTRY, cookieSpecRegistry);
-        }
-        if (context.getAttribute(HttpClientContext.COOKIE_STORE) == null) {
-            context.setAttribute(HttpClientContext.COOKIE_STORE, cookieStore);
-        }
-        if (context.getAttribute(HttpClientContext.CREDS_PROVIDER) == null) {
-            context.setAttribute(HttpClientContext.CREDS_PROVIDER, credentialsProvider);
-        }
-        if (context.getAttribute(HttpClientContext.REQUEST_CONFIG) == null) {
-            context.setAttribute(HttpClientContext.REQUEST_CONFIG, defaultConfig);
-        }
-    }
-
-    private void executeChain(
-            final String exchangeId,
-            final AsyncExecChainElement execChain,
-            final HttpRoute route,
-            final HttpRequest request,
-            final EntityDetails entityDetails,
-            final AsyncClientExchangeHandler exchangeHandler,
-            final HttpClientContext clientContext,
-            final AsyncExecRuntime execRuntime) throws IOException, HttpException {
-
-        if (log.isDebugEnabled()) {
-            log.debug(exchangeId + ": preparing request execution");
-        }
-
+    @Override
+    HttpRoute determineRoute(final HttpRequest request, final HttpClientContext clientContext) throws HttpException {
+        final HttpHost target = routePlanner.determineTargetHost(request, clientContext);
+        final HttpRoute route = routePlanner.determineRoute(target, clientContext);
         final ProtocolVersion protocolVersion = clientContext.getProtocolVersion();
         if (route.isTunnelled() && protocolVersion.greaterEquals(HttpVersion.HTTP_2_0)) {
             throw new HttpException("HTTP/2 tunneling not supported");
         }
-
-        setupContext(clientContext);
-
-        final AsyncExecChain.Scope scope = new AsyncExecChain.Scope(exchangeId, route, request, clientContext, execRuntime);
-        execChain.execute(
-                RequestCopier.INSTANCE.copy(request),
-                entityDetails != null ? new InternalAsyncEntityProducer(exchangeHandler, entityDetails) : null,
-                scope,
-                new AsyncExecCallback() {
-
-                    @Override
-                    public AsyncDataConsumer handleResponse(
-                            final HttpResponse response,
-                            final EntityDetails entityDetails) throws HttpException, IOException {
-                        exchangeHandler.consumeResponse(response, entityDetails);
-                        return exchangeHandler;
-                    }
-
-                    @Override
-                    public void completed() {
-                        if (log.isDebugEnabled()) {
-                            log.debug(exchangeId + ": message exchange successfully completed");
-                        }
-                        try {
-                            exchangeHandler.releaseResources();
-                        } finally {
-                            execRuntime.releaseConnection();
-                        }
-                    }
-
-                    @Override
-                    public void failed(final Exception cause) {
-                        if (log.isDebugEnabled()) {
-                            log.debug(exchangeId + ": request failed: " + cause.getMessage());
-                        }
-                        try {
-                            exchangeHandler.failed(cause);
-                            exchangeHandler.releaseResources();
-                        } finally {
-                            execRuntime.discardConnection();
-                        }
-                    }
-
-                });
-    }
-
-    @Override
-    public <T> Future<T> execute(
-            final AsyncRequestProducer requestProducer,
-            final AsyncResponseConsumer<T> responseConsumer,
-            final HttpContext context,
-            final FutureCallback<T> callback) {
-        ensureRunning();
-        final BasicFuture<T> future = new BasicFuture<>(callback);
-        try {
-            final HttpClientContext clientContext = HttpClientContext.adapt(context);
-
-            RequestConfig requestConfig = null;
-            if (requestProducer instanceof Configurable) {
-                requestConfig = ((Configurable) requestProducer).getConfig();
-            }
-            if (requestConfig != null) {
-                clientContext.setRequestConfig(requestConfig);
-            }
-
-            final AsyncClientExchangeHandler exchangeHandler = new BasicClientExchangeHandler<>(requestProducer, responseConsumer, new FutureCallback<T>() {
-
-                @Override
-                public void completed(final T result) {
-                    future.completed(result);
-                }
-
-                @Override
-                public void failed(final Exception ex) {
-                    future.failed(ex);
-                }
-
-                @Override
-                public void cancelled() {
-                    future.cancel();
-                }
-
-            });
-            exchangeHandler.produceRequest(new RequestChannel() {
-
-                @Override
-                public void sendRequest(
-                        final HttpRequest request,
-                        final EntityDetails entityDetails) throws HttpException, IOException {
-
-                    final HttpHost target = routePlanner.determineTargetHost(request, clientContext);
-                    final HttpRoute route = routePlanner.determineRoute(target, clientContext);
-                    final String exchangeId = String.format("ex-%08X", ExecSupport.getNextExecNumber());
-                    final AsyncExecRuntime execRuntime = new AsyncExecRuntimeImpl(log, connmgr, getConnectionInitiator(), versionPolicy);
-                    executeChain(exchangeId, execChain, route, request, entityDetails, exchangeHandler, clientContext, execRuntime);
-                }
-
-            });
-
-        } catch (HttpException | IOException ex) {
-            future.failed(ex);
-        }
-        return future;
+        return route;
     }
 
 }

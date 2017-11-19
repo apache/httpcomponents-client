@@ -63,7 +63,7 @@ public enum StandardMethods {
         }
         try {
             return valueOf(value.toUpperCase(Locale.ROOT)).safe;
-        } catch (IllegalArgumentException ex) {
+        } catch (final IllegalArgumentException ex) {
             return false;
         }
     }
@@ -74,7 +74,7 @@ public enum StandardMethods {
         }
         try {
             return valueOf(value.toUpperCase(Locale.ROOT)).idempotent;
-        } catch (IllegalArgumentException ex) {
+        } catch (final IllegalArgumentException ex) {
             return false;
         }
     }

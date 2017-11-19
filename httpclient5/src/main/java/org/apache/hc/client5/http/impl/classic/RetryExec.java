@@ -31,7 +31,6 @@ import java.io.IOException;
 
 import org.apache.hc.client5.http.HttpRequestRetryHandler;
 import org.apache.hc.client5.http.HttpRoute;
-import org.apache.hc.client5.http.NonRepeatableRequestException;
 import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecChainHandler;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
@@ -88,6 +87,11 @@ final class RetryExec implements ExecChainHandler {
                 if (scope.execRuntime.isExecutionAborted()) {
                     throw new RequestFailedException("Request aborted");
                 }
+                final HttpEntity requestEntity = request.getEntity();
+                if (requestEntity != null && !requestEntity.isRepeatable()) {
+                    this.log.debug("Cannot retry non-repeatable request");
+                    throw ex;
+                }
                 if (retryHandler.retryRequest(request, ex, execCount, context)) {
                     if (this.log.isInfoEnabled()) {
                         this.log.info("I/O exception ("+ ex.getClass().getName() +
@@ -98,12 +102,6 @@ final class RetryExec implements ExecChainHandler {
                     }
                     if (this.log.isDebugEnabled()) {
                         this.log.debug(ex.getMessage(), ex);
-                    }
-                    final HttpEntity entity = request.getEntity();
-                    if (entity != null && !entity.isRepeatable()) {
-                        this.log.debug("Cannot retry non-repeatable request");
-                        throw new NonRepeatableRequestException("Cannot retry request " +
-                                "with a non-repeatable request entity", ex);
                     }
                     currentRequest = ClassicRequestCopier.INSTANCE.copy(scope.originalRequest);
                     if (this.log.isInfoEnabled()) {

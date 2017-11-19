@@ -172,9 +172,9 @@ public class CredSspScheme implements AuthScheme
         {
             sslContext = SSLContexts.custom().build();
         }
-        catch ( NoSuchAlgorithmException | KeyManagementException e )
+        catch (final NoSuchAlgorithmException | KeyManagementException ex )
         {
-            throw new SSLInitializationException( "Error creating SSL Context: " + e.getMessage(), e );
+            throw new SSLInitializationException( "Error creating SSL Context: " + ex.getMessage(), ex );
         }
 
         final X509TrustManager tm = new X509TrustManager()

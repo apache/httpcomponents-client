@@ -45,7 +45,7 @@ import org.apache.hc.core5.reactor.ConnectionInitiator;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.logging.log4j.Logger;
 
-class AsyncExecRuntimeImpl implements AsyncExecRuntime {
+class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
 
     private final Logger log;
     private final AsyncClientConnectionManager manager;
@@ -56,7 +56,7 @@ class AsyncExecRuntimeImpl implements AsyncExecRuntime {
     private volatile Object state;
     private volatile TimeValue validDuration;
 
-    AsyncExecRuntimeImpl(
+    InternalHttpAsyncExecRuntime(
             final Logger log,
             final AsyncClientConnectionManager manager,
             final ConnectionInitiator connectionInitiator,
@@ -90,7 +90,7 @@ class AsyncExecRuntimeImpl implements AsyncExecRuntime {
                 public void completed(final AsyncConnectionEndpoint connectionEndpoint) {
                     endpointRef.set(connectionEndpoint);
                     reusable = connectionEndpoint.isConnected();
-                    callback.completed(AsyncExecRuntimeImpl.this);
+                    callback.completed(InternalHttpAsyncExecRuntime.this);
                 }
 
                 @Override
@@ -108,6 +108,21 @@ class AsyncExecRuntimeImpl implements AsyncExecRuntime {
         }
     }
 
+    private void discardEndpoint(final AsyncConnectionEndpoint endpoint) {
+        try {
+            endpoint.shutdown();
+            if (log.isDebugEnabled()) {
+                log.debug(ConnPoolSupport.getId(endpoint) + ": discarding endpoint");
+            }
+        } catch (final IOException ex) {
+            if (log.isDebugEnabled()) {
+                log.debug(ConnPoolSupport.getId(endpoint) + ": " + ex.getMessage(), ex);
+            }
+        } finally {
+            manager.release(endpoint, null, TimeValue.ZERO_MILLISECONDS);
+        }
+    }
+
     @Override
     public void releaseConnection() {
         final AsyncConnectionEndpoint endpoint = endpointRef.getAndSet(null);
@@ -118,18 +133,7 @@ class AsyncExecRuntimeImpl implements AsyncExecRuntime {
                 }
                 manager.release(endpoint, state, validDuration);
             } else {
-                try {
-                    if (log.isDebugEnabled()) {
-                        log.debug(ConnPoolSupport.getId(endpoint) + ": releasing invalid endpoint");
-                    }
-                    endpoint.close();
-                } catch (final IOException ex) {
-                    if (log.isDebugEnabled()) {
-                        log.debug(ConnPoolSupport.getId(endpoint) + ": " + ex.getMessage(), ex);
-                    }
-                } finally {
-                    manager.release(endpoint, null, TimeValue.ZERO_MILLISECONDS);
-                }
+                discardEndpoint(endpoint);
             }
         }
     }
@@ -138,19 +142,22 @@ class AsyncExecRuntimeImpl implements AsyncExecRuntime {
     public void discardConnection() {
         final AsyncConnectionEndpoint endpoint = endpointRef.getAndSet(null);
         if (endpoint != null) {
-            try {
-                endpoint.shutdown();
-                if (log.isDebugEnabled()) {
-                    log.debug(ConnPoolSupport.getId(endpoint) + ": discarding endpoint");
-                }
-            } catch (final IOException ex) {
-                if (log.isDebugEnabled()) {
-                    log.debug(ConnPoolSupport.getId(endpoint) + ": " + ex.getMessage(), ex);
-                }
-            } finally {
-                manager.release(endpoint, null, TimeValue.ZERO_MILLISECONDS);
+            discardEndpoint(endpoint);
+        }
+    }
+
+    @Override
+    public boolean validateConnection() {
+        if (reusable) {
+            final AsyncConnectionEndpoint endpoint = endpointRef.get();
+            return endpoint != null && endpoint.isConnected();
+        } else {
+            final AsyncConnectionEndpoint endpoint = endpointRef.getAndSet(null);
+            if (endpoint != null) {
+                discardEndpoint(endpoint);
             }
         }
+        return false;
     }
 
     AsyncConnectionEndpoint ensureValid() {
@@ -168,22 +175,6 @@ class AsyncExecRuntimeImpl implements AsyncExecRuntime {
     }
 
     @Override
-    public void disconnect() {
-        final AsyncConnectionEndpoint endpoint = endpointRef.get();
-        if (endpoint != null) {
-            try {
-                endpoint.close();
-            } catch (final IOException ex) {
-                if (log.isDebugEnabled()) {
-                    log.debug(ConnPoolSupport.getId(endpoint) + ": " + ex.getMessage(), ex);
-                }
-                discardConnection();
-            }
-        }
-
-    }
-
-    @Override
     public void connect(
             final HttpClientContext context,
             final FutureCallback<AsyncExecRuntime> callback) {
@@ -192,21 +183,21 @@ class AsyncExecRuntimeImpl implements AsyncExecRuntime {
             callback.completed(this);
         } else {
             final RequestConfig requestConfig = context.getRequestConfig();
+            final TimeValue timeout = requestConfig.getConnectionTimeout();
             manager.connect(
                     endpoint,
                     connectionInitiator,
-                    requestConfig.getConnectTimeout(),
+                    timeout,
                     versionPolicy,
                     context,
                     new FutureCallback<AsyncConnectionEndpoint>() {
 
                         @Override
                         public void completed(final AsyncConnectionEndpoint endpoint) {
-                            final TimeValue socketTimeout = requestConfig.getSocketTimeout();
-                            if (TimeValue.isPositive(socketTimeout)) {
-                                endpoint.setSocketTimeout(socketTimeout.toMillisIntBound());
+                            if (TimeValue.isPositive(timeout)) {
+                                endpoint.setSocketTimeout(timeout.toMillisIntBound());
                             }
-                            callback.completed(AsyncExecRuntimeImpl.this);
+                            callback.completed(InternalHttpAsyncExecRuntime.this);
                         }
 
                         @Override
@@ -248,7 +239,7 @@ class AsyncExecRuntimeImpl implements AsyncExecRuntime {
                     }
                     try {
                         endpoint.execute(exchangeHandler, context);
-                    } catch (RuntimeException ex) {
+                    } catch (final RuntimeException ex) {
                         failed(ex);
                     }
                 }
@@ -269,34 +260,17 @@ class AsyncExecRuntimeImpl implements AsyncExecRuntime {
     }
 
     @Override
-    public boolean validateConnection() {
-        final AsyncConnectionEndpoint endpoint = endpointRef.get();
-        return endpoint != null && endpoint.isConnected();
-    }
-
-    @Override
-    public boolean isConnectionReusable() {
-        return reusable;
-    }
-
-    @Override
-    public void markConnectionReusable() {
+    public void markConnectionReusable(final Object newState, final TimeValue newValidDuration) {
         reusable = true;
+        state = newState;
+        validDuration = newValidDuration;
     }
 
     @Override
     public void markConnectionNonReusable() {
         reusable = false;
-    }
-
-    @Override
-    public void setConnectionState(final Object state) {
-        this.state = state;
-    }
-
-    @Override
-    public void setConnectionValidFor(final TimeValue duration) {
-        validDuration = duration;
+        state = null;
+        validDuration = null;
     }
 
 }

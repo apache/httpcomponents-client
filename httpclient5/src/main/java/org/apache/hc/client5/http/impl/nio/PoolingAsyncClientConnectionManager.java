@@ -29,6 +29,7 @@ package org.apache.hc.client5.http.impl.nio;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -186,15 +187,6 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
     }
 
     @Override
-    protected void finalize() throws Throwable {
-        try {
-            close();
-        } finally {
-            super.finalize();
-        }
-    }
-
-    @Override
     public void close() {
         if (closed.compareAndSet(false, true)) {
             log.debug("Connection manager is shutting down");
@@ -221,20 +213,20 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
             log.debug("Connection request: " + ConnPoolSupport.formatStats(null, route, state, pool));
         }
         final ComplexFuture<AsyncConnectionEndpoint> resultFuture = new ComplexFuture<>(callback);
-        //TODO: fix me.
-        if (log.isWarnEnabled() && Timeout.isPositive(requestTimeout)) {
-            log.warn("Connection request timeout is not supported");
-        }
         final Future<PoolEntry<HttpRoute, ManagedAsyncClientConnection>> leaseFuture = pool.lease(
-                route, state, /** requestTimeout, **/ new FutureCallback<PoolEntry<HttpRoute, ManagedAsyncClientConnection>>() {
+                route, state, requestTimeout, new FutureCallback<PoolEntry<HttpRoute, ManagedAsyncClientConnection>>() {
 
                     void leaseCompleted(final PoolEntry<HttpRoute, ManagedAsyncClientConnection> poolEntry) {
+                        final ManagedAsyncClientConnection connection = poolEntry.getConnection();
+                        if (connection != null) {
+                            connection.activate();
+                        }
                         if (log.isDebugEnabled()) {
-                            log.debug("Connection leased: " + ConnPoolSupport.formatStats(poolEntry.getConnection(), route, state, pool));
+                            log.debug("Connection leased: " + ConnPoolSupport.formatStats(connection, route, state, pool));
                         }
                         final AsyncConnectionEndpoint endpoint = new InternalConnectionEndpoint(poolEntry);
                         if (log.isDebugEnabled()) {
-                            log.debug(ConnPoolSupport.getId(endpoint) + ": acquired " + ConnPoolSupport.getId(poolEntry.getConnection()));
+                            log.debug(ConnPoolSupport.getId(endpoint) + ": acquired " + ConnPoolSupport.getId(connection));
                         }
                         resultFuture.completed(endpoint);
                     }
@@ -242,8 +234,9 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
                     @Override
                     public void completed(final PoolEntry<HttpRoute, ManagedAsyncClientConnection> poolEntry) {
                         final ManagedAsyncClientConnection connection = poolEntry.getConnection();
-                        if (TimeValue.isPositive(validateAfterInactivity) && connection != null &&
-                                poolEntry.getUpdated() + validateAfterInactivity.toMillis() <= System.currentTimeMillis()) {
+                        final TimeValue timeValue = PoolingAsyncClientConnectionManager.this.validateAfterInactivity;
+                        if (TimeValue.isPositive(timeValue) && connection != null &&
+                                poolEntry.getUpdated() + timeValue.toMillis() <= System.currentTimeMillis()) {
                             final ProtocolVersion protocolVersion = connection.getProtocolVersion();
                             if (HttpVersion.HTTP_2_0.greaterEquals(protocolVersion)) {
                                 connection.submitPriorityCommand(new PingCommand(new BasicPingHandler(new Callback<Boolean>() {
@@ -307,6 +300,7 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
             if (reusable) {
                 entry.updateState(state);
                 entry.updateExpiry(keepAlive);
+                connection.passivate();
                 if (log.isDebugEnabled()) {
                     final String s;
                     if (TimeValue.isPositive(keepAlive)) {
@@ -400,6 +394,11 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
         if (log.isDebugEnabled()) {
             log.debug(ConnPoolSupport.getId(internalEndpoint) + ": upgraded " + ConnPoolSupport.getId(connection));
         }
+    }
+
+    @Override
+    public Set<HttpRoute> getRoutes() {
+        return pool.getRoutes();
     }
 
     @Override
