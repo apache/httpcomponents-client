@@ -54,12 +54,11 @@ This is the successor to the widely used Jakarta Commons HttpClient 3.1.
     <category rdf:resource="http://projects.apache.org/category/network-client" />
 
     <repository>
-      <SVNRepository>
-        <location rdf:resource="http://svn.apache.org/repos/asf/httpcomponents/httpclient/trunk"/>
-        <browse rdf:resource="http://svn.apache.org/viewvc/httpcomponents/httpclient/trunk"/>
-      </SVNRepository>
+      <GitRepository>
+        <location rdf:resource="https://git-wip-us.apache.org/repos/asf/httpcomponents-client.git"/>
+        <browse rdf:resource="https://github.com/apache/httpcomponents-client"/>
+      </GitRepository>
     </repository>
-
 
     <asfext:implements><asfext:Standard>
       <asfext:title>Hypertext Transfer Protocol (HTTP/1.1): Message Syntax and Routing</asfext:title>
