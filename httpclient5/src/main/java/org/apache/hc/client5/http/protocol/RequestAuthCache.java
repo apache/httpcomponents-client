@@ -107,7 +107,6 @@ public class RequestAuthCache implements HttpRequestInterceptor {
                     this.log.debug("Re-using cached '" + authScheme.getName() + "' auth scheme for " + target);
                 }
                 targetAuthExchange.select(authScheme);
-                targetAuthExchange.setState(AuthExchange.State.CHALLENGED);
             }
         }
 

@@ -45,4 +45,8 @@ public interface AuthCache {
 
     void clear();
 
+    boolean canCache(String name);
+
+    boolean needsUpdatingAfterReusing(String name);
+
 }

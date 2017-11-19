@@ -99,6 +99,8 @@ public class TestHttpAuthenticator {
             .register("ntlm", new NTLMSchemeFactory()).build();
         this.context.setAttribute(HttpClientContext.AUTHSCHEME_REGISTRY, this.authSchemeRegistry);
         this.authCache = Mockito.mock(AuthCache.class);
+        Mockito.when(this.authCache.canCache(AuthSchemes.BASIC)).thenReturn(Boolean.TRUE);
+        Mockito.when(this.authCache.needsUpdatingAfterReusing(AuthSchemes.BASIC)).thenReturn(Boolean.FALSE);
         this.context.setAttribute(HttpClientContext.AUTH_CACHE, this.authCache);
         this.httpAuthenticator = new HttpAuthenticator();
     }
