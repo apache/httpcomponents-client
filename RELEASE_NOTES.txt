@@ -1,15 +1,97 @@
 ﻿Release 5.0-ALPHA3
 -------------------
 
-* [HTTPCLIENT-1845]: Extract InputStreamFactory classes out of GzipDecompressingEntity and 
+This is a major release that introduces support for the HTTP/2 protocol and event driven
+messaging APIs consistent for all supported HTTP protocol versions.
+
+HttpClient ships with two client implementations:
+
+* HttpClient Classic is based on the classic (blocking) I/O model; largely compatible
+  with the 4.x APIs; supports HTTP/1.1 only.
+
+* HttpClient Async is based on NIO model; new event driven APIs consistent for all supported
+  HTTP protocol versions; supports both HTTP/1.1 and HTTP/2.
+
+
+Notable new features in this release:
+
+* Asynchronous HttpClient implementations optimized for HTTP/2 multiplexed request execution.
+
+* Full support for HTTP caching by asynchronous HttpClient implementations including
+  streaming message exchanages.
+
+
+Notable changes and features included in the 5.0 series are:
+
+* Support for the HTTP/2 protocol and conformance to requirements and
+  recommendations of the latest HTTP/2 protocol specification documents
+  (RFC 7540, RFC 7541.)
+
+  Supported features:
+
+    ** HPACK header compression
+    ** Stream multiplexing (client and server)
+    ** Flow control
+    ** Response push
+    ** Message trailers
+    ** Expect-continue handshake
+    ** Connection validation (ping)
+    ** Application-layer protocol negotiation (ALPN) on Java 9.0.1+
+    ** TLS 1.2 security features
+
+* Improved conformance to requirements and recommendations of the latest HTTP/1.1 protocol
+  specification documents (RFC 7230, RFC 7231.)
+
+* Redesigned connection pool implementation with reduced pool lock contention.
+
+* Package name space changed to 'org.apache.hc.client5'.
+
+* Maven group id changed to 'org.apache.httpcomponents.client5'.
+
+* Apache Log4j2 logging APIs used for internal logging instead of Commons Logging APIs.
+
+HttpClient 5.0 releases can be co-located with earlier major versions on the same classpath
+due to the change in package names and Maven module coordinates.
+
+Please note that as of 5.0, HttpClient requires Java 1.7 or newer.
+
+
+Changelog:
+-------------------
+
+* HttpAsyncClient implementations optimized for HTTP/2 multiplexed
+  request execution.
+  Contributed by Oleg Kalnichevski <olegk@apache.org>
+
+* Improved Ehcache and Memcached storage backends.
+  Contributed by Oleg Kalnichevski <olegk@apache.org>
+
+* [HTTPCLIENT-1827] Full support for HTTP caching by asynchronous HTTP clients.
+  Contributed by Oleg Kalnichevski <olegk@apache.org>
+
+* Redesign of HTTP cache resource APIs.
+  Contributed by Oleg Kalnichevski <olegk@apache.org>
+
+* Deprecated Content-Transfer-Encoding field in MIME body parts per RFC 7578, section 4.7.
+  Contributed by Oleg Kalnichevski <olegk@apache.org>
+
+* [HTTPCLIENT-293] Implemented the percent encoding of the filename parameter of the Content-Disposition header.
+  Contributed by Ioannis Sermetziadis <sermojohn@gmail.com>
+
+* [HTTPCLIENT-1845]: Extract InputStreamFactory classes out of GzipDecompressingEntity and
   DeflateDecompressingEntity for reuse and to create less garbage.
   Contributed by Gary Gregory <ggregory at apache.org>
 
 * [HTTPCLIENT-1858] Alleviate GC pressure due to wire logging.
   Contributed by Gary Gregory <ggregory at apache.org>
 
+* Avoid fetching the cached entity twice on cache hit.
+  Contributed by Leandro Nunes <a-lnunes@hotels.com>
+
 * [HTTPASYNC-124] Add doPrivileged blocks to async client and connection manager builders
   Contributed by Jay Modi <jay at elastic dot co>
+
+
 
 Release 5.0-ALPHA2
 -------------------
