@@ -39,6 +39,7 @@ import org.apache.hc.client5.http.auth.AuthCache;
 import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.AuthExchange;
 import org.apache.hc.client5.http.auth.AuthScheme;
+import org.apache.hc.client5.http.auth.AuthStateCacheable;
 import org.apache.hc.client5.http.auth.AuthenticationException;
 import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
@@ -115,9 +116,7 @@ public class HttpAuthenticator {
         case SUCCESS:
             break;
         case UNCHALLENGED:
-            if (authExchange.getAuthScheme() != null) {
-                updateCacheAfterAuthSchemeReuse(host, authExchange.getAuthScheme(), clientContext);
-            }
+            updateCacheAfterSchemeReuse(host, authExchange.getAuthScheme(), clientContext);
             break;
         default:
             authExchange.setState(AuthExchange.State.UNCHALLENGED);
@@ -319,8 +318,13 @@ public class HttpAuthenticator {
     }
 
     private void updateCache(final HttpHost host, final AuthScheme authScheme, final HttpClientContext clientContext) {
-        final AuthCache authCache = getAuthCache(clientContext);
-        if (authCache.canCache(authScheme.getName())) {
+        final boolean cachable = authScheme.getClass().getAnnotation(AuthStateCacheable.class) != null;
+        if (cachable) {
+            AuthCache authCache = clientContext.getAuthCache();
+            if (authCache == null) {
+                authCache = new BasicAuthCache();
+                clientContext.setAuthCache(authCache);
+            }
             if (this.log.isDebugEnabled()) {
                 this.log.debug("Caching '" + authScheme.getName() + "' auth scheme for " + host);
             }
@@ -328,13 +332,21 @@ public class HttpAuthenticator {
         }
     }
 
-    private void updateCacheAfterAuthSchemeReuse(final HttpHost host, final AuthScheme authScheme, final HttpClientContext clientContext) {
-        final AuthCache authCache = getAuthCache(clientContext);
-        if (authCache.needsUpdatingAfterReusing(authScheme.getName())) {
+    private void updateCacheAfterSchemeReuse(final HttpHost host, final AuthScheme authScheme, final HttpClientContext clientContext) {
+        if (authScheme == null) {
+            return;
+        }
+        final boolean cachable = authScheme.getClass().getAnnotation(AuthStateCacheable.class) != null;
+        if (cachable) {
+            AuthCache authCache = clientContext.getAuthCache();
+            if (authCache == null) {
+                authCache = new BasicAuthCache();
+                clientContext.setAuthCache(authCache);
+            }
             if (this.log.isDebugEnabled()) {
                 this.log.debug("Caching '" + authScheme.getName() + "' auth scheme for " + host);
             }
-            authCache.put(host, authScheme);
+            authCache.putAfterReusing(host, authScheme);
         }
     }
 
@@ -349,12 +361,4 @@ public class HttpAuthenticator {
         }
     }
 
-    private AuthCache getAuthCache(final HttpClientContext clientContext) {
-        AuthCache authCache = clientContext.getAuthCache();
-        if (authCache == null) {
-            authCache = new BasicAuthCache();
-            clientContext.setAuthCache(authCache);
-        }
-        return authCache;
-    }
 }

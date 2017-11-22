@@ -34,11 +34,13 @@ import org.apache.hc.client5.http.auth.AuthExchange;
 import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.AuthSchemeProvider;
 import org.apache.hc.client5.http.auth.AuthScope;
+import org.apache.hc.client5.http.auth.AuthStateCacheable;
 import org.apache.hc.client5.http.auth.AuthenticationException;
 import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
+import org.apache.hc.client5.http.config.AuthSchemes;
 import org.apache.hc.client5.http.impl.DefaultAuthenticationStrategy;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.http.HttpHeaders;
@@ -62,8 +64,18 @@ import org.mockito.Mockito;
 @SuppressWarnings({"boxing","static-access"})
 public class TestHttpAuthenticator {
 
+    @AuthStateCacheable
+    abstract class CacheableAuthState implements AuthScheme {
+
+        @Override
+        public String getName() {
+            return AuthSchemes.BASIC;
+        }
+
+    }
+
     private AuthExchange authExchange;
-    private BasicScheme authScheme;
+    private CacheableAuthState authScheme;
     private HttpContext context;
     private HttpHost defaultHost;
     private CredentialsProvider credentialsProvider;
@@ -74,7 +86,7 @@ public class TestHttpAuthenticator {
     @Before
     public void setUp() throws Exception {
         this.authExchange = new AuthExchange();
-        this.authScheme = Mockito.mock(BasicScheme.class, Mockito.withSettings()
+        this.authScheme = Mockito.mock(CacheableAuthState.class, Mockito.withSettings()
                 .defaultAnswer(Answers.CALLS_REAL_METHODS));
         Mockito.when(this.authScheme.isChallengeComplete()).thenReturn(Boolean.TRUE);
         this.context = new BasicHttpContext();
@@ -87,8 +99,6 @@ public class TestHttpAuthenticator {
             .register("ntlm", new NTLMSchemeFactory()).build();
         this.context.setAttribute(HttpClientContext.AUTHSCHEME_REGISTRY, this.authSchemeRegistry);
         this.authCache = Mockito.mock(AuthCache.class);
-        Mockito.when(this.authCache.canCache("basic")).thenReturn(Boolean.TRUE);
-        Mockito.when(this.authCache.needsUpdatingAfterReusing("basic")).thenReturn(Boolean.FALSE);
         this.context.setAttribute(HttpClientContext.AUTH_CACHE, this.authCache);
         this.httpAuthenticator = new HttpAuthenticator();
     }
@@ -251,7 +261,7 @@ public class TestHttpAuthenticator {
         response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, "Digest realm=\"realm1\", nonce=\"1234\""));
 
         this.authExchange.setState(AuthExchange.State.CHALLENGED);
-        this.authExchange.select(new BasicScheme());
+        this.authExchange.select(this.authScheme);
 
         final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
 

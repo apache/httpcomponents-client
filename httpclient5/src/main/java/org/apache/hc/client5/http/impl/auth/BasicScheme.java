@@ -26,23 +26,20 @@
  */
 package org.apache.hc.client5.http.impl.auth;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.nio.charset.UnsupportedCharsetException;
 import java.security.Principal;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.AuthScope;
+import org.apache.hc.client5.http.auth.AuthStateCacheable;
 import org.apache.hc.client5.http.auth.AuthenticationException;
 import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
@@ -59,14 +56,13 @@ import org.apache.hc.core5.util.Args;
  *
  * @since 4.0
  */
+@AuthStateCacheable
 public class BasicScheme implements AuthScheme, Serializable {
 
     private static final long serialVersionUID = -1931571557597830536L;
 
     private final Map<String, String> paramMap;
-    private transient Charset charset;
-    private transient ByteArrayBuilder buffer;
-    private transient Base64 base64codec;
+    private final Charset charset;
     private boolean complete;
 
     private String username;
@@ -76,7 +72,7 @@ public class BasicScheme implements AuthScheme, Serializable {
      * @since 4.3
      */
     public BasicScheme(final Charset charset) {
-        this.paramMap = new HashMap<>();
+        this.paramMap = new ConcurrentHashMap<>();
         this.charset = charset != null ? charset : StandardCharsets.US_ASCII;
         this.complete = false;
     }
@@ -160,36 +156,11 @@ public class BasicScheme implements AuthScheme, Serializable {
             final HttpHost host,
             final HttpRequest request,
             final HttpContext context) throws AuthenticationException {
-        if (this.buffer == null) {
-            this.buffer = new ByteArrayBuilder(64).charset(this.charset);
-        } else {
-            this.buffer.reset();
-        }
-        this.buffer.append(this.username).append(":").append(this.password);
-        if (this.base64codec == null) {
-            this.base64codec = new Base64(0);
-        }
-        final byte[] encodedCreds = this.base64codec.encode(this.buffer.toByteArray());
-        this.buffer.reset();
+        final ByteArrayBuilder buffer = new ByteArrayBuilder(64).charset(this.charset);
+        buffer.append(this.username).append(":").append(this.password);
+        final Base64 base64codec = new Base64(0);
+        final byte[] encodedCreds = base64codec.encode(buffer.toByteArray());
         return "Basic " + new String(encodedCreds, 0, encodedCreds.length, StandardCharsets.US_ASCII);
-    }
-
-    private void writeObject(final ObjectOutputStream out) throws IOException {
-        out.defaultWriteObject();
-        out.writeUTF(this.charset.name());
-    }
-
-    @SuppressWarnings("unchecked")
-    private void readObject(final ObjectInputStream in) throws IOException, ClassNotFoundException {
-        in.defaultReadObject();
-        try {
-            this.charset = Charset.forName(in.readUTF());
-        } catch (final UnsupportedCharsetException ex) {
-            this.charset = StandardCharsets.US_ASCII;
-        }
-    }
-
-    private void readObjectNoData() {
     }
 
     @Override

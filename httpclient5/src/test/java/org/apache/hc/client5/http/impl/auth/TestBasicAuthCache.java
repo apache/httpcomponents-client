@@ -85,12 +85,4 @@ public class TestBasicAuthCache {
         Assert.assertEquals(target, cache.getKey(new HttpHost("localhost", -1, "https")));
     }
 
-    @Test
-    public void testStoreNonserializable() throws Exception {
-        final BasicAuthCache cache = new BasicAuthCache();
-        final AuthScheme authScheme = new NTLMScheme();
-        cache.put(new HttpHost("localhost", 80), authScheme);
-        Assert.assertNull(cache.get(new HttpHost("localhost", 80)));
-    }
-
 }

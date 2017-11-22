@@ -26,10 +26,6 @@
  */
 package org.apache.hc.client5.http.impl.auth;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
@@ -142,43 +138,6 @@ public class TestBasicScheme {
         Assert.assertEquals("test", authscheme.getRealm());
         Assert.assertTrue(authscheme.isChallengeComplete());
         Assert.assertFalse(authscheme.isConnectionBased());
-    }
-
-    @Test
-    public void testSerialization() throws Exception {
-        final AuthChallenge authChallenge = parse("Basic realm=\"test\"");
-
-        final BasicScheme basicScheme = new BasicScheme();
-        basicScheme.processChallenge(authChallenge, null);
-
-        final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-        final ObjectOutputStream out = new ObjectOutputStream(buffer);
-        out.writeObject(basicScheme);
-        out.flush();
-        final byte[] raw = buffer.toByteArray();
-        final ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(raw));
-        final BasicScheme authScheme = (BasicScheme) in.readObject();
-
-        Assert.assertEquals(basicScheme.getName(), authScheme.getName());
-        Assert.assertEquals(basicScheme.getRealm(), authScheme.getRealm());
-        Assert.assertEquals(basicScheme.isChallengeComplete(), authScheme.isChallengeComplete());
-    }
-
-    @Test
-    public void testSerializationUnchallenged() throws Exception {
-        final BasicScheme basicScheme = new BasicScheme();
-
-        final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-        final ObjectOutputStream out = new ObjectOutputStream(buffer);
-        out.writeObject(basicScheme);
-        out.flush();
-        final byte[] raw = buffer.toByteArray();
-        final ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(raw));
-        final BasicScheme authScheme = (BasicScheme) in.readObject();
-
-        Assert.assertEquals(basicScheme.getName(), authScheme.getName());
-        Assert.assertEquals(basicScheme.getRealm(), authScheme.getRealm());
-        Assert.assertEquals(basicScheme.isChallengeComplete(), authScheme.isChallengeComplete());
     }
 
 }

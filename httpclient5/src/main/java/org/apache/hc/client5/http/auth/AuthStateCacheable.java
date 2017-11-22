@@ -26,25 +26,14 @@
  */
 package org.apache.hc.client5.http.auth;
 
-import org.apache.hc.core5.http.HttpHost;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-/**
- * Abstract {@link AuthScheme} cache. Initialized {@link AuthScheme} objects
- * from this cache can be used to preemptively authenticate against known
- * hosts.
- *
- * @since 4.1
- */
-public interface AuthCache {
-
-    void put(HttpHost host, AuthScheme authScheme);
-
-    AuthScheme get(HttpHost host);
-
-    void remove(HttpHost host);
-
-    void clear();
-
-    void putAfterReusing(HttpHost host, AuthScheme authScheme);
-
+@Documented
+@Target({ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface AuthStateCacheable {
 }

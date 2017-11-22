@@ -47,6 +47,7 @@ import java.util.StringTokenizer;
 import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.AuthScope;
+import org.apache.hc.client5.http.auth.AuthStateCacheable;
 import org.apache.hc.client5.http.auth.AuthenticationException;
 import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
@@ -77,6 +78,7 @@ import org.apache.hc.core5.util.CharArrayBuffer;
  *
  * @since 4.0
  */
+@AuthStateCacheable
 public class DigestScheme implements AuthScheme, Serializable {
 
     private static final long serialVersionUID = 3883908186234566916L;

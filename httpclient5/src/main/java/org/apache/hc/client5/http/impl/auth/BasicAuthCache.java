@@ -26,14 +26,8 @@
  */
 package org.apache.hc.client5.http.impl.auth;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
+import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.UnsupportedSchemeException;
@@ -45,8 +39,6 @@ import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.util.Args;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 /**
  * Default implementation of {@link AuthCache}. This implements
@@ -61,9 +53,11 @@ import org.apache.logging.log4j.Logger;
 @Contract(threading = ThreadingBehavior.SAFE_CONDITIONAL)
 public class BasicAuthCache implements AuthCache {
 
-    private final Logger log = LogManager.getLogger(getClass());
+    private static final int DEFAULT_INITIAL_CAPACITY = 10;
+    private static final float DEFAULT_LOAD_FACTOR = 0.75f;
+    private static final int DEFAULT_MAX_ENTRIES = 1000;
 
-    private final Map<HttpHost, byte[]> map;
+    private final Map<HttpHost, AuthScheme> map;
     private final SchemePortResolver schemePortResolver;
 
     /**
@@ -71,15 +65,27 @@ public class BasicAuthCache implements AuthCache {
      *
      * @since 4.3
      */
-    public BasicAuthCache(final SchemePortResolver schemePortResolver) {
+    public BasicAuthCache(final SchemePortResolver schemePortResolver, final int initialCapacity,
+            final float loadFactor, final int maxEntries) {
         super();
-        this.map = new ConcurrentHashMap<>();
+        this.map = new LinkedHashMap<HttpHost, AuthScheme>(initialCapacity, loadFactor, true) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean removeEldestEntry(final Map.Entry<HttpHost, AuthScheme> eldest) {
+                return size() > maxEntries;
+            }
+        };
         this.schemePortResolver = schemePortResolver != null ? schemePortResolver :
             DefaultSchemePortResolver.INSTANCE;
     }
 
+    public BasicAuthCache(final SchemePortResolver schemePortResolver) {
+        this(schemePortResolver, DEFAULT_INITIAL_CAPACITY, DEFAULT_LOAD_FACTOR, DEFAULT_MAX_ENTRIES);
+    }
+
     public BasicAuthCache() {
-        this(null);
+        this(null, DEFAULT_INITIAL_CAPACITY, DEFAULT_LOAD_FACTOR, DEFAULT_MAX_ENTRIES);
     }
 
     protected HttpHost getKey(final HttpHost host) {
@@ -101,74 +107,53 @@ public class BasicAuthCache implements AuthCache {
         if (authScheme == null) {
             return;
         }
-        if (authScheme instanceof Serializable) {
-            try {
-                final ByteArrayOutputStream buf = new ByteArrayOutputStream();
-                try (final ObjectOutputStream out = new ObjectOutputStream(buf)) {
-                    out.writeObject(authScheme);
-                }
-                this.map.put(getKey(host), buf.toByteArray());
-            } catch (final IOException ex) {
-                if (log.isWarnEnabled()) {
-                    log.warn("Unexpected I/O error while serializing auth scheme", ex);
-                }
-            }
-        } else {
-            if (log.isDebugEnabled()) {
-                log.debug("Auth scheme " + authScheme.getClass() + " is not serializable");
-            }
+
+        synchronized (this.map) {
+            this.map.put(getKey(host), authScheme);
         }
     }
 
     @Override
     public AuthScheme get(final HttpHost host) {
         Args.notNull(host, "HTTP host");
-        final byte[] bytes = this.map.get(getKey(host));
-        if (bytes != null) {
-            try {
-                final ByteArrayInputStream buf = new ByteArrayInputStream(bytes);
-                try (final ObjectInputStream in = new ObjectInputStream(buf)) {
-                    return (AuthScheme) in.readObject();
-                }
-            } catch (final IOException ex) {
-                if (log.isWarnEnabled()) {
-                    log.warn("Unexpected I/O error while de-serializing auth scheme", ex);
-                }
-                return null;
-            } catch (final ClassNotFoundException ex) {
-                if (log.isWarnEnabled()) {
-                    log.warn("Unexpected error while de-serializing auth scheme", ex);
-                }
-                return null;
+        final HttpHost hostKey = getKey(host);
+        synchronized (this.map) {
+            final AuthScheme authScheme = this.map.get(hostKey);
+            if (authScheme != null && AuthSchemes.DIGEST.equals(authScheme.getName())) {
+                this.map.remove(hostKey);
             }
+            return authScheme;
         }
-        return null;
     }
 
     @Override
     public void remove(final HttpHost host) {
         Args.notNull(host, "HTTP host");
-        this.map.remove(getKey(host));
+        synchronized (this.map) {
+            this.map.remove(getKey(host));
+        }
     }
 
     @Override
     public void clear() {
-        this.map.clear();
+        synchronized (this.map) {
+            this.map.clear();
+        }
     }
 
     @Override
     public String toString() {
-        return this.map.toString();
+        synchronized (this.map) {
+            return this.map.toString();
+        }
     }
 
     @Override
-    public boolean canCache(final String name) {
-        return AuthSchemes.BASIC.equalsIgnoreCase(name);
-    }
-
-    @Override
-    public boolean needsUpdatingAfterReusing(final String name) {
-        return false;
+    public void putAfterReusing(final HttpHost host, final AuthScheme authScheme) {
+        Args.notNull(host, "HTTP host");
+        if (authScheme != null && AuthSchemes.DIGEST.equals(authScheme.getName())) {
+            put(host, authScheme);
+        }
     }
 
 }
