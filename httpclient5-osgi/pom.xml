@@ -28,7 +28,7 @@
   <parent>
       <groupId>org.apache.httpcomponents.client5</groupId>
       <artifactId>httpclient5-parent</artifactId>
-      <version>5.0-alpha3</version>
+      <version>5.0-alpha4-SNAPSHOT</version>
   </parent>
   <artifactId>httpclient5-osgi</artifactId>
   <name>Apache HttpClient OSGi bundle</name>
