@@ -28,11 +28,12 @@
 package org.apache.http.impl.auth;
 
 
+import org.apache.http.annotation.Experimental;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthSchemeProvider;
 import org.apache.http.protocol.HttpContext;
 
-
+@Experimental
 public class CredSspSchemeFactory implements AuthSchemeProvider
 {
 

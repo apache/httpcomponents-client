@@ -55,6 +55,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.http.Consts;
 import org.apache.http.Header;
 import org.apache.http.HttpRequest;
+import org.apache.http.annotation.Experimental;
 import org.apache.http.auth.AUTH;
 import org.apache.http.auth.AuthenticationException;
 import org.apache.http.auth.Credentials;
@@ -82,6 +83,7 @@ import org.apache.http.util.CharsetUtils;
  * The implementation was inspired by Python CredSSP and NTLM implementation by Jordan Borean.
  * </p>
  */
+@Experimental
 public class CredSspScheme extends AuthSchemeBase
 {
     private static final Charset UNICODE_LITTLE_UNMARKED = CharsetUtils.lookup( "UnicodeLittleUnmarked" );
