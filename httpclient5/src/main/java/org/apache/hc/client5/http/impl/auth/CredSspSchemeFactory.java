@@ -29,8 +29,10 @@ package org.apache.hc.client5.http.impl.auth;
 
 import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.AuthSchemeProvider;
+import org.apache.hc.core5.annotation.Experimental;
 import org.apache.hc.core5.http.protocol.HttpContext;
 
+@Experimental
 public class CredSspSchemeFactory implements AuthSchemeProvider
 {
 

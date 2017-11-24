@@ -60,6 +60,7 @@ import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.MalformedChallengeException;
 import org.apache.hc.client5.http.auth.NTCredentials;
+import org.apache.hc.core5.annotation.Experimental;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.protocol.HttpContext;
@@ -83,6 +84,7 @@ import org.apache.logging.log4j.Logger;
  * The implementation was inspired by Python CredSSP and NTLM implementation by Jordan Borean.
  * </p>
  */
+@Experimental
 public class CredSspScheme implements AuthScheme
 {
     private static final Charset UNICODE_LITTLE_UNMARKED = Charset.forName( "UnicodeLittleUnmarked" );
