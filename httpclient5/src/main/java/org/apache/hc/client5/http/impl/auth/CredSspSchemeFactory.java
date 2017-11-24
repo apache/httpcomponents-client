@@ -27,18 +27,47 @@
 
 package org.apache.hc.client5.http.impl.auth;
 
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+
+import javax.net.ssl.SSLContext;
+
 import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.AuthSchemeProvider;
+import org.apache.hc.client5.http.ssl.TrustAllStrategy;
 import org.apache.hc.core5.annotation.Experimental;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.ssl.SSLContexts;
+import org.apache.hc.core5.ssl.SSLInitializationException;
 
 @Experimental
 public class CredSspSchemeFactory implements AuthSchemeProvider
 {
 
+    private final SSLContext sslContext;
+
+    public CredSspSchemeFactory() {
+        this(createDefaultContext());
+    }
+
+    public CredSspSchemeFactory(final SSLContext sslContext) {
+        this.sslContext = sslContext != null ? sslContext : createDefaultContext();
+    }
+
+    private static SSLContext createDefaultContext() throws SSLInitializationException {
+        try {
+            return SSLContexts.custom()
+                    .loadTrustMaterial(new TrustAllStrategy())
+                    .build();
+        } catch (final NoSuchAlgorithmException | KeyManagementException | KeyStoreException ex) {
+            throw new SSLInitializationException(ex.getMessage(), ex);
+        }
+    }
+
     @Override
     public AuthScheme create(final HttpContext context) {
-        return new CredSspScheme();
+        return new CredSspScheme(sslContext);
     }
 
 }
