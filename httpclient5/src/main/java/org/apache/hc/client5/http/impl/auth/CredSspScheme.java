@@ -1009,20 +1009,34 @@ public class CredSspScheme implements AuthScheme
         }
 
 
+        public static void dump( final StringBuilder sb, final byte[] bytes )
+        {
+            if ( bytes == null )
+            {
+                sb.append( "null" );
+                return;
+            }
+            for ( final byte b : bytes )
+            {
+                sb.append( String.format( "%02X ", b ) );
+            }
+        }
+
+
         public String debugDump()
         {
             final StringBuilder sb = new StringBuilder( "TsRequest\n" );
             sb.append( "  negoToken:\n" );
             sb.append( "    " );
-            DebugUtil.dump( sb, negoToken );
+            dump( sb, negoToken );
             sb.append( "\n" );
             sb.append( "  authInfo:\n" );
             sb.append( "    " );
-            DebugUtil.dump( sb, authInfo );
+            dump( sb, authInfo );
             sb.append( "\n" );
             sb.append( "  pubKeyAuth:\n" );
             sb.append( "    " );
-            DebugUtil.dump( sb, pubKeyAuth );
+            dump( sb, pubKeyAuth );
             return sb.toString();
         }
 
