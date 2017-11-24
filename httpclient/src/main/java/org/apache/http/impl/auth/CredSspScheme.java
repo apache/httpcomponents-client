@@ -30,11 +30,8 @@ package org.apache.http.impl.auth;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.cert.Certificate;
-import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 
@@ -46,8 +43,6 @@ import javax.net.ssl.SSLEngineResult.Status;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
@@ -62,10 +57,9 @@ import org.apache.http.auth.Credentials;
 import org.apache.http.auth.InvalidCredentialsException;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.auth.NTCredentials;
-import org.apache.http.conn.ssl.SSLInitializationException;
 import org.apache.http.message.BufferedHeader;
 import org.apache.http.protocol.HttpContext;
-import org.apache.http.ssl.SSLContexts;
+import org.apache.http.util.Args;
 import org.apache.http.util.CharArrayBuffer;
 import org.apache.http.util.CharsetUtils;
 
@@ -118,6 +112,7 @@ public class CredSspScheme extends AuthSchemeBase
         CREDENTIALS_SENT;
     }
 
+    private final SSLContext sslContext;
     private State state;
     private SSLEngine sslEngine;
     private NTLMEngineImpl.Type1Message type1Message;
@@ -129,7 +124,8 @@ public class CredSspScheme extends AuthSchemeBase
     private byte[] peerPublicKey;
 
 
-    public CredSspScheme() {
+    public CredSspScheme(final SSLContext sslContext) {
+        this.sslContext = Args.notNull(sslContext, "SSL context");
         state = State.UNINITIATED;
     }
 
@@ -174,57 +170,6 @@ public class CredSspScheme extends AuthSchemeBase
 
     private SSLEngine createSSLEngine()
     {
-        final SSLContext sslContext;
-        try
-        {
-            sslContext = SSLContexts.custom().build();
-        }
-        catch ( final NoSuchAlgorithmException e )
-        {
-            throw new SSLInitializationException( "Error creating SSL Context: " + e.getMessage(), e );
-        }
-        catch ( final KeyManagementException e )
-        {
-            throw new SSLInitializationException( "Error creating SSL Context: " + e.getMessage(), e );
-        }
-
-        final X509TrustManager tm = new X509TrustManager()
-        {
-
-            @Override
-            public void checkClientTrusted( final X509Certificate[] chain, final String authType )
-                throws CertificateException
-            {
-                // Nothing to do.
-            }
-
-
-            @Override
-            public void checkServerTrusted( final X509Certificate[] chain, final String authType )
-                throws CertificateException
-            {
-                // Nothing to do, accept all. CredSSP server is using its own certificate without any
-                // binding to the PKI trust chains. The public key is verified as part of the CredSSP
-                // protocol exchange.
-            }
-
-
-            @Override
-            public X509Certificate[] getAcceptedIssuers()
-            {
-                return null;
-            }
-
-        };
-        try
-        {
-            sslContext.init( null, new TrustManager[]
-                { tm }, null );
-        }
-        catch ( final KeyManagementException e )
-        {
-            throw new SSLInitializationException( "SSL Context initialization error: " + e.getMessage(), e );
-        }
         final SSLEngine sslEngine = sslContext.createSSLEngine();
         sslEngine.setUseClientMode( true );
         return sslEngine;
