@@ -451,10 +451,9 @@ public class TestClientAuthentication extends LocalServerTestBase {
                     final HttpContext context) throws HttpException, IOException {
                 final EndpointDetails endpoint = (EndpointDetails) context.getAttribute(HttpCoreContext.CONNECTION_ENDPOINT);
                 final InetSocketAddress socketAddress = (InetSocketAddress) endpoint.getLocalAddress();
-                final String localhost = socketAddress.getHostName();
                 final int port = socketAddress.getPort();
                 response.setCode(HttpStatus.SC_MOVED_PERMANENTLY);
-                response.addHeader(new BasicHeader("Location", "http://test:test@" + localhost + ":" + port + "/secure"));
+                response.addHeader(new BasicHeader("Location", "http://test:test@localhost:" + port + "/secure"));
             }
 
         });
