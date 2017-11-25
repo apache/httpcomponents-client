@@ -87,16 +87,12 @@ public class TestRedirects extends LocalServerTestBase {
                 final HttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
             final HttpInetConnection conn = (HttpInetConnection) context.getAttribute(HttpCoreContext.HTTP_CONNECTION);
-            String localhost = conn.getLocalAddress().getHostName();
-            if (localhost.equals("127.0.0.1")) {
-                localhost = "localhost";
-            }
             final int port = conn.getLocalPort();
             final String uri = request.getRequestLine().getUri();
             if (uri.equals("/oldlocation/")) {
                 response.setStatusCode(this.statuscode);
                 response.addHeader(new BasicHeader("Location",
-                        "http://" + localhost + ":" + port + "/newlocation/"));
+                        "http://localhost:" + port + "/newlocation/"));
                 response.addHeader(new BasicHeader("Connection", "close"));
             } else if (uri.equals("/newlocation/")) {
                 response.setStatusCode(HttpStatus.SC_OK);
