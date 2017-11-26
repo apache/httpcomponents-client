@@ -59,6 +59,8 @@ import org.apache.http.params.HttpParams;
  *  <li>javax.net.ssl.keyStorePassword</li>
  *  <li>http.proxyHost</li>
  *  <li>http.proxyPort</li>
+ *  <li>https.proxyHost</li>
+ *  <li>https.proxyPort</li>
  *  <li>http.nonProxyHosts</li>
  *  <li>http.keepAlive</li>
  *  <li>http.maxConnections</li>
