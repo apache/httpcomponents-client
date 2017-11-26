@@ -87,17 +87,13 @@ public class SystemDefaultCredentialsProvider implements CredentialsProvider {
     }
 
     private static PasswordAuthentication getSystemCreds(
+            final String protocol,
             final AuthScope authscope,
             final Authenticator.RequestorType requestorType) {
-        final String hostname = authscope.getHost();
-        final int port = authscope.getPort();
-        final HttpHost origin = authscope.getOrigin();
-        final String protocol = origin != null ? origin.getSchemeName() :
-                (port == 443 ? "https" : "http");
         return Authenticator.requestPasswordAuthentication(
-                hostname,
+                authscope.getHost(),
                 null,
-                port,
+                authscope.getPort(),
                 protocol,
                 null,
                 translateScheme(authscope.getScheme()),
@@ -114,21 +110,23 @@ public class SystemDefaultCredentialsProvider implements CredentialsProvider {
         }
         final String host = authscope.getHost();
         if (host != null) {
-            PasswordAuthentication systemcreds = getSystemCreds(authscope, Authenticator.RequestorType.SERVER);
+            final HttpHost origin = authscope.getOrigin();
+            final String protocol = origin != null ? origin.getSchemeName() : (origin.getPort() == 443 ? "https" : "http");
+            PasswordAuthentication systemcreds = getSystemCreds(protocol, authscope, Authenticator.RequestorType.SERVER);
             if (systemcreds == null) {
-                systemcreds = getSystemCreds(authscope, Authenticator.RequestorType.PROXY);
+                systemcreds = getSystemCreds(protocol, authscope, Authenticator.RequestorType.PROXY);
             }
             if (systemcreds == null) {
-                final String proxyHost = System.getProperty("http.proxyHost");
+                final String proxyHost = System.getProperty(protocol + ".proxyHost");
                 if (proxyHost != null) {
-                    final String proxyPort = System.getProperty("http.proxyPort");
+                    final String proxyPort = System.getProperty(protocol + ".proxyPort");
                     if (proxyPort != null) {
                         try {
                             final AuthScope systemScope = new AuthScope(proxyHost, Integer.parseInt(proxyPort));
                             if (authscope.match(systemScope) >= 0) {
-                                final String proxyUser = System.getProperty("http.proxyUser");
+                                final String proxyUser = System.getProperty(protocol + ".proxyUser");
                                 if (proxyUser != null) {
-                                    final String proxyPassword = System.getProperty("http.proxyPassword");
+                                    final String proxyPassword = System.getProperty(protocol + ".proxyPassword");
                                     systemcreds = new PasswordAuthentication(proxyUser, proxyPassword != null ? proxyPassword.toCharArray() : new char[] {});
                                 }
                             }
