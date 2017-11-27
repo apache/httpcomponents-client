@@ -8,8 +8,36 @@ Please note that as of 4.4 HttpClient requires Java 1.6 or newer.
 Changelog:
 -------------------
 
+* [HTTPCLIENT-1883] SystemDefaultCredentialsProvider to use https.proxy* system properties
+  for origins with port 443.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* [HTTPCLIENT-1881] Allow truncated NTLM packets to work with this client.
+  Contributed by Karl Wright <DaddyWri at gmail.com>
+
+* [HTTPCLIENT-1855] Disabled caching of DIGEST auth scheme instances due to unreliability of nonce counter
+  when the auth cache is shared by multiple sessions.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* BasicCookieStore uses a ReentrantReadWriteLock to avoid synchronization on #getCookies/#toString
+  while maintaining thread safety.
+  Contributed by Carter Kozak <c4kofony at gmail.com>
+
 * [HTTPCLIENT-1865] DefaultServiceUnavailableRetryStrategy does not respect HttpEntity#isRepeatable.
   Contributed by Tomas Celaya <tjcelaya at joyent dot com>
+
+* [HTTPCLIENT-1859] Encode Content-Disposition name and filename elements appropriately.
+  Contributed by Karl Wright <DaddyWri at gmail.com>
+
+* Avoid fetching the cached entity twice on cache hit.
+  Contributed by Leandro Nunes <a-lnunes at hotels.com>
+
+* [HTTPCLIENT-1835] #evictExpiredConnections no longer causes the #evictIdleConnections behaviour
+  to be implicitly enabled.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* [HTTPCLIENT-1831= URIBuilder should not prepend a leading slash to relative URIs.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
 
 * [HTTPCLIENT-1833] Fix Windows Negotiate-NTLM handling of proxies.
   Contributed by Roman Stoffel <roman.stoffel at gamler.info>
