@@ -28,7 +28,6 @@
 package org.apache.hc.client5.http.impl.classic;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
@@ -51,6 +50,7 @@ import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.message.BasicHeaderValueParser;
+import org.apache.hc.core5.http.message.MessageSupport;
 import org.apache.hc.core5.http.message.ParserCursor;
 import org.apache.hc.core5.util.Args;
 
@@ -68,7 +68,7 @@ import org.apache.hc.core5.util.Args;
 @Contract(threading = ThreadingBehavior.IMMUTABLE)
 public final class ContentCompressionExec implements ExecChainHandler {
 
-    private final List<String> acceptEncoding;
+    private final String[] acceptEncoding;
     private final Lookup<InputStreamFactory> decoderRegistry;
     private final boolean ignoreUnknown;
 
@@ -76,7 +76,8 @@ public final class ContentCompressionExec implements ExecChainHandler {
             final List<String> acceptEncoding,
             final Lookup<InputStreamFactory> decoderRegistry,
             final boolean ignoreUnknown) {
-        this.acceptEncoding = acceptEncoding != null ? acceptEncoding : Arrays.asList("gzip", "x-gzip", "deflate");
+        this.acceptEncoding = acceptEncoding != null ? acceptEncoding.toArray(
+                new String[acceptEncoding.size()]) : new String[] {"gzip", "x-gzip", "deflate"};
         this.decoderRegistry = decoderRegistry != null ? decoderRegistry :
                 RegistryBuilder.<InputStreamFactory>create()
                         .register("gzip", GZIPInputStreamFactory.getInstance())
@@ -116,7 +117,7 @@ public final class ContentCompressionExec implements ExecChainHandler {
 
         /* Signal support for Accept-Encoding transfer encodings. */
         if (!request.containsHeader(HttpHeaders.ACCEPT_ENCODING) && requestConfig.isContentCompressionEnabled()) {
-            request.addHeader(HttpHeaders.ACCEPT_ENCODING, acceptEncoding);
+            request.addHeader(MessageSupport.format(HttpHeaders.ACCEPT_ENCODING, acceptEncoding));
         }
 
         final ClassicHttpResponse response = chain.proceed(request, scope);
