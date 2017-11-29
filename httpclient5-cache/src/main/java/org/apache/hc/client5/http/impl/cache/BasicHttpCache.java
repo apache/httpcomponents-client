@@ -35,7 +35,7 @@ import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.HttpCacheInvalidator;
 import org.apache.hc.client5.http.cache.HttpCacheStorage;
-import org.apache.hc.client5.http.cache.HttpCacheUpdateCallback;
+import org.apache.hc.client5.http.cache.HttpCacheCASOperation;
 import org.apache.hc.client5.http.cache.HttpCacheUpdateException;
 import org.apache.hc.client5.http.cache.Resource;
 import org.apache.hc.client5.http.cache.ResourceFactory;
@@ -123,26 +123,22 @@ class BasicHttpCache implements HttpCache {
             final HttpHost target,
             final HttpRequest req,
             final HttpCacheEntry entry) throws ResourceIOException {
-        final String parentURI = uriExtractor.generateKey(target, req);
+        final String parentCacheKey = uriExtractor.generateKey(target, req);
+        final String variantKey = uriExtractor.generateVariantKey(req, entry);
         final String variantURI = uriExtractor.generateVariantURI(target, req, entry);
         storage.putEntry(variantURI, entry);
 
-        final HttpCacheUpdateCallback callback = new HttpCacheUpdateCallback() {
-
-            @Override
-            public HttpCacheEntry update(final HttpCacheEntry existing) throws ResourceIOException {
-                return doGetUpdatedParentEntry(
-                        req.getRequestUri(), existing, entry,
-                        uriExtractor.generateVariantKey(req, entry),
-                        variantURI);
-            }
-
-        };
-
         try {
-            storage.updateEntry(parentURI, callback);
+            storage.updateEntry(parentCacheKey, new HttpCacheCASOperation() {
+
+                @Override
+                public HttpCacheEntry execute(final HttpCacheEntry existing) throws ResourceIOException {
+                    return doGetUpdatedParentEntry(req.getRequestUri(), existing, entry, variantKey, variantURI);
+                }
+
+            });
         } catch (final HttpCacheUpdateException e) {
-            log.warn("Could not processChallenge key [" + parentURI + "]", e);
+            log.warn("Could not processChallenge key [" + parentCacheKey + "]", e);
         }
     }
 
@@ -154,17 +150,15 @@ class BasicHttpCache implements HttpCache {
         final String variantKey = uriExtractor.generateVariantKey(req, entry);
         final String variantCacheKey = variant.getCacheKey();
 
-        final HttpCacheUpdateCallback callback = new HttpCacheUpdateCallback() {
-            @Override
-            public HttpCacheEntry update(final HttpCacheEntry existing)
-                    throws ResourceIOException {
-                return doGetUpdatedParentEntry(req.getRequestUri(),
-                        existing, entry, variantKey, variantCacheKey);
-            }
-        };
-
         try {
-            storage.updateEntry(parentCacheKey, callback);
+            storage.updateEntry(parentCacheKey, new HttpCacheCASOperation() {
+
+                @Override
+                public HttpCacheEntry execute(final HttpCacheEntry existing) throws ResourceIOException {
+                    return doGetUpdatedParentEntry(req.getRequestUri(), existing, entry, variantKey, variantCacheKey);
+                }
+
+            });
         } catch (final HttpCacheUpdateException e) {
             log.warn("Could not processChallenge key [" + parentCacheKey + "]", e);
         }

@@ -32,7 +32,7 @@ import static org.mockito.Mockito.when;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.HttpCacheStorageEntry;
-import org.apache.hc.client5.http.cache.HttpCacheUpdateCallback;
+import org.apache.hc.client5.http.cache.HttpCacheCASOperation;
 import org.apache.hc.client5.http.cache.HttpCacheUpdateException;
 import org.apache.hc.client5.http.cache.ResourceIOException;
 import org.hamcrest.CoreMatchers;
@@ -135,10 +135,10 @@ public class TestAbstractSerializingCacheStorage {
         when(impl.digestToStorageKey(key)).thenReturn("bar");
         when(impl.getForUpdateCAS("bar")).thenReturn(null);
 
-        impl.updateEntry(key, new HttpCacheUpdateCallback() {
+        impl.updateEntry(key, new HttpCacheCASOperation() {
 
             @Override
-            public HttpCacheEntry update(final HttpCacheEntry existing) throws ResourceIOException {
+            public HttpCacheEntry execute(final HttpCacheEntry existing) throws ResourceIOException {
                 Assert.assertThat(existing, CoreMatchers.nullValue());
                 return updatedValue;
             }
@@ -160,10 +160,10 @@ public class TestAbstractSerializingCacheStorage {
         when(impl.getStorageObject("stuff")).thenReturn(serialize(key, existingValue));
         when(impl.updateCAS(Mockito.eq("bar"), Mockito.eq("stuff"), Mockito.<byte[]>any())).thenReturn(true);
 
-        impl.updateEntry(key, new HttpCacheUpdateCallback() {
+        impl.updateEntry(key, new HttpCacheCASOperation() {
 
             @Override
-            public HttpCacheEntry update(final HttpCacheEntry existing) throws ResourceIOException {
+            public HttpCacheEntry execute(final HttpCacheEntry existing) throws ResourceIOException {
                 return updatedValue;
             }
 
@@ -185,10 +185,10 @@ public class TestAbstractSerializingCacheStorage {
         when(impl.getStorageObject("stuff")).thenReturn(serialize("not-foo", existingValue));
         when(impl.updateCAS(Mockito.eq("bar"), Mockito.eq("stuff"), Mockito.<byte[]>any())).thenReturn(true);
 
-        impl.updateEntry(key, new HttpCacheUpdateCallback() {
+        impl.updateEntry(key, new HttpCacheCASOperation() {
 
             @Override
-            public HttpCacheEntry update(final HttpCacheEntry existing) throws ResourceIOException {
+            public HttpCacheEntry execute(final HttpCacheEntry existing) throws ResourceIOException {
                 Assert.assertThat(existing, CoreMatchers.nullValue());
                 return updatedValue;
             }
@@ -211,10 +211,10 @@ public class TestAbstractSerializingCacheStorage {
         when(impl.getStorageObject("stuff")).thenReturn(serialize(key, existingValue));
         when(impl.updateCAS(Mockito.eq("bar"), Mockito.eq("stuff"), Mockito.<byte[]>any())).thenReturn(false, true);
 
-        impl.updateEntry(key, new HttpCacheUpdateCallback() {
+        impl.updateEntry(key, new HttpCacheCASOperation() {
 
             @Override
-            public HttpCacheEntry update(final HttpCacheEntry existing) throws ResourceIOException {
+            public HttpCacheEntry execute(final HttpCacheEntry existing) throws ResourceIOException {
                 return updatedValue;
             }
 
@@ -237,10 +237,10 @@ public class TestAbstractSerializingCacheStorage {
         when(impl.updateCAS(Mockito.eq("bar"), Mockito.eq("stuff"), Mockito.<byte[]>any())).thenReturn(false, false, false, true);
 
         try {
-            impl.updateEntry(key, new HttpCacheUpdateCallback() {
+            impl.updateEntry(key, new HttpCacheCASOperation() {
 
                 @Override
-                public HttpCacheEntry update(final HttpCacheEntry existing) throws ResourceIOException {
+                public HttpCacheEntry execute(final HttpCacheEntry existing) throws ResourceIOException {
                     return updatedValue;
                 }
 

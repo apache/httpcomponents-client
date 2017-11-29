@@ -27,12 +27,11 @@
 package org.apache.hc.client5.http.cache;
 
 /**
- * Used for atomically updating entries in a {@link HttpCacheStorage}
- * implementation. The current entry (if any) is fed into an implementation
- * of this interface, and the new, possibly updated entry (if any)
- * should be returned.
+ * Atomic Compare-And-Swap (CAS) cache operation.
+ *
+ * @since 5.0
  */
-public interface HttpCacheUpdateCallback {
+public interface HttpCacheCASOperation {
 
     /**
      * Returns the new cache entry that should replace an existing one.
@@ -42,9 +41,7 @@ public interface HttpCacheUpdateCallback {
      *            {@code null} if nonexistent
      * @return the cache entry that should replace it, again,
      *         possibly {@code null} if the entry should be deleted
-     *
-     * @since 4.1
      */
-    HttpCacheEntry update(HttpCacheEntry existing) throws ResourceIOException;
+    HttpCacheEntry execute(HttpCacheEntry existing) throws ResourceIOException;
 
 }

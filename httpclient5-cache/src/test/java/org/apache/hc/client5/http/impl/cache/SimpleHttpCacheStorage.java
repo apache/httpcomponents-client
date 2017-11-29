@@ -31,7 +31,7 @@ import java.util.Map;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.HttpCacheStorage;
-import org.apache.hc.client5.http.cache.HttpCacheUpdateCallback;
+import org.apache.hc.client5.http.cache.HttpCacheCASOperation;
 import org.apache.hc.client5.http.cache.ResourceIOException;
 
 class SimpleHttpCacheStorage implements HttpCacheStorage {
@@ -59,9 +59,9 @@ class SimpleHttpCacheStorage implements HttpCacheStorage {
 
     @Override
     public void updateEntry(
-            final String key, final HttpCacheUpdateCallback callback) throws ResourceIOException {
+            final String key, final HttpCacheCASOperation casOperation) throws ResourceIOException {
         final HttpCacheEntry v1 = map.get(key);
-        final HttpCacheEntry v2 = callback.update(v1);
+        final HttpCacheEntry v2 = casOperation.execute(v1);
         map.put(key,v2);
     }
 

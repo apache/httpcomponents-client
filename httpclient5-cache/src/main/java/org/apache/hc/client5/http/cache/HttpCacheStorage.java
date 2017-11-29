@@ -65,14 +65,11 @@ public interface HttpCacheStorage {
      * Atomically applies the given callback to processChallenge an existing cache
      * entry under a given key.
      * @param key indicates which entry to modify
-     * @param callback performs the processChallenge; see
-     *   {@link HttpCacheUpdateCallback} for details, but roughly the
-     *   callback expects to be handed the current entry and will return
-     *   the new value for the entry.
+     * @param casOperation the CAS operation to perform.
      * @throws ResourceIOException
      * @throws HttpCacheUpdateException
      */
     void updateEntry(
-            String key, HttpCacheUpdateCallback callback) throws ResourceIOException, HttpCacheUpdateException;
+            String key, HttpCacheCASOperation casOperation) throws ResourceIOException, HttpCacheUpdateException;
 
 }

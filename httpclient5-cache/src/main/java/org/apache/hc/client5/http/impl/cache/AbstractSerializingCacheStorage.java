@@ -30,7 +30,7 @@ import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.HttpCacheEntrySerializer;
 import org.apache.hc.client5.http.cache.HttpCacheStorage;
 import org.apache.hc.client5.http.cache.HttpCacheStorageEntry;
-import org.apache.hc.client5.http.cache.HttpCacheUpdateCallback;
+import org.apache.hc.client5.http.cache.HttpCacheCASOperation;
 import org.apache.hc.client5.http.cache.HttpCacheUpdateException;
 import org.apache.hc.client5.http.cache.ResourceIOException;
 import org.apache.hc.core5.util.Args;
@@ -95,7 +95,7 @@ public abstract class AbstractSerializingCacheStorage<T, CAS> implements HttpCac
     @Override
     public final void updateEntry(
             final String key,
-            final HttpCacheUpdateCallback callback) throws HttpCacheUpdateException, ResourceIOException {
+            final HttpCacheCASOperation casOperation) throws HttpCacheUpdateException, ResourceIOException {
         int numRetries = 0;
         final String storageKey = digestToStorageKey(key);
         for (;;) {
@@ -105,7 +105,7 @@ public abstract class AbstractSerializingCacheStorage<T, CAS> implements HttpCac
                 storageEntry = null;
             }
             final HttpCacheEntry existingEntry = storageEntry != null ? storageEntry.getContent() : null;
-            final HttpCacheEntry updatedEntry = callback.update(existingEntry);
+            final HttpCacheEntry updatedEntry = casOperation.execute(existingEntry);
 
             if (existingEntry == null) {
                 putEntry(key, updatedEntry);

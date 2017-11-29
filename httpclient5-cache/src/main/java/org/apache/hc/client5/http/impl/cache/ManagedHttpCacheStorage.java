@@ -34,7 +34,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.HttpCacheStorage;
-import org.apache.hc.client5.http.cache.HttpCacheUpdateCallback;
+import org.apache.hc.client5.http.cache.HttpCacheCASOperation;
 import org.apache.hc.client5.http.cache.Resource;
 import org.apache.hc.client5.http.cache.ResourceIOException;
 import org.apache.hc.core5.annotation.Contract;
@@ -136,13 +136,13 @@ public class ManagedHttpCacheStorage implements HttpCacheStorage, Closeable {
     @Override
     public void updateEntry(
             final String url,
-            final HttpCacheUpdateCallback callback) throws ResourceIOException {
+            final HttpCacheCASOperation casOperation) throws ResourceIOException {
         Args.notNull(url, "URL");
-        Args.notNull(callback, "Callback");
+        Args.notNull(casOperation, "CAS operation");
         ensureValidState();
         synchronized (this) {
             final HttpCacheEntry existing = this.entries.get(url);
-            final HttpCacheEntry updated = callback.update(existing);
+            final HttpCacheEntry updated = casOperation.execute(existing);
             this.entries.put(url, updated);
             if (existing != updated) {
                 keepResourceReference(updated);

@@ -28,7 +28,7 @@ package org.apache.hc.client5.http.impl.cache;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.HttpCacheStorage;
-import org.apache.hc.client5.http.cache.HttpCacheUpdateCallback;
+import org.apache.hc.client5.http.cache.HttpCacheCASOperation;
 import org.apache.hc.client5.http.cache.ResourceIOException;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
@@ -92,10 +92,9 @@ public class BasicHttpCacheStorage implements HttpCacheStorage {
 
     @Override
     public synchronized void updateEntry(
-            final String url,
-            final HttpCacheUpdateCallback callback) throws ResourceIOException {
+            final String url, final HttpCacheCASOperation casOperation) throws ResourceIOException {
         final HttpCacheEntry existingEntry = entries.get(url);
-        entries.put(url, callback.update(existingEntry));
+        entries.put(url, casOperation.execute(existingEntry));
     }
 
 }
