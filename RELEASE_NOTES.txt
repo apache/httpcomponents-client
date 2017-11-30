@@ -1,3 +1,16 @@
+Release 4.5.5
+-------------------
+
+HttpClient 4.5.5 (GA) is a maintenance release that fixes a number of defects found since 4.5.4.
+
+Please note that as of 4.4 HttpClient requires Java 1.6 or newer.
+
+* [HTTPCLIENT-] ...
+  Contributed by X <X at apache.org>
+
+Changelog:
+-------------------
+
 Release 4.5.4
 -------------------
 
