@@ -31,6 +31,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.net.URI;
 
+import com.codahale.metrics.MetricRegistry;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpEntity;
@@ -40,9 +41,11 @@ import org.apache.http.annotation.Contract;
 import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.MetricConstants;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.utils.MetricUtils;
 import org.apache.http.client.utils.URIUtils;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.Args;
@@ -58,6 +61,8 @@ public abstract class CloseableHttpClient implements HttpClient, Closeable {
 
     private final Log log = LogFactory.getLog(getClass());
 
+    private MetricRegistry metricRegistry;
+
     protected abstract CloseableHttpResponse doExecute(HttpHost target, HttpRequest request,
             HttpContext context) throws IOException, ClientProtocolException;
 
@@ -69,7 +74,26 @@ public abstract class CloseableHttpClient implements HttpClient, Closeable {
             final HttpHost target,
             final HttpRequest request,
             final HttpContext context) throws IOException, ClientProtocolException {
-        return doExecute(target, request, context);
+        final long prologue = System.currentTimeMillis();
+
+        MetricUtils.mark(this.metricRegistry, MetricConstants.REQUESTS_PER_SECOND, 1);
+
+        try {
+            final CloseableHttpResponse closeableHttpResponse = doExecute(target, request, context);
+
+            final long epilogue = System.currentTimeMillis();
+
+            MetricUtils.mark(this.metricRegistry, MetricConstants.SUCCEEDED_REQUESTS_PER_SECOND, 1);
+            MetricUtils.update(this.metricRegistry, MetricConstants.RESPONSE_TIME, epilogue - prologue);
+
+            return closeableHttpResponse;
+        } catch (ClientProtocolException e) {
+            MetricUtils.mark(this.metricRegistry, MetricConstants.FAILED_REQUESTS_PER_SECOND, 1);
+            throw e;
+        } catch (IOException e) {
+            MetricUtils.mark(this.metricRegistry, MetricConstants.FAILED_REQUESTS_PER_SECOND, 1);
+            throw e;
+        }
     }
 
     /**
@@ -79,8 +103,27 @@ public abstract class CloseableHttpClient implements HttpClient, Closeable {
     public CloseableHttpResponse execute(
             final HttpUriRequest request,
             final HttpContext context) throws IOException, ClientProtocolException {
-        Args.notNull(request, "HTTP request");
-        return doExecute(determineTarget(request), request, context);
+        final long prologue = System.currentTimeMillis();
+
+        MetricUtils.mark(this.metricRegistry, MetricConstants.REQUESTS_PER_SECOND, 1);
+
+        try {
+            Args.notNull(request, "HTTP request");
+            final CloseableHttpResponse closeableHttpResponse = doExecute(determineTarget(request), request, context);
+
+            final long epilogue = System.currentTimeMillis();
+
+            MetricUtils.mark(this.metricRegistry, MetricConstants.SUCCEEDED_REQUESTS_PER_SECOND, 1);
+            MetricUtils.update(this.metricRegistry, MetricConstants.RESPONSE_TIME, epilogue - prologue);
+
+            return closeableHttpResponse;
+        } catch (ClientProtocolException e) {
+            MetricUtils.mark(this.metricRegistry, MetricConstants.FAILED_REQUESTS_PER_SECOND, 1);
+            throw e;
+        } catch (IOException e) {
+            MetricUtils.mark(this.metricRegistry, MetricConstants.FAILED_REQUESTS_PER_SECOND, 1);
+            throw e;
+        }
     }
 
     private static HttpHost determineTarget(final HttpUriRequest request) throws ClientProtocolException {
@@ -115,7 +158,26 @@ public abstract class CloseableHttpClient implements HttpClient, Closeable {
     public CloseableHttpResponse execute(
             final HttpHost target,
             final HttpRequest request) throws IOException, ClientProtocolException {
-        return doExecute(target, request, null);
+        final long prologue = System.currentTimeMillis();
+
+        MetricUtils.mark(this.metricRegistry, MetricConstants.REQUESTS_PER_SECOND, 1);
+
+        try {
+            final CloseableHttpResponse closeableHttpResponse = doExecute(target, request, null);
+
+            final long epilogue = System.currentTimeMillis();
+
+            MetricUtils.mark(this.metricRegistry, MetricConstants.SUCCEEDED_REQUESTS_PER_SECOND, 1);
+            MetricUtils.update(this.metricRegistry, MetricConstants.RESPONSE_TIME, epilogue - prologue);
+
+            return closeableHttpResponse;
+        } catch (ClientProtocolException e) {
+            MetricUtils.mark(this.metricRegistry, MetricConstants.FAILED_REQUESTS_PER_SECOND, 1);
+            throw e;
+        } catch (IOException e) {
+            MetricUtils.mark(this.metricRegistry, MetricConstants.FAILED_REQUESTS_PER_SECOND, 1);
+            throw e;
+        }
     }
 
     /**
@@ -216,28 +278,54 @@ public abstract class CloseableHttpClient implements HttpClient, Closeable {
     public <T> T execute(final HttpHost target, final HttpRequest request,
             final ResponseHandler<? extends T> responseHandler, final HttpContext context)
             throws IOException, ClientProtocolException {
-        Args.notNull(responseHandler, "Response handler");
+        final long prologue = System.currentTimeMillis();
 
-        final CloseableHttpResponse response = execute(target, request, context);
+        MetricUtils.mark(this.metricRegistry, MetricConstants.REQUESTS_PER_SECOND, 1);
+
         try {
-            final T result = responseHandler.handleResponse(response);
-            final HttpEntity entity = response.getEntity();
-            EntityUtils.consume(entity);
-            return result;
-        } catch (final ClientProtocolException t) {
-            // Try to salvage the underlying connection in case of a protocol exception
-            final HttpEntity entity = response.getEntity();
+            Args.notNull(responseHandler, "Response handler");
+
+            final CloseableHttpResponse response = execute(target, request, context);
             try {
+                final T result = responseHandler.handleResponse(response);
+                final HttpEntity entity = response.getEntity();
                 EntityUtils.consume(entity);
-            } catch (final Exception t2) {
-                // Log this exception. The original exception is more
-                // important and will be thrown to the caller.
-                this.log.warn("Error consuming content after an exception.", t2);
+
+                final long epilogue = System.currentTimeMillis();
+
+                MetricUtils.mark(this.metricRegistry, MetricConstants.SUCCEEDED_REQUESTS_PER_SECOND, 1);
+                MetricUtils.update(this.metricRegistry, MetricConstants.RESPONSE_TIME, epilogue - prologue);
+
+                return result;
+            } catch (final ClientProtocolException t) {
+                // Try to salvage the underlying connection in case of a protocol exception
+                final HttpEntity entity = response.getEntity();
+                try {
+                    EntityUtils.consume(entity);
+                } catch (final Exception t2) {
+                    // Log this exception. The original exception is more
+                    // important and will be thrown to the caller.
+                    this.log.warn("Error consuming content after an exception.", t2);
+                }
+                throw t;
+            } finally {
+                response.close();
             }
-            throw t;
-        } finally {
-            response.close();
+        } catch (ClientProtocolException e) {
+            MetricUtils.mark(this.metricRegistry, MetricConstants.FAILED_REQUESTS_PER_SECOND, 1);
+            throw e;
+        } catch (IOException e) {
+            MetricUtils.mark(this.metricRegistry, MetricConstants.FAILED_REQUESTS_PER_SECOND, 1);
+            throw e;
         }
+    }
+
+    public MetricRegistry getMetricRegistry() {
+        return this.metricRegistry;
+    }
+
+    public void setMetricRegistry(final MetricRegistry metricRegistry) {
+        this.metricRegistry = metricRegistry;
     }
 
 }

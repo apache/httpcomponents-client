@@ -42,6 +42,7 @@ import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 
+import com.codahale.metrics.MetricRegistry;
 import org.apache.http.ConnectionReuseStrategy;
 import org.apache.http.Header;
 import org.apache.http.HttpHost;
@@ -215,6 +216,8 @@ public class HttpClientBuilder {
     private List<Closeable> closeables;
 
     private PublicSuffixMatcher publicSuffixMatcher;
+
+    private MetricRegistry metricRegistry;
 
     public static HttpClientBuilder create() {
         return new HttpClientBuilder();
@@ -864,6 +867,11 @@ public class HttpClientBuilder {
         return this;
     }
 
+    public final HttpClientBuilder setMetricRegistry(final MetricRegistry metricRegistry) {
+        this.metricRegistry = metricRegistry;
+        return this;
+    }
+
     /**
      * Produces an instance of {@link ClientExecChain} to be used as a main exec.
      * <p>
@@ -1236,7 +1244,7 @@ public class HttpClientBuilder {
             });
         }
 
-        return new InternalHttpClient(
+        final InternalHttpClient internalHttpClient = new InternalHttpClient(
                 execChain,
                 connManagerCopy,
                 routePlannerCopy,
@@ -1246,6 +1254,9 @@ public class HttpClientBuilder {
                 defaultCredentialsProvider,
                 defaultRequestConfig != null ? defaultRequestConfig : RequestConfig.DEFAULT,
                 closeablesCopy);
+        internalHttpClient.setMetricRegistry(metricRegistry);
+
+        return internalHttpClient;
     }
 
 }

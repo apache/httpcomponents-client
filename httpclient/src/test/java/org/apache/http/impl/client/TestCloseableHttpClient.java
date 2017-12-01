@@ -29,6 +29,7 @@ package org.apache.http.impl.client;
 import java.io.IOException;
 import java.io.InputStream;
 
+import com.codahale.metrics.MetricRegistry;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
@@ -75,6 +76,7 @@ public class TestCloseableHttpClient {
         Mockito.when(entity.isStreaming()).thenReturn(Boolean.TRUE);
         Mockito.when(response.getEntity()).thenReturn(entity);
         client = Mockito.mock(NoopCloseableHttpClient.class, Mockito.CALLS_REAL_METHODS);
+        client.setMetricRegistry(new MetricRegistry());
     }
 
     @Test

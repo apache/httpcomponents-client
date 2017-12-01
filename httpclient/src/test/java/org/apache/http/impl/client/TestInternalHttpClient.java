@@ -30,6 +30,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.Arrays;
 
+import com.codahale.metrics.MetricRegistry;
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthSchemeProvider;
@@ -88,7 +89,7 @@ public class TestInternalHttpClient {
         client = new InternalHttpClient(execChain, connManager, routePlanner,
                 cookieSpecRegistry, authSchemeRegistry, cookieStore, credentialsProvider,
                 defaultConfig, Arrays.asList(closeable1, closeable2));
-
+        client.setMetricRegistry(new MetricRegistry());
     }
 
     @Test
