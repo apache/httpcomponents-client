@@ -111,7 +111,7 @@ public class SystemDefaultCredentialsProvider implements CredentialsProvider {
         final String host = authscope.getHost();
         if (host != null) {
             final HttpHost origin = authscope.getOrigin();
-            final String protocol = origin != null ? origin.getSchemeName() : (origin.getPort() == 443 ? "https" : "http");
+            final String protocol = origin != null ? origin.getSchemeName() : (authscope.getPort() == 443 ? "https" : "http");
             PasswordAuthentication systemcreds = getSystemCreds(protocol, authscope, Authenticator.RequestorType.SERVER);
             if (systemcreds == null) {
                 systemcreds = getSystemCreds(protocol, authscope, Authenticator.RequestorType.PROXY);
