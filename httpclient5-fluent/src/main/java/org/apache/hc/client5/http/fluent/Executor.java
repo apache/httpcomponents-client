@@ -106,9 +106,7 @@ public class Executor {
     }
 
     public Executor auth(final HttpHost host, final Credentials creds) {
-        final AuthScope authScope = host != null ?
-                new AuthScope(host.getHostName(), host.getPort()) : AuthScope.ANY;
-        return auth(authScope, creds);
+        return auth(new AuthScope(host), creds);
     }
 
     /**
@@ -172,19 +170,6 @@ public class Executor {
             throw new IllegalArgumentException("Invalid host: " + proxy);
         }
         return authPreemptiveProxy(httpHost);
-    }
-
-    public Executor auth(final Credentials cred) {
-        return auth(AuthScope.ANY, cred);
-    }
-
-    public Executor auth(final String username, final char[] password) {
-        return auth(new UsernamePasswordCredentials(username, password));
-    }
-
-    public Executor auth(final String username, final char[] password,
-            final String workstation, final String domain) {
-        return auth(new NTCredentials(username, password, workstation, domain));
     }
 
     public Executor auth(final HttpHost host,

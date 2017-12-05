@@ -157,7 +157,7 @@ public class TestSPNegoScheme extends LocalServerTestBase {
         final AuthSchemeProvider nsf = new NegotiateSchemeProviderWithMockGssManager();
         final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
         final Credentials use_jaas_creds = new UseJaasCredentials();
-        credentialsProvider.setCredentials(new AuthScope(null, -1, null), use_jaas_creds);
+        credentialsProvider.setCredentials(new AuthScope(null, null, -1, null, null), use_jaas_creds);
 
         final Registry<AuthSchemeProvider> authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
             .register(AuthSchemes.SPNEGO, nsf)
@@ -188,7 +188,7 @@ public class TestSPNegoScheme extends LocalServerTestBase {
 
         final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
         final Credentials use_jaas_creds = new UseJaasCredentials();
-        credentialsProvider.setCredentials(new AuthScope(null, -1, null), use_jaas_creds);
+        credentialsProvider.setCredentials(new AuthScope(null, null, -1, null, null), use_jaas_creds);
 
         final Registry<AuthSchemeProvider> authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
             .register(AuthSchemes.SPNEGO, nsf)

@@ -45,7 +45,6 @@ import org.apache.hc.client5.http.config.AuthSchemes;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
-import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.Args;
@@ -113,7 +112,7 @@ public class SystemDefaultCredentialsProvider implements CredentialsStore {
                 authscope.getPort(),
                 protocol,
                 authscope.getRealm(),
-                translateAuthScheme(authscope.getScheme()),
+                translateAuthScheme(authscope.getAuthScheme()),
                 targetHostURL,
                 requestorType);
     }
@@ -128,9 +127,7 @@ public class SystemDefaultCredentialsProvider implements CredentialsStore {
         final String host = authscope.getHost();
         if (host != null) {
             final HttpClientContext clientContext = context != null ? HttpClientContext.adapt(context) : null;
-            final int port = authscope.getPort();
-            final HttpHost origin = authscope.getOrigin();
-            final String protocol = origin != null ? origin.getSchemeName() : (port == 443 ? "https" : "http");
+            final String protocol = authscope.getProtocol() != null ? authscope.getProtocol() : (authscope.getPort() == 443 ? "https" : "http");
             PasswordAuthentication systemcreds = getSystemCreds(
                     protocol, authscope, Authenticator.RequestorType.SERVER, clientContext);
             if (systemcreds == null) {
@@ -161,7 +158,7 @@ public class SystemDefaultCredentialsProvider implements CredentialsStore {
                 if (domain != null) {
                     return new NTCredentials(systemcreds.getUserName(), systemcreds.getPassword(), null, domain);
                 }
-                if (AuthSchemes.NTLM.equalsIgnoreCase(authscope.getScheme())) {
+                if (AuthSchemes.NTLM.equalsIgnoreCase(authscope.getAuthScheme())) {
                     // Domain may be specified in a fully qualified user name
                     return new NTCredentials(
                             systemcreds.getUserName(), systemcreds.getPassword(), null, null);

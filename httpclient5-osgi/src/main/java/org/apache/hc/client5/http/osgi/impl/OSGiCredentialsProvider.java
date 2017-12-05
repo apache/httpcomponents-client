@@ -73,7 +73,7 @@ final class OSGiCredentialsProvider implements CredentialsStore {
         // iterate over all active proxy configurations at the moment of getting the credential
         for (final ProxyConfiguration config : proxyConfigurations) {
             if (config.isEnabled() && isSuitable(config, authScope)) {
-                final String scheme = authScope.getScheme();
+                final String scheme = authScope.getAuthScheme();
                 if (BASIC_SCHEME_NAME.equals(scheme)) {
                     return new UsernamePasswordCredentials(config.getUsername(), config.getPassword().toCharArray());
                 } else if (NTLM_SCHEME_NAME.equals(scheme)) {

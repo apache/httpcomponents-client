@@ -43,6 +43,7 @@ import org.apache.hc.core5.util.Args;
 public class AuthSupport {
 
     public static void extractFromAuthority(
+            final String scheme,
             final URIAuthority authority,
             final CredentialsStore credentialsStore) {
         Args.notNull(credentialsStore, "Credentials store");
@@ -64,7 +65,7 @@ public class AuthSupport {
             password = null;
         }
         credentialsStore.setCredentials(
-                new AuthScope(authority.getHostName(), authority.getPort(), null, AuthSchemes.BASIC),
+                new AuthScope(scheme, authority.getHostName(), authority.getPort(), null, AuthSchemes.BASIC),
                 new UsernamePasswordCredentials(userName, password));
     }
 

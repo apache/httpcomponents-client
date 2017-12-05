@@ -180,7 +180,7 @@ public class HttpClientCompatibilityTest {
         {
             connManager.closeIdle(TimeValue.NEG_ONE_MILLISECONDS);
             credentialsProvider.setCredentials(
-                    new AuthScope("otherhost", AuthScope.ANY_PORT, "Restricted Files"),
+                    new AuthScope("http", "otherhost", -1, "Restricted Files", null),
                     new UsernamePasswordCredentials("testuser", "nopassword".toCharArray()));
             final HttpClientContext context = HttpClientContext.create();
             context.setCredentialsProvider(credentialsProvider);

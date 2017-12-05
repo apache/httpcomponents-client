@@ -130,7 +130,7 @@ final class ProtocolExec implements ExecChainHandler {
             if (authority != null) {
                 final CredentialsProvider credsProvider = context.getCredentialsProvider();
                 if (credsProvider instanceof CredentialsStore) {
-                    AuthSupport.extractFromAuthority(authority, (CredentialsStore) credsProvider);
+                    AuthSupport.extractFromAuthority(request.getScheme(), authority, (CredentialsStore) credsProvider);
                 }
             }
 

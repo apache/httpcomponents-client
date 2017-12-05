@@ -54,7 +54,7 @@ public class OSGiCredentialsProviderTest {
     @Test
     public void basicAuthentication() {
         final CredentialsProvider provider = credentialsProvider(proxy("user", "secret"));
-        final Credentials credentials = provider.getCredentials(new AuthScope(HOST, PORT, null, "BASIC"), HTTP_CONTEXT);
+        final Credentials credentials = provider.getCredentials(new AuthScope("http", HOST, PORT, null, "BASIC"), HTTP_CONTEXT);
         assertThat(credentials, instanceOf(UsernamePasswordCredentials.class));
         assertCredentials((UsernamePasswordCredentials) credentials, "user", "secret");
     }
@@ -62,7 +62,7 @@ public class OSGiCredentialsProviderTest {
     @Test
     public void ntlmAuthenticationWithoutDomain() {
         final CredentialsProvider provider = credentialsProvider(proxy("user", "secret"));
-        final Credentials credentials = provider.getCredentials(new AuthScope(HOST, PORT, null, "NTLM"), HTTP_CONTEXT);
+        final Credentials credentials = provider.getCredentials(new AuthScope("http", HOST, PORT, null, "NTLM"), HTTP_CONTEXT);
         assertThat(credentials, instanceOf(NTCredentials.class));
         assertCredentials((NTCredentials) credentials, "user", "secret", null);
     }
@@ -70,7 +70,7 @@ public class OSGiCredentialsProviderTest {
     @Test
     public void ntlmAuthenticationWithDomain() {
         final CredentialsProvider provider = credentialsProvider(proxy("DOMAIN\\user", "secret"));
-        final Credentials credentials = provider.getCredentials(new AuthScope(HOST, PORT, null, "NTLM"), HTTP_CONTEXT);
+        final Credentials credentials = provider.getCredentials(new AuthScope("http", HOST, PORT, null, "NTLM"), HTTP_CONTEXT);
         assertThat(credentials, instanceOf(NTCredentials.class));
         assertCredentials((NTCredentials) credentials, "user", "secret", "DOMAIN");
     }

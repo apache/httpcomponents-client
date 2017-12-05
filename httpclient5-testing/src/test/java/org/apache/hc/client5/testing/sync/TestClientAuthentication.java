@@ -321,7 +321,7 @@ public class TestClientAuthentication extends LocalServerTestBase {
 
         final HttpClientContext context = HttpClientContext.create();
         final BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
-        credsProvider.setCredentials(AuthScope.ANY,
+        credsProvider.setCredentials(new AuthScope(null, null, -1, null ,null),
                 new UsernamePasswordCredentials("test", "test".toCharArray()));
         context.setCredentialsProvider(credsProvider);
 
@@ -536,7 +536,7 @@ public class TestClientAuthentication extends LocalServerTestBase {
         authCache.put(target, new BasicScheme());
         context.setAuthCache(authCache);
         final BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
-        credsProvider.setCredentials(AuthScope.ANY,
+        credsProvider.setCredentials(new AuthScope(null, null, -1, null ,null),
                 new UsernamePasswordCredentials("test", "stuff".toCharArray()));
         context.setCredentialsProvider(credsProvider);
 
@@ -611,7 +611,7 @@ public class TestClientAuthentication extends LocalServerTestBase {
 
         final HttpClientContext context = HttpClientContext.create();
         final BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
-        credsProvider.setCredentials(AuthScope.ANY,
+        credsProvider.setCredentials(new AuthScope(null, null, -1, null ,null),
                 new UsernamePasswordCredentials("test", "test".toCharArray()));
         context.setCredentialsProvider(credsProvider);
 

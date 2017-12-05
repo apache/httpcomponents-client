@@ -338,7 +338,7 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
         final HttpHost target = start();
 
         final BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
-        credsProvider.setCredentials(AuthScope.ANY,
+        credsProvider.setCredentials(new AuthScope(null, null, -1, null ,null),
                 new UsernamePasswordCredentials("test", "test".toCharArray()));
         final HttpClientContext context = HttpClientContext.create();
         context.setCredentialsProvider(credsProvider);

@@ -138,7 +138,7 @@ public class TestProtocolExec {
         protocolExec.execute(request, scope, chain);
         Assert.assertEquals(new URI("http://bar/test"), request.getUri());
         final CredentialsProvider credentialsProvider = context.getCredentialsProvider();
-        final Credentials creds = credentialsProvider.getCredentials(new AuthScope("bar", -1, null), null);
+        final Credentials creds = credentialsProvider.getCredentials(new AuthScope(null, "bar", -1, null, null), null);
         Assert.assertNotNull(creds);
         Assert.assertEquals("somefella", creds.getUserPrincipal().getName());
     }

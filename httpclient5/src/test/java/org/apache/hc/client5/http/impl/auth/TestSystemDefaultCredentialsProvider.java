@@ -90,7 +90,7 @@ public class TestSystemDefaultCredentialsProvider {
         final AuthenticatorDelegate authenticatorDelegate = installAuthenticator(AUTH1);
 
         final URL httpRequestUrl = new URL(TARGET_SCHEME1, TARGET_HOST1, TARGET_PORT1, "/");
-        final AuthScope authScope = new AuthScope(PROXY_HOST1, PROXY_PORT1, PROMPT1, "BASIC");
+        final AuthScope authScope = new AuthScope(PROXY_PROTOCOL1, PROXY_HOST1, PROXY_PORT1, PROMPT1, "BASIC");
         final HttpCoreContext coreContext = new HttpCoreContext();
         coreContext.setAttribute(HttpCoreContext.HTTP_REQUEST, new HttpGet(httpRequestUrl.toURI()));
 
@@ -110,7 +110,7 @@ public class TestSystemDefaultCredentialsProvider {
 
         final AuthenticatorDelegate authenticatorDelegate = installAuthenticator(AUTH1);
 
-        final AuthScope authScope = new AuthScope(PROXY_HOST1, PROXY_PORT1, PROMPT1, "BASIC");
+        final AuthScope authScope = new AuthScope(PROXY_PROTOCOL1, PROXY_HOST1, PROXY_PORT1, PROMPT1, "BASIC");
 
         final Credentials receivedCredentials =
             new SystemDefaultCredentialsProvider().getCredentials(authScope, null);

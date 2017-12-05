@@ -125,7 +125,7 @@ class AsyncProtocolExec implements AsyncExecChainHandler {
         if (authority != null) {
             final CredentialsProvider credsProvider = clientContext.getCredentialsProvider();
             if (credsProvider instanceof CredentialsStore) {
-                AuthSupport.extractFromAuthority(authority, (CredentialsStore) credsProvider);
+                AuthSupport.extractFromAuthority(request.getScheme(), authority, (CredentialsStore) credsProvider);
             }
         }
 
