@@ -190,8 +190,7 @@ abstract class AuthenticationStrategyImpl implements AuthenticationStrategy {
                 authScheme.processChallenge(challenge);
 
                 final AuthScope authScope = new AuthScope(
-                        authhost.getHostName(),
-                        authhost.getPort(),
+                        authhost,
                         authScheme.getRealm(),
                         authScheme.getSchemeName());
 
