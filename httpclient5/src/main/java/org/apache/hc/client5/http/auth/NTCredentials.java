@@ -186,7 +186,7 @@ public class NTCredentials implements Credentials, Serializable {
         if (value == null) {
             return null;
         }
-        final int index = value.indexOf(".");
+        final int index = value.indexOf('.');
         if (index != -1) {
             return value.substring(0, index);
         }

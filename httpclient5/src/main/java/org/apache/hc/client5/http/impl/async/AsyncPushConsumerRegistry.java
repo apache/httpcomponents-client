@@ -69,7 +69,7 @@ class AsyncPushConsumerRegistry {
             return null;
         }
         String path = request.getPath();
-        final int i = path.indexOf("?");
+        final int i = path.indexOf('?');
         if (i != -1) {
             path = path.substring(0, i);
         }
