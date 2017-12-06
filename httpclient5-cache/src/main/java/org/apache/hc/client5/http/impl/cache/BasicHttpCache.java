@@ -26,13 +26,11 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
+import org.apache.hc.client5.http.StandardMethods;
 import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.HttpCacheInvalidator;
@@ -51,10 +49,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 class BasicHttpCache implements HttpCache {
-    private static final Set<String> safeRequestMethods = new HashSet<>(
-            Arrays.asList(HeaderConstants.HEAD_METHOD,
-                    HeaderConstants.GET_METHOD, HeaderConstants.OPTIONS_METHOD,
-                    HeaderConstants.TRACE_METHOD));
 
     private final CacheKeyGenerator uriExtractor;
     private final ResourceFactory resourceFactory;
@@ -97,7 +91,7 @@ class BasicHttpCache implements HttpCache {
 
     @Override
     public void flushCacheEntriesFor(final HttpHost host, final HttpRequest request) throws ResourceIOException {
-        if (!safeRequestMethods.contains(request.getMethod())) {
+        if (!StandardMethods.isSafe(request.getMethod())) {
             final String uri = uriExtractor.generateKey(host, request);
             storage.removeEntry(uri);
         }
@@ -105,7 +99,7 @@ class BasicHttpCache implements HttpCache {
 
     @Override
     public void flushInvalidatedCacheEntriesFor(final HttpHost host, final HttpRequest request, final HttpResponse response) {
-        if (!safeRequestMethods.contains(request.getMethod())) {
+        if (!StandardMethods.isSafe(request.getMethod())) {
             cacheInvalidator.flushInvalidatedCacheEntries(host, request, response);
         }
     }
