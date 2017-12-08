@@ -120,9 +120,9 @@ public class TestCacheKeyGenerator {
         when(mockEntry.hasVariants()).thenReturn(false);
         extractor = new CacheKeyGenerator() {
             @Override
-            public String generateKey(final HttpHost h, final HttpRequest req) {
+            public String generateKey(final HttpHost h, final HttpRequest request) {
                 Assert.assertSame(defaultHost, h);
-                Assert.assertSame(mockRequest, req);
+                Assert.assertSame(mockRequest, request);
                 return theURI;
             }
         };
@@ -140,9 +140,9 @@ public class TestCacheKeyGenerator {
 
         extractor = new CacheKeyGenerator() {
             @Override
-            public String generateKey(final HttpHost h, final HttpRequest req) {
+            public String generateKey(final HttpHost h, final HttpRequest request) {
                 Assert.assertSame(defaultHost, h);
-                Assert.assertSame(mockRequest, req);
+                Assert.assertSame(mockRequest, request);
                 return theURI;
             }
         };
@@ -165,9 +165,9 @@ public class TestCacheKeyGenerator {
         final Header[] varyHeaders = { new BasicHeader("Vary", "Accept-Encoding") };
         extractor = new CacheKeyGenerator() {
             @Override
-            public String generateKey(final HttpHost h, final HttpRequest req) {
+            public String generateKey(final HttpHost h, final HttpRequest request) {
                 Assert.assertSame(defaultHost, h);
-                Assert.assertSame(mockRequest, req);
+                Assert.assertSame(mockRequest, request);
                 return theURI;
             }
         };
@@ -192,9 +192,9 @@ public class TestCacheKeyGenerator {
         final Header[] uaHeaders = { new BasicHeader("User-Agent", "browser") };
         extractor = new CacheKeyGenerator() {
             @Override
-            public String generateKey(final HttpHost h, final HttpRequest req) {
+            public String generateKey(final HttpHost h, final HttpRequest request) {
                 Assert.assertSame(defaultHost, h);
-                Assert.assertSame(mockRequest, req);
+                Assert.assertSame(mockRequest, request);
                 return theURI;
             }
         };
@@ -221,9 +221,9 @@ public class TestCacheKeyGenerator {
         final Header[] uaHeaders = { new BasicHeader("User-Agent", "browser") };
         extractor = new CacheKeyGenerator() {
             @Override
-            public String generateKey(final HttpHost h, final HttpRequest req) {
+            public String generateKey(final HttpHost h, final HttpRequest request) {
                 Assert.assertSame(defaultHost, h);
-                Assert.assertSame(mockRequest, req);
+                Assert.assertSame(mockRequest, request);
                 return theURI;
             }
         };
@@ -250,9 +250,9 @@ public class TestCacheKeyGenerator {
         final Header[] uaHeaders = { new BasicHeader("User-Agent", "browser") };
         extractor = new CacheKeyGenerator() {
             @Override
-            public String generateKey(final HttpHost h, final HttpRequest req) {
+            public String generateKey(final HttpHost h, final HttpRequest request) {
                 Assert.assertSame(defaultHost, h);
-                Assert.assertSame(mockRequest, req);
+                Assert.assertSame(mockRequest, request);
                 return theURI;
             }
         };

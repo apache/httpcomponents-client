@@ -159,12 +159,13 @@ class DefaultCacheInvalidator implements HttpCacheInvalidator {
     }
 
     protected void flushUriIfSameHost(final URI requestURI, final URI targetURI) {
-        final URI canonicalTarget = parse(cacheKeyGenerator.generateKey(targetURI));
-        if (canonicalTarget == null) {
-            return;
-        }
-        if (canonicalTarget.getAuthority().equalsIgnoreCase(requestURI.getAuthority())) {
-            flushEntry(canonicalTarget.toString());
+        try {
+            final URI canonicalTarget = HttpCacheSupport.normalize(targetURI);
+            if (canonicalTarget.isAbsolute()
+                    && canonicalTarget.getAuthority().equalsIgnoreCase(requestURI.getAuthority())) {
+                flushEntry(canonicalTarget.toString());
+            }
+        } catch (final URISyntaxException ignore) {
         }
     }
 
