@@ -120,4 +120,18 @@ public final class HttpCacheSupport {
         return builder.build();
     }
 
+    /**
+     * Lenient URI parser that normalizes valid {@link URI}s and returns {@code null} for malformed URIs.
+     */
+    public static URI normalizeQuetly(final String requestUri) {
+        if (requestUri == null) {
+            return null;
+        }
+        try {
+            return normalize(new URI(requestUri));
+        } catch (final URISyntaxException ex) {
+            return null;
+        }
+    }
+
 }

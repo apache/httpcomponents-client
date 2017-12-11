@@ -71,7 +71,7 @@ class BasicHttpCache implements HttpCache {
             final ResourceFactory resourceFactory,
             final HttpCacheStorage storage,
             final CacheKeyGenerator cacheKeyGenerator) {
-        this(resourceFactory, storage, cacheKeyGenerator, new DefaultCacheInvalidator(cacheKeyGenerator, storage));
+        this(resourceFactory, storage, cacheKeyGenerator, new DefaultCacheInvalidator());
     }
 
     public BasicHttpCache(final ResourceFactory resourceFactory, final HttpCacheStorage storage) {
@@ -97,7 +97,7 @@ class BasicHttpCache implements HttpCache {
     @Override
     public void flushInvalidatedCacheEntriesFor(final HttpHost host, final HttpRequest request, final HttpResponse response) {
         if (!StandardMethods.isSafe(request.getMethod())) {
-            cacheInvalidator.flushInvalidatedCacheEntries(host, request, response);
+            cacheInvalidator.flushInvalidatedCacheEntries(host, request, response, cacheKeyGenerator, storage);
         }
     }
 
@@ -224,7 +224,7 @@ class BasicHttpCache implements HttpCache {
     @Override
     public void flushInvalidatedCacheEntriesFor(final HttpHost host,
             final HttpRequest request) throws ResourceIOException {
-        cacheInvalidator.flushInvalidatedCacheEntries(host, request);
+        cacheInvalidator.flushInvalidatedCacheEntries(host, request, cacheKeyGenerator, storage);
     }
 
     @Override

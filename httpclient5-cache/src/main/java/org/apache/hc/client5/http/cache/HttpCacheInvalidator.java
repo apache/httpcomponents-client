@@ -26,33 +26,57 @@
  */
 package org.apache.hc.client5.http.cache;
 
+import java.net.URI;
+
+import org.apache.hc.core5.annotation.Internal;
+import org.apache.hc.core5.function.Resolver;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 
 /**
- * Given a particular HttpRequest, flush any cache entries that this request
- * would invalidate.
+ * Given a particular HTTP request / response pair, flush any cache entries
+ * that this exchange would invalidate.
  *
  * @since 4.3
  */
+@Internal
 public interface HttpCacheInvalidator {
 
     /**
      * Remove cache entries from the cache that are no longer fresh or have been
      * invalidated in some way.
      *
-     * @param host
-     *            The backend host we are talking to
-     * @param req
-     *            The HttpRequest to that host
+     * @param host backend host
+     * @param request request message
+     * @param cacheKeyResolver cache key resolver used by cache storage
+     * @param cacheStorage internal cache storage
+     *
+     * @since 5.0
      */
-    void flushInvalidatedCacheEntries(HttpHost host, HttpRequest req);
+    void flushInvalidatedCacheEntries(
+            HttpHost host,
+            HttpRequest request,
+            Resolver<URI, String> cacheKeyResolver,
+            HttpCacheStorage cacheStorage);
 
     /**
      * Flushes entries that were invalidated by the given response received for
      * the given host/request pair.
+     *
+     * @param host backend host
+     * @param request request message
+     * @param response response message
+     * @param cacheKeyResolver cache key resolver used by cache storage
+     * @param cacheStorage internal cache storage
+     *
+     * @since 5.0
      */
-    void flushInvalidatedCacheEntries(HttpHost host, HttpRequest request, HttpResponse response);
+    void flushInvalidatedCacheEntries(
+            HttpHost host,
+            HttpRequest request,
+            HttpResponse response,
+            Resolver<URI, String> cacheKeyResolver,
+            HttpCacheStorage cacheStorage);
 
 }

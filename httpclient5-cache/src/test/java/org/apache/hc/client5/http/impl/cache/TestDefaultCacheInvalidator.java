@@ -26,7 +26,6 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -41,6 +40,7 @@ import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.HttpCacheStorage;
 import org.apache.hc.client5.http.cache.ResourceIOException;
 import org.apache.hc.client5.http.utils.DateUtils;
+import org.apache.hc.core5.function.Resolver;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
@@ -51,14 +51,24 @@ import org.apache.hc.core5.http.message.BasicHttpRequest;
 import org.apache.hc.core5.http.message.BasicHttpResponse;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.stubbing.Answer;
 
+@RunWith(MockitoJUnitRunner.class)
 public class TestDefaultCacheInvalidator {
 
     private DefaultCacheInvalidator impl;
-    private HttpCacheStorage mockStorage;
     private HttpHost host;
-    private CacheKeyGenerator cacheKeyGenerator;
+    @Mock
     private HttpCacheEntry mockEntry;
+    @Mock
+    private Resolver<URI, String> cacheKeyResolver;
+    @Mock
+    private HttpCacheStorage mockStorage;
 
     private Date now;
     private Date tenSecondsAgo;
@@ -68,12 +78,18 @@ public class TestDefaultCacheInvalidator {
         now = new Date();
         tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
 
-        host = new HttpHost("foo.example.com");
-        mockStorage = mock(HttpCacheStorage.class);
-        cacheKeyGenerator = new CacheKeyGenerator();
-        mockEntry = mock(HttpCacheEntry.class);
+        when(cacheKeyResolver.resolve(Mockito.<URI>any())).thenAnswer(new Answer<String>() {
 
-        impl = new DefaultCacheInvalidator(cacheKeyGenerator, mockStorage);
+            @Override
+            public String answer(final InvocationOnMock invocation) throws Throwable {
+                final URI uri = invocation.getArgument(0);
+                return HttpCacheSupport.normalize(uri).toASCIIString();
+            }
+
+        });
+
+        host = new HttpHost("foo.example.com");
+        impl = new DefaultCacheInvalidator();
     }
 
     // Tests
@@ -86,7 +102,7 @@ public class TestDefaultCacheInvalidator {
 
         cacheReturnsEntryForUri(key);
 
-        impl.flushInvalidatedCacheEntries(host, request);
+        impl.flushInvalidatedCacheEntries(host, request, cacheKeyResolver, mockStorage);
 
         verify(mockEntry).getVariantMap();
         verify(mockStorage).getEntry(key);
@@ -107,7 +123,7 @@ public class TestDefaultCacheInvalidator {
 
         cacheReturnsEntryForUri(key);
 
-        impl.flushInvalidatedCacheEntries(host, request);
+        impl.flushInvalidatedCacheEntries(host, request, cacheKeyResolver, mockStorage);
 
         verify(mockEntry).getVariantMap();
         verify(mockStorage).getEntry(key);
@@ -129,12 +145,12 @@ public class TestDefaultCacheInvalidator {
 
         cacheReturnsEntryForUri(key);
 
-        impl.flushInvalidatedCacheEntries(host, request);
+        impl.flushInvalidatedCacheEntries(host, request, cacheKeyResolver, mockStorage);
 
         verify(mockEntry).getVariantMap();
         verify(mockStorage).getEntry(key);
         verify(mockStorage).removeEntry(key);
-        verify(mockStorage).removeEntry(cacheKeyGenerator.generateKey(new URI(contentLocation)));
+        verify(mockStorage).removeEntry(cacheKeyResolver.resolve(new URI(contentLocation)));
     }
 
     @Test
@@ -151,7 +167,7 @@ public class TestDefaultCacheInvalidator {
 
         cacheReturnsEntryForUri(key);
 
-        impl.flushInvalidatedCacheEntries(host, request);
+        impl.flushInvalidatedCacheEntries(host, request, cacheKeyResolver, mockStorage);
 
         verify(mockEntry).getVariantMap();
         verify(mockStorage).getEntry(key);
@@ -173,7 +189,7 @@ public class TestDefaultCacheInvalidator {
 
         cacheReturnsEntryForUri(key);
 
-        impl.flushInvalidatedCacheEntries(host, request);
+        impl.flushInvalidatedCacheEntries(host, request, cacheKeyResolver, mockStorage);
 
         verify(mockEntry).getVariantMap();
         verify(mockStorage).getEntry(key);
@@ -183,7 +199,7 @@ public class TestDefaultCacheInvalidator {
     @Test
     public void testDoesNotInvalidateGETRequest() throws Exception {
         final HttpRequest request = new BasicHttpRequest("GET","/");
-        impl.flushInvalidatedCacheEntries(host, request);
+        impl.flushInvalidatedCacheEntries(host, request, cacheKeyResolver, mockStorage);
 
         verify(mockStorage).getEntry("http://foo.example.com:80/");
         verifyNoMoreInteractions(mockStorage);
@@ -192,7 +208,7 @@ public class TestDefaultCacheInvalidator {
     @Test
     public void testDoesNotInvalidateHEADRequest() throws Exception {
         final HttpRequest request = new BasicHttpRequest("HEAD","/");
-        impl.flushInvalidatedCacheEntries(host, request);
+        impl.flushInvalidatedCacheEntries(host, request, cacheKeyResolver, mockStorage);
 
         verify(mockStorage).getEntry("http://foo.example.com:80/");
         verifyNoMoreInteractions(mockStorage);
@@ -200,7 +216,6 @@ public class TestDefaultCacheInvalidator {
 
     @Test
     public void testInvalidatesHEADCacheEntryIfSubsequentGETRequestsAreMadeToTheSameURI() throws Exception {
-        impl = new DefaultCacheInvalidator(cacheKeyGenerator, mockStorage);
         final URI uri = new URI("http://foo.example.com:80/");
         final String key = uri.toASCIIString();
         final HttpRequest request = new BasicHttpRequest("GET", uri);
@@ -209,7 +224,7 @@ public class TestDefaultCacheInvalidator {
         cacheEntryHasVariantMap(new HashMap<String, String>());
         cacheReturnsEntryForUri(key);
 
-        impl.flushInvalidatedCacheEntries(host, request);
+        impl.flushInvalidatedCacheEntries(host, request, cacheKeyResolver, mockStorage);
 
         verify(mockEntry).getRequestMethod();
         verify(mockEntry).getVariantMap();
@@ -219,7 +234,6 @@ public class TestDefaultCacheInvalidator {
 
     @Test
     public void testInvalidatesVariantHEADCacheEntriesIfSubsequentGETRequestsAreMadeToTheSameURI() throws Exception {
-        impl = new DefaultCacheInvalidator(cacheKeyGenerator, mockStorage);
         final URI uri = new URI("http://foo.example.com:80/");
         final String key = uri.toASCIIString();
         final HttpRequest request = new BasicHttpRequest("GET", uri);
@@ -231,7 +245,7 @@ public class TestDefaultCacheInvalidator {
         cacheEntryHasVariantMap(variants);
         cacheReturnsEntryForUri(key);
 
-        impl.flushInvalidatedCacheEntries(host, request);
+        impl.flushInvalidatedCacheEntries(host, request, cacheKeyResolver, mockStorage);
 
         verify(mockEntry).getRequestMethod();
         verify(mockEntry).getVariantMap();
@@ -248,7 +262,7 @@ public class TestDefaultCacheInvalidator {
 
         cacheReturnsEntryForUri(key);
 
-        impl.flushInvalidatedCacheEntries(host, request);
+        impl.flushInvalidatedCacheEntries(host, request, cacheKeyResolver, mockStorage);
 
         verify(mockStorage).getEntry(key);
         verifyNoMoreInteractions(mockStorage);
@@ -256,14 +270,13 @@ public class TestDefaultCacheInvalidator {
 
     @Test
     public void testDoesNotInvalidateHEADCacheEntryIfSubsequentHEADRequestsAreMadeToTheSameURI() throws Exception {
-        impl = new DefaultCacheInvalidator(cacheKeyGenerator, mockStorage);
         final URI uri = new URI("http://foo.example.com:80/");
         final String key = uri.toASCIIString();
         final HttpRequest request = new BasicHttpRequest("HEAD", uri);
 
         cacheReturnsEntryForUri(key);
 
-        impl.flushInvalidatedCacheEntries(host, request);
+        impl.flushInvalidatedCacheEntries(host, request, cacheKeyResolver, mockStorage);
 
         verify(mockStorage).getEntry(key);
         verifyNoMoreInteractions(mockStorage);
@@ -271,7 +284,6 @@ public class TestDefaultCacheInvalidator {
 
     @Test
     public void testDoesNotInvalidateGETCacheEntryIfSubsequentGETRequestsAreMadeToTheSameURI() throws Exception {
-        impl = new DefaultCacheInvalidator(cacheKeyGenerator, mockStorage);
         final URI uri = new URI("http://foo.example.com:80/");
         final String key = uri.toASCIIString();
         final HttpRequest request = new BasicHttpRequest("GET", uri);
@@ -279,7 +291,7 @@ public class TestDefaultCacheInvalidator {
         cacheEntryisForMethod("GET");
         cacheReturnsEntryForUri(key);
 
-        impl.flushInvalidatedCacheEntries(host, request);
+        impl.flushInvalidatedCacheEntries(host, request, cacheKeyResolver, mockStorage);
 
         verify(mockEntry).getRequestMethod();
         verify(mockStorage).getEntry(key);
@@ -291,7 +303,7 @@ public class TestDefaultCacheInvalidator {
         final HttpRequest request = new BasicHttpRequest("GET","/");
         request.setHeader("Cache-Control","no-cache");
 
-        impl.flushInvalidatedCacheEntries(host, request);
+        impl.flushInvalidatedCacheEntries(host, request, cacheKeyResolver, mockStorage);
 
         verify(mockStorage).getEntry("http://foo.example.com:80/");
         verifyNoMoreInteractions(mockStorage);
@@ -302,7 +314,7 @@ public class TestDefaultCacheInvalidator {
         final HttpRequest request = new BasicHttpRequest("GET","/");
         request.setHeader("Pragma","no-cache");
 
-        impl.flushInvalidatedCacheEntries(host, request);
+        impl.flushInvalidatedCacheEntries(host, request, cacheKeyResolver, mockStorage);
 
         verify(mockStorage).getEntry("http://foo.example.com:80/");
         verifyNoMoreInteractions(mockStorage);
@@ -319,7 +331,7 @@ public class TestDefaultCacheInvalidator {
         cacheReturnsEntryForUri(key);
         cacheEntryHasVariantMap(mapOfURIs);
 
-        impl.flushInvalidatedCacheEntries(host, request);
+        impl.flushInvalidatedCacheEntries(host, request, cacheKeyResolver, mockStorage);
 
         verify(mockStorage).getEntry(key);
         verify(mockEntry).getVariantMap();
@@ -328,24 +340,10 @@ public class TestDefaultCacheInvalidator {
     }
 
     @Test
-    public void testCacheFlushException() throws Exception {
-        final HttpRequest request = new BasicHttpRequest("POST","/");
-        final URI uri = new URI("http://foo.example.com:80/");
-        final String key = uri.toASCIIString();
-
-        cacheReturnsExceptionForUri(key);
-
-        impl.flushInvalidatedCacheEntries(host, request);
-
-        verify(mockStorage).getEntry(key);
-        verifyNoMoreInteractions(mockStorage);
-    }
-
-    @Test
     public void doesNotFlushForResponsesWithoutContentLocation() throws Exception {
         final HttpRequest request = new BasicHttpRequest("POST","/");
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_OK);
-        impl.flushInvalidatedCacheEntries(host, request, response);
+        impl.flushInvalidatedCacheEntries(host, request, response, cacheKeyResolver, mockStorage);
 
         verifyNoMoreInteractions(mockStorage);
     }
@@ -366,7 +364,7 @@ public class TestDefaultCacheInvalidator {
 
         when(mockStorage.getEntry(key)).thenReturn(entry);
 
-        impl.flushInvalidatedCacheEntries(host, request, response);
+        impl.flushInvalidatedCacheEntries(host, request, response, cacheKeyResolver, mockStorage);
 
         verify(mockStorage).getEntry(key);
         verify(mockStorage).removeEntry(key);
@@ -388,7 +386,7 @@ public class TestDefaultCacheInvalidator {
 
         when(mockStorage.getEntry(key)).thenReturn(entry);
 
-        impl.flushInvalidatedCacheEntries(host, request, response);
+        impl.flushInvalidatedCacheEntries(host, request, response, cacheKeyResolver, mockStorage);
 
         verify(mockStorage).getEntry(key);
         verify(mockStorage).removeEntry(key);
@@ -403,7 +401,7 @@ public class TestDefaultCacheInvalidator {
         final String key = "http://foo.example.com:80/bar";
         response.setHeader("Content-Location", key);
 
-        impl.flushInvalidatedCacheEntries(host, request, response);
+        impl.flushInvalidatedCacheEntries(host, request, response, cacheKeyResolver, mockStorage);
 
         verifyNoMoreInteractions(mockStorage);
     }
@@ -424,7 +422,7 @@ public class TestDefaultCacheInvalidator {
 
         when(mockStorage.getEntry(cacheKey)).thenReturn(entry);
 
-        impl.flushInvalidatedCacheEntries(host, request, response);
+        impl.flushInvalidatedCacheEntries(host, request, response, cacheKeyResolver, mockStorage);
 
         verify(mockStorage).getEntry(cacheKey);
         verify(mockStorage).removeEntry(cacheKey);
@@ -446,7 +444,7 @@ public class TestDefaultCacheInvalidator {
 
         when(mockStorage.getEntry(cacheKey)).thenReturn(entry);
 
-        impl.flushInvalidatedCacheEntries(host, request, response);
+        impl.flushInvalidatedCacheEntries(host, request, response, cacheKeyResolver, mockStorage);
 
         verify(mockStorage).getEntry(cacheKey);
         verify(mockStorage).removeEntry(cacheKey);
@@ -468,7 +466,7 @@ public class TestDefaultCacheInvalidator {
 
         when(mockStorage.getEntry(cacheKey)).thenReturn(entry);
 
-        impl.flushInvalidatedCacheEntries(host, request, response);
+        impl.flushInvalidatedCacheEntries(host, request, response, cacheKeyResolver, mockStorage);
 
         verify(mockStorage).getEntry(cacheKey);
         verifyNoMoreInteractions(mockStorage);
@@ -491,7 +489,7 @@ public class TestDefaultCacheInvalidator {
         });
 
         when(mockStorage.getEntry(key)).thenReturn(entry);
-        impl.flushInvalidatedCacheEntries(host, request, response);
+        impl.flushInvalidatedCacheEntries(host, request, response, cacheKeyResolver, mockStorage);
 
         verify(mockStorage).getEntry(key);
         verifyNoMoreInteractions(mockStorage);
@@ -513,7 +511,7 @@ public class TestDefaultCacheInvalidator {
 
         when(mockStorage.getEntry(key)).thenReturn(entry);
 
-        impl.flushInvalidatedCacheEntries(host, request, response);
+        impl.flushInvalidatedCacheEntries(host, request, response, cacheKeyResolver, mockStorage);
 
         verify(mockStorage).getEntry(key);
         verifyNoMoreInteractions(mockStorage);
@@ -530,7 +528,7 @@ public class TestDefaultCacheInvalidator {
 
         when(mockStorage.getEntry(key)).thenReturn(null);
 
-        impl.flushInvalidatedCacheEntries(host, request, response);
+        impl.flushInvalidatedCacheEntries(host, request, response, cacheKeyResolver, mockStorage);
 
         verify(mockStorage).getEntry(key);
         verifyNoMoreInteractions(mockStorage);
@@ -552,7 +550,7 @@ public class TestDefaultCacheInvalidator {
 
         when(mockStorage.getEntry(key)).thenReturn(entry);
 
-        impl.flushInvalidatedCacheEntries(host, request, response);
+        impl.flushInvalidatedCacheEntries(host, request, response, cacheKeyResolver, mockStorage);
 
         verify(mockStorage).getEntry(key);
         verifyNoMoreInteractions(mockStorage);
@@ -573,7 +571,7 @@ public class TestDefaultCacheInvalidator {
 
         when(mockStorage.getEntry(key)).thenReturn(entry);
 
-        impl.flushInvalidatedCacheEntries(host, request, response);
+        impl.flushInvalidatedCacheEntries(host, request, response, cacheKeyResolver, mockStorage);
 
         verify(mockStorage).getEntry(key);
         verifyNoMoreInteractions(mockStorage);
@@ -595,7 +593,7 @@ public class TestDefaultCacheInvalidator {
 
         when(mockStorage.getEntry(key)).thenReturn(entry);
 
-        impl.flushInvalidatedCacheEntries(host, request, response);
+        impl.flushInvalidatedCacheEntries(host, request, response, cacheKeyResolver, mockStorage);
 
         verify(mockStorage).getEntry(key);
         verify(mockStorage).removeEntry(key);
@@ -617,7 +615,7 @@ public class TestDefaultCacheInvalidator {
 
         when(mockStorage.getEntry(key)).thenReturn(entry);
 
-        impl.flushInvalidatedCacheEntries(host, request, response);
+        impl.flushInvalidatedCacheEntries(host, request, response, cacheKeyResolver, mockStorage);
 
         verify(mockStorage).getEntry(key);
         verify(mockStorage).removeEntry(key);
@@ -640,7 +638,7 @@ public class TestDefaultCacheInvalidator {
 
         when(mockStorage.getEntry(key)).thenReturn(entry);
 
-        impl.flushInvalidatedCacheEntries(host, request, response);
+        impl.flushInvalidatedCacheEntries(host, request, response, cacheKeyResolver, mockStorage);
 
         verify(mockStorage).getEntry(key);
         verify(mockStorage).removeEntry(key);
@@ -663,7 +661,7 @@ public class TestDefaultCacheInvalidator {
 
         when(mockStorage.getEntry(key)).thenReturn(entry);
 
-        impl.flushInvalidatedCacheEntries(host, request, response);
+        impl.flushInvalidatedCacheEntries(host, request, response, cacheKeyResolver, mockStorage);
 
         verify(mockStorage).getEntry(key);
         verify(mockStorage).removeEntry(key);

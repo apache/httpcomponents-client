@@ -76,7 +76,7 @@ class AsynchronousValidator implements Closeable {
     AsynchronousValidator(final SchedulingStrategy schedulingStrategy) {
         this.schedulingStrategy = schedulingStrategy;
         this.queued = new HashSet<>();
-        this.cacheKeyGenerator = new CacheKeyGenerator();
+        this.cacheKeyGenerator = CacheKeyGenerator.INSTANCE;
         this.failureCache = new DefaultFailureCache();
     }
 

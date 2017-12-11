@@ -49,7 +49,7 @@ public class TestCacheKeyGenerator {
             "/full_episodes");
     private static final BasicHttpRequest REQUEST_ROOT = new BasicHttpRequest("GET", "/");
 
-    CacheKeyGenerator extractor;
+    private CacheKeyGenerator extractor;
     private HttpHost defaultHost;
     private HttpCacheEntry mockEntry;
     private HttpRequest mockRequest;
@@ -59,7 +59,7 @@ public class TestCacheKeyGenerator {
         defaultHost = new HttpHost("foo.example.com");
         mockEntry = mock(HttpCacheEntry.class);
         mockRequest = mock(HttpRequest.class);
-        extractor = new CacheKeyGenerator();
+        extractor = CacheKeyGenerator.INSTANCE;
     }
 
     @Test

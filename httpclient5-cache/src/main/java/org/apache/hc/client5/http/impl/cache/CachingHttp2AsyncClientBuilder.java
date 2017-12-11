@@ -130,12 +130,11 @@ public class CachingHttp2AsyncClientBuilder extends Http2AsyncClientBuilder {
                 storageCopy = managedStorage;
             }
         }
-        final CacheKeyGenerator uriExtractor = new CacheKeyGenerator();
         final HttpCache httpCache = new BasicHttpCache(
                 resourceFactoryCopy,
                 storageCopy,
-                uriExtractor,
-                this.httpCacheInvalidator != null ? this.httpCacheInvalidator : new DefaultCacheInvalidator(uriExtractor, storageCopy));
+                CacheKeyGenerator.INSTANCE,
+                this.httpCacheInvalidator != null ? this.httpCacheInvalidator : new DefaultCacheInvalidator());
 
         final AsyncCachingExec cachingExec = new AsyncCachingExec(httpCache, config);
         execChainDefinition.addBefore(ChainElements.PROTOCOL.name(), cachingExec, ChainElements.CACHING.name());
