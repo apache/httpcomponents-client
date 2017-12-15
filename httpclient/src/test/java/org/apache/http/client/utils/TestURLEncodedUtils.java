@@ -170,6 +170,14 @@ public class TestURLEncodedUtils {
     }
 
     @Test
+    public void testEmptyQuery() throws Exception {
+        final List<NameValuePair> result = URLEncodedUtils.parse("", Consts.UTF_8);
+        Assert.assertEquals(0, result.size());
+        // [HTTPCLIENT-1889]:
+        result.add(new BasicNameValuePair("key", "value"));
+    }
+
+    @Test
     public void testParseEntity() throws Exception {
         final StringEntity entity = new StringEntity("Name1=Value1");
 

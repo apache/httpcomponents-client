@@ -11,6 +11,10 @@ Changelog:
 * [HTTPCLIENT-1886] Update HttpClient 4.5.x from HttpCore 4.4.7 to 4.4.8
   Contributed by Gary Gregory <ggregory at apache.org>
 
+* [HTTPCLIENT-1889] org.apache.http.client.utils.URLEncodedUtils.parse() 
+  should return a new ArrayList when there are no query parameters.
+  Contributed by Gary Gregory <ggregory at apache.org>
+
 
 Release 4.5.4
 -------------------

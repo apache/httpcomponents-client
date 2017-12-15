@@ -37,7 +37,6 @@ import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
 
@@ -100,7 +99,7 @@ public class URLEncodedUtils {
         if (query != null && !query.isEmpty()) {
             return parse(query, charset);
         }
-        return Collections.emptyList();
+        return createEmptyList();
     }
 
     /**
@@ -120,14 +119,14 @@ public class URLEncodedUtils {
         Args.notNull(entity, "HTTP entity");
         final ContentType contentType = ContentType.get(entity);
         if (contentType == null || !contentType.getMimeType().equalsIgnoreCase(CONTENT_TYPE)) {
-            return Collections.emptyList();
+            return createEmptyList();
         }
         final long len = entity.getContentLength();
         Args.check(len <= Integer.MAX_VALUE, "HTTP entity is too large");
         final Charset charset = contentType.getCharset() != null ? contentType.getCharset() : HTTP.DEF_CONTENT_CHARSET;
         final InputStream instream = entity.getContent();
         if (instream == null) {
-            return Collections.emptyList();
+            return createEmptyList();
         }
         final CharArrayBuffer buf;
         try {
@@ -143,7 +142,7 @@ public class URLEncodedUtils {
             instream.close();
         }
         if (buf.length() == 0) {
-            return Collections.emptyList();
+            return createEmptyList();
         }
         return parse(buf, charset, QP_SEP_A);
     }
@@ -243,7 +242,7 @@ public class URLEncodedUtils {
      */
     public static List<NameValuePair> parse(final String s, final Charset charset) {
         if (s == null) {
-            return Collections.emptyList();
+            return createEmptyList();
         }
         final CharArrayBuffer buffer = new CharArrayBuffer(s.length());
         buffer.append(s);
@@ -266,7 +265,7 @@ public class URLEncodedUtils {
      */
     public static List<NameValuePair> parse(final String s, final Charset charset, final char... separators) {
         if (s == null) {
-            return Collections.emptyList();
+            return createEmptyList();
         }
         final CharArrayBuffer buffer = new CharArrayBuffer(s.length());
         buffer.append(s);
@@ -519,6 +518,10 @@ public class URLEncodedUtils {
     }
 
     private static final int RADIX = 16;
+
+    private static List<NameValuePair> createEmptyList() {
+        return new ArrayList<NameValuePair>(0);
+    }
 
     private static String urlEncode(
             final String content,
