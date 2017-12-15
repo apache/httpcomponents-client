@@ -28,6 +28,9 @@ package org.apache.hc.client5.http.impl.cache.memcached;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntrySerializer;
 import org.apache.hc.client5.http.cache.ResourceIOException;
@@ -180,6 +183,16 @@ public class MemcachedHttpCacheStorage extends AbstractBinaryCacheStorage<CASVal
     @Override
     protected void delete(final String storageKey) throws ResourceIOException {
         client.delete(storageKey);
+    }
+
+    @Override
+    protected Map<String, byte[]> bulkRestore(final Collection<String> storageKeys) throws ResourceIOException {
+        final Map<String, ?> storageObjectMap = client.getBulk(storageKeys);
+        final Map<String, byte[]> resultMap = new HashMap<>(storageObjectMap.size());
+        for (final Map.Entry<String, ?> resultEntry: storageObjectMap.entrySet()) {
+            resultMap.put(resultEntry.getKey(), castAsByteArray(resultEntry.getValue()));
+        }
+        return resultMap;
     }
 
 }

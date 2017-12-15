@@ -26,6 +26,9 @@
  */
 package org.apache.hc.client5.http.cache;
 
+import java.util.Collection;
+import java.util.Map;
+
 import org.apache.hc.core5.concurrent.Cancellable;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.util.Args;
@@ -89,6 +92,17 @@ public final class HttpAsyncCacheStorageAdaptor implements HttpAsyncCacheStorage
         try {
             cacheStorage.updateEntry(key, casOperation);
             callback.completed(Boolean.TRUE);
+        } catch (final Exception ex) {
+            callback.failed(ex);
+        }
+        return NOOP_CANCELLABLE;
+    }
+
+    public Cancellable getEntries(final Collection<String> keys, final FutureCallback<Map<String, HttpCacheEntry>> callback) {
+        Args.notNull(keys, "Key");
+        Args.notNull(callback, "Callback");
+        try {
+            callback.completed(cacheStorage.getEntries(keys));
         } catch (final Exception ex) {
             callback.failed(ex);
         }

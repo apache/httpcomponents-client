@@ -26,6 +26,13 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.hc.client5.http.cache.HttpCacheCASOperation;
@@ -57,6 +64,8 @@ public class TestAbstractSerializingAsyncCacheStorage {
     private FutureCallback<Boolean> operationCallback;
     @Mock
     private FutureCallback<HttpCacheEntry> cacheEntryCallback;
+    @Mock
+    private FutureCallback<Map<String, HttpCacheEntry>> bulkCacheEntryCallback;
 
     private AbstractBinaryAsyncCacheStorage<String> impl;
 
@@ -445,6 +454,104 @@ public class TestAbstractSerializingAsyncCacheStorage {
         Mockito.verify(impl, Mockito.times(3)).updateCAS(
                 Mockito.eq("bar"), Mockito.eq("stuff"), Mockito.<byte[]>any(), Mockito.<FutureCallback<Boolean>>any());
         Mockito.verify(operationCallback).failed(Mockito.<HttpCacheUpdateException>any());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testBulkGet() throws Exception {
+        final String key1 = "foo this";
+        final String key2 = "foo that";
+        final String storageKey1 = "bar this";
+        final String storageKey2 = "bar that";
+        final HttpCacheEntry value1 = HttpTestUtils.makeCacheEntry();
+        final HttpCacheEntry value2 = HttpTestUtils.makeCacheEntry();
+
+        when(impl.digestToStorageKey(key1)).thenReturn(storageKey1);
+        when(impl.digestToStorageKey(key2)).thenReturn(storageKey2);
+
+        when(impl.bulkRestore(
+                Mockito.<String>anyCollection(),
+                Mockito.<FutureCallback<Map<String, byte[]>>>any())).thenAnswer(new Answer<Cancellable>() {
+
+            @Override
+            public Cancellable answer(final InvocationOnMock invocation) throws Throwable {
+                final Collection<String> keys = invocation.getArgument(0);
+                final FutureCallback<Map<String, byte[]>> callback = invocation.getArgument(1);
+                final Map<String, byte[]> resultMap = new HashMap<>();
+                if (keys.contains(storageKey1)) {
+                    resultMap.put(storageKey1, serialize(key1, value1));
+                }
+                if (keys.contains(storageKey2)) {
+                    resultMap.put(storageKey2, serialize(key2, value2));
+                }
+                callback.completed(resultMap);
+                return cancellable;
+            }
+        });
+
+        impl.getEntries(Arrays.asList(key1, key2), bulkCacheEntryCallback);
+        final ArgumentCaptor<Map<String, HttpCacheEntry>> argumentCaptor = ArgumentCaptor.forClass(Map.class);
+        Mockito.verify(bulkCacheEntryCallback).completed(argumentCaptor.capture());
+
+        final Map<String, HttpCacheEntry> entryMap = argumentCaptor.getValue();
+        Assert.assertThat(entryMap, CoreMatchers.notNullValue());
+        Assert.assertThat(entryMap.get(key1), HttpCacheEntryMatcher.equivalent(value1));
+        Assert.assertThat(entryMap.get(key2), HttpCacheEntryMatcher.equivalent(value2));
+
+        verify(impl).digestToStorageKey(key1);
+        verify(impl).digestToStorageKey(key2);
+        verify(impl).bulkRestore(
+                Mockito.eq(Arrays.asList(storageKey1, storageKey2)),
+                Mockito.<FutureCallback<Map<String, byte[]>>>any());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testBulkGetKeyMismatch() throws Exception {
+        final String key1 = "foo this";
+        final String key2 = "foo that";
+        final String storageKey1 = "bar this";
+        final String storageKey2 = "bar that";
+        final HttpCacheEntry value1 = HttpTestUtils.makeCacheEntry();
+        final HttpCacheEntry value2 = HttpTestUtils.makeCacheEntry();
+
+        when(impl.digestToStorageKey(key1)).thenReturn(storageKey1);
+        when(impl.digestToStorageKey(key2)).thenReturn(storageKey2);
+
+        when(impl.bulkRestore(
+                Mockito.<String>anyCollection(),
+                Mockito.<FutureCallback<Map<String, byte[]>>>any())).thenAnswer(new Answer<Cancellable>() {
+
+            @Override
+            public Cancellable answer(final InvocationOnMock invocation) throws Throwable {
+                final Collection<String> keys = invocation.getArgument(0);
+                final FutureCallback<Map<String, byte[]>> callback = invocation.getArgument(1);
+                final Map<String, byte[]> resultMap = new HashMap<>();
+                if (keys.contains(storageKey1)) {
+                    resultMap.put(storageKey1, serialize(key1, value1));
+                }
+                if (keys.contains(storageKey2)) {
+                    resultMap.put(storageKey2, serialize("not foo", value2));
+                }
+                callback.completed(resultMap);
+                return cancellable;
+            }
+        });
+
+        impl.getEntries(Arrays.asList(key1, key2), bulkCacheEntryCallback);
+        final ArgumentCaptor<Map<String, HttpCacheEntry>> argumentCaptor = ArgumentCaptor.forClass(Map.class);
+        Mockito.verify(bulkCacheEntryCallback).completed(argumentCaptor.capture());
+
+        final Map<String, HttpCacheEntry> entryMap = argumentCaptor.getValue();
+        Assert.assertThat(entryMap, CoreMatchers.notNullValue());
+        Assert.assertThat(entryMap.get(key1), HttpCacheEntryMatcher.equivalent(value1));
+        Assert.assertThat(entryMap.get(key2), CoreMatchers.nullValue());
+
+        verify(impl).digestToStorageKey(key1);
+        verify(impl).digestToStorageKey(key2);
+        verify(impl).bulkRestore(
+                Mockito.eq(Arrays.asList(storageKey1, storageKey2)),
+                Mockito.<FutureCallback<Map<String, byte[]>>>any());
     }
 
 }

@@ -26,6 +26,11 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.hc.client5.http.cache.HttpAsyncCacheStorage;
@@ -67,6 +72,8 @@ public abstract class AbstractSerializingAsyncCacheStorage<T, CAS> implements Ht
     protected abstract Cancellable updateCAS(String storageKey, CAS cas, T storageObject, FutureCallback<Boolean> callback);
 
     protected abstract Cancellable delete(String storageKey, FutureCallback<Boolean> callback);
+
+    protected abstract Cancellable bulkRestore(Collection<String> storageKeys, FutureCallback<Map<String, T>> callback);
 
     @Override
     public final Cancellable putEntry(
@@ -222,6 +229,51 @@ public abstract class AbstractSerializingAsyncCacheStorage<T, CAS> implements Ht
             }));
         } catch (final Exception ex) {
             callback.failed(ex);
+        }
+    }
+
+    @Override
+    public final Cancellable getEntries(final Collection<String> keys, final FutureCallback<Map<String, HttpCacheEntry>> callback) {
+        Args.notNull(keys, "Storage keys");
+        Args.notNull(callback, "Callback");
+        try {
+            final List<String> storageKeys = new ArrayList<>(keys.size());
+            for (final String key: keys) {
+                storageKeys.add(digestToStorageKey(key));
+            }
+            return bulkRestore(storageKeys, new FutureCallback<Map<String, T>>() {
+
+                @Override
+                public void completed(final Map<String, T> storageObjects) {
+                    try {
+                        final Map<String, HttpCacheEntry> resultMap = new HashMap<>();
+                        for (final Map.Entry<String, T> storageEntry: storageObjects.entrySet()) {
+                            final String key = storageEntry.getKey();
+                            final HttpCacheStorageEntry entry = serializer.deserialize(storageEntry.getValue());
+                            if (key.equals(entry.getKey())) {
+                                resultMap.put(key, entry.getContent());
+                            }
+                        }
+                        callback.completed(resultMap);
+                    } catch (final Exception ex) {
+                        callback.failed(ex);
+                    }
+                }
+
+                @Override
+                public void failed(final Exception ex) {
+                    callback.failed(ex);
+                }
+
+                @Override
+                public void cancelled() {
+                    callback.cancelled();
+                }
+
+            });
+        } catch (final Exception ex) {
+            callback.failed(ex);
+            return NOOP_CANCELLABLE;
         }
     }
 

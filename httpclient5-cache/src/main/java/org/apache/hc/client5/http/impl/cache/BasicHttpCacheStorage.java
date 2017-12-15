@@ -26,12 +26,17 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.hc.client5.http.cache.HttpCacheCASOperation;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.HttpCacheStorage;
-import org.apache.hc.client5.http.cache.HttpCacheCASOperation;
 import org.apache.hc.client5.http.cache.ResourceIOException;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.util.Args;
 
 /**
  * Basic {@link HttpCacheStorage} implementation backed by an instance of
@@ -95,6 +100,19 @@ public class BasicHttpCacheStorage implements HttpCacheStorage {
             final String url, final HttpCacheCASOperation casOperation) throws ResourceIOException {
         final HttpCacheEntry existingEntry = entries.get(url);
         entries.put(url, casOperation.execute(existingEntry));
+    }
+
+    @Override
+    public Map<String, HttpCacheEntry> getEntries(final Collection<String> keys) throws ResourceIOException {
+        Args.notNull(keys, "Key");
+        final Map<String, HttpCacheEntry> resultMap = new HashMap<>(keys.size());
+        for (final String key: keys) {
+            final HttpCacheEntry entry = getEntry(key);
+            if (entry != null) {
+                resultMap.put(key, entry);
+            }
+        }
+        return resultMap;
     }
 
 }

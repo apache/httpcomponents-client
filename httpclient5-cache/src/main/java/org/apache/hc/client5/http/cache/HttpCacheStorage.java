@@ -26,6 +26,9 @@
  */
 package org.apache.hc.client5.http.cache;
 
+import java.util.Collection;
+import java.util.Map;
+
 /**
  * {@literal HttpCacheStorage} represents an abstract HTTP cache
  * storage backend that can then be plugged into the classic
@@ -71,5 +74,17 @@ public interface HttpCacheStorage {
      */
     void updateEntry(
             String key, HttpCacheCASOperation casOperation) throws ResourceIOException, HttpCacheUpdateException;
+
+
+    /**
+     * Retrieves multiple cache entries stored under the given keys. Some implementations
+     * may use a single bulk operation to do the retrieval.
+     *
+     * @param keys cache keys
+     * @return an map of {@link HttpCacheEntry}s.
+     *
+     * @since 5.0
+     */
+    Map<String, HttpCacheEntry> getEntries(Collection<String> keys) throws ResourceIOException;
 
 }

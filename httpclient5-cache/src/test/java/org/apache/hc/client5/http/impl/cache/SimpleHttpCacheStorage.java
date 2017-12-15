@@ -26,12 +26,13 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.hc.client5.http.cache.HttpCacheCASOperation;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.HttpCacheStorage;
-import org.apache.hc.client5.http.cache.HttpCacheCASOperation;
 import org.apache.hc.client5.http.cache.ResourceIOException;
 
 class SimpleHttpCacheStorage implements HttpCacheStorage {
@@ -63,6 +64,18 @@ class SimpleHttpCacheStorage implements HttpCacheStorage {
         final HttpCacheEntry v1 = map.get(key);
         final HttpCacheEntry v2 = casOperation.execute(v1);
         map.put(key,v2);
+    }
+
+    @Override
+    public Map<String, HttpCacheEntry> getEntries(final Collection<String> keys) throws ResourceIOException {
+        final Map<String, HttpCacheEntry> resultMap = new HashMap<>(keys.size());
+        for (final String key: keys) {
+            final HttpCacheEntry entry = getEntry(key);
+            if (entry != null) {
+                resultMap.put(key, entry);
+            }
+        }
+        return resultMap;
     }
 
 }

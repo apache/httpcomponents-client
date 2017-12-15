@@ -30,9 +30,14 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.hc.client5.http.cache.HttpCacheCASOperation;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.HttpCacheStorageEntry;
-import org.apache.hc.client5.http.cache.HttpCacheCASOperation;
 import org.apache.hc.client5.http.cache.HttpCacheUpdateException;
 import org.apache.hc.client5.http.cache.ResourceIOException;
 import org.hamcrest.CoreMatchers;
@@ -42,6 +47,8 @@ import org.junit.Test;
 import org.mockito.Answers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 @SuppressWarnings("boxing") // test code
 public class TestAbstractSerializingCacheStorage {
@@ -253,4 +260,81 @@ public class TestAbstractSerializingCacheStorage {
         verify(impl, Mockito.times(3)).getStorageObject("stuff");
         verify(impl, Mockito.times(3)).updateCAS(Mockito.eq("bar"), Mockito.eq("stuff"), Mockito.<byte[]>any());
     }
+
+    @Test
+    public void testBulkGet() throws Exception {
+        final String key1 = "foo this";
+        final String key2 = "foo that";
+        final String storageKey1 = "bar this";
+        final String storageKey2 = "bar that";
+        final HttpCacheEntry value1 = HttpTestUtils.makeCacheEntry();
+        final HttpCacheEntry value2 = HttpTestUtils.makeCacheEntry();
+
+        when(impl.digestToStorageKey(key1)).thenReturn(storageKey1);
+        when(impl.digestToStorageKey(key2)).thenReturn(storageKey2);
+
+        when(impl.bulkRestore(Mockito.<String>anyCollection())).thenAnswer(new Answer<Map<String, byte[]>>() {
+
+            @Override
+            public Map<String, byte[]> answer(final InvocationOnMock invocation) throws Throwable {
+                final Collection<String> keys = invocation.getArgument(0);
+                final Map<String, byte[]> resultMap = new HashMap<>();
+                if (keys.contains(storageKey1)) {
+                    resultMap.put(storageKey1, serialize(key1, value1));
+                }
+                if (keys.contains(storageKey2)) {
+                    resultMap.put(storageKey2, serialize(key2, value2));
+                }
+                return resultMap;
+            }
+        });
+
+        final Map<String, HttpCacheEntry> entryMap = impl.getEntries(Arrays.asList(key1, key2));
+        Assert.assertThat(entryMap, CoreMatchers.notNullValue());
+        Assert.assertThat(entryMap.get(key1), HttpCacheEntryMatcher.equivalent(value1));
+        Assert.assertThat(entryMap.get(key2), HttpCacheEntryMatcher.equivalent(value2));
+
+        verify(impl).digestToStorageKey(key1);
+        verify(impl).digestToStorageKey(key2);
+        verify(impl).bulkRestore(Arrays.asList(storageKey1, storageKey2));
+    }
+
+    @Test
+    public void testBulkGetKeyMismatch() throws Exception {
+        final String key1 = "foo this";
+        final String key2 = "foo that";
+        final String storageKey1 = "bar this";
+        final String storageKey2 = "bar that";
+        final HttpCacheEntry value1 = HttpTestUtils.makeCacheEntry();
+        final HttpCacheEntry value2 = HttpTestUtils.makeCacheEntry();
+
+        when(impl.digestToStorageKey(key1)).thenReturn(storageKey1);
+        when(impl.digestToStorageKey(key2)).thenReturn(storageKey2);
+
+        when(impl.bulkRestore(Mockito.<String>anyCollection())).thenAnswer(new Answer<Map<String, byte[]>>() {
+
+            @Override
+            public Map<String, byte[]> answer(final InvocationOnMock invocation) throws Throwable {
+                final Collection<String> keys = invocation.getArgument(0);
+                final Map<String, byte[]> resultMap = new HashMap<>();
+                if (keys.contains(storageKey1)) {
+                    resultMap.put(storageKey1, serialize(key1, value1));
+                }
+                if (keys.contains(storageKey2)) {
+                    resultMap.put(storageKey2, serialize("not foo", value2));
+                }
+                return resultMap;
+            }
+        });
+
+        final Map<String, HttpCacheEntry> entryMap = impl.getEntries(Arrays.asList(key1, key2));
+        Assert.assertThat(entryMap, CoreMatchers.notNullValue());
+        Assert.assertThat(entryMap.get(key1), HttpCacheEntryMatcher.equivalent(value1));
+        Assert.assertThat(entryMap.get(key2), CoreMatchers.nullValue());
+
+        verify(impl).digestToStorageKey(key1);
+        verify(impl).digestToStorageKey(key2);
+        verify(impl).bulkRestore(Arrays.asList(storageKey1, storageKey2));
+    }
+
 }

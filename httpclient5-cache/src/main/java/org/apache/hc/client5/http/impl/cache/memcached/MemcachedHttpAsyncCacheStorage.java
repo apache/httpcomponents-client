@@ -28,6 +28,9 @@ package org.apache.hc.client5.http.impl.cache.memcached;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntrySerializer;
@@ -42,6 +45,9 @@ import org.apache.hc.core5.util.Args;
 import net.spy.memcached.CASResponse;
 import net.spy.memcached.CASValue;
 import net.spy.memcached.MemcachedClient;
+import net.spy.memcached.internal.BulkFuture;
+import net.spy.memcached.internal.BulkGetCompletionListener;
+import net.spy.memcached.internal.BulkGetFuture;
 import net.spy.memcached.internal.GetCompletionListener;
 import net.spy.memcached.internal.GetFuture;
 import net.spy.memcached.internal.OperationCompletionListener;
@@ -245,6 +251,31 @@ public class MemcachedHttpAsyncCacheStorage extends AbstractBinaryAsyncCacheStor
     @Override
     protected Cancellable delete(final String storageKey, final FutureCallback<Boolean> callback) {
         return operation(client.delete(storageKey), callback);
+    }
+
+    @Override
+    protected Cancellable bulkRestore(final Collection<String> storageKeys, final FutureCallback<Map<String, byte[]>> callback) {
+        final BulkFuture<Map<String, Object>> future = client.asyncGetBulk(storageKeys);
+        future.addListener(new BulkGetCompletionListener() {
+
+            @Override
+            public void onComplete(final BulkGetFuture<?> future) throws Exception {
+                final Map<String, ?> storageObjectMap = future.get();
+                final Map<String, byte[]> resultMap = new HashMap<>(storageObjectMap.size());
+                for (final Map.Entry<String, ?> resultEntry: storageObjectMap.entrySet()) {
+                    resultMap.put(resultEntry.getKey(), castAsByteArray(resultEntry.getValue()));
+                }
+                callback.completed(resultMap);
+            }
+        });
+        return new Cancellable() {
+
+            @Override
+            public boolean cancel() {
+                return future.cancel(true);
+            }
+
+        };
     }
 
 }

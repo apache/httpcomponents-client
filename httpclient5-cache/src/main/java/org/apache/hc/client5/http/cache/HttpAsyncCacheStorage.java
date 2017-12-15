@@ -26,6 +26,9 @@
  */
 package org.apache.hc.client5.http.cache;
 
+import java.util.Collection;
+import java.util.Map;
+
 import org.apache.hc.core5.concurrent.Cancellable;
 import org.apache.hc.core5.concurrent.FutureCallback;
 
@@ -86,5 +89,15 @@ public interface HttpAsyncCacheStorage {
      */
     Cancellable updateEntry(
             String key, HttpCacheCASOperation casOperation, FutureCallback<Boolean> callback);
+
+
+    /**
+     * Retrieves multiple cache entries stored under the given keys. Some implementations
+     * may use a single bulk operation to do the retrieval.
+     *
+     * @param keys cache keys
+     * @param callback result callback
+     */
+    Cancellable getEntries(Collection<String> keys, FutureCallback<Map<String, HttpCacheEntry>> callback);
 
 }

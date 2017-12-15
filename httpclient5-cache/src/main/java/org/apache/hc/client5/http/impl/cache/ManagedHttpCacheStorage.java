@@ -28,7 +28,10 @@ package org.apache.hc.client5.http.impl.cache;
 
 import java.io.Closeable;
 import java.lang.ref.ReferenceQueue;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -148,6 +151,19 @@ public class ManagedHttpCacheStorage implements HttpCacheStorage, Closeable {
                 keepResourceReference(updated);
             }
         }
+    }
+
+    @Override
+    public Map<String, HttpCacheEntry> getEntries(final Collection<String> keys) throws ResourceIOException {
+        Args.notNull(keys, "Key");
+        final Map<String, HttpCacheEntry> resultMap = new HashMap<>(keys.size());
+        for (final String key: keys) {
+            final HttpCacheEntry entry = getEntry(key);
+            if (entry != null) {
+                resultMap.put(key, entry);
+            }
+        }
+        return resultMap;
     }
 
     public void cleanResources() {

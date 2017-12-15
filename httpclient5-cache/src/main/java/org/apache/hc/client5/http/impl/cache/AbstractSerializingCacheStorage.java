@@ -26,11 +26,17 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.hc.client5.http.cache.HttpCacheCASOperation;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.HttpCacheEntrySerializer;
 import org.apache.hc.client5.http.cache.HttpCacheStorage;
 import org.apache.hc.client5.http.cache.HttpCacheStorageEntry;
-import org.apache.hc.client5.http.cache.HttpCacheCASOperation;
 import org.apache.hc.client5.http.cache.HttpCacheUpdateException;
 import org.apache.hc.client5.http.cache.ResourceIOException;
 import org.apache.hc.core5.util.Args;
@@ -63,6 +69,8 @@ public abstract class AbstractSerializingCacheStorage<T, CAS> implements HttpCac
     protected abstract boolean updateCAS(String storageKey, CAS cas, T storageObject) throws ResourceIOException;
 
     protected abstract void delete(String storageKey) throws ResourceIOException;
+
+    protected abstract Map<String, T> bulkRestore(Collection<String> storageKeys) throws ResourceIOException;
 
     @Override
     public final void putEntry(final String key, final HttpCacheEntry entry) throws ResourceIOException {
@@ -122,6 +130,25 @@ public abstract class AbstractSerializingCacheStorage<T, CAS> implements HttpCac
                 return;
             }
         }
+    }
+
+    @Override
+    public final Map<String, HttpCacheEntry> getEntries(final Collection<String> keys) throws ResourceIOException {
+        Args.notNull(keys, "Storage keys");
+        final List<String> storageKeys = new ArrayList<>(keys.size());
+        for (final String key: keys) {
+            storageKeys.add(digestToStorageKey(key));
+        }
+        final Map<String, T> storageObjectMap = bulkRestore(storageKeys);
+        final Map<String, HttpCacheEntry> resultMap = new HashMap<>();
+        for (final Map.Entry<String, T> storageEntry: storageObjectMap.entrySet()) {
+            final String key = storageEntry.getKey();
+            final HttpCacheStorageEntry entry = serializer.deserialize(storageEntry.getValue());
+            if (key.equals(entry.getKey())) {
+                resultMap.put(key, entry.getContent());
+            }
+        }
+        return resultMap;
     }
 
 }
