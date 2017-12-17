@@ -100,7 +100,7 @@ public class CachingExecBase {
         this.cacheConfig = config != null ? config : CacheConfig.DEFAULT;
     }
 
-    public CachingExecBase(final HttpCache cache, final CacheConfig config) {
+    CachingExecBase(final HttpCache cache, final CacheConfig config) {
         super();
         this.responseCache = Args.notNull(cache, "Response cache");
         this.cacheConfig = config != null ? config : CacheConfig.DEFAULT;

@@ -28,19 +28,16 @@ package org.apache.hc.client5.http.impl.cache;
 
 import java.net.URI;
 
-import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.HttpCacheInvalidator;
 import org.apache.hc.client5.http.cache.HttpCacheStorage;
 import org.apache.hc.client5.http.cache.ResourceIOException;
-import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.client5.http.utils.URIUtils;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.function.Resolver;
 import org.apache.hc.core5.http.Header;
-import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
@@ -55,7 +52,7 @@ import org.apache.logging.log4j.Logger;
  */
 @Contract(threading = ThreadingBehavior.IMMUTABLE)
 @Internal
-public class DefaultCacheInvalidator implements HttpCacheInvalidator {
+public class DefaultCacheInvalidator extends CacheInvalidatorBase implements HttpCacheInvalidator {
 
     public static final DefaultCacheInvalidator INSTANCE = new DefaultCacheInvalidator();
 
@@ -82,13 +79,6 @@ public class DefaultCacheInvalidator implements HttpCacheInvalidator {
         }
     }
 
-    /**
-     * Remove cache entries from the cache that are no longer fresh or
-     * have been invalidated in some way.
-     *
-     * @param host The backend host we are talking to
-     * @param request The HttpRequest to that host
-     */
     @Override
     public void flushInvalidatedCacheEntries(
             final HttpHost host,
@@ -134,66 +124,30 @@ public class DefaultCacheInvalidator implements HttpCacheInvalidator {
         }
     }
 
-    private boolean shouldInvalidateHeadCacheEntry(final HttpRequest req, final HttpCacheEntry parentCacheEntry) {
-        return requestIsGet(req) && isAHeadCacheEntry(parentCacheEntry);
-    }
-
-    private boolean requestIsGet(final HttpRequest req) {
-        return req.getMethod().equals((HeaderConstants.GET_METHOD));
-    }
-
-    private boolean isAHeadCacheEntry(final HttpCacheEntry parentCacheEntry) {
-        return parentCacheEntry != null && parentCacheEntry.getRequestMethod().equals(HeaderConstants.HEAD_METHOD);
-    }
-
-    private void flushUriIfSameHost(
-            final URI requestURI,
-            final URI targetURI,
-            final Resolver<URI, String> cacheKeyResolver,
-            final HttpCacheStorage storage) {
-        if (targetURI.isAbsolute() && targetURI.getAuthority().equalsIgnoreCase(requestURI.getAuthority())) {
-            removeEntry(storage, cacheKeyResolver.resolve(targetURI));
-        }
-    }
-
     private void flushRelativeUriFromSameHost(
             final URI requestUri,
             final URI uri,
             final Resolver<URI, String> cacheKeyResolver,
             final HttpCacheStorage storage) {
         final URI resolvedUri = uri != null ? URIUtils.resolve(requestUri, uri) : null;
-        if (resolvedUri != null) {
-            flushUriIfSameHost(requestUri, resolvedUri, cacheKeyResolver, storage);
+        if (resolvedUri != null && isSameHost(requestUri, resolvedUri)) {
+            removeEntry(storage, cacheKeyResolver.resolve(resolvedUri));
         }
     }
-
 
     private boolean flushAbsoluteUriFromSameHost(
             final URI requestUri,
             final URI uri,
             final Resolver<URI, String> cacheKeyResolver,
             final HttpCacheStorage storage) {
-        if (uri != null && uri.isAbsolute()) {
-            flushUriIfSameHost(requestUri, uri, cacheKeyResolver, storage);
+        if (uri != null && isSameHost(requestUri, uri)) {
+            removeEntry(storage, cacheKeyResolver.resolve(uri));
             return true;
         } else {
             return false;
         }
     }
 
-    private boolean requestShouldNotBeCached(final HttpRequest req) {
-        final String method = req.getMethod();
-        return notGetOrHeadRequest(method);
-    }
-
-    private boolean notGetOrHeadRequest(final String method) {
-        return !(HeaderConstants.GET_METHOD.equals(method) || HeaderConstants.HEAD_METHOD
-                .equals(method));
-    }
-
-    /** Flushes entries that were invalidated by the given response
-     * received for the given host/request pair.
-     */
     @Override
     public void flushInvalidatedCacheEntries(
             final HttpHost host,
@@ -211,75 +165,30 @@ public class DefaultCacheInvalidator implements HttpCacheInvalidator {
             return;
         }
         final URI contentLocation = getContentLocationURI(uri, response);
-        if (contentLocation != null) {
-            flushLocationCacheEntry(uri, response, contentLocation, cacheKeyResolver, storage);
+        if (contentLocation != null && isSameHost(uri, contentLocation)) {
+            flushLocationCacheEntry(response, contentLocation, storage, cacheKeyResolver);
         }
         final URI location = getLocationURI(uri, response);
-        if (location != null) {
-            flushLocationCacheEntry(uri, response, location, cacheKeyResolver, storage);
+        if (location != null && isSameHost(uri, location)) {
+            flushLocationCacheEntry(response, location, storage, cacheKeyResolver);
         }
     }
 
     private void flushLocationCacheEntry(
-            final URI requestUri,
             final HttpResponse response,
             final URI location,
-            final Resolver<URI, String> cacheKeyResolver,
-            final HttpCacheStorage storage) {
+            final HttpCacheStorage storage,
+            final Resolver<URI, String> cacheKeyResolver) {
         final String cacheKey = cacheKeyResolver.resolve(location);
         final HttpCacheEntry entry = getEntry(storage, cacheKey);
-        if (entry == null) {
-            return;
-        }
+        if (entry != null) {
+            // do not invalidate if response is strictly older than entry
+            // or if the etags match
 
-        // do not invalidate if response is strictly older than entry
-        // or if the etags match
-
-        if (responseDateOlderThanEntryDate(response, entry)) {
-            return;
-        }
-        if (!responseAndEntryEtagsDiffer(response, entry)) {
-            return;
-        }
-
-        flushUriIfSameHost(requestUri, location, cacheKeyResolver, storage);
-    }
-
-    private static URI getLocationURI(final URI requestUri, final HttpResponse response, final String headerName) {
-        final Header h = response.getFirstHeader(headerName);
-        if (h == null) {
-            return null;
-        }
-        final URI locationUri = HttpCacheSupport.normalizeQuetly(h.getValue());
-        if (locationUri == null) {
-            return requestUri;
-        }
-        if (locationUri.isAbsolute()) {
-            return locationUri;
-        } else {
-            return URIUtils.resolve(requestUri, locationUri);
+            if (!responseDateOlderThanEntryDate(response, entry) && responseAndEntryEtagsDiffer(response, entry)) {
+                removeEntry(storage, cacheKey);
+            }
         }
     }
 
-    private URI getContentLocationURI(final URI requestUri, final HttpResponse response) {
-        return getLocationURI(requestUri, response, HttpHeaders.CONTENT_LOCATION);
-    }
-
-    private URI getLocationURI(final URI requestUri, final HttpResponse response) {
-        return getLocationURI(requestUri, response, HttpHeaders.LOCATION);
-    }
-
-    private boolean responseAndEntryEtagsDiffer(final HttpResponse response,
-            final HttpCacheEntry entry) {
-        final Header entryEtag = entry.getFirstHeader(HeaderConstants.ETAG);
-        final Header responseEtag = response.getFirstHeader(HeaderConstants.ETAG);
-        if (entryEtag == null || responseEtag == null) {
-            return false;
-        }
-        return (!entryEtag.getValue().equals(responseEtag.getValue()));
-    }
-
-    private boolean responseDateOlderThanEntryDate(final HttpResponse response, final HttpCacheEntry entry) {
-        return DateUtils.isBefore(response, entry, HttpHeaders.DATE);
-    }
 }
