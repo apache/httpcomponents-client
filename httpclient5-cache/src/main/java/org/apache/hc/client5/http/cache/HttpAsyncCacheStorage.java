@@ -26,50 +26,65 @@
  */
 package org.apache.hc.client5.http.cache;
 
+import org.apache.hc.core5.concurrent.Cancellable;
+import org.apache.hc.core5.concurrent.FutureCallback;
+
 /**
- * {@literal HttpCacheStorage} represents an abstract HTTP cache
- * storage backend that can then be plugged into the classic
- * (blocking) request execution pipeline.
+ * {@literal HttpAsyncCacheStorage} represents an abstract HTTP cache
+ * storage backend that can then be plugged into the  asynchronous
+ * (non-blocking ) request execution
+ * pipeline.
  *
- * @since 4.1
+ * @since 5.0
  */
-public interface HttpCacheStorage {
+public interface HttpAsyncCacheStorage {
+
+    Cancellable NOOP_CANCELLABLE = new Cancellable() {
+
+        @Override
+        public boolean cancel() {
+            return false;
+        }
+
+    };
 
     /**
      * Store a given cache entry under the given key.
      * @param key where in the cache to store the entry
      * @param entry cached response to store
-     * @throws ResourceIOException
+     * @param callback result callback
      */
-    void putEntry(String key, HttpCacheEntry entry) throws ResourceIOException;
+    Cancellable putEntry(
+            String key, HttpCacheEntry entry, FutureCallback<Boolean> callback);
 
     /**
      * Retrieves the cache entry stored under the given key
      * or null if no entry exists under that key.
      * @param key cache key
+     * @param callback result callback
      * @return an {@link HttpCacheEntry} or {@code null} if no
      *   entry exists
-     * @throws ResourceIOException
      */
-    HttpCacheEntry getEntry(String key) throws ResourceIOException;
+    Cancellable getEntry(
+            String key, FutureCallback<HttpCacheEntry> callback);
 
     /**
      * Deletes/invalidates/removes any cache entries currently
      * stored under the given key.
      * @param key
-     * @throws ResourceIOException
+     * @param callback result callback
      */
-    void removeEntry(String key) throws ResourceIOException;
+    Cancellable removeEntry(
+            String key, FutureCallback<Boolean> callback);
 
     /**
      * Atomically applies the given callback to processChallenge an existing cache
      * entry under a given key.
      * @param key indicates which entry to modify
      * @param casOperation the CAS operation to perform.
-     * @throws ResourceIOException
-     * @throws HttpCacheUpdateException
+     * @param callback result callback
      */
-    void updateEntry(
-            String key, HttpCacheCASOperation casOperation) throws ResourceIOException, HttpCacheUpdateException;
+    Cancellable updateEntry(
+            String key, HttpCacheCASOperation casOperation, FutureCallback<Boolean> callback);
 
 }

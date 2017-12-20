@@ -28,18 +28,24 @@ package org.apache.hc.client5.http.impl.cache.memcached;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.concurrent.ExecutionException;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntrySerializer;
 import org.apache.hc.client5.http.cache.ResourceIOException;
-import org.apache.hc.client5.http.impl.cache.AbstractBinaryCacheStorage;
+import org.apache.hc.client5.http.impl.cache.AbstractBinaryAsyncCacheStorage;
 import org.apache.hc.client5.http.impl.cache.ByteArrayCacheEntrySerializer;
 import org.apache.hc.client5.http.impl.cache.CacheConfig;
+import org.apache.hc.core5.concurrent.Cancellable;
+import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.util.Args;
 
 import net.spy.memcached.CASResponse;
 import net.spy.memcached.CASValue;
 import net.spy.memcached.MemcachedClient;
-import net.spy.memcached.OperationTimeoutException;
+import net.spy.memcached.internal.GetCompletionListener;
+import net.spy.memcached.internal.GetFuture;
+import net.spy.memcached.internal.OperationCompletionListener;
+import net.spy.memcached.internal.OperationFuture;
 
 /**
  * <p>
@@ -77,9 +83,9 @@ import net.spy.memcached.OperationTimeoutException;
  * and the Java client used here, respectively.
  * </p>
  *
- * @since 4.1
+ * @since 5.0
  */
-public class MemcachedHttpCacheStorage extends AbstractBinaryCacheStorage<CASValue<Object>> {
+public class MemcachedHttpAsyncCacheStorage extends AbstractBinaryAsyncCacheStorage<CASValue<Object>> {
 
     private final MemcachedClient client;
     private final KeyHashingScheme keyHashingScheme;
@@ -92,7 +98,7 @@ public class MemcachedHttpCacheStorage extends AbstractBinaryCacheStorage<CASVal
      * @param address where the <i>memcached</i> daemon is running
      * @throws IOException in case of an error
      */
-    public MemcachedHttpCacheStorage(final InetSocketAddress address) throws IOException {
+    public MemcachedHttpAsyncCacheStorage(final InetSocketAddress address) throws IOException {
         this(new MemcachedClient(address));
     }
 
@@ -101,7 +107,7 @@ public class MemcachedHttpCacheStorage extends AbstractBinaryCacheStorage<CASVal
      * <i>memcached</i> client.
      * @param cache client to use for communicating with <i>memcached</i>
      */
-    public MemcachedHttpCacheStorage(final MemcachedClient cache) {
+    public MemcachedHttpAsyncCacheStorage(final MemcachedClient cache) {
         this(cache, CacheConfig.DEFAULT, ByteArrayCacheEntrySerializer.INSTANCE, SHA256KeyHashingScheme.INSTANCE);
     }
 
@@ -115,7 +121,7 @@ public class MemcachedHttpCacheStorage extends AbstractBinaryCacheStorage<CASVal
      * @param keyHashingScheme how to map higher-level logical "storage keys"
      *   onto "cache keys" suitable for use with memcached
      */
-    public MemcachedHttpCacheStorage(
+    public MemcachedHttpAsyncCacheStorage(
             final MemcachedClient client,
             final CacheConfig config,
             final HttpCacheEntrySerializer<byte[]> serializer,
@@ -131,11 +137,6 @@ public class MemcachedHttpCacheStorage extends AbstractBinaryCacheStorage<CASVal
         return keyHashingScheme.hash(key);
     }
 
-    @Override
-    protected void store(final String storageKey, final byte[] storageObject) throws ResourceIOException {
-        client.set(storageKey, 0, storageObject);
-    }
-
     private byte[] castAsByteArray(final Object storageObject) throws ResourceIOException {
         if (storageObject == null) {
             return null;
@@ -148,38 +149,102 @@ public class MemcachedHttpCacheStorage extends AbstractBinaryCacheStorage<CASVal
     }
 
     @Override
-    protected byte[] restore(final String storageKey) throws ResourceIOException {
-        try {
-            return castAsByteArray(client.get(storageKey));
-        } catch (final OperationTimeoutException ex) {
-            throw new MemcachedOperationTimeoutException(ex);
-        }
-    }
-
-    @Override
-    protected CASValue<Object> getForUpdateCAS(final String storageKey) throws ResourceIOException {
-        try {
-            return client.gets(storageKey);
-        } catch (final OperationTimeoutException ex) {
-            throw new MemcachedOperationTimeoutException(ex);
-        }
-    }
-
-    @Override
     protected byte[] getStorageObject(final CASValue<Object> casValue) throws ResourceIOException {
         return castAsByteArray(casValue.getValue());
     }
 
-    @Override
-    protected boolean updateCAS(
-            final String storageKey, final CASValue<Object> casValue, final byte[] storageObject) throws ResourceIOException {
-        final CASResponse casResult = client.cas(storageKey, casValue.getCas(), storageObject);
-        return casResult == CASResponse.OK;
+    private <T> Cancellable operation(final OperationFuture<T> operationFuture, final FutureCallback<T> callback) {
+        operationFuture.addListener(new OperationCompletionListener() {
+
+            @Override
+            public void onComplete(final OperationFuture<?> future) throws Exception {
+                try {
+                    callback.completed(operationFuture.get());
+                } catch (final ExecutionException ex) {
+                    if (ex.getCause() instanceof Exception) {
+                        callback.failed((Exception) ex.getCause());
+                    } else {
+                        callback.failed(ex);
+                    }
+                }
+            }
+
+        });
+        return new Cancellable() {
+
+            @Override
+            public boolean cancel() {
+                return operationFuture.cancel();
+            }
+
+        };
     }
 
     @Override
-    protected void delete(final String storageKey) throws ResourceIOException {
-        client.delete(storageKey);
+    protected Cancellable store(final String storageKey, final byte[] storageObject, final FutureCallback<Boolean> callback) {
+        return operation(client.set(storageKey, 0, storageObject), callback);
+    }
+
+    @Override
+    protected Cancellable restore(final String storageKey, final FutureCallback<byte[]> callback) {
+        final GetFuture<Object> getFuture = client.asyncGet(storageKey);
+        getFuture.addListener(new GetCompletionListener() {
+
+            @Override
+            public void onComplete(final GetFuture<?> future) throws Exception {
+                try {
+                    callback.completed(castAsByteArray(getFuture.get()));
+                } catch (final ExecutionException ex) {
+                    if (ex.getCause() instanceof Exception) {
+                        callback.failed((Exception) ex.getCause());
+                    } else {
+                        callback.failed(ex);
+                    }
+                }
+            }
+
+        });
+        return new Cancellable() {
+
+            @Override
+            public boolean cancel() {
+                return getFuture.cancel(true);
+            }
+
+        };
+    }
+
+    @Override
+    protected Cancellable getForUpdateCAS(final String storageKey, final FutureCallback<CASValue<Object>> callback) {
+        return operation(client.asyncGets(storageKey), callback);
+    }
+
+    @Override
+    protected Cancellable updateCAS(
+            final String storageKey, final CASValue<Object> casValue, final byte[] storageObject, final FutureCallback<Boolean> callback) {
+        return operation(client.asyncCAS(storageKey, casValue.getCas(), storageObject), new FutureCallback<CASResponse>() {
+
+            @Override
+            public void completed(final CASResponse result) {
+                callback.completed(result == CASResponse.OK);
+            }
+
+            @Override
+            public void failed(final Exception ex) {
+                callback.failed(ex);
+            }
+
+            @Override
+            public void cancelled() {
+                callback.cancelled();
+            }
+
+        });
+    }
+
+    @Override
+    protected Cancellable delete(final String storageKey, final FutureCallback<Boolean> callback) {
+        return operation(client.delete(storageKey), callback);
     }
 
 }
