@@ -33,7 +33,6 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.hc.client5.http.cache.HeaderConstants;
@@ -179,25 +178,6 @@ public class TestBasicHttpCache {
         impl.flushCacheEntriesFor(host, req);
 
         assertNull(backing.map.get(key));
-    }
-
-    @Test
-    public void testCacheUpdateAddsVariantURIToParentEntry() throws Exception {
-        final String parentCacheKey = "parentCacheKey";
-        final String variantCacheKey = "variantCacheKey";
-        final String existingVariantKey = "existingVariantKey";
-        final String newVariantCacheKey = "newVariantCacheKey";
-        final String newVariantKey = "newVariantKey";
-        final Map<String,String> existingVariants = new HashMap<>();
-        existingVariants.put(existingVariantKey, variantCacheKey);
-        final HttpCacheEntry parent = HttpTestUtils.makeCacheEntry(existingVariants);
-        final HttpCacheEntry variant = HttpTestUtils.makeCacheEntry();
-
-        final HttpCacheEntry result = impl.doGetUpdatedParentEntry(parentCacheKey, parent, variant, newVariantKey, newVariantCacheKey);
-        final Map<String,String> resultMap = result.getVariantMap();
-        assertEquals(2, resultMap.size());
-        assertEquals(variantCacheKey, resultMap.get(existingVariantKey));
-        assertEquals(newVariantCacheKey, resultMap.get(newVariantKey));
     }
 
     @Test

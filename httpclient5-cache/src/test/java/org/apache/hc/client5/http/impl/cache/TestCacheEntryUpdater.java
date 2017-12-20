@@ -28,10 +28,13 @@ package org.apache.hc.client5.http.impl.cache;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.utils.DateUtils;
@@ -93,11 +96,8 @@ public class TestCacheEntryUpdater {
         final HttpCacheEntry updatedEntry = impl.updateCacheEntry(null, entry,
                 new Date(), new Date(), response);
 
-
-        final Header[] updatedHeaders = updatedEntry.getAllHeaders();
-        assertEquals(2, updatedHeaders.length);
-        headersContain(updatedHeaders, "Date", DateUtils.formatDate(responseDate));
-        headersContain(updatedHeaders, "ETag", "\"etag\"");
+        assertThat(updatedEntry, ContainsHeaderMatcher.contains("Date", DateUtils.formatDate(responseDate)));
+        assertThat(updatedEntry, ContainsHeaderMatcher.contains("ETag", "\"etag\""));
     }
 
     @Test
@@ -116,13 +116,10 @@ public class TestCacheEntryUpdater {
         final HttpCacheEntry updatedEntry = impl.updateCacheEntry(null, entry,
                 new Date(), new Date(), response);
 
-        final Header[] updatedHeaders = updatedEntry.getAllHeaders();
-
-        assertEquals(4, updatedHeaders.length);
-        headersContain(updatedHeaders, "Date", DateUtils.formatDate(requestDate));
-        headersContain(updatedHeaders, "ETag", "\"etag\"");
-        headersContain(updatedHeaders, "Last-Modified", DateUtils.formatDate(responseDate));
-        headersContain(updatedHeaders, "Cache-Control", "public");
+        assertThat(updatedEntry, ContainsHeaderMatcher.contains("Date", DateUtils.formatDate(requestDate)));
+        assertThat(updatedEntry, ContainsHeaderMatcher.contains("ETag", "\"etag\""));
+        assertThat(updatedEntry, ContainsHeaderMatcher.contains("Last-Modified", DateUtils.formatDate(responseDate)));
+        assertThat(updatedEntry, ContainsHeaderMatcher.contains("Cache-Control", "public"));
     }
 
     @Test
@@ -139,13 +136,10 @@ public class TestCacheEntryUpdater {
         final HttpCacheEntry updatedEntry = impl.updateCacheEntry(null, entry,
                 new Date(), new Date(), response);
 
-        final Header[] updatedHeaders = updatedEntry.getAllHeaders();
-        assertEquals(4, updatedHeaders.length);
-
-        headersContain(updatedHeaders, "Date", DateUtils.formatDate(requestDate));
-        headersContain(updatedHeaders, "ETag", "\"etag\"");
-        headersContain(updatedHeaders, "Last-Modified", DateUtils.formatDate(responseDate));
-        headersContain(updatedHeaders, "Cache-Control", "public");
+        assertThat(updatedEntry, ContainsHeaderMatcher.contains("Date", DateUtils.formatDate(requestDate)));
+        assertThat(updatedEntry, ContainsHeaderMatcher.contains("ETag", "\"etag\""));
+        assertThat(updatedEntry, ContainsHeaderMatcher.contains("Last-Modified", DateUtils.formatDate(responseDate)));
+        assertThat(updatedEntry, ContainsHeaderMatcher.contains("Cache-Control", "public"));
     }
 
     @Test
@@ -160,9 +154,8 @@ public class TestCacheEntryUpdater {
         response.setHeader("ETag", "\"old-etag\"");
         final HttpCacheEntry result = impl.updateCacheEntry("A", entry, new Date(),
                 new Date(), response);
-        assertEquals(2, result.getAllHeaders().length);
-        headersContain(result.getAllHeaders(), "Date", DateUtils.formatDate(oneSecondAgo));
-        headersContain(result.getAllHeaders(), "ETag", "\"new-etag\"");
+        assertThat(result, ContainsHeaderMatcher.contains("Date", DateUtils.formatDate(oneSecondAgo)));
+        assertThat(result, ContainsHeaderMatcher.contains("ETag", "\"new-etag\""));
     }
 
     @Test
@@ -234,15 +227,23 @@ public class TestCacheEntryUpdater {
         }
     }
 
-    private void headersContain(final Header[] headers, final String name, final String value) {
-        for (final Header header : headers) {
-            if (header.getName().equals(name)) {
-                if (header.getValue().equals(value)) {
-                    return;
-                }
-            }
-        }
-        fail("Header [" + name + ": " + value + "] not found in headers.");
+    @Test
+    public void testCacheUpdateAddsVariantURIToParentEntry() throws Exception {
+        final String parentCacheKey = "parentCacheKey";
+        final String variantCacheKey = "variantCacheKey";
+        final String existingVariantKey = "existingVariantKey";
+        final String newVariantCacheKey = "newVariantCacheKey";
+        final String newVariantKey = "newVariantKey";
+        final Map<String,String> existingVariants = new HashMap<>();
+        existingVariants.put(existingVariantKey, variantCacheKey);
+        final HttpCacheEntry parent = HttpTestUtils.makeCacheEntry(existingVariants);
+        final HttpCacheEntry variant = HttpTestUtils.makeCacheEntry();
+
+        final HttpCacheEntry result = impl.updateParentCacheEntry(parentCacheKey, parent, variant, newVariantKey, newVariantCacheKey);
+        final Map<String,String> resultMap = result.getVariantMap();
+        assertEquals(2, resultMap.size());
+        assertEquals(variantCacheKey, resultMap.get(existingVariantKey));
+        assertEquals(newVariantCacheKey, resultMap.get(newVariantKey));
     }
 
 }

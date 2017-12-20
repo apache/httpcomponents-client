@@ -29,8 +29,10 @@ package org.apache.hc.client5.http.impl.cache;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Map;
 
 import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
@@ -42,9 +44,11 @@ import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.util.Args;
+import org.apache.hc.core5.util.ByteArrayBuffer;
 
 /**
  * Update a {@link HttpCacheEntry} with new or updated information based on the latest
@@ -67,17 +71,29 @@ class CacheEntryUpdater {
         this.resourceFactory = resourceFactory;
     }
 
+    public HttpCacheEntry createtCacheEntry(
+            final HttpRequest request,
+            final HttpResponse originResponse,
+            final ByteArrayBuffer content,
+            final Date requestSent,
+            final Date responseReceived) throws ResourceIOException {
+        final Resource resource;
+        if (content != null) {
+            resource = resourceFactory.generate(request.getRequestUri(), content.array(), 0, content.length());
+        } else {
+            resource = null;
+        }
+        return new HttpCacheEntry(
+                requestSent,
+                responseReceived,
+                originResponse.getCode(),
+                originResponse.getAllHeaders(),
+                resource);
+    }
+
     /**
      * Update the entry with the new information from the response.  Should only be used for
      * 304 responses.
-     *
-     * @param requestId
-     * @param entry The cache Entry to be updated
-     * @param requestDate When the request was performed
-     * @param responseDate When the response was gotten
-     * @param response The HttpResponse from the backend server call
-     * @return HttpCacheEntry an updated version of the cache entry
-     * @throws ResourceIOException if something bad happens while trying to read the body from the original entry
      */
     public HttpCacheEntry updateCacheEntry(
             final String requestId,
@@ -169,6 +185,32 @@ class CacheEntryUpdater {
         }
 
         return false;
+    }
+
+    public HttpCacheEntry updateParentCacheEntry(
+            final String requestId,
+            final HttpCacheEntry existing,
+            final HttpCacheEntry entry,
+            final String variantKey,
+            final String variantCacheKey) throws ResourceIOException {
+        HttpCacheEntry src = existing;
+        if (src == null) {
+            src = entry;
+        }
+
+        Resource resource = null;
+        if (src.getResource() != null) {
+            resource = resourceFactory.copy(requestId, src.getResource());
+        }
+        final Map<String,String> variantMap = new HashMap<>(src.getVariantMap());
+        variantMap.put(variantKey, variantCacheKey);
+        return new HttpCacheEntry(
+                src.getRequestDate(),
+                src.getResponseDate(),
+                src.getStatus(),
+                src.getAllHeaders(),
+                resource,
+                variantMap);
     }
 
 }
