@@ -193,6 +193,7 @@ class BasicHttpCache implements HttpCache {
         return updatedEntry;
     }
 
+    @Override
     public HttpCacheEntry createCacheEntry(
             final HttpHost host,
             final HttpRequest request,
@@ -236,16 +237,14 @@ class BasicHttpCache implements HttpCache {
             return variants;
         }
         for(final Map.Entry<String, String> variant : root.getVariantMap().entrySet()) {
-            final String variantKey = variant.getKey();
             final String variantCacheKey = variant.getValue();
-            addVariantWithEtag(variantKey, variantCacheKey, variants);
+            addVariantWithEtag(variantCacheKey, variants);
         }
         return variants;
     }
 
-    private void addVariantWithEtag(final String variantKey,
-            final String variantCacheKey, final Map<String, Variant> variants)
-            throws ResourceIOException {
+    private void addVariantWithEtag(
+            final String variantCacheKey, final Map<String, Variant> variants) throws ResourceIOException {
         final HttpCacheEntry entry = storage.getEntry(variantCacheKey);
         if (entry == null) {
             return;
@@ -254,7 +253,7 @@ class BasicHttpCache implements HttpCache {
         if (etagHeader == null) {
             return;
         }
-        variants.put(etagHeader.getValue(), new Variant(variantKey, variantCacheKey, entry));
+        variants.put(etagHeader.getValue(), new Variant(variantCacheKey, entry));
     }
 
 }

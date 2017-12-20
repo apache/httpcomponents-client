@@ -30,84 +30,95 @@ import java.util.Date;
 import java.util.Map;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
-import org.apache.hc.client5.http.cache.ResourceIOException;
+import org.apache.hc.core5.annotation.Internal;
+import org.apache.hc.core5.concurrent.Cancellable;
+import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.util.ByteArrayBuffer;
 
 /**
- * @since 4.1
+ * @since 5.0
  */
-interface HttpCache {
+@Internal
+interface HttpAsyncCache {
 
     /**
      * Clear all matching {@link HttpCacheEntry}s.
      */
-    void flushCacheEntriesFor(HttpHost host, HttpRequest request) throws ResourceIOException;
+    Cancellable flushCacheEntriesFor(
+            HttpHost host, HttpRequest request, FutureCallback<Boolean> callback);
 
     /**
      * Clear invalidated matching {@link HttpCacheEntry}s
      */
-    void flushInvalidatedCacheEntriesFor(HttpHost host, HttpRequest request) throws ResourceIOException;
+    Cancellable flushInvalidatedCacheEntriesFor(
+            HttpHost host, HttpRequest request, FutureCallback<Boolean> callback);
 
     /** Clear any entries that may be invalidated by the given response to
      * a particular request.
      */
-    void flushInvalidatedCacheEntriesFor(HttpHost host, HttpRequest request, HttpResponse response);
+    Cancellable flushInvalidatedCacheEntriesFor(
+            HttpHost host, HttpRequest request, HttpResponse response, FutureCallback<Boolean> callback);
 
     /**
-     * Retrieve matching {@link HttpCacheEntry} from the cache if it exists.
+     * Retrieve matching {@link HttpCacheEntry} from the cache if it exists
      */
-    HttpCacheEntry getCacheEntry(HttpHost host, HttpRequest request) throws ResourceIOException;
+    Cancellable getCacheEntry(
+            HttpHost host, HttpRequest request, FutureCallback<HttpCacheEntry> callback);
 
     /**
      * Retrieve all variants from the cache, if there are no variants then an empty
-     * {@link Map} is returned
      */
-    Map<String,Variant> getVariantCacheEntriesWithEtags(HttpHost host, HttpRequest request) throws ResourceIOException;
+    Cancellable getVariantCacheEntriesWithEtags(
+            HttpHost host, HttpRequest request, FutureCallback<Map<String,Variant>> callback);
 
     /**
      * Store a {@link HttpResponse} in the cache if possible, and return
      */
-    HttpCacheEntry createCacheEntry(
+    Cancellable createCacheEntry(
             HttpHost host,
             HttpRequest request,
             HttpResponse originResponse,
             ByteArrayBuffer content,
             Date requestSent,
-            Date responseReceived) throws ResourceIOException;
+            Date responseReceived,
+            FutureCallback<HttpCacheEntry> callback);
 
     /**
      * Update a {@link HttpCacheEntry} using a 304 {@link HttpResponse}.
      */
-    HttpCacheEntry updateCacheEntry(
-            HttpHost target,
-            HttpRequest request,
-            HttpCacheEntry stale,
-            HttpResponse originResponse,
-            Date requestSent,
-            Date responseReceived) throws ResourceIOException;
-
-    /**
-     * Update a specific {@link HttpCacheEntry} representing a cached variant
-     * using a 304 {@link HttpResponse}.
-     */
-    HttpCacheEntry updateVariantCacheEntry(
+    Cancellable updateCacheEntry(
             HttpHost target,
             HttpRequest request,
             HttpCacheEntry stale,
             HttpResponse originResponse,
             Date requestSent,
             Date responseReceived,
-            String cacheKey) throws ResourceIOException;
+            FutureCallback<HttpCacheEntry> callback);
+
+    /**
+     * Update a specific {@link HttpCacheEntry} representing a cached variant
+     * using a 304 {@link HttpResponse}.
+     */
+    Cancellable updateVariantCacheEntry(
+            HttpHost target,
+            HttpRequest request,
+            HttpCacheEntry stale,
+            HttpResponse originResponse,
+            Date requestSent,
+            Date responseReceived,
+            String cacheKey,
+            FutureCallback<HttpCacheEntry> callback);
 
     /**
      * Specifies cache should reuse the given cached variant to satisfy
      * requests whose varying headers match those of the given client request.
      */
-    void reuseVariantEntryFor(
+    Cancellable reuseVariantEntryFor(
             HttpHost target,
             HttpRequest req,
-            Variant variant) throws ResourceIOException;
+            Variant variant,
+            FutureCallback<Boolean> callback);
 }
