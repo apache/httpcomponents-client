@@ -141,11 +141,14 @@ public abstract class AbstractSerializingCacheStorage<T, CAS> implements HttpCac
         }
         final Map<String, T> storageObjectMap = bulkRestore(storageKeys);
         final Map<String, HttpCacheEntry> resultMap = new HashMap<>();
-        for (final Map.Entry<String, T> storageEntry: storageObjectMap.entrySet()) {
-            final String key = storageEntry.getKey();
-            final HttpCacheStorageEntry entry = serializer.deserialize(storageEntry.getValue());
-            if (key.equals(entry.getKey())) {
-                resultMap.put(key, entry.getContent());
+        for (final String key: keys) {
+            final String storageKey = digestToStorageKey(key);
+            final T storageObject = storageObjectMap.get(storageKey);
+            if (storageObject != null) {
+                final HttpCacheStorageEntry entry = serializer.deserialize(storageObject);
+                if (key.equals(entry.getKey())) {
+                    resultMap.put(key, entry.getContent());
+                }
             }
         }
         return resultMap;

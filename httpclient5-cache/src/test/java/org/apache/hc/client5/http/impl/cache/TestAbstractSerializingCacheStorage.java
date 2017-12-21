@@ -294,8 +294,8 @@ public class TestAbstractSerializingCacheStorage {
         Assert.assertThat(entryMap.get(key1), HttpCacheEntryMatcher.equivalent(value1));
         Assert.assertThat(entryMap.get(key2), HttpCacheEntryMatcher.equivalent(value2));
 
-        verify(impl).digestToStorageKey(key1);
-        verify(impl).digestToStorageKey(key2);
+        verify(impl, Mockito.times(2)).digestToStorageKey(key1);
+        verify(impl, Mockito.times(2)).digestToStorageKey(key2);
         verify(impl).bulkRestore(Arrays.asList(storageKey1, storageKey2));
     }
 
@@ -332,8 +332,8 @@ public class TestAbstractSerializingCacheStorage {
         Assert.assertThat(entryMap.get(key1), HttpCacheEntryMatcher.equivalent(value1));
         Assert.assertThat(entryMap.get(key2), CoreMatchers.nullValue());
 
-        verify(impl).digestToStorageKey(key1);
-        verify(impl).digestToStorageKey(key2);
+        verify(impl, Mockito.times(2)).digestToStorageKey(key1);
+        verify(impl, Mockito.times(2)).digestToStorageKey(key2);
         verify(impl).bulkRestore(Arrays.asList(storageKey1, storageKey2));
     }
 

@@ -244,14 +244,17 @@ public abstract class AbstractSerializingAsyncCacheStorage<T, CAS> implements Ht
             return bulkRestore(storageKeys, new FutureCallback<Map<String, T>>() {
 
                 @Override
-                public void completed(final Map<String, T> storageObjects) {
+                public void completed(final Map<String, T> storageObjectMap) {
                     try {
                         final Map<String, HttpCacheEntry> resultMap = new HashMap<>();
-                        for (final Map.Entry<String, T> storageEntry: storageObjects.entrySet()) {
-                            final String key = storageEntry.getKey();
-                            final HttpCacheStorageEntry entry = serializer.deserialize(storageEntry.getValue());
-                            if (key.equals(entry.getKey())) {
-                                resultMap.put(key, entry.getContent());
+                        for (final String key: keys) {
+                            final String storageKey = digestToStorageKey(key);
+                            final T storageObject = storageObjectMap.get(storageKey);
+                            if (storageObject != null) {
+                                final HttpCacheStorageEntry entry = serializer.deserialize(storageObject);
+                                if (key.equals(entry.getKey())) {
+                                    resultMap.put(key, entry.getContent());
+                                }
                             }
                         }
                         callback.completed(resultMap);

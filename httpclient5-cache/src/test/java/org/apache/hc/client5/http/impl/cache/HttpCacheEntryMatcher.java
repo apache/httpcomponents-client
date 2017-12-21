@@ -80,11 +80,12 @@ public class HttpCacheEntryMatcher extends BaseMatcher<HttpCacheEntry> {
                 if (!Arrays.equals(expectedContent, otherContent)) {
                     return false;
                 }
+                return true;
             } catch (final ResourceIOException ex) {
                 throw new RuntimeException(ex);
             }
         }
-        return true;
+        return false;
     }
 
     @Override
