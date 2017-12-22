@@ -26,12 +26,9 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
-import java.util.ListIterator;
+import java.util.Iterator;
 import java.util.Map;
 
 import org.apache.hc.client5.http.cache.HeaderConstants;
@@ -47,48 +44,46 @@ import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.MessageHeaders;
+import org.apache.hc.core5.http.message.HeaderGroup;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.ByteArrayBuffer;
 
 /**
- * Update a {@link HttpCacheEntry} with new or updated information based on the latest
- * 304 status response from the Server.  Use the {@link HttpResponse} to perform
- * the processChallenge.
+ * Creates new {@link HttpCacheEntry}s and updates existing ones with new or updated information
+ * based on the response from the origin server.
  *
- * @since 4.1
+ * @since 5.0
  */
 @Contract(threading = ThreadingBehavior.IMMUTABLE)
-class CacheEntryUpdater {
+class CacheUpdateHandler {
 
     private final ResourceFactory resourceFactory;
 
-    CacheEntryUpdater() {
+    CacheUpdateHandler() {
         this(new HeapResourceFactory());
     }
 
-    CacheEntryUpdater(final ResourceFactory resourceFactory) {
+    CacheUpdateHandler(final ResourceFactory resourceFactory) {
         super();
         this.resourceFactory = resourceFactory;
     }
 
+    /**
+     * Creates a cache entry for the given request, origin response message and response content.
+     */
     public HttpCacheEntry createtCacheEntry(
             final HttpRequest request,
             final HttpResponse originResponse,
             final ByteArrayBuffer content,
             final Date requestSent,
             final Date responseReceived) throws ResourceIOException {
-        final Resource resource;
-        if (content != null) {
-            resource = resourceFactory.generate(request.getRequestUri(), content.array(), 0, content.length());
-        } else {
-            resource = null;
-        }
         return new HttpCacheEntry(
                 requestSent,
                 responseReceived,
                 originResponse.getCode(),
                 originResponse.getAllHeaders(),
-                resource);
+                content != null ? resourceFactory.generate(request.getRequestUri(), content.array(), 0, content.length()) : null);
     }
 
     /**
@@ -116,77 +111,6 @@ class CacheEntryUpdater {
                 resource);
     }
 
-    protected Header[] mergeHeaders(final HttpCacheEntry entry, final HttpResponse response) {
-
-        if (entryAndResponseHaveDateHeader(entry, response)
-                && entryDateHeaderNewerThenResponse(entry, response)) {
-            // Don't merge headers, keep the entry's headers as they are newer.
-            return entry.getAllHeaders();
-        }
-
-        final List<Header> cacheEntryHeaderList = new ArrayList<>(Arrays.asList(entry
-                .getAllHeaders()));
-        removeCacheHeadersThatMatchResponse(cacheEntryHeaderList, response);
-        removeCacheEntry1xxWarnings(cacheEntryHeaderList, entry);
-        cacheEntryHeaderList.addAll(Arrays.asList(response.getAllHeaders()));
-
-        return cacheEntryHeaderList.toArray(new Header[cacheEntryHeaderList.size()]);
-    }
-
-    private void removeCacheHeadersThatMatchResponse(final List<Header> cacheEntryHeaderList,
-            final HttpResponse response) {
-        for (final Header responseHeader : response.getAllHeaders()) {
-            final ListIterator<Header> cacheEntryHeaderListIter = cacheEntryHeaderList.listIterator();
-
-            while (cacheEntryHeaderListIter.hasNext()) {
-                final String cacheEntryHeaderName = cacheEntryHeaderListIter.next().getName();
-
-                if (cacheEntryHeaderName.equals(responseHeader.getName())) {
-                    cacheEntryHeaderListIter.remove();
-                }
-            }
-        }
-    }
-
-    private void removeCacheEntry1xxWarnings(final List<Header> cacheEntryHeaderList, final HttpCacheEntry entry) {
-        final ListIterator<Header> cacheEntryHeaderListIter = cacheEntryHeaderList.listIterator();
-
-        while (cacheEntryHeaderListIter.hasNext()) {
-            final String cacheEntryHeaderName = cacheEntryHeaderListIter.next().getName();
-
-            if (HeaderConstants.WARNING.equals(cacheEntryHeaderName)) {
-                for (final Header cacheEntryWarning : entry.getHeaders(HeaderConstants.WARNING)) {
-                    if (cacheEntryWarning.getValue().startsWith("1")) {
-                        cacheEntryHeaderListIter.remove();
-                    }
-                }
-            }
-        }
-    }
-
-    private boolean entryDateHeaderNewerThenResponse(final HttpCacheEntry entry, final HttpResponse response) {
-        final Date entryDate = DateUtils.parseDate(entry.getFirstHeader(HttpHeaders.DATE)
-                .getValue());
-        final Date responseDate = DateUtils.parseDate(response.getFirstHeader(HttpHeaders.DATE)
-                .getValue());
-        if (entryDate == null || responseDate == null) {
-            return false;
-        }
-        if (!entryDate.after(responseDate)) {
-            return false;
-        }
-        return true;
-    }
-
-    private boolean entryAndResponseHaveDateHeader(final HttpCacheEntry entry, final HttpResponse response) {
-        if (entry.getFirstHeader(HttpHeaders.DATE) != null
-                && response.getFirstHeader(HttpHeaders.DATE) != null) {
-            return true;
-        }
-
-        return false;
-    }
-
     public HttpCacheEntry updateParentCacheEntry(
             final String requestId,
             final HttpCacheEntry existing,
@@ -211,6 +135,42 @@ class CacheEntryUpdater {
                 src.getAllHeaders(),
                 resource,
                 variantMap);
+    }
+
+    private static Date getDate(final MessageHeaders messageHeaders) {
+        final Header dateHeader = messageHeaders.getFirstHeader(HttpHeaders.DATE);
+        return dateHeader != null ? DateUtils.parseDate(dateHeader.getValue()): null;
+    }
+
+    private Header[] mergeHeaders(final HttpCacheEntry entry, final HttpResponse response) {
+        final Date cacheDate = getDate(entry);
+        final Date responseDate = getDate(response);
+        if (cacheDate != null && responseDate != null && cacheDate.after(responseDate)) {
+            // Don't merge headers, keep the entry's headers as they are newer.
+            return entry.getAllHeaders();
+        }
+        final HeaderGroup headerGroup = new HeaderGroup();
+        headerGroup.setHeaders(entry.getAllHeaders());
+        // Remove cache headers that match response
+        for (final Iterator<Header> it = response.headerIterator(); it.hasNext(); ) {
+            final Header responseHeader = it.next();
+            headerGroup.removeHeaders(responseHeader.getName());
+        }
+        // remove cache entry 1xx warnings
+        for (final Iterator<Header> it = headerGroup.headerIterator(); it.hasNext(); ) {
+            final Header cacheHeader = it.next();
+            if (HeaderConstants.WARNING.equalsIgnoreCase(cacheHeader.getName())) {
+                final String warningValue = cacheHeader.getValue();
+                if (warningValue != null && warningValue.startsWith("1")) {
+                    it.remove();
+                }
+            }
+        }
+        for (final Iterator<Header> it = response.headerIterator(); it.hasNext(); ) {
+            final Header responseHeader = it.next();
+            headerGroup.addHeader(responseHeader);
+        }
+        return headerGroup.getAllHeaders();
     }
 
 }

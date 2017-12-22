@@ -49,7 +49,7 @@ import org.apache.logging.log4j.Logger;
 
 class BasicHttpCache implements HttpCache {
 
-    private final CacheEntryUpdater cacheEntryUpdater;
+    private final CacheUpdateHandler cacheUpdateHandler;
     private final CacheKeyGenerator cacheKeyGenerator;
     private final HttpCacheInvalidator cacheInvalidator;
     private final HttpCacheStorage storage;
@@ -61,7 +61,7 @@ class BasicHttpCache implements HttpCache {
             final HttpCacheStorage storage,
             final CacheKeyGenerator cacheKeyGenerator,
             final HttpCacheInvalidator cacheInvalidator) {
-        this.cacheEntryUpdater = new CacheEntryUpdater(resourceFactory);
+        this.cacheUpdateHandler = new CacheUpdateHandler(resourceFactory);
         this.cacheKeyGenerator = cacheKeyGenerator;
         this.storage = storage;
         this.cacheInvalidator = cacheInvalidator;
@@ -130,7 +130,7 @@ class BasicHttpCache implements HttpCache {
 
                 @Override
                 public HttpCacheEntry execute(final HttpCacheEntry existing) throws ResourceIOException {
-                    return cacheEntryUpdater.updateParentCacheEntry(req.getRequestUri(), existing, entry, variantKey, variantURI);
+                    return cacheUpdateHandler.updateParentCacheEntry(req.getRequestUri(), existing, entry, variantKey, variantURI);
                 }
 
             });
@@ -152,7 +152,7 @@ class BasicHttpCache implements HttpCache {
 
                 @Override
                 public HttpCacheEntry execute(final HttpCacheEntry existing) throws ResourceIOException {
-                    return cacheEntryUpdater.updateParentCacheEntry(req.getRequestUri(), existing, entry, variantKey, variantCacheKey);
+                    return cacheUpdateHandler.updateParentCacheEntry(req.getRequestUri(), existing, entry, variantKey, variantCacheKey);
                 }
 
             });
@@ -169,7 +169,7 @@ class BasicHttpCache implements HttpCache {
             final HttpResponse originResponse,
             final Date requestSent,
             final Date responseReceived) throws ResourceIOException {
-        final HttpCacheEntry updatedEntry = cacheEntryUpdater.updateCacheEntry(
+        final HttpCacheEntry updatedEntry = cacheUpdateHandler.updateCacheEntry(
                 request.getRequestUri(),
                 stale,
                 requestSent,
@@ -183,7 +183,7 @@ class BasicHttpCache implements HttpCache {
     public HttpCacheEntry updateVariantCacheEntry(final HttpHost target, final HttpRequest request,
             final HttpCacheEntry stale, final HttpResponse originResponse,
             final Date requestSent, final Date responseReceived, final String cacheKey) throws ResourceIOException {
-        final HttpCacheEntry updatedEntry = cacheEntryUpdater.updateCacheEntry(
+        final HttpCacheEntry updatedEntry = cacheUpdateHandler.updateCacheEntry(
                 request.getRequestUri(),
                 stale,
                 requestSent,
@@ -200,7 +200,7 @@ class BasicHttpCache implements HttpCache {
             final ByteArrayBuffer content,
             final Date requestSent,
             final Date responseReceived) throws ResourceIOException {
-        final HttpCacheEntry entry = cacheEntryUpdater.createtCacheEntry(request, originResponse, content, requestSent, responseReceived);
+        final HttpCacheEntry entry = cacheUpdateHandler.createtCacheEntry(request, originResponse, content, requestSent, responseReceived);
         storeInCache(host, request, entry);
         return entry;
     }

@@ -46,12 +46,12 @@ import org.apache.hc.core5.http.message.BasicHttpResponse;
 import org.junit.Before;
 import org.junit.Test;
 
-public class TestCacheEntryUpdater {
+public class TestCacheUpdateHandler {
 
     private Date requestDate;
     private Date responseDate;
 
-    private CacheEntryUpdater impl;
+    private CacheUpdateHandler impl;
     private HttpCacheEntry entry;
     private Date now;
     private Date oneSecondAgo;
@@ -73,7 +73,7 @@ public class TestCacheEntryUpdater {
 
         response = new BasicHttpResponse(HttpStatus.SC_NOT_MODIFIED, "Not Modified");
 
-        impl = new CacheEntryUpdater();
+        impl = new CacheUpdateHandler();
     }
 
     @Test
