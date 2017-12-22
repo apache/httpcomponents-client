@@ -35,6 +35,7 @@ import java.util.concurrent.ExecutionException;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntrySerializer;
 import org.apache.hc.client5.http.cache.ResourceIOException;
+import org.apache.hc.client5.http.impl.Operations;
 import org.apache.hc.client5.http.impl.cache.AbstractBinaryAsyncCacheStorage;
 import org.apache.hc.client5.http.impl.cache.ByteArrayCacheEntrySerializer;
 import org.apache.hc.client5.http.impl.cache.CacheConfig;
@@ -176,14 +177,7 @@ public class MemcachedHttpAsyncCacheStorage extends AbstractBinaryAsyncCacheStor
             }
 
         });
-        return new Cancellable() {
-
-            @Override
-            public boolean cancel() {
-                return operationFuture.cancel();
-            }
-
-        };
+        return Operations.cancellable(operationFuture);
     }
 
     @Override
@@ -210,14 +204,7 @@ public class MemcachedHttpAsyncCacheStorage extends AbstractBinaryAsyncCacheStor
             }
 
         });
-        return new Cancellable() {
-
-            @Override
-            public boolean cancel() {
-                return getFuture.cancel(true);
-            }
-
-        };
+        return Operations.cancellable(getFuture);
     }
 
     @Override
@@ -268,14 +255,7 @@ public class MemcachedHttpAsyncCacheStorage extends AbstractBinaryAsyncCacheStor
                 callback.completed(resultMap);
             }
         });
-        return new Cancellable() {
-
-            @Override
-            public boolean cancel() {
-                return future.cancel(true);
-            }
-
-        };
+        return Operations.cancellable(future);
     }
 
 }

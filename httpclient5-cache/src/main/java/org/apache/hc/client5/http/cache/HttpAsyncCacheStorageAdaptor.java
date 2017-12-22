@@ -29,6 +29,7 @@ package org.apache.hc.client5.http.cache;
 import java.util.Collection;
 import java.util.Map;
 
+import org.apache.hc.client5.http.impl.Operations;
 import org.apache.hc.core5.concurrent.Cancellable;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.util.Args;
@@ -57,7 +58,7 @@ public final class HttpAsyncCacheStorageAdaptor implements HttpAsyncCacheStorage
         } catch (final Exception ex) {
             callback.failed(ex);
         }
-        return NOOP_CANCELLABLE;
+        return Operations.nonCancellable();
     }
 
     public Cancellable getEntry(final String key, final FutureCallback<HttpCacheEntry> callback) {
@@ -69,7 +70,7 @@ public final class HttpAsyncCacheStorageAdaptor implements HttpAsyncCacheStorage
         } catch (final Exception ex) {
             callback.failed(ex);
         }
-        return NOOP_CANCELLABLE;
+        return Operations.nonCancellable();
     }
 
     public Cancellable removeEntry(final String key, final FutureCallback<Boolean> callback) {
@@ -81,7 +82,7 @@ public final class HttpAsyncCacheStorageAdaptor implements HttpAsyncCacheStorage
         } catch (final Exception ex) {
             callback.failed(ex);
         }
-        return NOOP_CANCELLABLE;
+        return Operations.nonCancellable();
     }
 
     public Cancellable updateEntry(
@@ -95,7 +96,7 @@ public final class HttpAsyncCacheStorageAdaptor implements HttpAsyncCacheStorage
         } catch (final Exception ex) {
             callback.failed(ex);
         }
-        return NOOP_CANCELLABLE;
+        return Operations.nonCancellable();
     }
 
     public Cancellable getEntries(final Collection<String> keys, final FutureCallback<Map<String, HttpCacheEntry>> callback) {
@@ -106,7 +107,7 @@ public final class HttpAsyncCacheStorageAdaptor implements HttpAsyncCacheStorage
         } catch (final Exception ex) {
             callback.failed(ex);
         }
-        return NOOP_CANCELLABLE;
+        return Operations.nonCancellable();
     }
 
 }

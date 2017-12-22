@@ -40,6 +40,7 @@ import org.apache.hc.client5.http.cache.HttpCacheEntrySerializer;
 import org.apache.hc.client5.http.cache.HttpCacheStorageEntry;
 import org.apache.hc.client5.http.cache.HttpCacheUpdateException;
 import org.apache.hc.client5.http.cache.ResourceIOException;
+import org.apache.hc.client5.http.impl.Operations;
 import org.apache.hc.core5.concurrent.Cancellable;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.util.Args;
@@ -86,7 +87,7 @@ public abstract class AbstractSerializingAsyncCacheStorage<T, CAS> implements Ht
             return store(storageKey, storageObject, callback);
         } catch (final Exception ex) {
             callback.failed(ex);
-            return NOOP_CANCELLABLE;
+            return Operations.nonCancellable();
         }
     }
 
@@ -129,7 +130,7 @@ public abstract class AbstractSerializingAsyncCacheStorage<T, CAS> implements Ht
             });
         } catch (final Exception ex) {
             callback.failed(ex);
-            return NOOP_CANCELLABLE;
+            return Operations.nonCancellable();
         }
     }
 
@@ -142,7 +143,7 @@ public abstract class AbstractSerializingAsyncCacheStorage<T, CAS> implements Ht
             return delete(storageKey, callback);
         } catch (final Exception ex) {
             callback.failed(ex);
-            return NOOP_CANCELLABLE;
+            return Operations.nonCancellable();
         }
     }
 
@@ -276,7 +277,7 @@ public abstract class AbstractSerializingAsyncCacheStorage<T, CAS> implements Ht
             });
         } catch (final Exception ex) {
             callback.failed(ex);
-            return NOOP_CANCELLABLE;
+            return Operations.nonCancellable();
         }
     }
 

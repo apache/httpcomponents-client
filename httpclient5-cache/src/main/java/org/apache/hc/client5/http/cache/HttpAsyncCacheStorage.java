@@ -42,15 +42,6 @@ import org.apache.hc.core5.concurrent.FutureCallback;
  */
 public interface HttpAsyncCacheStorage {
 
-    Cancellable NOOP_CANCELLABLE = new Cancellable() {
-
-        @Override
-        public boolean cancel() {
-            return false;
-        }
-
-    };
-
     /**
      * Store a given cache entry under the given key.
      * @param key where in the cache to store the entry
