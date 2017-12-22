@@ -28,10 +28,10 @@ package org.apache.hc.client5.http.impl.cache;
 
 import java.io.IOException;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
@@ -39,6 +39,7 @@ import org.apache.hc.client5.http.cache.CacheResponseStatus;
 import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpCacheContext;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
+import org.apache.hc.client5.http.cache.ResourceIOException;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HeaderElement;
@@ -52,7 +53,6 @@ import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.ProtocolVersion;
 import org.apache.hc.core5.http.message.MessageSupport;
 import org.apache.hc.core5.http.protocol.HttpContext;
-import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.VersionInfo;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -65,9 +65,8 @@ public class CachingExecBase {
     final AtomicLong cacheMisses = new AtomicLong();
     final AtomicLong cacheUpdates = new AtomicLong();
 
-    final Map<ProtocolVersion, String> viaHeaders = new HashMap<>(4);
+    final Map<ProtocolVersion, String> viaHeaders = new ConcurrentHashMap<>(4);
 
-    final HttpCache responseCache;
     final ResponseCachingPolicy responseCachingPolicy;
     final CacheValidityPolicy validityPolicy;
     final CachedHttpResponseGenerator responseGenerator;
@@ -80,7 +79,6 @@ public class CachingExecBase {
     final Logger log = LogManager.getLogger(getClass());
 
     CachingExecBase(
-            final HttpCache responseCache,
             final CacheValidityPolicy validityPolicy,
             final ResponseCachingPolicy responseCachingPolicy,
             final CachedHttpResponseGenerator responseGenerator,
@@ -89,7 +87,6 @@ public class CachingExecBase {
             final ResponseProtocolCompliance responseCompliance,
             final RequestProtocolCompliance requestCompliance,
             final CacheConfig config) {
-        this.responseCache = responseCache;
         this.responseCachingPolicy = responseCachingPolicy;
         this.validityPolicy = validityPolicy;
         this.responseGenerator = responseGenerator;
@@ -100,9 +97,8 @@ public class CachingExecBase {
         this.cacheConfig = config != null ? config : CacheConfig.DEFAULT;
     }
 
-    CachingExecBase(final HttpCache cache, final CacheConfig config) {
+    CachingExecBase(final CacheConfig config) {
         super();
-        this.responseCache = Args.notNull(cache, "Response cache");
         this.cacheConfig = config != null ? config : CacheConfig.DEFAULT;
         this.validityPolicy = new CacheValidityPolicy();
         this.responseGenerator = new CachedHttpResponseGenerator(this.validityPolicy);
@@ -142,16 +138,6 @@ public class CachingExecBase {
         return cacheUpdates.get();
     }
 
-    HttpCacheEntry satisfyFromCache(final HttpHost target, final HttpRequest request) {
-        HttpCacheEntry entry = null;
-        try {
-            entry = responseCache.getCacheEntry(target, request);
-        } catch (final IOException ioe) {
-            log.warn("Unable to retrieve entries from cache", ioe);
-        }
-        return entry;
-    }
-
     SimpleHttpResponse getFatallyNoncompliantResponse(
             final HttpRequest request,
             final HttpContext context) {
@@ -162,16 +148,6 @@ public class CachingExecBase {
         } else {
             return null;
         }
-    }
-
-    Map<String, Variant> getExistingCacheVariants(final HttpHost target, final HttpRequest request) {
-        Map<String,Variant> variants = null;
-        try {
-            variants = responseCache.getVariantCacheEntriesWithEtags(target, request);
-        } catch (final IOException ioe) {
-            log.warn("Unable to retrieve variant entries from cache", ioe);
-        }
-        return variants;
     }
 
     void recordCacheMiss(final HttpHost target, final HttpRequest request) {
@@ -200,19 +176,11 @@ public class CachingExecBase {
         setResponseStatus(context, CacheResponseStatus.VALIDATED);
     }
 
-    void flushEntriesInvalidatedByRequest(final HttpHost target, final HttpRequest request) {
-        try {
-            responseCache.flushInvalidatedCacheEntriesFor(target, request);
-        } catch (final IOException ioe) {
-            log.warn("Unable to flush invalidated entries from cache", ioe);
-        }
-    }
-
     SimpleHttpResponse generateCachedResponse(
             final HttpRequest request,
             final HttpContext context,
             final HttpCacheEntry entry,
-            final Date now) throws IOException {
+            final Date now) throws ResourceIOException {
         final SimpleHttpResponse cachedResponse;
         if (request.containsHeader(HeaderConstants.IF_NONE_MATCH)
                 || request.containsHeader(HeaderConstants.IF_MODIFIED_SINCE)) {
@@ -337,7 +305,7 @@ public class CachingExecBase {
      * and {@code Content-Range} headers.
      * @return {@code true} if byte-range requests are supported
      */
-    public boolean supportsRangeAndContentRangeHeaders() {
+    boolean supportsRangeAndContentRangeHeaders() {
         return SUPPORTS_RANGE_AND_CONTENT_RANGE_HEADERS;
     }
 
@@ -370,17 +338,6 @@ public class CachingExecBase {
         return DateUtils.isBefore(backendResponse, cacheEntry, HttpHeaders.DATE);
     }
 
-    void tryToUpdateVariantMap(
-            final HttpHost target,
-            final HttpRequest request,
-            final Variant matchingVariant) {
-        try {
-            responseCache.reuseVariantEntryFor(target, request, matchingVariant);
-        } catch (final IOException ioe) {
-            log.warn("Could not processChallenge cache entry to reuse variant", ioe);
-        }
-    }
-
     boolean shouldSendNotModifiedResponse(final HttpRequest request, final HttpCacheEntry responseEntry) {
         return (suitabilityChecker.isConditional(request)
                 && suitabilityChecker.allConditionalsMatch(request, responseEntry, new Date()));
@@ -401,40 +358,13 @@ public class CachingExecBase {
      * included in 304 responses by backend servers. This header will not be
      * included in the resulting response.
      */
-    void storeRequestIfModifiedSinceFor304Response(
-            final HttpRequest request, final HttpResponse backendResponse) {
+    void storeRequestIfModifiedSinceFor304Response(final HttpRequest request, final HttpResponse backendResponse) {
         if (backendResponse.getCode() == HttpStatus.SC_NOT_MODIFIED) {
             final Header h = request.getFirstHeader("If-Modified-Since");
             if (h != null) {
                 backendResponse.addHeader("Last-Modified", h.getValue());
             }
         }
-    }
-
-    boolean alreadyHaveNewerCacheEntry(
-            final HttpHost target, final HttpRequest request, final HttpResponse backendResponse) {
-        final Header responseDateHeader = backendResponse.getFirstHeader(HttpHeaders.DATE);
-        if (responseDateHeader == null) {
-            return false;
-        }
-        final Date responseDate = DateUtils.parseDate(responseDateHeader.getValue());
-        if (responseDate == null) {
-            return false;
-        }
-        HttpCacheEntry existing = null;
-        try {
-            existing = responseCache.getCacheEntry(target, request);
-        } catch (final IOException ioe) {
-            // nop
-        }
-        if (existing == null) {
-            return false;
-        }
-        final Date entryDate = DateUtils.parseDate(existing, HttpHeaders.DATE);
-        if (entryDate == null) {
-            return false;
-        }
-        return responseDate.before(entryDate);
     }
 
 }

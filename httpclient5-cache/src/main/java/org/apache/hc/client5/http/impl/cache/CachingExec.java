@@ -45,6 +45,7 @@ import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecChainHandler;
 import org.apache.hc.client5.http.impl.classic.ClassicRequestCopier;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.ClassicHttpRequest;
@@ -52,6 +53,7 @@ import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpStatus;
@@ -98,14 +100,14 @@ import org.apache.logging.log4j.Logger;
 @Contract(threading = ThreadingBehavior.SAFE) // So long as the responseCache implementation is threadsafe
 public class CachingExec extends CachingExecBase implements ExecChainHandler {
 
+    private final HttpCache responseCache;
     private final ConditionalRequestBuilder<ClassicHttpRequest> conditionalRequestBuilder;
 
     private final Logger log = LogManager.getLogger(getClass());
 
-    public CachingExec(
-            final HttpCache cache,
-            final CacheConfig config) {
-        super(cache, config);
+    public CachingExec(final HttpCache cache, final CacheConfig config) {
+        super(config);
+        this.responseCache = Args.notNull(cache, "Response cache");
         this.conditionalRequestBuilder = new ConditionalRequestBuilder<>(ClassicRequestCopier.INSTANCE);
     }
 
@@ -131,8 +133,9 @@ public class CachingExec extends CachingExecBase implements ExecChainHandler {
             final ResponseProtocolCompliance responseCompliance,
             final RequestProtocolCompliance requestCompliance,
             final CacheConfig config) {
-        super(responseCache, validityPolicy, responseCachingPolicy, responseGenerator, cacheableRequestPolicy,
+        super(validityPolicy, responseCachingPolicy, responseGenerator, cacheableRequestPolicy,
                 suitabilityChecker, responseCompliance, requestCompliance, config);
+        this.responseCache = responseCache;
         this.conditionalRequestBuilder = conditionalRequestBuilder;
     }
 
@@ -329,6 +332,45 @@ public class CachingExec extends CachingExecBase implements ExecChainHandler {
         }
     }
 
+    HttpCacheEntry satisfyFromCache(final HttpHost target, final HttpRequest request) {
+        HttpCacheEntry entry = null;
+        try {
+            entry = responseCache.getCacheEntry(target, request);
+        } catch (final IOException ioe) {
+            log.warn("Unable to retrieve entries from cache", ioe);
+        }
+        return entry;
+    }
+
+    Map<String, Variant> getExistingCacheVariants(final HttpHost target, final HttpRequest request) {
+        Map<String,Variant> variants = null;
+        try {
+            variants = responseCache.getVariantCacheEntriesWithEtags(target, request);
+        } catch (final IOException ioe) {
+            log.warn("Unable to retrieve variant entries from cache", ioe);
+        }
+        return variants;
+    }
+
+    void flushEntriesInvalidatedByRequest(final HttpHost target, final HttpRequest request) {
+        try {
+            responseCache.flushInvalidatedCacheEntriesFor(target, request);
+        } catch (final IOException ioe) {
+            log.warn("Unable to flush invalidated entries from cache", ioe);
+        }
+    }
+
+    void tryToUpdateVariantMap(
+            final HttpHost target,
+            final HttpRequest request,
+            final Variant matchingVariant) {
+        try {
+            responseCache.reuseVariantEntryFor(target, request, matchingVariant);
+        } catch (final IOException ioe) {
+            log.warn("Could not update cache entry to reuse variant", ioe);
+        }
+    }
+
     ClassicHttpResponse handleBackendResponse(
             final HttpHost target,
             final ClassicHttpRequest request,
@@ -339,13 +381,12 @@ public class CachingExec extends CachingExecBase implements ExecChainHandler {
 
         responseCompliance.ensureProtocolCompliance(scope.originalRequest, request, backendResponse);
 
-        final boolean cacheable = responseCachingPolicy.isResponseCacheable(request, backendResponse);
         responseCache.flushInvalidatedCacheEntriesFor(target, request, backendResponse);
-        if (cacheable && !alreadyHaveNewerCacheEntry(target, request, backendResponse)) {
+        final boolean cacheable = responseCachingPolicy.isResponseCacheable(request, backendResponse);
+        if (cacheable) {
             storeRequestIfModifiedSinceFor304Response(request, backendResponse);
             return cacheAndReturnResponse(target, request, backendResponse, requestDate, responseDate);
-        }
-        if (!cacheable) {
+        } else {
             log.debug("Backend response is not cacheable");
             try {
                 responseCache.flushCacheEntriesFor(target, request);
@@ -384,9 +425,15 @@ public class CachingExec extends CachingExecBase implements ExecChainHandler {
             buf = null;
         }
         backendResponse.close();
-        final HttpCacheEntry entry = responseCache.createCacheEntry(target, request, backendResponse, buf, requestSent, responseReceived);
-        log.debug("Backend response successfully cached");
-        return convert(responseGenerator.generateResponse(request, entry));
+        final HttpCacheEntry existingEntry = responseCache.getCacheEntry(target, request);
+        if (DateUtils.isAfter(existingEntry, backendResponse, HttpHeaders.DATE)) {
+            return convert(responseGenerator.generateResponse(request, existingEntry));
+        } else {
+            final HttpCacheEntry newEntry = responseCache.createCacheEntry(
+                    target, request, backendResponse, buf, requestSent, responseReceived);
+            log.debug("Backend response successfully cached");
+            return convert(responseGenerator.generateResponse(request, newEntry));
+        }
     }
 
     private ClassicHttpResponse handleCacheMiss(

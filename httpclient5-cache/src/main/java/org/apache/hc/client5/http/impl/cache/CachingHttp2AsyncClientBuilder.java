@@ -31,7 +31,9 @@ import java.io.File;
 import java.io.IOException;
 
 import org.apache.hc.client5.http.async.AsyncExecChainHandler;
-import org.apache.hc.client5.http.cache.HttpCacheInvalidator;
+import org.apache.hc.client5.http.cache.HttpAsyncCacheInvalidator;
+import org.apache.hc.client5.http.cache.HttpAsyncCacheStorage;
+import org.apache.hc.client5.http.cache.HttpAsyncCacheStorageAdaptor;
 import org.apache.hc.client5.http.cache.HttpCacheStorage;
 import org.apache.hc.client5.http.cache.ResourceFactory;
 import org.apache.hc.client5.http.impl.ChainElements;
@@ -47,10 +49,10 @@ import org.apache.hc.core5.http.config.NamedElementChain;
 public class CachingHttp2AsyncClientBuilder extends Http2AsyncClientBuilder {
 
     private ResourceFactory resourceFactory;
-    private HttpCacheStorage storage;
+    private HttpAsyncCacheStorage storage;
     private File cacheDir;
     private CacheConfig cacheConfig;
-    private HttpCacheInvalidator httpCacheInvalidator;
+    private HttpAsyncCacheInvalidator httpCacheInvalidator;
     private boolean deleteCache;
 
     public static CachingHttp2AsyncClientBuilder create() {
@@ -62,32 +64,32 @@ public class CachingHttp2AsyncClientBuilder extends Http2AsyncClientBuilder {
         this.deleteCache = true;
     }
 
-    public final CachingHttp2AsyncClientBuilder setResourceFactory(
-            final ResourceFactory resourceFactory) {
+    public final CachingHttp2AsyncClientBuilder setResourceFactory(final ResourceFactory resourceFactory) {
         this.resourceFactory = resourceFactory;
         return this;
     }
 
-    public final CachingHttp2AsyncClientBuilder setHttpCacheStorage(
-            final HttpCacheStorage storage) {
+    public final CachingHttp2AsyncClientBuilder setHttpCacheStorage(final HttpCacheStorage storage) {
+        this.storage = storage != null ? new HttpAsyncCacheStorageAdaptor(storage) : null;
+        return this;
+    }
+
+    public final CachingHttp2AsyncClientBuilder setHttpCacheStorage(final HttpAsyncCacheStorage storage) {
         this.storage = storage;
         return this;
     }
 
-    public final CachingHttp2AsyncClientBuilder setCacheDir(
-            final File cacheDir) {
+    public final CachingHttp2AsyncClientBuilder setCacheDir(final File cacheDir) {
         this.cacheDir = cacheDir;
         return this;
     }
 
-    public final CachingHttp2AsyncClientBuilder setCacheConfig(
-            final CacheConfig cacheConfig) {
+    public final CachingHttp2AsyncClientBuilder setCacheConfig(final CacheConfig cacheConfig) {
         this.cacheConfig = cacheConfig;
         return this;
     }
 
-    public final CachingHttp2AsyncClientBuilder setHttpCacheInvalidator(
-            final HttpCacheInvalidator cacheInvalidator) {
+    public final CachingHttp2AsyncClientBuilder setHttpCacheInvalidator(final HttpAsyncCacheInvalidator cacheInvalidator) {
         this.httpCacheInvalidator = cacheInvalidator;
         return this;
     }
@@ -109,10 +111,10 @@ public class CachingHttp2AsyncClientBuilder extends Http2AsyncClientBuilder {
                 resourceFactoryCopy = new FileResourceFactory(cacheDir);
             }
         }
-        HttpCacheStorage storageCopy = this.storage;
+        HttpAsyncCacheStorage storageCopy = this.storage;
         if (storageCopy == null) {
             if (this.cacheDir == null) {
-                storageCopy = new BasicHttpCacheStorage(config);
+                storageCopy = new HttpAsyncCacheStorageAdaptor(new BasicHttpCacheStorage(config));
             } else {
                 final ManagedHttpCacheStorage managedStorage = new ManagedHttpCacheStorage(config);
                 if (this.deleteCache) {
@@ -127,14 +129,14 @@ public class CachingHttp2AsyncClientBuilder extends Http2AsyncClientBuilder {
                 } else {
                     addCloseable(managedStorage);
                 }
-                storageCopy = managedStorage;
+                storageCopy = new HttpAsyncCacheStorageAdaptor(managedStorage);
             }
         }
-        final HttpCache httpCache = new BasicHttpCache(
+        final HttpAsyncCache httpCache = new BasicHttpAsyncCache(
                 resourceFactoryCopy,
                 storageCopy,
                 CacheKeyGenerator.INSTANCE,
-                this.httpCacheInvalidator != null ? this.httpCacheInvalidator : new DefaultCacheInvalidator());
+                this.httpCacheInvalidator != null ? this.httpCacheInvalidator : new DefaultAsyncCacheInvalidator());
 
         final AsyncCachingExec cachingExec = new AsyncCachingExec(httpCache, config);
         execChainDefinition.addBefore(ChainElements.PROTOCOL.name(), cachingExec, ChainElements.CACHING.name());

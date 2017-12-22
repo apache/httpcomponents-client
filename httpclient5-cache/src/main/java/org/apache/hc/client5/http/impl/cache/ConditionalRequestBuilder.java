@@ -37,7 +37,6 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HeaderElement;
 import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.message.MessageSupport;
 
 /**
@@ -61,9 +60,8 @@ class ConditionalRequestBuilder<T extends HttpRequest> {
      * @param request the original request from the caller
      * @param cacheEntry the entry that needs to be re-validated
      * @return the wrapped request
-     * @throws ProtocolException when I am unable to build a new origin request.
      */
-    public T buildConditionalRequest(final T request, final HttpCacheEntry cacheEntry) throws ProtocolException {
+    public T buildConditionalRequest(final T request, final HttpCacheEntry cacheEntry) {
         final T newRequest = messageCopier.copy(request);
         newRequest.setHeaders(request.getAllHeaders());
         final Header eTag = cacheEntry.getFirstHeader(HeaderConstants.ETAG);
