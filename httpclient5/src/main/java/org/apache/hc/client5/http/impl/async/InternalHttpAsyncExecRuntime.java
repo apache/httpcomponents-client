@@ -35,9 +35,11 @@ import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.async.AsyncExecRuntime;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.ConnPoolSupport;
+import org.apache.hc.client5.http.impl.Operations;
 import org.apache.hc.client5.http.nio.AsyncClientConnectionManager;
 import org.apache.hc.client5.http.nio.AsyncConnectionEndpoint;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.core5.concurrent.Cancellable;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.nio.AsyncClientExchangeHandler;
 import org.apache.hc.core5.http2.HttpVersionPolicy;
@@ -76,7 +78,7 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
     }
 
     @Override
-    public void acquireConnection(
+    public Cancellable acquireConnection(
             final HttpRoute route,
             final Object object,
             final HttpClientContext context,
@@ -84,27 +86,32 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
         if (endpointRef.get() == null) {
             state = object;
             final RequestConfig requestConfig = context.getRequestConfig();
-            manager.lease(route, object, requestConfig.getConnectionRequestTimeout(), new FutureCallback<AsyncConnectionEndpoint>() {
+            return Operations.cancellable(manager.lease(
+                    route,
+                    object,
+                    requestConfig.getConnectionRequestTimeout(),
+                    new FutureCallback<AsyncConnectionEndpoint>() {
 
-                @Override
-                public void completed(final AsyncConnectionEndpoint connectionEndpoint) {
-                    endpointRef.set(connectionEndpoint);
-                    reusable = connectionEndpoint.isConnected();
-                    callback.completed(InternalHttpAsyncExecRuntime.this);
-                }
+                        @Override
+                        public void completed(final AsyncConnectionEndpoint connectionEndpoint) {
+                            endpointRef.set(connectionEndpoint);
+                            reusable = connectionEndpoint.isConnected();
+                            callback.completed(InternalHttpAsyncExecRuntime.this);
+                        }
 
-                @Override
-                public void failed(final Exception ex) {
-                    callback.failed(ex);
-                }
+                        @Override
+                        public void failed(final Exception ex) {
+                            callback.failed(ex);
+                        }
 
-                @Override
-                public void cancelled() {
-                    callback.cancelled();
-                }
-            });
+                        @Override
+                        public void cancelled() {
+                            callback.cancelled();
+                        }
+                    }));
         } else {
             callback.completed(this);
+            return Operations.nonCancellable();
         }
     }
 
@@ -175,16 +182,17 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
     }
 
     @Override
-    public void connect(
+    public Cancellable connect(
             final HttpClientContext context,
             final FutureCallback<AsyncExecRuntime> callback) {
         final AsyncConnectionEndpoint endpoint = ensureValid();
         if (endpoint.isConnected()) {
             callback.completed(this);
+            return Operations.nonCancellable();
         } else {
             final RequestConfig requestConfig = context.getRequestConfig();
             final TimeValue timeout = requestConfig.getConnectionTimeout();
-            manager.connect(
+            return Operations.cancellable(manager.connect(
                     endpoint,
                     connectionInitiator,
                     timeout,
@@ -210,7 +218,7 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
                             callback.cancelled();
                         }
 
-            });
+            }));
         }
 
     }

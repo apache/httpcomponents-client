@@ -30,6 +30,7 @@ package org.apache.hc.client5.http.async;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.annotation.Internal;
+import org.apache.hc.core5.concurrent.Cancellable;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.nio.AsyncClientExchangeHandler;
 import org.apache.hc.core5.util.TimeValue;
@@ -48,7 +49,7 @@ public interface AsyncExecRuntime {
 
     boolean isConnectionAcquired();
 
-    void acquireConnection(
+    Cancellable acquireConnection(
             HttpRoute route,
             Object state,
             HttpClientContext clientContext,
@@ -62,7 +63,7 @@ public interface AsyncExecRuntime {
 
     boolean isConnected();
 
-    void connect(
+    Cancellable connect(
             HttpClientContext clientContext,
             FutureCallback<AsyncExecRuntime> callback);
 

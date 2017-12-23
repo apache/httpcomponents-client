@@ -34,7 +34,9 @@ import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.async.AsyncExecRuntime;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.ConnPoolSupport;
+import org.apache.hc.client5.http.impl.Operations;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.core5.concurrent.Cancellable;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.nio.AsyncClientExchangeHandler;
@@ -65,7 +67,7 @@ class InternalHttp2AsyncExecRuntime implements AsyncExecRuntime {
     }
 
     @Override
-    public void acquireConnection(
+    public Cancellable acquireConnection(
             final HttpRoute route,
             final Object object,
             final HttpClientContext context,
@@ -73,28 +75,32 @@ class InternalHttp2AsyncExecRuntime implements AsyncExecRuntime {
         if (sessionRef.get() == null) {
             final HttpHost target = route.getTargetHost();
             final RequestConfig requestConfig = context.getRequestConfig();
-            connPool.getSession(target, requestConfig.getConnectionTimeout(), new FutureCallback<IOSession>() {
+            return Operations.cancellable(connPool.getSession(
+                    target,
+                    requestConfig.getConnectionTimeout(),
+                    new FutureCallback<IOSession>() {
 
-                @Override
-                public void completed(final IOSession ioSession) {
-                    sessionRef.set(new Endpoint(target, ioSession));
-                    reusable = true;
-                    callback.completed(InternalHttp2AsyncExecRuntime.this);
-                }
+                        @Override
+                        public void completed(final IOSession ioSession) {
+                            sessionRef.set(new Endpoint(target, ioSession));
+                            reusable = true;
+                            callback.completed(InternalHttp2AsyncExecRuntime.this);
+                        }
 
-                @Override
-                public void failed(final Exception ex) {
-                    callback.failed(ex);
-                }
+                        @Override
+                        public void failed(final Exception ex) {
+                            callback.failed(ex);
+                        }
 
-                @Override
-                public void cancelled() {
-                    callback.cancelled();
-                }
+                        @Override
+                        public void cancelled() {
+                            callback.cancelled();
+                        }
 
-            });
+                    }));
         } else {
             callback.completed(this);
+            return Operations.nonCancellable();
         }
     }
 
@@ -144,16 +150,17 @@ class InternalHttp2AsyncExecRuntime implements AsyncExecRuntime {
     }
 
     @Override
-    public void connect(
+    public Cancellable connect(
             final HttpClientContext context,
             final FutureCallback<AsyncExecRuntime> callback) {
         final Endpoint endpoint = ensureValid();
         if (!endpoint.session.isClosed()) {
             callback.completed(this);
+            return Operations.nonCancellable();
         } else {
             final HttpHost target = endpoint.target;
             final RequestConfig requestConfig = context.getRequestConfig();
-            connPool.getSession(target, requestConfig.getConnectionTimeout(), new FutureCallback<IOSession>() {
+            return Operations.cancellable(connPool.getSession(target, requestConfig.getConnectionTimeout(), new FutureCallback<IOSession>() {
 
                 @Override
                 public void completed(final IOSession ioSession) {
@@ -172,7 +179,7 @@ class InternalHttp2AsyncExecRuntime implements AsyncExecRuntime {
                     callback.cancelled();
                 }
 
-            });
+            }));
         }
 
     }

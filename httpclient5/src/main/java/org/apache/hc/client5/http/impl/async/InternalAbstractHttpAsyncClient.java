@@ -49,7 +49,7 @@ import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.client5.http.impl.ExecSupport;
 import org.apache.hc.client5.http.impl.RequestCopier;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
-import org.apache.hc.core5.concurrent.BasicFuture;
+import org.apache.hc.core5.concurrent.ComplexFuture;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.HttpException;
@@ -140,7 +140,7 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
             final HttpContext context,
             final FutureCallback<T> callback) {
         ensureRunning();
-        final BasicFuture<T> future = new BasicFuture<>(callback);
+        final ComplexFuture<T> future = new ComplexFuture<>(callback);
         try {
             final HttpClientContext clientContext = HttpClientContext.adapt(context);
             requestProducer.sendRequest(new RequestChannel() {
@@ -166,7 +166,8 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
 
                     setupContext(clientContext);
 
-                    final AsyncExecChain.Scope scope = new AsyncExecChain.Scope(exchangeId, route, request, clientContext, execRuntime);
+                    final AsyncExecChain.Scope scope = new AsyncExecChain.Scope(exchangeId, route, request, future,
+                            clientContext, execRuntime);
                     final AtomicReference<T> resultRef = new AtomicReference<>(null);
                     final AtomicBoolean outputTerminated = new AtomicBoolean(false);
                     execChain.execute(

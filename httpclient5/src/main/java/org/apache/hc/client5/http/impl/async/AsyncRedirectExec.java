@@ -143,8 +143,8 @@ class AsyncRedirectExec implements AsyncExecChainHandler {
                             }
                         }
                         final HttpRoute newRoute = routePlanner.determineRoute(newTarget, clientContext);
-                        state.currentScope = new AsyncExecChain.Scope(
-                                scope.exchangeId, newRoute, scope.originalRequest, clientContext, scope.execRuntime);
+                        state.currentScope = new AsyncExecChain.Scope(scope.exchangeId, newRoute,
+                                scope.originalRequest, scope.future, clientContext, scope.execRuntime);
                         state.redirectURI = redirectUri;
                     } else {
                         state.reroute = false;
