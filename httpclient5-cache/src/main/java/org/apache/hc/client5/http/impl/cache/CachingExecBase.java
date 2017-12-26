@@ -362,25 +362,12 @@ public class CachingExecBase {
         return true;
     }
 
-    boolean revalidationResponseIsTooOld(final HttpResponse backendResponse,
-            final HttpCacheEntry cacheEntry) {
-        final Header entryDateHeader = cacheEntry.getFirstHeader(HttpHeaders.DATE);
-        final Header responseDateHeader = backendResponse.getFirstHeader(HttpHeaders.DATE);
-        if (entryDateHeader != null && responseDateHeader != null) {
-            final Date entryDate = DateUtils.parseDate(entryDateHeader.getValue());
-            final Date respDate = DateUtils.parseDate(responseDateHeader.getValue());
-            if (entryDate == null || respDate == null) {
-                // either backend response or cached entry did not have a valid
-                // Date header, so we can't tell if they are out of order
-                // according to the origin clock; thus we can skip the
-                // unconditional retry recommended in 13.2.6 of RFC 2616.
-                return false;
-            }
-            if (respDate.before(entryDate)) {
-                return true;
-            }
-        }
-        return false;
+    boolean revalidationResponseIsTooOld(final HttpResponse backendResponse, final HttpCacheEntry cacheEntry) {
+        // either backend response or cached entry did not have a valid
+        // Date header, so we can't tell if they are out of order
+        // according to the origin clock; thus we can skip the
+        // unconditional retry recommended in 13.2.6 of RFC 2616.
+        return DateUtils.isBefore(backendResponse, cacheEntry, HttpHeaders.DATE);
     }
 
     void tryToUpdateVariantMap(
@@ -426,6 +413,14 @@ public class CachingExecBase {
 
     boolean alreadyHaveNewerCacheEntry(
             final HttpHost target, final HttpRequest request, final HttpResponse backendResponse) {
+        final Header responseDateHeader = backendResponse.getFirstHeader(HttpHeaders.DATE);
+        if (responseDateHeader == null) {
+            return false;
+        }
+        final Date responseDate = DateUtils.parseDate(responseDateHeader.getValue());
+        if (responseDate == null) {
+            return false;
+        }
         HttpCacheEntry existing = null;
         try {
             existing = responseCache.getCacheEntry(target, request);
@@ -435,17 +430,8 @@ public class CachingExecBase {
         if (existing == null) {
             return false;
         }
-        final Header entryDateHeader = existing.getFirstHeader(HttpHeaders.DATE);
-        if (entryDateHeader == null) {
-            return false;
-        }
-        final Header responseDateHeader = backendResponse.getFirstHeader(HttpHeaders.DATE);
-        if (responseDateHeader == null) {
-            return false;
-        }
-        final Date entryDate = DateUtils.parseDate(entryDateHeader.getValue());
-        final Date responseDate = DateUtils.parseDate(responseDateHeader.getValue());
-        if (entryDate == null || responseDate == null) {
+        final Date entryDate = DateUtils.parseDate(existing, HttpHeaders.DATE);
+        if (entryDate == null) {
             return false;
         }
         return responseDate.before(entryDate);

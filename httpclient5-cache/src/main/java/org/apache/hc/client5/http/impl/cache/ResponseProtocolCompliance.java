@@ -91,7 +91,7 @@ class ResponseProtocolCompliance {
 
     private void warningsWithNonMatchingWarnDatesAreRemoved(
             final HttpResponse response) {
-        final Date responseDate = DateUtils.parseDate(response.getFirstHeader(HttpHeaders.DATE).getValue());
+        final Date responseDate = DateUtils.parseDate(response, HttpHeaders.DATE);
         if (responseDate == null) {
             return;
         }

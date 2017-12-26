@@ -161,8 +161,7 @@ class ResponseCachingPolicy {
             return false;
         }
 
-        final Header h = response.getFirstHeader(HttpHeaders.DATE);
-        final Date date = h != null ? DateUtils.parseDate(h.getValue()) : null;
+        final Date date = DateUtils.parseDate(response, HttpHeaders.DATE);
         if (date == null) {
             log.debug("Invalid / missing Date header");
             return false;

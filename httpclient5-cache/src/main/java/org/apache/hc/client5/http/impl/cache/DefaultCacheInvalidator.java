@@ -29,7 +29,6 @@ package org.apache.hc.client5.http.impl.cache;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Date;
 
 import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
@@ -273,19 +272,7 @@ class DefaultCacheInvalidator implements HttpCacheInvalidator {
         return (!entryEtag.getValue().equals(responseEtag.getValue()));
     }
 
-    private boolean responseDateOlderThanEntryDate(final HttpResponse response,
-            final HttpCacheEntry entry) {
-        final Header entryDateHeader = entry.getFirstHeader(HttpHeaders.DATE);
-        final Header responseDateHeader = response.getFirstHeader(HttpHeaders.DATE);
-        if (entryDateHeader == null || responseDateHeader == null) {
-            /* be conservative; should probably flush */
-            return false;
-        }
-        final Date entryDate = DateUtils.parseDate(entryDateHeader.getValue());
-        final Date responseDate = DateUtils.parseDate(responseDateHeader.getValue());
-        if (entryDate == null || responseDate == null) {
-            return false;
-        }
-        return responseDate.before(entryDate);
+    private boolean responseDateOlderThanEntryDate(final HttpResponse response, final HttpCacheEntry entry) {
+        return DateUtils.isBefore(response, entry, HttpHeaders.DATE);
     }
 }

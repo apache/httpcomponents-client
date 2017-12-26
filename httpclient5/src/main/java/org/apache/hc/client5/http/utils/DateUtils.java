@@ -39,6 +39,8 @@ import java.util.TimeZone;
 
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.MessageHeaders;
 import org.apache.hc.core5.util.Args;
 
 /**
@@ -95,6 +97,99 @@ public final class DateUtils {
      */
     public static Date parseDate(final String dateValue) {
         return parseDate(dateValue, null, null);
+    }
+
+    /**
+     * Parses a date value from a header with the given name.
+     *
+     * @param headers message headers
+     * @param headerName header name
+     *
+     * @return the parsed date or null if input could not be parsed
+     *
+     * @since 5.0
+     */
+    public static Date parseDate(final MessageHeaders headers, final String headerName) {
+        if (headers == null) {
+            return null;
+        }
+        final Header header = headers.getFirstHeader(headerName);
+        if (header == null) {
+            return null;
+        }
+        return parseDate(header.getValue(), null, null);
+    }
+
+    /**
+     * Tests if the first message is after (newer) than seconds message
+     * using the given message header for comparison.
+     *
+     * @param message1 the first message
+     * @param message2 the second message
+     * @param headerName header name
+     *
+     * @return {@code true} if both messages contain a header with the given name
+     *  and the value of the header from the first message is newer that of
+     *  the second message.
+     *
+     * @since 5.0
+     */
+    public static boolean isAfter(
+            final MessageHeaders message1,
+            final MessageHeaders message2,
+            final String headerName) {
+        if (message1 != null && message2 != null) {
+            final Header dateHeader1 = message1.getFirstHeader(headerName);
+            if (dateHeader1 != null) {
+                final Header dateHeader2 = message2.getFirstHeader(headerName);
+                if (dateHeader2 != null) {
+                    final Date date1 = parseDate(dateHeader1.getValue());
+                    if (date1 != null) {
+                        final Date date2 = parseDate(dateHeader2.getValue());
+                        if (date2 != null) {
+                            return date1.after(date2);
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Tests if the first message is before (older) than seconds message
+     * using the given message header for comparison.
+     *
+     * @param message1 the first message
+     * @param message2 the second message
+     * @param headerName header name
+     *
+     * @return {@code true} if both messages contain a header with the given name
+     *  and the value of the header from the first message is older that of
+     *  the second message.
+     *
+     * @since 5.0
+     */
+    public static boolean isBefore(
+            final MessageHeaders message1,
+            final MessageHeaders message2,
+            final String headerName) {
+        if (message1 != null && message2 != null) {
+            final Header dateHeader1 = message1.getFirstHeader(headerName);
+            if (dateHeader1 != null) {
+                final Header dateHeader2 = message2.getFirstHeader(headerName);
+                if (dateHeader2 != null) {
+                    final Date date1 = parseDate(dateHeader1.getValue());
+                    if (date1 != null) {
+                        final Date date2 = parseDate(dateHeader2.getValue());
+                        if (date2 != null) {
+                            return date1.before(date2);
+                        }
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     /**

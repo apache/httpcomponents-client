@@ -44,7 +44,6 @@ import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
-import org.apache.hc.core5.http.MessageHeaders;
 import org.apache.hc.core5.http.message.HeaderGroup;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.ByteArrayBuffer;
@@ -137,16 +136,8 @@ class CacheUpdateHandler {
                 variantMap);
     }
 
-    private static Date getDate(final MessageHeaders messageHeaders) {
-        final Header dateHeader = messageHeaders.getFirstHeader(HttpHeaders.DATE);
-        return dateHeader != null ? DateUtils.parseDate(dateHeader.getValue()): null;
-    }
-
     private Header[] mergeHeaders(final HttpCacheEntry entry, final HttpResponse response) {
-        final Date cacheDate = getDate(entry);
-        final Date responseDate = getDate(response);
-        if (cacheDate != null && responseDate != null && cacheDate.after(responseDate)) {
-            // Don't merge headers, keep the entry's headers as they are newer.
+        if (DateUtils.isAfter(entry, response, HttpHeaders.DATE)) {
             return entry.getAllHeaders();
         }
         final HeaderGroup headerGroup = new HeaderGroup();

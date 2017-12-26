@@ -69,7 +69,7 @@ class CacheValidityPolicy {
             return 0L;
         }
 
-        final Date expiry = getExpirationDate(entry);
+        final Date expiry = DateUtils.parseDate(entry, HeaderConstants.EXPIRES);
         if (expiry == null) {
             return 0;
         }
@@ -102,7 +102,7 @@ class CacheValidityPolicy {
     public long getHeuristicFreshnessLifetimeSecs(final HttpCacheEntry entry,
             final float coefficient, final long defaultLifetime) {
         final Date dateValue = entry.getDate();
-        final Date lastModifiedValue = getLastModifiedValue(entry);
+        final Date lastModifiedValue = DateUtils.parseDate(entry, HeaderConstants.LAST_MODIFIED);
 
         if (dateValue != null && lastModifiedValue != null) {
             final long diff = dateValue.getTime() - lastModifiedValue.getTime();
@@ -171,14 +171,6 @@ class CacheValidityPolicy {
             }
         }
         return result;
-    }
-
-    protected Date getLastModifiedValue(final HttpCacheEntry entry) {
-        final Header dateHdr = entry.getFirstHeader(HeaderConstants.LAST_MODIFIED);
-        if (dateHdr == null) {
-            return null;
-        }
-        return DateUtils.parseDate(dateHdr.getValue());
     }
 
     /**
@@ -273,14 +265,6 @@ class CacheValidityPolicy {
             }
         }
         return maxage;
-    }
-
-    protected Date getExpirationDate(final HttpCacheEntry entry) {
-        final Header expiresHeader = entry.getFirstHeader(HeaderConstants.EXPIRES);
-        if (expiresHeader == null) {
-            return null;
-        }
-        return DateUtils.parseDate(expiresHeader.getValue());
     }
 
     public boolean hasCacheControlDirective(final HttpCacheEntry entry, final String directive) {

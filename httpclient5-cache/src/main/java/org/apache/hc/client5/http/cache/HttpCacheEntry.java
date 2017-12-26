@@ -132,11 +132,7 @@ public class HttpCacheEntry implements MessageHeaders, Serializable {
      * @return the Date value of the header or null if the header is not present
      */
     private Date parseDate() {
-        final Header dateHdr = getFirstHeader(HttpHeaders.DATE);
-        if (dateHdr == null) {
-            return null;
-        }
-        return DateUtils.parseDate(dateHdr.getValue());
+        return DateUtils.parseDate(this, HttpHeaders.DATE);
     }
 
     /**

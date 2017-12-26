@@ -28,7 +28,6 @@ package org.apache.hc.client5.http.impl.cache;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
@@ -380,13 +379,6 @@ public class TestCacheValidityPolicy {
         final Header[] headers = new Header[] { new BasicHeader("Cache-Control", "max-age=asdf") };
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers);
         assertEquals(0, impl.getMaxAge(entry));
-    }
-
-    @Test
-    public void testMalformedExpirationDateReturnsNull() {
-        final Header[] headers = new Header[] { new BasicHeader("Expires", "asdf") };
-        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers);
-        assertNull(impl.getExpirationDate(entry));
     }
 
     @Test
