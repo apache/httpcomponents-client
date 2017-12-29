@@ -29,13 +29,19 @@ package org.apache.hc.client5.testing.async;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Random;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.hc.client5.http.async.methods.AsyncRequestBuilder;
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpResponse;
@@ -130,6 +136,64 @@ public abstract class AbstractHttpAsyncFundamentalsTest<T extends CloseableHttpA
             Assert.assertThat(response.getCode(), CoreMatchers.equalTo(200));
             final byte[] b2 = responseMessage.getBody();
             Assert.assertThat(b1, CoreMatchers.equalTo(b2));
+        }
+    }
+
+    @Test
+    public void testRequestExecutionFromCallback() throws Exception {
+        final HttpHost target = start();
+        final int requestNum = 50;
+        final AtomicInteger count = new AtomicInteger(requestNum);
+        final Queue<SimpleHttpResponse> resultQueue = new ConcurrentLinkedQueue<>();
+        final CountDownLatch countDownLatch = new CountDownLatch(requestNum);
+
+        final FutureCallback<SimpleHttpResponse> callback = new FutureCallback<SimpleHttpResponse>() {
+
+            @Override
+            public void completed(final SimpleHttpResponse result) {
+                try {
+                    resultQueue.add(result);
+                    if (count.decrementAndGet() > 0) {
+                        httpclient.execute(SimpleHttpRequest.get(target, "/random/2048"), this);
+                    }
+                } finally {
+                    countDownLatch.countDown();
+                }
+            }
+
+            @Override
+            public void failed(final Exception ex) {
+                countDownLatch.countDown();
+            }
+
+            @Override
+            public void cancelled() {
+                countDownLatch.countDown();
+            }
+        };
+
+        final int threadNum = 5;
+        final ExecutorService executorService = Executors.newFixedThreadPool(threadNum);
+        for (int i = 0; i < threadNum; i++) {
+            executorService.execute(new Runnable() {
+
+                @Override
+                public void run() {
+                    httpclient.execute(SimpleHttpRequest.get(target, "/random/2048"), callback);
+                }
+
+            });
+        }
+
+        Assert.assertThat(countDownLatch.await(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit()), CoreMatchers.equalTo(true));
+
+        for (;;) {
+            final SimpleHttpResponse response = resultQueue.poll();
+            if (response == null) {
+                break;
+            } else {
+                Assert.assertThat(response.getCode(), CoreMatchers.equalTo(200));
+            }
         }
     }
 
