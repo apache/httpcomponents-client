@@ -71,7 +71,7 @@ public class TestBasicHttpCache {
     public void testDoNotFlushCacheEntriesOnGet() throws Exception {
         final HttpHost host = new HttpHost("foo.example.com");
         final HttpRequest req = new HttpGet("/bar");
-        final String key = (new CacheKeyGenerator()).generateKey(host, req);
+        final String key = CacheKeyGenerator.INSTANCE.generateKey(host, req);
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
 
         backing.map.put(key, entry);
@@ -85,7 +85,7 @@ public class TestBasicHttpCache {
     public void testDoNotFlushCacheEntriesOnHead() throws Exception {
         final HttpHost host = new HttpHost("foo.example.com");
         final HttpRequest req = new HttpHead("/bar");
-        final String key = (new CacheKeyGenerator()).generateKey(host, req);
+        final String key = CacheKeyGenerator.INSTANCE.generateKey(host, req);
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
 
         backing.map.put(key, entry);
@@ -99,7 +99,7 @@ public class TestBasicHttpCache {
     public void testDoNotFlushCacheEntriesOnOptions() throws Exception {
         final HttpHost host = new HttpHost("foo.example.com");
         final HttpRequest req = new HttpOptions("/bar");
-        final String key = (new CacheKeyGenerator()).generateKey(host, req);
+        final String key = CacheKeyGenerator.INSTANCE.generateKey(host, req);
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
 
         backing.map.put(key, entry);
@@ -113,7 +113,7 @@ public class TestBasicHttpCache {
     public void testDoNotFlushCacheEntriesOnTrace() throws Exception {
         final HttpHost host = new HttpHost("foo.example.com");
         final HttpRequest req = new HttpTrace("/bar");
-        final String key = (new CacheKeyGenerator()).generateKey(host, req);
+        final String key = CacheKeyGenerator.INSTANCE.generateKey(host, req);
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
 
         backing.map.put(key, entry);
@@ -131,7 +131,7 @@ public class TestBasicHttpCache {
         final HttpResponse resp = HttpTestUtils.make200Response();
         resp.setHeader("Content-Location", "/bar");
         resp.setHeader(HeaderConstants.ETAG, "\"etag\"");
-        final String key = (new CacheKeyGenerator()).generateKey(host, new HttpGet("/bar"));
+        final String key = CacheKeyGenerator.INSTANCE.generateKey(host, new HttpGet("/bar"));
 
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(new Header[] {
            new BasicHeader("Date", DateUtils.formatDate(new Date())),
@@ -152,7 +152,7 @@ public class TestBasicHttpCache {
         final HttpRequest req = new HttpGet("/foo");
         final HttpResponse resp = HttpTestUtils.make200Response();
         resp.setHeader("Content-Location", "/bar");
-        final String key = (new CacheKeyGenerator()).generateKey(host, new HttpGet("/bar"));
+        final String key = CacheKeyGenerator.INSTANCE.generateKey(host, new HttpGet("/bar"));
 
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(new Header[] {
            new BasicHeader("Date", DateUtils.formatDate(new Date())),
@@ -170,7 +170,7 @@ public class TestBasicHttpCache {
     public void testCanFlushCacheEntriesAtUri() throws Exception {
         final HttpHost host = new HttpHost("foo.example.com");
         final HttpRequest req = new HttpDelete("/bar");
-        final String key = (new CacheKeyGenerator()).generateKey(host, req);
+        final String key = CacheKeyGenerator.INSTANCE.generateKey(host, req);
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
 
         backing.map.put(key, entry);
@@ -186,9 +186,9 @@ public class TestBasicHttpCache {
         assertFalse(entry.hasVariants());
         final HttpHost host = new HttpHost("foo.example.com");
         final HttpRequest req = new HttpGet("http://foo.example.com/bar");
-        final String key = (new CacheKeyGenerator()).generateKey(host, req);
+        final String key = CacheKeyGenerator.INSTANCE.generateKey(host, req);
 
-        impl.storeInCache(host, req, entry);
+        impl.storeInCache(key, host, req, entry);
         assertSame(entry, backing.map.get(key));
     }
 
@@ -207,7 +207,7 @@ public class TestBasicHttpCache {
         final HttpHost host = new HttpHost("foo.example.com");
         final HttpRequest request = new HttpGet("http://foo.example.com/bar");
 
-        final String key = (new CacheKeyGenerator()).generateKey(host, request);
+        final String key = CacheKeyGenerator.INSTANCE.generateKey(host, request);
 
         backing.map.put(key,entry);
 

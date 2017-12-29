@@ -826,8 +826,7 @@ public class AsyncCachingExec extends CachingExecBase implements AsyncExecChainH
                         callBackend(target, request, entityProducer, scope, chain, asyncExecCallback);
                         return;
                     }
-                    final HttpCacheEntry matchedEntry = matchingVariant.getEntry();
-                    if (revalidationResponseIsTooOld(backendResponse, matchedEntry)) {
+                    if (revalidationResponseIsTooOld(backendResponse, matchingVariant.getEntry())) {
                         final HttpRequest unconditional = conditionalRequestBuilder.buildUnconditionalRequest(request);
                         scope.clientContext.setAttribute(HttpCoreContext.HTTP_REQUEST, unconditional);
                         callBackend(target, unconditional, entityProducer, scope, chain, asyncExecCallback);
@@ -837,11 +836,10 @@ public class AsyncCachingExec extends CachingExecBase implements AsyncExecChainH
                     future.setDependency(responseCache.updateVariantCacheEntry(
                             target,
                             conditionalRequest,
-                            matchedEntry,
                             backendResponse,
+                            matchingVariant,
                             requestDate,
                             responseDateRef.get(),
-                            matchingVariant.getCacheKey(),
                             new FutureCallback<HttpCacheEntry>() {
 
                                 @Override

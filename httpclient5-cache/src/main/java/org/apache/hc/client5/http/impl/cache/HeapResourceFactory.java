@@ -46,7 +46,7 @@ public class HeapResourceFactory implements ResourceFactory {
     @Override
     public Resource generate(
             final String requestId,
-            final byte[] content, final int off, final int len) throws ResourceIOException {
+            final byte[] content, final int off, final int len) {
         final byte[] copy = new byte[len];
         System.arraycopy(content, off, copy, 0, len);
         return new HeapResource(copy);

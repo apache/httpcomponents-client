@@ -90,7 +90,7 @@ interface HttpAsyncCache {
      * Update a {@link HttpCacheEntry} using a 304 {@link HttpResponse}.
      */
     Cancellable updateCacheEntry(
-            HttpHost target,
+            HttpHost host,
             HttpRequest request,
             HttpCacheEntry stale,
             HttpResponse originResponse,
@@ -103,13 +103,12 @@ interface HttpAsyncCache {
      * using a 304 {@link HttpResponse}.
      */
     Cancellable updateVariantCacheEntry(
-            HttpHost target,
+            HttpHost host,
             HttpRequest request,
-            HttpCacheEntry stale,
             HttpResponse originResponse,
+            Variant variant,
             Date requestSent,
             Date responseReceived,
-            String cacheKey,
             FutureCallback<HttpCacheEntry> callback);
 
     /**
@@ -117,7 +116,7 @@ interface HttpAsyncCache {
      * requests whose varying headers match those of the given client request.
      */
     Cancellable reuseVariantEntryFor(
-            HttpHost target,
+            HttpHost host,
             HttpRequest req,
             Variant variant,
             FutureCallback<Boolean> callback);

@@ -30,7 +30,6 @@ import java.util.Date;
 import java.util.Map;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
-import org.apache.hc.client5.http.cache.ResourceIOException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
@@ -44,12 +43,12 @@ interface HttpCache {
     /**
      * Clear all matching {@link HttpCacheEntry}s.
      */
-    void flushCacheEntriesFor(HttpHost host, HttpRequest request) throws ResourceIOException;
+    void flushCacheEntriesFor(HttpHost host, HttpRequest request);
 
     /**
      * Clear invalidated matching {@link HttpCacheEntry}s
      */
-    void flushInvalidatedCacheEntriesFor(HttpHost host, HttpRequest request) throws ResourceIOException;
+    void flushInvalidatedCacheEntriesFor(HttpHost host, HttpRequest request);
 
     /** Clear any entries that may be invalidated by the given response to
      * a particular request.
@@ -59,13 +58,13 @@ interface HttpCache {
     /**
      * Retrieve matching {@link HttpCacheEntry} from the cache if it exists.
      */
-    HttpCacheEntry getCacheEntry(HttpHost host, HttpRequest request) throws ResourceIOException;
+    HttpCacheEntry getCacheEntry(HttpHost host, HttpRequest request);
 
     /**
      * Retrieve all variants from the cache, if there are no variants then an empty
      * {@link Map} is returned
      */
-    Map<String,Variant> getVariantCacheEntriesWithEtags(HttpHost host, HttpRequest request) throws ResourceIOException;
+    Map<String,Variant> getVariantCacheEntriesWithEtags(HttpHost host, HttpRequest request);
 
     /**
      * Store a {@link HttpResponse} in the cache if possible, and return
@@ -76,38 +75,37 @@ interface HttpCache {
             HttpResponse originResponse,
             ByteArrayBuffer content,
             Date requestSent,
-            Date responseReceived) throws ResourceIOException;
+            Date responseReceived);
 
     /**
      * Update a {@link HttpCacheEntry} using a 304 {@link HttpResponse}.
      */
     HttpCacheEntry updateCacheEntry(
-            HttpHost target,
+            HttpHost host,
             HttpRequest request,
             HttpCacheEntry stale,
             HttpResponse originResponse,
             Date requestSent,
-            Date responseReceived) throws ResourceIOException;
+            Date responseReceived);
 
     /**
      * Update a specific {@link HttpCacheEntry} representing a cached variant
      * using a 304 {@link HttpResponse}.
      */
     HttpCacheEntry updateVariantCacheEntry(
-            HttpHost target,
+            HttpHost host,
             HttpRequest request,
-            HttpCacheEntry stale,
             HttpResponse originResponse,
+            Variant variant,
             Date requestSent,
-            Date responseReceived,
-            String cacheKey) throws ResourceIOException;
+            Date responseReceived);
 
     /**
      * Specifies cache should reuse the given cached variant to satisfy
      * requests whose varying headers match those of the given client request.
      */
     void reuseVariantEntryFor(
-            HttpHost target,
-            HttpRequest req,
-            Variant variant) throws ResourceIOException;
+            HttpHost host,
+            HttpRequest request,
+            Variant variant);
 }

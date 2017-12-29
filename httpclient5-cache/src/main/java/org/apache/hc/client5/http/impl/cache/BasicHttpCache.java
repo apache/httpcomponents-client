@@ -43,18 +43,20 @@ import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.message.RequestLine;
+import org.apache.hc.core5.http.message.StatusLine;
 import org.apache.hc.core5.util.ByteArrayBuffer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 class BasicHttpCache implements HttpCache {
 
+    private final Logger log = LogManager.getLogger(getClass());
+
     private final CacheUpdateHandler cacheUpdateHandler;
     private final CacheKeyGenerator cacheKeyGenerator;
     private final HttpCacheInvalidator cacheInvalidator;
     private final HttpCacheStorage storage;
-
-    private final Logger log = LogManager.getLogger(getClass());
 
     public BasicHttpCache(
             final ResourceFactory resourceFactory,
@@ -87,68 +89,72 @@ class BasicHttpCache implements HttpCache {
     }
 
     @Override
-    public void flushCacheEntriesFor(final HttpHost host, final HttpRequest request) throws ResourceIOException {
+    public void flushCacheEntriesFor(final HttpHost host, final HttpRequest request) {
+        if (log.isDebugEnabled()) {
+            log.debug("Flush cache entries: " + host + "; " + new RequestLine(request));
+        }
         if (!StandardMethods.isSafe(request.getMethod())) {
-            final String uri = cacheKeyGenerator.generateKey(host, request);
-            storage.removeEntry(uri);
+            final String cacheKey = cacheKeyGenerator.generateKey(host, request);
+            try {
+                storage.removeEntry(cacheKey);
+            } catch (final ResourceIOException ex) {
+                if (log.isWarnEnabled()) {
+                    log.warn("I/O error removing cache entry with key " + cacheKey);
+                }
+            }
         }
     }
 
     @Override
     public void flushInvalidatedCacheEntriesFor(final HttpHost host, final HttpRequest request, final HttpResponse response) {
+        if (log.isDebugEnabled()) {
+            log.debug("Flush cache entries: " + host + "; " + new RequestLine(request) + " " + new StatusLine(response));
+        }
         if (!StandardMethods.isSafe(request.getMethod())) {
             cacheInvalidator.flushInvalidatedCacheEntries(host, request, response, cacheKeyGenerator, storage);
         }
     }
 
+    @Override
+    public void flushInvalidatedCacheEntriesFor(final HttpHost host, final HttpRequest request) {
+        if (log.isDebugEnabled()) {
+            log.debug("Flush invalidated cache entries: " + host + "; " + new RequestLine(request));
+        }
+        cacheInvalidator.flushInvalidatedCacheEntries(host, request, cacheKeyGenerator, storage);
+    }
+
     void storeInCache(
-            final HttpHost target, final HttpRequest request, final HttpCacheEntry entry) throws ResourceIOException {
+            final String cacheKey,
+            final HttpHost host,
+            final HttpRequest request,
+            final HttpCacheEntry entry) {
         if (entry.hasVariants()) {
-            storeVariantEntry(target, request, entry);
+            storeVariantEntry(cacheKey, host, request, entry);
         } else {
-            storeNonVariantEntry(target, request, entry);
+            storeEntry(cacheKey, entry);
         }
     }
 
-    void storeNonVariantEntry(
-            final HttpHost target, final HttpRequest req, final HttpCacheEntry entry) throws ResourceIOException {
-        final String uri = cacheKeyGenerator.generateKey(target, req);
-        storage.putEntry(uri, entry);
+    void storeEntry(final String cacheKey, final HttpCacheEntry entry) {
+        try {
+            storage.putEntry(cacheKey, entry);
+        } catch (final ResourceIOException ex) {
+            if (log.isWarnEnabled()) {
+                log.warn("I/O error storing cache entry with key " + cacheKey);
+            }
+        }
     }
 
     void storeVariantEntry(
-            final HttpHost target,
+            final String cacheKey,
+            final HttpHost host,
             final HttpRequest req,
-            final HttpCacheEntry entry) throws ResourceIOException {
-        final String parentCacheKey = cacheKeyGenerator.generateKey(target, req);
+            final HttpCacheEntry entry) {
         final String variantKey = cacheKeyGenerator.generateVariantKey(req, entry);
-        final String variantURI = cacheKeyGenerator.generateVariantURI(target, req, entry);
-        storage.putEntry(variantURI, entry);
-
+        final String variantCacheKey = cacheKeyGenerator.generateVariantURI(host, req, entry);
+        storeEntry(variantCacheKey, entry);
         try {
-            storage.updateEntry(parentCacheKey, new HttpCacheCASOperation() {
-
-                @Override
-                public HttpCacheEntry execute(final HttpCacheEntry existing) throws ResourceIOException {
-                    return cacheUpdateHandler.updateParentCacheEntry(req.getRequestUri(), existing, entry, variantKey, variantURI);
-                }
-
-            });
-        } catch (final HttpCacheUpdateException e) {
-            log.warn("Could not processChallenge key [" + parentCacheKey + "]", e);
-        }
-    }
-
-    @Override
-    public void reuseVariantEntryFor(
-            final HttpHost target, final HttpRequest req, final Variant variant) throws ResourceIOException {
-        final String parentCacheKey = cacheKeyGenerator.generateKey(target, req);
-        final HttpCacheEntry entry = variant.getEntry();
-        final String variantKey = cacheKeyGenerator.generateVariantKey(req, entry);
-        final String variantCacheKey = variant.getCacheKey();
-
-        try {
-            storage.updateEntry(parentCacheKey, new HttpCacheCASOperation() {
+            storage.updateEntry(cacheKey, new HttpCacheCASOperation() {
 
                 @Override
                 public HttpCacheEntry execute(final HttpCacheEntry existing) throws ResourceIOException {
@@ -156,41 +162,105 @@ class BasicHttpCache implements HttpCache {
                 }
 
             });
-        } catch (final HttpCacheUpdateException e) {
-            log.warn("Could not processChallenge key [" + parentCacheKey + "]", e);
+        } catch (final HttpCacheUpdateException ex) {
+            if (log.isWarnEnabled()) {
+                log.warn("Cannot update cache entry with key " + cacheKey);
+            }
+        } catch (final ResourceIOException ex) {
+            if (log.isWarnEnabled()) {
+                log.warn("I/O error updating cache entry with key " + cacheKey);
+            }
+        }
+    }
+
+    @Override
+    public void reuseVariantEntryFor(
+            final HttpHost host, final HttpRequest request, final Variant variant) {
+        if (log.isDebugEnabled()) {
+            log.debug("Re-use variant entry: " + host + "; " + new RequestLine(request) + " / " + variant);
+        }
+        final String cacheKey = cacheKeyGenerator.generateKey(host, request);
+        final HttpCacheEntry entry = variant.getEntry();
+        final String variantKey = cacheKeyGenerator.generateVariantKey(request, entry);
+        final String variantCacheKey = variant.getCacheKey();
+
+        try {
+            storage.updateEntry(cacheKey, new HttpCacheCASOperation() {
+
+                @Override
+                public HttpCacheEntry execute(final HttpCacheEntry existing) throws ResourceIOException {
+                    return cacheUpdateHandler.updateParentCacheEntry(request.getRequestUri(), existing, entry, variantKey, variantCacheKey);
+                }
+
+            });
+        } catch (final HttpCacheUpdateException ex) {
+            if (log.isWarnEnabled()) {
+                log.warn("Cannot update cache entry with key " + cacheKey);
+            }
+        } catch (final ResourceIOException ex) {
+            if (log.isWarnEnabled()) {
+                log.warn("I/O error updating cache entry with key " + cacheKey);
+            }
         }
     }
 
     @Override
     public HttpCacheEntry updateCacheEntry(
-            final HttpHost target,
+            final HttpHost host,
             final HttpRequest request,
             final HttpCacheEntry stale,
             final HttpResponse originResponse,
             final Date requestSent,
-            final Date responseReceived) throws ResourceIOException {
-        final HttpCacheEntry updatedEntry = cacheUpdateHandler.updateCacheEntry(
-                request.getRequestUri(),
-                stale,
-                requestSent,
-                responseReceived,
-                originResponse);
-        storeInCache(target, request, updatedEntry);
-        return updatedEntry;
+            final Date responseReceived) {
+        if (log.isDebugEnabled()) {
+            log.debug("Update cache entry: " + host + "; " + new RequestLine(request));
+        }
+        final String cacheKey = cacheKeyGenerator.generateKey(host, request);
+        try {
+            final HttpCacheEntry updatedEntry = cacheUpdateHandler.updateCacheEntry(
+                    request.getRequestUri(),
+                    stale,
+                    requestSent,
+                    responseReceived,
+                    originResponse);
+            storeInCache(cacheKey, host, request, updatedEntry);
+            return updatedEntry;
+        } catch (final ResourceIOException ex) {
+            if (log.isWarnEnabled()) {
+                log.warn("I/O error updating cache entry with key " + cacheKey);
+            }
+            return stale;
+        }
     }
 
     @Override
-    public HttpCacheEntry updateVariantCacheEntry(final HttpHost target, final HttpRequest request,
-            final HttpCacheEntry stale, final HttpResponse originResponse,
-            final Date requestSent, final Date responseReceived, final String cacheKey) throws ResourceIOException {
-        final HttpCacheEntry updatedEntry = cacheUpdateHandler.updateCacheEntry(
-                request.getRequestUri(),
-                stale,
-                requestSent,
-                responseReceived,
-                originResponse);
-        storage.putEntry(cacheKey, updatedEntry);
-        return updatedEntry;
+    public HttpCacheEntry updateVariantCacheEntry(
+            final HttpHost host,
+            final HttpRequest request,
+            final HttpResponse originResponse,
+            final Variant variant,
+            final Date requestSent,
+            final Date responseReceived) {
+        if (log.isDebugEnabled()) {
+            log.debug("Update variant cache entry: " + host + "; " + new RequestLine(request) + " / " + variant);
+        }
+        final HttpCacheEntry entry = variant.getEntry();
+        final String cacheKey = variant.getCacheKey();
+        try {
+            final HttpCacheEntry updatedEntry = cacheUpdateHandler.updateCacheEntry(
+                    request.getRequestUri(),
+                    entry,
+                    requestSent,
+                    responseReceived,
+                    originResponse);
+            storeEntry(cacheKey, updatedEntry);
+            return updatedEntry;
+        } catch (final ResourceIOException ex) {
+            if (log.isWarnEnabled()) {
+                log.warn("I/O error updating cache entry with key " + cacheKey);
+            }
+            return entry;
+        }
     }
 
     @Override
@@ -200,60 +270,100 @@ class BasicHttpCache implements HttpCache {
             final HttpResponse originResponse,
             final ByteArrayBuffer content,
             final Date requestSent,
-            final Date responseReceived) throws ResourceIOException {
-        final HttpCacheEntry entry = cacheUpdateHandler.createtCacheEntry(request, originResponse, content, requestSent, responseReceived);
-        storeInCache(host, request, entry);
-        return entry;
+            final Date responseReceived) {
+        if (log.isDebugEnabled()) {
+            log.debug("Create cache entry: " + host + "; " + new RequestLine(request));
+        }
+        final String cacheKey = cacheKeyGenerator.generateKey(host, request);
+        try {
+            final HttpCacheEntry entry = cacheUpdateHandler.createtCacheEntry(request, originResponse, content, requestSent, responseReceived);
+            storeInCache(cacheKey, host, request, entry);
+            return entry;
+        } catch (final ResourceIOException ex) {
+            if (log.isWarnEnabled()) {
+                log.warn("I/O error creating cache entry with key " + cacheKey);
+            }
+            return new HttpCacheEntry(
+                    requestSent,
+                    responseReceived,
+                    originResponse.getCode(),
+                    originResponse.getAllHeaders(),
+                    content != null ? HeapResourceFactory.INSTANCE.generate(null, content.array(), 0, content.length()) : null);
+        }
     }
 
     @Override
-    public HttpCacheEntry getCacheEntry(final HttpHost host, final HttpRequest request) throws ResourceIOException {
-        final HttpCacheEntry root = storage.getEntry(cacheKeyGenerator.generateKey(host, request));
+    public HttpCacheEntry getCacheEntry(final HttpHost host, final HttpRequest request) {
+        if (log.isDebugEnabled()) {
+            log.debug("Get cache entry: " + host + "; " + new RequestLine(request));
+        }
+        final String cacheKey = cacheKeyGenerator.generateKey(host, request);
+        final HttpCacheEntry root;
+        try {
+            root = storage.getEntry(cacheKey);
+        } catch (final ResourceIOException ex) {
+            if (log.isWarnEnabled()) {
+                log.warn("I/O error retrieving cache entry with key " + cacheKey);
+            }
+            return null;
+        }
         if (root == null) {
             return null;
         }
         if (!root.hasVariants()) {
             return root;
         }
-        final String variantCacheKey = root.getVariantMap().get(cacheKeyGenerator.generateVariantKey(request, root));
+        final String variantKey = cacheKeyGenerator.generateVariantKey(request, root);
+        final String variantCacheKey = root.getVariantMap().get(variantKey);
         if (variantCacheKey == null) {
             return null;
         }
-        return storage.getEntry(variantCacheKey);
+        try {
+            return storage.getEntry(variantCacheKey);
+        } catch (final ResourceIOException ex) {
+            if (log.isWarnEnabled()) {
+                log.warn("I/O error retrieving cache entry with key " + variantCacheKey);
+            }
+            return null;
+        }
     }
 
     @Override
-    public void flushInvalidatedCacheEntriesFor(final HttpHost host,
-            final HttpRequest request) throws ResourceIOException {
-        cacheInvalidator.flushInvalidatedCacheEntries(host, request, cacheKeyGenerator, storage);
-    }
-
-    @Override
-    public Map<String, Variant> getVariantCacheEntriesWithEtags(final HttpHost host, final HttpRequest request)
-            throws ResourceIOException {
+    public Map<String, Variant> getVariantCacheEntriesWithEtags(final HttpHost host, final HttpRequest request) {
+        if (log.isDebugEnabled()) {
+            log.debug("Get variant cache entries: " + host + "; " + new RequestLine(request));
+        }
         final Map<String,Variant> variants = new HashMap<>();
-        final HttpCacheEntry root = storage.getEntry(cacheKeyGenerator.generateKey(host, request));
-        if (root == null || !root.hasVariants()) {
+        final String cacheKey = cacheKeyGenerator.generateKey(host, request);
+        final HttpCacheEntry root;
+        try {
+            root = storage.getEntry(cacheKey);
+        } catch (final ResourceIOException ex) {
+            if (log.isWarnEnabled()) {
+                log.warn("I/O error retrieving cache entry with key " + cacheKey);
+            }
             return variants;
         }
-        for(final Map.Entry<String, String> variant : root.getVariantMap().entrySet()) {
-            final String variantCacheKey = variant.getValue();
-            addVariantWithEtag(variantCacheKey, variants);
+        if (root != null && root.hasVariants()) {
+            for(final Map.Entry<String, String> variant : root.getVariantMap().entrySet()) {
+                final String variantCacheKey = variant.getValue();
+                try {
+                    final HttpCacheEntry entry = storage.getEntry(variantCacheKey);
+                    if (entry != null) {
+                        final Header etagHeader = entry.getFirstHeader(HeaderConstants.ETAG);
+                        if (etagHeader != null) {
+                            variants.put(etagHeader.getValue(), new Variant(variantCacheKey, entry));
+                        }
+                    }
+                } catch (final ResourceIOException ex) {
+                    if (log.isWarnEnabled()) {
+                        log.warn("I/O error retrieving cache entry with key " + variantCacheKey);
+                    }
+                    return variants;
+                }
+            }
         }
         return variants;
-    }
-
-    private void addVariantWithEtag(
-            final String variantCacheKey, final Map<String, Variant> variants) throws ResourceIOException {
-        final HttpCacheEntry entry = storage.getEntry(variantCacheKey);
-        if (entry == null) {
-            return;
-        }
-        final Header etagHeader = entry.getFirstHeader(HeaderConstants.ETAG);
-        if (etagHeader == null) {
-            return;
-        }
-        variants.put(etagHeader.getValue(), new Variant(variantCacheKey, entry));
     }
 
 }

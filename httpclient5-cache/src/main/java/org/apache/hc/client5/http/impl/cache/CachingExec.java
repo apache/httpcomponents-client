@@ -175,11 +175,11 @@ public class CachingExec extends CachingExecBase implements ExecChainHandler {
 
         if (!cacheableRequestPolicy.isServableFromCache(request)) {
             log.debug("Request is not servable from cache");
-            flushEntriesInvalidatedByRequest(target, request);
+            responseCache.flushInvalidatedCacheEntriesFor(target, request);
             return callBackend(target, request, scope, chain);
         }
 
-        final HttpCacheEntry entry = satisfyFromCache(target, request);
+        final HttpCacheEntry entry = responseCache.getCacheEntry(target, request);
         if (entry == null) {
             log.debug("Cache miss");
             return handleCacheMiss(target, request, scope, chain);
@@ -305,8 +305,7 @@ public class CachingExec extends CachingExecBase implements ExecChainHandler {
 
             if (statusCode == HttpStatus.SC_NOT_MODIFIED) {
                 final HttpCacheEntry updatedEntry = responseCache.updateCacheEntry(
-                        target, request, cacheEntry,
-                        backendResponse, requestDate, responseDate);
+                        target, request, cacheEntry, backendResponse, requestDate, responseDate);
                 if (suitabilityChecker.isConditional(request)
                         && suitabilityChecker.allConditionalsMatch(request, updatedEntry, new Date())) {
                     return convert(responseGenerator.generateNotModifiedResponse(updatedEntry));
@@ -332,45 +331,6 @@ public class CachingExec extends CachingExecBase implements ExecChainHandler {
         }
     }
 
-    HttpCacheEntry satisfyFromCache(final HttpHost target, final HttpRequest request) {
-        HttpCacheEntry entry = null;
-        try {
-            entry = responseCache.getCacheEntry(target, request);
-        } catch (final IOException ioe) {
-            log.warn("Unable to retrieve entries from cache", ioe);
-        }
-        return entry;
-    }
-
-    Map<String, Variant> getExistingCacheVariants(final HttpHost target, final HttpRequest request) {
-        Map<String,Variant> variants = null;
-        try {
-            variants = responseCache.getVariantCacheEntriesWithEtags(target, request);
-        } catch (final IOException ioe) {
-            log.warn("Unable to retrieve variant entries from cache", ioe);
-        }
-        return variants;
-    }
-
-    void flushEntriesInvalidatedByRequest(final HttpHost target, final HttpRequest request) {
-        try {
-            responseCache.flushInvalidatedCacheEntriesFor(target, request);
-        } catch (final IOException ioe) {
-            log.warn("Unable to flush invalidated entries from cache", ioe);
-        }
-    }
-
-    void tryToUpdateVariantMap(
-            final HttpHost target,
-            final HttpRequest request,
-            final Variant matchingVariant) {
-        try {
-            responseCache.reuseVariantEntryFor(target, request, matchingVariant);
-        } catch (final IOException ioe) {
-            log.warn("Could not update cache entry to reuse variant", ioe);
-        }
-    }
-
     ClassicHttpResponse handleBackendResponse(
             final HttpHost target,
             final ClassicHttpRequest request,
@@ -388,11 +348,7 @@ public class CachingExec extends CachingExecBase implements ExecChainHandler {
             return cacheAndReturnResponse(target, request, backendResponse, requestDate, responseDate);
         } else {
             log.debug("Backend response is not cacheable");
-            try {
-                responseCache.flushCacheEntriesFor(target, request);
-            } catch (final IOException ioe) {
-                log.warn("Unable to flush invalid cache entries", ioe);
-            }
+            responseCache.flushCacheEntriesFor(target, request);
         }
         return backendResponse;
     }
@@ -447,7 +403,7 @@ public class CachingExec extends CachingExecBase implements ExecChainHandler {
             return new BasicClassicHttpResponse(HttpStatus.SC_GATEWAY_TIMEOUT, "Gateway Timeout");
         }
 
-        final Map<String, Variant> variants = getExistingCacheVariants(target, request);
+        final Map<String, Variant> variants = responseCache.getVariantCacheEntriesWithEtags(target, request);
         if (variants != null && !variants.isEmpty()) {
             return negotiateResponseFromVariants(target, request, scope, chain, variants);
         }
@@ -492,9 +448,7 @@ public class CachingExec extends CachingExecBase implements ExecChainHandler {
                 return callBackend(target, request, scope, chain);
             }
 
-            final HttpCacheEntry matchedEntry = matchingVariant.getEntry();
-
-            if (revalidationResponseIsTooOld(backendResponse, matchedEntry)) {
+            if (revalidationResponseIsTooOld(backendResponse, matchingVariant.getEntry())) {
                 EntityUtils.consume(backendResponse.getEntity());
                 backendResponse.close();
                 final ClassicHttpRequest unconditional = conditionalRequestBuilder.buildUnconditionalRequest(request);
@@ -503,21 +457,14 @@ public class CachingExec extends CachingExecBase implements ExecChainHandler {
 
             recordCacheUpdate(scope.clientContext);
 
-            HttpCacheEntry responseEntry = matchedEntry;
-            try {
-                responseEntry = responseCache.updateVariantCacheEntry(target, conditionalRequest,
-                        matchedEntry, backendResponse, requestDate, responseDate, matchingVariant.getCacheKey());
-            } catch (final IOException ioe) {
-                log.warn("Could not processChallenge cache entry", ioe);
-            } finally {
-                backendResponse.close();
-            }
-
+            final HttpCacheEntry responseEntry = responseCache.updateVariantCacheEntry(
+                    target, conditionalRequest, backendResponse, matchingVariant, requestDate, responseDate);
+            backendResponse.close();
             if (shouldSendNotModifiedResponse(request, responseEntry)) {
                 return convert(responseGenerator.generateNotModifiedResponse(responseEntry));
             }
             final SimpleHttpResponse resp = responseGenerator.generateResponse(request, responseEntry);
-            tryToUpdateVariantMap(target, request, matchingVariant);
+            responseCache.reuseVariantEntryFor(target, request, matchingVariant);
             return convert(resp);
         } catch (final IOException | RuntimeException ex) {
             backendResponse.close();

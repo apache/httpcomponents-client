@@ -46,4 +46,10 @@ class Variant {
     public HttpCacheEntry getEntry() {
         return entry;
     }
+
+    @Override
+    public String toString() {
+        return cacheKey;
+    }
+
 }
