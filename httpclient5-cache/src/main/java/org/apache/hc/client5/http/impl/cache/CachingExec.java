@@ -278,11 +278,10 @@ public class CachingExec extends CachingExecBase implements ExecChainHandler {
             final ExecChain.Scope scope,
             final ExecChain chain,
             final HttpCacheEntry cacheEntry) throws IOException, HttpException {
-
+        Date requestDate = getCurrentDate();
         final ClassicHttpRequest conditionalRequest = conditionalRequestBuilder.buildConditionalRequest(
                 scope.originalRequest, cacheEntry);
 
-        Date requestDate = getCurrentDate();
         ClassicHttpResponse backendResponse = chain.proceed(conditionalRequest, scope);
         try {
             Date responseDate = getCurrentDate();
