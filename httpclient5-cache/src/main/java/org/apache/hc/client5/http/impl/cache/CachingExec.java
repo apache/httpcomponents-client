@@ -447,7 +447,8 @@ public class CachingExec extends CachingExecBase implements ExecChainHandler {
                 return callBackend(target, request, scope, chain);
             }
 
-            if (revalidationResponseIsTooOld(backendResponse, matchingVariant.getEntry())) {
+            if (revalidationResponseIsTooOld(backendResponse, matchingVariant.getEntry())
+                    && (request.getEntity() == null || request.getEntity().isRepeatable())) {
                 EntityUtils.consume(backendResponse.getEntity());
                 backendResponse.close();
                 final ClassicHttpRequest unconditional = conditionalRequestBuilder.buildUnconditionalRequest(request);

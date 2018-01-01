@@ -711,7 +711,8 @@ public class AsyncCachingExec extends CachingExecBase implements AsyncExecChainH
                 final Date responseDate1 = getCurrentDate();
 
                 final AsyncExecCallback callback1;
-                if (revalidationResponseIsTooOld(backendResponse1, cacheEntry)) {
+                if (revalidationResponseIsTooOld(backendResponse1, cacheEntry)
+                        && (entityProducer == null || entityProducer.isRepeatable())) {
 
                     final HttpRequest unconditional = conditionalRequestBuilder.buildUnconditionalRequest(
                             scope.originalRequest);
@@ -805,7 +806,7 @@ public class AsyncCachingExec extends CachingExecBase implements AsyncExecChainH
 
                         @Override
                         public void completed(final Map<String, Variant> variants) {
-                            if (variants != null && !variants.isEmpty()) {
+                            if (variants != null && !variants.isEmpty() && (entityProducer == null || entityProducer.isRepeatable())) {
                                 negotiateResponseFromVariants(target, request, entityProducer, scope, chain, asyncExecCallback, variants);
                             } else {
                                 callBackend(target, request, entityProducer, scope, chain, asyncExecCallback);
