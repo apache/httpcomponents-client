@@ -168,7 +168,8 @@ public class CacheConfig implements Cloneable {
     private final boolean heuristicCachingEnabled;
     private final float heuristicCoefficient;
     private final long heuristicDefaultLifetime;
-    private final boolean isSharedCache;
+    private final boolean sharedCache;
+    private final boolean freshnessCheckEnabled;
     private final int asynchronousWorkersMax;
     private final int asynchronousWorkersCore;
     private final int asynchronousWorkerIdleLifetimeSecs;
@@ -184,7 +185,8 @@ public class CacheConfig implements Cloneable {
             final boolean heuristicCachingEnabled,
             final float heuristicCoefficient,
             final long heuristicDefaultLifetime,
-            final boolean isSharedCache,
+            final boolean sharedCache,
+            final boolean freshnessCheckEnabled,
             final int asynchronousWorkersMax,
             final int asynchronousWorkersCore,
             final int asynchronousWorkerIdleLifetimeSecs,
@@ -199,7 +201,8 @@ public class CacheConfig implements Cloneable {
         this.heuristicCachingEnabled = heuristicCachingEnabled;
         this.heuristicCoefficient = heuristicCoefficient;
         this.heuristicDefaultLifetime = heuristicDefaultLifetime;
-        this.isSharedCache = isSharedCache;
+        this.sharedCache = sharedCache;
+        this.freshnessCheckEnabled = freshnessCheckEnabled;
         this.asynchronousWorkersMax = asynchronousWorkersMax;
         this.asynchronousWorkersCore = asynchronousWorkersCore;
         this.asynchronousWorkerIdleLifetimeSecs = asynchronousWorkerIdleLifetimeSecs;
@@ -285,7 +288,17 @@ public class CacheConfig implements Cloneable {
      * shared (private) cache
      */
     public boolean isSharedCache() {
-        return isSharedCache;
+        return sharedCache;
+    }
+
+    /**
+     * Returns whether the cache will perform an extra cache entry freshness check
+     * upon cache update in case of a cache miss
+     *
+     * @since 5.0
+     */
+    public boolean isFreshnessCheckEnabled() {
+        return freshnessCheckEnabled;
     }
 
     /**
@@ -359,7 +372,8 @@ public class CacheConfig implements Cloneable {
         private boolean heuristicCachingEnabled;
         private float heuristicCoefficient;
         private long heuristicDefaultLifetime;
-        private boolean isSharedCache;
+        private boolean sharedCache;
+        private boolean freshnessCheckEnabled;
         private int asynchronousWorkersMax;
         private int asynchronousWorkersCore;
         private int asynchronousWorkerIdleLifetimeSecs;
@@ -372,10 +386,11 @@ public class CacheConfig implements Cloneable {
             this.maxUpdateRetries = DEFAULT_MAX_UPDATE_RETRIES;
             this.allow303Caching = DEFAULT_303_CACHING_ENABLED;
             this.weakETagOnPutDeleteAllowed = DEFAULT_WEAK_ETAG_ON_PUTDELETE_ALLOWED;
-            this.heuristicCachingEnabled = false;
+            this.heuristicCachingEnabled = DEFAULT_HEURISTIC_CACHING_ENABLED;
             this.heuristicCoefficient = DEFAULT_HEURISTIC_COEFFICIENT;
             this.heuristicDefaultLifetime = DEFAULT_HEURISTIC_LIFETIME;
-            this.isSharedCache = true;
+            this.sharedCache = true;
+            this.freshnessCheckEnabled = true;
             this.asynchronousWorkersMax = DEFAULT_ASYNCHRONOUS_WORKERS_MAX;
             this.asynchronousWorkersCore = DEFAULT_ASYNCHRONOUS_WORKERS_CORE;
             this.asynchronousWorkerIdleLifetimeSecs = DEFAULT_ASYNCHRONOUS_WORKER_IDLE_LIFETIME_SECS;
@@ -468,12 +483,12 @@ public class CacheConfig implements Cloneable {
 
         /**
          * Sets whether the cache should behave as a shared cache or not.
-         * @param isSharedCache true to behave as a shared cache, false to
+         * @param sharedCache true to behave as a shared cache, false to
          * behave as a non-shared (private) cache. To have the cache
          * behave like a browser cache, you want to set this to {@code false}.
          */
-        public Builder setSharedCache(final boolean isSharedCache) {
-            this.isSharedCache = isSharedCache;
+        public Builder setSharedCache(final boolean sharedCache) {
+            this.sharedCache = sharedCache;
             return this;
         }
 
@@ -542,7 +557,8 @@ public class CacheConfig implements Cloneable {
                     heuristicCachingEnabled,
                     heuristicCoefficient,
                     heuristicDefaultLifetime,
-                    isSharedCache,
+                    sharedCache,
+                    freshnessCheckEnabled,
                     asynchronousWorkersMax,
                     asynchronousWorkersCore,
                     asynchronousWorkerIdleLifetimeSecs,
@@ -563,7 +579,8 @@ public class CacheConfig implements Cloneable {
                 .append(", heuristicCachingEnabled=").append(this.heuristicCachingEnabled)
                 .append(", heuristicCoefficient=").append(this.heuristicCoefficient)
                 .append(", heuristicDefaultLifetime=").append(this.heuristicDefaultLifetime)
-                .append(", isSharedCache=").append(this.isSharedCache)
+                .append(", sharedCache=").append(this.sharedCache)
+                .append(", freshnessCheckEnabled=").append(this.freshnessCheckEnabled)
                 .append(", asynchronousWorkersMax=").append(this.asynchronousWorkersMax)
                 .append(", asynchronousWorkersCore=").append(this.asynchronousWorkersCore)
                 .append(", asynchronousWorkerIdleLifetimeSecs=").append(this.asynchronousWorkerIdleLifetimeSecs)

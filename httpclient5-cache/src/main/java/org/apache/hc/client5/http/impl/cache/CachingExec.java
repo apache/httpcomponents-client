@@ -380,15 +380,22 @@ public class CachingExec extends CachingExecBase implements ExecChainHandler {
             buf = null;
         }
         backendResponse.close();
-        final HttpCacheEntry existingEntry = responseCache.getCacheEntry(target, request);
-        if (DateUtils.isAfter(existingEntry, backendResponse, HttpHeaders.DATE)) {
-            return convert(responseGenerator.generateResponse(request, existingEntry));
+
+        final HttpCacheEntry cacheEntry;
+        if (cacheConfig.isFreshnessCheckEnabled()) {
+            final HttpCacheEntry existingEntry = responseCache.getCacheEntry(target, request);
+            if (DateUtils.isAfter(existingEntry, backendResponse, HttpHeaders.DATE)) {
+                log.debug("Backend already contains fresher cache entry");
+                cacheEntry = existingEntry;
+            } else {
+                cacheEntry = responseCache.createCacheEntry(target, request, backendResponse, buf, requestSent, responseReceived);
+                log.debug("Backend response successfully cached");
+            }
         } else {
-            final HttpCacheEntry newEntry = responseCache.createCacheEntry(
-                    target, request, backendResponse, buf, requestSent, responseReceived);
-            log.debug("Backend response successfully cached");
-            return convert(responseGenerator.generateResponse(request, newEntry));
+            cacheEntry = responseCache.createCacheEntry(target, request, backendResponse, buf, requestSent, responseReceived);
+            log.debug("Backend response successfully cached (freshness check skipped)");
         }
+        return convert(responseGenerator.generateResponse(request, cacheEntry));
     }
 
     private ClassicHttpResponse handleCacheMiss(

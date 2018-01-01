@@ -486,72 +486,81 @@ public class AsyncCachingExec extends CachingExecBase implements AsyncExecChainH
             }
         }
 
-        @Override
-        public void completed() {
+        void triggerNewCacheEntryResponse(final HttpResponse backendResponse, final Date responseDate, final ByteArrayBuffer buffer) {
             final ComplexFuture<?> future = scope.future;
-            final CachingAsyncDataConsumer cachingDataConsumer = cachingConsumerRef.getAndSet(null);
-            if (cachingDataConsumer != null && !cachingDataConsumer.writtenThrough.get()) {
-                future.setDependency(responseCache.getCacheEntry(target, request, new FutureCallback<HttpCacheEntry>() {
+            future.setDependency(responseCache.createCacheEntry(
+                    target,
+                    request,
+                    backendResponse,
+                    buffer,
+                    requestDate,
+                    responseDate,
+                    new FutureCallback<HttpCacheEntry>() {
 
-                    @Override
-                    public void completed(final HttpCacheEntry existingEntry) {
-                        final HttpResponse backendResponse = cachingDataConsumer.backendResponse;
-                        if (DateUtils.isAfter(existingEntry, backendResponse, HttpHeaders.DATE)) {
+                        @Override
+                        public void completed(final HttpCacheEntry newEntry) {
+                            log.debug("Backend response successfully cached");
                             try {
-                                final SimpleHttpResponse cacheResponse = responseGenerator.generateResponse(request, existingEntry);
+                                final SimpleHttpResponse cacheResponse = responseGenerator.generateResponse(request, newEntry);
                                 triggerResponse(cacheResponse, scope, asyncExecCallback);
                             } catch (final ResourceIOException ex) {
                                 asyncExecCallback.failed(ex);
                             }
-                        } else {
-                            final Date responseDate = cachingDataConsumer.responseDate;
-                            final ByteArrayBuffer buffer = cachingDataConsumer.bufferRef.getAndSet(null);
-                            future.setDependency(responseCache.createCacheEntry(
-                                    target,
-                                    request,
-                                    backendResponse,
-                                    buffer,
-                                    requestDate,
-                                    responseDate,
-                                    new FutureCallback<HttpCacheEntry>() {
-
-                                        @Override
-                                        public void completed(final HttpCacheEntry newEntry) {
-                                            log.debug("Backend response successfully cached");
-                                            try {
-                                                final SimpleHttpResponse cacheResponse = responseGenerator.generateResponse(request, newEntry);
-                                                triggerResponse(cacheResponse, scope, asyncExecCallback);
-                                            } catch (final ResourceIOException ex) {
-                                                asyncExecCallback.failed(ex);
-                                            }
-                                        }
-
-                                        @Override
-                                        public void failed(final Exception ex) {
-                                            asyncExecCallback.failed(ex);
-                                        }
-
-                                        @Override
-                                        public void cancelled() {
-                                            asyncExecCallback.failed(new InterruptedIOException());
-                                        }
-
-                                    }));
-
                         }
-                    }
 
-                    @Override
-                    public void failed(final Exception cause) {
-                        asyncExecCallback.failed(cause);
-                    }
+                        @Override
+                        public void failed(final Exception ex) {
+                            asyncExecCallback.failed(ex);
+                        }
 
-                    @Override
-                    public void cancelled() {
-                        asyncExecCallback.failed(new InterruptedIOException());
-                    }
+                        @Override
+                        public void cancelled() {
+                            asyncExecCallback.failed(new InterruptedIOException());
+                        }
 
-                }));
+                    }));
+
+        }
+
+        @Override
+        public void completed() {
+            final CachingAsyncDataConsumer cachingDataConsumer = cachingConsumerRef.getAndSet(null);
+            if (cachingDataConsumer != null && !cachingDataConsumer.writtenThrough.get()) {
+                final ByteArrayBuffer buffer = cachingDataConsumer.bufferRef.getAndSet(null);
+                final HttpResponse backendResponse = cachingDataConsumer.backendResponse;
+                if (cacheConfig.isFreshnessCheckEnabled()) {
+                    final ComplexFuture<?> future = scope.future;
+                    future.setDependency(responseCache.getCacheEntry(target, request, new FutureCallback<HttpCacheEntry>() {
+
+                        @Override
+                        public void completed(final HttpCacheEntry existingEntry) {
+                            if (DateUtils.isAfter(existingEntry, backendResponse, HttpHeaders.DATE)) {
+                                log.debug("Backend already contains fresher cache entry");
+                                try {
+                                    final SimpleHttpResponse cacheResponse = responseGenerator.generateResponse(request, existingEntry);
+                                    triggerResponse(cacheResponse, scope, asyncExecCallback);
+                                } catch (final ResourceIOException ex) {
+                                    asyncExecCallback.failed(ex);
+                                }
+                            } else {
+                                triggerNewCacheEntryResponse(backendResponse, responseDate, buffer);
+                            }
+                        }
+
+                        @Override
+                        public void failed(final Exception cause) {
+                            asyncExecCallback.failed(cause);
+                        }
+
+                        @Override
+                        public void cancelled() {
+                            asyncExecCallback.failed(new InterruptedIOException());
+                        }
+
+                    }));
+                } else {
+                    triggerNewCacheEntryResponse(backendResponse, responseDate, buffer);
+                }
             } else {
                 asyncExecCallback.completed();
             }
