@@ -161,10 +161,10 @@ public abstract class AbstractProtocolTest {
         mockCache.flushCacheEntriesFor(EasyMock.isA(HttpHost.class), EasyMock.isA(HttpRequest.class));
         EasyMock.expectLastCall().anyTimes();
 
-        mockCache.flushInvalidatedCacheEntriesFor(EasyMock.isA(HttpHost.class), EasyMock.isA(HttpRequest.class));
+        mockCache.flushCacheEntriesInvalidatedByRequest(EasyMock.isA(HttpHost.class), EasyMock.isA(HttpRequest.class));
         EasyMock.expectLastCall().anyTimes();
 
-        mockCache.flushInvalidatedCacheEntriesFor(EasyMock.isA(HttpHost.class), EasyMock.isA(HttpRequest.class), EasyMock.isA(HttpResponse.class));
+        mockCache.flushCacheEntriesInvalidatedByExchange(EasyMock.isA(HttpHost.class), EasyMock.isA(HttpRequest.class), EasyMock.isA(HttpResponse.class));
         EasyMock.expectLastCall().anyTimes();
     }
 

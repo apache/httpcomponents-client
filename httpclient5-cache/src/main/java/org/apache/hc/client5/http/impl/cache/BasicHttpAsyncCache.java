@@ -124,26 +124,26 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
     }
 
     @Override
-    public Cancellable flushInvalidatedCacheEntriesFor(
+    public Cancellable flushCacheEntriesInvalidatedByRequest(
+            final HttpHost host, final HttpRequest request, final FutureCallback<Boolean> callback) {
+        if (log.isDebugEnabled()) {
+            log.debug("Flush cache entries invalidated by request: " + host + "; " + new RequestLine(request));
+        }
+        return cacheInvalidator.flushCacheEntriesInvalidatedByRequest(host, request, cacheKeyGenerator, storage, callback);
+    }
+
+    @Override
+    public Cancellable flushCacheEntriesInvalidatedByExchange(
             final HttpHost host, final HttpRequest request, final HttpResponse response, final FutureCallback<Boolean> callback) {
         if (log.isDebugEnabled()) {
-            log.debug("Flush cache entries: " + host + "; " + new RequestLine(request) + " " + new StatusLine(response));
+            log.debug("Flush cache entries invalidated by exchange: " + host + "; " + new RequestLine(request) + " -> " + new StatusLine(response));
         }
         if (!StandardMethods.isSafe(request.getMethod())) {
-            return cacheInvalidator.flushInvalidatedCacheEntries(host, request, response, cacheKeyGenerator, storage, callback);
+            return cacheInvalidator.flushCacheEntriesInvalidatedByExchange(host, request, response, cacheKeyGenerator, storage, callback);
         } else {
             callback.completed(Boolean.TRUE);
             return Operations.nonCancellable();
         }
-    }
-
-    @Override
-    public Cancellable flushInvalidatedCacheEntriesFor(
-            final HttpHost host, final HttpRequest request, final FutureCallback<Boolean> callback) {
-        if (log.isDebugEnabled()) {
-            log.debug("Flush invalidated cache entries: " + host + "; " + new RequestLine(request));
-        }
-        return cacheInvalidator.flushInvalidatedCacheEntries(host, request, cacheKeyGenerator, storage, callback);
     }
 
     Cancellable storeInCache(

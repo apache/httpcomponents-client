@@ -106,21 +106,21 @@ class BasicHttpCache implements HttpCache {
     }
 
     @Override
-    public void flushInvalidatedCacheEntriesFor(final HttpHost host, final HttpRequest request, final HttpResponse response) {
+    public void flushCacheEntriesInvalidatedByRequest(final HttpHost host, final HttpRequest request) {
         if (log.isDebugEnabled()) {
-            log.debug("Flush cache entries: " + host + "; " + new RequestLine(request) + " " + new StatusLine(response));
+            log.debug("Flush cache entries invalidated by request: " + host + "; " + new RequestLine(request));
         }
-        if (!StandardMethods.isSafe(request.getMethod())) {
-            cacheInvalidator.flushInvalidatedCacheEntries(host, request, response, cacheKeyGenerator, storage);
-        }
+        cacheInvalidator.flushCacheEntriesInvalidatedByRequest(host, request, cacheKeyGenerator, storage);
     }
 
     @Override
-    public void flushInvalidatedCacheEntriesFor(final HttpHost host, final HttpRequest request) {
+    public void flushCacheEntriesInvalidatedByExchange(final HttpHost host, final HttpRequest request, final HttpResponse response) {
         if (log.isDebugEnabled()) {
-            log.debug("Flush invalidated cache entries: " + host + "; " + new RequestLine(request));
+            log.debug("Flush cache entries invalidated by exchange: " + host + "; " + new RequestLine(request) + " -> " + new StatusLine(response));
         }
-        cacheInvalidator.flushInvalidatedCacheEntries(host, request, cacheKeyGenerator, storage);
+        if (!StandardMethods.isSafe(request.getMethod())) {
+            cacheInvalidator.flushCacheEntriesInvalidatedByExchange(host, request, response, cacheKeyGenerator, storage);
+        }
     }
 
     void storeInCache(

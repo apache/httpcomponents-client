@@ -419,9 +419,7 @@ public class TestCachingExec extends TestCachingExecChain {
     }
 
     private void cacheInvalidatorWasCalled()  throws IOException {
-        mockCache.flushInvalidatedCacheEntriesFor(
-                (HttpHost)anyObject(),
-                (HttpRequest)anyObject());
+        mockCache.flushCacheEntriesInvalidatedByRequest((HttpHost)anyObject(), (HttpRequest)anyObject());
     }
 
     private void getCurrentDateReturns(final Date date) {

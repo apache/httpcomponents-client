@@ -80,7 +80,7 @@ public class DefaultCacheInvalidator extends CacheInvalidatorBase implements Htt
     }
 
     @Override
-    public void flushInvalidatedCacheEntries(
+    public void flushCacheEntriesInvalidatedByRequest(
             final HttpHost host,
             final HttpRequest request,
             final Resolver<URI, String> cacheKeyResolver,
@@ -149,7 +149,7 @@ public class DefaultCacheInvalidator extends CacheInvalidatorBase implements Htt
     }
 
     @Override
-    public void flushInvalidatedCacheEntries(
+    public void flushCacheEntriesInvalidatedByExchange(
             final HttpHost host,
             final HttpRequest request,
             final HttpResponse response,

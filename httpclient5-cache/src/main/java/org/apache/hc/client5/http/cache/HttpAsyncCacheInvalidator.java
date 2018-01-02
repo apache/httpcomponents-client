@@ -46,8 +46,7 @@ import org.apache.hc.core5.http.HttpResponse;
 public interface HttpAsyncCacheInvalidator {
 
     /**
-     * Remove cache entries from the cache that are no longer fresh or have been
-     * invalidated in some way.
+     * Flush {@link HttpCacheEntry}s invalidated by the given request.
      *
      * @param host backend host
      * @param request request message
@@ -55,7 +54,7 @@ public interface HttpAsyncCacheInvalidator {
      * @param cacheStorage internal cache storage
      * @param callback result callback
      */
-    Cancellable flushInvalidatedCacheEntries(
+    Cancellable flushCacheEntriesInvalidatedByRequest(
             HttpHost host,
             HttpRequest request,
             Resolver<URI, String> cacheKeyResolver,
@@ -63,8 +62,7 @@ public interface HttpAsyncCacheInvalidator {
             FutureCallback<Boolean> callback);
 
     /**
-     * Flushes entries that were invalidated by the given response received for
-     * the given host/request pair.
+     * Flush {@link HttpCacheEntry}s invalidated by the given message exchange.
      *
      * @param host backend host
      * @param request request message
@@ -73,7 +71,7 @@ public interface HttpAsyncCacheInvalidator {
      * @param cacheStorage internal cache storage
      * @param callback result callback
      */
-    Cancellable flushInvalidatedCacheEntries(
+    Cancellable flushCacheEntriesInvalidatedByExchange(
             HttpHost host,
             HttpRequest request,
             HttpResponse response,

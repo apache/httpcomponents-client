@@ -1632,8 +1632,7 @@ public abstract class TestCachingExecChain {
     }
 
     private void cacheInvalidatorWasCalled() throws IOException {
-        mockCache
-            .flushInvalidatedCacheEntriesFor((HttpHost) anyObject(), (HttpRequest) anyObject());
+        mockCache.flushCacheEntriesInvalidatedByRequest((HttpHost) anyObject(), (HttpRequest) anyObject());
     }
 
     protected void cacheEntryValidatable(final boolean b) {
@@ -1685,8 +1684,8 @@ public abstract class TestCachingExecChain {
     }
 
     protected void doesNotFlushCache() throws IOException {
-        mockCache.flushInvalidatedCacheEntriesFor(isA(HttpHost.class), isA(HttpRequest.class));
-        EasyMock.expectLastCall().andThrow(new AssertionError("flushInvalidatedCacheEntriesFor should not have been called")).anyTimes();
+        mockCache.flushCacheEntriesInvalidatedByRequest(isA(HttpHost.class), isA(HttpRequest.class));
+        EasyMock.expectLastCall().andThrow(new AssertionError("flushCacheEntriesInvalidByResponse should not have been called")).anyTimes();
     }
 
 }

@@ -46,14 +46,14 @@ interface HttpCache {
     void flushCacheEntriesFor(HttpHost host, HttpRequest request);
 
     /**
-     * Clear invalidated matching {@link HttpCacheEntry}s
+     * Flush {@link HttpCacheEntry}s invalidated by the given request
      */
-    void flushInvalidatedCacheEntriesFor(HttpHost host, HttpRequest request);
+    void flushCacheEntriesInvalidatedByRequest(HttpHost host, HttpRequest request);
 
-    /** Clear any entries that may be invalidated by the given response to
-     * a particular request.
+    /**
+     * Flush {@link HttpCacheEntry}s invalidated by the given message exchange.
      */
-    void flushInvalidatedCacheEntriesFor(HttpHost host, HttpRequest request, HttpResponse response);
+    void flushCacheEntriesInvalidatedByExchange(HttpHost host, HttpRequest request, HttpResponse response);
 
     /**
      * Retrieve matching {@link HttpCacheEntry} from the cache if it exists.

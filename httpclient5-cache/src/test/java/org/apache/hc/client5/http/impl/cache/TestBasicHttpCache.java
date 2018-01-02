@@ -140,7 +140,7 @@ public class TestBasicHttpCache {
 
         backing.map.put(key, entry);
 
-        impl.flushInvalidatedCacheEntriesFor(host, req, resp);
+        impl.flushCacheEntriesInvalidatedByExchange(host, req, resp);
 
         assertNull(backing.map.get(key));
     }
@@ -161,7 +161,7 @@ public class TestBasicHttpCache {
 
         backing.map.put(key, entry);
 
-        impl.flushInvalidatedCacheEntriesFor(host, req, resp);
+        impl.flushCacheEntriesInvalidatedByExchange(host, req, resp);
 
         assertEquals(entry, backing.map.get(key));
     }

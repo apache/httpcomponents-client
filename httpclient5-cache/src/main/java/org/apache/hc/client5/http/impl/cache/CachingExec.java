@@ -175,7 +175,7 @@ public class CachingExec extends CachingExecBase implements ExecChainHandler {
 
         if (!cacheableRequestPolicy.isServableFromCache(request)) {
             log.debug("Request is not servable from cache");
-            responseCache.flushInvalidatedCacheEntriesFor(target, request);
+            responseCache.flushCacheEntriesInvalidatedByRequest(target, request);
             return callBackend(target, request, scope, chain);
         }
 
@@ -340,7 +340,7 @@ public class CachingExec extends CachingExecBase implements ExecChainHandler {
 
         responseCompliance.ensureProtocolCompliance(scope.originalRequest, request, backendResponse);
 
-        responseCache.flushInvalidatedCacheEntriesFor(target, request, backendResponse);
+        responseCache.flushCacheEntriesInvalidatedByExchange(target, request, backendResponse);
         final boolean cacheable = responseCachingPolicy.isResponseCacheable(request, backendResponse);
         if (cacheable) {
             storeRequestIfModifiedSinceFor304Response(request, backendResponse);

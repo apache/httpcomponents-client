@@ -212,7 +212,7 @@ public class AsyncCachingExec extends CachingExecBase implements AsyncExecChainH
 
         if (!cacheableRequestPolicy.isServableFromCache(request)) {
             log.debug("Request is not servable from cache");
-            future.setDependency(responseCache.flushInvalidatedCacheEntriesFor(target, request, new FutureCallback<Boolean>() {
+            future.setDependency(responseCache.flushCacheEntriesInvalidatedByRequest(target, request, new FutureCallback<Boolean>() {
 
                 @Override
                 public void completed(final Boolean result) {
@@ -438,7 +438,7 @@ public class AsyncCachingExec extends CachingExecBase implements AsyncExecChainH
                 final HttpResponse backendResponse,
                 final EntityDetails entityDetails) throws HttpException, IOException {
             responseCompliance.ensureProtocolCompliance(scope.originalRequest, request, backendResponse);
-            responseCache.flushInvalidatedCacheEntriesFor(target, request, backendResponse, new FutureCallback<Boolean>() {
+            responseCache.flushCacheEntriesInvalidatedByExchange(target, request, backendResponse, new FutureCallback<Boolean>() {
 
                 @Override
                 public void completed(final Boolean result) {

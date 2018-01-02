@@ -93,7 +93,7 @@ public class DefaultAsyncCacheInvalidator extends CacheInvalidatorBase implement
     }
 
     @Override
-    public Cancellable flushInvalidatedCacheEntries(
+    public Cancellable flushCacheEntriesInvalidatedByRequest(
             final HttpHost host,
             final HttpRequest request,
             final Resolver<URI, String> cacheKeyResolver,
@@ -180,7 +180,7 @@ public class DefaultAsyncCacheInvalidator extends CacheInvalidatorBase implement
     }
 
     @Override
-    public Cancellable flushInvalidatedCacheEntries(
+    public Cancellable flushCacheEntriesInvalidatedByExchange(
             final HttpHost host,
             final HttpRequest request,
             final HttpResponse response,
