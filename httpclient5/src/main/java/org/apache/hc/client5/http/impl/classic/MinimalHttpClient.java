@@ -33,6 +33,7 @@ import java.io.InterruptedIOException;
 import org.apache.hc.client5.http.CancellableAware;
 import org.apache.hc.client5.http.ClientProtocolException;
 import org.apache.hc.client5.http.HttpRoute;
+import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.classic.ExecRuntime;
 import org.apache.hc.client5.http.config.Configurable;
 import org.apache.hc.client5.http.config.RequestConfig;
@@ -41,6 +42,7 @@ import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.protocol.RequestClientConnControl;
+import org.apache.hc.client5.http.routing.RoutingSupport;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.ClassicHttpRequest;
@@ -77,6 +79,7 @@ public class MinimalHttpClient extends CloseableHttpClient {
 
     private final HttpClientConnectionManager connManager;
     private final ConnectionReuseStrategy reuseStrategy;
+    private final SchemePortResolver schemePortResolver;
     private final HttpRequestExecutor requestExecutor;
     private final HttpProcessor httpProcessor;
 
@@ -84,6 +87,7 @@ public class MinimalHttpClient extends CloseableHttpClient {
         super();
         this.connManager = Args.notNull(connManager, "HTTP connection manager");
         this.reuseStrategy = DefaultConnectionReuseStrategy.INSTANCE;
+        this.schemePortResolver = DefaultSchemePortResolver.INSTANCE;
         this.requestExecutor = new HttpRequestExecutor(this.reuseStrategy);
         this.httpProcessor = new DefaultHttpProcessor(
                 new RequestContent(),
@@ -116,11 +120,7 @@ public class MinimalHttpClient extends CloseableHttpClient {
             clientContext.setRequestConfig(config);
         }
 
-        final HttpRoute route = new HttpRoute(target.getPort() > 0 ? target : new HttpHost(
-                target.getHostName(),
-                DefaultSchemePortResolver.INSTANCE.resolve(target),
-                target.getSchemeName()));
-
+        final HttpRoute route = new HttpRoute(RoutingSupport.normalize(target, schemePortResolver));
         final ExecRuntime execRuntime = new ExecRuntimeImpl(log, connManager, requestExecutor,
                 request instanceof CancellableAware ? (CancellableAware) request : null);
         try {

@@ -27,7 +27,6 @@
 package org.apache.hc.client5.http.impl;
 
 import org.apache.hc.client5.http.SchemePortResolver;
-import org.apache.hc.client5.http.UnsupportedSchemeException;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HttpHost;
@@ -44,7 +43,7 @@ public class DefaultSchemePortResolver implements SchemePortResolver {
     public static final DefaultSchemePortResolver INSTANCE = new DefaultSchemePortResolver();
 
     @Override
-    public int resolve(final HttpHost host) throws UnsupportedSchemeException {
+    public int resolve(final HttpHost host) {
         Args.notNull(host, "HTTP host");
         final int port = host.getPort();
         if (port > 0) {
@@ -56,7 +55,7 @@ public class DefaultSchemePortResolver implements SchemePortResolver {
         } else if (name.equalsIgnoreCase("https")) {
             return 443;
         } else {
-            throw new UnsupportedSchemeException(name + " protocol is not supported");
+            return -1;
         }
     }
 

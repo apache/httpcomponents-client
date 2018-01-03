@@ -27,12 +27,10 @@
 
 package org.apache.hc.client5.http.impl.auth;
 
-import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.core5.http.HttpHost;
 import org.junit.Assert;
 import org.junit.Test;
-import org.mockito.Mockito;
 
 /**
  * Unit tests for {@link BasicAuthCache}.
@@ -65,24 +63,6 @@ public class TestBasicAuthCache {
         final BasicAuthCache cache = new BasicAuthCache();
         cache.put(new HttpHost("localhost", 80), null);
         Assert.assertNull(cache.get(new HttpHost("localhost", 80)));
-    }
-
-    @Test
-    public void testGetKey() throws Exception {
-        final BasicAuthCache cache = new BasicAuthCache();
-        final HttpHost target = new HttpHost("localhost", 443, "https");
-        Assert.assertSame(target, cache.getKey(target));
-        Assert.assertEquals(target, cache.getKey(new HttpHost("localhost", -1, "https")));
-    }
-
-    @Test
-    public void testGetKeyWithSchemeRegistry() throws Exception {
-        final SchemePortResolver schemePortResolver = Mockito.mock(SchemePortResolver.class);
-        final BasicAuthCache cache = new BasicAuthCache(schemePortResolver);
-        Mockito.when(schemePortResolver.resolve(new HttpHost("localhost", -1, "https"))).thenReturn(443);
-        final HttpHost target = new HttpHost("localhost", 443, "https");
-        Assert.assertSame(target, cache.getKey(target));
-        Assert.assertEquals(target, cache.getKey(new HttpHost("localhost", -1, "https")));
     }
 
     @Test

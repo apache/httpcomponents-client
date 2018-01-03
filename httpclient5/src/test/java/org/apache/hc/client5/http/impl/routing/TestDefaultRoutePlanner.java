@@ -27,20 +27,14 @@
 
 package org.apache.hc.client5.http.impl.routing;
 
-import java.net.URI;
-
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.ProtocolException;
-import org.apache.hc.core5.http.message.BasicHttpRequest;
 import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.HttpContext;
-import org.apache.hc.core5.net.URIAuthority;
-import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -107,26 +101,6 @@ public class TestDefaultRoutePlanner {
     public void testNullTarget() throws Exception {
         final HttpContext context = new BasicHttpContext();
         routePlanner.determineRoute(null, context);
-    }
-
-    @Test
-    public void testDetermineHost() throws Exception {
-        final HttpContext context = new BasicHttpContext();
-        final HttpRequest request1 = new BasicHttpRequest("GET", "/");
-        final HttpHost host1 = routePlanner.determineTargetHost(request1, context);
-        Assert.assertThat(host1, CoreMatchers.nullValue());
-
-        final HttpRequest request2 = new BasicHttpRequest("GET", new URI("https://somehost:8443/"));
-        final HttpHost host2 = routePlanner.determineTargetHost(request2, context);
-        Assert.assertThat(host2, CoreMatchers.equalTo(new HttpHost("somehost", 8443, "https")));
-    }
-
-    @Test(expected = ProtocolException.class)
-    public void testDetermineHostMissingScheme() throws Exception {
-        final HttpContext context = new BasicHttpContext();
-        final HttpRequest request1 = new BasicHttpRequest("GET", "/");
-        request1.setAuthority(new URIAuthority("host"));
-        routePlanner.determineTargetHost(request1, context);
     }
 
 }

@@ -36,10 +36,10 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.hc.client5.http.SchemePortResolver;
-import org.apache.hc.client5.http.UnsupportedSchemeException;
 import org.apache.hc.client5.http.auth.AuthCache;
 import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
+import org.apache.hc.client5.http.routing.RoutingSupport;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HttpHost;
@@ -73,25 +73,11 @@ public class BasicAuthCache implements AuthCache {
     public BasicAuthCache(final SchemePortResolver schemePortResolver) {
         super();
         this.map = new ConcurrentHashMap<>();
-        this.schemePortResolver = schemePortResolver != null ? schemePortResolver :
-            DefaultSchemePortResolver.INSTANCE;
+        this.schemePortResolver = schemePortResolver != null ? schemePortResolver : DefaultSchemePortResolver.INSTANCE;
     }
 
     public BasicAuthCache() {
         this(null);
-    }
-
-    protected HttpHost getKey(final HttpHost host) {
-        if (host.getPort() <= 0) {
-            final int port;
-            try {
-                port = schemePortResolver.resolve(host);
-            } catch (final UnsupportedSchemeException ignore) {
-                return host;
-            }
-            return new HttpHost(host.getHostName(), port, host.getSchemeName());
-        }
-        return host;
     }
 
     @Override
@@ -106,7 +92,8 @@ public class BasicAuthCache implements AuthCache {
                 try (final ObjectOutputStream out = new ObjectOutputStream(buf)) {
                     out.writeObject(authScheme);
                 }
-                this.map.put(getKey(host), buf.toByteArray());
+                final HttpHost key = RoutingSupport.normalize(host, schemePortResolver);
+                this.map.put(key, buf.toByteArray());
             } catch (final IOException ex) {
                 if (log.isWarnEnabled()) {
                     log.warn("Unexpected I/O error while serializing auth scheme", ex);
@@ -122,7 +109,8 @@ public class BasicAuthCache implements AuthCache {
     @Override
     public AuthScheme get(final HttpHost host) {
         Args.notNull(host, "HTTP host");
-        final byte[] bytes = this.map.get(getKey(host));
+        final HttpHost key = RoutingSupport.normalize(host, schemePortResolver);
+        final byte[] bytes = this.map.get(key);
         if (bytes != null) {
             try {
                 final ByteArrayInputStream buf = new ByteArrayInputStream(bytes);
@@ -147,7 +135,8 @@ public class BasicAuthCache implements AuthCache {
     @Override
     public void remove(final HttpHost host) {
         Args.notNull(host, "HTTP host");
-        this.map.remove(getKey(host));
+        final HttpHost key = RoutingSupport.normalize(host, schemePortResolver);
+        this.map.remove(key);
     }
 
     @Override

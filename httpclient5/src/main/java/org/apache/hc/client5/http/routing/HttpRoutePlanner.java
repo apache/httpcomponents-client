@@ -30,7 +30,6 @@ package org.apache.hc.client5.http.routing;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.protocol.HttpContext;
 
 /**
@@ -59,18 +58,5 @@ public interface HttpRoutePlanner {
      * @throws HttpException    in case of a problem
      */
     HttpRoute determineRoute(HttpHost target, HttpContext context) throws HttpException;
-
-    /**
-     * Determines the target host for the given request.
-     *
-     * @param request   the request to be executed
-     * @param context   the context to use for the subsequent execution.
-     *                  Implementations may accept {@code null}.
-     *
-     * @return  the route that the request should take
-     *
-     * @throws HttpException    in case of a problem
-     */
-    HttpHost determineTargetHost(HttpRequest request, HttpContext context) throws HttpException;
 
 }

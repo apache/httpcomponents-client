@@ -46,6 +46,7 @@ import org.apache.hc.client5.http.impl.ExecSupport;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.routing.HttpRoutePlanner;
+import org.apache.hc.client5.http.routing.RoutingSupport;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.ClassicHttpRequest;
@@ -111,7 +112,7 @@ class InternalHttpClient extends CloseableHttpClient implements Configurable {
             final HttpHost host,
             final HttpRequest request,
             final HttpContext context) throws HttpException {
-        final HttpHost target = host != null ? host : this.routePlanner.determineTargetHost(request, context);
+        final HttpHost target = host != null ? host : RoutingSupport.determineHost(request);
         return this.routePlanner.determineRoute(target, context);
     }
 

@@ -34,10 +34,10 @@ import java.util.concurrent.Future;
 
 import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.SchemePortResolver;
-import org.apache.hc.client5.http.UnsupportedSchemeException;
 import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
 import org.apache.hc.client5.http.nio.AsyncClientConnectionOperator;
 import org.apache.hc.client5.http.nio.ManagedAsyncClientConnection;
+import org.apache.hc.client5.http.routing.RoutingSupport;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.concurrent.ComplexFuture;
 import org.apache.hc.core5.concurrent.FutureCallback;
@@ -81,14 +81,7 @@ final class DefaultAsyncClientConnectionOperator implements AsyncClientConnectio
         Args.notNull(connectionInitiator, "Connection initiator");
         Args.notNull(host, "Host");
         final ComplexFuture<ManagedAsyncClientConnection> future = new ComplexFuture<>(callback);
-        final HttpHost remoteEndpoint;
-        try {
-            remoteEndpoint = host.getPort() > 0 ? host :
-                    new HttpHost(host.getHostName(), schemePortResolver.resolve(host), host.getSchemeName());
-        } catch (final UnsupportedSchemeException ex) {
-            future.failed(ex);
-            return future;
-        }
+        final HttpHost remoteEndpoint = RoutingSupport.normalize(host, schemePortResolver);
         final InetAddress remoteAddress = host.getAddress();
         final TlsStrategy tlsStrategy = tlsStrategyLookup != null ? tlsStrategyLookup.lookup(host.getSchemeName()) : null;
         final Future<IOSession> sessionFuture = sessionRequester.connect(
