@@ -179,13 +179,18 @@ public abstract class AbstractHttpAsyncFundamentalsTest<T extends CloseableHttpA
 
                 @Override
                 public void run() {
-                    httpclient.execute(SimpleHttpRequest.get(target, "/random/2048"), callback);
+                    if (!Thread.currentThread().isInterrupted()) {
+                        httpclient.execute(SimpleHttpRequest.get(target, "/random/2048"), callback);
+                    }
                 }
 
             });
         }
 
         Assert.assertThat(countDownLatch.await(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit()), CoreMatchers.equalTo(true));
+
+        executorService.shutdownNow();
+        executorService.awaitTermination(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
 
         for (;;) {
             final SimpleHttpResponse response = resultQueue.poll();
