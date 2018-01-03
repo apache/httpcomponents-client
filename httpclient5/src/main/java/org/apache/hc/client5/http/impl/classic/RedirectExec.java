@@ -29,8 +29,8 @@ package org.apache.hc.client5.http.impl.classic;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.List;
 
+import org.apache.hc.client5.http.CircularRedirectException;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.RedirectException;
 import org.apache.hc.client5.http.StandardMethods;
@@ -42,6 +42,7 @@ import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.RequestBuilder;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.client5.http.protocol.RedirectLocations;
 import org.apache.hc.client5.http.protocol.RedirectStrategy;
 import org.apache.hc.client5.http.routing.HttpRoutePlanner;
 import org.apache.hc.client5.http.utils.URIUtils;
@@ -56,6 +57,7 @@ import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.util.Args;
+import org.apache.hc.core5.util.LangUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -97,11 +99,12 @@ final class RedirectExec implements ExecChainHandler {
         Args.notNull(scope, "Scope");
 
         final HttpClientContext context = scope.clientContext;
-
-        final List<URI> redirectLocations = context.getRedirectLocations();
-        if (redirectLocations != null) {
-            redirectLocations.clear();
+        RedirectLocations redirectLocations = context.getRedirectLocations();
+        if (redirectLocations == null) {
+            redirectLocations = new RedirectLocations();
+            context.setAttribute(HttpClientContext.REDIRECT_LOCATIONS, redirectLocations);
         }
+        redirectLocations.clear();
 
         final RequestConfig config = context.getRequestConfig();
         final int maxRedirects = config.getMaxRedirects() > 0 ? config.getMaxRedirects() : 50;
@@ -122,6 +125,16 @@ final class RedirectExec implements ExecChainHandler {
                     redirectCount++;
 
                     final URI redirectUri = this.redirectStrategy.getLocationURI(currentRequest, response, context);
+                    if (this.log.isDebugEnabled()) {
+                        this.log.debug("Redirect requested to location '" + redirectUri + "'");
+                    }
+                    if (!config.isCircularRedirectsAllowed()) {
+                        if (redirectLocations.contains(redirectUri)) {
+                            throw new CircularRedirectException("Circular redirect to '" + redirectUri + "'");
+                        }
+                    }
+                    redirectLocations.add(redirectUri);
+
                     final ClassicHttpRequest originalRequest = scope.originalRequest;
                     ClassicHttpRequest redirect = null;
                     final int statusCode = response.getCode();
@@ -147,28 +160,29 @@ final class RedirectExec implements ExecChainHandler {
                                 redirectUri);
                     }
 
-                    HttpRoute currentRoute = currentScope.route;
-                    final boolean crossSiteRedirect = !currentRoute.getTargetHost().equals(newTarget);
-                    if (crossSiteRedirect) {
-
-                        final AuthExchange targetAuthExchange = context.getAuthExchange(currentRoute.getTargetHost());
-                        this.log.debug("Resetting target auth state");
-                        targetAuthExchange.reset();
-                        if (currentRoute.getProxyHost() != null) {
-                            final AuthExchange proxyAuthExchange = context.getAuthExchange(currentRoute.getProxyHost());
-                            final AuthScheme authScheme = proxyAuthExchange.getAuthScheme();
-                            if (authScheme != null && authScheme.isConnectionBased()) {
-                                this.log.debug("Resetting proxy auth state");
-                                proxyAuthExchange.reset();
+                    final HttpRoute currentRoute = currentScope.route;
+                    if (!LangUtils.equals(currentRoute.getTargetHost(), newTarget)) {
+                        final HttpRoute newRoute = this.routePlanner.determineRoute(newTarget, context);
+                        if (!LangUtils.equals(currentRoute, newRoute)) {
+                            log.debug("New route required");
+                            final AuthExchange targetAuthExchange = context.getAuthExchange(currentRoute.getTargetHost());
+                            this.log.debug("Resetting target auth state");
+                            targetAuthExchange.reset();
+                            if (currentRoute.getProxyHost() != null) {
+                                final AuthExchange proxyAuthExchange = context.getAuthExchange(currentRoute.getProxyHost());
+                                final AuthScheme authScheme = proxyAuthExchange.getAuthScheme();
+                                if (authScheme != null && authScheme.isConnectionBased()) {
+                                    this.log.debug("Resetting proxy auth state");
+                                    proxyAuthExchange.reset();
+                                }
                             }
+                            currentScope = new ExecChain.Scope(
+                                    currentScope.exchangeId,
+                                    newRoute,
+                                    currentScope.originalRequest,
+                                    currentScope.execRuntime,
+                                    currentScope.clientContext);
                         }
-                        currentRoute = this.routePlanner.determineRoute(newTarget, context);
-                        currentScope = new ExecChain.Scope(
-                                currentScope.exchangeId,
-                                currentRoute,
-                                currentScope.originalRequest,
-                                currentScope.execRuntime,
-                                currentScope.clientContext);
                     }
 
                     if (this.log.isDebugEnabled()) {

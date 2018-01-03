@@ -56,7 +56,7 @@ public class TestRedirectLocation {
         Assert.assertTrue(locations.contains(uri3));
         Assert.assertFalse(locations.contains(new URI("/")));
 
-        List<URI> list = locations.getAll();
+        final List<URI> list = locations.getAll();
         Assert.assertNotNull(list);
         Assert.assertEquals(5, list.size());
         Assert.assertEquals(uri1, list.get(0));
@@ -64,16 +64,6 @@ public class TestRedirectLocation {
         Assert.assertEquals(uri2, list.get(2));
         Assert.assertEquals(uri3, list.get(3));
         Assert.assertEquals(uri3, list.get(4));
-
-        Assert.assertTrue(locations.remove(uri3));
-        Assert.assertTrue(locations.remove(uri1));
-        Assert.assertFalse(locations.remove(new URI("/")));
-
-        list = locations.getAll();
-        Assert.assertNotNull(list);
-        Assert.assertEquals(2, list.size());
-        Assert.assertEquals(uri2, list.get(0));
-        Assert.assertEquals(uri2, list.get(1));
     }
 
 }

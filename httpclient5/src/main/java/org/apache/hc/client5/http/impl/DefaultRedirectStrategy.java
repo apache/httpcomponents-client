@@ -30,13 +30,7 @@ package org.apache.hc.client5.http.impl;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Locale;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
-import org.apache.hc.client5.http.CircularRedirectException;
-import org.apache.hc.client5.http.config.RequestConfig;
-import org.apache.hc.client5.http.protocol.HttpClientContext;
-import org.apache.hc.client5.http.protocol.RedirectLocations;
 import org.apache.hc.client5.http.protocol.RedirectStrategy;
 import org.apache.hc.client5.http.utils.URIUtils;
 import org.apache.hc.core5.annotation.Contract;
@@ -52,8 +46,6 @@ import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.net.URIBuilder;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TextUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 /**
  * Default implementation of {@link RedirectStrategy}. This strategy honors the restrictions
@@ -64,26 +56,10 @@ import org.apache.logging.log4j.Logger;
  *
  * @since 4.1
  */
-@Contract(threading = ThreadingBehavior.IMMUTABLE)
+@Contract(threading = ThreadingBehavior.STATELESS)
 public class DefaultRedirectStrategy implements RedirectStrategy {
 
-    private final Logger log = LogManager.getLogger(getClass());
-
     public static final DefaultRedirectStrategy INSTANCE = new DefaultRedirectStrategy();
-
-    private final ConcurrentMap<String, Boolean> safeMethods;
-
-    public DefaultRedirectStrategy(final String... safeMethods) {
-        super();
-        this.safeMethods = new ConcurrentHashMap<>();
-        for (final String safeMethod: safeMethods) {
-            this.safeMethods.put(safeMethod.toUpperCase(Locale.ROOT), Boolean.TRUE);
-        }
-    }
-
-    public DefaultRedirectStrategy() {
-        this("GET", "HEAD", "OPTIONS", "TRACE");
-    }
 
     @Override
     public boolean isRedirected(
@@ -117,20 +93,12 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
         Args.notNull(response, "HTTP response");
         Args.notNull(context, "HTTP context");
 
-        final HttpClientContext clientContext = HttpClientContext.adapt(context);
-
         //get the location header to find out where to redirect to
         final Header locationHeader = response.getFirstHeader("location");
         if (locationHeader == null) {
             throw new HttpException("Redirect location is missing");
         }
         final String location = locationHeader.getValue();
-        if (this.log.isDebugEnabled()) {
-            this.log.debug("Redirect requested to location '" + location + "'");
-        }
-
-        final RequestConfig config = clientContext.getRequestConfig();
-
         URI uri = createLocationURI(location);
         try {
             if (!uri.isAbsolute()) {
@@ -141,18 +109,6 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
             throw new ProtocolException(ex.getMessage(), ex);
         }
 
-        RedirectLocations redirectLocations = (RedirectLocations) clientContext.getAttribute(
-                HttpClientContext.REDIRECT_LOCATIONS);
-        if (redirectLocations == null) {
-            redirectLocations = new RedirectLocations();
-            context.setAttribute(HttpClientContext.REDIRECT_LOCATIONS, redirectLocations);
-        }
-        if (!config.isCircularRedirectsAllowed()) {
-            if (redirectLocations.contains(uri)) {
-                throw new CircularRedirectException("Circular redirect to '" + uri + "'");
-            }
-        }
-        redirectLocations.add(uri);
         return uri;
     }
 

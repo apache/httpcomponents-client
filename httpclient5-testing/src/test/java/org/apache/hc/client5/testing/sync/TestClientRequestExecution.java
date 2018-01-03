@@ -29,12 +29,12 @@ package org.apache.hc.client5.testing.sync;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URI;
-import java.util.List;
 
 import org.apache.hc.client5.http.HttpRequestRetryHandler;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.client5.http.protocol.RedirectLocations;
 import org.apache.hc.client5.http.utils.URIUtils;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
@@ -252,8 +252,8 @@ public class TestClientRequestExecution extends LocalServerTestBase {
         final HttpRequest request = context.getRequest();
         Assert.assertEquals("/stuff", request.getRequestUri());
 
-        final List<URI> redirectLocations = context.getRedirectLocations();
-        final URI location = URIUtils.resolve(uri, target, redirectLocations);
+        final RedirectLocations redirectLocations = context.getRedirectLocations();
+        final URI location = URIUtils.resolve(uri, target, redirectLocations.getAll());
         Assert.assertEquals(uri, location);
     }
 

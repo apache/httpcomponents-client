@@ -27,9 +27,7 @@
 
 package org.apache.hc.client5.http.protocol;
 
-import java.net.URI;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.hc.client5.http.HttpRoute;
@@ -67,7 +65,7 @@ public class HttpClientContext extends HttpCoreContext {
     public static final String HTTP_ROUTE   = "http.route";
 
     /**
-     * Attribute name of a {@link List} object that represents a collection of all
+     * Attribute name of a {@link RedirectLocations} object that represents a collection of all
      * redirect locations received in the process of request execution.
      */
     public static final String REDIRECT_LOCATIONS = "http.protocol.redirect-locations";
@@ -156,9 +154,8 @@ public class HttpClientContext extends HttpCoreContext {
         return getAttribute(HTTP_ROUTE, HttpRoute.class);
     }
 
-    @SuppressWarnings("unchecked")
-    public List<URI> getRedirectLocations() {
-        return getAttribute(REDIRECT_LOCATIONS, List.class);
+    public RedirectLocations getRedirectLocations() {
+        return getAttribute(REDIRECT_LOCATIONS, RedirectLocations.class);
     }
 
     public CookieStore getCookieStore() {

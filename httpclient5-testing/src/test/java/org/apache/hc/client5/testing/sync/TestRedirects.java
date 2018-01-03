@@ -30,7 +30,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
-import java.util.List;
 
 import org.apache.hc.client5.http.CircularRedirectException;
 import org.apache.hc.client5.http.ClientProtocolException;
@@ -42,6 +41,7 @@ import org.apache.hc.client5.http.cookie.BasicCookieStore;
 import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.client5.http.impl.cookie.BasicClientCookie;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.client5.http.protocol.RedirectLocations;
 import org.apache.hc.client5.http.utils.URIUtils;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
@@ -282,8 +282,9 @@ public class TestRedirects extends LocalServerTestBase {
         Assert.assertEquals(HttpStatus.SC_MULTIPLE_CHOICES, response.getCode());
         Assert.assertEquals(URIUtils.create(target, "/oldlocation/"), reqWrapper.getUri());
 
-        final List<URI> redirects = context.getRedirectLocations();
-        Assert.assertNull(redirects);
+        final RedirectLocations redirects = context.getRedirectLocations();
+        Assert.assertNotNull(redirects);
+        Assert.assertEquals(0, redirects.size());
     }
 
     @Test
@@ -304,7 +305,7 @@ public class TestRedirects extends LocalServerTestBase {
         Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
         Assert.assertEquals(URIUtils.create(target, "/newlocation/"), reqWrapper.getUri());
 
-        final List<URI> redirects = context.getRedirectLocations();
+        final RedirectLocations redirects = context.getRedirectLocations();
         Assert.assertNotNull(redirects);
         Assert.assertEquals(1, redirects.size());
 
