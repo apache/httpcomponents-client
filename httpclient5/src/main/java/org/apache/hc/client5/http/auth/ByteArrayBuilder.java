@@ -24,7 +24,7 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.hc.client5.http.auth.util;
+package org.apache.hc.client5.http.auth;
 
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
@@ -44,7 +44,7 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
  * @since 5.0
  */
 @Contract(threading = ThreadingBehavior.IMMUTABLE)
-public class ByteArrayBuilder {
+public final class ByteArrayBuilder {
 
     private CharsetEncoder charsetEncoder;
     private ByteBuffer buffer;
