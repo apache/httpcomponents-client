@@ -29,6 +29,7 @@ package org.apache.hc.client5.http.classic;
 
 import java.io.IOException;
 
+import org.apache.hc.client5.http.CancellableAware;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.annotation.Internal;
@@ -83,5 +84,7 @@ public interface ExecRuntime {
     void setConnectionState(Object state);
 
     void setConnectionValidFor(TimeValue duration);
+
+    ExecRuntime fork(CancellableAware cancellableAware);
 
 }

@@ -281,4 +281,9 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
         validDuration = null;
     }
 
+    @Override
+    public AsyncExecRuntime fork() {
+        return new InternalHttpAsyncExecRuntime(log, manager, connectionInitiator, versionPolicy);
+    }
+
 }

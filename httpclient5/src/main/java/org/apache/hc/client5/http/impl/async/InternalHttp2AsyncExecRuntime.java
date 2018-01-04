@@ -249,4 +249,9 @@ class InternalHttp2AsyncExecRuntime implements AsyncExecRuntime {
         }
     }
 
+    @Override
+    public AsyncExecRuntime fork() {
+        return new InternalHttp2AsyncExecRuntime(log, connPool);
+    }
+
 }

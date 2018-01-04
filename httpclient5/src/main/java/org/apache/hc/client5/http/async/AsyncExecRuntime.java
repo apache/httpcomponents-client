@@ -80,4 +80,6 @@ public interface AsyncExecRuntime {
 
     void markConnectionNonReusable();
 
+    AsyncExecRuntime fork();
+
 }

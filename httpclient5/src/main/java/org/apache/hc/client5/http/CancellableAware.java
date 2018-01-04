@@ -33,7 +33,7 @@ import org.apache.hc.core5.concurrent.Cancellable;
  * This interface represents an object that can be made aware of
  * long running, potentially blocking processes.
  *
- * @since 5.0
+ * TODO: replace with CancellableDependency from HttpCore 5.0b2
  */
 public interface CancellableAware {
 

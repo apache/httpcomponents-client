@@ -255,4 +255,9 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
         return !alreadyReleased;
     }
 
+    @Override
+    public ExecRuntime fork(final CancellableAware cancellableAware) {
+        return new InternalExecRuntime(log, manager, requestExecutor, cancellableAware);
+    }
+
 }
