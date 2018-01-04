@@ -121,7 +121,7 @@ public class MinimalHttpClient extends CloseableHttpClient {
         }
 
         final HttpRoute route = new HttpRoute(RoutingSupport.normalize(target, schemePortResolver));
-        final ExecRuntime execRuntime = new ExecRuntimeImpl(log, connManager, requestExecutor,
+        final ExecRuntime execRuntime = new InternalExecRuntime(log, connManager, requestExecutor,
                 request instanceof CancellableAware ? (CancellableAware) request : null);
         try {
             if (!execRuntime.isConnectionAcquired()) {

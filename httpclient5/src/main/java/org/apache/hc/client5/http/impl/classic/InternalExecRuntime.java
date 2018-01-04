@@ -52,7 +52,7 @@ import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
 import org.apache.logging.log4j.Logger;
 
-class ExecRuntimeImpl implements ExecRuntime, Cancellable {
+class InternalExecRuntime implements ExecRuntime, Cancellable {
 
     private final Logger log;
 
@@ -65,7 +65,7 @@ class ExecRuntimeImpl implements ExecRuntime, Cancellable {
     private volatile Object state;
     private volatile TimeValue validDuration;
 
-    ExecRuntimeImpl(
+    InternalExecRuntime(
             final Logger log,
             final HttpClientConnectionManager manager,
             final HttpRequestExecutor requestExecutor,

@@ -53,7 +53,7 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 @SuppressWarnings({"static-access"}) // test code
-public class TestExecRuntimeImpl {
+public class TestInternalExecRuntime {
 
     @Mock
     private Logger log;
@@ -69,13 +69,13 @@ public class TestExecRuntimeImpl {
     private ConnectionEndpoint connectionEndpoint;
 
     private HttpRoute route;
-    private ExecRuntimeImpl execRuntime;
+    private InternalExecRuntime execRuntime;
 
     @Before
     public void setup() {
         MockitoAnnotations.initMocks(this);
         route = new HttpRoute(new HttpHost("host", 80));
-        execRuntime = new ExecRuntimeImpl(log, mgr, requestExecutor, cancellableAware);
+        execRuntime = new InternalExecRuntime(log, mgr, requestExecutor, cancellableAware);
     }
 
     @Test
