@@ -38,6 +38,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.impl.schedule.ImmediateSchedulingStrategy;
+import org.apache.hc.client5.http.schedule.ConcurrentCountMap;
 import org.apache.hc.client5.http.schedule.SchedulingStrategy;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.HttpHost;
@@ -57,7 +58,7 @@ class AsynchronousValidator implements Closeable {
     private final SchedulingStrategy schedulingStrategy;
     private final Set<String> queued;
     private final CacheKeyGenerator cacheKeyGenerator;
-    private final FailureCache failureCache;
+    private final ConcurrentCountMap<String> failureCache;
 
     private final Logger log = LogManager.getLogger(getClass());
 
@@ -87,7 +88,7 @@ class AsynchronousValidator implements Closeable {
         this.schedulingStrategy = schedulingStrategy;
         this.queued = new HashSet<>();
         this.cacheKeyGenerator = CacheKeyGenerator.INSTANCE;
-        this.failureCache = new DefaultFailureCache();
+        this.failureCache = new ConcurrentCountMap<>();
     }
 
     /**
@@ -104,7 +105,7 @@ class AsynchronousValidator implements Closeable {
         final String cacheKey = cacheKeyGenerator.generateVariantURI(target, request, entry);
 
         if (!queued.contains(cacheKey)) {
-            final int consecutiveFailedAttempts = failureCache.getErrorCount(cacheKey);
+            final int consecutiveFailedAttempts = failureCache.getCount(cacheKey);
             final AsynchronousValidationRequest revalidationRequest =
                 new AsynchronousValidationRequest(
                         this, cachingExec, target, request, scope, chain, entry, cacheKey, consecutiveFailedAttempts);
@@ -147,7 +148,7 @@ class AsynchronousValidator implements Closeable {
      * @param identifier the revalidation job's unique identifier
      */
     void jobSuccessful(final String identifier) {
-        failureCache.resetErrorCount(identifier);
+        failureCache.resetCount(identifier);
     }
 
     /**
@@ -157,10 +158,11 @@ class AsynchronousValidator implements Closeable {
      * @param identifier the revalidation job's unique identifier
      */
     void jobFailed(final String identifier) {
-        failureCache.increaseErrorCount(identifier);
+        failureCache.increaseCount(identifier);
     }
 
     Set<String> getScheduledIdentifiers() {
         return Collections.unmodifiableSet(queued);
     }
+
 }

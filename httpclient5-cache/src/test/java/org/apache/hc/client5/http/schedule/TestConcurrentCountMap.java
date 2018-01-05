@@ -24,34 +24,27 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.hc.client5.http.impl.cache;
+package org.apache.hc.client5.http.schedule;
 
-/**
- * Increase and reset the number of errors associated with a specific
- * identifier.
- *
- * @since 4.3
- */
-public interface FailureCache {
+import org.hamcrest.CoreMatchers;
+import org.junit.Assert;
+import org.junit.Test;
 
-    /**
-     * Get the current error count.
-     * @param identifier the identifier for which the error count is requested
-     * @return the currently known error count or zero if there is no record
-     */
-    int getErrorCount(String identifier);
+public class TestConcurrentCountMap
+{
 
-    /**
-     * Reset the error count back to zero.
-     * @param identifier the identifier for which the error count should be
-     *                   reset
-     */
-    void resetErrorCount(String identifier);
+    private static final String IDENTIFIER = "some-identifier";
 
-    /**
-     * Increases the error count by one.
-     * @param identifier the identifier for which the error count should be
-     *                   increased
-     */
-    void increaseErrorCount(String identifier);
+    private ConcurrentCountMap<String> map = new ConcurrentCountMap<>();
+
+    @Test
+    public void testBasics() {
+        map.increaseCount(IDENTIFIER);
+        map.increaseCount(IDENTIFIER);
+        Assert.assertThat(map.getCount(IDENTIFIER), CoreMatchers.equalTo(2));
+
+        map.resetCount(IDENTIFIER);
+        Assert.assertThat(map.getCount(IDENTIFIER), CoreMatchers.equalTo(0));
+    }
+
 }
