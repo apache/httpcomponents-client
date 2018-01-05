@@ -32,11 +32,18 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.classic.ExecChain;
+import org.apache.hc.client5.http.impl.schedule.ImmediateSchedulingStrategy;
+import org.apache.hc.client5.http.schedule.SchedulingStrategy;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.util.Args;
+import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -45,6 +52,8 @@ import org.apache.logging.log4j.Logger;
  * while-revalidate" directive is present
  */
 class AsynchronousValidator implements Closeable {
+
+    private final ScheduledExecutorService executorService;
     private final SchedulingStrategy schedulingStrategy;
     private final Set<String> queued;
     private final CacheKeyGenerator cacheKeyGenerator;
@@ -63,7 +72,7 @@ class AsynchronousValidator implements Closeable {
      * and {@link CacheConfig#getRevalidationQueueSize()}.
      */
     public AsynchronousValidator(final CacheConfig config) {
-        this(new ImmediateSchedulingStrategy(config));
+        this(new ScheduledThreadPoolExecutor(config.getAsynchronousWorkersCore()), new ImmediateSchedulingStrategy());
     }
 
     /**
@@ -73,16 +82,12 @@ class AsynchronousValidator implements Closeable {
      * @param schedulingStrategy used to maintain a pool of worker threads and
      *                           schedules when requests are executed
      */
-    AsynchronousValidator(final SchedulingStrategy schedulingStrategy) {
+    AsynchronousValidator(final ScheduledExecutorService executorService, final SchedulingStrategy schedulingStrategy) {
+        this.executorService = executorService;
         this.schedulingStrategy = schedulingStrategy;
         this.queued = new HashSet<>();
         this.cacheKeyGenerator = CacheKeyGenerator.INSTANCE;
         this.failureCache = new DefaultFailureCache();
-    }
-
-    @Override
-    public void close() throws IOException {
-        schedulingStrategy.close();
     }
 
     /**
@@ -96,21 +101,32 @@ class AsynchronousValidator implements Closeable {
             final ExecChain chain,
             final HttpCacheEntry entry) {
         // getVariantURI will fall back on getURI if no variants exist
-        final String uri = cacheKeyGenerator.generateVariantURI(target, request, entry);
+        final String cacheKey = cacheKeyGenerator.generateVariantURI(target, request, entry);
 
-        if (!queued.contains(uri)) {
-            final int consecutiveFailedAttempts = failureCache.getErrorCount(uri);
+        if (!queued.contains(cacheKey)) {
+            final int consecutiveFailedAttempts = failureCache.getErrorCount(cacheKey);
             final AsynchronousValidationRequest revalidationRequest =
                 new AsynchronousValidationRequest(
-                        this, cachingExec, target, request, scope, chain, entry, uri, consecutiveFailedAttempts);
+                        this, cachingExec, target, request, scope, chain, entry, cacheKey, consecutiveFailedAttempts);
 
+            final TimeValue executionTime = schedulingStrategy.schedule(consecutiveFailedAttempts);
             try {
-                schedulingStrategy.schedule(revalidationRequest);
-                queued.add(uri);
+                executorService.schedule(revalidationRequest, executionTime.getDuration(), executionTime.getTimeUnit());
+                queued.add(cacheKey);
             } catch (final RejectedExecutionException ree) {
-                log.debug("Revalidation for [" + uri + "] not scheduled: " + ree);
+                log.debug("Revalidation for [" + cacheKey + "] not scheduled: " + ree);
             }
         }
+    }
+
+    @Override
+    public void close() throws IOException {
+        executorService.shutdown();
+    }
+
+    public void awaitTermination(final Timeout timeout) throws InterruptedException {
+        Args.notNull(timeout, "Timeout");
+        executorService.awaitTermination(timeout.getDuration(), timeout.getTimeUnit());
     }
 
     /**

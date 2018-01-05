@@ -24,32 +24,36 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.hc.client5.http.impl.cache;
+package org.apache.hc.client5.http.impl.schedule;
 
-import static org.mockito.Mockito.mock;
-
-import java.util.concurrent.ExecutorService;
-
+import org.apache.hc.core5.util.TimeValue;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class TestImmediateSchedulingStrategy {
+public class TestExponentialBackingOffSchedulingStrategy {
 
-    private ExecutorService mockExecutor;
-    private AsynchronousValidationRequest mockRevalidationRequest;
-    private SchedulingStrategy schedulingStrategy;
+    private ExponentialBackOffSchedulingStrategy impl;
 
     @Before
     public void setUp() {
-        mockExecutor = mock(ExecutorService.class);
-        mockRevalidationRequest = mock(AsynchronousValidationRequest.class);
-        schedulingStrategy = new ImmediateSchedulingStrategy(mockExecutor);
+        impl = new ExponentialBackOffSchedulingStrategy(
+                ExponentialBackOffSchedulingStrategy.DEFAULT_BACK_OFF_RATE,
+                ExponentialBackOffSchedulingStrategy.DEFAULT_INITIAL_EXPIRY,
+                ExponentialBackOffSchedulingStrategy.DEFAULT_MAX_EXPIRY
+        );
     }
 
     @Test
-    public void testRequestScheduledImmediately() {
-        mockExecutor.execute(mockRevalidationRequest);
-
-        schedulingStrategy.schedule(mockRevalidationRequest);
+    public void testSchedule() {
+        Assert.assertEquals(TimeValue.ofMillis(0), impl.schedule(0));
+        Assert.assertEquals(TimeValue.ofMillis(6000), impl.schedule(1));
+        Assert.assertEquals(TimeValue.ofMillis(60000), impl.schedule(2));
+        Assert.assertEquals(TimeValue.ofMillis(600000), impl.schedule(3));
+        Assert.assertEquals(TimeValue.ofMillis(6000000), impl.schedule(4));
+        Assert.assertEquals(TimeValue.ofMillis(60000000), impl.schedule(5));
+        Assert.assertEquals(TimeValue.ofMillis(86400000), impl.schedule(6));
+        Assert.assertEquals(TimeValue.ofMillis(86400000), impl.schedule(Integer.MAX_VALUE));
     }
+
 }

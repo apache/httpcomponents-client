@@ -24,22 +24,28 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.hc.client5.http.impl.cache;
+package org.apache.hc.client5.http.impl.schedule;
 
-import java.io.Closeable;
+import org.apache.hc.client5.http.schedule.SchedulingStrategy;
+import org.apache.hc.core5.util.TimeValue;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 
-/**
- * Specifies when revalidation requests are scheduled.
- *
- * @since 4.3
- */
-public interface SchedulingStrategy extends Closeable
-{
-    /**
-     * Schedule an {@link AsynchronousValidationRequest} to be executed.
-     *
-     * @param revalidationRequest the request to be executed; not {@code null}
-     * @throws java.util.concurrent.RejectedExecutionException if the request could not be scheduled for execution
-     */
-    void schedule(AsynchronousValidationRequest revalidationRequest);
+public class TestImmediateSchedulingStrategy {
+
+    private SchedulingStrategy impl;
+
+    @Before
+    public void setUp() {
+        impl = new ImmediateSchedulingStrategy();
+    }
+
+    @Test
+    public void testSchedule() {
+        Assert.assertEquals(TimeValue.ZERO_MILLISECONDS, impl.schedule(0));
+        Assert.assertEquals(TimeValue.ZERO_MILLISECONDS, impl.schedule(1));
+        Assert.assertEquals(TimeValue.ZERO_MILLISECONDS, impl.schedule(Integer.MAX_VALUE));
+    }
+
 }
