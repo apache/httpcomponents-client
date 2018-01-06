@@ -61,9 +61,9 @@ class CacheInvalidatorBase {
     }
 
     static boolean notGetOrHeadRequest(final String method) {
-        return !(HeaderConstants.GET_METHOD.equals(method) || HeaderConstants.HEAD_METHOD
-                .equals(method));
+        return !(HeaderConstants.GET_METHOD.equals(method) || HeaderConstants.HEAD_METHOD.equals(method));
     }
+
     private static URI getLocationURI(final URI requestUri, final HttpResponse response, final String headerName) {
         final Header h = response.getFirstHeader(headerName);
         if (h == null) {
