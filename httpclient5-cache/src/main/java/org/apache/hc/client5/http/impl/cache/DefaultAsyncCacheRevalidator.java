@@ -146,7 +146,7 @@ class DefaultAsyncCacheRevalidator extends CacheRevalidatorBase {
             final AsyncExecChain chain,
             final AsyncExecCallback asyncExecCallback,
             final HttpCacheEntry entry) {
-        final String cacheKey = cacheKeyGenerator.generateVariantURI(target, request, entry);
+        final String cacheKey = cacheKeyGenerator.generateKey(target, request, entry);
         scheduleRevalidation(cacheKey, new Runnable() {
 
                         @Override

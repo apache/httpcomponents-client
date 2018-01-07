@@ -151,7 +151,7 @@ class BasicHttpCache implements HttpCache {
             final HttpRequest req,
             final HttpCacheEntry entry) {
         final String variantKey = cacheKeyGenerator.generateVariantKey(req, entry);
-        final String variantCacheKey = cacheKeyGenerator.generateVariantURI(host, req, entry);
+        final String variantCacheKey = cacheKeyGenerator.generateKey(host, req, entry);
         storeEntry(variantCacheKey, entry);
         try {
             storage.updateEntry(cacheKey, new HttpCacheCASOperation() {

@@ -197,7 +197,7 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
             final HttpCacheEntry entry,
             final FutureCallback<Boolean> callback) {
         final String variantKey = cacheKeyGenerator.generateVariantKey(req, entry);
-        final String variantCacheKey = cacheKeyGenerator.generateVariantURI(host, req, entry);
+        final String variantCacheKey = cacheKeyGenerator.generateKey(host, req, entry);
         return storage.putEntry(variantCacheKey, entry, new FutureCallback<Boolean>() {
 
             @Override

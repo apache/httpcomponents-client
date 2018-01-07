@@ -119,7 +119,7 @@ public class CacheKeyGenerator implements Resolver<URI, String> {
      * @param entry the parent entry used to track the variants
      * @return cache key
      */
-    public String generateVariantURI(final HttpHost host, final HttpRequest request, final HttpCacheEntry entry) {
+    public String generateKey(final HttpHost host, final HttpRequest request, final HttpCacheEntry entry) {
         if (!entry.hasVariants()) {
             return generateKey(host, request);
         }
