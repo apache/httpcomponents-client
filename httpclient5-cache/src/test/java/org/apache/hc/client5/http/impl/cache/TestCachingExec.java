@@ -65,7 +65,6 @@ import org.easymock.EasyMock;
 import org.easymock.IExpectationSetters;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 @SuppressWarnings("boxing") // test code
@@ -107,9 +106,10 @@ public class TestCachingExec extends TestCachingExecChain {
             final CachedHttpResponseGenerator mockResponseGenerator,
             final CacheableRequestPolicy mockRequestPolicy,
             final CachedResponseSuitabilityChecker mockSuitabilityChecker,
-            final ConditionalRequestBuilder<ClassicHttpRequest> mockConditionalRequestBuilder,
             final ResponseProtocolCompliance mockResponseProtocolCompliance,
             final RequestProtocolCompliance mockRequestProtocolCompliance,
+            final DefaultCacheRevalidator mockCacheRevalidator,
+            final ConditionalRequestBuilder<ClassicHttpRequest> mockConditionalRequestBuilder,
             final CacheConfig config) {
         return impl = new CachingExec(
                 mockCache,
@@ -118,15 +118,16 @@ public class TestCachingExec extends TestCachingExecChain {
                 mockResponseGenerator,
                 mockRequestPolicy,
                 mockSuitabilityChecker,
-                mockConditionalRequestBuilder,
                 mockResponseProtocolCompliance,
                 mockRequestProtocolCompliance,
+                mockCacheRevalidator,
+                mockConditionalRequestBuilder,
                 config);
     }
 
     @Override
     public CachingExec createCachingExecChain(final HttpCache cache, final CacheConfig config) {
-        return impl = new CachingExec(cache, config);
+        return impl = new CachingExec(cache, null, config);
     }
 
     @Override
@@ -210,7 +211,7 @@ public class TestCachingExec extends TestCachingExecChain {
         Assert.assertEquals(1, impl.getCacheUpdates());
     }
 
-    @Test @Ignore
+    @Test
     public void testUnsuitableValidatableCacheEntryCausesRevalidation() throws Exception {
         mockImplMethods(REVALIDATE_CACHE_ENTRY);
         requestPolicyAllowsCaching(true);
@@ -447,9 +448,10 @@ public class TestCachingExec extends TestCachingExecChain {
                 mockResponseGenerator,
                 mockRequestPolicy,
                 mockSuitabilityChecker,
-                mockConditionalRequestBuilder,
                 mockResponseProtocolCompliance,
                 mockRequestProtocolCompliance,
+                mockCacheRevalidator,
+                mockConditionalRequestBuilder,
                 config).addMockedMethods(methods).createNiceMock();
     }
 

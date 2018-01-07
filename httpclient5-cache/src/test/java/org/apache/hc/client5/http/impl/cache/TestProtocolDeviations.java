@@ -127,7 +127,7 @@ public class TestProtocolDeviations {
     }
 
     protected ExecChainHandler createCachingExecChain(final HttpCache cache, final CacheConfig config) {
-        return new CachingExec(cache, config);
+        return new CachingExec(cache, null, config);
     }
 
     private ClassicHttpResponse make200Response() {

@@ -32,7 +32,10 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.util.Date;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 
+import org.apache.hc.client5.http.impl.schedule.ImmediateSchedulingStrategy;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
@@ -41,7 +44,9 @@ import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.io.entity.InputStreamEntity;
 import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
-import org.junit.Ignore;
+import org.easymock.EasyMock;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -50,6 +55,31 @@ import org.junit.Test;
  * Cache-Control extensions.
  */
 public class TestRFC5861Compliance extends AbstractProtocolTest {
+
+    private ScheduledExecutorService executorService;
+
+    @Before
+    public void setup() {
+        executorService = new ScheduledThreadPoolExecutor(1);
+        EasyMock.expect(mockExecRuntime.fork(null)).andReturn(mockExecRuntime).anyTimes();
+    }
+
+    @After
+    public void cleanup() {
+        executorService.shutdownNow();
+    }
+
+    @Override
+    protected void replayMocks() {
+        super.replayMocks();
+        EasyMock.replay(mockExecRuntime);
+    }
+
+    @Override
+    protected void verifyMocks() {
+        super.verifyMocks();
+        EasyMock.verify(mockExecRuntime);
+    }
 
     /*
      * "The stale-if-error Cache-Control extension indicates that when an
@@ -169,7 +199,7 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
             throws Exception{
         final CacheConfig configUnshared = CacheConfig.custom()
                 .setSharedCache(false).build();
-        impl = new CachingExec(new BasicHttpCache(configUnshared), configUnshared);
+        impl = new CachingExec(new BasicHttpCache(configUnshared), null, configUnshared);
 
         final Date tenSecondsAgo = new Date(new Date().getTime() - 10 * 1000L);
         final ClassicHttpRequest req1 = HttpTestUtils.makeDefaultRequest();
@@ -323,16 +353,16 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
      *
      * http://tools.ietf.org/html/rfc5861
      */
-    @Test @Ignore
+    @Test
     public void testStaleWhileRevalidateReturnsStaleEntryWithWarning()
         throws Exception {
         config = CacheConfig.custom()
                 .setMaxCacheEntries(MAX_ENTRIES)
                 .setMaxObjectSize(MAX_BYTES)
-                .setAsynchronousWorkersMax(1)
+                .setAsynchronousWorkers(1)
                 .build();
 
-        impl = new CachingExec(cache, config);
+        impl = new CachingExec(cache, executorService, ImmediateSchedulingStrategy.INSTANCE, config);
 
         final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
@@ -365,17 +395,12 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
     }
 
     @Test
-    public void testHTTPCLIENT1470() {
-        impl = new CachingExec(cache, null);
-    }
-
-    @Test @Ignore
     public void testStaleWhileRevalidateReturnsStaleNonRevalidatableEntryWithWarning()
         throws Exception {
         config = CacheConfig.custom().setMaxCacheEntries(MAX_ENTRIES).setMaxObjectSize(MAX_BYTES)
-            .setAsynchronousWorkersMax(1).build();
+            .setAsynchronousWorkers(1).build();
 
-        impl = new CachingExec(cache, config);
+        impl = new CachingExec(cache, executorService, ImmediateSchedulingStrategy.INSTANCE, config);
 
         final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
@@ -406,17 +431,17 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
         assertTrue(warning110Found);
     }
 
-    @Test @Ignore
+    @Test
     public void testCanAlsoServeStale304sWhileRevalidating()
         throws Exception {
 
         config = CacheConfig.custom()
                 .setMaxCacheEntries(MAX_ENTRIES)
                 .setMaxObjectSize(MAX_BYTES)
-                .setAsynchronousWorkersMax(1)
+                .setAsynchronousWorkers(1)
                 .setSharedCache(false)
                 .build();
-        impl = new CachingExec(cache, config);
+        impl = new CachingExec(cache, executorService, ImmediateSchedulingStrategy.INSTANCE, config);
 
         final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
@@ -460,9 +485,9 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
         config = CacheConfig.custom()
                 .setMaxCacheEntries(MAX_ENTRIES)
                 .setMaxObjectSize(MAX_BYTES)
-                .setAsynchronousWorkersMax(1)
+                .setAsynchronousWorkers(1)
                 .build();
-        impl = new CachingExec(cache, config);
+        impl = new CachingExec(cache, null, config);
 
         final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
@@ -508,10 +533,10 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
         config = CacheConfig.custom()
                 .setMaxCacheEntries(MAX_ENTRIES)
                 .setMaxObjectSize(MAX_BYTES)
-                .setAsynchronousWorkersMax(1)
+                .setAsynchronousWorkers(1)
                 .setSharedCache(true)
                 .build();
-        impl = new CachingExec(cache, config);
+        impl = new CachingExec(cache, null, config);
 
         final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
@@ -557,10 +582,10 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
         config = CacheConfig.custom()
                 .setMaxCacheEntries(MAX_ENTRIES)
                 .setMaxObjectSize(MAX_BYTES)
-                .setAsynchronousWorkersMax(1)
+                .setAsynchronousWorkers(1)
                 .setSharedCache(true)
                 .build();
-        impl = new CachingExec(cache, config);
+        impl = new CachingExec(cache, null, config);
 
         final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();

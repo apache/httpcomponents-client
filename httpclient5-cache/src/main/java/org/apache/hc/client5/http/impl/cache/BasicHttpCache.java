@@ -89,6 +89,15 @@ class BasicHttpCache implements HttpCache {
     }
 
     @Override
+    public String generateKey(final HttpHost host, final HttpRequest request, final HttpCacheEntry cacheEntry) {
+        if (cacheEntry == null) {
+            return cacheKeyGenerator.generateKey(host, request);
+        } else {
+            return cacheKeyGenerator.generateKey(host, request, cacheEntry);
+        }
+    }
+
+    @Override
     public void flushCacheEntriesFor(final HttpHost host, final HttpRequest request) {
         if (log.isDebugEnabled()) {
             log.debug("Flush cache entries: " + host + "; " + new RequestLine(request));

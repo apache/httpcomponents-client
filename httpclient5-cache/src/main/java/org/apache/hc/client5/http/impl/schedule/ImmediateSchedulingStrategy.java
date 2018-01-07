@@ -39,7 +39,7 @@ import org.apache.hc.core5.util.TimeValue;
 @Contract(threading = ThreadingBehavior.STATELESS)
 public class ImmediateSchedulingStrategy implements SchedulingStrategy {
 
-    private final static ImmediateSchedulingStrategy INSTANCE = new ImmediateSchedulingStrategy();
+    public final static ImmediateSchedulingStrategy INSTANCE = new ImmediateSchedulingStrategy();
 
     @Override
     public TimeValue schedule(final int attemptNumber) {

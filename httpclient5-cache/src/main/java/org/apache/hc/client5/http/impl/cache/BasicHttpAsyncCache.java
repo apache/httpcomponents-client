@@ -85,6 +85,15 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
     }
 
     @Override
+    public String generateKey(final HttpHost host, final HttpRequest request, final HttpCacheEntry cacheEntry) {
+        if (cacheEntry == null) {
+            return cacheKeyGenerator.generateKey(host, request);
+        } else {
+            return cacheKeyGenerator.generateKey(host, request, cacheEntry);
+        }
+    }
+
+    @Override
     public Cancellable flushCacheEntriesFor(
             final HttpHost host, final HttpRequest request, final FutureCallback<Boolean> callback) {
         if (log.isDebugEnabled()) {

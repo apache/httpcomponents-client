@@ -40,6 +40,8 @@ import org.apache.hc.core5.util.ByteArrayBuffer;
  */
 interface HttpCache {
 
+    String generateKey (HttpHost host, HttpRequest request, HttpCacheEntry cacheEntry);
+
     /**
      * Clear all matching {@link HttpCacheEntry}s.
      */

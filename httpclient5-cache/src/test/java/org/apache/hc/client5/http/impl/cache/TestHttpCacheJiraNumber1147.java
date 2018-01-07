@@ -142,7 +142,7 @@ public class TestHttpCacheJiraNumber1147 {
     }
 
     protected ExecChainHandler createCachingExecChain(final BasicHttpCache cache, final CacheConfig config) {
-        return new CachingExec(cache, config);
+        return new CachingExec(cache, null, config);
     }
 
 }

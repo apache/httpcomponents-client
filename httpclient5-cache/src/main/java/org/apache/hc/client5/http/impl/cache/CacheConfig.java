@@ -90,15 +90,10 @@ import org.apache.hc.core5.util.Args;
  * <p><b>Background validation</b>. The cache module supports the
  * {@code stale-while-revalidate} directive of
  * <a href="http://tools.ietf.org/html/rfc5861">RFC5861</a>, which allows
- * certain cache entry revalidations to happen in the background. You may
- * want to tweak the settings for the {@link
- * CacheConfig#getAsynchronousWorkersCore() minimum} and {@link
- * CacheConfig#getAsynchronousWorkersMax() maximum} number of background
- * worker threads, as well as the {@link
- * CacheConfig#getAsynchronousWorkerIdleLifetimeSecs() maximum time they
- * can be idle before being reclaimed}. You can also control the {@link
- * CacheConfig#getRevalidationQueueSize() size of the queue} used for
- * revalidations when there aren't enough workers to keep up with demand.</p>
+ * certain cache entry revalidations to happen in the background. Asynchronous
+ * validation is enabled by default but it could be disabled by setting the number
+ * of re-validation workers to {@code 0} with {@link CacheConfig#getAsynchronousWorkers()}
+ * parameter</p>
  */
 public class CacheConfig implements Cloneable {
 
@@ -142,21 +137,7 @@ public class CacheConfig implements Cloneable {
     /** Default number of worker threads to allow for background revalidations
      * resulting from the stale-while-revalidate directive.
      */
-    public static final int DEFAULT_ASYNCHRONOUS_WORKERS_MAX = 1;
-
-    /** Default minimum number of worker threads to allow for background
-     * revalidations resulting from the stale-while-revalidate directive.
-     */
-    public static final int DEFAULT_ASYNCHRONOUS_WORKERS_CORE = 1;
-
-    /** Default maximum idle lifetime for a background revalidation thread
-     * before it gets reclaimed.
-     */
-    public static final int DEFAULT_ASYNCHRONOUS_WORKER_IDLE_LIFETIME_SECS = 60;
-
-    /** Default maximum queue length for background revalidation requests.
-     */
-    public static final int DEFAULT_REVALIDATION_QUEUE_SIZE = 100;
+    public static final int DEFAULT_ASYNCHRONOUS_WORKERS = 1;
 
     public static final CacheConfig DEFAULT = new Builder().build();
 
@@ -170,10 +151,7 @@ public class CacheConfig implements Cloneable {
     private final long heuristicDefaultLifetime;
     private final boolean sharedCache;
     private final boolean freshnessCheckEnabled;
-    private final int asynchronousWorkersMax;
-    private final int asynchronousWorkersCore;
-    private final int asynchronousWorkerIdleLifetimeSecs;
-    private final int revalidationQueueSize;
+    private final int asynchronousWorkers;
     private final boolean neverCacheHTTP10ResponsesWithQuery;
 
     CacheConfig(
@@ -187,10 +165,7 @@ public class CacheConfig implements Cloneable {
             final long heuristicDefaultLifetime,
             final boolean sharedCache,
             final boolean freshnessCheckEnabled,
-            final int asynchronousWorkersMax,
-            final int asynchronousWorkersCore,
-            final int asynchronousWorkerIdleLifetimeSecs,
-            final int revalidationQueueSize,
+            final int asynchronousWorkers,
             final boolean neverCacheHTTP10ResponsesWithQuery) {
         super();
         this.maxObjectSize = maxObjectSize;
@@ -203,10 +178,7 @@ public class CacheConfig implements Cloneable {
         this.heuristicDefaultLifetime = heuristicDefaultLifetime;
         this.sharedCache = sharedCache;
         this.freshnessCheckEnabled = freshnessCheckEnabled;
-        this.asynchronousWorkersMax = asynchronousWorkersMax;
-        this.asynchronousWorkersCore = asynchronousWorkersCore;
-        this.asynchronousWorkerIdleLifetimeSecs = asynchronousWorkerIdleLifetimeSecs;
-        this.revalidationQueueSize = revalidationQueueSize;
+        this.asynchronousWorkers = asynchronousWorkers;
         this.neverCacheHTTP10ResponsesWithQuery = neverCacheHTTP10ResponsesWithQuery;
     }
 
@@ -306,33 +278,8 @@ public class CacheConfig implements Cloneable {
      * revalidations due to the {@code stale-while-revalidate} directive. A
      * value of 0 means background revalidations are disabled.
      */
-    public int getAsynchronousWorkersMax() {
-        return asynchronousWorkersMax;
-    }
-
-    /**
-     * Returns the minimum number of threads to keep alive for background
-     * revalidations due to the {@code stale-while-revalidate} directive.
-     */
-    public int getAsynchronousWorkersCore() {
-        return asynchronousWorkersCore;
-    }
-
-    /**
-     * Returns the current maximum idle lifetime in seconds for a
-     * background revalidation worker thread. If a worker thread is idle
-     * for this long, and there are more than the core number of worker
-     * threads alive, the worker will be reclaimed.
-     */
-    public int getAsynchronousWorkerIdleLifetimeSecs() {
-        return asynchronousWorkerIdleLifetimeSecs;
-    }
-
-    /**
-     * Returns the current maximum queue size for background revalidations.
-     */
-    public int getRevalidationQueueSize() {
-        return revalidationQueueSize;
+    public int getAsynchronousWorkers() {
+        return asynchronousWorkers;
     }
 
     @Override
@@ -354,10 +301,7 @@ public class CacheConfig implements Cloneable {
             .setHeuristicCoefficient(config.getHeuristicCoefficient())
             .setHeuristicDefaultLifetime(config.getHeuristicDefaultLifetime())
             .setSharedCache(config.isSharedCache())
-            .setAsynchronousWorkersMax(config.getAsynchronousWorkersMax())
-            .setAsynchronousWorkersCore(config.getAsynchronousWorkersCore())
-            .setAsynchronousWorkerIdleLifetimeSecs(config.getAsynchronousWorkerIdleLifetimeSecs())
-            .setRevalidationQueueSize(config.getRevalidationQueueSize())
+            .setAsynchronousWorkers(config.getAsynchronousWorkers())
             .setNeverCacheHTTP10ResponsesWithQueryString(config.isNeverCacheHTTP10ResponsesWithQuery());
     }
 
@@ -374,10 +318,7 @@ public class CacheConfig implements Cloneable {
         private long heuristicDefaultLifetime;
         private boolean sharedCache;
         private boolean freshnessCheckEnabled;
-        private int asynchronousWorkersMax;
-        private int asynchronousWorkersCore;
-        private int asynchronousWorkerIdleLifetimeSecs;
-        private int revalidationQueueSize;
+        private int asynchronousWorkers;
         private boolean neverCacheHTTP10ResponsesWithQuery;
 
         Builder() {
@@ -391,10 +332,7 @@ public class CacheConfig implements Cloneable {
             this.heuristicDefaultLifetime = DEFAULT_HEURISTIC_LIFETIME;
             this.sharedCache = true;
             this.freshnessCheckEnabled = true;
-            this.asynchronousWorkersMax = DEFAULT_ASYNCHRONOUS_WORKERS_MAX;
-            this.asynchronousWorkersCore = DEFAULT_ASYNCHRONOUS_WORKERS_CORE;
-            this.asynchronousWorkerIdleLifetimeSecs = DEFAULT_ASYNCHRONOUS_WORKER_IDLE_LIFETIME_SECS;
-            this.revalidationQueueSize = DEFAULT_REVALIDATION_QUEUE_SIZE;
+            this.asynchronousWorkers = DEFAULT_ASYNCHRONOUS_WORKERS;
         }
 
         /**
@@ -495,42 +433,11 @@ public class CacheConfig implements Cloneable {
         /**
          * Sets the maximum number of threads to allow for background
          * revalidations due to the {@code stale-while-revalidate} directive.
-         * @param asynchronousWorkersMax number of threads; a value of 0 disables background
+         * @param asynchronousWorkers number of threads; a value of 0 disables background
          * revalidations.
          */
-        public Builder setAsynchronousWorkersMax(final int asynchronousWorkersMax) {
-            this.asynchronousWorkersMax = asynchronousWorkersMax;
-            return this;
-        }
-
-        /**
-         * Sets the minimum number of threads to keep alive for background
-         * revalidations due to the {@code stale-while-revalidate} directive.
-         * @param asynchronousWorkersCore should be greater than zero and less than or equal
-         *   to {@code getAsynchronousWorkersMax()}
-         */
-        public Builder setAsynchronousWorkersCore(final int asynchronousWorkersCore) {
-            this.asynchronousWorkersCore = asynchronousWorkersCore;
-            return this;
-        }
-
-        /**
-         * Sets the current maximum idle lifetime in seconds for a
-         * background revalidation worker thread. If a worker thread is idle
-         * for this long, and there are more than the core number of worker
-         * threads alive, the worker will be reclaimed.
-         * @param asynchronousWorkerIdleLifetimeSecs idle lifetime in seconds
-         */
-        public Builder setAsynchronousWorkerIdleLifetimeSecs(final int asynchronousWorkerIdleLifetimeSecs) {
-            this.asynchronousWorkerIdleLifetimeSecs = asynchronousWorkerIdleLifetimeSecs;
-            return this;
-        }
-
-        /**
-         * Sets the current maximum queue size for background revalidations.
-         */
-        public Builder setRevalidationQueueSize(final int revalidationQueueSize) {
-            this.revalidationQueueSize = revalidationQueueSize;
+        public Builder setAsynchronousWorkers(final int asynchronousWorkers) {
+            this.asynchronousWorkers = asynchronousWorkers;
             return this;
         }
 
@@ -547,6 +454,11 @@ public class CacheConfig implements Cloneable {
             return this;
         }
 
+        public Builder setFreshnessCheckEnabled(final boolean freshnessCheckEnabled) {
+            this.freshnessCheckEnabled = freshnessCheckEnabled;
+            return this;
+        }
+
         public CacheConfig build() {
             return new CacheConfig(
                     maxObjectSize,
@@ -559,10 +471,7 @@ public class CacheConfig implements Cloneable {
                     heuristicDefaultLifetime,
                     sharedCache,
                     freshnessCheckEnabled,
-                    asynchronousWorkersMax,
-                    asynchronousWorkersCore,
-                    asynchronousWorkerIdleLifetimeSecs,
-                    revalidationQueueSize,
+                    asynchronousWorkers,
                     neverCacheHTTP10ResponsesWithQuery);
         }
 
@@ -581,10 +490,7 @@ public class CacheConfig implements Cloneable {
                 .append(", heuristicDefaultLifetime=").append(this.heuristicDefaultLifetime)
                 .append(", sharedCache=").append(this.sharedCache)
                 .append(", freshnessCheckEnabled=").append(this.freshnessCheckEnabled)
-                .append(", asynchronousWorkersMax=").append(this.asynchronousWorkersMax)
-                .append(", asynchronousWorkersCore=").append(this.asynchronousWorkersCore)
-                .append(", asynchronousWorkerIdleLifetimeSecs=").append(this.asynchronousWorkerIdleLifetimeSecs)
-                .append(", revalidationQueueSize=").append(this.revalidationQueueSize)
+                .append(", asynchronousWorkers=").append(this.asynchronousWorkers)
                 .append(", neverCacheHTTP10ResponsesWithQuery=").append(this.neverCacheHTTP10ResponsesWithQuery)
                 .append("]");
         return builder.toString();

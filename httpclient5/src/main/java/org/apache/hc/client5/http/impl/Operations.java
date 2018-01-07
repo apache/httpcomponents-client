@@ -27,7 +27,10 @@
 
 package org.apache.hc.client5.http.impl;
 
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.apache.hc.core5.concurrent.Cancellable;
 
@@ -38,6 +41,40 @@ public final class Operations {
         @Override
         public boolean cancel() {
             return false;
+        }
+
+    };
+
+    public static class CompletedFuture<T> implements Future<T> {
+
+        private final T result;
+
+        public CompletedFuture(final T result) {
+            this.result = result;
+        }
+
+        @Override
+        public T get() throws InterruptedException, ExecutionException {
+            return result;
+        }
+
+        @Override
+        public T get(final long timeout, final TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+            return result;
+        }
+        @Override
+        public boolean cancel(final boolean mayInterruptIfRunning) {
+            return false;
+        }
+
+        @Override
+        public boolean isCancelled() {
+            return false;
+        }
+
+        @Override
+        public boolean isDone() {
+            return true;
         }
 
     };

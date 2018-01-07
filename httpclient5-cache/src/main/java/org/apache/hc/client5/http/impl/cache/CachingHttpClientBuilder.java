@@ -29,6 +29,8 @@ package org.apache.hc.client5.http.impl.cache;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import org.apache.hc.client5.http.cache.HttpCacheInvalidator;
 import org.apache.hc.client5.http.cache.HttpCacheStorage;
@@ -36,6 +38,8 @@ import org.apache.hc.client5.http.cache.ResourceFactory;
 import org.apache.hc.client5.http.classic.ExecChainHandler;
 import org.apache.hc.client5.http.impl.ChainElements;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.schedule.ImmediateSchedulingStrategy;
+import org.apache.hc.client5.http.schedule.SchedulingStrategy;
 import org.apache.hc.core5.http.config.NamedElementChain;
 
 /**
@@ -49,6 +53,7 @@ public class CachingHttpClientBuilder extends HttpClientBuilder {
     private ResourceFactory resourceFactory;
     private HttpCacheStorage storage;
     private File cacheDir;
+    private SchedulingStrategy schedulingStrategy;
     private CacheConfig cacheConfig;
     private HttpCacheInvalidator httpCacheInvalidator;
     private boolean deleteCache;
@@ -68,31 +73,32 @@ public class CachingHttpClientBuilder extends HttpClientBuilder {
         return this;
     }
 
-    public final CachingHttpClientBuilder setHttpCacheStorage(
-            final HttpCacheStorage storage) {
+    public final CachingHttpClientBuilder setHttpCacheStorage(final HttpCacheStorage storage) {
         this.storage = storage;
         return this;
     }
 
-    public final CachingHttpClientBuilder setCacheDir(
-            final File cacheDir) {
+    public final CachingHttpClientBuilder setCacheDir(final File cacheDir) {
         this.cacheDir = cacheDir;
         return this;
     }
 
-    public final CachingHttpClientBuilder setCacheConfig(
-            final CacheConfig cacheConfig) {
+    public final CachingHttpClientBuilder setSchedulingStrategy(final SchedulingStrategy schedulingStrategy) {
+        this.schedulingStrategy = schedulingStrategy;
+        return this;
+    }
+
+    public final CachingHttpClientBuilder setCacheConfig(final CacheConfig cacheConfig) {
         this.cacheConfig = cacheConfig;
         return this;
     }
 
-    public final CachingHttpClientBuilder setHttpCacheInvalidator(
-            final HttpCacheInvalidator cacheInvalidator) {
+    public final CachingHttpClientBuilder setHttpCacheInvalidator(final HttpCacheInvalidator cacheInvalidator) {
         this.httpCacheInvalidator = cacheInvalidator;
         return this;
     }
 
-    public CachingHttpClientBuilder setDeleteCache(final boolean deleteCache) {
+    public final CachingHttpClientBuilder setDeleteCache(final boolean deleteCache) {
         this.deleteCache = deleteCache;
         return this;
     }
@@ -136,7 +142,25 @@ public class CachingHttpClientBuilder extends HttpClientBuilder {
                 CacheKeyGenerator.INSTANCE,
                 this.httpCacheInvalidator != null ? this.httpCacheInvalidator : new DefaultCacheInvalidator());
 
-        final CachingExec cachingExec = new CachingExec(httpCache, config);
+        DefaultCacheRevalidator cacheRevalidator = null;
+        if (config.getAsynchronousWorkers() > 0) {
+            final ScheduledExecutorService executorService = new ScheduledThreadPoolExecutor(config.getAsynchronousWorkers());
+            addCloseable(new Closeable() {
+
+                @Override
+                public void close() throws IOException {
+                    executorService.shutdownNow();
+                }
+
+            });
+            cacheRevalidator = new DefaultCacheRevalidator(
+                    executorService,
+                    this.schedulingStrategy != null ? this.schedulingStrategy : ImmediateSchedulingStrategy.INSTANCE);
+        }
+        final CachingExec cachingExec = new CachingExec(
+                httpCache,
+                cacheRevalidator,
+                config);
         execChainDefinition.addBefore(ChainElements.PROTOCOL.name(), cachingExec, ChainElements.CACHING.name());
     }
 

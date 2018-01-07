@@ -32,6 +32,7 @@ import java.nio.ByteBuffer;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -47,8 +48,10 @@ import org.apache.hc.client5.http.cache.HttpAsyncCacheStorage;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.ResourceFactory;
 import org.apache.hc.client5.http.cache.ResourceIOException;
+import org.apache.hc.client5.http.impl.ExecSupport;
 import org.apache.hc.client5.http.impl.RequestCopier;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.client5.http.schedule.SchedulingStrategy;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
@@ -87,19 +90,14 @@ import org.apache.hc.core5.util.ByteArrayBuffer;
 public class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler {
 
     private final HttpAsyncCache responseCache;
+    private final DefaultAsyncCacheRevalidator cacheRevalidator;
     private final ConditionalRequestBuilder<HttpRequest> conditionalRequestBuilder;
 
-    public AsyncCachingExec(final HttpAsyncCache cache, final CacheConfig config) {
+    AsyncCachingExec(final HttpAsyncCache cache, final DefaultAsyncCacheRevalidator cacheRevalidator, final CacheConfig config) {
         super(config);
         this.responseCache = Args.notNull(cache, "Response cache");
+        this.cacheRevalidator = cacheRevalidator;
         this.conditionalRequestBuilder = new ConditionalRequestBuilder<>(RequestCopier.INSTANCE);
-    }
-
-    public AsyncCachingExec(
-            final ResourceFactory resourceFactory,
-            final HttpAsyncCacheStorage storage,
-            final CacheConfig config) {
-        this(new BasicHttpAsyncCache(resourceFactory, storage), config);
     }
 
     AsyncCachingExec(
@@ -109,14 +107,35 @@ public class AsyncCachingExec extends CachingExecBase implements AsyncExecChainH
             final CachedHttpResponseGenerator responseGenerator,
             final CacheableRequestPolicy cacheableRequestPolicy,
             final CachedResponseSuitabilityChecker suitabilityChecker,
-            final ConditionalRequestBuilder<HttpRequest> conditionalRequestBuilder,
             final ResponseProtocolCompliance responseCompliance,
             final RequestProtocolCompliance requestCompliance,
+            final DefaultAsyncCacheRevalidator cacheRevalidator,
+            final ConditionalRequestBuilder<HttpRequest> conditionalRequestBuilder,
             final CacheConfig config) {
         super(validityPolicy, responseCachingPolicy, responseGenerator, cacheableRequestPolicy,
                 suitabilityChecker, responseCompliance, requestCompliance, config);
         this.responseCache = responseCache;
+        this.cacheRevalidator = cacheRevalidator;
         this.conditionalRequestBuilder = conditionalRequestBuilder;
+    }
+
+    public AsyncCachingExec(
+            final HttpAsyncCache cache,
+            final ScheduledExecutorService executorService,
+            final SchedulingStrategy schedulingStrategy,
+            final CacheConfig config) {
+        this(cache,
+                executorService != null ? new DefaultAsyncCacheRevalidator(executorService, schedulingStrategy) : null,
+                config);
+    }
+
+    public AsyncCachingExec(
+            final ResourceFactory resourceFactory,
+            final HttpAsyncCacheStorage storage,
+            final ScheduledExecutorService executorService,
+            final SchedulingStrategy schedulingStrategy,
+            final CacheConfig config) {
+        this(new BasicHttpAsyncCache(resourceFactory, storage), executorService, schedulingStrategy, config);
     }
 
     private void triggerResponse(
@@ -609,7 +628,38 @@ public class AsyncCachingExec extends CachingExecBase implements AsyncExecChainH
             triggerResponse(cacheResponse, scope, asyncExecCallback);
         } else if (!(entry.getStatus() == HttpStatus.SC_NOT_MODIFIED && !suitabilityChecker.isConditional(request))) {
             log.debug("Revalidating cache entry");
-            revalidateCacheEntry(target, request, entityProducer, scope, chain, asyncExecCallback, entry);
+            if (cacheRevalidator != null
+                    && !staleResponseNotAllowed(request, entry, now)
+                    && validityPolicy.mayReturnStaleWhileRevalidating(entry, now)) {
+                log.debug("Serving stale with asynchronous revalidation");
+                try {
+                    final SimpleHttpResponse cacheResponse = generateCachedResponse(request, context, entry, now);
+                    final String exchangeId = ExecSupport.getNextExchangeId();
+                    final AsyncExecChain.Scope fork = new AsyncExecChain.Scope(
+                            exchangeId,
+                            scope.route,
+                            scope.originalRequest,
+                            new ComplexFuture<>(null),
+                            HttpClientContext.create(),
+                            scope.execRuntime.fork());
+                    cacheRevalidator.revalidateCacheEntry(
+                            responseCache.generateKey(target, request, entry),
+                            asyncExecCallback,
+                            new DefaultAsyncCacheRevalidator.RevalidationCall() {
+
+                                @Override
+                                public void execute(final AsyncExecCallback asyncExecCallback) {
+                                    revalidateCacheEntry(target, request, entityProducer, fork, chain, asyncExecCallback, entry);
+                                }
+
+                            });
+                    triggerResponse(cacheResponse, scope, asyncExecCallback);
+                } catch (final ResourceIOException ex) {
+                    asyncExecCallback.failed(ex);
+                }
+            } else {
+                revalidateCacheEntry(target, request, entityProducer, scope, chain, asyncExecCallback, entry);
+            }
         } else {
             log.debug("Cache entry not usable; calling backend");
             callBackend(target, request, entityProducer, scope, chain, asyncExecCallback);

@@ -158,7 +158,7 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
                         clientContext.setRequestConfig(requestConfig);
                     }
                     final HttpRoute route = determineRoute(request, clientContext);
-                    final String exchangeId = String.format("ex-%08X", ExecSupport.getNextExecNumber());
+                    final String exchangeId = ExecSupport.getNextExchangeId();
                     final AsyncExecRuntime execRuntime = crerateAsyncExecRuntime();
                     if (log.isDebugEnabled()) {
                         log.debug(exchangeId + ": preparing request execution");

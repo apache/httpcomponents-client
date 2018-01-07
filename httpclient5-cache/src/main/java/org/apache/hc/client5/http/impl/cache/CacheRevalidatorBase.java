@@ -33,6 +33,7 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
@@ -62,7 +63,7 @@ class CacheRevalidatorBase implements Closeable {
 
     }
 
-    public static ScheduledExecutor wrap(final ScheduledThreadPoolExecutor threadPoolExecutor) {
+    public static ScheduledExecutor wrap(final ScheduledExecutorService executorService) {
 
         return new ScheduledExecutor() {
 
@@ -70,18 +71,18 @@ class CacheRevalidatorBase implements Closeable {
             public ScheduledFuture<?> schedule(final Runnable command, final TimeValue timeValue) throws RejectedExecutionException {
                 Args.notNull(command, "Runnable");
                 Args.notNull(timeValue, "Time value");
-                return threadPoolExecutor.schedule(command, timeValue.getDuration(), timeValue.getTimeUnit());
+                return executorService.schedule(command, timeValue.getDuration(), timeValue.getTimeUnit());
             }
 
             @Override
             public void shutdown() {
-                threadPoolExecutor.shutdown();
+                executorService.shutdown();
             }
 
             @Override
             public void awaitTermination(final Timeout timeout) throws InterruptedException {
                 Args.notNull(timeout, "Timeout");
-                threadPoolExecutor.awaitTermination(timeout.getDuration(), timeout.getTimeUnit());
+                executorService.awaitTermination(timeout.getDuration(), timeout.getTimeUnit());
             }
 
         };

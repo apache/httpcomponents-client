@@ -29,6 +29,8 @@ package org.apache.hc.client5.http.impl.cache;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import org.apache.hc.client5.http.async.AsyncExecChainHandler;
 import org.apache.hc.client5.http.cache.HttpAsyncCacheInvalidator;
@@ -38,6 +40,8 @@ import org.apache.hc.client5.http.cache.HttpCacheStorage;
 import org.apache.hc.client5.http.cache.ResourceFactory;
 import org.apache.hc.client5.http.impl.ChainElements;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder;
+import org.apache.hc.client5.http.impl.schedule.ImmediateSchedulingStrategy;
+import org.apache.hc.client5.http.schedule.SchedulingStrategy;
 import org.apache.hc.core5.http.config.NamedElementChain;
 
 /**
@@ -51,6 +55,7 @@ public class CachingHttpAsyncClientBuilder extends HttpAsyncClientBuilder {
     private ResourceFactory resourceFactory;
     private HttpAsyncCacheStorage storage;
     private File cacheDir;
+    private SchedulingStrategy schedulingStrategy;
     private CacheConfig cacheConfig;
     private HttpAsyncCacheInvalidator httpCacheInvalidator;
     private boolean deleteCache;
@@ -81,6 +86,11 @@ public class CachingHttpAsyncClientBuilder extends HttpAsyncClientBuilder {
 
     public final CachingHttpAsyncClientBuilder setCacheDir(final File cacheDir) {
         this.cacheDir = cacheDir;
+        return this;
+    }
+
+    public final CachingHttpAsyncClientBuilder setSchedulingStrategy(final SchedulingStrategy schedulingStrategy) {
+        this.schedulingStrategy = schedulingStrategy;
         return this;
     }
 
@@ -138,7 +148,26 @@ public class CachingHttpAsyncClientBuilder extends HttpAsyncClientBuilder {
                 CacheKeyGenerator.INSTANCE,
                 this.httpCacheInvalidator != null ? this.httpCacheInvalidator : new DefaultAsyncCacheInvalidator());
 
-        final AsyncCachingExec cachingExec = new AsyncCachingExec(httpCache, config);
+        DefaultAsyncCacheRevalidator cacheRevalidator = null;
+        if (config.getAsynchronousWorkers() > 0) {
+            final ScheduledExecutorService executorService = new ScheduledThreadPoolExecutor(config.getAsynchronousWorkers());
+            addCloseable(new Closeable() {
+
+                @Override
+                public void close() throws IOException {
+                    executorService.shutdownNow();
+                }
+
+            });
+            cacheRevalidator = new DefaultAsyncCacheRevalidator(
+                    executorService,
+                    this.schedulingStrategy != null ? this.schedulingStrategy : ImmediateSchedulingStrategy.INSTANCE);
+        }
+
+        final AsyncCachingExec cachingExec = new AsyncCachingExec(
+                httpCache,
+                cacheRevalidator,
+                config);
         execChainDefinition.addBefore(ChainElements.PROTOCOL.name(), cachingExec, ChainElements.CACHING.name());
     }
 

@@ -104,10 +104,11 @@ public abstract class TestCachingExecChain {
     protected CachedHttpResponseGenerator mockResponseGenerator;
     private HttpClientResponseHandler<Object> mockHandler;
     private ClassicHttpRequest mockUriRequest;
-    protected ConditionalRequestBuilder<ClassicHttpRequest> mockConditionalRequestBuilder;
     private HttpRequest mockConditionalRequest;
     protected ResponseProtocolCompliance mockResponseProtocolCompliance;
     protected RequestProtocolCompliance mockRequestProtocolCompliance;
+    protected DefaultCacheRevalidator mockCacheRevalidator;
+    protected ConditionalRequestBuilder<ClassicHttpRequest> mockConditionalRequestBuilder;
     protected CacheConfig config;
 
     protected HttpRoute route;
@@ -130,10 +131,11 @@ public abstract class TestCachingExecChain {
         mockUriRequest = createNiceMock(ClassicHttpRequest.class);
         mockCacheEntry = createNiceMock(HttpCacheEntry.class);
         mockResponseGenerator = createNiceMock(CachedHttpResponseGenerator.class);
-        mockConditionalRequestBuilder = createNiceMock(ConditionalRequestBuilder.class);
         mockConditionalRequest = createNiceMock(HttpRequest.class);
         mockResponseProtocolCompliance = createNiceMock(ResponseProtocolCompliance.class);
         mockRequestProtocolCompliance = createNiceMock(RequestProtocolCompliance.class);
+        mockCacheRevalidator = createNiceMock(DefaultCacheRevalidator.class);
+        mockConditionalRequestBuilder = createNiceMock(ConditionalRequestBuilder.class);
         mockStorage = createNiceMock(HttpCacheStorage.class);
         config = CacheConfig.DEFAULT;
 
@@ -143,9 +145,9 @@ public abstract class TestCachingExecChain {
         context = HttpCacheContext.create();
         entry = HttpTestUtils.makeCacheEntry();
         impl = createCachingExecChain(mockCache, mockValidityPolicy,
-            mockResponsePolicy, mockResponseGenerator, mockRequestPolicy, mockSuitabilityChecker,
-            mockConditionalRequestBuilder, mockResponseProtocolCompliance,
-            mockRequestProtocolCompliance, config);
+                mockResponsePolicy, mockResponseGenerator, mockRequestPolicy, mockSuitabilityChecker,
+                mockResponseProtocolCompliance,mockRequestProtocolCompliance,
+                mockCacheRevalidator, mockConditionalRequestBuilder, config);
     }
 
     public abstract CachingExec createCachingExecChain(
@@ -153,8 +155,9 @@ public abstract class TestCachingExecChain {
             ResponseCachingPolicy responseCachingPolicy, CachedHttpResponseGenerator responseGenerator,
             CacheableRequestPolicy cacheableRequestPolicy,
             CachedResponseSuitabilityChecker suitabilityChecker,
-            ConditionalRequestBuilder<ClassicHttpRequest> conditionalRequestBuilder,
             ResponseProtocolCompliance responseCompliance, RequestProtocolCompliance requestCompliance,
+            DefaultCacheRevalidator cacheRevalidator,
+            ConditionalRequestBuilder<ClassicHttpRequest> conditionalRequestBuilder,
             CacheConfig config);
 
     public abstract CachingExec createCachingExecChain(HttpCache cache, CacheConfig config);
@@ -1242,11 +1245,11 @@ public abstract class TestCachingExecChain {
         mockCache = EasyMock.createStrictMock(HttpCache.class);
         impl = createCachingExecChain(mockCache, mockValidityPolicy,
                 mockResponsePolicy, mockResponseGenerator, mockRequestPolicy, mockSuitabilityChecker,
-                mockConditionalRequestBuilder, mockResponseProtocolCompliance,
-                mockRequestProtocolCompliance, config);
+                mockResponseProtocolCompliance, mockRequestProtocolCompliance,
+                mockCacheRevalidator, mockConditionalRequestBuilder, config);
 
         final HttpHost host = new HttpHost("foo.example.com");
-        final HttpRequest request = new HttpGet("http://foo.example.com/bar");
+        final ClassicHttpRequest request = new HttpGet("http://foo.example.com/bar");
 
         final Date now = new Date();
         final Date requestSent = new Date(now.getTime() - 3 * 1000L);
@@ -1260,8 +1263,8 @@ public abstract class TestCachingExecChain {
         originResponse.setHeader("ETag", "\"etag\"");
 
         replayMocks();
-
-        impl.cacheAndReturnResponse(host, request, originResponse, requestSent, responseReceived);
+        final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, mockEndpoint, context);
+        impl.cacheAndReturnResponse(host, request, originResponse, scope, requestSent, responseReceived);
 
         verifyMocks();
     }
@@ -1269,7 +1272,7 @@ public abstract class TestCachingExecChain {
     @Test
     public void testSmallEnoughResponsesAreCached() throws Exception {
         final HttpHost host = new HttpHost("foo.example.com");
-        final HttpRequest request = new HttpGet("http://foo.example.com/bar");
+        final ClassicHttpRequest request = new HttpGet("http://foo.example.com/bar");
 
         final Date now = new Date();
         final Date requestSent = new Date(now.getTime() - 3 * 1000L);
@@ -1297,7 +1300,8 @@ public abstract class TestCachingExecChain {
                 same(httpCacheEntry))).andReturn(response).once();
         replayMocks();
 
-        impl.cacheAndReturnResponse(host, request, originResponse, requestSent, responseReceived);
+        final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, mockEndpoint, context);
+        impl.cacheAndReturnResponse(host, request, originResponse, scope, requestSent, responseReceived);
 
         verifyMocks();
     }

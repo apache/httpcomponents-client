@@ -210,7 +210,7 @@ public final class MinimalHttp2AsyncClient extends AbstractMinimalHttpAsyncClien
 
                             };
                             if (log.isDebugEnabled()) {
-                                final String exchangeId = String.format("ex-%08X", ExecSupport.getNextExecNumber());
+                                final String exchangeId = ExecSupport.getNextExchangeId();
                                 log.debug(ConnPoolSupport.getId(session) + ": executing message exchange " + exchangeId);
                                 session.addLast(new ExecutionCommand(
                                         new LoggingAsyncClientExchangeHandler(log, exchangeId, internalExchangeHandler),

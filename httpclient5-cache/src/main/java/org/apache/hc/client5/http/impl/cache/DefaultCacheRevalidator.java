@@ -27,15 +27,11 @@
 package org.apache.hc.client5.http.impl.cache;
 
 import java.io.IOException;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ScheduledExecutorService;
 
-import org.apache.hc.client5.http.cache.HttpCacheEntry;
-import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.schedule.SchedulingStrategy;
-import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpException;
-import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpStatus;
 
 /**
@@ -44,8 +40,10 @@ import org.apache.hc.core5.http.HttpStatus;
  */
 class DefaultCacheRevalidator extends CacheRevalidatorBase {
 
-    private final CachingExec cachingExec;
-    private final CacheKeyGenerator cacheKeyGenerator;
+    interface RevalidationCall {
+
+        ClassicHttpResponse execute() throws IOException, HttpException;
+    }
 
     /**
      * Create DefaultCacheRevalidator which will make ache revalidation requests
@@ -53,56 +51,45 @@ class DefaultCacheRevalidator extends CacheRevalidatorBase {
      */
     public DefaultCacheRevalidator(
             final CacheRevalidatorBase.ScheduledExecutor scheduledExecutor,
-            final SchedulingStrategy schedulingStrategy,
-            final CachingExec cachingExec) {
+            final SchedulingStrategy schedulingStrategy) {
         super(scheduledExecutor, schedulingStrategy);
-        this.cachingExec = cachingExec;
-        this.cacheKeyGenerator = CacheKeyGenerator.INSTANCE;
-
     }
 
     /**
      * Create CacheValidator which will make ache revalidation requests
-     * using the supplied {@link SchedulingStrategy} and {@link ScheduledThreadPoolExecutor}.
+     * using the supplied {@link SchedulingStrategy} and {@link ScheduledExecutorService}.
      */
     public DefaultCacheRevalidator(
-            final ScheduledThreadPoolExecutor scheduledThreadPoolExecutor,
-            final SchedulingStrategy schedulingStrategy,
-            final CachingExec cachingExec) {
-        this(wrap(scheduledThreadPoolExecutor), schedulingStrategy, cachingExec);
+            final ScheduledExecutorService scheduledThreadPoolExecutor,
+            final SchedulingStrategy schedulingStrategy) {
+        this(wrap(scheduledThreadPoolExecutor), schedulingStrategy);
     }
 
     /**
      * Schedules an asynchronous re-validation
      */
     public void revalidateCacheEntry(
-            final HttpHost target,
-            final ClassicHttpRequest request,
-            final ExecChain.Scope scope,
-            final ExecChain chain,
-            final HttpCacheEntry entry) {
-        final String cacheKey = cacheKeyGenerator.generateKey(target, request, entry);
+            final String cacheKey,
+            final RevalidationCall call) {
         scheduleRevalidation(cacheKey, new Runnable() {
 
                         @Override
                         public void run() {
-                            try {
-                                try (ClassicHttpResponse httpResponse = cachingExec.revalidateCacheEntry(target, request, scope, chain, entry)) {
-                                    if (httpResponse.getCode() < HttpStatus.SC_SERVER_ERROR && !isStale(httpResponse)) {
-                                        jobSuccessful(cacheKey);
-                                    } else {
-                                        jobFailed(cacheKey);
-                                    }
+                            try (ClassicHttpResponse httpResponse = call.execute()) {
+                                if (httpResponse.getCode() < HttpStatus.SC_SERVER_ERROR && !isStale(httpResponse)) {
+                                    jobSuccessful(cacheKey);
+                                } else {
+                                    jobFailed(cacheKey);
                                 }
-                            } catch (final IOException ioe) {
+                            } catch (final IOException ex) {
                                 jobFailed(cacheKey);
-                                log.debug("Asynchronous revalidation failed due to I/O error", ioe);
-                            } catch (final HttpException pe) {
+                                log.debug("Asynchronous revalidation failed due to I/O error", ex);
+                            } catch (final HttpException ex) {
                                 jobFailed(cacheKey);
-                                log.error("HTTP protocol exception during asynchronous revalidation", pe);
-                            } catch (final RuntimeException re) {
+                                log.error("HTTP protocol exception during asynchronous revalidation", ex);
+                            } catch (final RuntimeException ex) {
                                 jobFailed(cacheKey);
-                                log.error("Unexpected runtime exception thrown during asynchronous revalidation" + re);
+                                log.error("Unexpected runtime exception thrown during asynchronous revalidation", ex);
                             }
 
                         }

@@ -44,6 +44,8 @@ import org.apache.hc.core5.util.ByteArrayBuffer;
 @Internal
 interface HttpAsyncCache {
 
+    String generateKey (HttpHost host, HttpRequest request, HttpCacheEntry cacheEntry);
+
     /**
      * Clear all matching {@link HttpCacheEntry}s.
      */

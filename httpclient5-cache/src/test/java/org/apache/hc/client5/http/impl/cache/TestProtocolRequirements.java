@@ -2166,7 +2166,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(tenSecondsAgo, eightSecondsAgo, hdrs, bytes);
 
-        impl = new CachingExec(mockCache, config);
+        impl = new CachingExec(mockCache, null, config);
 
         request = new BasicClassicHttpRequest("GET", "/thing");
 
@@ -2217,7 +2217,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(tenSecondsAgo, eightSecondsAgo, hdrs, bytes);
 
-        impl = new CachingExec(mockCache, config);
+        impl = new CachingExec(mockCache, null, config);
         request = new BasicClassicHttpRequest("GET", "/thing");
 
         EasyMock.expect(mockCache.getCacheEntry(EasyMock.eq(host), eqRequest(request))).andReturn(entry);
@@ -2263,7 +2263,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(tenSecondsAgo, eightSecondsAgo, hdrs, bytes);
 
-        impl = new CachingExec(mockCache, config);
+        impl = new CachingExec(mockCache, null, config);
         request = new BasicClassicHttpRequest("GET", "/thing");
 
         EasyMock.expect(mockCache.getCacheEntry(EasyMock.eq(host), eqRequest(request))).andReturn(entry);
@@ -2471,7 +2471,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(tenSecondsAgo, eightSecondsAgo, hdrs, bytes);
 
-        impl = new CachingExec(mockCache, config);
+        impl = new CachingExec(mockCache, null, config);
         request = new BasicClassicHttpRequest("GET", "/thing");
 
         EasyMock.expect(mockCache.getCacheEntry(EasyMock.eq(host), eqRequest(request))).andReturn(entry);
@@ -2521,7 +2521,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(requestTime, responseTime, hdrs, bytes);
 
-        impl = new CachingExec(mockCache, config);
+        impl = new CachingExec(mockCache, null, config);
 
         request = new BasicClassicHttpRequest("GET", "/thing");
 

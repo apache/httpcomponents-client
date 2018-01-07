@@ -36,4 +36,8 @@ public final class ExecSupport {
         return COUNT.incrementAndGet();
     }
 
+    public static String getNextExchangeId() {
+        return String.format("ex-%08X", COUNT.incrementAndGet());
+    }
+
 }

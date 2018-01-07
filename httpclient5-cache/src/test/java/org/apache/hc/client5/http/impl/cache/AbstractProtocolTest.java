@@ -57,7 +57,7 @@ public abstract class AbstractProtocolTest {
     protected HttpEntity body;
     protected HttpClientContext context;
     protected ExecChain mockExecChain;
-    protected ExecRuntime mockEndpoint;
+    protected ExecRuntime mockExecRuntime;
     protected HttpCache mockCache;
     protected ClassicHttpRequest request;
     protected ClassicHttpResponse originResponse;
@@ -101,18 +101,18 @@ public abstract class AbstractProtocolTest {
 
         cache = new BasicHttpCache(config);
         mockExecChain = EasyMock.createNiceMock(ExecChain.class);
-        mockEndpoint = EasyMock.createNiceMock(ExecRuntime.class);
+        mockExecRuntime = EasyMock.createNiceMock(ExecRuntime.class);
         mockCache = EasyMock.createNiceMock(HttpCache.class);
         impl = createCachingExecChain(cache, config);
     }
 
     public ClassicHttpResponse execute(final ClassicHttpRequest request) throws IOException, HttpException {
         return impl.execute(ClassicRequestCopier.INSTANCE.copy(request), new ExecChain.Scope(
-                "test", route, request, mockEndpoint, context), mockExecChain);
+                "test", route, request, mockExecRuntime, context), mockExecChain);
     }
 
     protected ExecChainHandler createCachingExecChain(final HttpCache cache, final CacheConfig config) {
-        return new CachingExec(cache, config);
+        return new CachingExec(cache, null, config);
     }
 
     protected boolean supportsRangeAndContentRangeHeaders(final ExecChainHandler impl) {
@@ -148,7 +148,7 @@ public abstract class AbstractProtocolTest {
         mockExecChain = EasyMock.createNiceMock(ExecChain.class);
         mockCache = EasyMock.createNiceMock(HttpCache.class);
 
-        impl = new CachingExec(mockCache, config);
+        impl = new CachingExec(mockCache, null, config);
 
         EasyMock.expect(mockCache.getCacheEntry(EasyMock.isA(HttpHost.class), EasyMock.isA(HttpRequest.class)))
             .andReturn(null).anyTimes();
@@ -174,7 +174,7 @@ public abstract class AbstractProtocolTest {
                 .setMaxObjectSize(MAX_BYTES)
                 .setSharedCache(false)
                 .build();
-        impl = new CachingExec(cache, config);
+        impl = new CachingExec(cache, null, config);
     }
 
     public AbstractProtocolTest() {
