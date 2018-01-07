@@ -40,7 +40,7 @@ import java.net.InetAddress;
  */
 public class TestExceptions {
 
-    @Test
+    @Test  
     public void testConnectTimeoutExceptionNullMessage() {
         final ConnectTimeoutException ctx = new ConnectTimeoutException();
         Assert.assertNull(ctx.getMessage());
