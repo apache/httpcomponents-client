@@ -46,8 +46,8 @@ import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.ProtocolVersion;
 import org.apache.hc.core5.http.message.MessageSupport;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Determines if an HttpResponse can be cached.
@@ -68,7 +68,7 @@ class ResponseCachingPolicy {
                     HttpStatus.SC_MOVED_PERMANENTLY,
                     HttpStatus.SC_GONE));
 
-    private final Logger log = LogManager.getLogger(getClass());
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final long maxObjectSizeBytes;
     private final boolean sharedCache;

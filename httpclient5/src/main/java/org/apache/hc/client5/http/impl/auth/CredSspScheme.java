@@ -60,8 +60,8 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.Args;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * <p>
@@ -83,7 +83,7 @@ public class CredSspScheme implements AuthScheme
     private static final Charset UNICODE_LITTLE_UNMARKED = Charset.forName( "UnicodeLittleUnmarked" );
     public static final String SCHEME_NAME = "CredSSP";
 
-    private final Logger log = LogManager.getLogger( CredSspScheme.class );
+    private final Logger log = LoggerFactory.getLogger( CredSspScheme.class );
 
     enum State
     {

@@ -52,8 +52,8 @@ import org.apache.hc.core5.reactor.ssl.SSLSessionVerifier;
 import org.apache.hc.core5.reactor.ssl.TlsDetails;
 import org.apache.hc.core5.reactor.ssl.TransportSecurityLayer;
 import org.apache.hc.core5.util.Identifiable;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Default {@link ManagedAsyncClientConnection} implementation.
@@ -63,7 +63,7 @@ import org.apache.logging.log4j.Logger;
 @Internal
 final class DefaultManagedAsyncClientConnection implements ManagedAsyncClientConnection, Identifiable {
 
-    private final Logger log = LogManager.getLogger(getClass());
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final IOSession ioSession;
     private final int socketTimeout;

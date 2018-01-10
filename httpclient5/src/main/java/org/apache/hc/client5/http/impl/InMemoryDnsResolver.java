@@ -34,8 +34,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.core5.util.Args;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * In-memory {@link DnsResolver} implementation.
@@ -45,7 +45,7 @@ import org.apache.logging.log4j.Logger;
 public class InMemoryDnsResolver implements DnsResolver {
 
     /** Logger associated to this class. */
-    private final Logger log = LogManager.getLogger(InMemoryDnsResolver.class);
+    private final Logger log = LoggerFactory.getLogger(InMemoryDnsResolver.class);
 
     /**
      * In-memory collection that will hold the associations between a host name

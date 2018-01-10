@@ -45,7 +45,7 @@ import org.apache.hc.core5.http2.nio.pool.H2ConnPool;
 import org.apache.hc.core5.io.ShutdownType;
 import org.apache.hc.core5.reactor.IOSession;
 import org.apache.hc.core5.util.TimeValue;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
 
 class InternalHttp2AsyncExecRuntime implements AsyncExecRuntime {
 

@@ -54,8 +54,8 @@ import org.apache.hc.core5.http.ProtocolVersion;
 import org.apache.hc.core5.http.message.MessageSupport;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.VersionInfo;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CachingExecBase {
 
@@ -76,7 +76,7 @@ public class CachingExecBase {
     final RequestProtocolCompliance requestCompliance;
     final CacheConfig cacheConfig;
 
-    final Logger log = LogManager.getLogger(getClass());
+    final Logger log = LoggerFactory.getLogger(getClass());
 
     CachingExecBase(
             final CacheValidityPolicy validityPolicy,

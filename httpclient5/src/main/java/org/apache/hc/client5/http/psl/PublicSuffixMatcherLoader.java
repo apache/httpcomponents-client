@@ -39,8 +39,8 @@ import java.util.List;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.util.Args;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * {@link PublicSuffixMatcher} loader.
@@ -83,7 +83,7 @@ public final class PublicSuffixMatcherLoader {
                             DEFAULT_INSTANCE = load(url);
                         } catch (final IOException ex) {
                             // Should never happen
-                            final Logger log = LogManager.getLogger(PublicSuffixMatcherLoader.class);
+                            final Logger log = LoggerFactory.getLogger(PublicSuffixMatcherLoader.class);
                             if (log.isWarnEnabled()) {
                                 log.warn("Failure loading public suffix list from default resource", ex);
                             }

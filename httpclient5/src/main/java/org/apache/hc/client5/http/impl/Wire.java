@@ -31,7 +31,7 @@ import java.nio.ByteBuffer;
 
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.util.Args;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
 
 @Internal
 public class Wire {

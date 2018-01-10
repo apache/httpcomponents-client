@@ -55,8 +55,8 @@ import org.apache.hc.client5.http.psl.PublicSuffixMatcher;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.net.InetAddressUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Default {@link javax.net.ssl.HostnameVerifier} implementation.
@@ -78,7 +78,7 @@ public final class DefaultHostnameVerifier implements HttpClientHostnameVerifier
 
     }
 
-    private final Logger log = LogManager.getLogger(getClass());
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final PublicSuffixMatcher publicSuffixMatcher;
 

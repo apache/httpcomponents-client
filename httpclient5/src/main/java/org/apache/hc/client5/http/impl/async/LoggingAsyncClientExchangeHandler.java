@@ -42,7 +42,7 @@ import org.apache.hc.core5.http.nio.CapacityChannel;
 import org.apache.hc.core5.http.nio.DataStreamChannel;
 import org.apache.hc.core5.http.nio.RequestChannel;
 import org.apache.hc.core5.util.Identifiable;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
 
 final class LoggingAsyncClientExchangeHandler implements AsyncClientExchangeHandler, Identifiable {
 

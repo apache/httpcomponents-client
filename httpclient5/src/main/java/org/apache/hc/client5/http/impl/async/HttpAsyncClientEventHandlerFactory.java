@@ -64,8 +64,8 @@ import org.apache.hc.core5.reactor.IOEventHandler;
 import org.apache.hc.core5.reactor.IOEventHandlerFactory;
 import org.apache.hc.core5.reactor.TlsCapableIOSession;
 import org.apache.hc.core5.util.Args;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @since 5.0
@@ -73,12 +73,12 @@ import org.apache.logging.log4j.Logger;
 @Contract(threading = ThreadingBehavior.IMMUTABLE)
 class HttpAsyncClientEventHandlerFactory implements IOEventHandlerFactory {
 
-    private final Logger streamLog = LogManager.getLogger(InternalHttpAsyncClient.class);
-    private final Logger wireLog = LogManager.getLogger("org.apache.hc.client5.http.wire");
-    private final Logger headerLog = LogManager.getLogger("org.apache.hc.client5.http.headers");
-    private final Logger frameLog = LogManager.getLogger("org.apache.hc.client5.http2.frame");
-    private final Logger framePayloadLog = LogManager.getLogger("org.apache.hc.client5.http2.frame.payload");
-    private final Logger flowCtrlLog = LogManager.getLogger("org.apache.hc.client5.http2.flow");
+    private final Logger streamLog = LoggerFactory.getLogger(InternalHttpAsyncClient.class);
+    private final Logger wireLog = LoggerFactory.getLogger("org.apache.hc.client5.http.wire");
+    private final Logger headerLog = LoggerFactory.getLogger("org.apache.hc.client5.http.headers");
+    private final Logger frameLog = LoggerFactory.getLogger("org.apache.hc.client5.http2.frame");
+    private final Logger framePayloadLog = LoggerFactory.getLogger("org.apache.hc.client5.http2.frame.payload");
+    private final Logger flowCtrlLog = LoggerFactory.getLogger("org.apache.hc.client5.http2.flow");
 
     private final HttpProcessor httpProcessor;
     private final HandlerFactory<AsyncPushConsumer> exchangeHandlerFactory;
@@ -111,7 +111,7 @@ class HttpAsyncClientEventHandlerFactory implements IOEventHandlerFactory {
 
     @Override
     public IOEventHandler createHandler(final TlsCapableIOSession ioSession, final Object attachment) {
-        final Logger sessionLog = LogManager.getLogger(ioSession.getClass());
+        final Logger sessionLog = LoggerFactory.getLogger(ioSession.getClass());
         if (sessionLog.isDebugEnabled()
                 || streamLog.isDebugEnabled()
                 || wireLog.isDebugEnabled()

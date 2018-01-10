@@ -51,8 +51,8 @@ import org.apache.hc.core5.http.message.RequestLine;
 import org.apache.hc.core5.http.message.StatusLine;
 import org.apache.hc.core5.io.ShutdownType;
 import org.apache.hc.core5.util.Identifiable;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Default {@link ManagedHttpClientConnection} implementation.
@@ -62,9 +62,9 @@ import org.apache.logging.log4j.Logger;
 final class DefaultManagedHttpClientConnection
         extends DefaultBHttpClientConnection implements ManagedHttpClientConnection, Identifiable {
 
-    private final Logger log = LogManager.getLogger(DefaultManagedHttpClientConnection.class);
-    private final Logger headerlog = LogManager.getLogger("org.apache.hc.client5.http.headers");
-    private final Logger wirelog = LogManager.getLogger("org.apache.hc.client5.http.wire");
+    private final Logger log = LoggerFactory.getLogger(DefaultManagedHttpClientConnection.class);
+    private final Logger headerlog = LoggerFactory.getLogger("org.apache.hc.client5.http.headers");
+    private final Logger wirelog = LoggerFactory.getLogger("org.apache.hc.client5.http.wire");
 
     private final String id;
     private final AtomicBoolean closed;

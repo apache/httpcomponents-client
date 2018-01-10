@@ -60,8 +60,8 @@ import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 import org.apache.hc.core5.http.message.StatusLine;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
 import org.apache.hc.core5.util.Args;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Request executor in the HTTP request execution chain
@@ -73,7 +73,7 @@ import org.apache.logging.log4j.Logger;
 @Contract(threading = ThreadingBehavior.IMMUTABLE_CONDITIONAL)
 public final class ConnectExec implements ExecChainHandler {
 
-    private final Logger log = LogManager.getLogger(getClass());
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final ConnectionReuseStrategy reuseStrategy;
     private final HttpProcessor proxyHttpProcessor;

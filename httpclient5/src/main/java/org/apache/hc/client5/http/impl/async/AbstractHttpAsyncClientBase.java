@@ -40,14 +40,14 @@ import org.apache.hc.core5.reactor.DefaultConnectingIOReactor;
 import org.apache.hc.core5.reactor.ExceptionEvent;
 import org.apache.hc.core5.reactor.IOReactorStatus;
 import org.apache.hc.core5.util.TimeValue;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 abstract class AbstractHttpAsyncClientBase extends CloseableHttpAsyncClient {
 
     enum Status { READY, RUNNING, TERMINATED }
 
-    final Logger log = LogManager.getLogger(getClass());
+    final Logger log = LoggerFactory.getLogger(getClass());
 
     private final AsyncPushConsumerRegistry pushConsumerRegistry;
     private final DefaultConnectingIOReactor ioReactor;

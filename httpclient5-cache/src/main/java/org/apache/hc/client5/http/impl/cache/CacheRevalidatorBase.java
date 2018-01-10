@@ -45,8 +45,8 @@ import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Abstract cache re-validation class.
@@ -94,7 +94,7 @@ class CacheRevalidatorBase implements Closeable {
     private final Set<String> pendingRequest;
     private final ConcurrentCountMap<String> failureCache;
 
-    final Logger log = LogManager.getLogger(getClass());
+    final Logger log = LoggerFactory.getLogger(getClass());
 
     /**
      * Create CacheValidator which will make ache revalidation requests

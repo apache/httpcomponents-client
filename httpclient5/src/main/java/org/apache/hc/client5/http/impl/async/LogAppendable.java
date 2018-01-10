@@ -29,7 +29,7 @@ package org.apache.hc.client5.http.impl.async;
 
 import java.io.IOException;
 
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
 
 public final class LogAppendable implements Appendable {
 

@@ -48,8 +48,8 @@ import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.message.RequestLine;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TimeValue;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The last request executor in the HTTP request execution chain
@@ -61,7 +61,7 @@ import org.apache.logging.log4j.Logger;
 @Contract(threading = ThreadingBehavior.IMMUTABLE_CONDITIONAL)
 final class MainClientExec implements ExecChainHandler {
 
-    private final Logger log = LogManager.getLogger(getClass());
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final ConnectionReuseStrategy reuseStrategy;
     private final ConnectionKeepAliveStrategy keepAliveStrategy;

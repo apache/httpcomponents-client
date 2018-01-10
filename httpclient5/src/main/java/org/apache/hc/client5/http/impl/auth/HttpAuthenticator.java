@@ -58,8 +58,8 @@ import org.apache.hc.core5.http.message.ParserCursor;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.Asserts;
 import org.apache.hc.core5.util.CharArrayBuffer;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @since 4.3
@@ -71,7 +71,7 @@ public class HttpAuthenticator {
 
     public HttpAuthenticator(final Logger log) {
         super();
-        this.log = log != null ? log : LogManager.getLogger(getClass());
+        this.log = log != null ? log : LoggerFactory.getLogger(getClass());
         this.parser = new AuthChallengeParser();
     }
 

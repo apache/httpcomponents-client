@@ -34,7 +34,7 @@ import java.net.Socket;
 
 import org.apache.hc.client5.http.impl.Wire;
 import org.apache.hc.core5.http.impl.io.SocketHolder;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
 
 class LoggingSocketHolder extends SocketHolder {
 

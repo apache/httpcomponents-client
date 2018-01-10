@@ -58,8 +58,8 @@ import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.LangUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Request executor in the request execution chain that is responsible
@@ -75,7 +75,7 @@ import org.apache.logging.log4j.Logger;
 @Contract(threading = ThreadingBehavior.SAFE_CONDITIONAL)
 final class RedirectExec implements ExecChainHandler {
 
-    private final Logger log = LogManager.getLogger(getClass());
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final RedirectStrategy redirectStrategy;
     private final HttpRoutePlanner routePlanner;

@@ -44,7 +44,7 @@ import org.apache.hc.core5.reactor.ssl.SSLBufferManagement;
 import org.apache.hc.core5.reactor.ssl.SSLSessionInitializer;
 import org.apache.hc.core5.reactor.ssl.SSLSessionVerifier;
 import org.apache.hc.core5.reactor.ssl.TlsDetails;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
 
 class LoggingIOSession implements TlsCapableIOSession {
 

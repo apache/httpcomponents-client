@@ -41,8 +41,8 @@ import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Given a particular HTTP request / response pair, flush any cache entries
@@ -56,7 +56,7 @@ public class DefaultCacheInvalidator extends CacheInvalidatorBase implements Htt
 
     public static final DefaultCacheInvalidator INSTANCE = new DefaultCacheInvalidator();
 
-    private final Logger log = LogManager.getLogger(getClass());
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     private HttpCacheEntry getEntry(final HttpCacheStorage storage, final String cacheKey) {
         try {

@@ -45,7 +45,7 @@ import org.apache.hc.core5.http.nio.AsyncClientExchangeHandler;
 import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.apache.hc.core5.reactor.ConnectionInitiator;
 import org.apache.hc.core5.util.TimeValue;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
 
 class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
 

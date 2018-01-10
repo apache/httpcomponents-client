@@ -35,15 +35,15 @@ import org.apache.hc.client5.http.auth.NTCredentials;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.osgi.services.ProxyConfiguration;
 import org.apache.hc.core5.http.protocol.HttpContext;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @since 4.3
  */
 final class OSGiCredentialsProvider implements CredentialsStore {
 
-    private static final Logger log = LogManager.getLogger(OSGiCredentialsProvider.class);
+    private static final Logger log = LoggerFactory.getLogger(OSGiCredentialsProvider.class);
 
     private static final int HOST_AND_PORT_MATCH = 12;
 

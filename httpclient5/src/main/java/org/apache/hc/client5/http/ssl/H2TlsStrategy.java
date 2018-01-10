@@ -58,8 +58,8 @@ import org.apache.hc.core5.reactor.ssl.TransportSecurityLayer;
 import org.apache.hc.core5.ssl.SSLContexts;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TextUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Default SSL upgrade strategy for non-blocking connections.
@@ -102,7 +102,7 @@ public class H2TlsStrategy implements TlsStrategy {
                 getDefaultHostnameVerifier());
     }
 
-    private final Logger log = LogManager.getLogger(getClass());
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final SSLContext sslContext;
     private final String[] supportedProtocols;
