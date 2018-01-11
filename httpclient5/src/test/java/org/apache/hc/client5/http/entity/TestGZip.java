@@ -27,6 +27,7 @@
 
 package org.apache.hc.client5.http.entity;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -36,6 +37,7 @@ import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.InputStreamEntity;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.junit.Assert;
 import org.junit.Test;
@@ -76,6 +78,25 @@ public class TestGZip {
             gzipe.writeTo(out);
         } catch (final IOException ex) {
             Mockito.verify(out, Mockito.never()).close();
+        }
+    }
+
+    @Test
+    public void testDecompressionWithMultipleGZipStream() throws Exception {
+        final int[] data = new int[] {
+                0x1f, 0x8b, 0x08, 0x08, 0x03, 0xf1, 0x55, 0x5a, 0x00, 0x03, 0x74, 0x65, 0x73, 0x74, 0x31, 0x00,
+                0x2b, 0x2e, 0x29, 0x4a, 0x4d, 0xcc, 0xd5, 0x35, 0xe4, 0x02, 0x00, 0x03, 0x61, 0xf0, 0x5f, 0x09,
+                0x00, 0x00, 0x00, 0x1f, 0x8b, 0x08, 0x08, 0x08, 0xf1, 0x55, 0x5a, 0x00, 0x03, 0x74, 0x65, 0x73,
+                0x74, 0x32, 0x00, 0x2b, 0x2e, 0x29, 0x4a, 0x4d, 0xcc, 0xd5, 0x35, 0xe2, 0x02, 0x00, 0xc0, 0x32,
+                0xdd, 0x74, 0x09, 0x00, 0x00, 0x00
+        };
+        final byte[] bytes = new byte[data.length];
+        for (int i = 0; i < data.length; i++) {
+            bytes[i] = (byte) (data[i] & 0xff);
+        }
+
+        try (final GzipDecompressingEntity entity = new GzipDecompressingEntity(new InputStreamEntity(new ByteArrayInputStream(bytes)))) {
+            Assert.assertEquals("stream-1\nstream-2\n", EntityUtils.toString(entity, StandardCharsets.US_ASCII));
         }
     }
 
