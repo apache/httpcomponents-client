@@ -47,7 +47,7 @@ import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.routing.HttpRouteDirector;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
-import org.apache.hc.core5.concurrent.ComplexFuture;
+import org.apache.hc.core5.concurrent.CancellableDependency;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.HttpException;
@@ -119,7 +119,7 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
 
         final String exchangeId = scope.exchangeId;
         final HttpRoute route = scope.route;
-        final ComplexFuture<?> future = scope.future;
+        final CancellableDependency cancellableDependency = scope.cancellableDependency;
         final HttpClientContext clientContext = scope.clientContext;
         final AsyncExecRuntime execRuntime = scope.execRuntime;
         final State state = new State(route);
@@ -149,7 +149,7 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
             if (log.isDebugEnabled()) {
                 log.debug(exchangeId + ": acquiring connection with route " + route);
             }
-            future.setDependency(execRuntime.acquireConnection(
+            cancellableDependency.setDependency(execRuntime.acquireConnection(
                     route, userToken, clientContext, new FutureCallback<AsyncExecRuntime>() {
 
                         @Override
@@ -184,7 +184,7 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
         final RouteTracker tracker = state.tracker;
         final AsyncExecRuntime execRuntime = scope.execRuntime;
         final HttpRoute route = scope.route;
-        final ComplexFuture<?> future = scope.future;
+        final CancellableDependency operation = scope.cancellableDependency;
         final HttpClientContext clientContext = scope.clientContext;
 
         int step;
@@ -193,7 +193,7 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
             step = routeDirector.nextStep(route, fact);
             switch (step) {
                 case HttpRouteDirector.CONNECT_TARGET:
-                    future.setDependency(execRuntime.connect(clientContext, new FutureCallback<AsyncExecRuntime>() {
+                    operation.setDependency(execRuntime.connect(clientContext, new FutureCallback<AsyncExecRuntime>() {
 
                         @Override
                         public void completed(final AsyncExecRuntime execRuntime) {
@@ -216,7 +216,7 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
                     return;
 
                 case HttpRouteDirector.CONNECT_PROXY:
-                    future.setDependency(execRuntime.connect(clientContext, new FutureCallback<AsyncExecRuntime>() {
+                    operation.setDependency(execRuntime.connect(clientContext, new FutureCallback<AsyncExecRuntime>() {
 
                         @Override
                         public void completed(final AsyncExecRuntime execRuntime) {

@@ -153,7 +153,7 @@ public class DefaultHttpRequestRetryHandler implements HttpRequestRetryHandler {
                 }
             }
         }
-        if (request instanceof HttpUriRequestBase && ((HttpUriRequestBase)request).isAborted()) {
+        if (request instanceof HttpUriRequestBase && ((HttpUriRequestBase)request).isCancelled()) {
             return false;
         }
         if (handleAsIdempotent(request)) {

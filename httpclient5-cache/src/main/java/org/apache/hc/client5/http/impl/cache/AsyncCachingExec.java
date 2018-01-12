@@ -55,6 +55,7 @@ import org.apache.hc.client5.http.schedule.SchedulingStrategy;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.concurrent.CancellableDependency;
 import org.apache.hc.core5.concurrent.ComplexFuture;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.ContentType;
@@ -201,7 +202,7 @@ public class AsyncCachingExec extends CachingExecBase implements AsyncExecChainH
         Args.notNull(scope, "Scope");
 
         final HttpRoute route = scope.route;
-        final ComplexFuture<?> future = scope.future;
+        final CancellableDependency operation = scope.cancellableDependency;
         final HttpClientContext context = scope.clientContext;
         context.setAttribute(HttpClientContext.HTTP_ROUTE, route);
         context.setAttribute(HttpClientContext.HTTP_REQUEST, request);
@@ -231,7 +232,7 @@ public class AsyncCachingExec extends CachingExecBase implements AsyncExecChainH
 
         if (!cacheableRequestPolicy.isServableFromCache(request)) {
             log.debug("Request is not servable from cache");
-            future.setDependency(responseCache.flushCacheEntriesInvalidatedByRequest(target, request, new FutureCallback<Boolean>() {
+            operation.setDependency(responseCache.flushCacheEntriesInvalidatedByRequest(target, request, new FutureCallback<Boolean>() {
 
                 @Override
                 public void completed(final Boolean result) {
@@ -250,7 +251,7 @@ public class AsyncCachingExec extends CachingExecBase implements AsyncExecChainH
 
             }));
         } else {
-            future.setDependency(responseCache.getCacheEntry(target, request, new FutureCallback<HttpCacheEntry>() {
+            operation.setDependency(responseCache.getCacheEntry(target, request, new FutureCallback<HttpCacheEntry>() {
 
                 @Override
                 public void completed(final HttpCacheEntry entry) {
@@ -506,8 +507,8 @@ public class AsyncCachingExec extends CachingExecBase implements AsyncExecChainH
         }
 
         void triggerNewCacheEntryResponse(final HttpResponse backendResponse, final Date responseDate, final ByteArrayBuffer buffer) {
-            final ComplexFuture<?> future = scope.future;
-            future.setDependency(responseCache.createCacheEntry(
+            final CancellableDependency operation = scope.cancellableDependency;
+            operation.setDependency(responseCache.createCacheEntry(
                     target,
                     request,
                     backendResponse,
@@ -548,8 +549,8 @@ public class AsyncCachingExec extends CachingExecBase implements AsyncExecChainH
                 final ByteArrayBuffer buffer = cachingDataConsumer.bufferRef.getAndSet(null);
                 final HttpResponse backendResponse = cachingDataConsumer.backendResponse;
                 if (cacheConfig.isFreshnessCheckEnabled()) {
-                    final ComplexFuture<?> future = scope.future;
-                    future.setDependency(responseCache.getCacheEntry(target, request, new FutureCallback<HttpCacheEntry>() {
+                    final CancellableDependency operation = scope.cancellableDependency;
+                    operation.setDependency(responseCache.getCacheEntry(target, request, new FutureCallback<HttpCacheEntry>() {
 
                         @Override
                         public void completed(final HttpCacheEntry existingEntry) {
@@ -681,9 +682,9 @@ public class AsyncCachingExec extends CachingExecBase implements AsyncExecChainH
             final AtomicReference<AsyncExecCallback> callbackRef = new AtomicReference<>();
 
             void triggerUpdatedCacheEntryResponse(final HttpResponse backendResponse, final Date responseDate) {
-                final ComplexFuture<?> future = scope.future;
+                final CancellableDependency operation = scope.cancellableDependency;
                 recordCacheUpdate(scope.clientContext);
-                future.setDependency(responseCache.updateCacheEntry(
+                operation.setDependency(responseCache.updateCacheEntry(
                         target,
                         request,
                         cacheEntry,
@@ -857,8 +858,8 @@ public class AsyncCachingExec extends CachingExecBase implements AsyncExecChainH
         recordCacheMiss(target, request);
 
         if (mayCallBackend(request)) {
-            final ComplexFuture<?> future = scope.future;
-            future.setDependency(responseCache.getVariantCacheEntriesWithEtags(
+            final CancellableDependency operation = scope.cancellableDependency;
+            operation.setDependency(responseCache.getVariantCacheEntriesWithEtags(
                     target,
                     request,
                     new FutureCallback<Map<String, Variant>>() {
@@ -897,7 +898,7 @@ public class AsyncCachingExec extends CachingExecBase implements AsyncExecChainH
             final AsyncExecChain chain,
             final AsyncExecCallback asyncExecCallback,
             final Map<String, Variant> variants) {
-        final ComplexFuture<?> future = scope.future;
+        final CancellableDependency operation = scope.cancellableDependency;
         final HttpRequest conditionalRequest = conditionalRequestBuilder.buildConditionalRequestFromVariants(request, variants);
 
         final Date requestDate = getCurrentDate();
@@ -907,7 +908,7 @@ public class AsyncCachingExec extends CachingExecBase implements AsyncExecChainH
 
             void updateVariantCacheEntry(final HttpResponse backendResponse, final Date responseDate, final Variant matchingVariant) {
                 recordCacheUpdate(scope.clientContext);
-                future.setDependency(responseCache.updateVariantCacheEntry(
+                operation.setDependency(responseCache.updateVariantCacheEntry(
                         target,
                         conditionalRequest,
                         backendResponse,
@@ -924,7 +925,7 @@ public class AsyncCachingExec extends CachingExecBase implements AsyncExecChainH
                                 } else {
                                     try {
                                         final SimpleHttpResponse cacheResponse = responseGenerator.generateResponse(request, responseEntry);
-                                        future.setDependency(responseCache.reuseVariantEntryFor(
+                                        operation.setDependency(responseCache.reuseVariantEntryFor(
                                                 target,
                                                 request,
                                                 matchingVariant,

@@ -160,7 +160,7 @@ class AsyncRedirectExec implements AsyncExecChainHandler {
                                 }
                             }
                             state.currentScope = new AsyncExecChain.Scope(scope.exchangeId, newRoute,
-                                    scope.originalRequest, scope.future, clientContext, scope.execRuntime);
+                                    scope.originalRequest, scope.cancellableDependency, clientContext, scope.execRuntime);
                         }
                     }
                 }

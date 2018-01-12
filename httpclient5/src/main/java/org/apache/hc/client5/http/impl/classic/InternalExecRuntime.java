@@ -32,7 +32,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.apache.hc.client5.http.CancellableAware;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.classic.ExecRuntime;
 import org.apache.hc.client5.http.config.RequestConfig;
@@ -41,6 +40,7 @@ import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.io.LeaseRequest;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.concurrent.Cancellable;
+import org.apache.hc.core5.concurrent.CancellableDependency;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.ConnectionRequestTimeoutException;
@@ -58,7 +58,7 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
 
     private final HttpClientConnectionManager manager;
     private final HttpRequestExecutor requestExecutor;
-    private final CancellableAware cancellableAware;
+    private final CancellableDependency cancellableDependency;
     private final AtomicReference<ConnectionEndpoint> endpointRef;
 
     private volatile boolean reusable;
@@ -69,19 +69,19 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
             final Logger log,
             final HttpClientConnectionManager manager,
             final HttpRequestExecutor requestExecutor,
-            final CancellableAware cancellableAware) {
+            final CancellableDependency cancellableDependency) {
         super();
         this.log = log;
         this.manager = manager;
         this.requestExecutor = requestExecutor;
-        this.cancellableAware = cancellableAware;
+        this.cancellableDependency = cancellableDependency;
         this.endpointRef = new AtomicReference<>(null);
         this.validDuration = TimeValue.NEG_ONE_MILLISECONDS;
     }
 
     @Override
     public boolean isExecutionAborted() {
-        return cancellableAware != null && cancellableAware.isCancelled();
+        return cancellableDependency != null && cancellableDependency.isCancelled();
     }
 
     @Override
@@ -97,19 +97,19 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
             final Timeout requestTimeout = requestConfig.getConnectionRequestTimeout();
             final LeaseRequest connRequest = manager.lease(route, requestTimeout, object);
             state = object;
-            if (cancellableAware != null) {
-                if (cancellableAware.isCancelled()) {
+            if (cancellableDependency != null) {
+                if (cancellableDependency.isCancelled()) {
                     connRequest.cancel();
                     throw new RequestFailedException("Request aborted");
                 }
-                cancellableAware.setCancellable(connRequest);
+                cancellableDependency.setDependency(connRequest);
             }
             try {
                 final ConnectionEndpoint connectionEndpoint = connRequest.get(requestTimeout.getDuration(), requestTimeout.getTimeUnit());
                 endpointRef.set(connectionEndpoint);
                 reusable = connectionEndpoint.isConnected();
-                if (cancellableAware != null) {
-                    cancellableAware.setCancellable(this);
+                if (cancellableDependency != null) {
+                    cancellableDependency.setDependency(this);
                 }
             } catch(final TimeoutException ex) {
                 throw new ConnectionRequestTimeoutException(ex.getMessage());
@@ -143,8 +143,8 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
     }
 
     private void connectEndpoint(final ConnectionEndpoint endpoint, final HttpClientContext context) throws IOException {
-        if (cancellableAware != null) {
-            if (cancellableAware.isCancelled()) {
+        if (cancellableDependency != null) {
+            if (cancellableDependency.isCancelled()) {
                 throw new RequestFailedException("Request aborted");
             }
         }
@@ -256,8 +256,8 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
     }
 
     @Override
-    public ExecRuntime fork(final CancellableAware cancellableAware) {
-        return new InternalExecRuntime(log, manager, requestExecutor, cancellableAware);
+    public ExecRuntime fork(final CancellableDependency cancellableDependency) {
+        return new InternalExecRuntime(log, manager, requestExecutor, cancellableDependency);
     }
 
 }

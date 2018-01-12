@@ -29,10 +29,10 @@ package org.apache.hc.client5.http.classic;
 
 import java.io.IOException;
 
-import org.apache.hc.client5.http.CancellableAware;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.annotation.Internal;
+import org.apache.hc.core5.concurrent.CancellableDependency;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpException;
@@ -85,6 +85,6 @@ public interface ExecRuntime {
 
     void setConnectionValidFor(TimeValue duration);
 
-    ExecRuntime fork(CancellableAware cancellableAware);
+    ExecRuntime fork(CancellableDependency cancellableAware);
 
 }

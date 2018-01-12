@@ -31,7 +31,6 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.List;
 
-import org.apache.hc.client5.http.CancellableAware;
 import org.apache.hc.client5.http.ClientProtocolException;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.auth.AuthSchemeProvider;
@@ -49,6 +48,7 @@ import org.apache.hc.client5.http.routing.HttpRoutePlanner;
 import org.apache.hc.client5.http.routing.RoutingSupport;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.concurrent.CancellableDependency;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpException;
@@ -160,7 +160,7 @@ class InternalHttpClient extends CloseableHttpClient implements Configurable {
             final HttpRoute route = determineRoute(target, request, localcontext);
             final String exchangeId = ExecSupport.getNextExchangeId();
             final ExecRuntime execRuntime = new InternalExecRuntime(log, connManager, requestExecutor,
-                    request instanceof CancellableAware ? (CancellableAware) request : null);
+                    request instanceof CancellableDependency ? (CancellableDependency) request : null);
             final ExecChain.Scope scope = new ExecChain.Scope(exchangeId, route, request, execRuntime, localcontext);
             final ClassicHttpResponse response = this.execChain.execute(ClassicRequestCopier.INSTANCE.copy(request), scope);
             return CloseableHttpResponse.adapt(response);

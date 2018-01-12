@@ -186,7 +186,7 @@ public class Request {
     }
 
     public void abort() throws UnsupportedOperationException {
-        this.request.abort();
+        this.request.cancel();
     }
 
     //// HTTP header operations

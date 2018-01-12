@@ -30,7 +30,6 @@ package org.apache.hc.client5.http.impl.classic;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 
-import org.apache.hc.client5.http.CancellableAware;
 import org.apache.hc.client5.http.ClientProtocolException;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.SchemePortResolver;
@@ -45,6 +44,7 @@ import org.apache.hc.client5.http.protocol.RequestClientConnControl;
 import org.apache.hc.client5.http.routing.RoutingSupport;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.concurrent.CancellableDependency;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.ConnectionReuseStrategy;
@@ -122,7 +122,7 @@ public class MinimalHttpClient extends CloseableHttpClient {
 
         final HttpRoute route = new HttpRoute(RoutingSupport.normalize(target, schemePortResolver));
         final ExecRuntime execRuntime = new InternalExecRuntime(log, connManager, requestExecutor,
-                request instanceof CancellableAware ? (CancellableAware) request : null);
+                request instanceof CancellableDependency ? (CancellableDependency) request : null);
         try {
             if (!execRuntime.isConnectionAcquired()) {
                 execRuntime.acquireConnection(route, null, clientContext);

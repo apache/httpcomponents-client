@@ -227,7 +227,7 @@ public class TestConnectionReuse extends LocalServerTestBase {
                             this.target,
                             httpget);
                     if (this.forceClose) {
-                        httpget.abort();
+                        httpget.cancel();
                     } else {
                         EntityUtils.consume(response.getEntity());
                     }

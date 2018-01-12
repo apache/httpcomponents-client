@@ -30,7 +30,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import org.apache.hc.client5.http.CancellableAware;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.io.ConnectionEndpoint;
@@ -38,6 +37,7 @@ import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.io.LeaseRequest;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.concurrent.Cancellable;
+import org.apache.hc.core5.concurrent.CancellableDependency;
 import org.apache.hc.core5.http.ConnectionRequestTimeoutException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
@@ -64,7 +64,7 @@ public class TestInternalExecRuntime {
     @Mock
     private HttpRequestExecutor requestExecutor;
     @Mock
-    private CancellableAware cancellableAware;
+    private CancellableDependency cancellableDependency;
     @Mock
     private ConnectionEndpoint connectionEndpoint;
 
@@ -75,7 +75,7 @@ public class TestInternalExecRuntime {
     public void setup() {
         MockitoAnnotations.initMocks(this);
         route = new HttpRoute(new HttpHost("host", 80));
-        execRuntime = new InternalExecRuntime(log, mgr, requestExecutor, cancellableAware);
+        execRuntime = new InternalExecRuntime(log, mgr, requestExecutor, cancellableDependency);
     }
 
     @Test
@@ -100,9 +100,9 @@ public class TestInternalExecRuntime {
         Assert.assertFalse(execRuntime.isConnectionReusable());
 
         Mockito.verify(leaseRequest).get(345, TimeUnit.MILLISECONDS);
-        Mockito.verify(cancellableAware, Mockito.times(1)).setCancellable(leaseRequest);
-        Mockito.verify(cancellableAware, Mockito.times(1)).setCancellable(execRuntime);
-        Mockito.verify(cancellableAware, Mockito.times(2)).setCancellable(Mockito.<Cancellable>any());
+        Mockito.verify(cancellableDependency, Mockito.times(1)).setDependency(leaseRequest);
+        Mockito.verify(cancellableDependency, Mockito.times(1)).setDependency(execRuntime);
+        Mockito.verify(cancellableDependency, Mockito.times(2)).setDependency(Mockito.<Cancellable>any());
     }
 
     @Test(expected = IllegalStateException.class)

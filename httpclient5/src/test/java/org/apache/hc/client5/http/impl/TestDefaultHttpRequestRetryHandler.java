@@ -60,7 +60,7 @@ public class TestDefaultHttpRequestRetryHandler {
     @Test
     public void noRetryOnAbortedRequests() throws Exception{
         final HttpGet request = new HttpGet("/");
-        request.abort();
+        request.cancel();
 
         final DefaultHttpRequestRetryHandler retryHandler = new DefaultHttpRequestRetryHandler();
 

@@ -46,8 +46,8 @@ public class ClientAbortMethod {
                 System.out.println("----------------------------------------");
                 System.out.println(response.getCode() + " " + response.getReasonPhrase());
                 // Do not feel like reading the response body
-                // Call abort on the request object
-                httpget.abort();
+                // Call cancel on the request object
+                httpget.cancel();
             }
         }
     }

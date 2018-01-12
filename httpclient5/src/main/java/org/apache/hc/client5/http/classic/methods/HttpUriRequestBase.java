@@ -30,50 +30,50 @@ import java.net.URI;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.apache.hc.client5.http.CancellableAware;
 import org.apache.hc.client5.http.config.Configurable;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.core5.concurrent.Cancellable;
+import org.apache.hc.core5.concurrent.CancellableDependency;
 import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 
-public class HttpUriRequestBase extends BasicClassicHttpRequest implements CancellableAware, Configurable {
+public class HttpUriRequestBase extends BasicClassicHttpRequest implements CancellableDependency, Configurable {
 
     private static final long serialVersionUID = 1L;
 
     private RequestConfig requestConfig;
-    private final AtomicBoolean aborted;
+    private final AtomicBoolean cancelled;
     private final AtomicReference<Cancellable> cancellableRef;
 
     public HttpUriRequestBase(final String method, final URI requestUri) {
         super(method, requestUri);
-        this.aborted = new AtomicBoolean(false);
+        this.cancelled = new AtomicBoolean(false);
         this.cancellableRef = new AtomicReference<>(null);
     }
 
-    public void abort() {
-        if (this.aborted.compareAndSet(false, true)) {
+    @Override
+    public boolean cancel() {
+        if (this.cancelled.compareAndSet(false, true)) {
             final Cancellable cancellable = this.cancellableRef.getAndSet(null);
             if (cancellable != null) {
                 cancellable.cancel();
             }
+            return true;
+        } else {
+            return false;
         }
     }
 
     @Override
     public boolean isCancelled() {
-        return isAborted();
-    }
-
-    public boolean isAborted() {
-        return this.aborted.get();
+        return cancelled.get();
     }
 
     /**
      * @since 4.2
      */
     @Override
-    public void setCancellable(final Cancellable cancellable) {
-        if (!this.aborted.get()) {
+    public void setDependency(final Cancellable cancellable) {
+        if (!this.cancelled.get()) {
             this.cancellableRef.set(cancellable);
         }
     }
@@ -88,7 +88,7 @@ public class HttpUriRequestBase extends BasicClassicHttpRequest implements Cance
         if (cancellable != null) {
             cancellable.cancel();
         }
-        this.aborted.set(false);
+        this.cancelled.set(false);
     }
 
     public void setConfig(final RequestConfig requestConfig) {
