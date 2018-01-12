@@ -58,25 +58,7 @@ abstract class AbstractMinimalHttpAsyncClientBase extends AbstractHttpAsyncClien
         execute(new BasicClientExchangeHandler<>(
                         requestProducer,
                         responseConsumer,
-                        //TODO: eliminate this callback after upgrade to HttpCore 5.0b2
-                        new FutureCallback<T>() {
-
-                            @Override
-                            public void completed(final T result) {
-                                future.completed(result);
-                            }
-
-                            @Override
-                            public void failed(final Exception ex) {
-                                future.failed(ex);
-                            }
-
-                            @Override
-                            public void cancelled() {
-                                future.cancel();
-                            }
-
-                        }),
+                        callback),
                 context, future, new Supplier<T>() {
 
                     @Override

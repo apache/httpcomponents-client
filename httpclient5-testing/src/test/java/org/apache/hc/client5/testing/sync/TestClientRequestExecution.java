@@ -200,7 +200,7 @@ public class TestClientRequestExecution extends LocalServerTestBase {
         final HttpHost target = start();
 
         final HttpClientContext context = HttpClientContext.create();
-        final ClassicHttpRequest request = new BasicClassicHttpRequest("GET", "blah.:.blah.:.");
+        final ClassicHttpRequest request = new BasicClassicHttpRequest("GET", "{{|boom|}}");
         final ClassicHttpResponse response = this.httpclient.execute(target, request, context);
         EntityUtils.consume(response.getEntity());
 
@@ -208,7 +208,7 @@ public class TestClientRequestExecution extends LocalServerTestBase {
 
         final HttpRequest reqWrapper = context.getRequest();
 
-        Assert.assertEquals("blah.:.blah.:.", reqWrapper.getRequestUri());
+        Assert.assertEquals("{{|boom|}}", reqWrapper.getRequestUri());
     }
 
     @Test

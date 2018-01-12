@@ -184,14 +184,4 @@ public class TestHttp1Async extends AbstractHttpAsyncFundamentalsTest<CloseableH
         Assert.assertThat(body3.length(), CoreMatchers.equalTo(2048));
     }
 
-    @Test
-    public void testBadRequest() throws Exception {
-        final HttpHost target = start();
-        final Future<SimpleHttpResponse> future = httpclient.execute(
-                SimpleHttpRequest.get(target, "/random/boom"), null);
-        final SimpleHttpResponse response = future.get();
-        Assert.assertThat(response, CoreMatchers.notNullValue());
-        Assert.assertThat(response.getCode(), CoreMatchers.equalTo(400));
-    }
-
 }

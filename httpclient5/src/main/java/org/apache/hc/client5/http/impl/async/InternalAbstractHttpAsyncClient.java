@@ -33,13 +33,11 @@ import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.async.AsyncExecCallback;
 import org.apache.hc.client5.http.async.AsyncExecChain;
 import org.apache.hc.client5.http.async.AsyncExecRuntime;
-import org.apache.hc.client5.http.async.methods.SimpleRequestProducer;
 import org.apache.hc.client5.http.auth.AuthSchemeProvider;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.config.Configurable;
@@ -168,7 +166,6 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
 
                     final AsyncExecChain.Scope scope = new AsyncExecChain.Scope(exchangeId, route, request, future,
                             clientContext, execRuntime);
-                    final AtomicReference<T> resultRef = new AtomicReference<>(null);
                     final AtomicBoolean outputTerminated = new AtomicBoolean(false);
                     execChain.execute(
                             RequestCopier.INSTANCE.copy(request),
@@ -186,8 +183,7 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
 
                                 @Override
                                 public boolean isRepeatable() {
-                                    //TODO: use AsyncRequestProducer#isRepeatable once available
-                                    return requestProducer instanceof SimpleRequestProducer;
+                                    return requestProducer.isRepeatable();
                                 }
 
                                 @Override
@@ -242,12 +238,11 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
                                         requestProducer.releaseResources();
                                     }
                                     responseConsumer.consumeResponse(response, entityDetails,
-                                            //TODO: eliminate this callback after upgrade to HttpCore 5.0b2
                                             new FutureCallback<T>() {
 
                                                 @Override
                                                 public void completed(final T result) {
-                                                    resultRef.set(result);
+                                                    future.completed(result);
                                                 }
 
                                                 @Override
@@ -271,7 +266,6 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
                                     }
                                     try {
                                         execRuntime.releaseConnection();
-                                        future.completed(resultRef.getAndSet(null));
                                     } finally {
                                         responseConsumer.releaseResources();
                                         requestProducer.releaseResources();
