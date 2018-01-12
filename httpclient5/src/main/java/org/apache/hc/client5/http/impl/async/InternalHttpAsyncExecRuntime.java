@@ -230,7 +230,7 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
     }
 
     @Override
-    public void execute(final AsyncClientExchangeHandler exchangeHandler, final HttpClientContext context) {
+    public Cancellable execute(final AsyncClientExchangeHandler exchangeHandler, final HttpClientContext context) {
         final AsyncConnectionEndpoint endpoint = ensureValid();
         if (endpoint.isConnected()) {
             if (log.isDebugEnabled()) {
@@ -264,7 +264,7 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
 
             });
         }
-
+        return Operations.nonCancellable();
     }
 
     @Override

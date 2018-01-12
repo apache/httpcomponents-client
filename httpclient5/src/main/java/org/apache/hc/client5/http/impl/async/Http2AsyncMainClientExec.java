@@ -32,12 +32,12 @@ import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.async.AsyncExecCallback;
 import org.apache.hc.client5.http.async.AsyncExecChain;
 import org.apache.hc.client5.http.async.AsyncExecChainHandler;
 import org.apache.hc.client5.http.async.AsyncExecRuntime;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.core5.concurrent.CancellableDependency;
 import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
@@ -65,7 +65,7 @@ class Http2AsyncMainClientExec implements AsyncExecChainHandler {
             final AsyncExecChain chain,
             final AsyncExecCallback asyncExecCallback) throws HttpException, IOException {
         final String exchangeId = scope.exchangeId;
-        final HttpRoute route = scope.route;
+        final CancellableDependency operation = scope.cancellableDependency;
         final HttpClientContext clientContext = scope.clientContext;
         final AsyncExecRuntime execRuntime = scope.execRuntime;
 
@@ -158,12 +158,11 @@ class Http2AsyncMainClientExec implements AsyncExecChainHandler {
         };
 
         if (log.isDebugEnabled()) {
-            execRuntime.execute(
+            operation.setDependency(execRuntime.execute(
                     new LoggingAsyncClientExchangeHandler(log, exchangeId, internalExchangeHandler),
-                    clientContext);
+                    clientContext));
         } else {
-            execRuntime.execute(
-                    internalExchangeHandler, clientContext);
+            operation.setDependency(execRuntime.execute( internalExchangeHandler, clientContext));
         }
     }
 

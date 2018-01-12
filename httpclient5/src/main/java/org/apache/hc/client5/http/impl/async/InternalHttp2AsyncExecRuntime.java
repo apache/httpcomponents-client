@@ -37,6 +37,7 @@ import org.apache.hc.client5.http.impl.ConnPoolSupport;
 import org.apache.hc.client5.http.impl.Operations;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.concurrent.Cancellable;
+import org.apache.hc.core5.concurrent.ComplexCancellable;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.nio.AsyncClientExchangeHandler;
@@ -190,14 +191,15 @@ class InternalHttp2AsyncExecRuntime implements AsyncExecRuntime {
     }
 
     @Override
-    public void execute(final AsyncClientExchangeHandler exchangeHandler, final HttpClientContext context) {
+    public Cancellable execute(final AsyncClientExchangeHandler exchangeHandler, final HttpClientContext context) {
+        final ComplexCancellable complexCancellable = new ComplexCancellable();
         final Endpoint endpoint = ensureValid();
         final IOSession session = endpoint.session;
         if (!session.isClosed()) {
             if (log.isDebugEnabled()) {
                 log.debug(ConnPoolSupport.getId(endpoint) + ": executing " + ConnPoolSupport.getId(exchangeHandler));
             }
-            session.addLast(new ExecutionCommand(exchangeHandler, context));
+            session.addLast(new ExecutionCommand(exchangeHandler, complexCancellable, context));
         } else {
             final HttpHost target = endpoint.target;
             final RequestConfig requestConfig = context.getRequestConfig();
@@ -210,7 +212,7 @@ class InternalHttp2AsyncExecRuntime implements AsyncExecRuntime {
                     if (log.isDebugEnabled()) {
                         log.debug(ConnPoolSupport.getId(endpoint) + ": executing " + ConnPoolSupport.getId(exchangeHandler));
                     }
-                    session.addLast(new ExecutionCommand(exchangeHandler, context));
+                    session.addLast(new ExecutionCommand(exchangeHandler, complexCancellable, context));
                 }
 
                 @Override
@@ -225,7 +227,7 @@ class InternalHttp2AsyncExecRuntime implements AsyncExecRuntime {
 
             });
         }
-
+        return complexCancellable;
     }
 
     @Override

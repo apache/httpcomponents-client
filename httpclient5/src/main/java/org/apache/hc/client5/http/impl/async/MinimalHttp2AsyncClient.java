@@ -214,9 +214,9 @@ public final class MinimalHttp2AsyncClient extends AbstractMinimalHttpAsyncClien
                                 log.debug(ConnPoolSupport.getId(session) + ": executing message exchange " + exchangeId);
                                 session.addLast(new ExecutionCommand(
                                         new LoggingAsyncClientExchangeHandler(log, exchangeId, internalExchangeHandler),
-                                        clientContext));
+                                        resultFuture, clientContext));
                             } else {
-                                session.addLast(new ExecutionCommand(internalExchangeHandler, clientContext));
+                                session.addLast(new ExecutionCommand(internalExchangeHandler, resultFuture, clientContext));
                             }
                         }
 

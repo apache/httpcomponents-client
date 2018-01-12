@@ -72,7 +72,7 @@ public interface AsyncExecRuntime {
     /**
      * Initiates a message exchange using the given handler.
      */
-    void execute(
+    Cancellable execute(
             AsyncClientExchangeHandler exchangeHandler,
             HttpClientContext context);
 
