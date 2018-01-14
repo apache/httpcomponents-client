@@ -103,6 +103,8 @@ class CacheEntryUpdater {
 
     protected Header[] mergeHeaders(final HttpCacheEntry entry, final HttpResponse response) {
 
+        // since we do not expect a content in the response, remove any related headers if exists
+        response.removeHeaders(HTTP.CONTENT_ENCODING);
         if (entryAndResponseHaveDateHeader(entry, response)
                 && entryDateHeaderNewerThenResponse(entry, response)) {
             // Don't merge headers, keep the entry's headers as they are newer.
