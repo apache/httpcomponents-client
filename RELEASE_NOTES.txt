@@ -1,4 +1,99 @@
-﻿Release 5.0-ALPHA3
+﻿Release 5.0-BETA1
+-------------------
+
+This is the first BETA release of HttpClient 5.0. The 5.0 release serices introduces
+support for the HTTP/2 protocol and event driven messaging APIs consistent for all
+supported HTTP protocol versions.
+
+HttpClient ships with two client implementations:
+
+* HttpClient Classic is based on the classic (blocking) I/O model; largely compatible
+  with the 4.x APIs; supports HTTP/1.1 only.
+
+* HttpClient Async is based on NIO model; new event driven APIs consistent for all supported
+  HTTP protocol versions; supports both HTTP/1.1 and HTTP/2.
+
+
+Notable new features in this release:
+
+* New asynchronous HTTP cache backend APIs
+
+* Fully asynchronous HTTP cache backend based on Memcached
+
+* Support for bulk cache retrieval
+
+Notable changes and features included in the 5.0 series are:
+
+* Support for the HTTP/2 protocol and conformance to requirements and
+  recommendations of the latest HTTP/2 protocol specification documents
+  (RFC 7540, RFC 7541.)
+
+  Supported features:
+
+    ** HPACK header compression
+    ** Stream multiplexing (client and server)
+    ** Flow control
+    ** Response push
+    ** Message trailers
+    ** Expect-continue handshake
+    ** Connection validation (ping)
+    ** Application-layer protocol negotiation (ALPN) on Java 9.0.1+
+    ** TLS 1.2 security features
+
+* Improved conformance to requirements and recommendations of the latest HTTP/1.1 protocol
+  specification documents (RFC 7230, RFC 7231.)
+
+* New connection pool implementation with lax connection limit guarantees and better
+  performance under higher concurrency due to absence of a global pool lock.
+
+* Package name space changed to 'org.apache.hc.client5'.
+
+* Maven group id changed to 'org.apache.httpcomponents.client5'.
+
+HttpClient 5.0 releases can be co-located with earlier major versions on the same classpath
+due to the change in package names and Maven module coordinates.
+
+The 5.0 APIs are considered feature complete and are not expected to undergo any major changes
+anymore. The focus of development is now shifting to API polish, code stabilisation
+and documentation improvements.
+
+
+Changelog:
+-------------------
+
+* DefaultHostnameVerifier to use a custom distinguished name (DN) parser instead of LdapName.
+  Removed dependency on Java Naming extensions.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTP/2 client implementations to support cancellation of ongoing message exchanges without
+  terminating the underlying connections.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-1395: added config parameter to skip an extra cache entry freshness check upon
+  cache update in case of a cache miss.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-1824, HTTPCLIENT-1384: asynchronous HTTP cache invalidator.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Redesign of CacheKeyGenerator and HttpCacheInvalidator APIs.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* New APIs for cache entry bulk retrieval; bulk retrieval support by Memcached storage
+  implementation.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-1824, HTTPCLIENT-1868: Asynchronous HTTP cache storage API. Memcached backend
+  implementation of async HTTP cache storage.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-1885: Content compression exec interceptor generates incorrect
+  'Accept-Encoding' header value.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+
+
+Release 5.0-ALPHA3
 -------------------
 
 This is a major release that introduces support for the HTTP/2 protocol and event driven
