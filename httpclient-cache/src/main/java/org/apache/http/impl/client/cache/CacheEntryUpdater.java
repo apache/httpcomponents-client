@@ -27,13 +27,10 @@
 package org.apache.http.impl.client.cache;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
-import java.util.ListIterator;
 
 import org.apache.http.Header;
+import org.apache.http.HeaderIterator;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.annotation.Contract;
@@ -43,6 +40,7 @@ import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.cache.Resource;
 import org.apache.http.client.cache.ResourceFactory;
 import org.apache.http.client.utils.DateUtils;
+import org.apache.http.message.HeaderGroup;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.util.Args;
 
@@ -102,53 +100,46 @@ class CacheEntryUpdater {
     }
 
     protected Header[] mergeHeaders(final HttpCacheEntry entry, final HttpResponse response) {
-
-        // since we do not expect a content in the response, remove any related headers if exists
-        response.removeHeaders(HTTP.CONTENT_ENCODING);
         if (entryAndResponseHaveDateHeader(entry, response)
                 && entryDateHeaderNewerThenResponse(entry, response)) {
             // Don't merge headers, keep the entry's headers as they are newer.
             return entry.getAllHeaders();
         }
 
-        final List<Header> cacheEntryHeaderList = new ArrayList<Header>(Arrays.asList(entry
-                .getAllHeaders()));
-        removeCacheHeadersThatMatchResponse(cacheEntryHeaderList, response);
-        removeCacheEntry1xxWarnings(cacheEntryHeaderList, entry);
-        cacheEntryHeaderList.addAll(Arrays.asList(response.getAllHeaders()));
+        final HeaderGroup headerGroup = new HeaderGroup();
+        headerGroup.setHeaders(entry.getAllHeaders());
+        // Remove cache headers that match response
+        for (final HeaderIterator it = response.headerIterator(); it.hasNext(); ) {
+            final Header responseHeader = it.nextHeader();
+            // Since we do not expect a content in a 304 response, should retain the original Content-Encoding header
+            if (HTTP.CONTENT_ENCODING.equals(responseHeader.getName())) {
+                continue;
+            }
+            final Header[] matchingHeaders = headerGroup.getHeaders(responseHeader.getName());
+            for (Header matchingHeader : matchingHeaders) {
+                headerGroup.removeHeader(matchingHeader);
+            }
 
-        return cacheEntryHeaderList.toArray(new Header[cacheEntryHeaderList.size()]);
-    }
-
-    private void removeCacheHeadersThatMatchResponse(final List<Header> cacheEntryHeaderList,
-            final HttpResponse response) {
-        for (final Header responseHeader : response.getAllHeaders()) {
-            final ListIterator<Header> cacheEntryHeaderListIter = cacheEntryHeaderList.listIterator();
-
-            while (cacheEntryHeaderListIter.hasNext()) {
-                final String cacheEntryHeaderName = cacheEntryHeaderListIter.next().getName();
-
-                if (cacheEntryHeaderName.equals(responseHeader.getName())) {
-                    cacheEntryHeaderListIter.remove();
+        }
+        // remove cache entry 1xx warnings
+        for (final HeaderIterator it = headerGroup.iterator(); it.hasNext(); ) {
+            final Header cacheHeader = it.nextHeader();
+            if (HeaderConstants.WARNING.equalsIgnoreCase(cacheHeader.getName())) {
+                final String warningValue = cacheHeader.getValue();
+                if (warningValue != null && warningValue.startsWith("1")) {
+                    it.remove();
                 }
             }
         }
-    }
-
-    private void removeCacheEntry1xxWarnings(final List<Header> cacheEntryHeaderList, final HttpCacheEntry entry) {
-        final ListIterator<Header> cacheEntryHeaderListIter = cacheEntryHeaderList.listIterator();
-
-        while (cacheEntryHeaderListIter.hasNext()) {
-            final String cacheEntryHeaderName = cacheEntryHeaderListIter.next().getName();
-
-            if (HeaderConstants.WARNING.equals(cacheEntryHeaderName)) {
-                for (final Header cacheEntryWarning : entry.getHeaders(HeaderConstants.WARNING)) {
-                    if (cacheEntryWarning.getValue().startsWith("1")) {
-                        cacheEntryHeaderListIter.remove();
-                    }
-                }
+        for (final HeaderIterator it = response.headerIterator(); it.hasNext(); ) {
+            final Header responseHeader = it.nextHeader();
+            // Since we do not expect a content in a 304 response, should avoid updating Content-Encoding header
+            if (HTTP.CONTENT_ENCODING.equals(responseHeader.getName())) {
+                continue;
             }
+            headerGroup.addHeader(responseHeader);
         }
+        return headerGroup.getAllHeaders();
     }
 
     private boolean entryDateHeaderNewerThenResponse(final HttpCacheEntry entry, final HttpResponse response) {
@@ -156,22 +147,13 @@ class CacheEntryUpdater {
                 .getValue());
         final Date responseDate = DateUtils.parseDate(response.getFirstHeader(HTTP.DATE_HEADER)
                 .getValue());
-        if (entryDate == null || responseDate == null) {
-            return false;
-        }
-        if (!entryDate.after(responseDate)) {
-            return false;
-        }
-        return true;
+        return entryDate != null && responseDate != null && entryDate.after(responseDate);
     }
 
     private boolean entryAndResponseHaveDateHeader(final HttpCacheEntry entry, final HttpResponse response) {
-        if (entry.getFirstHeader(HTTP.DATE_HEADER) != null
-                && response.getFirstHeader(HTTP.DATE_HEADER) != null) {
-            return true;
-        }
+        return entry.getFirstHeader(HTTP.DATE_HEADER) != null
+                && response.getFirstHeader(HTTP.DATE_HEADER) != null;
 
-        return false;
     }
 
 }
