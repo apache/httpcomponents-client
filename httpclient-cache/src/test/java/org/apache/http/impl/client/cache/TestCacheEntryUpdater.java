@@ -257,6 +257,7 @@ public class TestCacheEntryUpdater {
 
         final Header[] updatedHeaders = updatedEntry.getAllHeaders();
         headersContain(updatedHeaders, "Content-Encoding", "identity");
+        headersNotContain(updatedHeaders, "Content-Encoding", "gzip");
     }
 
     private void headersContain(final Header[] headers, final String name, final String value) {
@@ -270,4 +271,13 @@ public class TestCacheEntryUpdater {
         fail("Header [" + name + ": " + value + "] not found in headers.");
     }
 
+    private void headersNotContain(final Header[] headers, final String name, final String value) {
+        for (final Header header : headers) {
+            if (header.getName().equals(name)) {
+                if (header.getValue().equals(value)) {
+                    fail("Header [" + name + ": " + value + "] found in headers where it should not be");
+                }
+            }
+        }
+    }
 }
