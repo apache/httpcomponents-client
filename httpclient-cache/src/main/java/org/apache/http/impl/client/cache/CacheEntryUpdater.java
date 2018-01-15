@@ -116,7 +116,7 @@ class CacheEntryUpdater {
                 continue;
             }
             final Header[] matchingHeaders = headerGroup.getHeaders(responseHeader.getName());
-            for (Header matchingHeader : matchingHeaders) {
+            for (final Header matchingHeader : matchingHeaders) {
                 headerGroup.removeHeader(matchingHeader);
             }
 
