@@ -163,6 +163,10 @@ class CacheUpdateHandler {
         }
         for (final Iterator<Header> it = response.headerIterator(); it.hasNext(); ) {
             final Header responseHeader = it.next();
+            // Since we do not expect a content in a 304 response, should update the cache entry with Content-Encoding
+            if (HttpHeaders.CONTENT_ENCODING.equals(responseHeader.getName())) {
+                continue;
+            }
             headerGroup.addHeader(responseHeader);
         }
         return headerGroup.getAllHeaders();
