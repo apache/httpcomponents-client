@@ -31,6 +31,7 @@ import org.apache.http.Header;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
 import org.apache.http.TokenIterator;
 import org.apache.http.impl.DefaultConnectionReuseStrategy;
 import org.apache.http.message.BasicHeaderIterator;
@@ -57,6 +58,19 @@ public class DefaultClientConnectionReuseStrategy extends DefaultConnectionReuse
                         return false;
                     }
                 }
+            }
+        }
+
+        // If a HTTP 204 No Content response contain a Content-length or Transfer-encoding:Chunked header,
+        // don't reuse the connection. This is to avoid getting out-of-sync if a misbehaved HTTP server
+        // returns content as part of a HTTP 204 response.
+        if (response.getStatusLine().getStatusCode() == HttpStatus.SC_NO_CONTENT) {
+            if (response.getFirstHeader(HTTP.CONTENT_LEN) != null) {
+                return false;
+            }
+            final Header transferEncodingHeader = response.getFirstHeader(HTTP.TRANSFER_ENCODING);
+            if (transferEncodingHeader != null && HTTP.CHUNK_CODING.equalsIgnoreCase(transferEncodingHeader.getValue())) {
+                return false;
             }
         }
         return super.keepAlive(response, context);
