@@ -58,7 +58,7 @@ public class HttpClients {
 
     /**
      * Creates {@link CloseableHttpClient} instance with default
-     * configuration based on ssytem properties.
+     * configuration based on system properties.
      */
     public static CloseableHttpClient createSystem() {
         return HttpClientBuilder.create().useSystemProperties().build();
