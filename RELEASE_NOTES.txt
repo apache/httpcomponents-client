@@ -1,4 +1,14 @@
-﻿Release 5.0-BETA1
+﻿Release 5.0-BETA2
+-------------------
+
+Changelog:
+-------------------
+
+* HTTPCLIENT-1898: Incorrect comment in example class ClientMultiThreadedExecution.java
+  Contributed by Ulrich Romahn <ulrich at ulrichromahn dot net>
+   
+
+Release 5.0-BETA1
 -------------------
 
 This is the first BETA release of HttpClient 5.0. The 5.0 release serices introduces

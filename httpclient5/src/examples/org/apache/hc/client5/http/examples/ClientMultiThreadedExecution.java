@@ -43,7 +43,7 @@ import org.apache.hc.core5.http.protocol.HttpContext;
 public class ClientMultiThreadedExecution {
 
     public static void main(final String[] args) throws Exception {
-        // Create an HttpClient with the ThreadSafeClientConnManager.
+        // Create an HttpClient with the PoolingHttpClientConnectionManager.
         // This connection manager must be used if more than one thread will
         // be using the HttpClient.
         final PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
