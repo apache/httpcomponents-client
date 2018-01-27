@@ -471,6 +471,7 @@ public class MainClientExec implements ClientExecChain {
             this.authenticator.generateAuthResponse(connect, proxyAuthState, context);
 
             response = this.requestExecutor.execute(connect, managedConn, context);
+            this.requestExecutor.postProcess(response, this.proxyHttpProcessor, context);
 
             final int status = response.getStatusLine().getStatusCode();
             if (status < 200) {
