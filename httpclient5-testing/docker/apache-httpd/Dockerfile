@@ -36,7 +36,9 @@ COPY httpd.conf ${httpd_home}/conf/
 COPY httpd-ssl.conf ${httpd_home}/conf/
 
 RUN mkdir -p ${private_dir}
-RUN htpasswd -b -c ${private_dir}/.htpasswd testuser nopassword
+# user: testuser; pwd: nopassword
+RUN echo "testuser:{SHA}0Ybo2sSKJNARW1aNCrLJ6Lguats=" > ${private_dir}/.htpasswd
+RUN echo "testuser:Restricted Files:73deccd22e07066db8c405e5364335f5" > ${private_dir}/.htpasswd_digest
 RUN echo "Big Secret" > ${private_dir}/big-secret.txt
 
 EXPOSE 8080
