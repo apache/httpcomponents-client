@@ -90,6 +90,9 @@ public class PublicSuffixDomainFilter implements CommonCookieAttributeHandler {
     @Override
     public boolean match(final Cookie cookie, final CookieOrigin origin) {
         final String host = cookie.getDomain();
+        if (host == null) {
+            return false;
+        }
         final int i = host.indexOf('.');
         if (i >= 0) {
             final String domain = host.substring(i);
