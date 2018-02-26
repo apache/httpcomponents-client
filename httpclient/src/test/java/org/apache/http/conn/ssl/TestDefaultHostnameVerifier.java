@@ -164,6 +164,10 @@ public class TestDefaultHostnameVerifier {
 
         exceptionPlease(impl, "1.1.1.2", x509);
         exceptionPlease(impl, "dummy-value.com", x509);
+
+        in = new ByteArrayInputStream(CertificatesToPlayWith.EMAIL_ALT_SUBJECT_NAME);
+        x509 = (X509Certificate) cf.generateCertificate(in);
+        impl.verify("www.company.com", x509);
     }
 
     @Test
