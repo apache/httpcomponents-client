@@ -70,6 +70,42 @@ abstract class AbstractMinimalHttpAsyncClientBase extends AbstractHttpAsyncClien
         return future;
     }
 
+    @Override
+    public <T> Future<T> execute(
+            final AsyncRequestProducer requestProducer,
+            final AsyncResponseConsumer<T> responseConsumer,
+            final HttpContext context,
+            final HttpClientAsyncExecutionCallback callback) {
+        final FutureCallback<T> futureCallback = new FutureCallback<T>() {
+            @Override
+            public void completed(final T result) {
+                callback.finalResponse(result);
+            }
+
+            @Override
+            public void failed(final Exception ex) {
+                callback.failed(ex);
+            }
+
+            @Override
+            public void cancelled() {
+                callback.cancelled();
+            }
+        };
+        final ComplexFuture<T> future = new ComplexFuture<>(futureCallback);
+        execute(new BasicClientExchangeHandler<>(
+                        requestProducer,
+                        responseConsumer,
+                        futureCallback),
+                context, future, new Supplier<T>() {
+                    @Override
+                    public T get() {
+                        return responseConsumer.getResult();
+                    }
+                });
+        return future;
+    }
+
     public final <T extends AsyncClientExchangeHandler> Future<T> execute(
             final T exchangeHandler,
             final HttpContext context,
