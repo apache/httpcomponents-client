@@ -236,6 +236,11 @@ class AsyncProtocolExec implements AsyncExecChainHandler {
                 asyncExecCallback.failed(cause);
             }
 
+            @Override
+            public void handleInformationResponse(final HttpResponse response) throws HttpException, IOException {
+                asyncExecCallback.handleInformationResponse(response);
+            }
+
         });
     }
 

@@ -114,6 +114,15 @@ class AsyncRetryExec implements AsyncExecChainHandler {
                 asyncExecCallback.failed(cause);
             }
 
+            @Override
+            public void handleInformationResponse(final HttpResponse response) {
+                try {
+                    asyncExecCallback.handleInformationResponse(response);
+                } catch (final HttpException | IOException ex) {
+                    log.error(ex.getMessage(), ex);
+                }
+            }
+
         });
 
     }

@@ -24,23 +24,14 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.hc.client5.http.async;
+package org.apache.hc.client5.http.impl.async;
 
-import java.io.IOException;
+public interface HttpClientAsyncExecutionCallback<T> {
+    void finalResponse(T response);
 
-import org.apache.hc.core5.http.EntityDetails;
-import org.apache.hc.core5.http.HttpException;
-import org.apache.hc.core5.http.HttpResponse;
-import org.apache.hc.core5.http.nio.AsyncDataConsumer;
+    void informationResponse(T response);
 
-public interface AsyncExecCallback {
+    void failed(Exception ex);
 
-    AsyncDataConsumer handleResponse(HttpResponse response, EntityDetails entityDetails) throws HttpException, IOException;
-
-    void handleInformationResponse(HttpResponse response) throws HttpException, IOException;
-
-    void completed();
-
-    void failed(Exception cause);
-
+    void cancelled();
 }

@@ -38,6 +38,7 @@ import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.async.AsyncExecCallback;
 import org.apache.hc.client5.http.async.AsyncExecChain;
 import org.apache.hc.client5.http.async.AsyncExecRuntime;
+import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.auth.AuthSchemeProvider;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.config.Configurable;
@@ -136,9 +137,26 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
             final AsyncRequestProducer requestProducer,
             final AsyncResponseConsumer<T> responseConsumer,
             final HttpContext context,
-            final FutureCallback<T> callback) {
+            final HttpClientAsyncExecutionCallback callback) {
         ensureRunning();
-        final ComplexFuture<T> future = new ComplexFuture<>(callback);
+
+        final ComplexFuture<T> future = new ComplexFuture<>(new FutureCallback<T>() {
+            @Override
+            public void completed(final T result) {
+                callback.finalResponse(result);
+            }
+
+            @Override
+            public void failed(final Exception ex) {
+                callback.failed(ex);
+            }
+
+            @Override
+            public void cancelled() {
+                callback.cancelled();
+            }
+        });
+
         try {
             final HttpClientContext clientContext = HttpClientContext.adapt(context);
             requestProducer.sendRequest(new RequestChannel() {
@@ -252,7 +270,7 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
 
                                                 @Override
                                                 public void cancelled() {
-                                                    future.cancel();
+                                                    callback.cancelled();
                                                 }
 
                                             });
@@ -290,6 +308,11 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
                                     }
                                 }
 
+                                @Override
+                                public void handleInformationResponse(final HttpResponse response) {
+                                    callback.informationResponse(SimpleHttpResponse.copy(response));
+                                }
+
                             });
                 }
 
@@ -297,7 +320,36 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
         } catch (final HttpException | IOException ex) {
             future.failed(ex);
         }
+
         return future;
     }
 
+    @Override
+    public <T> Future<T> execute(
+            final AsyncRequestProducer requestProducer,
+            final AsyncResponseConsumer<T> responseConsumer,
+            final HttpContext context,
+            final FutureCallback<T> callback) {
+        return execute(requestProducer, responseConsumer, context, new HttpClientAsyncExecutionCallback<T>() {
+            @Override
+            public void finalResponse(final T response) {
+                callback.completed(response);
+            }
+
+            @Override
+            public void informationResponse(final T response) {
+                // Nothing to do.
+            }
+
+            @Override
+            public void failed(final Exception ex) {
+                callback.failed(ex);
+            }
+
+            @Override
+            public void cancelled() {
+                callback.cancelled();
+            }
+        });
+    }
 }
