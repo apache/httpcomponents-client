@@ -189,6 +189,10 @@ public class AsyncCachingExec extends CachingExecBase implements AsyncExecChainH
             asyncExecCallback.failed(cause);
         }
 
+        @Override
+        public void handleInformationResponse(final HttpResponse response) throws HttpException, IOException {
+        }
+
     }
 
     @Override
@@ -331,6 +335,16 @@ public class AsyncCachingExec extends CachingExecBase implements AsyncExecChainH
                     callback.failed(cause);
                 } else {
                     asyncExecCallback.failed(cause);
+                }
+            }
+
+            @Override
+            public void handleInformationResponse(final HttpResponse response) throws HttpException, IOException {
+                final AsyncExecCallback callback = callbackRef.getAndSet(null);
+                if (callback != null) {
+                    callback.handleInformationResponse(response);
+                } else {
+                    asyncExecCallback.handleInformationResponse(response);
                 }
             }
 
@@ -591,6 +605,11 @@ public class AsyncCachingExec extends CachingExecBase implements AsyncExecChainH
             asyncExecCallback.failed(cause);
         }
 
+        @Override
+        public void handleInformationResponse(final HttpResponse response) throws HttpException, IOException {
+            asyncExecCallback.handleInformationResponse(response);
+        }
+
     }
 
     private void handleCacheHit(
@@ -812,6 +831,16 @@ public class AsyncCachingExec extends CachingExecBase implements AsyncExecChainH
                                     }
                                 }
 
+                                @Override
+                                public void handleInformationResponse(final HttpResponse response) throws HttpException, IOException {
+                                    final AsyncExecCallback callback2 = callbackRef.getAndSet(null);
+                                    if (callback2 != null) {
+                                        callback2.handleInformationResponse(response);
+                                    } else {
+                                        asyncExecCallback.handleInformationResponse(response);
+                                    }
+                                }
+
                             });
 
                         }
@@ -841,6 +870,16 @@ public class AsyncCachingExec extends CachingExecBase implements AsyncExecChainH
                     callback1.failed(cause);
                 } else {
                     asyncExecCallback.failed(cause);
+                }
+            }
+
+            @Override
+            public void handleInformationResponse(final HttpResponse response) throws HttpException, IOException {
+                final AsyncExecCallback callback1 = callbackRef.getAndSet(null);
+                if (callback1 != null) {
+                    callback1.handleInformationResponse(response);
+                } else {
+                    asyncExecCallback.handleInformationResponse(response);
                 }
             }
 
@@ -1047,6 +1086,16 @@ public class AsyncCachingExec extends CachingExecBase implements AsyncExecChainH
                     callback.failed(cause);
                 } else {
                     asyncExecCallback.failed(cause);
+                }
+            }
+
+            @Override
+            public void handleInformationResponse(final HttpResponse response) throws HttpException, IOException {
+                final AsyncExecCallback callback = callbackRef.getAndSet(null);
+                if (callback != null) {
+                    callback.handleInformationResponse(response);
+                } else {
+                    asyncExecCallback.handleInformationResponse(response);
                 }
             }
 
