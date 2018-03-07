@@ -263,6 +263,11 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
                                 asyncExecCallback.failed(cause);
                             }
 
+                            @Override
+                            public void handleInformationResponse(final HttpResponse response) throws HttpException, IOException {
+                                asyncExecCallback.handleInformationResponse(response);
+                            }
+
                         });
                     } catch (final HttpException | IOException ex) {
                         asyncExecCallback.failed(ex);
@@ -373,6 +378,11 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
             @Override
             public void failed(final Exception cause) {
                 asyncExecCallback.failed(cause);
+            }
+
+            @Override
+            public void handleInformationResponse(final HttpResponse response) throws HttpException, IOException {
+                // Should never be here.
             }
 
         });

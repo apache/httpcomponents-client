@@ -115,4 +115,24 @@ public abstract class CloseableHttpAsyncClient implements HttpAsyncClient, Close
         return execute(request, HttpClientContext.create(), callback);
     }
 
+    public final <T> Future<T> executeWithCallback(
+            final AsyncRequestProducer requestProducer,
+            final AsyncResponseConsumer<T> responseConsumer,
+            final HttpClientAsyncExecutionCallback<T> callback) {
+        return executeWithCallback(requestProducer, responseConsumer, HttpClientContext.create(), callback);
+    }
+
+    public final Future<SimpleHttpResponse> executeWithCallback(
+            final SimpleHttpRequest request,
+            final HttpContext context,
+            final HttpClientAsyncExecutionCallback<SimpleHttpResponse> callback) {
+        Args.notNull(request, "Request");
+        return executeWithCallback(SimpleRequestProducer.create(request), SimpleResponseConsumer.create(), context, callback);
+    }
+
+    public final Future<SimpleHttpResponse> executeWithCallback(
+            final SimpleHttpRequest request,
+            final HttpClientAsyncExecutionCallback<SimpleHttpResponse> callback) {
+        return executeWithCallback(request, HttpClientContext.create(), callback);
+    }
 }

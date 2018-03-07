@@ -27,6 +27,7 @@
 package org.apache.hc.client5.http.async;
 
 import java.util.concurrent.Future;
+import org.apache.hc.client5.http.impl.async.HttpClientAsyncExecutionCallback;
 
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.function.Supplier;
@@ -68,6 +69,30 @@ public interface HttpAsyncClient {
             AsyncResponseConsumer<T> responseConsumer,
             HttpContext context,
             FutureCallback<T> callback);
+
+    /**
+     * Initiates asynchronous HTTP request execution using the given context.
+     * <p>
+     * The request producer passed to this method will be used to generate
+     * a request message and stream out its content without buffering it
+     * in memory. The response consumer passed to this method will be used
+     * to process a response message without buffering its content in memory.
+     * <p>
+     * Please note it may be unsafe to interact with the context instance
+     * while the request is still being executed.
+     *
+     * @param <T> the result type of request execution.
+     * @param requestProducer request producer callback.
+     * @param responseConsumer response consumer callback.
+     * @param context HTTP context
+     * @param callback HTTP async processing callback.
+     * @return future representing pending completion of the operation.
+     */
+    <T> Future<T> executeWithCallback(
+            AsyncRequestProducer requestProducer,
+            AsyncResponseConsumer<T> responseConsumer,
+            HttpContext context,
+            HttpClientAsyncExecutionCallback callback);
 
     /**
      * Registers {@link AsyncPushConsumer} for the given host and the URI pattern.
