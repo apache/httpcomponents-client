@@ -28,7 +28,9 @@
 package org.apache.hc.client5.http.impl.async;
 
 import org.apache.hc.client5.http.DnsResolver;
+import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.SystemDefaultDnsResolver;
+import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.nio.AsyncClientConnectionManager;
 import org.apache.hc.client5.http.ssl.H2TlsStrategy;
@@ -127,7 +129,8 @@ public class HttpAsyncClients {
             final AsyncPushConsumerRegistry pushConsumerRegistry,
             final HttpVersionPolicy versionPolicy,
             final IOReactorConfig ioReactorConfig,
-            final AsyncClientConnectionManager connmgr) {
+            final AsyncClientConnectionManager connmgr,
+            final SchemePortResolver schemePortResolver) {
         return new MinimalHttpAsyncClient(
                 eventHandlerFactory,
                 pushConsumerRegistry,
@@ -135,7 +138,8 @@ public class HttpAsyncClients {
                 ioReactorConfig,
                 new DefaultThreadFactory("httpclient-main", true),
                 new DefaultThreadFactory("httpclient-dispatch", true),
-                connmgr);
+                connmgr,
+                schemePortResolver);
     }
 
     /**
@@ -169,7 +173,8 @@ public class HttpAsyncClients {
                 pushConsumerRegistry,
                 versionPolicy,
                 ioReactorConfig,
-                connmgr);
+                connmgr,
+                DefaultSchemePortResolver.INSTANCE);
     }
 
     /**
