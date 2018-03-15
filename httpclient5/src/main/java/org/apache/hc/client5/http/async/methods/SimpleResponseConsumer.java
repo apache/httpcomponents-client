@@ -27,10 +27,13 @@
 package org.apache.hc.client5.http.async.methods;
 
 import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.nio.AsyncEntityConsumer;
 import org.apache.hc.core5.http.nio.entity.BasicAsyncEntityConsumer;
 import org.apache.hc.core5.http.nio.support.AbstractAsyncResponseConsumer;
+
+import java.io.IOException;
 
 public final class SimpleResponseConsumer extends AbstractAsyncResponseConsumer<SimpleHttpResponse, byte[]> {
 
@@ -51,4 +54,7 @@ public final class SimpleResponseConsumer extends AbstractAsyncResponseConsumer<
         return simpleResponse;
     }
 
+    @Override
+    public void informationResponse(final HttpResponse response) throws HttpException, IOException {
+    }
 }
