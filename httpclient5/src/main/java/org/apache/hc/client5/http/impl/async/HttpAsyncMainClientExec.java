@@ -181,6 +181,7 @@ class HttpAsyncMainClientExec implements AsyncExecChainHandler {
             public void consumeInformation(
                     final HttpResponse response,
                     final HttpContext context) throws HttpException, IOException {
+                asyncExecCallback.handleInformationResponse(response);
             }
 
             @Override

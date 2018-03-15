@@ -194,6 +194,12 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
             }
 
             @Override
+            public void handleInformationResponse(
+                    final HttpResponse response) throws HttpException, IOException {
+                asyncExecCallback.handleInformationResponse(response);
+            }
+
+            @Override
             public void completed() {
                 if (!execRuntime.isEndpointConnected()) {
                     if (proxyAuthExchange.getState() == AuthExchange.State.SUCCESS

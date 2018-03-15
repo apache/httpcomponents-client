@@ -256,6 +256,12 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
                             }
 
                             @Override
+                            public void handleInformationResponse(
+                                    final HttpResponse response) throws HttpException, IOException {
+                                asyncExecCallback.handleInformationResponse(response);
+                            }
+
+                            @Override
                             public void completed() {
                                 if (log.isDebugEnabled()) {
                                     log.debug(exchangeId + ": tunnel to target created");
@@ -357,6 +363,10 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
                     return asyncExecCallback.handleResponse(response, entityDetails);
                 }
                 return null;
+            }
+
+            @Override
+            public void handleInformationResponse(final HttpResponse response) throws HttpException, IOException {
             }
 
             @Override
