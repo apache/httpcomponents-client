@@ -93,6 +93,11 @@ public final class AsyncRetryExec implements AsyncExecChainHandler {
             }
 
             @Override
+            public void handleInformationResponse(final HttpResponse response) throws HttpException, IOException {
+                asyncExecCallback.handleInformationResponse(response);
+            }
+
+            @Override
             public void completed() {
                 asyncExecCallback.completed();
             }
