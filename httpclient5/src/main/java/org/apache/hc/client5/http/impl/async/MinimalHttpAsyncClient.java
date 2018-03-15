@@ -47,10 +47,11 @@ import org.apache.hc.client5.http.nio.AsyncConnectionEndpoint;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.routing.RoutingSupport;
 import org.apache.hc.core5.concurrent.BasicFuture;
+import org.apache.hc.core5.concurrent.Cancellable;
+import org.apache.hc.core5.concurrent.ComplexCancellable;
 import org.apache.hc.core5.concurrent.ComplexFuture;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.function.Callback;
-import org.apache.hc.core5.function.Supplier;
 import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
@@ -209,12 +210,11 @@ public final class MinimalHttpAsyncClient extends AbstractMinimalHttpAsyncClient
     }
 
     @Override
-    <T> void execute(
+    public Cancellable execute(
             final AsyncClientExchangeHandler exchangeHandler,
-            final HttpContext context,
-            final ComplexFuture<T> resultFuture,
-            final Supplier<T> resultSupplier) {
+            final HttpContext context) {
         ensureRunning();
+        final ComplexCancellable cancellable = new ComplexCancellable();
         final HttpClientContext clientContext = HttpClientContext.adapt(context);
         try {
             exchangeHandler.produceRequest(new RequestChannel() {
@@ -331,7 +331,6 @@ public final class MinimalHttpAsyncClient extends AbstractMinimalHttpAsyncClient
                                                 if (messageCountDown.decrementAndGet() <= 0) {
                                                     endpoint.releaseAndReuse();
                                                 }
-                                                resultFuture.completed(resultSupplier.get());
                                             }
                                         }
 
@@ -351,7 +350,6 @@ public final class MinimalHttpAsyncClient extends AbstractMinimalHttpAsyncClient
                                                 endpoint.releaseAndReuse();
                                             }
                                             exchangeHandler.streamEnd(trailers);
-                                            resultFuture.completed(resultSupplier.get());
                                         }
 
                                     };
@@ -360,28 +358,31 @@ public final class MinimalHttpAsyncClient extends AbstractMinimalHttpAsyncClient
 
                                 @Override
                                 public void failed(final Exception ex) {
-                                    resultFuture.failed(ex);
+                                    exchangeHandler.failed(ex);
                                 }
 
                                 @Override
                                 public void cancelled() {
-                                    resultFuture.cancel();
+                                    exchangeHandler.cancel();
                                 }
 
                             });
-                    if (resultFuture != null) {
-                        resultFuture.setDependency(leaseFuture);
-                    }
+
+                    cancellable.setDependency(new Cancellable() {
+
+                        @Override
+                        public boolean cancel() {
+                            return leaseFuture.cancel(true);
+                        }
+
+                    });
                 }
             });
 
         } catch (final HttpException | IOException ex) {
-            try {
-                exchangeHandler.failed(ex);
-            } finally {
-                resultFuture.failed(ex);
-            }
+            exchangeHandler.failed(ex);
         }
+        return cancellable;
     }
 
     private class InternalAsyncClientEndpoint extends AsyncClientEndpoint {

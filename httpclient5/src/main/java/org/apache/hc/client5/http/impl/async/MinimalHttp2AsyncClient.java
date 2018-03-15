@@ -41,11 +41,11 @@ import org.apache.hc.client5.http.impl.ExecSupport;
 import org.apache.hc.client5.http.impl.classic.RequestFailedException;
 import org.apache.hc.client5.http.impl.nio.MultuhomeConnectionInitiator;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
-import org.apache.hc.core5.concurrent.ComplexFuture;
+import org.apache.hc.core5.concurrent.Cancellable;
+import org.apache.hc.core5.concurrent.ComplexCancellable;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.function.Callback;
 import org.apache.hc.core5.function.Resolver;
-import org.apache.hc.core5.function.Supplier;
 import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
@@ -110,12 +110,11 @@ public final class MinimalHttp2AsyncClient extends AbstractMinimalHttpAsyncClien
     }
 
     @Override
-    <T> void execute(
+    public Cancellable execute(
             final AsyncClientExchangeHandler exchangeHandler,
-            final HttpContext context,
-            final ComplexFuture<T> resultFuture,
-            final Supplier<T> resultSupplier) {
+            final HttpContext context) {
         ensureRunning();
+        final ComplexCancellable cancellable = new ComplexCancellable();
         final HttpClientContext clientContext = HttpClientContext.adapt(context);
         try {
             exchangeHandler.produceRequest(new RequestChannel() {
@@ -149,11 +148,7 @@ public final class MinimalHttp2AsyncClient extends AbstractMinimalHttpAsyncClien
 
                                 @Override
                                 public void failed(final Exception cause) {
-                                    try {
-                                        exchangeHandler.failed(cause);
-                                    } finally {
-                                        resultFuture.failed(cause);
-                                    }
+                                    exchangeHandler.failed(cause);
                                 }
 
                                 @Override
@@ -187,9 +182,6 @@ public final class MinimalHttp2AsyncClient extends AbstractMinimalHttpAsyncClien
                                 public void consumeResponse(
                                         final HttpResponse response, final EntityDetails entityDetails) throws HttpException, IOException {
                                     exchangeHandler.consumeResponse(response, entityDetails);
-                                    if (entityDetails == null) {
-                                        resultFuture.completed(resultSupplier.get());
-                                    }
                                 }
 
                                 @Override
@@ -205,7 +197,6 @@ public final class MinimalHttp2AsyncClient extends AbstractMinimalHttpAsyncClien
                                 @Override
                                 public void streamEnd(final List<? extends Header> trailers) throws HttpException, IOException {
                                     exchangeHandler.streamEnd(trailers);
-                                    resultFuture.completed(resultSupplier.get());
                                 }
 
                             };
@@ -214,9 +205,9 @@ public final class MinimalHttp2AsyncClient extends AbstractMinimalHttpAsyncClien
                                 log.debug(ConnPoolSupport.getId(session) + ": executing message exchange " + exchangeId);
                                 session.addLast(new ExecutionCommand(
                                         new LoggingAsyncClientExchangeHandler(log, exchangeId, internalExchangeHandler),
-                                        resultFuture, clientContext));
+                                        cancellable, clientContext));
                             } else {
-                                session.addLast(new ExecutionCommand(internalExchangeHandler, resultFuture, clientContext));
+                                session.addLast(new ExecutionCommand(internalExchangeHandler, cancellable, clientContext));
                             }
                         }
 
@@ -231,19 +222,21 @@ public final class MinimalHttp2AsyncClient extends AbstractMinimalHttpAsyncClien
                         }
 
                     });
-                    if (resultFuture != null) {
-                        resultFuture.setDependency(sessionFuture);
-                    }
+                    cancellable.setDependency(new Cancellable() {
+
+                        @Override
+                        public boolean cancel() {
+                            return sessionFuture.cancel(true);
+                        }
+
+                    });
                 }
 
             });
         } catch (final HttpException | IOException ex) {
-            try {
-                exchangeHandler.failed(ex);
-            } finally {
-                resultFuture.failed(ex);
-            }
+            exchangeHandler.failed(ex);
         }
+        return cancellable;
     }
 
 }
