@@ -37,6 +37,8 @@ public interface AsyncExecCallback {
 
     AsyncDataConsumer handleResponse(HttpResponse response, EntityDetails entityDetails) throws HttpException, IOException;
 
+    void handleInformationResponse(HttpResponse response) throws HttpException, IOException;
+
     void completed();
 
     void failed(Exception cause);
