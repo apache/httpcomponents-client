@@ -58,14 +58,19 @@ class ConditionalRequestBuilder {
             throws ProtocolException {
         final HttpRequestWrapper newRequest = HttpRequestWrapper.wrap(request.getOriginal());
         newRequest.setHeaders(request.getAllHeaders());
-        final Header eTag = cacheEntry.getFirstHeader(HeaderConstants.ETAG);
-        if (eTag != null) {
-            newRequest.setHeader(HeaderConstants.IF_NONE_MATCH, eTag.getValue());
+
+        final boolean allowServerSideCache = allowServerSideCache(cacheEntry);
+        if (allowServerSideCache) {
+            final Header eTag = cacheEntry.getFirstHeader(HeaderConstants.ETAG);
+            if (eTag != null) {
+                newRequest.setHeader(HeaderConstants.IF_NONE_MATCH, eTag.getValue());
+            }
+            final Header lastModified = cacheEntry.getFirstHeader(HeaderConstants.LAST_MODIFIED);
+            if (lastModified != null) {
+                newRequest.setHeader(HeaderConstants.IF_MODIFIED_SINCE, lastModified.getValue());
+            }
         }
-        final Header lastModified = cacheEntry.getFirstHeader(HeaderConstants.LAST_MODIFIED);
-        if (lastModified != null) {
-            newRequest.setHeader(HeaderConstants.IF_MODIFIED_SINCE, lastModified.getValue());
-        }
+
         boolean mustRevalidate = false;
         for(final Header h : cacheEntry.getHeaders(HeaderConstants.CACHE_CONTROL)) {
             for(final HeaderElement elt : h.getElements()) {
@@ -81,6 +86,18 @@ class ConditionalRequestBuilder {
         }
         return newRequest;
 
+    }
+
+    /**
+     * When a {@link HttpCacheEntry} has a {@link Resource} we consider the
+     * entry to be cachable. An entry with a missing {@link Resource} might stem
+     * from a HEAD request, so we should ignore the entry.
+     * @param cacheEntry the entry that should have a {@link Resource}
+     * @return false, when the {@link HttpCacheEntry}'s {@link Resource} is missing.
+     * true, otherwise.
+     */
+    private boolean allowServerSideCache(final HttpCacheEntry cacheEntry) {
+        return cacheEntry.getResource() != null;
     }
 
     /**

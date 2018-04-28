@@ -150,6 +150,38 @@ public class TestConditionalRequestBuilder {
     }
 
     @Test
+    public void testBuildConditionalRequestFromHeadCacheEntry() throws ProtocolException {
+        final String theMethod = "GET";
+        final String theUri = "/theuri";
+        final String theETag = "this is my eTag";
+
+        final HttpRequest basicRequest = new BasicHttpRequest(theMethod, theUri);
+        basicRequest.addHeader("Accept-Encoding", "gzip");
+        final HttpRequestWrapper requestWrapper = HttpRequestWrapper.wrap(basicRequest);
+
+        final Header[] headers = new Header[] {
+                new BasicHeader("Date", DateUtils.formatDate(new Date())),
+                new BasicHeader("Last-Modified", DateUtils.formatDate(new Date())),
+                new BasicHeader("ETag", theETag) };
+
+        final HttpCacheEntry cacheEntry = HttpTestUtils.makeHeadCacheEntry(headers);
+
+        final HttpRequest newRequest = impl.buildConditionalRequest(requestWrapper, cacheEntry);
+
+        Assert.assertNotSame(basicRequest, newRequest);
+
+        Assert.assertEquals(theMethod, newRequest.getRequestLine().getMethod());
+        Assert.assertEquals(theUri, newRequest.getRequestLine().getUri());
+        Assert.assertEquals(basicRequest.getRequestLine().getProtocolVersion(),
+                            newRequest.getRequestLine().getProtocolVersion());
+
+        Assert.assertEquals(1, newRequest.getAllHeaders().length);
+
+        Assert.assertEquals("Accept-Encoding", newRequest.getAllHeaders()[0].getName());
+        Assert.assertEquals("gzip", newRequest.getAllHeaders()[0].getValue());
+    }
+
+    @Test
     public void testCacheEntryWithMustRevalidateDoesEndToEndRevalidation() throws Exception {
         final HttpRequest basicRequest = new BasicHttpRequest("GET","/",HttpVersion.HTTP_1_1);
         final HttpRequestWrapper requestWrapper = HttpRequestWrapper.wrap(basicRequest);
