@@ -62,11 +62,11 @@ public class AsyncClientHttp2Multiplexing {
 
         client.start();
 
-        final HttpHost target = new HttpHost("http2bin.org");
+        final HttpHost target = new HttpHost("nghttp2.org");
         final Future<AsyncClientEndpoint> leaseFuture = client.lease(target, null);
         final AsyncClientEndpoint endpoint = leaseFuture.get(30, TimeUnit.SECONDS);
         try {
-            final String[] requestUris = new String[] {"/", "/ip", "/user-agent", "/headers"};
+            final String[] requestUris = new String[] {"/httpbin/ip", "/httpbin/user-agent", "/httpbin/headers"};
 
             final CountDownLatch latch = new CountDownLatch(requestUris.length);
             for (final String requestUri: requestUris) {

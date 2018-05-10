@@ -26,11 +26,8 @@
  */
 package org.apache.hc.client5.http.examples;
 
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
 import java.util.concurrent.Future;
 
-import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
 
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
@@ -49,7 +46,6 @@ import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
 import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.apache.hc.core5.io.ShutdownType;
 import org.apache.hc.core5.ssl.SSLContexts;
-import org.apache.hc.core5.ssl.TrustStrategy;
 
 /**
  * This example demonstrates how to avoid the illegal reflective access operation warning
@@ -58,22 +54,8 @@ import org.apache.hc.core5.ssl.TrustStrategy;
 public class AsyncClientTlsAlpn {
 
     public final static void main(final String[] args) throws Exception {
-        // Trust standard CA and those trusted by our custom strategy
-        final SSLContext sslcontext = SSLContexts.custom()
-                .loadTrustMaterial(new TrustStrategy() {
-
-                    @Override
-                    public boolean isTrusted(
-                            final X509Certificate[] chain,
-                            final String authType) throws CertificateException {
-                        final X509Certificate cert = chain[0];
-                        return "CN=http2bin.org".equalsIgnoreCase(cert.getSubjectDN().getName());
-                    }
-
-                })
-                .build();
         final TlsStrategy tlsStrategy = new H2TlsStrategy(
-                sslcontext,
+                SSLContexts.createSystemDefault(),
                 H2TlsStrategy.getDefaultHostnameVerifier()) {
 
             // IMPORTANT uncomment the following method when running Java 9 or older
@@ -94,8 +76,8 @@ public class AsyncClientTlsAlpn {
 
             client.start();
 
-            final HttpHost target = new HttpHost("http2bin.org", 443, "https");
-            final String requestUri = "/";
+            final HttpHost target = new HttpHost("nghttp2.org", 443, "https");
+            final String requestUri = "/httpbin/";
             final HttpClientContext clientContext = HttpClientContext.create();
 
             final SimpleHttpRequest request = SimpleHttpRequest.get(target, requestUri);

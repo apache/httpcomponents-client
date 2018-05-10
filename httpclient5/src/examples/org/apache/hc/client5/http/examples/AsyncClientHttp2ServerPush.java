@@ -114,8 +114,8 @@ public class AsyncClientHttp2ServerPush {
 
         });
 
-        final HttpHost target = new HttpHost("http2bin.org");
-        final String requestURI = "/";
+        final HttpHost target = new HttpHost("nghttp2.org");
+        final String requestURI = "/httpbin/";
         final Future<Void> future = client.execute(
                 AsyncRequestBuilder.get(target, requestURI).build(),
                 new AbstractCharResponseConsumer<Void>() {

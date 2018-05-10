@@ -70,7 +70,7 @@ public class AsyncClientHttp2FullDuplexExchange {
 
         client.start();
 
-        final URI requestUri = new URI("http://http2bin.org/post");
+        final URI requestUri = new URI("http://nghttp2.org/httpbin/post");
         final BasicRequestProducer requestProducer = new BasicRequestProducer(
                 "POST", requestUri, new BasicAsyncEntityProducer("stuff", ContentType.TEXT_PLAIN));
         final BasicResponseConsumer<String> responseConsumer = new BasicResponseConsumer<>(
