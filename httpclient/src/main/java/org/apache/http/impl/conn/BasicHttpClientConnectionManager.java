@@ -157,7 +157,9 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
 
     @Override
     public void close() {
-        shutdown();
+        if (this.isShutdown.compareAndSet(false, true)) {
+            closeConnection();
+        }
     }
 
     HttpRoute getRoute() {
@@ -206,7 +208,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
         };
     }
 
-    private void closeConnection() {
+    private synchronized void closeConnection() {
         if (this.conn != null) {
             this.log.debug("Closing connection");
             try {
@@ -214,20 +216,6 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
             } catch (final IOException iox) {
                 if (this.log.isDebugEnabled()) {
                     this.log.debug("I/O exception closing connection", iox);
-                }
-            }
-            this.conn = null;
-        }
-    }
-
-    private void shutdownConnection() {
-        if (this.conn != null) {
-            this.log.debug("Shutting down connection");
-            try {
-                this.conn.shutdown();
-            } catch (final IOException iox) {
-                if (this.log.isDebugEnabled()) {
-                    this.log.debug("I/O exception shutting down connection", iox);
                 }
             }
             this.conn = null;
@@ -373,10 +361,8 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
     }
 
     @Override
-    public synchronized void shutdown() {
-        if (this.isShutdown.compareAndSet(false, true)) {
-            shutdownConnection();
-        }
+    public void shutdown() {
+        close();
     }
 
 }
