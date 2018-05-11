@@ -278,7 +278,7 @@ public class TestBasicHttpClientConnectionManager {
 
         mgr.shutdown();
 
-        Mockito.verify(conn, Mockito.times(1)).shutdown();
+        Mockito.verify(conn, Mockito.times(1)).close();
 
         try {
             final ConnectionRequest connRequest2 = mgr.requestConnection(route, null);
@@ -292,7 +292,7 @@ public class TestBasicHttpClientConnectionManager {
         mgr.closeIdleConnections(0L, TimeUnit.MILLISECONDS);
         mgr.shutdown();
 
-        Mockito.verify(conn, Mockito.times(1)).shutdown();
+        Mockito.verify(conn, Mockito.times(1)).close();
     }
 
     @Test

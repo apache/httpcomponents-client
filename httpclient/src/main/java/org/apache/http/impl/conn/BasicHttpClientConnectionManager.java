@@ -157,7 +157,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
 
     @Override
     public void close() {
-        shutdown();
+        closeConnection();
     }
 
     HttpRoute getRoute() {
@@ -375,7 +375,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
     @Override
     public synchronized void shutdown() {
         if (this.isShutdown.compareAndSet(false, true)) {
-            shutdownConnection();
+            closeConnection();
         }
     }
 
