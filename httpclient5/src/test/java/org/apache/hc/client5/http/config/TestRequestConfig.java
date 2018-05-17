@@ -64,7 +64,7 @@ public class TestRequestConfig {
     @Test
     public void testBuildAndCopy() throws Exception {
         final RequestConfig config0 = RequestConfig.custom()
-                .setConnectTimeout(33, TimeUnit.MILLISECONDS)
+                .setConnectionTimeout(33, TimeUnit.MILLISECONDS)
                 .setConnectionRequestTimeout(44, TimeUnit.MILLISECONDS)
                 .setExpectContinueEnabled(true)
                 .setAuthenticationEnabled(false)
