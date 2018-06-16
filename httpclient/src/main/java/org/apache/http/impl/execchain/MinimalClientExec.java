@@ -247,6 +247,9 @@ public class MinimalClientExec implements ClientExecChain {
         } catch (final RuntimeException ex) {
             releaseTrigger.abortConnection();
             throw ex;
+        } catch (final Error error) {
+            connManager.shutdown();
+            throw error;
         }
     }
 

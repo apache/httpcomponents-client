@@ -355,6 +355,9 @@ public class MainClientExec implements ClientExecChain {
         } catch (final RuntimeException ex) {
             connHolder.abortConnection();
             throw ex;
+        } catch (final Error error) {
+            connManager.shutdown();
+            throw error;
         }
     }
 
