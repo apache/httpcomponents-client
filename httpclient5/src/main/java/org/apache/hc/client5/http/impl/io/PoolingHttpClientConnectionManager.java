@@ -222,10 +222,17 @@ public class PoolingHttpClientConnectionManager
 
     @Override
     public void close() {
+        shutdown(ShutdownType.GRACEFUL);
+    }
+
+    @Override
+    public void shutdown(final ShutdownType shutdownType) {
         if (this.closed.compareAndSet(false, true)) {
-            this.log.debug("Connection manager is shutting down");
-            this.pool.shutdown(ShutdownType.GRACEFUL);
-            this.log.debug("Connection manager shut down");
+            if (this.log.isDebugEnabled()) {
+                this.log.debug("Shutdown connection pool " + shutdownType);
+            }
+            this.pool.shutdown(shutdownType);
+            this.log.debug("Connection pool shut down");
         }
     }
 

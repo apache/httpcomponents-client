@@ -188,10 +188,17 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
 
     @Override
     public void close() {
-        if (closed.compareAndSet(false, true)) {
-            log.debug("Connection manager is shutting down");
-            pool.shutdown(ShutdownType.GRACEFUL);
-            log.debug("Connection manager shut down");
+        shutdown(ShutdownType.GRACEFUL);
+    }
+
+    @Override
+    public void shutdown(final ShutdownType shutdownType) {
+        if (this.closed.compareAndSet(false, true)) {
+            if (this.log.isDebugEnabled()) {
+                this.log.debug("Shutdown connection pool " + shutdownType);
+            }
+            this.pool.shutdown(shutdownType);
+            this.log.debug("Connection pool shut down");
         }
     }
 
