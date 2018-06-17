@@ -38,6 +38,7 @@ import org.apache.hc.client5.http.classic.ExecRuntime;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.entity.EntityBuilder;
 import org.apache.hc.client5.http.impl.ConnectionShutdownException;
+import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
@@ -59,6 +60,8 @@ import org.mockito.stubbing.Answer;
 public class TestMainClientExec {
 
     @Mock
+    private HttpClientConnectionManager connectionManager;
+    @Mock
     private ConnectionReuseStrategy reuseStrategy;
     @Mock
     private ConnectionKeepAliveStrategy keepAliveStrategy;
@@ -73,7 +76,7 @@ public class TestMainClientExec {
     @Before
     public void setup() throws Exception {
         MockitoAnnotations.initMocks(this);
-        mainClientExec = new MainClientExec(reuseStrategy, keepAliveStrategy, userTokenHandler);
+        mainClientExec = new MainClientExec(connectionManager, reuseStrategy, keepAliveStrategy, userTokenHandler);
         target = new HttpHost("foo", 80);
     }
 

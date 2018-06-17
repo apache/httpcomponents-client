@@ -61,6 +61,7 @@ import org.apache.hc.core5.http.protocol.HttpProcessor;
 import org.apache.hc.core5.http.protocol.RequestContent;
 import org.apache.hc.core5.http.protocol.RequestTargetHost;
 import org.apache.hc.core5.http.protocol.RequestUserAgent;
+import org.apache.hc.core5.io.ShutdownType;
 import org.apache.hc.core5.net.URIAuthority;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.VersionInfo;
@@ -159,12 +160,15 @@ public class MinimalHttpClient extends CloseableHttpClient {
             ioex.initCause(ex);
             execRuntime.discardConnection();
             throw ioex;
-        } catch (final RuntimeException | IOException ex) {
-            execRuntime.discardConnection();
-            throw ex;
         } catch (final HttpException httpException) {
             execRuntime.discardConnection();
             throw new ClientProtocolException(httpException);
+        } catch (final RuntimeException | IOException ex) {
+            execRuntime.discardConnection();
+            throw ex;
+        } catch (final Error error) {
+            connManager.shutdown(ShutdownType.IMMEDIATE);
+            throw error;
         }
     }
 
