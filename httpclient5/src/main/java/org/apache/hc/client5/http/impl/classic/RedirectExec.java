@@ -35,7 +35,6 @@ import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.RedirectException;
 import org.apache.hc.client5.http.StandardMethods;
 import org.apache.hc.client5.http.auth.AuthExchange;
-import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecChainHandler;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
@@ -170,8 +169,7 @@ final class RedirectExec implements ExecChainHandler {
                             targetAuthExchange.reset();
                             if (currentRoute.getProxyHost() != null) {
                                 final AuthExchange proxyAuthExchange = context.getAuthExchange(currentRoute.getProxyHost());
-                                final AuthScheme authScheme = proxyAuthExchange.getAuthScheme();
-                                if (authScheme != null && authScheme.isConnectionBased()) {
+                                if (proxyAuthExchange.isConnectionBased()) {
                                     this.log.debug("Resetting proxy auth state");
                                     proxyAuthExchange.reset();
                                 }

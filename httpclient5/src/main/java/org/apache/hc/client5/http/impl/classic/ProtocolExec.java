@@ -109,9 +109,12 @@ final class ProtocolExec implements ExecChainHandler {
         final HttpClientContext context = scope.clientContext;
         final ExecRuntime execRuntime = scope.execRuntime;
 
+        final HttpHost target = route.getTargetHost();
+        final HttpHost proxy = route.getProxyHost();
+        final AuthExchange targetAuthExchange = context.getAuthExchange(target);
+        final AuthExchange proxyAuthExchange = proxy != null ? context.getAuthExchange(proxy) : new AuthExchange();
+
         try {
-            final HttpHost target = route.getTargetHost();
-            final HttpHost proxy = route.getProxyHost();
             if (proxy != null && !route.isTunnelled()) {
                 try {
                     URI uri = request.getUri();
@@ -134,8 +137,6 @@ final class ProtocolExec implements ExecChainHandler {
                 }
             }
 
-            final AuthExchange targetAuthExchange = context.getAuthExchange(target);
-            final AuthExchange proxyAuthExchange = proxy != null ? context.getAuthExchange(proxy) : new AuthExchange();
 
             for (;;) {
 
@@ -180,14 +181,12 @@ final class ProtocolExec implements ExecChainHandler {
                     } else {
                         execRuntime.disconnect();
                         if (proxyAuthExchange.getState() == AuthExchange.State.SUCCESS
-                                && proxyAuthExchange.getAuthScheme() != null
-                                && proxyAuthExchange.getAuthScheme().isConnectionBased()) {
+                                && proxyAuthExchange.isConnectionBased()) {
                             log.debug("Resetting proxy auth state");
                             proxyAuthExchange.reset();
                         }
                         if (targetAuthExchange.getState() == AuthExchange.State.SUCCESS
-                                && targetAuthExchange.getAuthScheme() != null
-                                && targetAuthExchange.getAuthScheme().isConnectionBased()) {
+                                && targetAuthExchange.isConnectionBased()) {
                             log.debug("Resetting target auth state");
                             targetAuthExchange.reset();
                         }
@@ -202,8 +201,17 @@ final class ProtocolExec implements ExecChainHandler {
                     return response;
                 }
             }
-        } catch (final RuntimeException | HttpException | IOException ex) {
+        } catch (final HttpException ex) {
             execRuntime.discardConnection();
+            throw ex;
+        } catch (final RuntimeException | IOException ex) {
+            execRuntime.discardConnection();
+            if (proxyAuthExchange.isConnectionBased()) {
+                proxyAuthExchange.reset();
+            }
+            if (targetAuthExchange.isConnectionBased()) {
+                targetAuthExchange.reset();
+            }
             throw ex;
         }
     }

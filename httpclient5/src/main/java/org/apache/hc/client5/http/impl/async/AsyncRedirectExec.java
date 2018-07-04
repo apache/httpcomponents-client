@@ -37,7 +37,6 @@ import org.apache.hc.client5.http.async.AsyncExecCallback;
 import org.apache.hc.client5.http.async.AsyncExecChain;
 import org.apache.hc.client5.http.async.AsyncExecChainHandler;
 import org.apache.hc.client5.http.auth.AuthExchange;
-import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.protocol.RedirectLocations;
@@ -153,8 +152,7 @@ class AsyncRedirectExec implements AsyncExecChainHandler {
                             targetAuthExchange.reset();
                             if (currentRoute.getProxyHost() != null) {
                                 final AuthExchange proxyAuthExchange = clientContext.getAuthExchange(currentRoute.getProxyHost());
-                                final AuthScheme authScheme = proxyAuthExchange.getAuthScheme();
-                                if (authScheme != null && authScheme.isConnectionBased()) {
+                                if (proxyAuthExchange.isConnectionBased()) {
                                     log.debug("Resetting proxy auth state");
                                     proxyAuthExchange.reset();
                                 }
