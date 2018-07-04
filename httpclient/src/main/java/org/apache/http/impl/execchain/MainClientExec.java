@@ -299,14 +299,12 @@ public class MainClientExec implements ClientExecChain {
                     } else {
                         managedConn.close();
                         if (proxyAuthState.getState() == AuthProtocolState.SUCCESS
-                                && proxyAuthState.getAuthScheme() != null
-                                && proxyAuthState.getAuthScheme().isConnectionBased()) {
+                                && proxyAuthState.isConnectionBased()) {
                             this.log.debug("Resetting proxy auth state");
                             proxyAuthState.reset();
                         }
                         if (targetAuthState.getState() == AuthProtocolState.SUCCESS
-                                && targetAuthState.getAuthScheme() != null
-                                && targetAuthState.getAuthScheme().isConnectionBased()) {
+                                && targetAuthState.isConnectionBased()) {
                             this.log.debug("Resetting target auth state");
                             targetAuthState.reset();
                         }
@@ -351,9 +349,21 @@ public class MainClientExec implements ClientExecChain {
             throw ex;
         } catch (final IOException ex) {
             connHolder.abortConnection();
+            if (proxyAuthState.isConnectionBased()) {
+                proxyAuthState.reset();
+            }
+            if (targetAuthState.isConnectionBased()) {
+                targetAuthState.reset();
+            }
             throw ex;
         } catch (final RuntimeException ex) {
             connHolder.abortConnection();
+            if (proxyAuthState.isConnectionBased()) {
+                proxyAuthState.reset();
+            }
+            if (targetAuthState.isConnectionBased()) {
+                targetAuthState.reset();
+            }
             throw ex;
         } catch (final Error error) {
             connManager.shutdown();

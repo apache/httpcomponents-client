@@ -134,6 +134,15 @@ public class AuthState {
     }
 
     /**
+     * Returns {@code true} if the actual authentication scheme is connection based.
+     *
+     * @since 4.5.6
+     */
+    public boolean isConnectionBased() {
+        return this.authScheme != null && this.authScheme.isConnectionBased();
+    }
+
+    /**
      * Updates the auth state with a queue of {@link AuthOption}s.
      *
      * @param authOptions a queue of auth options. May not be null or empty.

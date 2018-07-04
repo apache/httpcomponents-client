@@ -40,7 +40,6 @@ import org.apache.http.HttpRequest;
 import org.apache.http.ProtocolException;
 import org.apache.http.annotation.Contract;
 import org.apache.http.annotation.ThreadingBehavior;
-import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthState;
 import org.apache.http.client.RedirectException;
 import org.apache.http.client.RedirectStrategy;
@@ -146,12 +145,9 @@ public class RedirectExec implements ClientExecChain {
                             targetAuthState.reset();
                         }
                         final AuthState proxyAuthState = context.getProxyAuthState();
-                        if (proxyAuthState != null) {
-                            final AuthScheme authScheme = proxyAuthState.getAuthScheme();
-                            if (authScheme != null && authScheme.isConnectionBased()) {
-                                this.log.debug("Resetting proxy auth state");
-                                proxyAuthState.reset();
-                            }
+                        if (proxyAuthState != null && proxyAuthState.isConnectionBased()) {
+                            this.log.debug("Resetting proxy auth state");
+                            proxyAuthState.reset();
                         }
                     }
 
