@@ -1,14 +1,40 @@
 Release 4.5.6
 -------------------
 
-HttpClient 4.5.6 (GA) is a maintenance release.
+This is a maintenance release that adds Automatic-Module-Name to the manifest for compatibility
+with Java 9 Platform Module System and fixes a number of issues discovered since 4.5.5
 
 Please note that as of 4.4 HttpClient requires Java 1.6 or newer.
 
 Changelog:
 -------------------
 
-* [HTTPCLIENT-1911]: Failing tests on Fedora 28 due to weak encryption algorithms in test keystore.
+* [HTTPCLIENT-1882=: reset authentication state on I/O or runtime error for connection based
+  authentication schemes (such as NTLM)
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* [HTTPCLIENT-1924]: HttpClient to shut down the connection manager if a fatal error occurs
+  in the course of a request execution.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Add Automatic-Module-Name in manifest so Java9 modular applications can depend on this library
+  Contributed by Varun Nandi <varunkn at amazon.com>
+
+* [HTTPCLIENT-1923]: fixed incorrect connection close on shutdown + fixed corresponding test
+  Contributed by Aleksei Arsenev <aarseniev at yandex-team.ru>
+
+* [HTTPCLIENT-1906]: certificates containing alternative subject names other than DNS and IP
+  (such as RFC822) get rejected as invalid
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* [HTTPCLIENT-1904]: check cookie domain for null
+  Contributed by Hans-Peter Keck <hans-peter.keck at haufe-lexware.com>
+
+* [HTTPCLIENT-1900]: proxy protocol processor does not post-process CONNECT response messages
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* [HTTPCLIENT-1911]: Failing tests on Fedora 28 due to weak encryption algorithms in test
+  keystore.
   Contributed by Gary Gregory <ggregory at apache.org> and Michael Simacek <msimacek at redhat dot com>
 
 
