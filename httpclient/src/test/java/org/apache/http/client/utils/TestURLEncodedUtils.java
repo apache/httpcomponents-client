@@ -95,6 +95,11 @@ public class TestURLEncodedUtils {
         result = parse("price=10%20%E2%82%AC");
         Assert.assertEquals(1, result.size());
         assertNameValuePair(result.get(0), "price", "10 \u20AC");
+
+        result = parse("a=b\"c&d=e");
+        Assert.assertEquals(2, result.size());
+        assertNameValuePair(result.get(0), "a", "b\"c");
+        assertNameValuePair(result.get(1), "d", "e");
     }
 
     @Test

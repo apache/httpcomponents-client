@@ -305,7 +305,7 @@ public class URLEncodedUtils {
                 cursor.updatePos(cursor.getPos() + 1);
                 if (delim == '=') {
                     delimSet.clear('=');
-                    value = tokenParser.parseValue(buf, cursor, delimSet);
+                    value = tokenParser.parseToken(buf, cursor, delimSet);
                     if (!cursor.atEnd()) {
                         cursor.updatePos(cursor.getPos() + 1);
                     }
