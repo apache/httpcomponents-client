@@ -95,7 +95,7 @@
             <configuration>
               <archive combine.children="append">
                 <manifestEntries>
-                  <Automatic-Module-Name>org.apache.httpcomponents.fluent-hc</Automatic-Module-Name>
+                  <Automatic-Module-Name>org.apache.httpcomponents.httpclient.fluent</Automatic-Module-Name>
                 </manifestEntries>
               </archive>
             </configuration>

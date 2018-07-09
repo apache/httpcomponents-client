@@ -142,7 +142,7 @@
             <configuration>
               <archive combine.children="append">
                 <manifestEntries>
-                  <Automatic-Module-Name>org.apache.httpcomponents.httpclient-cache</Automatic-Module-Name>
+                  <Automatic-Module-Name>org.apache.httpcomponents.httpclient.cache</Automatic-Module-Name>
                 </manifestEntries>
               </archive>
             </configuration>
