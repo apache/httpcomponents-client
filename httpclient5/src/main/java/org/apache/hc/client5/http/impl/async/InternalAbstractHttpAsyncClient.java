@@ -138,7 +138,7 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
             final HttpContext context,
             final FutureCallback<T> callback) {
         ensureRunning();
-        final ComplexFuture<T> future = new ComplexFuture<>(callback);
+        final ComplexFuture<T> future = new ComplexFuture<>(new IgnoreCompelteExceptonFutureCallback<T>(callback){});
         try {
             final HttpClientContext clientContext = HttpClientContext.adapt(context);
             requestProducer.sendRequest(new RequestChannel() {

@@ -55,7 +55,7 @@ abstract class AbstractMinimalHttpAsyncClientBase extends AbstractHttpAsyncClien
             final AsyncResponseConsumer<T> responseConsumer,
             final HttpContext context,
             final FutureCallback<T> callback) {
-        final ComplexFuture<T> future = new ComplexFuture<>(callback);
+        final ComplexFuture<T> future = new ComplexFuture<>(new IgnoreCompelteExceptonFutureCallback<T>(callback){});
         future.setDependency(execute(new BasicClientExchangeHandler<>(
                 requestProducer,
                 responseConsumer,
