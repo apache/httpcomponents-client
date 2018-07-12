@@ -141,7 +141,7 @@ public class URLEncodedUtils {
         } finally {
             instream.close();
         }
-        if (buf.length() == 0) {
+        if (buf.isEmpty()) {
             return createEmptyList();
         }
         return parse(buf, charset, QP_SEP_A);
