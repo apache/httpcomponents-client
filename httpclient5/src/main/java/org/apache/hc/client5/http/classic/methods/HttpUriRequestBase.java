@@ -58,9 +58,8 @@ public class HttpUriRequestBase extends BasicClassicHttpRequest implements Cance
                 cancellable.cancel();
             }
             return true;
-        } else {
-            return false;
         }
+        return false;
     }
 
     @Override

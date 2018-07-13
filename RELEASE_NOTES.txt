@@ -7,7 +7,12 @@ Changelog:
 * HTTPCLIENT-1898: Incorrect comment in example class ClientMultiThreadedExecution.java
   Contributed by Ulrich Romahn <ulrich at ulrichromahn dot net>
    
-
+* HTTPCLIENT-1931: Add factory enum org.apache.hc.client5.http.classic.methods.ClassicHttpRequests
+  Contributed by Gary Gregory <ggregory at apache.org>
+  
+* HTTPCLIENT-1932: Add factory enum org.apache.hc.client5.http.async.methods.HttpRequests
+  Contributed by Gary Gregory <ggregory at apache.org>
+  
 Release 5.0-BETA1
 -------------------
 

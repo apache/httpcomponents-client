@@ -60,11 +60,20 @@ public class HttpOptions extends HttpUriRequestBase {
 
     public final static String METHOD_NAME = "OPTIONS";
 
+    /**
+     * Creates a new instance initialized with the given URI.
+     *
+     * @param uri a non-null request URI.
+     * @throws IllegalArgumentException if the uri is null.
+     */
     public HttpOptions(final URI uri) {
         super(METHOD_NAME, uri);
     }
 
     /**
+     * Creates a new instance initialized with the given URI.
+     *
+     * @param uri a non-null request URI.
      * @throws IllegalArgumentException if the uri is invalid.
      */
     public HttpOptions(final String uri) {
