@@ -29,7 +29,6 @@ package org.apache.hc.client5.http.classic.methods;
 
 import java.net.URI;
 
-import org.apache.hc.core5.http.ClassicHttpRequest;
 
 /**
  * HTTP methods defined in RFC2616.
@@ -40,78 +39,78 @@ public enum ClassicHttpRequests {
 
     DELETE {
         @Override
-        public ClassicHttpRequest create(final URI uri) {
+        public HttpUriRequestBase create(final URI uri) {
             return new HttpDelete(uri);
         }
     },
 
     GET {
         @Override
-        public ClassicHttpRequest create(final URI uri) {
+        public HttpUriRequestBase create(final URI uri) {
             return new HttpGet(uri);
         }
     },
 
     HEAD {
         @Override
-        public ClassicHttpRequest create(final URI uri) {
+        public HttpUriRequestBase create(final URI uri) {
             return new HttpHead(uri);
         }
     },
 
     OPTIONS {
         @Override
-        public ClassicHttpRequest create(final URI uri) {
+        public HttpUriRequestBase create(final URI uri) {
             return new HttpOptions(uri);
         }
     },
 
     PATCH {
         @Override
-        public ClassicHttpRequest create(final URI uri) {
+        public HttpUriRequestBase create(final URI uri) {
             return new HttpPatch(uri);
         }
     },
 
     POST {
         @Override
-        public ClassicHttpRequest create(final URI uri) {
+        public HttpUriRequestBase create(final URI uri) {
             return new HttpPost(uri);
         }
     },
 
     PUT {
         @Override
-        public ClassicHttpRequest create(final URI uri) {
+        public HttpUriRequestBase create(final URI uri) {
             return new HttpPut(uri);
         }
     },
 
     TRACE {
         @Override
-        public ClassicHttpRequest create(final URI uri) {
+        public HttpUriRequestBase create(final URI uri) {
             return new HttpTrace(uri);
         }
     };
 
     /**
-     * Creates a request object of the exact subclass of {@link ClassicHttpRequest}.
+     * Creates a request object of the exact subclass of {@link HttpUriRequestBase}.
      *
      * @param uri
      *            a non-null URI String.
      * @return a new subclass of HttpUriRequestBase
      */
-    public ClassicHttpRequest create(final String uri) {
+    public HttpUriRequestBase create(final String uri) {
         return create(URI.create(uri));
     }
 
     /**
-     * Creates a request object of the exact subclass of {@link ClassicHttpRequest}.
+     * Creates a request object of the exact subclass of {@link HttpUriRequestBase}.
      *
      * @param uri
      *            a non-null URI.
      * @return a new subclass of HttpUriRequestBase
      */
-    public abstract ClassicHttpRequest create(URI uri);
+    public abstract HttpUriRequestBase create(URI uri);
 
 }

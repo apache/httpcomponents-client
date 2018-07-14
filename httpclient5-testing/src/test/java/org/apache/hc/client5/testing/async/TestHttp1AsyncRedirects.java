@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.concurrent.Future;
 
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
+import org.apache.hc.client5.http.async.methods.SimpleHttpRequests;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
@@ -182,7 +183,7 @@ public class TestHttp1AsyncRedirects extends AbstractHttpAsyncRedirectsTest<Clos
 
         final HttpClientContext context = HttpClientContext.create();
         final Future<SimpleHttpResponse> future = httpclient.execute(
-                SimpleHttpRequest.get(target, "/oldlocation/"), context, null);
+                SimpleHttpRequests.GET.create(target, "/oldlocation/"), context, null);
         final HttpResponse response = future.get();
         Assert.assertNotNull(response);
 
@@ -206,7 +207,7 @@ public class TestHttp1AsyncRedirects extends AbstractHttpAsyncRedirectsTest<Clos
         final HttpHost target = start();
         final HttpClientContext context = HttpClientContext.create();
         final Future<SimpleHttpResponse> future = httpclient.execute(
-                SimpleHttpRequest.get(target, "/oldlocation/"), context, null);
+                SimpleHttpRequests.GET.create(target, "/oldlocation/"), context, null);
         final HttpResponse response = future.get();
         Assert.assertNotNull(response);
 
@@ -237,7 +238,7 @@ public class TestHttp1AsyncRedirects extends AbstractHttpAsyncRedirectsTest<Clos
         final HttpClientContext context = HttpClientContext.create();
 
         final Future<SimpleHttpResponse> future = httpclient.execute(
-                SimpleHttpRequest.get(target, "/oldlocation/"), context, null);
+                SimpleHttpRequests.GET.create(target, "/oldlocation/"), context, null);
         final HttpResponse response = future.get();
         Assert.assertNotNull(response);
 

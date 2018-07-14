@@ -31,6 +31,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
+import org.apache.hc.client5.http.async.methods.SimpleHttpRequests;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.async.methods.SimpleRequestProducer;
 import org.apache.hc.client5.http.async.methods.SimpleResponseConsumer;
@@ -69,7 +70,7 @@ public class AsyncClientHttp1Pipelining {
 
             final CountDownLatch latch = new CountDownLatch(requestUris.length);
             for (final String requestUri: requestUris) {
-                final SimpleHttpRequest request = SimpleHttpRequest.get(target, requestUri);
+                final SimpleHttpRequest request = SimpleHttpRequests.GET.create(target, requestUri);
                 endpoint.execute(
                         SimpleRequestProducer.create(request),
                         SimpleResponseConsumer.create(),

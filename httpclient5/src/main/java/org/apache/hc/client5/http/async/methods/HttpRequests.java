@@ -30,6 +30,7 @@ package org.apache.hc.client5.http.async.methods;
 import java.net.URI;
 
 import org.apache.hc.client5.http.StandardMethods;
+import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
 
 /**
@@ -44,12 +45,22 @@ public enum HttpRequests {
         public BasicHttpRequest create(final URI uri) {
             return new BasicHttpRequest(StandardMethods.DELETE.name(), uri);
         }
+
+        @Override
+        public BasicHttpRequest create(final HttpHost host, final String path) {
+            return new BasicHttpRequest(StandardMethods.DELETE.name(), host, path);
+        }
     },
 
     GET {
         @Override
         public BasicHttpRequest create(final URI uri) {
             return new BasicHttpRequest(StandardMethods.GET.name(), uri);
+        }
+
+        @Override
+        public BasicHttpRequest create(final HttpHost host, final String path) {
+            return new BasicHttpRequest(StandardMethods.GET.name(), host, path);
         }
     },
 
@@ -58,12 +69,22 @@ public enum HttpRequests {
         public BasicHttpRequest create(final URI uri) {
             return new BasicHttpRequest(StandardMethods.HEAD.name(), uri);
         }
+
+        @Override
+        public BasicHttpRequest create(final HttpHost host, final String path) {
+            return new BasicHttpRequest(StandardMethods.HEAD.name(), host, path);
+        }
     },
 
     OPTIONS {
         @Override
         public BasicHttpRequest create(final URI uri) {
             return new BasicHttpRequest(StandardMethods.OPTIONS.name(), uri);
+        }
+
+        @Override
+        public BasicHttpRequest create(final HttpHost host, final String path) {
+            return new BasicHttpRequest(StandardMethods.OPTIONS.name(), host, path);
         }
     },
 
@@ -72,12 +93,22 @@ public enum HttpRequests {
         public BasicHttpRequest create(final URI uri) {
             return new BasicHttpRequest(StandardMethods.PATCH.name(), uri);
         }
+
+        @Override
+        public BasicHttpRequest create(final HttpHost host, final String path) {
+            return new BasicHttpRequest(StandardMethods.PATCH.name(), host, path);
+        }
     },
 
     POST {
         @Override
         public BasicHttpRequest create(final URI uri) {
             return new BasicHttpRequest(StandardMethods.POST.name(), uri);
+        }
+
+        @Override
+        public BasicHttpRequest create(final HttpHost host, final String path) {
+            return new BasicHttpRequest(StandardMethods.POST.name(), host, path);
         }
     },
 
@@ -86,12 +117,22 @@ public enum HttpRequests {
         public BasicHttpRequest create(final URI uri) {
             return new BasicHttpRequest(StandardMethods.PUT.name(), uri);
         }
+
+        @Override
+        public BasicHttpRequest create(final HttpHost host, final String path) {
+            return new BasicHttpRequest(StandardMethods.PUT.name(), host, path);
+        }
     },
 
     TRACE {
         @Override
         public BasicHttpRequest create(final URI uri) {
             return new BasicHttpRequest(StandardMethods.TRACE.name(), uri);
+        }
+
+        @Override
+        public BasicHttpRequest create(final HttpHost host, final String path) {
+            return new BasicHttpRequest(StandardMethods.TRACE.name(), host, path);
         }
     };
 
@@ -112,5 +153,14 @@ public enum HttpRequests {
      * @return a new subclass of BasicHttpRequest
      */
     public abstract BasicHttpRequest create(URI uri);
+
+    /**
+     * Creates a request object of the exact subclass of {@link BasicHttpRequest}.
+     *
+     * @param host HTTP host.
+     * @param path request path.
+     * @return a new subclass of BasicHttpRequest
+     */
+    public abstract BasicHttpRequest create(final HttpHost host, final String path);
 
 }

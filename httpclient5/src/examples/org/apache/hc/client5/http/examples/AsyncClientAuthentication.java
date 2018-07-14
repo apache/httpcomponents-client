@@ -29,6 +29,7 @@ package org.apache.hc.client5.http.examples;
 import java.util.concurrent.Future;
 
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
+import org.apache.hc.client5.http.async.methods.SimpleHttpRequests;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
@@ -55,7 +56,7 @@ public class AsyncClientAuthentication {
         httpclient.start();
 
         final String requestUri = "http://httpbin.org/basic-auth/user/passwd";
-        SimpleHttpRequest httpget = SimpleHttpRequest.get(requestUri);
+        SimpleHttpRequest httpget = SimpleHttpRequests.GET.create(requestUri);
 
         System.out.println("Executing request " + requestUri);
         final Future<SimpleHttpResponse> future = httpclient.execute(
