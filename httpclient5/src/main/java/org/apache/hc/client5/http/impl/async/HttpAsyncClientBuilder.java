@@ -372,7 +372,7 @@ public class HttpAsyncClientBuilder {
     /**
      * Adds this protocol interceptor to the head of the protocol processing list.
      */
-    public final HttpAsyncClientBuilder addRequestInterceptorFirst(final HttpResponseInterceptor interceptor) {
+    public final HttpAsyncClientBuilder addResponseInterceptorFirst(final HttpResponseInterceptor interceptor) {
         Args.notNull(interceptor, "Interceptor");
         if (responseInterceptors == null) {
             responseInterceptors = new LinkedList<>();
@@ -469,7 +469,7 @@ public class HttpAsyncClientBuilder {
     /**
      * Adds this protocol interceptor to the tail of the protocol processing list.
      */
-    public final HttpAsyncClientBuilder addResponseInterceptorLast(final HttpRequestInterceptor interceptor) {
+    public final HttpAsyncClientBuilder addRequestInterceptorLast(final HttpRequestInterceptor interceptor) {
         Args.notNull(interceptor, "Interceptor");
         if (requestInterceptors == null) {
             requestInterceptors = new LinkedList<>();
