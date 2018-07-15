@@ -37,6 +37,7 @@ import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.nio.AsyncPushConsumer;
 import org.apache.hc.core5.http.nio.entity.AbstractBinDataConsumer;
+import org.apache.hc.core5.http.protocol.HttpContext;
 
 public abstract class AbstractBinPushConsumer extends AbstractBinDataConsumer implements AsyncPushConsumer {
 
@@ -46,7 +47,8 @@ public abstract class AbstractBinPushConsumer extends AbstractBinDataConsumer im
     public final void consumePromise(
             final HttpRequest promise,
             final HttpResponse response,
-            final EntityDetails entityDetails) throws HttpException, IOException {
+            final EntityDetails entityDetails,
+            final HttpContext context) throws HttpException, IOException {
         if (entityDetails != null) {
             final ContentType contentType;
             try {
