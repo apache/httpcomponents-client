@@ -163,7 +163,7 @@ public class H2TlsStrategy implements TlsStrategy {
 
             @Override
             public TlsDetails verify(final NamedEndpoint endpoint, final SSLEngine sslEngine) throws SSLException {
-                verifySession(endpoint.getHostName(), sslEngine.getSession());
+                verifySession(host.getHostName(), sslEngine.getSession());
                 return createTlsDetails(sslEngine);
             }
 
