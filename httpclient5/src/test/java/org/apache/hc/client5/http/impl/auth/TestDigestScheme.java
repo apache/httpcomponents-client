@@ -435,7 +435,7 @@ public class TestDigestScheme {
         Assert.assertFalse(authscheme.isChallengeComplete());
     }
 
-    private static Map<String, String> parseAuthResponse(final String authResponse) throws ParseException {
+    private static Map<String, String> parseAuthResponse(final String authResponse) {
         if (!authResponse.startsWith("Digest ")) {
             return null;
         }

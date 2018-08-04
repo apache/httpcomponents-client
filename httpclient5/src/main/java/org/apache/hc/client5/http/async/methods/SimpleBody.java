@@ -49,11 +49,10 @@ public final class SimpleBody {
         Args.notNull(body, "Body");
         if (body.length() > 2048) {
             return new SimpleBody(null, body, contentType);
-        } else {
-            final Charset charset = (contentType != null ? contentType : ContentType.DEFAULT_TEXT).getCharset();
-            final byte[] bytes = body.getBytes(charset != null ? charset : StandardCharsets.US_ASCII);
-            return new SimpleBody(bytes, null, contentType);
         }
+        final Charset charset = (contentType != null ? contentType : ContentType.DEFAULT_TEXT).getCharset();
+        final byte[] bytes = body.getBytes(charset != null ? charset : StandardCharsets.US_ASCII);
+        return new SimpleBody(bytes, null, contentType);
     }
 
     static SimpleBody create(final byte[] body, final ContentType contentType) {

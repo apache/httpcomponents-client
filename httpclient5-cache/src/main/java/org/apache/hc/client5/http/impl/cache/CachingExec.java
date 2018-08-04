@@ -261,10 +261,9 @@ public class CachingExec extends CachingExecBase implements ExecChainHandler {
                 recordCacheFailure(target, request);
                 if (!mayCallBackend(request)) {
                     return convert(generateGatewayTimeout(context), scope);
-                } else {
-                    setResponseStatus(scope.clientContext, CacheResponseStatus.FAILURE);
-                    return chain.proceed(request, scope);
                 }
+                setResponseStatus(scope.clientContext, CacheResponseStatus.FAILURE);
+                return chain.proceed(request, scope);
             }
         } else if (!mayCallBackend(request)) {
             log.debug("Cache entry not suitable but only-if-cached requested");
@@ -295,9 +294,8 @@ public class CachingExec extends CachingExecBase implements ExecChainHandler {
 
                     });
                     return convert(response, scope);
-                } else {
-                    return revalidateCacheEntry(target, request, scope, chain, entry);
                 }
+                return revalidateCacheEntry(target, request, scope, chain, entry);
             } catch (final IOException ioex) {
                 return convert(handleRevalidationFailure(request, context, entry, now), scope);
             }
@@ -380,10 +378,9 @@ public class CachingExec extends CachingExecBase implements ExecChainHandler {
         if (cacheable) {
             storeRequestIfModifiedSinceFor304Response(request, backendResponse);
             return cacheAndReturnResponse(target, request, backendResponse, scope, requestDate, responseDate);
-        } else {
-            log.debug("Backend response is not cacheable");
-            responseCache.flushCacheEntriesFor(target, request);
         }
+        log.debug("Backend response is not cacheable");
+        responseCache.flushCacheEntriesFor(target, request);
         return backendResponse;
     }
 

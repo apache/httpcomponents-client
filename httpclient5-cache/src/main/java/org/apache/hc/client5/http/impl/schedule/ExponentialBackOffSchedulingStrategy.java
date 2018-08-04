@@ -110,9 +110,8 @@ public class ExponentialBackOffSchedulingStrategy implements SchedulingStrategy 
         if (consecutiveFailedAttempts > 0) {
             final long delay = (long) (initialExpiry.toMillis() * Math.pow(backOffRate, consecutiveFailedAttempts - 1));
             return Math.min(delay, maxExpiry.toMillis());
-        } else {
-            return 0;
         }
+        return 0;
     }
 
 }

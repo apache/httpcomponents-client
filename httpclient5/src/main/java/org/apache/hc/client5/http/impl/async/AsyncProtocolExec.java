@@ -183,10 +183,9 @@ class AsyncProtocolExec implements AsyncExecChainHandler {
                 if (needAuthentication(targetAuthExchange, proxyAuthExchange, route, request, response, clientContext)) {
                     challenged.set(true);
                     return null;
-                } else {
-                    challenged.set(false);
-                    return asyncExecCallback.handleResponse(response, entityDetails);
                 }
+                challenged.set(false);
+                return asyncExecCallback.handleResponse(response, entityDetails);
             }
 
             @Override

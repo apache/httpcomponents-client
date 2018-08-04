@@ -38,6 +38,7 @@ import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.core5.http.protocol.HttpCoreContext;
 import org.junit.Assert;
 import org.junit.Test;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
 /**
@@ -125,11 +126,11 @@ public class TestSystemDefaultCredentialsProvider {
 
     private AuthenticatorDelegate installAuthenticator(final PasswordAuthentication returedAuthentication) {
         final AuthenticatorDelegate authenticatorDelegate = Mockito.mock(AuthenticatorDelegate.class);
-        Mockito.when(authenticatorDelegate.getPasswordAuthentication(Mockito.anyString(),
-                                                                     Mockito.<InetAddress>any(), Mockito.anyInt(),
-                                                                     Mockito.anyString(), Mockito.anyString(),
-                                                                     Mockito.anyString(), Mockito.<URL>any(),
-                                                                     Mockito.<RequestorType>any())).thenReturn(returedAuthentication);
+        Mockito.when(authenticatorDelegate.getPasswordAuthentication(ArgumentMatchers.anyString(),
+                                                                     ArgumentMatchers.<InetAddress>any(), ArgumentMatchers.anyInt(),
+                                                                     ArgumentMatchers.anyString(), ArgumentMatchers.anyString(),
+                                                                     ArgumentMatchers.anyString(), ArgumentMatchers.<URL>any(),
+                                                                     ArgumentMatchers.<RequestorType>any())).thenReturn(returedAuthentication);
         Authenticator.setDefault(new DelegatedAuthenticator(authenticatorDelegate));
         return authenticatorDelegate;
     }

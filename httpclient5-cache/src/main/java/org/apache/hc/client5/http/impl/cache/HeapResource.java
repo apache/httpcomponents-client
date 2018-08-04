@@ -55,9 +55,8 @@ public class HeapResource extends Resource {
         final byte[] byteArray = this.arrayRef.get();
         if (byteArray != null) {
             return byteArray;
-        } else {
-            throw new ResourceIOException("Resouce already dispoased");
         }
+        throw new ResourceIOException("Resouce already dispoased");
     }
 
     @Override

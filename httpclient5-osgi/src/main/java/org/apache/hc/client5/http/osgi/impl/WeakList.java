@@ -43,7 +43,7 @@ class WeakList<T> extends AbstractList<T> {
     private final List<WeakReference<T>> innerList;
 
     public WeakList() {
-        this.innerList = new ArrayList<WeakReference<T>>();
+        this.innerList = new ArrayList<>();
     }
 
     @Override
@@ -59,7 +59,7 @@ class WeakList<T> extends AbstractList<T> {
 
     @Override
     public boolean add(final T t) {
-        return innerList.add(new WeakReference<T>(t));
+        return innerList.add(new WeakReference<>(t));
     }
 
     @Override
@@ -79,7 +79,7 @@ class WeakList<T> extends AbstractList<T> {
 
     @Override
     public Iterator<T> iterator() {
-        return new WeakIterator<T>(innerList.iterator());
+        return new WeakIterator<>(innerList.iterator());
     }
 
     private class WeakIterator<T> implements Iterator<T> {
@@ -104,9 +104,8 @@ class WeakList<T> extends AbstractList<T> {
                 final T result = next.get();
                 fetchNext();
                 return result;
-            } else {
-                throw new NoSuchElementException();
             }
+            throw new NoSuchElementException();
         }
 
         private void fetchNext() {

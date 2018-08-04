@@ -143,9 +143,8 @@ public class DefaultCacheInvalidator extends CacheInvalidatorBase implements Htt
         if (uri != null && isSameHost(requestUri, uri)) {
             removeEntry(storage, cacheKeyResolver.resolve(uri));
             return true;
-        } else {
-            return false;
         }
+        return false;
     }
 
     @Override

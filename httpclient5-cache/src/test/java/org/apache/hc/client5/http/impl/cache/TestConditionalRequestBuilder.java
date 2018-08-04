@@ -38,7 +38,6 @@ import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HeaderElement;
 import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
 import org.apache.hc.core5.http.message.MessageSupport;
@@ -58,7 +57,7 @@ public class TestConditionalRequestBuilder {
     }
 
     @Test
-    public void testBuildConditionalRequestWithLastModified() throws ProtocolException {
+    public void testBuildConditionalRequestWithLastModified() {
         final String theMethod = "GET";
         final String theUri = "/theuri";
         final String lastModified = "this is my last modified date";
@@ -111,7 +110,7 @@ public class TestConditionalRequestBuilder {
     }
 
     @Test
-    public void testBuildConditionalRequestWithETag() throws ProtocolException {
+    public void testBuildConditionalRequestWithETag() {
         final String theMethod = "GET";
         final String theUri = "/theuri";
         final String theETag = "this is my eTag";

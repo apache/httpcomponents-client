@@ -205,9 +205,8 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
     private InternalConnectionEndpoint cast(final AsyncConnectionEndpoint endpoint) {
         if (endpoint instanceof InternalConnectionEndpoint) {
             return (InternalConnectionEndpoint) endpoint;
-        } else {
-            throw new IllegalStateException("Unexpected endpoint class: " + endpoint.getClass());
         }
+        throw new IllegalStateException("Unexpected endpoint class: " + endpoint.getClass());
     }
 
     @Override
@@ -540,13 +539,12 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
             final ManagedAsyncClientConnection connection = poolEntry.getConnection();
             if (connection == null) {
                 return false;
-            } else {
-                if (!connection.isOpen()) {
-                    poolEntry.discardConnection(ShutdownType.IMMEDIATE);
-                    return false;
-                }
-                return true;
             }
+            if (!connection.isOpen()) {
+                poolEntry.discardConnection(ShutdownType.IMMEDIATE);
+                return false;
+            }
+            return true;
         }
 
         @Override

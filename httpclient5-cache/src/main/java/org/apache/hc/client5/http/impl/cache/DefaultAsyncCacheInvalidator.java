@@ -174,9 +174,8 @@ public class DefaultAsyncCacheInvalidator extends CacheInvalidatorBase implement
         if (uri != null && isSameHost(requestUri, uri)) {
             removeEntry(storage, cacheKeyResolver.resolve(uri));
             return true;
-        } else {
-            return false;
         }
+        return false;
     }
 
     @Override

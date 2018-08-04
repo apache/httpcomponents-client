@@ -167,9 +167,8 @@ class AsyncRedirectExec implements AsyncExecChainHandler {
                         log.debug(scope.exchangeId + ": redirecting to '" + state.redirectURI + "' via " + currentRoute);
                     }
                     return null;
-                } else {
-                    return asyncExecCallback.handleResponse(response, entityDetails);
                 }
+                return asyncExecCallback.handleResponse(response, entityDetails);
             }
 
             @Override

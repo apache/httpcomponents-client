@@ -140,7 +140,7 @@ public class HttpAsyncClientCompatibilityTest {
         client.close();
     }
 
-    enum TestResult {OK, NOK};
+    enum TestResult {OK, NOK}
 
     private void logResult(final TestResult result, final HttpRequest request, final String message) {
         final StringBuilder buf = new StringBuilder();

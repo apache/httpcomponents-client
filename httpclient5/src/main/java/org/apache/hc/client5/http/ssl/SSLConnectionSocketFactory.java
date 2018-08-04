@@ -290,9 +290,8 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
             sslsock.startHandshake();
             verifyHostname(sslsock, host.getHostName());
             return sock;
-        } else {
-            return createLayeredSocket(sock, host.getHostName(), remoteAddress.getPort(), context);
         }
+        return createLayeredSocket(sock, host.getHostName(), remoteAddress.getPort(), context);
     }
 
     @Override

@@ -146,7 +146,7 @@ public class TestMultipartEntityBuilder {
     }
     @Test
     public void testMultipartWriteToRFC7578Mode() throws Exception {
-        final List<NameValuePair> parameters = new ArrayList<NameValuePair>();
+        final List<NameValuePair> parameters = new ArrayList<>();
         parameters.add(new BasicNameValuePair(MIME.FIELD_PARAM_NAME, "test"));
         parameters.add(new BasicNameValuePair(MIME.FIELD_PARAM_FILENAME, "hello \u03BA\u03CC\u03C3\u03BC\u03B5!%"));
 

@@ -44,8 +44,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -68,26 +68,26 @@ public class TestCacheRevalidatorBase {
 
     @Test
     public void testRevalidateCacheEntrySchedulesExecutionAndPopulatesIdentifier() {
-        when(mockSchedulingStrategy.schedule(Mockito.anyInt())).thenReturn(TimeValue.ofSeconds(1));
+        when(mockSchedulingStrategy.schedule(ArgumentMatchers.anyInt())).thenReturn(TimeValue.ofSeconds(1));
 
         final String cacheKey = "blah";
         impl.scheduleRevalidation(cacheKey, mockOperation);
 
         verify(mockSchedulingStrategy).schedule(0);
-        verify(mockScheduledExecutor).schedule(Mockito.same(mockOperation), Mockito.eq(TimeValue.ofSeconds(1)));
+        verify(mockScheduledExecutor).schedule(ArgumentMatchers.same(mockOperation), ArgumentMatchers.eq(TimeValue.ofSeconds(1)));
 
         Assert.assertEquals(1, impl.getScheduledIdentifiers().size());
     }
 
     @Test
     public void testMarkCompleteRemovesIdentifier() {
-        when(mockSchedulingStrategy.schedule(Mockito.anyInt())).thenReturn(TimeValue.ofSeconds(3));
+        when(mockSchedulingStrategy.schedule(ArgumentMatchers.anyInt())).thenReturn(TimeValue.ofSeconds(3));
 
         final String cacheKey = "blah";
         impl.scheduleRevalidation(cacheKey, mockOperation);
 
         verify(mockSchedulingStrategy).schedule(0);
-        verify(mockScheduledExecutor).schedule(Mockito.<Runnable>any(), Mockito.eq(TimeValue.ofSeconds(3)));
+        verify(mockScheduledExecutor).schedule(ArgumentMatchers.<Runnable>any(), ArgumentMatchers.eq(TimeValue.ofSeconds(3)));
 
         Assert.assertEquals(1, impl.getScheduledIdentifiers().size());
         Assert.assertTrue(impl.getScheduledIdentifiers().contains(cacheKey));
@@ -99,27 +99,27 @@ public class TestCacheRevalidatorBase {
 
     @Test
     public void testRevalidateCacheEntryDoesNotPopulateIdentifierOnRejectedExecutionException() {
-        when(mockSchedulingStrategy.schedule(Mockito.anyInt())).thenReturn(TimeValue.ofSeconds(2));
-        doThrow(new RejectedExecutionException()).when(mockScheduledExecutor).schedule(Mockito.<Runnable>any(), Mockito.<TimeValue>any());
+        when(mockSchedulingStrategy.schedule(ArgumentMatchers.anyInt())).thenReturn(TimeValue.ofSeconds(2));
+        doThrow(new RejectedExecutionException()).when(mockScheduledExecutor).schedule(ArgumentMatchers.<Runnable>any(), ArgumentMatchers.<TimeValue>any());
 
         final String cacheKey = "blah";
         impl.scheduleRevalidation(cacheKey, mockOperation);
 
         Assert.assertEquals(0, impl.getScheduledIdentifiers().size());
-        verify(mockScheduledExecutor).schedule(Mockito.<Runnable>any(), Mockito.eq(TimeValue.ofSeconds(2)));
+        verify(mockScheduledExecutor).schedule(ArgumentMatchers.<Runnable>any(), ArgumentMatchers.eq(TimeValue.ofSeconds(2)));
     }
 
     @Test
     public void testRevalidateCacheEntryProperlyCollapsesRequest() {
-        when(mockSchedulingStrategy.schedule(Mockito.anyInt())).thenReturn(TimeValue.ofSeconds(2));
+        when(mockSchedulingStrategy.schedule(ArgumentMatchers.anyInt())).thenReturn(TimeValue.ofSeconds(2));
 
         final String cacheKey = "blah";
         impl.scheduleRevalidation(cacheKey, mockOperation);
         impl.scheduleRevalidation(cacheKey, mockOperation);
         impl.scheduleRevalidation(cacheKey, mockOperation);
 
-        verify(mockSchedulingStrategy).schedule(Mockito.anyInt());
-        verify(mockScheduledExecutor).schedule(Mockito.<Runnable>any(), Mockito.eq(TimeValue.ofSeconds(2)));
+        verify(mockSchedulingStrategy).schedule(ArgumentMatchers.anyInt());
+        verify(mockScheduledExecutor).schedule(ArgumentMatchers.<Runnable>any(), ArgumentMatchers.eq(TimeValue.ofSeconds(2)));
 
         Assert.assertEquals(1, impl.getScheduledIdentifiers().size());
     }

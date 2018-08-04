@@ -1033,10 +1033,7 @@ public class CredSspScheme implements AuthScheme
             }
             return length;
         }
-        else
-        {
-            return bufByte;
-        }
+        return bufByte;
     }
 
     static void getLengthAndAssert( final ByteBuffer buf, final int expectedValue, final String errorMessage )

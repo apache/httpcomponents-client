@@ -163,9 +163,8 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
                     final String msg = ex.getMessage();
                     if ("Connection timed out".equals(msg)) {
                         throw new ConnectTimeoutException(ex, host, addresses);
-                    } else {
-                        throw new HttpHostConnectException(ex, host, addresses);
                     }
+                    throw new HttpHostConnectException(ex, host, addresses);
                 }
             } catch (final NoRouteToHostException ex) {
                 if (last) {

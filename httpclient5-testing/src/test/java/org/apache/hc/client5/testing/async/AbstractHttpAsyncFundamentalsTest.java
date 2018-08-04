@@ -196,9 +196,8 @@ public abstract class AbstractHttpAsyncFundamentalsTest<T extends CloseableHttpA
             final SimpleHttpResponse response = resultQueue.poll();
             if (response == null) {
                 break;
-            } else {
-                Assert.assertThat(response.getCode(), CoreMatchers.equalTo(200));
             }
+            Assert.assertThat(response.getCode(), CoreMatchers.equalTo(200));
         }
     }
 

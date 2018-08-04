@@ -136,10 +136,9 @@ final class MainClientExec implements ExecChainHandler {
                 // connection not needed and (assumed to be) in re-usable state
                 execRuntime.releaseConnection();
                 return new CloseableHttpResponse(response, null);
-            } else {
-                ResponseEntityProxy.enchance(response, execRuntime);
-                return new CloseableHttpResponse(response, execRuntime);
             }
+            ResponseEntityProxy.enchance(response, execRuntime);
+            return new CloseableHttpResponse(response, execRuntime);
         } catch (final ConnectionShutdownException ex) {
             final InterruptedIOException ioex = new InterruptedIOException(
                     "Connection has been shut down");

@@ -353,7 +353,7 @@ public class TestConnectExec {
 
             };
 
-        };
+        }
     }
 
 }

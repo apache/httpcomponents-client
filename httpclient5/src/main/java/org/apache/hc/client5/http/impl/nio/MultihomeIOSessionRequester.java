@@ -63,66 +63,65 @@ final class MultihomeIOSessionRequester {
             final FutureCallback<IOSession> callback) {
         if (remoteAddress != null) {
             return connectionInitiator.connect(remoteEndpoint, remoteAddress, localAddress, connectTimeout, attachment, callback);
-        } else {
-            final ComplexFuture<IOSession> future = new ComplexFuture<>(callback);
-            final InetAddress[] remoteAddresses;
-            try {
-                remoteAddresses = dnsResolver.resolve(remoteEndpoint.getHostName());
-            } catch (final UnknownHostException ex) {
-                future.failed(ex);
-                return future;
-            }
-            final Runnable runnable = new Runnable() {
-
-                private final AtomicInteger attempt = new AtomicInteger(0);
-
-                void executeNext() {
-                    final int index = attempt.getAndIncrement();
-                    final InetSocketAddress remoteAddress = new InetSocketAddress(remoteAddresses[index], remoteEndpoint.getPort());
-                    final Future<IOSession> sessionFuture = connectionInitiator.connect(
-                            remoteEndpoint,
-                            remoteAddress,
-                            localAddress,
-                            connectTimeout,
-                            attachment,
-                            new FutureCallback<IOSession>() {
-
-                                @Override
-                                public void completed(final IOSession session) {
-                                    future.completed(session);
-                                }
-
-                                @Override
-                                public void failed(final Exception cause) {
-                                    if (attempt.get() >= remoteAddresses.length) {
-                                        if (cause instanceof IOException) {
-                                            future.failed(new HttpHostConnectException((IOException) cause, remoteEndpoint, remoteAddresses));
-                                        } else {
-                                            future.failed(cause);
-                                        }
-                                    } else {
-                                        executeNext();
-                                    }
-                                }
-
-                                @Override
-                                public void cancelled() {
-                                    future.cancel();
-                                }
-
-                            });
-                    future.setDependency(sessionFuture);
-                }
-
-                @Override
-                public void run() {
-                    executeNext();
-                }
-
-            };
-            runnable.run();
+        }
+        final ComplexFuture<IOSession> future = new ComplexFuture<>(callback);
+        final InetAddress[] remoteAddresses;
+        try {
+            remoteAddresses = dnsResolver.resolve(remoteEndpoint.getHostName());
+        } catch (final UnknownHostException ex) {
+            future.failed(ex);
             return future;
         }
+        final Runnable runnable = new Runnable() {
+
+            private final AtomicInteger attempt = new AtomicInteger(0);
+
+            void executeNext() {
+                final int index = attempt.getAndIncrement();
+                final InetSocketAddress remoteAddress = new InetSocketAddress(remoteAddresses[index], remoteEndpoint.getPort());
+                final Future<IOSession> sessionFuture = connectionInitiator.connect(
+                        remoteEndpoint,
+                        remoteAddress,
+                        localAddress,
+                        connectTimeout,
+                        attachment,
+                        new FutureCallback<IOSession>() {
+
+                            @Override
+                            public void completed(final IOSession session) {
+                                future.completed(session);
+                            }
+
+                            @Override
+                            public void failed(final Exception cause) {
+                                if (attempt.get() >= remoteAddresses.length) {
+                                    if (cause instanceof IOException) {
+                                        future.failed(new HttpHostConnectException((IOException) cause, remoteEndpoint, remoteAddresses));
+                                    } else {
+                                        future.failed(cause);
+                                    }
+                                } else {
+                                    executeNext();
+                                }
+                            }
+
+                            @Override
+                            public void cancelled() {
+                                future.cancel();
+                            }
+
+                        });
+                future.setDependency(sessionFuture);
+            }
+
+            @Override
+            public void run() {
+                executeNext();
+            }
+
+        };
+        runnable.run();
+        return future;
     }
 
     public Future<IOSession> connect(

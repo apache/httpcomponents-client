@@ -464,9 +464,8 @@ public class TestClientAuthentication extends LocalServerTestBase {
             public boolean authenticate(final URIAuthority authority, final String requestUri, final String credentials) {
                 if (requestUri.equals("/secure") || requestUri.startsWith("/secure/")) {
                     return super.authenticate(authority, requestUri, credentials);
-                } else {
-                    return true;
                 }
+                return true;
             }
         });
 
@@ -667,14 +666,9 @@ public class TestClientAuthentication extends LocalServerTestBase {
             public boolean authenticate(final URIAuthority authority, final String requestUri, final String credentials) {
                 final boolean authenticated = super.authenticate(authority, requestUri, credentials);
                 if (authenticated) {
-                    if (this.count.incrementAndGet() % 4 != 0) {
-                        return true;
-                    } else {
-                        return false;
-                    }
-                } else {
-                    return false;
+                    return this.count.incrementAndGet() % 4 != 0;
                 }
+                return false;
             }
         };
 

@@ -145,9 +145,8 @@ public class CachingExecBase {
         if (fatalError != null && !fatalError.isEmpty()) {
             setResponseStatus(context, CacheResponseStatus.CACHE_MODULE_RESPONSE);
             return responseGenerator.getErrorForRequest(fatalError.get(0));
-        } else {
-            return null;
         }
+        return null;
     }
 
     void recordCacheMiss(final HttpHost target, final HttpRequest request) {

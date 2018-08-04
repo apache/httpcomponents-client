@@ -477,14 +477,9 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
             public boolean authenticate(final URIAuthority authority, final String requestUri, final String credentials) {
                 final boolean authenticated = super.authenticate(authority, requestUri, credentials);
                 if (authenticated) {
-                    if (this.count.incrementAndGet() % 4 != 0) {
-                        return true;
-                    } else {
-                        return false;
-                    }
-                } else {
-                    return false;
+                    return this.count.incrementAndGet() % 4 != 0;
                 }
+                return false;
             }
         };
 

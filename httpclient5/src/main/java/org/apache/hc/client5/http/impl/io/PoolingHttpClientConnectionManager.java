@@ -239,9 +239,8 @@ public class PoolingHttpClientConnectionManager
     private InternalConnectionEndpoint cast(final ConnectionEndpoint endpoint) {
         if (endpoint instanceof InternalConnectionEndpoint) {
             return (InternalConnectionEndpoint) endpoint;
-        } else {
-            throw new IllegalStateException("Unexpected endpoint class: " + endpoint.getClass());
         }
+        throw new IllegalStateException("Unexpected endpoint class: " + endpoint.getClass());
     }
 
     public LeaseRequest lease(final HttpRoute route, final Object state) {

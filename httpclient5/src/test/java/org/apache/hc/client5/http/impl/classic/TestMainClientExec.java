@@ -345,7 +345,7 @@ public class TestMainClientExec {
 
             };
 
-        };
+        }
     }
 
 }

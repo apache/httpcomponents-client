@@ -77,7 +77,7 @@ public final class Operations {
             return true;
         }
 
-    };
+    }
 
     public static Cancellable nonCancellable() {
         return NOOP_CANCELLABLE;
@@ -86,20 +86,18 @@ public final class Operations {
     public static Cancellable cancellable(final Future<?> future) {
         if (future == null) {
             return NOOP_CANCELLABLE;
-        } else {
-            if (future instanceof Cancellable) {
-                return (Cancellable) future;
-            } else {
-                return new Cancellable() {
-
-                    @Override
-                    public boolean cancel() {
-                        return future.cancel(true);
-                    }
-
-                };
-            }
         }
+        if (future instanceof Cancellable) {
+            return (Cancellable) future;
+        }
+        return new Cancellable() {
+
+            @Override
+            public boolean cancel() {
+                return future.cancel(true);
+            }
+
+        };
     }
 
 }

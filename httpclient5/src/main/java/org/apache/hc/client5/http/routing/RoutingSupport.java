@@ -47,9 +47,8 @@ public final class RoutingSupport {
                 throw new ProtocolException("Protocol scheme is not specified");
             }
             return new HttpHost(authority, scheme);
-        } else {
-            return null;
         }
+        return null;
     }
 
     public static HttpHost normalize(final HttpHost host, final SchemePortResolver schemePortResolver) {

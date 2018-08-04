@@ -339,15 +339,13 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
                 if (needAuthentication(proxyAuthExchange, proxy, response, clientContext)) {
                     state.challenged = true;
                     return null;
-                } else {
-                    state.challenged = false;
-                    if (status >= HttpStatus.SC_REDIRECTION) {
-                        state.tunnelRefused = true;
-                        return asyncExecCallback.handleResponse(response, entityDetails);
-                    } else {
-                        return null;
-                    }
                 }
+                state.challenged = false;
+                if (status >= HttpStatus.SC_REDIRECTION) {
+                    state.tunnelRefused = true;
+                    return asyncExecCallback.handleResponse(response, entityDetails);
+                }
+                return null;
             }
 
             @Override

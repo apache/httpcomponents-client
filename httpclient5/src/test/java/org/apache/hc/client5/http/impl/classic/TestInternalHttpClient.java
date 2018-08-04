@@ -86,7 +86,6 @@ public class TestInternalHttpClient {
 
     private InternalHttpClient client;
 
-    @SuppressWarnings("unchecked")
     @Before
     public void setup() throws Exception {
         MockitoAnnotations.initMocks(this);
@@ -165,7 +164,6 @@ public class TestInternalHttpClient {
         Assert.assertSame(config, context.getRequestConfig());
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void testExecuteLocalContext() throws Exception {
         final HttpGet httpget = new HttpGet("http://somehost/stuff");

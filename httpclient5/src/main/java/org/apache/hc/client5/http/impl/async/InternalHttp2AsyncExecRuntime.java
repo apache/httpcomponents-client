@@ -99,10 +99,9 @@ class InternalHttp2AsyncExecRuntime implements AsyncExecRuntime {
                         }
 
                     }));
-        } else {
-            callback.completed(this);
-            return Operations.nonCancellable();
         }
+        callback.completed(this);
+        return Operations.nonCancellable();
     }
 
     @Override
@@ -126,11 +125,10 @@ class InternalHttp2AsyncExecRuntime implements AsyncExecRuntime {
         if (reusable) {
             final Endpoint endpoint = sessionRef.get();
             return endpoint != null && !endpoint.session.isClosed();
-        } else {
-            final Endpoint endpoint = sessionRef.getAndSet(null);
-            if (endpoint != null) {
-                endpoint.session.shutdown(ShutdownType.GRACEFUL);
-            }
+        }
+        final Endpoint endpoint = sessionRef.getAndSet(null);
+        if (endpoint != null) {
+            endpoint.session.shutdown(ShutdownType.GRACEFUL);
         }
         return false;
     }
@@ -158,30 +156,29 @@ class InternalHttp2AsyncExecRuntime implements AsyncExecRuntime {
         if (!endpoint.session.isClosed()) {
             callback.completed(this);
             return Operations.nonCancellable();
-        } else {
-            final HttpHost target = endpoint.target;
-            final RequestConfig requestConfig = context.getRequestConfig();
-            return Operations.cancellable(connPool.getSession(target, requestConfig.getConnectionTimeout(), new FutureCallback<IOSession>() {
-
-                @Override
-                public void completed(final IOSession ioSession) {
-                    sessionRef.set(new Endpoint(target, ioSession));
-                    reusable = true;
-                    callback.completed(InternalHttp2AsyncExecRuntime.this);
-                }
-
-                @Override
-                public void failed(final Exception ex) {
-                    callback.failed(ex);
-                }
-
-                @Override
-                public void cancelled() {
-                    callback.cancelled();
-                }
-
-            }));
         }
+        final HttpHost target = endpoint.target;
+        final RequestConfig requestConfig = context.getRequestConfig();
+        return Operations.cancellable(connPool.getSession(target, requestConfig.getConnectionTimeout(), new FutureCallback<IOSession>() {
+
+            @Override
+            public void completed(final IOSession ioSession) {
+                sessionRef.set(new Endpoint(target, ioSession));
+                reusable = true;
+                callback.completed(InternalHttp2AsyncExecRuntime.this);
+            }
+
+            @Override
+            public void failed(final Exception ex) {
+                callback.failed(ex);
+            }
+
+            @Override
+            public void cancelled() {
+                callback.cancelled();
+            }
+
+        }));
 
     }
 

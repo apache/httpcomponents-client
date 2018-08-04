@@ -174,7 +174,6 @@ public class HttpClientContext extends HttpCoreContext {
         return getAttribute(COOKIE_ORIGIN, CookieOrigin.class);
     }
 
-    @SuppressWarnings("unchecked")
     private <T> Lookup<T> getLookup(final String name, final Class<T> clazz) {
         return getAttribute(name, Lookup.class);
     }
