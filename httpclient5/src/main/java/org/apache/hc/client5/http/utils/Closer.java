@@ -24,35 +24,30 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.hc.client5.http.impl.cache;
 
-import java.io.ByteArrayInputStream;
+package org.apache.hc.client5.http.utils;
+
+import java.io.Closeable;
 import java.io.IOException;
-import java.io.InputStream;
 
-import org.apache.hc.client5.http.utils.Closer;
+/**
+ * Closes resources. TODO: Use the HttpCore version when the next beta comes out.
+ */
+public class Closer {
 
-public class ConsumableInputStream extends InputStream {
-
-    private final ByteArrayInputStream buf;
-    private boolean closed = false;
-
-    public ConsumableInputStream(final ByteArrayInputStream buf) {
-        this.buf = buf;
-    }
-
-    @Override
-    public int read() throws IOException {
-        return buf.read();
-    }
-
-    @Override
-    public void close() {
-        closed = true;
-        Closer.closeQuietly(buf);
-    }
-
-    public boolean wasClosed() {
-        return closed;
+    /**
+     * Closes the given closeable quietly even in the event of an exception.
+     *
+     * @param closeable
+     *            what to close.
+     */
+    public static void closeQuietly(final Closeable closeable) {
+        if (closeable != null) {
+            try {
+                closeable.close();
+            } catch (final IOException e) {
+                // Quietly ignore
+            }
+        }
     }
 }

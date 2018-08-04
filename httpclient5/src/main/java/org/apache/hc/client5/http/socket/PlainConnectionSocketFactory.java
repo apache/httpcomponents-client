@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 
+import org.apache.hc.client5.http.utils.Closer;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HttpHost;
@@ -75,10 +76,7 @@ public class PlainConnectionSocketFactory implements ConnectionSocketFactory {
         try {
             sock.connect(remoteAddress, TimeValue.isPositive(connectTimeout) ? connectTimeout.toMillisIntBound() : 0);
         } catch (final IOException ex) {
-            try {
-                sock.close();
-            } catch (final IOException ignore) {
-            }
+            Closer.closeQuietly(sock);
             throw ex;
         }
         return sock;

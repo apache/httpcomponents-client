@@ -33,6 +33,7 @@ import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.utils.Closer;
 import org.apache.hc.client5.testing.SSLTestContexts;
 import org.apache.hc.client5.testing.classic.EchoHandler;
 import org.apache.hc.client5.testing.classic.RandomHandler;
@@ -118,13 +119,8 @@ public abstract class LocalServerTestBase {
 
         @Override
         protected void after() {
-            if (httpclient != null) {
-                try {
-                    httpclient.close();
-                    httpclient = null;
-                } catch (final Exception ignore) {
-                }
-            }
+            Closer.closeQuietly(httpclient);
+            httpclient = null;
         }
 
     };

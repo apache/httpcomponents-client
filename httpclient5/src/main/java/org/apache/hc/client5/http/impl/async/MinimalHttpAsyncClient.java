@@ -46,6 +46,7 @@ import org.apache.hc.client5.http.nio.AsyncClientConnectionManager;
 import org.apache.hc.client5.http.nio.AsyncConnectionEndpoint;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.routing.RoutingSupport;
+import org.apache.hc.client5.http.utils.Closer;
 import org.apache.hc.core5.concurrent.BasicFuture;
 import org.apache.hc.core5.concurrent.Cancellable;
 import org.apache.hc.core5.concurrent.ComplexCancellable;
@@ -424,10 +425,7 @@ public final class MinimalHttpAsyncClient extends AbstractMinimalHttpAsyncClient
         @Override
         public void releaseAndDiscard() {
             if (released.compareAndSet(false, true)) {
-                try {
-                    connectionEndpoint.close();
-                } catch (final IOException ignore) {
-                }
+                Closer.closeQuietly(connectionEndpoint);
                 connmgr.release(connectionEndpoint, null, TimeValue.ZERO_MILLISECONDS);
             }
         }
