@@ -169,6 +169,7 @@ public class TestHttp1AsyncRedirects extends AbstractHttpAsyncRedirectsTest<Clos
 
     }
 
+    @Override
     @Test
     public void testBasicRedirect300() throws Exception {
         server.register("*", new Supplier<AsyncServerExchangeHandler>() {

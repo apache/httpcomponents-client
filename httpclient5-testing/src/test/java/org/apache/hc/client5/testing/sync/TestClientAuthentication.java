@@ -100,6 +100,7 @@ public class TestClientAuthentication extends LocalServerTestBase {
         });
     }
 
+    @Override
     public HttpHost start() throws IOException {
         return start(new BasicTestAuthenticator("test:test", "test realm"));
     }
