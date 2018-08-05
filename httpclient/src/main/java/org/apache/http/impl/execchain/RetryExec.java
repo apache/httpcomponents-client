@@ -118,9 +118,8 @@ public class RetryExec implements ClientExecChain {
                                 route.getTargetHost().toHostString() + " failed to respond");
                         updatedex.setStackTrace(ex.getStackTrace());
                         throw updatedex;
-                    } else {
-                        throw ex;
                     }
+                    throw ex;
                 }
             }
         }

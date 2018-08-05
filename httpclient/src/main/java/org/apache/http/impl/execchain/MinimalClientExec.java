@@ -146,9 +146,8 @@ public class MinimalClientExec implements ClientExecChain {
             if (execAware.isAborted()) {
                 connRequest.cancel();
                 throw new RequestAbortedException("Request aborted");
-            } else {
-                execAware.setCancellable(connRequest);
             }
+            execAware.setCancellable(connRequest);
         }
 
         final RequestConfig config = context.getRequestConfig();
@@ -174,9 +173,8 @@ public class MinimalClientExec implements ClientExecChain {
                 if (execAware.isAborted()) {
                     releaseTrigger.close();
                     throw new RequestAbortedException("Request aborted");
-                } else {
-                    execAware.setCancellable(releaseTrigger);
                 }
+                execAware.setCancellable(releaseTrigger);
             }
 
             if (!managedConn.isOpen()) {
@@ -230,9 +228,8 @@ public class MinimalClientExec implements ClientExecChain {
                 // connection not needed and (assumed to be) in re-usable state
                 releaseTrigger.releaseConnection();
                 return new HttpResponseProxy(response, null);
-            } else {
-                return new HttpResponseProxy(response, releaseTrigger);
             }
+            return new HttpResponseProxy(response, releaseTrigger);
         } catch (final ConnectionShutdownException ex) {
             final InterruptedIOException ioex = new InterruptedIOException(
                     "Connection has been shut down");

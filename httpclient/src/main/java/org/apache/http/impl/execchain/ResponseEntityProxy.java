@@ -65,13 +65,13 @@ class ResponseEntityProxy extends HttpEntityWrapper implements EofSensorWatcher 
         }
     }
 
-    private void abortConnection() throws IOException {
+    private void abortConnection() {
         if (this.connHolder != null) {
             this.connHolder.abortConnection();
         }
     }
 
-    public void releaseConnection() throws IOException {
+    public void releaseConnection() {
         if (this.connHolder != null) {
             this.connHolder.releaseConnection();
         }
