@@ -13,6 +13,9 @@ Changelog:
 * HTTPCLIENT-1932: Add factory enum org.apache.hc.client5.http.async.methods.HttpRequests
   Contributed by Gary Gregory <ggregory at apache.org>
   
+* HTTPCLIENT-1939: Update Apache Commons Codec from 1.10 to 1.11
+  Contributed by Gary Gregory <ggregory at apache.org>
+  
 Release 5.0-BETA1
 -------------------
 
