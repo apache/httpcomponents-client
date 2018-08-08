@@ -26,6 +26,8 @@
  */
 package org.apache.http.impl.client;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
@@ -53,11 +55,18 @@ public class BasicCookieStore implements CookieStore, Serializable {
     private static final long serialVersionUID = -7581093305228232025L;
 
     private final TreeSet<Cookie> cookies;
-    private final ReadWriteLock lock;
+    private transient ReadWriteLock lock;
 
     public BasicCookieStore() {
         super();
         this.cookies = new TreeSet<Cookie>(new CookieIdentityComparator());
+        this.lock = new ReentrantReadWriteLock();
+    }
+
+    private void readObject(final ObjectInputStream stream) throws IOException, ClassNotFoundException {
+        stream.defaultReadObject();
+
+        /* Reinstantiate transient fields. */
         this.lock = new ReentrantReadWriteLock();
     }
 
