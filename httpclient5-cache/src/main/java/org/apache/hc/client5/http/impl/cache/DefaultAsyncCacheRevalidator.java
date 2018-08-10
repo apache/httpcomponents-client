@@ -130,6 +130,12 @@ class DefaultAsyncCacheRevalidator extends CacheRevalidatorBase {
                                 }
 
                                 @Override
+                                public void handleInformationResponse(final HttpResponse response) throws HttpException, IOException {
+                                    responseRef.set(response);
+                                    asyncExecCallback.handleInformationResponse(response);
+                                }
+
+                                @Override
                                 public void completed() {
                                     final HttpResponse httpResponse = responseRef.getAndSet(null);
                                     if (httpResponse != null && httpResponse.getCode() < HttpStatus.SC_SERVER_ERROR && !isStale(httpResponse)) {
