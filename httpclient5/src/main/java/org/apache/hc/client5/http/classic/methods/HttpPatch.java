@@ -54,10 +54,22 @@ public class HttpPatch extends HttpUriRequestBase {
 
     public final static String METHOD_NAME = "PATCH";
 
+    /**
+     * Creates a new instance initialized with the given URI.
+     *
+     * @param uri a non-null request URI.
+     * @throws IllegalArgumentException if the uri is null.
+     */
     public HttpPatch(final URI uri) {
         super(METHOD_NAME, uri);
     }
 
+    /**
+     * Creates a new instance initialized with the given URI.
+     *
+     * @param uri a non-null request URI.
+     * @throws IllegalArgumentException if the uri is invalid.
+     */
     public HttpPatch(final String uri) {
         this(URI.create(uri));
     }

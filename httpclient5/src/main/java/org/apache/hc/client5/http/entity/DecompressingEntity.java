@@ -78,9 +78,8 @@ public class DecompressingEntity extends HttpEntityWrapper {
                 content = getDecompressingStream();
             }
             return content;
-        } else {
-            return getDecompressingStream();
         }
+        return getDecompressingStream();
     }
 
     @Override

@@ -788,7 +788,7 @@ public class HttpClientBuilder {
 
         final NamedElementChain<ExecChainHandler> execChainDefinition = new NamedElementChain<>();
         execChainDefinition.addLast(
-                new MainClientExec(reuseStrategyCopy, keepAliveStrategyCopy, userTokenHandlerCopy),
+                new MainClientExec(connManagerCopy, reuseStrategyCopy, keepAliveStrategyCopy, userTokenHandlerCopy),
                 ChainElements.MAIN_TRANSPORT.name());
         execChainDefinition.addFirst(
                 new ConnectExec(

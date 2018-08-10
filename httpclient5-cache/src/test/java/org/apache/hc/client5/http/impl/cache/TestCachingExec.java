@@ -415,11 +415,11 @@ public class TestCachingExec extends TestCachingExecChain {
         return EasyMock.expect(resp).andReturn(response);
     }
 
-    private void getVariantCacheEntriesReturns(final Map<String,Variant> result) throws IOException {
+    private void getVariantCacheEntriesReturns(final Map<String,Variant> result) {
         expect(mockCache.getVariantCacheEntriesWithEtags(host, request)).andReturn(result);
     }
 
-    private void cacheInvalidatorWasCalled()  throws IOException {
+    private void cacheInvalidatorWasCalled() {
         mockCache.flushCacheEntriesInvalidatedByRequest((HttpHost)anyObject(), (HttpRequest)anyObject());
     }
 

@@ -109,10 +109,9 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
                             callback.cancelled();
                         }
                     }));
-        } else {
-            callback.completed(this);
-            return Operations.nonCancellable();
         }
+        callback.completed(this);
+        return Operations.nonCancellable();
     }
 
     private void discardEndpoint(final AsyncConnectionEndpoint endpoint) {
@@ -158,11 +157,10 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
         if (reusable) {
             final AsyncConnectionEndpoint endpoint = endpointRef.get();
             return endpoint != null && endpoint.isConnected();
-        } else {
-            final AsyncConnectionEndpoint endpoint = endpointRef.getAndSet(null);
-            if (endpoint != null) {
-                discardEndpoint(endpoint);
-            }
+        }
+        final AsyncConnectionEndpoint endpoint = endpointRef.getAndSet(null);
+        if (endpoint != null) {
+            discardEndpoint(endpoint);
         }
         return false;
     }
@@ -189,37 +187,36 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
         if (endpoint.isConnected()) {
             callback.completed(this);
             return Operations.nonCancellable();
-        } else {
-            final RequestConfig requestConfig = context.getRequestConfig();
-            final TimeValue timeout = requestConfig.getConnectionTimeout();
-            return Operations.cancellable(manager.connect(
-                    endpoint,
-                    connectionInitiator,
-                    timeout,
-                    versionPolicy,
-                    context,
-                    new FutureCallback<AsyncConnectionEndpoint>() {
-
-                        @Override
-                        public void completed(final AsyncConnectionEndpoint endpoint) {
-                            if (TimeValue.isPositive(timeout)) {
-                                endpoint.setSocketTimeout(timeout.toMillisIntBound());
-                            }
-                            callback.completed(InternalHttpAsyncExecRuntime.this);
-                        }
-
-                        @Override
-                        public void failed(final Exception ex) {
-                            callback.failed(ex);
-                        }
-
-                        @Override
-                        public void cancelled() {
-                            callback.cancelled();
-                        }
-
-            }));
         }
+        final RequestConfig requestConfig = context.getRequestConfig();
+        final TimeValue timeout = requestConfig.getConnectionTimeout();
+        return Operations.cancellable(manager.connect(
+                endpoint,
+                connectionInitiator,
+                timeout,
+                versionPolicy,
+                context,
+                new FutureCallback<AsyncConnectionEndpoint>() {
+
+                    @Override
+                    public void completed(final AsyncConnectionEndpoint endpoint) {
+                        if (TimeValue.isPositive(timeout)) {
+                            endpoint.setSocketTimeout(timeout.toMillisIntBound());
+                        }
+                        callback.completed(InternalHttpAsyncExecRuntime.this);
+                    }
+
+                    @Override
+                    public void failed(final Exception ex) {
+                        callback.failed(ex);
+                    }
+
+                    @Override
+                    public void cancelled() {
+                        callback.cancelled();
+                    }
+
+        }));
 
     }
 

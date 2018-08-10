@@ -61,6 +61,7 @@ import org.apache.hc.core5.http.protocol.HttpProcessor;
 import org.apache.hc.core5.http.protocol.RequestContent;
 import org.apache.hc.core5.http.protocol.RequestTargetHost;
 import org.apache.hc.core5.http.protocol.RequestUserAgent;
+import org.apache.hc.core5.io.ShutdownType;
 import org.apache.hc.core5.net.URIAuthority;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.VersionInfo;
@@ -150,21 +151,23 @@ public class MinimalHttpClient extends CloseableHttpClient {
                 // connection not needed and (assumed to be) in re-usable state
                 execRuntime.releaseConnection();
                 return new CloseableHttpResponse(response, null);
-            } else {
-                ResponseEntityProxy.enchance(response, execRuntime);
-                return new CloseableHttpResponse(response, execRuntime);
             }
+            ResponseEntityProxy.enchance(response, execRuntime);
+            return new CloseableHttpResponse(response, execRuntime);
         } catch (final ConnectionShutdownException ex) {
             final InterruptedIOException ioex = new InterruptedIOException("Connection has been shut down");
             ioex.initCause(ex);
             execRuntime.discardConnection();
             throw ioex;
-        } catch (final RuntimeException | IOException ex) {
-            execRuntime.discardConnection();
-            throw ex;
         } catch (final HttpException httpException) {
             execRuntime.discardConnection();
             throw new ClientProtocolException(httpException);
+        } catch (final RuntimeException | IOException ex) {
+            execRuntime.discardConnection();
+            throw ex;
+        } catch (final Error error) {
+            connManager.shutdown(ShutdownType.IMMEDIATE);
+            throw error;
         }
     }
 

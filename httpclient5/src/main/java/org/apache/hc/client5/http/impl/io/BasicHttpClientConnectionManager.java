@@ -152,8 +152,13 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
 
     @Override
     public void close() {
+        shutdown(ShutdownType.GRACEFUL);
+    }
+
+    @Override
+    public void shutdown(final ShutdownType shutdownType) {
         if (this.closed.compareAndSet(false, true)) {
-            shutdownConnection();
+            closeConnection(shutdownType);
         }
     }
 
@@ -200,24 +205,10 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
         };
     }
 
-    private synchronized void closeConnection() {
+    private synchronized void closeConnection(final ShutdownType shutdownType) {
         if (this.conn != null) {
-            this.log.debug("Closing connection");
-            try {
-                this.conn.close();
-            } catch (final IOException iox) {
-                if (this.log.isDebugEnabled()) {
-                    this.log.debug("I/O exception closing connection", iox);
-                }
-            }
-            this.conn = null;
-        }
-    }
-
-    private synchronized void shutdownConnection() {
-        if (this.conn != null) {
-            this.log.debug("Shutting down connection");
-            this.conn.shutdown(ShutdownType.GRACEFUL);
+            this.log.debug("Shutting down connection " + shutdownType);
+            this.conn.shutdown(shutdownType);
             this.conn = null;
         }
     }
@@ -227,7 +218,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
             if (this.log.isDebugEnabled()) {
                 this.log.debug("Connection expired @ " + new Date(this.expiry));
             }
-            closeConnection();
+            closeConnection(ShutdownType.GRACEFUL);
         }
     }
 
@@ -238,7 +229,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
         }
         Asserts.check(!this.leased, "Connection is still allocated");
         if (!LangUtils.equals(this.route, route) || !LangUtils.equals(this.state, state)) {
-            closeConnection();
+            closeConnection(ShutdownType.GRACEFUL);
         }
         this.route = route;
         this.state = state;
@@ -362,7 +353,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
             }
             final long deadline = System.currentTimeMillis() - time;
             if (this.updated <= deadline) {
-                closeConnection();
+                closeConnection(ShutdownType.GRACEFUL);
             }
         }
     }

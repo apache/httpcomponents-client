@@ -37,7 +37,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.hc.client5.http.async.methods.AsyncRequestBuilder;
-import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
+import org.apache.hc.client5.http.async.methods.SimpleHttpRequests;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
@@ -64,7 +64,7 @@ public abstract class AbstractHttpAsyncFundamentalsTest<T extends CloseableHttpA
         final HttpHost target = start();
         for (int i = 0; i < 3; i++) {
             final Future<SimpleHttpResponse> future = httpclient.execute(
-                    SimpleHttpRequest.get(target, "/random/2048"), null);
+                    SimpleHttpRequests.GET.create(target, "/random/2048"), null);
             final SimpleHttpResponse response = future.get();
             Assert.assertThat(response, CoreMatchers.notNullValue());
             Assert.assertThat(response.getCode(), CoreMatchers.equalTo(200));
@@ -79,7 +79,7 @@ public abstract class AbstractHttpAsyncFundamentalsTest<T extends CloseableHttpA
         final HttpHost target = start();
         for (int i = 0; i < 3; i++) {
             final Future<SimpleHttpResponse> future = httpclient.execute(
-                    SimpleHttpRequest.head(target, "/random/2048"), null);
+                    SimpleHttpRequests.HEAD.create(target, "/random/2048"), null);
             final SimpleHttpResponse response = future.get();
             Assert.assertThat(response, CoreMatchers.notNullValue());
             Assert.assertThat(response.getCode(), CoreMatchers.equalTo(200));
@@ -154,7 +154,7 @@ public abstract class AbstractHttpAsyncFundamentalsTest<T extends CloseableHttpA
                 try {
                     resultQueue.add(result);
                     if (count.decrementAndGet() > 0) {
-                        httpclient.execute(SimpleHttpRequest.get(target, "/random/2048"), this);
+                        httpclient.execute(SimpleHttpRequests.GET.create(target, "/random/2048"), this);
                     }
                 } finally {
                     countDownLatch.countDown();
@@ -180,7 +180,7 @@ public abstract class AbstractHttpAsyncFundamentalsTest<T extends CloseableHttpA
                 @Override
                 public void run() {
                     if (!Thread.currentThread().isInterrupted()) {
-                        httpclient.execute(SimpleHttpRequest.get(target, "/random/2048"), callback);
+                        httpclient.execute(SimpleHttpRequests.GET.create(target, "/random/2048"), callback);
                     }
                 }
 
@@ -196,9 +196,8 @@ public abstract class AbstractHttpAsyncFundamentalsTest<T extends CloseableHttpA
             final SimpleHttpResponse response = resultQueue.poll();
             if (response == null) {
                 break;
-            } else {
-                Assert.assertThat(response.getCode(), CoreMatchers.equalTo(200));
             }
+            Assert.assertThat(response.getCode(), CoreMatchers.equalTo(200));
         }
     }
 
@@ -206,7 +205,7 @@ public abstract class AbstractHttpAsyncFundamentalsTest<T extends CloseableHttpA
     public void testBadRequest() throws Exception {
         final HttpHost target = start();
         final Future<SimpleHttpResponse> future = httpclient.execute(
-                SimpleHttpRequest.get(target, "/random/boom"), null);
+                SimpleHttpRequests.GET.create(target, "/random/boom"), null);
         final SimpleHttpResponse response = future.get();
         Assert.assertThat(response, CoreMatchers.notNullValue());
         Assert.assertThat(response.getCode(), CoreMatchers.equalTo(400));

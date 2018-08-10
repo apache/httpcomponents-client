@@ -80,9 +80,8 @@ public class AuthSupport {
                     target.getHostName(),
                     route.getTargetHost().getPort(),
                     target.getSchemeName());
-        } else {
-            return target;
         }
+        return target;
     }
 
 }

@@ -216,9 +216,8 @@ public class AuthScope {
                     && this.port == that.port
                     && LangUtils.equals(this.realm, that.realm)
                     && LangUtils.equals(this.authScheme, that.authScheme);
-        } else {
-            return false;
         }
+        return false;
     }
 
     @Override

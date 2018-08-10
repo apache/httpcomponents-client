@@ -33,6 +33,7 @@ import org.apache.hc.core5.pool.ConnPoolControl;
 import org.apache.hc.core5.util.TimeValue;
 import org.junit.Assert;
 import org.junit.Test;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
 /**
@@ -69,7 +70,7 @@ public class TestIdleConnectionEvictor {
         Thread.sleep(1000);
 
         Mockito.verify(cm, Mockito.atLeast(1)).closeExpired();
-        Mockito.verify(cm, Mockito.never()).closeIdle(Mockito.<TimeValue>any());
+        Mockito.verify(cm, Mockito.never()).closeIdle(ArgumentMatchers.<TimeValue>any());
 
         Assert.assertTrue(connectionEvictor.isRunning());
 

@@ -70,6 +70,7 @@ public interface ManagedHttpClientConnection extends HttpClientConnection {
      * @return  the underlying SSL session if available,
      *          {@code null} otherwise
      */
+    @Override
     SSLSession getSSLSession();
 
     /**

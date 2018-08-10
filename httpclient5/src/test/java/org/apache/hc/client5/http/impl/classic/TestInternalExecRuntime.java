@@ -82,7 +82,7 @@ public class TestInternalExecRuntime {
     public void testAcquireEndpoint() throws Exception {
         final HttpClientContext context = HttpClientContext.create();
         final RequestConfig config = RequestConfig.custom()
-                .setConnectTimeout(123, TimeUnit.MILLISECONDS)
+                .setConnectionTimeout(123, TimeUnit.MILLISECONDS)
                 .setConnectionRequestTimeout(345, TimeUnit.MILLISECONDS)
                 .build();
         context.setRequestConfig(config);
@@ -259,7 +259,7 @@ public class TestInternalExecRuntime {
     public void testConnectEndpoint() throws Exception {
         final HttpClientContext context = HttpClientContext.create();
         final RequestConfig config = RequestConfig.custom()
-                .setConnectTimeout(123, TimeUnit.MILLISECONDS)
+                .setConnectionTimeout(123, TimeUnit.MILLISECONDS)
                 .setConnectionRequestTimeout(345, TimeUnit.MILLISECONDS)
                 .build();
         context.setRequestConfig(config);

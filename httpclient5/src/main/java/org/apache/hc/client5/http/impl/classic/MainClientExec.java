@@ -37,6 +37,7 @@ import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecChainHandler;
 import org.apache.hc.client5.http.classic.ExecRuntime;
 import org.apache.hc.client5.http.impl.ConnectionShutdownException;
+import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
@@ -46,6 +47,7 @@ import org.apache.hc.core5.http.ConnectionReuseStrategy;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.message.RequestLine;
+import org.apache.hc.core5.io.ShutdownType;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TimeValue;
 import org.slf4j.Logger;
@@ -63,6 +65,7 @@ final class MainClientExec implements ExecChainHandler {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
+    private final HttpClientConnectionManager connectionManager;
     private final ConnectionReuseStrategy reuseStrategy;
     private final ConnectionKeepAliveStrategy keepAliveStrategy;
     private final UserTokenHandler userTokenHandler;
@@ -71,15 +74,14 @@ final class MainClientExec implements ExecChainHandler {
      * @since 4.4
      */
     public MainClientExec(
+            final HttpClientConnectionManager connectionManager,
             final ConnectionReuseStrategy reuseStrategy,
             final ConnectionKeepAliveStrategy keepAliveStrategy,
             final UserTokenHandler userTokenHandler) {
-        Args.notNull(reuseStrategy, "Connection reuse strategy");
-        Args.notNull(keepAliveStrategy, "Connection keep alive strategy");
-        Args.notNull(userTokenHandler, "User token handler");
-        this.reuseStrategy      = reuseStrategy;
-        this.keepAliveStrategy  = keepAliveStrategy;
-        this.userTokenHandler   = userTokenHandler;
+        this.connectionManager = Args.notNull(connectionManager, "Connection manager");
+        this.reuseStrategy = Args.notNull(reuseStrategy, "Connection reuse strategy");
+        this.keepAliveStrategy = Args.notNull(keepAliveStrategy, "Connection keep alive strategy");
+        this.userTokenHandler = Args.notNull(userTokenHandler, "User token handler");
     }
 
     @Override
@@ -134,10 +136,9 @@ final class MainClientExec implements ExecChainHandler {
                 // connection not needed and (assumed to be) in re-usable state
                 execRuntime.releaseConnection();
                 return new CloseableHttpResponse(response, null);
-            } else {
-                ResponseEntityProxy.enchance(response, execRuntime);
-                return new CloseableHttpResponse(response, execRuntime);
             }
+            ResponseEntityProxy.enchance(response, execRuntime);
+            return new CloseableHttpResponse(response, execRuntime);
         } catch (final ConnectionShutdownException ex) {
             final InterruptedIOException ioex = new InterruptedIOException(
                     "Connection has been shut down");
@@ -147,6 +148,9 @@ final class MainClientExec implements ExecChainHandler {
         } catch (final HttpException | RuntimeException | IOException ex) {
             execRuntime.discardConnection();
             throw ex;
+        } catch (final Error error) {
+            connectionManager.shutdown(ShutdownType.IMMEDIATE);
+            throw error;
         }
 
     }

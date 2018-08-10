@@ -180,15 +180,14 @@ class Http2AsyncClientEventHandlerFactory implements IOEventHandlerFactory {
                     });
             final LoggingIOSession loggingIOSession = new LoggingIOSession(ioSession, id, sessionLog, wireLog);
             return new Http2OnlyClientProtocolNegotiator(loggingIOSession, http2StreamHandlerFactory, false);
-        } else {
-            final ClientHttp2StreamMultiplexerFactory http2StreamHandlerFactory = new ClientHttp2StreamMultiplexerFactory(
-                    httpProcessor,
-                    exchangeHandlerFactory,
-                    h2Config,
-                    charCodingConfig,
-                    null);
-            return new Http2OnlyClientProtocolNegotiator(ioSession, http2StreamHandlerFactory, false);
         }
+        final ClientHttp2StreamMultiplexerFactory http2StreamHandlerFactory = new ClientHttp2StreamMultiplexerFactory(
+                httpProcessor,
+                exchangeHandlerFactory,
+                h2Config,
+                charCodingConfig,
+                null);
+        return new Http2OnlyClientProtocolNegotiator(ioSession, http2StreamHandlerFactory, false);
    }
 
 }

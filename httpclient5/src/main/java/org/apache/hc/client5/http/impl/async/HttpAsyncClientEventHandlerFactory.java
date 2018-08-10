@@ -255,27 +255,26 @@ class HttpAsyncClientEventHandlerFactory implements IOEventHandlerFactory {
                             http1StreamHandlerFactory,
                             http2StreamHandlerFactory,
                             attachment instanceof HttpVersionPolicy ? (HttpVersionPolicy) attachment : versionPolicy);
-        } else {
-            final ClientHttp1StreamDuplexerFactory http1StreamHandlerFactory = new ClientHttp1StreamDuplexerFactory(
-                    httpProcessor,
-                    h1Config,
-                    charCodingConfig,
-                    http1ConnectionReuseStrategy,
-                    http1ResponseParserFactory,
-                    http1RequestWriterFactory,
-                    null);
-            final ClientHttp2StreamMultiplexerFactory http2StreamHandlerFactory = new ClientHttp2StreamMultiplexerFactory(
-                    httpProcessor,
-                    exchangeHandlerFactory,
-                    h2Config,
-                    charCodingConfig,
-                    null);
-            return new ClientHttpProtocolNegotiator(
-                    ioSession,
-                    http1StreamHandlerFactory,
-                    http2StreamHandlerFactory,
-                    attachment instanceof HttpVersionPolicy ? (HttpVersionPolicy) attachment : versionPolicy);
         }
+        final ClientHttp1StreamDuplexerFactory http1StreamHandlerFactory = new ClientHttp1StreamDuplexerFactory(
+                httpProcessor,
+                h1Config,
+                charCodingConfig,
+                http1ConnectionReuseStrategy,
+                http1ResponseParserFactory,
+                http1RequestWriterFactory,
+                null);
+        final ClientHttp2StreamMultiplexerFactory http2StreamHandlerFactory = new ClientHttp2StreamMultiplexerFactory(
+                httpProcessor,
+                exchangeHandlerFactory,
+                h2Config,
+                charCodingConfig,
+                null);
+        return new ClientHttpProtocolNegotiator(
+                ioSession,
+                http1StreamHandlerFactory,
+                http2StreamHandlerFactory,
+                attachment instanceof HttpVersionPolicy ? (HttpVersionPolicy) attachment : versionPolicy);
    }
 
 }

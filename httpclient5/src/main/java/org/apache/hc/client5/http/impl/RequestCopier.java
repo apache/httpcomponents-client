@@ -36,6 +36,7 @@ public final class RequestCopier implements MessageCopier<HttpRequest> {
 
     public static final RequestCopier INSTANCE = new RequestCopier();
 
+    @Override
     public HttpRequest copy(final HttpRequest original) {
         if (original == null) {
             return null;

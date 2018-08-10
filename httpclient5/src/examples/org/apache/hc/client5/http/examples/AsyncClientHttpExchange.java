@@ -29,6 +29,7 @@ package org.apache.hc.client5.http.examples;
 import java.util.concurrent.Future;
 
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
+import org.apache.hc.client5.http.async.methods.SimpleHttpRequests;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
@@ -59,7 +60,7 @@ public class AsyncClientHttpExchange {
         final String[] requestUris = new String[] {"/", "/ip", "/user-agent", "/headers"};
 
         for (final String requestUri: requestUris) {
-            final SimpleHttpRequest httpget = SimpleHttpRequest.get(target, requestUri);
+            final SimpleHttpRequest httpget = SimpleHttpRequests.GET.create(target, requestUri);
             System.out.println("Executing request " + httpget.getMethod() + " " + httpget.getUri());
             final Future<SimpleHttpResponse> future = client.execute(
                     httpget,

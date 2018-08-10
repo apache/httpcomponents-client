@@ -36,6 +36,7 @@ import java.util.concurrent.Future;
 import org.apache.hc.client5.http.async.methods.AbstractCharResponseConsumer;
 import org.apache.hc.client5.http.async.methods.AsyncRequestBuilder;
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
+import org.apache.hc.client5.http.async.methods.SimpleHttpRequests;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
@@ -54,7 +55,7 @@ public class AsyncQuickStart {
             httpclient.start();
 
             // Execute request
-            final SimpleHttpRequest request1 = SimpleHttpRequest.get("http://httpbin.org/get");
+            final SimpleHttpRequest request1 = SimpleHttpRequests.GET.create("http://httpbin.org/get");
             Future<SimpleHttpResponse> future = httpclient.execute(request1, null);
             // and wait until response is received
             final SimpleHttpResponse response1 = future.get();
@@ -62,7 +63,7 @@ public class AsyncQuickStart {
 
             // One most likely would want to use a callback for operation result
             final CountDownLatch latch1 = new CountDownLatch(1);
-            final SimpleHttpRequest request2 = SimpleHttpRequest.get("http://httpbin.org/get");
+            final SimpleHttpRequest request2 = SimpleHttpRequests.GET.create("http://httpbin.org/get");
             httpclient.execute(request2, new FutureCallback<SimpleHttpResponse>() {
 
                 @Override

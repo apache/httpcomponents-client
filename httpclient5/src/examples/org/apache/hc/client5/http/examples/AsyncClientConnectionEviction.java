@@ -30,6 +30,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
+import org.apache.hc.client5.http.async.methods.SimpleHttpRequests;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.async.methods.SimpleRequestProducer;
 import org.apache.hc.client5.http.async.methods.SimpleResponseConsumer;
@@ -64,7 +65,7 @@ public class AsyncClientConnectionEviction {
 
         final HttpHost target = new HttpHost("httpbin.org");
 
-        final SimpleHttpRequest request = SimpleHttpRequest.get(target, "/");
+        final SimpleHttpRequest request = SimpleHttpRequests.GET.create(target, "/");
         final Future<SimpleHttpResponse> future1 = client.execute(
                 SimpleRequestProducer.create(request),
                 SimpleResponseConsumer.create(),

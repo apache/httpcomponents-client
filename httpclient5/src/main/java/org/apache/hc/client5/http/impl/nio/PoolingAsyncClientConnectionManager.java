@@ -188,19 +188,25 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
 
     @Override
     public void close() {
-        if (closed.compareAndSet(false, true)) {
-            log.debug("Connection manager is shutting down");
-            pool.shutdown(ShutdownType.GRACEFUL);
-            log.debug("Connection manager shut down");
+        shutdown(ShutdownType.GRACEFUL);
+    }
+
+    @Override
+    public void shutdown(final ShutdownType shutdownType) {
+        if (this.closed.compareAndSet(false, true)) {
+            if (this.log.isDebugEnabled()) {
+                this.log.debug("Shutdown connection pool " + shutdownType);
+            }
+            this.pool.shutdown(shutdownType);
+            this.log.debug("Connection pool shut down");
         }
     }
 
     private InternalConnectionEndpoint cast(final AsyncConnectionEndpoint endpoint) {
         if (endpoint instanceof InternalConnectionEndpoint) {
             return (InternalConnectionEndpoint) endpoint;
-        } else {
-            throw new IllegalStateException("Unexpected endpoint class: " + endpoint.getClass());
         }
+        throw new IllegalStateException("Unexpected endpoint class: " + endpoint.getClass());
     }
 
     @Override
@@ -533,13 +539,12 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
             final ManagedAsyncClientConnection connection = poolEntry.getConnection();
             if (connection == null) {
                 return false;
-            } else {
-                if (!connection.isOpen()) {
-                    poolEntry.discardConnection(ShutdownType.IMMEDIATE);
-                    return false;
-                }
-                return true;
             }
+            if (!connection.isOpen()) {
+                poolEntry.discardConnection(ShutdownType.IMMEDIATE);
+                return false;
+            }
+            return true;
         }
 
         @Override

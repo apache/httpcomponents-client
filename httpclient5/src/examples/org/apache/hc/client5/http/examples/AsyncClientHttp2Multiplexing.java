@@ -31,6 +31,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
+import org.apache.hc.client5.http.async.methods.SimpleHttpRequests;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.async.methods.SimpleRequestProducer;
 import org.apache.hc.client5.http.async.methods.SimpleResponseConsumer;
@@ -62,15 +63,15 @@ public class AsyncClientHttp2Multiplexing {
 
         client.start();
 
-        final HttpHost target = new HttpHost("http2bin.org");
+        final HttpHost target = new HttpHost("nghttp2.org");
         final Future<AsyncClientEndpoint> leaseFuture = client.lease(target, null);
         final AsyncClientEndpoint endpoint = leaseFuture.get(30, TimeUnit.SECONDS);
         try {
-            final String[] requestUris = new String[] {"/", "/ip", "/user-agent", "/headers"};
+            final String[] requestUris = new String[] {"/httpbin/ip", "/httpbin/user-agent", "/httpbin/headers"};
 
             final CountDownLatch latch = new CountDownLatch(requestUris.length);
             for (final String requestUri: requestUris) {
-                final SimpleHttpRequest request = SimpleHttpRequest.get(target, requestUri);
+                final SimpleHttpRequest request = SimpleHttpRequests.GET.create(target, requestUri);
                 endpoint.execute(
                         SimpleRequestProducer.create(request),
                         SimpleResponseConsumer.create(),

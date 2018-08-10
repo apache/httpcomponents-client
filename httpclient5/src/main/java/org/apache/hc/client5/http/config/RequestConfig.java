@@ -382,7 +382,7 @@ public class RequestConfig implements Cloneable {
             return this;
         }
 
-        public Builder setConnectTimeout(final long connectTimeout, final TimeUnit timeUnit) {
+        public Builder setConnectionTimeout(final long connectTimeout, final TimeUnit timeUnit) {
             this.connectionTimeout = Timeout.of(connectTimeout, timeUnit);
             return this;
         }

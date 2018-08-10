@@ -39,7 +39,7 @@ public class WeakListTest {
 
     @Test
     public void testWeakList() {
-        final WeakList<Object> list = new WeakList<Object>();
+        final WeakList<Object> list = new WeakList<>();
         list.add("hello");
         list.add(null);
 
@@ -61,7 +61,7 @@ public class WeakListTest {
 
     @Test
     public void clearSupported() {
-        final WeakList<Object> list = new WeakList<Object>();
+        final WeakList<Object> list = new WeakList<>();
 
         list.add("hello");
         assertEquals(1, list.size());

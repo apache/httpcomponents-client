@@ -64,7 +64,6 @@ public class TestHttpClientConnectionOperator {
     private DnsResolver dnsResolver;
     private DefaultHttpClientConnectionOperator connectionOperator;
 
-    @SuppressWarnings("unchecked")
     @Before
     public void setup() throws Exception {
         conn = Mockito.mock(ManagedHttpClientConnection.class);

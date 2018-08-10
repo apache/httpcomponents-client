@@ -30,6 +30,8 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import org.apache.hc.client5.http.utils.Closer;
+
 public class ConsumableInputStream extends InputStream {
 
     private final ByteArrayInputStream buf;
@@ -47,10 +49,7 @@ public class ConsumableInputStream extends InputStream {
     @Override
     public void close() {
         closed = true;
-        try {
-            buf.close();
-        } catch (final IOException e) {
-        }
+        Closer.closeQuietly(buf);
     }
 
     public boolean wasClosed() {

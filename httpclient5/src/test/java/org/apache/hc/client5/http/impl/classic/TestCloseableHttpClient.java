@@ -112,7 +112,6 @@ public class TestCloseableHttpClient {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     public void testExecuteRequestHandleResponse() throws Exception {
         final HttpGet httpget = new HttpGet("https://somehost:444/stuff");
 
@@ -132,7 +131,6 @@ public class TestCloseableHttpClient {
     }
 
     @Test(expected=IOException.class)
-    @SuppressWarnings("unchecked")
     public void testExecuteRequestHandleResponseIOException() throws Exception {
         final HttpGet httpget = new HttpGet("https://somehost:444/stuff");
 
@@ -156,7 +154,6 @@ public class TestCloseableHttpClient {
     }
 
     @Test(expected=RuntimeException.class)
-    @SuppressWarnings("unchecked")
     public void testExecuteRequestHandleResponseHttpException() throws Exception {
         final HttpGet httpget = new HttpGet("https://somehost:444/stuff");
 

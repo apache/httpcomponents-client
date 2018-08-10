@@ -183,10 +183,9 @@ class AsyncProtocolExec implements AsyncExecChainHandler {
                 if (needAuthentication(targetAuthExchange, proxyAuthExchange, route, request, response, clientContext)) {
                     challenged.set(true);
                     return null;
-                } else {
-                    challenged.set(false);
-                    return asyncExecCallback.handleResponse(response, entityDetails);
                 }
+                challenged.set(false);
+                return asyncExecCallback.handleResponse(response, entityDetails);
             }
 
             @Override
@@ -198,14 +197,12 @@ class AsyncProtocolExec implements AsyncExecChainHandler {
             public void completed() {
                 if (!execRuntime.isConnected()) {
                     if (proxyAuthExchange.getState() == AuthExchange.State.SUCCESS
-                            && proxyAuthExchange.getAuthScheme() != null
-                            && proxyAuthExchange.getAuthScheme().isConnectionBased()) {
+                            && proxyAuthExchange.isConnectionBased()) {
                         log.debug("Resetting proxy auth state");
                         proxyAuthExchange.reset();
                     }
                     if (targetAuthExchange.getState() == AuthExchange.State.SUCCESS
-                            && targetAuthExchange.getAuthScheme() != null
-                            && targetAuthExchange.getAuthScheme().isConnectionBased()) {
+                            && targetAuthExchange.isConnectionBased()) {
                         log.debug("Resetting target auth state");
                         targetAuthExchange.reset();
                     }
@@ -238,6 +235,14 @@ class AsyncProtocolExec implements AsyncExecChainHandler {
 
             @Override
             public void failed(final Exception cause) {
+                if (cause instanceof IOException || cause instanceof RuntimeException) {
+                    if (proxyAuthExchange.isConnectionBased()) {
+                        proxyAuthExchange.reset();
+                    }
+                    if (targetAuthExchange.isConnectionBased()) {
+                        targetAuthExchange.reset();
+                    }
+                }
                 asyncExecCallback.failed(cause);
             }
 

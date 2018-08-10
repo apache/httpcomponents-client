@@ -42,6 +42,7 @@ public class BasicTestAuthenticator implements Authenticator {
         this.realm = realm;
     }
 
+    @Override
     public boolean authenticate(final URIAuthority authority, final String requestUri, final String credentials) {
         return Objects.equals(userToken, credentials);
     }

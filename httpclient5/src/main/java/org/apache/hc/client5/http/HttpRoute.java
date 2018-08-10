@@ -271,9 +271,8 @@ public final class HttpRoute implements RouteInfo, Cloneable {
                 LangUtils.equals(this.targetHost, that.targetHost) &&
                 LangUtils.equals(this.localAddress, that.localAddress) &&
                 LangUtils.equals(this.proxyChain, that.proxyChain);
-        } else {
-            return false;
         }
+        return false;
     }
 
 

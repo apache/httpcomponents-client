@@ -111,7 +111,7 @@ public class FormBodyPartBuilder {
             headerCopy.addField(field);
         }
         if (headerCopy.getField(MIME.CONTENT_DISPOSITION) == null) {
-            final List<NameValuePair> fieldParameters = new ArrayList<NameValuePair>();
+            final List<NameValuePair> fieldParameters = new ArrayList<>();
             fieldParameters.add(new BasicNameValuePair(MIME.FIELD_PARAM_NAME, this.name));
             if (this.body.getFilename() != null) {
                 fieldParameters.add(new BasicNameValuePair(MIME.FIELD_PARAM_FILENAME, this.body.getFilename()));

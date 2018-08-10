@@ -51,7 +51,7 @@ class DefaultAsyncCacheRevalidator extends CacheRevalidatorBase {
 
     interface RevalidationCall {
 
-        void execute(AsyncExecCallback asyncExecCallback);;
+        void execute(AsyncExecCallback asyncExecCallback);
     }
 
     static class InternalScheduledExecutor implements ScheduledExecutor {
@@ -67,9 +67,8 @@ class DefaultAsyncCacheRevalidator extends CacheRevalidatorBase {
             if (timeValue.toMillis() <= 0) {
                 command.run();
                 return new Operations.CompletedFuture<Void>(null);
-            } else {
-                return executor.schedule(command, timeValue);
             }
+            return executor.schedule(command, timeValue);
         }
 
         @Override

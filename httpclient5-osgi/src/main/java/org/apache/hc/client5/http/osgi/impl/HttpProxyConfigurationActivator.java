@@ -26,8 +26,6 @@
  */
 package org.apache.hc.client5.http.osgi.impl;
 
-import java.io.Closeable;
-import java.io.IOException;
 import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.LinkedHashMap;
@@ -39,6 +37,7 @@ import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.osgi.services.CachingHttpClientBuilderFactory;
 import org.apache.hc.client5.http.osgi.services.HttpClientBuilderFactory;
 import org.apache.hc.client5.http.osgi.services.ProxyConfiguration;
+import org.apache.hc.client5.http.utils.Closer;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
@@ -202,16 +201,6 @@ public final class HttpProxyConfigurationActivator implements BundleActivator, M
         return false;
     }
 
-    private static void closeQuietly(final Closeable closeable) {
-        if (closeable != null) {
-            try {
-                closeable.close();
-            } catch (final IOException e) {
-                // do nothing
-            }
-        }
-    }
-
     static class HttpClientTracker {
 
         private final List<CloseableHttpClient> trackedHttpClients = new WeakList<>();
@@ -222,7 +211,7 @@ public final class HttpProxyConfigurationActivator implements BundleActivator, M
 
         synchronized void closeAll() {
             for (final CloseableHttpClient client : trackedHttpClients) {
-                closeQuietly(client);
+                Closer.closeQuietly(client);
             }
             trackedHttpClients.clear();
         }

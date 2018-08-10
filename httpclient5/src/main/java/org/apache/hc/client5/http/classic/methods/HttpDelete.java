@@ -51,11 +51,20 @@ public class HttpDelete extends HttpUriRequestBase {
     public final static String METHOD_NAME = "DELETE";
 
 
+    /**
+     * Creates a new instance initialized with the given URI.
+     *
+     * @param uri a non-null request URI.
+     * @throws IllegalArgumentException if the uri is null.
+     */
     public HttpDelete(final URI uri) {
         super(METHOD_NAME, uri);
     }
 
     /**
+     * Creates a new instance initialized with the given URI.
+     *
+     * @param uri a non-null request URI.
      * @throws IllegalArgumentException if the uri is invalid.
      */
     public HttpDelete(final String uri) {

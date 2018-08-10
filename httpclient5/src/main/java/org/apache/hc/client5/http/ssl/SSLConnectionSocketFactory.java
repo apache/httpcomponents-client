@@ -49,6 +49,7 @@ import javax.security.auth.x500.X500Principal;
 
 import org.apache.hc.client5.http.psl.PublicSuffixMatcherLoader;
 import org.apache.hc.client5.http.socket.LayeredConnectionSocketFactory;
+import org.apache.hc.client5.http.utils.Closer;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HttpHost;
@@ -277,10 +278,7 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
             }
             sock.connect(remoteAddress, connectTimeout != null ? connectTimeout.toMillisIntBound() : 0);
         } catch (final IOException ex) {
-            try {
-                sock.close();
-            } catch (final IOException ignore) {
-            }
+            Closer.closeQuietly(sock);
             throw ex;
         }
         // Setup SSL layering if necessary
@@ -290,9 +288,8 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
             sslsock.startHandshake();
             verifyHostname(sslsock, host.getHostName());
             return sock;
-        } else {
-            return createLayeredSocket(sock, host.getHostName(), remoteAddress.getPort(), context);
         }
+        return createLayeredSocket(sock, host.getHostName(), remoteAddress.getPort(), context);
     }
 
     @Override
@@ -413,7 +410,7 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
             // verifyHostName() didn't blowup - good!
         } catch (final IOException iox) {
             // close the socket before re-throwing the exception
-            try { sslsock.close(); } catch (final Exception x) { /*ignore*/ }
+            Closer.closeQuietly(sslsock);
             throw iox;
         }
     }

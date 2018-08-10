@@ -54,11 +54,18 @@ public class HttpHead extends HttpUriRequestBase {
 
     public final static String METHOD_NAME = "HEAD";
 
+    /**
+     * Creates a new instance initialized with the given URI.
+     *
+     * @param uri a non-null request URI.
+     * @throws IllegalArgumentException if the uri is null.
+     */
     public HttpHead(final URI uri) {
         super(METHOD_NAME, uri);
     }
 
     /**
+     * @param uri a non-null request URI.
      * @throws IllegalArgumentException if the uri is invalid.
      */
     public HttpHead(final String uri) {

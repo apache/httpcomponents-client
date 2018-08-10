@@ -413,13 +413,12 @@ public class AsyncCachingExec extends CachingExecBase implements AsyncExecChainH
                     }
                 }
                 return Integer.MAX_VALUE;
+            }
+            final AsyncDataConsumer dataConsumer = dataConsumerRef.get();
+            if (dataConsumer != null) {
+                return dataConsumer.consume(src);
             } else {
-                final AsyncDataConsumer dataConsumer = dataConsumerRef.get();
-                if (dataConsumer != null) {
-                    return dataConsumer.consume(src);
-                } else {
-                    return Integer.MAX_VALUE;
-                }
+                return Integer.MAX_VALUE;
             }
         }
 
@@ -439,7 +438,7 @@ public class AsyncCachingExec extends CachingExecBase implements AsyncExecChainH
             }
         }
 
-    };
+    }
 
     class BackendResponseHandler implements AsyncExecCallback {
 
@@ -515,9 +514,8 @@ public class AsyncCachingExec extends CachingExecBase implements AsyncExecChainH
             if (cachingDataConsumer != null) {
                 log.debug("Caching backend response");
                 return cachingDataConsumer;
-            } else {
-                return asyncExecCallback.handleResponse(backendResponse, entityDetails);
             }
+            return asyncExecCallback.handleResponse(backendResponse, entityDetails);
         }
 
         @Override

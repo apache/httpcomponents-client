@@ -127,10 +127,9 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
                 }
 
             });
-        } else {
-            callback.completed(Boolean.TRUE);
-            return Operations.nonCancellable();
         }
+        callback.completed(Boolean.TRUE);
+        return Operations.nonCancellable();
     }
 
     @Override
@@ -150,10 +149,9 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
         }
         if (!StandardMethods.isSafe(request.getMethod())) {
             return cacheInvalidator.flushCacheEntriesInvalidatedByExchange(host, request, response, cacheKeyGenerator, storage, callback);
-        } else {
-            callback.completed(Boolean.TRUE);
-            return Operations.nonCancellable();
         }
+        callback.completed(Boolean.TRUE);
+        return Operations.nonCancellable();
     }
 
     Cancellable storeInCache(

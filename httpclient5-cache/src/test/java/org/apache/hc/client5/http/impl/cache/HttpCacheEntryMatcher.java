@@ -72,13 +72,12 @@ public class HttpCacheEntryMatcher extends BaseMatcher<HttpCacheEntry> {
                 final Header[] otherHeaders = otherValue.getAllHeaders();
                 if (expectedHeaders.length != otherHeaders.length) {
                     return false;
-                } else {
-                    for (int i = 0; i < expectedHeaders.length; i++) {
-                        final Header h1 = expectedHeaders[i];
-                        final Header h2 = otherHeaders[i];
-                        if (!h1.getName().equals(h2.getName()) || !LangUtils.equals(h1.getValue(), h2.getValue())) {
-                            return false;
-                        }
+                }
+                for (int i = 0; i < expectedHeaders.length; i++) {
+                    final Header h1 = expectedHeaders[i];
+                    final Header h2 = otherHeaders[i];
+                    if (!h1.getName().equals(h2.getName()) || !LangUtils.equals(h1.getValue(), h2.getValue())) {
+                        return false;
                     }
                 }
                 final Resource expectedResource = expectedValue.getResource();

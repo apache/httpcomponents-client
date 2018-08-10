@@ -34,6 +34,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
 
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
+import org.apache.hc.client5.http.async.methods.SimpleHttpRequests;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.async.methods.SimpleRequestProducer;
 import org.apache.hc.client5.http.async.methods.SimpleResponseConsumer;
@@ -96,7 +97,7 @@ public class AsyncClientCustomSSL {
             final String requestUri = "/";
             final HttpClientContext clientContext = HttpClientContext.create();
 
-            final SimpleHttpRequest request = SimpleHttpRequest.get(target, requestUri);
+            final SimpleHttpRequest request = SimpleHttpRequests.GET.create(target, requestUri);
             final Future<SimpleHttpResponse> future = client.execute(
                     SimpleRequestProducer.create(request),
                     SimpleResponseConsumer.create(),

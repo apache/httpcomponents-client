@@ -92,9 +92,8 @@ public class FileResource extends Resource {
             } catch (final FileNotFoundException ex) {
                 throw new ResourceIOException(ex.getMessage(), ex);
             }
-        } else {
-            throw new ResourceIOException("Resouce already dispoased");
         }
+        throw new ResourceIOException("Resouce already dispoased");
     }
 
     @Override

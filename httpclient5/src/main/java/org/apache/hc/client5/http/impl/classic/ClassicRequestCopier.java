@@ -37,6 +37,7 @@ public final class ClassicRequestCopier implements MessageCopier<ClassicHttpRequ
 
     public static final ClassicRequestCopier INSTANCE = new ClassicRequestCopier();
 
+    @Override
     public ClassicHttpRequest copy(final ClassicHttpRequest original) {
         if (original == null) {
             return null;

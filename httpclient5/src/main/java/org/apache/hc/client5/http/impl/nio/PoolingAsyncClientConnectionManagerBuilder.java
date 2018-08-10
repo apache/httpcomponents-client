@@ -188,7 +188,6 @@ public class PoolingAsyncClientConnectionManagerBuilder {
         } else {
             tlsStrategyCopy = H2TlsStrategy.getDefault();
         }
-        @SuppressWarnings("resource")
         final PoolingAsyncClientConnectionManager poolingmgr = new PoolingAsyncClientConnectionManager(
                 RegistryBuilder.<TlsStrategy>create()
                         .register("https", tlsStrategyCopy)
