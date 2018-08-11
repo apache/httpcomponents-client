@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
@@ -540,12 +541,8 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
         }
         try {
             sock.connect(remoteAddress, connectTimeout);
-        } catch (final IOException ex) {
-            try {
-                sock.close();
-            } catch (final IOException ignore) {
-            }
-            throw ex;
+        } catch (final SocketTimeoutException ex) {
+            throw new ConnectTimeoutException("Connect to " + remoteAddress + " timed out");
         }
         // Setup SSL layering if necessary
         if (sock instanceof SSLSocket) {
