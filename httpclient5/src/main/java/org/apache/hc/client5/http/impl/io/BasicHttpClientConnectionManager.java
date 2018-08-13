@@ -189,7 +189,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
             @Override
             public ConnectionEndpoint get(
                     final long timeout,
-                    final TimeUnit tunit) throws InterruptedException, ExecutionException, TimeoutException {
+                    final TimeUnit timeUnit) throws InterruptedException, ExecutionException, TimeoutException {
                 try {
                     return new InternalConnectionEndpoint(route, getConnection(route, state));
                 } catch (final IOException ex) {
@@ -246,9 +246,8 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
     private InternalConnectionEndpoint cast(final ConnectionEndpoint endpoint) {
         if (endpoint instanceof InternalConnectionEndpoint) {
             return (InternalConnectionEndpoint) endpoint;
-        } else {
-            throw new IllegalStateException("Unexpected endpoint class: " + endpoint.getClass());
         }
+        throw new IllegalStateException("Unexpected endpoint class: " + endpoint.getClass());
     }
 
     @Override
@@ -341,13 +340,13 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
         }
     }
 
-    public synchronized void closeIdle(final long idletime, final TimeUnit tunit) {
-        Args.notNull(tunit, "Time unit");
+    public synchronized void closeIdle(final long idletime, final TimeUnit timeUnit) {
+        Args.notNull(timeUnit, "Time unit");
         if (this.closed.get()) {
             return;
         }
         if (!this.leased) {
-            long time = tunit.toMillis(idletime);
+            long time = timeUnit.toMillis(idletime);
             if (time < 0) {
                 time = 0;
             }

@@ -33,6 +33,8 @@ import org.apache.hc.client5.http.cache.ResourceIOException;
  */
 class MemcachedOperationTimeoutException extends ResourceIOException {
 
+    private static final long serialVersionUID = 1L;
+
     public MemcachedOperationTimeoutException(final Throwable cause) {
         super(cause != null ? cause.getMessage() : null, cause);
     }

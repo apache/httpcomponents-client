@@ -53,11 +53,9 @@ public final class CloseableHttpResponse implements ClassicHttpResponse {
         if (response == null) {
             return null;
         }
-        if (response instanceof CloseableHttpResponse) {
-            return (CloseableHttpResponse) response;
-        } else {
-            return new CloseableHttpResponse(response, null);
-        }
+        return response instanceof CloseableHttpResponse
+                        ? (CloseableHttpResponse) response
+                        : new CloseableHttpResponse(response, null);
     }
 
     CloseableHttpResponse(final ClassicHttpResponse response, final ExecRuntime execRuntime) {

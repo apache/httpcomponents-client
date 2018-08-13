@@ -234,9 +234,9 @@ public class TestConnectExec {
         final ClassicHttpRequest request = new HttpGet("http://bar/test");
         final ClassicHttpResponse response1 = new BasicClassicHttpResponse(407, "Huh?");
         response1.setHeader(HttpHeaders.PROXY_AUTHENTICATE, "Basic realm=test");
-        final InputStream instream1 = Mockito.spy(new ByteArrayInputStream(new byte[] {1, 2, 3}));
+        final InputStream inStream1 = Mockito.spy(new ByteArrayInputStream(new byte[] {1, 2, 3}));
         response1.setEntity(EntityBuilder.create()
-                .setStream(instream1)
+                .setStream(inStream1)
                 .build());
         final ClassicHttpResponse response2 = new BasicClassicHttpResponse(200, "OK");
 
@@ -264,7 +264,7 @@ public class TestConnectExec {
         exec.execute(request, scope, execChain);
 
         Mockito.verify(execRuntime).connect(context);
-        Mockito.verify(instream1).close();
+        Mockito.verify(inStream1).close();
     }
 
     @Test
@@ -274,9 +274,9 @@ public class TestConnectExec {
         final ClassicHttpRequest request = new HttpGet("http://bar/test");
         final ClassicHttpResponse response1 = new BasicClassicHttpResponse(407, "Huh?");
         response1.setHeader(HttpHeaders.PROXY_AUTHENTICATE, "Basic realm=test");
-        final InputStream instream1 = Mockito.spy(new ByteArrayInputStream(new byte[] {1, 2, 3}));
+        final InputStream inStream1 = Mockito.spy(new ByteArrayInputStream(new byte[] {1, 2, 3}));
         response1.setEntity(EntityBuilder.create()
-                .setStream(instream1)
+                .setStream(inStream1)
                 .build());
         final ClassicHttpResponse response2 = new BasicClassicHttpResponse(200, "OK");
 
@@ -304,7 +304,7 @@ public class TestConnectExec {
         exec.execute(request, scope, execChain);
 
         Mockito.verify(execRuntime).connect(context);
-        Mockito.verify(instream1, Mockito.never()).close();
+        Mockito.verify(inStream1, Mockito.never()).close();
         Mockito.verify(execRuntime).disconnect();
     }
 

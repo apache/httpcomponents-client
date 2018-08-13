@@ -457,6 +457,8 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
                     public AuthScheme create(final HttpContext context) {
                         return new BasicScheme() {
 
+                            private static final long serialVersionUID = 1L;
+
                             @Override
                             public String getName() {
                                 return "MyBasic";

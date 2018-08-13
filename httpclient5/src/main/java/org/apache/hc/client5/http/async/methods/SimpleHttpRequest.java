@@ -39,6 +39,7 @@ import org.apache.hc.core5.util.Args;
 
 public final class SimpleHttpRequest extends ConfigurableHttpRequest {
 
+    private static final long serialVersionUID = 1L;
     private SimpleBody body;
 
     public static SimpleHttpRequest copy(final HttpRequest original) {

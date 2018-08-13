@@ -33,6 +33,8 @@ import java.io.IOException;
  */
 public class ResourceIOException extends IOException {
 
+    private static final long serialVersionUID = 1L;
+
     public ResourceIOException(final String message) {
         super();
     }

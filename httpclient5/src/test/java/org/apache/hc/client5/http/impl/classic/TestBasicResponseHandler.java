@@ -57,10 +57,10 @@ public class TestBasicResponseHandler {
 
     @Test
     public void testUnsuccessfulResponse() throws Exception {
-        final InputStream instream = Mockito.mock(InputStream.class);
+        final InputStream inStream = Mockito.mock(InputStream.class);
         final HttpEntity entity = Mockito.mock(HttpEntity.class);
         Mockito.when(entity.isStreaming()).thenReturn(true);
-        Mockito.when(entity.getContent()).thenReturn(instream);
+        Mockito.when(entity.getContent()).thenReturn(inStream);
         final ClassicHttpResponse response = Mockito.mock(ClassicHttpResponse.class);
         Mockito.when(response.getCode()).thenReturn(404);
         Mockito.when(response.getEntity()).thenReturn(entity);
@@ -73,7 +73,7 @@ public class TestBasicResponseHandler {
             Assert.assertEquals(404, ex.getStatusCode());
         }
         Mockito.verify(entity).getContent();
-        Mockito.verify(instream).close();
+        Mockito.verify(inStream).close();
     }
 
 }

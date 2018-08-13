@@ -396,11 +396,11 @@ public class CachingExec extends CachingExecBase implements ExecChainHandler {
         final HttpEntity entity = backendResponse.getEntity();
         if (entity != null) {
             buf = new ByteArrayBuffer(1024);
-            final InputStream instream = entity.getContent();
+            final InputStream inStream = entity.getContent();
             final byte[] tmp = new byte[2048];
             long total = 0;
             int l;
-            while ((l = instream.read(tmp)) != -1) {
+            while ((l = inStream.read(tmp)) != -1) {
                 buf.append(tmp, 0, l);
                 total += l;
                 if (total > cacheConfig.getMaxObjectSize()) {

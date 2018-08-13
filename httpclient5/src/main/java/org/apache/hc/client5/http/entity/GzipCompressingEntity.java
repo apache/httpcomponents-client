@@ -71,9 +71,9 @@ public class GzipCompressingEntity extends HttpEntityWrapper {
     }
 
     @Override
-    public void writeTo(final OutputStream outstream) throws IOException {
-        Args.notNull(outstream, "Output stream");
-        final GZIPOutputStream gzip = new GZIPOutputStream(outstream);
+    public void writeTo(final OutputStream outStream) throws IOException {
+        Args.notNull(outStream, "Output stream");
+        final GZIPOutputStream gzip = new GZIPOutputStream(outStream);
         super.writeTo(gzip);
         // Only close output stream if the wrapped entity has been
         // successfully written out

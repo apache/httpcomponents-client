@@ -91,8 +91,8 @@ public final class IdleConnectionEvictor {
         return thread.isAlive();
     }
 
-    public void awaitTermination(final long time, final TimeUnit tunit) throws InterruptedException {
-        thread.join((tunit != null ? tunit : TimeUnit.MILLISECONDS).toMillis(time));
+    public void awaitTermination(final long time, final TimeUnit timeUnit) throws InterruptedException {
+        thread.join((timeUnit != null ? timeUnit : TimeUnit.MILLISECONDS).toMillis(time));
     }
 
 }

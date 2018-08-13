@@ -63,8 +63,8 @@ final class DefaultManagedHttpClientConnection
         extends DefaultBHttpClientConnection implements ManagedHttpClientConnection, Identifiable {
 
     private final Logger log = LoggerFactory.getLogger(DefaultManagedHttpClientConnection.class);
-    private final Logger headerlog = LoggerFactory.getLogger("org.apache.hc.client5.http.headers");
-    private final Logger wirelog = LoggerFactory.getLogger("org.apache.hc.client5.http.wire");
+    private final Logger headerLog = LoggerFactory.getLogger("org.apache.hc.client5.http.headers");
+    private final Logger wireLog = LoggerFactory.getLogger("org.apache.hc.client5.http.wire");
 
     private final String id;
     private final AtomicBoolean closed;
@@ -73,14 +73,14 @@ final class DefaultManagedHttpClientConnection
 
     public DefaultManagedHttpClientConnection(
             final String id,
-            final CharsetDecoder chardecoder,
-            final CharsetEncoder charencoder,
+            final CharsetDecoder charDecoder,
+            final CharsetEncoder charEncoder,
             final H1Config h1Config,
             final ContentLengthStrategy incomingContentStrategy,
             final ContentLengthStrategy outgoingContentStrategy,
             final HttpMessageWriterFactory<ClassicHttpRequest> requestWriterFactory,
             final HttpMessageParserFactory<ClassicHttpResponse> responseParserFactory) {
-        super(h1Config, chardecoder, charencoder, incomingContentStrategy, outgoingContentStrategy, requestWriterFactory, responseParserFactory);
+        super(h1Config, charDecoder, charEncoder, incomingContentStrategy, outgoingContentStrategy, requestWriterFactory, responseParserFactory);
         this.id = id;
         this.closed = new AtomicBoolean();
     }
@@ -152,28 +152,28 @@ final class DefaultManagedHttpClientConnection
 
     @Override
     public void bind(final Socket socket) throws IOException {
-        super.bind(this.wirelog.isDebugEnabled() ? new LoggingSocketHolder(socket, this.id, this.wirelog) : new SocketHolder(socket));
+        super.bind(this.wireLog.isDebugEnabled() ? new LoggingSocketHolder(socket, this.id, this.wireLog) : new SocketHolder(socket));
         socketTimeout = socket.getSoTimeout();
     }
 
     @Override
     protected void onResponseReceived(final ClassicHttpResponse response) {
-        if (response != null && this.headerlog.isDebugEnabled()) {
-            this.headerlog.debug(this.id + " << " + new StatusLine(response));
+        if (response != null && this.headerLog.isDebugEnabled()) {
+            this.headerLog.debug(this.id + " << " + new StatusLine(response));
             final Header[] headers = response.getAllHeaders();
             for (final Header header : headers) {
-                this.headerlog.debug(this.id + " << " + header.toString());
+                this.headerLog.debug(this.id + " << " + header.toString());
             }
         }
     }
 
     @Override
     protected void onRequestSubmitted(final ClassicHttpRequest request) {
-        if (request != null && this.headerlog.isDebugEnabled()) {
-            this.headerlog.debug(this.id + " >> " + new RequestLine(request));
+        if (request != null && this.headerLog.isDebugEnabled()) {
+            this.headerLog.debug(this.id + " >> " + new RequestLine(request));
             final Header[] headers = request.getAllHeaders();
             for (final Header header : headers) {
-                this.headerlog.debug(this.id + " >> " + header.toString());
+                this.headerLog.debug(this.id + " >> " + header.toString());
             }
         }
     }

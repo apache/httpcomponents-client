@@ -108,26 +108,26 @@ public class ManagedHttpClientConnectionFactory implements HttpConnectionFactory
 
     @Override
     public ManagedHttpClientConnection createConnection(final Socket socket) throws IOException {
-        CharsetDecoder chardecoder = null;
-        CharsetEncoder charencoder = null;
+        CharsetDecoder charDecoder = null;
+        CharsetEncoder charEncoder = null;
         final Charset charset = this.charCodingConfig.getCharset();
         final CodingErrorAction malformedInputAction = this.charCodingConfig.getMalformedInputAction() != null ?
                 this.charCodingConfig.getMalformedInputAction() : CodingErrorAction.REPORT;
         final CodingErrorAction unmappableInputAction = this.charCodingConfig.getUnmappableInputAction() != null ?
                 this.charCodingConfig.getUnmappableInputAction() : CodingErrorAction.REPORT;
         if (charset != null) {
-            chardecoder = charset.newDecoder();
-            chardecoder.onMalformedInput(malformedInputAction);
-            chardecoder.onUnmappableCharacter(unmappableInputAction);
-            charencoder = charset.newEncoder();
-            charencoder.onMalformedInput(malformedInputAction);
-            charencoder.onUnmappableCharacter(unmappableInputAction);
+            charDecoder = charset.newDecoder();
+            charDecoder.onMalformedInput(malformedInputAction);
+            charDecoder.onUnmappableCharacter(unmappableInputAction);
+            charEncoder = charset.newEncoder();
+            charEncoder.onMalformedInput(malformedInputAction);
+            charEncoder.onUnmappableCharacter(unmappableInputAction);
         }
         final String id = "http-outgoing-" + Long.toString(COUNTER.getAndIncrement());
         final DefaultManagedHttpClientConnection conn = new DefaultManagedHttpClientConnection(
                 id,
-                chardecoder,
-                charencoder,
+                charDecoder,
+                charEncoder,
                 h1Config,
                 incomingContentStrategy,
                 outgoingContentStrategy,

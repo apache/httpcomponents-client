@@ -32,6 +32,7 @@ import org.apache.hc.core5.util.Args;
 
 public final class HttpCacheStorageEntry implements Serializable {
 
+    private static final long serialVersionUID = 1L;
     private final String key;
     private final HttpCacheEntry content;
 

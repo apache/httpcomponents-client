@@ -39,11 +39,10 @@ public final class ConnPoolSupport {
         if (object == null) {
             return null;
         }
-        if (object instanceof Identifiable) {
-            return ((Identifiable) object).getId();
-        } else {
-            return object.getClass().getSimpleName() + "-" + Integer.toHexString(System.identityHashCode(object));
-        }
+        return object instanceof Identifiable
+                        ? ((Identifiable) object).getId()
+                        : object.getClass().getSimpleName() + "-"
+                                        + Integer.toHexString(System.identityHashCode(object));
     }
 
     public static String formatStats(

@@ -36,6 +36,7 @@ import org.apache.hc.core5.http.message.BasicHttpRequest;
 
 public class ConfigurableHttpRequest extends BasicHttpRequest implements Configurable {
 
+    private static final long serialVersionUID = 1L;
     private RequestConfig requestConfig;
 
     public ConfigurableHttpRequest(final String method, final String path) {

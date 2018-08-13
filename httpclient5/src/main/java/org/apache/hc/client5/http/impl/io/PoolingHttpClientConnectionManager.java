@@ -264,13 +264,13 @@ public class PoolingHttpClientConnectionManager
             @Override
             public synchronized ConnectionEndpoint get(
                     final long timeout,
-                    final TimeUnit tunit) throws InterruptedException, ExecutionException, TimeoutException {
+                    final TimeUnit timeUnit) throws InterruptedException, ExecutionException, TimeoutException {
                 if (this.endpoint != null) {
                     return this.endpoint;
                 }
                 final PoolEntry<HttpRoute, ManagedHttpClientConnection> poolEntry;
                 try {
-                    poolEntry = leaseFuture.get(timeout, tunit);
+                    poolEntry = leaseFuture.get(timeout, timeUnit);
                     if (poolEntry == null || leaseFuture.isCancelled()) {
                         throw new InterruptedException();
                     }

@@ -37,6 +37,7 @@ import org.apache.hc.core5.util.Args;
 
 public final class SimpleHttpResponse extends BasicHttpResponse {
 
+    private static final long serialVersionUID = 1L;
     private SimpleBody body;
 
     public SimpleHttpResponse(final int code) {

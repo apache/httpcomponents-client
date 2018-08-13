@@ -79,9 +79,9 @@ public class FileResourceFactory implements ResourceFactory {
             final byte[] content, final int off, final int len) throws ResourceIOException {
         Args.notNull(requestId, "Request id");
         final File file = generateUniqueCacheFile(requestId);
-        try (FileOutputStream outstream = new FileOutputStream(file)) {
+        try (FileOutputStream outStream = new FileOutputStream(file)) {
             if (content != null) {
-                outstream.write(content, off, len);
+                outStream.write(content, off, len);
             }
         } catch (final IOException ex) {
             throw new ResourceIOException(ex.getMessage(), ex);

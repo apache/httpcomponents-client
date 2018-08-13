@@ -42,16 +42,16 @@ import org.mockito.Mockito;
 @SuppressWarnings("boxing") // test code
 public class TestResponseEntityWrapper {
 
-    private InputStream instream;
+    private InputStream inStream;
     private HttpEntity entity;
     private ExecRuntime execRuntime;
     private ResponseEntityProxy wrapper;
 
     @Before
     public void setup() throws Exception {
-        instream = Mockito.mock(InputStream.class);
+        inStream = Mockito.mock(InputStream.class);
         entity = Mockito.mock(HttpEntity.class);
-        Mockito.when(entity.getContent()).thenReturn(instream);
+        Mockito.when(entity.getContent()).thenReturn(inStream);
         execRuntime = Mockito.mock(ExecRuntime.class);
         wrapper = new ResponseEntityProxy(entity, execRuntime);
     }
@@ -62,7 +62,7 @@ public class TestResponseEntityWrapper {
         Mockito.when(execRuntime.isConnectionReusable()).thenReturn(true);
         EntityUtils.consume(wrapper);
 
-        Mockito.verify(instream, Mockito.times(1)).close();
+        Mockito.verify(inStream, Mockito.times(1)).close();
         Mockito.verify(execRuntime).releaseConnection();
     }
 
@@ -70,7 +70,7 @@ public class TestResponseEntityWrapper {
     public void testReusableEntityStreamClosedIOError() throws Exception {
         Mockito.when(entity.isStreaming()).thenReturn(true);
         Mockito.when(execRuntime.isConnectionReusable()).thenReturn(true);
-        Mockito.doThrow(new IOException()).when(instream).close();
+        Mockito.doThrow(new IOException()).when(inStream).close();
         try {
             EntityUtils.consume(wrapper);
             Assert.fail("IOException expected");
@@ -84,28 +84,28 @@ public class TestResponseEntityWrapper {
         Mockito.when(entity.isStreaming()).thenReturn(true);
         Mockito.when(execRuntime.isConnectionReusable()).thenReturn(true);
         Mockito.when(execRuntime.isConnectionAcquired()).thenReturn(false);
-        Mockito.doThrow(new SocketException()).when(instream).close();
+        Mockito.doThrow(new SocketException()).when(inStream).close();
         EntityUtils.consume(wrapper);
         Mockito.verify(execRuntime).discardConnection();
     }
 
     @Test
     public void testReusableEntityWriteTo() throws Exception {
-        final OutputStream outstream = Mockito.mock(OutputStream.class);
+        final OutputStream outStream = Mockito.mock(OutputStream.class);
         Mockito.when(entity.isStreaming()).thenReturn(true);
         Mockito.when(execRuntime.isConnectionReusable()).thenReturn(true);
-        wrapper.writeTo(outstream);
+        wrapper.writeTo(outStream);
         Mockito.verify(execRuntime).releaseConnection();
     }
 
     @Test
     public void testReusableEntityWriteToIOError() throws Exception {
-        final OutputStream outstream = Mockito.mock(OutputStream.class);
+        final OutputStream outStream = Mockito.mock(OutputStream.class);
         Mockito.when(entity.isStreaming()).thenReturn(true);
         Mockito.when(execRuntime.isConnectionReusable()).thenReturn(true);
-        Mockito.doThrow(new IOException()).when(entity).writeTo(outstream);
+        Mockito.doThrow(new IOException()).when(entity).writeTo(outStream);
         try {
-            wrapper.writeTo(outstream);
+            wrapper.writeTo(outStream);
             Assert.fail("IOException expected");
         } catch (final IOException ex) {
         }
@@ -115,21 +115,21 @@ public class TestResponseEntityWrapper {
 
     @Test
     public void testReusableEntityEndOfStream() throws Exception {
-        Mockito.when(instream.read()).thenReturn(-1);
+        Mockito.when(inStream.read()).thenReturn(-1);
         Mockito.when(entity.isStreaming()).thenReturn(true);
         Mockito.when(execRuntime.isConnectionReusable()).thenReturn(true);
         final InputStream content = wrapper.getContent();
         Assert.assertEquals(-1, content.read());
-        Mockito.verify(instream).close();
+        Mockito.verify(inStream).close();
         Mockito.verify(execRuntime).releaseConnection();
     }
 
     @Test
     public void testReusableEntityEndOfStreamIOError() throws Exception {
-        Mockito.when(instream.read()).thenReturn(-1);
+        Mockito.when(inStream.read()).thenReturn(-1);
         Mockito.when(entity.isStreaming()).thenReturn(true);
         Mockito.when(execRuntime.isConnectionReusable()).thenReturn(true);
-        Mockito.doThrow(new IOException()).when(instream).close();
+        Mockito.doThrow(new IOException()).when(inStream).close();
         final InputStream content = wrapper.getContent();
         try {
             content.read();
