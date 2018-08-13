@@ -1,10 +1,24 @@
+Release 4.5.7
+-------------------
+
+This is a maintenance release.
+
+Please note that as of 4.4, HttpClient requires Java 1.6 or newer.
+
+Changelog:
+-------------------
+
+* HTTPCLIENT-1939: Update Apache Commons Codec from 1.10 to 1.11
+  Contributed by Gary Gregory <ggregory at apache.org>
+
+
 Release 4.5.6
 -------------------
 
 This is a maintenance release that adds Automatic-Module-Name to the manifest for compatibility
 with Java 9 Platform Module System and fixes a number of issues discovered since 4.5.5
 
-Please note that as of 4.4 HttpClient requires Java 1.6 or newer.
+Please note that as of 4.4, HttpClient requires Java 1.6 or newer.
 
 Changelog:
 -------------------
@@ -44,7 +58,7 @@ Release 4.5.5
 HttpClient 4.5.5 (GA) is a maintenance release that fixes a regression introduced
 by the previous release causing a NPE in SystemDefaultCredentialsProvider.
 
-Please note that as of 4.4 HttpClient requires Java 1.6 or newer.
+Please note that as of 4.4, HttpClient requires Java 1.6 or newer.
 
 Changelog:
 -------------------
@@ -68,7 +82,7 @@ Release 4.5.4
 
 HttpClient 4.5.4 (GA) is a maintenance release that fixes a number of defects found since 4.5.3.
 
-Please note that as of 4.4 HttpClient requires Java 1.6 or newer.
+Please note that as of 4.4, HttpClient requires Java 1.6 or newer.
 
 Changelog:
 -------------------
@@ -138,7 +152,7 @@ Release 4.5.3
 
 HttpClient 4.5.3 (GA) is a maintenance release that fixes a number of defects found since 4.5.2.
 
-Please note that as of 4.4 HttpClient requires Java 1.6 or newer.
+Please note that as of 4.4, HttpClient requires Java 1.6 or newer.
 
 Changelog:
 -------------------
@@ -215,7 +229,7 @@ Release 4.5.2
 
 HttpClient 4.5.2 (GA) is a maintenance release that fixes a number of minor defects found since 4.5.1.
 
-Please note that as of 4.4 HttpClient requires Java 1.6 or newer.
+Please note that as of 4.4, HttpClient requires Java 1.6 or newer.
 
 Changelog:
 -------------------
@@ -265,7 +279,7 @@ Release 4.5.1
 
 HttpClient 4.5.1 (GA) is a maintenance release that fixes a number of minor defects found since 4.5.
 
-Please note that as of 4.4 HttpClient requires Java 1.6 or newer.
+Please note that as of 4.4, HttpClient requires Java 1.6 or newer.
 
 Changelog:
 -------------------
@@ -332,7 +346,7 @@ introduced in version 4.4.
 
 Users of HttpClient 4.4 are encouraged to upgrade.
 
-Please note that as of 4.4 HttpClient requires Java 1.6 or newer.
+Please note that as of 4.4, HttpClient requires Java 1.6 or newer.
 
 Changelog:
 -------------------
@@ -390,7 +404,7 @@ Use at your discretion.
 
 This release also includes all fixes from the stable 4.3.x release branch.
 
-Please note that as of 4.4 HttpClient requires Java 1.6 or newer.
+Please note that as of 4.4, HttpClient requires Java 1.6 or newer.
 
 
 Changelog:
@@ -456,7 +470,7 @@ requests
 
 This release also includes all fixes from the stable 4.3.x release branch.
 
-Please note that as of 4.4 HttpClient requires Java 1.6 or newer.
+Please note that as of 4.4, HttpClient requires Java 1.6 or newer.
 
 
 Changelog:
@@ -500,7 +514,7 @@ requests
 
 This release also includes all fixes from the stable 4.3.x release branch.
 
-Please note that as of 4.4 HttpClient requires Java 1.6 or newer.
+Please note that as of 4.4, HttpClient requires Java 1.6 or newer.
 
 Please note that new features included in this release are still considered experimental and
 their API may change in the future 4.4 alpha and beta releases.
