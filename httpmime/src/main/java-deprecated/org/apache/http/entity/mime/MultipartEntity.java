@@ -176,8 +176,8 @@ public class MultipartEntity implements HttpEntity {
     }
 
     @Override
-    public void writeTo(final OutputStream outstream) throws IOException {
-        getEntity().writeTo(outstream);
+    public void writeTo(final OutputStream outStream) throws IOException {
+        getEntity().writeTo(outStream);
     }
 
 }

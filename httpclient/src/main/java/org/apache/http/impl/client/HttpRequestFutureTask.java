@@ -82,9 +82,8 @@ public class HttpRequestFutureTask<V> extends FutureTask<V> {
     public long endedTime() {
         if (isDone()) {
             return callable.getEnded();
-        } else {
-            throw new IllegalStateException("Task is not done yet");
         }
+        throw new IllegalStateException("Task is not done yet");
     }
 
     /**
@@ -94,9 +93,8 @@ public class HttpRequestFutureTask<V> extends FutureTask<V> {
     public long requestDuration() {
         if (isDone()) {
             return endedTime() - startedTime();
-        } else {
-            throw new IllegalStateException("Task is not done yet");
         }
+        throw new IllegalStateException("Task is not done yet");
     }
 
     /**
@@ -105,9 +103,8 @@ public class HttpRequestFutureTask<V> extends FutureTask<V> {
     public long taskDuration() {
         if (isDone()) {
             return endedTime() - scheduledTime();
-        } else {
-            throw new IllegalStateException("Task is not done yet");
         }
+        throw new IllegalStateException("Task is not done yet");
     }
 
     @Override

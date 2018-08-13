@@ -46,7 +46,7 @@ public interface PoolEntryRequest {
      * an {@link InterruptedException} is thrown.
      *
      * @param timeout   the timeout, 0 or negative for no timeout
-     * @param tunit     the unit for the {@code timeout},
+     * @param timeUnit     the unit for the {@code timeout},
      *                  may be {@code null} only if there is no timeout
      *
      * @return  pool entry holding a connection for the route
@@ -58,7 +58,7 @@ public interface PoolEntryRequest {
      */
     BasicPoolEntry getPoolEntry(
             long timeout,
-            TimeUnit tunit) throws InterruptedException, ConnectionPoolTimeoutException;
+            TimeUnit timeUnit) throws InterruptedException, ConnectionPoolTimeoutException;
 
     /**
      * Aborts the active or next call to

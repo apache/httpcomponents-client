@@ -50,8 +50,8 @@ public class TestMalformedServerResponse extends LocalServerTestBase {
 
     static class BrokenServerConnection extends DefaultBHttpServerConnection {
 
-        public BrokenServerConnection(final int buffersize) {
-            super(buffersize);
+        public BrokenServerConnection(final int bufferSize) {
+            super(bufferSize);
         }
 
         @Override

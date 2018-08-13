@@ -105,9 +105,9 @@ public class EntityEnclosingRequestWrapper extends RequestWrapper
         }
 
         @Override
-        public void writeTo(final OutputStream outstream) throws IOException {
+        public void writeTo(final OutputStream outStream) throws IOException {
             consumed = true;
-            super.writeTo(outstream);
+            super.writeTo(outStream);
         }
 
     }

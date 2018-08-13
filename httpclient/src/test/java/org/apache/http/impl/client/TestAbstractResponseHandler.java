@@ -69,10 +69,10 @@ public class TestAbstractResponseHandler {
     @SuppressWarnings("boxing")
     @Test
     public void testUnsuccessfulResponse() throws Exception {
-        final InputStream instream = Mockito.mock(InputStream.class);
+        final InputStream inStream = Mockito.mock(InputStream.class);
         final HttpEntity entity = Mockito.mock(HttpEntity.class);
         Mockito.when(entity.isStreaming()).thenReturn(true);
-        Mockito.when(entity.getContent()).thenReturn(instream);
+        Mockito.when(entity.getContent()).thenReturn(inStream);
         final StatusLine sl = new BasicStatusLine(HttpVersion.HTTP_1_1, 404, "Not Found");
         final HttpResponse response = Mockito.mock(HttpResponse.class);
         Mockito.when(response.getStatusLine()).thenReturn(sl);
@@ -87,7 +87,7 @@ public class TestAbstractResponseHandler {
             Assert.assertEquals("Not Found", ex.getMessage());
         }
         Mockito.verify(entity).getContent();
-        Mockito.verify(instream).close();
+        Mockito.verify(inStream).close();
     }
 
 }

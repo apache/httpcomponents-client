@@ -97,8 +97,8 @@ public class TestHttpRequestBase {
 
     @Test(expected=CloneNotSupportedException.class)
     public void testCloneStreamingEntityEnclosingRequests() throws Exception {
-        final ByteArrayInputStream instream = new ByteArrayInputStream(new byte[] {});
-        final InputStreamEntity e2 = new InputStreamEntity(instream, -1);
+        final ByteArrayInputStream inStream = new ByteArrayInputStream(new byte[] {});
+        final InputStreamEntity e2 = new InputStreamEntity(inStream, -1);
         final HttpPost httppost = new HttpPost("http://host/path");
         httppost.setEntity(e2);
         httppost.clone();

@@ -97,8 +97,8 @@ public class TestDecompressingEntity {
             super(wrapped, new InputStreamFactory() {
 
                 @Override
-                public InputStream create(final InputStream instream) throws IOException {
-                    return new CheckedInputStream(instream, checksum);
+                public InputStream create(final InputStream inStream) throws IOException {
+                    return new CheckedInputStream(inStream, checksum);
                 }
 
             });

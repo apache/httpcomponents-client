@@ -45,8 +45,8 @@ public class TestCombinedEntity {
         when(resource.getInputStream()).thenReturn(
                 new ByteArrayInputStream(new byte[] { 1, 2, 3, 4, 5 }));
 
-        final ByteArrayInputStream instream = new ByteArrayInputStream(new byte[] { 6, 7, 8, 9, 10 });
-        final CombinedEntity entity = new CombinedEntity(resource, instream);
+        final ByteArrayInputStream inStream = new ByteArrayInputStream(new byte[] { 6, 7, 8, 9, 10 });
+        final CombinedEntity entity = new CombinedEntity(resource, inStream);
         Assert.assertEquals(-1, entity.getContentLength());
         Assert.assertFalse(entity.isRepeatable());
         Assert.assertTrue(entity.isStreaming());

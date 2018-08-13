@@ -232,7 +232,7 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
 
             @Override
             public ManagedClientConnection getConnection(
-                    final long timeout, final TimeUnit tunit) throws InterruptedException,
+                    final long timeout, final TimeUnit timeUnit) throws InterruptedException,
                     ConnectionPoolTimeoutException {
                 Args.notNull(route, "Route");
 
@@ -240,7 +240,7 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
                     log.debug("Get connection: " + route + ", timeout = " + timeout);
                 }
 
-                final BasicPoolEntry entry = poolRequest.getPoolEntry(timeout, tunit);
+                final BasicPoolEntry entry = poolRequest.getPoolEntry(timeout, timeUnit);
                 return new BasicPooledConnAdapter(ThreadSafeClientConnManager.this, entry);
             }
 
@@ -327,11 +327,11 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
     }
 
     @Override
-    public void closeIdleConnections(final long idleTimeout, final TimeUnit tunit) {
+    public void closeIdleConnections(final long idleTimeout, final TimeUnit timeUnit) {
         if (log.isDebugEnabled()) {
-            log.debug("Closing connections idle longer than " + idleTimeout + " " + tunit);
+            log.debug("Closing connections idle longer than " + idleTimeout + " " + timeUnit);
         }
-        pool.closeIdleConnections(idleTimeout, tunit);
+        pool.closeIdleConnections(idleTimeout, timeUnit);
     }
 
     @Override

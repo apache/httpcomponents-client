@@ -99,7 +99,7 @@ public abstract class AbstractConnPool {
      * @param route     the route for which to get the connection
      * @param state     the state
      * @param timeout   the timeout, 0 or negative for no timeout
-     * @param tunit     the unit for the {@code timeout},
+     * @param timeUnit     the unit for the {@code timeout},
      *                  may be {@code null} only if there is no timeout
      *
      * @return  pool entry holding a connection for the route
@@ -114,9 +114,9 @@ public abstract class AbstractConnPool {
                 final HttpRoute route,
                 final Object state,
                 final long timeout,
-                final TimeUnit tunit)
+                final TimeUnit timeUnit)
                     throws ConnectionPoolTimeoutException, InterruptedException {
-        return requestPoolEntry(route, state).getPoolEntry(timeout, tunit);
+        return requestPoolEntry(route, state).getPoolEntry(timeout, timeUnit);
     }
 
     /**
@@ -154,16 +154,16 @@ public abstract class AbstractConnPool {
      *
      * @param idletime  the time the connections should have been idle
      *                  in order to be closed now
-     * @param tunit     the unit for the {@code idletime}
+     * @param timeUnit     the unit for the {@code idletime}
      */
-    public void closeIdleConnections(final long idletime, final TimeUnit tunit) {
+    public void closeIdleConnections(final long idletime, final TimeUnit timeUnit) {
 
         // idletime can be 0 or negative, no problem there
-        Args.notNull(tunit, "Time unit");
+        Args.notNull(timeUnit, "Time unit");
 
         poolLock.lock();
         try {
-            idleConnHandler.closeIdleConnections(tunit.toMillis(idletime));
+            idleConnHandler.closeIdleConnections(timeUnit.toMillis(idletime));
         } finally {
             poolLock.unlock();
         }

@@ -134,11 +134,9 @@ public class HttpClientContext extends HttpCoreContext {
     public static final String REQUEST_CONFIG = "http.request-config";
 
     public static HttpClientContext adapt(final HttpContext context) {
-        if (context instanceof HttpClientContext) {
-            return (HttpClientContext) context;
-        } else {
-            return new HttpClientContext(context);
-        }
+        return context instanceof HttpClientContext
+                        ? (HttpClientContext) context
+                        : new HttpClientContext(context);
     }
 
     public static HttpClientContext create() {

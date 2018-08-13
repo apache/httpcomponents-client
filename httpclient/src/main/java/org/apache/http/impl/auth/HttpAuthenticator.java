@@ -79,21 +79,20 @@ public class HttpAuthenticator {
                 authStrategy.authFailed(host, authState.getAuthScheme(), context);
             }
             return true;
-        } else {
-            switch (authState.getState()) {
-            case CHALLENGED:
-            case HANDSHAKE:
-                this.log.debug("Authentication succeeded");
-                authState.setState(AuthProtocolState.SUCCESS);
-                authStrategy.authSucceeded(host, authState.getAuthScheme(), context);
-                break;
-            case SUCCESS:
-                break;
-            default:
-                authState.setState(AuthProtocolState.UNCHALLENGED);
-            }
-            return false;
         }
+        switch (authState.getState()) {
+        case CHALLENGED:
+        case HANDSHAKE:
+            this.log.debug("Authentication succeeded");
+            authState.setState(AuthProtocolState.SUCCESS);
+            authStrategy.authSucceeded(host, authState.getAuthScheme(), context);
+            break;
+        case SUCCESS:
+            break;
+        default:
+            authState.setState(AuthProtocolState.UNCHALLENGED);
+        }
+        return false;
     }
 
     public boolean handleAuthChallenge(
@@ -141,14 +140,12 @@ public class HttpAuthenticator {
                             authState.reset();
                             authState.setState(AuthProtocolState.FAILURE);
                             return false;
-                        } else {
-                            authState.setState(AuthProtocolState.HANDSHAKE);
-                            return true;
                         }
-                    } else {
-                        authState.reset();
-                        // Retry authentication with a different scheme
+                        authState.setState(AuthProtocolState.HANDSHAKE);
+                        return true;
                     }
+                    authState.reset();
+                    // Retry authentication with a different scheme
                 }
             }
             final Queue<AuthOption> authOptions = authStrategy.select(challenges, host, response, context);
@@ -159,9 +156,8 @@ public class HttpAuthenticator {
                 authState.setState(AuthProtocolState.CHALLENGED);
                 authState.update(authOptions);
                 return true;
-            } else {
-                return false;
             }
+            return false;
         } catch (final MalformedChallengeException ex) {
             if (this.log.isWarnEnabled()) {
                 this.log.warn("Malformed challenge: " +  ex.getMessage());
@@ -209,9 +205,8 @@ public class HttpAuthenticator {
                     }
                 }
                 return;
-            } else {
-                ensureAuthScheme(authScheme);
             }
+            ensureAuthScheme(authScheme);
         }
         if (authScheme != null) {
             try {
@@ -235,11 +230,10 @@ public class HttpAuthenticator {
             final Credentials creds,
             final HttpRequest request,
             final HttpContext context) throws AuthenticationException {
-        if (authScheme instanceof ContextAwareAuthScheme) {
-            return ((ContextAwareAuthScheme) authScheme).authenticate(creds, request, context);
-        } else {
-            return authScheme.authenticate(creds, request);
-        }
+        return authScheme instanceof ContextAwareAuthScheme
+                        ? ((ContextAwareAuthScheme) authScheme).authenticate(creds, request,
+                                        context)
+                        : authScheme.authenticate(creds, request);
     }
 
 }

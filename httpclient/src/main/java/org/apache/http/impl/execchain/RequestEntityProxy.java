@@ -116,9 +116,9 @@ class RequestEntityProxy implements HttpEntity  {
     }
 
     @Override
-    public void writeTo(final OutputStream outstream) throws IOException {
+    public void writeTo(final OutputStream outStream) throws IOException {
         consumed = true;
-        original.writeTo(outstream);
+        original.writeTo(outStream);
     }
 
     @Override

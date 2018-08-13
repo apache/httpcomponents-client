@@ -32,6 +32,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.junit.Assert;
 import org.junit.Test;
+import org.mockito.Matchers;
 import org.mockito.Mockito;
 
 /**
@@ -68,7 +69,7 @@ public class TestIdleConnectionEvictor {
         Thread.sleep(1000);
 
         Mockito.verify(cm, Mockito.atLeast(1)).closeExpiredConnections();
-        Mockito.verify(cm, Mockito.never()).closeIdleConnections(Mockito.anyLong(), Mockito.<TimeUnit>any());
+        Mockito.verify(cm, Mockito.never()).closeIdleConnections(Matchers.anyLong(), Matchers.<TimeUnit>any());
 
         Assert.assertTrue(connectionEvictor.isRunning());
 

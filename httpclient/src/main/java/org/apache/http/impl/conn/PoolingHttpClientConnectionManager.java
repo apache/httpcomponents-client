@@ -121,8 +121,8 @@ public class PoolingHttpClientConnectionManager
         this(getDefaultRegistry());
     }
 
-    public PoolingHttpClientConnectionManager(final long timeToLive, final TimeUnit tunit) {
-        this(getDefaultRegistry(), null, null ,null, timeToLive, tunit);
+    public PoolingHttpClientConnectionManager(final long timeToLive, final TimeUnit timeUnit) {
+        this(getDefaultRegistry(), null, null ,null, timeToLive, timeUnit);
     }
 
     public PoolingHttpClientConnectionManager(
@@ -159,11 +159,11 @@ public class PoolingHttpClientConnectionManager
             final HttpConnectionFactory<HttpRoute, ManagedHttpClientConnection> connFactory,
             final SchemePortResolver schemePortResolver,
             final DnsResolver dnsResolver,
-            final long timeToLive, final TimeUnit tunit) {
+            final long timeToLive, final TimeUnit timeUnit) {
         this(
             new DefaultHttpClientConnectionOperator(socketFactoryRegistry, schemePortResolver, dnsResolver),
             connFactory,
-            timeToLive, tunit
+            timeToLive, timeUnit
         );
     }
 
@@ -173,11 +173,11 @@ public class PoolingHttpClientConnectionManager
     public PoolingHttpClientConnectionManager(
         final HttpClientConnectionOperator httpClientConnectionOperator,
         final HttpConnectionFactory<HttpRoute, ManagedHttpClientConnection> connFactory,
-        final long timeToLive, final TimeUnit tunit) {
+        final long timeToLive, final TimeUnit timeUnit) {
         super();
         this.configData = new ConfigData();
         this.pool = new CPool(new InternalConnectionFactory(
-                this.configData, connFactory), 2, 20, timeToLive, tunit);
+                this.configData, connFactory), 2, 20, timeToLive, timeUnit);
         this.pool.setValidateAfterInactivity(2000);
         this.connectionOperator = Args.notNull(httpClientConnectionOperator, "HttpClientConnectionOperator");
         this.isShutDown = new AtomicBoolean(false);
@@ -275,8 +275,8 @@ public class PoolingHttpClientConnectionManager
             @Override
             public HttpClientConnection get(
                     final long timeout,
-                    final TimeUnit tunit) throws InterruptedException, ExecutionException, ConnectionPoolTimeoutException {
-                final HttpClientConnection conn = leaseConnection(future, timeout, tunit);
+                    final TimeUnit timeUnit) throws InterruptedException, ExecutionException, ConnectionPoolTimeoutException {
+                final HttpClientConnection conn = leaseConnection(future, timeout, timeUnit);
                 if (conn.isOpen()) {
                     final HttpHost host;
                     if (route.getProxyHost() != null) {
@@ -297,10 +297,10 @@ public class PoolingHttpClientConnectionManager
     protected HttpClientConnection leaseConnection(
             final Future<CPoolEntry> future,
             final long timeout,
-            final TimeUnit tunit) throws InterruptedException, ExecutionException, ConnectionPoolTimeoutException {
+            final TimeUnit timeUnit) throws InterruptedException, ExecutionException, ConnectionPoolTimeoutException {
         final CPoolEntry entry;
         try {
-            entry = future.get(timeout, tunit);
+            entry = future.get(timeout, timeUnit);
             if (entry == null || future.isCancelled()) {
                 throw new InterruptedException();
             }
@@ -318,7 +318,7 @@ public class PoolingHttpClientConnectionManager
     public void releaseConnection(
             final HttpClientConnection managedConn,
             final Object state,
-            final long keepalive, final TimeUnit tunit) {
+            final long keepalive, final TimeUnit timeUnit) {
         Args.notNull(managedConn, "Managed connection");
         synchronized (managedConn) {
             final CPoolEntry entry = CPoolProxy.detach(managedConn);
@@ -328,7 +328,7 @@ public class PoolingHttpClientConnectionManager
             final ManagedHttpClientConnection conn = entry.getConnection();
             try {
                 if (conn.isOpen()) {
-                    final TimeUnit effectiveUnit = tunit != null ? tunit : TimeUnit.MILLISECONDS;
+                    final TimeUnit effectiveUnit = timeUnit != null ? timeUnit : TimeUnit.MILLISECONDS;
                     entry.setState(state);
                     entry.updateExpiry(keepalive, effectiveUnit);
                     if (this.log.isDebugEnabled()) {
@@ -416,11 +416,11 @@ public class PoolingHttpClientConnectionManager
     }
 
     @Override
-    public void closeIdleConnections(final long idleTimeout, final TimeUnit tunit) {
+    public void closeIdleConnections(final long idleTimeout, final TimeUnit timeUnit) {
         if (this.log.isDebugEnabled()) {
-            this.log.debug("Closing connections idle longer than " + idleTimeout + " " + tunit);
+            this.log.debug("Closing connections idle longer than " + idleTimeout + " " + timeUnit);
         }
-        this.pool.closeIdle(idleTimeout, tunit);
+        this.pool.closeIdle(idleTimeout, timeUnit);
     }
 
     @Override

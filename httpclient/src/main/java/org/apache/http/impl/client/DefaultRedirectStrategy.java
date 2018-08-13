@@ -226,11 +226,9 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
             return new HttpGet(uri);
         } else {
             final int status = response.getStatusLine().getStatusCode();
-            if (status == HttpStatus.SC_TEMPORARY_REDIRECT) {
-                return RequestBuilder.copy(request).setUri(uri).build();
-            } else {
-                return new HttpGet(uri);
-            }
+            return status == HttpStatus.SC_TEMPORARY_REDIRECT
+                            ? RequestBuilder.copy(request).setUri(uri).build()
+                            : new HttpGet(uri);
         }
     }
 

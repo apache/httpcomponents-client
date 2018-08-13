@@ -91,10 +91,10 @@ class InternalByteArrayEntity extends AbstractHttpEntity implements Cloneable {
     }
 
     @Override
-    public void writeTo(final OutputStream outstream) throws IOException {
-        Args.notNull(outstream, "Output stream");
-        outstream.write(this.b, this.off, this.len);
-        outstream.flush();
+    public void writeTo(final OutputStream outStream) throws IOException {
+        Args.notNull(outStream, "Output stream");
+        outStream.write(this.b, this.off, this.len);
+        outStream.flush();
     }
 
     @Override

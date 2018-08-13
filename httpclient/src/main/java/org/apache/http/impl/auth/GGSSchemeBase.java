@@ -120,11 +120,9 @@ public abstract class GGSSchemeBase extends AuthSchemeBase {
         }
 
         final GSSContext gssContext = createGSSContext(manager, oid, serverName, gssCredential);
-        if (input != null) {
-            return gssContext.initSecContext(input, 0, input.length);
-        } else {
-            return gssContext.initSecContext(new byte[] {}, 0, 0);
-        }
+        return input != null
+                        ? gssContext.initSecContext(input, 0, input.length)
+                        : gssContext.initSecContext(new byte[] {}, 0, 0);
     }
 
     GSSContext createGSSContext(

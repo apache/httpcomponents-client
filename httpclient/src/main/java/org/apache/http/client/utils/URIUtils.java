@@ -211,20 +211,12 @@ public class URIUtils {
         }
         if (route.getProxyHost() != null && !route.isTunnelled()) {
             // Make sure the request URI is absolute
-            if (!uri.isAbsolute()) {
-                final HttpHost target = route.getTargetHost();
-                return rewriteURI(uri, target, true);
-            } else {
-                return rewriteURI(uri);
-            }
-        } else {
-            // Make sure the request URI is relative
-            if (uri.isAbsolute()) {
-                return rewriteURI(uri, null, true);
-            } else {
-                return rewriteURI(uri);
-            }
+            return uri.isAbsolute()
+                            ? rewriteURI(uri)
+                            : rewriteURI(uri, route.getTargetHost(), true);
         }
+        // Make sure the request URI is relative
+        return uri.isAbsolute() ? rewriteURI(uri, null, true) : rewriteURI(uri);
     }
 
     /**

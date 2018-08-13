@@ -150,8 +150,8 @@ class MinimalHttpClient extends CloseableHttpClient {
             }
 
             @Override
-            public void closeIdleConnections(final long idletime, final TimeUnit tunit) {
-                connManager.closeIdleConnections(idletime, tunit);
+            public void closeIdleConnections(final long idletime, final TimeUnit timeUnit) {
+                connManager.closeIdleConnections(idletime, timeUnit);
             }
 
             @Override

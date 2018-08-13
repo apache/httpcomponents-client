@@ -88,11 +88,9 @@ class SchemeSocketFactoryAdaptor implements SchemeSocketFactory {
         if (this == obj) {
             return true;
         }
-        if (obj instanceof SchemeSocketFactoryAdaptor) {
-            return this.factory.equals(((SchemeSocketFactoryAdaptor)obj).factory);
-        } else {
-            return this.factory.equals(obj);
-        }
+        return obj instanceof SchemeSocketFactoryAdaptor
+                        ? this.factory.equals(((SchemeSocketFactoryAdaptor) obj).factory)
+                        : this.factory.equals(obj);
     }
 
     @Override

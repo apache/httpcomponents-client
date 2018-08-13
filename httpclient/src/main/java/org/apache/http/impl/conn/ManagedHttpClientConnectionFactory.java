@@ -63,8 +63,8 @@ public class ManagedHttpClientConnectionFactory
     public static final ManagedHttpClientConnectionFactory INSTANCE = new ManagedHttpClientConnectionFactory();
 
     private final Log log = LogFactory.getLog(DefaultManagedHttpClientConnection.class);
-    private final Log headerlog = LogFactory.getLog("org.apache.http.headers");
-    private final Log wirelog = LogFactory.getLog("org.apache.http.wire");
+    private final Log headerLog = LogFactory.getLog("org.apache.http.headers");
+    private final Log wireLog = LogFactory.getLog("org.apache.http.wire");
 
     private final HttpMessageWriterFactory<HttpRequest> requestWriterFactory;
     private final HttpMessageParserFactory<HttpResponse> responseParserFactory;
@@ -108,31 +108,31 @@ public class ManagedHttpClientConnectionFactory
     @Override
     public ManagedHttpClientConnection create(final HttpRoute route, final ConnectionConfig config) {
         final ConnectionConfig cconfig = config != null ? config : ConnectionConfig.DEFAULT;
-        CharsetDecoder chardecoder = null;
-        CharsetEncoder charencoder = null;
+        CharsetDecoder charDecoder = null;
+        CharsetEncoder charEncoder = null;
         final Charset charset = cconfig.getCharset();
         final CodingErrorAction malformedInputAction = cconfig.getMalformedInputAction() != null ?
                 cconfig.getMalformedInputAction() : CodingErrorAction.REPORT;
         final CodingErrorAction unmappableInputAction = cconfig.getUnmappableInputAction() != null ?
                 cconfig.getUnmappableInputAction() : CodingErrorAction.REPORT;
         if (charset != null) {
-            chardecoder = charset.newDecoder();
-            chardecoder.onMalformedInput(malformedInputAction);
-            chardecoder.onUnmappableCharacter(unmappableInputAction);
-            charencoder = charset.newEncoder();
-            charencoder.onMalformedInput(malformedInputAction);
-            charencoder.onUnmappableCharacter(unmappableInputAction);
+            charDecoder = charset.newDecoder();
+            charDecoder.onMalformedInput(malformedInputAction);
+            charDecoder.onUnmappableCharacter(unmappableInputAction);
+            charEncoder = charset.newEncoder();
+            charEncoder.onMalformedInput(malformedInputAction);
+            charEncoder.onUnmappableCharacter(unmappableInputAction);
         }
         final String id = "http-outgoing-" + Long.toString(COUNTER.getAndIncrement());
         return new LoggingManagedHttpClientConnection(
                 id,
                 log,
-                headerlog,
-                wirelog,
+                headerLog,
+                wireLog,
                 cconfig.getBufferSize(),
                 cconfig.getFragmentSizeHint(),
-                chardecoder,
-                charencoder,
+                charDecoder,
+                charEncoder,
                 cconfig.getMessageConstraints(),
                 incomingContentStrategy,
                 outgoingContentStrategy,

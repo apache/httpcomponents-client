@@ -96,15 +96,15 @@ public class TestRedirectExec {
         final HttpClientContext context = HttpClientContext.create();
 
         final CloseableHttpResponse response1 = Mockito.mock(CloseableHttpResponse.class);
-        final InputStream instream1 = Mockito.spy(new ByteArrayInputStream(new byte[] {1, 2, 3}));
+        final InputStream inStream1 = Mockito.spy(new ByteArrayInputStream(new byte[] {1, 2, 3}));
         final HttpEntity entity1 = EntityBuilder.create()
-                .setStream(instream1)
+                .setStream(inStream1)
                 .build();
         Mockito.when(response1.getEntity()).thenReturn(entity1);
         final CloseableHttpResponse response2 = Mockito.mock(CloseableHttpResponse.class);
-        final InputStream instream2 = Mockito.spy(new ByteArrayInputStream(new byte[] {1, 2, 3}));
+        final InputStream inStream2 = Mockito.spy(new ByteArrayInputStream(new byte[] {1, 2, 3}));
         final HttpEntity entity2 = EntityBuilder.create()
-                .setStream(instream2)
+                .setStream(inStream2)
                 .build();
         Mockito.when(response2.getEntity()).thenReturn(entity2);
         final HttpGet redirect = new HttpGet("http://localhost:80/redirect");
@@ -154,9 +154,9 @@ public class TestRedirectExec {
         Assert.assertEquals("that", headers[1].getValue());
 
         Mockito.verify(response1, Mockito.times(1)).close();
-        Mockito.verify(instream1, Mockito.times(1)).close();
+        Mockito.verify(inStream1, Mockito.times(1)).close();
         Mockito.verify(response2, Mockito.never()).close();
-        Mockito.verify(instream2, Mockito.never()).close();
+        Mockito.verify(inStream2, Mockito.never()).close();
     }
 
     @Test(expected = RedirectException.class)
@@ -321,9 +321,9 @@ public class TestRedirectExec {
         final HttpClientContext context = HttpClientContext.create();
 
         final CloseableHttpResponse response1 = Mockito.mock(CloseableHttpResponse.class);
-        final InputStream instream1 = Mockito.spy(new ByteArrayInputStream(new byte[] {1, 2, 3}));
+        final InputStream inStream1 = Mockito.spy(new ByteArrayInputStream(new byte[] {1, 2, 3}));
         final HttpEntity entity1 = EntityBuilder.create()
-                .setStream(instream1)
+                .setStream(inStream1)
                 .build();
         Mockito.when(response1.getEntity()).thenReturn(entity1);
         Mockito.when(requestExecutor.execute(
@@ -343,7 +343,7 @@ public class TestRedirectExec {
         try {
             redirectExec.execute(route, request, context, execAware);
         } catch (final Exception ex) {
-            Mockito.verify(instream1).close();
+            Mockito.verify(inStream1).close();
             Mockito.verify(response1).close();
             throw ex;
         }

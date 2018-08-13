@@ -79,23 +79,22 @@ public class DecompressingEntity extends HttpEntityWrapper {
                 content = getDecompressingStream();
             }
             return content;
-        } else {
-            return getDecompressingStream();
         }
+        return getDecompressingStream();
     }
 
     @Override
-    public void writeTo(final OutputStream outstream) throws IOException {
-        Args.notNull(outstream, "Output stream");
-        final InputStream instream = getContent();
+    public void writeTo(final OutputStream outStream) throws IOException {
+        Args.notNull(outStream, "Output stream");
+        final InputStream inStream = getContent();
         try {
             final byte[] buffer = new byte[BUFFER_SIZE];
             int l;
-            while ((l = instream.read(buffer)) != -1) {
-                outstream.write(buffer, 0, l);
+            while ((l = inStream.read(buffer)) != -1) {
+                outStream.write(buffer, 0, l);
             }
         } finally {
-            instream.close();
+            inStream.close();
         }
     }
 

@@ -98,12 +98,12 @@ public class PoolingClientConnectionManager implements ClientConnectionManager, 
 
     public PoolingClientConnectionManager(
             final SchemeRegistry schemeRegistry,
-            final long timeToLive, final TimeUnit tunit) {
-        this(schemeRegistry, timeToLive, tunit, new SystemDefaultDnsResolver());
+            final long timeToLive, final TimeUnit timeUnit) {
+        this(schemeRegistry, timeToLive, timeUnit, new SystemDefaultDnsResolver());
     }
 
     public PoolingClientConnectionManager(final SchemeRegistry schemeRegistry,
-                final long timeToLive, final TimeUnit tunit,
+                final long timeToLive, final TimeUnit timeUnit,
                 final DnsResolver dnsResolver) {
         super();
         Args.notNull(schemeRegistry, "Scheme registry");
@@ -111,7 +111,7 @@ public class PoolingClientConnectionManager implements ClientConnectionManager, 
         this.schemeRegistry = schemeRegistry;
         this.dnsResolver  = dnsResolver;
         this.operator = createConnectionOperator(schemeRegistry);
-        this.pool = new HttpConnPool(this.log, this.operator, 2, 20, timeToLive, tunit);
+        this.pool = new HttpConnPool(this.log, this.operator, 2, 20, timeToLive, timeUnit);
     }
 
     @Override
@@ -196,8 +196,8 @@ public class PoolingClientConnectionManager implements ClientConnectionManager, 
             @Override
             public ManagedClientConnection getConnection(
                     final long timeout,
-                    final TimeUnit tunit) throws InterruptedException, ConnectionPoolTimeoutException {
-                return leaseConnection(future, timeout, tunit);
+                    final TimeUnit timeUnit) throws InterruptedException, ConnectionPoolTimeoutException {
+                return leaseConnection(future, timeout, timeUnit);
             }
 
         };
@@ -207,10 +207,10 @@ public class PoolingClientConnectionManager implements ClientConnectionManager, 
     ManagedClientConnection leaseConnection(
             final Future<HttpPoolEntry> future,
             final long timeout,
-            final TimeUnit tunit) throws InterruptedException, ConnectionPoolTimeoutException {
+            final TimeUnit timeUnit) throws InterruptedException, ConnectionPoolTimeoutException {
         final HttpPoolEntry entry;
         try {
-            entry = future.get(timeout, tunit);
+            entry = future.get(timeout, timeUnit);
             if (entry == null || future.isCancelled()) {
                 throw new InterruptedException();
             }
@@ -234,7 +234,7 @@ public class PoolingClientConnectionManager implements ClientConnectionManager, 
 
     @Override
     public void releaseConnection(
-            final ManagedClientConnection conn, final long keepalive, final TimeUnit tunit) {
+            final ManagedClientConnection conn, final long keepalive, final TimeUnit timeUnit) {
 
         Args.check(conn instanceof ManagedClientConnectionImpl, "Connection class mismatch, " +
             "connection not obtained from this manager");
@@ -257,11 +257,11 @@ public class PoolingClientConnectionManager implements ClientConnectionManager, 
                 }
                 // Only reusable connections can be kept alive
                 if (managedConn.isMarkedReusable()) {
-                    entry.updateExpiry(keepalive, tunit != null ? tunit : TimeUnit.MILLISECONDS);
+                    entry.updateExpiry(keepalive, timeUnit != null ? timeUnit : TimeUnit.MILLISECONDS);
                     if (this.log.isDebugEnabled()) {
                         final String s;
                         if (keepalive > 0) {
-                            s = "for " + keepalive + " " + tunit;
+                            s = "for " + keepalive + " " + timeUnit;
                         } else {
                             s = "indefinitely";
                         }
@@ -289,11 +289,11 @@ public class PoolingClientConnectionManager implements ClientConnectionManager, 
     }
 
     @Override
-    public void closeIdleConnections(final long idleTimeout, final TimeUnit tunit) {
+    public void closeIdleConnections(final long idleTimeout, final TimeUnit timeUnit) {
         if (this.log.isDebugEnabled()) {
-            this.log.debug("Closing connections idle longer than " + idleTimeout + " " + tunit);
+            this.log.debug("Closing connections idle longer than " + idleTimeout + " " + timeUnit);
         }
-        this.pool.closeIdle(idleTimeout, tunit);
+        this.pool.closeIdle(idleTimeout, timeUnit);
     }
 
     @Override

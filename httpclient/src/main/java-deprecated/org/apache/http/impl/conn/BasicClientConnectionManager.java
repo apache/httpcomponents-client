@@ -141,7 +141,7 @@ public class BasicClientConnectionManager implements ClientConnectionManager {
 
             @Override
             public ManagedClientConnection getConnection(
-                    final long timeout, final TimeUnit tunit) {
+                    final long timeout, final TimeUnit timeUnit) {
                 return BasicClientConnectionManager.this.getConnection(
                         route, state);
             }
@@ -191,7 +191,7 @@ public class BasicClientConnectionManager implements ClientConnectionManager {
     }
 
     @Override
-    public void releaseConnection(final ManagedClientConnection conn, final long keepalive, final TimeUnit tunit) {
+    public void releaseConnection(final ManagedClientConnection conn, final long keepalive, final TimeUnit timeUnit) {
         Args.check(conn instanceof ManagedClientConnectionImpl, "Connection class mismatch, " +
             "connection not obtained from this manager");
         final ManagedClientConnectionImpl managedConn = (ManagedClientConnectionImpl) conn;
@@ -214,11 +214,11 @@ public class BasicClientConnectionManager implements ClientConnectionManager {
                         shutdownConnection(managedConn);
                     }
                     if (managedConn.isMarkedReusable()) {
-                        this.poolEntry.updateExpiry(keepalive, tunit != null ? tunit : TimeUnit.MILLISECONDS);
+                        this.poolEntry.updateExpiry(keepalive, timeUnit != null ? timeUnit : TimeUnit.MILLISECONDS);
                         if (this.log.isDebugEnabled()) {
                             final String s;
                             if (keepalive > 0) {
-                                s = "for " + keepalive + " " + tunit;
+                                s = "for " + keepalive + " " + timeUnit;
                             } else {
                                 s = "indefinitely";
                             }
@@ -249,11 +249,11 @@ public class BasicClientConnectionManager implements ClientConnectionManager {
     }
 
     @Override
-    public void closeIdleConnections(final long idletime, final TimeUnit tunit) {
-        Args.notNull(tunit, "Time unit");
+    public void closeIdleConnections(final long idletime, final TimeUnit timeUnit) {
+        Args.notNull(timeUnit, "Time unit");
         synchronized (this) {
             assertNotShutdown();
-            long time = tunit.toMillis(idletime);
+            long time = timeUnit.toMillis(idletime);
             if (time < 0) {
                 time = 0;
             }

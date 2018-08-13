@@ -401,12 +401,12 @@ public class Request {
         return body(new InternalByteArrayEntity(b, off, len, contentType));
     }
 
-    public Request bodyStream(final InputStream instream) {
-        return body(new InternalInputStreamEntity(instream, -1, null));
+    public Request bodyStream(final InputStream inStream) {
+        return body(new InternalInputStreamEntity(inStream, -1, null));
     }
 
-    public Request bodyStream(final InputStream instream, final ContentType contentType) {
-        return body(new InternalInputStreamEntity(instream, -1, contentType));
+    public Request bodyStream(final InputStream inStream, final ContentType contentType) {
+        return body(new InternalInputStreamEntity(inStream, -1, contentType));
     }
 
     @Override

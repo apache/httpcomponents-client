@@ -186,7 +186,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
 
             @Override
             public ManagedClientConnection getConnection(
-                    final long timeout, final TimeUnit tunit) {
+                    final long timeout, final TimeUnit timeUnit) {
                 return SingleClientConnManager.this.getConnection(
                         route, state);
             }
@@ -317,16 +317,16 @@ public class SingleClientConnManager implements ClientConnectionManager {
     }
 
     @Override
-    public void closeIdleConnections(final long idletime, final TimeUnit tunit) {
+    public void closeIdleConnections(final long idletime, final TimeUnit timeUnit) {
         assertStillUp();
 
         // idletime can be 0 or negative, no problem there
-        Args.notNull(tunit, "Time unit");
+        Args.notNull(timeUnit, "Time unit");
 
         synchronized (this) {
             if ((managedConn == null) && uniquePoolEntry.connection.isOpen()) {
                 final long cutoff =
-                    System.currentTimeMillis() - tunit.toMillis(idletime);
+                    System.currentTimeMillis() - timeUnit.toMillis(idletime);
                 if (lastReleaseTime <= cutoff) {
                     try {
                         uniquePoolEntry.close();

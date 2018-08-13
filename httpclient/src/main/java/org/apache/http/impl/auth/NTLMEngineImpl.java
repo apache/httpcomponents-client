@@ -209,7 +209,7 @@ final class NTLMEngineImpl implements NTLMEngine {
                 targetInformation, peerServerCertificate, type1Message, type2Message).getResponse();
     }
 
-    private static int readULong(final byte[] src, final int index) throws NTLMEngineException {
+    private static int readULong(final byte[] src, final int index) {
         if (src.length < index + 4) {
             return 0;
         }
@@ -217,14 +217,14 @@ final class NTLMEngineImpl implements NTLMEngine {
                 | ((src[index + 2] & 0xff) << 16) | ((src[index + 3] & 0xff) << 24);
     }
 
-    private static int readUShort(final byte[] src, final int index) throws NTLMEngineException {
+    private static int readUShort(final byte[] src, final int index) {
         if (src.length < index + 2) {
             return 0;
         }
         return (src[index] & 0xff) | ((src[index + 1] & 0xff) << 8);
     }
 
-    private static byte[] readSecurityBuffer(final byte[] src, final int index) throws NTLMEngineException {
+    private static byte[] readSecurityBuffer(final byte[] src, final int index) {
         final int length = readUShort(src, index);
         final int offset = readULong(src, index + 4);
         if (src.length < offset + length) {
@@ -236,7 +236,7 @@ final class NTLMEngineImpl implements NTLMEngine {
     }
 
     /** Calculate a challenge block */
-    private static byte[] makeRandomChallenge(final Random random) throws NTLMEngineException {
+    private static byte[] makeRandomChallenge(final Random random) {
         final byte[] rval = new byte[8];
         synchronized (random) {
             random.nextBytes(rval);
@@ -245,7 +245,7 @@ final class NTLMEngineImpl implements NTLMEngine {
     }
 
     /** Calculate a 16-byte secondary key */
-    private static byte[] makeSecondaryKey(final Random random) throws NTLMEngineException {
+    private static byte[] makeSecondaryKey(final Random random) {
         final byte[] rval = new byte[16];
         synchronized (random) {
             random.nextBytes(rval);
@@ -747,8 +747,7 @@ final class NTLMEngineImpl implements NTLMEngine {
      * @return The response (either NTLMv2 or LMv2, depending on the client
      *         data).
      */
-    private static byte[] lmv2Response(final byte[] hash, final byte[] challenge, final byte[] clientData)
-            throws NTLMEngineException {
+    private static byte[] lmv2Response(final byte[] hash, final byte[] challenge, final byte[] clientData) {
         final HMACMD5 hmacMD5 = new HMACMD5(hash);
         hmacMD5.update(challenge);
         hmacMD5.update(clientData);
@@ -856,17 +855,17 @@ final class NTLMEngineImpl implements NTLMEngine {
             sequenceNumber++;
         }
 
-        private byte[] encrypt( final byte[] data ) throws NTLMEngineException
+        private byte[] encrypt( final byte[] data )
         {
             return rc4.update( data );
         }
 
-        private byte[] decrypt( final byte[] data ) throws NTLMEngineException
+        private byte[] decrypt( final byte[] data )
         {
             return rc4.update( data );
         }
 
-        private byte[] computeSignature( final byte[] message ) throws NTLMEngineException
+        private byte[] computeSignature( final byte[] message )
         {
             final byte[] sig = new byte[16];
 
@@ -892,7 +891,7 @@ final class NTLMEngineImpl implements NTLMEngine {
             return sig;
         }
 
-        private boolean validateSignature( final byte[] signature, final byte message[] ) throws NTLMEngineException
+        private boolean validateSignature( final byte[] signature, final byte message[] )
         {
             final byte[] computedSignature = computeSignature( message );
             //            log.info( "SSSSS validateSignature("+seqNumber+")\n"
@@ -1036,12 +1035,11 @@ final class NTLMEngineImpl implements NTLMEngine {
     {
         if ((flags & FLAG_REQUEST_UNICODE_ENCODING) == 0) {
             return DEFAULT_CHARSET;
-        } else {
-            if (UNICODE_LITTLE_UNMARKED == null) {
-                throw new NTLMEngineException( "Unicode not supported" );
-            }
-            return UNICODE_LITTLE_UNMARKED;
         }
+        if (UNICODE_LITTLE_UNMARKED == null) {
+            throw new NTLMEngineException( "Unicode not supported" );
+        }
+        return UNICODE_LITTLE_UNMARKED;
     }
 
     /** Strip dot suffix from a name */

@@ -98,21 +98,13 @@ class CPoolProxy implements ManagedHttpClientConnection, HttpContext {
     @Override
     public boolean isOpen() {
         final CPoolEntry local = this.poolEntry;
-        if (local != null) {
-            return !local.isClosed();
-        } else {
-            return false;
-        }
+        return local != null ? !local.isClosed() : false;
     }
 
     @Override
     public boolean isStale() {
         final HttpClientConnection conn = getConnection();
-        if (conn != null) {
-            return conn.isStale();
-        } else {
-            return true;
-        }
+        return conn != null ? conn.isStale() : true;
     }
 
     @Override
@@ -203,11 +195,7 @@ class CPoolProxy implements ManagedHttpClientConnection, HttpContext {
     @Override
     public Object getAttribute(final String id) {
         final ManagedHttpClientConnection conn = getValidConnection();
-        if (conn instanceof HttpContext) {
-            return ((HttpContext) conn).getAttribute(id);
-        } else {
-            return null;
-        }
+        return conn instanceof HttpContext ? ((HttpContext) conn).getAttribute(id) : null;
     }
 
     @Override
@@ -221,11 +209,7 @@ class CPoolProxy implements ManagedHttpClientConnection, HttpContext {
     @Override
     public Object removeAttribute(final String id) {
         final ManagedHttpClientConnection conn = getValidConnection();
-        if (conn instanceof HttpContext) {
-            return ((HttpContext) conn).removeAttribute(id);
-        } else {
-            return null;
-        }
+        return conn instanceof HttpContext ? ((HttpContext) conn).removeAttribute(id) : null;
     }
 
     @Override

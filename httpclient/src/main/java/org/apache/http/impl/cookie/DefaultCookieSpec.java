@@ -105,14 +105,14 @@ public class DefaultCookieSpec implements CookieSpec {
             final CookieOrigin origin) throws MalformedCookieException {
         Args.notNull(header, "Header");
         Args.notNull(origin, "Cookie origin");
-        HeaderElement[] helems = header.getElements();
+        HeaderElement[] hElems = header.getElements();
         boolean versioned = false;
         boolean netscape = false;
-        for (final HeaderElement helem: helems) {
-            if (helem.getParameterByName("version") != null) {
+        for (final HeaderElement hElem: hElems) {
+            if (hElem.getParameterByName("version") != null) {
                 versioned = true;
             }
-            if (helem.getParameterByName("expires") != null) {
+            if (hElem.getParameterByName("expires") != null) {
                netscape = true;
             }
         }
@@ -128,23 +128,20 @@ public class DefaultCookieSpec implements CookieSpec {
                         ((FormattedHeader) header).getValuePos(),
                         buffer.length());
             } else {
-                final String s = header.getValue();
-                if (s == null) {
+                final String hValue = header.getValue();
+                if (hValue == null) {
                     throw new MalformedCookieException("Header value is null");
                 }
-                buffer = new CharArrayBuffer(s.length());
-                buffer.append(s);
+                buffer = new CharArrayBuffer(hValue.length());
+                buffer.append(hValue);
                 cursor = new ParserCursor(0, buffer.length());
             }
-            helems = new HeaderElement[] { parser.parseHeader(buffer, cursor) };
-            return netscapeDraft.parse(helems, origin);
-        } else {
-            if (SM.SET_COOKIE2.equals(header.getName())) {
-                return strict.parse(helems, origin);
-            } else {
-                return obsoleteStrict.parse(helems, origin);
-            }
+            hElems = new HeaderElement[] { parser.parseHeader(buffer, cursor) };
+            return netscapeDraft.parse(hElems, origin);
         }
+        return SM.SET_COOKIE2.equals(header.getName())
+                        ? strict.parse(hElems, origin)
+                        : obsoleteStrict.parse(hElems, origin);
     }
 
     @Override
@@ -169,14 +166,11 @@ public class DefaultCookieSpec implements CookieSpec {
         Args.notNull(cookie, "Cookie");
         Args.notNull(origin, "Cookie origin");
         if (cookie.getVersion() > 0) {
-            if (cookie instanceof SetCookie2) {
-                return strict.match(cookie, origin);
-            } else {
-                return obsoleteStrict.match(cookie, origin);
-            }
-        } else {
-            return netscapeDraft.match(cookie, origin);
+            return cookie instanceof SetCookie2
+                            ? strict.match(cookie, origin)
+                            : obsoleteStrict.match(cookie, origin);
         }
+        return netscapeDraft.match(cookie, origin);
     }
 
     @Override
@@ -193,14 +187,11 @@ public class DefaultCookieSpec implements CookieSpec {
             }
         }
         if (version > 0) {
-            if (isSetCookie2) {
-                return strict.formatCookies(cookies);
-            } else {
-                return obsoleteStrict.formatCookies(cookies);
-            }
-        } else {
-            return netscapeDraft.formatCookies(cookies);
+            return isSetCookie2
+                            ? strict.formatCookies(cookies)
+                            : obsoleteStrict.formatCookies(cookies);
         }
+        return netscapeDraft.formatCookies(cookies);
     }
 
     @Override

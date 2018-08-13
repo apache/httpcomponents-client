@@ -205,10 +205,9 @@ public class LaxExpiresHandler extends AbstractCookieAttributeHandler implements
             final char current = buf.charAt(i);
             if (DELIMS.get(current)) {
                 break;
-            } else {
-                pos++;
-                dst.append(current);
             }
+            pos++;
+            dst.append(current);
         }
         cursor.updatePos(pos);
     }

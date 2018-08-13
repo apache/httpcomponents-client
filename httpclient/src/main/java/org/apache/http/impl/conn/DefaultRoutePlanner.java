@@ -92,11 +92,9 @@ public class DefaultRoutePlanner implements HttpRoutePlanner {
             target = host;
         }
         final boolean secure = target.getSchemeName().equalsIgnoreCase("https");
-        if (proxy == null) {
-            return new HttpRoute(target, local, secure);
-        } else {
-            return new HttpRoute(target, local, proxy, secure);
-        }
+        return proxy == null
+                        ? new HttpRoute(target, local, secure)
+                        : new HttpRoute(target, local, proxy, secure);
     }
 
     /**

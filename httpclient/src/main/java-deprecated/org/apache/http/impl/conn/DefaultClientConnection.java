@@ -187,29 +187,29 @@ public class DefaultClientConnection extends SocketHttpClientConnection
     @Override
     protected SessionInputBuffer createSessionInputBuffer(
             final Socket socket,
-            final int buffersize,
+            final int bufferSize,
             final HttpParams params) throws IOException {
-        SessionInputBuffer inbuffer = super.createSessionInputBuffer(
+        SessionInputBuffer inBuffer = super.createSessionInputBuffer(
                 socket,
-                buffersize > 0 ? buffersize : 8192,
+                bufferSize > 0 ? bufferSize : 8192,
                 params);
         if (wireLog.isDebugEnabled()) {
-            inbuffer = new LoggingSessionInputBuffer(
-                    inbuffer,
+            inBuffer = new LoggingSessionInputBuffer(
+                    inBuffer,
                     new Wire(wireLog),
                     HttpProtocolParams.getHttpElementCharset(params));
         }
-        return inbuffer;
+        return inBuffer;
     }
 
     @Override
     protected SessionOutputBuffer createSessionOutputBuffer(
             final Socket socket,
-            final int buffersize,
+            final int bufferSize,
             final HttpParams params) throws IOException {
         SessionOutputBuffer outbuffer = super.createSessionOutputBuffer(
                 socket,
-                buffersize > 0 ? buffersize : 8192,
+                bufferSize > 0 ? bufferSize : 8192,
                 params);
         if (wireLog.isDebugEnabled()) {
             outbuffer = new LoggingSessionOutputBuffer(

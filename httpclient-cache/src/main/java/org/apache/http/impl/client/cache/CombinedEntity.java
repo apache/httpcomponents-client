@@ -41,11 +41,11 @@ class CombinedEntity extends AbstractHttpEntity {
     private final Resource resource;
     private final InputStream combinedStream;
 
-    CombinedEntity(final Resource resource, final InputStream instream) throws IOException {
+    CombinedEntity(final Resource resource, final InputStream inStream) throws IOException {
         super();
         this.resource = resource;
         this.combinedStream = new SequenceInputStream(
-                new ResourceStream(resource.getInputStream()), instream);
+                new ResourceStream(resource.getInputStream()), inStream);
     }
 
     @Override
@@ -69,17 +69,17 @@ class CombinedEntity extends AbstractHttpEntity {
     }
 
     @Override
-    public void writeTo(final OutputStream outstream) throws IOException {
-        Args.notNull(outstream, "Output stream");
-        final InputStream instream = getContent();
+    public void writeTo(final OutputStream outStream) throws IOException {
+        Args.notNull(outStream, "Output stream");
+        final InputStream inStream = getContent();
         try {
             int l;
             final byte[] tmp = new byte[2048];
-            while ((l = instream.read(tmp)) != -1) {
-                outstream.write(tmp, 0, l);
+            while ((l = inStream.read(tmp)) != -1) {
+                outStream.write(tmp, 0, l);
             }
         } finally {
-            instream.close();
+            inStream.close();
         }
     }
 

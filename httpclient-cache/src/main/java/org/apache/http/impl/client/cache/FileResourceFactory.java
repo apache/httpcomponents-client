@@ -73,16 +73,16 @@ public class FileResourceFactory implements ResourceFactory {
     @Override
     public Resource generate(
             final String requestId,
-            final InputStream instream,
+            final InputStream inStream,
             final InputLimit limit) throws IOException {
         final File file = generateUniqueCacheFile(requestId);
-        final FileOutputStream outstream = new FileOutputStream(file);
+        final FileOutputStream outStream = new FileOutputStream(file);
         try {
             final byte[] buf = new byte[2048];
             long total = 0;
             int l;
-            while ((l = instream.read(buf)) != -1) {
-                outstream.write(buf, 0, l);
+            while ((l = inStream.read(buf)) != -1) {
+                outStream.write(buf, 0, l);
                 total += l;
                 if (limit != null && total > limit.getValue()) {
                     limit.reached();
@@ -90,7 +90,7 @@ public class FileResourceFactory implements ResourceFactory {
                 }
             }
         } finally {
-            outstream.close();
+            outStream.close();
         }
         return new FileResource(file);
     }

@@ -124,14 +124,14 @@ public class URLEncodedUtils {
         final long len = entity.getContentLength();
         Args.check(len <= Integer.MAX_VALUE, "HTTP entity is too large");
         final Charset charset = contentType.getCharset() != null ? contentType.getCharset() : HTTP.DEF_CONTENT_CHARSET;
-        final InputStream instream = entity.getContent();
-        if (instream == null) {
+        final InputStream inStream = entity.getContent();
+        if (inStream == null) {
             return createEmptyList();
         }
         final CharArrayBuffer buf;
         try {
             buf = new CharArrayBuffer(len > 0 ? (int) len : 1024);
-            final Reader reader = new InputStreamReader(instream, charset);
+            final Reader reader = new InputStreamReader(inStream, charset);
             final char[] tmp = new char[1024];
             int l;
             while((l = reader.read(tmp)) != -1) {
@@ -139,7 +139,7 @@ public class URLEncodedUtils {
             }
 
         } finally {
-            instream.close();
+            inStream.close();
         }
         if (buf.isEmpty()) {
             return createEmptyList();

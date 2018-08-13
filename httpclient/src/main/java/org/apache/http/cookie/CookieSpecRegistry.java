@@ -107,9 +107,8 @@ public final class CookieSpecRegistry implements Lookup<CookieSpecProvider> {
         final CookieSpecFactory factory = registeredSpecs.get(name.toLowerCase(Locale.ENGLISH));
         if (factory != null) {
             return factory.newInstance(params);
-        } else {
-            throw new IllegalStateException("Unsupported cookie spec: " + name);
         }
+        throw new IllegalStateException("Unsupported cookie spec: " + name);
     }
 
     /**

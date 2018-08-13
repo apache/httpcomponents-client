@@ -189,11 +189,10 @@ public class HttpRequestWrapper extends AbstractHttpMessage implements HttpUriRe
      */
     public static HttpRequestWrapper wrap(final HttpRequest request, final HttpHost target) {
         Args.notNull(request, "HTTP request");
-        if (request instanceof HttpEntityEnclosingRequest) {
-            return new HttpEntityEnclosingRequestWrapper((HttpEntityEnclosingRequest) request, target);
-        } else {
-            return new HttpRequestWrapper(request, target);
-        }
+        return request instanceof HttpEntityEnclosingRequest
+                        ? new HttpEntityEnclosingRequestWrapper(
+                                        (HttpEntityEnclosingRequest) request, target)
+                        : new HttpRequestWrapper(request, target);
     }
 
     /**

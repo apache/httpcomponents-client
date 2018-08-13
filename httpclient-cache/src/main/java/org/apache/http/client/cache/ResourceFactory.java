@@ -41,7 +41,7 @@ public interface ResourceFactory {
      * Creates a {@link Resource} from a given response body.
      * @param requestId a unique identifier for this particular
      *   response body
-     * @param instream the original {@link InputStream}
+     * @param inStream the original {@link InputStream}
      *   containing the response body of the origin HTTP response.
      * @param limit maximum number of bytes to consume of the
      *   response body; if this limit is reached before the
@@ -52,7 +52,7 @@ public interface ResourceFactory {
      *   the response body was successfully read.
      * @throws IOException
      */
-    Resource generate(String requestId, InputStream instream, InputLimit limit) throws IOException;
+    Resource generate(String requestId, InputStream inStream, InputLimit limit) throws IOException;
 
     /**
      * Clones an existing {@link Resource}.

@@ -113,8 +113,8 @@ public class BasicManagedEntity extends HttpEntityWrapper
     }
 
     @Override
-    public void writeTo(final OutputStream outstream) throws IOException {
-        super.writeTo(outstream);
+    public void writeTo(final OutputStream outStream) throws IOException {
+        super.writeTo(outStream);
         ensureConsumed();
     }
 

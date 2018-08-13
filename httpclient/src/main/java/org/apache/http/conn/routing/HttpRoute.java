@@ -103,16 +103,13 @@ public final class HttpRoute implements RouteInfo, Cloneable {
     private static HttpHost normalize(final HttpHost target) {
         if (target.getPort() >= 0 ) {
             return target;
-        } else {
-            final InetAddress address = target.getAddress();
-            final String schemeName = target.getSchemeName();
-            if (address != null) {
-                return new HttpHost(address, getDefaultPort(schemeName), schemeName);
-            } else {
-                final String hostName = target.getHostName();
-                return new HttpHost(hostName, getDefaultPort(schemeName), schemeName);
-            }
         }
+        final InetAddress address = target.getAddress();
+        final String schemeName = target.getSchemeName();
+        return address != null
+                        ? new HttpHost(address, getDefaultPort(schemeName), schemeName)
+                        : new HttpHost(target.getHostName(), getDefaultPort(schemeName),
+                                        schemeName);
     }
 
     /**
@@ -238,11 +235,7 @@ public final class HttpRoute implements RouteInfo, Cloneable {
         Args.notNegative(hop, "Hop index");
         final int hopcount = getHopCount();
         Args.check(hop < hopcount, "Hop index exceeds tracked route length");
-        if (hop < hopcount - 1) {
-            return this.proxyChain.get(hop);
-        } else {
-            return this.targetHost;
-        }
+        return hop < hopcount - 1 ? this.proxyChain.get(hop) : this.targetHost;
     }
 
     @Override
@@ -298,9 +291,8 @@ public final class HttpRoute implements RouteInfo, Cloneable {
                 LangUtils.equals(this.targetHost, that.targetHost) &&
                 LangUtils.equals(this.localAddress, that.localAddress) &&
                 LangUtils.equals(this.proxyChain, that.proxyChain);
-        } else {
-            return false;
         }
+        return false;
     }
 
 

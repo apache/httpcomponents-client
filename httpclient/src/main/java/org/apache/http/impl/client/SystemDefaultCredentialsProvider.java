@@ -142,19 +142,13 @@ public class SystemDefaultCredentialsProvider implements CredentialsProvider {
                             systemcreds.getUserName(),
                             new String(systemcreds.getPassword()),
                             null, domain);
-                } else {
-                    if (AuthSchemes.NTLM.equalsIgnoreCase(authscope.getScheme())) {
-                        // Domain may be specified in a fully qualified user name
-                        return new NTCredentials(
-                                systemcreds.getUserName(),
-                                new String(systemcreds.getPassword()),
-                                null, null);
-                    } else {
-                        return new UsernamePasswordCredentials(
-                                systemcreds.getUserName(),
-                                new String(systemcreds.getPassword()));
-                    }
                 }
+                return AuthSchemes.NTLM.equalsIgnoreCase(authscope.getScheme())
+                                // Domain may be specified in a fully qualified user name
+                                ? new NTCredentials(systemcreds.getUserName(),
+                                                new String(systemcreds.getPassword()), null, null)
+                                : new UsernamePasswordCredentials(systemcreds.getUserName(),
+                                                new String(systemcreds.getPassword()));
             }
         }
         return null;

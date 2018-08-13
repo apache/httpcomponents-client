@@ -102,15 +102,15 @@ class MultipartFormEntity implements HttpEntity {
         } else if (this.contentLength > 25 * 1024) {
             throw new ContentTooLongException("Content length is too long: " + this.contentLength);
         }
-        final ByteArrayOutputStream outstream = new ByteArrayOutputStream();
-        writeTo(outstream);
-        outstream.flush();
-        return new ByteArrayInputStream(outstream.toByteArray());
+        final ByteArrayOutputStream outStream = new ByteArrayOutputStream();
+        writeTo(outStream);
+        outStream.flush();
+        return new ByteArrayInputStream(outStream.toByteArray());
     }
 
     @Override
-    public void writeTo(final OutputStream outstream) throws IOException {
-        this.multipart.writeTo(outstream);
+    public void writeTo(final OutputStream outStream) throws IOException {
+        this.multipart.writeTo(outStream);
     }
 
 }

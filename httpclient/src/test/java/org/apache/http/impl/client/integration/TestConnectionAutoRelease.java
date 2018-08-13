@@ -178,10 +178,10 @@ public class TestConnectionAutoRelease extends LocalServerTestBase {
 
                     @Override
                     public void writeTo(
-                            final OutputStream outstream) throws IOException {
+                            final OutputStream outStream) throws IOException {
                         final byte[] tmp = new byte[5];
-                        outstream.write(tmp);
-                        outstream.flush();
+                        outStream.write(tmp);
+                        outStream.flush();
 
                         // do something comletely ugly in order to trigger
                         // MalformedChunkCodingException

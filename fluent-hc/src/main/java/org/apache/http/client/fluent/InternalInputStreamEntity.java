@@ -40,9 +40,9 @@ class InternalInputStreamEntity extends AbstractHttpEntity {
     private final InputStream content;
     private final long length;
 
-    public InternalInputStreamEntity(final InputStream instream, final long length, final ContentType contentType) {
+    public InternalInputStreamEntity(final InputStream inputStream, final long length, final ContentType contentType) {
         super();
-        this.content = Args.notNull(instream, "Source input stream");
+        this.content = Args.notNull(inputStream, "Source input stream");
         this.length = length;
         if (contentType != null) {
             setContentType(contentType.toString());
@@ -65,31 +65,31 @@ class InternalInputStreamEntity extends AbstractHttpEntity {
     }
 
     @Override
-    public void writeTo(final OutputStream outstream) throws IOException {
-        Args.notNull(outstream, "Output stream");
-        final InputStream instream = this.content;
+    public void writeTo(final OutputStream outStream) throws IOException {
+        Args.notNull(outStream, "Output stream");
+        final InputStream inStream = this.content;
         try {
             final byte[] buffer = new byte[4096];
-            int l;
+            int readLen;
             if (this.length < 0) {
                 // consume until EOF
-                while ((l = instream.read(buffer)) != -1) {
-                    outstream.write(buffer, 0, l);
+                while ((readLen = inStream.read(buffer)) != -1) {
+                    outStream.write(buffer, 0, readLen);
                 }
             } else {
                 // consume no more than length
                 long remaining = this.length;
                 while (remaining > 0) {
-                    l = instream.read(buffer, 0, (int)Math.min(4096, remaining));
-                    if (l == -1) {
+                    readLen = inStream.read(buffer, 0, (int)Math.min(4096, remaining));
+                    if (readLen == -1) {
                         break;
                     }
-                    outstream.write(buffer, 0, l);
-                    remaining -= l;
+                    outStream.write(buffer, 0, readLen);
+                    remaining -= readLen;
                 }
             }
         } finally {
-            instream.close();
+            inStream.close();
         }
     }
 

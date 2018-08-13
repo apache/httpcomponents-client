@@ -59,9 +59,9 @@ public class ClientConnectionRelease {
                 // If the response does not enclose an entity, there is no need
                 // to bother about connection release
                 if (entity != null) {
-                    InputStream instream = entity.getContent();
+                    InputStream inStream = entity.getContent();
                     try {
-                        instream.read();
+                        inStream.read();
                         // do something useful with the response
                     } catch (IOException ex) {
                         // In case of an IOException the connection will be released
@@ -69,7 +69,7 @@ public class ClientConnectionRelease {
                         throw ex;
                     } finally {
                         // Closing the input stream will trigger connection release
-                        instream.close();
+                        inStream.close();
                     }
                 }
             } finally {

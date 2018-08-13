@@ -106,9 +106,8 @@ class HttpRequestTaskCallable<V> implements Callable<V> {
                 metrics.getTasks().increment(started);
                 metrics.getActiveConnections().decrementAndGet();
             }
-        } else {
-            throw new IllegalStateException("call has been cancelled for request " + request.getURI());
         }
+        throw new IllegalStateException("call has been cancelled for request " + request.getURI());
     }
 
     public void cancel() {

@@ -55,8 +55,8 @@ public class TestDefaultHttpResponseParser {
             "header2: value2\r\n" +
             "\r\n";
 
-        final SessionInputBuffer inbuffer = new SessionInputBufferMock(s, Consts.ASCII);
-        final HttpMessageParser<HttpResponse> parser = new DefaultHttpResponseParser(inbuffer);
+        final SessionInputBuffer inBuffer = new SessionInputBufferMock(s, Consts.ASCII);
+        final HttpMessageParser<HttpResponse> parser = new DefaultHttpResponseParser(inBuffer);
 
         final HttpResponse response = parser.parse();
         Assert.assertNotNull(response);
@@ -81,8 +81,8 @@ public class TestDefaultHttpResponseParser {
             "header2: value2\r\n" +
             "\r\n";
 
-        final SessionInputBuffer inbuffer = new SessionInputBufferMock(s, Consts.ASCII);
-        final HttpMessageParser<HttpResponse> parser = new DefaultHttpResponseParser(inbuffer) {
+        final SessionInputBuffer inBuffer = new SessionInputBufferMock(s, Consts.ASCII);
+        final HttpMessageParser<HttpResponse> parser = new DefaultHttpResponseParser(inBuffer) {
 
             @Override
             protected boolean reject(final CharArrayBuffer line, final int count) {
@@ -95,8 +95,8 @@ public class TestDefaultHttpResponseParser {
 
     @Test(expected=NoHttpResponseException.class)
     public void testResponseParsingNoResponse() throws Exception {
-        final SessionInputBuffer inbuffer = new SessionInputBufferMock("", Consts.ASCII);
-        final HttpMessageParser<HttpResponse> parser = new DefaultHttpResponseParser(inbuffer);
+        final SessionInputBuffer inBuffer = new SessionInputBufferMock("", Consts.ASCII);
+        final HttpMessageParser<HttpResponse> parser = new DefaultHttpResponseParser(inBuffer);
         parser.parse();
     }
 
@@ -107,8 +107,8 @@ public class TestDefaultHttpResponseParser {
             "garbage\r\n" +
             "more garbage\r\n" +
             "a lot more garbage\r\n";
-        final SessionInputBuffer inbuffer = new SessionInputBufferMock(s, Consts.ASCII);
-        final HttpMessageParser<HttpResponse> parser = new DefaultHttpResponseParser(inbuffer);
+        final SessionInputBuffer inBuffer = new SessionInputBufferMock(s, Consts.ASCII);
+        final HttpMessageParser<HttpResponse> parser = new DefaultHttpResponseParser(inBuffer);
         parser.parse();
     }
 

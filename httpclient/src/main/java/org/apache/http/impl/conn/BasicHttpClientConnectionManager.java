@@ -200,7 +200,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
             }
 
             @Override
-            public HttpClientConnection get(final long timeout, final TimeUnit tunit) {
+            public HttpClientConnection get(final long timeout, final TimeUnit timeUnit) {
                 return BasicHttpClientConnectionManager.this.getConnection(
                         route, state);
             }
@@ -255,7 +255,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
     public synchronized void releaseConnection(
             final HttpClientConnection conn,
             final Object state,
-            final long keepalive, final TimeUnit tunit) {
+            final long keepalive, final TimeUnit timeUnit) {
         Args.notNull(conn, "Connection");
         Asserts.check(conn == this.conn, "Connection not obtained from this manager");
         if (this.log.isDebugEnabled()) {
@@ -277,14 +277,14 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
                 if (this.log.isDebugEnabled()) {
                     final String s;
                     if (keepalive > 0) {
-                        s = "for " + keepalive + " " + tunit;
+                        s = "for " + keepalive + " " + timeUnit;
                     } else {
                         s = "indefinitely";
                     }
                     this.log.debug("Connection can be kept alive " + s);
                 }
                 if (keepalive > 0) {
-                    this.expiry = this.updated + tunit.toMillis(keepalive);
+                    this.expiry = this.updated + timeUnit.toMillis(keepalive);
                 } else {
                     this.expiry = Long.MAX_VALUE;
                 }
@@ -343,13 +343,13 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
     }
 
     @Override
-    public synchronized void closeIdleConnections(final long idletime, final TimeUnit tunit) {
-        Args.notNull(tunit, "Time unit");
+    public synchronized void closeIdleConnections(final long idletime, final TimeUnit timeUnit) {
+        Args.notNull(timeUnit, "Time unit");
         if (this.isShutdown.get()) {
             return;
         }
         if (!this.leased) {
-            long time = tunit.toMillis(idletime);
+            long time = timeUnit.toMillis(idletime);
             if (time < 0) {
                 time = 0;
             }

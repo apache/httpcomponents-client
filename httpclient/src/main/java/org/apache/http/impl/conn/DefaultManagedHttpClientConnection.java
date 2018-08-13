@@ -62,16 +62,16 @@ public class DefaultManagedHttpClientConnection extends DefaultBHttpClientConnec
 
     public DefaultManagedHttpClientConnection(
             final String id,
-            final int buffersize,
+            final int bufferSize,
             final int fragmentSizeHint,
-            final CharsetDecoder chardecoder,
-            final CharsetEncoder charencoder,
+            final CharsetDecoder charDecoder,
+            final CharsetEncoder charEncoder,
             final MessageConstraints constraints,
             final ContentLengthStrategy incomingContentStrategy,
             final ContentLengthStrategy outgoingContentStrategy,
             final HttpMessageWriterFactory<HttpRequest> requestWriterFactory,
             final HttpMessageParserFactory<HttpResponse> responseParserFactory) {
-        super(buffersize, fragmentSizeHint, chardecoder, charencoder,
+        super(bufferSize, fragmentSizeHint, charDecoder, charEncoder,
                 constraints, incomingContentStrategy, outgoingContentStrategy,
                 requestWriterFactory, responseParserFactory);
         this.id = id;
@@ -80,8 +80,8 @@ public class DefaultManagedHttpClientConnection extends DefaultBHttpClientConnec
 
     public DefaultManagedHttpClientConnection(
             final String id,
-            final int buffersize) {
-        this(id, buffersize, buffersize, null, null, null, null, null, null, null);
+            final int bufferSize) {
+        this(id, bufferSize, bufferSize, null, null, null, null, null, null, null);
     }
 
     @Override
@@ -128,11 +128,7 @@ public class DefaultManagedHttpClientConnection extends DefaultBHttpClientConnec
     @Override
     public SSLSession getSSLSession() {
         final Socket socket = super.getSocket();
-        if (socket instanceof SSLSocket) {
-            return ((SSLSocket) socket).getSession();
-        } else {
-            return null;
-        }
+        return socket instanceof SSLSocket ? ((SSLSocket) socket).getSession() : null;
     }
 
 }

@@ -56,7 +56,7 @@ class ConnectionHolder implements ConnectionReleaseTrigger, Cancellable, Closeab
     private volatile boolean reusable;
     private volatile Object state;
     private volatile long validDuration;
-    private volatile TimeUnit tunit;
+    private volatile TimeUnit timeUnit;
 
     public ConnectionHolder(
             final Log log,
@@ -85,10 +85,10 @@ class ConnectionHolder implements ConnectionReleaseTrigger, Cancellable, Closeab
         this.state = state;
     }
 
-    public void setValidFor(final long duration, final TimeUnit tunit) {
+    public void setValidFor(final long duration, final TimeUnit timeUnit) {
         synchronized (this.managedConn) {
             this.validDuration = duration;
-            this.tunit = tunit;
+            this.timeUnit = timeUnit;
         }
     }
 
@@ -97,7 +97,7 @@ class ConnectionHolder implements ConnectionReleaseTrigger, Cancellable, Closeab
             synchronized (this.managedConn) {
                 if (reusable) {
                     this.manager.releaseConnection(this.managedConn,
-                            this.state, this.validDuration, this.tunit);
+                            this.state, this.validDuration, this.timeUnit);
                 } else {
                     try {
                         this.managedConn.close();

@@ -295,9 +295,9 @@ public class ConnPoolByRoute extends AbstractConnPool {
             @Override
             public BasicPoolEntry getPoolEntry(
                     final long timeout,
-                    final TimeUnit tunit)
+                    final TimeUnit timeUnit)
                         throws InterruptedException, ConnectionPoolTimeoutException {
-                return getEntryBlocking(route, state, timeout, tunit, aborter);
+                return getEntryBlocking(route, state, timeout, timeUnit, aborter);
             }
 
         };
@@ -310,7 +310,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
      *
      * @param route     the route for which to get the connection
      * @param timeout   the timeout, 0 or negative for no timeout
-     * @param tunit     the unit for the {@code timeout},
+     * @param timeUnit     the unit for the {@code timeout},
      *                  may be {@code null} only if there is no timeout
      * @param aborter   an object which can abort a {@link WaitingThread}.
      *
@@ -323,14 +323,14 @@ public class ConnPoolByRoute extends AbstractConnPool {
      */
     protected BasicPoolEntry getEntryBlocking(
                                    final HttpRoute route, final Object state,
-                                   final long timeout, final TimeUnit tunit,
+                                   final long timeout, final TimeUnit timeUnit,
                                    final WaitingThreadAborter aborter)
         throws ConnectionPoolTimeoutException, InterruptedException {
 
         Date deadline = null;
         if (timeout > 0) {
             deadline = new Date
-                (System.currentTimeMillis() + tunit.toMillis(timeout));
+                (System.currentTimeMillis() + timeUnit.toMillis(timeout));
         }
 
         BasicPoolEntry entry = null;
@@ -710,17 +710,17 @@ public class ConnPoolByRoute extends AbstractConnPool {
      *
      * @param idletime  the time the connections should have been idle
      *                  in order to be closed now
-     * @param tunit     the unit for the {@code idletime}
+     * @param timeUnit     the unit for the {@code idletime}
      */
     @Override
-    public void closeIdleConnections(final long idletime, final TimeUnit tunit) {
-        Args.notNull(tunit, "Time unit");
+    public void closeIdleConnections(final long idletime, final TimeUnit timeUnit) {
+        Args.notNull(timeUnit, "Time unit");
         final long t = idletime > 0 ? idletime : 0;
         if (log.isDebugEnabled()) {
-            log.debug("Closing connections idle longer than "  + t + " " + tunit);
+            log.debug("Closing connections idle longer than "  + t + " " + timeUnit);
         }
         // the latest time for which connections will be closed
-        final long deadline = System.currentTimeMillis() - tunit.toMillis(t);
+        final long deadline = System.currentTimeMillis() - timeUnit.toMillis(t);
         poolLock.lock();
         try {
             final Iterator<BasicPoolEntry>  iter = freeConnections.iterator();

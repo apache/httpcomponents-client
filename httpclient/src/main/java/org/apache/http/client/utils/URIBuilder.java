@@ -495,11 +495,9 @@ public class URIBuilder {
     }
 
     public List<NameValuePair> getQueryParams() {
-        if (this.queryParams != null) {
-            return new ArrayList<NameValuePair>(this.queryParams);
-        } else {
-            return new ArrayList<NameValuePair>();
-        }
+        return this.queryParams != null
+                        ? new ArrayList<NameValuePair>(this.queryParams)
+                        : new ArrayList<NameValuePair>();
     }
 
     public String getFragment() {

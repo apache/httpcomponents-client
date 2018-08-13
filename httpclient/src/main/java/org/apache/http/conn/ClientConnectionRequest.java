@@ -51,7 +51,7 @@ public interface ClientConnectionRequest {
      * be thrown.
      *
      * @param timeout   the timeout, 0 or negative for no timeout
-     * @param tunit     the unit for the {@code timeout},
+     * @param timeUnit     the unit for the {@code timeout},
      *                  may be {@code null} only if there is no timeout
      *
      * @return  a connection that can be used to communicate
@@ -62,7 +62,7 @@ public interface ClientConnectionRequest {
      * @throws InterruptedException
      *         if the calling thread is interrupted while waiting
      */
-    ManagedClientConnection getConnection(long timeout, TimeUnit tunit)
+    ManagedClientConnection getConnection(long timeout, TimeUnit timeUnit)
         throws InterruptedException, ConnectionPoolTimeoutException;
 
     /**

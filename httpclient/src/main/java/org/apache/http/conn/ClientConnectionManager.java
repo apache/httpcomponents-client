@@ -92,11 +92,11 @@ public interface ClientConnectionManager {
      * All expired connections will also be closed.
      *
      * @param idletime  the idle time of connections to be closed
-     * @param tunit     the unit for the {@code idletime}
+     * @param timeUnit     the unit for the {@code idletime}
      *
      * @see #closeExpiredConnections()
      */
-    void closeIdleConnections(long idletime, TimeUnit tunit);
+    void closeIdleConnections(long idletime, TimeUnit timeUnit);
 
     /**
      * Closes all expired connections in the pool.

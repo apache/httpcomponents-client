@@ -57,6 +57,7 @@ import org.apache.http.protocol.HttpCoreContext;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Matchers;
 import org.mockito.Mockito;
 
 public class TestRequestAddCookies {
@@ -402,7 +403,7 @@ public class TestRequestAddCookies {
         Assert.assertNotNull(headers2);
         Assert.assertEquals(0, headers2.length);
 
-        Mockito.verify(this.cookieStore, Mockito.times(1)).clearExpired(Mockito.<Date>any());
+        Mockito.verify(this.cookieStore, Mockito.times(1)).clearExpired(Matchers.<Date>any());
     }
 
     @Test

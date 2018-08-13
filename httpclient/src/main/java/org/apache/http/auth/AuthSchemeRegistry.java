@@ -112,9 +112,8 @@ public final class AuthSchemeRegistry implements Lookup<AuthSchemeProvider> {
         final AuthSchemeFactory factory = registeredSchemes.get(name.toLowerCase(Locale.ENGLISH));
         if (factory != null) {
             return factory.newInstance(params);
-        } else {
-            throw new IllegalStateException("Unsupported authentication scheme: " + name);
         }
+        throw new IllegalStateException("Unsupported authentication scheme: " + name);
     }
 
     /**

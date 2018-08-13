@@ -85,11 +85,9 @@ class SocketFactoryAdaptor implements SocketFactory {
         if (this == obj) {
             return true;
         }
-        if (obj instanceof SocketFactoryAdaptor) {
-            return this.factory.equals(((SocketFactoryAdaptor)obj).factory);
-        } else {
-            return this.factory.equals(obj);
-        }
+        return obj instanceof SocketFactoryAdaptor
+                        ? this.factory.equals(((SocketFactoryAdaptor) obj).factory)
+                        : this.factory.equals(obj);
     }
 
     @Override

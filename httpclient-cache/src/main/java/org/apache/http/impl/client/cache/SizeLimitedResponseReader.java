@@ -49,7 +49,7 @@ class SizeLimitedResponseReader {
     private final HttpRequest request;
     private final CloseableHttpResponse response;
 
-    private InputStream instream;
+    private InputStream inStream;
     private InputLimit limit;
     private Resource resource;
     private boolean consumed;
@@ -99,12 +99,12 @@ class SizeLimitedResponseReader {
             return;
         }
         final String uri = request.getRequestLine().getUri();
-        instream = entity.getContent();
+        inStream = entity.getContent();
         try {
-            resource = resourceFactory.generate(uri, instream, limit);
+            resource = resourceFactory.generate(uri, inStream, limit);
         } finally {
             if (!limit.isReached()) {
-                instream.close();
+                inStream.close();
             }
         }
     }
@@ -124,7 +124,7 @@ class SizeLimitedResponseReader {
         final HttpResponse reconstructed = new BasicHttpResponse(response.getStatusLine());
         reconstructed.setHeaders(response.getAllHeaders());
 
-        final CombinedEntity combinedEntity = new CombinedEntity(resource, instream);
+        final CombinedEntity combinedEntity = new CombinedEntity(resource, inStream);
         final HttpEntity entity = response.getEntity();
         if (entity != null) {
             combinedEntity.setContentType(entity.getContentType());

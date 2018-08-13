@@ -41,6 +41,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
 import org.junit.Assert;
 import org.junit.Test;
+import org.mockito.Matchers;
 import org.mockito.Mockito;
 
 public class TestGZip {
@@ -71,7 +72,7 @@ public class TestGZip {
     @Test
     public void testCompressionIOExceptionLeavesOutputStreamOpen() throws Exception {
         final HttpEntity in = Mockito.mock(HttpEntity.class);
-        Mockito.doThrow(new IOException("Ooopsie")).when(in).writeTo(Mockito.<OutputStream>any());
+        Mockito.doThrow(new IOException("Ooopsie")).when(in).writeTo(Matchers.<OutputStream>any());
         final GzipCompressingEntity gzipe = new GzipCompressingEntity(in);
         final OutputStream out = Mockito.mock(OutputStream.class);
         try {

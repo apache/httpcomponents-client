@@ -159,11 +159,7 @@ public abstract class AuthSchemeBase implements ContextAwareAuthScheme {
     @Override
     public String toString() {
         final String name = getSchemeName();
-        if (name != null) {
-            return name.toUpperCase(Locale.ROOT);
-        } else {
-            return super.toString();
-        }
+        return name != null ? name.toUpperCase(Locale.ROOT) : super.toString();
     }
 
 }

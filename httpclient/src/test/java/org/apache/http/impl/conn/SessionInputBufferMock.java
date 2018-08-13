@@ -45,39 +45,39 @@ public class SessionInputBufferMock extends SessionInputBufferImpl {
     public static final int BUFFER_SIZE = 16;
 
     public SessionInputBufferMock(
-            final InputStream instream,
-            final int buffersize,
+            final InputStream inStream,
+            final int bufferSize,
             final MessageConstraints constrains,
             final CharsetDecoder decoder) {
-        super(new HttpTransportMetricsImpl(), buffersize, -1, constrains, decoder);
-        bind(instream);
+        super(new HttpTransportMetricsImpl(), bufferSize, -1, constrains, decoder);
+        bind(inStream);
     }
 
     public SessionInputBufferMock(
-            final InputStream instream,
-            final int buffersize) {
-        this(instream, buffersize, null, null);
+            final InputStream inStream,
+            final int bufferSize) {
+        this(inStream, bufferSize, null, null);
     }
 
     public SessionInputBufferMock(
             final byte[] bytes,
-            final int buffersize,
+            final int bufferSize,
             final MessageConstraints constrains,
             final CharsetDecoder decoder) {
-        this(new ByteArrayInputStream(bytes), buffersize, constrains, decoder);
+        this(new ByteArrayInputStream(bytes), bufferSize, constrains, decoder);
     }
 
     public SessionInputBufferMock(
             final byte[] bytes,
-            final int buffersize,
+            final int bufferSize,
             final MessageConstraints constrains) {
-        this(new ByteArrayInputStream(bytes), buffersize, constrains, null);
+        this(new ByteArrayInputStream(bytes), bufferSize, constrains, null);
     }
 
     public SessionInputBufferMock(
             final byte[] bytes,
-            final int buffersize) {
-        this(new ByteArrayInputStream(bytes), buffersize);
+            final int bufferSize) {
+        this(new ByteArrayInputStream(bytes), bufferSize);
     }
 
     public SessionInputBufferMock(

@@ -49,22 +49,22 @@ class HttpConnPool extends AbstractConnPool<HttpRoute, OperatedClientConnection,
 
     private final Log log;
     private final long timeToLive;
-    private final TimeUnit tunit;
+    private final TimeUnit timeUnit;
 
     public HttpConnPool(final Log log,
             final ClientConnectionOperator connOperator,
             final int defaultMaxPerRoute, final int maxTotal,
-            final long timeToLive, final TimeUnit tunit) {
+            final long timeToLive, final TimeUnit timeUnit) {
         super(new InternalConnFactory(connOperator), defaultMaxPerRoute, maxTotal);
         this.log = log;
         this.timeToLive = timeToLive;
-        this.tunit = tunit;
+        this.timeUnit = timeUnit;
     }
 
     @Override
     protected HttpPoolEntry createEntry(final HttpRoute route, final OperatedClientConnection conn) {
         final String id = Long.toString(COUNTER.getAndIncrement());
-        return new HttpPoolEntry(this.log, id, route, conn, this.timeToLive, this.tunit);
+        return new HttpPoolEntry(this.log, id, route, conn, this.timeToLive, this.timeUnit);
     }
 
     static class InternalConnFactory implements ConnFactory<HttpRoute, OperatedClientConnection> {

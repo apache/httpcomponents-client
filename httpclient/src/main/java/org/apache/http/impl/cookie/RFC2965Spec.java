@@ -64,7 +64,6 @@ public class RFC2965Spec extends RFC2109Spec {
 
     /**
      * Default constructor
-     *
      */
     public RFC2965Spec() {
         this(null, false);
@@ -222,7 +221,7 @@ public class RFC2965Spec extends RFC2109Spec {
      * @param origin origin where cookie is received from or being sent to.
      */
     private static CookieOrigin adjustEffectiveHost(final CookieOrigin origin) {
-        String host = origin.getHost();
+        final String host = origin.getHost();
 
         // Test if the host name appears to be a fully qualified DNS name,
         // IPv4 address or IPv6 address
@@ -234,16 +233,13 @@ public class RFC2965Spec extends RFC2109Spec {
                 break;
             }
         }
-        if (isLocalHost) {
-            host += ".local";
-            return new CookieOrigin(
-                    host,
-                    origin.getPort(),
-                    origin.getPath(),
-                    origin.isSecure());
-        } else {
-            return origin;
-        }
+        return isLocalHost
+                        ? new CookieOrigin(
+                                        host + ".local",
+                                        origin.getPort(),
+                                        origin.getPath(),
+                                        origin.isSecure())
+                        : origin;
     }
 
     @Override

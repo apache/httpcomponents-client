@@ -373,20 +373,19 @@ public class TestAbortHandling extends LocalServerTestBase {
                     @Override
                     public HttpClientConnection get(
                             final long timeout,
-                            final TimeUnit tunit) throws InterruptedException, ConnectionPoolTimeoutException {
+                            final TimeUnit timeUnit) throws InterruptedException, ConnectionPoolTimeoutException {
                         connLatch.countDown(); // notify waiter that we're getting a connection
 
                         // zero usually means sleep forever, but CountDownLatch doesn't interpret it that way.
-                        if(!awaitLatch.await(timeout > 0 ? timeout : Integer.MAX_VALUE, tunit)) {
+                        if(!awaitLatch.await(timeout > 0 ? timeout : Integer.MAX_VALUE, timeUnit)) {
                             throw new ConnectionPoolTimeoutException();
                         }
 
                         return Mockito.mock(HttpClientConnection.class);
                     }
                 };
-            } else {
-                return super.requestConnection(route, state);
             }
+            return super.requestConnection(route, state);
         }
     }
 
@@ -401,7 +400,7 @@ public class TestAbortHandling extends LocalServerTestBase {
         }
 
         @Override
-        public void closeIdleConnections(final long idletime, final TimeUnit tunit) {
+        public void closeIdleConnections(final long idletime, final TimeUnit timeUnit) {
             throw new UnsupportedOperationException("just a mockup");
         }
 
@@ -411,7 +410,7 @@ public class TestAbortHandling extends LocalServerTestBase {
         }
 
         public HttpClientConnection getConnection(final HttpRoute route,
-                final long timeout, final TimeUnit tunit) {
+                final long timeout, final TimeUnit timeUnit) {
             throw new UnsupportedOperationException("just a mockup");
         }
 
@@ -433,11 +432,11 @@ public class TestAbortHandling extends LocalServerTestBase {
                 @Override
                 public HttpClientConnection get(
                         final long timeout,
-                        final TimeUnit tunit) throws InterruptedException, ConnectionPoolTimeoutException {
+                        final TimeUnit timeUnit) throws InterruptedException, ConnectionPoolTimeoutException {
                     connLatch.countDown(); // notify waiter that we're getting a connection
 
                     // zero usually means sleep forever, but CountDownLatch doesn't interpret it that way.
-                    if(!awaitLatch.await(timeout > 0 ? timeout : Integer.MAX_VALUE, tunit)) {
+                    if(!awaitLatch.await(timeout > 0 ? timeout : Integer.MAX_VALUE, timeUnit)) {
                         throw new ConnectionPoolTimeoutException();
                     }
 

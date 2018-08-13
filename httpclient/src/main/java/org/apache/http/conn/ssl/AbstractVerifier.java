@@ -214,9 +214,8 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
                 match = normalizedHost.endsWith(normalizedIdentity.substring(1));
             }
             return match && (!strict || countDots(normalizedHost) == countDots(normalizedIdentity));
-        } else {
-            return normalizedHost.equals(normalizedIdentity);
         }
+        return normalizedHost.equals(normalizedIdentity);
     }
 
     private static boolean validCountryWildcard(final String parts[]) {

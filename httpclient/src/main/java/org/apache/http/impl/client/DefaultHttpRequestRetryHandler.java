@@ -138,11 +138,10 @@ public class DefaultHttpRequestRetryHandler implements HttpRequestRetryHandler {
         }
         if (this.nonRetriableClasses.contains(exception.getClass())) {
             return false;
-        } else {
-            for (final Class<? extends IOException> rejectException : this.nonRetriableClasses) {
-                if (rejectException.isInstance(exception)) {
-                    return false;
-                }
+        }
+        for (final Class<? extends IOException> rejectException : this.nonRetriableClasses) {
+            if (rejectException.isInstance(exception)) {
+                return false;
             }
         }
         final HttpClientContext clientContext = HttpClientContext.adapt(context);

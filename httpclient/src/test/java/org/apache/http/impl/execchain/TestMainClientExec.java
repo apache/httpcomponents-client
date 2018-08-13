@@ -418,14 +418,14 @@ public class TestMainClientExec {
         final HttpClientContext context = new HttpClientContext();
         final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("http://bar/test"));
         final HttpResponse response1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, 401, "Huh?");
-        final InputStream instream1 = Mockito.spy(new ByteArrayInputStream(new byte[] {1, 2, 3}));
+        final InputStream inStream1 = Mockito.spy(new ByteArrayInputStream(new byte[] {1, 2, 3}));
         response1.setEntity(EntityBuilder.create()
-                .setStream(instream1)
+                .setStream(inStream1)
                 .build());
         final HttpResponse response2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
-        final InputStream instream2 = Mockito.spy(new ByteArrayInputStream(new byte[] {2, 3, 4}));
+        final InputStream inStream2 = Mockito.spy(new ByteArrayInputStream(new byte[] {2, 3, 4}));
         response2.setEntity(EntityBuilder.create()
-                .setStream(instream2)
+                .setStream(inStream2)
                 .build());
 
         Mockito.when(managedConn.isOpen()).thenReturn(Boolean.TRUE);
@@ -445,8 +445,8 @@ public class TestMainClientExec {
         final CloseableHttpResponse finalResponse = mainClientExec.execute(
                 route, request, context, execAware);
         Mockito.verify(requestExecutor, Mockito.times(2)).execute(request, managedConn, context);
-        Mockito.verify(instream1).close();
-        Mockito.verify(instream2, Mockito.never()).close();
+        Mockito.verify(inStream1).close();
+        Mockito.verify(inStream2, Mockito.never()).close();
 
         Assert.assertNotNull(finalResponse);
         Assert.assertEquals(200, finalResponse.getStatusLine().getStatusCode());
@@ -457,14 +457,14 @@ public class TestMainClientExec {
         final HttpRoute route = new HttpRoute(target);
         final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("http://bar/test"));
         final HttpResponse response1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, 401, "Huh?");
-        final InputStream instream1 = Mockito.spy(new ByteArrayInputStream(new byte[] {1, 2, 3}));
+        final InputStream inStream1 = Mockito.spy(new ByteArrayInputStream(new byte[] {1, 2, 3}));
         response1.setEntity(EntityBuilder.create()
-                .setStream(instream1)
+                .setStream(inStream1)
                 .build());
         final HttpResponse response2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
-        final InputStream instream2 = Mockito.spy(new ByteArrayInputStream(new byte[] {2, 3, 4}));
+        final InputStream inStream2 = Mockito.spy(new ByteArrayInputStream(new byte[] {2, 3, 4}));
         response2.setEntity(EntityBuilder.create()
-                .setStream(instream2)
+                .setStream(inStream2)
                 .build());
 
         final AuthState proxyAuthState = new AuthState();
@@ -492,7 +492,7 @@ public class TestMainClientExec {
                 route, request, context, execAware);
         Mockito.verify(requestExecutor, Mockito.times(2)).execute(request, managedConn, context);
         Mockito.verify(managedConn).close();
-        Mockito.verify(instream2, Mockito.never()).close();
+        Mockito.verify(inStream2, Mockito.never()).close();
 
         Assert.assertNotNull(finalResponse);
         Assert.assertEquals(200, finalResponse.getStatusLine().getStatusCode());
@@ -505,16 +505,16 @@ public class TestMainClientExec {
         final HttpRoute route = new HttpRoute(target);
         final HttpClientContext context = new HttpClientContext();
         final HttpPost post = new HttpPost("http://bar/test");
-        final InputStream instream0 = new ByteArrayInputStream(new byte[] {1, 2, 3});
+        final InputStream inStream0 = new ByteArrayInputStream(new byte[] {1, 2, 3});
         post.setEntity(EntityBuilder.create()
-                .setStream(instream0)
+                .setStream(inStream0)
                 .build());
         final HttpRequestWrapper request = HttpRequestWrapper.wrap(post);
 
         final HttpResponse response1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, 401, "Huh?");
-        final InputStream instream1 = new ByteArrayInputStream(new byte[] {1, 2, 3});
+        final InputStream inStream1 = new ByteArrayInputStream(new byte[] {1, 2, 3});
         response1.setEntity(EntityBuilder.create()
-                .setStream(instream1)
+                .setStream(inStream1)
                 .build());
 
         Mockito.when(managedConn.isOpen()).thenReturn(Boolean.TRUE);
@@ -733,9 +733,9 @@ public class TestMainClientExec {
         final HttpClientContext context = new HttpClientContext();
         final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("http://bar/test"));
         final HttpResponse response1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, 401, "Huh?");
-        final InputStream instream1 = Mockito.spy(new ByteArrayInputStream(new byte[] {1, 2, 3}));
+        final InputStream inStream1 = Mockito.spy(new ByteArrayInputStream(new byte[] {1, 2, 3}));
         response1.setEntity(EntityBuilder.create()
-                .setStream(instream1)
+                .setStream(inStream1)
                 .build());
         final HttpResponse response2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
 
@@ -756,7 +756,7 @@ public class TestMainClientExec {
 
         Mockito.verify(connManager).connect(managedConn, route, 0, context);
         Mockito.verify(connManager).routeComplete(managedConn, route, context);
-        Mockito.verify(instream1).close();
+        Mockito.verify(inStream1).close();
     }
 
     @Test
@@ -766,9 +766,9 @@ public class TestMainClientExec {
         final HttpClientContext context = new HttpClientContext();
         final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("http://bar/test"));
         final HttpResponse response1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, 401, "Huh?");
-        final InputStream instream1 = Mockito.spy(new ByteArrayInputStream(new byte[] {1, 2, 3}));
+        final InputStream inStream1 = Mockito.spy(new ByteArrayInputStream(new byte[] {1, 2, 3}));
         response1.setEntity(EntityBuilder.create()
-                .setStream(instream1)
+                .setStream(inStream1)
                 .build());
         final HttpResponse response2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
 
@@ -789,7 +789,7 @@ public class TestMainClientExec {
 
         Mockito.verify(connManager).connect(managedConn, route, 0, context);
         Mockito.verify(connManager).routeComplete(managedConn, route, context);
-        Mockito.verify(instream1, Mockito.never()).close();
+        Mockito.verify(inStream1, Mockito.never()).close();
         Mockito.verify(managedConn).close();
     }
 

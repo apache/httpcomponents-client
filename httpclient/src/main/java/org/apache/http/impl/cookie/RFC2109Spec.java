@@ -143,11 +143,7 @@ public class RFC2109Spec extends CookieSpecBase {
         } else {
             cookieList = cookies;
         }
-        if (this.oneHeader) {
-            return doFormatOneHeader(cookieList);
-        } else {
-            return doFormatManyHeaders(cookieList);
-        }
+        return this.oneHeader ? doFormatOneHeader(cookieList) : doFormatManyHeaders(cookieList);
     }
 
     private List<Header> doFormatOneHeader(final List<Cookie> cookies) {

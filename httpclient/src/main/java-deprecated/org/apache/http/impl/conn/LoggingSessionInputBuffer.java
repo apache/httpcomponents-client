@@ -83,29 +83,29 @@ public class LoggingSessionInputBuffer implements SessionInputBuffer, EofSensor 
 
     @Override
     public int read(final byte[] b, final int off, final int len) throws IOException {
-        final int l = this.in.read(b,  off,  len);
-        if (this.wire.enabled() && l > 0) {
-            this.wire.input(b, off, l);
+        final int readLen = this.in.read(b,  off,  len);
+        if (this.wire.enabled() && readLen > 0) {
+            this.wire.input(b, off, readLen);
         }
-        return l;
+        return readLen;
     }
 
     @Override
     public int read() throws IOException {
-        final int l = this.in.read();
-        if (this.wire.enabled() && l != -1) {
-            this.wire.input(l);
+        final int b = this.in.read();
+        if (this.wire.enabled() && b != -1) {
+            this.wire.input(b);
         }
-        return l;
+        return b;
     }
 
     @Override
     public int read(final byte[] b) throws IOException {
-        final int l = this.in.read(b);
-        if (this.wire.enabled() && l > 0) {
-            this.wire.input(b, 0, l);
+        final int readLen = this.in.read(b);
+        if (this.wire.enabled() && readLen > 0) {
+            this.wire.input(b, 0, readLen);
         }
-        return l;
+        return readLen;
     }
 
     @Override
@@ -120,14 +120,14 @@ public class LoggingSessionInputBuffer implements SessionInputBuffer, EofSensor 
 
     @Override
     public int readLine(final CharArrayBuffer buffer) throws IOException {
-        final int l = this.in.readLine(buffer);
-        if (this.wire.enabled() && l >= 0) {
-            final int pos = buffer.length() - l;
-            final String s = new String(buffer.buffer(), pos, l);
+        final int readLen = this.in.readLine(buffer);
+        if (this.wire.enabled() && readLen >= 0) {
+            final int pos = buffer.length() - readLen;
+            final String s = new String(buffer.buffer(), pos, readLen);
             final String tmp = s + "\r\n";
             this.wire.input(tmp.getBytes(this.charset));
         }
-        return l;
+        return readLen;
     }
 
     @Override

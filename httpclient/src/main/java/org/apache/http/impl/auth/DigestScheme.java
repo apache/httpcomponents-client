@@ -152,11 +152,7 @@ public class DigestScheme extends RFC2617Scheme {
     @Override
     public boolean isComplete() {
         final String s = getParameter("stale");
-        if ("true".equalsIgnoreCase(s)) {
-            return false;
-        } else {
-            return this.complete;
-        }
+        return "true".equalsIgnoreCase(s) ? false : this.complete;
     }
 
     /**

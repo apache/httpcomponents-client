@@ -40,6 +40,7 @@ import org.apache.http.cookie.SetCookie;
 import org.apache.http.message.BasicHeader;
 import org.junit.Assert;
 import org.junit.Test;
+import org.mockito.Matchers;
 import org.mockito.Mockito;
 
 public class TestRFC6265CookieSpec {
@@ -68,8 +69,8 @@ public class TestRFC6265CookieSpec {
         Assert.assertEquals("stuff", clientCookie.getAttribute("this"));
         Assert.assertEquals(null, clientCookie.getAttribute("that"));
 
-        Mockito.verify(h1).parse(Mockito.<SetCookie>any(), Mockito.eq("stuff"));
-        Mockito.verify(h2, Mockito.never()).parse(Mockito.<SetCookie>any(), Mockito.anyString());
+        Mockito.verify(h1).parse(Matchers.<SetCookie>any(), Matchers.eq("stuff"));
+        Mockito.verify(h2, Mockito.never()).parse(Matchers.<SetCookie>any(), Matchers.anyString());
     }
 
     @Test
@@ -315,8 +316,8 @@ public class TestRFC6265CookieSpec {
         final CookieOrigin origin = new CookieOrigin("host", 80, "/path/", true);
         cookiespec.parse(header, origin);
 
-        Mockito.verify(h1).parse(Mockito.<SetCookie>any(), Mockito.eq("morestuff"));
-        Mockito.verify(h1, Mockito.times(1)).parse(Mockito.<SetCookie>any(), Mockito.anyString());
+        Mockito.verify(h1).parse(Matchers.<SetCookie>any(), Matchers.eq("morestuff"));
+        Mockito.verify(h1, Mockito.times(1)).parse(Matchers.<SetCookie>any(), Matchers.anyString());
     }
 
     @Test
@@ -332,8 +333,8 @@ public class TestRFC6265CookieSpec {
         final CookieOrigin origin = new CookieOrigin("host", 80, "/path/", true);
         cookiespec.parse(header, origin);
 
-        Mockito.verify(h1, Mockito.never()).parse(Mockito.<SetCookie>any(), Mockito.anyString());
-        Mockito.verify(h2).parse(Mockito.<SetCookie>any(), Mockito.eq("otherstuff"));
+        Mockito.verify(h1, Mockito.never()).parse(Matchers.<SetCookie>any(), Matchers.anyString());
+        Mockito.verify(h2).parse(Matchers.<SetCookie>any(), Matchers.eq("otherstuff"));
     }
 
 }

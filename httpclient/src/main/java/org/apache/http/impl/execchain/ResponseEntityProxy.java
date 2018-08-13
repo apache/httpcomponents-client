@@ -94,10 +94,10 @@ class ResponseEntityProxy extends HttpEntityWrapper implements EofSensorWatcher 
     }
 
     @Override
-    public void writeTo(final OutputStream outstream) throws IOException {
+    public void writeTo(final OutputStream outStream) throws IOException {
         try {
-            if (outstream != null) {
-                this.wrappedEntity.writeTo(outstream);
+            if (outStream != null) {
+                this.wrappedEntity.writeTo(outStream);
             }
             releaseConnection();
         } catch (final IOException ex) {

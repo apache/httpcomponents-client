@@ -163,14 +163,11 @@ public final class Scheme {
     public final SocketFactory getSocketFactory() {
         if (this.socketFactory instanceof SchemeSocketFactoryAdaptor) {
             return ((SchemeSocketFactoryAdaptor) this.socketFactory).getFactory();
-        } else {
-            if (this.layered) {
-                return new LayeredSocketFactoryAdaptor(
-                        (LayeredSchemeSocketFactory) this.socketFactory);
-            } else {
-                return new SocketFactoryAdaptor(this.socketFactory);
-            }
         }
+        return this.layered
+                        ? new LayeredSocketFactoryAdaptor(
+                                        (LayeredSchemeSocketFactory) this.socketFactory)
+                        : new SocketFactoryAdaptor(this.socketFactory);
     }
 
     /**
@@ -245,9 +242,8 @@ public final class Scheme {
             return this.name.equals(that.name)
                 && this.defaultPort == that.defaultPort
                 && this.layered == that.layered;
-        } else {
-            return false;
         }
+        return false;
     }
 
     @Override

@@ -43,9 +43,9 @@ class IOUtils {
             return;
         }
         if (entity.isStreaming()) {
-            final InputStream instream = entity.getContent();
-            if (instream != null) {
-                instream.close();
+            final InputStream inStream = entity.getContent();
+            if (inStream != null) {
+                inStream.close();
             }
         }
     }

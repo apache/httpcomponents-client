@@ -59,11 +59,11 @@ public class Wire {
         this(log, "");
     }
 
-    private void wire(final String header, final InputStream instream)
+    private void wire(final String header, final InputStream inStream)
       throws IOException {
         final StringBuilder buffer = new StringBuilder();
         int ch;
-        while ((ch = instream.read()) != -1) {
+        while ((ch = inStream.read()) != -1) {
             if (ch == 13) {
                 buffer.append("[\\r]");
             } else if (ch == 10) {
@@ -93,16 +93,16 @@ public class Wire {
         return log.isDebugEnabled();
     }
 
-    public void output(final InputStream outstream)
+    public void output(final InputStream outStream)
       throws IOException {
-        Args.notNull(outstream, "Output");
-        wire(">> ", outstream);
+        Args.notNull(outStream, "Output");
+        wire(">> ", outStream);
     }
 
-    public void input(final InputStream instream)
+    public void input(final InputStream inStream)
       throws IOException {
-        Args.notNull(instream, "Input");
-        wire("<< ", instream);
+        Args.notNull(inStream, "Input");
+        wire("<< ", inStream);
     }
 
     public void output(final byte[] b, final int off, final int len)
