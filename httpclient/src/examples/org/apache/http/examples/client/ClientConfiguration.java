@@ -258,7 +258,7 @@ public class ClientConfiguration {
                 // Target auth state
                 context.getTargetAuthState();
                 // Proxy auth state
-                context.getTargetAuthState();
+                context.getProxyAuthState();
                 // Cookie origin
                 context.getCookieOrigin();
                 // Cookie spec used
