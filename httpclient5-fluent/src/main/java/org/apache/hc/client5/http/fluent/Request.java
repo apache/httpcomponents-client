@@ -181,7 +181,11 @@ public class Request {
     }
 
     public Response execute() throws IOException {
-        return new Response(internalExecute(Executor.CLIENT, HttpClientContext.create()));
+        return execute(Executor.CLIENT);
+    }
+
+    public Response execute(final CloseableHttpClient client) throws IOException {
+        return new Response(internalExecute(client, HttpClientContext.create()));
     }
 
     //// HTTP header operations
