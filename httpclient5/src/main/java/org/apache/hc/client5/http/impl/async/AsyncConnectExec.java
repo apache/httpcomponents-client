@@ -247,7 +247,8 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
 
                             @Override
                             public AsyncDataConsumer handleResponse(
-                                    final HttpResponse response, final EntityDetails entityDetails) throws HttpException, IOException {
+                                    final HttpResponse response,
+                                    final EntityDetails entityDetails) throws HttpException, IOException {
                                 return asyncExecCallback.handleResponse(response, entityDetails);
                             }
 
@@ -326,7 +327,8 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
 
             @Override
             public AsyncDataConsumer handleResponse(
-                    final HttpResponse response, final EntityDetails entityDetails) throws HttpException, IOException {
+                    final HttpResponse response,
+                    final EntityDetails entityDetails) throws HttpException, IOException {
 
                 clientContext.setAttribute(HttpCoreContext.HTTP_RESPONSE, response);
                 proxyHttpProcessor.process(response, entityDetails, clientContext);

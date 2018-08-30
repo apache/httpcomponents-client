@@ -36,7 +36,7 @@ import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
 import org.apache.hc.core5.http.protocol.HttpContext;
-import org.apache.hc.core5.io.GracefullyCloseable;
+import org.apache.hc.core5.io.ModalCloseable;
 
 /**
  * Client connection endpoint that can be used to execute message exchanges.
@@ -44,7 +44,7 @@ import org.apache.hc.core5.io.GracefullyCloseable;
  * @since 5.0
  */
 @Contract(threading = ThreadingBehavior.SAFE)
-public abstract class ConnectionEndpoint implements GracefullyCloseable {
+public abstract class ConnectionEndpoint implements ModalCloseable {
 
     public abstract ClassicHttpResponse execute(
             ClassicHttpRequest request,

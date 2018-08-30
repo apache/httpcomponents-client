@@ -35,7 +35,7 @@ import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.io.ShutdownType;
+import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.reactor.IOReactorConfig;
 import org.apache.hc.core5.util.Timeout;
 
@@ -87,7 +87,7 @@ public class AsyncClientHttpExchange {
         }
 
         System.out.println("Shutting down");
-        client.shutdown(ShutdownType.GRACEFUL);
+        client.shutdown(CloseMode.GRACEFUL);
     }
 
 }

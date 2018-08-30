@@ -62,13 +62,16 @@ import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.nio.AsyncClientEndpoint;
 import org.apache.hc.core5.http.nio.AsyncClientExchangeHandler;
+import org.apache.hc.core5.http.nio.AsyncPushConsumer;
 import org.apache.hc.core5.http.nio.CapacityChannel;
 import org.apache.hc.core5.http.nio.DataStreamChannel;
+import org.apache.hc.core5.http.nio.HandlerFactory;
 import org.apache.hc.core5.http.nio.RequestChannel;
 import org.apache.hc.core5.http.nio.command.ShutdownCommand;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http2.HttpVersionPolicy;
-import org.apache.hc.core5.io.ShutdownType;
+import org.apache.hc.core5.io.CloseMode;
+import org.apache.hc.core5.reactor.Command;
 import org.apache.hc.core5.reactor.DefaultConnectingIOReactor;
 import org.apache.hc.core5.reactor.IOEventHandlerFactory;
 import org.apache.hc.core5.reactor.IOReactorConfig;
@@ -103,7 +106,7 @@ public final class MinimalHttpAsyncClient extends AbstractMinimalHttpAsyncClient
 
                     @Override
                     public void execute(final IOSession ioSession) {
-                        ioSession.addFirst(new ShutdownCommand(ShutdownType.GRACEFUL));
+                        ioSession.enqueue(new ShutdownCommand(CloseMode.GRACEFUL), Command.Priority.NORMAL);
                     }
 
                 }),
@@ -223,7 +226,8 @@ public final class MinimalHttpAsyncClient extends AbstractMinimalHttpAsyncClient
                 @Override
                 public void sendRequest(
                         final HttpRequest request,
-                        final EntityDetails entityDetails) throws HttpException, IOException {
+                        final EntityDetails entityDetails,
+                        final HttpContext context) throws HttpException, IOException {
                     RequestConfig requestConfig = null;
                     if (request instanceof Configurable) {
                         requestConfig = ((Configurable) request).getConfig();
@@ -270,8 +274,9 @@ public final class MinimalHttpAsyncClient extends AbstractMinimalHttpAsyncClient
 
                                         @Override
                                         public void produceRequest(
-                                                final RequestChannel channel) throws HttpException, IOException {
-                                            channel.sendRequest(request, entityDetails);
+                                                final RequestChannel channel,
+                                                final HttpContext context) throws HttpException, IOException {
+                                            channel.sendRequest(request, entityDetails, context);
                                             if (entityDetails == null) {
                                                 messageCountDown.decrementAndGet();
                                             }
@@ -317,14 +322,17 @@ public final class MinimalHttpAsyncClient extends AbstractMinimalHttpAsyncClient
 
                                         @Override
                                         public void consumeInformation(
-                                                final HttpResponse response) throws HttpException, IOException {
-                                            exchangeHandler.consumeInformation(response);
+                                                final HttpResponse response,
+                                                final HttpContext context) throws HttpException, IOException {
+                                            exchangeHandler.consumeInformation(response, context);
                                         }
 
                                         @Override
                                         public void consumeResponse(
-                                                final HttpResponse response, final EntityDetails entityDetails) throws HttpException, IOException {
-                                            exchangeHandler.consumeResponse(response, entityDetails);
+                                                final HttpResponse response,
+                                                final EntityDetails entityDetails,
+                                                final HttpContext context) throws HttpException, IOException {
+                                            exchangeHandler.consumeResponse(response, entityDetails, context);
                                             if (response.getCode() >= HttpStatus.SC_CLIENT_ERROR) {
                                                 messageCountDown.decrementAndGet();
                                             }
@@ -378,7 +386,7 @@ public final class MinimalHttpAsyncClient extends AbstractMinimalHttpAsyncClient
 
                     });
                 }
-            });
+            }, context);
 
         } catch (final HttpException | IOException ex) {
             exchangeHandler.failed(ex);
@@ -401,7 +409,10 @@ public final class MinimalHttpAsyncClient extends AbstractMinimalHttpAsyncClient
         }
 
         @Override
-        public void execute(final AsyncClientExchangeHandler exchangeHandler, final HttpContext context) {
+        public void execute(
+                final AsyncClientExchangeHandler exchangeHandler,
+                final HandlerFactory<AsyncPushConsumer> pushHandlerFactory,
+                final HttpContext context) {
             Asserts.check(!released.get(), "Endpoint has already been released");
 
             if (log.isDebugEnabled()) {

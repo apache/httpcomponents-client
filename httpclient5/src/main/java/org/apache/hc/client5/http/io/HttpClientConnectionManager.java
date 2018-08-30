@@ -30,7 +30,7 @@ import java.io.IOException;
 
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.core5.http.protocol.HttpContext;
-import org.apache.hc.core5.io.GracefullyCloseable;
+import org.apache.hc.core5.io.ModalCloseable;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
 
@@ -48,7 +48,7 @@ import org.apache.hc.core5.util.Timeout;
  *
  * @since 4.3
  */
-public interface HttpClientConnectionManager extends GracefullyCloseable {
+public interface HttpClientConnectionManager extends ModalCloseable {
 
     /**
      * Returns a {@link LeaseRequest} object which can be used to obtain

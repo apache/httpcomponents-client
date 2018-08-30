@@ -54,7 +54,7 @@ import org.apache.hc.core5.http.impl.bootstrap.SSLServerSetupHandler;
 import org.apache.hc.core5.http.impl.bootstrap.ServerBootstrap;
 import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.HttpContext;
-import org.apache.hc.core5.io.ShutdownType;
+import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.ssl.SSLContexts;
 import org.apache.hc.core5.ssl.TrustStrategy;
 import org.apache.hc.core5.util.TimeValue;
@@ -72,7 +72,7 @@ public class TestSSLSocketFactory {
     @After
     public void shutDown() throws Exception {
         if (this.server != null) {
-            this.server.shutdown(ShutdownType.GRACEFUL);
+            this.server.close(CloseMode.GRACEFUL);
         }
     }
 

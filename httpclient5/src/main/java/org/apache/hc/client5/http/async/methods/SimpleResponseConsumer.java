@@ -26,11 +26,15 @@
  */
 package org.apache.hc.client5.http.async.methods;
 
+import java.io.IOException;
+
 import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.nio.AsyncEntityConsumer;
 import org.apache.hc.core5.http.nio.entity.BasicAsyncEntityConsumer;
 import org.apache.hc.core5.http.nio.support.AbstractAsyncResponseConsumer;
+import org.apache.hc.core5.http.protocol.HttpContext;
 
 public final class SimpleResponseConsumer extends AbstractAsyncResponseConsumer<SimpleHttpResponse, byte[]> {
 
@@ -40,6 +44,10 @@ public final class SimpleResponseConsumer extends AbstractAsyncResponseConsumer<
 
     public static SimpleResponseConsumer create() {
         return new SimpleResponseConsumer(new BasicAsyncEntityConsumer());
+    }
+
+    @Override
+    public void informationResponse(final HttpResponse response, final HttpContext context) throws HttpException, IOException {
     }
 
     @Override

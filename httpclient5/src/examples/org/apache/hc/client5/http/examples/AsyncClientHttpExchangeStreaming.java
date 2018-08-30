@@ -39,7 +39,7 @@ import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.message.StatusLine;
-import org.apache.hc.core5.io.ShutdownType;
+import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.reactor.IOReactorConfig;
 import org.apache.hc.core5.util.Timeout;
 
@@ -114,7 +114,7 @@ public class AsyncClientHttpExchangeStreaming {
         }
 
         System.out.println("Shutting down");
-        client.shutdown(ShutdownType.GRACEFUL);
+        client.shutdown(CloseMode.GRACEFUL);
     }
 
 }

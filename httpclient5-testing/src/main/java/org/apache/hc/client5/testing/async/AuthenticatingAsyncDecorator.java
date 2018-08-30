@@ -89,7 +89,7 @@ public class AuthenticatingAsyncDecorator implements AsyncServerExchangeHandler 
 
         if (authenticated) {
             if (expectContinue) {
-                responseChannel.sendInformation(new BasicClassicHttpResponse(HttpStatus.SC_CONTINUE));
+                responseChannel.sendInformation(new BasicClassicHttpResponse(HttpStatus.SC_CONTINUE), context);
             }
             exchangeHandler.handleRequest(request, entityDetails, responseChannel, context);
         } else {
@@ -103,7 +103,7 @@ public class AuthenticatingAsyncDecorator implements AsyncServerExchangeHandler 
                     unauthorized,
                     new BasicAsyncEntityProducer("Unauthorized", ContentType.TEXT_PLAIN));
             responseProducerRef.set(responseProducer);
-            responseProducer.sendResponse(responseChannel);
+            responseProducer.sendResponse(responseChannel, context);
         }
 
     }

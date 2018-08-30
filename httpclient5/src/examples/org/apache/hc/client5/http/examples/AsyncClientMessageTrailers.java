@@ -47,7 +47,7 @@ import org.apache.hc.core5.http.nio.AsyncEntityProducer;
 import org.apache.hc.core5.http.nio.AsyncRequestProducer;
 import org.apache.hc.core5.http.nio.entity.DigestingEntityProducer;
 import org.apache.hc.core5.http.nio.entity.StringAsyncEntityProducer;
-import org.apache.hc.core5.io.ShutdownType;
+import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.reactor.IOReactorConfig;
 import org.apache.hc.core5.util.Timeout;
 
@@ -116,7 +116,7 @@ public class AsyncClientMessageTrailers {
         future.get();
 
         System.out.println("Shutting down");
-        client.shutdown(ShutdownType.GRACEFUL);
+        client.shutdown(CloseMode.GRACEFUL);
     }
 
 }

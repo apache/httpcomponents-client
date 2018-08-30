@@ -42,11 +42,13 @@ import org.apache.hc.core5.http.HttpConnection;
 import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.ProtocolVersion;
 import org.apache.hc.core5.http.nio.command.ShutdownCommand;
-import org.apache.hc.core5.io.ShutdownType;
+import org.apache.hc.core5.io.CloseMode;
+import org.apache.hc.core5.net.NamedEndpoint;
 import org.apache.hc.core5.reactor.Command;
 import org.apache.hc.core5.reactor.IOEventHandler;
 import org.apache.hc.core5.reactor.IOSession;
-import org.apache.hc.core5.reactor.ssl.SSLBufferManagement;
+import org.apache.hc.core5.reactor.ProtocolLayer;
+import org.apache.hc.core5.reactor.ssl.SSLBufferMode;
 import org.apache.hc.core5.reactor.ssl.SSLSessionInitializer;
 import org.apache.hc.core5.reactor.ssl.SSLSessionVerifier;
 import org.apache.hc.core5.reactor.ssl.TlsDetails;
@@ -71,7 +73,7 @@ final class DefaultManagedAsyncClientConnection implements ManagedAsyncClientCon
 
     public DefaultManagedAsyncClientConnection(final IOSession ioSession) {
         this.ioSession = ioSession;
-        this.socketTimeout = ioSession.getSocketTimeout();
+        this.socketTimeout = ioSession.getSocketTimeoutMillis();
         this.closed = new AtomicBoolean();
     }
 
@@ -81,12 +83,12 @@ final class DefaultManagedAsyncClientConnection implements ManagedAsyncClientCon
     }
 
     @Override
-    public void shutdown(final ShutdownType shutdownType) {
+    public void close(final CloseMode closeMode) {
         if (this.closed.compareAndSet(false, true)) {
             if (log.isDebugEnabled()) {
-                log.debug(getId() + ": Shutdown connection " + shutdownType);
+                log.debug(getId() + ": Shutdown connection " + closeMode);
             }
-            ioSession.shutdown(shutdownType);
+            ioSession.close(closeMode);
         }
     }
 
@@ -96,7 +98,7 @@ final class DefaultManagedAsyncClientConnection implements ManagedAsyncClientCon
             if (log.isDebugEnabled()) {
                 log.debug(getId() + ": Close connection");
             }
-            ioSession.addFirst(new ShutdownCommand(ShutdownType.GRACEFUL));
+            ioSession.enqueue(new ShutdownCommand(CloseMode.GRACEFUL), Command.Priority.IMMEDIATE);
         }
     }
 
@@ -106,13 +108,13 @@ final class DefaultManagedAsyncClientConnection implements ManagedAsyncClientCon
     }
 
     @Override
-    public void setSocketTimeout(final int timeout) {
-        ioSession.setSocketTimeout(timeout);
+    public void setSocketTimeoutMillis(final int timeout) {
+        ioSession.setSocketTimeoutMillis(timeout);
     }
 
     @Override
-    public int getSocketTimeout() {
-        return ioSession.getSocketTimeout();
+    public int getSocketTimeoutMillis() {
+        return ioSession.getSocketTimeoutMillis();
     }
 
     @Override
@@ -127,35 +129,38 @@ final class DefaultManagedAsyncClientConnection implements ManagedAsyncClientCon
 
     @Override
     public EndpointDetails getEndpointDetails() {
-        final IOEventHandler handler = ioSession.getHandler();
-        if (handler instanceof HttpConnection) {
-            return ((HttpConnection) handler).getEndpointDetails();
-        } else {
-            return null;
+        if (ioSession instanceof ProtocolLayer) {
+            final IOEventHandler handler = ((ProtocolLayer) ioSession).getHandler();
+            if (handler instanceof HttpConnection) {
+                return ((HttpConnection) handler).getEndpointDetails();
+            }
         }
+        return null;
     }
 
     @Override
     public ProtocolVersion getProtocolVersion() {
-        final IOEventHandler handler = ioSession.getHandler();
-        if (handler instanceof HttpConnection) {
-            return ((HttpConnection) handler).getProtocolVersion();
-        } else {
-            return HttpVersion.DEFAULT;
+        if (ioSession instanceof ProtocolLayer) {
+            final IOEventHandler handler = ((ProtocolLayer) ioSession).getHandler();
+            if (handler instanceof HttpConnection) {
+                return ((HttpConnection) handler).getProtocolVersion();
+            }
         }
+        return HttpVersion.DEFAULT;
     }
 
     @Override
     public void startTls(
             final SSLContext sslContext,
-            final SSLBufferManagement sslBufferManagement,
+            final NamedEndpoint endpoint,
+            final SSLBufferMode sslBufferMode,
             final SSLSessionInitializer initializer,
             final SSLSessionVerifier verifier) throws UnsupportedOperationException {
         if (log.isDebugEnabled()) {
             log.debug(getId() + ": start TLS");
         }
         if (ioSession instanceof TransportSecurityLayer) {
-            ((TransportSecurityLayer) ioSession).startTls(sslContext, sslBufferManagement, initializer, verifier);
+            ((TransportSecurityLayer) ioSession).startTls(sslContext, endpoint, sslBufferMode, initializer, verifier);
         } else {
             throw new UnsupportedOperationException("TLS upgrade not supported");
         }
@@ -177,7 +182,7 @@ final class DefaultManagedAsyncClientConnection implements ManagedAsyncClientCon
         if (log.isDebugEnabled()) {
             log.debug(getId() + ": priority command " + command);
         }
-        ioSession.addFirst(command);
+        ioSession.enqueue(command, Command.Priority.IMMEDIATE);
     }
 
     @Override
@@ -185,17 +190,17 @@ final class DefaultManagedAsyncClientConnection implements ManagedAsyncClientCon
         if (log.isDebugEnabled()) {
             log.debug(getId() + ": command " + command);
         }
-        ioSession.addLast(command);
+        ioSession.enqueue(command, Command.Priority.NORMAL);
     }
 
     @Override
     public void passivate() {
-        ioSession.setSocketTimeout(0);
+        ioSession.setSocketTimeoutMillis(0);
     }
 
     @Override
     public void activate() {
-        ioSession.setSocketTimeout(socketTimeout);
+        ioSession.setSocketTimeoutMillis(socketTimeout);
     }
 
 }

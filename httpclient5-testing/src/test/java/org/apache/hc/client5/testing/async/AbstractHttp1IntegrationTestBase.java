@@ -44,7 +44,7 @@ import org.apache.hc.core5.http.config.H1Config;
 import org.apache.hc.core5.http.impl.HttpProcessors;
 import org.apache.hc.core5.http.nio.AsyncServerExchangeHandler;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
-import org.apache.hc.core5.io.ShutdownType;
+import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.reactor.ListenerEndpoint;
 import org.junit.Rule;
 import org.junit.rules.ExternalResource;
@@ -99,7 +99,7 @@ public abstract class AbstractHttp1IntegrationTestBase extends AbstractServerTes
         @Override
         protected void after() {
             if (httpclient != null) {
-                httpclient.shutdown(ShutdownType.GRACEFUL);
+                httpclient.shutdown(CloseMode.GRACEFUL);
                 httpclient = null;
             }
         }

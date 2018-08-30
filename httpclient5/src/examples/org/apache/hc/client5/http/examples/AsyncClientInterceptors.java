@@ -56,7 +56,7 @@ import org.apache.hc.core5.http.message.BasicHttpResponse;
 import org.apache.hc.core5.http.nio.AsyncDataConsumer;
 import org.apache.hc.core5.http.nio.AsyncEntityProducer;
 import org.apache.hc.core5.http.protocol.HttpContext;
-import org.apache.hc.core5.io.ShutdownType;
+import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.reactor.IOReactorConfig;
 import org.apache.hc.core5.util.Timeout;
 
@@ -150,7 +150,7 @@ public class AsyncClientInterceptors {
         }
 
         System.out.println("Shutting down");
-        client.shutdown(ShutdownType.GRACEFUL);
+        client.shutdown(CloseMode.GRACEFUL);
     }
 
 }

@@ -46,7 +46,7 @@ import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.ConnectionRequestTimeoutException;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
-import org.apache.hc.core5.io.ShutdownType;
+import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
@@ -239,7 +239,7 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
         final ConnectionEndpoint endpoint = endpointRef.getAndSet(null);
         if (endpoint != null) {
             try {
-                endpoint.shutdown(ShutdownType.IMMEDIATE);
+                endpoint.close(CloseMode.IMMEDIATE);
                 log.debug("Connection discarded");
             } finally {
                 manager.release(endpoint, null, TimeValue.ZERO_MILLISECONDS);

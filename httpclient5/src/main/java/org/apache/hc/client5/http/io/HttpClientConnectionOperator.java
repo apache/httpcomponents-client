@@ -32,7 +32,7 @@ import java.net.InetSocketAddress;
 
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.config.SocketConfig;
+import org.apache.hc.core5.http.io.SocketConfig;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.TimeValue;
 

@@ -35,7 +35,9 @@ import org.apache.hc.core5.http.nio.AsyncDataConsumer;
 
 public interface AsyncExecCallback {
 
-    AsyncDataConsumer handleResponse(HttpResponse response, EntityDetails entityDetails) throws HttpException, IOException;
+    AsyncDataConsumer handleResponse(
+            HttpResponse response,
+            EntityDetails entityDetails) throws HttpException, IOException;
 
     void completed();
 

@@ -40,10 +40,10 @@ import org.apache.hc.client5.testing.classic.RandomHandler;
 import org.apache.hc.core5.function.Decorator;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.URIScheme;
-import org.apache.hc.core5.http.config.SocketConfig;
 import org.apache.hc.core5.http.io.HttpServerRequestHandler;
+import org.apache.hc.core5.http.io.SocketConfig;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
-import org.apache.hc.core5.io.ShutdownType;
+import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.testing.classic.ClassicTestServer;
 import org.apache.hc.core5.util.Timeout;
 import org.junit.Rule;
@@ -87,7 +87,7 @@ public abstract class LocalServerTestBase {
         protected void after() {
             if (server != null) {
                 try {
-                    server.shutdown(ShutdownType.IMMEDIATE);
+                    server.shutdown(CloseMode.IMMEDIATE);
                     server = null;
                 } catch (final Exception ignore) {
                 }

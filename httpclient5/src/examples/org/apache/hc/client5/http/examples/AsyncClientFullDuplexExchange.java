@@ -49,9 +49,10 @@ import org.apache.hc.core5.http.nio.DataStreamChannel;
 import org.apache.hc.core5.http.nio.RequestChannel;
 import org.apache.hc.core5.http.nio.entity.BasicAsyncEntityProducer;
 import org.apache.hc.core5.http.nio.entity.StringAsyncEntityConsumer;
+import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.apache.hc.core5.http2.config.H2Config;
-import org.apache.hc.core5.io.ShutdownType;
+import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.reactor.IOReactorConfig;
 import org.apache.hc.core5.util.Timeout;
 
@@ -101,8 +102,8 @@ public class AsyncClientFullDuplexExchange {
             }
 
             @Override
-            public void produceRequest(final RequestChannel channel) throws HttpException, IOException {
-                requestProducer.sendRequest(channel);
+            public void produceRequest(final RequestChannel channel, final HttpContext context) throws HttpException, IOException {
+                requestProducer.sendRequest(channel, context);
             }
 
             @Override
@@ -116,14 +117,19 @@ public class AsyncClientFullDuplexExchange {
             }
 
             @Override
-            public void consumeInformation(final HttpResponse response) throws HttpException, IOException {
+            public void consumeInformation(
+                    final HttpResponse response,
+                    final HttpContext context) throws HttpException, IOException {
                 System.out.println(requestUri + "->" + response.getCode());
             }
 
             @Override
-            public void consumeResponse(final HttpResponse response, final EntityDetails entityDetails) throws HttpException, IOException {
+            public void consumeResponse(
+                    final HttpResponse response,
+                    final EntityDetails entityDetails,
+                    final HttpContext context) throws HttpException, IOException {
                 System.out.println(requestUri + "->" + response.getCode());
-                responseConsumer.consumeResponse(response, entityDetails, null);
+                responseConsumer.consumeResponse(response, entityDetails, context, null);
             }
 
             @Override
@@ -145,7 +151,7 @@ public class AsyncClientFullDuplexExchange {
         latch.await(1, TimeUnit.MINUTES);
 
         System.out.println("Shutting down");
-        client.shutdown(ShutdownType.GRACEFUL);
+        client.shutdown(CloseMode.GRACEFUL);
     }
 
 }

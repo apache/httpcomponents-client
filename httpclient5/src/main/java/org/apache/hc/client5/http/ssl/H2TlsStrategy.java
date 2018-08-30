@@ -50,7 +50,7 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
 import org.apache.hc.core5.http2.ssl.H2TlsSupport;
 import org.apache.hc.core5.net.NamedEndpoint;
-import org.apache.hc.core5.reactor.ssl.SSLBufferManagement;
+import org.apache.hc.core5.reactor.ssl.SSLBufferMode;
 import org.apache.hc.core5.reactor.ssl.SSLSessionInitializer;
 import org.apache.hc.core5.reactor.ssl.SSLSessionVerifier;
 import org.apache.hc.core5.reactor.ssl.TlsDetails;
@@ -98,7 +98,7 @@ public class H2TlsStrategy implements TlsStrategy {
                 SSLContexts.createSystemDefault(),
                 split(getProperty("https.protocols")),
                 split(getProperty("https.cipherSuites")),
-                SSLBufferManagement.STATIC,
+                SSLBufferMode.STATIC,
                 getDefaultHostnameVerifier());
     }
 
@@ -107,27 +107,27 @@ public class H2TlsStrategy implements TlsStrategy {
     private final SSLContext sslContext;
     private final String[] supportedProtocols;
     private final String[] supportedCipherSuites;
-    private final SSLBufferManagement sslBufferManagement;
+    private final SSLBufferMode sslBufferManagement;
     private final HostnameVerifier hostnameVerifier;
 
     public H2TlsStrategy(
             final SSLContext sslContext,
             final String[] supportedProtocols,
             final String[] supportedCipherSuites,
-            final SSLBufferManagement sslBufferManagement,
+            final SSLBufferMode sslBufferManagement,
             final HostnameVerifier hostnameVerifier) {
         super();
         this.sslContext = Args.notNull(sslContext, "SSL context");
         this.supportedProtocols = supportedProtocols;
         this.supportedCipherSuites = supportedCipherSuites;
-        this.sslBufferManagement = sslBufferManagement != null ? sslBufferManagement : SSLBufferManagement.STATIC;
+        this.sslBufferManagement = sslBufferManagement != null ? sslBufferManagement : SSLBufferMode.STATIC;
         this.hostnameVerifier = hostnameVerifier != null ? hostnameVerifier : getDefaultHostnameVerifier();
     }
 
     public H2TlsStrategy(
             final SSLContext sslcontext,
             final HostnameVerifier hostnameVerifier) {
-        this(sslcontext, null, null, SSLBufferManagement.STATIC, hostnameVerifier);
+        this(sslcontext, null, null, SSLBufferMode.STATIC, hostnameVerifier);
     }
 
     public H2TlsStrategy(final SSLContext sslcontext) {
@@ -141,7 +141,7 @@ public class H2TlsStrategy implements TlsStrategy {
             final SocketAddress localAddress,
             final SocketAddress remoteAddress,
             final Object attachment) {
-        tlsSession.startTls(sslContext, sslBufferManagement, H2TlsSupport.enforceRequirements(attachment, new SSLSessionInitializer() {
+        tlsSession.startTls(sslContext, host, sslBufferManagement, H2TlsSupport.enforceRequirements(attachment, new SSLSessionInitializer() {
 
             @Override
             public void initialize(final NamedEndpoint endpoint, final SSLEngine sslEngine) {

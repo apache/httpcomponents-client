@@ -45,7 +45,7 @@ import org.apache.hc.core5.http.nio.AsyncPushConsumer;
 import org.apache.hc.core5.http.nio.AsyncRequestProducer;
 import org.apache.hc.core5.http.nio.AsyncResponseConsumer;
 import org.apache.hc.core5.http.protocol.HttpContext;
-import org.apache.hc.core5.io.ShutdownType;
+import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.reactor.ExceptionEvent;
 import org.apache.hc.core5.reactor.IOReactorStatus;
 import org.apache.hc.core5.util.Args;
@@ -69,7 +69,7 @@ public abstract class CloseableHttpAsyncClient implements HttpAsyncClient, Close
 
     public abstract void initiateShutdown();
 
-    public abstract void shutdown(ShutdownType shutdownType);
+    public abstract void shutdown(CloseMode closeMode);
 
     public final <T> Future<T> execute(
             final AsyncRequestProducer requestProducer,

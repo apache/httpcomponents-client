@@ -146,7 +146,8 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
                 @Override
                 public void sendRequest(
                         final HttpRequest request,
-                        final EntityDetails entityDetails) throws HttpException, IOException {
+                        final EntityDetails entityDetails,
+                        final HttpContext context) throws HttpException, IOException {
 
                     RequestConfig requestConfig = null;
                     if (request instanceof Configurable) {
@@ -237,7 +238,7 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
                                         outputTerminated.set(true);
                                         requestProducer.releaseResources();
                                     }
-                                    responseConsumer.consumeResponse(response, entityDetails,
+                                    responseConsumer.consumeResponse(response, entityDetails, context,
                                             new FutureCallback<T>() {
 
                                                 @Override
@@ -293,7 +294,7 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
                             });
                 }
 
-            });
+            }, context);
         } catch (final HttpException | IOException ex) {
             future.failed(ex);
         }

@@ -111,7 +111,7 @@ public class AsyncRandomHandler implements AsyncServerExchangeHandler {
             final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_OK);
             final AsyncEntityProducer entityProducer = new RandomBinAsyncEntityProducer(n);
             entityProducerRef.set(entityProducer);
-            responseChannel.sendResponse(response, entityProducer);
+            responseChannel.sendResponse(response, entityProducer, context);
         } else {
             throw new ProtocolException("Invalid request path: " + path);
         }

@@ -47,7 +47,7 @@ import org.apache.hc.core5.http.ConnectionReuseStrategy;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.message.RequestLine;
-import org.apache.hc.core5.io.ShutdownType;
+import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TimeValue;
 import org.slf4j.Logger;
@@ -149,7 +149,7 @@ final class MainClientExec implements ExecChainHandler {
             execRuntime.discardConnection();
             throw ex;
         } catch (final Error error) {
-            connectionManager.shutdown(ShutdownType.IMMEDIATE);
+            connectionManager.close(CloseMode.IMMEDIATE);
             throw error;
         }
 

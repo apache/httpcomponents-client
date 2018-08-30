@@ -49,7 +49,7 @@ import org.apache.hc.core5.http.io.HttpMessageParserFactory;
 import org.apache.hc.core5.http.io.HttpMessageWriterFactory;
 import org.apache.hc.core5.http.message.RequestLine;
 import org.apache.hc.core5.http.message.StatusLine;
-import org.apache.hc.core5.io.ShutdownType;
+import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.util.Identifiable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -133,20 +133,20 @@ final class DefaultManagedHttpClientConnection
     }
 
     @Override
-    public void setSocketTimeout(final int timeout) {
+    public void setSocketTimeoutMillis(final int timeout) {
         if (this.log.isDebugEnabled()) {
             this.log.debug(this.id + ": set socket timeout to " + timeout);
         }
-        super.setSocketTimeout(timeout);
+        super.setSocketTimeoutMillis(timeout);
     }
 
     @Override
-    public void shutdown(final ShutdownType shutdownType) {
+    public void close(final CloseMode closeMode) {
         if (this.closed.compareAndSet(false, true)) {
             if (this.log.isDebugEnabled()) {
-                this.log.debug(this.id + ": Shutdown connection " + shutdownType);
+                this.log.debug(this.id + ": close connection " + closeMode);
             }
-            super.shutdown(shutdownType);
+            super.close(closeMode);
         }
     }
 
@@ -180,12 +180,12 @@ final class DefaultManagedHttpClientConnection
 
     @Override
     public void passivate() {
-        super.setSocketTimeout(0);
+        super.setSocketTimeoutMillis(0);
     }
 
     @Override
     public void activate() {
-        super.setSocketTimeout(socketTimeout);
+        super.setSocketTimeoutMillis(socketTimeout);
     }
 
 }

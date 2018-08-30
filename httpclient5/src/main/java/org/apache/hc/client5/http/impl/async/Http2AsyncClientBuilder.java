@@ -105,7 +105,8 @@ import org.apache.hc.core5.http2.nio.pool.H2ConnPool;
 import org.apache.hc.core5.http2.protocol.H2RequestConnControl;
 import org.apache.hc.core5.http2.protocol.H2RequestContent;
 import org.apache.hc.core5.http2.protocol.H2RequestTargetHost;
-import org.apache.hc.core5.io.ShutdownType;
+import org.apache.hc.core5.io.CloseMode;
+import org.apache.hc.core5.reactor.Command;
 import org.apache.hc.core5.reactor.DefaultConnectingIOReactor;
 import org.apache.hc.core5.reactor.IOEventHandlerFactory;
 import org.apache.hc.core5.reactor.IOReactorConfig;
@@ -720,7 +721,7 @@ public class Http2AsyncClientBuilder {
 
                     @Override
                     public void execute(final IOSession ioSession) {
-                        ioSession.addFirst(new ShutdownCommand(ShutdownType.GRACEFUL));
+                        ioSession.enqueue(new ShutdownCommand(CloseMode.GRACEFUL), Command.Priority.IMMEDIATE);
                     }
 
                 });

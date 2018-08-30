@@ -45,7 +45,7 @@ import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
 import org.apache.hc.core5.http2.HttpVersionPolicy;
-import org.apache.hc.core5.io.ShutdownType;
+import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.ssl.SSLContexts;
 
 /**
@@ -113,7 +113,7 @@ public class AsyncClientTlsAlpn {
             future.get();
 
             System.out.println("Shutting down");
-            client.shutdown(ShutdownType.GRACEFUL);
+            client.shutdown(CloseMode.GRACEFUL);
         }
     }
 

@@ -37,7 +37,7 @@ import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
 import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
 import org.apache.hc.core5.concurrent.FutureCallback;
-import org.apache.hc.core5.io.ShutdownType;
+import org.apache.hc.core5.io.CloseMode;
 
 /**
  * A simple example that uses HttpClient to execute an HTTP request against
@@ -83,7 +83,7 @@ public class AsyncClientAuthentication {
         future.get();
 
         System.out.println("Shutting down");
-        httpclient.shutdown(ShutdownType.GRACEFUL);
+        httpclient.shutdown(CloseMode.GRACEFUL);
 
     }
 }

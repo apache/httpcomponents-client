@@ -39,6 +39,7 @@ import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.nio.AsyncResponseConsumer;
 import org.apache.hc.core5.http.nio.entity.AbstractCharDataConsumer;
+import org.apache.hc.core5.http.protocol.HttpContext;
 
 public abstract class AbstractCharResponseConsumer<T> extends AbstractCharDataConsumer implements AsyncResponseConsumer<T> {
 
@@ -49,9 +50,16 @@ public abstract class AbstractCharResponseConsumer<T> extends AbstractCharDataCo
     protected abstract T buildResult() throws IOException;
 
     @Override
+    public void informationResponse(
+            final HttpResponse response,
+            final HttpContext context) throws HttpException, IOException {
+    }
+
+    @Override
     public final void consumeResponse(
             final HttpResponse response,
             final EntityDetails entityDetails,
+            final HttpContext context,
             final FutureCallback<T> resultCallback) throws HttpException, IOException {
         this.resultCallback = resultCallback;
         if (entityDetails != null) {

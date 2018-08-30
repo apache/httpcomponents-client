@@ -42,7 +42,7 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.config.H1Config;
 import org.apache.hc.core5.http.nio.AsyncClientEndpoint;
 import org.apache.hc.core5.http2.HttpVersionPolicy;
-import org.apache.hc.core5.io.ShutdownType;
+import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.reactor.IOReactorConfig;
 import org.apache.hc.core5.util.Timeout;
 
@@ -103,7 +103,7 @@ public class AsyncClientHttp1Pipelining {
         }
 
         System.out.println("Shutting down");
-        client.shutdown(ShutdownType.GRACEFUL);
+        client.shutdown(CloseMode.GRACEFUL);
     }
 
 }

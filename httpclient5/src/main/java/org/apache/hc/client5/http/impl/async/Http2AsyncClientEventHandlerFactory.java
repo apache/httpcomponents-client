@@ -47,7 +47,7 @@ import org.apache.hc.core5.http2.impl.nio.Http2OnlyClientProtocolNegotiator;
 import org.apache.hc.core5.http2.impl.nio.Http2StreamListener;
 import org.apache.hc.core5.reactor.IOEventHandler;
 import org.apache.hc.core5.reactor.IOEventHandlerFactory;
-import org.apache.hc.core5.reactor.TlsCapableIOSession;
+import org.apache.hc.core5.reactor.ProtocolIOSession;
 import org.apache.hc.core5.util.Args;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,7 +81,7 @@ class Http2AsyncClientEventHandlerFactory implements IOEventHandlerFactory {
     }
 
     @Override
-    public IOEventHandler createHandler(final TlsCapableIOSession ioSession, final Object attachment) {
+    public IOEventHandler createHandler(final ProtocolIOSession ioSession, final Object attachment) {
         final Logger sessionLog = LoggerFactory.getLogger(ioSession.getClass());
         if (sessionLog.isDebugEnabled()
                 || wireLog.isDebugEnabled()

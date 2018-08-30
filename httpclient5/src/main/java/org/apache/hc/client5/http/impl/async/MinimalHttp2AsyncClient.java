@@ -56,12 +56,13 @@ import org.apache.hc.core5.http.nio.AsyncClientExchangeHandler;
 import org.apache.hc.core5.http.nio.CapacityChannel;
 import org.apache.hc.core5.http.nio.DataStreamChannel;
 import org.apache.hc.core5.http.nio.RequestChannel;
-import org.apache.hc.core5.http.nio.command.ExecutionCommand;
+import org.apache.hc.core5.http.nio.command.RequestExecutionCommand;
 import org.apache.hc.core5.http.nio.command.ShutdownCommand;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http2.nio.pool.H2ConnPool;
-import org.apache.hc.core5.io.ShutdownType;
+import org.apache.hc.core5.io.CloseMode;
+import org.apache.hc.core5.reactor.Command;
 import org.apache.hc.core5.reactor.ConnectionInitiator;
 import org.apache.hc.core5.reactor.DefaultConnectingIOReactor;
 import org.apache.hc.core5.reactor.IOEventHandlerFactory;
@@ -92,7 +93,7 @@ public final class MinimalHttp2AsyncClient extends AbstractMinimalHttpAsyncClien
 
                     @Override
                     public void execute(final IOSession ioSession) {
-                        ioSession.addFirst(new ShutdownCommand(ShutdownType.GRACEFUL));
+                        ioSession.enqueue(new ShutdownCommand(CloseMode.GRACEFUL), Command.Priority.IMMEDIATE);
                     }
 
                 }),
@@ -122,7 +123,8 @@ public final class MinimalHttp2AsyncClient extends AbstractMinimalHttpAsyncClien
                 @Override
                 public void sendRequest(
                         final HttpRequest request,
-                        final EntityDetails entityDetails) throws HttpException, IOException {
+                        final EntityDetails entityDetails,
+                        final HttpContext context) throws HttpException, IOException {
                     RequestConfig requestConfig = null;
                     if (request instanceof Configurable) {
                         requestConfig = ((Configurable) request).getConfig();
@@ -158,8 +160,9 @@ public final class MinimalHttp2AsyncClient extends AbstractMinimalHttpAsyncClien
 
                                 @Override
                                 public void produceRequest(
-                                        final RequestChannel channel) throws HttpException, IOException {
-                                    channel.sendRequest(request, entityDetails);
+                                        final RequestChannel channel,
+                                        final HttpContext context) throws HttpException, IOException {
+                                    channel.sendRequest(request, entityDetails, context);
                                 }
 
                                 @Override
@@ -174,14 +177,17 @@ public final class MinimalHttp2AsyncClient extends AbstractMinimalHttpAsyncClien
 
                                 @Override
                                 public void consumeInformation(
-                                        final HttpResponse response) throws HttpException, IOException {
-                                    exchangeHandler.consumeInformation(response);
+                                        final HttpResponse response,
+                                        final HttpContext context) throws HttpException, IOException {
+                                    exchangeHandler.consumeInformation(response, context);
                                 }
 
                                 @Override
                                 public void consumeResponse(
-                                        final HttpResponse response, final EntityDetails entityDetails) throws HttpException, IOException {
-                                    exchangeHandler.consumeResponse(response, entityDetails);
+                                        final HttpResponse response,
+                                        final EntityDetails entityDetails,
+                                        final HttpContext context) throws HttpException, IOException {
+                                    exchangeHandler.consumeResponse(response, entityDetails, context);
                                 }
 
                                 @Override
@@ -203,11 +209,15 @@ public final class MinimalHttp2AsyncClient extends AbstractMinimalHttpAsyncClien
                             if (log.isDebugEnabled()) {
                                 final String exchangeId = ExecSupport.getNextExchangeId();
                                 log.debug(ConnPoolSupport.getId(session) + ": executing message exchange " + exchangeId);
-                                session.addLast(new ExecutionCommand(
-                                        new LoggingAsyncClientExchangeHandler(log, exchangeId, internalExchangeHandler),
-                                        cancellable, clientContext));
+                                session.enqueue(
+                                        new RequestExecutionCommand(
+                                                new LoggingAsyncClientExchangeHandler(log, exchangeId, internalExchangeHandler),
+                                                null, cancellable, clientContext),
+                                        Command.Priority.NORMAL);
                             } else {
-                                session.addLast(new ExecutionCommand(internalExchangeHandler, cancellable, clientContext));
+                                session.enqueue(
+                                        new RequestExecutionCommand(internalExchangeHandler, null, cancellable, clientContext),
+                                        Command.Priority.NORMAL);
                             }
                         }
 
@@ -232,7 +242,7 @@ public final class MinimalHttp2AsyncClient extends AbstractMinimalHttpAsyncClien
                     });
                 }
 
-            });
+            }, context);
         } catch (final HttpException | IOException ex) {
             exchangeHandler.failed(ex);
         }

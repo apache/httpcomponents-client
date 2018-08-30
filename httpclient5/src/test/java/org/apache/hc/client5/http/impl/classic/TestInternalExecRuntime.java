@@ -41,7 +41,7 @@ import org.apache.hc.core5.concurrent.CancellableDependency;
 import org.apache.hc.core5.http.ConnectionRequestTimeoutException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
-import org.apache.hc.core5.io.ShutdownType;
+import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
 import org.junit.Assert;
@@ -127,7 +127,7 @@ public class TestInternalExecRuntime {
 
         Mockito.when(mgr.lease(Mockito.eq(route), Mockito.<Timeout>any(), Mockito.any())).thenReturn(leaseRequest);
         Mockito.when(leaseRequest.get(
-                Mockito.anyLong(), Mockito.<TimeUnit>any())).thenThrow(new TimeoutException());
+                Mockito.anyLong(), Mockito.<TimeUnit>any())).thenThrow(new TimeoutException("timeout"));
 
         execRuntime.acquireConnection(route, null, context);
     }
@@ -156,12 +156,12 @@ public class TestInternalExecRuntime {
 
         Assert.assertFalse(execRuntime.isConnectionAcquired());
 
-        Mockito.verify(connectionEndpoint).shutdown(ShutdownType.IMMEDIATE);
+        Mockito.verify(connectionEndpoint).close(CloseMode.IMMEDIATE);
         Mockito.verify(mgr).release(connectionEndpoint, null, TimeValue.ZERO_MILLISECONDS);
 
         execRuntime.discardConnection();
 
-        Mockito.verify(connectionEndpoint, Mockito.times(1)).shutdown(ShutdownType.IMMEDIATE);
+        Mockito.verify(connectionEndpoint, Mockito.times(1)).close(CloseMode.IMMEDIATE);
         Mockito.verify(mgr, Mockito.times(1)).release(
                 Mockito.<ConnectionEndpoint>any(),
                 Mockito.any(),
@@ -183,12 +183,12 @@ public class TestInternalExecRuntime {
 
         Assert.assertFalse(execRuntime.isConnectionAcquired());
 
-        Mockito.verify(connectionEndpoint).shutdown(ShutdownType.IMMEDIATE);
+        Mockito.verify(connectionEndpoint).close(CloseMode.IMMEDIATE);
         Mockito.verify(mgr).release(connectionEndpoint, null, TimeValue.ZERO_MILLISECONDS);
 
         Assert.assertFalse(execRuntime.cancel());
 
-        Mockito.verify(connectionEndpoint, Mockito.times(1)).shutdown(ShutdownType.IMMEDIATE);
+        Mockito.verify(connectionEndpoint, Mockito.times(1)).close(CloseMode.IMMEDIATE);
         Mockito.verify(mgr, Mockito.times(1)).release(
                 Mockito.<ConnectionEndpoint>any(),
                 Mockito.any(),

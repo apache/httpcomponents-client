@@ -124,7 +124,8 @@ class DefaultAsyncCacheRevalidator extends CacheRevalidatorBase {
 
                                 @Override
                                 public AsyncDataConsumer handleResponse(
-                                        final HttpResponse response, final EntityDetails entityDetails) throws HttpException, IOException {
+                                        final HttpResponse response,
+                                        final EntityDetails entityDetails) throws HttpException, IOException {
                                     responseRef.set(response);
                                     return asyncExecCallback.handleResponse(response, entityDetails);
                                 }

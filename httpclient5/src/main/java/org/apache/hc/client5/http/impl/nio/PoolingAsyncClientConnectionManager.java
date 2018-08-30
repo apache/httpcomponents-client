@@ -57,12 +57,12 @@ import org.apache.hc.core5.http.ProtocolVersion;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.nio.AsyncClientExchangeHandler;
-import org.apache.hc.core5.http.nio.command.ExecutionCommand;
+import org.apache.hc.core5.http.nio.command.RequestExecutionCommand;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http2.nio.command.PingCommand;
 import org.apache.hc.core5.http2.nio.support.BasicPingHandler;
-import org.apache.hc.core5.io.ShutdownType;
+import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.pool.ConnPoolControl;
 import org.apache.hc.core5.pool.LaxConnPool;
 import org.apache.hc.core5.pool.ManagedConnPool;
@@ -188,16 +188,16 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
 
     @Override
     public void close() {
-        shutdown(ShutdownType.GRACEFUL);
+        close(CloseMode.GRACEFUL);
     }
 
     @Override
-    public void shutdown(final ShutdownType shutdownType) {
+    public void close(final CloseMode closeMode) {
         if (this.closed.compareAndSet(false, true)) {
             if (this.log.isDebugEnabled()) {
-                this.log.debug("Shutdown connection pool " + shutdownType);
+                this.log.debug("Shutdown connection pool " + closeMode);
             }
-            this.pool.shutdown(shutdownType);
+            this.pool.close(closeMode);
             this.log.debug("Connection pool shut down");
         }
     }
@@ -253,7 +253,7 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
                                             if (log.isDebugEnabled()) {
                                                 log.debug("Connection " + ConnPoolSupport.getId(connection) + " is stale");
                                             }
-                                            poolEntry.discardConnection(ShutdownType.IMMEDIATE);
+                                            poolEntry.discardConnection(CloseMode.IMMEDIATE);
                                         }
                                         leaseCompleted(poolEntry);
                                     }
@@ -264,7 +264,7 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
                                     if (log.isDebugEnabled()) {
                                         log.debug("Connection " + ConnPoolSupport.getId(connection) + " is closed");
                                     }
-                                    poolEntry.discardConnection(ShutdownType.IMMEDIATE);
+                                    poolEntry.discardConnection(CloseMode.IMMEDIATE);
                                 }
                                 leaseCompleted(poolEntry);
                             }
@@ -513,9 +513,9 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
             final PoolEntry<HttpRoute, ManagedAsyncClientConnection> poolEntry = poolEntryRef.get();
             if (poolEntry != null) {
                 if (log.isDebugEnabled()) {
-                    log.debug(id + ": shutdown " + ShutdownType.IMMEDIATE);
+                    log.debug(id + ": shutdown " + CloseMode.IMMEDIATE);
                 }
-                poolEntry.discardConnection(ShutdownType.IMMEDIATE);
+                poolEntry.discardConnection(CloseMode.IMMEDIATE);
             }
         }
 
@@ -524,9 +524,9 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
             final PoolEntry<HttpRoute, ManagedAsyncClientConnection> poolEntry = poolEntryRef.get();
             if (poolEntry != null) {
                 if (log.isDebugEnabled()) {
-                    log.debug(id + ": shutdown " + ShutdownType.GRACEFUL);
+                    log.debug(id + ": shutdown " + CloseMode.GRACEFUL);
                 }
-                poolEntry.discardConnection(ShutdownType.GRACEFUL);
+                poolEntry.discardConnection(CloseMode.GRACEFUL);
             }
         }
 
@@ -541,7 +541,7 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
                 return false;
             }
             if (!connection.isOpen()) {
-                poolEntry.discardConnection(ShutdownType.IMMEDIATE);
+                poolEntry.discardConnection(CloseMode.IMMEDIATE);
                 return false;
             }
             return true;
@@ -549,16 +549,17 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
 
         @Override
         public void setSocketTimeout(final int timeout) {
-            getValidatedPoolEntry().getConnection().setSocketTimeout(timeout);
+            getValidatedPoolEntry().getConnection().setSocketTimeoutMillis(timeout);
         }
 
         @Override
         public void execute(final AsyncClientExchangeHandler exchangeHandler, final HttpContext context) {
             final ManagedAsyncClientConnection connection = getValidatedPoolEntry().getConnection();
             if (log.isDebugEnabled()) {
-                log.debug(id + ": executing exchange " + ConnPoolSupport.getId(exchangeHandler) + " over " + ConnPoolSupport.getId(connection));
+                log.debug(id + ": executing exchange " + ConnPoolSupport.getId(exchangeHandler) +
+                        " over " + ConnPoolSupport.getId(connection));
             }
-            connection.submitCommand(new ExecutionCommand(exchangeHandler, context));
+            connection.submitCommand(new RequestExecutionCommand(exchangeHandler, context));
         }
 
     }

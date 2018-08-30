@@ -55,6 +55,7 @@ import org.apache.hc.core5.http.nio.AsyncEntityProducer;
 import org.apache.hc.core5.http.nio.CapacityChannel;
 import org.apache.hc.core5.http.nio.DataStreamChannel;
 import org.apache.hc.core5.http.nio.RequestChannel;
+import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.TimeValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -113,8 +114,10 @@ class HttpAsyncMainClientExec implements AsyncExecChainHandler {
             }
 
             @Override
-            public void produceRequest(final RequestChannel channel) throws HttpException, IOException {
-                channel.sendRequest(request, entityProducer);
+            public void produceRequest(
+                    final RequestChannel channel,
+                    final HttpContext context) throws HttpException, IOException {
+                channel.sendRequest(request, entityProducer, context);
                 if (entityProducer == null) {
                     messageCountDown.decrementAndGet();
                 }
@@ -159,11 +162,16 @@ class HttpAsyncMainClientExec implements AsyncExecChainHandler {
             }
 
             @Override
-            public void consumeInformation(final HttpResponse response) throws HttpException, IOException {
+            public void consumeInformation(
+                    final HttpResponse response,
+                    final HttpContext context) throws HttpException, IOException {
             }
 
             @Override
-            public void consumeResponse(final HttpResponse response, final EntityDetails entityDetails) throws HttpException, IOException {
+            public void consumeResponse(
+                    final HttpResponse response,
+                    final EntityDetails entityDetails,
+                    final HttpContext context) throws HttpException, IOException {
                 entityConsumerRef.set(asyncExecCallback.handleResponse(response, entityDetails));
                 if (response.getCode() >= HttpStatus.SC_CLIENT_ERROR) {
                     messageCountDown.decrementAndGet();

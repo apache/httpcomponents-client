@@ -57,11 +57,11 @@ import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.config.Registry;
 import org.apache.hc.core5.http.config.RegistryBuilder;
-import org.apache.hc.core5.http.config.SocketConfig;
 import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
 import org.apache.hc.core5.http.io.HttpConnectionFactory;
+import org.apache.hc.core5.http.io.SocketConfig;
 import org.apache.hc.core5.http.protocol.HttpContext;
-import org.apache.hc.core5.io.ShutdownType;
+import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.pool.ConnPoolControl;
 import org.apache.hc.core5.pool.LaxConnPool;
 import org.apache.hc.core5.pool.ManagedConnPool;
@@ -222,16 +222,16 @@ public class PoolingHttpClientConnectionManager
 
     @Override
     public void close() {
-        shutdown(ShutdownType.GRACEFUL);
+        close(CloseMode.GRACEFUL);
     }
 
     @Override
-    public void shutdown(final ShutdownType shutdownType) {
+    public void close(final CloseMode closeMode) {
         if (this.closed.compareAndSet(false, true)) {
             if (this.log.isDebugEnabled()) {
-                this.log.debug("Shutdown connection pool " + shutdownType);
+                this.log.debug("Shutdown connection pool " + closeMode);
             }
-            this.pool.shutdown(shutdownType);
+            this.pool.close(closeMode);
             this.log.debug("Connection pool shut down");
         }
     }
@@ -293,7 +293,7 @@ public class PoolingHttpClientConnectionManager
                                 if (log.isDebugEnabled()) {
                                     log.debug("Connection " + ConnPoolSupport.getId(conn) + " is stale");
                                 }
-                                poolEntry.discardConnection(ShutdownType.IMMEDIATE);
+                                poolEntry.discardConnection(CloseMode.IMMEDIATE);
                             }
                         }
                     }
@@ -337,7 +337,7 @@ public class PoolingHttpClientConnectionManager
         }
         final ManagedHttpClientConnection conn = entry.getConnection();
         if (conn != null && keepAlive == null) {
-            conn.shutdown(ShutdownType.GRACEFUL);
+            conn.close(CloseMode.GRACEFUL);
         }
         boolean reusable = conn != null && conn.isOpen();
         try {
@@ -523,10 +523,10 @@ public class PoolingHttpClientConnectionManager
         }
 
         @Override
-        public void shutdown(final ShutdownType shutdownType) {
+        public void close(final CloseMode closeMode) {
             final PoolEntry<HttpRoute, ManagedHttpClientConnection> poolEntry = poolEntryRef.get();
             if (poolEntry != null) {
-                poolEntry.discardConnection(shutdownType);
+                poolEntry.discardConnection(closeMode);
             }
         }
 
@@ -534,7 +534,7 @@ public class PoolingHttpClientConnectionManager
         public void close() throws IOException {
             final PoolEntry<HttpRoute, ManagedHttpClientConnection> poolEntry = poolEntryRef.get();
             if (poolEntry != null) {
-                poolEntry.discardConnection(ShutdownType.GRACEFUL);
+                poolEntry.discardConnection(CloseMode.GRACEFUL);
             }
         }
 
@@ -547,7 +547,7 @@ public class PoolingHttpClientConnectionManager
 
         @Override
         public void setSocketTimeout(final int timeout) {
-            getValidatedPoolEntry().getConnection().setSocketTimeout(timeout);
+            getValidatedPoolEntry().getConnection().setSocketTimeoutMillis(timeout);
         }
 
         @Override

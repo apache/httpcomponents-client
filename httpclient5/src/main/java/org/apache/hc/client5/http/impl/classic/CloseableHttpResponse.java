@@ -164,13 +164,13 @@ public final class CloseableHttpResponse implements ClassicHttpResponse {
     }
 
     @Override
-    public void removeHeader(final Header header) {
-        response.removeHeader(header);
+    public boolean removeHeader(final Header header) {
+        return response.removeHeader(header);
     }
 
     @Override
-    public void removeHeaders(final String name) {
-        response.removeHeaders(name);
+    public boolean removeHeaders(final String name) {
+        return response.removeHeaders(name);
     }
 
     @Override

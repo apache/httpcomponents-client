@@ -43,10 +43,10 @@ import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
 import org.apache.hc.client5.http.socket.LayeredConnectionSocketFactory;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.config.Lookup;
-import org.apache.hc.core5.http.config.SocketConfig;
 import org.apache.hc.core5.http.io.HttpConnectionFactory;
+import org.apache.hc.core5.http.io.SocketConfig;
 import org.apache.hc.core5.http.protocol.HttpContext;
-import org.apache.hc.core5.io.ShutdownType;
+import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.util.TimeValue;
 import org.junit.Assert;
 import org.junit.Before;
@@ -192,7 +192,7 @@ public class TestBasicHttpClientConnectionManager {
         Assert.assertNotNull(conn2);
         Assert.assertFalse(conn2.isConnected());
 
-        Mockito.verify(conn).shutdown(ShutdownType.GRACEFUL);
+        Mockito.verify(conn).close(CloseMode.GRACEFUL);
         Mockito.verify(connFactory, Mockito.times(2)).createConnection(Mockito.<Socket>any());
     }
 
@@ -223,7 +223,7 @@ public class TestBasicHttpClientConnectionManager {
         Assert.assertNotNull(conn2);
         Assert.assertFalse(conn2.isConnected());
 
-        Mockito.verify(conn).shutdown(ShutdownType.GRACEFUL);
+        Mockito.verify(conn).close(CloseMode.GRACEFUL);
         Mockito.verify(connFactory, Mockito.times(2)).createConnection(Mockito.<Socket>any());
     }
 
@@ -257,7 +257,7 @@ public class TestBasicHttpClientConnectionManager {
 
         mgr.close();
 
-        Mockito.verify(conn, Mockito.times(1)).shutdown(ShutdownType.GRACEFUL);
+        Mockito.verify(conn, Mockito.times(1)).close(CloseMode.GRACEFUL);
 
         try {
             final LeaseRequest connRequest2 = mgr.lease(route, null);
@@ -271,7 +271,7 @@ public class TestBasicHttpClientConnectionManager {
         mgr.closeIdle(0L, TimeUnit.MILLISECONDS);
         mgr.close();
 
-        Mockito.verify(conn, Mockito.times(1)).shutdown(ShutdownType.GRACEFUL);
+        Mockito.verify(conn, Mockito.times(1)).close(CloseMode.GRACEFUL);
     }
 
     @Test
@@ -298,7 +298,7 @@ public class TestBasicHttpClientConnectionManager {
 
         mgr.closeExpired();
 
-        Mockito.verify(conn).shutdown(ShutdownType.GRACEFUL);
+        Mockito.verify(conn).close(CloseMode.GRACEFUL);
     }
 
     @Test
@@ -325,7 +325,7 @@ public class TestBasicHttpClientConnectionManager {
 
         mgr.closeIdle(50, TimeUnit.MILLISECONDS);
 
-        Mockito.verify(conn).shutdown(ShutdownType.GRACEFUL);
+        Mockito.verify(conn).close(CloseMode.GRACEFUL);
     }
 
     @Test(expected=IllegalStateException.class)
