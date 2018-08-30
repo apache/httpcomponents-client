@@ -49,11 +49,11 @@ import javax.security.auth.x500.X500Principal;
 
 import org.apache.hc.client5.http.psl.PublicSuffixMatcherLoader;
 import org.apache.hc.client5.http.socket.LayeredConnectionSocketFactory;
-import org.apache.hc.client5.http.utils.Closer;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.io.Closer;
 import org.apache.hc.core5.ssl.SSLContexts;
 import org.apache.hc.core5.ssl.SSLInitializationException;
 import org.apache.hc.core5.util.Args;

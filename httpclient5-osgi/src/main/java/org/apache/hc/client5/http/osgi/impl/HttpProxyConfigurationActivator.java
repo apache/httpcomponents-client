@@ -37,7 +37,7 @@ import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.osgi.services.CachingHttpClientBuilderFactory;
 import org.apache.hc.client5.http.osgi.services.HttpClientBuilderFactory;
 import org.apache.hc.client5.http.osgi.services.ProxyConfiguration;
-import org.apache.hc.client5.http.utils.Closer;
+import org.apache.hc.core5.io.Closer;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
