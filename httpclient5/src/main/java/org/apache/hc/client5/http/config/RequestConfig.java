@@ -258,13 +258,13 @@ public class RequestConfig implements Cloneable {
     /**
      * Determines whether request cancellation, such as through {@code
      * Future#cancel(boolean)}, should kill the underlying connection. If this
-     * option is not set, the client will attempt to preserve the underlying
-     * connection by allowing the request to complete in the background,
-     * discarding the response.
+     * option is set to false, the client will attempt to preserve the
+     * underlying connection by allowing the request to complete in the
+     * background, discarding the response.
      * <p>
-     * Note that setting this option to {@code true} means that cancelling a
-     * request may cause other requests to fail, if they are waiting to use the
-     * same connection.
+     * Note that when this option is {@code true}, cancelling a request may
+     * cause other requests to fail, if they are waiting to use the same
+     * connection.
      * </p>
      * <p>
      * On HTTP/2, this option has no effect. Request cancellation will always
@@ -277,7 +277,7 @@ public class RequestConfig implements Cloneable {
      * always kill the underlying connection.
      * </p>
      * <p>
-     * Default: {@code false}
+     * Default: {@code true}
      * </p>
      *
      * @since 5.0
@@ -357,6 +357,7 @@ public class RequestConfig implements Cloneable {
             this.connectionRequestTimeout = DEFAULT_CONNECTION_REQUEST_TIMEOUT;
             this.connectionTimeout = DEFAULT_CONNECTION_TIMEOUT;
             this.contentCompressionEnabled = true;
+            this.hardCancellationEnabled = true;
         }
 
         public Builder setExpectContinueEnabled(final boolean expectContinueEnabled) {
