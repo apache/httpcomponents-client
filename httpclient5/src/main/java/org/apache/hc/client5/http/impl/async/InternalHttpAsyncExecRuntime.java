@@ -234,6 +234,15 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
                 log.debug(ConnPoolSupport.getId(endpoint) + ": executing " + ConnPoolSupport.getId(exchangeHandler));
             }
             endpoint.execute(exchangeHandler, context);
+            if (context.getRequestConfig().isHardCancellationEnabled()) {
+                return new Cancellable() {
+                    @Override
+                    public boolean cancel() {
+                        exchangeHandler.cancel();
+                        return true;
+                    }
+                };
+            }
         } else {
             connect(context, new FutureCallback<AsyncExecRuntime>() {
 

@@ -58,12 +58,13 @@ public class RequestConfig implements Cloneable {
     private final Timeout connectionRequestTimeout;
     private final Timeout connectionTimeout;
     private final boolean contentCompressionEnabled;
+    private final boolean hardCancellationEnabled;
 
     /**
      * Intended for CDI compatibility
     */
     protected RequestConfig() {
-        this(false, null, null, false, false, 0, false, null, null, DEFAULT_CONNECTION_REQUEST_TIMEOUT, DEFAULT_CONNECTION_TIMEOUT, false);
+        this(false, null, null, false, false, 0, false, null, null, DEFAULT_CONNECTION_REQUEST_TIMEOUT, DEFAULT_CONNECTION_TIMEOUT, false, false);
     }
 
     RequestConfig(
@@ -78,7 +79,8 @@ public class RequestConfig implements Cloneable {
             final Collection<String> proxyPreferredAuthSchemes,
             final Timeout connectionRequestTimeout,
             final Timeout connectionTimeout,
-            final boolean contentCompressionEnabled) {
+            final boolean contentCompressionEnabled,
+            final boolean hardCancellationEnabled) {
         super();
         this.expectContinueEnabled = expectContinueEnabled;
         this.proxy = proxy;
@@ -92,6 +94,7 @@ public class RequestConfig implements Cloneable {
         this.connectionRequestTimeout = connectionRequestTimeout;
         this.connectionTimeout = connectionTimeout;
         this.contentCompressionEnabled = contentCompressionEnabled;
+        this.hardCancellationEnabled = hardCancellationEnabled;
     }
 
     /**
@@ -252,6 +255,37 @@ public class RequestConfig implements Cloneable {
         return contentCompressionEnabled;
     }
 
+    /**
+     * Determines whether request cancellation, such as through {@code
+     * Future#cancel(boolean)}, should kill the underlying connection. If this
+     * option is not set, the client will attempt to preserve the underlying
+     * connection by allowing the request to complete in the background,
+     * discarding the response.
+     * <p>
+     * Note that setting this option to {@code true} means that cancelling a
+     * request may cause other requests to fail, if they are waiting to use the
+     * same connection.
+     * </p>
+     * <p>
+     * On HTTP/2, this option has no effect. Request cancellation will always
+     * result in the stream being cancelled with a {@code RST_STREAM}. This
+     * has no effect on connection reuse.
+     * </p>
+     * <p>
+     * On non-asynchronous clients, this option has no effect. Request
+     * cancellation, such as through {@code HttpUriRequestBase#cancel()}, will
+     * always kill the underlying connection.
+     * </p>
+     * <p>
+     * Default: {@code false}
+     * </p>
+     *
+     * @since 5.0
+     */
+    public boolean isHardCancellationEnabled() {
+        return hardCancellationEnabled;
+    }
+
     @Override
     protected RequestConfig clone() throws CloneNotSupportedException {
         return (RequestConfig) super.clone();
@@ -273,6 +307,7 @@ public class RequestConfig implements Cloneable {
         builder.append(", connectionRequestTimeout=").append(connectionRequestTimeout);
         builder.append(", connectionTimeout=").append(connectionTimeout);
         builder.append(", contentCompressionEnabled=").append(contentCompressionEnabled);
+        builder.append(", hardCancellationEnabled=").append(hardCancellationEnabled);
         builder.append("]");
         return builder.toString();
     }
@@ -294,7 +329,8 @@ public class RequestConfig implements Cloneable {
             .setProxyPreferredAuthSchemes(config.getProxyPreferredAuthSchemes())
             .setConnectionRequestTimeout(config.getConnectionRequestTimeout())
             .setConnectionTimeout(config.getConnectionTimeout())
-            .setContentCompressionEnabled(config.isContentCompressionEnabled());
+            .setContentCompressionEnabled(config.isContentCompressionEnabled())
+            .setHardCancellationEnabled(config.isHardCancellationEnabled());
     }
 
     public static class Builder {
@@ -311,6 +347,7 @@ public class RequestConfig implements Cloneable {
         private Timeout connectionRequestTimeout;
         private Timeout connectionTimeout;
         private boolean contentCompressionEnabled;
+        private boolean hardCancellationEnabled;
 
         Builder() {
             super();
@@ -392,6 +429,11 @@ public class RequestConfig implements Cloneable {
             return this;
         }
 
+        public Builder setHardCancellationEnabled(final boolean hardCancellationEnabled) {
+            this.hardCancellationEnabled = hardCancellationEnabled;
+            return this;
+        }
+
         public RequestConfig build() {
             return new RequestConfig(
                     expectContinueEnabled,
@@ -405,7 +447,8 @@ public class RequestConfig implements Cloneable {
                     proxyPreferredAuthSchemes,
                     connectionRequestTimeout != null ? connectionRequestTimeout : DEFAULT_CONNECTION_REQUEST_TIMEOUT,
                     connectionTimeout != null ? connectionTimeout : DEFAULT_CONNECTION_TIMEOUT,
-                    contentCompressionEnabled);
+                    contentCompressionEnabled,
+                    hardCancellationEnabled);
         }
 
     }
