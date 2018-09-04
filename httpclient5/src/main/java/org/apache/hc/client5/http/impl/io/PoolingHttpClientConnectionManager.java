@@ -82,7 +82,7 @@ import org.slf4j.LoggerFactory;
  * {@link ManagedHttpClientConnection}s and is able to service connection requests
  * from multiple execution threads. Connections are pooled on a per route
  * basis. A request for a route which already the manager has persistent
- * connections for available in the pool will be services by leasing
+ * connections for available in the pool will be serviced by leasing
  * a connection from the pool rather than creating a new connection.
  * <p>
  * {@code ClientConnectionPoolManager} maintains a maximum limit of connection
