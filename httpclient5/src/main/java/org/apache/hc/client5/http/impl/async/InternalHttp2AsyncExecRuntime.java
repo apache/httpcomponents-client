@@ -41,6 +41,8 @@ import org.apache.hc.core5.concurrent.ComplexCancellable;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.nio.AsyncClientExchangeHandler;
+import org.apache.hc.core5.http.nio.AsyncPushConsumer;
+import org.apache.hc.core5.http.nio.HandlerFactory;
 import org.apache.hc.core5.http.nio.command.RequestExecutionCommand;
 import org.apache.hc.core5.http2.nio.pool.H2ConnPool;
 import org.apache.hc.core5.io.CloseMode;
@@ -53,13 +55,18 @@ class InternalHttp2AsyncExecRuntime implements AsyncExecRuntime {
 
     private final Logger log;
     private final H2ConnPool connPool;
+    private final HandlerFactory<AsyncPushConsumer> pushHandlerFactory;
     private final AtomicReference<Endpoint> sessionRef;
     private volatile boolean reusable;
 
-    InternalHttp2AsyncExecRuntime(final Logger log, final H2ConnPool connPool) {
+    InternalHttp2AsyncExecRuntime(
+            final Logger log,
+            final H2ConnPool connPool,
+            final HandlerFactory<AsyncPushConsumer> pushHandlerFactory) {
         super();
         this.log = log;
         this.connPool = connPool;
+        this.pushHandlerFactory = pushHandlerFactory;
         this.sessionRef = new AtomicReference<>(null);
     }
 
@@ -198,7 +205,7 @@ class InternalHttp2AsyncExecRuntime implements AsyncExecRuntime {
                 log.debug(ConnPoolSupport.getId(endpoint) + ": executing " + ConnPoolSupport.getId(exchangeHandler));
             }
             session.enqueue(
-                    new RequestExecutionCommand(exchangeHandler, null, complexCancellable, context),
+                    new RequestExecutionCommand(exchangeHandler, pushHandlerFactory, complexCancellable, context),
                     Command.Priority.NORMAL);
         } else {
             final HttpHost target = endpoint.target;
@@ -213,7 +220,7 @@ class InternalHttp2AsyncExecRuntime implements AsyncExecRuntime {
                         log.debug(ConnPoolSupport.getId(endpoint) + ": executing " + ConnPoolSupport.getId(exchangeHandler));
                     }
                     session.enqueue(
-                            new RequestExecutionCommand(exchangeHandler, null, complexCancellable, context),
+                            new RequestExecutionCommand(exchangeHandler, pushHandlerFactory, complexCancellable, context),
                             Command.Priority.NORMAL);
                 }
 
@@ -255,7 +262,7 @@ class InternalHttp2AsyncExecRuntime implements AsyncExecRuntime {
 
     @Override
     public AsyncExecRuntime fork() {
-        return new InternalHttp2AsyncExecRuntime(log, connPool);
+        return new InternalHttp2AsyncExecRuntime(log, connPool, pushHandlerFactory);
     }
 
 }

@@ -34,8 +34,10 @@ import org.apache.hc.core5.concurrent.Cancellable;
 import org.apache.hc.core5.concurrent.ComplexFuture;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.nio.AsyncClientExchangeHandler;
+import org.apache.hc.core5.http.nio.AsyncPushConsumer;
 import org.apache.hc.core5.http.nio.AsyncRequestProducer;
 import org.apache.hc.core5.http.nio.AsyncResponseConsumer;
+import org.apache.hc.core5.http.nio.HandlerFactory;
 import org.apache.hc.core5.http.nio.support.BasicClientExchangeHandler;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.reactor.DefaultConnectingIOReactor;
@@ -53,6 +55,7 @@ abstract class AbstractMinimalHttpAsyncClientBase extends AbstractHttpAsyncClien
     public final <T> Future<T> execute(
             final AsyncRequestProducer requestProducer,
             final AsyncResponseConsumer<T> responseConsumer,
+            final HandlerFactory<AsyncPushConsumer> pushHandlerFactory,
             final HttpContext context,
             final FutureCallback<T> callback) {
         final ComplexFuture<T> future = new ComplexFuture<>(callback);
@@ -76,14 +79,17 @@ abstract class AbstractMinimalHttpAsyncClientBase extends AbstractHttpAsyncClien
                         future.cancel();
                     }
 
-                })));
+                }), pushHandlerFactory, context));
         return future;
     }
 
     public final Cancellable execute(final AsyncClientExchangeHandler exchangeHandler) {
-        return execute(exchangeHandler, HttpClientContext.create());
+        return execute(exchangeHandler, null, HttpClientContext.create());
     }
 
-    public abstract Cancellable execute(AsyncClientExchangeHandler exchangeHandler, HttpContext context);
+    public abstract Cancellable execute(
+            AsyncClientExchangeHandler exchangeHandler,
+            HandlerFactory<AsyncPushConsumer> pushHandlerFactory,
+            HttpContext context);
 
 }

@@ -74,12 +74,16 @@ public abstract class CloseableHttpAsyncClient implements HttpAsyncClient, Close
     public final <T> Future<T> execute(
             final AsyncRequestProducer requestProducer,
             final AsyncResponseConsumer<T> responseConsumer,
+            final HttpContext context,
             final FutureCallback<T> callback) {
-        return execute(requestProducer, responseConsumer, HttpClientContext.create(), callback);
+        return execute(requestProducer, responseConsumer, null, context, callback);
     }
 
-    public final void register(final String uriPattern, final Supplier<AsyncPushConsumer> supplier) {
-        register(null, uriPattern, supplier);
+    public final <T> Future<T> execute(
+            final AsyncRequestProducer requestProducer,
+            final AsyncResponseConsumer<T> responseConsumer,
+            final FutureCallback<T> callback) {
+        return execute(requestProducer, responseConsumer, HttpClientContext.create(), callback);
     }
 
     public final Future<SimpleHttpResponse> execute(
@@ -113,6 +117,12 @@ public abstract class CloseableHttpAsyncClient implements HttpAsyncClient, Close
             final SimpleHttpRequest request,
             final FutureCallback<SimpleHttpResponse> callback) {
         return execute(request, HttpClientContext.create(), callback);
+    }
+
+    public abstract void register(String hostname, String uriPattern, Supplier<AsyncPushConsumer> supplier);
+
+    public final void register(final String uriPattern, final Supplier<AsyncPushConsumer> supplier) {
+        register(null, uriPattern, supplier);
     }
 
 }

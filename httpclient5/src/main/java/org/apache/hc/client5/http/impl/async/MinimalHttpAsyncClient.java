@@ -216,6 +216,7 @@ public final class MinimalHttpAsyncClient extends AbstractMinimalHttpAsyncClient
     @Override
     public Cancellable execute(
             final AsyncClientExchangeHandler exchangeHandler,
+            final HandlerFactory<AsyncPushConsumer> pushHandlerFactory,
             final HttpContext context) {
         ensureRunning();
         final ComplexCancellable cancellable = new ComplexCancellable();
@@ -362,7 +363,7 @@ public final class MinimalHttpAsyncClient extends AbstractMinimalHttpAsyncClient
                                         }
 
                                     };
-                                    endpoint.execute(internalExchangeHandler, clientContext);
+                                    endpoint.execute(internalExchangeHandler, pushHandlerFactory, clientContext);
                                 }
 
                                 @Override
@@ -420,6 +421,7 @@ public final class MinimalHttpAsyncClient extends AbstractMinimalHttpAsyncClient
                 log.debug(ConnPoolSupport.getId(connectionEndpoint) + ": executing message exchange " + exchangeId);
                 connectionEndpoint.execute(
                         new LoggingAsyncClientExchangeHandler(log, exchangeId, exchangeHandler),
+                        pushHandlerFactory,
                         context);
             } else {
                 connectionEndpoint.execute(exchangeHandler, context);

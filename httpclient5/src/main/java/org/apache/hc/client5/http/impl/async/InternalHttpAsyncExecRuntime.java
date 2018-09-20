@@ -42,6 +42,8 @@ import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.concurrent.Cancellable;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.nio.AsyncClientExchangeHandler;
+import org.apache.hc.core5.http.nio.AsyncPushConsumer;
+import org.apache.hc.core5.http.nio.HandlerFactory;
 import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.apache.hc.core5.reactor.ConnectionInitiator;
 import org.apache.hc.core5.util.TimeValue;
@@ -52,6 +54,7 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
     private final Logger log;
     private final AsyncClientConnectionManager manager;
     private final ConnectionInitiator connectionInitiator;
+    private final HandlerFactory<AsyncPushConsumer> pushHandlerFactory;
     private final HttpVersionPolicy versionPolicy;
     private final AtomicReference<AsyncConnectionEndpoint> endpointRef;
     private volatile boolean reusable;
@@ -62,11 +65,13 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
             final Logger log,
             final AsyncClientConnectionManager manager,
             final ConnectionInitiator connectionInitiator,
+            final HandlerFactory<AsyncPushConsumer> pushHandlerFactory,
             final HttpVersionPolicy versionPolicy) {
         super();
         this.log = log;
         this.manager = manager;
         this.connectionInitiator = connectionInitiator;
+        this.pushHandlerFactory = pushHandlerFactory;
         this.versionPolicy = versionPolicy;
         this.endpointRef = new AtomicReference<>(null);
         this.validDuration = TimeValue.NEG_ONE_MILLISECONDS;
@@ -252,7 +257,7 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
                         log.debug(ConnPoolSupport.getId(endpoint) + ": executing " + ConnPoolSupport.getId(exchangeHandler));
                     }
                     try {
-                        endpoint.execute(exchangeHandler, context);
+                        endpoint.execute(exchangeHandler, pushHandlerFactory, context);
                     } catch (final RuntimeException ex) {
                         failed(ex);
                     }
@@ -289,7 +294,7 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
 
     @Override
     public AsyncExecRuntime fork() {
-        return new InternalHttpAsyncExecRuntime(log, manager, connectionInitiator, versionPolicy);
+        return new InternalHttpAsyncExecRuntime(log, manager, connectionInitiator, pushHandlerFactory, versionPolicy);
     }
 
 }

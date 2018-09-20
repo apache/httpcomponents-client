@@ -36,8 +36,10 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.concurrent.BasicFuture;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.nio.AsyncClientExchangeHandler;
+import org.apache.hc.core5.http.nio.AsyncPushConsumer;
 import org.apache.hc.core5.http.nio.AsyncRequestProducer;
 import org.apache.hc.core5.http.nio.AsyncResponseConsumer;
+import org.apache.hc.core5.http.nio.HandlerFactory;
 import org.apache.hc.core5.http.nio.support.BasicClientExchangeHandler;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.protocol.HttpCoreContext;
@@ -50,11 +52,21 @@ import org.apache.hc.core5.http.protocol.HttpCoreContext;
 @Contract(threading = ThreadingBehavior.SAFE)
 public abstract class AsyncConnectionEndpoint implements Closeable {
 
-    public abstract void execute(AsyncClientExchangeHandler exchangeHandler, HttpContext context);
+    public abstract void execute(
+            AsyncClientExchangeHandler exchangeHandler,
+            HandlerFactory<AsyncPushConsumer> pushHandlerFactory,
+            HttpContext context);
+
+    public void execute(
+            final AsyncClientExchangeHandler exchangeHandler,
+            final HttpContext context) {
+        execute(exchangeHandler, null, context);
+    }
 
     public <T> Future<T> execute(
             final AsyncRequestProducer requestProducer,
             final AsyncResponseConsumer<T> responseConsumer,
+            final HandlerFactory<AsyncPushConsumer> pushHandlerFactory,
             final HttpContext context,
             final FutureCallback<T> callback) {
         final BasicFuture<T> future = new BasicFuture<>(callback);
@@ -77,6 +89,7 @@ public abstract class AsyncConnectionEndpoint implements Closeable {
                             }
 
                         }),
+                pushHandlerFactory,
                 context != null ? context : HttpCoreContext.create());
         return future;
     }
@@ -84,8 +97,24 @@ public abstract class AsyncConnectionEndpoint implements Closeable {
     public <T> Future<T> execute(
             final AsyncRequestProducer requestProducer,
             final AsyncResponseConsumer<T> responseConsumer,
+            final HttpContext context,
             final FutureCallback<T> callback) {
-        return execute(requestProducer, responseConsumer, null, callback);
+        return execute(requestProducer, responseConsumer, null, context, callback);
+    }
+
+    public <T> Future<T> execute(
+            final AsyncRequestProducer requestProducer,
+            final AsyncResponseConsumer<T> responseConsumer,
+            final HandlerFactory<AsyncPushConsumer> pushHandlerFactory,
+            final FutureCallback<T> callback) {
+        return execute(requestProducer, responseConsumer, pushHandlerFactory, null, callback);
+    }
+
+    public <T> Future<T> execute(
+            final AsyncRequestProducer requestProducer,
+            final AsyncResponseConsumer<T> responseConsumer,
+            final FutureCallback<T> callback) {
+        return execute(requestProducer, responseConsumer, null, null, callback);
     }
 
     public abstract boolean isConnected();

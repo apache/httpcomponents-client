@@ -46,6 +46,8 @@ import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.ProtocolVersion;
 import org.apache.hc.core5.http.config.Lookup;
+import org.apache.hc.core5.http.nio.AsyncPushConsumer;
+import org.apache.hc.core5.http.nio.HandlerFactory;
 import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.apache.hc.core5.reactor.DefaultConnectingIOReactor;
 
@@ -77,8 +79,8 @@ class InternalHttpAsyncClient extends InternalAbstractHttpAsyncClient {
     }
 
     @Override
-    AsyncExecRuntime crerateAsyncExecRuntime() {
-        return new InternalHttpAsyncExecRuntime(log, connmgr, getConnectionInitiator(), versionPolicy);
+    AsyncExecRuntime crerateAsyncExecRuntime(final HandlerFactory<AsyncPushConsumer> pushHandlerFactory) {
+        return new InternalHttpAsyncExecRuntime(log, connmgr, getConnectionInitiator(), pushHandlerFactory, versionPolicy);
     }
 
     @Override

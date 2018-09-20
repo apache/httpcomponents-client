@@ -53,8 +53,10 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.nio.AsyncClientExchangeHandler;
+import org.apache.hc.core5.http.nio.AsyncPushConsumer;
 import org.apache.hc.core5.http.nio.CapacityChannel;
 import org.apache.hc.core5.http.nio.DataStreamChannel;
+import org.apache.hc.core5.http.nio.HandlerFactory;
 import org.apache.hc.core5.http.nio.RequestChannel;
 import org.apache.hc.core5.http.nio.command.RequestExecutionCommand;
 import org.apache.hc.core5.http.nio.command.ShutdownCommand;
@@ -113,6 +115,7 @@ public final class MinimalHttp2AsyncClient extends AbstractMinimalHttpAsyncClien
     @Override
     public Cancellable execute(
             final AsyncClientExchangeHandler exchangeHandler,
+            final HandlerFactory<AsyncPushConsumer> pushHandlerFactory,
             final HttpContext context) {
         ensureRunning();
         final ComplexCancellable cancellable = new ComplexCancellable();
@@ -212,11 +215,17 @@ public final class MinimalHttp2AsyncClient extends AbstractMinimalHttpAsyncClien
                                 session.enqueue(
                                         new RequestExecutionCommand(
                                                 new LoggingAsyncClientExchangeHandler(log, exchangeId, internalExchangeHandler),
-                                                null, cancellable, clientContext),
+                                                pushHandlerFactory,
+                                                cancellable,
+                                                clientContext),
                                         Command.Priority.NORMAL);
                             } else {
                                 session.enqueue(
-                                        new RequestExecutionCommand(internalExchangeHandler, null, cancellable, clientContext),
+                                        new RequestExecutionCommand(
+                                                internalExchangeHandler,
+                                                pushHandlerFactory,
+                                                cancellable,
+                                                clientContext),
                                         Command.Priority.NORMAL);
                             }
                         }

@@ -57,6 +57,8 @@ import org.apache.hc.core5.http.ProtocolVersion;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.nio.AsyncClientExchangeHandler;
+import org.apache.hc.core5.http.nio.AsyncPushConsumer;
+import org.apache.hc.core5.http.nio.HandlerFactory;
 import org.apache.hc.core5.http.nio.command.RequestExecutionCommand;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
 import org.apache.hc.core5.http.protocol.HttpContext;
@@ -553,13 +555,16 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
         }
 
         @Override
-        public void execute(final AsyncClientExchangeHandler exchangeHandler, final HttpContext context) {
+        public void execute(
+                final AsyncClientExchangeHandler exchangeHandler,
+                final HandlerFactory<AsyncPushConsumer> pushHandlerFactory,
+                final HttpContext context) {
             final ManagedAsyncClientConnection connection = getValidatedPoolEntry().getConnection();
             if (log.isDebugEnabled()) {
                 log.debug(id + ": executing exchange " + ConnPoolSupport.getId(exchangeHandler) +
                         " over " + ConnPoolSupport.getId(connection));
             }
-            connection.submitCommand(new RequestExecutionCommand(exchangeHandler, context));
+            connection.submitCommand(new RequestExecutionCommand(exchangeHandler, pushHandlerFactory, context));
         }
 
     }

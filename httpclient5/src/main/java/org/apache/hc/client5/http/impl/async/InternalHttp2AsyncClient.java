@@ -43,6 +43,8 @@ import org.apache.hc.client5.http.routing.RoutingSupport;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.config.Lookup;
+import org.apache.hc.core5.http.nio.AsyncPushConsumer;
+import org.apache.hc.core5.http.nio.HandlerFactory;
 import org.apache.hc.core5.http2.nio.pool.H2ConnPool;
 import org.apache.hc.core5.reactor.DefaultConnectingIOReactor;
 
@@ -71,8 +73,8 @@ class InternalHttp2AsyncClient extends InternalAbstractHttpAsyncClient {
     }
 
     @Override
-    AsyncExecRuntime crerateAsyncExecRuntime() {
-        return new InternalHttp2AsyncExecRuntime(log, connPool);
+    AsyncExecRuntime crerateAsyncExecRuntime(final HandlerFactory<AsyncPushConsumer> pushHandlerFactory) {
+        return new InternalHttp2AsyncExecRuntime(log, connPool, pushHandlerFactory);
     }
 
     @Override

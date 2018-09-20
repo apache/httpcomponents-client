@@ -57,9 +57,11 @@ import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.nio.AsyncDataConsumer;
 import org.apache.hc.core5.http.nio.AsyncEntityProducer;
+import org.apache.hc.core5.http.nio.AsyncPushConsumer;
 import org.apache.hc.core5.http.nio.AsyncRequestProducer;
 import org.apache.hc.core5.http.nio.AsyncResponseConsumer;
 import org.apache.hc.core5.http.nio.DataStreamChannel;
+import org.apache.hc.core5.http.nio.HandlerFactory;
 import org.apache.hc.core5.http.nio.RequestChannel;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.reactor.DefaultConnectingIOReactor;
@@ -127,7 +129,7 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
         }
     }
 
-    abstract AsyncExecRuntime crerateAsyncExecRuntime();
+    abstract AsyncExecRuntime crerateAsyncExecRuntime(HandlerFactory<AsyncPushConsumer> pushHandlerFactory);
 
     abstract HttpRoute determineRoute(HttpRequest request, HttpClientContext clientContext) throws HttpException;
 
@@ -135,6 +137,7 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
     public <T> Future<T> execute(
             final AsyncRequestProducer requestProducer,
             final AsyncResponseConsumer<T> responseConsumer,
+            final HandlerFactory<AsyncPushConsumer> pushHandlerFactory,
             final HttpContext context,
             final FutureCallback<T> callback) {
         ensureRunning();
@@ -158,7 +161,7 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
                     }
                     final HttpRoute route = determineRoute(request, clientContext);
                     final String exchangeId = ExecSupport.getNextExchangeId();
-                    final AsyncExecRuntime execRuntime = crerateAsyncExecRuntime();
+                    final AsyncExecRuntime execRuntime = crerateAsyncExecRuntime(pushHandlerFactory);
                     if (log.isDebugEnabled()) {
                         log.debug(exchangeId + ": preparing request execution");
                     }
