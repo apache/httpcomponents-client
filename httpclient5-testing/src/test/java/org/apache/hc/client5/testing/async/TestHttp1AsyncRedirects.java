@@ -54,9 +54,9 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.URIScheme;
-import org.apache.hc.core5.http.config.H1Config;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.nio.AsyncServerExchangeHandler;
 import org.apache.hc.core5.http.protocol.HttpCoreContext;
@@ -84,6 +84,10 @@ public class TestHttp1AsyncRedirects extends AbstractHttpAsyncRedirectsTest<Clos
 
     protected HttpAsyncClientBuilder clientBuilder;
     protected PoolingAsyncClientConnectionManager connManager;
+
+    public TestHttp1AsyncRedirects(final URIScheme scheme) {
+        super(HttpVersion.HTTP_1_1, scheme);
+    }
 
     @Rule
     public ExternalResource connManagerResource = new ExternalResource() {
@@ -120,18 +124,9 @@ public class TestHttp1AsyncRedirects extends AbstractHttpAsyncRedirectsTest<Clos
 
     };
 
-    public TestHttp1AsyncRedirects(final URIScheme scheme) {
-        super(scheme);
-    }
-
     @Override
     protected CloseableHttpAsyncClient createClient() throws Exception {
         return clientBuilder.build();
-    }
-
-    @Override
-    public final HttpHost start() throws Exception {
-        return super.start(null, H1Config.DEFAULT);
     }
 
     static class NoKeepAliveRedirectService extends AbstractSimpleServerExchangeHandler {

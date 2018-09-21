@@ -34,9 +34,8 @@ import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.Http2AsyncClientBuilder;
 import org.apache.hc.client5.http.ssl.H2TlsStrategy;
 import org.apache.hc.client5.testing.SSLTestContexts;
-import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.URIScheme;
-import org.apache.hc.core5.http2.config.H2Config;
 import org.junit.Rule;
 import org.junit.rules.ExternalResource;
 import org.junit.runner.RunWith;
@@ -55,6 +54,10 @@ public class TestHttp2AsyncRedirect extends AbstractHttpAsyncRedirectsTest<Close
 
     protected Http2AsyncClientBuilder clientBuilder;
 
+    public TestHttp2AsyncRedirect(final URIScheme scheme) {
+        super(HttpVersion.HTTP_2, scheme);
+    }
+
     @Rule
     public ExternalResource clientResource = new ExternalResource() {
 
@@ -70,18 +73,9 @@ public class TestHttp2AsyncRedirect extends AbstractHttpAsyncRedirectsTest<Close
 
     };
 
-    public TestHttp2AsyncRedirect(final URIScheme scheme) {
-        super(scheme);
-    }
-
     @Override
     protected CloseableHttpAsyncClient createClient() {
         return clientBuilder.build();
-    }
-
-    @Override
-    public HttpHost start() throws Exception {
-        return super.start(null, H2Config.DEFAULT);
     }
 
 }
