@@ -72,7 +72,7 @@ public class RequestBuilder {
     private Charset charset;
     private ProtocolVersion version;
     private URI uri;
-    private HeaderGroup headergroup;
+    private HeaderGroup headerGroup;
     private HttpEntity entity;
     private List<NameValuePair> parameters;
     private RequestConfig config;
@@ -263,11 +263,11 @@ public class RequestBuilder {
         method = request.getRequestLine().getMethod();
         version = request.getRequestLine().getProtocolVersion();
 
-        if (headergroup == null) {
-            headergroup = new HeaderGroup();
+        if (headerGroup == null) {
+            headerGroup = new HeaderGroup();
         }
-        headergroup.clear();
-        headergroup.setHeaders(request.getAllHeaders());
+        headerGroup.clear();
+        headerGroup.setHeaders(request.getAllHeaders());
 
         parameters = null;
         entity = null;
@@ -347,46 +347,46 @@ public class RequestBuilder {
     }
 
     public Header getFirstHeader(final String name) {
-        return headergroup != null ? headergroup.getFirstHeader(name) : null;
+        return headerGroup != null ? headerGroup.getFirstHeader(name) : null;
     }
 
     public Header getLastHeader(final String name) {
-        return headergroup != null ? headergroup.getLastHeader(name) : null;
+        return headerGroup != null ? headerGroup.getLastHeader(name) : null;
     }
 
     public Header[] getHeaders(final String name) {
-        return headergroup != null ? headergroup.getHeaders(name) : null;
+        return headerGroup != null ? headerGroup.getHeaders(name) : null;
     }
 
     public RequestBuilder addHeader(final Header header) {
-        if (headergroup == null) {
-            headergroup = new HeaderGroup();
+        if (headerGroup == null) {
+            headerGroup = new HeaderGroup();
         }
-        headergroup.addHeader(header);
+        headerGroup.addHeader(header);
         return this;
     }
 
     public RequestBuilder addHeader(final String name, final String value) {
-        if (headergroup == null) {
-            headergroup = new HeaderGroup();
+        if (headerGroup == null) {
+            headerGroup = new HeaderGroup();
         }
-        this.headergroup.addHeader(new BasicHeader(name, value));
+        this.headerGroup.addHeader(new BasicHeader(name, value));
         return this;
     }
 
     public RequestBuilder removeHeader(final Header header) {
-        if (headergroup == null) {
-            headergroup = new HeaderGroup();
+        if (headerGroup == null) {
+            headerGroup = new HeaderGroup();
         }
-        headergroup.removeHeader(header);
+        headerGroup.removeHeader(header);
         return this;
     }
 
     public RequestBuilder removeHeaders(final String name) {
-        if (name == null || headergroup == null) {
+        if (name == null || headerGroup == null) {
             return this;
         }
-        for (final HeaderIterator i = headergroup.iterator(); i.hasNext(); ) {
+        for (final HeaderIterator i = headerGroup.iterator(); i.hasNext(); ) {
             final Header header = i.nextHeader();
             if (name.equalsIgnoreCase(header.getName())) {
                 i.remove();
@@ -396,18 +396,18 @@ public class RequestBuilder {
     }
 
     public RequestBuilder setHeader(final Header header) {
-        if (headergroup == null) {
-            headergroup = new HeaderGroup();
+        if (headerGroup == null) {
+            headerGroup = new HeaderGroup();
         }
-        this.headergroup.updateHeader(header);
+        this.headerGroup.updateHeader(header);
         return this;
     }
 
     public RequestBuilder setHeader(final String name, final String value) {
-        if (headergroup == null) {
-            headergroup = new HeaderGroup();
+        if (headerGroup == null) {
+            headerGroup = new HeaderGroup();
         }
-        this.headergroup.updateHeader(new BasicHeader(name, value));
+        this.headerGroup.updateHeader(new BasicHeader(name, value));
         return this;
     }
 
@@ -482,8 +482,8 @@ public class RequestBuilder {
         }
         result.setProtocolVersion(this.version);
         result.setURI(uriNotNull);
-        if (this.headergroup != null) {
-            result.setHeaders(this.headergroup.getAllHeaders());
+        if (this.headerGroup != null) {
+            result.setHeaders(this.headerGroup.getAllHeaders());
         }
         result.setConfig(this.config);
         return result;
@@ -519,6 +519,29 @@ public class RequestBuilder {
             return this.method;
         }
 
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder builder = new StringBuilder();
+        builder.append("RequestBuilder [method=");
+        builder.append(method);
+        builder.append(", charset=");
+        builder.append(charset);
+        builder.append(", version=");
+        builder.append(version);
+        builder.append(", uri=");
+        builder.append(uri);
+        builder.append(", headerGroup=");
+        builder.append(headerGroup);
+        builder.append(", entity=");
+        builder.append(entity);
+        builder.append(", parameters=");
+        builder.append(parameters);
+        builder.append(", config=");
+        builder.append(config);
+        builder.append("]");
+        return builder.toString();
     }
 
 }
