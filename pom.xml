@@ -79,6 +79,7 @@
     <mockito.version>2.21.0</mockito.version>
     <jna.version>4.5.2</jna.version>
     <hc.stylecheck.version>1</hc.stylecheck.version>
+    <rxjava.version>2.2.2</rxjava.version>
   </properties>
 
   <dependencyManagement>
@@ -142,6 +143,12 @@
         <groupId>net.java.dev.jna</groupId>
         <artifactId>jna-platform</artifactId>
         <version>${jna.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.reactivex.rxjava2</groupId>
+        <artifactId>rxjava</artifactId>
+        <version>${rxjava.version}</version>
+        <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>junit</groupId>
@@ -389,7 +396,7 @@
             <exclude>src/docbkx/resources/**</exclude>
             <exclude>src/test/resources/*.truststore</exclude>
             <exclude>.checkstyle</exclude>
-            <exclude>.externalToolBuilders/**</exclude>			
+            <exclude>.externalToolBuilders/**</exclude>
             <exclude>maven-eclipse.xml</exclude>
             <exclude>**/serial</exclude>
             <exclude>**/index.txt</exclude>
