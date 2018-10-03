@@ -34,6 +34,7 @@ import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
 import org.apache.hc.client5.http.socket.LayeredConnectionSocketFactory;
 import org.apache.hc.client5.http.socket.PlainConnectionSocketFactory;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
+import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.io.HttpConnectionFactory;
 import org.apache.hc.core5.http.io.SocketConfig;
@@ -199,8 +200,8 @@ public class PoolingHttpClientConnectionManagerBuilder {
         @SuppressWarnings("resource")
         final PoolingHttpClientConnectionManager poolingmgr = new PoolingHttpClientConnectionManager(
                 RegistryBuilder.<ConnectionSocketFactory>create()
-                        .register("http", PlainConnectionSocketFactory.getSocketFactory())
-                        .register("https", sslSocketFactory != null ? sslSocketFactory :
+                        .register(URIScheme.HTTP.id, PlainConnectionSocketFactory.getSocketFactory())
+                        .register(URIScheme.HTTPS.id, sslSocketFactory != null ? sslSocketFactory :
                                 (systemProperties ?
                                         SSLConnectionSocketFactory.getSystemSocketFactory() :
                                         SSLConnectionSocketFactory.getSocketFactory()))

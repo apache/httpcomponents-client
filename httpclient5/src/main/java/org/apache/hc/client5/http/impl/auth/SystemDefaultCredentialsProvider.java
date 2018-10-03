@@ -46,6 +46,7 @@ import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.Args;
 
@@ -127,7 +128,7 @@ public class SystemDefaultCredentialsProvider implements CredentialsStore {
         final String host = authscope.getHost();
         if (host != null) {
             final HttpClientContext clientContext = context != null ? HttpClientContext.adapt(context) : null;
-            final String protocol = authscope.getProtocol() != null ? authscope.getProtocol() : (authscope.getPort() == 443 ? "https" : "http");
+            final String protocol = authscope.getProtocol() != null ? authscope.getProtocol() : (authscope.getPort() == 443 ? URIScheme.HTTPS.id : URIScheme.HTTP.id);
             PasswordAuthentication systemcreds = getSystemCreds(
                     protocol, authscope, Authenticator.RequestorType.SERVER, clientContext);
             if (systemcreds == null) {

@@ -36,6 +36,7 @@ import org.apache.hc.client5.http.osgi.services.ProxyConfiguration;
 import org.apache.hc.client5.http.osgi.services.TrustedHostsConfiguration;
 import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
 import org.apache.hc.client5.http.socket.PlainConnectionSocketFactory;
+import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.config.Registry;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 
@@ -66,8 +67,8 @@ final class HttpClientBuilderConfigurator {
     private Registry<ConnectionSocketFactory> createSocketFactoryRegistry(
             final TrustedHostsConfiguration trustedHostsConfiguration) {
         return RegistryBuilder.<ConnectionSocketFactory>create()
-                .register("http", PlainConnectionSocketFactory.INSTANCE)
-                .register("https", createSocketFactory(trustedHostsConfiguration))
+                .register(URIScheme.HTTP.id, PlainConnectionSocketFactory.INSTANCE)
+                .register(URIScheme.HTTPS.id, createSocketFactory(trustedHostsConfiguration))
                 .build();
     }
 
