@@ -26,10 +26,12 @@
  */
 package org.apache.hc.client5.http.examples;
 
-import org.apache.hc.client5.http.auth.AuthCache;
+import org.apache.hc.client5.http.auth.AuthExchange;
+import org.apache.hc.client5.http.auth.AuthScheme;
+import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
-import org.apache.hc.client5.http.impl.auth.BasicAuthCache;
+import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
 import org.apache.hc.client5.http.impl.auth.DigestScheme;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
@@ -39,32 +41,24 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 
 /**
- * An example of HttpClient can be customized to authenticate
- * preemptively using DIGEST scheme.
- * <p>
- * Generally, preemptive authentication can be considered less
- * secure than a response to an authentication challenge
- * and therefore discouraged.
- * </p>
+ * An example of how HttpClient can authenticate multiple requests
+ * using the same DIGEST scheme. After the initial request / response exchange
+ * all subsequent requests sharing the same execution context can re-use
+ * the last DIGEST nonce value to authenticate with the server.
  */
 public class ClientPreemptiveDigestAuthentication {
 
     public static void main(final String[] args) throws Exception {
         try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
 
-            // Create AuthCache instance
-            final AuthCache authCache = new BasicAuthCache();
-            // Generate DIGEST scheme object, initialize it and add it to the local auth cache
-            final DigestScheme digestAuth = new DigestScheme();
-            // Suppose we already know the realm name and the expected nonce value
-            digestAuth.initPreemptive(new UsernamePasswordCredentials("user", "passwd".toCharArray()), "whatever", "realm");
-
             final HttpHost target = new HttpHost("httpbin.org", 80, "http");
-            authCache.put(target, digestAuth);
 
-            // Add AuthCache to the execution context
             final HttpClientContext localContext = HttpClientContext.create();
-            localContext.setAuthCache(authCache);
+            final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+            credentialsProvider.setCredentials(
+                    new AuthScope(target),
+                    new UsernamePasswordCredentials("user", "passwd".toCharArray()));
+            localContext.setCredentialsProvider(credentialsProvider);
 
             final HttpGet httpget = new HttpGet("http://httpbin.org/digest-auth/auth/user/passwd");
 
@@ -74,6 +68,16 @@ public class ClientPreemptiveDigestAuthentication {
                     System.out.println("----------------------------------------");
                     System.out.println(response.getCode() + " " + response.getReasonPhrase());
                     EntityUtils.consume(response.getEntity());
+
+                    final AuthExchange authExchange = localContext.getAuthExchange(target);
+                    if (authExchange != null) {
+                        final AuthScheme authScheme = authExchange.getAuthScheme();
+                        if (authScheme instanceof DigestScheme) {
+                            DigestScheme digestScheme = (DigestScheme) authScheme;
+                            System.out.println("Nonce: " + digestScheme.getNonce() +
+                                    "; count: " + digestScheme.getNounceCount());
+                        }
+                    }
                 }
             }
         }
