@@ -48,10 +48,11 @@ import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.AuthenticationException;
+import org.apache.hc.client5.http.auth.ByteArrayBuilder;
 import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.MalformedChallengeException;
-import org.apache.hc.client5.http.auth.ByteArrayBuilder;
+import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpHost;
@@ -406,7 +407,18 @@ public class DigestScheme implements AuthScheme, Serializable {
         return buffer.toString();
     }
 
-    String getCnonce() {
+    @Internal
+    public String getNonce() {
+        return lastNonce;
+    }
+
+    @Internal
+    public long getNounceCount() {
+        return nounceCount;
+    }
+
+    @Internal
+    public String getCnonce() {
         return cnonce;
     }
 
