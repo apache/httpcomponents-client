@@ -39,12 +39,31 @@ import org.apache.hc.core5.http.nio.AsyncResponseConsumer;
 import org.apache.hc.core5.http.nio.entity.AbstractBinDataConsumer;
 import org.apache.hc.core5.http.protocol.HttpContext;
 
+/**
+ * Abstract response consumer that processes response body data as an octet stream.
+ *
+ * @since 5.0
+ *
+ * @param <T> response message representation.
+ */
 public abstract class AbstractBinResponseConsumer<T> extends AbstractBinDataConsumer implements AsyncResponseConsumer<T> {
 
     private volatile FutureCallback<T> resultCallback;
 
+    /**
+     * Triggered to signal the beginning of response processing.
+     *
+     * @param response the response message head
+     * @param contentType the content type of the response body,
+     *                    or {@code null} if the response does not enclose a response entity.
+     */
     protected abstract void start(HttpResponse response, ContentType contentType) throws HttpException, IOException;
 
+    /**
+     * Triggered to generate object that represents a result of response message processing.
+     *
+     * @return the result of response processing.
+     */
     protected abstract T buildResult();
 
     @Override
@@ -63,7 +82,7 @@ public abstract class AbstractBinResponseConsumer<T> extends AbstractBinDataCons
         if (entityDetails != null) {
             try {
                 final ContentType contentType = ContentType.parse(entityDetails.getContentType());
-                start(response, contentType);
+                start(response, contentType != null ? contentType : ContentType.DEFAULT_BINARY);
             } catch (final UnsupportedCharsetException ex) {
                 throw new UnsupportedEncodingException(ex.getMessage());
             }

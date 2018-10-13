@@ -26,14 +26,11 @@
  */
 package org.apache.hc.client5.http.cache;
 
-import org.apache.hc.core5.annotation.Contract;
-import org.apache.hc.core5.annotation.ThreadingBehavior;
-
 /**
  * Records static constants for various HTTP header names.
+ *
  * @since 4.1
  */
-@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class HeaderConstants {
 
     public static final String GET_METHOD = "GET";

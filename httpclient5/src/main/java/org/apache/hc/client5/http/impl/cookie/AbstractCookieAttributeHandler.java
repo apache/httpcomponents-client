@@ -37,7 +37,7 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
  *
  * @since 4.0
  */
-@Contract(threading = ThreadingBehavior.IMMUTABLE)
+@Contract(threading = ThreadingBehavior.STATELESS)
 public abstract class AbstractCookieAttributeHandler implements CookieAttributeHandler {
 
     @Override

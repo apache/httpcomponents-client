@@ -31,8 +31,6 @@ import java.io.IOException;
 import java.util.List;
 
 import org.apache.hc.client5.http.impl.ConnPoolSupport;
-import org.apache.hc.core5.annotation.Contract;
-import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpConnection;
 import org.apache.hc.core5.http.config.CharCodingConfig;
@@ -52,10 +50,6 @@ import org.apache.hc.core5.util.Args;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * @since 5.0
- */
-@Contract(threading = ThreadingBehavior.IMMUTABLE)
 class Http2AsyncClientEventHandlerFactory implements IOEventHandlerFactory {
 
     private final Logger wireLog = LoggerFactory.getLogger("org.apache.hc.client5.http.wire");

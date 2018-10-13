@@ -43,7 +43,7 @@ import org.apache.hc.core5.util.TimeValue;
  *
  * @since 4.3
  */
-@Contract(threading = ThreadingBehavior.IMMUTABLE)
+@Contract(threading = ThreadingBehavior.STATELESS)
 public class PlainConnectionSocketFactory implements ConnectionSocketFactory {
 
     public static final PlainConnectionSocketFactory INSTANCE = new PlainConnectionSocketFactory();

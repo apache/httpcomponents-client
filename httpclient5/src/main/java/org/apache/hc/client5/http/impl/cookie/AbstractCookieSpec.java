@@ -44,7 +44,6 @@ import org.apache.hc.core5.util.Asserts;
  * validation or matching cookie attributes to a number of arbitrary
  * {@link CookieAttributeHandler}s.
  *
- *
  * @since 4.0
  */
 @Contract(threading = ThreadingBehavior.SAFE)

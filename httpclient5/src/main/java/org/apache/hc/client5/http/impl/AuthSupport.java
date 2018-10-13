@@ -32,14 +32,18 @@ import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.CredentialsStore;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.auth.AuthSchemes;
+import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.net.URIAuthority;
 import org.apache.hc.core5.util.Args;
 
 /**
+ * Authentication support methods.
+ *
  * @since 5.0
  */
+@Internal
 public class AuthSupport {
 
     public static void extractFromAuthority(

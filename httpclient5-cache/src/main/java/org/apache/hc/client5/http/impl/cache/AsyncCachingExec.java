@@ -88,7 +88,7 @@ import org.apache.hc.core5.util.ByteArrayBuffer;
  * @since 5.0
  */
 @Contract(threading = ThreadingBehavior.SAFE) // So long as the responseCache implementation is threadsafe
-public class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler {
+class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler {
 
     private final HttpAsyncCache responseCache;
     private final DefaultAsyncCacheRevalidator cacheRevalidator;
@@ -120,7 +120,7 @@ public class AsyncCachingExec extends CachingExecBase implements AsyncExecChainH
         this.conditionalRequestBuilder = conditionalRequestBuilder;
     }
 
-    public AsyncCachingExec(
+    AsyncCachingExec(
             final HttpAsyncCache cache,
             final ScheduledExecutorService executorService,
             final SchedulingStrategy schedulingStrategy,
@@ -130,7 +130,7 @@ public class AsyncCachingExec extends CachingExecBase implements AsyncExecChainH
                 config);
     }
 
-    public AsyncCachingExec(
+    AsyncCachingExec(
             final ResourceFactory resourceFactory,
             final HttpAsyncCacheStorage storage,
             final ScheduledExecutorService executorService,
@@ -144,7 +144,7 @@ public class AsyncCachingExec extends CachingExecBase implements AsyncExecChainH
             final AsyncExecChain.Scope scope,
             final AsyncExecCallback asyncExecCallback) {
         scope.clientContext.setAttribute(HttpCoreContext.HTTP_RESPONSE, cacheResponse);
-        scope.execRuntime.releaseConnection();
+        scope.execRuntime.releaseEndpoint();
 
         final SimpleBody body = cacheResponse.getBody();
         final byte[] content = body != null ? body.getBodyBytes() : null;

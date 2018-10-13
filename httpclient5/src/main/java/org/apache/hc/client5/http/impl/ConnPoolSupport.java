@@ -32,6 +32,11 @@ import org.apache.hc.core5.pool.ConnPoolControl;
 import org.apache.hc.core5.pool.PoolStats;
 import org.apache.hc.core5.util.Identifiable;
 
+/**
+ * Connection pooling support methods.
+ *
+ * @since 5.0
+ */
 @Internal
 public final class ConnPoolSupport {
 

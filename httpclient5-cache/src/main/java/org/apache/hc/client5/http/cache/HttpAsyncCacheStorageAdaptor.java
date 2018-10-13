@@ -30,6 +30,8 @@ import java.util.Collection;
 import java.util.Map;
 
 import org.apache.hc.client5.http.impl.Operations;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.concurrent.Cancellable;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.util.Args;
@@ -40,6 +42,7 @@ import org.apache.hc.core5.util.Args;
  *
  * @since 5.0
  */
+@Contract(threading = ThreadingBehavior.SAFE_CONDITIONAL)
 public final class HttpAsyncCacheStorageAdaptor implements HttpAsyncCacheStorage {
 
     private final HttpCacheStorage cacheStorage;

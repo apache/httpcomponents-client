@@ -31,6 +31,8 @@ import java.net.SocketAddress;
 import java.util.concurrent.Future;
 
 import org.apache.hc.client5.http.DnsResolver;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.net.NamedEndpoint;
 import org.apache.hc.core5.reactor.ConnectionInitiator;
@@ -43,6 +45,7 @@ import org.apache.hc.core5.util.TimeValue;
  *
  * @since 5.0
  */
+@Contract(threading = ThreadingBehavior.SAFE_CONDITIONAL)
 public final class MultuhomeConnectionInitiator implements ConnectionInitiator {
 
     private final ConnectionInitiator connectionInitiator;

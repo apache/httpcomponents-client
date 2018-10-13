@@ -36,12 +36,13 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
 /**
  * This cookie comparator can be used to compare identity of cookies.
  * <p>
- *  Cookies are considered identical if their names are equal and
- *  their domain attributes match ignoring case.
+ * Cookies are considered identical if their names are equal and
+ * their domain attributes match ignoring case.
+ * </p>
  *
  * @since 4.0
  */
-@Contract(threading = ThreadingBehavior.IMMUTABLE)
+@Contract(threading = ThreadingBehavior.STATELESS)
 public class CookieIdentityComparator implements Serializable, Comparator<Cookie> {
 
     private static final long serialVersionUID = 4466565437490631532L;

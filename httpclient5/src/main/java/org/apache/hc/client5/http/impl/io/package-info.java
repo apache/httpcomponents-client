@@ -26,7 +26,7 @@
  */
 
 /**
- * Default implementations of client connection management
- * functions.
+ * Client connection management functions based the classic
+ * connection management APIs.
  */
 package org.apache.hc.client5.http.impl.io;

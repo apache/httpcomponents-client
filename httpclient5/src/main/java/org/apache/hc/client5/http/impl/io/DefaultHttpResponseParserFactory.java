@@ -43,7 +43,7 @@ import org.apache.hc.core5.http.message.LineParser;
  *
  * @since 4.3
  */
-@Contract(threading = ThreadingBehavior.IMMUTABLE)
+@Contract(threading = ThreadingBehavior.STATELESS)
 public class DefaultHttpResponseParserFactory implements HttpMessageParserFactory<ClassicHttpResponse> {
 
     public static final DefaultHttpResponseParserFactory INSTANCE = new DefaultHttpResponseParserFactory();

@@ -40,6 +40,9 @@ import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.routing.HttpRoutePlanner;
 import org.apache.hc.client5.http.routing.RoutingSupport;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.Internal;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.config.Lookup;
@@ -48,7 +51,19 @@ import org.apache.hc.core5.http.nio.HandlerFactory;
 import org.apache.hc.core5.http2.nio.pool.H2ConnPool;
 import org.apache.hc.core5.reactor.DefaultConnectingIOReactor;
 
-class InternalHttp2AsyncClient extends InternalAbstractHttpAsyncClient {
+/**
+ * Internal implementation of HTTP/2 only {@link CloseableHttpAsyncClient}.
+ * <p>
+ * Concurrent message exchanges with the same connection route executed by
+ * this client will get automatically multiplexed over a single physical HTTP/2
+ * connection.
+ * </p>
+ *
+ * @since 5.0
+ */
+@Contract(threading = ThreadingBehavior.SAFE_CONDITIONAL)
+@Internal
+public final class InternalHttp2AsyncClient extends InternalAbstractHttpAsyncClient {
 
     private final HttpRoutePlanner routePlanner;
     private final H2ConnPool connPool;

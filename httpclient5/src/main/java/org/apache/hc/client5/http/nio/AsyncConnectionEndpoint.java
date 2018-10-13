@@ -53,13 +53,28 @@ import org.apache.hc.core5.io.ModalCloseable;
 @Contract(threading = ThreadingBehavior.SAFE)
 public abstract class AsyncConnectionEndpoint implements ModalCloseable {
 
+    /**
+     * Initiates a message exchange using the given handler.
+     *
+     * @param exchangeHandler the message exchange handler.
+     * @param pushHandlerFactory the push handler factory.
+     * @param context the execution context.
+     */
     public abstract void execute(
             AsyncClientExchangeHandler exchangeHandler,
             HandlerFactory<AsyncPushConsumer> pushHandlerFactory,
             HttpContext context);
 
+    /**
+     * Determines if the connection to the remote endpoint is still open and valid.
+     */
     public abstract boolean isConnected();
 
+    /**
+     * Sets socket timeout.
+     *
+     * @param timeout the socket timeout.
+     */
     public abstract void setSocketTimeout(int timeout);
 
     @Override
@@ -67,12 +82,29 @@ public abstract class AsyncConnectionEndpoint implements ModalCloseable {
         close(CloseMode.GRACEFUL);
     }
 
-    public final void execute(
+    /**
+     * Initiates a message exchange using the given handler.
+     *
+     * @param exchangeHandler the message exchange handler.
+     * @param context the execution context.
+     */
+    public void execute(
             final AsyncClientExchangeHandler exchangeHandler,
             final HttpContext context) {
         execute(exchangeHandler, null, context);
     }
 
+    /**
+     * Initiates message exchange using the given request producer and response consumer.
+     *
+     * @param requestProducer the request producer.
+     * @param responseConsumer the response consumer.
+     * @param pushHandlerFactory the push handler factory.
+     * @param context the execution context.
+     * @param callback the result callback.
+     * @param <T> the result representation.
+     * @return the result future.
+     */
     public final <T> Future<T> execute(
             final AsyncRequestProducer requestProducer,
             final AsyncResponseConsumer<T> responseConsumer,
@@ -104,6 +136,16 @@ public abstract class AsyncConnectionEndpoint implements ModalCloseable {
         return future;
     }
 
+    /**
+     * Initiates message exchange using the given request producer and response consumer.
+     *
+     * @param requestProducer the request producer.
+     * @param responseConsumer the response consumer.
+     * @param context the execution context.
+     * @param callback the result callback.
+     * @param <T> the result representation.
+     * @return the result future.
+     */
     public final <T> Future<T> execute(
             final AsyncRequestProducer requestProducer,
             final AsyncResponseConsumer<T> responseConsumer,
@@ -112,6 +154,16 @@ public abstract class AsyncConnectionEndpoint implements ModalCloseable {
         return execute(requestProducer, responseConsumer, null, context, callback);
     }
 
+    /**
+     * Initiates message exchange using the given request producer and response consumer.
+     *
+     * @param requestProducer the request producer.
+     * @param responseConsumer the response consumer.
+     * @param pushHandlerFactory the push handler factory.
+     * @param callback the result callback.
+     * @param <T> the result representation.
+     * @return the result future.
+     */
     public final <T> Future<T> execute(
             final AsyncRequestProducer requestProducer,
             final AsyncResponseConsumer<T> responseConsumer,
@@ -120,6 +172,15 @@ public abstract class AsyncConnectionEndpoint implements ModalCloseable {
         return execute(requestProducer, responseConsumer, pushHandlerFactory, null, callback);
     }
 
+    /**
+     * Initiates message exchange using the given request producer and response consumer.
+     *
+     * @param requestProducer the request producer.
+     * @param responseConsumer the response consumer.
+     * @param callback the result callback.
+     * @param <T> the result representation.
+     * @return the result future.
+     */
     public final <T> Future<T> execute(
             final AsyncRequestProducer requestProducer,
             final AsyncResponseConsumer<T> responseConsumer,

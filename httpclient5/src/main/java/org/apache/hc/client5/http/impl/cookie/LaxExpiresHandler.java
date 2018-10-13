@@ -45,10 +45,12 @@ import org.apache.hc.core5.http.message.ParserCursor;
 import org.apache.hc.core5.util.Args;
 
 /**
+ * Cookie {@code expires} attribute handler conformant to the more relaxed interpretation
+ * of HTTP state management.
  *
  * @since 4.4
  */
-@Contract(threading = ThreadingBehavior.IMMUTABLE)
+@Contract(threading = ThreadingBehavior.STATELESS)
 public class LaxExpiresHandler extends AbstractCookieAttributeHandler implements CommonCookieAttributeHandler {
 
     static final TimeZone UTC = TimeZone.getTimeZone("UTC");

@@ -32,6 +32,11 @@ import java.util.List;
 import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.http.message.BasicNameValuePair;
 
+/**
+ * HTTP form used by the fluent facade.
+ *
+ * @since 4.2
+ */
 public class Form {
 
     private final List<NameValuePair> params;

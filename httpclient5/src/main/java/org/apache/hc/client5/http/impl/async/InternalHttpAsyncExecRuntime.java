@@ -78,12 +78,12 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
     }
 
     @Override
-    public boolean isConnectionAcquired() {
+    public boolean isEndpointAcquired() {
         return endpointRef.get() != null;
     }
 
     @Override
-    public Cancellable acquireConnection(
+    public Cancellable acquireEndpoint(
             final HttpRoute route,
             final Object object,
             final HttpClientContext context,
@@ -131,7 +131,7 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
     }
 
     @Override
-    public void releaseConnection() {
+    public void releaseEndpoint() {
         final AsyncConnectionEndpoint endpoint = endpointRef.getAndSet(null);
         if (endpoint != null) {
             if (reusable) {
@@ -146,7 +146,7 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
     }
 
     @Override
-    public void discardConnection() {
+    public void discardEndpoint() {
         final AsyncConnectionEndpoint endpoint = endpointRef.getAndSet(null);
         if (endpoint != null) {
             discardEndpoint(endpoint);
@@ -175,13 +175,13 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
     }
 
     @Override
-    public boolean isConnected() {
+    public boolean isEndpointConnected() {
         final AsyncConnectionEndpoint endpoint = endpointRef.get();
         return endpoint != null && endpoint.isConnected();
     }
 
     @Override
-    public Cancellable connect(
+    public Cancellable connectEndpoint(
             final HttpClientContext context,
             final FutureCallback<AsyncExecRuntime> callback) {
         final AsyncConnectionEndpoint endpoint = ensureValid();
@@ -245,7 +245,7 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
                 };
             }
         } else {
-            connect(context, new FutureCallback<AsyncExecRuntime>() {
+            connectEndpoint(context, new FutureCallback<AsyncExecRuntime>() {
 
                 @Override
                 public void completed(final AsyncExecRuntime runtime) {

@@ -30,8 +30,6 @@ package org.apache.hc.client5.http.impl.cache;
 import java.io.File;
 
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
-import org.apache.hc.core5.annotation.Contract;
-import org.apache.hc.core5.annotation.ThreadingBehavior;
 
 /**
  * Factory methods for {@link CloseableHttpAsyncClient} instances
@@ -39,8 +37,7 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
  *
  * @since 5.0
  */
-@Contract(threading = ThreadingBehavior.IMMUTABLE)
-public class CachingHttpAsyncClients {
+public final class CachingHttpAsyncClients {
 
     private CachingHttpAsyncClients() {
         super();

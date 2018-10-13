@@ -35,15 +35,11 @@ import java.nio.charset.CoderResult;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 
-import org.apache.hc.core5.annotation.Contract;
-import org.apache.hc.core5.annotation.ThreadingBehavior;
-
 /**
  * Builder class for sequences of bytes.
  *
  * @since 5.0
  */
-@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public final class ByteArrayBuilder {
 
     private CharsetEncoder charsetEncoder;

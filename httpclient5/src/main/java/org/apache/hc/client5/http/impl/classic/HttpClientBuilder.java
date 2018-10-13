@@ -58,7 +58,7 @@ import org.apache.hc.client5.http.cookie.CookieSpecProvider;
 import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.client5.http.entity.InputStreamFactory;
 import org.apache.hc.client5.http.impl.ChainElements;
-import org.apache.hc.client5.http.impl.CookieSpecRegistries;
+import org.apache.hc.client5.http.impl.CookieSpecSupport;
 import org.apache.hc.client5.http.impl.DefaultAuthenticationStrategy;
 import org.apache.hc.client5.http.impl.DefaultConnectionKeepAliveStrategy;
 import org.apache.hc.client5.http.impl.DefaultHttpRequestRetryHandler;
@@ -614,7 +614,7 @@ public class HttpClientBuilder {
      * be used for request execution if not explicitly set in the client execution
      * context.
      *
-     * @see CookieSpecRegistries
+     * @see CookieSpecSupport
      *
      */
     public final HttpClientBuilder setDefaultCookieSpecRegistry(
@@ -961,7 +961,7 @@ public class HttpClientBuilder {
         }
         Lookup<CookieSpecProvider> cookieSpecRegistryCopy = this.cookieSpecRegistry;
         if (cookieSpecRegistryCopy == null) {
-            cookieSpecRegistryCopy = CookieSpecRegistries.createDefault();
+            cookieSpecRegistryCopy = CookieSpecSupport.createDefault();
         }
 
         CookieStore defaultCookieStore = this.cookieStore;

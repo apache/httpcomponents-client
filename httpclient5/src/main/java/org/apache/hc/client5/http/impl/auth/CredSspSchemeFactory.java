@@ -36,11 +36,20 @@ import javax.net.ssl.SSLContext;
 import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.AuthSchemeProvider;
 import org.apache.hc.client5.http.ssl.TrustAllStrategy;
+import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Experimental;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.ssl.SSLContexts;
 import org.apache.hc.core5.ssl.SSLInitializationException;
 
+/**
+ * {@link AuthSchemeProvider} implementation that creates and initializes
+ * {@link CredSspScheme} instances.
+ *
+ * @since 4.0
+ */
+@Contract(threading = ThreadingBehavior.STATELESS)
 @Experimental
 public class CredSspSchemeFactory implements AuthSchemeProvider
 {

@@ -58,6 +58,8 @@
  * keys. Clients can implement this interface to change the way the mapping
  * is done (for example, to add a prefix to all cache keys to provide a form
  * of memcached namespacing).
+ *
+ * @since 4.1
  */
 public interface KeyHashingScheme {
 

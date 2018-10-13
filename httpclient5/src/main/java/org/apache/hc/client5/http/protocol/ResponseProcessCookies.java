@@ -54,7 +54,7 @@ import org.slf4j.LoggerFactory;
  *
  * @since 4.0
  */
-@Contract(threading = ThreadingBehavior.IMMUTABLE)
+@Contract(threading = ThreadingBehavior.STATELESS)
 public class ResponseProcessCookies implements HttpResponseInterceptor {
 
     private final Logger log = LoggerFactory.getLogger(getClass());

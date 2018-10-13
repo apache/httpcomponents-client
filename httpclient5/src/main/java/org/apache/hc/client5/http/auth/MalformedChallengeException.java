@@ -32,7 +32,6 @@ import org.apache.hc.core5.http.ProtocolException;
  * Signals that authentication challenge is in some way invalid or
  * illegal in the given context
  *
- *
  * @since 4.0
  */
 public class MalformedChallengeException extends ProtocolException {

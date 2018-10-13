@@ -64,9 +64,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * <p>
  * Client implementation of the CredSSP protocol specified in [MS-CSSP].
- * </p>
  * <p>
  * Note: This is implementation is NOT GSS based. It should be. But there is no Java NTLM
  * implementation as GSS module. Maybe the NTLMEngine can be converted to GSS and then this
@@ -76,6 +74,8 @@ import org.slf4j.LoggerFactory;
  * Based on [MS-CSSP]: Credential Security Support Provider (CredSSP) Protocol (Revision 13.0, 7/14/2016).
  * The implementation was inspired by Python CredSSP and NTLM implementation by Jordan Borean.
  * </p>
+ *
+ * @since 5.0
  */
 @Experimental
 public class CredSspScheme implements AuthScheme

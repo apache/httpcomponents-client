@@ -41,7 +41,7 @@ import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.LangUtils;
 
 /**
- * The route for a request.
+ * Connection route definition for HTTP requests.
  *
  * @since 4.0
  */

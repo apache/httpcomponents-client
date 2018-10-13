@@ -34,6 +34,11 @@ import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
 
+/**
+ * HTTP request message with a custom configuration.
+ *
+ * @since 5.0
+ */
 public class ConfigurableHttpRequest extends BasicHttpRequest implements Configurable {
 
     private static final long serialVersionUID = 1L;

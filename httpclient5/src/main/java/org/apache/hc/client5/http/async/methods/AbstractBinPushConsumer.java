@@ -39,8 +39,20 @@ import org.apache.hc.core5.http.nio.AsyncPushConsumer;
 import org.apache.hc.core5.http.nio.entity.AbstractBinDataConsumer;
 import org.apache.hc.core5.http.protocol.HttpContext;
 
+/**
+ * Abstract push response consumer that processes response body data as an octet stream.
+ *
+ * @since 5.0
+ */
 public abstract class AbstractBinPushConsumer extends AbstractBinDataConsumer implements AsyncPushConsumer {
 
+    /**
+     * Triggered to signal the beginning of response processing.
+     *
+     * @param response the response message head
+     * @param contentType the content type of the response body,
+     *                    or {@code null} if the response does not enclose a response entity.
+     */
     protected abstract void start(HttpRequest promise, HttpResponse response, ContentType contentType) throws HttpException, IOException;
 
     @Override
@@ -56,7 +68,7 @@ public abstract class AbstractBinPushConsumer extends AbstractBinDataConsumer im
             } catch (final UnsupportedCharsetException ex) {
                 throw new UnsupportedEncodingException(ex.getMessage());
             }
-            start(promise, response, contentType);
+            start(promise, response, contentType != null ? contentType : ContentType.DEFAULT_BINARY);
         } else {
             start(promise, response, null);
             completed();

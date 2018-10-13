@@ -41,6 +41,8 @@ import org.apache.hc.client5.http.impl.ExecSupport;
 import org.apache.hc.client5.http.impl.classic.RequestFailedException;
 import org.apache.hc.client5.http.impl.nio.MultuhomeConnectionInitiator;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.concurrent.Cancellable;
 import org.apache.hc.core5.concurrent.ComplexCancellable;
 import org.apache.hc.core5.concurrent.FutureCallback;
@@ -72,6 +74,20 @@ import org.apache.hc.core5.reactor.IOReactorConfig;
 import org.apache.hc.core5.reactor.IOSession;
 import org.apache.hc.core5.util.Timeout;
 
+/**
+ * Minimal implementation of HTTP/2 only {@link CloseableHttpAsyncClient}. This client
+ * is optimized for HTTP/2 multiplexing message transport and does not support advanced
+ * HTTP protocol functionality such as request execution via a proxy, state management,
+ * authentication and request redirects.
+ * <p>
+ * Concurrent message exchanges with the same connection route executed by
+ * this client will get automatically multiplexed over a single physical HTTP/2
+ * connection.
+ * </p>
+ *
+ * @since 5.0
+ */
+@Contract(threading = ThreadingBehavior.SAFE_CONDITIONAL)
 public final class MinimalHttp2AsyncClient extends AbstractMinimalHttpAsyncClientBase {
 
     private final H2ConnPool connPool;

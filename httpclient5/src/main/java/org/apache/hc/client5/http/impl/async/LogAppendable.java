@@ -31,7 +31,7 @@ import java.io.IOException;
 
 import org.slf4j.Logger;
 
-public final class LogAppendable implements Appendable {
+final class LogAppendable implements Appendable {
 
     private final Logger log;
     private final String prefix;

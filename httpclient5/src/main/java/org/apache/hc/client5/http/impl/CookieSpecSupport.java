@@ -33,13 +33,17 @@ import org.apache.hc.client5.http.impl.cookie.IgnoreSpecProvider;
 import org.apache.hc.client5.http.impl.cookie.RFC6265CookieSpecProvider;
 import org.apache.hc.client5.http.psl.PublicSuffixMatcher;
 import org.apache.hc.client5.http.psl.PublicSuffixMatcherLoader;
+import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 
 /**
- * @since 4.5
+ * Cookie support methods.
+ *
+ * @since 5.0
  */
-public final class CookieSpecRegistries {
+@Internal
+public final class CookieSpecSupport {
 
     /**
      * Creates a builder containing the default registry entries, using the provided public suffix matcher.
@@ -74,6 +78,6 @@ public final class CookieSpecRegistries {
         return createDefaultBuilder(publicSuffixMatcher).build();
     }
 
-    private CookieSpecRegistries() {}
+    private CookieSpecSupport() {}
 
 }

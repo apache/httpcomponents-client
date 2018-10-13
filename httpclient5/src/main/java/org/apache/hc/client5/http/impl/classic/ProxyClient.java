@@ -83,7 +83,7 @@ import org.apache.hc.core5.http.protocol.RequestUserAgent;
 import org.apache.hc.core5.util.Args;
 
 /**
- * ProxyClient can be used to establish a tunnel via an HTTP proxy.
+ * ProxyClient can be used to establish a tunnel via an HTTP/1.1 proxy.
  */
 public class ProxyClient {
 
@@ -186,7 +186,7 @@ public class ProxyClient {
                 throw new HttpException("Unexpected response to CONNECT request: " + response);
             }
             if (this.authenticator.isChallenged(proxy, ChallengeType.PROXY, response, this.proxyAuthExchange, context)) {
-                if (this.authenticator.prepareAuthResponse(proxy, ChallengeType.PROXY, response,
+                if (this.authenticator.updateAuthState(proxy, ChallengeType.PROXY, response,
                         this.proxyAuthStrategy, this.proxyAuthExchange, context)) {
                     // Retry request
                     if (this.reuseStrategy.keepAlive(connect, response, context)) {

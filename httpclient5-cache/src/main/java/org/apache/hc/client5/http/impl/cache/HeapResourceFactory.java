@@ -38,7 +38,7 @@ import org.apache.hc.core5.util.Args;
  *
  * @since 4.1
  */
-@Contract(threading = ThreadingBehavior.IMMUTABLE)
+@Contract(threading = ThreadingBehavior.STATELESS)
 public class HeapResourceFactory implements ResourceFactory {
 
     public static final HeapResourceFactory INSTANCE = new HeapResourceFactory();

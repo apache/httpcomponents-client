@@ -39,18 +39,6 @@ import org.apache.hc.core5.util.Args;
 
 /**
  * HTTP OPTIONS method.
- * <p>
- * The HTTP OPTIONS method is defined in section 9.2 of
- * <a href="http://www.ietf.org/rfc/rfc2616.txt">RFC2616</a>:
- * </p>
- * <blockquote>
- *  The OPTIONS method represents a request for information about the
- *  communication options available on the request/response chain
- *  identified by the Request-URI. This method allows the client to
- *  determine the options and/or requirements associated with a resource,
- *  or the capabilities of a server, without implying a resource action
- *  or initiating a resource retrieval.
- * </blockquote>
  *
  * @since 4.0
  */

@@ -27,9 +27,11 @@
 package org.apache.hc.client5.http.impl.cache.memcached;
 
 /**
- * Indicates a problem encountered when trying to map a
+ * Signals a problem encountered when trying to map a
  * logical "storage key" to a "cache key" suitable for use with
  * memcached.
+ *
+ * @since 4.1
  */
 public class MemcachedKeyHashingException extends RuntimeException {
 

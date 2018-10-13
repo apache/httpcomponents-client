@@ -29,9 +29,8 @@ package org.apache.hc.client5.http.auth;
 import org.apache.hc.core5.http.HttpHost;
 
 /**
- * Abstract {@link AuthScheme} cache. Initialized {@link AuthScheme} objects
- * from this cache can be used to preemptively authenticate against known
- * hosts.
+ * This interface represents an cache of {@link AuthScheme} state information
+ * that can be re-used for preemptive authentication by subsequent requests.
  *
  * @since 4.1
  */

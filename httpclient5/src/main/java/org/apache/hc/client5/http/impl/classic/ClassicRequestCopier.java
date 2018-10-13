@@ -33,6 +33,11 @@ import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 
+/**
+ * {@link ClassicHttpRequest} copier.
+ *
+ * @since 5.0
+ */
 public final class ClassicRequestCopier implements MessageCopier<ClassicHttpRequest> {
 
     public static final ClassicRequestCopier INSTANCE = new ClassicRequestCopier();

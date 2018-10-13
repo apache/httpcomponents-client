@@ -269,7 +269,7 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
                                         log.debug(exchangeId + ": message exchange successfully completed");
                                     }
                                     try {
-                                        execRuntime.releaseConnection();
+                                        execRuntime.releaseEndpoint();
                                     } finally {
                                         responseConsumer.releaseResources();
                                         requestProducer.releaseResources();
@@ -282,7 +282,7 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
                                         log.debug(exchangeId + ": request failed: " + cause.getMessage());
                                     }
                                     try {
-                                        execRuntime.discardConnection();
+                                        execRuntime.discardEndpoint();
                                         responseConsumer.failed(cause);
                                     } finally {
                                         try {

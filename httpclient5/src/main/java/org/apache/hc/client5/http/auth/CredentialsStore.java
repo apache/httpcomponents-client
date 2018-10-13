@@ -32,6 +32,7 @@ package org.apache.hc.client5.http.auth;
  * Implementations of this interface must be thread-safe. Access to shared
  * data must be synchronized as methods of this interface may be executed
  * from multiple threads.
+ * </p>
  *
  * @since 4.0
  */

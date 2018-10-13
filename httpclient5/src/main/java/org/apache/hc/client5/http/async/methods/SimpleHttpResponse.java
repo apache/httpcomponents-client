@@ -35,6 +35,13 @@ import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.message.BasicHttpResponse;
 import org.apache.hc.core5.util.Args;
 
+/**
+ * HTTP response that can enclose a body represented as a simple text string or an array of bytes.
+ *
+ * @since 5.0
+ *
+ * @see SimpleBody
+ */
 public final class SimpleHttpResponse extends BasicHttpResponse {
 
     private static final long serialVersionUID = 1L;

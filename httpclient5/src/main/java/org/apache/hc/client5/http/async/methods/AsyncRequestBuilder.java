@@ -63,6 +63,7 @@ import org.apache.hc.core5.util.TextUtils;
  * {@link #setEntity(AsyncEntityProducer)} or it is not an entity enclosing method
  * (such as POST or PUT), parameters will be added to the query component of the request URI.
  * Otherwise, parameters will be added as a URL encoded entity.
+ * </p>
  *
  * @since 5.0
  */

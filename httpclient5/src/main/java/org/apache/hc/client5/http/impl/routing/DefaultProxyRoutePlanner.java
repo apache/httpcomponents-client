@@ -41,7 +41,7 @@ import org.apache.hc.core5.util.Args;
  *
  * @since 4.3
  */
-@Contract(threading = ThreadingBehavior.IMMUTABLE_CONDITIONAL)
+@Contract(threading = ThreadingBehavior.STATELESS)
 public class DefaultProxyRoutePlanner extends DefaultRoutePlanner {
 
     private final HttpHost proxy;

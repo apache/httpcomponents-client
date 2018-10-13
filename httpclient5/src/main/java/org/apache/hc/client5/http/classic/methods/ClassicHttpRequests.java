@@ -31,9 +31,9 @@ import java.net.URI;
 
 
 /**
- * HTTP methods defined in RFC2616.
+ * Common HTTP methods using {@link HttpUriRequest} as a HTTP request message representation.
  *
- * @since 5.0-beta2
+ * @since 5.0
  */
 public enum ClassicHttpRequests {
 

@@ -53,7 +53,7 @@ import org.apache.hc.core5.http.io.HttpMessageWriterFactory;
  * Factory for {@link ManagedHttpClientConnection} instances.
  * @since 4.3
  */
-@Contract(threading = ThreadingBehavior.IMMUTABLE)
+@Contract(threading = ThreadingBehavior.STATELESS)
 public class ManagedHttpClientConnectionFactory implements HttpConnectionFactory<ManagedHttpClientConnection> {
 
     private static final AtomicLong COUNTER = new AtomicLong();

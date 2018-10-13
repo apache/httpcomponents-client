@@ -30,13 +30,13 @@ import java.io.IOException;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.FutureRequestExecutionService;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
-import org.apache.hc.client5.http.impl.classic.HttpRequestFutureTask;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
@@ -70,7 +70,7 @@ public class ClientWithRequestFuture {
 
             // Simple request ...
             final HttpGet request1 = new HttpGet("http://httpbin.org/get");
-            final HttpRequestFutureTask<Boolean> futureTask1 = requestExecService.execute(request1,
+            final FutureTask<Boolean> futureTask1 = requestExecService.execute(request1,
                     HttpClientContext.create(), handler);
             final Boolean wasItOk1 = futureTask1.get();
             System.out.println("It was ok? " + wasItOk1);
@@ -78,7 +78,7 @@ public class ClientWithRequestFuture {
             // Cancel a request
             try {
                 final HttpGet request2 = new HttpGet("http://httpbin.org/get");
-                final HttpRequestFutureTask<Boolean> futureTask2 = requestExecService.execute(request2,
+                final FutureTask<Boolean> futureTask2 = requestExecService.execute(request2,
                         HttpClientContext.create(), handler);
                 futureTask2.cancel(true);
                 final Boolean wasItOk2 = futureTask2.get();
@@ -89,7 +89,7 @@ public class ClientWithRequestFuture {
 
             // Request with a timeout
             final HttpGet request3 = new HttpGet("http://httpbin.org/get");
-            final HttpRequestFutureTask<Boolean> futureTask3 = requestExecService.execute(request3,
+            final FutureTask<Boolean> futureTask3 = requestExecService.execute(request3,
                     HttpClientContext.create(), handler);
             final Boolean wasItOk3 = futureTask3.get(10, TimeUnit.SECONDS);
             System.out.println("It was ok? " + wasItOk3);
@@ -115,7 +115,7 @@ public class ClientWithRequestFuture {
             final HttpGet request4 = new HttpGet("http://httpbin.org/get");
             // using a null HttpContext here since it is optional
             // the callback will be called when the task completes, fails, or is cancelled
-            final HttpRequestFutureTask<Boolean> futureTask4 = requestExecService.execute(request4,
+            final FutureTask<Boolean> futureTask4 = requestExecService.execute(request4,
                     HttpClientContext.create(), handler, callback);
             final Boolean wasItOk4 = futureTask4.get(10, TimeUnit.SECONDS);
             System.out.println("It was ok? " + wasItOk4);

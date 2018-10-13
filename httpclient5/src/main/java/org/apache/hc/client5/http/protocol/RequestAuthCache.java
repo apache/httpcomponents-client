@@ -54,7 +54,7 @@ import org.slf4j.LoggerFactory;
  *
  * @since 4.1
  */
-@Contract(threading = ThreadingBehavior.IMMUTABLE)
+@Contract(threading = ThreadingBehavior.STATELESS)
 public class RequestAuthCache implements HttpRequestInterceptor {
 
     private final Logger log = LoggerFactory.getLogger(getClass());

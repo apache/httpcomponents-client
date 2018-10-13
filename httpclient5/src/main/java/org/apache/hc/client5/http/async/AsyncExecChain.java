@@ -30,14 +30,27 @@ import java.io.IOException;
 
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.concurrent.CancellableDependency;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.nio.AsyncEntityProducer;
 import org.apache.hc.core5.util.Args;
 
+/**
+ * Represents a single element in the client side asynchronous request execution chain.
+ *
+ * @since 5.0
+ */
+@Contract(threading = ThreadingBehavior.STATELESS)
 public interface AsyncExecChain {
 
+    /**
+     * Request execution scope that includes the unique message exchange ID,
+     * the connection route, the original request message, the execution
+     * context and the internal execution runtime.
+     */
     final class Scope {
 
         public final String exchangeId;
@@ -64,6 +77,15 @@ public interface AsyncExecChain {
 
     }
 
+    /**
+     * Proceeds to the next element in the request execution chain.
+     *
+     * @param request the actual request.
+     * @param entityProducer the request entity producer or {@code null} if the request
+     *                      does not enclose an entity.
+     * @param scope the execution scope .
+     * @param asyncExecCallback the execution callback.
+     */
     void proceed(
             HttpRequest request,
             AsyncEntityProducer entityProducer,

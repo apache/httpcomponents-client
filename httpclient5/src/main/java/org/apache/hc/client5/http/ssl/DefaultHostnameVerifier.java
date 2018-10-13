@@ -58,7 +58,7 @@ import org.slf4j.LoggerFactory;
  *
  * @since 4.4
  */
-@Contract(threading = ThreadingBehavior.IMMUTABLE_CONDITIONAL)
+@Contract(threading = ThreadingBehavior.STATELESS)
 public final class DefaultHostnameVerifier implements HttpClientHostnameVerifier {
 
     enum HostNameType {

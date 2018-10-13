@@ -85,12 +85,12 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
     }
 
     @Override
-    public boolean isConnectionAcquired() {
+    public boolean isEndpointAcquired() {
         return endpointRef.get() != null;
     }
 
     @Override
-    public void acquireConnection(final HttpRoute route, final Object object, final HttpClientContext context) throws IOException {
+    public void acquireEndpoint(final HttpRoute route, final Object object, final HttpClientContext context) throws IOException {
         Args.notNull(route, "Route");
         if (endpointRef.get() == null) {
             final RequestConfig requestConfig = context.getRequestConfig();
@@ -137,7 +137,7 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
     }
 
     @Override
-    public boolean isConnected() {
+    public boolean isEndpointConnected() {
         final ConnectionEndpoint endpoint = endpointRef.get();
         return endpoint != null && endpoint.isConnected();
     }
@@ -157,7 +157,7 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
     }
 
     @Override
-    public void connect(final HttpClientContext context) throws IOException {
+    public void connectEndpoint(final HttpClientContext context) throws IOException {
         final ConnectionEndpoint endpoint = ensureValid();
         if (!endpoint.isConnected()) {
             connectEndpoint(endpoint, context);
@@ -165,7 +165,7 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
     }
 
     @Override
-    public void disconnect() throws IOException {
+    public void disconnectEndpoint() throws IOException {
         final ConnectionEndpoint endpoint = endpointRef.get();
         if (endpoint != null) {
             endpoint.close();
@@ -206,7 +206,7 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
     }
 
     @Override
-    public void releaseConnection() {
+    public void releaseEndpoint() {
         final ConnectionEndpoint endpoint = endpointRef.getAndSet(null);
         if (endpoint != null) {
             if (reusable) {
@@ -227,7 +227,7 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
     }
 
     @Override
-    public void discardConnection() {
+    public void discardEndpoint() {
         final ConnectionEndpoint endpoint = endpointRef.getAndSet(null);
         if (endpoint != null) {
             try {
@@ -243,7 +243,7 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
     public boolean cancel() {
         final boolean alreadyReleased = endpointRef.get() == null;
         log.debug("Cancelling request execution");
-        discardConnection();
+        discardEndpoint();
         return !alreadyReleased;
     }
 

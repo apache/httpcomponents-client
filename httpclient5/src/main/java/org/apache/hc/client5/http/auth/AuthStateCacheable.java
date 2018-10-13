@@ -32,6 +32,12 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * Indicates that the state of an {@link AuthScheme} can be cached
+ * and re-used for preemptive authentication by subsequent requests.
+ *
+ * @since 5.0
+ */
 @Documented
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)

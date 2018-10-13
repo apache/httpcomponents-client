@@ -35,7 +35,9 @@ import org.apache.hc.core5.http.ContentType;
 
 /**
  * This class represents arbitrary content of a specific type that can be consumed
- * multiple times and requires no explicit deallocation.
+ * multiple times and requires no explicit deallocation used by the fluent facade.
+ *
+ * @since 4.2
  */
 public class Content {
 

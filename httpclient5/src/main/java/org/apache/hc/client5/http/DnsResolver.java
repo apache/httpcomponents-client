@@ -29,12 +29,16 @@ package org.apache.hc.client5.http;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
+
 /**
  * Users may implement this interface to override the normal DNS lookup offered
  * by the OS.
  *
  * @since 4.2
  */
+@Contract(threading = ThreadingBehavior.STATELESS)
 public interface DnsResolver {
 
     /**

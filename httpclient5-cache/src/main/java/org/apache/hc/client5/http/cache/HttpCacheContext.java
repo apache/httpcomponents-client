@@ -31,6 +31,9 @@ import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.HttpContext;
 
 /**
+ * Adaptor class that provides convenience type safe setters and getters
+ * for caching {@link HttpContext} attributes.
+ *
  * @since 4.3
  */
 public class HttpCacheContext extends HttpClientContext {

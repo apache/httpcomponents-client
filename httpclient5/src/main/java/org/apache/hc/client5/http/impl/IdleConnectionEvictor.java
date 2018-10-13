@@ -30,6 +30,8 @@ package org.apache.hc.client5.http.impl;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.concurrent.DefaultThreadFactory;
 import org.apache.hc.core5.pool.ConnPoolControl;
 import org.apache.hc.core5.util.Args;
@@ -41,6 +43,7 @@ import org.apache.hc.core5.util.TimeValue;
  *
  * @since 4.4
  */
+@Contract(threading = ThreadingBehavior.SAFE_CONDITIONAL)
 public final class IdleConnectionEvictor {
 
     private final ThreadFactory threadFactory;

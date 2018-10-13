@@ -31,7 +31,6 @@ import org.apache.hc.core5.http.ProtocolException;
 /**
  * Signals violation of HTTP specification caused by an invalid redirect
  *
- *
  * @since 4.0
  */
 public class RedirectException extends ProtocolException {

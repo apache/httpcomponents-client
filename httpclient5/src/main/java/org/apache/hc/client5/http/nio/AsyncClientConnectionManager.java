@@ -29,6 +29,8 @@ package org.apache.hc.client5.http.nio;
 import java.util.concurrent.Future;
 
 import org.apache.hc.client5.http.HttpRoute;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.io.ModalCloseable;
@@ -43,13 +45,16 @@ import org.apache.hc.core5.util.Timeout;
  * HTTP connections, manage persistent connections and synchronize access to
  * persistent connections making sure that only one thread of execution can
  * have access to a connection at a time.
+ * </p>
  * <p>
  * Implementations of this interface must be thread-safe. Access to shared
  * data must be synchronized as methods of this interface may be executed
  * from multiple threads.
+ * </p>
  *
  * @since 5.0
  */
+@Contract(threading = ThreadingBehavior.SAFE)
 public interface AsyncClientConnectionManager extends ModalCloseable {
 
     /**
@@ -113,7 +118,7 @@ public interface AsyncClientConnectionManager extends ModalCloseable {
             FutureCallback<AsyncConnectionEndpoint> callback);
 
     /**
-     * Upgrades the endpoint's underlying transport to Transport Layer Security.
+     * Upgrades transport security of the given endpoint by using the TLS security protocol.
      *
      * @param endpoint      the managed endpoint.
      * @param attachment the attachment the upgrade attachment object.

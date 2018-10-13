@@ -160,7 +160,7 @@ public class TestProtocolExec {
         try {
             protocolExec.execute(request, scope, chain);
         } catch (final Exception ex) {
-            Mockito.verify(execRuntime).discardConnection();
+            Mockito.verify(execRuntime).discardEndpoint();
             throw ex;
         }
     }
@@ -181,7 +181,7 @@ public class TestProtocolExec {
         try {
             protocolExec.execute(request, scope, chain);
         } catch (final Exception ex) {
-            Mockito.verify(execRuntime).discardConnection();
+            Mockito.verify(execRuntime).discardEndpoint();
             throw ex;
         }
     }
@@ -202,7 +202,7 @@ public class TestProtocolExec {
         try {
             protocolExec.execute(request, scope, chain);
         } catch (final Exception ex) {
-            Mockito.verify(execRuntime).discardConnection();
+            Mockito.verify(execRuntime).discardEndpoint();
             throw ex;
         }
     }
@@ -286,7 +286,7 @@ public class TestProtocolExec {
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
         final ClassicHttpResponse finalResponse = protocolExec.execute(request, scope, chain);
         Mockito.verify(chain, Mockito.times(2)).proceed(request, scope);
-        Mockito.verify(execRuntime).disconnect();
+        Mockito.verify(execRuntime).disconnectEndpoint();
         Mockito.verify(inStream2, Mockito.never()).close();
 
         Assert.assertNotNull(finalResponse);

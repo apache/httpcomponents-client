@@ -37,11 +37,6 @@ import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpEntity;
 
-/**
- * A Proxy class for {@link org.apache.hc.core5.http.HttpEntity} enclosed in a request message.
- *
- * @since 4.3
- */
 class RequestEntityProxy implements HttpEntity  {
 
     static void enhance(final ClassicHttpRequest request) {

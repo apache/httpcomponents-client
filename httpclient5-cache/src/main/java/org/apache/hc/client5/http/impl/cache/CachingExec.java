@@ -49,8 +49,6 @@ import org.apache.hc.client5.http.impl.classic.ClassicRequestCopier;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.schedule.SchedulingStrategy;
 import org.apache.hc.client5.http.utils.DateUtils;
-import org.apache.hc.core5.annotation.Contract;
-import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.Header;
@@ -100,8 +98,7 @@ import org.slf4j.LoggerFactory;
  *
  * @since 4.3
  */
-@Contract(threading = ThreadingBehavior.SAFE) // So long as the responseCache implementation is threadsafe
-public class CachingExec extends CachingExecBase implements ExecChainHandler {
+class CachingExec extends CachingExecBase implements ExecChainHandler {
 
     private final HttpCache responseCache;
     private final DefaultCacheRevalidator cacheRevalidator;
@@ -135,7 +132,7 @@ public class CachingExec extends CachingExecBase implements ExecChainHandler {
         this.conditionalRequestBuilder = conditionalRequestBuilder;
     }
 
-    public CachingExec(
+    CachingExec(
             final HttpCache cache,
             final ScheduledExecutorService executorService,
             final SchedulingStrategy schedulingStrategy,
@@ -145,7 +142,7 @@ public class CachingExec extends CachingExecBase implements ExecChainHandler {
                 config);
     }
 
-    public CachingExec(
+    CachingExec(
             final ResourceFactory resourceFactory,
             final HttpCacheStorage storage,
             final ScheduledExecutorService executorService,

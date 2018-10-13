@@ -33,7 +33,6 @@ import org.apache.hc.core5.http.ProtocolException;
  * Signals that a cookie is in some way invalid or illegal in a given
  * context
  *
- *
  * @since 4.0
  */
 public class MalformedCookieException extends ProtocolException {

@@ -54,11 +54,6 @@ import org.apache.hc.core5.util.Identifiable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Default {@link ManagedHttpClientConnection} implementation.
- *
- * @since 4.3
- */
 final class DefaultManagedHttpClientConnection
         extends DefaultBHttpClientConnection implements ManagedHttpClientConnection, Identifiable {
 

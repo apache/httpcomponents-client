@@ -43,6 +43,11 @@ import org.apache.hc.core5.http.io.HttpClientResponseHandler;
 import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 
+/**
+ * HTTP response used by the fluent facade.
+ *
+ * @since 4.2
+ */
 public class Response {
 
     private final ClassicHttpResponse response;

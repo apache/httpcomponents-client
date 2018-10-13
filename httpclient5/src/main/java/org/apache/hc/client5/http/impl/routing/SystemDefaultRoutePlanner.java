@@ -49,7 +49,7 @@ import org.apache.hc.core5.http.protocol.HttpContext;
  *
  * @since 4.3
  */
-@Contract(threading = ThreadingBehavior.IMMUTABLE_CONDITIONAL)
+@Contract(threading = ThreadingBehavior.STATELESS)
 public class SystemDefaultRoutePlanner extends DefaultRoutePlanner {
 
     private final ProxySelector proxySelector;

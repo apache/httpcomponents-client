@@ -32,9 +32,10 @@ import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 
 /**
  * Factory methods for {@link CloseableHttpClient} instances.
+ *
  * @since 4.3
  */
-public class HttpClients {
+public final class HttpClients {
 
     private HttpClients() {
         super();

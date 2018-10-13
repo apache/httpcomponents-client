@@ -63,7 +63,7 @@ public class TestResponseEntityWrapper {
         EntityUtils.consume(wrapper);
 
         Mockito.verify(inStream, Mockito.times(1)).close();
-        Mockito.verify(execRuntime).releaseConnection();
+        Mockito.verify(execRuntime).releaseEndpoint();
     }
 
     @Test
@@ -76,17 +76,17 @@ public class TestResponseEntityWrapper {
             Assert.fail("IOException expected");
         } catch (final IOException ex) {
         }
-        Mockito.verify(execRuntime, Mockito.atLeast(1)).discardConnection();
+        Mockito.verify(execRuntime, Mockito.atLeast(1)).discardEndpoint();
     }
 
     @Test
     public void testEntityStreamClosedIOErrorAlreadyReleased() throws Exception {
         Mockito.when(entity.isStreaming()).thenReturn(true);
         Mockito.when(execRuntime.isConnectionReusable()).thenReturn(true);
-        Mockito.when(execRuntime.isConnectionAcquired()).thenReturn(false);
+        Mockito.when(execRuntime.isEndpointAcquired()).thenReturn(false);
         Mockito.doThrow(new SocketException()).when(inStream).close();
         EntityUtils.consume(wrapper);
-        Mockito.verify(execRuntime).discardConnection();
+        Mockito.verify(execRuntime).discardEndpoint();
     }
 
     @Test
@@ -95,7 +95,7 @@ public class TestResponseEntityWrapper {
         Mockito.when(entity.isStreaming()).thenReturn(true);
         Mockito.when(execRuntime.isConnectionReusable()).thenReturn(true);
         wrapper.writeTo(outStream);
-        Mockito.verify(execRuntime).releaseConnection();
+        Mockito.verify(execRuntime).releaseEndpoint();
     }
 
     @Test
@@ -109,8 +109,8 @@ public class TestResponseEntityWrapper {
             Assert.fail("IOException expected");
         } catch (final IOException ex) {
         }
-        Mockito.verify(execRuntime, Mockito.never()).releaseConnection();
-        Mockito.verify(execRuntime, Mockito.atLeast(1)).discardConnection();
+        Mockito.verify(execRuntime, Mockito.never()).releaseEndpoint();
+        Mockito.verify(execRuntime, Mockito.atLeast(1)).discardEndpoint();
     }
 
     @Test
@@ -121,7 +121,7 @@ public class TestResponseEntityWrapper {
         final InputStream content = wrapper.getContent();
         Assert.assertEquals(-1, content.read());
         Mockito.verify(inStream).close();
-        Mockito.verify(execRuntime).releaseConnection();
+        Mockito.verify(execRuntime).releaseEndpoint();
     }
 
     @Test
@@ -136,7 +136,7 @@ public class TestResponseEntityWrapper {
             Assert.fail("IOException expected");
         } catch (final IOException ex) {
         }
-        Mockito.verify(execRuntime, Mockito.atLeast(1)).discardConnection();
+        Mockito.verify(execRuntime, Mockito.atLeast(1)).discardEndpoint();
     }
 
 }

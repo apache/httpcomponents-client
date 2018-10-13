@@ -32,7 +32,7 @@ import java.net.InetAddress;
 import org.apache.hc.core5.http.HttpHost;
 
 /**
- * Read-only interface for route information.
+ * Connection route information.
  *
  * @since 4.0
  */

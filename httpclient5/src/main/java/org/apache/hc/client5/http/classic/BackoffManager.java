@@ -34,7 +34,6 @@ import org.apache.hc.client5.http.HttpRoute;
  * using the connections.
  *
  * @since 4.2
- *
  */
 public interface BackoffManager {
 

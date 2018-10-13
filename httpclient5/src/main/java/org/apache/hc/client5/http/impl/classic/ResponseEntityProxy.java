@@ -39,11 +39,6 @@ import org.apache.hc.core5.http.io.EofSensorInputStream;
 import org.apache.hc.core5.http.io.EofSensorWatcher;
 import org.apache.hc.core5.http.io.entity.HttpEntityWrapper;
 
-/**
- * A wrapper class for {@link HttpEntity} enclosed in a response message.
- *
- * @since 4.3
- */
 class ResponseEntityProxy extends HttpEntityWrapper implements EofSensorWatcher {
 
     private final ExecRuntime execRuntime;
@@ -62,22 +57,22 @@ class ResponseEntityProxy extends HttpEntityWrapper implements EofSensorWatcher 
 
     private void cleanup() throws IOException {
         if (this.execRuntime != null) {
-            if (this.execRuntime.isConnected()) {
-                this.execRuntime.disconnect();
+            if (this.execRuntime.isEndpointConnected()) {
+                this.execRuntime.disconnectEndpoint();
             }
-            this.execRuntime.discardConnection();
+            this.execRuntime.discardEndpoint();
         }
     }
 
     private void discardConnection() {
         if (this.execRuntime != null) {
-            this.execRuntime.discardConnection();
+            this.execRuntime.discardEndpoint();
         }
     }
 
     public void releaseConnection() {
         if (this.execRuntime != null) {
-            this.execRuntime.releaseConnection();
+            this.execRuntime.releaseEndpoint();
         }
     }
 
@@ -127,7 +122,7 @@ class ResponseEntityProxy extends HttpEntityWrapper implements EofSensorWatcher 
     @Override
     public boolean streamClosed(final InputStream wrapped) throws IOException {
         try {
-            final boolean open = execRuntime != null && execRuntime.isConnectionAcquired();
+            final boolean open = execRuntime != null && execRuntime.isEndpointAcquired();
             // this assumes that closing the stream will
             // consume the remainder of the response body:
             try {

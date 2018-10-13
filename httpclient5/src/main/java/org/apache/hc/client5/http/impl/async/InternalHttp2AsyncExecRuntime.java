@@ -71,12 +71,12 @@ class InternalHttp2AsyncExecRuntime implements AsyncExecRuntime {
     }
 
     @Override
-    public boolean isConnectionAcquired() {
+    public boolean isEndpointAcquired() {
         return sessionRef.get() != null;
     }
 
     @Override
-    public Cancellable acquireConnection(
+    public Cancellable acquireEndpoint(
             final HttpRoute route,
             final Object object,
             final HttpClientContext context,
@@ -113,7 +113,7 @@ class InternalHttp2AsyncExecRuntime implements AsyncExecRuntime {
     }
 
     @Override
-    public void releaseConnection() {
+    public void releaseEndpoint() {
         final Endpoint endpoint = sessionRef.getAndSet(null);
         if (endpoint != null && !reusable) {
             endpoint.session.close(CloseMode.GRACEFUL);
@@ -121,7 +121,7 @@ class InternalHttp2AsyncExecRuntime implements AsyncExecRuntime {
     }
 
     @Override
-    public void discardConnection() {
+    public void discardEndpoint() {
         final Endpoint endpoint = sessionRef.getAndSet(null);
         if (endpoint != null) {
             endpoint.session.close(CloseMode.GRACEFUL);
@@ -142,7 +142,7 @@ class InternalHttp2AsyncExecRuntime implements AsyncExecRuntime {
     }
 
     @Override
-    public boolean isConnected() {
+    public boolean isEndpointConnected() {
         final Endpoint endpoint = sessionRef.get();
         return endpoint != null && !endpoint.session.isClosed();
     }
@@ -157,7 +157,7 @@ class InternalHttp2AsyncExecRuntime implements AsyncExecRuntime {
     }
 
     @Override
-    public Cancellable connect(
+    public Cancellable connectEndpoint(
             final HttpClientContext context,
             final FutureCallback<AsyncExecRuntime> callback) {
         final Endpoint endpoint = ensureValid();

@@ -32,9 +32,21 @@ import org.apache.hc.core5.http.HttpConnection;
 import org.apache.hc.core5.reactor.Command;
 import org.apache.hc.core5.reactor.ssl.TransportSecurityLayer;
 
+/**
+ * Represents a managed asynchronous connection whose state and life cycle
+ * is managed by a connection manager.
+ *
+ * @since 5.0
+ */
 @Internal
 public interface ManagedAsyncClientConnection extends HttpConnection, TransportSecurityLayer {
 
+    /**
+     * Submits the given command for execution.
+     *
+     * @param command the command to be executed.
+     * @param priority the command priority.
+     */
     void submitCommand(Command command, Command.Priority priority);
 
     /**

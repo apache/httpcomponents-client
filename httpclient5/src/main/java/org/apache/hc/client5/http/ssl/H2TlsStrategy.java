@@ -46,6 +46,8 @@ import javax.net.ssl.SSLSession;
 import javax.security.auth.x500.X500Principal;
 
 import org.apache.hc.client5.http.psl.PublicSuffixMatcherLoader;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
 import org.apache.hc.core5.http2.ssl.H2TlsSupport;
@@ -66,6 +68,7 @@ import org.slf4j.LoggerFactory;
  *
  * @since 5.0
  */
+@Contract(threading = ThreadingBehavior.STATELESS)
 public class H2TlsStrategy implements TlsStrategy {
 
     private static String[] split(final String s) {

@@ -34,6 +34,11 @@ import java.util.concurrent.TimeoutException;
 
 import org.apache.hc.core5.concurrent.Cancellable;
 
+/**
+ * Common cancellable operations.
+ *
+ * @since 5.0
+ */
 public final class Operations {
 
     private final static Cancellable NOOP_CANCELLABLE = new Cancellable() {
@@ -45,6 +50,12 @@ public final class Operations {
 
     };
 
+    /**
+     * This class represents a {@link Future} in the completed state with a fixed result.
+     * The outcome of the future cannot be altered and it cannot be cancelled.
+     *
+     * @param <T> operation result representation.
+     */
     public static class CompletedFuture<T> implements Future<T> {
 
         private final T result;
@@ -79,10 +90,24 @@ public final class Operations {
 
     }
 
+    /**
+     * Creates a {@link Cancellable} operation handle for an ongoing process
+     * or operation that cannot be cancelled. Attempts to cancel the operation
+     * with this handle will have no effect.
+     *
+     * @return the no-op cancellable operation handle.
+     */
     public static Cancellable nonCancellable() {
         return NOOP_CANCELLABLE;
     }
 
+    /**
+     * Creates a {@link Cancellable} operation handle for an ongoing process
+     * or operation represented by a {@link Future}.
+     *
+     * @param future the result future
+     * @return the cancellable operation handle.
+     */
     public static Cancellable cancellable(final Future<?> future) {
         if (future == null) {
             return NOOP_CANCELLABLE;

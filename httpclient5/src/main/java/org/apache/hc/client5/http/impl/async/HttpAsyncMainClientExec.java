@@ -41,6 +41,9 @@ import org.apache.hc.client5.http.async.AsyncExecChain;
 import org.apache.hc.client5.http.async.AsyncExecChainHandler;
 import org.apache.hc.client5.http.async.AsyncExecRuntime;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.Internal;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.concurrent.CancellableDependency;
 import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.Header;
@@ -60,6 +63,15 @@ import org.apache.hc.core5.util.TimeValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Usually the last HTTP/1.1 request execution handler in the asynchronous
+ * request execution chain that is responsible for execution of
+ * request / response exchanges with the opposite endpoint.
+ *
+ * @since 5.0
+ */
+@Contract(threading = ThreadingBehavior.STATELESS)
+@Internal
 class HttpAsyncMainClientExec implements AsyncExecChainHandler {
 
     private final Logger log = LoggerFactory.getLogger(getClass());

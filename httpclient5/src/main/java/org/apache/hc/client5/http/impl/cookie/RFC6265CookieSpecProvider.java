@@ -38,13 +38,13 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.protocol.HttpContext;
 
 /**
- * {@link org.apache.hc.client5.http.cookie.CookieSpecProvider} implementation that provides an instance of
- * RFC 6265 conformant cookie policy. The instance returned by this factory can be shared by
- * multiple threads.
+ * {@link CookieSpecProvider} implementation that provides an instance of
+ * RFC 6265 conformant cookie policy. The instance returned by this factory
+ * can be shared by multiple threads.
  *
  * @since 4.4
  */
-@Contract(threading = ThreadingBehavior.IMMUTABLE_CONDITIONAL)
+@Contract(threading = ThreadingBehavior.SAFE)
 public class RFC6265CookieSpecProvider implements CookieSpecProvider {
 
     public enum CompatibilityLevel {

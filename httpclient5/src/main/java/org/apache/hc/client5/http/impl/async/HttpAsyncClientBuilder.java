@@ -54,7 +54,7 @@ import org.apache.hc.client5.http.cookie.BasicCookieStore;
 import org.apache.hc.client5.http.cookie.CookieSpecProvider;
 import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.client5.http.impl.ChainElements;
-import org.apache.hc.client5.http.impl.CookieSpecRegistries;
+import org.apache.hc.client5.http.impl.CookieSpecSupport;
 import org.apache.hc.client5.http.impl.DefaultAuthenticationStrategy;
 import org.apache.hc.client5.http.impl.DefaultConnectionKeepAliveStrategy;
 import org.apache.hc.client5.http.impl.DefaultHttpRequestRetryHandler;
@@ -126,7 +126,14 @@ import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.VersionInfo;
 
 /**
- * Builder for {@link CloseableHttpAsyncClient} instances.
+ * Builder for {@link CloseableHttpAsyncClient} instances that can negotiate
+ * the most optimal HTTP protocol version during the {@code TLS} handshake
+ * with {@code ALPN} extension if supported by the Java runtime.
+ * <p>
+ * Concurrent message exchanges executed by {@link CloseableHttpAsyncClient}
+ * instances created with this builder will get automatically assigned to
+ * separate connections leased from the connection pool.
+ * </p>
  * <p>
  * When a particular component is not explicitly set this class will
  * use its default implementation. System properties will be taken
@@ -975,7 +982,7 @@ public class HttpAsyncClientBuilder {
         }
         Lookup<CookieSpecProvider> cookieSpecRegistryCopy = this.cookieSpecRegistry;
         if (cookieSpecRegistryCopy == null) {
-            cookieSpecRegistryCopy = CookieSpecRegistries.createDefault();
+            cookieSpecRegistryCopy = CookieSpecSupport.createDefault();
         }
 
         CookieStore cookieStoreCopy = this.cookieStore;

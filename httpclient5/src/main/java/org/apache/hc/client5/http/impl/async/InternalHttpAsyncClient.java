@@ -41,6 +41,9 @@ import org.apache.hc.client5.http.nio.AsyncClientConnectionManager;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.routing.HttpRoutePlanner;
 import org.apache.hc.client5.http.routing.RoutingSupport;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.Internal;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpVersion;
@@ -51,7 +54,20 @@ import org.apache.hc.core5.http.nio.HandlerFactory;
 import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.apache.hc.core5.reactor.DefaultConnectingIOReactor;
 
-class InternalHttpAsyncClient extends InternalAbstractHttpAsyncClient {
+/**
+ * Internal implementation of {@link CloseableHttpAsyncClient} that can negotiate
+ * the most optimal HTTP protocol version during during the {@code TLS} handshake
+ * with {@code ALPN} extension if supported by the Java runtime.
+ * <p>
+ * Concurrent message exchanges executed by this client will get assigned to
+ * separate connections leased from the connection pool.
+ * </p>
+ *
+ * @since 5.0
+ */
+@Contract(threading = ThreadingBehavior.SAFE_CONDITIONAL)
+@Internal
+public final class InternalHttpAsyncClient extends InternalAbstractHttpAsyncClient {
 
     private final AsyncClientConnectionManager connmgr;
     private final HttpRoutePlanner routePlanner;

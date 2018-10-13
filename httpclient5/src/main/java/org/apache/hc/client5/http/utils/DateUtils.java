@@ -37,8 +37,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 
-import org.apache.hc.core5.annotation.Contract;
-import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.MessageHeaders;
 import org.apache.hc.core5.util.Args;
@@ -50,7 +48,6 @@ import org.apache.hc.core5.util.Args;
  *
  * @since 4.3
  */
-@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public final class DateUtils {
 
     /**

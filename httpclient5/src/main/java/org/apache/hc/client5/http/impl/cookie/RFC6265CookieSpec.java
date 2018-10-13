@@ -60,7 +60,7 @@ import org.apache.hc.core5.util.CharArrayBuffer;
  *
  * @since 4.5
  */
-@Contract(threading = ThreadingBehavior.SAFE_CONDITIONAL)
+@Contract(threading = ThreadingBehavior.SAFE)
 public class RFC6265CookieSpec implements CookieSpec {
 
     private final static char PARAM_DELIMITER  = ';';

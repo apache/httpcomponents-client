@@ -36,6 +36,14 @@ import org.apache.hc.core5.http.nio.entity.BasicAsyncEntityConsumer;
 import org.apache.hc.core5.http.nio.support.AbstractAsyncResponseConsumer;
 import org.apache.hc.core5.http.protocol.HttpContext;
 
+/**
+ * HTTP response consumer that generates a {@link SimpleHttpResponse} instance based on events
+ * of an incoming data stream.
+ *
+ * @since 5.0
+ *
+ * @see SimpleBody
+ */
 public final class SimpleResponseConsumer extends AbstractAsyncResponseConsumer<SimpleHttpResponse, byte[]> {
 
     SimpleResponseConsumer(final AsyncEntityConsumer<byte[]> entityConsumer) {

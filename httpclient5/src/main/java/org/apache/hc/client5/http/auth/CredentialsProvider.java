@@ -34,6 +34,7 @@ import org.apache.hc.core5.http.protocol.HttpContext;
  * Implementations of this interface must be thread-safe. Access to shared
  * data must be synchronized as methods of this interface may be executed
  * from multiple threads.
+ * </p>
  *
  * @since 4.0
  */

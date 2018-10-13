@@ -67,7 +67,7 @@ import org.slf4j.LoggerFactory;
  * @since 4.4
  */
 @Internal
-@Contract(threading = ThreadingBehavior.IMMUTABLE_CONDITIONAL)
+@Contract(threading = ThreadingBehavior.STATELESS)
 public class DefaultHttpClientConnectionOperator implements HttpClientConnectionOperator {
 
     static final String SOCKET_FACTORY_REGISTRY = "http.socket-factory-registry";

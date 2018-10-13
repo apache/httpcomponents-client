@@ -40,7 +40,7 @@ import org.apache.hc.core5.http.ProtocolVersion;
 import org.apache.hc.core5.util.Args;
 
 /**
- * Backward compatibility with HttpClient 4.x.
+ * Provided for backward compatibility with HttpClient 4.x.
  *
  * @since 4.3
  */
@@ -198,9 +198,9 @@ public final class CloseableHttpResponse implements ClassicHttpResponse {
         if (execRuntime != null) {
             try {
                 response.close();
-                execRuntime.disconnect();
+                execRuntime.disconnectEndpoint();
             } finally {
-                execRuntime.discardConnection();
+                execRuntime.discardEndpoint();
             }
         } else {
             response.close();

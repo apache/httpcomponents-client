@@ -41,17 +41,17 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.util.Args;
 
 /**
- * Wraps a {@link org.apache.hc.client5.http.cookie.CookieAttributeHandler} and leverages its match method
- * to never match a suffix from a black list. May be used to provide additional security for
- * cross-site attack types by preventing cookies from apparent domains that are not publicly
- * available.
+ * Wraps a {@link org.apache.hc.client5.http.cookie.CookieAttributeHandler} and leverages
+ * its match method to never match a suffix from a black list. May be used to provide
+ * additional security for cross-site attack types by preventing cookies from apparent
+ * domains that are not publicly available.
  *
  *  @see PublicSuffixList
  *  @see PublicSuffixMatcher
  *
  * @since 4.4
  */
-@Contract(threading = ThreadingBehavior.IMMUTABLE_CONDITIONAL)
+@Contract(threading = ThreadingBehavior.STATELESS)
 public class PublicSuffixDomainFilter implements CommonCookieAttributeHandler {
 
     private final CommonCookieAttributeHandler handler;

@@ -53,7 +53,7 @@ import org.apache.hc.client5.http.cookie.BasicCookieStore;
 import org.apache.hc.client5.http.cookie.CookieSpecProvider;
 import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.client5.http.impl.ChainElements;
-import org.apache.hc.client5.http.impl.CookieSpecRegistries;
+import org.apache.hc.client5.http.impl.CookieSpecSupport;
 import org.apache.hc.client5.http.impl.DefaultAuthenticationStrategy;
 import org.apache.hc.client5.http.impl.DefaultHttpRequestRetryHandler;
 import org.apache.hc.client5.http.impl.DefaultRedirectStrategy;
@@ -116,10 +116,16 @@ import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.VersionInfo;
 
 /**
- * Builder for HTTP/2 {@link CloseableHttpAsyncClient} instances.
+ * Builder for HTTP/2 only {@link CloseableHttpAsyncClient} instances.
+ * <p>
+ * Concurrent message exchanges with the same connection route executed
+ * with these {@link CloseableHttpAsyncClient} instances will get
+ * automatically multiplexed over a single physical HTTP/2 connection.
+ * </p>
  * <p>
  * When a particular component is not explicitly set this class will
  * use its default implementation.
+ * <p>
  *
  * @since 5.0
  */
@@ -769,7 +775,7 @@ public class Http2AsyncClientBuilder {
         }
         Lookup<CookieSpecProvider> cookieSpecRegistryCopy = this.cookieSpecRegistry;
         if (cookieSpecRegistryCopy == null) {
-            cookieSpecRegistryCopy = CookieSpecRegistries.createDefault();
+            cookieSpecRegistryCopy = CookieSpecSupport.createDefault();
         }
 
         CookieStore cookieStoreCopy = this.cookieStore;

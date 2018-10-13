@@ -47,7 +47,7 @@ import org.apache.hc.core5.util.Args;
  *
  * @since 4.0
  */
-public class NTLMScheme implements AuthScheme {
+public final class NTLMScheme implements AuthScheme {
 
     enum State {
         UNINITIATED,

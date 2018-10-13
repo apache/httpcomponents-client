@@ -38,7 +38,6 @@ import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
 import org.apache.hc.client5.http.nio.AsyncClientConnectionOperator;
 import org.apache.hc.client5.http.nio.ManagedAsyncClientConnection;
 import org.apache.hc.client5.http.routing.RoutingSupport;
-import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.concurrent.ComplexFuture;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.HttpHost;
@@ -49,12 +48,6 @@ import org.apache.hc.core5.reactor.IOSession;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TimeValue;
 
-/**
- * Default {@link AsyncClientConnectionOperator} implementation.
- *
- * @since 5.0
- */
-@Internal
 final class DefaultAsyncClientConnectionOperator implements AsyncClientConnectionOperator {
 
     private final SchemePortResolver schemePortResolver;

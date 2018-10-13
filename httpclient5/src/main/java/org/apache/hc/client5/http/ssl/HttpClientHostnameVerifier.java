@@ -32,13 +32,24 @@ import java.security.cert.X509Certificate;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLException;
 
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
+
 /**
  * Extended {@link HostnameVerifier} interface.
  *
  * @since 5.0
  */
+@Contract(threading = ThreadingBehavior.STATELESS)
 public interface HttpClientHostnameVerifier extends HostnameVerifier {
 
+    /**
+     * Verifies the supplied server {@link X509Certificate} and ensures it matches
+     * the original host name.
+     *
+     * @param host the original host name.
+     * @param cert the server certificate;
+     */
     void verify(String host, X509Certificate cert) throws SSLException;
 
 }

@@ -36,7 +36,7 @@ import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.LangUtils;
 
 /**
- * {@link Credentials} implementation for Microsoft Windows platforms that includes
+ * Microsoft Windows specific {@link Credentials} representation that includes
  * Windows specific attributes such as name of the domain the user belongs to.
  *
  * @since 4.0

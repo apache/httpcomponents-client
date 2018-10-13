@@ -43,7 +43,6 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
 /**
  * Default implementation of {@link CookieStore}
  *
- *
  * @since 4.0
  */
 @Contract(threading = ThreadingBehavior.SAFE)

@@ -54,9 +54,9 @@ import org.apache.hc.core5.util.TimeValue;
 /**
  * Base implementation of {@link HttpAsyncClient} that also implements {@link Closeable}.
  *
- * @since 4.0
+ * @since 5.0
  */
-@Contract(threading = ThreadingBehavior.SAFE)
+@Contract(threading = ThreadingBehavior.STATELESS)
 public abstract class CloseableHttpAsyncClient implements HttpAsyncClient, Closeable {
 
     public abstract void start();

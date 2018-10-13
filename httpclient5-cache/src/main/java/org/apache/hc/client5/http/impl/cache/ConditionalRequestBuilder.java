@@ -32,17 +32,11 @@ import java.util.Map;
 import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.impl.MessageCopier;
-import org.apache.hc.core5.annotation.Contract;
-import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HeaderElement;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.message.MessageSupport;
 
-/**
- * @since 4.1
- */
-@Contract(threading = ThreadingBehavior.IMMUTABLE)
 class ConditionalRequestBuilder<T extends HttpRequest> {
 
     private final MessageCopier<T> messageCopier;

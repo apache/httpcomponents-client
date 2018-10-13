@@ -63,6 +63,11 @@ import org.apache.hc.core5.http.io.entity.InputStreamEntity;
 import org.apache.hc.core5.net.URLEncodedUtils;
 import org.apache.hc.core5.util.Timeout;
 
+/**
+ * HTTP request used by the fluent facade.
+ *
+ * @since 4.2
+ */
 public class Request {
 
     public static final String DATE_FORMAT = "EEE, dd MMM yyyy HH:mm:ss zzz";

@@ -39,6 +39,11 @@ import org.apache.hc.core5.http.message.BasicNameValuePair;
 import org.apache.hc.core5.http.message.ParserCursor;
 import org.apache.hc.core5.http.message.TokenParser;
 
+/**
+ * Authentication challenge parser.
+ *
+ * @since 5.0
+ */
 public class AuthChallengeParser {
 
     public static final AuthChallengeParser INSTANCE = new AuthChallengeParser();
@@ -71,7 +76,16 @@ public class AuthChallengeParser {
         return new BasicNameValuePair(token, null);
     }
 
-    public List<AuthChallenge> parse(final ChallengeType challengeType, final CharSequence buffer, final ParserCursor cursor) throws ParseException {
+    /**
+     * Parses the given sequence of characters into a list of {@link AuthChallenge} elements.
+     *
+     * @param challengeType the type of challenge (target or proxy).
+     * @param buffer the sequence of characters to be parsed.
+     * @param cursor the parser cursor.
+     * @return a list of auth challenge elements.
+     */
+    public List<AuthChallenge> parse(
+            final ChallengeType challengeType, final CharSequence buffer, final ParserCursor cursor) throws ParseException {
 
         final List<AuthChallenge> list = new ArrayList<>();
         String scheme = null;

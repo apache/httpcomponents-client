@@ -29,6 +29,11 @@ package org.apache.hc.client5.http;
 
 import java.util.Locale;
 
+/**
+ * Common HTTP methods defined by the HTTP spec.
+ *
+ * @since 5.0
+ */
 public enum StandardMethods {
 
     GET(true, true),

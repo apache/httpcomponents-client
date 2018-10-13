@@ -30,6 +30,7 @@ import java.net.ConnectException;
 import java.net.SocketTimeoutException;
 
 import org.apache.hc.client5.http.classic.ConnectionBackoffStrategy;
+import org.apache.hc.core5.annotation.Experimental;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 
@@ -40,6 +41,7 @@ import org.apache.hc.core5.http.HttpStatus;
  *
  * @since 4.2
  */
+@Experimental
 public class DefaultBackoffStrategy implements ConnectionBackoffStrategy {
 
     @Override

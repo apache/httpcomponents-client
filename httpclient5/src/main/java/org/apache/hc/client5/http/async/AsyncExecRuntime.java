@@ -41,45 +41,111 @@ import org.apache.hc.core5.util.TimeValue;
  * <p>
  * This interface is considered internal and generally ought not be used or accessed
  * by custom request exec handlers.
+ * </p>
  *
  * @since 5.0
  */
 @Internal
 public interface AsyncExecRuntime {
 
-    boolean isConnectionAcquired();
+    /**
+     * Determines of a connection endpoint has been acquired.
+     *
+     * @return {@code true} if an endpoint has been acquired, {@code false} otherwise.
+     */
+    boolean isEndpointAcquired();
 
-    Cancellable acquireConnection(
+    /**
+     * Initiates operation to acquire a connection endpoint. Endpoints can leased from a pool
+     * or unconnected new endpoint can be created.
+     *
+     * @param route the connection route.
+     * @param state the expected connection state. May be {@code null} if connection
+     *              can be state-less or its state is irrelevant.
+     * @param context the execution context.
+     * @param callback the result callback.
+     * @return handle that can be used to cancel the operation.
+     */
+    Cancellable acquireEndpoint(
             HttpRoute route,
             Object state,
-            HttpClientContext clientContext,
+            HttpClientContext context,
             FutureCallback<AsyncExecRuntime> callback);
 
-    void releaseConnection();
+    /**
+     * Releases the acquired endpoint potentially making it available for re-use.
+     */
+    void releaseEndpoint();
 
-    void discardConnection();
+    /**
+     * Shuts down and discards the acquired endpoint.
+     */
+    void discardEndpoint();
 
-    boolean validateConnection();
+    /**
+     * Determines of there the endpoint is connected to the initial hop (connection target
+     * in case of a direct route or to the first proxy hop in case of a route via a proxy
+     * or multiple proxies).
+     *
+     * @return {@code true} if the endpoint is connected, {@code false} otherwise.
+     */
+    boolean isEndpointConnected();
 
-    boolean isConnected();
-
-    Cancellable connect(
-            HttpClientContext clientContext,
+    /**
+     * Initiates operation to connect the local endpoint to the initial hop (connection
+     * target in case of a direct route or to the first proxy hop in case of a route
+     * via a proxy or multiple proxies).
+     *
+     * @param context the execution context.
+     * @param callback the result callback.
+     * @return handle that can be used to cancel the operation.
+     */
+    Cancellable connectEndpoint(
+            HttpClientContext context,
             FutureCallback<AsyncExecRuntime> callback);
 
+    /**
+     * Upgrades transport security of the active connection by using the TLS security protocol.
+     *
+     * @param context the execution context.
+     */
     void upgradeTls(HttpClientContext context);
 
     /**
+     * Validates the connection making sure it can be used to execute requests.
+     *
+     * @return {@code true} if the connection is valid, {@code false}.
+     */
+    boolean validateConnection();
+
+    /**
      * Initiates a message exchange using the given handler.
+     *
+     * @param exchangeHandler the client message handler.
+     * @param context the execution context.
      */
     Cancellable execute(
             AsyncClientExchangeHandler exchangeHandler,
             HttpClientContext context);
 
-    void markConnectionReusable(Object state, TimeValue duration);
+    /**
+     * Marks the connection as potentially re-usable for the given period of time
+     * and also marks it as stateful if the state representation is given.
+     * @param state the connection state representation or {@code null} if stateless.
+     * @param validityTime the period of time this connection is valid for.
+     */
+    void markConnectionReusable(Object state, TimeValue validityTime);
 
+    /**
+     * Marks the connection as non re-usable.
+     */
     void markConnectionNonReusable();
 
+    /**
+     * Forks this runtime for parallel execution.
+     *
+     * @return another runtime with the same configuration.
+     */
     AsyncExecRuntime fork();
 
 }

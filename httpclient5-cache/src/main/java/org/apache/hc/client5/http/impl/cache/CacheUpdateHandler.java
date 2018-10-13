@@ -37,8 +37,6 @@ import org.apache.hc.client5.http.cache.Resource;
 import org.apache.hc.client5.http.cache.ResourceFactory;
 import org.apache.hc.client5.http.cache.ResourceIOException;
 import org.apache.hc.client5.http.utils.DateUtils;
-import org.apache.hc.core5.annotation.Contract;
-import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpRequest;
@@ -51,10 +49,7 @@ import org.apache.hc.core5.util.ByteArrayBuffer;
 /**
  * Creates new {@link HttpCacheEntry}s and updates existing ones with new or updated information
  * based on the response from the origin server.
- *
- * @since 5.0
  */
-@Contract(threading = ThreadingBehavior.IMMUTABLE)
 class CacheUpdateHandler {
 
     private final ResourceFactory resourceFactory;

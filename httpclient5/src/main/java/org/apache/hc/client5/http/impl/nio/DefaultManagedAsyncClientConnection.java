@@ -36,7 +36,6 @@ import javax.net.ssl.SSLSession;
 
 import org.apache.hc.client5.http.impl.ConnPoolSupport;
 import org.apache.hc.client5.http.nio.ManagedAsyncClientConnection;
-import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.http.EndpointDetails;
 import org.apache.hc.core5.http.HttpConnection;
 import org.apache.hc.core5.http.HttpVersion;
@@ -57,12 +56,6 @@ import org.apache.hc.core5.util.Identifiable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Default {@link ManagedAsyncClientConnection} implementation.
- *
- * @since 5.0
- */
-@Internal
 final class DefaultManagedAsyncClientConnection implements ManagedAsyncClientConnection, Identifiable {
 
     private final Logger log = LoggerFactory.getLogger(getClass());

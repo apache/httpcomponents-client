@@ -61,7 +61,7 @@ import org.apache.hc.core5.util.VersionInfo;
  *
  * @since 5.0
  */
-public class HttpAsyncClients {
+public final class HttpAsyncClients {
 
     private HttpAsyncClients() {
         super();

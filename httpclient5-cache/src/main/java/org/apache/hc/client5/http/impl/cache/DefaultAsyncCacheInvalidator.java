@@ -56,7 +56,7 @@ import org.slf4j.LoggerFactory;
  *
  * @since 5.0
  */
-@Contract(threading = ThreadingBehavior.IMMUTABLE)
+@Contract(threading = ThreadingBehavior.STATELESS)
 @Internal
 public class DefaultAsyncCacheInvalidator extends CacheInvalidatorBase implements HttpAsyncCacheInvalidator {
 

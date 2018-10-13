@@ -35,6 +35,7 @@ import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecChainHandler;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
@@ -46,9 +47,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Request executor in the request execution chain that is responsible
- * for making a decision whether a request failed due to an I/O error
- * should be re-executed.
+ * Request execution handler in the classic request execution chain
+ * responsible for making a decision whether a request failed due to
+ * an I/O error should be re-executed.
  * <p>
  * Further responsibilities such as communication with the opposite
  * endpoint is delegated to the next executor in the request execution
@@ -57,8 +58,9 @@ import org.slf4j.LoggerFactory;
  *
  * @since 4.3
  */
-@Contract(threading = ThreadingBehavior.IMMUTABLE_CONDITIONAL)
-final class RetryExec implements ExecChainHandler {
+@Contract(threading = ThreadingBehavior.STATELESS)
+@Internal
+public final class RetryExec implements ExecChainHandler {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 

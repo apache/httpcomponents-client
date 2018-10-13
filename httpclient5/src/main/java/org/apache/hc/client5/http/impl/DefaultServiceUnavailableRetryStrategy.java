@@ -47,7 +47,7 @@ import org.apache.hc.core5.util.Args;
  *
  * @since 4.2
  */
-@Contract(threading = ThreadingBehavior.IMMUTABLE)
+@Contract(threading = ThreadingBehavior.STATELESS)
 public class DefaultServiceUnavailableRetryStrategy implements ServiceUnavailableRetryStrategy {
 
     /**

@@ -137,7 +137,7 @@ import org.slf4j.LoggerFactory;
  *
  * @since 4.3
  */
-@Contract(threading = ThreadingBehavior.SAFE)
+@Contract(threading = ThreadingBehavior.STATELESS)
 public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactory {
 
     public static final String TLS   = "TLS";

@@ -34,11 +34,11 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.protocol.HttpContext;
 
 /**
- * {@link org.apache.hc.client5.http.cookie.CookieSpecProvider} implementation that ignores all cookies.
+ * {@link CookieSpecProvider} implementation that ignores all cookies.
  *
  * @since 4.4
  */
-@Contract(threading = ThreadingBehavior.IMMUTABLE)
+@Contract(threading = ThreadingBehavior.SAFE)
 public class IgnoreSpecProvider implements CookieSpecProvider {
 
     private volatile CookieSpec cookieSpec;

@@ -41,12 +41,31 @@ import org.apache.hc.core5.http.nio.AsyncResponseConsumer;
 import org.apache.hc.core5.http.nio.entity.AbstractCharDataConsumer;
 import org.apache.hc.core5.http.protocol.HttpContext;
 
+/**
+ * Abstract response consumer that processes response body data as a character stream.
+ *
+ * @since 5.0
+ *
+ * @param <T> response message representation.
+ */
 public abstract class AbstractCharResponseConsumer<T> extends AbstractCharDataConsumer implements AsyncResponseConsumer<T> {
 
     private volatile FutureCallback<T> resultCallback;
 
+    /**
+     * Triggered to signal the beginning of data processing.
+     *
+     * @param response the response message head
+     * @param contentType the content type of the response body,
+     *                    or {@code null} if the response does not enclose a response entity.
+     */
     protected abstract void start(HttpResponse response, ContentType contentType) throws HttpException, IOException;
 
+    /**
+     * Triggered to generate object that represents a result of response message processing.
+     *
+     * @return the result of response processing.
+     */
     protected abstract T buildResult() throws IOException;
 
     @Override
@@ -74,7 +93,7 @@ public abstract class AbstractCharResponseConsumer<T> extends AbstractCharDataCo
                 charset = StandardCharsets.US_ASCII;
             }
             setCharset(charset);
-            start(response, contentType);
+            start(response, contentType != null ? contentType : ContentType.DEFAULT_TEXT);
         } else {
             start(response, null);
             completed();

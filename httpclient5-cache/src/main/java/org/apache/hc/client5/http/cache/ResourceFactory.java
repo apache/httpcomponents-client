@@ -26,12 +26,16 @@
  */
 package org.apache.hc.client5.http.cache;
 
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
+
 /**
  * Generates {@link Resource} instances for handling cached
  * HTTP response bodies.
  *
  * @since 4.1
  */
+@Contract(threading = ThreadingBehavior.STATELESS)
 public interface ResourceFactory {
 
     /**

@@ -60,9 +60,10 @@ import org.apache.hc.core5.util.Args;
  * <p>
  * Please note that this class treats parameters differently depending on composition
  * of the request: if the request has a content entity explicitly set with
- * {@link #setEntity(org.apache.hc.core5.http.HttpEntity)} or it is not an entity enclosing method
- * (such as POST or PUT), parameters will be added to the query component of the request URI.
- * Otherwise, parameters will be added as a URL encoded {@link UrlEncodedFormEntity entity}.
+ * {@link #setEntity(org.apache.hc.core5.http.HttpEntity)} or it is not an entity enclosing
+ * method (such as POST or PUT), parameters will be added to the query component
+ * of the request URI. Otherwise, parameters will be added as a URL encoded
+ * {@link UrlEncodedFormEntity entity}.
  * </p>
  *
  * @since 4.3

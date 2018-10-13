@@ -32,6 +32,11 @@ import org.apache.hc.core5.concurrent.BasicFuture;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.io.HttpClientResponseHandler;
 
+/**
+ * Asynchronous executor for {@link Request}s.
+ *
+ * @since 4.3
+ */
 public class Async {
 
     private Executor executor;

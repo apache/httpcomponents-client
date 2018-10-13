@@ -39,20 +39,42 @@ import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.io.ModalCloseable;
 
 /**
- * Client connection endpoint that can be used to execute message exchanges.
+ * Client endpoint leased from a connection manager. Client points can be used
+ * to execute HTTP requests.
+ * <p>
+ * Once the endpoint is no longer needed it MUST be released with {@link #close(org.apache.hc.core5.io.CloseMode)} )}.
+ * </p>
  *
  * @since 5.0
  */
 @Contract(threading = ThreadingBehavior.SAFE)
 public abstract class ConnectionEndpoint implements ModalCloseable {
 
+    /**
+     * Executes HTTP request using the provided request executor.
+     * <p>
+     * Once the endpoint is no longer needed it MUST be released with {@link #close(org.apache.hc.core5.io.CloseMode)}.
+     * </p>
+     *
+     * @param request the request message.
+     * @param executor the request executor.
+     * @param context the execution context.
+     */
     public abstract ClassicHttpResponse execute(
             ClassicHttpRequest request,
             HttpRequestExecutor executor,
             HttpContext context) throws IOException, HttpException;
 
+    /**
+     * Determines if the connection to the remote endpoint is still open and valid.
+     */
     public abstract boolean isConnected();
 
+    /**
+     * Sets the socket timeout value.
+     *
+     * @param timeout timeout value
+     */
     public abstract void setSocketTimeout(int timeout);
 
 }

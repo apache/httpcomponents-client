@@ -27,6 +27,8 @@
 
 package org.apache.hc.client5.http;
 
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.protocol.HttpContext;
 
@@ -37,6 +39,7 @@ import org.apache.hc.core5.http.protocol.HttpContext;
  *
  * @since 4.2
  */
+@Contract(threading = ThreadingBehavior.STATELESS)
 public interface ServiceUnavailableRetryStrategy {
 
     /**

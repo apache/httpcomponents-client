@@ -49,6 +49,7 @@ import org.apache.hc.client5.http.impl.auth.HttpAuthenticator;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.utils.URIUtils;
 import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.Header;
@@ -68,17 +69,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Request executor in the request execution chain that is responsible
- * for implementation of HTTP specification requirements.
+ * Request execution handler in the asynchronous request execution chain
+ * that is responsible for implementation of HTTP specification requirements.
  * <p>
  * Further responsibilities such as communication with the opposite
  * endpoint is delegated to the next executor in the request execution
  * chain.
+ * </p>
  *
  * @since 5.0
  */
-@Contract(threading = ThreadingBehavior.IMMUTABLE)
-class AsyncProtocolExec implements AsyncExecChainHandler {
+@Contract(threading = ThreadingBehavior.STATELESS)
+@Internal
+public final class AsyncProtocolExec implements AsyncExecChainHandler {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -191,7 +194,7 @@ class AsyncProtocolExec implements AsyncExecChainHandler {
 
             @Override
             public void completed() {
-                if (!execRuntime.isConnected()) {
+                if (!execRuntime.isEndpointConnected()) {
                     if (proxyAuthExchange.getState() == AuthExchange.State.SUCCESS
                             && proxyAuthExchange.isConnectionBased()) {
                         log.debug("Resetting proxy auth state");
@@ -267,11 +270,11 @@ class AsyncProtocolExec implements AsyncExecChainHandler {
                     proxy, ChallengeType.PROXY, response, proxyAuthExchange, context);
 
             if (targetAuthRequested) {
-                return authenticator.prepareAuthResponse(target, ChallengeType.TARGET, response,
+                return authenticator.updateAuthState(target, ChallengeType.TARGET, response,
                         targetAuthStrategy, targetAuthExchange, context);
             }
             if (proxyAuthRequested) {
-                return authenticator.prepareAuthResponse(proxy, ChallengeType.PROXY, response,
+                return authenticator.updateAuthState(proxy, ChallengeType.PROXY, response,
                         proxyAuthStrategy, proxyAuthExchange, context);
             }
         }

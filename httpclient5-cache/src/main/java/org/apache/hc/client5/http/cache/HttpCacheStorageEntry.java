@@ -28,8 +28,16 @@ package org.apache.hc.client5.http.cache;
 
 import java.io.Serializable;
 
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.util.Args;
 
+/**
+ * This class contains a {@link HttpCacheEntry} along with its key.
+ *
+ * @since 5.0
+ */
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public final class HttpCacheStorageEntry implements Serializable {
 
     private static final long serialVersionUID = 1L;

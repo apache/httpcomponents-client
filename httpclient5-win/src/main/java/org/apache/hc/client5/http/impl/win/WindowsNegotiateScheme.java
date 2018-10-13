@@ -32,13 +32,14 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.hc.client5.http.RouteInfo;
 import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.AuthScheme;
+import org.apache.hc.client5.http.auth.AuthSchemes;
 import org.apache.hc.client5.http.auth.AuthenticationException;
 import org.apache.hc.client5.http.auth.BasicUserPrincipal;
 import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.MalformedChallengeException;
-import org.apache.hc.client5.http.auth.AuthSchemes;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.core5.annotation.Experimental;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.protocol.HttpContext;
@@ -63,12 +64,10 @@ import com.sun.jna.ptr.IntByReference;
  * <p>
  * This will delegate negotiation to the windows machine.
  * </p>
- * <p>
- * EXPERIMENTAL
- * </p>
  *
  * @since 4.4
  */
+@Experimental
 public class WindowsNegotiateScheme implements AuthScheme {
 
     private final Logger log = LoggerFactory.getLogger(getClass());

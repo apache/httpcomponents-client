@@ -46,6 +46,8 @@ import org.apache.hc.client5.http.nio.AsyncClientConnectionManager;
 import org.apache.hc.client5.http.nio.AsyncConnectionEndpoint;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.routing.RoutingSupport;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.concurrent.BasicFuture;
 import org.apache.hc.core5.concurrent.Cancellable;
 import org.apache.hc.core5.concurrent.ComplexCancellable;
@@ -81,6 +83,19 @@ import org.apache.hc.core5.util.Asserts;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
 
+/**
+ * Minimal implementation of {@link CloseableHttpAsyncClient}. This client is
+ * optimized for HTTP/1.1 and HTTP/2 message transport and does not support
+ * advanced HTTP protocol functionality such as request execution via a proxy,
+ * state management, authentication and request redirects.
+ * <p>
+ * Concurrent message exchanges executed by this client will get assigned to
+ * separate connections leased from the connection pool.
+ * </p>
+ *
+ * @since 5.0
+ */
+@Contract(threading = ThreadingBehavior.SAFE_CONDITIONAL)
 public final class MinimalHttpAsyncClient extends AbstractMinimalHttpAsyncClientBase {
 
     private final AsyncClientConnectionManager connmgr;

@@ -32,8 +32,8 @@ import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 
 /**
- * Standard {@link org.apache.hc.client5.http.cookie.CookieSpec} implementation that enforces a more relaxed
- * interpretation of the HTTP state management specification (RFC 6265, section 5)
+ * Standard {@link org.apache.hc.client5.http.cookie.CookieSpec} implementation that enforces
+ * a more relaxed interpretation of the HTTP state management specification (RFC 6265, section 5)
  * for interoperability with existing servers that do not conform to the well behaved profile
  * (RFC 6265, section 4).
  *
