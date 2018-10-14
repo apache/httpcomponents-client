@@ -24,7 +24,7 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.hc.client5.http.auth;
+package org.apache.hc.client5.http.utils;
 
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
