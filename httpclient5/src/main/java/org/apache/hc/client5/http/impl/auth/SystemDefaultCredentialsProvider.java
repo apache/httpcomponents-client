@@ -32,7 +32,6 @@ import java.net.PasswordAuthentication;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -41,7 +40,7 @@ import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.CredentialsStore;
 import org.apache.hc.client5.http.auth.NTCredentials;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
-import org.apache.hc.client5.http.config.AuthSchemes;
+import org.apache.hc.client5.http.auth.AuthSchemes;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
@@ -63,11 +62,11 @@ public class SystemDefaultCredentialsProvider implements CredentialsStore {
 
     static {
         SCHEME_MAP = new ConcurrentHashMap<>();
-        SCHEME_MAP.put(AuthSchemes.BASIC.toUpperCase(Locale.ROOT), "Basic");
-        SCHEME_MAP.put(AuthSchemes.DIGEST.toUpperCase(Locale.ROOT), "Digest");
-        SCHEME_MAP.put(AuthSchemes.NTLM.toUpperCase(Locale.ROOT), "NTLM");
-        SCHEME_MAP.put(AuthSchemes.SPNEGO.toUpperCase(Locale.ROOT), "SPNEGO");
-        SCHEME_MAP.put(AuthSchemes.KERBEROS.toUpperCase(Locale.ROOT), "Kerberos");
+        SCHEME_MAP.put(AuthSchemes.BASIC.name(), "Basic");
+        SCHEME_MAP.put(AuthSchemes.DIGEST.name(), "Digest");
+        SCHEME_MAP.put(AuthSchemes.NTLM.name(), "NTLM");
+        SCHEME_MAP.put(AuthSchemes.SPNEGO.name(), "SPNEGO");
+        SCHEME_MAP.put(AuthSchemes.KERBEROS.name(), "Kerberos");
     }
 
     private static String translateAuthScheme(final String key) {
@@ -159,7 +158,7 @@ public class SystemDefaultCredentialsProvider implements CredentialsStore {
                 if (domain != null) {
                     return new NTCredentials(systemcreds.getUserName(), systemcreds.getPassword(), null, domain);
                 }
-                if (AuthSchemes.NTLM.equalsIgnoreCase(authscope.getAuthScheme())) {
+                if (AuthSchemes.NTLM.ident.equalsIgnoreCase(authscope.getAuthScheme())) {
                     // Domain may be specified in a fully qualified user name
                     return new NTCredentials(
                             systemcreds.getUserName(), systemcreds.getPassword(), null, null);

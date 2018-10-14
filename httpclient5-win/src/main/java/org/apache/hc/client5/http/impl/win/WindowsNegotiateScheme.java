@@ -37,7 +37,7 @@ import org.apache.hc.client5.http.auth.BasicUserPrincipal;
 import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.MalformedChallengeException;
-import org.apache.hc.client5.http.config.AuthSchemes;
+import org.apache.hc.client5.http.auth.AuthSchemes;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
@@ -83,10 +83,10 @@ public class WindowsNegotiateScheme implements AuthScheme {
     private CtxtHandle sspiContext;
     private boolean continueNeeded;
 
-    public WindowsNegotiateScheme(final String scheme, final String servicePrincipalName) {
+    WindowsNegotiateScheme(final String scheme, final String servicePrincipalName) {
         super();
 
-        this.scheme = (scheme == null) ? AuthSchemes.SPNEGO : scheme;
+        this.scheme = (scheme == null) ? AuthSchemes.SPNEGO.ident : scheme;
         this.continueNeeded = true;
         this.servicePrincipalName = servicePrincipalName;
 

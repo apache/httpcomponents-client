@@ -31,7 +31,7 @@ import java.io.IOException;
 import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.AuthSchemeProvider;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
-import org.apache.hc.client5.http.config.AuthSchemes;
+import org.apache.hc.client5.http.auth.AuthSchemes;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
@@ -81,10 +81,10 @@ public class TestWindowsNegotiateScheme extends LocalServerTestBase {
         // you can contact the server that authenticated you." is associated with SEC_E_DOWNGRADE_DETECTED.
 
         final Registry<AuthSchemeProvider> authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
-            .register(AuthSchemes.SPNEGO, new AuthSchemeProvider() {
+            .register(AuthSchemes.SPNEGO.ident, new AuthSchemeProvider() {
                 @Override
                 public AuthScheme create(final HttpContext context) {
-                    return new WindowsNegotiateSchemeGetTokenFail(AuthSchemes.SPNEGO, "HTTP/example.com");
+                    return new WindowsNegotiateSchemeGetTokenFail(AuthSchemes.SPNEGO.ident, "HTTP/example.com");
                 }
             }).build();
         final CloseableHttpClient customClient = HttpClientBuilder.create()
@@ -92,7 +92,7 @@ public class TestWindowsNegotiateScheme extends LocalServerTestBase {
 
         final HttpHost target = start();
         final HttpGet httpGet = new HttpGet("/");
-        try (CloseableHttpResponse response = customClient.execute(target, httpGet)) {
+        try (final CloseableHttpResponse response = customClient.execute(target, httpGet)) {
             EntityUtils.consume(response.getEntity());
         }
     }

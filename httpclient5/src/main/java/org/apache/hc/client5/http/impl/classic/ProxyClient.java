@@ -41,7 +41,7 @@ import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.KerberosConfig;
-import org.apache.hc.client5.http.config.AuthSchemes;
+import org.apache.hc.client5.http.auth.AuthSchemes;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.DefaultAuthenticationStrategy;
 import org.apache.hc.client5.http.impl.TunnelRefusedException;
@@ -115,11 +115,13 @@ public class ProxyClient {
         this.authenticator = new HttpAuthenticator();
         this.proxyAuthExchange = new AuthExchange();
         this.authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
-                .register(AuthSchemes.BASIC, new BasicSchemeFactory())
-                .register(AuthSchemes.DIGEST, new DigestSchemeFactory())
-                .register(AuthSchemes.NTLM, new NTLMSchemeFactory())
-                .register(AuthSchemes.SPNEGO, new SPNegoSchemeFactory(KerberosConfig.DEFAULT, SystemDefaultDnsResolver.INSTANCE))
-                .register(AuthSchemes.KERBEROS, new KerberosSchemeFactory(KerberosConfig.DEFAULT, SystemDefaultDnsResolver.INSTANCE))
+                .register(AuthSchemes.BASIC.ident, new BasicSchemeFactory())
+                .register(AuthSchemes.DIGEST.ident, new DigestSchemeFactory())
+                .register(AuthSchemes.NTLM.ident, new NTLMSchemeFactory())
+                .register(AuthSchemes.SPNEGO.ident,
+                        new SPNegoSchemeFactory(KerberosConfig.DEFAULT, SystemDefaultDnsResolver.INSTANCE))
+                .register(AuthSchemes.KERBEROS.ident,
+                        new KerberosSchemeFactory(KerberosConfig.DEFAULT, SystemDefaultDnsResolver.INSTANCE))
                 .build();
         this.reuseStrategy = new DefaultConnectionReuseStrategy();
     }

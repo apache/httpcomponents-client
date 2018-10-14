@@ -31,7 +31,7 @@ import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.CredentialsStore;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
-import org.apache.hc.client5.http.config.AuthSchemes;
+import org.apache.hc.client5.http.auth.AuthSchemes;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.net.URIAuthority;
@@ -65,7 +65,7 @@ public class AuthSupport {
             password = null;
         }
         credentialsStore.setCredentials(
-                new AuthScope(scheme, authority.getHostName(), authority.getPort(), null, AuthSchemes.BASIC),
+                new AuthScope(scheme, authority.getHostName(), authority.getPort(), null, AuthSchemes.BASIC.ident),
                 new UsernamePasswordCredentials(userName, password));
     }
 

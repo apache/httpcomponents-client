@@ -38,10 +38,10 @@ import javax.net.ssl.SSLContext;
 import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.SystemDefaultDnsResolver;
+import org.apache.hc.client5.http.auth.AuthSchemes;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
-import org.apache.hc.client5.http.config.AuthSchemes;
-import org.apache.hc.client5.http.config.CookieSpecs;
+import org.apache.hc.client5.http.cookie.CookieSpecs;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.cookie.BasicCookieStore;
 import org.apache.hc.client5.http.cookie.CookieStore;
@@ -193,10 +193,10 @@ public class ClientConfiguration {
         final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
         // Create global request configuration
         final RequestConfig defaultRequestConfig = RequestConfig.custom()
-            .setCookieSpec(CookieSpecs.DEFAULT)
+            .setCookieSpec(CookieSpecs.STANDARD.ident)
             .setExpectContinueEnabled(true)
-            .setTargetPreferredAuthSchemes(Arrays.asList(AuthSchemes.NTLM, AuthSchemes.DIGEST))
-            .setProxyPreferredAuthSchemes(Arrays.asList(AuthSchemes.BASIC))
+            .setTargetPreferredAuthSchemes(Arrays.asList(AuthSchemes.NTLM.ident, AuthSchemes.DIGEST.ident))
+            .setProxyPreferredAuthSchemes(Arrays.asList(AuthSchemes.BASIC.ident))
             .build();
 
         // Create an HttpClient with the given custom dependencies and configuration.

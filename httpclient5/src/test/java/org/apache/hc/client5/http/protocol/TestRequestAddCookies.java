@@ -31,7 +31,7 @@ import java.util.Date;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.RouteInfo.LayerType;
 import org.apache.hc.client5.http.RouteInfo.TunnelType;
-import org.apache.hc.client5.http.config.CookieSpecs;
+import org.apache.hc.client5.http.cookie.CookieSpecs;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.cookie.BasicCookieStore;
 import org.apache.hc.client5.http.cookie.CookieOrigin;
@@ -75,15 +75,12 @@ public class TestRequestAddCookies {
         cookie2.setPath("/");
         this.cookieStore.addCookie(cookie2);
 
-        final CookieSpecProvider laxCookiePolicyPRovider = new RFC6265CookieSpecProvider(
-                RFC6265CookieSpecProvider.CompatibilityLevel.RELAXED, null);
-        final CookieSpecProvider strictCookiePolicyPRovider = new RFC6265CookieSpecProvider(
-                RFC6265CookieSpecProvider.CompatibilityLevel.STRICT, null);
         this.cookieSpecRegistry = RegistryBuilder.<CookieSpecProvider>create()
-            .register(CookieSpecs.DEFAULT, laxCookiePolicyPRovider)
-            .register(CookieSpecs.STANDARD, laxCookiePolicyPRovider)
-            .register(CookieSpecs.STANDARD_STRICT, strictCookiePolicyPRovider)
-            .register(CookieSpecs.IGNORE_COOKIES, new IgnoreSpecProvider())
+            .register(CookieSpecs.STANDARD.ident, new RFC6265CookieSpecProvider(
+                    RFC6265CookieSpecProvider.CompatibilityLevel.RELAXED, null))
+            .register(CookieSpecs.STANDARD_STRICT.ident,  new RFC6265CookieSpecProvider(
+                    RFC6265CookieSpecProvider.CompatibilityLevel.STRICT, null))
+            .register(CookieSpecs.IGNORE_COOKIES.ident, new IgnoreSpecProvider())
             .build();
     }
 
@@ -206,7 +203,8 @@ public class TestRequestAddCookies {
     public void testAddCookiesUsingExplicitCookieSpec() throws Exception {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         final RequestConfig config = RequestConfig.custom()
-            .setCookieSpec(CookieSpecs.STANDARD_STRICT).build();
+                .setCookieSpec(CookieSpecs.STANDARD_STRICT.ident)
+                .build();
         final HttpRoute route = new HttpRoute(this.target, null, false);
 
         final HttpClientContext context = HttpClientContext.create();

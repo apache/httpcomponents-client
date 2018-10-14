@@ -29,7 +29,7 @@ package org.apache.hc.client5.http.examples;
 import java.net.URL;
 
 import org.apache.hc.client5.http.classic.methods.HttpGet;
-import org.apache.hc.client5.http.config.CookieSpecs;
+import org.apache.hc.client5.http.cookie.CookieSpecs;
 import org.apache.hc.client5.http.cookie.CookieSpecProvider;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
@@ -63,9 +63,8 @@ public class ClientCustomPublicSuffixList {
 
         final RFC6265CookieSpecProvider cookieSpecProvider = new RFC6265CookieSpecProvider(publicSuffixMatcher);
         final Lookup<CookieSpecProvider> cookieSpecRegistry = RegistryBuilder.<CookieSpecProvider>create()
-                .register(CookieSpecs.DEFAULT, cookieSpecProvider)
-                .register(CookieSpecs.STANDARD, cookieSpecProvider)
-                .register(CookieSpecs.STANDARD_STRICT, cookieSpecProvider)
+                .register(CookieSpecs.STANDARD.ident, cookieSpecProvider)
+                .register(CookieSpecs.STANDARD_STRICT.ident, cookieSpecProvider)
                 .build();
         final SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
                 SSLContexts.createDefault(),

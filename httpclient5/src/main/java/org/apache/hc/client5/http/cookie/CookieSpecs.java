@@ -25,44 +25,36 @@
  *
  */
 
-package org.apache.hc.client5.http.config;
-
-import org.apache.hc.core5.annotation.Contract;
-import org.apache.hc.core5.annotation.ThreadingBehavior;
+package org.apache.hc.client5.http.cookie;
 
 /**
- * Standard cookie specifications supported by HttpClient.
+ * Supported cookie specifications.
  *
  * @since 4.3
  */
-@Contract(threading = ThreadingBehavior.IMMUTABLE)
-public final class CookieSpecs {
+public enum CookieSpecs {
 
     /**
      * The RFC 6265 compliant policy (interoprability profile).
      */
-    public static final String STANDARD = "standard";
+    STANDARD("standard"),
 
     /**
      * The RFC 6265 compliant policy (strict profile).
      *
      * @since 4.4
      */
-    public static final String STANDARD_STRICT = "standard-strict";
-
-    /**
-     * The default policy. This policy provides a higher degree of compatibility
-     * with common cookie management of popular HTTP agents for non-standard
-     * (Netscape style) cookies.
-     */
-    public static final String DEFAULT = "default";
+    STANDARD_STRICT("standard-strict"),
 
     /**
      * The policy that ignores cookies.
      */
-    public static final String IGNORE_COOKIES = "ignoreCookies";
+    IGNORE_COOKIES("ignoreCookies");
 
-    private CookieSpecs() {
+    public final String ident;
+
+    CookieSpecs(final String ident) {
+        this.ident = ident;
     }
 
 }

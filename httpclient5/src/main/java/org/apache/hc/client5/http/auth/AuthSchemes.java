@@ -25,56 +25,55 @@
  *
  */
 
-package org.apache.hc.client5.http.config;
-
-import org.apache.hc.core5.annotation.Contract;
-import org.apache.hc.core5.annotation.ThreadingBehavior;
+package org.apache.hc.client5.http.auth;
 
 /**
- * Standard authentication schemes supported by HttpClient.
+ * Supported authentication schemes.
  *
  * @since 4.3
  */
-@Contract(threading = ThreadingBehavior.IMMUTABLE)
-public final class AuthSchemes {
+public enum AuthSchemes {
 
     /**
      * Basic authentication scheme as defined in RFC 2617 (considered inherently
      * insecure, but most widely supported).
      */
-    public static final String BASIC = "Basic";
+    BASIC("Basic"),
 
     /**
      * Digest authentication scheme as defined in RFC 2617.
      */
-    public static final String DIGEST = "Digest";
+    DIGEST("Digest"),
 
     /**
      * The NTLM authentication scheme is a proprietary Microsoft Windows
      * authentication protocol as defined in [MS-NLMP].
      */
-    public static final String NTLM = "NTLM";
+    NTLM("NTLM"),
 
     /**
      * SPNEGO authentication scheme as defined in RFC 4559 and RFC 4178
      * (considered to be the most secure among currently supported
      * authentication schemes if Kerberos is selected).
      */
-    public static final String SPNEGO = "Negotiate";
+    SPNEGO("Negotiate"),
 
     /**
      * Kerberos authentication scheme as defined in RFC 4120
      * (considered to be the most secure among currently supported
      * authentication schemes).
      */
-    public static final String KERBEROS = "Kerberos";
+    KERBEROS("Kerberos"),
 
     /**
      * CredSSP authentication scheme defined in [MS-CSSP].
      */
-    public static final String CREDSSP = "CredSSP";
+    CREDSSP("CredSSP");
 
-    private AuthSchemes() {
+    public final String ident;
+
+    AuthSchemes(final String ident) {
+        this.ident = ident;
     }
 
 }
