@@ -39,78 +39,78 @@ public enum ClassicHttpRequests {
 
     DELETE {
         @Override
-        public HttpUriRequestBase create(final URI uri) {
+        public HttpUriRequest create(final URI uri) {
             return new HttpDelete(uri);
         }
     },
 
     GET {
         @Override
-        public HttpUriRequestBase create(final URI uri) {
+        public HttpUriRequest create(final URI uri) {
             return new HttpGet(uri);
         }
     },
 
     HEAD {
         @Override
-        public HttpUriRequestBase create(final URI uri) {
+        public HttpUriRequest create(final URI uri) {
             return new HttpHead(uri);
         }
     },
 
     OPTIONS {
         @Override
-        public HttpUriRequestBase create(final URI uri) {
+        public HttpUriRequest create(final URI uri) {
             return new HttpOptions(uri);
         }
     },
 
     PATCH {
         @Override
-        public HttpUriRequestBase create(final URI uri) {
+        public HttpUriRequest create(final URI uri) {
             return new HttpPatch(uri);
         }
     },
 
     POST {
         @Override
-        public HttpUriRequestBase create(final URI uri) {
+        public HttpUriRequest create(final URI uri) {
             return new HttpPost(uri);
         }
     },
 
     PUT {
         @Override
-        public HttpUriRequestBase create(final URI uri) {
+        public HttpUriRequest create(final URI uri) {
             return new HttpPut(uri);
         }
     },
 
     TRACE {
         @Override
-        public HttpUriRequestBase create(final URI uri) {
+        public HttpUriRequest create(final URI uri) {
             return new HttpTrace(uri);
         }
     };
 
     /**
-     * Creates a request object of the exact subclass of {@link HttpUriRequestBase}.
+     * Creates a request object of the exact subclass of {@link HttpUriRequest}.
      *
      * @param uri
      *            a non-null URI String.
-     * @return a new subclass of HttpUriRequestBase
+     * @return a new subclass of HttpUriRequest
      */
-    public HttpUriRequestBase create(final String uri) {
+    public HttpUriRequest create(final String uri) {
         return create(URI.create(uri));
     }
 
     /**
-     * Creates a request object of the exact subclass of {@link HttpUriRequestBase}.
+     * Creates a request object of the exact subclass of {@link HttpUriRequest}.
      *
      * @param uri
      *            a non-null URI.
-     * @return a new subclass of HttpUriRequestBase
+     * @return a new subclass of HttpUriRequest
      */
-    public abstract HttpUriRequestBase create(URI uri);
+    public abstract HttpUriRequest create(URI uri);
 
 }
