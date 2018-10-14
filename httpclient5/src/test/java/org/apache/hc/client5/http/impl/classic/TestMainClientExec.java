@@ -167,7 +167,7 @@ public class TestMainClientExec {
         final ClassicHttpResponse finalResponse = mainClientExec.execute(request, scope, null);
 
         Mockito.verify(endpoint).execute(request, context);
-        Mockito.verify(endpoint).markConnectionReusable();
+        Mockito.verify(endpoint).markConnectionReusable(null, TimeValue.ofMillis(678L));
         Mockito.verify(endpoint, Mockito.never()).releaseConnection();
 
         Assert.assertNotNull(finalResponse);

@@ -194,23 +194,15 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
     }
 
     @Override
-    public void markConnectionReusable() {
-        reusable = true;
+    public void markConnectionReusable(final Object state, final TimeValue validDuration) {
+        this.reusable = true;
+        this.state = state;
+        this.validDuration = validDuration;
     }
 
     @Override
     public void markConnectionNonReusable() {
         reusable = false;
-    }
-
-    @Override
-    public void setConnectionState(final Object state) {
-        this.state = state;
-    }
-
-    @Override
-    public void setConnectionValidFor(final TimeValue duration) {
-        validDuration = duration;
     }
 
     @Override

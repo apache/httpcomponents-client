@@ -77,13 +77,9 @@ public interface ExecRuntime {
 
     boolean isConnectionReusable();
 
-    void markConnectionReusable();
+    void markConnectionReusable(Object state, TimeValue duration);
 
     void markConnectionNonReusable();
-
-    void setConnectionState(Object state);
-
-    void setConnectionValidFor(TimeValue duration);
 
     ExecRuntime fork(CancellableDependency cancellableAware);
 

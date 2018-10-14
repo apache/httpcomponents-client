@@ -206,9 +206,7 @@ public class TestInternalExecRuntime {
         execRuntime.acquireConnection(route, null, context);
         Assert.assertTrue(execRuntime.isConnectionAcquired());
 
-        execRuntime.setConnectionState("some state");
-        execRuntime.setConnectionValidFor(TimeValue.ofMillis(100000));
-        execRuntime.markConnectionReusable();
+        execRuntime.markConnectionReusable("some state", TimeValue.ofMillis(100000));
 
         execRuntime.releaseConnection();
 
@@ -236,8 +234,7 @@ public class TestInternalExecRuntime {
         execRuntime.acquireConnection(route, null, context);
         Assert.assertTrue(execRuntime.isConnectionAcquired());
 
-        execRuntime.setConnectionState("some state");
-        execRuntime.setConnectionValidFor(TimeValue.ofMillis(100000));
+        execRuntime.markConnectionReusable("some state", TimeValue.ofMillis(100000));
         execRuntime.markConnectionNonReusable();
 
         execRuntime.releaseConnection();

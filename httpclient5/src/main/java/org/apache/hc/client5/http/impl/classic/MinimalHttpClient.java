@@ -64,6 +64,7 @@ import org.apache.hc.core5.http.protocol.RequestUserAgent;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.net.URIAuthority;
 import org.apache.hc.core5.util.Args;
+import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.VersionInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -140,7 +141,7 @@ public class MinimalHttpClient extends CloseableHttpClient {
             httpProcessor.process(response, response.getEntity(), context);
 
             if (reuseStrategy.keepAlive(request, response, context)) {
-                execRuntime.markConnectionReusable();
+                execRuntime.markConnectionReusable(null, TimeValue.NEG_ONE_MILLISECONDS);
             } else {
                 execRuntime.markConnectionNonReusable();
             }

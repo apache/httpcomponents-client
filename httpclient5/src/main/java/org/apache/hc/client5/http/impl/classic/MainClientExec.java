@@ -108,9 +108,6 @@ final class MainClientExec implements ExecChainHandler {
                 userToken = userTokenHandler.getUserToken(route, context);
                 context.setAttribute(HttpClientContext.USER_TOKEN, userToken);
             }
-            if (userToken != null) {
-                execRuntime.setConnectionState(userToken);
-            }
 
             // The connection is in or can be brought to a re-usable state.
             if (reuseStrategy.keepAlive(request, response, context)) {
@@ -125,8 +122,7 @@ final class MainClientExec implements ExecChainHandler {
                     }
                     this.log.debug("Connection can be kept alive " + s);
                 }
-                execRuntime.setConnectionValidFor(duration);
-                execRuntime.markConnectionReusable();
+                execRuntime.markConnectionReusable(userToken, duration);
             } else {
                 execRuntime.markConnectionNonReusable();
             }
