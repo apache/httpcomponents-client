@@ -90,7 +90,7 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
         Args.notNull(proxyAuthStrategy, "Proxy authentication strategy");
         this.proxyHttpProcessor = proxyHttpProcessor;
         this.proxyAuthStrategy  = proxyAuthStrategy;
-        this.authenticator      = new HttpAuthenticator();
+        this.authenticator      = new HttpAuthenticator(log);
         this.routeDirector      = new BasicRouteDirector();
     }
 

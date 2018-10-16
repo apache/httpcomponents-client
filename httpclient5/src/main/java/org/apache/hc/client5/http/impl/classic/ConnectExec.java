@@ -91,7 +91,7 @@ public final class ConnectExec implements ExecChainHandler {
         this.reuseStrategy      = reuseStrategy;
         this.proxyHttpProcessor = proxyHttpProcessor;
         this.proxyAuthStrategy  = proxyAuthStrategy;
-        this.authenticator      = new HttpAuthenticator();
+        this.authenticator      = new HttpAuthenticator(log);
         this.routeDirector      = new BasicRouteDirector();
     }
 

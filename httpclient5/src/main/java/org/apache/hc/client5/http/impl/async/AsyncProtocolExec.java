@@ -94,7 +94,7 @@ class AsyncProtocolExec implements AsyncExecChainHandler {
         this.httpProcessor = Args.notNull(httpProcessor, "HTTP protocol processor");
         this.targetAuthStrategy = Args.notNull(targetAuthStrategy, "Target authentication strategy");
         this.proxyAuthStrategy = Args.notNull(proxyAuthStrategy, "Proxy authentication strategy");
-        this.authenticator = new HttpAuthenticator();
+        this.authenticator = new HttpAuthenticator(log);
     }
 
     @Override

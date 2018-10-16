@@ -45,6 +45,7 @@ import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.MalformedChallengeException;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.http.FormattedHeader;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHeaders;
@@ -69,6 +70,7 @@ public class HttpAuthenticator {
     private final Logger log;
     private final AuthChallengeParser parser;
 
+    @Internal
     public HttpAuthenticator(final Logger log) {
         super();
         this.log = log != null ? log : LoggerFactory.getLogger(getClass());
