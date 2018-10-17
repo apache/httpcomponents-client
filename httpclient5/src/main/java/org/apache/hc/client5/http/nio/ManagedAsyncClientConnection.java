@@ -35,9 +35,7 @@ import org.apache.hc.core5.reactor.ssl.TransportSecurityLayer;
 @Internal
 public interface ManagedAsyncClientConnection extends HttpConnection, TransportSecurityLayer {
 
-    void submitPriorityCommand(Command command);
-
-    void submitCommand(Command command);
+    void submitCommand(Command command, Command.Priority priority);
 
     /**
      * Puts the connection into idle mode.

@@ -178,19 +178,11 @@ final class DefaultManagedAsyncClientConnection implements ManagedAsyncClientCon
     }
 
     @Override
-    public void submitPriorityCommand(final Command command) {
+    public void submitCommand(final Command command, final Command.Priority priority) {
         if (log.isDebugEnabled()) {
-            log.debug(getId() + ": priority command " + command);
+            log.debug(getId() + ": " + command.getClass().getSimpleName() + " with " + priority + " priority");
         }
         ioSession.enqueue(command, Command.Priority.IMMEDIATE);
-    }
-
-    @Override
-    public void submitCommand(final Command command) {
-        if (log.isDebugEnabled()) {
-            log.debug(getId() + ": command " + command);
-        }
-        ioSession.enqueue(command, Command.Priority.NORMAL);
     }
 
     @Override

@@ -73,6 +73,7 @@ import org.apache.hc.core5.pool.PoolEntry;
 import org.apache.hc.core5.pool.PoolReusePolicy;
 import org.apache.hc.core5.pool.PoolStats;
 import org.apache.hc.core5.pool.StrictConnPool;
+import org.apache.hc.core5.reactor.Command;
 import org.apache.hc.core5.reactor.ConnectionInitiator;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.Asserts;
@@ -247,7 +248,7 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
                                 poolEntry.getUpdated() + timeValue.toMillis() <= System.currentTimeMillis()) {
                             final ProtocolVersion protocolVersion = connection.getProtocolVersion();
                             if (HttpVersion.HTTP_2_0.greaterEquals(protocolVersion)) {
-                                connection.submitPriorityCommand(new PingCommand(new BasicPingHandler(new Callback<Boolean>() {
+                                connection.submitCommand(new PingCommand(new BasicPingHandler(new Callback<Boolean>() {
 
                                     @Override
                                     public void execute(final Boolean result) {
@@ -260,7 +261,7 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
                                         leaseCompleted(poolEntry);
                                     }
 
-                                })));
+                                })), Command.Priority.IMMEDIATE);
                             } else {
                                 if (!connection.isOpen()) {
                                     if (log.isDebugEnabled()) {
@@ -564,7 +565,9 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
                 log.debug(id + ": executing exchange " + ConnPoolSupport.getId(exchangeHandler) +
                         " over " + ConnPoolSupport.getId(connection));
             }
-            connection.submitCommand(new RequestExecutionCommand(exchangeHandler, pushHandlerFactory, context));
+            connection.submitCommand(
+                    new RequestExecutionCommand(exchangeHandler, pushHandlerFactory, context),
+                    Command.Priority.NORMAL);
         }
 
     }
