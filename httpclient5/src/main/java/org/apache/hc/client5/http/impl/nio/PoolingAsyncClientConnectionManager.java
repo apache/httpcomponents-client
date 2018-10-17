@@ -27,7 +27,6 @@
 
 package org.apache.hc.client5.http.impl.nio;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Set;
 import java.util.concurrent.Future;
@@ -512,24 +511,13 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
         }
 
         @Override
-        public void shutdown() throws IOException {
+        public void close(final CloseMode closeMode) {
             final PoolEntry<HttpRoute, ManagedAsyncClientConnection> poolEntry = poolEntryRef.get();
             if (poolEntry != null) {
                 if (log.isDebugEnabled()) {
-                    log.debug(id + ": shutdown " + CloseMode.IMMEDIATE);
+                    log.debug(id + ": shutdown " + closeMode);
                 }
-                poolEntry.discardConnection(CloseMode.IMMEDIATE);
-            }
-        }
-
-        @Override
-        public void close() throws IOException {
-            final PoolEntry<HttpRoute, ManagedAsyncClientConnection> poolEntry = poolEntryRef.get();
-            if (poolEntry != null) {
-                if (log.isDebugEnabled()) {
-                    log.debug(id + ": shutdown " + CloseMode.GRACEFUL);
-                }
-                poolEntry.discardConnection(CloseMode.GRACEFUL);
+                poolEntry.discardConnection(closeMode);
             }
         }
 

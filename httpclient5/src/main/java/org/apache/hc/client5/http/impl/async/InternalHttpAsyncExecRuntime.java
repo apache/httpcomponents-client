@@ -27,7 +27,6 @@
 
 package org.apache.hc.client5.http.impl.async;
 
-import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -45,6 +44,7 @@ import org.apache.hc.core5.http.nio.AsyncClientExchangeHandler;
 import org.apache.hc.core5.http.nio.AsyncPushConsumer;
 import org.apache.hc.core5.http.nio.HandlerFactory;
 import org.apache.hc.core5.http2.HttpVersionPolicy;
+import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.reactor.ConnectionInitiator;
 import org.apache.hc.core5.util.TimeValue;
 import org.slf4j.Logger;
@@ -121,13 +121,9 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
 
     private void discardEndpoint(final AsyncConnectionEndpoint endpoint) {
         try {
-            endpoint.shutdown();
+            endpoint.close(CloseMode.IMMEDIATE);
             if (log.isDebugEnabled()) {
                 log.debug(ConnPoolSupport.getId(endpoint) + ": discarding endpoint");
-            }
-        } catch (final IOException ex) {
-            if (log.isDebugEnabled()) {
-                log.debug(ConnPoolSupport.getId(endpoint) + ": " + ex.getMessage(), ex);
             }
         } finally {
             manager.release(endpoint, null, TimeValue.ZERO_MILLISECONDS);

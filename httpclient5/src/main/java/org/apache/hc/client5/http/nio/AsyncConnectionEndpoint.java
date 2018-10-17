@@ -27,7 +27,6 @@
 
 package org.apache.hc.client5.http.nio;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.util.concurrent.Future;
 
@@ -43,6 +42,8 @@ import org.apache.hc.core5.http.nio.HandlerFactory;
 import org.apache.hc.core5.http.nio.support.BasicClientExchangeHandler;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.protocol.HttpCoreContext;
+import org.apache.hc.core5.io.CloseMode;
+import org.apache.hc.core5.io.ModalCloseable;
 
 /**
  * Client connection endpoint that can be used to execute message exchanges.
@@ -50,20 +51,29 @@ import org.apache.hc.core5.http.protocol.HttpCoreContext;
  * @since 5.0
  */
 @Contract(threading = ThreadingBehavior.SAFE)
-public abstract class AsyncConnectionEndpoint implements Closeable {
+public abstract class AsyncConnectionEndpoint implements ModalCloseable {
 
     public abstract void execute(
             AsyncClientExchangeHandler exchangeHandler,
             HandlerFactory<AsyncPushConsumer> pushHandlerFactory,
             HttpContext context);
 
-    public void execute(
+    public abstract boolean isConnected();
+
+    public abstract void setSocketTimeout(int timeout);
+
+    @Override
+    public final void close() throws IOException {
+        close(CloseMode.GRACEFUL);
+    }
+
+    public final void execute(
             final AsyncClientExchangeHandler exchangeHandler,
             final HttpContext context) {
         execute(exchangeHandler, null, context);
     }
 
-    public <T> Future<T> execute(
+    public final <T> Future<T> execute(
             final AsyncRequestProducer requestProducer,
             final AsyncResponseConsumer<T> responseConsumer,
             final HandlerFactory<AsyncPushConsumer> pushHandlerFactory,
@@ -94,7 +104,7 @@ public abstract class AsyncConnectionEndpoint implements Closeable {
         return future;
     }
 
-    public <T> Future<T> execute(
+    public final <T> Future<T> execute(
             final AsyncRequestProducer requestProducer,
             final AsyncResponseConsumer<T> responseConsumer,
             final HttpContext context,
@@ -102,7 +112,7 @@ public abstract class AsyncConnectionEndpoint implements Closeable {
         return execute(requestProducer, responseConsumer, null, context, callback);
     }
 
-    public <T> Future<T> execute(
+    public final <T> Future<T> execute(
             final AsyncRequestProducer requestProducer,
             final AsyncResponseConsumer<T> responseConsumer,
             final HandlerFactory<AsyncPushConsumer> pushHandlerFactory,
@@ -110,17 +120,11 @@ public abstract class AsyncConnectionEndpoint implements Closeable {
         return execute(requestProducer, responseConsumer, pushHandlerFactory, null, callback);
     }
 
-    public <T> Future<T> execute(
+    public final <T> Future<T> execute(
             final AsyncRequestProducer requestProducer,
             final AsyncResponseConsumer<T> responseConsumer,
             final FutureCallback<T> callback) {
         return execute(requestProducer, responseConsumer, null, null, callback);
     }
-
-    public abstract boolean isConnected();
-
-    public abstract void setSocketTimeout(int timeout);
-
-    public abstract void shutdown() throws IOException;
 
 }
