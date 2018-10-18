@@ -68,7 +68,7 @@
   <properties>
     <maven.compiler.source>1.7</maven.compiler.source>
     <maven.compiler.target>1.7</maven.compiler.target>
-    <httpcore.version>5.0-beta3</httpcore.version>
+    <httpcore.version>5.0-beta5</httpcore.version>
     <log4j.version>2.9.1</log4j.version>
     <commons-codec.version>1.11</commons-codec.version>
     <ehcache.version>3.4.0</ehcache.version>
@@ -96,6 +96,11 @@
       <dependency>
         <groupId>org.apache.httpcomponents.core5</groupId>
         <artifactId>httpcore5-testing</artifactId>
+        <version>${httpcore.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.httpcomponents.core5</groupId>
+        <artifactId>httpcore5-reactive</artifactId>
         <version>${httpcore.version}</version>
       </dependency>
       <dependency>

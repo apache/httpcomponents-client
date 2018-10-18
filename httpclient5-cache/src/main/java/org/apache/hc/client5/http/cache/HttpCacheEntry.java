@@ -163,7 +163,7 @@ public class HttpCacheEntry implements MessageHeaders, Serializable {
      * Returns all the headers that were on the origin response.
      */
     @Override
-    public Header[] getAllHeaders() {
+    public Header[] getHeaders() {
         final HeaderGroup filteredHeaders = new HeaderGroup();
         for (final Iterator<Header> iterator = responseHeaders.headerIterator(); iterator.hasNext();) {
             final Header header = iterator.next();
@@ -171,7 +171,16 @@ public class HttpCacheEntry implements MessageHeaders, Serializable {
                 filteredHeaders.addHeader(header);
             }
         }
-        return filteredHeaders.getAllHeaders();
+        return filteredHeaders.getHeaders();
+    }
+
+    /**
+     * @deprecated use {@link #getHeaders()}
+     */
+    @Override
+    @Deprecated
+    public Header[] getAllHeaders() {
+        return getHeaders();
     }
 
     /**
@@ -218,16 +227,34 @@ public class HttpCacheEntry implements MessageHeaders, Serializable {
      * @since 5.0
      */
     @Override
+    public int countHeaders(final String name) {
+        return responseHeaders.countHeaders(name);
+    }
+
+    /**
+     * @deprecated use {@link #countHeaders(String)}
+     */
+    @Override
+    @Deprecated
     public int containsHeaders(final String name) {
-        return responseHeaders.containsHeaders(name);
+        return countHeaders(name);
     }
 
     /**
      * @since 5.0
      */
     @Override
+    public Header getHeader(final String name) throws ProtocolException {
+        return responseHeaders.getHeader(name);
+    }
+
+    /**
+     * @deprecated use {@link #getHeader(String)}
+     */
+    @Override
+    @Deprecated
     public Header getSingleHeader(final String name) throws ProtocolException {
-        return responseHeaders.getSingleHeader(name);
+        return getHeader(name);
     }
 
     /**

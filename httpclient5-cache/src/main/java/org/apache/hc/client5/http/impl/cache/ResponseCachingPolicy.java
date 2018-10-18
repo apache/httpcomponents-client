@@ -138,17 +138,17 @@ class ResponseCachingPolicy {
             }
         }
 
-        if (response.containsHeaders(HeaderConstants.AGE) > 1) {
+        if (response.countHeaders(HeaderConstants.AGE) > 1) {
             log.debug("Multiple Age headers");
             return false;
         }
 
-        if (response.containsHeaders(HeaderConstants.EXPIRES) > 1) {
+        if (response.countHeaders(HeaderConstants.EXPIRES) > 1) {
             log.debug("Multiple Expires headers");
             return false;
         }
 
-        if (response.containsHeaders(HttpHeaders.DATE) > 1) {
+        if (response.countHeaders(HttpHeaders.DATE) > 1) {
             log.debug("Multiple Date headers");
             return false;
         }
@@ -274,7 +274,7 @@ class ResponseCachingPolicy {
         }
 
         if (sharedCache) {
-            if (request.containsHeaders(HeaderConstants.AUTHORIZATION) > 0
+            if (request.countHeaders(HeaderConstants.AUTHORIZATION) > 0
                     && !hasCacheControlParameterFrom(response, AUTH_CACHEABLE_PARAMS)) {
                 log.debug("Request contains private credentials");
                 return false;

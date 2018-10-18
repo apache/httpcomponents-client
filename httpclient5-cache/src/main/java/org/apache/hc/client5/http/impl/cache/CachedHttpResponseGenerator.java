@@ -67,7 +67,7 @@ class CachedHttpResponseGenerator {
         final SimpleHttpResponse response = new SimpleHttpResponse(entry.getStatus());
         response.setVersion(HttpVersion.DEFAULT);
 
-        response.setHeaders(entry.getAllHeaders());
+        response.setHeaders(entry.getHeaders());
 
         if (responseShouldContainEntity(request, entry)) {
             final Resource resource = entry.getResource();

@@ -335,7 +335,7 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
     public Future<AsyncConnectionEndpoint> connect(
             final AsyncConnectionEndpoint endpoint,
             final ConnectionInitiator connectionInitiator,
-            final TimeValue timeout,
+            final Timeout timeout,
             final Object attachment,
             final HttpContext context,
             final FutureCallback<AsyncConnectionEndpoint> callback) {
@@ -539,8 +539,8 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
         }
 
         @Override
-        public void setSocketTimeout(final int timeout) {
-            getValidatedPoolEntry().getConnection().setSocketTimeoutMillis(timeout);
+        public void setSocketTimeout(final Timeout timeout) {
+            getValidatedPoolEntry().getConnection().setSocketTimeout(timeout);
         }
 
         @Override

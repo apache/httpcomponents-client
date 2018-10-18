@@ -280,7 +280,7 @@ public class RequestBuilder {
             headerGroup = new HeaderGroup();
         }
         headerGroup.clear();
-        headerGroup.setHeaders(request.getAllHeaders());
+        headerGroup.setHeaders(request.getHeaders());
 
         parameters = null;
         entity = null;
@@ -483,7 +483,7 @@ public class RequestBuilder {
         final HttpUriRequestBase result = new HttpUriRequestBase(method, uriNotNull);
         result.setVersion(this.version != null ? this.version : HttpVersion.HTTP_1_1);
         if (this.headerGroup != null) {
-            result.setHeaders(this.headerGroup.getAllHeaders());
+            result.setHeaders(this.headerGroup.getHeaders());
         }
         result.setEntity(entityCopy);
         result.setConfig(this.config);

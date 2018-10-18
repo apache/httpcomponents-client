@@ -88,7 +88,7 @@ public class TestRetryExec {
             public Object answer(final InvocationOnMock invocationOnMock) throws Throwable {
                 final Object[] args = invocationOnMock.getArguments();
                 final ClassicHttpRequest wrapper = (ClassicHttpRequest) args[0];
-                final Header[] headers = wrapper.getAllHeaders();
+                final Header[] headers = wrapper.getHeaders();
                 Assert.assertEquals(2, headers.length);
                 Assert.assertEquals("this", headers[0].getValue());
                 Assert.assertEquals("that", headers[1].getValue());

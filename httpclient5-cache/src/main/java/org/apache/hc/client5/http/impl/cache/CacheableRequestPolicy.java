@@ -67,7 +67,7 @@ class CacheableRequestPolicy {
             return false;
         }
 
-        if (request.containsHeaders(HeaderConstants.PRAGMA) > 0) {
+        if (request.countHeaders(HeaderConstants.PRAGMA) > 0) {
             log.debug("request with Pragma header is not serveable from cache");
             return false;
         }

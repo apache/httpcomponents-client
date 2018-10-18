@@ -46,6 +46,7 @@ import org.apache.hc.core5.reactor.ssl.SSLBufferMode;
 import org.apache.hc.core5.reactor.ssl.SSLSessionInitializer;
 import org.apache.hc.core5.reactor.ssl.SSLSessionVerifier;
 import org.apache.hc.core5.reactor.ssl.TlsDetails;
+import org.apache.hc.core5.util.Timeout;
 import org.slf4j.Logger;
 
 class LoggingIOSession implements ProtocolIOSession {
@@ -184,21 +185,21 @@ class LoggingIOSession implements ProtocolIOSession {
     }
 
     @Override
-    public int getSocketTimeoutMillis() {
-        return this.session.getSocketTimeoutMillis();
+    public Timeout getSocketTimeout() {
+        return this.session.getSocketTimeout();
     }
 
     @Override
-    public void setSocketTimeoutMillis(final int timeout) {
+    public void setSocketTimeout(final Timeout timeout) {
         if (this.log.isDebugEnabled()) {
             this.log.debug(this.id + " " + this.session + ": Set timeout " + timeout);
         }
-        this.session.setSocketTimeoutMillis(timeout);
+        this.session.setSocketTimeout(timeout);
     }
 
     @Override
-    public long getLastReadTimeMillis() {
-        return this.session.getLastReadTimeMillis();
+    public long getLastReadTime() {
+        return this.session.getLastReadTime();
     }
 
     @Override

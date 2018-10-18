@@ -37,6 +37,7 @@ import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.io.ModalCloseable;
+import org.apache.hc.core5.util.Timeout;
 
 /**
  * Client endpoint leased from a connection manager. Client points can be used
@@ -75,6 +76,6 @@ public abstract class ConnectionEndpoint implements ModalCloseable {
      *
      * @param timeout timeout value
      */
-    public abstract void setSocketTimeout(int timeout);
+    public abstract void setSocketTimeout(Timeout timeout);
 
 }

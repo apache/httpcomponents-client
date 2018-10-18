@@ -66,7 +66,7 @@ public interface AsyncClientConnectionManager extends ModalCloseable {
      * {@link AsyncConnectionEndpoint#isConnected() disconnected}. The consumer
      * of the endpoint is responsible for fully establishing the route to
      * the endpoint target by calling {@link #connect(AsyncConnectionEndpoint,
-     * ConnectionInitiator, TimeValue, Object, HttpContext, FutureCallback)}
+     * ConnectionInitiator, Timeout, Object, HttpContext, FutureCallback)}
      * in order to connect directly to the target or to the first proxy hop,
      * and optionally calling {@link #upgrade(AsyncConnectionEndpoint, Object, HttpContext)}
      * method to upgrade the underlying transport to Transport Layer Security
@@ -112,7 +112,7 @@ public interface AsyncClientConnectionManager extends ModalCloseable {
     Future<AsyncConnectionEndpoint> connect(
             AsyncConnectionEndpoint endpoint,
             ConnectionInitiator connectionInitiator,
-            TimeValue connectTimeout,
+            Timeout connectTimeout,
             Object attachment,
             HttpContext context,
             FutureCallback<AsyncConnectionEndpoint> callback);

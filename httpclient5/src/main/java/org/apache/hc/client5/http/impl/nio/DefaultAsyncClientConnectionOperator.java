@@ -46,7 +46,7 @@ import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
 import org.apache.hc.core5.reactor.ConnectionInitiator;
 import org.apache.hc.core5.reactor.IOSession;
 import org.apache.hc.core5.util.Args;
-import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 
 final class DefaultAsyncClientConnectionOperator implements AsyncClientConnectionOperator {
 
@@ -68,7 +68,7 @@ final class DefaultAsyncClientConnectionOperator implements AsyncClientConnectio
             final ConnectionInitiator connectionInitiator,
             final HttpHost host,
             final SocketAddress localAddress,
-            final TimeValue connectTimeout,
+            final Timeout connectTimeout,
             final Object attachment,
             final FutureCallback<ManagedAsyncClientConnection> callback) {
         Args.notNull(connectionInitiator, "Connection initiator");

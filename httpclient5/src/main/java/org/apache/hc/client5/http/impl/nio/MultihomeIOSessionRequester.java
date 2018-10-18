@@ -43,7 +43,7 @@ import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.net.NamedEndpoint;
 import org.apache.hc.core5.reactor.ConnectionInitiator;
 import org.apache.hc.core5.reactor.IOSession;
-import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 
 final class MultihomeIOSessionRequester {
 
@@ -58,7 +58,7 @@ final class MultihomeIOSessionRequester {
             final NamedEndpoint remoteEndpoint,
             final SocketAddress remoteAddress,
             final SocketAddress localAddress,
-            final TimeValue connectTimeout,
+            final Timeout connectTimeout,
             final Object attachment,
             final FutureCallback<IOSession> callback) {
         if (remoteAddress != null) {
@@ -128,7 +128,7 @@ final class MultihomeIOSessionRequester {
             final ConnectionInitiator connectionInitiator,
             final NamedEndpoint remoteEndpoint,
             final SocketAddress localAddress,
-            final TimeValue connectTimeout,
+            final Timeout connectTimeout,
             final Object attachment,
             final FutureCallback<IOSession> callback) {
         return connect(connectionInitiator, remoteEndpoint, null, localAddress, connectTimeout, attachment, callback);

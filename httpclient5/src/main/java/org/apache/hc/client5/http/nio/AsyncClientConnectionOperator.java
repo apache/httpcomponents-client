@@ -36,7 +36,7 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.reactor.ConnectionInitiator;
-import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 
 /**
  * Connection operator that performs connection connect and upgrade operations.
@@ -63,7 +63,7 @@ public interface AsyncClientConnectionOperator {
             ConnectionInitiator connectionInitiator,
             HttpHost host,
             SocketAddress localAddress,
-            TimeValue connectTimeout,
+            Timeout connectTimeout,
             Object attachment,
             FutureCallback<ManagedAsyncClientConnection> callback);
 

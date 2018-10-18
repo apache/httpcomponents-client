@@ -101,7 +101,12 @@ public class AsyncQuickStart {
                 }
 
                 @Override
-                protected int capacity() {
+                protected int remainingCapacity() {
+                    return Integer.MAX_VALUE;
+                }
+
+                @Override
+                protected int capacityIncrement() {
                     return Integer.MAX_VALUE;
                 }
 

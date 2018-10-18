@@ -47,6 +47,7 @@ import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.reactor.ConnectionInitiator;
 import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 import org.slf4j.Logger;
 
 class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
@@ -190,7 +191,7 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
             return Operations.nonCancellable();
         }
         final RequestConfig requestConfig = context.getRequestConfig();
-        final TimeValue timeout = requestConfig.getConnectionTimeout();
+        final Timeout timeout = requestConfig.getConnectionTimeout();
         return Operations.cancellable(manager.connect(
                 endpoint,
                 connectionInitiator,
@@ -202,7 +203,7 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
                     @Override
                     public void completed(final AsyncConnectionEndpoint endpoint) {
                         if (TimeValue.isPositive(timeout)) {
-                            endpoint.setSocketTimeout(timeout.toMillisIntBound());
+                            endpoint.setSocketTimeout(timeout);
                         }
                         callback.completed(InternalHttpAsyncExecRuntime.this);
                     }

@@ -434,7 +434,7 @@ public class AsyncRequestBuilder {
                 new ConfigurableHttpRequest(method, host, !TextUtils.isBlank(path) ? path : "/") :
                 new ConfigurableHttpRequest(method, uri != null ? uri : URI.create("/"));
         if (this.headergroup != null) {
-            request.setHeaders(this.headergroup.getAllHeaders());
+            request.setHeaders(this.headergroup.getHeaders());
         }
         if (version != null) {
             request.setVersion(version);

@@ -53,6 +53,7 @@ import org.apache.hc.core5.reactor.ssl.SSLSessionVerifier;
 import org.apache.hc.core5.reactor.ssl.TlsDetails;
 import org.apache.hc.core5.reactor.ssl.TransportSecurityLayer;
 import org.apache.hc.core5.util.Identifiable;
+import org.apache.hc.core5.util.Timeout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,12 +62,12 @@ final class DefaultManagedAsyncClientConnection implements ManagedAsyncClientCon
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final IOSession ioSession;
-    private final int socketTimeout;
+    private final Timeout socketTimeout;
     private final AtomicBoolean closed;
 
     public DefaultManagedAsyncClientConnection(final IOSession ioSession) {
         this.ioSession = ioSession;
-        this.socketTimeout = ioSession.getSocketTimeoutMillis();
+        this.socketTimeout = ioSession.getSocketTimeout();
         this.closed = new AtomicBoolean();
     }
 
@@ -101,13 +102,13 @@ final class DefaultManagedAsyncClientConnection implements ManagedAsyncClientCon
     }
 
     @Override
-    public void setSocketTimeoutMillis(final int timeout) {
-        ioSession.setSocketTimeoutMillis(timeout);
+    public void setSocketTimeout(final Timeout timeout) {
+        ioSession.setSocketTimeout(timeout);
     }
 
     @Override
-    public int getSocketTimeoutMillis() {
-        return ioSession.getSocketTimeoutMillis();
+    public Timeout getSocketTimeout() {
+        return ioSession.getSocketTimeout();
     }
 
     @Override
@@ -180,12 +181,12 @@ final class DefaultManagedAsyncClientConnection implements ManagedAsyncClientCon
 
     @Override
     public void passivate() {
-        ioSession.setSocketTimeoutMillis(0);
+        ioSession.setSocketTimeout(Timeout.ZERO_MILLISECONDS);
     }
 
     @Override
     public void activate() {
-        ioSession.setSocketTimeoutMillis(socketTimeout);
+        ioSession.setSocketTimeout(socketTimeout);
     }
 
 }

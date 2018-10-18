@@ -38,7 +38,7 @@ import org.apache.hc.core5.net.NamedEndpoint;
 import org.apache.hc.core5.reactor.ConnectionInitiator;
 import org.apache.hc.core5.reactor.IOSession;
 import org.apache.hc.core5.util.Args;
-import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 
 /**
  * Multi-home DNS aware implementation of {@link ConnectionInitiator}.
@@ -63,7 +63,7 @@ public final class MultuhomeConnectionInitiator implements ConnectionInitiator {
             final NamedEndpoint remoteEndpoint,
             final SocketAddress remoteAddress,
             final SocketAddress localAddress,
-            final TimeValue connectTimeout,
+            final Timeout connectTimeout,
             final Object attachment,
             final FutureCallback<IOSession> callback) {
         Args.notNull(remoteEndpoint, "Remote endpoint");
@@ -73,7 +73,7 @@ public final class MultuhomeConnectionInitiator implements ConnectionInitiator {
     public Future<IOSession> connect(
             final NamedEndpoint remoteEndpoint,
             final SocketAddress localAddress,
-            final TimeValue connectTimeout,
+            final Timeout connectTimeout,
             final Object attachment,
             final FutureCallback<IOSession> callback) {
         Args.notNull(remoteEndpoint, "Remote endpoint");

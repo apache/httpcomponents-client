@@ -296,7 +296,7 @@ class BasicHttpCache implements HttpCache {
                     requestSent,
                     responseReceived,
                     originResponse.getCode(),
-                    originResponse.getAllHeaders(),
+                    originResponse.getHeaders(),
                     content != null ? HeapResourceFactory.INSTANCE.generate(null, content.array(), 0, content.length()) : null);
         }
     }

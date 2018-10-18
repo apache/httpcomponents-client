@@ -88,7 +88,12 @@ public class AsyncClientHttp2ServerPush {
                     }
 
                     @Override
-                    protected int capacity() {
+                    protected int remainingCapacity() {
+                        return Integer.MAX_VALUE;
+                    }
+
+                    @Override
+                    protected int capacityIncrement() {
                         return Integer.MAX_VALUE;
                     }
 
@@ -128,7 +133,12 @@ public class AsyncClientHttp2ServerPush {
                     }
 
                     @Override
-                    protected int capacity() {
+                    protected int remainingCapacity() {
+                        return Integer.MAX_VALUE;
+                    }
+
+                    @Override
+                    protected int capacityIncrement() {
                         return Integer.MAX_VALUE;
                     }
 

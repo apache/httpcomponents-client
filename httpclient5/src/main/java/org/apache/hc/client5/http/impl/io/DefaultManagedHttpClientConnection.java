@@ -51,6 +51,7 @@ import org.apache.hc.core5.http.message.RequestLine;
 import org.apache.hc.core5.http.message.StatusLine;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.util.Identifiable;
+import org.apache.hc.core5.util.Timeout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,7 +65,7 @@ final class DefaultManagedHttpClientConnection
     private final String id;
     private final AtomicBoolean closed;
 
-    private int socketTimeout;
+    private Timeout socketTimeout;
 
     public DefaultManagedHttpClientConnection(
             final String id,
@@ -98,7 +99,7 @@ final class DefaultManagedHttpClientConnection
             throw new InterruptedIOException("Connection already shutdown");
         }
         super.bind(socketHolder);
-        socketTimeout = socketHolder.getSocket().getSoTimeout();
+        socketTimeout = Timeout.ofMillis(socketHolder.getSocket().getSoTimeout());
     }
 
     @Override
@@ -128,11 +129,11 @@ final class DefaultManagedHttpClientConnection
     }
 
     @Override
-    public void setSocketTimeoutMillis(final int timeout) {
+    public void setSocketTimeout(final Timeout timeout) {
         if (this.log.isDebugEnabled()) {
             this.log.debug(this.id + ": set socket timeout to " + timeout);
         }
-        super.setSocketTimeoutMillis(timeout);
+        super.setSocketTimeout(timeout);
     }
 
     @Override
@@ -148,14 +149,14 @@ final class DefaultManagedHttpClientConnection
     @Override
     public void bind(final Socket socket) throws IOException {
         super.bind(this.wireLog.isDebugEnabled() ? new LoggingSocketHolder(socket, this.id, this.wireLog) : new SocketHolder(socket));
-        socketTimeout = socket.getSoTimeout();
+        socketTimeout = Timeout.ofMillis(socket.getSoTimeout());
     }
 
     @Override
     protected void onResponseReceived(final ClassicHttpResponse response) {
         if (response != null && this.headerLog.isDebugEnabled()) {
             this.headerLog.debug(this.id + " << " + new StatusLine(response));
-            final Header[] headers = response.getAllHeaders();
+            final Header[] headers = response.getHeaders();
             for (final Header header : headers) {
                 this.headerLog.debug(this.id + " << " + header.toString());
             }
@@ -166,7 +167,7 @@ final class DefaultManagedHttpClientConnection
     protected void onRequestSubmitted(final ClassicHttpRequest request) {
         if (request != null && this.headerLog.isDebugEnabled()) {
             this.headerLog.debug(this.id + " >> " + new RequestLine(request));
-            final Header[] headers = request.getAllHeaders();
+            final Header[] headers = request.getHeaders();
             for (final Header header : headers) {
                 this.headerLog.debug(this.id + " >> " + header.toString());
             }
@@ -175,12 +176,12 @@ final class DefaultManagedHttpClientConnection
 
     @Override
     public void passivate() {
-        super.setSocketTimeoutMillis(0);
+        super.setSocketTimeout(Timeout.ZERO_MILLISECONDS);
     }
 
     @Override
     public void activate() {
-        super.setSocketTimeoutMillis(socketTimeout);
+        super.setSocketTimeout(socketTimeout);
     }
 
 }

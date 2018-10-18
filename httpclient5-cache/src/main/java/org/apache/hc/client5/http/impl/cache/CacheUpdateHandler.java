@@ -76,7 +76,7 @@ class CacheUpdateHandler {
                 requestSent,
                 responseReceived,
                 originResponse.getCode(),
-                originResponse.getAllHeaders(),
+                originResponse.getHeaders(),
                 content != null ? resourceFactory.generate(request.getRequestUri(), content.array(), 0, content.length()) : null);
     }
 
@@ -126,17 +126,17 @@ class CacheUpdateHandler {
                 src.getRequestDate(),
                 src.getResponseDate(),
                 src.getStatus(),
-                src.getAllHeaders(),
+                src.getHeaders(),
                 resource,
                 variantMap);
     }
 
     private Header[] mergeHeaders(final HttpCacheEntry entry, final HttpResponse response) {
         if (DateUtils.isAfter(entry, response, HttpHeaders.DATE)) {
-            return entry.getAllHeaders();
+            return entry.getHeaders();
         }
         final HeaderGroup headerGroup = new HeaderGroup();
-        headerGroup.setHeaders(entry.getAllHeaders());
+        headerGroup.setHeaders(entry.getHeaders());
         // Remove cache headers that match response
         for (final Iterator<Header> it = response.headerIterator(); it.hasNext(); ) {
             final Header responseHeader = it.next();
@@ -164,7 +164,7 @@ class CacheUpdateHandler {
             }
             headerGroup.addHeader(responseHeader);
         }
-        return headerGroup.getAllHeaders();
+        return headerGroup.getHeaders();
     }
 
 }

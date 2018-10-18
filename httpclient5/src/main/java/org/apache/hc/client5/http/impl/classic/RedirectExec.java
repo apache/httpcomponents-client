@@ -145,7 +145,7 @@ public final class RedirectExec implements ExecChainHandler {
                         case HttpStatus.SC_SEE_OTHER:
                             if (!StandardMethods.isSafe(request.getMethod())) {
                                 final HttpGet httpGet = new HttpGet(redirectUri);
-                                httpGet.setHeaders(originalRequest.getAllHeaders());
+                                httpGet.setHeaders(originalRequest.getHeaders());
                                 redirect = httpGet;
                             } else {
                                 redirect = null;

@@ -413,8 +413,8 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
         }
 
         @Override
-        public void setSocketTimeout(final int timeout) {
-            getValidatedConnection().setSocketTimeoutMillis(timeout);
+        public void setSocketTimeout(final Timeout timeout) {
+            getValidatedConnection().setSocketTimeout(timeout);
         }
 
         @Override

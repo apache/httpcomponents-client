@@ -68,8 +68,8 @@ public class HttpCacheEntryMatcher extends BaseMatcher<HttpCacheEntry> {
                 if (!LangUtils.equals(expectedResponseDate, otherResponseDate)) {
                     return false;
                 }
-                final Header[] expectedHeaders = expectedValue.getAllHeaders();
-                final Header[] otherHeaders = otherValue.getAllHeaders();
+                final Header[] expectedHeaders = expectedValue.getHeaders();
+                final Header[] otherHeaders = otherValue.getHeaders();
                 if (expectedHeaders.length != otherHeaders.length) {
                     return false;
                 }

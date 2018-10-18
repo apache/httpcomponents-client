@@ -199,7 +199,7 @@ public class TestHttpCacheEntry {
                 new BasicHeader("Date", DateUtils.formatDate(now))
         };
         entry = new HttpCacheEntry(new Date(), new Date(), HttpStatus.SC_OK, headers, mockResource);
-        final Header[] result = entry.getAllHeaders();
+        final Header[] result = entry.getHeaders();
         assertEquals(headers.length, result.length);
         for(int i=0; i<headers.length; i++) {
             assertEquals(headers[i], result[i]);

@@ -547,8 +547,8 @@ public class PoolingHttpClientConnectionManager
         }
 
         @Override
-        public void setSocketTimeout(final int timeout) {
-            getValidatedPoolEntry().getConnection().setSocketTimeoutMillis(timeout);
+        public void setSocketTimeout(final Timeout timeout) {
+            getValidatedPoolEntry().getConnection().setSocketTimeout(timeout);
         }
 
         @Override

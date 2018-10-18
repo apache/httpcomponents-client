@@ -57,7 +57,7 @@ class ConditionalRequestBuilder<T extends HttpRequest> {
      */
     public T buildConditionalRequest(final T request, final HttpCacheEntry cacheEntry) {
         final T newRequest = messageCopier.copy(request);
-        newRequest.setHeaders(request.getAllHeaders());
+        newRequest.setHeaders(request.getHeaders());
         final Header eTag = cacheEntry.getFirstHeader(HeaderConstants.ETAG);
         if (eTag != null) {
             newRequest.setHeader(HeaderConstants.IF_NONE_MATCH, eTag.getValue());
@@ -96,7 +96,7 @@ class ConditionalRequestBuilder<T extends HttpRequest> {
      */
     public T buildConditionalRequestFromVariants(final T request, final Map<String, Variant> variants) {
         final T newRequest = messageCopier.copy(request);
-        newRequest.setHeaders(request.getAllHeaders());
+        newRequest.setHeaders(request.getHeaders());
 
         // we do not support partial content so all etags are used
         final StringBuilder etags = new StringBuilder();

@@ -273,8 +273,8 @@ public class TestInternalExecRuntime {
 
         execRuntime.connectEndpoint(context);
 
-        Mockito.verify(mgr).connect(connectionEndpoint, TimeValue.ofMillis(123), context);
-        Mockito.verify(connectionEndpoint).setSocketTimeout(123);
+        Mockito.verify(mgr).connect(connectionEndpoint, Timeout.ofMillis(123), context);
+        Mockito.verify(connectionEndpoint).setSocketTimeout(Timeout.ofMillis(123));
     }
 
     @Test

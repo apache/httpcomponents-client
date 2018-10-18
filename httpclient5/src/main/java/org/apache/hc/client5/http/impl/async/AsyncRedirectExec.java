@@ -143,7 +143,7 @@ public final class AsyncRedirectExec implements AsyncExecChainHandler {
                         case HttpStatus.SC_SEE_OTHER:
                             if (!StandardMethods.isSafe(request.getMethod())) {
                                 final HttpRequest httpGet = new BasicHttpRequest(StandardMethods.GET.name(), redirectUri);
-                                httpGet.setHeaders(scope.originalRequest.getAllHeaders());
+                                httpGet.setHeaders(scope.originalRequest.getHeaders());
                                 state.currentRequest = httpGet;
                                 state.currentEntityProducer = null;
                                 break;

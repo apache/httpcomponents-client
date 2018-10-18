@@ -425,6 +425,11 @@ public final class MinimalHttpAsyncClient extends AbstractMinimalHttpAsyncClient
         }
 
         @Override
+        public boolean isConnected() {
+            return !isReleased() && connectionEndpoint.isConnected();
+        }
+
+        @Override
         public void execute(
                 final AsyncClientExchangeHandler exchangeHandler,
                 final HandlerFactory<AsyncPushConsumer> pushHandlerFactory,

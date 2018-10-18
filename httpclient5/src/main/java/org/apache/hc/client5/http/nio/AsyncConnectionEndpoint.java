@@ -44,6 +44,7 @@ import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.protocol.HttpCoreContext;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.io.ModalCloseable;
+import org.apache.hc.core5.util.Timeout;
 
 /**
  * Client connection endpoint that can be used to execute message exchanges.
@@ -75,7 +76,7 @@ public abstract class AsyncConnectionEndpoint implements ModalCloseable {
      *
      * @param timeout the socket timeout.
      */
-    public abstract void setSocketTimeout(int timeout);
+    public abstract void setSocketTimeout(Timeout timeout);
 
     @Override
     public final void close() throws IOException {

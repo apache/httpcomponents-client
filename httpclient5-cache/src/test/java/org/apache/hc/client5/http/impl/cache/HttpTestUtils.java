@@ -160,7 +160,7 @@ public class HttpTestUtils {
      * with the same canonical header values.
      */
     public static boolean isEndToEndHeaderSubset(final HttpMessage r1, final HttpMessage r2) {
-        for (final Header h : r1.getAllHeaders()) {
+        for (final Header h : r1.getHeaders()) {
             if (!isHopByHopHeader(h.getName())) {
                 final String r1val = getCanonicalHeaderValue(r1, h.getName());
                 final String r2val = getCanonicalHeaderValue(r2, h.getName());
