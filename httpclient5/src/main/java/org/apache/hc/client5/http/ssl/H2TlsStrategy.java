@@ -30,20 +30,13 @@ package org.apache.hc.client5.http.ssl;
 import java.net.SocketAddress;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
-import java.security.cert.Certificate;
-import java.security.cert.X509Certificate;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLException;
-import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
-import javax.security.auth.x500.X500Principal;
 
 import org.apache.hc.client5.http.psl.PublicSuffixMatcherLoader;
 import org.apache.hc.core5.annotation.Contract;
@@ -112,6 +105,7 @@ public class H2TlsStrategy implements TlsStrategy {
     private final String[] supportedCipherSuites;
     private final SSLBufferMode sslBufferManagement;
     private final HostnameVerifier hostnameVerifier;
+    private final TlsSessionValidator tlsSessionValidator;
 
     public H2TlsStrategy(
             final SSLContext sslContext,
@@ -125,6 +119,7 @@ public class H2TlsStrategy implements TlsStrategy {
         this.supportedCipherSuites = supportedCipherSuites;
         this.sslBufferManagement = sslBufferManagement != null ? sslBufferManagement : SSLBufferMode.STATIC;
         this.hostnameVerifier = hostnameVerifier != null ? hostnameVerifier : getDefaultHostnameVerifier();
+        this.tlsSessionValidator = new TlsSessionValidator(log);
     }
 
     public H2TlsStrategy(
@@ -174,67 +169,17 @@ public class H2TlsStrategy implements TlsStrategy {
         return true;
     }
 
+    protected TlsDetails createTlsDetails(final SSLEngine sslEngine) {
+        return null;
+    }
+
     protected void initializeEngine(final SSLEngine sslEngine) {
     }
 
     protected void verifySession(
             final String hostname,
             final SSLSession sslsession) throws SSLException {
-
-        if (log.isDebugEnabled()) {
-            log.debug("Secure session established");
-            log.debug(" negotiated protocol: " + sslsession.getProtocol());
-            log.debug(" negotiated cipher suite: " + sslsession.getCipherSuite());
-
-            try {
-
-                final Certificate[] certs = sslsession.getPeerCertificates();
-                final X509Certificate x509 = (X509Certificate) certs[0];
-                final X500Principal peer = x509.getSubjectX500Principal();
-
-                log.debug(" peer principal: " + peer.toString());
-                final Collection<List<?>> altNames1 = x509.getSubjectAlternativeNames();
-                if (altNames1 != null) {
-                    final List<String> altNames = new ArrayList<>();
-                    for (final List<?> aC : altNames1) {
-                        if (!aC.isEmpty()) {
-                            altNames.add((String) aC.get(1));
-                        }
-                    }
-                    log.debug(" peer alternative names: " + altNames);
-                }
-
-                final X500Principal issuer = x509.getIssuerX500Principal();
-                log.debug(" issuer principal: " + issuer.toString());
-                final Collection<List<?>> altNames2 = x509.getIssuerAlternativeNames();
-                if (altNames2 != null) {
-                    final List<String> altNames = new ArrayList<>();
-                    for (final List<?> aC : altNames2) {
-                        if (!aC.isEmpty()) {
-                            altNames.add((String) aC.get(1));
-                        }
-                    }
-                    log.debug(" issuer alternative names: " + altNames);
-                }
-            } catch (final Exception ignore) {
-            }
-        }
-
-        if (this.hostnameVerifier instanceof HttpClientHostnameVerifier) {
-            final Certificate[] certs = sslsession.getPeerCertificates();
-            final X509Certificate x509 = (X509Certificate) certs[0];
-            ((HttpClientHostnameVerifier) this.hostnameVerifier).verify(hostname, x509);
-        } else if (!this.hostnameVerifier.verify(hostname, sslsession)) {
-            final Certificate[] certs = sslsession.getPeerCertificates();
-            final X509Certificate x509 = (X509Certificate) certs[0];
-            final List<SubjectName> subjectAlts = DefaultHostnameVerifier.getSubjectAltNames(x509);
-            throw new SSLPeerUnverifiedException("Certificate for <" + hostname + "> doesn't match any " +
-                    "of the subject alternative names: " + subjectAlts);
-        }
-    }
-
-    protected TlsDetails createTlsDetails(final SSLEngine sslEngine) {
-        return null;
+        tlsSessionValidator.verifySession(hostname, sslsession, hostnameVerifier);
     }
 
 }
