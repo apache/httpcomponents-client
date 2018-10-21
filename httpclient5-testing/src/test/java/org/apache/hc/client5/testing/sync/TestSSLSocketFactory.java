@@ -109,7 +109,12 @@ public class TestSSLSocketFactory {
         try (final Socket socket = socketFactory.createSocket(context)) {
             final InetSocketAddress remoteAddress = new InetSocketAddress("localhost", this.server.getLocalPort());
             final HttpHost target = new HttpHost("localhost", this.server.getLocalPort(), "https");
-            try (SSLSocket sslSocket = (SSLSocket) socketFactory.connectSocket(TimeValue.ZERO_MILLISECONDS, socket, target, remoteAddress, null,
+            try (final SSLSocket sslSocket = (SSLSocket) socketFactory.connectSocket(
+                    TimeValue.ZERO_MILLISECONDS,
+                    socket,
+                    target,
+                    remoteAddress,
+                    null,
                     context)) {
                 final SSLSession sslsession = sslSocket.getSession();
 
@@ -165,7 +170,12 @@ public class TestSSLSocketFactory {
         try (final Socket socket = socketFactory.createSocket(context)) {
             final InetSocketAddress remoteAddress = new InetSocketAddress("localhost", this.server.getLocalPort());
             final HttpHost target = new HttpHost("localhost", this.server.getLocalPort(), "https");
-            try (SSLSocket sslSocket = (SSLSocket) socketFactory.connectSocket(TimeValue.ZERO_MILLISECONDS, socket, target, remoteAddress, null,
+            try (final SSLSocket sslSocket = (SSLSocket) socketFactory.connectSocket(
+                    TimeValue.ZERO_MILLISECONDS,
+                    socket,
+                    target,
+                    remoteAddress,
+                    null,
                     context)) {
                 final SSLSession sslsession = sslSocket.getSession();
 
@@ -199,7 +209,11 @@ public class TestSSLSocketFactory {
         try (final Socket socket = socketFactory.createSocket(context)) {
             final InetSocketAddress remoteAddress = new InetSocketAddress("localhost", this.server.getLocalPort());
             final HttpHost target = new HttpHost("localhost", this.server.getLocalPort(), "https");
-            try (SSLSocket sslSocket = (SSLSocket) socketFactory.connectSocket(TimeValue.ZERO_MILLISECONDS, socket, target, remoteAddress, null,
+            try (final SSLSocket sslSocket = (SSLSocket) socketFactory.connectSocket(
+                    TimeValue.ZERO_MILLISECONDS,
+                    socket, target,
+                    remoteAddress,
+                    null,
                     context)) {
                 final SSLSession sslsession = sslSocket.getSession();
 
