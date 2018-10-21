@@ -48,11 +48,7 @@ import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TextUtils;
 
 /**
- * Default implementation of {@link RedirectStrategy}. This strategy honors the restrictions
- * on automatic redirection of unsafe methods such as POST, PUT and DELETE imposed by
- * the HTTP specification. Non safe methods will be redirected as GET in response to
- * status code {@link HttpStatus#SC_MOVED_PERMANENTLY}, {@link HttpStatus#SC_MOVED_TEMPORARILY}
- * and {@link HttpStatus#SC_SEE_OTHER}.
+ * Default implementation of {@link RedirectStrategy}.
  *
  * @since 4.1
  */
