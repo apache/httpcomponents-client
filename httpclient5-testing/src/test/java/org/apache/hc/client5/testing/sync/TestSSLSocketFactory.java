@@ -219,6 +219,7 @@ public class TestSSLSocketFactory {
 
                 Assert.assertNotNull(sslsession);
                 Assert.assertTrue(hostVerifier.isFired());
+                sslSocket.getInputStream().read();
             }
         }
     }
