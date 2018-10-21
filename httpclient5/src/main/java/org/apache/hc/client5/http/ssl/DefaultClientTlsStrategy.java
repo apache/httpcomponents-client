@@ -34,6 +34,7 @@ import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLException;
+import javax.net.ssl.SSLParameters;
 import javax.net.ssl.SSLSession;
 
 import org.apache.hc.core5.annotation.Contract;
@@ -41,6 +42,8 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.function.Factory;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
+import org.apache.hc.core5.http2.HttpVersionPolicy;
+import org.apache.hc.core5.http2.ssl.ApplicationProtocols;
 import org.apache.hc.core5.http2.ssl.H2TlsSupport;
 import org.apache.hc.core5.net.NamedEndpoint;
 import org.apache.hc.core5.reactor.ssl.SSLBufferMode;
@@ -129,16 +132,45 @@ public class DefaultClientTlsStrategy implements TlsStrategy {
             final SocketAddress localAddress,
             final SocketAddress remoteAddress,
             final Object attachment) {
-        tlsSession.startTls(sslContext, host, sslBufferManagement, H2TlsSupport.enforceRequirements(attachment, new SSLSessionInitializer() {
+        tlsSession.startTls(sslContext, host, sslBufferManagement, new SSLSessionInitializer() {
 
             @Override
             public void initialize(final NamedEndpoint endpoint, final SSLEngine sslEngine) {
+
+                final HttpVersionPolicy versionPolicy = attachment instanceof HttpVersionPolicy ?
+                        (HttpVersionPolicy) attachment : HttpVersionPolicy.NEGOTIATE;
+
+                final SSLParameters sslParameters = sslEngine.getSSLParameters();
                 if (supportedProtocols != null) {
-                    sslEngine.setEnabledProtocols(supportedProtocols);
+                    sslParameters.setProtocols(supportedProtocols);
+                } else if (versionPolicy != HttpVersionPolicy.FORCE_HTTP_1) {
+                    sslParameters.setProtocols(H2TlsSupport.excludeBlacklistedProtocols(sslParameters.getProtocols()));
                 }
                 if (supportedCipherSuites != null) {
-                    sslEngine.setEnabledCipherSuites(supportedCipherSuites);
+                    sslParameters.setCipherSuites(supportedCipherSuites);
+                } else if (versionPolicy != HttpVersionPolicy.FORCE_HTTP_1) {
+                    sslParameters.setCipherSuites(H2TlsSupport.excludeBlacklistedCiphers(sslParameters.getCipherSuites()));
                 }
+
+                switch (versionPolicy) {
+                    case FORCE_HTTP_1:
+                        H2TlsSupport.setApplicationProtocols(sslParameters, new String[] {
+                                ApplicationProtocols.HTTP_1_1.id });
+                        break;
+                    case FORCE_HTTP_2:
+                        H2TlsSupport.setEnableRetransmissions(sslParameters, false);
+                        H2TlsSupport.setApplicationProtocols(sslParameters, new String[] {
+                                ApplicationProtocols.HTTP_2.id });
+                        break;
+                    case NEGOTIATE:
+                        H2TlsSupport.setEnableRetransmissions(sslParameters, false);
+                        H2TlsSupport.setApplicationProtocols(sslParameters, new String[] {
+                                ApplicationProtocols.HTTP_2.id, ApplicationProtocols.HTTP_1_1.id });
+                        break;
+                }
+
+                sslEngine.setSSLParameters(sslParameters);
+
                 initializeEngine(sslEngine);
 
                 if (log.isDebugEnabled()) {
@@ -147,7 +179,7 @@ public class DefaultClientTlsStrategy implements TlsStrategy {
                 }
             }
 
-        }), new SSLSessionVerifier() {
+        }, new SSLSessionVerifier() {
 
             @Override
             public TlsDetails verify(final NamedEndpoint endpoint, final SSLEngine sslEngine) throws SSLException {
