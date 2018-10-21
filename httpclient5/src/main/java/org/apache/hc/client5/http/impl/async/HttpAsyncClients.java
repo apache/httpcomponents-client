@@ -33,7 +33,7 @@ import org.apache.hc.client5.http.SystemDefaultDnsResolver;
 import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.nio.AsyncClientConnectionManager;
-import org.apache.hc.client5.http.ssl.H2TlsStrategy;
+import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.core5.concurrent.DefaultThreadFactory;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpRequest;
@@ -286,7 +286,7 @@ public final class HttpAsyncClients {
     public static MinimalHttp2AsyncClient createHttp2Minimal(
             final H2Config h2Config,
             final IOReactorConfig ioReactorConfig) {
-        return createHttp2Minimal(h2Config, ioReactorConfig, H2TlsStrategy.getDefault());
+        return createHttp2Minimal(h2Config, ioReactorConfig, DefaultClientTlsStrategy.getDefault());
     }
 
     /**

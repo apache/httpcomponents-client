@@ -43,7 +43,7 @@ import org.apache.hc.client5.http.nio.AsyncClientConnectionManager;
 import org.apache.hc.client5.http.nio.AsyncClientConnectionOperator;
 import org.apache.hc.client5.http.nio.AsyncConnectionEndpoint;
 import org.apache.hc.client5.http.nio.ManagedAsyncClientConnection;
-import org.apache.hc.client5.http.ssl.H2TlsStrategy;
+import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
@@ -116,7 +116,7 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
 
     public PoolingAsyncClientConnectionManager() {
         this(RegistryBuilder.<TlsStrategy>create()
-                .register("https", H2TlsStrategy.getDefault())
+                .register("https", DefaultClientTlsStrategy.getDefault())
                 .build());
     }
 

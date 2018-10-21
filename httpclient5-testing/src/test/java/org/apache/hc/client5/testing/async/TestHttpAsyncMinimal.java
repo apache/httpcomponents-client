@@ -40,7 +40,7 @@ import org.apache.hc.client5.http.impl.async.MinimalHttpAsyncClient;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManager;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
-import org.apache.hc.client5.http.ssl.H2TlsStrategy;
+import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.client5.testing.SSLTestContexts;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpHost;
@@ -84,7 +84,7 @@ public class TestHttpAsyncMinimal extends AbstractHttpAsyncFundamentalsTest<Mini
     @Override
     protected MinimalHttpAsyncClient createClient() throws Exception {
         final PoolingAsyncClientConnectionManager connectionManager = PoolingAsyncClientConnectionManagerBuilder.create()
-                .setTlsStrategy(new H2TlsStrategy(SSLTestContexts.createClientSSLContext()))
+                .setTlsStrategy(new DefaultClientTlsStrategy(SSLTestContexts.createClientSSLContext()))
                 .build();
         final IOReactorConfig ioReactorConfig = IOReactorConfig.custom()
                 .setSoTimeout(TIMEOUT)

@@ -39,7 +39,7 @@ import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManager;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
-import org.apache.hc.client5.http.ssl.H2TlsStrategy;
+import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.client5.testing.SSLTestContexts;
 import org.apache.hc.core5.http.HeaderElements;
 import org.apache.hc.core5.http.HttpHeaders;
@@ -74,7 +74,7 @@ public class TestHttp1Async extends AbstractHttpAsyncFundamentalsTest<CloseableH
         @Override
         protected void before() throws Throwable {
             connManager = PoolingAsyncClientConnectionManagerBuilder.create()
-                    .setTlsStrategy(new H2TlsStrategy(SSLTestContexts.createClientSSLContext()))
+                    .setTlsStrategy(new DefaultClientTlsStrategy(SSLTestContexts.createClientSSLContext()))
                     .build();
         }
 

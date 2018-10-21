@@ -43,7 +43,7 @@ import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManager;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
-import org.apache.hc.client5.http.ssl.H2TlsStrategy;
+import org.apache.hc.client5.http.ssl.ClientTlsStrategyBuilder;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
@@ -72,18 +72,22 @@ public class AsyncClientCustomSSL {
 
                 })
                 .build();
-        final TlsStrategy tlsStrategy = new H2TlsStrategy(
-                sslcontext,
-                H2TlsStrategy.getDefaultHostnameVerifier()) {
+        final TlsStrategy tlsStrategy = ClientTlsStrategyBuilder.create()
+                .setSslContext(sslcontext)
+                // IMPORTANT uncomment the following method when running Java 9 or older
+                // in order for ALPN support to work and avoid the illegal reflective
+                // access operation warning
+                /*
+                .setTlsDetailsFactory(new Factory<SSLEngine, TlsDetails>() {
 
-            // IMPORTANT uncomment the following method when running Java 9 or older
-            // in order to avoid the illegal reflective access operation warning
-//            @Override
-//            protected TlsDetails createTlsDetails(final SSLEngine sslEngine) {
-//                return new TlsDetails(sslEngine.getSession(), sslEngine.getApplicationProtocol());
-//            }
+                    @Override
+                    public TlsDetails create(final SSLEngine sslEngine) {
+                        return new TlsDetails(sslEngine.getSession(), sslEngine.getApplicationProtocol());
+                    }
+                })
+                */
+                .build();
 
-        };
         final PoolingAsyncClientConnectionManager cm = PoolingAsyncClientConnectionManagerBuilder.create()
                 .setTlsStrategy(tlsStrategy)
                 .build();

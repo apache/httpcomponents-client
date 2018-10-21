@@ -32,7 +32,7 @@ import java.util.Collection;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.Http2AsyncClientBuilder;
-import org.apache.hc.client5.http.ssl.H2TlsStrategy;
+import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.client5.testing.SSLTestContexts;
 import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.URIScheme;
@@ -68,7 +68,7 @@ public class TestHttp2AsyncRedirect extends AbstractHttpAsyncRedirectsTest<Close
                             .setConnectionTimeout(TIMEOUT)
                             .setConnectionRequestTimeout(TIMEOUT)
                             .build())
-                    .setTlsStrategy(new H2TlsStrategy(SSLTestContexts.createClientSSLContext()));
+                    .setTlsStrategy(new DefaultClientTlsStrategy(SSLTestContexts.createClientSSLContext()));
         }
 
     };

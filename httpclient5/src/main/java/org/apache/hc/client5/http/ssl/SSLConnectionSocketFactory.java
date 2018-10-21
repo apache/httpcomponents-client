@@ -43,7 +43,6 @@ import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
 
-import org.apache.hc.client5.http.psl.PublicSuffixMatcherLoader;
 import org.apache.hc.client5.http.socket.LayeredConnectionSocketFactory;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
@@ -53,7 +52,6 @@ import org.apache.hc.core5.io.Closer;
 import org.apache.hc.core5.ssl.SSLContexts;
 import org.apache.hc.core5.ssl.SSLInitializationException;
 import org.apache.hc.core5.util.Args;
-import org.apache.hc.core5.util.TextUtils;
 import org.apache.hc.core5.util.TimeValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,90 +61,13 @@ import org.slf4j.LoggerFactory;
  * <p>
  * SSLSocketFactory can be used to validate the identity of the HTTPS server against a list of
  * trusted certificates and to authenticate to the HTTPS server using a private key.
- * <p>
- * SSLSocketFactory will enable server authentication when supplied with
- * a {@link java.security.KeyStore trust-store} file containing one or several trusted certificates. The client
- * secure socket will reject the connection during the SSL session handshake if the target HTTPS
- * server attempts to authenticate itself with a non-trusted certificate.
- * <p>
- * Use JDK keytool utility to import a trusted certificate and generate a trust-store file:
- *    <pre>
- *     keytool -import -alias "my server cert" -file server.crt -keystore my.truststore
- *    </pre>
- * <p>
- * In special cases the standard trust verification process can be bypassed by using a custom
- * {@link org.apache.hc.core5.ssl.TrustStrategy}. This interface is primarily intended for allowing self-signed
- * certificates to be accepted as trusted without having to add them to the trust-store file.
- * <p>
- * SSLSocketFactory will enable client authentication when supplied with
- * a {@link java.security.KeyStore key-store} file containing a private key/public certificate
- * pair. The client secure socket will use the private key to authenticate
- * itself to the target HTTPS server during the SSL session handshake if
- * requested to do so by the server.
- * The target HTTPS server will in its turn verify the certificate presented
- * by the client in order to establish client's authenticity.
- * <p>
- * Use the following sequence of actions to generate a key-store file
- * </p>
- *   <ul>
- *     <li>
- *      <p>
- *      Use JDK keytool utility to generate a new key
- *      </p>
- *      <pre>keytool -genkey -v -alias "my client key" -validity 365 -keystore my.keystore</pre>
- *      <p>
- *      For simplicity use the same password for the key as that of the key-store
- *      </p>
- *     </li>
- *     <li>
- *      <p>
- *      Issue a certificate signing request (CSR)
- *      </p>
- *      <pre>keytool -certreq -alias "my client key" -file mycertreq.csr -keystore my.keystore</pre>
- *     </li>
- *     <li>
- *      <p>
- *      Send the certificate request to the trusted Certificate Authority for signature.
- *      One may choose to act as her own CA and sign the certificate request using a PKI
- *      tool, such as OpenSSL.
- *      </p>
- *     </li>
- *     <li>
- *      <p>
- *       Import the trusted CA root certificate
- *      </p>
- *       <pre>keytool -import -alias "my trusted ca" -file caroot.crt -keystore my.keystore</pre>
- *     </li>
- *     <li>
- *       <p>
- *       Import the PKCS#7 file containing the complete certificate chain
- *       </p>
- *       <pre>keytool -import -alias "my client key" -file mycert.p7 -keystore my.keystore</pre>
- *     </li>
- *     <li>
- *       <p>
- *       Verify the content of the resultant keystore file
- *       </p>
- *       <pre>keytool -list -v -keystore my.keystore</pre>
- *     </li>
- *   </ul>
  *
  * @since 4.3
  */
 @Contract(threading = ThreadingBehavior.STATELESS)
 public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactory {
 
-    public static final String TLS   = "TLS";
-    public static final String SSL   = "SSL";
-
     private final Logger log = LoggerFactory.getLogger(getClass());
-
-    /**
-     * @since 4.4
-     */
-    public static HostnameVerifier getDefaultHostnameVerifier() {
-        return new DefaultHostnameVerifier(PublicSuffixMatcherLoader.getDefault());
-    }
 
     /**
      * Obtains default SSL socket factory with an SSL context based on the standard JSSE
@@ -156,14 +77,7 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
      * @return default SSL socket factory
      */
     public static SSLConnectionSocketFactory getSocketFactory() throws SSLInitializationException {
-        return new SSLConnectionSocketFactory(SSLContexts.createDefault(), getDefaultHostnameVerifier());
-    }
-
-    private static String[] split(final String s) {
-        if (TextUtils.isBlank(s)) {
-            return null;
-        }
-        return s.split(" *, *");
+        return new SSLConnectionSocketFactory(SSLContexts.createDefault(), HttpsSupport.getDefaultHostnameVerifier());
     }
 
     /**
@@ -176,10 +90,10 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
      */
     public static SSLConnectionSocketFactory getSystemSocketFactory() throws SSLInitializationException {
         return new SSLConnectionSocketFactory(
-            (javax.net.ssl.SSLSocketFactory) javax.net.ssl.SSLSocketFactory.getDefault(),
-            split(System.getProperty("https.protocols")),
-            split(System.getProperty("https.cipherSuites")),
-            getDefaultHostnameVerifier());
+                (javax.net.ssl.SSLSocketFactory) javax.net.ssl.SSLSocketFactory.getDefault(),
+                HttpsSupport.getSystemProtocols(),
+                HttpsSupport.getSystemCipherSuits(),
+                HttpsSupport.getDefaultHostnameVerifier());
     }
 
     private final javax.net.ssl.SSLSocketFactory socketfactory;
@@ -189,7 +103,7 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
     private final TlsSessionValidator tlsSessionValidator;
 
     public SSLConnectionSocketFactory(final SSLContext sslContext) {
-        this(sslContext, getDefaultHostnameVerifier());
+        this(sslContext, HttpsSupport.getDefaultHostnameVerifier());
     }
 
     /**
@@ -233,7 +147,7 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
         this.socketfactory = Args.notNull(socketfactory, "SSL socket factory");
         this.supportedProtocols = supportedProtocols;
         this.supportedCipherSuites = supportedCipherSuites;
-        this.hostnameVerifier = hostnameVerifier != null ? hostnameVerifier : getDefaultHostnameVerifier();
+        this.hostnameVerifier = hostnameVerifier != null ? hostnameVerifier : HttpsSupport.getDefaultHostnameVerifier();
         this.tlsSessionValidator = new TlsSessionValidator(log);
     }
 

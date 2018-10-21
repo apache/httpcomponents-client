@@ -45,9 +45,9 @@ import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.SystemDefaultDnsResolver;
 import org.apache.hc.client5.http.async.AsyncExecChainHandler;
 import org.apache.hc.client5.http.auth.AuthSchemeProvider;
+import org.apache.hc.client5.http.auth.AuthSchemes;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.KerberosConfig;
-import org.apache.hc.client5.http.auth.AuthSchemes;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.cookie.BasicCookieStore;
 import org.apache.hc.client5.http.cookie.CookieSpecProvider;
@@ -75,7 +75,7 @@ import org.apache.hc.client5.http.protocol.RequestDefaultHeaders;
 import org.apache.hc.client5.http.protocol.RequestExpectContinue;
 import org.apache.hc.client5.http.protocol.ResponseProcessCookies;
 import org.apache.hc.client5.http.routing.HttpRoutePlanner;
-import org.apache.hc.client5.http.ssl.H2TlsStrategy;
+import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.concurrent.DefaultThreadFactory;
 import org.apache.hc.core5.function.Callback;
@@ -795,9 +795,9 @@ public class Http2AsyncClientBuilder {
         TlsStrategy tlsStrategyCopy = this.tlsStrategy;
         if (tlsStrategyCopy == null) {
             if (systemProperties) {
-                tlsStrategyCopy = H2TlsStrategy.getSystemDefault();
+                tlsStrategyCopy = DefaultClientTlsStrategy.getSystemDefault();
             } else {
-                tlsStrategyCopy = H2TlsStrategy.getDefault();
+                tlsStrategyCopy = DefaultClientTlsStrategy.getDefault();
             }
         }
 

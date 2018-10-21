@@ -46,7 +46,7 @@ import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManager;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
-import org.apache.hc.client5.http.ssl.H2TlsStrategy;
+import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.core5.http.HeaderElements;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
@@ -126,7 +126,7 @@ public class HttpAsyncClientCompatibilityTest {
         final SSLContext sslContext = SSLContexts.custom()
                 .loadTrustMaterial(getClass().getResource("/test-ca.keystore"), "nopassword".toCharArray()).build();
         this.connManager = PoolingAsyncClientConnectionManagerBuilder.create()
-                .setTlsStrategy(new H2TlsStrategy(sslContext))
+                .setTlsStrategy(new DefaultClientTlsStrategy(sslContext))
                 .build();
         this.client = HttpAsyncClients.custom()
                 .setVersionPolicy(this.protocolVersion == HttpVersion.HTTP_2 ? HttpVersionPolicy.FORCE_HTTP_2 : HttpVersionPolicy.FORCE_HTTP_1)

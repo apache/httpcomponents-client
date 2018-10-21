@@ -31,7 +31,7 @@ import java.util.Collection;
 
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
 import org.apache.hc.client5.http.impl.async.MinimalHttp2AsyncClient;
-import org.apache.hc.client5.http.ssl.H2TlsStrategy;
+import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.client5.testing.SSLTestContexts;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.URIScheme;
@@ -61,7 +61,7 @@ public class TestHttp2AsyncMinimal extends AbstractHttpAsyncFundamentalsTest<Min
                 .setSoTimeout(TIMEOUT)
                 .build();
         return HttpAsyncClients.createHttp2Minimal(
-                H2Config.DEFAULT, ioReactorConfig, new H2TlsStrategy(SSLTestContexts.createClientSSLContext()));
+                H2Config.DEFAULT, ioReactorConfig, new DefaultClientTlsStrategy(SSLTestContexts.createClientSSLContext()));
     }
 
     @Override

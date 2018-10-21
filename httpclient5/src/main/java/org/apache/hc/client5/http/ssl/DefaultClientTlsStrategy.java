@@ -28,8 +28,6 @@
 package org.apache.hc.client5.http.ssl;
 
 import java.net.SocketAddress;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.util.Arrays;
 
 import javax.net.ssl.HostnameVerifier;
@@ -38,9 +36,9 @@ import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLSession;
 
-import org.apache.hc.client5.http.psl.PublicSuffixMatcherLoader;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.function.Factory;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
 import org.apache.hc.core5.http2.ssl.H2TlsSupport;
@@ -52,50 +50,30 @@ import org.apache.hc.core5.reactor.ssl.TlsDetails;
 import org.apache.hc.core5.reactor.ssl.TransportSecurityLayer;
 import org.apache.hc.core5.ssl.SSLContexts;
 import org.apache.hc.core5.util.Args;
-import org.apache.hc.core5.util.TextUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Default SSL upgrade strategy for non-blocking connections.
+ * Default SSL upgrade strategy for non-blocking client connections.
  *
  * @since 5.0
  */
 @Contract(threading = ThreadingBehavior.STATELESS)
-public class H2TlsStrategy implements TlsStrategy {
-
-    private static String[] split(final String s) {
-        if (TextUtils.isBlank(s)) {
-            return null;
-        }
-        return s.split(" *, *");
-    }
-
-    private static String getProperty(final String key) {
-        return AccessController.doPrivileged(new PrivilegedAction<String>() {
-            @Override
-            public String run() {
-                return System.getProperty(key);
-            }
-        });
-    }
-    public static HostnameVerifier getDefaultHostnameVerifier() {
-        return new DefaultHostnameVerifier(PublicSuffixMatcherLoader.getDefault());
-    }
+public class DefaultClientTlsStrategy implements TlsStrategy {
 
     public static TlsStrategy getDefault() {
-        return new H2TlsStrategy(
+        return new DefaultClientTlsStrategy(
                 SSLContexts.createDefault(),
-                getDefaultHostnameVerifier());
+                HttpsSupport.getDefaultHostnameVerifier());
     }
 
     public static TlsStrategy getSystemDefault() {
-        return new H2TlsStrategy(
+        return new DefaultClientTlsStrategy(
                 SSLContexts.createSystemDefault(),
-                split(getProperty("https.protocols")),
-                split(getProperty("https.cipherSuites")),
+                HttpsSupport.getSystemProtocols(),
+                HttpsSupport.getSystemCipherSuits(),
                 SSLBufferMode.STATIC,
-                getDefaultHostnameVerifier());
+                HttpsSupport.getDefaultHostnameVerifier());
     }
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -105,31 +83,43 @@ public class H2TlsStrategy implements TlsStrategy {
     private final String[] supportedCipherSuites;
     private final SSLBufferMode sslBufferManagement;
     private final HostnameVerifier hostnameVerifier;
+    private final Factory<SSLEngine, TlsDetails> tlsDetailsFactory;
     private final TlsSessionValidator tlsSessionValidator;
 
-    public H2TlsStrategy(
+    public DefaultClientTlsStrategy(
             final SSLContext sslContext,
             final String[] supportedProtocols,
             final String[] supportedCipherSuites,
             final SSLBufferMode sslBufferManagement,
-            final HostnameVerifier hostnameVerifier) {
+            final HostnameVerifier hostnameVerifier,
+            final Factory<SSLEngine, TlsDetails> tlsDetailsFactory) {
         super();
         this.sslContext = Args.notNull(sslContext, "SSL context");
         this.supportedProtocols = supportedProtocols;
         this.supportedCipherSuites = supportedCipherSuites;
         this.sslBufferManagement = sslBufferManagement != null ? sslBufferManagement : SSLBufferMode.STATIC;
-        this.hostnameVerifier = hostnameVerifier != null ? hostnameVerifier : getDefaultHostnameVerifier();
+        this.hostnameVerifier = hostnameVerifier != null ? hostnameVerifier : HttpsSupport.getDefaultHostnameVerifier();
+        this.tlsDetailsFactory = tlsDetailsFactory;
         this.tlsSessionValidator = new TlsSessionValidator(log);
     }
 
-    public H2TlsStrategy(
-            final SSLContext sslcontext,
+    public DefaultClientTlsStrategy(
+            final SSLContext sslContext,
+            final String[] supportedProtocols,
+            final String[] supportedCipherSuites,
+            final SSLBufferMode sslBufferManagement,
             final HostnameVerifier hostnameVerifier) {
-        this(sslcontext, null, null, SSLBufferMode.STATIC, hostnameVerifier);
+        this(sslContext, supportedProtocols, supportedCipherSuites, sslBufferManagement, hostnameVerifier, null);
     }
 
-    public H2TlsStrategy(final SSLContext sslcontext) {
-        this(sslcontext, getDefaultHostnameVerifier());
+    public DefaultClientTlsStrategy(
+            final SSLContext sslcontext,
+            final HostnameVerifier hostnameVerifier) {
+        this(sslcontext, null, null, SSLBufferMode.STATIC, hostnameVerifier, null);
+    }
+
+    public DefaultClientTlsStrategy(final SSLContext sslcontext) {
+        this(sslcontext, HttpsSupport.getDefaultHostnameVerifier());
     }
 
     @Override
@@ -162,15 +152,11 @@ public class H2TlsStrategy implements TlsStrategy {
             @Override
             public TlsDetails verify(final NamedEndpoint endpoint, final SSLEngine sslEngine) throws SSLException {
                 verifySession(host.getHostName(), sslEngine.getSession());
-                return createTlsDetails(sslEngine);
+                return tlsDetailsFactory != null ? tlsDetailsFactory.create(sslEngine) : null;
             }
 
         });
         return true;
-    }
-
-    protected TlsDetails createTlsDetails(final SSLEngine sslEngine) {
-        return null;
     }
 
     protected void initializeEngine(final SSLEngine sslEngine) {

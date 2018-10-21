@@ -27,12 +27,9 @@
 
 package org.apache.hc.client5.http.impl.nio;
 
-import java.security.AccessController;
-import java.security.PrivilegedAction;
-
 import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.SchemePortResolver;
-import org.apache.hc.client5.http.ssl.H2TlsStrategy;
+import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
 import org.apache.hc.core5.pool.PoolConcurrencyPolicy;
@@ -178,15 +175,12 @@ public class PoolingAsyncClientConnectionManagerBuilder {
         final TlsStrategy tlsStrategyCopy;
         if (tlsStrategy != null) {
             tlsStrategyCopy = tlsStrategy;
-        } else if (systemProperties) {
-            tlsStrategyCopy = AccessController.doPrivileged(new PrivilegedAction<TlsStrategy>() {
-                @Override
-                public TlsStrategy run() {
-                    return H2TlsStrategy.getSystemDefault();
-                }
-            });
         } else {
-            tlsStrategyCopy = H2TlsStrategy.getDefault();
+            if (systemProperties) {
+                tlsStrategyCopy = DefaultClientTlsStrategy.getSystemDefault();
+            } else {
+                tlsStrategyCopy = DefaultClientTlsStrategy.getDefault();
+            }
         }
         final PoolingAsyncClientConnectionManager poolingmgr = new PoolingAsyncClientConnectionManager(
                 RegistryBuilder.<TlsStrategy>create()

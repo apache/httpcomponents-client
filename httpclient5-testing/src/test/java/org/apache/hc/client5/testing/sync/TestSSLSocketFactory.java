@@ -45,6 +45,7 @@ import javax.net.ssl.SSLSocket;
 
 import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
+import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder;
 import org.apache.hc.client5.http.ssl.TrustAllStrategy;
 import org.apache.hc.client5.http.ssl.TrustSelfSignedStrategy;
 import org.apache.hc.client5.testing.SSLTestContexts;
@@ -128,12 +129,18 @@ public class TestSSLSocketFactory {
         this.server.start();
 
         final HttpContext context = new BasicHttpContext();
-        final SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(
-                SSLTestContexts.createClientSSLContext(), SSLConnectionSocketFactory.getDefaultHostnameVerifier());
+        final SSLConnectionSocketFactory socketFactory = SSLConnectionSocketFactoryBuilder.create()
+                .setSslContext(SSLTestContexts.createClientSSLContext())
+                .build();
         try (final Socket socket = socketFactory.createSocket(context)) {
             final InetSocketAddress remoteAddress = new InetSocketAddress("localhost", this.server.getLocalPort());
             final HttpHost target = new HttpHost("localhost", this.server.getLocalPort(), "https");
-            try (SSLSocket sslSocket = (SSLSocket) socketFactory.connectSocket(TimeValue.ZERO_MILLISECONDS, socket, target, remoteAddress, null,
+            try (final SSLSocket sslSocket = (SSLSocket) socketFactory.connectSocket(
+                    TimeValue.ZERO_MILLISECONDS,
+                    socket,
+                    target,
+                    remoteAddress,
+                    null,
                     context)) {
                 final SSLSession sslsession = sslSocket.getSession();
 

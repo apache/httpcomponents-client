@@ -40,6 +40,8 @@ import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuil
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
+import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder;
+import org.apache.hc.client5.http.ssl.TLS;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.ssl.SSLContexts;
 import org.apache.hc.core5.ssl.TrustStrategy;
@@ -66,13 +68,12 @@ public class ClientCustomSSL {
                 })
                 .build();
         // Allow TLSv1.2 protocol only
-        final SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
-                sslcontext,
-                new String[] { "TLSv1.2" },
-                null,
-                SSLConnectionSocketFactory.getDefaultHostnameVerifier());
+        final SSLConnectionSocketFactory sslSocketFactory = SSLConnectionSocketFactoryBuilder.create()
+                .setSslContext(SSLContexts.createSystemDefault())
+                .setTlsVersions(TLS.V_1_2)
+                .build();
         final HttpClientConnectionManager cm = PoolingHttpClientConnectionManagerBuilder.create()
-                .setSSLSocketFactory(sslsf)
+                .setSSLSocketFactory(sslSocketFactory)
                 .build();
         try (CloseableHttpClient httpclient = HttpClients.custom()
                 .setConnectionManager(cm)
