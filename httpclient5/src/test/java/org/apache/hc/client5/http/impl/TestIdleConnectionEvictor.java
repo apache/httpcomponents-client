@@ -27,10 +27,9 @@
 
 package org.apache.hc.client5.http.impl;
 
-import java.util.concurrent.TimeUnit;
-
 import org.apache.hc.core5.pool.ConnPoolControl;
 import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.ArgumentMatchers;
@@ -56,7 +55,7 @@ public class TestIdleConnectionEvictor {
         Assert.assertTrue(connectionEvictor.isRunning());
 
         connectionEvictor.shutdown();
-        connectionEvictor.awaitTermination(1, TimeUnit.SECONDS);
+        connectionEvictor.awaitTermination(Timeout.ofSeconds(1));
         Assert.assertFalse(connectionEvictor.isRunning());
     }
 
@@ -75,7 +74,7 @@ public class TestIdleConnectionEvictor {
         Assert.assertTrue(connectionEvictor.isRunning());
 
         connectionEvictor.shutdown();
-        connectionEvictor.awaitTermination(1, TimeUnit.SECONDS);
+        connectionEvictor.awaitTermination(Timeout.ofSeconds(1));
         Assert.assertFalse(connectionEvictor.isRunning());
     }
 

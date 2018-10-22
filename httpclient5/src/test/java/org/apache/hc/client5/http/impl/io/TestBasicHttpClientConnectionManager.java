@@ -30,7 +30,6 @@ package org.apache.hc.client5.http.impl.io;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.HttpRoute;
@@ -269,7 +268,7 @@ public class TestBasicHttpClientConnectionManager {
 
         // Should have no effect
         mgr.closeExpired();
-        mgr.closeIdle(0L, TimeUnit.MILLISECONDS);
+        mgr.closeIdle(TimeValue.ZERO_MILLISECONDS);
         mgr.close();
 
         Mockito.verify(conn, Mockito.times(1)).close(CloseMode.GRACEFUL);
@@ -324,7 +323,7 @@ public class TestBasicHttpClientConnectionManager {
 
         Thread.sleep(100);
 
-        mgr.closeIdle(50, TimeUnit.MILLISECONDS);
+        mgr.closeIdle(TimeValue.ofMillis(50));
 
         Mockito.verify(conn).close(CloseMode.GRACEFUL);
     }

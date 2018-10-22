@@ -30,7 +30,6 @@ package org.apache.hc.client5.http.impl.io;
 import java.io.IOException;
 import java.util.Date;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -340,13 +339,13 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
         }
     }
 
-    public synchronized void closeIdle(final long idletime, final TimeUnit timeUnit) {
-        Args.notNull(timeUnit, "Time unit");
+    public synchronized void closeIdle(final TimeValue idleTime) {
+        Args.notNull(idleTime, "Idle time");
         if (this.closed.get()) {
             return;
         }
         if (!this.leased) {
-            long time = timeUnit.toMillis(idletime);
+            long time = idleTime.toMillis();
             if (time < 0) {
                 time = 0;
             }

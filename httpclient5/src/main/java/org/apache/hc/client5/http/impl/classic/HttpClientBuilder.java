@@ -36,7 +36,6 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.hc.client5.http.AuthenticationStrategy;
 import org.apache.hc.client5.http.ConnectionKeepAliveStrategy;
@@ -46,12 +45,12 @@ import org.apache.hc.client5.http.ServiceUnavailableRetryStrategy;
 import org.apache.hc.client5.http.SystemDefaultDnsResolver;
 import org.apache.hc.client5.http.UserTokenHandler;
 import org.apache.hc.client5.http.auth.AuthSchemeProvider;
+import org.apache.hc.client5.http.auth.AuthSchemes;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.KerberosConfig;
 import org.apache.hc.client5.http.classic.BackoffManager;
 import org.apache.hc.client5.http.classic.ConnectionBackoffStrategy;
 import org.apache.hc.client5.http.classic.ExecChainHandler;
-import org.apache.hc.client5.http.auth.AuthSchemes;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.cookie.BasicCookieStore;
 import org.apache.hc.client5.http.cookie.CookieSpecProvider;
@@ -112,6 +111,7 @@ import org.apache.hc.core5.http.protocol.RequestUserAgent;
 import org.apache.hc.core5.pool.ConnPoolControl;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 import org.apache.hc.core5.util.VersionInfo;
 
 /**
@@ -993,7 +993,7 @@ public class HttpClientBuilder {
                         public void close() throws IOException {
                             connectionEvictor.shutdown();
                             try {
-                                connectionEvictor.awaitTermination(1L, TimeUnit.SECONDS);
+                                connectionEvictor.awaitTermination(Timeout.ofSeconds(1));
                             } catch (final InterruptedException interrupted) {
                                 Thread.currentThread().interrupt();
                             }
