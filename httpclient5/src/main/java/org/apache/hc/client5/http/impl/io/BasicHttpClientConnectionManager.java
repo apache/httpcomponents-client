@@ -189,8 +189,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
 
             @Override
             public ConnectionEndpoint get(
-                    final long timeout,
-                    final TimeUnit timeUnit) throws InterruptedException, ExecutionException, TimeoutException {
+                    final Timeout timeout) throws InterruptedException, ExecutionException, TimeoutException {
                 try {
                     return new InternalConnectionEndpoint(route, getConnection(route, state));
                 } catch (final IOException ex) {

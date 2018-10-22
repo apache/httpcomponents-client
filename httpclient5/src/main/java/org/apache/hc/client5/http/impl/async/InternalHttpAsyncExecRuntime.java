@@ -92,10 +92,11 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
         if (endpointRef.get() == null) {
             state = object;
             final RequestConfig requestConfig = context.getRequestConfig();
+            final Timeout connectionRequestTimeout = requestConfig.getConnectionRequestTimeout();
             return Operations.cancellable(manager.lease(
                     route,
                     object,
-                    requestConfig.getConnectionRequestTimeout(),
+                    connectionRequestTimeout,
                     new FutureCallback<AsyncConnectionEndpoint>() {
 
                         @Override
@@ -191,20 +192,17 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
             return Operations.nonCancellable();
         }
         final RequestConfig requestConfig = context.getRequestConfig();
-        final Timeout timeout = requestConfig.getConnectionTimeout();
+        final Timeout connectTimeout = requestConfig.getConnectionTimeout();
         return Operations.cancellable(manager.connect(
                 endpoint,
                 connectionInitiator,
-                timeout,
+                connectTimeout,
                 versionPolicy,
                 context,
                 new FutureCallback<AsyncConnectionEndpoint>() {
 
                     @Override
                     public void completed(final AsyncConnectionEndpoint endpoint) {
-                        if (TimeValue.isPositive(timeout)) {
-                            endpoint.setSocketTimeout(timeout);
-                        }
                         callback.completed(InternalHttpAsyncExecRuntime.this);
                     }
 
@@ -225,6 +223,11 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
     @Override
     public void upgradeTls(final HttpClientContext context) {
         final AsyncConnectionEndpoint endpoint = ensureValid();
+        final RequestConfig requestConfig = context.getRequestConfig();
+        final Timeout connectTimeout = requestConfig.getConnectionTimeout();
+        if (TimeValue.isPositive(connectTimeout)) {
+            endpoint.setSocketTimeout(connectTimeout);
+        }
         manager.upgrade(endpoint, versionPolicy, context);
     }
 

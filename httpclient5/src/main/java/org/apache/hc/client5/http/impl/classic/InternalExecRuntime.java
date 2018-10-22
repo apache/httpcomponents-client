@@ -94,8 +94,8 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
         Args.notNull(route, "Route");
         if (endpointRef.get() == null) {
             final RequestConfig requestConfig = context.getRequestConfig();
-            final Timeout requestTimeout = requestConfig.getConnectionRequestTimeout();
-            final LeaseRequest connRequest = manager.lease(route, requestTimeout, object);
+            final Timeout connectionRequestTimeout = requestConfig.getConnectionRequestTimeout();
+            final LeaseRequest connRequest = manager.lease(route, connectionRequestTimeout, object);
             state = object;
             if (cancellableDependency != null) {
                 if (cancellableDependency.isCancelled()) {
@@ -105,7 +105,7 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
                 cancellableDependency.setDependency(connRequest);
             }
             try {
-                final ConnectionEndpoint connectionEndpoint = connRequest.get(requestTimeout.getDuration(), requestTimeout.getTimeUnit());
+                final ConnectionEndpoint connectionEndpoint = connRequest.get(connectionRequestTimeout);
                 endpointRef.set(connectionEndpoint);
                 reusable = connectionEndpoint.isConnected();
                 if (cancellableDependency != null) {
@@ -149,11 +149,8 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
             }
         }
         final RequestConfig requestConfig = context.getRequestConfig();
-        final Timeout timeout = requestConfig.getConnectionTimeout();
-        manager.connect(endpoint, timeout, context);
-        if (TimeValue.isPositive(timeout)) {
-            endpoint.setSocketTimeout(timeout);
-        }
+        final Timeout connectTimeout = requestConfig.getConnectionTimeout();
+        manager.connect(endpoint, connectTimeout, context);
     }
 
     @Override
@@ -176,6 +173,11 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
     @Override
     public void upgradeTls(final HttpClientContext context) throws IOException {
         final ConnectionEndpoint endpoint = ensureValid();
+        final RequestConfig requestConfig = context.getRequestConfig();
+        final Timeout timeout = requestConfig.getConnectionTimeout();
+        if (TimeValue.isPositive(timeout)) {
+            endpoint.setSocketTimeout(timeout);
+        }
         manager.upgrade(endpoint, context);
     }
 

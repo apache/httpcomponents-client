@@ -89,8 +89,7 @@ public class TestInternalExecRuntime {
         final HttpRoute route = new HttpRoute(new HttpHost("host", 80));
 
         Mockito.when(mgr.lease(Mockito.eq(route), Mockito.<Timeout>any(), Mockito.any())).thenReturn(leaseRequest);
-        Mockito.when(leaseRequest.get(
-                Mockito.anyLong(), Mockito.<TimeUnit>any())).thenReturn(connectionEndpoint);
+        Mockito.when(leaseRequest.get(Mockito.<Timeout>any())).thenReturn(connectionEndpoint);
 
         execRuntime.acquireEndpoint(route, null, context);
 
@@ -99,7 +98,7 @@ public class TestInternalExecRuntime {
         Assert.assertFalse(execRuntime.isEndpointConnected());
         Assert.assertFalse(execRuntime.isConnectionReusable());
 
-        Mockito.verify(leaseRequest).get(345, TimeUnit.MILLISECONDS);
+        Mockito.verify(leaseRequest).get(Timeout.ofMillis(345));
         Mockito.verify(cancellableDependency, Mockito.times(1)).setDependency(leaseRequest);
         Mockito.verify(cancellableDependency, Mockito.times(1)).setDependency(execRuntime);
         Mockito.verify(cancellableDependency, Mockito.times(2)).setDependency(Mockito.<Cancellable>any());
@@ -110,8 +109,7 @@ public class TestInternalExecRuntime {
         final HttpClientContext context = HttpClientContext.create();
 
         Mockito.when(mgr.lease(Mockito.eq(route), Mockito.<Timeout>any(), Mockito.any())).thenReturn(leaseRequest);
-        Mockito.when(leaseRequest.get(
-                Mockito.anyLong(), Mockito.<TimeUnit>any())).thenReturn(connectionEndpoint);
+        Mockito.when(leaseRequest.get(Mockito.<Timeout>any())).thenReturn(connectionEndpoint);
 
         execRuntime.acquireEndpoint(route, null, context);
 
@@ -126,8 +124,7 @@ public class TestInternalExecRuntime {
         final HttpClientContext context = HttpClientContext.create();
 
         Mockito.when(mgr.lease(Mockito.eq(route), Mockito.<Timeout>any(), Mockito.any())).thenReturn(leaseRequest);
-        Mockito.when(leaseRequest.get(
-                Mockito.anyLong(), Mockito.<TimeUnit>any())).thenThrow(new TimeoutException("timeout"));
+        Mockito.when(leaseRequest.get(Mockito.<Timeout>any())).thenThrow(new TimeoutException("timeout"));
 
         execRuntime.acquireEndpoint(route, null, context);
     }
@@ -137,8 +134,7 @@ public class TestInternalExecRuntime {
         final HttpClientContext context = HttpClientContext.create();
 
         Mockito.when(mgr.lease(Mockito.eq(route), Mockito.<Timeout>any(), Mockito.any())).thenReturn(leaseRequest);
-        Mockito.when(leaseRequest.get(
-                Mockito.anyLong(), Mockito.<TimeUnit>any())).thenThrow(new ExecutionException(new IllegalStateException()));
+        Mockito.when(leaseRequest.get(Mockito.<Timeout>any())).thenThrow(new ExecutionException(new IllegalStateException()));
 
         execRuntime.acquireEndpoint(route, null, context);
     }
@@ -147,8 +143,7 @@ public class TestInternalExecRuntime {
     public void testAbortEndpoint() throws Exception {
         final HttpClientContext context = HttpClientContext.create();
         Mockito.when(mgr.lease(Mockito.eq(route), Mockito.<Timeout>any(), Mockito.any())).thenReturn(leaseRequest);
-        Mockito.when(leaseRequest.get(
-                Mockito.anyLong(), Mockito.<TimeUnit>any())).thenReturn(connectionEndpoint);
+        Mockito.when(leaseRequest.get(Mockito.<Timeout>any())).thenReturn(connectionEndpoint);
 
         execRuntime.acquireEndpoint(new HttpRoute(new HttpHost("host", 80)), null, context);
         Assert.assertTrue(execRuntime.isEndpointAcquired());
@@ -173,8 +168,7 @@ public class TestInternalExecRuntime {
         final HttpClientContext context = HttpClientContext.create();
 
         Mockito.when(mgr.lease(Mockito.eq(route), Mockito.<Timeout>any(), Mockito.any())).thenReturn(leaseRequest);
-        Mockito.when(leaseRequest.get(
-                Mockito.anyLong(), Mockito.<TimeUnit>any())).thenReturn(connectionEndpoint);
+        Mockito.when(leaseRequest.get(Mockito.<Timeout>any())).thenReturn(connectionEndpoint);
 
         execRuntime.acquireEndpoint(route, null, context);
         Assert.assertTrue(execRuntime.isEndpointAcquired());
@@ -200,8 +194,7 @@ public class TestInternalExecRuntime {
         final HttpClientContext context = HttpClientContext.create();
 
         Mockito.when(mgr.lease(Mockito.eq(route), Mockito.<Timeout>any(), Mockito.any())).thenReturn(leaseRequest);
-        Mockito.when(leaseRequest.get(
-                Mockito.anyLong(), Mockito.<TimeUnit>any())).thenReturn(connectionEndpoint);
+        Mockito.when(leaseRequest.get(Mockito.<Timeout>any())).thenReturn(connectionEndpoint);
 
         execRuntime.acquireEndpoint(route, null, context);
         Assert.assertTrue(execRuntime.isEndpointAcquired());
@@ -228,8 +221,7 @@ public class TestInternalExecRuntime {
         final HttpClientContext context = HttpClientContext.create();
 
         Mockito.when(mgr.lease(Mockito.eq(route), Mockito.<Timeout>any(), Mockito.any())).thenReturn(leaseRequest);
-        Mockito.when(leaseRequest.get(
-                Mockito.anyLong(), Mockito.<TimeUnit>any())).thenReturn(connectionEndpoint);
+        Mockito.when(leaseRequest.get(Mockito.<Timeout>any())).thenReturn(connectionEndpoint);
 
         execRuntime.acquireEndpoint(route, null, context);
         Assert.assertTrue(execRuntime.isEndpointAcquired());
@@ -262,8 +254,7 @@ public class TestInternalExecRuntime {
         context.setRequestConfig(config);
 
         Mockito.when(mgr.lease(Mockito.eq(route), Mockito.<Timeout>any(), Mockito.any())).thenReturn(leaseRequest);
-        Mockito.when(leaseRequest.get(
-                Mockito.anyLong(), Mockito.<TimeUnit>any())).thenReturn(connectionEndpoint);
+        Mockito.when(leaseRequest.get(Mockito.<Timeout>any())).thenReturn(connectionEndpoint);
 
         execRuntime.acquireEndpoint(route, null, context);
         Assert.assertTrue(execRuntime.isEndpointAcquired());
@@ -274,7 +265,6 @@ public class TestInternalExecRuntime {
         execRuntime.connectEndpoint(context);
 
         Mockito.verify(mgr).connect(connectionEndpoint, Timeout.ofMillis(123), context);
-        Mockito.verify(connectionEndpoint).setSocketTimeout(Timeout.ofMillis(123));
     }
 
     @Test
@@ -282,8 +272,7 @@ public class TestInternalExecRuntime {
         final HttpClientContext context = HttpClientContext.create();
 
         Mockito.when(mgr.lease(Mockito.eq(route), Mockito.<Timeout>any(), Mockito.any())).thenReturn(leaseRequest);
-        Mockito.when(leaseRequest.get(
-                Mockito.anyLong(), Mockito.<TimeUnit>any())).thenReturn(connectionEndpoint);
+        Mockito.when(leaseRequest.get(Mockito.<Timeout>any())).thenReturn(connectionEndpoint);
 
         execRuntime.acquireEndpoint(route, null, context);
         Assert.assertTrue(execRuntime.isEndpointAcquired());

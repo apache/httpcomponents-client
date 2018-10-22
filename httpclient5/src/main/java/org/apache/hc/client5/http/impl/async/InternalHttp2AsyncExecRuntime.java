@@ -49,6 +49,7 @@ import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.reactor.Command;
 import org.apache.hc.core5.reactor.IOSession;
 import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 import org.slf4j.Logger;
 
 class InternalHttp2AsyncExecRuntime implements AsyncExecRuntime {
@@ -84,9 +85,10 @@ class InternalHttp2AsyncExecRuntime implements AsyncExecRuntime {
         if (sessionRef.get() == null) {
             final HttpHost target = route.getTargetHost();
             final RequestConfig requestConfig = context.getRequestConfig();
+            final Timeout connectTimeout = requestConfig.getConnectionTimeout();
             return Operations.cancellable(connPool.getSession(
                     target,
-                    requestConfig.getConnectionTimeout(),
+                    connectTimeout,
                     new FutureCallback<IOSession>() {
 
                         @Override
@@ -167,7 +169,8 @@ class InternalHttp2AsyncExecRuntime implements AsyncExecRuntime {
         }
         final HttpHost target = endpoint.target;
         final RequestConfig requestConfig = context.getRequestConfig();
-        return Operations.cancellable(connPool.getSession(target, requestConfig.getConnectionTimeout(), new FutureCallback<IOSession>() {
+        final Timeout connectTimeout = requestConfig.getConnectionTimeout();
+        return Operations.cancellable(connPool.getSession(target, connectTimeout, new FutureCallback<IOSession>() {
 
             @Override
             public void completed(final IOSession ioSession) {
@@ -210,7 +213,8 @@ class InternalHttp2AsyncExecRuntime implements AsyncExecRuntime {
         } else {
             final HttpHost target = endpoint.target;
             final RequestConfig requestConfig = context.getRequestConfig();
-            connPool.getSession(target, requestConfig.getConnectionTimeout(), new FutureCallback<IOSession>() {
+            final Timeout connectTimeout = requestConfig.getConnectionTimeout();
+            connPool.getSession(target, connectTimeout, new FutureCallback<IOSession>() {
 
                 @Override
                 public void completed(final IOSession ioSession) {

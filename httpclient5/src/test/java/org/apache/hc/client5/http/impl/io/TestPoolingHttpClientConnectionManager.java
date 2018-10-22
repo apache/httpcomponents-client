@@ -116,7 +116,7 @@ public class TestPoolingHttpClientConnectionManager {
                 .thenReturn(future);
 
         final LeaseRequest connRequest1 = mgr.lease(route, null);
-        final ConnectionEndpoint endpoint1 = connRequest1.get(1, TimeUnit.SECONDS);
+        final ConnectionEndpoint endpoint1 = connRequest1.get(Timeout.ofSeconds(1));
         Assert.assertNotNull(endpoint1);
         Assert.assertNotSame(conn, endpoint1);
 
@@ -148,7 +148,7 @@ public class TestPoolingHttpClientConnectionManager {
                 .thenReturn(future);
 
         final LeaseRequest connRequest1 = mgr.lease(route, null);
-        final ConnectionEndpoint endpoint1 = connRequest1.get(1, TimeUnit.SECONDS);
+        final ConnectionEndpoint endpoint1 = connRequest1.get(Timeout.ofSeconds(1));
         Assert.assertNotNull(endpoint1);
         Assert.assertNotSame(conn, endpoint1);
 
@@ -175,7 +175,7 @@ public class TestPoolingHttpClientConnectionManager {
                 .thenReturn(future);
 
         final LeaseRequest connRequest1 = mgr.lease(route, null);
-        connRequest1.get(1, TimeUnit.SECONDS);
+        connRequest1.get(Timeout.ofSeconds(1));
     }
 
     @Test(expected=TimeoutException.class)
@@ -193,7 +193,7 @@ public class TestPoolingHttpClientConnectionManager {
                 .thenReturn(future);
 
         final LeaseRequest connRequest1 = mgr.lease(route, null);
-        connRequest1.get(1, TimeUnit.SECONDS);
+        connRequest1.get(Timeout.ofSeconds(1));
     }
 
     @Test
@@ -215,7 +215,7 @@ public class TestPoolingHttpClientConnectionManager {
         Mockito.when(conn.isOpen()).thenReturn(Boolean.TRUE);
 
         final LeaseRequest connRequest1 = mgr.lease(route, null);
-        final ConnectionEndpoint endpoint1 = connRequest1.get(1, TimeUnit.SECONDS);
+        final ConnectionEndpoint endpoint1 = connRequest1.get(Timeout.ofSeconds(1));
         Assert.assertNotNull(endpoint1);
         Assert.assertTrue(endpoint1.isConnected());
 
@@ -244,7 +244,7 @@ public class TestPoolingHttpClientConnectionManager {
         Mockito.when(conn.isOpen()).thenReturn(Boolean.FALSE);
 
         final LeaseRequest connRequest1 = mgr.lease(route, null);
-        final ConnectionEndpoint endpoint1 = connRequest1.get(1, TimeUnit.SECONDS);
+        final ConnectionEndpoint endpoint1 = connRequest1.get(Timeout.ofSeconds(1));
         Assert.assertNotNull(endpoint1);
         Assert.assertFalse(endpoint1.isConnected());
 
@@ -276,7 +276,7 @@ public class TestPoolingHttpClientConnectionManager {
                 .thenReturn(future);
 
         final LeaseRequest connRequest1 = mgr.lease(route, null);
-        final ConnectionEndpoint endpoint1 = connRequest1.get(1, TimeUnit.SECONDS);
+        final ConnectionEndpoint endpoint1 = connRequest1.get(Timeout.ofSeconds(1));
         Assert.assertNotNull(endpoint1);
 
         final HttpClientContext context = HttpClientContext.create();
@@ -329,7 +329,7 @@ public class TestPoolingHttpClientConnectionManager {
                 .thenReturn(future);
 
         final LeaseRequest connRequest1 = mgr.lease(route, null);
-        final ConnectionEndpoint endpoint1 = connRequest1.get(1, TimeUnit.SECONDS);
+        final ConnectionEndpoint endpoint1 = connRequest1.get(Timeout.ofSeconds(1));
         Assert.assertNotNull(endpoint1);
 
         final ConnectionSocketFactory plainsf = Mockito.mock(ConnectionSocketFactory.class);

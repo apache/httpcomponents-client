@@ -30,7 +30,6 @@ import java.io.IOException;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -264,14 +263,14 @@ public class PoolingHttpClientConnectionManager
 
             @Override
             public synchronized ConnectionEndpoint get(
-                    final long timeout,
-                    final TimeUnit timeUnit) throws InterruptedException, ExecutionException, TimeoutException {
+                    final Timeout timeout) throws InterruptedException, ExecutionException, TimeoutException {
+                Args.notNull(timeout, "Operation timeout");
                 if (this.endpoint != null) {
                     return this.endpoint;
                 }
                 final PoolEntry<HttpRoute, ManagedHttpClientConnection> poolEntry;
                 try {
-                    poolEntry = leaseFuture.get(timeout, timeUnit);
+                    poolEntry = leaseFuture.get(timeout.getDuration(), timeout.getTimeUnit());
                     if (poolEntry == null || leaseFuture.isCancelled()) {
                         throw new InterruptedException();
                     }

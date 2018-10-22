@@ -134,13 +134,16 @@ public final class MinimalHttpAsyncClient extends AbstractMinimalHttpAsyncClient
 
     private Future<AsyncConnectionEndpoint> leaseEndpoint(
             final HttpHost host,
+            final Timeout connectionRequestTimeout,
             final Timeout connectTimeout,
             final HttpClientContext clientContext,
             final FutureCallback<AsyncConnectionEndpoint> callback) {
         final HttpRoute route = new HttpRoute(RoutingSupport.normalize(host, schemePortResolver));
         final ComplexFuture<AsyncConnectionEndpoint> resultFuture = new ComplexFuture<>(callback);
         final Future<AsyncConnectionEndpoint> leaseFuture = connmgr.lease(
-                route, null, connectTimeout,
+                route,
+                null,
+                connectionRequestTimeout,
                 new FutureCallback<AsyncConnectionEndpoint>() {
 
                     @Override
@@ -206,25 +209,32 @@ public final class MinimalHttpAsyncClient extends AbstractMinimalHttpAsyncClient
         ensureRunning();
         final HttpClientContext clientContext = HttpClientContext.adapt(context);
         final RequestConfig requestConfig = clientContext.getRequestConfig();
+        final Timeout connectionRequestTimeout = requestConfig.getConnectionRequestTimeout();
+        final Timeout connectTimeout = requestConfig.getConnectionTimeout();
         final BasicFuture<AsyncClientEndpoint> future = new BasicFuture<>(callback);
-        leaseEndpoint(host, requestConfig.getConnectionTimeout(), clientContext, new FutureCallback<AsyncConnectionEndpoint>() {
+        leaseEndpoint(
+                host,
+                connectionRequestTimeout,
+                connectTimeout,
+                clientContext,
+                new FutureCallback<AsyncConnectionEndpoint>() {
 
-            @Override
-            public void completed(final AsyncConnectionEndpoint result) {
-                future.completed(new InternalAsyncClientEndpoint(result));
-            }
+                    @Override
+                    public void completed(final AsyncConnectionEndpoint result) {
+                        future.completed(new InternalAsyncClientEndpoint(result));
+                    }
 
-            @Override
-            public void failed(final Exception ex) {
-                future.failed(ex);
-            }
+                    @Override
+                    public void failed(final Exception ex) {
+                        future.failed(ex);
+                    }
 
-            @Override
-            public void cancelled() {
-                future.cancel(true);
-            }
+                    @Override
+                    public void cancelled() {
+                        future.cancel(true);
+                    }
 
-        });
+                });
         return future;
     }
 
@@ -253,10 +263,15 @@ public final class MinimalHttpAsyncClient extends AbstractMinimalHttpAsyncClient
                     } else {
                         requestConfig = clientContext.getRequestConfig();
                     }
+                    final Timeout connectionRequestTimeout = requestConfig.getConnectionRequestTimeout();
                     final Timeout connectTimeout = requestConfig.getConnectionTimeout();
                     final HttpHost target = new HttpHost(request.getAuthority(), request.getScheme());
 
-                    final Future<AsyncConnectionEndpoint> leaseFuture = leaseEndpoint(target, connectTimeout, clientContext,
+                    final Future<AsyncConnectionEndpoint> leaseFuture = leaseEndpoint(
+                            target,
+                            connectionRequestTimeout,
+                            connectTimeout,
+                            clientContext,
                             new FutureCallback<AsyncConnectionEndpoint>() {
 
                                 @Override
