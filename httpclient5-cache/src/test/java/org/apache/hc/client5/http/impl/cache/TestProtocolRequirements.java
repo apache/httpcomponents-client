@@ -283,7 +283,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2
      */
     private void testOrderOfMultipleHeadersIsPreservedOnRequests(final String h, final ClassicHttpRequest request) throws Exception {
-        final Capture<ClassicHttpRequest> reqCapture = new Capture<>();
+        final Capture<ClassicHttpRequest> reqCapture = EasyMock.newCapture();
 
         EasyMock.expect(
                 mockExecChain.proceed(
@@ -527,7 +527,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     @Test
     public void testUnknownHeadersOnRequestsAreForwarded() throws Exception {
         request.addHeader("X-Unknown-Header", "blahblah");
-        final Capture<ClassicHttpRequest> reqCap = new Capture<>();
+        final Capture<ClassicHttpRequest> reqCap = EasyMock.newCapture();
         EasyMock.expect(
                 mockExecChain.proceed(
                         EasyMock.capture(reqCap),
@@ -576,7 +576,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         post.setHeader("Content-Length", "128");
         post.setEntity(new BasicHttpEntity());
 
-        final Capture<ClassicHttpRequest> reqCap = new Capture<>();
+        final Capture<ClassicHttpRequest> reqCap = EasyMock.newCapture();
 
         EasyMock.expect(
                 mockExecChain.proceed(
@@ -615,7 +615,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         post.setHeader("Content-Length", "128");
         post.setEntity(new BasicHttpEntity());
 
-        final Capture<ClassicHttpRequest> reqCap = new Capture<>();
+        final Capture<ClassicHttpRequest> reqCap = EasyMock.newCapture();
 
         EasyMock.expect(
                 mockExecChain.proceed(
@@ -777,7 +777,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         request = new BasicClassicHttpRequest("OPTIONS", "*");
         request.setHeader("Max-Forwards", "7");
 
-        final Capture<ClassicHttpRequest> cap = new Capture<>();
+        final Capture<ClassicHttpRequest> cap = EasyMock.newCapture();
 
         EasyMock.expect(
                 mockExecChain.proceed(
@@ -801,7 +801,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     @Test
     public void testDoesNotAddAMaxForwardsHeaderToForwardedOPTIONSRequests() throws Exception {
         request = new BasicClassicHttpRequest("OPTIONS", "/");
-        final Capture<ClassicHttpRequest> reqCap = new Capture<>();
+        final Capture<ClassicHttpRequest> reqCap = EasyMock.newCapture();
         EasyMock.expect(
                 mockExecChain.proceed(
                         EasyMock.capture(reqCap),
@@ -1943,8 +1943,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         unconditionalResponse.setHeader("Date", DateUtils.formatDate(inFiveSeconds));
         unconditionalResponse.setHeader("ETag", "\"etag\"");
 
-        final Capture<ClassicHttpRequest> cap1 = new Capture<>();
-        final Capture<ClassicHttpRequest> cap2 = new Capture<>();
+        final Capture<ClassicHttpRequest> cap1 = EasyMock.newCapture();
+        final Capture<ClassicHttpRequest> cap2 = EasyMock.newCapture();
 
         EasyMock.expect(
                 mockExecChain.proceed(
@@ -2533,7 +2533,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         final HttpCacheEntry cacheEntry = HttpTestUtils.makeCacheEntry();
 
-        final Capture<ClassicHttpRequest> cap = new Capture<>();
+        final Capture<ClassicHttpRequest> cap = EasyMock.newCapture();
 
         mockCache.flushCacheEntriesInvalidatedByExchange(
                 EasyMock.isA(HttpHost.class),
@@ -2640,7 +2640,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      * from upstream.
      */
     private ClassicHttpResponse testRequestWithWeakETagValidatorIsNotAllowed(final String header) throws Exception {
-        final Capture<ClassicHttpRequest> cap = new Capture<>();
+        final Capture<ClassicHttpRequest> cap = EasyMock.newCapture();
         EasyMock.expect(
                 mockExecChain.proceed(
                         EasyMock.capture(cap),
@@ -2771,7 +2771,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
         req2.setHeader("Cache-Control", "max-age=0,max-stale=0");
 
-        final Capture<ClassicHttpRequest> cap = new Capture<>();
+        final Capture<ClassicHttpRequest> cap = EasyMock.newCapture();
         EasyMock.expect(
                 mockExecChain.proceed(
                         EasyMock.isA(ClassicHttpRequest.class),
@@ -3102,7 +3102,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         req.setHeader("Content-Length","128");
         req.setHeader(header,value);
 
-        final Capture<ClassicHttpRequest> cap = new Capture<>();
+        final Capture<ClassicHttpRequest> cap = EasyMock.newCapture();
 
         EasyMock.expect(
                 mockExecChain.proceed(
@@ -3146,7 +3146,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         req.setHeader("Content-Length","128");
         req.removeHeaders(header);
 
-        final Capture<ClassicHttpRequest> cap = new Capture<>();
+        final Capture<ClassicHttpRequest> cap = EasyMock.newCapture();
 
         EasyMock.expect(
                 mockExecChain.proceed(
@@ -4119,8 +4119,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         resp304.setHeader("ETag","\"etag1\"");
         resp304.setHeader("Vary","User-Agent");
 
-        final Capture<ClassicHttpRequest> condCap = new Capture<>();
-        final Capture<ClassicHttpRequest> uncondCap = new Capture<>();
+        final Capture<ClassicHttpRequest> condCap = EasyMock.newCapture();
+        final Capture<ClassicHttpRequest> uncondCap = EasyMock.newCapture();
 
         EasyMock.expect(
                 mockExecChain.proceed(
@@ -4597,7 +4597,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
             final ClassicHttpResponse resp2 = HttpTestUtils.make200Response();
 
-            final Capture<ClassicHttpRequest> cap = new Capture<>();
+            final Capture<ClassicHttpRequest> cap = EasyMock.newCapture();
             EasyMock.expect(
                     mockExecChain.proceed(
                             EasyMock.capture(cap),
@@ -4667,7 +4667,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         req2.setHeader("Cache-Control","max-stale=60");
         final ClassicHttpResponse resp2 = HttpTestUtils.make200Response();
 
-        final Capture<ClassicHttpRequest> cap = new Capture<>();
+        final Capture<ClassicHttpRequest> cap = EasyMock.newCapture();
         EasyMock.expect(
                 mockExecChain.proceed(
                         EasyMock.capture(cap),
@@ -4701,7 +4701,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     @Test
     public void testDoesNotTransmitNoCacheDirectivesWithFieldsDownstream() throws Exception {
         request.setHeader("Cache-Control","no-cache=\"X-Field\"");
-        final Capture<ClassicHttpRequest> cap = new Capture<>();
+        final Capture<ClassicHttpRequest> cap = EasyMock.newCapture();
         EasyMock.expect(mockExecChain.proceed(
                 EasyMock.capture(cap),
                 EasyMock.isA(ExecChain.Scope.class))).andReturn(originResponse).times(0,1);
@@ -4743,7 +4743,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         resp2.setHeader("Etag","\"etag2\"");
         resp2.setHeader("Cache-Control","max-age=1200");
 
-        final Capture<ClassicHttpRequest> cap = new Capture<>();
+        final Capture<ClassicHttpRequest> cap = EasyMock.newCapture();
         EasyMock.expect(mockExecChain.proceed(
                 EasyMock.capture(cap),
                 EasyMock.isA(ExecChain.Scope.class))).andReturn(resp2);
@@ -4793,7 +4793,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         resp2.setHeader("ETag","\"etag2\"");
         resp2.setHeader("Cache-Control","max-age=5, must-revalidate");
 
-        final Capture<ClassicHttpRequest> cap = new Capture<>();
+        final Capture<ClassicHttpRequest> cap = EasyMock.newCapture();
         // this request MUST happen
         EasyMock.expect(
                 mockExecChain.proceed(
@@ -5024,7 +5024,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         resp2.setHeader("X-Stuff","things");
         resp2.setHeader("Cache-Control","no-cache=\"X-Stuff\",max-age=3600");
 
-        final Capture<ClassicHttpRequest> cap = new Capture<>();
+        final Capture<ClassicHttpRequest> cap = EasyMock.newCapture();
         EasyMock.expect(
                 mockExecChain.proceed(
                         EasyMock.capture(cap),
@@ -5388,7 +5388,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      */
     @Test
     public void testProperlyFormattedViaHeaderIsAddedToRequests() throws Exception {
-        final Capture<ClassicHttpRequest> cap = new Capture<>();
+        final Capture<ClassicHttpRequest> cap = EasyMock.newCapture();
         request.removeHeaders("Via");
         EasyMock.expect(
                 mockExecChain.proceed(
@@ -5489,7 +5489,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         originalRequest.setVersion(HttpVersion.HTTP_1_0);
         request = originalRequest;
         request.removeHeaders("Via");
-        final Capture<ClassicHttpRequest> cap = new Capture<>();
+        final Capture<ClassicHttpRequest> cap = EasyMock.newCapture();
         EasyMock.expect(
                 mockExecChain.proceed(
                         EasyMock.capture(cap),
