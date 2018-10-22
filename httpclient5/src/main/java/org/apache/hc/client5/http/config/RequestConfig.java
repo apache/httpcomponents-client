@@ -57,6 +57,7 @@ public class RequestConfig implements Cloneable {
     private final Collection<String> proxyPreferredAuthSchemes;
     private final Timeout connectionRequestTimeout;
     private final Timeout connectTimeout;
+    private final Timeout responseTimeout;
     private final boolean contentCompressionEnabled;
     private final boolean hardCancellationEnabled;
 
@@ -65,7 +66,7 @@ public class RequestConfig implements Cloneable {
     */
     protected RequestConfig() {
         this(false, null, null, false, false, 0, false, null, null,
-                DEFAULT_CONNECTION_REQUEST_TIMEOUT, DEFAULT_CONNECT_TIMEOUT, false, false);
+                DEFAULT_CONNECTION_REQUEST_TIMEOUT, DEFAULT_CONNECT_TIMEOUT, null, false, false);
     }
 
     RequestConfig(
@@ -80,6 +81,7 @@ public class RequestConfig implements Cloneable {
             final Collection<String> proxyPreferredAuthSchemes,
             final Timeout connectionRequestTimeout,
             final Timeout connectTimeout,
+            final Timeout responseTimeout,
             final boolean contentCompressionEnabled,
             final boolean hardCancellationEnabled) {
         super();
@@ -94,6 +96,7 @@ public class RequestConfig implements Cloneable {
         this.proxyPreferredAuthSchemes = proxyPreferredAuthSchemes;
         this.connectionRequestTimeout = connectionRequestTimeout;
         this.connectTimeout = connectTimeout;
+        this.responseTimeout = responseTimeout;
         this.contentCompressionEnabled = contentCompressionEnabled;
         this.hardCancellationEnabled = hardCancellationEnabled;
     }
@@ -230,7 +233,6 @@ public class RequestConfig implements Cloneable {
      * such as {@code SSL} or {@code TLS} protocol negotiation).
      * <p>
      * A timeout value of zero is interpreted as an infinite timeout.
-     * A negative value is interpreted as undefined (system default).
      * </p>
      * <p>
      * Default: 3 minutes
@@ -238,6 +240,26 @@ public class RequestConfig implements Cloneable {
      */
     public Timeout getConnectTimeout() {
         return connectTimeout;
+    }
+
+    /**
+     * Determines the timeout until arrival of a response from the opposite
+     * endpoint.
+     * <p>
+     * A timeout value of zero is interpreted as an infinite timeout.
+     * </p>
+     * <p>
+     * Please note that response timeout may be unsupported by
+     * HTTP transports with message multiplexing.
+     * </p>
+     * <p>
+     * Default: {@code null}
+     * </p>
+     *
+     * @since 5.0
+     */
+    public Timeout getResponseTimeout() {
+        return responseTimeout;
     }
 
     /**
@@ -343,6 +365,7 @@ public class RequestConfig implements Cloneable {
         private Collection<String> proxyPreferredAuthSchemes;
         private Timeout connectionRequestTimeout;
         private Timeout connectTimeout;
+        private Timeout responseTimeout;
         private boolean contentCompressionEnabled;
         private boolean hardCancellationEnabled;
 
@@ -422,6 +445,16 @@ public class RequestConfig implements Cloneable {
             return this;
         }
 
+        public Builder setResponseTimeout(final Timeout responseTimeout) {
+            this.responseTimeout = responseTimeout;
+            return this;
+        }
+
+        public Builder setResponseTimeout(final long responseTimeout, final TimeUnit timeUnit) {
+            this.responseTimeout = Timeout.of(responseTimeout, timeUnit);
+            return this;
+        }
+
         public Builder setContentCompressionEnabled(final boolean contentCompressionEnabled) {
             this.contentCompressionEnabled = contentCompressionEnabled;
             return this;
@@ -445,6 +478,7 @@ public class RequestConfig implements Cloneable {
                     proxyPreferredAuthSchemes,
                     connectionRequestTimeout != null ? connectionRequestTimeout : DEFAULT_CONNECTION_REQUEST_TIMEOUT,
                     connectTimeout != null ? connectTimeout : DEFAULT_CONNECT_TIMEOUT,
+                    responseTimeout,
                     contentCompressionEnabled,
                     hardCancellationEnabled);
         }

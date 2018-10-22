@@ -265,6 +265,7 @@ public final class MinimalHttpAsyncClient extends AbstractMinimalHttpAsyncClient
                     }
                     final Timeout connectionRequestTimeout = requestConfig.getConnectionRequestTimeout();
                     final Timeout connectTimeout = requestConfig.getConnectTimeout();
+                    final Timeout responseTimeout = requestConfig.getResponseTimeout();
                     final HttpHost target = new HttpHost(request.getAuthority(), request.getScheme());
 
                     final Future<AsyncConnectionEndpoint> leaseFuture = leaseEndpoint(
@@ -393,6 +394,9 @@ public final class MinimalHttpAsyncClient extends AbstractMinimalHttpAsyncClient
                                         }
 
                                     };
+                                    if (responseTimeout != null) {
+                                        endpoint.setSocketTimeout(responseTimeout);
+                                    }
                                     endpoint.execute(internalExchangeHandler, pushHandlerFactory, clientContext);
                                 }
 
@@ -461,6 +465,10 @@ public final class MinimalHttpAsyncClient extends AbstractMinimalHttpAsyncClient
             } else {
                 connectionEndpoint.execute(exchangeHandler, context);
             }
+        }
+
+        public void setSocketTimeout(final Timeout timeout) {
+            connectionEndpoint.setSocketTimeout(timeout);
         }
 
         @Override

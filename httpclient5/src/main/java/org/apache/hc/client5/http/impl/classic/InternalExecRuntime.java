@@ -187,6 +187,11 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
         if (!endpoint.isConnected()) {
             connectEndpoint(endpoint, context);
         }
+        final RequestConfig requestConfig = context.getRequestConfig();
+        final Timeout responseTimeout = requestConfig.getResponseTimeout();
+        if (responseTimeout != null) {
+            endpoint.setSocketTimeout(responseTimeout);
+        }
         return endpoint.execute(request, requestExecutor, context);
     }
 
