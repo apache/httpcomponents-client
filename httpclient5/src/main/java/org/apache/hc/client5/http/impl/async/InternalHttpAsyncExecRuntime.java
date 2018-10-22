@@ -192,7 +192,7 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
             return Operations.nonCancellable();
         }
         final RequestConfig requestConfig = context.getRequestConfig();
-        final Timeout connectTimeout = requestConfig.getConnectionTimeout();
+        final Timeout connectTimeout = requestConfig.getConnectTimeout();
         return Operations.cancellable(manager.connect(
                 endpoint,
                 connectionInitiator,
@@ -224,7 +224,7 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
     public void upgradeTls(final HttpClientContext context) {
         final AsyncConnectionEndpoint endpoint = ensureValid();
         final RequestConfig requestConfig = context.getRequestConfig();
-        final Timeout connectTimeout = requestConfig.getConnectionTimeout();
+        final Timeout connectTimeout = requestConfig.getConnectTimeout();
         if (TimeValue.isPositive(connectTimeout)) {
             endpoint.setSocketTimeout(connectTimeout);
         }

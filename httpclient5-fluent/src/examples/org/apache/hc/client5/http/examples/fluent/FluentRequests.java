@@ -43,7 +43,7 @@ public class FluentRequests {
     public static void main(String[] args)throws Exception {
         // Execute a GET with timeout settings and return response content as String.
         Request.Get("http://somehost/")
-                .connectionTimeout(Timeout.ofSeconds(1))
+                .connectTimeout(Timeout.ofSeconds(1))
                 .execute().returnContent().asString();
 
         // Execute a POST with the 'expect-continue' handshake, using HTTP/1.1,

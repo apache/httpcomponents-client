@@ -212,8 +212,8 @@ public class ClientConfiguration {
             // Request configuration can be overridden at the request level.
             // They will take precedence over the one set at the client level.
             final RequestConfig requestConfig = RequestConfig.copy(defaultRequestConfig)
-                    .setConnectionTimeout(Timeout.ofSeconds(5))
                     .setConnectionRequestTimeout(Timeout.ofSeconds(5))
+                    .setConnectTimeout(Timeout.ofSeconds(5))
                     .setProxy(new HttpHost("myotherproxy", 8080))
                     .build();
             httpget.setConfig(requestConfig);

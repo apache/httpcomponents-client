@@ -149,7 +149,7 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
             }
         }
         final RequestConfig requestConfig = context.getRequestConfig();
-        final Timeout connectTimeout = requestConfig.getConnectionTimeout();
+        final Timeout connectTimeout = requestConfig.getConnectTimeout();
         manager.connect(endpoint, connectTimeout, context);
     }
 
@@ -174,7 +174,7 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
     public void upgradeTls(final HttpClientContext context) throws IOException {
         final ConnectionEndpoint endpoint = ensureValid();
         final RequestConfig requestConfig = context.getRequestConfig();
-        final Timeout timeout = requestConfig.getConnectionTimeout();
+        final Timeout timeout = requestConfig.getConnectTimeout();
         if (TimeValue.isPositive(timeout)) {
             endpoint.setSocketTimeout(timeout);
         }

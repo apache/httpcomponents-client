@@ -111,9 +111,9 @@ public abstract class LocalServerTestBase {
                     .build());
             clientBuilder = HttpClientBuilder.create()
                     .setDefaultRequestConfig(RequestConfig.custom()
-                        .setConnectionTimeout(TIMEOUT)
-                        .setConnectionRequestTimeout(TIMEOUT)
-                        .build())
+                            .setConnectionRequestTimeout(TIMEOUT)
+                            .setConnectTimeout(TIMEOUT)
+                            .build())
                     .setConnectionManager(connManager);
         }
 

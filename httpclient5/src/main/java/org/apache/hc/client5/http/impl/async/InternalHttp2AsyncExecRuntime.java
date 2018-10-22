@@ -85,7 +85,7 @@ class InternalHttp2AsyncExecRuntime implements AsyncExecRuntime {
         if (sessionRef.get() == null) {
             final HttpHost target = route.getTargetHost();
             final RequestConfig requestConfig = context.getRequestConfig();
-            final Timeout connectTimeout = requestConfig.getConnectionTimeout();
+            final Timeout connectTimeout = requestConfig.getConnectTimeout();
             return Operations.cancellable(connPool.getSession(
                     target,
                     connectTimeout,
@@ -169,7 +169,7 @@ class InternalHttp2AsyncExecRuntime implements AsyncExecRuntime {
         }
         final HttpHost target = endpoint.target;
         final RequestConfig requestConfig = context.getRequestConfig();
-        final Timeout connectTimeout = requestConfig.getConnectionTimeout();
+        final Timeout connectTimeout = requestConfig.getConnectTimeout();
         return Operations.cancellable(connPool.getSession(target, connectTimeout, new FutureCallback<IOSession>() {
 
             @Override
@@ -213,7 +213,7 @@ class InternalHttp2AsyncExecRuntime implements AsyncExecRuntime {
         } else {
             final HttpHost target = endpoint.target;
             final RequestConfig requestConfig = context.getRequestConfig();
-            final Timeout connectTimeout = requestConfig.getConnectionTimeout();
+            final Timeout connectTimeout = requestConfig.getConnectTimeout();
             connPool.getSession(target, connectTimeout, new FutureCallback<IOSession>() {
 
                 @Override

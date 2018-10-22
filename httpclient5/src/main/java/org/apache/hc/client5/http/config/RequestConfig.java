@@ -42,7 +42,7 @@ import org.apache.hc.core5.util.Timeout;
 public class RequestConfig implements Cloneable {
 
     private static final Timeout DEFAULT_CONNECTION_REQUEST_TIMEOUT = Timeout.ofMinutes(3);
-    private static final Timeout DEFAULT_CONNECTION_TIMEOUT = Timeout.ofMinutes(3);
+    private static final Timeout DEFAULT_CONNECT_TIMEOUT = Timeout.ofMinutes(3);
 
     public static final RequestConfig DEFAULT = new Builder().build();
 
@@ -56,7 +56,7 @@ public class RequestConfig implements Cloneable {
     private final Collection<String> targetPreferredAuthSchemes;
     private final Collection<String> proxyPreferredAuthSchemes;
     private final Timeout connectionRequestTimeout;
-    private final Timeout connectionTimeout;
+    private final Timeout connectTimeout;
     private final boolean contentCompressionEnabled;
     private final boolean hardCancellationEnabled;
 
@@ -64,7 +64,8 @@ public class RequestConfig implements Cloneable {
      * Intended for CDI compatibility
     */
     protected RequestConfig() {
-        this(false, null, null, false, false, 0, false, null, null, DEFAULT_CONNECTION_REQUEST_TIMEOUT, DEFAULT_CONNECTION_TIMEOUT, false, false);
+        this(false, null, null, false, false, 0, false, null, null,
+                DEFAULT_CONNECTION_REQUEST_TIMEOUT, DEFAULT_CONNECT_TIMEOUT, false, false);
     }
 
     RequestConfig(
@@ -78,7 +79,7 @@ public class RequestConfig implements Cloneable {
             final Collection<String> targetPreferredAuthSchemes,
             final Collection<String> proxyPreferredAuthSchemes,
             final Timeout connectionRequestTimeout,
-            final Timeout connectionTimeout,
+            final Timeout connectTimeout,
             final boolean contentCompressionEnabled,
             final boolean hardCancellationEnabled) {
         super();
@@ -92,7 +93,7 @@ public class RequestConfig implements Cloneable {
         this.targetPreferredAuthSchemes = targetPreferredAuthSchemes;
         this.proxyPreferredAuthSchemes = proxyPreferredAuthSchemes;
         this.connectionRequestTimeout = connectionRequestTimeout;
-        this.connectionTimeout = connectionTimeout;
+        this.connectTimeout = connectTimeout;
         this.contentCompressionEnabled = contentCompressionEnabled;
         this.hardCancellationEnabled = hardCancellationEnabled;
     }
@@ -210,12 +211,10 @@ public class RequestConfig implements Cloneable {
     }
 
     /**
-     * Returns the timeout in milliseconds used when requesting a connection
-     * from the connection manager. A timeout value of zero is interpreted
-     * as an infinite timeout.
+     * Returns the connection lease request timeout used when requesting
+     * a connection from the connection manager.
      * <p>
      * A timeout value of zero is interpreted as an infinite timeout.
-     * A negative value is interpreted as undefined (system default).
      * </p>
      * <p>
      * Default: 3 minutes.
@@ -226,9 +225,9 @@ public class RequestConfig implements Cloneable {
     }
 
     /**
-     * Determines the timeout in milliseconds until a new connection is
-     * fully established or established connection transmits a data packet.
-     * A timeout value of zero is interpreted as an infinite timeout.
+     * Determines the timeout until a new connection is fully established.
+     * This may also include transport security negotiation exchanges
+     * such as {@code SSL} or {@code TLS} protocol negotiation).
      * <p>
      * A timeout value of zero is interpreted as an infinite timeout.
      * A negative value is interpreted as undefined (system default).
@@ -236,11 +235,9 @@ public class RequestConfig implements Cloneable {
      * <p>
      * Default: 3 minutes
      * </p>
-     *
-     * @since 5.0
      */
-    public Timeout getConnectionTimeout() {
-        return connectionTimeout;
+    public Timeout getConnectTimeout() {
+        return connectTimeout;
     }
 
     /**
@@ -305,7 +302,7 @@ public class RequestConfig implements Cloneable {
         builder.append(", targetPreferredAuthSchemes=").append(targetPreferredAuthSchemes);
         builder.append(", proxyPreferredAuthSchemes=").append(proxyPreferredAuthSchemes);
         builder.append(", connectionRequestTimeout=").append(connectionRequestTimeout);
-        builder.append(", connectionTimeout=").append(connectionTimeout);
+        builder.append(", connectTimeout=").append(connectTimeout);
         builder.append(", contentCompressionEnabled=").append(contentCompressionEnabled);
         builder.append(", hardCancellationEnabled=").append(hardCancellationEnabled);
         builder.append("]");
@@ -328,7 +325,7 @@ public class RequestConfig implements Cloneable {
             .setTargetPreferredAuthSchemes(config.getTargetPreferredAuthSchemes())
             .setProxyPreferredAuthSchemes(config.getProxyPreferredAuthSchemes())
             .setConnectionRequestTimeout(config.getConnectionRequestTimeout())
-            .setConnectionTimeout(config.getConnectionTimeout())
+            .setConnectTimeout(config.getConnectTimeout())
             .setContentCompressionEnabled(config.isContentCompressionEnabled())
             .setHardCancellationEnabled(config.isHardCancellationEnabled());
     }
@@ -345,7 +342,7 @@ public class RequestConfig implements Cloneable {
         private Collection<String> targetPreferredAuthSchemes;
         private Collection<String> proxyPreferredAuthSchemes;
         private Timeout connectionRequestTimeout;
-        private Timeout connectionTimeout;
+        private Timeout connectTimeout;
         private boolean contentCompressionEnabled;
         private boolean hardCancellationEnabled;
 
@@ -355,7 +352,7 @@ public class RequestConfig implements Cloneable {
             this.maxRedirects = 50;
             this.authenticationEnabled = true;
             this.connectionRequestTimeout = DEFAULT_CONNECTION_REQUEST_TIMEOUT;
-            this.connectionTimeout = DEFAULT_CONNECTION_TIMEOUT;
+            this.connectTimeout = DEFAULT_CONNECT_TIMEOUT;
             this.contentCompressionEnabled = true;
             this.hardCancellationEnabled = true;
         }
@@ -415,13 +412,13 @@ public class RequestConfig implements Cloneable {
             return this;
         }
 
-        public Builder setConnectionTimeout(final Timeout connectionTimeout) {
-            this.connectionTimeout = connectionTimeout;
+        public Builder setConnectTimeout(final Timeout connectTimeout) {
+            this.connectTimeout = connectTimeout;
             return this;
         }
 
-        public Builder setConnectionTimeout(final long connectTimeout, final TimeUnit timeUnit) {
-            this.connectionTimeout = Timeout.of(connectTimeout, timeUnit);
+        public Builder setConnectTimeout(final long connectTimeout, final TimeUnit timeUnit) {
+            this.connectTimeout = Timeout.of(connectTimeout, timeUnit);
             return this;
         }
 
@@ -447,7 +444,7 @@ public class RequestConfig implements Cloneable {
                     targetPreferredAuthSchemes,
                     proxyPreferredAuthSchemes,
                     connectionRequestTimeout != null ? connectionRequestTimeout : DEFAULT_CONNECTION_REQUEST_TIMEOUT,
-                    connectionTimeout != null ? connectionTimeout : DEFAULT_CONNECTION_TIMEOUT,
+                    connectTimeout != null ? connectTimeout : DEFAULT_CONNECT_TIMEOUT,
                     contentCompressionEnabled,
                     hardCancellationEnabled);
         }
