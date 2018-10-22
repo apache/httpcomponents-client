@@ -77,7 +77,7 @@
     <junit.version>4.12</junit.version>
     <easymock.version>3.2</easymock.version>
     <mockito.version>2.21.0</mockito.version>
-    <jna.version>4.5.2</jna.version>
+    <jna.version>5.0.0</jna.version>
     <hc.stylecheck.version>1</hc.stylecheck.version>
     <rxjava.version>2.2.2</rxjava.version>
   </properties>

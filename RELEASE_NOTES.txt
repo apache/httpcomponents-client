@@ -15,6 +15,9 @@ Changelog:
   
 * HTTPCLIENT-1939: Update Apache Commons Codec from 1.10 to 1.11
   Contributed by Gary Gregory <ggregory at apache.org>
+
+* HTTPCLIENT-1947: Update JNA from 4.5.2 to 5.0.0
+  Contributed by Gary Gregory <ggregory at apache.org>
   
 Release 5.0-BETA1
 -------------------
