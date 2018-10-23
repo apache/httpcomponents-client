@@ -245,60 +245,6 @@
         </configuration>
       </plugin>
 
-      <!--
-      <plugin>
-        <groupId>com.agilejava.docbkx</groupId>
-        <artifactId>docbkx-maven-plugin</artifactId>
-        <dependencies>
-          <dependency>
-            <groupId>org.docbook</groupId>
-            <artifactId>docbook-xml</artifactId>
-            <version>4.4</version>
-            <scope>runtime</scope>
-          </dependency>
-        </dependencies>
-        <executions>
-          <execution>
-            <id>tutorial-site</id>
-            <goals>
-              <goal>generate-html</goal>
-              <goal>generate-pdf</goal>
-            </goals>
-            <phase>pre-site</phase>
-          </execution>
-        </executions>
-        <configuration>
-          <includes>index.xml</includes>
-          <chunkedOutput>true</chunkedOutput>
-          <xincludeSupported>true</xincludeSupported>
-          <foCustomization>src/docbkx/resources/xsl/fopdf.xsl</foCustomization>
-          <htmlCustomization>src/docbkx/resources/xsl/html_chunk.xsl</htmlCustomization>
-          <htmlStylesheet>css/hc-tutorial.css</htmlStylesheet>
-          <entities>
-            <entity>
-              <name>version</name>
-              <value>${project.version}</value>
-            </entity>
-          </entities>
-          <postProcess>
-            <copy todir="target/site/tutorial/html" failonerror="false">
-              <fileset dir="target/docbkx/html/index">
-                <include name="**/*.html" />
-              </fileset>
-            </copy>
-            <copy todir="target/site/tutorial/html" failonerror="false">
-              <fileset dir="src/docbkx/resources">
-                <include name="**/*.css" />
-                <include name="**/*.png" />
-                <include name="**/*.gif" />
-                <include name="**/*.jpg" />
-              </fileset>
-            </copy>
-            <copy file="target/docbkx/pdf/index.pdf" tofile="target/site/tutorial/pdf/httpclient-tutorial.pdf" failonerror="false" />
-          </postProcess>
-        </configuration>
-      </plugin>
-      -->
         <plugin>
           <artifactId>maven-resources-plugin</artifactId>
           <executions>
