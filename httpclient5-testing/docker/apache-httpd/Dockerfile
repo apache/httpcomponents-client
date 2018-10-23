@@ -33,7 +33,7 @@ RUN mkdir ${httpd_home}/ssl
 COPY server-cert.pem ${httpd_home}/ssl/
 COPY server-key.pem ${httpd_home}/ssl/
 COPY httpd.conf ${httpd_home}/conf/
-COPY httpd-ssl.conf ${httpd_home}/conf/
+COPY httpd-ssl.conf ${httpd_home}/conf/extra/
 
 RUN mkdir -p ${private_dir}
 # user: testuser; pwd: nopassword
