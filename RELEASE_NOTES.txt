@@ -1,47 +1,17 @@
 ﻿Release 5.0-BETA2
 -------------------
 
-Changelog:
--------------------
-
-* HTTPCLIENT-1898: Incorrect comment in example class ClientMultiThreadedExecution.java
-  Contributed by Ulrich Romahn <ulrich at ulrichromahn dot net>
-   
-* HTTPCLIENT-1931: Add factory enum org.apache.hc.client5.http.classic.methods.ClassicHttpRequests
-  Contributed by Gary Gregory <ggregory at apache.org>
-  
-* HTTPCLIENT-1932: Add factory enum org.apache.hc.client5.http.async.methods.HttpRequests
-  Contributed by Gary Gregory <ggregory at apache.org>
-  
-* HTTPCLIENT-1939: Update Apache Commons Codec from 1.10 to 1.11
-  Contributed by Gary Gregory <ggregory at apache.org>
-
-* HTTPCLIENT-1947: Update JNA from 4.5.2 to 5.0.0
-  Contributed by Gary Gregory <ggregory at apache.org>
-  
-Release 5.0-BETA1
--------------------
-
-This is the first BETA release of HttpClient 5.0. The 5.0 release serices introduces
-support for the HTTP/2 protocol and event driven messaging APIs consistent for all
-supported HTTP protocol versions.
-
-HttpClient ships with two client implementations:
-
-* HttpClient Classic is based on the classic (blocking) I/O model; largely compatible
-  with the 4.x APIs; supports HTTP/1.1 only.
-
-* HttpClient Async is based on NIO model; new event driven APIs consistent for all supported
-  HTTP protocol versions; supports both HTTP/1.1 and HTTP/2.
-
+This BETA release resolves compatibility issues with Java 11 new TLS engine as well as
+a number of defects found since the previous release.
 
 Notable new features in this release:
 
-* New asynchronous HTTP cache backend APIs
+* JDK 11 compatibility
 
-* Fully asynchronous HTTP cache backend based on Memcached
+* Support for request specific push consumers
 
-* Support for bulk cache retrieval
+* Support for Reactive Streams API [http://www.reactive-streams.org/]
+
 
 Notable changes and features included in the 5.0 series are:
 
@@ -78,6 +48,84 @@ The 5.0 APIs are considered feature complete and are not expected to undergo any
 anymore. The focus of development is now shifting to API polish, code stabilisation
 and documentation improvements.
 
+
+Changelog:
+-------------------
+
+* Hack to make hostname verification work with TLSv1.3 resumed sessions.
+  For details see https://markmail.org/message/mxf5v2d2gh6ws2j3
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Added builders for SSLConnectionSocketFactory and client TlsStrategy.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Added enum for supported TLS versions & TLS version parser.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-1946: handling of 308 status as per RFC 7538.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Upgraded HttpCore to version 5.0-beta5.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Async clients to support request specific push consumers.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-1944: Add hardCancellationEnabled option to RequestConfig.
+  Contributed by Ryan Schmitt <ryansch at amazon.com>
+
+* Overload Request's execute method to allow custom CloseableHttpClient.
+  Contributed by Nicolas Gomez <nicolas at imogene.fr>
+
+* Fix HttpClient 4.5.4 regression in BasicCookieStore serialization.
+  Contributed by Mark Mielke <mmielke at ciena.com>
+
+* HTTPCLIENT-1934: Default client TLS strategy passes wrong hostname to the hostname verifier.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-1882: reset authentication state on I/O or runtime error for connection based
+  authentication schemes (such as NTLM).
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-1924: HttpClient to shut down the connection manager if a fatal error occurs
+  in the course of a request execution.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Pooling connection managers to implement graceful and immediate shut down.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-1906: certificates containing alternative subject names other than DNS and IP
+  (such as RFC822) get rejected as invalid.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-1904: check cookie domain for null
+  Contributed by Hans-Peter Keck <hans-peter.keck at haufe-lexware.com>
+
+* HTTPCLIENT-1900: proxy protocol processor in the CONNECT exec interceptor does not
+  post-process CONNECT response messages.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-1898: Incorrect comment in example class ClientMultiThreadedExecution.java
+  Contributed by Ulrich Romahn <ulrich at ulrichromahn dot net>
+   
+* HTTPCLIENT-1931: Add factory enum org.apache.hc.client5.http.classic.methods.ClassicHttpRequests
+  Contributed by Gary Gregory <ggregory at apache.org>
+  
+* HTTPCLIENT-1932: Add factory enum org.apache.hc.client5.http.async.methods.HttpRequests
+  Contributed by Gary Gregory <ggregory at apache.org>
+  
+* HTTPCLIENT-1939: Update Apache Commons Codec from 1.10 to 1.11
+  Contributed by Gary Gregory <ggregory at apache.org>
+
+* HTTPCLIENT-1947: Update JNA from 4.5.2 to 5.0.0
+  Contributed by Gary Gregory <ggregory at apache.org>
+  
+Release 5.0-BETA1
+-------------------
+
+This is the first BETA release of HttpClient 5.0. The 5.0 release serices introduces
+support for the HTTP/2 protocol and event driven messaging APIs consistent for all
+supported HTTP protocol versions.
 
 Changelog:
 -------------------
