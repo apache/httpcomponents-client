@@ -109,6 +109,9 @@ final class TlsSessionValidator {
                 // _assume_ this is due to PSK (pre-shared key) TLS session resumption
                 // Resumed TLS sessions do not include server certificates.
 
+                // The issue is considered a bug in Java Security libraries and
+                // is being tracked as JDK-8212885
+
                 try {
                     final ProtocolVersion tls = TLS.parse(sslsession.getProtocol());
                     if (tls.greaterEquals(TLS.V_1_3.version)) {
