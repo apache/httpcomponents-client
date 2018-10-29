@@ -28,8 +28,10 @@
 package org.apache.http.conn.ssl;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -53,6 +55,7 @@ import org.apache.http.localserver.SSLTestContexts;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.ssl.SSLContexts;
+import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
@@ -340,5 +343,35 @@ public class TestSSLSocketFactory {
         final InetSocketAddress remoteAddress = new InetSocketAddress("localhost", this.server.getLocalPort());
         final HttpHost target = new HttpHost("localhost", this.server.getLocalPort(), "https");
         socketFactory.connectSocket(0, socket, target, remoteAddress, null, context);
+    }
+
+    @Test
+    public void testSSLTimeout() throws Exception {
+        // @formatter:off
+        this.server = ServerBootstrap.bootstrap()
+                .setServerInfo(LocalServerTestBase.ORIGIN)
+                .setSslContext(SSLTestContexts.createServerSSLContext())
+                .create();
+        // @formatter:on
+        this.server.start();
+
+        final HttpContext context = new BasicHttpContext();
+        final SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(
+                SSLTestContexts.createClientSSLContext());
+        final Socket socket = socketFactory.createSocket(context);
+        final InetSocketAddress remoteAddress = new InetSocketAddress("localhost", this.server.getLocalPort());
+        final HttpHost target = new HttpHost("localhost", this.server.getLocalPort(), "https");
+        final Socket sslSocket = socketFactory.connectSocket(0, socket, target, remoteAddress, null, context);
+        final InputStream inputStream = sslSocket.getInputStream();
+        try {
+            sslSocket.setSoTimeout(1);
+            inputStream.read();
+            Assert.fail("SocketTimeoutException expected");
+        } catch (final SocketTimeoutException ex){
+            Assert.assertThat(sslSocket.isClosed(), CoreMatchers.equalTo(false));
+            Assert.assertThat(socket.isClosed(), CoreMatchers.equalTo(false));
+        } finally {
+            inputStream.close();
+        }
     }
 }
