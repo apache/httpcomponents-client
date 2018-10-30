@@ -218,7 +218,7 @@ public class DigestScheme implements AuthScheme, Serializable {
 
     private String createDigestResponse(final HttpRequest request) throws AuthenticationException {
 
-        final String uri = request.getPath();
+        final String uri = request.getRequestUri();
         final String method = request.getMethod();
         final String realm = this.paramMap.get("realm");
         final String nonce = this.paramMap.get("nonce");
