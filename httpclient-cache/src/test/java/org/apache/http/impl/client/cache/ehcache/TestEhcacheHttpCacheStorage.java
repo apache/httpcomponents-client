@@ -74,7 +74,7 @@ public class TestEhcacheHttpCacheStorage extends TestCase {
         impl.putEntry(key, value);
 
         verify(mockSerializer).writeTo(same(value), isA(OutputStream.class));
-        verify(mockCache).put(e);;
+        verify(mockCache).put(e);
     }
 
     @Test

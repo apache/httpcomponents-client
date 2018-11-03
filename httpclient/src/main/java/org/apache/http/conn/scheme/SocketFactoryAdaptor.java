@@ -37,6 +37,9 @@ import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 
+/**
+ * @deprecated Do not use.
+ */
 @Deprecated
 class SocketFactoryAdaptor implements SocketFactory {
 

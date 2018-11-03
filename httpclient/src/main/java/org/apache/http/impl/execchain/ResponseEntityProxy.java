@@ -87,7 +87,6 @@ class ResponseEntityProxy extends HttpEntityWrapper implements EofSensorWatcher 
         return new EofSensorInputStream(this.wrappedEntity.getContent(), this);
     }
 
-    @Deprecated
     @Override
     public void consumeContent() throws IOException {
         releaseConnection();

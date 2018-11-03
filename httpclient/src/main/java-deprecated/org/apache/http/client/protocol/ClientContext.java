@@ -50,7 +50,6 @@ public interface ClientContext {
      * Attribute name of a {@link org.apache.http.conn.scheme.Scheme}
      * object that represents the actual protocol scheme registry.
      */
-    @Deprecated
     public static final String SCHEME_REGISTRY   = "http.scheme-registry";
 
     /**
@@ -101,10 +100,6 @@ public interface ClientContext {
      */
     public static final String PROXY_AUTH_STATE      = "http.auth.proxy-scope";
 
-    /**
-     * @deprecated (4.1)  do not use
-     */
-    @Deprecated
     public static final String AUTH_SCHEME_PREF      = "http.auth.scheme-pref";
 
     /**

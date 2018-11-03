@@ -61,7 +61,6 @@ public class TestRFC2617Scheme {
         }
 
         @Override
-        @Deprecated
         public Header authenticate(
                 final Credentials credentials,
                 final HttpRequest request) throws AuthenticationException {

@@ -128,7 +128,7 @@ import org.apache.http.util.EntityUtils;
  *
  * @since 4.0
  *
- * @deprecated (4.3)
+ * @deprecated Do not use.
  */
 @Deprecated
 public class DefaultRequestDirector implements RequestDirector {
@@ -157,21 +157,18 @@ public class DefaultRequestDirector implements RequestDirector {
     protected final HttpRequestRetryHandler retryHandler;
 
     /** The redirect handler. */
-    @Deprecated
     protected final RedirectHandler redirectHandler;
 
     /** The redirect strategy. */
     protected final RedirectStrategy redirectStrategy;
 
     /** The target authentication handler. */
-    @Deprecated
     protected final AuthenticationHandler targetAuthHandler;
 
     /** The target authentication handler. */
     protected final AuthenticationStrategy targetAuthStrategy;
 
     /** The proxy authentication handler. */
-    @Deprecated
     protected final AuthenticationHandler proxyAuthHandler;
 
     /** The proxy authentication handler. */
@@ -200,7 +197,6 @@ public class DefaultRequestDirector implements RequestDirector {
 
     private HttpHost virtualHost;
 
-    @Deprecated
     public DefaultRequestDirector(
             final HttpRequestExecutor requestExec,
             final ClientConnectionManager conman,
@@ -224,7 +220,6 @@ public class DefaultRequestDirector implements RequestDirector {
     }
 
 
-    @Deprecated
     public DefaultRequestDirector(
             final Log log,
             final HttpRequestExecutor requestExec,

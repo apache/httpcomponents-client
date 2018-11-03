@@ -50,6 +50,9 @@ public abstract class AbstractExecutionAwareRequest extends AbstractHttpMessage 
         this.cancellableRef = new AtomicReference<Cancellable>(null);
     }
 
+    /**
+     * @deprecated Use {@link #setCancellable(Cancellable)}
+     */
     @Override
     @Deprecated
     public void setConnectionRequest(final ClientConnectionRequest connRequest) {
@@ -64,6 +67,9 @@ public abstract class AbstractExecutionAwareRequest extends AbstractHttpMessage 
         });
     }
 
+    /**
+     * @deprecated Use {@link #setCancellable(Cancellable)}
+     */
     @Override
     @Deprecated
     public void setReleaseTrigger(final ConnectionReleaseTrigger releaseTrigger) {

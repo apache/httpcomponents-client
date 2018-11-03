@@ -40,7 +40,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.util.EntityUtils;
 
 /**
- * @since 4.3
+ * @deprecated Do not use.
  */
 @Deprecated
 class CloseableHttpResponseProxy implements InvocationHandler {

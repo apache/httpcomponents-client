@@ -142,14 +142,23 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
     public static final String SSL   = "SSL";
     public static final String SSLV2 = "SSLv2";
 
+    /**
+     * @deprecated Use {@link AllowAllHostnameVerifier#INSTANCE}.
+     */
     @Deprecated
     public static final X509HostnameVerifier ALLOW_ALL_HOSTNAME_VERIFIER
         = AllowAllHostnameVerifier.INSTANCE;
 
+    /**
+     * @deprecated Use {@link BrowserCompatHostnameVerifier#INSTANCE}.
+     */
     @Deprecated
     public static final X509HostnameVerifier BROWSER_COMPATIBLE_HOSTNAME_VERIFIER
         = BrowserCompatHostnameVerifier.INSTANCE;
 
+    /**
+     * @deprecated Use {@link StrictHostnameVerifier#INSTANCE}.
+     */
     @Deprecated
     public static final X509HostnameVerifier STRICT_HOSTNAME_VERIFIER
         = StrictHostnameVerifier.INSTANCE;

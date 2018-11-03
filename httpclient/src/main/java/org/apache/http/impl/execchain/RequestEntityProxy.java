@@ -127,7 +127,6 @@ class RequestEntityProxy implements HttpEntity  {
     }
 
     @Override
-    @Deprecated
     public void consumeContent() throws IOException {
         consumed = true;
         original.consumeContent();

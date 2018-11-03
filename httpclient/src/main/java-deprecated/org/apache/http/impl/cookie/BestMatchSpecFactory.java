@@ -55,7 +55,7 @@ public class BestMatchSpecFactory implements CookieSpecFactory, CookieSpecProvid
 
     public BestMatchSpecFactory(final String[] datepatterns, final boolean oneHeader) {
         super();
-        this.cookieSpec = new BestMatchSpec(datepatterns, oneHeader);;
+        this.cookieSpec = new BestMatchSpec(datepatterns, oneHeader);
     }
 
     public BestMatchSpecFactory() {

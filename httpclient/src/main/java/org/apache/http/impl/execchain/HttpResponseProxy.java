@@ -189,13 +189,11 @@ class HttpResponseProxy implements CloseableHttpResponse {
     }
 
     @Override
-    @Deprecated
     public HttpParams getParams() {
         return original.getParams();
     }
 
     @Override
-    @Deprecated
     public void setParams(final HttpParams params) {
         original.setParams(params);
     }

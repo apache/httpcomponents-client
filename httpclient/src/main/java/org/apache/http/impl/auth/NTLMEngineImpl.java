@@ -27,20 +27,20 @@
 package org.apache.http.impl.auth;
 
 import java.nio.charset.Charset;
-import org.apache.http.Consts;
 import java.security.Key;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateEncodingException;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.Random;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateEncodingException;
-import java.security.cert.Certificate;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.http.Consts;
 
 /**
  * Provides an implementation for NTLMv1, NTLMv2, and NTLM2 Session forms of the NTLM
@@ -289,6 +289,9 @@ final class NTLMEngineImpl implements NTLMEngine {
         protected byte[] ntlm2SessionResponseUserSessionKey = null;
         protected byte[] lanManagerSessionKey = null;
 
+        /**
+         * @deprecated Use {@link CipherGen#CipherGen(Random, long, String, String, String, byte[], String, byte[], byte[], byte[], byte[], byte[])}
+         */
         @Deprecated
         public CipherGen(final String domain, final String user, final String password,
             final byte[] challenge, final String target, final byte[] targetInformation,
@@ -320,6 +323,9 @@ final class NTLMEngineImpl implements NTLMEngine {
             this.timestamp = timestamp;
         }
 
+        /**
+         * @deprecated Use {@link CipherGen#CipherGen(Random, long, String, String, String, byte[], String, byte[], byte[], byte[], byte[], byte[])}
+         */
         @Deprecated
         public CipherGen(final String domain,
             final String user,

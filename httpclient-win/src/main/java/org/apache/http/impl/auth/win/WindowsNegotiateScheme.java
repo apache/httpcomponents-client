@@ -305,6 +305,9 @@ public class WindowsNegotiateScheme extends AuthSchemeBase {
         return !continueNeeded;
     }
 
+    /**
+     * @deprecated Use {@link #authenticate(Credentials, HttpRequest, HttpContext)}
+     */
     @Override
     @Deprecated
     public Header authenticate(

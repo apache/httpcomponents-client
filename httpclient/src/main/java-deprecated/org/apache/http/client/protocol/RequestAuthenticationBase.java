@@ -43,6 +43,9 @@ import org.apache.http.auth.Credentials;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.Asserts;
 
+/**
+ * @deprecated Do not use.
+ */
 @Deprecated
 abstract class RequestAuthenticationBase implements HttpRequestInterceptor {
 

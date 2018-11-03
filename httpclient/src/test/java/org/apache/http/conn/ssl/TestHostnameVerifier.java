@@ -40,6 +40,8 @@ import org.junit.Test;
 
 /**
  * Unit tests for deprecated {@link X509HostnameVerifier} implementations.
+ *
+ * @deprecated Tests deprecated code.
  */
 @Deprecated
 public class TestHostnameVerifier {
