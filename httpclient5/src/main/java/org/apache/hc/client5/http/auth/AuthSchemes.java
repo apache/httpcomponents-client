@@ -63,12 +63,7 @@ public enum AuthSchemes {
      * (considered to be the most secure among currently supported
      * authentication schemes).
      */
-    KERBEROS("Kerberos"),
-
-    /**
-     * CredSSP authentication scheme defined in [MS-CSSP].
-     */
-    CREDSSP("CredSSP");
+    KERBEROS("Kerberos");
 
     public final String ident;
 

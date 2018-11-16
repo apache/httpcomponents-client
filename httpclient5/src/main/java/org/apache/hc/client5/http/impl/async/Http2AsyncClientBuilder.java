@@ -60,7 +60,6 @@ import org.apache.hc.client5.http.impl.DefaultRedirectStrategy;
 import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
 import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
 import org.apache.hc.client5.http.impl.auth.BasicSchemeFactory;
-import org.apache.hc.client5.http.impl.auth.CredSspSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.DigestSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.KerberosSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.NTLMSchemeFactory;
@@ -765,7 +764,6 @@ public class Http2AsyncClientBuilder {
             authSchemeRegistryCopy = RegistryBuilder.<AuthSchemeProvider>create()
                     .register(AuthSchemes.BASIC.ident, new BasicSchemeFactory())
                     .register(AuthSchemes.DIGEST.ident, new DigestSchemeFactory())
-                    .register(AuthSchemes.CREDSSP.ident, new CredSspSchemeFactory())
                     .register(AuthSchemes.NTLM.ident, new NTLMSchemeFactory())
                     .register(AuthSchemes.SPNEGO.ident,
                             new SPNegoSchemeFactory(KerberosConfig.DEFAULT, SystemDefaultDnsResolver.INSTANCE))

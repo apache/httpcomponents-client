@@ -46,9 +46,9 @@ import org.apache.hc.client5.http.SystemDefaultDnsResolver;
 import org.apache.hc.client5.http.UserTokenHandler;
 import org.apache.hc.client5.http.async.AsyncExecChainHandler;
 import org.apache.hc.client5.http.auth.AuthSchemeProvider;
+import org.apache.hc.client5.http.auth.AuthSchemes;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.KerberosConfig;
-import org.apache.hc.client5.http.auth.AuthSchemes;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.cookie.BasicCookieStore;
 import org.apache.hc.client5.http.cookie.CookieSpecProvider;
@@ -65,7 +65,6 @@ import org.apache.hc.client5.http.impl.IdleConnectionEvictor;
 import org.apache.hc.client5.http.impl.NoopUserTokenHandler;
 import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
 import org.apache.hc.client5.http.impl.auth.BasicSchemeFactory;
-import org.apache.hc.client5.http.impl.auth.CredSspSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.DigestSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.KerberosSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.NTLMSchemeFactory;
@@ -972,7 +971,6 @@ public class HttpAsyncClientBuilder {
             authSchemeRegistryCopy = RegistryBuilder.<AuthSchemeProvider>create()
                     .register(AuthSchemes.BASIC.ident, new BasicSchemeFactory())
                     .register(AuthSchemes.DIGEST.ident, new DigestSchemeFactory())
-                    .register(AuthSchemes.CREDSSP.ident, new CredSspSchemeFactory())
                     .register(AuthSchemes.NTLM.ident, new NTLMSchemeFactory())
                     .register(AuthSchemes.SPNEGO.ident,
                             new SPNegoSchemeFactory(KerberosConfig.DEFAULT, SystemDefaultDnsResolver.INSTANCE))

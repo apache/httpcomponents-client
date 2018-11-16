@@ -68,7 +68,6 @@ public class DefaultAuthenticationStrategy implements AuthenticationStrategy {
                 AuthSchemes.SPNEGO.ident,
                 AuthSchemes.KERBEROS.ident,
                 AuthSchemes.NTLM.ident,
-                AuthSchemes.CREDSSP.ident,
                 AuthSchemes.DIGEST.ident,
                 AuthSchemes.BASIC.ident));
 
