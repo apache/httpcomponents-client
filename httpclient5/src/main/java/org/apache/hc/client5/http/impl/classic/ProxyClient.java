@@ -146,7 +146,7 @@ public class ProxyClient {
         Args.notNull(credentials, "Credentials");
         HttpHost host = target;
         if (host.getPort() <= 0) {
-            host = new HttpHost(host.getHostName(), 80, host.getSchemeName());
+            host = new HttpHost(host.getSchemeName(), host.getHostName(), 80);
         }
         final HttpRoute route = new HttpRoute(
                 host,

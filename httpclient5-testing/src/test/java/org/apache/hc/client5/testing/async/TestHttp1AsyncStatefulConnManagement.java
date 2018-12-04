@@ -293,7 +293,7 @@ public class TestHttp1AsyncStatefulConnManagement extends AbstractIntegrationTes
         final HttpContext context2 = new BasicHttpContext();
 
         final Future<SimpleHttpResponse> future2 = httpclient.execute(SimpleHttpRequests.GET.create(
-                new HttpHost("127.0.0.1", target.getPort(), target.getSchemeName()),"/"), context2, null);
+                new HttpHost(target.getSchemeName(), "127.0.0.1", target.getPort()),"/"), context2, null);
         final HttpResponse response2 = future2.get();
         Assert.assertNotNull(response2);
         Assert.assertEquals(200, response2.getCode());

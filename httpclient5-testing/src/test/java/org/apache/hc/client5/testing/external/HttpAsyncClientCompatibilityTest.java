@@ -65,30 +65,30 @@ public class HttpAsyncClientCompatibilityTest {
         final HttpAsyncClientCompatibilityTest[] tests = new HttpAsyncClientCompatibilityTest[] {
                 new HttpAsyncClientCompatibilityTest(
                         HttpVersion.HTTP_1_1,
-                        new HttpHost("localhost", 8080, "http"), null, null),
+                        new HttpHost("http", "localhost", 8080), null, null),
                 new HttpAsyncClientCompatibilityTest(
                         HttpVersion.HTTP_1_1,
-                        new HttpHost("test-httpd", 8080, "http"), new HttpHost("localhost", 8888), null),
+                        new HttpHost("http", "test-httpd", 8080), new HttpHost("localhost", 8888), null),
                 new HttpAsyncClientCompatibilityTest(
                         HttpVersion.HTTP_1_1,
-                        new HttpHost("test-httpd", 8080, "http"), new HttpHost("localhost", 8889),
+                        new HttpHost("http", "test-httpd", 8080), new HttpHost("localhost", 8889),
                         new UsernamePasswordCredentials("squid", "nopassword".toCharArray())),
                 new HttpAsyncClientCompatibilityTest(
                         HttpVersion.HTTP_1_1,
-                        new HttpHost("localhost", 8443, "https"), null, null),
+                        new HttpHost("https", "localhost", 8443), null, null),
                 new HttpAsyncClientCompatibilityTest(
                         HttpVersion.HTTP_1_1,
-                        new HttpHost("test-httpd", 8443, "https"), new HttpHost("localhost", 8888), null),
+                        new HttpHost("https", "test-httpd", 8443), new HttpHost("localhost", 8888), null),
                 new HttpAsyncClientCompatibilityTest(
                         HttpVersion.HTTP_1_1,
-                        new HttpHost("test-httpd", 8443, "https"), new HttpHost("localhost", 8889),
+                        new HttpHost("https", "test-httpd", 8443), new HttpHost("localhost", 8889),
                         new UsernamePasswordCredentials("squid", "nopassword".toCharArray())),
                 new HttpAsyncClientCompatibilityTest(
                         HttpVersion.HTTP_2_0,
-                        new HttpHost("localhost", 8080, "http"), null, null),
+                        new HttpHost("http", "localhost", 8080), null, null),
                 new HttpAsyncClientCompatibilityTest(
                         HttpVersion.HTTP_2_0,
-                        new HttpHost("localhost", 8443, "https"), null, null)
+                        new HttpHost("https", "localhost", 8443), null, null)
         };
         for (final HttpAsyncClientCompatibilityTest test: tests) {
             try {

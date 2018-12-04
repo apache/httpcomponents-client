@@ -210,7 +210,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
 
         final URIAuthority authority = request.getAuthority();
         final String scheme = request.getScheme();
-        final HttpHost target = authority != null ? new HttpHost(authority, scheme) : route.getTargetHost();
+        final HttpHost target = authority != null ? new HttpHost(scheme, authority) : route.getTargetHost();
         final String via = generateViaHeader(request);
 
         // default response context
@@ -371,7 +371,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
         }
 
         @Override
-        public final int consume(final ByteBuffer src) throws IOException {
+        public final void consume(final ByteBuffer src) throws IOException {
             final ByteArrayBuffer buffer = bufferRef.get();
             if (buffer != null) {
                 if (src.hasArray()) {
@@ -391,19 +391,17 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                         if (dataConsumer != null) {
                             dataConsumerRef.set(dataConsumer);
                             writtenThrough.set(true);
-                            return dataConsumer.consume(ByteBuffer.wrap(buffer.array(), 0, buffer.length()));
+                            dataConsumer.consume(ByteBuffer.wrap(buffer.array(), 0, buffer.length()));
                         }
                     } catch (final HttpException ex) {
                         fallback.failed(ex);
                     }
                 }
-                return Integer.MAX_VALUE;
-            }
-            final AsyncDataConsumer dataConsumer = dataConsumerRef.get();
-            if (dataConsumer != null) {
-                return dataConsumer.consume(src);
             } else {
-                return Integer.MAX_VALUE;
+                final AsyncDataConsumer dataConsumer = dataConsumerRef.get();
+                if (dataConsumer != null) {
+                    dataConsumer.consume(src);
+                }
             }
         }
 

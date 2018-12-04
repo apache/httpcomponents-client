@@ -65,9 +65,9 @@ public class CachingHttpAsyncClientCompatibilityTest {
     public static void main(final String... args) throws Exception {
         final CachingHttpAsyncClientCompatibilityTest[] tests = new CachingHttpAsyncClientCompatibilityTest[] {
                 new CachingHttpAsyncClientCompatibilityTest(
-                        HttpVersion.HTTP_1_1, new HttpHost("localhost", 8080, "http")),
+                        HttpVersion.HTTP_1_1, new HttpHost("http", "localhost", 8080)),
                 new CachingHttpAsyncClientCompatibilityTest(
-                        HttpVersion.HTTP_2_0, new HttpHost("localhost", 8080, "http"))
+                        HttpVersion.HTTP_2_0, new HttpHost("http", "localhost", 8080))
         };
         for (final CachingHttpAsyncClientCompatibilityTest test: tests) {
             try {

@@ -67,7 +67,7 @@ public class TestRequestClientConnControl {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         final HttpClientContext context = HttpClientContext.create();
 
-        final HttpHost target = new HttpHost("localhost", 80, "http");
+        final HttpHost target = new HttpHost("http", "localhost", 80);
         final HttpRoute route = new HttpRoute(target, null, false);
 
         context.setAttribute(HttpClientContext.HTTP_ROUTE, route);
@@ -87,7 +87,7 @@ public class TestRequestClientConnControl {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         final HttpClientContext context = HttpClientContext.create();
 
-        final HttpHost target = new HttpHost("localhost", 443, "https");
+        final HttpHost target = new HttpHost("https", "localhost", 443);
         final HttpHost proxy = new HttpHost("localhost", 8080);
         final HttpRoute route = new HttpRoute(target, null, proxy, true,
                 TunnelType.TUNNELLED, LayerType.LAYERED);
@@ -109,7 +109,7 @@ public class TestRequestClientConnControl {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         final HttpClientContext context = HttpClientContext.create();
 
-        final HttpHost target = new HttpHost("localhost", 80, "http");
+        final HttpHost target = new HttpHost("http", "localhost", 80);
         final HttpHost proxy = new HttpHost("localhost", 8080);
         final HttpRoute route = new HttpRoute(target, null, proxy, false,
                 TunnelType.PLAIN, LayerType.PLAIN);
@@ -132,7 +132,7 @@ public class TestRequestClientConnControl {
         request.addHeader(HttpHeaders.CONNECTION, HeaderElements.CLOSE);
         final HttpClientContext context = HttpClientContext.create();
 
-        final HttpHost target = new HttpHost("localhost", 443, "https");
+        final HttpHost target = new HttpHost("https", "localhost", 443);
         final HttpHost proxy = new HttpHost("localhost", 8080);
         final HttpRoute route = new HttpRoute(target, null, proxy, true,
                 TunnelType.TUNNELLED, LayerType.LAYERED);
@@ -155,7 +155,7 @@ public class TestRequestClientConnControl {
         request.addHeader("Proxy-Connection", HeaderElements.CLOSE);
         final HttpClientContext context = HttpClientContext.create();
 
-        final HttpHost target = new HttpHost("localhost", 80, "http");
+        final HttpHost target = new HttpHost("http", "localhost", 80);
         final HttpHost proxy = new HttpHost("localhost", 8080);
         final HttpRoute route = new HttpRoute(target, null, proxy, false,
                 TunnelType.PLAIN, LayerType.PLAIN);

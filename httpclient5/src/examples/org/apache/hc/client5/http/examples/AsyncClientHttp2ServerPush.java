@@ -88,11 +88,6 @@ public class AsyncClientHttp2ServerPush {
                     }
 
                     @Override
-                    protected int remainingCapacity() {
-                        return Integer.MAX_VALUE;
-                    }
-
-                    @Override
                     protected int capacityIncrement() {
                         return Integer.MAX_VALUE;
                     }
@@ -130,11 +125,6 @@ public class AsyncClientHttp2ServerPush {
                             final HttpResponse response,
                             final ContentType contentType) throws HttpException, IOException {
                         System.out.println(requestURI + "->" + new StatusLine(response));
-                    }
-
-                    @Override
-                    protected int remainingCapacity() {
-                        return Integer.MAX_VALUE;
                     }
 
                     @Override

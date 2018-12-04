@@ -53,7 +53,7 @@ public class ClientPreemptiveBasicAuthentication {
             final BasicScheme basicAuth = new BasicScheme();
             basicAuth.initPreemptive(new UsernamePasswordCredentials("user", "passwd".toCharArray()));
 
-            final HttpHost target = new HttpHost("httpbin.org", 80, "http");
+            final HttpHost target = new HttpHost("http", "httpbin.org", 80);
 
             // Add AuthCache to the execution context
             final HttpClientContext localContext = HttpClientContext.create();

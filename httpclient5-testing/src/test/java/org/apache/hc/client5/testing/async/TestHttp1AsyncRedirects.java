@@ -211,7 +211,7 @@ public class TestHttp1AsyncRedirects extends AbstractHttpAsyncRedirectsTest<Clos
 
         Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
         Assert.assertEquals("/newlocation/", request.getRequestUri());
-        Assert.assertEquals(target, new HttpHost(request.getAuthority(), request.getScheme()));
+        Assert.assertEquals(target, new HttpHost(request.getScheme(), request.getAuthority()));
     }
 
     @Test

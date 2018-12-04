@@ -80,8 +80,8 @@ public class TestRequestConfig {
                 .setContentCompressionEnabled(false)
                 .build();
         final RequestConfig config = RequestConfig.copy(config0).build();
-        Assert.assertEquals(TimeValue.ofMillis(33), config.getConnectTimeout());
-        Assert.assertEquals(TimeValue.ofMillis(44), config.getConnectionRequestTimeout());
+        Assert.assertEquals(TimeValue.ofMilliseconds(33), config.getConnectTimeout());
+        Assert.assertEquals(TimeValue.ofMilliseconds(44), config.getConnectionRequestTimeout());
         Assert.assertEquals(true, config.isExpectContinueEnabled());
         Assert.assertEquals(false, config.isAuthenticationEnabled());
         Assert.assertEquals(false, config.isRedirectsEnabled());

@@ -60,7 +60,7 @@ public class TestDefaultProxyRoutePlanner {
 
     @Test
     public void testDefaultProxyDirect() throws Exception {
-        final HttpHost target = new HttpHost("somehost", 80, "http");
+        final HttpHost target = new HttpHost("http", "somehost", 80);
 
         final HttpContext context = new BasicHttpContext();
         final HttpRoute route = routePlanner.determineRoute(target, context);
@@ -73,7 +73,7 @@ public class TestDefaultProxyRoutePlanner {
 
     @Test
     public void testViaProxy() throws Exception {
-        final HttpHost target = new HttpHost("somehost", 80, "http");
+        final HttpHost target = new HttpHost("http", "somehost", 80);
         final HttpHost proxy = new HttpHost("custom.proxy.host", 8080);
         final HttpRequest request = new BasicHttpRequest("GET", "/");
 

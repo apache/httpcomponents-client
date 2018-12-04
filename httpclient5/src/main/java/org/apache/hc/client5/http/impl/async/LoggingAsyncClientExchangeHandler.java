@@ -169,11 +169,11 @@ final class LoggingAsyncClientExchangeHandler implements AsyncClientExchangeHand
     }
 
     @Override
-    public int consume(final ByteBuffer src) throws IOException {
+    public void consume(final ByteBuffer src) throws IOException {
         if (log.isDebugEnabled()) {
             log.debug(exchangeId + ": consume response data, len " + src.remaining() + " bytes");
         }
-        return handler.consume(src);
+        handler.consume(src);
     }
 
     @Override

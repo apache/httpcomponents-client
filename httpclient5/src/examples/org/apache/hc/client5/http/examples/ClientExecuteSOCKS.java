@@ -67,7 +67,7 @@ public class ClientExecuteSOCKS {
             final HttpClientContext context = HttpClientContext.create();
             context.setAttribute("socks.address", socksaddr);
 
-            final HttpHost target = new HttpHost("httpbin.org", 80, "http");
+            final HttpHost target = new HttpHost("http", "httpbin.org", 80);
             final HttpGet request = new HttpGet("/get");
 
             System.out.println("Executing request " + request.getMethod() + " " + request.getUri() +

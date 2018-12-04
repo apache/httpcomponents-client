@@ -91,7 +91,7 @@ public class ExponentialBackOffSchedulingStrategy implements SchedulingStrategy 
 
     @Override
     public TimeValue schedule(final int attemptNumber) {
-        return TimeValue.ofMillis(calculateDelayInMillis(attemptNumber));
+        return TimeValue.ofMilliseconds(calculateDelayInMillis(attemptNumber));
     }
 
     public long getBackOffRate() {

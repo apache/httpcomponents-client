@@ -51,7 +51,7 @@ public class ClientPreemptiveDigestAuthentication {
     public static void main(final String[] args) throws Exception {
         try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
 
-            final HttpHost target = new HttpHost("httpbin.org", 80, "http");
+            final HttpHost target = new HttpHost("http", "httpbin.org", 80);
 
             final HttpClientContext localContext = HttpClientContext.create();
             final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();

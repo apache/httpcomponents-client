@@ -134,7 +134,7 @@ public abstract class LocalServerTestBase {
             this.httpclient = this.clientBuilder.build();
         }
 
-        return new HttpHost("localhost", this.server.getPort(), this.scheme.name());
+        return new HttpHost(this.scheme.name(), "localhost", this.server.getPort());
     }
 
     public HttpHost start() throws Exception {

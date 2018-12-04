@@ -291,10 +291,10 @@ public class TestRequestAddCookies {
     public void testAuthDefaultHttpsPortWhenProxy() throws Exception {
         final HttpRequest request = new BasicHttpRequest("GET", "/stuff");
 
-        this.target = new HttpHost("localhost", -1, "https");
+        this.target = new HttpHost("https", "localhost", -1);
         final HttpRoute route = new HttpRoute(
-                new HttpHost("localhost", 443, "https"), null,
-                new HttpHost("localhost", 8888), true, TunnelType.TUNNELLED, LayerType.LAYERED);
+                new HttpHost("https", "localhost", 443), null,
+                new HttpHost("http", "localhost", 8888), true, TunnelType.TUNNELLED, LayerType.LAYERED);
 
         final HttpClientContext context = HttpClientContext.create();
         context.setAttribute(HttpClientContext.HTTP_ROUTE, route);

@@ -97,7 +97,7 @@ public class AsyncClientCustomSSL {
 
             client.start();
 
-            final HttpHost target = new HttpHost("httpbin.org", 443, "https");
+            final HttpHost target = new HttpHost("https", "httpbin.org", 443);
             final String requestUri = "/";
             final HttpClientContext clientContext = HttpClientContext.create();
 

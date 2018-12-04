@@ -60,7 +60,7 @@ public class CachingHttpClientCompatibilityTest {
     public static void main(final String... args) throws Exception {
         final CachingHttpClientCompatibilityTest[] tests = new CachingHttpClientCompatibilityTest[] {
                 new CachingHttpClientCompatibilityTest(
-                        new HttpHost("localhost", 8080, "http"))
+                        new HttpHost("http", "localhost", 8080))
         };
         for (final CachingHttpClientCompatibilityTest test: tests) {
             try {

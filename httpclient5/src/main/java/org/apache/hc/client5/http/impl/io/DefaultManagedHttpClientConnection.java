@@ -99,7 +99,7 @@ final class DefaultManagedHttpClientConnection
             throw new InterruptedIOException("Connection already shutdown");
         }
         super.bind(socketHolder);
-        socketTimeout = Timeout.ofMillis(socketHolder.getSocket().getSoTimeout());
+        socketTimeout = Timeout.ofMilliseconds(socketHolder.getSocket().getSoTimeout());
     }
 
     @Override
@@ -149,7 +149,7 @@ final class DefaultManagedHttpClientConnection
     @Override
     public void bind(final Socket socket) throws IOException {
         super.bind(this.wireLog.isDebugEnabled() ? new LoggingSocketHolder(socket, this.id, this.wireLog) : new SocketHolder(socket));
-        socketTimeout = Timeout.ofMillis(socket.getSoTimeout());
+        socketTimeout = Timeout.ofMilliseconds(socket.getSoTimeout());
     }
 
     @Override

@@ -82,7 +82,7 @@ public abstract class AbstractIntegrationTestBase<T extends CloseableHttpAsyncCl
         httpclient.start();
         final ListenerEndpoint endpoint = endpointFuture.get();
         final InetSocketAddress address = (InetSocketAddress) endpoint.getAddress();
-        return new HttpHost("localhost", address.getPort(), scheme.name());
+        return new HttpHost(scheme.name(), "localhost", address.getPort());
     }
 
     public final HttpHost start(
@@ -101,7 +101,7 @@ public abstract class AbstractIntegrationTestBase<T extends CloseableHttpAsyncCl
         httpclient.start();
         final ListenerEndpoint endpoint = endpointFuture.get();
         final InetSocketAddress address = (InetSocketAddress) endpoint.getAddress();
-        return new HttpHost("localhost", address.getPort(), scheme.name());
+        return new HttpHost(scheme.name(), "localhost", address.getPort());
     }
 
 

@@ -97,7 +97,7 @@ public class SystemDefaultRoutePlanner extends DefaultRoutePlanner {
             }
             final InetSocketAddress isa = (InetSocketAddress) p.address();
             // assume default scheme (http)
-            result = new HttpHost(isa.getAddress(), isa.getHostString(), isa.getPort(), null);
+            result = new HttpHost(null, isa.getAddress(), isa.getHostString(), isa.getPort());
         }
 
         return result;

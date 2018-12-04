@@ -44,8 +44,8 @@ public class ClientExecuteProxy {
 
     public static void main(final String[] args)throws Exception {
         try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
-            final HttpHost target = new HttpHost("httpbin.org", 443, "https");
-            final HttpHost proxy = new HttpHost("127.0.0.1", 8080, "http");
+            final HttpHost target = new HttpHost("https", "httpbin.org", 443);
+            final HttpHost proxy = new HttpHost("http", "127.0.0.1", 8080);
 
             final RequestConfig config = RequestConfig.custom()
                     .setProxy(proxy)

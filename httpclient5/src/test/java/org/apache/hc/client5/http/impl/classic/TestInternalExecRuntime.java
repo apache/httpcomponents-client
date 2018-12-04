@@ -98,7 +98,7 @@ public class TestInternalExecRuntime {
         Assert.assertFalse(execRuntime.isEndpointConnected());
         Assert.assertFalse(execRuntime.isConnectionReusable());
 
-        Mockito.verify(leaseRequest).get(Timeout.ofMillis(345));
+        Mockito.verify(leaseRequest).get(Timeout.ofMilliseconds(345));
         Mockito.verify(cancellableDependency, Mockito.times(1)).setDependency(leaseRequest);
         Mockito.verify(cancellableDependency, Mockito.times(1)).setDependency(execRuntime);
         Mockito.verify(cancellableDependency, Mockito.times(2)).setDependency(Mockito.<Cancellable>any());
@@ -199,14 +199,14 @@ public class TestInternalExecRuntime {
         execRuntime.acquireEndpoint(route, null, context);
         Assert.assertTrue(execRuntime.isEndpointAcquired());
 
-        execRuntime.markConnectionReusable("some state", TimeValue.ofMillis(100000));
+        execRuntime.markConnectionReusable("some state", TimeValue.ofMilliseconds(100000));
 
         execRuntime.releaseEndpoint();
 
         Assert.assertFalse(execRuntime.isEndpointAcquired());
 
         Mockito.verify(connectionEndpoint, Mockito.never()).close();
-        Mockito.verify(mgr).release(connectionEndpoint, "some state", TimeValue.ofMillis(100000));
+        Mockito.verify(mgr).release(connectionEndpoint, "some state", TimeValue.ofMilliseconds(100000));
 
         execRuntime.releaseEndpoint();
 
@@ -226,7 +226,7 @@ public class TestInternalExecRuntime {
         execRuntime.acquireEndpoint(route, null, context);
         Assert.assertTrue(execRuntime.isEndpointAcquired());
 
-        execRuntime.markConnectionReusable("some state", TimeValue.ofMillis(100000));
+        execRuntime.markConnectionReusable("some state", TimeValue.ofMilliseconds(100000));
         execRuntime.markConnectionNonReusable();
 
         execRuntime.releaseEndpoint();
@@ -264,7 +264,7 @@ public class TestInternalExecRuntime {
 
         execRuntime.connectEndpoint(context);
 
-        Mockito.verify(mgr).connect(connectionEndpoint, Timeout.ofMillis(123), context);
+        Mockito.verify(mgr).connect(connectionEndpoint, Timeout.ofMilliseconds(123), context);
     }
 
     @Test

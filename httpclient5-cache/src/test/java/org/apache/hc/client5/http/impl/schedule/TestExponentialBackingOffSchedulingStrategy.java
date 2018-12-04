@@ -46,14 +46,14 @@ public class TestExponentialBackingOffSchedulingStrategy {
 
     @Test
     public void testSchedule() {
-        Assert.assertEquals(TimeValue.ofMillis(0), impl.schedule(0));
-        Assert.assertEquals(TimeValue.ofMillis(6000), impl.schedule(1));
-        Assert.assertEquals(TimeValue.ofMillis(60000), impl.schedule(2));
-        Assert.assertEquals(TimeValue.ofMillis(600000), impl.schedule(3));
-        Assert.assertEquals(TimeValue.ofMillis(6000000), impl.schedule(4));
-        Assert.assertEquals(TimeValue.ofMillis(60000000), impl.schedule(5));
-        Assert.assertEquals(TimeValue.ofMillis(86400000), impl.schedule(6));
-        Assert.assertEquals(TimeValue.ofMillis(86400000), impl.schedule(Integer.MAX_VALUE));
+        Assert.assertEquals(TimeValue.ofMilliseconds(0), impl.schedule(0));
+        Assert.assertEquals(TimeValue.ofMilliseconds(6000), impl.schedule(1));
+        Assert.assertEquals(TimeValue.ofMilliseconds(60000), impl.schedule(2));
+        Assert.assertEquals(TimeValue.ofMilliseconds(600000), impl.schedule(3));
+        Assert.assertEquals(TimeValue.ofMilliseconds(6000000), impl.schedule(4));
+        Assert.assertEquals(TimeValue.ofMilliseconds(60000000), impl.schedule(5));
+        Assert.assertEquals(TimeValue.ofMilliseconds(86400000), impl.schedule(6));
+        Assert.assertEquals(TimeValue.ofMilliseconds(86400000), impl.schedule(Integer.MAX_VALUE));
     }
 
 }

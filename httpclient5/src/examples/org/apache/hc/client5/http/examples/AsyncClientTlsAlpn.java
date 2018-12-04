@@ -79,7 +79,7 @@ public class AsyncClientTlsAlpn {
 
             client.start();
 
-            final HttpHost target = new HttpHost("nghttp2.org", 443, "https");
+            final HttpHost target = new HttpHost("https", "nghttp2.org", 443);
             final String requestUri = "/httpbin/";
             final HttpClientContext clientContext = HttpClientContext.create();
 

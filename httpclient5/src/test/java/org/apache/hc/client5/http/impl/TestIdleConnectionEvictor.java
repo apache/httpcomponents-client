@@ -44,7 +44,7 @@ public class TestIdleConnectionEvictor {
     public void testEvictExpiredAndIdle() throws Exception {
         final ConnPoolControl<?> cm = Mockito.mock(ConnPoolControl.class);
         final IdleConnectionEvictor connectionEvictor = new IdleConnectionEvictor(cm,
-                TimeValue.ofMillis(500), TimeValue.ofSeconds(3));
+                TimeValue.ofMilliseconds(500), TimeValue.ofSeconds(3));
         connectionEvictor.start();
 
         Thread.sleep(1000);
@@ -63,7 +63,7 @@ public class TestIdleConnectionEvictor {
     public void testEvictExpiredOnly() throws Exception {
         final ConnPoolControl<?> cm = Mockito.mock(ConnPoolControl.class);
         final IdleConnectionEvictor connectionEvictor = new IdleConnectionEvictor(cm,
-                TimeValue.ofMillis(500), null);
+                TimeValue.ofMilliseconds(500), null);
         connectionEvictor.start();
 
         Thread.sleep(1000);

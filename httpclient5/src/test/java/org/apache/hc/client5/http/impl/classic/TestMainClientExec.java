@@ -161,13 +161,13 @@ public class TestMainClientExec {
                 Mockito.<HttpClientContext>any())).thenReturn(true);
         Mockito.when(keepAliveStrategy.getKeepAliveDuration(
                 Mockito.same(response),
-                Mockito.<HttpClientContext>any())).thenReturn(TimeValue.ofMillis(678L));
+                Mockito.<HttpClientContext>any())).thenReturn(TimeValue.ofMilliseconds(678L));
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
         final ClassicHttpResponse finalResponse = mainClientExec.execute(request, scope, null);
 
         Mockito.verify(endpoint).execute(request, context);
-        Mockito.verify(endpoint).markConnectionReusable(null, TimeValue.ofMillis(678L));
+        Mockito.verify(endpoint).markConnectionReusable(null, TimeValue.ofMilliseconds(678L));
         Mockito.verify(endpoint, Mockito.never()).releaseEndpoint();
 
         Assert.assertNotNull(finalResponse);
@@ -193,7 +193,7 @@ public class TestMainClientExec {
                 Mockito.<HttpClientContext>any())).thenReturn(true);
         Mockito.when(keepAliveStrategy.getKeepAliveDuration(
                 Mockito.same(response),
-                Mockito.<HttpClientContext>any())).thenReturn(TimeValue.ofMillis(678L));
+                Mockito.<HttpClientContext>any())).thenReturn(TimeValue.ofMilliseconds(678L));
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
         final ClassicHttpResponse finalResponse = mainClientExec.execute(request, scope, null);

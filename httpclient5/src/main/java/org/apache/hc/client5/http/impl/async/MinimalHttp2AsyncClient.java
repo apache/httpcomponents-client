@@ -154,7 +154,7 @@ public final class MinimalHttp2AsyncClient extends AbstractMinimalHttpAsyncClien
                         requestConfig = clientContext.getRequestConfig();
                     }
                     final Timeout connectTimeout = requestConfig.getConnectTimeout();
-                    final HttpHost target = new HttpHost(request.getAuthority(), request.getScheme());
+                    final HttpHost target = new HttpHost(request.getScheme(), request.getAuthority());
 
                     final Future<IOSession> sessionFuture = connPool.getSession(target, connectTimeout, new FutureCallback<IOSession>() {
 
@@ -215,8 +215,8 @@ public final class MinimalHttp2AsyncClient extends AbstractMinimalHttpAsyncClien
                                 }
 
                                 @Override
-                                public int consume(final ByteBuffer src) throws IOException {
-                                    return exchangeHandler.consume(src);
+                                public void consume(final ByteBuffer src) throws IOException {
+                                    exchangeHandler.consume(src);
                                 }
 
                                 @Override

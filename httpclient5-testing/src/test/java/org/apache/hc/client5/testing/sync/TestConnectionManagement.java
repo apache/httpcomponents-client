@@ -97,7 +97,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
         try {
             // this should fail quickly, connection has not been released
             final LeaseRequest leaseRequest2 = this.connManager.lease(route, null);
-            leaseRequest2.get(Timeout.ofMillis(10));
+            leaseRequest2.get(Timeout.ofMilliseconds(10));
             Assert.fail("TimeoutException expected");
         } catch (final TimeoutException ex) {
             // expected
@@ -165,14 +165,14 @@ public class TestConnectionManagement extends LocalServerTestBase {
         try {
             // this should fail quickly, connection has not been released
             final LeaseRequest leaseRequest2 = this.connManager.lease(route, null);
-            leaseRequest2.get(Timeout.ofMillis(10));
+            leaseRequest2.get(Timeout.ofMilliseconds(10));
             Assert.fail("TimeoutException expected");
         } catch (final TimeoutException ex) {
             // expected
         }
 
         endpoint1.close();
-        this.connManager.release(endpoint1, null, TimeValue.ofMillis(100));
+        this.connManager.release(endpoint1, null, TimeValue.ofMilliseconds(100));
 
         final LeaseRequest leaseRequest2 = this.connManager.lease(route, null);
         final ConnectionEndpoint endpoint2 = leaseRequest2.get(Timeout.ZERO_MILLISECONDS);
@@ -184,7 +184,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
             Assert.assertEquals(HttpStatus.SC_OK, response2.getCode());
         }
 
-        this.connManager.release(endpoint2, null, TimeValue.ofMillis(100));
+        this.connManager.release(endpoint2, null, TimeValue.ofMilliseconds(100));
 
         final LeaseRequest leaseRequest3 = this.connManager.lease(route, null);
         final ConnectionEndpoint endpoint3 = leaseRequest3.get(Timeout.ZERO_MILLISECONDS);
@@ -195,7 +195,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
             Assert.assertEquals(HttpStatus.SC_OK, response3.getCode());
         }
 
-        this.connManager.release(endpoint3, null, TimeValue.ofMillis(100));
+        this.connManager.release(endpoint3, null, TimeValue.ofMilliseconds(100));
         Thread.sleep(150);
 
         final LeaseRequest leaseRequest4 = this.connManager.lease(route, null);
@@ -228,7 +228,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
         Assert.assertEquals(1, this.connManager.getTotalStats().getLeased());
         Assert.assertEquals(1, this.connManager.getStats(route).getLeased());
 
-        this.connManager.release(endpoint1, null, TimeValue.ofMillis(100));
+        this.connManager.release(endpoint1, null, TimeValue.ofMilliseconds(100));
 
         // Released, still active.
         Assert.assertEquals(1, this.connManager.getTotalStats().getAvailable());
@@ -261,7 +261,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
                         .build(),
                 PoolConcurrencyPolicy.STRICT,
                 PoolReusePolicy.LIFO,
-                TimeValue.ofMillis(100));
+                TimeValue.ofMilliseconds(100));
         this.clientBuilder.setConnectionManager(this.connManager);
 
         this.connManager.setMaxTotal(1);

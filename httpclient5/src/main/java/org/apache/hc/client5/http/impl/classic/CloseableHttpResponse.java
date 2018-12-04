@@ -93,15 +93,6 @@ public final class CloseableHttpResponse implements ClassicHttpResponse {
         return response.getReasonPhrase();
     }
 
-    /**
-     * @deprecated use {@link #countHeaders(String)}
-     */
-    @Override
-    @Deprecated
-    public int containsHeaders(final String name) {
-        return countHeaders(name);
-    }
-
     @Override
     public int countHeaders(final String name) {
         return response.countHeaders(name);
@@ -147,15 +138,6 @@ public final class CloseableHttpResponse implements ClassicHttpResponse {
         response.setLocale(loc);
     }
 
-    /**
-     * @deprecated use {@link #getHeader(String)}
-     */
-    @Override
-    @Deprecated
-    public Header getSingleHeader(final String name) throws ProtocolException {
-        return getHeader(name);
-    }
-
     @Override
     public Header getHeader(final String name) throws ProtocolException {
         return response.getHeader(name);
@@ -194,15 +176,6 @@ public final class CloseableHttpResponse implements ClassicHttpResponse {
     @Override
     public Header getLastHeader(final String name) {
         return response.getLastHeader(name);
-    }
-
-    /**
-     * @deprecated use {@link #getHeaders()}
-     */
-    @Override
-    @Deprecated
-    public Header[] getAllHeaders() {
-        return getHeaders();
     }
 
     @Override

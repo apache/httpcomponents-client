@@ -80,11 +80,11 @@ public class TestCacheKeyGenerator {
 
     @Test
     public void testGetURIWithDifferentScheme() {
-        Assert.assertEquals("https://www.comcast.net:443/", extractor.generateKey(new HttpHost(
-                "www.comcast.net", -1, "https"), REQUEST_ROOT));
+        Assert.assertEquals("https://www.comcast.net:443/", extractor.generateKey(
+                new HttpHost("https", "www.comcast.net", -1), REQUEST_ROOT));
 
         Assert.assertEquals("myhttp://www.fancast.com/full_episodes", extractor.generateKey(
-                new HttpHost("www.fancast.com", -1, "myhttp"), REQUEST_FULL_EPISODES));
+                new HttpHost("myhttp", "www.fancast.com", -1), REQUEST_FULL_EPISODES));
     }
 
     @Test
@@ -98,19 +98,19 @@ public class TestCacheKeyGenerator {
 
     @Test
     public void testGetURIWithDifferentPortAndScheme() {
-        Assert.assertEquals("https://www.comcast.net:8080/", extractor.generateKey(new HttpHost(
-                "www.comcast.net", 8080, "https"), REQUEST_ROOT));
+        Assert.assertEquals("https://www.comcast.net:8080/", extractor.generateKey(
+                new HttpHost("https", "www.comcast.net", 8080), REQUEST_ROOT));
 
         Assert.assertEquals("myhttp://www.fancast.com:9999/full_episodes", extractor.generateKey(
-                new HttpHost("www.fancast.com", 9999, "myhttp"), REQUEST_FULL_EPISODES));
+                new HttpHost("myhttp", "www.fancast.com", 9999), REQUEST_FULL_EPISODES));
     }
 
     @Test
     public void testGetURIWithQueryParameters() {
-        Assert.assertEquals("http://www.comcast.net:80/?foo=bar", extractor.generateKey(new HttpHost(
-                "www.comcast.net", -1, "http"), new BasicHttpRequest("GET", "/?foo=bar")));
+        Assert.assertEquals("http://www.comcast.net:80/?foo=bar", extractor.generateKey(
+                new HttpHost("http", "www.comcast.net", -1), new BasicHttpRequest("GET", "/?foo=bar")));
         Assert.assertEquals("http://www.fancast.com:80/full_episodes?foo=bar", extractor.generateKey(
-                new HttpHost("www.fancast.com", -1, "http"), new BasicHttpRequest("GET",
+                new HttpHost("http", "www.fancast.com", -1), new BasicHttpRequest("GET",
                         "/full_episodes?foo=bar")));
     }
 
@@ -294,8 +294,8 @@ public class TestCacheKeyGenerator {
 
     @Test
     public void testEmptyPortEquivalentToDefaultPortForHttps() {
-        final HttpHost host1 = new HttpHost("foo.example.com", -1, "https");
-        final HttpHost host2 = new HttpHost("foo.example.com", 443, "https");
+        final HttpHost host1 = new HttpHost("https", "foo.example.com", -1);
+        final HttpHost host2 = new HttpHost("https", "foo.example.com", 443);
         final HttpRequest req = new BasicHttpRequest("GET", "/");
         final String uri1 = extractor.generateKey(host1, req);
         final String uri2 = extractor.generateKey(host2, req);
@@ -304,7 +304,7 @@ public class TestCacheKeyGenerator {
 
     @Test
     public void testEmptyPortEquivalentToDefaultPortForHttpsAbsoluteURI() {
-        final HttpHost host = new HttpHost("foo.example.com", -1, "https");
+        final HttpHost host = new HttpHost("https", "foo.example.com", -1);
         final HttpGet get1 = new HttpGet("https://bar.example.com:/");
         final HttpGet get2 = new HttpGet("https://bar.example.com:443/");
         final String uri1 = extractor.generateKey(host, get1);
@@ -314,7 +314,7 @@ public class TestCacheKeyGenerator {
 
     @Test
     public void testNotProvidedPortEquivalentToDefaultPortForHttpsAbsoluteURI() {
-        final HttpHost host = new HttpHost("foo.example.com", -1, "https");
+        final HttpHost host = new HttpHost("https", "foo.example.com", -1);
         final HttpGet get1 = new HttpGet("https://bar.example.com/");
         final HttpGet get2 = new HttpGet("https://bar.example.com:443/");
         final String uri1 = extractor.generateKey(host, get1);
@@ -340,8 +340,8 @@ public class TestCacheKeyGenerator {
 
     @Test
     public void testSchemeNameComparisonsAreCaseInsensitive() {
-        final HttpHost host1 = new HttpHost("foo.example.com", -1, "http");
-        final HttpHost host2 = new HttpHost("foo.example.com", -1, "HTTP");
+        final HttpHost host1 = new HttpHost("http", "foo.example.com", -1);
+        final HttpHost host2 = new HttpHost("HTTP", "foo.example.com", -1);
         final HttpRequest req = new BasicHttpRequest("GET", "/");
         Assert.assertEquals(extractor.generateKey(host1, req), extractor.generateKey(host2, req));
     }

@@ -49,7 +49,7 @@ public class TestRoutingSupport {
 
         final HttpRequest request2 = new BasicHttpRequest("GET", new URI("https://somehost:8443/"));
         final HttpHost host2 = RoutingSupport.determineHost(request2);
-        Assert.assertThat(host2, CoreMatchers.equalTo(new HttpHost("somehost", 8443, "https")));
+        Assert.assertThat(host2, CoreMatchers.equalTo(new HttpHost("https", "somehost", 8443)));
     }
 
     @Test(expected = ProtocolException.class)

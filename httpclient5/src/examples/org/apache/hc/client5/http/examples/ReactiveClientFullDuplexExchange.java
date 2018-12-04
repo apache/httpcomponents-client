@@ -26,11 +26,12 @@
  */
 package org.apache.hc.client5.http.examples;
 
-import io.reactivex.Flowable;
-import io.reactivex.Notification;
-import io.reactivex.Observable;
-import io.reactivex.functions.Consumer;
-import io.reactivex.functions.Function;
+import java.net.URI;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
 import org.apache.hc.client5.http.impl.async.MinimalHttpAsyncClient;
 import org.apache.hc.core5.http.ContentType;
@@ -48,11 +49,11 @@ import org.apache.hc.core5.reactor.IOReactorConfig;
 import org.apache.hc.core5.util.Timeout;
 import org.reactivestreams.Publisher;
 
-import java.net.URI;
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
+import io.reactivex.Flowable;
+import io.reactivex.Notification;
+import io.reactivex.Observable;
+import io.reactivex.functions.Consumer;
+import io.reactivex.functions.Function;
 
 /**
  * This example demonstrates a reactive, full-duplex HTTP/1.1 message exchange using RxJava.
@@ -85,7 +86,7 @@ public class ReactiveClientFullDuplexExchange {
         final Message<HttpResponse, Publisher<ByteBuffer>> streamingResponse = consumer.getResponseFuture().get();
 
         System.out.println(streamingResponse.getHead());
-        for (Header header : streamingResponse.getHead().getAllHeaders()) {
+        for (Header header : streamingResponse.getHead().getHeaders()) {
             System.out.println(header.toString());
         }
         System.out.println();

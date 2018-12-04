@@ -28,10 +28,10 @@
 package org.apache.hc.client5.http.impl;
 
 import org.apache.hc.client5.http.HttpRoute;
+import org.apache.hc.client5.http.auth.AuthSchemes;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.CredentialsStore;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
-import org.apache.hc.client5.http.auth.AuthSchemes;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
@@ -78,12 +78,12 @@ public class AuthSupport {
         Args.notNull(route, "Route");
         final URIAuthority authority = request.getAuthority();
         final String scheme = request.getScheme();
-        final HttpHost target = authority != null ? new HttpHost(authority, scheme) : route.getTargetHost();
+        final HttpHost target = authority != null ? new HttpHost(scheme, authority) : route.getTargetHost();
         if (target.getPort() < 0) {
             return new HttpHost(
+                    target.getSchemeName(),
                     target.getHostName(),
-                    route.getTargetHost().getPort(),
-                    target.getSchemeName());
+                    route.getTargetHost().getPort());
         }
         return target;
     }

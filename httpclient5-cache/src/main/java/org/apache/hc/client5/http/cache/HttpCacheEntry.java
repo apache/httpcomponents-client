@@ -175,15 +175,6 @@ public class HttpCacheEntry implements MessageHeaders, Serializable {
     }
 
     /**
-     * @deprecated use {@link #getHeaders()}
-     */
-    @Override
-    @Deprecated
-    public Header[] getAllHeaders() {
-        return getHeaders();
-    }
-
-    /**
      * Returns the first header from the origin response with the given
      * name.
      */
@@ -232,29 +223,11 @@ public class HttpCacheEntry implements MessageHeaders, Serializable {
     }
 
     /**
-     * @deprecated use {@link #countHeaders(String)}
-     */
-    @Override
-    @Deprecated
-    public int containsHeaders(final String name) {
-        return countHeaders(name);
-    }
-
-    /**
      * @since 5.0
      */
     @Override
     public Header getHeader(final String name) throws ProtocolException {
         return responseHeaders.getHeader(name);
-    }
-
-    /**
-     * @deprecated use {@link #getHeader(String)}
-     */
-    @Override
-    @Deprecated
-    public Header getSingleHeader(final String name) throws ProtocolException {
-        return getHeader(name);
     }
 
     /**

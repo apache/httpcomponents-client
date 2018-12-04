@@ -119,12 +119,10 @@ public class AuthenticatingAsyncDecorator implements AsyncServerExchangeHandler 
     }
 
     @Override
-    public final int consume(final ByteBuffer src) throws IOException {
+    public final void consume(final ByteBuffer src) throws IOException {
         final AsyncResponseProducer responseProducer = responseProducerRef.get();
         if (responseProducer == null) {
-            return exchangeHandler.consume(src);
-        } else {
-            return Integer.MAX_VALUE;
+            exchangeHandler.consume(src);
         }
     }
 

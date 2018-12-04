@@ -243,6 +243,11 @@ class LoggingIOSession implements ProtocolIOSession {
     }
 
     @Override
+    public NamedEndpoint getInitialEndpoint() {
+        return session.getInitialEndpoint();
+    }
+
+    @Override
     public String toString() {
         return this.id + " " + this.session.toString();
     }

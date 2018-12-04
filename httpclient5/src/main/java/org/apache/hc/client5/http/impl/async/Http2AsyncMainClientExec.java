@@ -151,12 +151,10 @@ public class Http2AsyncMainClientExec implements AsyncExecChainHandler {
             }
 
             @Override
-            public int consume(final ByteBuffer src) throws IOException {
+            public void consume(final ByteBuffer src) throws IOException {
                 final AsyncDataConsumer entityConsumer = entityConsumerRef.get();
                 if (entityConsumer != null) {
-                    return entityConsumer.consume(src);
-                } else {
-                    return Integer.MAX_VALUE;
+                    entityConsumer.consume(src);
                 }
             }
 

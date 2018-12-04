@@ -249,7 +249,7 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
 
         Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
         Assert.assertEquals("/newlocation/", request.getRequestUri());
-        Assert.assertEquals(target, new HttpHost(request.getAuthority(), request.getScheme()));
+        Assert.assertEquals(target, new HttpHost(request.getScheme(), request.getAuthority()));
     }
 
     @Test
@@ -273,7 +273,7 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
 
         Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
         Assert.assertEquals("/newlocation/", request.getRequestUri());
-        Assert.assertEquals(target, new HttpHost(request.getAuthority(), request.getScheme()));
+        Assert.assertEquals(target, new HttpHost(request.getScheme(), request.getAuthority()));
     }
 
     @Test
@@ -304,7 +304,7 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
         final HttpRequest request = context.getRequest();
         Assert.assertEquals(HttpStatus.SC_MOVED_TEMPORARILY, response.getCode());
         Assert.assertEquals("/oldlocation/", request.getRequestUri());
-        Assert.assertEquals(target, new HttpHost(request.getAuthority(), request.getScheme()));
+        Assert.assertEquals(target, new HttpHost(request.getScheme(), request.getAuthority()));
     }
 
     @Test
@@ -328,7 +328,7 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
 
         Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
         Assert.assertEquals("/newlocation/", request.getRequestUri());
-        Assert.assertEquals(target, new HttpHost(request.getAuthority(), request.getScheme()));
+        Assert.assertEquals(target, new HttpHost(request.getScheme(), request.getAuthority()));
     }
 
     @Test
@@ -398,7 +398,7 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
 
         Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
         Assert.assertEquals("/newlocation/", request.getRequestUri());
-        Assert.assertEquals(target, new HttpHost(request.getAuthority(), request.getScheme()));
+        Assert.assertEquals(target, new HttpHost(request.getScheme(), request.getAuthority()));
     }
 
     @Test(expected=ExecutionException.class)
@@ -503,7 +503,7 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
 
         Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
         Assert.assertEquals("/relativelocation/", request.getRequestUri());
-        Assert.assertEquals(target, new HttpHost(request.getAuthority(), request.getScheme()));
+        Assert.assertEquals(target, new HttpHost(request.getScheme(), request.getAuthority()));
     }
 
     @Test
@@ -529,7 +529,7 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
 
         Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
         Assert.assertEquals("/test/relativelocation", request.getRequestUri());
-        Assert.assertEquals(target, new HttpHost(request.getAuthority(), request.getScheme()));
+        Assert.assertEquals(target, new HttpHost(request.getScheme(), request.getAuthority()));
     }
 
     static class BogusRedirectService extends AbstractSimpleServerExchangeHandler {
@@ -707,7 +707,7 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
             final ListenerEndpoint endpoint2 = endpointFuture.get();
 
             final InetSocketAddress address2 = (InetSocketAddress) endpoint2.getAddress();
-            final HttpHost initialTarget = new HttpHost("localhost", address2.getPort(), scheme.name());
+            final HttpHost initialTarget = new HttpHost(scheme.name(), "localhost", address2.getPort());
 
             final Queue<Future<SimpleHttpResponse>> queue = new ConcurrentLinkedQueue<>();
             for (int i = 0; i < 1; i++) {
@@ -776,7 +776,7 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
 
         Assert.assertEquals(HttpStatus.SC_OK, response2.getCode());
         Assert.assertEquals("/rome", request.getRequestUri());
-        Assert.assertEquals(target, new HttpHost(request.getAuthority(), request.getScheme()));
+        Assert.assertEquals(target, new HttpHost(request.getScheme(), request.getAuthority()));
     }
 
     @Test
@@ -807,7 +807,7 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
 
         Assert.assertEquals(HttpStatus.SC_OK, response2.getCode());
         Assert.assertEquals("/rome", request.getRequestUri());
-        Assert.assertEquals(target, new HttpHost(request.getAuthority(), request.getScheme()));
+        Assert.assertEquals(target, new HttpHost(request.getScheme(), request.getAuthority()));
     }
 
     @Test
@@ -839,7 +839,7 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
 
         Assert.assertEquals(HttpStatus.SC_OK, response2.getCode());
         Assert.assertEquals("/rome", request.getRequestUri());
-        Assert.assertEquals(target, new HttpHost(request.getAuthority(), request.getScheme()));
+        Assert.assertEquals(target, new HttpHost(request.getScheme(), request.getAuthority()));
     }
 
 }

@@ -125,8 +125,8 @@ public class AsyncEchoHandler implements AsyncServerExchangeHandler {
     }
 
     @Override
-    public int consume(final ByteBuffer src) throws IOException {
-        return entityConsumer.consume(src);
+    public void consume(final ByteBuffer src) throws IOException {
+        entityConsumer.consume(src);
     }
 
     @Override

@@ -266,7 +266,7 @@ public final class MinimalHttpAsyncClient extends AbstractMinimalHttpAsyncClient
                     final Timeout connectionRequestTimeout = requestConfig.getConnectionRequestTimeout();
                     final Timeout connectTimeout = requestConfig.getConnectTimeout();
                     final Timeout responseTimeout = requestConfig.getResponseTimeout();
-                    final HttpHost target = new HttpHost(request.getAuthority(), request.getScheme());
+                    final HttpHost target = new HttpHost(request.getScheme(), request.getAuthority());
 
                     final Future<AsyncConnectionEndpoint> leaseFuture = leaseEndpoint(
                             target,
@@ -381,8 +381,8 @@ public final class MinimalHttpAsyncClient extends AbstractMinimalHttpAsyncClient
                                         }
 
                                         @Override
-                                        public int consume(final ByteBuffer src) throws IOException {
-                                            return exchangeHandler.consume(src);
+                                        public void consume(final ByteBuffer src) throws IOException {
+                                            exchangeHandler.consume(src);
                                         }
 
                                         @Override

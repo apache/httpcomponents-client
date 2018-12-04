@@ -281,7 +281,7 @@ public class URIUtils {
             final String scheme = uri.getScheme();
             if (!TextUtils.isBlank(host)) {
                 try {
-                    target = new HttpHost(host, port, scheme);
+                    target = new HttpHost(scheme, host, port);
                 } catch (final IllegalArgumentException ignore) {
                 }
             }

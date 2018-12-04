@@ -53,7 +53,7 @@ public class ClientProxyAuthentication {
                 new UsernamePasswordCredentials("user", "passwd".toCharArray()));
         try (CloseableHttpClient httpclient = HttpClients.custom()
                 .setDefaultCredentialsProvider(credsProvider).build()) {
-            final HttpHost target = new HttpHost("httpbin.org", 80, "http");
+            final HttpHost target = new HttpHost("http", "httpbin.org", 80);
             final HttpHost proxy = new HttpHost("localhost", 8888);
 
             final RequestConfig config = RequestConfig.custom()
