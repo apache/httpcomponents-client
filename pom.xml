@@ -176,7 +176,6 @@
     <module>httpclient5-cache</module>
     <module>httpclient5-win</module>
     <module>httpclient5-testing</module>
-    <module>httpclient5-osgi</module>
   </modules>
 
   <build>
