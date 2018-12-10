@@ -27,6 +27,9 @@
 
 package org.apache.hc.client5.http.ssl;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
@@ -34,29 +37,29 @@ import javax.net.ssl.SSLParameters;
 
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
-import org.apache.hc.core5.function.Factory;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
 import org.apache.hc.core5.http2.ssl.H2TlsSupport;
 import org.apache.hc.core5.reactor.ssl.SSLBufferMode;
 import org.apache.hc.core5.reactor.ssl.TlsDetails;
 import org.apache.hc.core5.ssl.SSLContexts;
+import org.conscrypt.Conscrypt;
 
 /**
- * TLS upgrade strategy for non-blocking client connections.
+ * TLS upgrade strategy for non-blocking client connections using Conscrypt TLS library.
  *
  * @since 5.0
  */
 @Contract(threading = ThreadingBehavior.STATELESS)
-public class DefaultClientTlsStrategy extends AbstractClientTlsStrategy {
+public class ConscryptClientTlsStrategy extends AbstractClientTlsStrategy {
 
     public static TlsStrategy getDefault() {
-        return new DefaultClientTlsStrategy(
+        return new ConscryptClientTlsStrategy(
                 SSLContexts.createDefault(),
                 HttpsSupport.getDefaultHostnameVerifier());
     }
 
     public static TlsStrategy getSystemDefault() {
-        return new DefaultClientTlsStrategy(
+        return new ConscryptClientTlsStrategy(
                 SSLContexts.createSystemDefault(),
                 HttpsSupport.getSystemProtocols(),
                 HttpsSupport.getSystemCipherSuits(),
@@ -64,47 +67,53 @@ public class DefaultClientTlsStrategy extends AbstractClientTlsStrategy {
                 HttpsSupport.getDefaultHostnameVerifier());
     }
 
-    private final Factory<SSLEngine, TlsDetails> tlsDetailsFactory;
-
-    public DefaultClientTlsStrategy(
-            final SSLContext sslContext,
-            final String[] supportedProtocols,
-            final String[] supportedCipherSuites,
-            final SSLBufferMode sslBufferManagement,
-            final HostnameVerifier hostnameVerifier,
-            final Factory<SSLEngine, TlsDetails> tlsDetailsFactory) {
-        super(sslContext, supportedProtocols, supportedCipherSuites, sslBufferManagement, hostnameVerifier);
-        this.tlsDetailsFactory = tlsDetailsFactory;
-    }
-
-    public DefaultClientTlsStrategy(
+    public ConscryptClientTlsStrategy(
             final SSLContext sslContext,
             final String[] supportedProtocols,
             final String[] supportedCipherSuites,
             final SSLBufferMode sslBufferManagement,
             final HostnameVerifier hostnameVerifier) {
-        this(sslContext, supportedProtocols, supportedCipherSuites, sslBufferManagement, hostnameVerifier, null);
+        super(sslContext, supportedProtocols, supportedCipherSuites, sslBufferManagement, hostnameVerifier);
     }
 
-    public DefaultClientTlsStrategy(
+    public ConscryptClientTlsStrategy(
             final SSLContext sslcontext,
             final HostnameVerifier hostnameVerifier) {
-        this(sslcontext, null, null, SSLBufferMode.STATIC, hostnameVerifier, null);
+        this(sslcontext, null, null, SSLBufferMode.STATIC, hostnameVerifier);
     }
 
-    public DefaultClientTlsStrategy(final SSLContext sslcontext) {
+    public ConscryptClientTlsStrategy(final SSLContext sslcontext) {
         this(sslcontext, HttpsSupport.getDefaultHostnameVerifier());
     }
 
     @Override
     void applyParameters(final SSLEngine sslEngine, final SSLParameters sslParameters, final String[] appProtocols) {
-        H2TlsSupport.setApplicationProtocols(sslParameters, appProtocols);
-        sslEngine.setSSLParameters(sslParameters);
+        if (Conscrypt.isConscrypt(sslEngine)) {
+            sslEngine.setSSLParameters(sslParameters);
+            Conscrypt.setApplicationProtocols(sslEngine, appProtocols);
+        } else {
+            H2TlsSupport.setApplicationProtocols(sslParameters, appProtocols);
+            sslEngine.setSSLParameters(sslParameters);
+        }
     }
 
     @Override
     TlsDetails createTlsDetails(final SSLEngine sslEngine) {
-        return tlsDetailsFactory != null ? tlsDetailsFactory.create(sslEngine) : null;
+        if (Conscrypt.isConscrypt(sslEngine)) {
+            return new TlsDetails(sslEngine.getSession(), Conscrypt.getApplicationProtocol(sslEngine));
+        } else {
+            return null;
+        }
+    }
+
+    public static boolean isSupported() {
+        try {
+            final Class<?> clazz = Class.forName("org.conscrypt.Conscrypt");
+            final Method method = clazz.getMethod("isAvailable");
+            return (Boolean) method.invoke(null);
+        } catch (final ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+            return false;
+        }
     }
 
 }

@@ -53,6 +53,12 @@
       <scope>compile</scope>
     </dependency>
     <dependency>
+      <groupId>org.conscrypt</groupId>
+      <artifactId>conscrypt-openjdk-uber</artifactId>
+      <scope>compile</scope>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
       <groupId>org.apache.httpcomponents.core5</groupId>
       <artifactId>httpcore5-reactive</artifactId>
       <scope>test</scope>

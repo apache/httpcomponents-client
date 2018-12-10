@@ -29,11 +29,13 @@ package org.apache.hc.client5.http.impl.nio;
 
 import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.SchemePortResolver;
+import org.apache.hc.client5.http.ssl.ConscryptClientTlsStrategy;
 import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
 import org.apache.hc.core5.pool.PoolConcurrencyPolicy;
 import org.apache.hc.core5.pool.PoolReusePolicy;
+import org.apache.hc.core5.util.ReflectionUtils;
 import org.apache.hc.core5.util.TimeValue;
 
 /**
@@ -176,10 +178,18 @@ public class PoolingAsyncClientConnectionManagerBuilder {
         if (tlsStrategy != null) {
             tlsStrategyCopy = tlsStrategy;
         } else {
-            if (systemProperties) {
-                tlsStrategyCopy = DefaultClientTlsStrategy.getSystemDefault();
+            if (ReflectionUtils.determineJRELevel() <= 8 && ConscryptClientTlsStrategy.isSupported()) {
+                if (systemProperties) {
+                    tlsStrategyCopy = ConscryptClientTlsStrategy.getSystemDefault();
+                } else {
+                    tlsStrategyCopy = ConscryptClientTlsStrategy.getDefault();
+                }
             } else {
-                tlsStrategyCopy = DefaultClientTlsStrategy.getDefault();
+                if (systemProperties) {
+                    tlsStrategyCopy = DefaultClientTlsStrategy.getSystemDefault();
+                } else {
+                    tlsStrategyCopy = DefaultClientTlsStrategy.getDefault();
+                }
             }
         }
         final PoolingAsyncClientConnectionManager poolingmgr = new PoolingAsyncClientConnectionManager(

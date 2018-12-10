@@ -70,6 +70,7 @@
     <httpcore.version>5.0-beta6</httpcore.version>
     <log4j.version>2.9.1</log4j.version>
     <commons-codec.version>1.11</commons-codec.version>
+    <conscrypt.version>1.4.1</conscrypt.version>
     <ehcache.version>3.4.0</ehcache.version>
     <memcached.version>2.12.3</memcached.version>
     <slf4j.version>1.7.25</slf4j.version>
@@ -122,6 +123,11 @@
         <groupId>commons-codec</groupId>
         <artifactId>commons-codec</artifactId>
         <version>${commons-codec.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.conscrypt</groupId>
+        <artifactId>conscrypt-openjdk-uber</artifactId>
+        <version>${conscrypt.version}</version>
       </dependency>
       <dependency>
         <groupId>org.ehcache.modules</groupId>
