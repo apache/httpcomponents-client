@@ -1,16 +1,13 @@
-﻿Release 5.0-BETA2
+﻿Release 5.0-BETA3
 -------------------
 
-This BETA release resolves compatibility issues with Java 11 new TLS engine as well as
-a number of defects found since the previous release.
+This BETA release adds support for advanced TLS functions (such as ALPN protocol negotiation)
+on Java 1.7 and Java 1.8 through Conscrypt TLS library and picks up the latest fixes
+and performance improvements from HttpCore.
 
-Notable new features in this release:
+Notable features in this release:
 
-* JDK 11 compatibility
-
-* Support for request specific push consumers
-
-* Support for Reactive Streams API [http://www.reactive-streams.org/]
+* TLS ALPN protocol negotiation support on older JREs through Conscrypt TLS library.
 
 
 Notable changes and features included in the 5.0 series are:
@@ -28,7 +25,7 @@ Notable changes and features included in the 5.0 series are:
     ** Message trailers
     ** Expect-continue handshake
     ** Connection validation (ping)
-    ** Application-layer protocol negotiation (ALPN) on Java 9.0.1+
+    ** Application-layer protocol negotiation (ALPN)
     ** TLS 1.2 security features
 
 * Improved conformance to requirements and recommendations of the latest HTTP/1.1 protocol
@@ -47,6 +44,40 @@ due to the change in package names and Maven module coordinates.
 The 5.0 APIs are considered feature complete and are not expected to undergo any major changes
 anymore. The focus of development is now shifting to API polish, code stabilisation
 and documentation improvements.
+
+
+
+Changelog:
+-------------------
+
+* Added optional dependency on conscrypt-openjdk-uber 1.4.1; support for advanced TLS functions
+  (such as ALPN extension) on Java 1.7 and Java 1.8 through Conscrypt TLS library
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Removed OSGi module
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Removed experimental CredSsp auth scheme
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-1949: DigestScheme to use HttpRequest#getRequestUri instead of HttpRequest#getPath
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+
+
+Release 5.0-BETA2
+-------------------
+
+This BETA release resolves compatibility issues with Java 11 new TLS engine as well as
+a number of defects found since the previous release.
+
+Notable new features in this release:
+
+* JDK 11 compatibility
+
+* Support for request specific push consumers
+
+* Support for Reactive Streams API [http://www.reactive-streams.org/]
 
 
 Changelog:
