@@ -117,22 +117,13 @@ public class SystemDefaultCredentialsProvider implements CredentialsProvider {
                 systemcreds = getSystemCreds(protocol, authscope, Authenticator.RequestorType.PROXY);
             }
             if (systemcreds == null) {
-                final String proxyHost = System.getProperty(protocol + ".proxyHost");
-                if (proxyHost != null) {
-                    final String proxyPort = System.getProperty(protocol + ".proxyPort");
-                    if (proxyPort != null) {
-                        try {
-                            final AuthScope systemScope = new AuthScope(proxyHost, Integer.parseInt(proxyPort));
-                            if (authscope.match(systemScope) >= 0) {
-                                final String proxyUser = System.getProperty(protocol + ".proxyUser");
-                                if (proxyUser != null) {
-                                    final String proxyPassword = System.getProperty(protocol + ".proxyPassword");
-                                    systemcreds = new PasswordAuthentication(proxyUser, proxyPassword != null ? proxyPassword.toCharArray() : new char[] {});
-                                }
-                            }
-                        } catch (final NumberFormatException ex) {
-                        }
-                    }
+                // Look for values given using http.proxyUser/http.proxyPassword or
+                // https.proxyUser/https.proxyPassword. We cannot simply use the protocol from
+                // the origin since a proxy retrieved from https.proxyHost/https.proxyPort will
+                // still use http as protocol
+                systemcreds = getProxyCredentials("http", authscope);
+                if (systemcreds == null) {
+                    systemcreds = getProxyCredentials("https", authscope);
                 }
             }
             if (systemcreds != null) {
@@ -151,6 +142,34 @@ public class SystemDefaultCredentialsProvider implements CredentialsProvider {
                                                 new String(systemcreds.getPassword()));
             }
         }
+        return null;
+    }
+
+    private static PasswordAuthentication getProxyCredentials(final String protocol, final AuthScope authscope) {
+        final String proxyHost = System.getProperty(protocol + ".proxyHost");
+        if (proxyHost == null) {
+            return null;
+        }
+        final String proxyPort = System.getProperty(protocol + ".proxyPort");
+        if (proxyPort == null) {
+            return null;
+        }
+
+        try {
+            final AuthScope systemScope = new AuthScope(proxyHost, Integer.parseInt(proxyPort));
+            if (authscope.match(systemScope) >= 0) {
+                final String proxyUser = System.getProperty(protocol + ".proxyUser");
+                if (proxyUser == null) {
+                    return null;
+                }
+                final String proxyPassword = System.getProperty(protocol + ".proxyPassword");
+
+                return new PasswordAuthentication(proxyUser,
+                        proxyPassword != null ? proxyPassword.toCharArray() : new char[] {});
+            }
+        } catch (final NumberFormatException ex) {
+        }
+
         return null;
     }
 
