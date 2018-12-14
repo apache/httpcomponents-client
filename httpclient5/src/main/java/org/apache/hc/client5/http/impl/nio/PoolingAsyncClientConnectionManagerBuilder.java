@@ -124,7 +124,7 @@ public class PoolingAsyncClientConnectionManagerBuilder {
     /**
      * Assigns {@link PoolReusePolicy} value.
      */
-    public final PoolingAsyncClientConnectionManagerBuilder setConnPoolPolicy(final PoolReusePolicy connPoolPolicy) {
+    public final PoolingAsyncClientConnectionManagerBuilder setConnPoolPolicy(final PoolReusePolicy poolReusePolicy) {
         this.poolReusePolicy = poolReusePolicy;
         return this;
     }
