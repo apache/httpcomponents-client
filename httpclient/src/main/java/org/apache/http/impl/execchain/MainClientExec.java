@@ -268,6 +268,7 @@ public class MainClientExec implements ClientExecChain {
                     this.authenticator.generateAuthResponse(request, proxyAuthState, context);
                 }
 
+                context.setAttribute(HttpCoreContext.HTTP_REQUEST, request);
                 response = requestExecutor.execute(request, managedConn, context);
 
                 // The connection is in or can be brought to a re-usable state.
