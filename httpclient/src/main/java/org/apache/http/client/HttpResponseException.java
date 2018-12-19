@@ -26,6 +26,8 @@
  */
 package org.apache.http.client;
 
+import org.apache.http.util.TextUtils;
+
 /**
  * Signals a non 2xx HTTP response.
  *
@@ -38,7 +40,7 @@ public class HttpResponseException extends ClientProtocolException {
     private final int statusCode;
 
     public HttpResponseException(final int statusCode, final String s) {
-        super(s);
+        super(TextUtils.isBlank(s) ? Integer.toString(statusCode) : s);
         this.statusCode = statusCode;
     }
 
