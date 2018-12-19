@@ -90,4 +90,27 @@ public class TestAbstractResponseHandler {
         Mockito.verify(inStream).close();
     }
 
+    @SuppressWarnings("boxing")
+    @Test
+    public void testUnsuccessfulResponseEmptyReason() throws Exception {
+        final InputStream inStream = Mockito.mock(InputStream.class);
+        final HttpEntity entity = Mockito.mock(HttpEntity.class);
+        Mockito.when(entity.isStreaming()).thenReturn(true);
+        Mockito.when(entity.getContent()).thenReturn(inStream);
+        final StatusLine sl = new BasicStatusLine(HttpVersion.HTTP_1_1, 404, "");
+        final HttpResponse response = Mockito.mock(HttpResponse.class);
+        Mockito.when(response.getStatusLine()).thenReturn(sl);
+        Mockito.when(response.getEntity()).thenReturn(entity);
+
+        final BasicResponseHandler handler = new BasicResponseHandler();
+        try {
+            handler.handleResponse(response);
+            Assert.fail("HttpResponseException expected");
+        } catch (final HttpResponseException ex) {
+            Assert.assertEquals(404, ex.getStatusCode());
+            Assert.assertEquals("404", ex.getMessage());
+        }
+        Mockito.verify(entity).getContent();
+        Mockito.verify(inStream).close();
+    }
 }
