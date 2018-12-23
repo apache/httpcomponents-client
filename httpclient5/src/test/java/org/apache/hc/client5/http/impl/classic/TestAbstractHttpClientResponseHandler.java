@@ -80,7 +80,8 @@ public class TestAbstractHttpClientResponseHandler {
             Assert.fail("HttpResponseException expected");
         } catch (final HttpResponseException ex) {
             Assert.assertEquals(404, ex.getStatusCode());
-            Assert.assertEquals("NOT FOUND", ex.getMessage());
+            Assert.assertEquals("NOT FOUND", ex.getReasonPhrase());
+            Assert.assertEquals("status code: 404, reason phrase: NOT FOUND", ex.getMessage());
         }
         Mockito.verify(entity).getContent();
         Mockito.verify(inStream).close();
@@ -103,7 +104,8 @@ public class TestAbstractHttpClientResponseHandler {
             Assert.fail("HttpResponseException expected");
         } catch (final HttpResponseException ex) {
             Assert.assertEquals(404, ex.getStatusCode());
-            Assert.assertEquals("404", ex.getMessage());
+            Assert.assertNull(ex.getReasonPhrase());
+            Assert.assertEquals("status code: 404", ex.getMessage());
         }
         Mockito.verify(entity).getContent();
         Mockito.verify(inStream).close();
