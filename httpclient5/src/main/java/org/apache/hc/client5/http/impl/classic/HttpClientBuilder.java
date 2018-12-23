@@ -229,6 +229,7 @@ public class HttpClientBuilder {
     private boolean cookieManagementDisabled;
     private boolean authCachingDisabled;
     private boolean connectionStateDisabled;
+    private boolean defaultUserAgentDisabled;
 
     private List<Closeable> closeables;
 
@@ -698,6 +699,16 @@ public class HttpClientBuilder {
     }
 
     /**
+     * Disables the default user agent set by this builder if none has been provided by the user.
+     *
+     * @since 4.5.7
+     */
+    public final HttpClientBuilder disableDefaultUserAgent() {
+        this.defaultUserAgentDisabled = true;
+        return this;
+    }
+
+    /**
      * Request exec chain customization and extension.
      * <p>
      * For internal use.
@@ -779,7 +790,7 @@ public class HttpClientBuilder {
             if (systemProperties) {
                 userAgentCopy = System.getProperty("http.agent");
             }
-            if (userAgentCopy == null) {
+            if (userAgentCopy == null && !defaultUserAgentDisabled) {
                 userAgentCopy = VersionInfo.getSoftwareInfo("Apache-HttpClient",
                         "org.apache.hc.client5", getClass());
             }
