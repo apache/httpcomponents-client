@@ -84,7 +84,8 @@ public class TestAbstractResponseHandler {
             Assert.fail("HttpResponseException expected");
         } catch (final HttpResponseException ex) {
             Assert.assertEquals(404, ex.getStatusCode());
-            Assert.assertEquals("Not Found", ex.getMessage());
+            Assert.assertEquals("Not Found", ex.getReasonPhrase());
+            Assert.assertEquals("status code: 404, reason phrase: Not Found", ex.getMessage());
         }
         Mockito.verify(entity).getContent();
         Mockito.verify(inStream).close();
@@ -97,7 +98,7 @@ public class TestAbstractResponseHandler {
         final HttpEntity entity = Mockito.mock(HttpEntity.class);
         Mockito.when(entity.isStreaming()).thenReturn(true);
         Mockito.when(entity.getContent()).thenReturn(inStream);
-        final StatusLine sl = new BasicStatusLine(HttpVersion.HTTP_1_1, 404, "");
+        final StatusLine sl = new BasicStatusLine(HttpVersion.HTTP_1_1, 404, null);
         final HttpResponse response = Mockito.mock(HttpResponse.class);
         Mockito.when(response.getStatusLine()).thenReturn(sl);
         Mockito.when(response.getEntity()).thenReturn(entity);
@@ -108,7 +109,8 @@ public class TestAbstractResponseHandler {
             Assert.fail("HttpResponseException expected");
         } catch (final HttpResponseException ex) {
             Assert.assertEquals(404, ex.getStatusCode());
-            Assert.assertEquals("404", ex.getMessage());
+            Assert.assertNull(ex.getReasonPhrase());
+            Assert.assertEquals("status code: 404", ex.getMessage());
         }
         Mockito.verify(entity).getContent();
         Mockito.verify(inStream).close();

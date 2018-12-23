@@ -76,7 +76,7 @@ public class TestBasicResponseHandler {
             Assert.fail("HttpResponseException expected");
         } catch (final HttpResponseException ex) {
             Assert.assertEquals(404, ex.getStatusCode());
-            Assert.assertEquals("Not Found", ex.getMessage());
+            Assert.assertEquals("status code: 404, reason phrase: Not Found", ex.getMessage());
         }
         Mockito.verify(entity).getContent();
         Mockito.verify(inStream).close();
