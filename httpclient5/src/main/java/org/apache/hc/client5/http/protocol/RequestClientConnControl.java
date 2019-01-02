@@ -44,9 +44,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This protocol interceptor is responsible for adding {@code Connection}
- * or {@code Proxy-Connection} headers to the outgoing requests, which
- * is essential for managing persistence of {@code HTTP/1.0} connections.
+ * This protocol interceptor is responsible for adding the {@code Connection}
+ * header to the outgoing requests, which is essential for managing persistence
+ * of {@code HTTP/1.0} connections.
  *
  * @since 4.0
  */
@@ -54,8 +54,6 @@ import org.slf4j.LoggerFactory;
 public class RequestClientConnControl implements HttpRequestInterceptor {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
-
-    private static final String PROXY_CONN_DIRECTIVE = "Proxy-Connection";
 
     public RequestClientConnControl() {
         super();
@@ -68,7 +66,6 @@ public class RequestClientConnControl implements HttpRequestInterceptor {
 
         final String method = request.getMethod();
         if (method.equalsIgnoreCase("CONNECT")) {
-            request.setHeader(PROXY_CONN_DIRECTIVE, HeaderElements.KEEP_ALIVE);
             return;
         }
 
@@ -84,11 +81,6 @@ public class RequestClientConnControl implements HttpRequestInterceptor {
         if (route.getHopCount() == 1 || route.isTunnelled()) {
             if (!request.containsHeader(HttpHeaders.CONNECTION)) {
                 request.addHeader(HttpHeaders.CONNECTION, HeaderElements.KEEP_ALIVE);
-            }
-        }
-        if (route.getHopCount() == 2 && !route.isTunnelled()) {
-            if (!request.containsHeader(PROXY_CONN_DIRECTIVE)) {
-                request.addHeader(PROXY_CONN_DIRECTIVE, HeaderElements.KEEP_ALIVE);
             }
         }
     }
