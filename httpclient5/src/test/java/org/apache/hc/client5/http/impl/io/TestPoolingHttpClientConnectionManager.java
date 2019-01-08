@@ -30,6 +30,7 @@ package org.apache.hc.client5.http.impl.io;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -157,7 +158,7 @@ public class TestPoolingHttpClientConnectionManager {
         Mockito.verify(pool).release(entry, false);
     }
 
-    @Test(expected=InterruptedException.class)
+    @Test(expected= ExecutionException.class)
     public void testLeaseFutureCancelled() throws Exception {
         final HttpHost target = new HttpHost("localhost", 80);
         final HttpRoute route = new HttpRoute(target);
