@@ -30,6 +30,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -302,7 +303,7 @@ public class PoolingHttpClientConnectionManager
         try {
             entry = future.get(timeout, timeUnit);
             if (entry == null || future.isCancelled()) {
-                throw new InterruptedException();
+                throw new ExecutionException(new CancellationException("Operation cancelled"));
             }
             Asserts.check(entry.getConnection() != null, "Pool entry with no connection");
             if (this.log.isDebugEnabled()) {
