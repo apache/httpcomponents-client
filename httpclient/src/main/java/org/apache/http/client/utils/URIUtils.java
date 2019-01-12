@@ -147,8 +147,20 @@ public class URIUtils {
         if (dropFragment) {
             uribuilder.setFragment(null);
         }
-        if (TextUtils.isEmpty(uribuilder.getPath())) {
+        final String path = uribuilder.getPath();
+        if (TextUtils.isEmpty(path)) {
             uribuilder.setPath("/");
+        } else {
+            final StringBuilder buf = new StringBuilder(path.length());
+            boolean foundSlash = false;
+            for (int i = 0; i < path.length(); i++) {
+                final char ch = path.charAt(i);
+                if (ch != '/' || !foundSlash) {
+                    buf.append(ch);
+                }
+                foundSlash = ch == '/';
+            }
+            uribuilder.setPath(buf.toString());
         }
         return uribuilder.build();
     }

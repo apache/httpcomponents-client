@@ -36,6 +36,7 @@ import java.util.List;
 import org.apache.http.Consts;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
+import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -326,6 +327,25 @@ public class TestURIBuilder {
     public void testRelativePathWithAuthority() throws Exception {
         final URI uri = new URIBuilder("./mypath").setHost("somehost").setScheme("http").build();
         Assert.assertEquals(new URI("http://somehost/./mypath"), uri);
+    }
+
+    @Test
+    public void testMultipleLeadingPathSlashes() throws Exception {
+        final URI uri = new URIBuilder()
+                .setScheme("ftp")
+                .setHost("somehost")
+                .setPath("//blah//blah")
+                .build();
+        Assert.assertThat(uri, CoreMatchers.equalTo(URI.create("ftp://somehost//blah//blah")));
+    }
+
+    @Test
+    public void testPathNoLeadingSlash() throws Exception {
+        final URI uri = new URIBuilder()
+                .setScheme("ftp")
+                .setPath("blah")
+                .build();
+        Assert.assertThat(uri, CoreMatchers.equalTo(URI.create("ftp:/blah")));
     }
 
 }
