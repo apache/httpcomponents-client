@@ -51,8 +51,8 @@ public class TestURIUtils {
                 URI.create("http://thishost/stuff"), null).toString());
         Assert.assertEquals("/", URIUtils.rewriteURI(
                 URI.create("http://thishost//"), null).toString());
-        Assert.assertEquals("/stuff///morestuff", URIUtils.rewriteURI(
-                URI.create("http://thishost//stuff///morestuff"), null).toString());
+        Assert.assertEquals("/stuff/morestuff", URIUtils.rewriteURI(
+                URI.create("http://thishost//stuff/morestuff"), null).toString());
         Assert.assertEquals("http://thathost/stuff", URIUtils.rewriteURI(
                 URI.create("http://thishost/stuff#crap"), target, true).toString());
         Assert.assertEquals("http://thathost/stuff#crap", URIUtils.rewriteURI(
