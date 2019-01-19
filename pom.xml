@@ -407,4 +407,42 @@
     </plugins>
   </reporting>
 
+  <!-- remove once 'ignore' configuration can be configured through HC Parent -->
+  <profiles>
+    <profile>
+      <id>animal-sniffer</id>
+      <activation>
+        <file>
+          <missing>src/site/resources/profile.noanimal</missing>
+        </file>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>animal-sniffer-maven-plugin</artifactId>
+            <version>${hc.animal-sniffer.version}</version>
+            <executions>
+              <execution>
+                <id>checkAPIcompatibility</id>
+                <goals>
+                  <goal>check</goal>
+                </goals>
+              </execution>
+            </executions>
+            <configuration>
+              <signature>
+                <groupId>org.codehaus.mojo.signature</groupId>
+                <artifactId>java16</artifactId>
+                <version>1.1</version>
+              </signature>
+              <ignores>java.util.concurrent.ConcurrentHashMap*</ignores>
+            </configuration>
+          </plugin>
+
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
 </project>
