@@ -18,6 +18,8 @@ sudo: false
 
 jdk:
   - openjdk7
+  - oraclejdk8
+  - openjdk11
 
 after_success:
   - mvn clean cobertura:cobertura coveralls:report

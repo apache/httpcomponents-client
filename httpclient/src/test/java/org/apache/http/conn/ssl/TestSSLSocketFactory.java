@@ -203,8 +203,10 @@ public class TestSSLSocketFactory {
         final SSLSocket sslSocket = (SSLSocket) socketFactory.connectSocket(0, socket, target, remoteAddress, null,
                 context);
         try {
-            final SSLSession sslsession = sslSocket.getSession();
+            final InputStream inputStream = sslSocket.getInputStream();
+            Assert.assertEquals(-1, inputStream.read());
 
+            final SSLSession sslsession = sslSocket.getSession();
             Assert.assertNotNull(sslsession);
             Assert.assertTrue(hostVerifier.isFired());
         } finally {
