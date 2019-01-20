@@ -1,12 +1,44 @@
 Release 4.5.7
 -------------------
 
-This is a maintenance release.
+This is a maintenance release that corrects Automatic-Module-Name definitions added in the previous
+release and fixes a number of minor defects discovered since 4.5.6.
 
 Please note that as of 4.4, HttpClient requires Java 1.6 or newer.
 
 Changelog:
 -------------------
+
+* Upgraded HttpCore to version 4.4.11
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-1960: URIBuilder incorrect handling of multiple leading slashes in path component
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-1958: PoolingHttpClientConnectionManager to throw ExecutionException in case of a lease operation
+  cancellation instead of InterruptedException.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-1952: Allow default User Agent to be disabled.
+  Contributed by Michael Osipov <michaelo at apache.org>
+
+* HTTPCLIENT-1956: CONNECT overwrites the main request object in the HTTP context when requests are executed
+  via a proxy tunnel.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-1940: deprecated SSLSocketFactory made to rethrow SocketTimeoutException as
+  ConnectTimeoutException for consistency with non-deprecated code.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Fixed regression in BasicCookieStore serialization.
+  Contributed by Author: Mark Mielke <mmielke at ciena.com>
+
+* HTTPCLIENT-1929: Corrected Automatic-Module-Name entries for HttpClient Fluent, HttpClient Windows
+  and HttpClient Cache.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-1927: URLEncodedUtils#parse breaks at double quotes when parsing unquoted values.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
 
 * HTTPCLIENT-1939: Update Apache Commons Codec from 1.10 to 1.11
   Contributed by Gary Gregory <ggregory at apache.org>
