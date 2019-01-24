@@ -379,16 +379,17 @@
 
   <reporting>
     <plugins>
-
       <plugin>
         <artifactId>maven-project-info-reports-plugin</artifactId>
         <inherited>false</inherited>
         <reportSets>
           <reportSet>
             <reports>
+              <report>dependency-info</report>
               <report>dependency-management</report>
-              <report>issue-tracking</report>
-              <report>license</report>
+              <report>issue-management</report>
+              <report>licenses</report>
+              <report>mailing-lists</report>
               <report>scm</report>
               <report>summary</report>
             </reports>
