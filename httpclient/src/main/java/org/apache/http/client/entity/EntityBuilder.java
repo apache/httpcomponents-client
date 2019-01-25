@@ -108,7 +108,7 @@ public class EntityBuilder {
      * <li>{@link #setParameters(java.util.List)}</li>
      * <li>{@link #setParameters(org.apache.http.NameValuePair...)}</li>
      * <li>{@link #setFile(java.io.File)}</li>
-     * <ul>
+     * </ul>
      */
     public EntityBuilder setText(final String text) {
         clearContent();
@@ -250,7 +250,7 @@ public class EntityBuilder {
      * <li>{@link #setParameters(java.util.List)}</li>
      * <li>{@link #setParameters(org.apache.http.NameValuePair...)}</li>
      * <li>{@link #setSerializable(java.io.Serializable)}</li>
-     * <ul>
+     * </ul>
      */
     public EntityBuilder setFile(final File file) {
         clearContent();
