@@ -50,6 +50,7 @@ import org.apache.hc.core5.reactor.ssl.SSLSessionVerifier;
 import org.apache.hc.core5.reactor.ssl.TlsDetails;
 import org.apache.hc.core5.reactor.ssl.TransportSecurityLayer;
 import org.apache.hc.core5.util.Args;
+import org.apache.hc.core5.util.Timeout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -86,7 +87,8 @@ abstract class AbstractClientTlsStrategy implements TlsStrategy {
             final HttpHost host,
             final SocketAddress localAddress,
             final SocketAddress remoteAddress,
-            final Object attachment) {
+            final Object attachment,
+            final Timeout handshakeTimeout) {
         tlsSession.startTls(sslContext, host, sslBufferManagement, new SSLSessionInitializer() {
 
             @Override
@@ -129,7 +131,7 @@ abstract class AbstractClientTlsStrategy implements TlsStrategy {
                 return createTlsDetails(sslEngine);
             }
 
-        });
+        }, handshakeTimeout);
         return true;
     }
 

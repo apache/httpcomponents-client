@@ -95,7 +95,8 @@ final class DefaultAsyncClientConnectionOperator implements AsyncClientConnectio
                                     host,
                                     session.getLocalAddress(),
                                     session.getRemoteAddress(),
-                                    attachment);
+                                    attachment,
+                                    connectTimeout);
                         }
                         future.completed(connection);
                     }
@@ -124,7 +125,8 @@ final class DefaultAsyncClientConnectionOperator implements AsyncClientConnectio
                     host,
                     connection.getLocalAddress(),
                     connection.getRemoteAddress(),
-                    attachment);
+                    attachment,
+                    null);
         }
 
     }

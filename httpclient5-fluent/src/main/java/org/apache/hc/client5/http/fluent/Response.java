@@ -111,9 +111,7 @@ public class Response {
             final HttpEntity entity = this.response.getEntity();
             if (entity != null) {
                 final ByteArrayEntity byteArrayEntity = new ByteArrayEntity(
-                        EntityUtils.toByteArray(entity));
-                final ContentType contentType = EntityUtils.getContentTypeOrDefault(entity);
-                byteArrayEntity.setContentType(contentType.toString());
+                        EntityUtils.toByteArray(entity), ContentType.parse(entity.getContentType()));
                 this.response.setEntity(byteArrayEntity);
             }
             return this.response;

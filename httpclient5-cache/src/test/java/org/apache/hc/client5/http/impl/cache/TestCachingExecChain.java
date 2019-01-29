@@ -1219,7 +1219,7 @@ public abstract class TestCachingExecChain {
                 }
                 throw new SocketTimeoutException("Read timed out");
             }
-        }, 128));
+        }, 128, null));
         resp1.setHeader("Date", DateUtils.formatDate(now));
 
         backendExpectsAnyRequestAndReturn(resp1);

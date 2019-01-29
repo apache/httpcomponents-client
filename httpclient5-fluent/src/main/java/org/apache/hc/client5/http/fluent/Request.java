@@ -347,7 +347,7 @@ public class Request {
     }
 
     public Request bodyByteArray(final byte[] b) {
-        return body(new ByteArrayEntity(b));
+        return body(new ByteArrayEntity(b, null));
     }
 
     /**
@@ -358,7 +358,7 @@ public class Request {
     }
 
     public Request bodyByteArray(final byte[] b, final int off, final int len) {
-        return body(new ByteArrayEntity(b, off, len));
+        return body(new ByteArrayEntity(b, off, len, null));
     }
 
     /**

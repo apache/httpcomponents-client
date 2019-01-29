@@ -170,7 +170,8 @@ class InternalHttp2AsyncExecRuntime implements AsyncExecRuntime {
         final HttpHost target = endpoint.target;
         final RequestConfig requestConfig = context.getRequestConfig();
         final Timeout connectTimeout = requestConfig.getConnectTimeout();
-        return Operations.cancellable(connPool.getSession(target, connectTimeout, new FutureCallback<IOSession>() {
+        return Operations.cancellable(connPool.getSession(target, connectTimeout,
+            new FutureCallback<IOSession>() {
 
             @Override
             public void completed(final IOSession ioSession) {

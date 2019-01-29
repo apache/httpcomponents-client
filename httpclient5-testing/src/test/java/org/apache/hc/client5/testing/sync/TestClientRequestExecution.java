@@ -189,7 +189,7 @@ public class TestClientRequestExecution extends LocalServerTestBase {
         httppost.setEntity(new InputStreamEntity(
                 new ByteArrayInputStream(
                         new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 } ),
-                        -1));
+                        -1, null));
         this.httpclient.execute(target, httppost, context);
     }
 

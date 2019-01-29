@@ -357,7 +357,7 @@ public class TestCachingExec extends TestCachingExecChain {
                 }
                 return 'y';
             }
-        }, -1));
+        }, -1, null));
 
         final ClassicHttpResponse resp = mockExecChain.proceed(
                 isA(ClassicHttpRequest.class), isA(ExecChain.Scope.class));
