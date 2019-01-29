@@ -286,18 +286,20 @@ public class RequestBuilder {
         entity = null;
 
         final HttpEntity originalEntity = request.getEntity();
-        final ContentType contentType = EntityUtils.getContentType(originalEntity);
-        if (contentType != null &&
+        if (originalEntity != null) {
+            final ContentType contentType = ContentType.parse(originalEntity.getContentType());
+            if (contentType != null &&
                 contentType.getMimeType().equals(ContentType.APPLICATION_FORM_URLENCODED.getMimeType())) {
-            try {
-                final List<NameValuePair> formParams = EntityUtils.parse(originalEntity);
-                if (!formParams.isEmpty()) {
-                    parameters = formParams;
+                try {
+                    final List<NameValuePair> formParams = EntityUtils.parse(originalEntity);
+                    if (!formParams.isEmpty()) {
+                        parameters = formParams;
+                    }
+                } catch (final IOException ignore) {
                 }
-            } catch (final IOException ignore) {
+            } else {
+                entity = originalEntity;
             }
-        } else {
-            entity = originalEntity;
         }
 
         try {

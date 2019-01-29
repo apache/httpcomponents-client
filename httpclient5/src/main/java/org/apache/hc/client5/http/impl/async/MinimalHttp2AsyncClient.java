@@ -156,7 +156,8 @@ public final class MinimalHttp2AsyncClient extends AbstractMinimalHttpAsyncClien
                     final Timeout connectTimeout = requestConfig.getConnectTimeout();
                     final HttpHost target = new HttpHost(request.getScheme(), request.getAuthority());
 
-                    final Future<IOSession> sessionFuture = connPool.getSession(target, connectTimeout, new FutureCallback<IOSession>() {
+                    final Future<IOSession> sessionFuture = connPool.getSession(target, connectTimeout,
+                        new FutureCallback<IOSession>() {
 
                         @Override
                         public void completed(final IOSession session) {

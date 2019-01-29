@@ -149,12 +149,14 @@ final class DefaultManagedAsyncClientConnection implements ManagedAsyncClientCon
             final NamedEndpoint endpoint,
             final SSLBufferMode sslBufferMode,
             final SSLSessionInitializer initializer,
-            final SSLSessionVerifier verifier) throws UnsupportedOperationException {
+            final SSLSessionVerifier verifier,
+            final Timeout handshakeTimeout) throws UnsupportedOperationException {
         if (log.isDebugEnabled()) {
             log.debug(getId() + ": start TLS");
         }
         if (ioSession instanceof TransportSecurityLayer) {
-            ((TransportSecurityLayer) ioSession).startTls(sslContext, endpoint, sslBufferMode, initializer, verifier);
+            ((TransportSecurityLayer) ioSession).startTls(sslContext, endpoint, sslBufferMode, initializer, verifier,
+                handshakeTimeout);
         } else {
             throw new UnsupportedOperationException("TLS upgrade not supported");
         }

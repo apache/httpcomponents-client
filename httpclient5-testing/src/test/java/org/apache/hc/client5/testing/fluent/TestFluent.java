@@ -75,7 +75,8 @@ public class TestFluent extends LocalServerTestBase {
                 HttpEntity responseEntity = null;
                 final HttpEntity requestEntity = request.getEntity();
                 if (requestEntity != null) {
-                    final ContentType contentType = EntityUtils.getContentTypeOrDefault(requestEntity);
+                    final String contentTypeStr = requestEntity.getContentType();
+                    final ContentType contentType = contentTypeStr == null ? ContentType.DEFAULT_TEXT : ContentType.parse(contentTypeStr);
                     if (ContentType.TEXT_PLAIN.getMimeType().equals(contentType.getMimeType())) {
                         responseEntity = new StringEntity(
                                 EntityUtils.toString(requestEntity), ContentType.TEXT_PLAIN);

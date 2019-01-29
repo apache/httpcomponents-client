@@ -313,7 +313,7 @@ public class TestContentCodings extends LocalServerTestBase {
                         final byte[] compressed = new byte[compressedLength];
                         System.arraycopy(output, 0, compressed, 0, compressedLength);
                         response.setEntity(new InputStreamEntity(
-                                new ByteArrayInputStream(compressed), compressedLength));
+                                new ByteArrayInputStream(compressed), compressedLength, null));
                         return;
                     }
                 }
@@ -374,7 +374,7 @@ public class TestContentCodings extends LocalServerTestBase {
 
                         final byte[] arr = bytes.toByteArray();
                         response.setEntity(new InputStreamEntity(new ByteArrayInputStream(arr),
-                                arr.length));
+                                arr.length, null));
 
                         return;
                     }

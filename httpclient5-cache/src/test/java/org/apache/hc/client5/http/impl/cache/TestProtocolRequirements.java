@@ -50,8 +50,8 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.ProtocolVersion;
-import org.apache.hc.core5.http.io.entity.BasicHttpEntity;
 import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
+import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
 import org.apache.hc.core5.http.message.BasicHeader;
@@ -574,7 +574,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         final BasicClassicHttpRequest post = new BasicClassicHttpRequest("POST", "/");
         post.setHeader(HttpHeaders.EXPECT, HeaderElements.CONTINUE);
         post.setHeader("Content-Length", "128");
-        post.setEntity(new BasicHttpEntity());
+        post.setEntity(new StringEntity("whatever"));
 
         final Capture<ClassicHttpRequest> reqCap = EasyMock.newCapture();
 
@@ -613,7 +613,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     public void testRequestsNotExpecting100ContinueBehaviorShouldNotSetExpectContinueHeader() throws Exception {
         final BasicClassicHttpRequest post = new BasicClassicHttpRequest("POST", "/");
         post.setHeader("Content-Length", "128");
-        post.setEntity(new BasicHttpEntity());
+        post.setEntity(new StringEntity("whatever"));
 
         final Capture<ClassicHttpRequest> reqCap = EasyMock.newCapture();
 
@@ -1382,7 +1382,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         for (int i = 0; i < bytes1.length; i++) {
             bytes1[i] = (byte) 1;
         }
-        resp1.setEntity(new ByteArrayEntity(bytes1));
+        resp1.setEntity(new ByteArrayEntity(bytes1, null));
 
         final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
         req2.setHeader("Cache-Control", "no-cache");
@@ -1399,7 +1399,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         for (int i = 0; i < bytes2.length; i++) {
             bytes2[i] = (byte) 2;
         }
-        resp2.setEntity(new ByteArrayEntity(bytes2));
+        resp2.setEntity(new ByteArrayEntity(bytes2, null));
 
         final Date inTwoSeconds = new Date(now.getTime() + 2000L);
         final ClassicHttpRequest req3 = new BasicClassicHttpRequest("GET", "/");
@@ -1411,7 +1411,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         for (int i = 0; i < bytes3.length; i++) {
             bytes3[i] = (byte) 2;
         }
-        resp3.setEntity(new ByteArrayEntity(bytes3));
+        resp3.setEntity(new ByteArrayEntity(bytes3, null));
 
         EasyMock.expect(
                 mockExecChain.proceed(
@@ -1463,7 +1463,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         for (int i = 0; i < bytes1.length; i++) {
             bytes1[i] = (byte) 1;
         }
-        resp1.setEntity(new ByteArrayEntity(bytes1));
+        resp1.setEntity(new ByteArrayEntity(bytes1, null));
 
         final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
         req2.setHeader("Cache-Control", "no-cache");
@@ -1480,7 +1480,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         for (int i = 0; i < bytes2.length; i++) {
             bytes2[i] = (byte) 2;
         }
-        resp2.setEntity(new ByteArrayEntity(bytes2));
+        resp2.setEntity(new ByteArrayEntity(bytes2, null));
 
         final Date inTwoSeconds = new Date(now.getTime() + 2000L);
         final ClassicHttpRequest req3 = new BasicClassicHttpRequest("GET", "/");
@@ -1492,7 +1492,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         for (int i = 0; i < bytes3.length; i++) {
             bytes3[i] = (byte) 2;
         }
-        resp3.setEntity(new ByteArrayEntity(bytes3));
+        resp3.setEntity(new ByteArrayEntity(bytes3, null));
 
         EasyMock.expect(
                 mockExecChain.proceed(
@@ -1550,7 +1550,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
             originResponse.setHeader("Cache-Control", "max-age=3600");
             final byte[] bytes = new byte[51];
             new Random().nextBytes(bytes);
-            originResponse.setEntity(new ByteArrayEntity(bytes));
+            originResponse.setEntity(new ByteArrayEntity(bytes, null));
 
             EasyMock.expect(
                     mockExecChain.proceed(
@@ -2529,7 +2529,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         validated.setHeader("Cache-Control", "public");
         validated.setHeader("Last-Modified", DateUtils.formatDate(oneYearAgo));
         validated.setHeader("Content-Length", "128");
-        validated.setEntity(new ByteArrayEntity(bytes));
+        validated.setEntity(new ByteArrayEntity(bytes, null));
 
         final HttpCacheEntry cacheEntry = HttpTestUtils.makeCacheEntry();
 

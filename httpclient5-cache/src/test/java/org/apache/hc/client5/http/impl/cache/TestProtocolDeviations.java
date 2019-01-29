@@ -146,7 +146,7 @@ public class TestProtocolDeviations {
     private HttpEntity makeBody(final int nbytes) {
         final byte[] bytes = new byte[nbytes];
         new Random().nextBytes(bytes);
-        return new ByteArrayEntity(bytes);
+        return new ByteArrayEntity(bytes, null);
     }
 
     public static HttpRequest eqRequest(final HttpRequest in) {

@@ -30,6 +30,7 @@ package org.apache.hc.client5.http.entity;
 import java.nio.charset.StandardCharsets;
 import java.util.zip.Deflater;
 
+import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
@@ -51,7 +52,7 @@ public class TestDeflate {
         compresser.finish();
         final int len = compresser.deflate(compressed);
 
-        final HttpEntity entity = new DeflateDecompressingEntity(new ByteArrayEntity(compressed, 0, len));
+        final HttpEntity entity = new DeflateDecompressingEntity(new ByteArrayEntity(compressed, 0, len, ContentType.APPLICATION_OCTET_STREAM));
         Assert.assertEquals(s, EntityUtils.toString(entity));
     }
 

@@ -37,7 +37,6 @@ import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.http.io.entity.AbstractHttpEntity;
-import org.apache.hc.core5.http.io.entity.BasicHttpEntity;
 import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
 import org.apache.hc.core5.http.io.entity.FileEntity;
 import org.apache.hc.core5.http.io.entity.InputStreamEntity;
@@ -311,27 +310,24 @@ public class EntityBuilder {
     public HttpEntity build() {
         final AbstractHttpEntity e;
         if (this.text != null) {
-            e = new StringEntity(this.text, getContentOrDefault(ContentType.DEFAULT_TEXT));
+            e = new StringEntity(this.text, getContentOrDefault(ContentType.DEFAULT_TEXT), this.contentEncoding,
+                this.chunked);
         } else if (this.binary != null) {
-            e = new ByteArrayEntity(this.binary, getContentOrDefault(ContentType.DEFAULT_BINARY));
+            e = new ByteArrayEntity(this.binary, getContentOrDefault(ContentType.DEFAULT_BINARY),
+                this.contentEncoding, this.chunked);
         } else if (this.stream != null) {
-            e = new InputStreamEntity(this.stream, -1, getContentOrDefault(ContentType.DEFAULT_BINARY));
+            e = new InputStreamEntity(this.stream, -1, getContentOrDefault(ContentType.DEFAULT_BINARY),
+                this.contentEncoding);
         } else if (this.parameters != null) {
             e = new UrlEncodedFormEntity(this.parameters,
                     this.contentType != null ? this.contentType.getCharset() : null);
         } else if (this.serializable != null) {
-            e = new SerializableEntity(this.serializable);
-            e.setContentType(ContentType.DEFAULT_BINARY.toString());
+            e = new SerializableEntity(this.serializable, ContentType.DEFAULT_BINARY, this.contentEncoding);
         } else if (this.file != null) {
-            e = new FileEntity(this.file, getContentOrDefault(ContentType.DEFAULT_BINARY));
+            e = new FileEntity(this.file, getContentOrDefault(ContentType.DEFAULT_BINARY), this.contentEncoding);
         } else {
-            e = new BasicHttpEntity();
+            throw new IllegalStateException("No entity set");
         }
-        if (e.getContentType() != null && this.contentType != null) {
-            e.setContentType(this.contentType.toString());
-        }
-        e.setContentEncoding(this.contentEncoding);
-        e.setChunked(this.chunked);
         if (this.gzipCompress) {
             return new GzipCompressingEntity(e);
         }

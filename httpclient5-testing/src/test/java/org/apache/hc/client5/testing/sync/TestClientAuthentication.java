@@ -202,7 +202,7 @@ public class TestClientAuthentication extends LocalServerTestBase {
         httpput.setEntity(new InputStreamEntity(
                 new ByteArrayInputStream(
                         new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 } ),
-                        -1));
+                        -1, null));
         final HttpClientContext context = HttpClientContext.create();
         final TestCredentialsProvider credsProvider = new TestCredentialsProvider(
                 new UsernamePasswordCredentials("test", "test".toCharArray()));
@@ -225,7 +225,7 @@ public class TestClientAuthentication extends LocalServerTestBase {
         httpput.setEntity(new InputStreamEntity(
                 new ByteArrayInputStream(
                         new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 } ),
-                        -1));
+                        -1, null));
 
         final HttpClientContext context = HttpClientContext.create();
         final TestCredentialsProvider credsProvider = new TestCredentialsProvider(
@@ -270,7 +270,7 @@ public class TestClientAuthentication extends LocalServerTestBase {
         final HttpPost httppost = new HttpPost("/");
         httppost.setEntity(new InputStreamEntity(
                 new ByteArrayInputStream(
-                        new byte[] { 0,1,2,3,4,5,6,7,8,9 }), -1));
+                        new byte[] { 0,1,2,3,4,5,6,7,8,9 }), -1, null));
 
         final HttpClientContext context = HttpClientContext.create();
         context.setRequestConfig(RequestConfig.custom()

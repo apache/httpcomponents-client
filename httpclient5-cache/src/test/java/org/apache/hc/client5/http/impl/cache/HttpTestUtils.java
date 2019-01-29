@@ -234,7 +234,7 @@ public class HttpTestUtils {
      *  @return an {@link HttpEntity}
      */
     public static HttpEntity makeBody(final int nbytes) {
-        return new ByteArrayEntity(getRandomBytes(nbytes));
+        return new ByteArrayEntity(getRandomBytes(nbytes), null);
     }
 
     public static HttpCacheEntry makeCacheEntry(final Date requestDate, final Date responseDate) {

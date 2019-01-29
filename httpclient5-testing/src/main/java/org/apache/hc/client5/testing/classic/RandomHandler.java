@@ -36,6 +36,7 @@ import java.nio.charset.StandardCharsets;
 
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.MethodNotSupportedException;
@@ -47,7 +48,7 @@ import org.apache.hc.core5.http.protocol.HttpContext;
 /**
  * A handler that generates random data.
  */
-public class RandomHandler implements HttpRequestHandler {
+public class  RandomHandler implements HttpRequestHandler {
 
     /**
      * Handles a request by generating random data.
@@ -127,6 +128,7 @@ public class RandomHandler implements HttpRequestHandler {
          *              0 to maxint
          */
         public RandomEntity(final long len) {
+            super((ContentType) null, null);
             length = len;
         }
 

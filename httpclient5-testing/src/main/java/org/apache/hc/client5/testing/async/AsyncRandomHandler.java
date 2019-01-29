@@ -164,7 +164,7 @@ public class AsyncRandomHandler implements AsyncServerExchangeHandler {
         private final ByteBuffer buffer;
 
         public RandomBinAsyncEntityProducer(final long len) {
-            super(2048, 512, ContentType.DEFAULT_TEXT);
+            super(512, ContentType.DEFAULT_TEXT);
             length = len;
             remaining = len;
             buffer = ByteBuffer.allocate(1024);
@@ -186,7 +186,7 @@ public class AsyncRandomHandler implements AsyncServerExchangeHandler {
         }
 
         @Override
-        public int available() {
+        public int availableData() {
             return Integer.MAX_VALUE;
         }
 

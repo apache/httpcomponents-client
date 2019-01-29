@@ -76,6 +76,11 @@ class LoggingIOSession implements ProtocolIOSession {
     }
 
     @Override
+    public Lock getLock() {
+        return this.session.getLock();
+    }
+
+    @Override
     public Lock lock() {
         return this.session.lock();
     }
@@ -233,8 +238,9 @@ class LoggingIOSession implements ProtocolIOSession {
             final NamedEndpoint endpoint,
             final SSLBufferMode sslBufferMode,
             final SSLSessionInitializer initializer,
-            final SSLSessionVerifier verifier) throws UnsupportedOperationException {
-        session.startTls(sslContext, endpoint, sslBufferMode, initializer, verifier);
+            final SSLSessionVerifier verifier,
+            final Timeout handshakeTimeout) throws UnsupportedOperationException {
+        session.startTls(sslContext, endpoint, sslBufferMode, initializer, verifier, handshakeTimeout);
     }
 
     @Override
