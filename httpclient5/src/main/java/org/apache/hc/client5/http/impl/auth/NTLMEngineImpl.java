@@ -1787,7 +1787,7 @@ final class NTLMEngineImpl implements NTLMEngine {
             writeUShort( newTargetInfo, MSV_AV_CHANNEL_BINDINGS, appendLength + 8 );
             writeUShort( newTargetInfo, 16, appendLength + 10 );
 
-            byte[] channelBindingsHash;
+            final byte[] channelBindingsHash;
             try
             {
                 final byte[] certBytes = peerServerCertificate.getEncoded();
