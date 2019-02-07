@@ -145,10 +145,9 @@ class CachedHttpResponseGenerator {
         if (transferEncodingIsPresent(response)) {
             return;
         }
-        final Header contentLength = response.getFirstHeader(HttpHeaders.CONTENT_LENGTH);
-        if (contentLength == null) {
-            response.setHeader(HttpHeaders.CONTENT_LENGTH, Integer.toString(body.length));
-        }
+        // Some well known proxies respond with Content-Length=0, when returning 304. For robustness, always
+        // use the cached entity's content length, as modern browsers do.
+        response.setHeader(HttpHeaders.CONTENT_LENGTH, Integer.toString(body.length));
     }
 
     private boolean transferEncodingIsPresent(final HttpResponse response) {
