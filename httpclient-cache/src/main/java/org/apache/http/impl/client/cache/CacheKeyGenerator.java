@@ -27,9 +27,8 @@
 package org.apache.http.impl.client.cache;
 
 import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URL;
+import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -44,7 +43,10 @@ import org.apache.http.annotation.Contract;
 import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.client.cache.HttpCacheEntry;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.client.utils.URIUtils;
+import org.apache.http.util.Args;
 
 /**
  * @since 4.1
@@ -53,6 +55,50 @@ import org.apache.http.client.utils.URIUtils;
 class CacheKeyGenerator {
 
     private static final URI BASE_URI = URI.create("http://example.com/");
+
+    static URIBuilder getRequestUriBuilder(final HttpRequest request) throws URISyntaxException {
+        if (request instanceof HttpUriRequest) {
+            final URI uri = ((HttpUriRequest) request).getURI();
+            if (uri != null) {
+                return new URIBuilder(uri);
+            }
+        }
+        return new URIBuilder(request.getRequestLine().getUri());
+    }
+
+    static URI getRequestUri(final HttpRequest request, final HttpHost target) throws URISyntaxException {
+        Args.notNull(request, "HTTP request");
+        Args.notNull(target, "Target");
+        final URIBuilder uriBuilder = getRequestUriBuilder(request);
+        if (!uriBuilder.isAbsolute()) {
+            uriBuilder.setScheme(target.getSchemeName());
+            uriBuilder.setHost(target.getHostName());
+            uriBuilder.setPort(target.getPort());
+        }
+        return uriBuilder.build();
+    }
+
+    static URI normalize(final URI requestUri) throws URISyntaxException {
+        Args.notNull(requestUri, "URI");
+        final URIBuilder builder = new URIBuilder(requestUri.isAbsolute() ? URIUtils.resolve(BASE_URI, requestUri) : requestUri) ;
+        if (builder.getHost() != null) {
+            if (builder.getScheme() == null) {
+                builder.setScheme("http");
+            }
+            if (builder.getPort() <= -1) {
+                if ("http".equalsIgnoreCase(builder.getScheme())) {
+                    builder.setPort(80);
+                } else if ("https".equalsIgnoreCase(builder.getScheme())) {
+                    builder.setPort(443);
+                }
+            }
+        }
+        builder.setFragment(null);
+        if (builder.getPath() == null) {
+            builder.setPath("/");
+        }
+        return builder.build();
+    }
 
     /**
      * For a given {@link HttpHost} and {@link HttpRequest} get a URI from the
@@ -63,43 +109,21 @@ class CacheKeyGenerator {
      * @return String the extracted URI
      */
     public String getURI(final HttpHost host, final HttpRequest req) {
-        if (isRelativeRequest(req)) {
-            return canonicalizeUri(String.format("%s%s", host.toString(), req.getRequestLine().getUri()));
+        try {
+            final URI uri = normalize(getRequestUri(req, host));
+            return uri.toASCIIString();
+        } catch (final URISyntaxException ex) {
+            return req.getRequestLine().getUri();
         }
-        return canonicalizeUri(req.getRequestLine().getUri());
     }
 
     public String canonicalizeUri(final String uri) {
         try {
-            final URI normalized = URIUtils.resolve(BASE_URI, uri);
-            final URL u = new URL(normalized.toASCIIString());
-            final String protocol = u.getProtocol();
-            final String hostname = u.getHost();
-            final int port = canonicalizePort(u.getPort(), protocol);
-            final String path = u.getPath();
-            final String query = u.getQuery();
-            final String file = (query != null) ? (path + "?" + query) : path;
-            final URL out = new URL(protocol, hostname, port, file);
-            return out.toString();
-        } catch (final IllegalArgumentException e) {
-            return uri;
-        } catch (final MalformedURLException e) {
+            final URI normalized = normalize(URIUtils.resolve(BASE_URI, uri));
+            return normalized.toASCIIString();
+        } catch (final URISyntaxException ex) {
             return uri;
         }
-    }
-
-    private int canonicalizePort(final int port, final String protocol) {
-        if (port == -1 && "http".equalsIgnoreCase(protocol)) {
-            return 80;
-        } else if (port == -1 && "https".equalsIgnoreCase(protocol)) {
-            return 443;
-        }
-        return port;
-    }
-
-    private boolean isRelativeRequest(final HttpRequest req) {
-        final String requestUri = req.getRequestLine().getUri();
-        return ("*".equals(requestUri) || requestUri.startsWith("/"));
     }
 
     protected String getFullHeaderValue(final Header[] headers) {
