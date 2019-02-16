@@ -46,6 +46,7 @@ import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.client.utils.URIUtils;
+import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.util.Args;
 
 /**
@@ -70,6 +71,13 @@ class CacheKeyGenerator {
         Args.notNull(request, "HTTP request");
         Args.notNull(target, "Target");
         final URIBuilder uriBuilder = getRequestUriBuilder(request);
+
+        // Decode path segments to preserve original behavior for backward compatibility
+        final String path = uriBuilder.getPath();
+        if (path != null) {
+            uriBuilder.setPathSegments(URLEncodedUtils.parsePathSegments(path));
+        }
+
         if (!uriBuilder.isAbsolute()) {
             uriBuilder.setScheme(target.getSchemeName());
             uriBuilder.setHost(target.getHostName());

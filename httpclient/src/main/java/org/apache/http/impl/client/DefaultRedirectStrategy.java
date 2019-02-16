@@ -29,7 +29,6 @@ package org.apache.http.impl.client;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Locale;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -49,12 +48,10 @@ import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.methods.RequestBuilder;
 import org.apache.http.client.protocol.HttpClientContext;
-import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.client.utils.URIUtils;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.Args;
 import org.apache.http.util.Asserts;
-import org.apache.http.util.TextUtils;
 
 /**
  * Default implementation of {@link RedirectStrategy}. This strategy honors the restrictions
@@ -191,16 +188,7 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
      */
     protected URI createLocationURI(final String location) throws ProtocolException {
         try {
-            final URIBuilder b = new URIBuilder(new URI(location));
-            final String host = b.getHost();
-            if (host != null) {
-                b.setHost(host.toLowerCase(Locale.ROOT));
-            }
-            final String path = b.getPath();
-            if (TextUtils.isEmpty(path)) {
-                b.setPath("/");
-            }
-            return b.build();
+            return new URI(location);
         } catch (final URISyntaxException ex) {
             throw new ProtocolException("Invalid redirect URI: " + location, ex);
         }

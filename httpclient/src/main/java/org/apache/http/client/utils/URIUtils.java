@@ -28,7 +28,9 @@ package org.apache.http.client.utils;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Stack;
@@ -214,24 +216,18 @@ public class URIUtils {
         if (flags.contains(UriFlag.DROP_FRAGMENT)) {
             uribuilder.setFragment(null);
         }
-        final String path = uribuilder.getPath();
-        if (TextUtils.isEmpty(path)) {
-            uribuilder.setPath("/");
-        } else {
-            if (flags.contains(UriFlag.NORMALIZE)) {
-                final StringBuilder buf = new StringBuilder(path.length());
-                boolean foundSlash = false;
-                for (int i = 0; i < path.length(); i++) {
-                    final char ch = path.charAt(i);
-                    if (ch != '/' || !foundSlash) {
-                        buf.append(ch);
-                    }
-                    foundSlash = ch == '/';
+        if (flags.contains(UriFlag.NORMALIZE)) {
+            final List<String> pathSegments = new ArrayList<String>(uribuilder.getPathSegments());
+            for (final Iterator<String> it = pathSegments.iterator(); it.hasNext(); ) {
+                final String pathSegment = it.next();
+                if (pathSegment.isEmpty() && it.hasNext()) {
+                    it.remove();
                 }
-                uribuilder.setPath(buf.toString());
-            } else {
-                uribuilder.setPath(path);
             }
+            uribuilder.setPathSegments(pathSegments);
+        }
+        if (uribuilder.isPathEmpty()) {
+            uribuilder.setPathSegments("");
         }
         return uribuilder.build();
     }
@@ -266,6 +262,9 @@ public class URIUtils {
         final URIBuilder uribuilder = new URIBuilder(uri);
         if (uribuilder.getUserInfo() != null) {
             uribuilder.setUserInfo(null);
+        }
+        if (uribuilder.getPathSegments().isEmpty()) {
+            uribuilder.setPathSegments("");
         }
         if (TextUtils.isEmpty(uribuilder.getPath())) {
             uribuilder.setPath("/");
@@ -363,7 +362,7 @@ public class URIUtils {
             return uri;
         }
         final URIBuilder builder = new URIBuilder(uri);
-        final List<String> inputSegments = URLEncodedUtils.parsePathSegments(uri.getPath());
+        final List<String> inputSegments = builder.getPathSegments();
         final Stack<String> outputSegments = new Stack<String>();
         for (final String inputSegment : inputSegments) {
             if (".".equals(inputSegment)) {
