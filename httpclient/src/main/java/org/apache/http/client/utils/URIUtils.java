@@ -287,6 +287,21 @@ public class URIUtils {
      *
      * @since 4.4
      */
+    public static URI rewriteURIForRoute(final URI uri, final RouteInfo route) throws URISyntaxException {
+        return rewriteURIForRoute(uri, route, true);
+    }
+
+    /**
+     * A convenience method that optionally converts the original {@link java.net.URI} either
+     * to a relative or an absolute form as required by the specified route.
+     *
+     * @param uri
+     *            original URI.
+     * @throws URISyntaxException
+     *             If the resulting URI is invalid.
+     *
+     * @since 4.5.8
+     */
     public static URI rewriteURIForRoute(final URI uri, final RouteInfo route, final boolean normalizeUri) throws URISyntaxException {
         if (uri == null) {
             return null;
@@ -294,8 +309,8 @@ public class URIUtils {
         if (route.getProxyHost() != null && !route.isTunnelled()) {
             // Make sure the request URI is absolute
             return uri.isAbsolute()
-                            ? rewriteURI(uri)
-                            : rewriteURI(uri, route.getTargetHost(), normalizeUri ? DROP_FRAGMENT_AND_NORMALIZE : DROP_FRAGMENT);
+                    ? rewriteURI(uri)
+                    : rewriteURI(uri, route.getTargetHost(), normalizeUri ? DROP_FRAGMENT_AND_NORMALIZE : DROP_FRAGMENT);
         }
         // Make sure the request URI is relative
         return uri.isAbsolute() ? rewriteURI(uri, null, normalizeUri ? DROP_FRAGMENT_AND_NORMALIZE : DROP_FRAGMENT) : rewriteURI(uri);
