@@ -28,6 +28,7 @@ package org.apache.http.client.utils;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Stack;
@@ -44,6 +45,44 @@ import org.apache.http.util.TextUtils;
  * @since 4.0
  */
 public class URIUtils {
+
+    /**
+     * Flags that control how URI is being rewritten.
+     *
+     * @since 5.7.8
+     */
+    public enum UriFlag {
+        DROP_FRAGMENT,
+        NORMALIZE
+    }
+
+    /**
+     * Empty set of uri flags.
+     *
+     * @since 5.7.8
+     */
+    public static final EnumSet<UriFlag> NO_FLAGS = EnumSet.noneOf(UriFlag.class);
+
+    /**
+     * Set of uri flags containing {@link UriFlag#DROP_FRAGMENT}.
+     *
+     * @since 5.7.8
+     */
+    public static final EnumSet<UriFlag> DROP_FRAGMENT = EnumSet.of(UriFlag.DROP_FRAGMENT);
+
+    /**
+     * Set of uri flags containing {@link UriFlag#NORMALIZE}.
+     *
+     * @since 5.7.8
+     */
+    public static final EnumSet<UriFlag> NORMALIZE = EnumSet.of(UriFlag.NORMALIZE);
+
+    /**
+     * Set of uri flags containing {@link UriFlag#DROP_FRAGMENT} and {@link UriFlag#NORMALIZE}.
+     *
+     * @since 5.7.8
+     */
+    public static final EnumSet<UriFlag> DROP_FRAGMENT_AND_NORMALIZE = EnumSet.of(UriFlag.DROP_FRAGMENT, UriFlag.NORMALIZE);
 
      /**
          * Constructs a {@link URI} using all the parameters. This should be
@@ -125,12 +164,40 @@ public class URIUtils {
      *
      * @throws URISyntaxException
      *             If the resulting URI is invalid.
+     * @deprecated (5.7.8) Use {@link #rewriteURI(URI, HttpHost, EnumSet)}
+     */
+    @Deprecated
+    public static URI rewriteURI(
+            final URI uri,
+            final HttpHost target,
+            final boolean dropFragment) throws URISyntaxException
+    {
+        return rewriteURI(uri, target, dropFragment ? DROP_FRAGMENT : NO_FLAGS);
+    }
+
+    /**
+     * A convenience method for creating a new {@link URI} whose scheme, host
+     * and port are taken from the target host, but whose path, query and
+     * fragment are taken from the existing URI. What exactly is used and how
+     * is driven by the passed in flags. The path is set to "/" if not explicitly specified.
+     *
+     * @param uri
+     *            Contains the path, query and fragment to use.
+     * @param target
+     *            Contains the scheme, host and port to use.
+     * @param flags
+     *            True if the fragment should not be copied.
+     *
+     * @throws URISyntaxException
+     *             If the resulting URI is invalid.
+     * @since 5.7.8
      */
     public static URI rewriteURI(
             final URI uri,
             final HttpHost target,
-            final boolean dropFragment) throws URISyntaxException {
+            final EnumSet<UriFlag> flags) throws URISyntaxException {
         Args.notNull(uri, "URI");
+        Args.notNull(flags, "URI flags");
         if (uri.isOpaque()) {
             return uri;
         }
@@ -144,36 +211,40 @@ public class URIUtils {
             uribuilder.setHost(null);
             uribuilder.setPort(-1);
         }
-        if (dropFragment) {
+        if (flags.contains(UriFlag.DROP_FRAGMENT)) {
             uribuilder.setFragment(null);
         }
         final String path = uribuilder.getPath();
         if (TextUtils.isEmpty(path)) {
             uribuilder.setPath("/");
         } else {
-            final StringBuilder buf = new StringBuilder(path.length());
-            boolean foundSlash = false;
-            for (int i = 0; i < path.length(); i++) {
-                final char ch = path.charAt(i);
-                if (ch != '/' || !foundSlash) {
-                    buf.append(ch);
+            if (flags.contains(UriFlag.NORMALIZE)) {
+                final StringBuilder buf = new StringBuilder(path.length());
+                boolean foundSlash = false;
+                for (int i = 0; i < path.length(); i++) {
+                    final char ch = path.charAt(i);
+                    if (ch != '/' || !foundSlash) {
+                        buf.append(ch);
+                    }
+                    foundSlash = ch == '/';
                 }
-                foundSlash = ch == '/';
+                uribuilder.setPath(buf.toString());
+            } else {
+                uribuilder.setPath(path);
             }
-            uribuilder.setPath(buf.toString());
         }
         return uribuilder.build();
     }
 
     /**
      * A convenience method for
-     * {@link URIUtils#rewriteURI(URI, HttpHost, boolean)} that always keeps the
+     * {@link URIUtils#rewriteURI(URI, HttpHost, EnumSet)} that always keeps the
      * fragment.
      */
     public static URI rewriteURI(
             final URI uri,
             final HttpHost target) throws URISyntaxException {
-        return rewriteURI(uri, target, false);
+        return rewriteURI(uri, target, NORMALIZE);
     }
 
     /**
@@ -217,7 +288,7 @@ public class URIUtils {
      *
      * @since 4.4
      */
-    public static URI rewriteURIForRoute(final URI uri, final RouteInfo route) throws URISyntaxException {
+    public static URI rewriteURIForRoute(final URI uri, final RouteInfo route, final boolean normalizeUri) throws URISyntaxException {
         if (uri == null) {
             return null;
         }
@@ -225,10 +296,10 @@ public class URIUtils {
             // Make sure the request URI is absolute
             return uri.isAbsolute()
                             ? rewriteURI(uri)
-                            : rewriteURI(uri, route.getTargetHost(), true);
+                            : rewriteURI(uri, route.getTargetHost(), normalizeUri ? DROP_FRAGMENT_AND_NORMALIZE : DROP_FRAGMENT);
         }
         // Make sure the request URI is relative
-        return uri.isAbsolute() ? rewriteURI(uri, null, true) : rewriteURI(uri);
+        return uri.isAbsolute() ? rewriteURI(uri, null, normalizeUri ? DROP_FRAGMENT_AND_NORMALIZE : DROP_FRAGMENT) : rewriteURI(uri);
     }
 
     /**

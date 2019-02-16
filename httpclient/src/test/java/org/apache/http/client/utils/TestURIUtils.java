@@ -34,6 +34,9 @@ import org.apache.http.conn.routing.HttpRoute;
 import org.junit.Assert;
 import org.junit.Test;
 
+import static org.apache.http.client.utils.URIUtils.DROP_FRAGMENT_AND_NORMALIZE;
+import static org.apache.http.client.utils.URIUtils.NORMALIZE;
+
 /**
  * This TestCase contains test methods for URI resolving according to RFC 3986.
  * The examples are listed in section "5.4 Reference Resolution Examples"
@@ -52,15 +55,15 @@ public class TestURIUtils {
         Assert.assertEquals("/", URIUtils.rewriteURI(
                 URI.create("http://thishost//"), null).toString());
         Assert.assertEquals("/stuff/morestuff", URIUtils.rewriteURI(
-                URI.create("http://thishost//stuff/morestuff"), null).toString());
+                URI.create("http://thishost//stuff///morestuff"), null).toString());
         Assert.assertEquals("http://thathost/stuff", URIUtils.rewriteURI(
-                URI.create("http://thishost/stuff#crap"), target, true).toString());
+                URI.create("http://thishost/stuff#crap"), target, DROP_FRAGMENT_AND_NORMALIZE).toString());
         Assert.assertEquals("http://thathost/stuff#crap", URIUtils.rewriteURI(
-                URI.create("http://thishost/stuff#crap"), target, false).toString());
+                URI.create("http://thishost/stuff#crap"), target, NORMALIZE).toString());
         Assert.assertEquals("http://thathost/", URIUtils.rewriteURI(
-                URI.create("http://thishost#crap"), target, true).toString());
+                URI.create("http://thishost#crap"), target, DROP_FRAGMENT_AND_NORMALIZE).toString());
         Assert.assertEquals("http://thathost/#crap", URIUtils.rewriteURI(
-                URI.create("http://thishost#crap"), target, false).toString());
+                URI.create("http://thishost#crap"), target, NORMALIZE).toString());
         Assert.assertEquals("/stuff/", URIUtils.rewriteURI(
                 URI.create("http://thishost//////////////stuff/"), null).toString());
         Assert.assertEquals("http://thathost/stuff", URIUtils.rewriteURI(
@@ -84,21 +87,21 @@ public class TestURIUtils {
     public void testRewritePort() throws Exception {
         HttpHost target = new HttpHost("thathost", 8080); // port should be copied
         Assert.assertEquals("http://thathost:8080/stuff", URIUtils.rewriteURI(
-                URI.create("http://thishost:80/stuff#crap"), target, true).toString());
+                URI.create("http://thishost:80/stuff#crap"), target, DROP_FRAGMENT_AND_NORMALIZE).toString());
         Assert.assertEquals("http://thathost:8080/stuff#crap", URIUtils.rewriteURI(
-                URI.create("http://thishost:80/stuff#crap"), target, false).toString());
+                URI.create("http://thishost:80/stuff#crap"), target, NORMALIZE).toString());
         target = new HttpHost("thathost", -1); // input port should be dropped
         Assert.assertEquals("http://thathost/stuff", URIUtils.rewriteURI(
-                URI.create("http://thishost:80/stuff#crap"), target, true).toString());
+                URI.create("http://thishost:80/stuff#crap"), target, DROP_FRAGMENT_AND_NORMALIZE).toString());
         Assert.assertEquals("http://thathost/stuff#crap", URIUtils.rewriteURI(
-                URI.create("http://thishost:80/stuff#crap"), target, false).toString());
+                URI.create("http://thishost:80/stuff#crap"), target, NORMALIZE).toString());
     }
 
     @Test
     public void testRewriteScheme() throws Exception {
         final HttpHost target = new HttpHost("thathost", -1, "file"); // scheme should be copied
         Assert.assertEquals("file://thathost/stuff", URIUtils.rewriteURI(
-                URI.create("http://thishost:80/stuff#crap"), target, true).toString());
+                URI.create("http://thishost:80/stuff#crap"), target, DROP_FRAGMENT_AND_NORMALIZE).toString());
     }
 
     @Test
@@ -110,23 +113,23 @@ public class TestURIUtils {
 
         // Direct route
         Assert.assertEquals(new URI("/test"), URIUtils
-                .rewriteURIForRoute(new URI("http://foo/test"), new HttpRoute(target1)));
+                .rewriteURIForRoute(new URI("http://foo/test"), new HttpRoute(target1), true));
 
         // Direct route
         Assert.assertEquals(new URI("/"), URIUtils
-                .rewriteURIForRoute(new URI(""), new HttpRoute(target1)));
+                .rewriteURIForRoute(new URI(""), new HttpRoute(target1), true));
 
         // Via proxy
         Assert.assertEquals(new URI("http://foo/test"), URIUtils
-                .rewriteURIForRoute(new URI("http://foo/test"), new HttpRoute(target1, proxy)));
+                .rewriteURIForRoute(new URI("http://foo/test"), new HttpRoute(target1, proxy), true));
 
         // Via proxy
         Assert.assertEquals(new URI("http://foo:80/test"), URIUtils
-                .rewriteURIForRoute(new URI("/test"), new HttpRoute(target1, proxy)));
+                .rewriteURIForRoute(new URI("/test"), new HttpRoute(target1, proxy), true));
 
         // Via proxy tunnel
         Assert.assertEquals(new URI("/test"), URIUtils
-                .rewriteURIForRoute(new URI("https://foo:443/test"), new HttpRoute(target2, null, proxy, true)));
+                .rewriteURIForRoute(new URI("https://foo:443/test"), new HttpRoute(target2, null, proxy, true), true));
     }
 
     @Test

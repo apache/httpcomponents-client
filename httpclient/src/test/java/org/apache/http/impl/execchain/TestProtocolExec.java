@@ -104,7 +104,7 @@ public class TestProtocolExec {
         final HttpRoute route = new HttpRoute(target);
         final HttpRequestWrapper request = HttpRequestWrapper.wrap(
                 new HttpGet("http://foo/test"));
-        protocolExec.rewriteRequestURI(request, route);
+        protocolExec.rewriteRequestURI(request, route, true);
         Assert.assertEquals(new URI("/test"), request.getURI());
     }
 
@@ -113,7 +113,7 @@ public class TestProtocolExec {
         final HttpRoute route = new HttpRoute(target);
         final HttpRequestWrapper request = HttpRequestWrapper.wrap(
                 new HttpGet(""));
-        protocolExec.rewriteRequestURI(request, route);
+        protocolExec.rewriteRequestURI(request, route, true);
         Assert.assertEquals(new URI("/"), request.getURI());
     }
 
@@ -122,7 +122,7 @@ public class TestProtocolExec {
         final HttpRoute route = new HttpRoute(target, proxy);
         final HttpRequestWrapper request = HttpRequestWrapper.wrap(
                 new HttpGet("http://foo/test"));
-        protocolExec.rewriteRequestURI(request, route);
+        protocolExec.rewriteRequestURI(request, route, true);
         Assert.assertEquals(new URI("http://foo/test"), request.getURI());
     }
 
@@ -131,7 +131,7 @@ public class TestProtocolExec {
         final HttpRoute route = new HttpRoute(target, proxy);
         final HttpRequestWrapper request = HttpRequestWrapper.wrap(
                 new HttpGet("/test"));
-        protocolExec.rewriteRequestURI(request, route);
+        protocolExec.rewriteRequestURI(request, route, true);
         Assert.assertEquals(new URI("http://foo:80/test"), request.getURI());
     }
 

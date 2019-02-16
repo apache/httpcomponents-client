@@ -146,6 +146,9 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
         final RequestConfig config = clientContext.getRequestConfig();
 
         URI uri = createLocationURI(location);
+        if (config.isNormalizeUri()) {
+            uri = uri.normalize();
+        }
 
         // rfc2616 demands the location value be a complete URI
         // Location       = "Location" ":" absoluteURI
@@ -159,7 +162,8 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
                 final HttpHost target = clientContext.getTargetHost();
                 Asserts.notNull(target, "Target host");
                 final URI requestURI = new URI(request.getRequestLine().getUri());
-                final URI absoluteRequestURI = URIUtils.rewriteURI(requestURI, target, false);
+                final URI absoluteRequestURI = URIUtils.rewriteURI(requestURI, target,
+                    config.isNormalizeUri() ? URIUtils.NORMALIZE : URIUtils.NO_FLAGS);
                 uri = URIUtils.resolve(absoluteRequestURI, uri);
             }
         } catch (final URISyntaxException ex) {
@@ -186,7 +190,7 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
      */
     protected URI createLocationURI(final String location) throws ProtocolException {
         try {
-            final URIBuilder b = new URIBuilder(new URI(location).normalize());
+            final URIBuilder b = new URIBuilder(new URI(location));
             final String host = b.getHost();
             if (host != null) {
                 b.setHost(host.toLowerCase(Locale.ROOT));

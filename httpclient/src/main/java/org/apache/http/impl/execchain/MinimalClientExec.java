@@ -69,6 +69,9 @@ import org.apache.http.protocol.RequestUserAgent;
 import org.apache.http.util.Args;
 import org.apache.http.util.VersionInfo;
 
+import static org.apache.http.client.utils.URIUtils.DROP_FRAGMENT;
+import static org.apache.http.client.utils.URIUtils.DROP_FRAGMENT_AND_NORMALIZE;
+
 /**
  * Request executor that implements the most fundamental aspects of
  * the HTTP specification and the most straight-forward request / response
@@ -112,13 +115,14 @@ public class MinimalClientExec implements ClientExecChain {
 
     static void rewriteRequestURI(
             final HttpRequestWrapper request,
-            final HttpRoute route) throws ProtocolException {
+            final HttpRoute route,
+            final boolean normalizeUri) throws ProtocolException {
         try {
             URI uri = request.getURI();
             if (uri != null) {
                 // Make sure the request URI is relative
                 if (uri.isAbsolute()) {
-                    uri = URIUtils.rewriteURI(uri, null, true);
+                    uri = URIUtils.rewriteURI(uri, null, normalizeUri ? DROP_FRAGMENT_AND_NORMALIZE : DROP_FRAGMENT);
                 } else {
                     uri = URIUtils.rewriteURI(uri);
                 }
@@ -139,7 +143,7 @@ public class MinimalClientExec implements ClientExecChain {
         Args.notNull(request, "HTTP request");
         Args.notNull(context, "HTTP context");
 
-        rewriteRequestURI(request, route);
+        rewriteRequestURI(request, route, context.getRequestConfig().isNormalizeUri());
 
         final ConnectionRequest connRequest = connManager.requestConnection(route, null);
         if (execAware != null) {
