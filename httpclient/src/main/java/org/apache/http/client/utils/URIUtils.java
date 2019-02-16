@@ -51,7 +51,7 @@ public class URIUtils {
     /**
      * Flags that control how URI is being rewritten.
      *
-     * @since 5.7.8
+     * @since 4.5.8
      */
     public enum UriFlag {
         DROP_FRAGMENT,
@@ -61,28 +61,28 @@ public class URIUtils {
     /**
      * Empty set of uri flags.
      *
-     * @since 5.7.8
+     * @since 4.5.8
      */
     public static final EnumSet<UriFlag> NO_FLAGS = EnumSet.noneOf(UriFlag.class);
 
     /**
      * Set of uri flags containing {@link UriFlag#DROP_FRAGMENT}.
      *
-     * @since 5.7.8
+     * @since 4.5.8
      */
     public static final EnumSet<UriFlag> DROP_FRAGMENT = EnumSet.of(UriFlag.DROP_FRAGMENT);
 
     /**
      * Set of uri flags containing {@link UriFlag#NORMALIZE}.
      *
-     * @since 5.7.8
+     * @since 4.5.8
      */
     public static final EnumSet<UriFlag> NORMALIZE = EnumSet.of(UriFlag.NORMALIZE);
 
     /**
      * Set of uri flags containing {@link UriFlag#DROP_FRAGMENT} and {@link UriFlag#NORMALIZE}.
      *
-     * @since 5.7.8
+     * @since 4.5.8
      */
     public static final EnumSet<UriFlag> DROP_FRAGMENT_AND_NORMALIZE = EnumSet.of(UriFlag.DROP_FRAGMENT, UriFlag.NORMALIZE);
 
@@ -166,7 +166,7 @@ public class URIUtils {
      *
      * @throws URISyntaxException
      *             If the resulting URI is invalid.
-     * @deprecated (5.7.8) Use {@link #rewriteURI(URI, HttpHost, EnumSet)}
+     * @deprecated (4.5.8) Use {@link #rewriteURI(URI, HttpHost, EnumSet)}
      */
     @Deprecated
     public static URI rewriteURI(
@@ -192,7 +192,7 @@ public class URIUtils {
      *
      * @throws URISyntaxException
      *             If the resulting URI is invalid.
-     * @since 5.7.8
+     * @since 4.5.8
      */
     public static URI rewriteURI(
             final URI uri,
