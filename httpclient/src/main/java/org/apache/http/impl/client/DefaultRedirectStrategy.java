@@ -146,13 +146,14 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
         final RequestConfig config = clientContext.getRequestConfig();
 
         URI uri = createLocationURI(location);
-        if (config.isNormalizeUri()) {
-            uri = uri.normalize();
-        }
 
-        // rfc2616 demands the location value be a complete URI
-        // Location       = "Location" ":" absoluteURI
         try {
+            if (config.isNormalizeUri()) {
+                uri = URIUtils.normalizeSyntax(uri);
+            }
+
+            // rfc2616 demands the location value be a complete URI
+            // Location       = "Location" ":" absoluteURI
             if (!uri.isAbsolute()) {
                 if (!config.isRelativeRedirectsAllowed()) {
                     throw new ProtocolException("Relative redirect location '"

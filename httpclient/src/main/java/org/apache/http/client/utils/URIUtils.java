@@ -354,13 +354,14 @@ public class URIUtils {
      *
      * @param uri the original URI
      * @return the URI without dot segments
+     *
+     * @since 4.5
      */
-    static URI normalizeSyntax(final URI uri) throws URISyntaxException {
+    public static URI normalizeSyntax(final URI uri) throws URISyntaxException {
         if (uri.isOpaque() || uri.getAuthority() == null) {
             // opaque and file: URIs
             return uri;
         }
-        Args.check(uri.isAbsolute(), "Base URI must be absolute");
         final URIBuilder builder = new URIBuilder(uri);
         final List<String> inputSegments = URLEncodedUtils.parsePathSegments(uri.getPath());
         final Stack<String> outputSegments = new Stack<String>();
