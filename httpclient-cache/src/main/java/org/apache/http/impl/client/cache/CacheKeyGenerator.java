@@ -94,9 +94,6 @@ class CacheKeyGenerator {
             }
         }
         builder.setFragment(null);
-        if (builder.getPath() == null) {
-            builder.setPath("/");
-        }
         return builder.build();
     }
 

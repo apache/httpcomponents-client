@@ -362,31 +362,23 @@ public class URIUtils {
         }
         Args.check(uri.isAbsolute(), "Base URI must be absolute");
         final URIBuilder builder = new URIBuilder(uri);
-        final String path = builder.getPath();
-        if (path != null && !path.equals("/")) {
-            final String[] inputSegments = path.split("/");
-            final Stack<String> outputSegments = new Stack<String>();
-            for (final String inputSegment : inputSegments) {
-                if ((inputSegment.isEmpty()) || (".".equals(inputSegment))) {
-                    // Do nothing
-                } else if ("..".equals(inputSegment)) {
-                    if (!outputSegments.isEmpty()) {
-                        outputSegments.pop();
-                    }
-                } else {
-                    outputSegments.push(inputSegment);
+        final List<String> inputSegments = URLEncodedUtils.parsePathSegments(uri.getPath());
+        final Stack<String> outputSegments = new Stack<String>();
+        for (final String inputSegment : inputSegments) {
+            if (".".equals(inputSegment)) {
+                // Do nothing
+            } else if ("..".equals(inputSegment)) {
+                if (!outputSegments.isEmpty()) {
+                    outputSegments.pop();
                 }
+            } else {
+                outputSegments.push(inputSegment);
             }
-            final StringBuilder outputBuffer = new StringBuilder();
-            for (final String outputSegment : outputSegments) {
-                outputBuffer.append('/').append(outputSegment);
-            }
-            if (path.lastIndexOf('/') == path.length() - 1) {
-                // path.endsWith("/") || path.equals("")
-                outputBuffer.append('/');
-            }
-            builder.setPath(outputBuffer.toString());
         }
+        if (outputSegments.size() == 0) {
+            outputSegments.add("");
+        }
+        builder.setPathSegments(outputSegments);
         if (builder.getScheme() != null) {
             builder.setScheme(builder.getScheme().toLowerCase(Locale.ROOT));
         }

@@ -151,7 +151,7 @@ public class TestURIUtils {
         Assert.assertEquals("http://a/b/c/g", URIUtils.resolve(this.baseURI, "./g").toString());
         Assert.assertEquals("http://a/b/c/g/", URIUtils.resolve(this.baseURI, "g/").toString());
         Assert.assertEquals("http://a/g", URIUtils.resolve(this.baseURI, "/g").toString());
-        Assert.assertEquals("http://g", URIUtils.resolve(this.baseURI, "//g").toString());
+        Assert.assertEquals("http://g/", URIUtils.resolve(this.baseURI, "//g").toString());
         Assert.assertEquals("http://a/b/c/d;p?y", URIUtils.resolve(this.baseURI, "?y").toString());
         Assert.assertEquals("http://a/b/c/d;p?y#f", URIUtils.resolve(this.baseURI, "?y#f")
                 .toString());
