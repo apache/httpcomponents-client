@@ -337,14 +337,14 @@ public class DefaultRequestDirector implements RequestDirector {
                 // Make sure the request URI is absolute
                 if (!uri.isAbsolute()) {
                     final HttpHost target = route.getTargetHost();
-                    uri = URIUtils.rewriteURI(uri, target, true);
+                    uri = URIUtils.rewriteURI(uri, target, URIUtils.DROP_FRAGMENT_AND_NORMALIZE);
                 } else {
                     uri = URIUtils.rewriteURI(uri);
                 }
             } else {
                 // Make sure the request URI is relative
                 if (uri.isAbsolute()) {
-                    uri = URIUtils.rewriteURI(uri, null, true);
+                    uri = URIUtils.rewriteURI(uri, null, URIUtils.DROP_FRAGMENT_AND_NORMALIZE);
                 } else {
                     uri = URIUtils.rewriteURI(uri);
                 }

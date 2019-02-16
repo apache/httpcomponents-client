@@ -60,12 +60,13 @@ public class RequestConfig implements Cloneable {
     private final int connectTimeout;
     private final int socketTimeout;
     private final boolean contentCompressionEnabled;
+    private final boolean normalizeUri;
 
     /**
      * Intended for CDI compatibility
     */
     protected RequestConfig() {
-        this(false, null, null, false, null, false, false, false, 0, false, null, null, 0, 0, 0, true);
+        this(false, null, null, false, null, false, false, false, 0, false, null, null, 0, 0, 0, true, true);
     }
 
     RequestConfig(
@@ -84,7 +85,8 @@ public class RequestConfig implements Cloneable {
             final int connectionRequestTimeout,
             final int connectTimeout,
             final int socketTimeout,
-            final boolean contentCompressionEnabled) {
+            final boolean contentCompressionEnabled,
+            final boolean normalizeUri) {
         super();
         this.expectContinueEnabled = expectContinueEnabled;
         this.proxy = proxy;
@@ -102,6 +104,7 @@ public class RequestConfig implements Cloneable {
         this.connectTimeout = connectTimeout;
         this.socketTimeout = socketTimeout;
         this.contentCompressionEnabled = contentCompressionEnabled;
+        this.normalizeUri = normalizeUri;
     }
 
     /**
@@ -332,6 +335,18 @@ public class RequestConfig implements Cloneable {
         return contentCompressionEnabled;
     }
 
+    /**
+     * Determines whether client should normalize URIs in requests or not.
+     * <p>
+     * Default: {@code true}
+     * </p>
+     *
+     * @since 4.5.8
+     */
+    public boolean isNormalizeUri() {
+        return normalizeUri;
+    }
+
     @Override
     protected RequestConfig clone() throws CloneNotSupportedException {
         return (RequestConfig) super.clone();
@@ -356,6 +371,7 @@ public class RequestConfig implements Cloneable {
         builder.append(", connectTimeout=").append(connectTimeout);
         builder.append(", socketTimeout=").append(socketTimeout);
         builder.append(", contentCompressionEnabled=").append(contentCompressionEnabled);
+        builder.append(", normalizeUri=").append(normalizeUri);
         builder.append("]");
         return builder.toString();
     }
@@ -404,6 +420,7 @@ public class RequestConfig implements Cloneable {
         private int connectTimeout;
         private int socketTimeout;
         private boolean contentCompressionEnabled;
+        private boolean normalizeUri;
 
         Builder() {
             super();
@@ -416,6 +433,7 @@ public class RequestConfig implements Cloneable {
             this.connectTimeout = -1;
             this.socketTimeout = -1;
             this.contentCompressionEnabled = true;
+            this.normalizeUri = true;
         }
 
         public Builder setExpectContinueEnabled(final boolean expectContinueEnabled) {
@@ -513,6 +531,11 @@ public class RequestConfig implements Cloneable {
             return this;
         }
 
+        public Builder setNormalizeUri(final boolean normalizeUri) {
+            this.normalizeUri = normalizeUri;
+            return this;
+        }
+
         public RequestConfig build() {
             return new RequestConfig(
                     expectContinueEnabled,
@@ -530,7 +553,8 @@ public class RequestConfig implements Cloneable {
                     connectionRequestTimeout,
                     connectTimeout,
                     socketTimeout,
-                    contentCompressionEnabled);
+                    contentCompressionEnabled,
+                    normalizeUri);
         }
 
     }

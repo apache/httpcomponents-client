@@ -137,7 +137,7 @@ public class DefaultRedirectHandler implements RedirectHandler {
 
             try {
                 final URI requestURI = new URI(request.getRequestLine().getUri());
-                final URI absoluteRequestURI = URIUtils.rewriteURI(requestURI, target, true);
+                final URI absoluteRequestURI = URIUtils.rewriteURI(requestURI, target, URIUtils.DROP_FRAGMENT_AND_NORMALIZE);
                 uri = URIUtils.resolve(absoluteRequestURI, uri);
             } catch (final URISyntaxException ex) {
                 throw new ProtocolException(ex.getMessage(), ex);
@@ -161,7 +161,7 @@ public class DefaultRedirectHandler implements RedirectHandler {
                             uri.getHost(),
                             uri.getPort(),
                             uri.getScheme());
-                    redirectURI = URIUtils.rewriteURI(uri, target, true);
+                    redirectURI = URIUtils.rewriteURI(uri, target, URIUtils.DROP_FRAGMENT_AND_NORMALIZE);
                 } catch (final URISyntaxException ex) {
                     throw new ProtocolException(ex.getMessage(), ex);
                 }

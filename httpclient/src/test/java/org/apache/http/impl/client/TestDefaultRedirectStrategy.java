@@ -398,4 +398,15 @@ public class TestDefaultRedirectStrategy {
         redirectStrategy.createLocationURI(":::::::");
     }
 
+    @Test
+    public void testWithoutNormalize() throws Exception {
+        final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
+        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1,
+            HttpStatus.SC_TEMPORARY_REDIRECT, "Temporary Redirect");
+        response.addHeader("Location", "http://somewhere.com//foo");
+        final HttpClientContext context1 = new HttpClientContext(new BasicHttpContext());
+        context1.setRequestConfig(RequestConfig.custom().setNormalizeUri(false).build());
+        Assert.assertEquals("http://somewhere.com//foo", redirectStrategy.getRedirect(
+            new HttpGet("http://localhost/stuff"), response, context1).getURI().toASCIIString());
+    }
 }

@@ -88,11 +88,12 @@ public class ProtocolExec implements ClientExecChain {
 
     void rewriteRequestURI(
             final HttpRequestWrapper request,
-            final HttpRoute route) throws ProtocolException {
+            final HttpRoute route,
+            final boolean normalizeUri) throws ProtocolException {
         final URI uri = request.getURI();
         if (uri != null) {
             try {
-                request.setURI(URIUtils.rewriteURIForRoute(uri, route));
+                request.setURI(URIUtils.rewriteURIForRoute(uri, route, normalizeUri));
             } catch (final URISyntaxException ex) {
                 throw new ProtocolException("Invalid URI: " + uri, ex);
             }
@@ -129,7 +130,7 @@ public class ProtocolExec implements ClientExecChain {
         request.setURI(uri);
 
         // Re-write request URI if needed
-        rewriteRequestURI(request, route);
+        rewriteRequestURI(request, route, context.getRequestConfig().isNormalizeUri());
 
         final HttpParams params = request.getParams();
         HttpHost virtualHost = (HttpHost) params.getParameter(ClientPNames.VIRTUAL_HOST);
