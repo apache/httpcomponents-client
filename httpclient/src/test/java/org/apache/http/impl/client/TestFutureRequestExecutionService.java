@@ -35,6 +35,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -52,10 +53,13 @@ import org.apache.http.impl.bootstrap.HttpServer;
 import org.apache.http.impl.bootstrap.ServerBootstrap;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
+import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 @SuppressWarnings("boxing") // test code
 public class TestFutureRequestExecutionService {
@@ -65,6 +69,9 @@ public class TestFutureRequestExecutionService {
     private FutureRequestExecutionService httpAsyncClientWithFuture;
 
     private final AtomicBoolean blocked = new AtomicBoolean(false);
+
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
 
     @Before
     public void before() throws Exception {
@@ -109,16 +116,22 @@ public class TestFutureRequestExecutionService {
         Assert.assertTrue("request should have returned OK", task.get().booleanValue());
     }
 
-    @Test(expected=CancellationException.class)
+    @Test
     public void shouldCancel() throws InterruptedException, ExecutionException {
-        final HttpRequestFutureTask<Boolean> task = httpAsyncClientWithFuture.execute(
-            new HttpGet(uri), HttpClientContext.create(), new OkidokiHandler());
+        thrown.expect(CoreMatchers.anyOf(
+                CoreMatchers.instanceOf(CancellationException.class),
+                CoreMatchers.instanceOf(ExecutionException.class)));
+
+        final FutureTask<Boolean> task = httpAsyncClientWithFuture.execute(
+                new HttpGet(uri), HttpClientContext.create(), new OkidokiHandler());
         task.cancel(true);
         task.get();
     }
 
-    @Test(expected=TimeoutException.class)
+    @Test
     public void shouldTimeout() throws InterruptedException, ExecutionException, TimeoutException {
+        thrown.expect(TimeoutException.class);
+
         blocked.set(true);
         final HttpRequestFutureTask<Boolean> task = httpAsyncClientWithFuture.execute(
             new HttpGet(uri), HttpClientContext.create(), new OkidokiHandler());
