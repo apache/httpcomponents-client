@@ -385,13 +385,6 @@ public class TestDefaultRedirectStrategy {
         Assert.assertSame(entity, ((HttpEntityEnclosingRequest) redirect2).getEntity());
     }
 
-    @Test
-    public void testCreateLocationURI() throws Exception {
-        final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
-        Assert.assertEquals("http://blahblah/",
-                redirectStrategy.createLocationURI("http://BlahBlah").toASCIIString());
-    }
-
     @Test(expected=ProtocolException.class)
     public void testCreateLocationURIInvalid() throws Exception {
         final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();

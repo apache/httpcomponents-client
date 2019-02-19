@@ -28,7 +28,9 @@ package org.apache.http.client.utils;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Stack;
@@ -49,7 +51,7 @@ public class URIUtils {
     /**
      * Flags that control how URI is being rewritten.
      *
-     * @since 5.7.8
+     * @since 4.5.8
      */
     public enum UriFlag {
         DROP_FRAGMENT,
@@ -59,28 +61,28 @@ public class URIUtils {
     /**
      * Empty set of uri flags.
      *
-     * @since 5.7.8
+     * @since 4.5.8
      */
     public static final EnumSet<UriFlag> NO_FLAGS = EnumSet.noneOf(UriFlag.class);
 
     /**
      * Set of uri flags containing {@link UriFlag#DROP_FRAGMENT}.
      *
-     * @since 5.7.8
+     * @since 4.5.8
      */
     public static final EnumSet<UriFlag> DROP_FRAGMENT = EnumSet.of(UriFlag.DROP_FRAGMENT);
 
     /**
      * Set of uri flags containing {@link UriFlag#NORMALIZE}.
      *
-     * @since 5.7.8
+     * @since 4.5.8
      */
     public static final EnumSet<UriFlag> NORMALIZE = EnumSet.of(UriFlag.NORMALIZE);
 
     /**
      * Set of uri flags containing {@link UriFlag#DROP_FRAGMENT} and {@link UriFlag#NORMALIZE}.
      *
-     * @since 5.7.8
+     * @since 4.5.8
      */
     public static final EnumSet<UriFlag> DROP_FRAGMENT_AND_NORMALIZE = EnumSet.of(UriFlag.DROP_FRAGMENT, UriFlag.NORMALIZE);
 
@@ -164,7 +166,7 @@ public class URIUtils {
      *
      * @throws URISyntaxException
      *             If the resulting URI is invalid.
-     * @deprecated (5.7.8) Use {@link #rewriteURI(URI, HttpHost, EnumSet)}
+     * @deprecated (4.5.8) Use {@link #rewriteURI(URI, HttpHost, EnumSet)}
      */
     @Deprecated
     public static URI rewriteURI(
@@ -190,7 +192,7 @@ public class URIUtils {
      *
      * @throws URISyntaxException
      *             If the resulting URI is invalid.
-     * @since 5.7.8
+     * @since 4.5.8
      */
     public static URI rewriteURI(
             final URI uri,
@@ -214,24 +216,18 @@ public class URIUtils {
         if (flags.contains(UriFlag.DROP_FRAGMENT)) {
             uribuilder.setFragment(null);
         }
-        final String path = uribuilder.getPath();
-        if (TextUtils.isEmpty(path)) {
-            uribuilder.setPath("/");
-        } else {
-            if (flags.contains(UriFlag.NORMALIZE)) {
-                final StringBuilder buf = new StringBuilder(path.length());
-                boolean foundSlash = false;
-                for (int i = 0; i < path.length(); i++) {
-                    final char ch = path.charAt(i);
-                    if (ch != '/' || !foundSlash) {
-                        buf.append(ch);
-                    }
-                    foundSlash = ch == '/';
+        if (flags.contains(UriFlag.NORMALIZE)) {
+            final List<String> pathSegments = new ArrayList<String>(uribuilder.getPathSegments());
+            for (final Iterator<String> it = pathSegments.iterator(); it.hasNext(); ) {
+                final String pathSegment = it.next();
+                if (pathSegment.isEmpty() && it.hasNext()) {
+                    it.remove();
                 }
-                uribuilder.setPath(buf.toString());
-            } else {
-                uribuilder.setPath(path);
             }
+            uribuilder.setPathSegments(pathSegments);
+        }
+        if (uribuilder.isPathEmpty()) {
+            uribuilder.setPathSegments("");
         }
         return uribuilder.build();
     }
@@ -267,6 +263,9 @@ public class URIUtils {
         if (uribuilder.getUserInfo() != null) {
             uribuilder.setUserInfo(null);
         }
+        if (uribuilder.getPathSegments().isEmpty()) {
+            uribuilder.setPathSegments("");
+        }
         if (TextUtils.isEmpty(uribuilder.getPath())) {
             uribuilder.setPath("/");
         }
@@ -288,6 +287,21 @@ public class URIUtils {
      *
      * @since 4.4
      */
+    public static URI rewriteURIForRoute(final URI uri, final RouteInfo route) throws URISyntaxException {
+        return rewriteURIForRoute(uri, route, true);
+    }
+
+    /**
+     * A convenience method that optionally converts the original {@link java.net.URI} either
+     * to a relative or an absolute form as required by the specified route.
+     *
+     * @param uri
+     *            original URI.
+     * @throws URISyntaxException
+     *             If the resulting URI is invalid.
+     *
+     * @since 4.5.8
+     */
     public static URI rewriteURIForRoute(final URI uri, final RouteInfo route, final boolean normalizeUri) throws URISyntaxException {
         if (uri == null) {
             return null;
@@ -295,8 +309,8 @@ public class URIUtils {
         if (route.getProxyHost() != null && !route.isTunnelled()) {
             // Make sure the request URI is absolute
             return uri.isAbsolute()
-                            ? rewriteURI(uri)
-                            : rewriteURI(uri, route.getTargetHost(), normalizeUri ? DROP_FRAGMENT_AND_NORMALIZE : DROP_FRAGMENT);
+                    ? rewriteURI(uri)
+                    : rewriteURI(uri, route.getTargetHost(), normalizeUri ? DROP_FRAGMENT_AND_NORMALIZE : DROP_FRAGMENT);
         }
         // Make sure the request URI is relative
         return uri.isAbsolute() ? rewriteURI(uri, null, normalizeUri ? DROP_FRAGMENT_AND_NORMALIZE : DROP_FRAGMENT) : rewriteURI(uri);
@@ -354,39 +368,32 @@ public class URIUtils {
      *
      * @param uri the original URI
      * @return the URI without dot segments
+     *
+     * @since 4.5
      */
-    static URI normalizeSyntax(final URI uri) throws URISyntaxException {
+    public static URI normalizeSyntax(final URI uri) throws URISyntaxException {
         if (uri.isOpaque() || uri.getAuthority() == null) {
             // opaque and file: URIs
             return uri;
         }
-        Args.check(uri.isAbsolute(), "Base URI must be absolute");
         final URIBuilder builder = new URIBuilder(uri);
-        final String path = builder.getPath();
-        if (path != null && !path.equals("/")) {
-            final String[] inputSegments = path.split("/");
-            final Stack<String> outputSegments = new Stack<String>();
-            for (final String inputSegment : inputSegments) {
-                if ((inputSegment.isEmpty()) || (".".equals(inputSegment))) {
-                    // Do nothing
-                } else if ("..".equals(inputSegment)) {
-                    if (!outputSegments.isEmpty()) {
-                        outputSegments.pop();
-                    }
-                } else {
-                    outputSegments.push(inputSegment);
+        final List<String> inputSegments = builder.getPathSegments();
+        final Stack<String> outputSegments = new Stack<String>();
+        for (final String inputSegment : inputSegments) {
+            if (".".equals(inputSegment)) {
+                // Do nothing
+            } else if ("..".equals(inputSegment)) {
+                if (!outputSegments.isEmpty()) {
+                    outputSegments.pop();
                 }
+            } else {
+                outputSegments.push(inputSegment);
             }
-            final StringBuilder outputBuffer = new StringBuilder();
-            for (final String outputSegment : outputSegments) {
-                outputBuffer.append('/').append(outputSegment);
-            }
-            if (path.lastIndexOf('/') == path.length() - 1) {
-                // path.endsWith("/") || path.equals("")
-                outputBuffer.append('/');
-            }
-            builder.setPath(outputBuffer.toString());
         }
+        if (outputSegments.size() == 0) {
+            outputSegments.add("");
+        }
+        builder.setPathSegments(outputSegments);
         if (builder.getScheme() != null) {
             builder.setScheme(builder.getScheme().toLowerCase(Locale.ROOT));
         }
