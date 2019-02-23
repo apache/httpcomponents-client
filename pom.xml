@@ -69,7 +69,7 @@
     <maven.compiler.target>1.7</maven.compiler.target>
     <httpcore.version>5.0-beta6</httpcore.version>
     <log4j.version>2.9.1</log4j.version>
-    <commons-codec.version>1.11</commons-codec.version>
+    <commons-codec.version>1.12</commons-codec.version>
     <conscrypt.version>1.4.1</conscrypt.version>
     <ehcache.version>3.4.0</ehcache.version>
     <memcached.version>2.12.3</memcached.version>
@@ -77,9 +77,9 @@
     <junit.version>4.12</junit.version>
     <easymock.version>3.6</easymock.version>
     <mockito.version>2.23.0</mockito.version>
-    <jna.version>5.0.0</jna.version>
+    <jna.version>5.2.0</jna.version>
     <hc.stylecheck.version>1</hc.stylecheck.version>
-    <rxjava.version>2.2.2</rxjava.version>
+    <rxjava.version>2.2.7</rxjava.version>
   </properties>
 
   <dependencyManagement>

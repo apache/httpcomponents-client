@@ -1,4 +1,17 @@
-﻿Release 5.0-BETA3
+﻿Release 5.0-BETA4
+-------------------
+
+* Update Apache Commons Codec from 1.11 to 1.12
+  Contributed by Gary Gregory <ggregory at apache.org>
+
+* Update RxJava from 2.2.2 to 2.2.7
+  Contributed by Gary Gregory <ggregory at apache.org>
+
+* Update JNA from 5.0.0 to 5.2.0
+  Contributed by Gary Gregory <ggregory at apache.org>
+
+
+Release 5.0-BETA3
 -------------------
 
 This BETA release adds support for advanced TLS functions (such as ALPN protocol negotiation)
