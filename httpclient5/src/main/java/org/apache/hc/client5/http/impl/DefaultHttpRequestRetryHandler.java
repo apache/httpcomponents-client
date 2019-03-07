@@ -42,6 +42,7 @@ import org.apache.hc.client5.http.StandardMethods;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.concurrent.CancellableDependency;
+import org.apache.hc.core5.http.ConnectionClosedException;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.Args;
@@ -87,6 +88,7 @@ public class DefaultHttpRequestRetryHandler implements HttpRequestRetryHandler {
      * <li>InterruptedIOException</li>
      * <li>UnknownHostException</li>
      * <li>ConnectException</li>
+     * <li>ConnectionClosedException</li>
      * <li>SSLException</li>
      * </ul>
      *
@@ -95,7 +97,11 @@ public class DefaultHttpRequestRetryHandler implements HttpRequestRetryHandler {
      */
     public DefaultHttpRequestRetryHandler(final int retryCount) {
         this(retryCount,
-                InterruptedIOException.class, UnknownHostException.class, ConnectException.class, SSLException.class);
+                InterruptedIOException.class,
+                UnknownHostException.class,
+                ConnectException.class,
+                ConnectionClosedException.class,
+                SSLException.class);
     }
 
     /**
