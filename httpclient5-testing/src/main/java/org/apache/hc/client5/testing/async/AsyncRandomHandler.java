@@ -197,13 +197,13 @@ public class AsyncRandomHandler implements AsyncServerExchangeHandler {
                 final byte b = RANGE[(int) (Math.random() * RANGE.length)];
                 buffer.put(b);
             }
+            remaining -= chunk;
+
             buffer.flip();
-            final int bytesWritten = channel.write(buffer);
-            if (bytesWritten > 0) {
-                remaining -= bytesWritten;
-            }
+            channel.write(buffer);
             buffer.compact();
-            if (remaining <= 0) {
+
+            if (remaining <= 0 && buffer.position() == 0) {
                 channel.endStream();
             }
         }
