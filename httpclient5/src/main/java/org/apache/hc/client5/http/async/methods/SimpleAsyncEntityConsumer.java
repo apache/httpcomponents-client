@@ -24,46 +24,57 @@
  * <http://www.apache.org/>.
  *
  */
+
 package org.apache.hc.client5.http.async.methods;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpException;
-import org.apache.hc.core5.http.HttpResponse;
-import org.apache.hc.core5.http.nio.AsyncEntityConsumer;
-import org.apache.hc.core5.http.nio.support.AbstractAsyncResponseConsumer;
-import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.http.nio.entity.AbstractBinAsyncEntityConsumer;
+import org.apache.hc.core5.util.ByteArrayBuffer;
 
-/**
- * HTTP response consumer that generates a {@link SimpleHttpResponse} instance based on events
- * of an incoming data stream.
- *
- * @since 5.0
- *
- * @see SimpleBody
- */
-public final class SimpleResponseConsumer extends AbstractAsyncResponseConsumer<SimpleHttpResponse, byte[]> {
+final class SimpleAsyncEntityConsumer extends AbstractBinAsyncEntityConsumer<byte[]> {
 
-    SimpleResponseConsumer(final AsyncEntityConsumer<byte[]> entityConsumer) {
-        super(entityConsumer);
-    }
+    private final ByteArrayBuffer buffer;
 
-    public static SimpleResponseConsumer create() {
-        return new SimpleResponseConsumer(new SimpleAsyncEntityConsumer());
+    public SimpleAsyncEntityConsumer() {
+        super();
+        this.buffer = new ByteArrayBuffer(1024);
     }
 
     @Override
-    public void informationResponse(final HttpResponse response, final HttpContext context) throws HttpException, IOException {
+    protected void streamStart(final ContentType contentType) throws HttpException, IOException {
     }
 
     @Override
-    protected SimpleHttpResponse buildResult(final HttpResponse response, final byte[] entity, final ContentType contentType) {
-        final SimpleHttpResponse simpleResponse = SimpleHttpResponse.copy(response);
-        if (entity != null) {
-            simpleResponse.setBodyBytes(entity, contentType);
+    protected int capacityIncrement() {
+        return Integer.MAX_VALUE;
+    }
+
+    @Override
+    protected void data(final ByteBuffer src, final boolean endOfStream) throws IOException {
+        if (src == null) {
+            return;
         }
-        return simpleResponse;
+        if (src.hasArray()) {
+            buffer.append(src.array(), src.arrayOffset() + src.position(), src.remaining());
+        } else {
+            while (src.hasRemaining()) {
+                buffer.append(src.get());
+            }
+        }
+    }
+
+    @Override
+    protected byte[] generateContent() throws IOException {
+        return buffer.toByteArray();
+    }
+
+    @Override
+    public void releaseResources() {
+        buffer.clear();
     }
 
 }
