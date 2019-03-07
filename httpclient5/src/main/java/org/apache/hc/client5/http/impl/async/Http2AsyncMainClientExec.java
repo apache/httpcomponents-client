@@ -100,6 +100,10 @@ public class Http2AsyncMainClientExec implements AsyncExecChainHandler {
 
             @Override
             public void failed(final Exception cause) {
+                final AsyncDataConsumer entityConsumer = entityConsumerRef.getAndSet(null);
+                if (entityConsumer != null) {
+                    entityConsumer.releaseResources();
+                }
                 execRuntime.markConnectionNonReusable();
                 asyncExecCallback.failed(cause);
             }
