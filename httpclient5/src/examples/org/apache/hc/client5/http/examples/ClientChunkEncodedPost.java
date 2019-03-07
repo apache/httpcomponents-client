@@ -54,7 +54,6 @@ public class ClientChunkEncodedPost {
 
             final InputStreamEntity reqEntity = new InputStreamEntity(
                     new FileInputStream(file), -1, ContentType.APPLICATION_OCTET_STREAM);
-            reqEntity.setChunked(true);
             // It may be more appropriate to use FileEntity class in this particular
             // instance but we are using a more generic InputStreamEntity to demonstrate
             // the capability to stream out data from any arbitrary source

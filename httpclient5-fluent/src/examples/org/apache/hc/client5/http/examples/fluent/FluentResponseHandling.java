@@ -42,7 +42,6 @@ import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.io.HttpClientResponseHandler;
-import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
@@ -69,7 +68,7 @@ public class FluentResponseHandling {
                 DocumentBuilderFactory dbfac = DocumentBuilderFactory.newInstance();
                 try {
                     DocumentBuilder docBuilder = dbfac.newDocumentBuilder();
-                    ContentType contentType = EntityUtils.getContentTypeOrDefault(entity);
+                    ContentType contentType = ContentType.parseLenient(entity.getContentType());
                     if (!contentType.equals(ContentType.APPLICATION_XML)) {
                         throw new ClientProtocolException("Unexpected content type:" + contentType);
                     }
