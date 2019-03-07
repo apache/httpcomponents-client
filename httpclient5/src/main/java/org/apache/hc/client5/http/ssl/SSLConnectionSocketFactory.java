@@ -33,7 +33,9 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import javax.net.SocketFactory;
 import javax.net.ssl.HostnameVerifier;
@@ -67,6 +69,15 @@ import org.slf4j.LoggerFactory;
 @Contract(threading = ThreadingBehavior.STATELESS)
 public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactory {
 
+    private static final String WEAK_KEY_EXCHANGES
+            = "^(TLS|SSL)_(NULL|ECDH_anon|DH_anon|DH_anon_EXPORT|DHE_RSA_EXPORT|DHE_DSS_EXPORT|"
+            + "DSS_EXPORT|DH_DSS_EXPORT|DH_RSA_EXPORT|RSA_EXPORT|KRB5_EXPORT)_(.*)";
+    private static final String WEAK_CIPHERS
+            = "^(TLS|SSL)_(.*)_WITH_(NULL|DES_CBC|DES40_CBC|DES_CBC_40|3DES_EDE_CBC|RC4_128|RC4_40|RC2_CBC_40)_(.*)";
+    private static final List<Pattern> WEAK_CIPHER_SUITE_PATTERNS = Collections.unmodifiableList(Arrays.asList(
+            Pattern.compile(WEAK_KEY_EXCHANGES, Pattern.CASE_INSENSITIVE),
+            Pattern.compile(WEAK_CIPHERS, Pattern.CASE_INSENSITIVE)));
+
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     /**
@@ -94,6 +105,15 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
                 HttpsSupport.getSystemProtocols(),
                 HttpsSupport.getSystemCipherSuits(),
                 HttpsSupport.getDefaultHostnameVerifier());
+    }
+
+    static boolean isWeakCipherSuite(final String cipherSuite) {
+        for (final Pattern pattern : WEAK_CIPHER_SUITE_PATTERNS) {
+            if (pattern.matcher(cipherSuite).matches()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private final javax.net.ssl.SSLSocketFactory socketfactory;
@@ -232,6 +252,18 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
         }
         if (supportedCipherSuites != null) {
             sslsock.setEnabledCipherSuites(supportedCipherSuites);
+        } else {
+            // If cipher suites are not explicitly set, remove all insecure ones
+            final String[] allCipherSuites = sslsock.getEnabledCipherSuites();
+            final List<String> enabledCipherSuites = new ArrayList<>(allCipherSuites.length);
+            for (final String cipherSuite : allCipherSuites) {
+                if (!isWeakCipherSuite(cipherSuite)) {
+                    enabledCipherSuites.add(cipherSuite);
+                }
+            }
+            if (!enabledCipherSuites.isEmpty()) {
+                sslsock.setEnabledCipherSuites(enabledCipherSuites.toArray(new String[enabledCipherSuites.size()]));
+            }
         }
 
         if (this.log.isDebugEnabled()) {
