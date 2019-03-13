@@ -404,7 +404,7 @@ public class MainClientExec implements ClientExecChain {
                         timeout > 0 ? timeout : 0,
                         context);
                 final HttpHost proxy  = route.getProxyHost();
-                tracker.connectProxy(proxy, false);
+                tracker.connectProxy(proxy, route.isSecure() && !route.isTunnelled());
                 break;
             case HttpRouteDirector.TUNNEL_TARGET: {
                 final boolean secure = createTunnelToTarget(
