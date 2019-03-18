@@ -132,7 +132,7 @@ public final class ConnectExec implements ExecChainHandler {
                         case HttpRouteDirector.CONNECT_PROXY:
                             execRuntime.connectEndpoint(context);
                             final HttpHost proxy  = route.getProxyHost();
-                            tracker.connectProxy(proxy, false);
+                            tracker.connectProxy(proxy, route.isSecure() && !route.isTunnelled());
                             break;
                         case HttpRouteDirector.TUNNEL_TARGET: {
                             final boolean secure = createTunnelToTarget(route, request, execRuntime, context);

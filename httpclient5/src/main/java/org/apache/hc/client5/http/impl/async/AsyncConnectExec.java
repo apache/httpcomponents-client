@@ -223,7 +223,7 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
                         @Override
                         public void completed(final AsyncExecRuntime execRuntime) {
                             final HttpHost proxy  = route.getProxyHost();
-                            tracker.connectProxy(proxy, false);
+                            tracker.connectProxy(proxy, route.isSecure() && !route.isTunnelled());
                             log.debug("Connected to proxy");
                             proceedToNextHop(state, request, entityProducer, scope, chain, asyncExecCallback);
                         }
