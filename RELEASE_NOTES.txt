@@ -1,3 +1,39 @@
+Release 4.5.8
+-------------------
+
+This is a maintenance release that makes request URI normalization configurable on per request basis
+and also ports several improvements in URI handling from HttpCore master.
+
+
+Changelog:
+-------------------
+
+* HTTPCLIENT-1969: Filter out weak cipher suites.
+  Contributed by Artem Smotrakov <artem.smotrakov at sap.com>
+
+* HTTPCLIENT-1968: Preserve escaped PATHSAFE characters when normalizing URI path segments.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-1968: URIBuilder to split path component into path segments when digesting a URI
+  (ported from HttpCore master).
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Improved cache key generation (ported from HttpCore master).
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-1968: added utility methods to parse and format URI path segments (ported
+  from HttpCore master).
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-1968: Make normalization of URI paths optional.
+  Contributed by Tamas Cservenak <tamas at cservenak.net>
+
+* Some well known proxies respond with Content-Length=0, when returning 304. For robustness, always use the
+  cached entity's content length, as modern browsers do.
+  Contributed by Author: Jayson Raymond <jraymond at accelerantmobile.com>
+
+
+
 Release 4.5.7
 -------------------
 
