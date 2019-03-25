@@ -408,7 +408,7 @@ public class TestSSLSocketFactory {
                 "TLS_RSA_WITH_NULL_SHA256",
                 "SSL_RSA_EXPORT_WITH_RC4_40_MD5",
                 "SSL_DH_anon_EXPORT_WITH_RC4_40_MD5",
-                "TLS_KRB5_EXPORT_WITH_RC4_40_SHA",
+//                "TLS_KRB5_EXPORT_WITH_RC4_40_SHA",
                 "SSL_RSA_EXPORT_WITH_RC2_CBC_40_MD5"
         };
         for (final String cipherSuite : weakCiphersSuites) {
