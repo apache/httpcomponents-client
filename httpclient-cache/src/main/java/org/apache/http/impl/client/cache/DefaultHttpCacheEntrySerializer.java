@@ -30,7 +30,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.ObjectStreamClass;
 import java.io.OutputStream;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.regex.Pattern;
 
 import org.apache.http.annotation.Contract;
 import org.apache.http.annotation.ThreadingBehavior;
@@ -49,6 +54,22 @@ import org.apache.http.client.cache.HttpCacheEntrySerializer;
 @Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class DefaultHttpCacheEntrySerializer implements HttpCacheEntrySerializer {
 
+    private static final List<Pattern> ALLOWED_CLASS_PATTERNS = Collections.unmodifiableList(Arrays.asList(
+            Pattern.compile("^(\\[L)?org\\.apache\\.http\\.(.*)"),
+            Pattern.compile("^(\\[L)?java\\.util\\.(.*)"),
+            Pattern.compile("^(\\[L)?java\\.lang\\.(.*)$"),
+            Pattern.compile("^\\[B$")));
+
+    private final List<Pattern> allowedClassPatterns;
+
+    DefaultHttpCacheEntrySerializer(final Pattern... allowedClassPatterns) {
+        this.allowedClassPatterns = Collections.unmodifiableList(Arrays.asList(allowedClassPatterns));
+    }
+
+    public DefaultHttpCacheEntrySerializer() {
+        this.allowedClassPatterns = ALLOWED_CLASS_PATTERNS;
+    }
+
     @Override
     public void writeTo(final HttpCacheEntry cacheEntry, final OutputStream os) throws IOException {
         final ObjectOutputStream oos = new ObjectOutputStream(os);
@@ -61,13 +82,41 @@ public class DefaultHttpCacheEntrySerializer implements HttpCacheEntrySerializer
 
     @Override
     public HttpCacheEntry readFrom(final InputStream is) throws IOException {
-        final ObjectInputStream ois = new ObjectInputStream(is);
+        final ObjectInputStream ois = new RestrictedObjectInputStream(is, allowedClassPatterns);
         try {
             return (HttpCacheEntry) ois.readObject();
         } catch (final ClassNotFoundException ex) {
             throw new HttpCacheEntrySerializationException("Class not found: " + ex.getMessage(), ex);
         } finally {
             ois.close();
+        }
+    }
+
+    private static class RestrictedObjectInputStream extends ObjectInputStream {
+
+        private final List<Pattern> allowedClassPatterns;
+
+        private RestrictedObjectInputStream(final InputStream in, final List<Pattern> patterns) throws IOException {
+            super(in);
+            this.allowedClassPatterns = patterns;
+        }
+
+        @Override
+        protected Class<?> resolveClass(final ObjectStreamClass desc) throws IOException, ClassNotFoundException {
+            if (isProhibited(desc)) {
+                throw new HttpCacheEntrySerializationException(String.format(
+                        "Class %s is not allowed for deserialization", desc.getName()));
+            }
+            return super.resolveClass(desc);
+        }
+
+        private boolean isProhibited(final ObjectStreamClass desc) {
+            for (final Pattern pattern : allowedClassPatterns) {
+                if (pattern.matcher(desc.getName()).matches()) {
+                    return false;
+                }
+            }
+            return true;
         }
     }
 

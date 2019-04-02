@@ -32,11 +32,13 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.ObjectOutputStream;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.Header;
@@ -44,12 +46,15 @@ import org.apache.http.ProtocolVersion;
 import org.apache.http.StatusLine;
 import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.client.cache.HttpCacheEntry;
+import org.apache.http.client.cache.HttpCacheEntrySerializationException;
 import org.apache.http.client.cache.HttpCacheEntrySerializer;
 import org.apache.http.client.cache.Resource;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicStatusLine;
 import org.junit.Before;
 import org.junit.Test;
+
+import com.sun.rowset.JdbcRowSetImpl;
 
 public class TestHttpCacheEntrySerializers {
 
@@ -65,6 +70,43 @@ public class TestHttpCacheEntrySerializers {
     @Test
     public void canSerializeEntriesWithVariantMaps() throws Exception {
         readWriteVerify(makeCacheEntryWithVariantMap());
+    }
+
+    @Test(expected = HttpCacheEntrySerializationException.class)
+    public void throwExceptionIfUnsafeDeserialization() throws IOException {
+        impl.readFrom(new ByteArrayInputStream(serializeProhibitedObject()));
+    }
+
+    @Test(expected = HttpCacheEntrySerializationException.class)
+    public void allowClassesToBeDeserialized() throws IOException {
+        impl = new DefaultHttpCacheEntrySerializer(
+                Pattern.compile("javax.sql.rowset.BaseRowSet"),
+                Pattern.compile("com.sun.rowset.JdbcRowSetImpl"));
+        readVerify(serializeProhibitedObject());
+    }
+
+    @Test(expected = HttpCacheEntrySerializationException.class)
+    public void allowClassesToBeDeserializedByRegex() throws IOException {
+        impl = new DefaultHttpCacheEntrySerializer(
+                Pattern.compile(("^com\\.sun\\.rowset\\.(.*)")),
+                Pattern.compile("^javax\\.sql\\.rowset\\.BaseRowSet$"));
+        readVerify(serializeProhibitedObject());
+    }
+
+    private byte[] serializeProhibitedObject() throws IOException {
+        final JdbcRowSetImpl jdbcRowSet = new JdbcRowSetImpl();
+        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        final ObjectOutputStream oos = new ObjectOutputStream(baos);
+        try {
+            oos.writeObject(jdbcRowSet);
+        } finally {
+            oos.close();
+        }
+        return baos.toByteArray();
+    }
+
+    private void readVerify(final byte[] data) throws IOException {
+        impl.readFrom(new ByteArrayInputStream(data));
     }
 
     public void readWriteVerify(final HttpCacheEntry writeEntry) throws IOException {
