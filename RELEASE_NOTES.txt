@@ -1,26 +1,14 @@
 ﻿Release 5.0-BETA4
 -------------------
 
-* Update Apache Commons Codec from 1.11 to 1.12
-  Contributed by Gary Gregory <ggregory at apache.org>
-
-* Update RxJava from 2.2.2 to 2.2.7
-  Contributed by Gary Gregory <ggregory at apache.org>
-
-* Update JNA from 5.0.0 to 5.2.0
-  Contributed by Gary Gregory <ggregory at apache.org>
-
-
-Release 5.0-BETA3
--------------------
-
-This BETA release adds support for advanced TLS functions (such as ALPN protocol negotiation)
-on Java 1.7 and Java 1.8 through Conscrypt TLS library and picks up the latest fixes
-and performance improvements from HttpCore.
+This BETA release picks up the latest fixes and performance improvements from HttpCore
+and addresses a number of issues found since the previous BETA release.
 
 Notable features in this release:
 
-* TLS ALPN protocol negotiation support on older JREs through Conscrypt TLS library.
+* Security improvements.
+
+* URI handling improvements.
 
 
 Notable changes and features included in the 5.0 series are:
@@ -58,6 +46,75 @@ The 5.0 APIs are considered feature complete and are not expected to undergo any
 anymore. The focus of development is now shifting to API polish, code stabilisation
 and documentation improvements.
 
+
+
+Changelog:
+-------------------
+
+* HTTPCLIENT-1976: Unsafe deserialization in DefaultHttpCacheEntrySerializer.
+  Contributed by Artem Smotrakov <artem.smotrakov at gmail.com>
+
+* HTTPCLIENT-1969: Filter out weak cipher suites.
+  Contributed by Artem Smotrakov <artem.smotrakov at gmail.com>
+
+* HttpClient should not retry requests in case of ConnectionClosedException
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Bug fix: Simple response consumer to discard stored content when releasing resources.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Bug fix: main async request execution handlers to release the associated response consumer
+  upon exception.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Update Apache Commons Codec from 1.11 to 1.12.
+  Contributed by Gary Gregory <ggregory at apache.org>
+
+* Update RxJava from 2.2.2 to 2.2.7.
+  Contributed by Gary Gregory <ggregory at apache.org>
+
+* Update JNA from 5.0.0 to 5.2.0.
+  Contributed by Gary Gregory <ggregory at apache.org>
+
+* Some well known proxies respond with Content-Length=0, when returning 304. For robustness,
+  always use the cached entity's content length, as modern browsers do.
+  Contributed by Jayson Raymond <Jayson.Raymond15 at T-Mobile.com>
+
+* HTTPCLIENT-1960: URIBuilder incorrect handling of multiple leading slashes in path component.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-1958: PoolingHttpClientConnectionManager to throw ExecutionException
+  in case of a lease operation cancellation instead of InterruptedException.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Shutdown executorService on AbstractHttpAsyncClientBase shutdown.
+  Contributed by 吴雪山 <xueshan.wu at ndkey.com.cn>
+
+* [HTTPCLIENT-1952: Allow default User Agent to be disabled
+  Contributed by Michael Osipov <michaelo at apache.org>
+
+* Improve HttpResponseException#getMessage.
+  Contributed by Michael Osipov <michaelo at apache.org>
+
+* Better handling of http(s).proxyUser and http(s).proxyPassword
+  Contributed by Jens Borgland <jborglan at tibco.com>
+
+* Wrong argument name in PoolingAsyncClientConnectionManagerBuilder#setConnPoolPolicy results
+  with self assignment of variable.
+  Contributed by Eryk Szymanski <eszymanski at collab.net>
+
+
+
+Release 5.0-BETA3
+-------------------
+
+This BETA release adds support for advanced TLS functions (such as ALPN protocol negotiation)
+on Java 1.7 and Java 1.8 through Conscrypt TLS library and picks up the latest fixes
+and performance improvements from HttpCore.
+
+Notable features in this release:
+
+* TLS ALPN protocol negotiation support on older JREs through Conscrypt TLS library.
 
 
 Changelog:
