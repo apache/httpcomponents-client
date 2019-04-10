@@ -264,6 +264,13 @@ public class TestRequestBuilder {
         assertBuild(StandardCharsets.ISO_8859_1);
     }
 
+    @Test(expected = IllegalStateException.class)
+    public void testBuildTraceWithEntity() {
+        final RequestBuilder requestBuilder = RequestBuilder.create("TRACE").setUri("/path");
+        requestBuilder.setEntity(new StringEntity("foo"));
+        requestBuilder.build();
+    }
+
     private void assertBuild(final Charset charset) throws Exception {
         final RequestBuilder requestBuilder = RequestBuilder.create("GET").setCharset(charset);
         requestBuilder.setUri("https://somehost.com/stuff");
