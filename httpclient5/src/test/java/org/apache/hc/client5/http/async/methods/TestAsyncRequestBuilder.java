@@ -25,46 +25,18 @@
  *
  */
 
-package org.apache.hc.client5.http.classic.methods;
+package org.apache.hc.client5.http.async.methods;
 
-import java.net.URI;
+import org.apache.hc.core5.http.nio.entity.BasicAsyncEntityProducer;
+import org.junit.Test;
 
-import org.apache.hc.core5.http.HttpEntity;
+public class TestAsyncRequestBuilder {
 
-/**
- * HTTP TRACE method.
- *
- * @since 4.0
- */
-public class HttpTrace extends HttpUriRequestBase {
-
-    private static final long serialVersionUID = 1L;
-
-    public final static String METHOD_NAME = "TRACE";
-
-    /**
-     * Creates a new instance initialized with the given URI.
-     *
-     * @param uri a non-null request URI.
-     * @throws IllegalArgumentException if the uri is null.
-     */
-    public HttpTrace(final URI uri) {
-        super(METHOD_NAME, uri);
-    }
-
-    /**
-     * Creates a new instance initialized with the given URI.
-     *
-     * @param uri a non-null request URI.
-     * @throws IllegalArgumentException if the uri is invalid.
-     */
-    public HttpTrace(final String uri) {
-        this(URI.create(uri));
-    }
-
-    @Override
-    public void setEntity(final HttpEntity entity) {
-        throw new IllegalStateException(METHOD_NAME + " requests may not include an entity.");
+    @Test(expected = IllegalStateException.class)
+    public void testBuildTraceWithEntity() {
+        final AsyncRequestBuilder builder = AsyncRequestBuilder.create("TRACE").setUri("/path");
+        builder.setEntity(new BasicAsyncEntityProducer("stuff"));
+        builder.build();
     }
 
 }
