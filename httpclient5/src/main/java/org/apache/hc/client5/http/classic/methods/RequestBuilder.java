@@ -482,6 +482,11 @@ public class RequestBuilder {
                 }
             }
         }
+
+        if (entityCopy != null && StandardMethods.TRACE.name().equalsIgnoreCase(method)) {
+            throw new IllegalStateException(StandardMethods.TRACE.name() + " requests may not include an entity.");
+        }
+
         final HttpUriRequestBase result = new HttpUriRequestBase(method, uriNotNull);
         result.setVersion(this.version != null ? this.version : HttpVersion.HTTP_1_1);
         if (this.headerGroup != null) {

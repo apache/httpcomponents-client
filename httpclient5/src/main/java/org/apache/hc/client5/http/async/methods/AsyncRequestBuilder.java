@@ -430,6 +430,11 @@ public class AsyncRequestBuilder {
                 }
             }
         }
+
+        if (entityProducerCopy != null && StandardMethods.TRACE.name().equalsIgnoreCase(method)) {
+            throw new IllegalStateException(StandardMethods.TRACE.name() + " requests may not include an entity.");
+        }
+
         final ConfigurableHttpRequest request = host != null ?
                 new ConfigurableHttpRequest(method, host, !TextUtils.isBlank(path) ? path : "/") :
                 new ConfigurableHttpRequest(method, uri != null ? uri : URI.create("/"));
