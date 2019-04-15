@@ -434,7 +434,7 @@ public class RequestConfig implements Cloneable {
             this.connectTimeout = -1;
             this.socketTimeout = -1;
             this.contentCompressionEnabled = true;
-            this.normalizeUri = true;
+            this.normalizeUri = false;
         }
 
         public Builder setExpectContinueEnabled(final boolean expectContinueEnabled) {

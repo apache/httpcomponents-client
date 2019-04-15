@@ -243,6 +243,7 @@ public class TestDefaultRedirectStrategy {
         final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
         final HttpClientContext context = HttpClientContext.create();
         context.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, new HttpHost("localhost"));
+        context.setRequestConfig(RequestConfig.custom().setNormalizeUri(true).build());
         final HttpGet httpget = new HttpGet("http://localhost/");
         final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1,
                 HttpStatus.SC_MOVED_TEMPORARILY, "Redirect");

@@ -60,6 +60,7 @@ public class TestRequestConfig {
         Assert.assertEquals(null, config.getTargetPreferredAuthSchemes());
         Assert.assertEquals(null, config.getProxyPreferredAuthSchemes());
         Assert.assertEquals(true, config.isContentCompressionEnabled());
+        Assert.assertEquals(false, config.isNormalizeUri());
     }
 
     @Test
