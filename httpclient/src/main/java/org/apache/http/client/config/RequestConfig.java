@@ -399,7 +399,8 @@ public class RequestConfig implements Cloneable {
             .setConnectTimeout(config.getConnectTimeout())
             .setSocketTimeout(config.getSocketTimeout())
             .setDecompressionEnabled(config.isDecompressionEnabled())
-            .setContentCompressionEnabled(config.isContentCompressionEnabled());
+            .setContentCompressionEnabled(config.isContentCompressionEnabled())
+            .setNormalizeUri(config.isNormalizeUri());
     }
 
     public static class Builder {
