@@ -39,9 +39,6 @@ import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
 import javax.security.auth.x500.X500Principal;
 
-import org.apache.hc.core5.http.ParseException;
-import org.apache.hc.core5.http.ProtocolVersion;
-import org.apache.hc.core5.http.ssl.TLS;
 import org.slf4j.Logger;
 
 final class TlsSessionValidator {
@@ -100,29 +97,7 @@ final class TlsSessionValidator {
         }
 
         if (hostnameVerifier != null) {
-            final Certificate[] certs;
-            try {
-                certs = sslsession.getPeerCertificates();
-            } catch (final SSLPeerUnverifiedException ex) {
-
-                // FIXME: This is very dodgy.
-                // If peer certificates are unavailable and the TLS version is 1.3 or greater
-                // _assume_ this is due to PSK (pre-shared key) TLS session resumption
-                // Resumed TLS sessions do not include server certificates.
-
-                // The issue is considered a bug in Java Security libraries and
-                // is being tracked as JDK-8212885
-
-                try {
-                    final ProtocolVersion tls = TLS.parse(sslsession.getProtocol());
-                    if (tls.greaterEquals(TLS.V_1_3.version)) {
-                        return;
-                    }
-                    throw ex;
-                } catch (final ParseException ex2) {
-                    throw ex;
-                }
-            }
+            final Certificate[] certs = sslsession.getPeerCertificates();
             if (certs.length < 1) {
                 throw new SSLPeerUnverifiedException("Peer certificate chain is empty");
             }
