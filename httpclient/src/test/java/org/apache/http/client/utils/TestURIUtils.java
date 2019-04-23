@@ -34,6 +34,7 @@ import org.apache.http.conn.routing.HttpRoute;
 import org.junit.Assert;
 import org.junit.Test;
 
+import static org.apache.http.client.utils.URIUtils.DROP_FRAGMENT;
 import static org.apache.http.client.utils.URIUtils.DROP_FRAGMENT_AND_NORMALIZE;
 import static org.apache.http.client.utils.URIUtils.NORMALIZE;
 
@@ -82,6 +83,17 @@ public class TestURIUtils {
                 URIUtils.rewriteURI(
                         URI.create("http://thishost/Fragment_identifier%23Examples")).toString());
     }
+
+    @Test
+    public void testRewriteWithEmptyPath() throws Exception {
+        final HttpHost target = new HttpHost("thathost", -1);
+
+        Assert.assertEquals("http://thathost/", URIUtils.rewriteURI(
+            URI.create("http://thathost"), target, DROP_FRAGMENT_AND_NORMALIZE).toString());
+        Assert.assertEquals("http://thathost/", URIUtils.rewriteURI(
+            URI.create("http://thathost"), target, DROP_FRAGMENT).toString());
+    }
+
 
     @Test
     public void testRewritePort() throws Exception {
