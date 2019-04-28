@@ -95,9 +95,13 @@ class MultipartFormEntity implements HttpEntity {
     public InputStream getContent() throws IOException {
         if (this.contentLength < 0) {
             throw new ContentTooLongException("Content length is unknown");
-        } else if (this.contentLength > 25 * 1024) {
-            throw new ContentTooLongException("Content length is too long: " + this.contentLength);
-        }
+        } 
+        //I don't understand why are you guys limit size of multipart entity?
+        //many of people use this entity for upload files
+        //so I can't upload with this entity over 25Kb size file
+//         else if (this.contentLength > 25 * 1024) {
+//             throw new ContentTooLongException("Content length is too long: " + this.contentLength);
+//         }
         final ByteArrayOutputStream outStream = new ByteArrayOutputStream();
         writeTo(outStream);
         outStream.flush();
