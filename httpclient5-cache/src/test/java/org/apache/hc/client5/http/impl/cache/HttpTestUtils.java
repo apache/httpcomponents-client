@@ -119,8 +119,7 @@ public class HttpTestUtils {
         if (i1 == null && i2 == null) {
             return true;
         }
-        if (i1 == null || i2 == null)
-         {
+        if (i1 == null || i2 == null) {
             return false; // avoid possible NPEs below
         }
         int b1 = -1;
