@@ -29,6 +29,7 @@ package org.apache.hc.client5.http.fluent;
 import java.io.IOException;
 
 import org.apache.hc.client5.http.impl.classic.AbstractHttpClientResponseHandler;
+import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 
@@ -46,7 +47,7 @@ public class ContentResponseHandler extends AbstractHttpClientResponseHandler<Co
     @Override
     public Content handleEntity(final HttpEntity entity) throws IOException {
         return entity != null ?
-                new Content(EntityUtils.toByteArray(entity), EntityUtils.getContentTypeOrDefault(entity)) :
+                new Content(EntityUtils.toByteArray(entity), ContentType.parse(entity.getContentType())) :
                 Content.NO_CONTENT;
     }
 

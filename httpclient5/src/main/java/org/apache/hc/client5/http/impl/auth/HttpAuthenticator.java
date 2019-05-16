@@ -45,6 +45,9 @@ import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.MalformedChallengeException;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.Internal;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.FormattedHeader;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHeaders;
@@ -62,13 +65,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * Utility class that implements commons aspects of the client side HTTP authentication.
+ *
  * @since 4.3
  */
-public class HttpAuthenticator {
+@Contract(threading = ThreadingBehavior.STATELESS)
+public final class HttpAuthenticator {
 
     private final Logger log;
     private final AuthChallengeParser parser;
 
+    @Internal
     public HttpAuthenticator(final Logger log) {
         super();
         this.log = log != null ? log : LoggerFactory.getLogger(getClass());
@@ -79,6 +86,17 @@ public class HttpAuthenticator {
         this(null);
     }
 
+    /**
+     * Determines whether the given response represents an authentication challenge.
+     *
+     * @param host the hostname of the opposite endpoint.
+     * @param challengeType the challenge type (target or proxy).
+     * @param response the response message head.
+     * @param authExchange the current authentication exchange state.
+     * @param context the current execution context.
+     * @return {@code true} if the response message represents an authentication challenge,
+     *   {@code false} otherwise.
+     */
     public boolean isChallenged(
             final HttpHost host,
             final ChallengeType challengeType,
@@ -121,7 +139,20 @@ public class HttpAuthenticator {
         return false;
     }
 
-    public boolean prepareAuthResponse(
+    /**
+     * Updates the {@link AuthExchange} state based on the challenge presented in the response message
+     * using the given {@link AuthenticationStrategy}.
+     *
+     * @param host the hostname of the opposite endpoint.
+     * @param challengeType the challenge type (target or proxy).
+     * @param response the response message head.
+     * @param authStrategy the authentication strategy.
+     * @param authExchange the current authentication exchange state.
+     * @param context the current execution context.
+     * @return {@code true} if the authentication state has been updated,
+     *   {@code false} if unchanged.
+     */
+    public boolean updateAuthState(
             final HttpHost host,
             final ChallengeType challengeType,
             final HttpResponse response,
@@ -252,6 +283,16 @@ public class HttpAuthenticator {
         return false;
     }
 
+    /**
+     * Generates a response to the authentication challenge based on the actual {@link AuthExchange} state
+     * and adds it to the given {@link HttpRequest} message .
+     *
+     * @param host the hostname of the opposite endpoint.
+     * @param challengeType the challenge type (target or proxy).
+     * @param request the request message head.
+     * @param authExchange the current authentication exchange state.
+     * @param context the current execution context.
+     */
     public void addAuthResponse(
             final HttpHost host,
             final ChallengeType challengeType,

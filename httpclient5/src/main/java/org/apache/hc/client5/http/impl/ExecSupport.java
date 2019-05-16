@@ -28,6 +28,14 @@ package org.apache.hc.client5.http.impl;
 
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.apache.hc.core5.annotation.Internal;
+
+/**
+ * Request execution support methods.
+ *
+ * @since 5.0
+ */
+@Internal
 public final class ExecSupport {
 
     private static final AtomicLong COUNT = new AtomicLong(0);

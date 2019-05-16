@@ -60,9 +60,10 @@ import org.apache.hc.core5.util.Args;
  * <p>
  * Please note that this class treats parameters differently depending on composition
  * of the request: if the request has a content entity explicitly set with
- * {@link #setEntity(org.apache.hc.core5.http.HttpEntity)} or it is not an entity enclosing method
- * (such as POST or PUT), parameters will be added to the query component of the request URI.
- * Otherwise, parameters will be added as a URL encoded {@link UrlEncodedFormEntity entity}.
+ * {@link #setEntity(org.apache.hc.core5.http.HttpEntity)} or it is not an entity enclosing
+ * method (such as POST or PUT), parameters will be added to the query component
+ * of the request URI. Otherwise, parameters will be added as a URL encoded
+ * {@link UrlEncodedFormEntity entity}.
  * </p>
  *
  * @since 4.3
@@ -73,7 +74,7 @@ public class RequestBuilder {
     private Charset charset;
     private ProtocolVersion version;
     private URI uri;
-    private HeaderGroup headergroup;
+    private HeaderGroup headerGroup;
     private HttpEntity entity;
     private List<NameValuePair> parameters;
     private RequestConfig config;
@@ -275,28 +276,30 @@ public class RequestBuilder {
         method = request.getMethod();
         version = request.getVersion();
 
-        if (headergroup == null) {
-            headergroup = new HeaderGroup();
+        if (headerGroup == null) {
+            headerGroup = new HeaderGroup();
         }
-        headergroup.clear();
-        headergroup.setHeaders(request.getAllHeaders());
+        headerGroup.clear();
+        headerGroup.setHeaders(request.getHeaders());
 
         parameters = null;
         entity = null;
 
         final HttpEntity originalEntity = request.getEntity();
-        final ContentType contentType = EntityUtils.getContentType(originalEntity);
-        if (contentType != null &&
+        if (originalEntity != null) {
+            final ContentType contentType = ContentType.parse(originalEntity.getContentType());
+            if (contentType != null &&
                 contentType.getMimeType().equals(ContentType.APPLICATION_FORM_URLENCODED.getMimeType())) {
-            try {
-                final List<NameValuePair> formParams = EntityUtils.parse(originalEntity);
-                if (!formParams.isEmpty()) {
-                    parameters = formParams;
+                try {
+                    final List<NameValuePair> formParams = EntityUtils.parse(originalEntity);
+                    if (!formParams.isEmpty()) {
+                        parameters = formParams;
+                    }
+                } catch (final IOException ignore) {
                 }
-            } catch (final IOException ignore) {
+            } else {
+                entity = originalEntity;
             }
-        } else {
-            entity = originalEntity;
         }
 
         try {
@@ -354,46 +357,46 @@ public class RequestBuilder {
     }
 
     public Header getFirstHeader(final String name) {
-        return headergroup != null ? headergroup.getFirstHeader(name) : null;
+        return headerGroup != null ? headerGroup.getFirstHeader(name) : null;
     }
 
     public Header getLastHeader(final String name) {
-        return headergroup != null ? headergroup.getLastHeader(name) : null;
+        return headerGroup != null ? headerGroup.getLastHeader(name) : null;
     }
 
     public Header[] getHeaders(final String name) {
-        return headergroup != null ? headergroup.getHeaders(name) : null;
+        return headerGroup != null ? headerGroup.getHeaders(name) : null;
     }
 
     public RequestBuilder addHeader(final Header header) {
-        if (headergroup == null) {
-            headergroup = new HeaderGroup();
+        if (headerGroup == null) {
+            headerGroup = new HeaderGroup();
         }
-        headergroup.addHeader(header);
+        headerGroup.addHeader(header);
         return this;
     }
 
     public RequestBuilder addHeader(final String name, final String value) {
-        if (headergroup == null) {
-            headergroup = new HeaderGroup();
+        if (headerGroup == null) {
+            headerGroup = new HeaderGroup();
         }
-        this.headergroup.addHeader(new BasicHeader(name, value));
+        this.headerGroup.addHeader(new BasicHeader(name, value));
         return this;
     }
 
     public RequestBuilder removeHeader(final Header header) {
-        if (headergroup == null) {
-            headergroup = new HeaderGroup();
+        if (headerGroup == null) {
+            headerGroup = new HeaderGroup();
         }
-        headergroup.removeHeader(header);
+        headerGroup.removeHeader(header);
         return this;
     }
 
     public RequestBuilder removeHeaders(final String name) {
-        if (name == null || headergroup == null) {
+        if (name == null || headerGroup == null) {
             return this;
         }
-        for (final Iterator<Header> i = headergroup.headerIterator(); i.hasNext(); ) {
+        for (final Iterator<Header> i = headerGroup.headerIterator(); i.hasNext(); ) {
             final Header header = i.next();
             if (name.equalsIgnoreCase(header.getName())) {
                 i.remove();
@@ -403,18 +406,18 @@ public class RequestBuilder {
     }
 
     public RequestBuilder setHeader(final Header header) {
-        if (headergroup == null) {
-            headergroup = new HeaderGroup();
+        if (headerGroup == null) {
+            headerGroup = new HeaderGroup();
         }
-        this.headergroup.setHeader(header);
+        this.headerGroup.setHeader(header);
         return this;
     }
 
     public RequestBuilder setHeader(final String name, final String value) {
-        if (headergroup == null) {
-            headergroup = new HeaderGroup();
+        if (headerGroup == null) {
+            headerGroup = new HeaderGroup();
         }
-        this.headergroup.setHeader(new BasicHeader(name, value));
+        this.headerGroup.setHeader(new BasicHeader(name, value));
         return this;
     }
 
@@ -479,14 +482,42 @@ public class RequestBuilder {
                 }
             }
         }
+
+        if (entityCopy != null && StandardMethods.TRACE.name().equalsIgnoreCase(method)) {
+            throw new IllegalStateException(StandardMethods.TRACE.name() + " requests may not include an entity.");
+        }
+
         final HttpUriRequestBase result = new HttpUriRequestBase(method, uriNotNull);
         result.setVersion(this.version != null ? this.version : HttpVersion.HTTP_1_1);
-        if (this.headergroup != null) {
-            result.setHeaders(this.headergroup.getAllHeaders());
+        if (this.headerGroup != null) {
+            result.setHeaders(this.headerGroup.getHeaders());
         }
         result.setEntity(entityCopy);
         result.setConfig(this.config);
         return result;
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder builder = new StringBuilder();
+        builder.append("RequestBuilder [method=");
+        builder.append(method);
+        builder.append(", charset=");
+        builder.append(charset);
+        builder.append(", version=");
+        builder.append(version);
+        builder.append(", uri=");
+        builder.append(uri);
+        builder.append(", headerGroup=");
+        builder.append(headerGroup);
+        builder.append(", entity=");
+        builder.append(entity);
+        builder.append(", parameters=");
+        builder.append(parameters);
+        builder.append(", config=");
+        builder.append(config);
+        builder.append("]");
+        return builder.toString();
     }
 
 }

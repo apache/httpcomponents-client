@@ -32,6 +32,8 @@ package org.apache.hc.client5.http.impl.cache.memcached;
  * a known prefix to the results of another {@code KeyHashingScheme}.
  * Primarily useful for namespacing a shared memcached cluster, for
  * example.
+ *
+ * @since 4.1
  */
 public final class PrefixKeyHashingScheme implements KeyHashingScheme {
 

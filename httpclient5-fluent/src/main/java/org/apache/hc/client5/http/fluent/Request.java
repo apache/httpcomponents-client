@@ -63,6 +63,11 @@ import org.apache.hc.core5.http.io.entity.InputStreamEntity;
 import org.apache.hc.core5.net.URLEncodedUtils;
 import org.apache.hc.core5.util.Timeout;
 
+/**
+ * HTTP request used by the fluent facade.
+ *
+ * @since 4.2
+ */
 public class Request {
 
     public static final String DATE_FORMAT = "EEE, dd MMM yyyy HH:mm:ss zzz";
@@ -71,7 +76,7 @@ public class Request {
 
     private final ClassicHttpRequest request;
     private Boolean useExpectContinue;
-    private Timeout connectionTimeout;
+    private Timeout connectTimeout;
     private HttpHost proxy;
 
     private SimpleDateFormat dateFormatter;
@@ -169,8 +174,8 @@ public class Request {
         if (this.useExpectContinue != null) {
             builder.setExpectContinueEnabled(this.useExpectContinue);
         }
-        if (this.connectionTimeout != null) {
-            builder.setConnectionTimeout(this.connectionTimeout);
+        if (this.connectTimeout != null) {
+            builder.setConnectTimeout(this.connectTimeout);
         }
         if (this.proxy != null) {
             builder.setProxy(this.proxy);
@@ -181,7 +186,11 @@ public class Request {
     }
 
     public Response execute() throws IOException {
-        return new Response(internalExecute(Executor.CLIENT, HttpClientContext.create()));
+        return execute(Executor.CLIENT);
+    }
+
+    public Response execute(final CloseableHttpClient client) throws IOException {
+        return new Response(internalExecute(client, HttpClientContext.create()));
     }
 
     //// HTTP header operations
@@ -278,8 +287,8 @@ public class Request {
 
     //// HTTP connection parameter operations
 
-    public Request connectionTimeout(final Timeout timeout) {
-        this.connectionTimeout = timeout;
+    public Request connectTimeout(final Timeout timeout) {
+        this.connectTimeout = timeout;
         return this;
     }
 
@@ -338,7 +347,7 @@ public class Request {
     }
 
     public Request bodyByteArray(final byte[] b) {
-        return body(new ByteArrayEntity(b));
+        return body(new ByteArrayEntity(b, null));
     }
 
     /**
@@ -349,7 +358,7 @@ public class Request {
     }
 
     public Request bodyByteArray(final byte[] b, final int off, final int len) {
-        return body(new ByteArrayEntity(b, off, len));
+        return body(new ByteArrayEntity(b, off, len, null));
     }
 
     /**
@@ -359,12 +368,12 @@ public class Request {
         return body(new ByteArrayEntity(b, off, len, contentType));
     }
 
-    public Request bodyStream(final InputStream instream) {
-        return body(new InputStreamEntity(instream, -1, null));
+    public Request bodyStream(final InputStream inStream) {
+        return body(new InputStreamEntity(inStream, -1, null));
     }
 
-    public Request bodyStream(final InputStream instream, final ContentType contentType) {
-        return body(new InputStreamEntity(instream, -1, contentType));
+    public Request bodyStream(final InputStream inStream, final ContentType contentType) {
+        return body(new InputStreamEntity(inStream, -1, contentType));
     }
 
     @Override

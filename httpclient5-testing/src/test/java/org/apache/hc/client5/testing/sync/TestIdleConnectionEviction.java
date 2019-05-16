@@ -47,7 +47,7 @@ public class TestIdleConnectionEviction extends LocalServerTestBase {
 
         final HttpHost target = start();
 
-        final IdleConnectionEvictor idleConnectionMonitor = new IdleConnectionEvictor(this.connManager, TimeValue.ofMillis(50));
+        final IdleConnectionEvictor idleConnectionMonitor = new IdleConnectionEvictor(this.connManager, TimeValue.ofMilliseconds(50));
         idleConnectionMonitor.start();
 
         final HttpGet httpget = new HttpGet("/random/1024");

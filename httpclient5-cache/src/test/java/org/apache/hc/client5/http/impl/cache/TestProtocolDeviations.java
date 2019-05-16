@@ -46,7 +46,6 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
-import org.apache.hc.core5.http.ProtocolVersion;
 import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
 import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
@@ -74,15 +73,11 @@ import org.junit.Test;
 @SuppressWarnings("boxing") // test code
 public class TestProtocolDeviations {
 
-    private static final ProtocolVersion HTTP_1_1 = new ProtocolVersion("HTTP", 1, 1);
-
     private static final int MAX_BYTES = 1024;
     private static final int MAX_ENTRIES = 100;
-    private final int entityLength = 128;
 
     private HttpHost host;
     private HttpRoute route;
-    private HttpEntity body;
     private HttpEntity mockEntity;
     private ExecRuntime mockEndpoint;
     private ExecChain mockExecChain;
@@ -98,8 +93,6 @@ public class TestProtocolDeviations {
         host = new HttpHost("foo.example.com", 80);
 
         route = new HttpRoute(host);
-
-        body = makeBody(entityLength);
 
         request = new BasicClassicHttpRequest("GET", "/foo");
 
@@ -153,7 +146,7 @@ public class TestProtocolDeviations {
     private HttpEntity makeBody(final int nbytes) {
         final byte[] bytes = new byte[nbytes];
         new Random().nextBytes(bytes);
-        return new ByteArrayEntity(bytes);
+        return new ByteArrayEntity(bytes, null);
     }
 
     public static HttpRequest eqRequest(final HttpRequest in) {
@@ -223,12 +216,12 @@ public class TestProtocolDeviations {
         final byte[] bytes = new byte[128];
         new Random().nextBytes(bytes);
 
-        final HttpEntity mockBody = org.easymock.classextension.EasyMock.createMockBuilder(ByteArrayEntity.class).withConstructor(
+        final HttpEntity mockBody = EasyMock.createMockBuilder(ByteArrayEntity.class).withConstructor(
                 new Object[] { bytes }).addMockedMethods("getContentLength").createNiceMock();
         org.easymock.EasyMock.expect(mockBody.getContentLength()).andReturn(-1L).anyTimes();
         post.setEntity(mockBody);
 
-        final Capture<ClassicHttpRequest> reqCap = new Capture<>();
+        final Capture<ClassicHttpRequest> reqCap = EasyMock.newCapture();
         EasyMock.expect(
                 mockExecChain.proceed(
                         EasyMock.capture(reqCap),

@@ -33,9 +33,12 @@ import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 
 /**
+ * {@link HttpCacheEntrySerializer} that uses {@link HttpCacheStorageEntry}
+ * as its cache content representation.
+ *
  * @since 5.0
  */
-@Contract(threading = ThreadingBehavior.IMMUTABLE)
+@Contract(threading = ThreadingBehavior.STATELESS)
 public class NoopCacheEntrySerializer implements HttpCacheEntrySerializer<HttpCacheStorageEntry> {
 
     public static final NoopCacheEntrySerializer INSTANCE = new NoopCacheEntrySerializer();

@@ -27,6 +27,7 @@
 
 package org.apache.hc.client5.http.classic.methods;
 
+import org.apache.hc.client5.http.config.Configurable;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 
 /**
@@ -36,7 +37,7 @@ import org.apache.hc.core5.http.ClassicHttpRequest;
  *
  * @since 4.0
  */
-public interface HttpUriRequest extends ClassicHttpRequest {
+public interface HttpUriRequest extends ClassicHttpRequest, Configurable {
 
     /**
      * Aborts execution of the request.

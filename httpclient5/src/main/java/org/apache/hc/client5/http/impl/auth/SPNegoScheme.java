@@ -28,15 +28,21 @@ package org.apache.hc.client5.http.impl.auth;
 
 import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.auth.KerberosConfig;
+import org.apache.hc.core5.annotation.Experimental;
 import org.ietf.jgss.GSSException;
 import org.ietf.jgss.Oid;
 
 /**
  * SPNEGO (Simple and Protected GSSAPI Negotiation Mechanism) authentication
  * scheme.
+ * <p>
+ * Please note this class is considered experimental and may be discontinued or removed
+ * in the future.
+ * </p>
  *
  * @since 4.2
  */
+@Experimental
 public class SPNegoScheme extends GGSSchemeBase {
 
     private static final String SPNEGO_OID = "1.3.6.1.5.5.2";

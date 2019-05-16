@@ -33,6 +33,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.hc.client5.http.DnsResolver;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.util.Args;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,6 +44,7 @@ import org.slf4j.LoggerFactory;
  *
  * @since 4.2
  */
+@Contract(threading = ThreadingBehavior.STATELESS)
 public class InMemoryDnsResolver implements DnsResolver {
 
     /** Logger associated to this class. */

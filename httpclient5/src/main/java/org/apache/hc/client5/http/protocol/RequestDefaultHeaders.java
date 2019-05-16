@@ -45,7 +45,7 @@ import org.apache.hc.core5.util.Args;
  *
  * @since 4.0
  */
-@Contract(threading = ThreadingBehavior.IMMUTABLE)
+@Contract(threading = ThreadingBehavior.STATELESS)
 public class RequestDefaultHeaders implements HttpRequestInterceptor {
 
     private final Collection<? extends Header> defaultHeaders;

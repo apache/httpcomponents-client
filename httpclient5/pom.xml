@@ -28,7 +28,7 @@
   <parent>
     <groupId>org.apache.httpcomponents.client5</groupId>
     <artifactId>httpclient5-parent</artifactId>
-    <version>5.0-beta2-SNAPSHOT</version>
+    <version>5.0-beta5-SNAPSHOT</version>
   </parent>
   <artifactId>httpclient5</artifactId>
   <name>Apache HttpClient</name>
@@ -51,6 +51,22 @@
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
       <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.conscrypt</groupId>
+      <artifactId>conscrypt-openjdk-uber</artifactId>
+      <scope>compile</scope>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.httpcomponents.core5</groupId>
+      <artifactId>httpcore5-reactive</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.reactivex.rxjava2</groupId>
+      <artifactId>rxjava</artifactId>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
@@ -93,7 +109,7 @@
       <plugin>
         <groupId>com.googlecode.maven-download-plugin</groupId>
         <artifactId>download-maven-plugin</artifactId>
-        <version>1.2.0</version>
+        <version>1.4.1</version>
         <executions>
           <execution>
             <id>download-public-suffix-list</id>
@@ -120,6 +136,27 @@
           </execution>
         </executions>
       </plugin>
+      <plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy-resources</id>
+            <phase>pre-site</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${basedir}/target/site/examples</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>src/test/java/org/apache/hc/client5/http/examples</directory>
+                  <filtering>false</filtering>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
 
@@ -134,7 +171,8 @@
           <source>${maven.compiler.source}</source>
           <links>
             <link>http://docs.oracle.com/javase/7/docs/api/</link>
-            <link>http://hc.apache.org/httpcomponents-core-ga/httpcore/apidocs/</link>
+            <link>http://hc.apache.org/httpcomponents-core-5.0.x/httpcore5/apidocs/</link>
+            <link>http://hc.apache.org/httpcomponents-core-5.0.x/httpcore5-h2/apidocs/</link>
           </links>
         </configuration>
         <reportSets>

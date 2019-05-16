@@ -41,6 +41,7 @@ import org.apache.hc.core5.http.nio.AsyncClientExchangeHandler;
 import org.apache.hc.core5.http.nio.CapacityChannel;
 import org.apache.hc.core5.http.nio.DataStreamChannel;
 import org.apache.hc.core5.http.nio.RequestChannel;
+import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.Identifiable;
 import org.slf4j.Logger;
 
@@ -67,21 +68,22 @@ final class LoggingAsyncClientExchangeHandler implements AsyncClientExchangeHand
     }
 
     @Override
-    public void produceRequest(final RequestChannel channel) throws HttpException, IOException {
+    public void produceRequest(final RequestChannel channel, final HttpContext context) throws HttpException, IOException {
         handler.produceRequest(new RequestChannel() {
 
             @Override
             public void sendRequest(
                     final HttpRequest request,
-                    final EntityDetails entityDetails) throws HttpException, IOException {
+                    final EntityDetails entityDetails,
+                    final HttpContext context) throws HttpException, IOException {
                 if (log.isDebugEnabled()) {
                     log.debug(exchangeId + ": send request " + new RequestLine(request) + ", " +
                             (entityDetails != null ? "entity len " + entityDetails.getContentLength() : "null entity"));
                 }
-                channel.sendRequest(request, entityDetails);
+                channel.sendRequest(request, entityDetails, context);
             }
 
-        });
+        }, context);
     }
 
     @Override
@@ -129,22 +131,25 @@ final class LoggingAsyncClientExchangeHandler implements AsyncClientExchangeHand
     }
 
     @Override
-    public void consumeInformation(final HttpResponse response) throws HttpException, IOException {
+    public void consumeInformation(
+            final HttpResponse response,
+            final HttpContext context) throws HttpException, IOException {
         if (log.isDebugEnabled()) {
             log.debug(exchangeId + ": information response " + new StatusLine(response));
         }
-        handler.consumeInformation(response);
+        handler.consumeInformation(response, context);
     }
 
     @Override
     public void consumeResponse(
             final HttpResponse response,
-            final EntityDetails entityDetails) throws HttpException, IOException {
+            final EntityDetails entityDetails,
+            final HttpContext context) throws HttpException, IOException {
         if (log.isDebugEnabled()) {
             log.debug(exchangeId + ": consume response " + new StatusLine(response) + ", " +
                     (entityDetails != null ? "entity len " + entityDetails.getContentLength() : " null entity"));
         }
-        handler.consumeResponse(response, entityDetails);
+        handler.consumeResponse(response, entityDetails, context);
     }
 
 
@@ -164,11 +169,11 @@ final class LoggingAsyncClientExchangeHandler implements AsyncClientExchangeHand
     }
 
     @Override
-    public int consume(final ByteBuffer src) throws IOException {
+    public void consume(final ByteBuffer src) throws IOException {
         if (log.isDebugEnabled()) {
             log.debug(exchangeId + ": consume response data, len " + src.remaining() + " bytes");
         }
-        return handler.consume(src);
+        handler.consume(src);
     }
 
     @Override

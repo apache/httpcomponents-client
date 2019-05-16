@@ -26,7 +26,6 @@
  */
 package org.apache.hc.client5.http.impl;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -38,7 +37,7 @@ import org.apache.hc.client5.http.auth.AuthSchemeProvider;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
-import org.apache.hc.client5.http.config.AuthSchemes;
+import org.apache.hc.client5.http.auth.AuthSchemes;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
 import org.apache.hc.client5.http.impl.auth.BasicScheme;
@@ -131,7 +130,7 @@ public class TestAuthenticationStrategy {
     public void testCustomAuthPreference() throws Exception {
         final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
         final RequestConfig config = RequestConfig.custom()
-            .setTargetPreferredAuthSchemes(Arrays.asList(AuthSchemes.BASIC))
+            .setTargetPreferredAuthSchemes(Collections.singletonList(AuthSchemes.BASIC.ident))
             .build();
 
         final HttpClientContext context = HttpClientContext.create();

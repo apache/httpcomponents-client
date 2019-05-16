@@ -35,6 +35,7 @@ import org.apache.hc.client5.http.classic.ConnectionBackoffStrategy;
 import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecChainHandler;
 import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.Experimental;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
@@ -42,10 +43,19 @@ import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.util.Args;
 
 /**
+ * Request execution handler in the classic request execution chain
+ * that is responsible for execution of an {@link ConnectionBackoffStrategy}.
+ * <p>
+ * Further responsibilities such as communication with the opposite
+ * endpoint is delegated to the next executor in the request execution
+ * chain.
+ * </p>
+ *
  * @since 4.3
  */
-@Contract(threading = ThreadingBehavior.IMMUTABLE)
-final class BackoffStrategyExec implements ExecChainHandler {
+@Contract(threading = ThreadingBehavior.STATELESS)
+@Experimental
+public final class BackoffStrategyExec implements ExecChainHandler {
 
     private final ConnectionBackoffStrategy connectionBackoffStrategy;
     private final BackoffManager backoffManager;

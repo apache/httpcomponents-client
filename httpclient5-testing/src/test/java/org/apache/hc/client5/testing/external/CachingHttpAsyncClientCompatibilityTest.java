@@ -48,7 +48,7 @@ import org.apache.hc.client5.http.impl.cache.CachingHttpAsyncClients;
 import org.apache.hc.client5.http.impl.cache.HeapResourceFactory;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManager;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
-import org.apache.hc.client5.http.ssl.H2TlsStrategy;
+import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
@@ -65,9 +65,9 @@ public class CachingHttpAsyncClientCompatibilityTest {
     public static void main(final String... args) throws Exception {
         final CachingHttpAsyncClientCompatibilityTest[] tests = new CachingHttpAsyncClientCompatibilityTest[] {
                 new CachingHttpAsyncClientCompatibilityTest(
-                        HttpVersion.HTTP_1_1, new HttpHost("localhost", 8080, "http")),
+                        HttpVersion.HTTP_1_1, new HttpHost("http", "localhost", 8080)),
                 new CachingHttpAsyncClientCompatibilityTest(
-                        HttpVersion.HTTP_2_0, new HttpHost("localhost", 8080, "http"))
+                        HttpVersion.HTTP_2_0, new HttpHost("http", "localhost", 8080))
         };
         for (final CachingHttpAsyncClientCompatibilityTest test: tests) {
             try {
@@ -91,7 +91,7 @@ public class CachingHttpAsyncClientCompatibilityTest {
         final SSLContext sslContext = SSLContexts.custom()
                 .loadTrustMaterial(getClass().getResource("/test-ca.keystore"), "nopassword".toCharArray()).build();
         this.connManager = PoolingAsyncClientConnectionManagerBuilder.create()
-                .setTlsStrategy(new H2TlsStrategy(sslContext))
+                .setTlsStrategy(new DefaultClientTlsStrategy(sslContext))
                 .build();
         this.client = CachingHttpAsyncClients.custom()
                 .setCacheConfig(CacheConfig.custom()

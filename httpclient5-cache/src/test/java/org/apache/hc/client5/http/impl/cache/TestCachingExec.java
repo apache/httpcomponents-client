@@ -31,10 +31,10 @@ import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.isA;
 import static org.easymock.EasyMock.same;
-import static org.easymock.classextension.EasyMock.createMockBuilder;
-import static org.easymock.classextension.EasyMock.createNiceMock;
-import static org.easymock.classextension.EasyMock.replay;
-import static org.easymock.classextension.EasyMock.verify;
+import static org.easymock.EasyMock.createMockBuilder;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
@@ -357,7 +357,7 @@ public class TestCachingExec extends TestCachingExecChain {
                 }
                 return 'y';
             }
-        }, -1));
+        }, -1, null));
 
         final ClassicHttpResponse resp = mockExecChain.proceed(
                 isA(ClassicHttpRequest.class), isA(ExecChain.Scope.class));

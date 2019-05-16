@@ -40,10 +40,12 @@ import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TextUtils;
 
 /**
+ * Cookie {@code max-age} attribute handler conformant to the more relaxed interpretation
+ * of HTTP state management.
  *
  * @since 4.4
  */
-@Contract(threading = ThreadingBehavior.IMMUTABLE)
+@Contract(threading = ThreadingBehavior.STATELESS)
 public class LaxMaxAgeHandler extends AbstractCookieAttributeHandler implements CommonCookieAttributeHandler {
 
     private final static Pattern MAX_AGE_PATTERN = Pattern.compile("^\\-?[0-9]+$");

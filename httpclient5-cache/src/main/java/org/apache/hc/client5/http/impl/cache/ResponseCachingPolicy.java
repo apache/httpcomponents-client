@@ -34,8 +34,6 @@ import java.util.Set;
 
 import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.utils.DateUtils;
-import org.apache.hc.core5.annotation.Contract;
-import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HeaderElement;
 import org.apache.hc.core5.http.HttpHeaders;
@@ -49,12 +47,6 @@ import org.apache.hc.core5.http.message.MessageSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Determines if an HttpResponse can be cached.
- *
- * @since 4.1
- */
-@Contract(threading = ThreadingBehavior.IMMUTABLE)
 class ResponseCachingPolicy {
 
     private static final String[] AUTH_CACHEABLE_PARAMS = {
@@ -146,17 +138,17 @@ class ResponseCachingPolicy {
             }
         }
 
-        if (response.containsHeaders(HeaderConstants.AGE) > 1) {
+        if (response.countHeaders(HeaderConstants.AGE) > 1) {
             log.debug("Multiple Age headers");
             return false;
         }
 
-        if (response.containsHeaders(HeaderConstants.EXPIRES) > 1) {
+        if (response.countHeaders(HeaderConstants.EXPIRES) > 1) {
             log.debug("Multiple Expires headers");
             return false;
         }
 
-        if (response.containsHeaders(HttpHeaders.DATE) > 1) {
+        if (response.countHeaders(HttpHeaders.DATE) > 1) {
             log.debug("Multiple Date headers");
             return false;
         }
@@ -282,7 +274,7 @@ class ResponseCachingPolicy {
         }
 
         if (sharedCache) {
-            if (request.containsHeaders(HeaderConstants.AUTHORIZATION) > 0
+            if (request.countHeaders(HeaderConstants.AUTHORIZATION) > 0
                     && !hasCacheControlParameterFrom(response, AUTH_CACHEABLE_PARAMS)) {
                 log.debug("Request contains private credentials");
                 return false;

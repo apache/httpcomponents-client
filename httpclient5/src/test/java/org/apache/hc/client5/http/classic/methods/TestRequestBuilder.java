@@ -41,7 +41,6 @@ import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.NameValuePair;
-import org.apache.hc.core5.http.io.entity.BasicHttpEntity;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.message.BasicHeader;
@@ -69,7 +68,7 @@ public class TestRequestBuilder {
 
     @Test
     public void testBasicWithEntity() throws Exception {
-        final HttpEntity entity = new BasicHttpEntity();
+        final HttpEntity entity = new StringEntity("whatever");
         final ClassicHttpRequest request = RequestBuilder.post().setEntity(entity).build();
         Assert.assertNotNull(request);
         Assert.assertEquals("POST", request.getMethod());
@@ -79,7 +78,7 @@ public class TestRequestBuilder {
 
     @Test
     public void testGetWithEntity() throws Exception {
-        final HttpEntity entity = new BasicHttpEntity();
+        final HttpEntity entity = new StringEntity("whatever");
         final ClassicHttpRequest request = RequestBuilder.get().setEntity(entity).build();
         Assert.assertNotNull(request);
         Assert.assertEquals("GET", request.getMethod());
@@ -156,7 +155,7 @@ public class TestRequestBuilder {
     @Test
     public void testCopyWithQueryParams() throws Exception {
         final HttpGet get = new HttpGet("/stuff?p1=this&p2=that");
-        final RequestBuilder builder = RequestBuilder.copy(get);
+        final RequestBuilder builder = RequestBuilder.copy(get).setEntity(new StringEntity(""));
         final List<NameValuePair> parameters = builder.getParameters();
         Assert.assertNotNull(parameters);
         Assert.assertEquals(0, parameters.size());
@@ -263,6 +262,13 @@ public class TestRequestBuilder {
     @Test
     public void testBuildGETwithISO88591() throws Exception {
         assertBuild(StandardCharsets.ISO_8859_1);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testBuildTraceWithEntity() {
+        final RequestBuilder requestBuilder = RequestBuilder.create("TRACE").setUri("/path");
+        requestBuilder.setEntity(new StringEntity("foo"));
+        requestBuilder.build();
     }
 
     private void assertBuild(final Charset charset) throws Exception {

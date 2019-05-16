@@ -33,8 +33,6 @@ import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.Resource;
 import org.apache.hc.client5.http.utils.DateUtils;
-import org.apache.hc.core5.annotation.Contract;
-import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HeaderElement;
 import org.apache.hc.core5.http.HttpHeaders;
@@ -42,10 +40,6 @@ import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.MessageHeaders;
 import org.apache.hc.core5.http.message.MessageSupport;
 
-/**
- * @since 4.1
- */
-@Contract(threading = ThreadingBehavior.IMMUTABLE)
 class CacheValidityPolicy {
 
     public static final long MAX_AGE = 2147483648L;

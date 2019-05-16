@@ -50,7 +50,7 @@ import org.apache.hc.core5.http.message.MessageSupport;
 /**
  * @since 4.1
  */
-@Contract(threading = ThreadingBehavior.IMMUTABLE)
+@Contract(threading = ThreadingBehavior.STATELESS)
 public class CacheKeyGenerator implements Resolver<URI, String> {
 
     public static final CacheKeyGenerator INSTANCE = new CacheKeyGenerator();

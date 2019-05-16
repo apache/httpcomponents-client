@@ -52,7 +52,6 @@ public interface ManagedHttpClientConnection extends HttpClientConnection {
      * is connection to a remote host.
      *
      * @param socket the socket to bind the connection to.
-     * @throws IOException
      */
     void bind(Socket socket) throws IOException;
 

@@ -51,7 +51,7 @@ import org.apache.hc.core5.http.io.entity.EntityUtils;
  *
  * @since 4.4
  */
-@Contract(threading = ThreadingBehavior.IMMUTABLE)
+@Contract(threading = ThreadingBehavior.STATELESS)
 public abstract class AbstractHttpClientResponseHandler<T> implements HttpClientResponseHandler<T> {
 
     /**

@@ -26,18 +26,22 @@
  */
 package org.apache.hc.client5.http.cookie;
 
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
+
 /**
  * This interface represents a cookie attribute handler responsible
  * for parsing, validating, and matching a specific cookie attribute,
  * such as path, domain, port, etc.
- *
+ * <p>
  * Different cookie specifications can provide a specific
  * implementation for this class based on their cookie handling
  * rules.
- *
+ * </p>
  *
  * @since 4.0
  */
+@Contract(threading = ThreadingBehavior.STATELESS)
 public interface CookieAttributeHandler {
 
   /**

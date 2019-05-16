@@ -40,7 +40,7 @@ import org.apache.hc.core5.http.ProtocolVersion;
 import org.apache.hc.core5.util.Args;
 
 /**
- * Backward compatibility with HttpClient 4.x.
+ * Provided for backward compatibility with HttpClient 4.x.
  *
  * @since 4.3
  */
@@ -53,11 +53,9 @@ public final class CloseableHttpResponse implements ClassicHttpResponse {
         if (response == null) {
             return null;
         }
-        if (response instanceof CloseableHttpResponse) {
-            return (CloseableHttpResponse) response;
-        } else {
-            return new CloseableHttpResponse(response, null);
-        }
+        return response instanceof CloseableHttpResponse
+                        ? (CloseableHttpResponse) response
+                        : new CloseableHttpResponse(response, null);
     }
 
     CloseableHttpResponse(final ClassicHttpResponse response, final ExecRuntime execRuntime) {
@@ -96,8 +94,8 @@ public final class CloseableHttpResponse implements ClassicHttpResponse {
     }
 
     @Override
-    public int containsHeaders(final String name) {
-        return response.containsHeaders(name);
+    public int countHeaders(final String name) {
+        return response.countHeaders(name);
     }
 
     @Override
@@ -141,8 +139,8 @@ public final class CloseableHttpResponse implements ClassicHttpResponse {
     }
 
     @Override
-    public Header getSingleHeader(final String name) throws ProtocolException {
-        return response.getSingleHeader(name);
+    public Header getHeader(final String name) throws ProtocolException {
+        return response.getHeader(name);
     }
 
     @Override
@@ -166,13 +164,13 @@ public final class CloseableHttpResponse implements ClassicHttpResponse {
     }
 
     @Override
-    public void removeHeader(final Header header) {
-        response.removeHeader(header);
+    public boolean removeHeader(final Header header) {
+        return response.removeHeader(header);
     }
 
     @Override
-    public void removeHeaders(final String name) {
-        response.removeHeaders(name);
+    public boolean removeHeaders(final String name) {
+        return response.removeHeaders(name);
     }
 
     @Override
@@ -181,8 +179,8 @@ public final class CloseableHttpResponse implements ClassicHttpResponse {
     }
 
     @Override
-    public Header[] getAllHeaders() {
-        return response.getAllHeaders();
+    public Header[] getHeaders() {
+        return response.getHeaders();
     }
 
     @Override
@@ -200,9 +198,9 @@ public final class CloseableHttpResponse implements ClassicHttpResponse {
         if (execRuntime != null) {
             try {
                 response.close();
-                execRuntime.disconnect();
+                execRuntime.disconnectEndpoint();
             } finally {
-                execRuntime.discardConnection();
+                execRuntime.discardEndpoint();
             }
         } else {
             response.close();

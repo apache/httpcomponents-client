@@ -30,7 +30,6 @@ package org.apache.hc.client5.http.impl.auth;
  * Authentication credentials required to respond to a authentication
  * challenge are invalid
  *
- *
  * @since 4.0
  */
 public class UnsupportedDigestAlgorithmException extends RuntimeException {

@@ -40,6 +40,7 @@ import org.apache.hc.client5.http.entity.GZIPInputStreamFactory;
 import org.apache.hc.client5.http.entity.InputStreamFactory;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
@@ -55,8 +56,8 @@ import org.apache.hc.core5.http.message.ParserCursor;
 import org.apache.hc.core5.util.Args;
 
 /**
- * Request executor in the request execution chain that is responsible
- * for automatic response content decompression.
+ * Request execution handler in the classic request execution chain
+ * that is responsible for automatic response content decompression.
  * <p>
  * Further responsibilities such as communication with the opposite
  * endpoint is delegated to the next executor in the request execution
@@ -65,7 +66,8 @@ import org.apache.hc.core5.util.Args;
  *
  * @since 5.0
  */
-@Contract(threading = ThreadingBehavior.IMMUTABLE)
+@Contract(threading = ThreadingBehavior.STATELESS)
+@Internal
 public final class ContentCompressionExec implements ExecChainHandler {
 
     private final String[] acceptEncoding;

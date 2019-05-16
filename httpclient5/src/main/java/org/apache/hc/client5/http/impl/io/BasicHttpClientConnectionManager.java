@@ -30,7 +30,6 @@ package org.apache.hc.client5.http.impl.io;
 import java.io.IOException;
 import java.util.Date;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -53,14 +52,15 @@ import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.config.Registry;
 import org.apache.hc.core5.http.config.RegistryBuilder;
-import org.apache.hc.core5.http.config.SocketConfig;
 import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
 import org.apache.hc.core5.http.io.HttpConnectionFactory;
+import org.apache.hc.core5.http.io.SocketConfig;
 import org.apache.hc.core5.http.protocol.HttpContext;
-import org.apache.hc.core5.io.ShutdownType;
+import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.Asserts;
 import org.apache.hc.core5.util.LangUtils;
@@ -107,8 +107,8 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
 
     private static Registry<ConnectionSocketFactory> getDefaultRegistry() {
         return RegistryBuilder.<ConnectionSocketFactory>create()
-                .register("http", PlainConnectionSocketFactory.getSocketFactory())
-                .register("https", SSLConnectionSocketFactory.getSocketFactory())
+                .register(URIScheme.HTTP.id, PlainConnectionSocketFactory.getSocketFactory())
+                .register(URIScheme.HTTPS.id, SSLConnectionSocketFactory.getSocketFactory())
                 .build();
     }
 
@@ -152,13 +152,13 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
 
     @Override
     public void close() {
-        shutdown(ShutdownType.GRACEFUL);
+        close(CloseMode.GRACEFUL);
     }
 
     @Override
-    public void shutdown(final ShutdownType shutdownType) {
+    public void close(final CloseMode closeMode) {
         if (this.closed.compareAndSet(false, true)) {
-            closeConnection(shutdownType);
+            closeConnection(closeMode);
         }
     }
 
@@ -188,8 +188,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
 
             @Override
             public ConnectionEndpoint get(
-                    final long timeout,
-                    final TimeUnit tunit) throws InterruptedException, ExecutionException, TimeoutException {
+                    final Timeout timeout) throws InterruptedException, ExecutionException, TimeoutException {
                 try {
                     return new InternalConnectionEndpoint(route, getConnection(route, state));
                 } catch (final IOException ex) {
@@ -205,10 +204,10 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
         };
     }
 
-    private synchronized void closeConnection(final ShutdownType shutdownType) {
+    private synchronized void closeConnection(final CloseMode closeMode) {
         if (this.conn != null) {
-            this.log.debug("Shutting down connection " + shutdownType);
-            this.conn.shutdown(shutdownType);
+            this.log.debug("Closing connection " + closeMode);
+            this.conn.close(closeMode);
             this.conn = null;
         }
     }
@@ -218,7 +217,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
             if (this.log.isDebugEnabled()) {
                 this.log.debug("Connection expired @ " + new Date(this.expiry));
             }
-            closeConnection(ShutdownType.GRACEFUL);
+            closeConnection(CloseMode.GRACEFUL);
         }
     }
 
@@ -229,7 +228,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
         }
         Asserts.check(!this.leased, "Connection is still allocated");
         if (!LangUtils.equals(this.route, route) || !LangUtils.equals(this.state, state)) {
-            closeConnection(ShutdownType.GRACEFUL);
+            closeConnection(CloseMode.GRACEFUL);
         }
         this.route = route;
         this.state = state;
@@ -246,9 +245,8 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
     private InternalConnectionEndpoint cast(final ConnectionEndpoint endpoint) {
         if (endpoint instanceof InternalConnectionEndpoint) {
             return (InternalConnectionEndpoint) endpoint;
-        } else {
-            throw new IllegalStateException("Unexpected endpoint class: " + endpoint.getClass());
         }
+        throw new IllegalStateException("Unexpected endpoint class: " + endpoint.getClass());
     }
 
     @Override
@@ -264,7 +262,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
         }
         try {
             if (keepAlive == null) {
-                this.conn.shutdown(ShutdownType.GRACEFUL);
+                this.conn.close(CloseMode.GRACEFUL);
             }
             this.updated = System.currentTimeMillis();
             if (!this.conn.isOpen()) {
@@ -341,19 +339,19 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
         }
     }
 
-    public synchronized void closeIdle(final long idletime, final TimeUnit tunit) {
-        Args.notNull(tunit, "Time unit");
+    public synchronized void closeIdle(final TimeValue idleTime) {
+        Args.notNull(idleTime, "Idle time");
         if (this.closed.get()) {
             return;
         }
         if (!this.leased) {
-            long time = tunit.toMillis(idletime);
+            long time = idleTime.toMillis();
             if (time < 0) {
                 time = 0;
             }
             final long deadline = System.currentTimeMillis() - time;
             if (this.updated <= deadline) {
-                closeConnection(ShutdownType.GRACEFUL);
+                closeConnection(CloseMode.GRACEFUL);
             }
         }
     }
@@ -397,10 +395,10 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
         }
 
         @Override
-        public void shutdown(final ShutdownType shutdownType) {
+        public void close(final CloseMode closeMode) {
             final ManagedHttpClientConnection conn = detach();
             if (conn != null) {
-                conn.shutdown(shutdownType);
+                conn.close(closeMode);
             }
         }
 
@@ -413,7 +411,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
         }
 
         @Override
-        public void setSocketTimeout(final int timeout) {
+        public void setSocketTimeout(final Timeout timeout) {
             getValidatedConnection().setSocketTimeout(timeout);
         }
 

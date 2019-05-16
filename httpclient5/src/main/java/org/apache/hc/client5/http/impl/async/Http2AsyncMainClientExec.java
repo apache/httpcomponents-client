@@ -37,6 +37,9 @@ import org.apache.hc.client5.http.async.AsyncExecChain;
 import org.apache.hc.client5.http.async.AsyncExecChainHandler;
 import org.apache.hc.client5.http.async.AsyncExecRuntime;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.Internal;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.concurrent.CancellableDependency;
 import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.Header;
@@ -50,10 +53,20 @@ import org.apache.hc.core5.http.nio.AsyncEntityProducer;
 import org.apache.hc.core5.http.nio.CapacityChannel;
 import org.apache.hc.core5.http.nio.DataStreamChannel;
 import org.apache.hc.core5.http.nio.RequestChannel;
+import org.apache.hc.core5.http.protocol.HttpContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-class Http2AsyncMainClientExec implements AsyncExecChainHandler {
+/**
+ * Usually the last HTTP/2 request execution handler in the asynchronous
+ * request execution chain that is responsible for execution of
+ * request / response exchanges with the opposite endpoint.
+ *
+ * @since 5.0
+ */
+@Contract(threading = ThreadingBehavior.STATELESS)
+@Internal
+public class Http2AsyncMainClientExec implements AsyncExecChainHandler {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -87,6 +100,10 @@ class Http2AsyncMainClientExec implements AsyncExecChainHandler {
 
             @Override
             public void failed(final Exception cause) {
+                final AsyncDataConsumer entityConsumer = entityConsumerRef.getAndSet(null);
+                if (entityConsumer != null) {
+                    entityConsumer.releaseResources();
+                }
                 execRuntime.markConnectionNonReusable();
                 asyncExecCallback.failed(cause);
             }
@@ -97,8 +114,8 @@ class Http2AsyncMainClientExec implements AsyncExecChainHandler {
             }
 
             @Override
-            public void produceRequest(final RequestChannel channel) throws HttpException, IOException {
-                channel.sendRequest(request, entityProducer);
+            public void produceRequest(final RequestChannel channel, final HttpContext context) throws HttpException, IOException {
+                channel.sendRequest(request, entityProducer, context);
             }
 
             @Override
@@ -112,11 +129,14 @@ class Http2AsyncMainClientExec implements AsyncExecChainHandler {
             }
 
             @Override
-            public void consumeInformation(final HttpResponse response) throws HttpException, IOException {
+            public void consumeInformation(final HttpResponse response, final HttpContext context) throws HttpException, IOException {
             }
 
             @Override
-            public void consumeResponse(final HttpResponse response, final EntityDetails entityDetails) throws HttpException, IOException {
+            public void consumeResponse(
+                    final HttpResponse response,
+                    final EntityDetails entityDetails,
+                    final HttpContext context) throws HttpException, IOException {
                 entityConsumerRef.set(asyncExecCallback.handleResponse(response, entityDetails));
                 if (entityDetails == null) {
                     execRuntime.validateConnection();
@@ -135,12 +155,10 @@ class Http2AsyncMainClientExec implements AsyncExecChainHandler {
             }
 
             @Override
-            public int consume(final ByteBuffer src) throws IOException {
+            public void consume(final ByteBuffer src) throws IOException {
                 final AsyncDataConsumer entityConsumer = entityConsumerRef.get();
                 if (entityConsumer != null) {
-                    return entityConsumer.consume(src);
-                } else {
-                    return Integer.MAX_VALUE;
+                    entityConsumer.consume(src);
                 }
             }
 

@@ -90,7 +90,7 @@ public class TestMainClientExec {
                 .setStream(new ByteArrayInputStream(new byte[]{}))
                 .build());
 
-        Mockito.when(endpoint.isConnectionAcquired()).thenReturn(false);
+        Mockito.when(endpoint.isEndpointAcquired()).thenReturn(false);
         Mockito.when(endpoint.execute(
                 Mockito.same(request),
                 Mockito.<HttpClientContext>any())).thenReturn(response);
@@ -103,7 +103,7 @@ public class TestMainClientExec {
         final ClassicHttpResponse finalResponse = mainClientExec.execute(request, scope, null);
         Mockito.verify(endpoint).execute(request, context);
         Mockito.verify(endpoint, Mockito.times(1)).markConnectionNonReusable();
-        Mockito.verify(endpoint, Mockito.never()).releaseConnection();
+        Mockito.verify(endpoint, Mockito.never()).releaseEndpoint();
 
         Assert.assertNull(context.getUserToken());
         Assert.assertNotNull(finalResponse);
@@ -118,7 +118,7 @@ public class TestMainClientExec {
         final ClassicHttpResponse response = new BasicClassicHttpResponse(200, "OK");
         response.setEntity(null);
 
-        Mockito.when(endpoint.isConnectionAcquired()).thenReturn(false);
+        Mockito.when(endpoint.isEndpointAcquired()).thenReturn(false);
         Mockito.when(endpoint.execute(
                 Mockito.same(request),
                 Mockito.<HttpClientContext>any())).thenReturn(response);
@@ -132,7 +132,7 @@ public class TestMainClientExec {
 
         Mockito.verify(endpoint).execute(request, context);
         Mockito.verify(endpoint).markConnectionNonReusable();
-        Mockito.verify(endpoint).releaseConnection();
+        Mockito.verify(endpoint).releaseEndpoint();
 
         Assert.assertNotNull(finalResponse);
         Assert.assertTrue(finalResponse instanceof CloseableHttpResponse);
@@ -150,8 +150,8 @@ public class TestMainClientExec {
                 .build());
 
         final ConnectionState connectionState = new ConnectionState();
-        Mockito.doAnswer(connectionState.connectAnswer()).when(endpoint).connect(Mockito.<HttpClientContext>any());
-        Mockito.when(endpoint.isConnected()).thenAnswer(connectionState.isConnectedAnswer());
+        Mockito.doAnswer(connectionState.connectAnswer()).when(endpoint).connectEndpoint(Mockito.<HttpClientContext>any());
+        Mockito.when(endpoint.isEndpointConnected()).thenAnswer(connectionState.isConnectedAnswer());
         Mockito.when(endpoint.execute(
                 Mockito.same(request),
                 Mockito.<HttpClientContext>any())).thenReturn(response);
@@ -161,14 +161,14 @@ public class TestMainClientExec {
                 Mockito.<HttpClientContext>any())).thenReturn(true);
         Mockito.when(keepAliveStrategy.getKeepAliveDuration(
                 Mockito.same(response),
-                Mockito.<HttpClientContext>any())).thenReturn(TimeValue.ofMillis(678L));
+                Mockito.<HttpClientContext>any())).thenReturn(TimeValue.ofMilliseconds(678L));
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
         final ClassicHttpResponse finalResponse = mainClientExec.execute(request, scope, null);
 
         Mockito.verify(endpoint).execute(request, context);
-        Mockito.verify(endpoint).markConnectionReusable();
-        Mockito.verify(endpoint, Mockito.never()).releaseConnection();
+        Mockito.verify(endpoint).markConnectionReusable(null, TimeValue.ofMilliseconds(678L));
+        Mockito.verify(endpoint, Mockito.never()).releaseEndpoint();
 
         Assert.assertNotNull(finalResponse);
         Assert.assertTrue(finalResponse instanceof CloseableHttpResponse);
@@ -182,8 +182,8 @@ public class TestMainClientExec {
         final ClassicHttpResponse response = new BasicClassicHttpResponse(200, "OK");
 
         final ConnectionState connectionState = new ConnectionState();
-        Mockito.doAnswer(connectionState.connectAnswer()).when(endpoint).connect(Mockito.<HttpClientContext>any());
-        Mockito.when(endpoint.isConnected()).thenAnswer(connectionState.isConnectedAnswer());
+        Mockito.doAnswer(connectionState.connectAnswer()).when(endpoint).connectEndpoint(Mockito.<HttpClientContext>any());
+        Mockito.when(endpoint.isEndpointConnected()).thenAnswer(connectionState.isConnectedAnswer());
         Mockito.when(endpoint.execute(
                 Mockito.same(request),
                 Mockito.<HttpClientContext>any())).thenReturn(response);
@@ -193,13 +193,13 @@ public class TestMainClientExec {
                 Mockito.<HttpClientContext>any())).thenReturn(true);
         Mockito.when(keepAliveStrategy.getKeepAliveDuration(
                 Mockito.same(response),
-                Mockito.<HttpClientContext>any())).thenReturn(TimeValue.ofMillis(678L));
+                Mockito.<HttpClientContext>any())).thenReturn(TimeValue.ofMilliseconds(678L));
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
         final ClassicHttpResponse finalResponse = mainClientExec.execute(request, scope, null);
 
         Mockito.verify(endpoint).execute(request, context);
-        Mockito.verify(endpoint).releaseConnection();
+        Mockito.verify(endpoint).releaseEndpoint();
 
         Assert.assertNotNull(finalResponse);
         Assert.assertTrue(finalResponse instanceof CloseableHttpResponse);
@@ -217,8 +217,8 @@ public class TestMainClientExec {
                 .build());
 
         final ConnectionState connectionState = new ConnectionState();
-        Mockito.doAnswer(connectionState.connectAnswer()).when(endpoint).connect(Mockito.<HttpClientContext>any());
-        Mockito.when(endpoint.isConnected()).thenAnswer(connectionState.isConnectedAnswer());
+        Mockito.doAnswer(connectionState.connectAnswer()).when(endpoint).connectEndpoint(Mockito.<HttpClientContext>any());
+        Mockito.when(endpoint.isEndpointConnected()).thenAnswer(connectionState.isConnectedAnswer());
         Mockito.when(endpoint.execute(
                 Mockito.same(request),
                 Mockito.<HttpClientContext>any())).thenReturn(response);
@@ -230,15 +230,15 @@ public class TestMainClientExec {
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
         final ClassicHttpResponse finalResponse = mainClientExec.execute(request, scope, null);
         Mockito.verify(endpoint, Mockito.times(1)).execute(request, context);
-        Mockito.verify(endpoint, Mockito.never()).disconnect();
-        Mockito.verify(endpoint, Mockito.never()).releaseConnection();
+        Mockito.verify(endpoint, Mockito.never()).disconnectEndpoint();
+        Mockito.verify(endpoint, Mockito.never()).releaseEndpoint();
 
         Assert.assertNotNull(finalResponse);
         Assert.assertTrue(finalResponse instanceof CloseableHttpResponse);
         finalResponse.close();
 
-        Mockito.verify(endpoint).disconnect();
-        Mockito.verify(endpoint).discardConnection();
+        Mockito.verify(endpoint).disconnectEndpoint();
+        Mockito.verify(endpoint).discardEndpoint();
     }
 
     @Test(expected=InterruptedIOException.class)
@@ -255,7 +255,7 @@ public class TestMainClientExec {
         try {
             mainClientExec.execute(request, scope, null);
         } catch (final Exception ex) {
-            Mockito.verify(endpoint).discardConnection();
+            Mockito.verify(endpoint).discardEndpoint();
             throw ex;
         }
     }
@@ -274,7 +274,7 @@ public class TestMainClientExec {
         try {
             mainClientExec.execute(request, scope, null);
         } catch (final Exception ex) {
-            Mockito.verify(endpoint).discardConnection();
+            Mockito.verify(endpoint).discardEndpoint();
             throw ex;
         }
     }
@@ -293,7 +293,7 @@ public class TestMainClientExec {
         try {
             mainClientExec.execute(request, scope, null);
         } catch (final Exception ex) {
-            Mockito.verify(endpoint).discardConnection();
+            Mockito.verify(endpoint).discardEndpoint();
             throw ex;
         }
     }
@@ -312,7 +312,7 @@ public class TestMainClientExec {
         try {
             mainClientExec.execute(request, scope, null);
         } catch (final Exception ex) {
-            Mockito.verify(endpoint).discardConnection();
+            Mockito.verify(endpoint).discardEndpoint();
             throw ex;
         }
     }

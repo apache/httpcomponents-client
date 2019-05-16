@@ -46,6 +46,7 @@ import org.apache.hc.client5.http.protocol.RedirectStrategy;
 import org.apache.hc.client5.http.routing.HttpRoutePlanner;
 import org.apache.hc.client5.http.utils.URIUtils;
 import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
@@ -61,8 +62,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Request executor in the request execution chain that is responsible
- * for handling of request redirects.
+ * Request execution handler in the classic request execution chain
+ * responsible for handling of request redirects.
  * <p>
  * Further responsibilities such as communication with the opposite
  * endpoint is delegated to the next executor in the request execution
@@ -71,8 +72,9 @@ import org.slf4j.LoggerFactory;
  *
  * @since 4.3
  */
-@Contract(threading = ThreadingBehavior.SAFE_CONDITIONAL)
-final class RedirectExec implements ExecChainHandler {
+@Contract(threading = ThreadingBehavior.STATELESS)
+@Internal
+public final class RedirectExec implements ExecChainHandler {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -143,7 +145,7 @@ final class RedirectExec implements ExecChainHandler {
                         case HttpStatus.SC_SEE_OTHER:
                             if (!StandardMethods.isSafe(request.getMethod())) {
                                 final HttpGet httpGet = new HttpGet(redirectUri);
-                                httpGet.setHeaders(originalRequest.getAllHeaders());
+                                httpGet.setHeaders(originalRequest.getHeaders());
                                 redirect = httpGet;
                             } else {
                                 redirect = null;

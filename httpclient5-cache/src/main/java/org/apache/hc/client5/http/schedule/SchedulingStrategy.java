@@ -26,6 +26,8 @@
  */
 package org.apache.hc.client5.http.schedule;
 
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.util.TimeValue;
 
 /**
@@ -33,6 +35,7 @@ import org.apache.hc.core5.util.TimeValue;
  *
  * @since 5.0
  */
+@Contract(threading = ThreadingBehavior.STATELESS)
 public interface SchedulingStrategy {
 
     /**

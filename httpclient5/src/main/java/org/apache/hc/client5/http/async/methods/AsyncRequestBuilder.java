@@ -63,6 +63,7 @@ import org.apache.hc.core5.util.TextUtils;
  * {@link #setEntity(AsyncEntityProducer)} or it is not an entity enclosing method
  * (such as POST or PUT), parameters will be added to the query component of the request URI.
  * Otherwise, parameters will be added as a URL encoded entity.
+ * </p>
  *
  * @since 5.0
  */
@@ -429,11 +430,16 @@ public class AsyncRequestBuilder {
                 }
             }
         }
+
+        if (entityProducerCopy != null && StandardMethods.TRACE.name().equalsIgnoreCase(method)) {
+            throw new IllegalStateException(StandardMethods.TRACE.name() + " requests may not include an entity.");
+        }
+
         final ConfigurableHttpRequest request = host != null ?
                 new ConfigurableHttpRequest(method, host, !TextUtils.isBlank(path) ? path : "/") :
                 new ConfigurableHttpRequest(method, uri != null ? uri : URI.create("/"));
         if (this.headergroup != null) {
-            request.setHeaders(this.headergroup.getAllHeaders());
+            request.setHeaders(this.headergroup.getHeaders());
         }
         if (version != null) {
             request.setVersion(version);

@@ -31,6 +31,7 @@ import java.util.Map;
 
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.classic.BackoffManager;
+import org.apache.hc.core5.annotation.Experimental;
 import org.apache.hc.core5.pool.ConnPoolControl;
 import org.apache.hc.core5.util.Args;
 
@@ -54,6 +55,7 @@ import org.apache.hc.core5.util.Args;
  *
  * @since 4.2
  */
+@Experimental
 public class AIMDBackoffManager implements BackoffManager {
 
     private final ConnPoolControl<HttpRoute> connPerRoute;

@@ -31,16 +31,6 @@ import java.net.URI;
 
 /**
  * HTTP PUT method.
- * <p>
- * The HTTP PUT method is defined in section 9.6 of
- * <a href="http://www.ietf.org/rfc/rfc2616.txt">RFC2616</a>:
- * </p>
- * <blockquote>
- * The PUT method requests that the enclosed entity be stored under the
- * supplied Request-URI. If the Request-URI refers to an already
- * existing resource, the enclosed entity SHOULD be considered as a
- * modified version of the one residing on the origin server.
- * </blockquote>
  *
  * @since 4.0
  */

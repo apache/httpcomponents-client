@@ -61,19 +61,27 @@ import org.apache.hc.core5.http.protocol.HttpProcessor;
 import org.apache.hc.core5.http.protocol.RequestContent;
 import org.apache.hc.core5.http.protocol.RequestTargetHost;
 import org.apache.hc.core5.http.protocol.RequestUserAgent;
-import org.apache.hc.core5.io.ShutdownType;
+import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.net.URIAuthority;
 import org.apache.hc.core5.util.Args;
+import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.VersionInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Internal class.
+ * Minimal implementation of {@link CloseableHttpClient}. This client is
+ * optimized for HTTP/1.1 message transport and does not support advanced
+ * HTTP protocol functionality such as request execution via a proxy, state
+ * management, authentication and request redirects.
+ * <p>
+ * Concurrent message exchanges executed by this client will get assigned to
+ * separate connections leased from the connection pool.
+ * </p>
  *
  * @since 4.3
  */
-@Contract(threading = ThreadingBehavior.SAFE)
+@Contract(threading = ThreadingBehavior.SAFE_CONDITIONAL)
 public class MinimalHttpClient extends CloseableHttpClient {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -125,11 +133,11 @@ public class MinimalHttpClient extends CloseableHttpClient {
         final ExecRuntime execRuntime = new InternalExecRuntime(log, connManager, requestExecutor,
                 request instanceof CancellableDependency ? (CancellableDependency) request : null);
         try {
-            if (!execRuntime.isConnectionAcquired()) {
-                execRuntime.acquireConnection(route, null, clientContext);
+            if (!execRuntime.isEndpointAcquired()) {
+                execRuntime.acquireEndpoint(route, null, clientContext);
             }
-            if (!execRuntime.isConnected()) {
-                execRuntime.connect(clientContext);
+            if (!execRuntime.isEndpointConnected()) {
+                execRuntime.connectEndpoint(clientContext);
             }
 
             context.setAttribute(HttpCoreContext.HTTP_REQUEST, request);
@@ -140,7 +148,7 @@ public class MinimalHttpClient extends CloseableHttpClient {
             httpProcessor.process(response, response.getEntity(), context);
 
             if (reuseStrategy.keepAlive(request, response, context)) {
-                execRuntime.markConnectionReusable();
+                execRuntime.markConnectionReusable(null, TimeValue.NEG_ONE_MILLISECONDS);
             } else {
                 execRuntime.markConnectionNonReusable();
             }
@@ -149,7 +157,7 @@ public class MinimalHttpClient extends CloseableHttpClient {
             final HttpEntity entity = response.getEntity();
             if (entity == null || !entity.isStreaming()) {
                 // connection not needed and (assumed to be) in re-usable state
-                execRuntime.releaseConnection();
+                execRuntime.releaseEndpoint();
                 return new CloseableHttpResponse(response, null);
             }
             ResponseEntityProxy.enchance(response, execRuntime);
@@ -157,16 +165,16 @@ public class MinimalHttpClient extends CloseableHttpClient {
         } catch (final ConnectionShutdownException ex) {
             final InterruptedIOException ioex = new InterruptedIOException("Connection has been shut down");
             ioex.initCause(ex);
-            execRuntime.discardConnection();
+            execRuntime.discardEndpoint();
             throw ioex;
         } catch (final HttpException httpException) {
-            execRuntime.discardConnection();
+            execRuntime.discardEndpoint();
             throw new ClientProtocolException(httpException);
         } catch (final RuntimeException | IOException ex) {
-            execRuntime.discardConnection();
+            execRuntime.discardEndpoint();
             throw ex;
         } catch (final Error error) {
-            connManager.shutdown(ShutdownType.IMMEDIATE);
+            connManager.close(CloseMode.IMMEDIATE);
             throw error;
         }
     }

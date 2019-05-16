@@ -32,11 +32,6 @@ import java.io.OutputStream;
 
 import org.apache.hc.client5.http.impl.Wire;
 
-/**
- * Internal class.
- *
- * @since 4.3
- */
 class LoggingOutputStream extends OutputStream {
 
     private final OutputStream out;

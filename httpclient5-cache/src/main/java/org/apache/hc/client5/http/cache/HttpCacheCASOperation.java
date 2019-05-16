@@ -26,11 +26,15 @@
  */
 package org.apache.hc.client5.http.cache;
 
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
+
 /**
  * Atomic Compare-And-Swap (CAS) cache operation.
  *
  * @since 5.0
  */
+@Contract(threading = ThreadingBehavior.STATELESS)
 public interface HttpCacheCASOperation {
 
     /**

@@ -49,7 +49,7 @@ import org.apache.hc.core5.http.protocol.HttpContext;
  *
  * @since 4.3
  */
-@Contract(threading = ThreadingBehavior.IMMUTABLE_CONDITIONAL)
+@Contract(threading = ThreadingBehavior.STATELESS)
 public class SystemDefaultRoutePlanner extends DefaultRoutePlanner {
 
     private final ProxySelector proxySelector;
@@ -97,7 +97,7 @@ public class SystemDefaultRoutePlanner extends DefaultRoutePlanner {
             }
             final InetSocketAddress isa = (InetSocketAddress) p.address();
             // assume default scheme (http)
-            result = new HttpHost(isa.getAddress(), isa.getHostString(), isa.getPort(), null);
+            result = new HttpHost(null, isa.getAddress(), isa.getHostString(), isa.getPort());
         }
 
         return result;

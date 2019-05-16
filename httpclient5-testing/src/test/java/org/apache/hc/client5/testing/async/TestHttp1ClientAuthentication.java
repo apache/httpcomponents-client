@@ -42,7 +42,7 @@ import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManager;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
-import org.apache.hc.client5.http.ssl.H2TlsStrategy;
+import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.client5.testing.BasicTestAuthenticator;
 import org.apache.hc.client5.testing.SSLTestContexts;
 import org.apache.hc.core5.function.Decorator;
@@ -85,7 +85,7 @@ public class TestHttp1ClientAuthentication extends AbstractHttpAsyncClientAuthen
         @Override
         protected void before() throws Throwable {
             connManager = PoolingAsyncClientConnectionManagerBuilder.create()
-                    .setTlsStrategy(new H2TlsStrategy(SSLTestContexts.createClientSSLContext()))
+                    .setTlsStrategy(new DefaultClientTlsStrategy(SSLTestContexts.createClientSSLContext()))
                     .build();
         }
 
@@ -106,8 +106,8 @@ public class TestHttp1ClientAuthentication extends AbstractHttpAsyncClientAuthen
         protected void before() throws Throwable {
             clientBuilder = HttpAsyncClientBuilder.create()
                     .setDefaultRequestConfig(RequestConfig.custom()
-                            .setConnectionTimeout(TIMEOUT)
                             .setConnectionRequestTimeout(TIMEOUT)
+                            .setConnectTimeout(TIMEOUT)
                             .build())
                     .setConnectionManager(connManager);
         }

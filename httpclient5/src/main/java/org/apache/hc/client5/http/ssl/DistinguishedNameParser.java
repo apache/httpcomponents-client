@@ -31,15 +31,12 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 
-import org.apache.hc.core5.annotation.Contract;
-import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.http.message.BasicNameValuePair;
 import org.apache.hc.core5.http.message.ParserCursor;
 import org.apache.hc.core5.http.message.TokenParser;
 import org.apache.hc.core5.util.CharArrayBuffer;
 
-@Contract(threading = ThreadingBehavior.IMMUTABLE)
 final class DistinguishedNameParser {
 
     public final static DistinguishedNameParser INSTANCE = new DistinguishedNameParser();

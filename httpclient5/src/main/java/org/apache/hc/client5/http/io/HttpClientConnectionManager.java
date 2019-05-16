@@ -30,7 +30,7 @@ import java.io.IOException;
 
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.core5.http.protocol.HttpContext;
-import org.apache.hc.core5.io.GracefullyCloseable;
+import org.apache.hc.core5.io.ModalCloseable;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
 
@@ -41,14 +41,16 @@ import org.apache.hc.core5.util.Timeout;
  * HTTP connections, manage persistent connections and synchronize access to
  * persistent connections making sure that only one thread of execution can
  * have access to a connection at a time.
+ * </p>
  * <p>
  * Implementations of this interface must be thread-safe. Access to shared
  * data must be synchronized as methods of this interface may be executed
  * from multiple threads.
+ * </p>
  *
  * @since 4.3
  */
-public interface HttpClientConnectionManager extends GracefullyCloseable {
+public interface HttpClientConnectionManager extends ModalCloseable {
 
     /**
      * Returns a {@link LeaseRequest} object which can be used to obtain
@@ -93,16 +95,14 @@ public interface HttpClientConnectionManager extends GracefullyCloseable {
      * @param endpoint      the managed endpoint.
      * @param connectTimeout connect timeout.
      * @param context the actual HTTP context.
-     * @throws IOException
      */
     void connect(ConnectionEndpoint endpoint, TimeValue connectTimeout, HttpContext context) throws IOException;
 
     /**
-     * Upgrades the endpoint's underlying transport to Transport Layer Security.
+     * Upgrades transport security of the given endpoint by using the TLS security protocol.
      *
      * @param endpoint      the managed endpoint.
      * @param context the actual HTTP context.
-     * @throws IOException
      */
     void upgrade(ConnectionEndpoint endpoint, HttpContext context) throws IOException;
 

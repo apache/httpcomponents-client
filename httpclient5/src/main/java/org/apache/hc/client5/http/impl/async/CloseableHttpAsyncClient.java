@@ -45,7 +45,7 @@ import org.apache.hc.core5.http.nio.AsyncPushConsumer;
 import org.apache.hc.core5.http.nio.AsyncRequestProducer;
 import org.apache.hc.core5.http.nio.AsyncResponseConsumer;
 import org.apache.hc.core5.http.protocol.HttpContext;
-import org.apache.hc.core5.io.ShutdownType;
+import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.reactor.ExceptionEvent;
 import org.apache.hc.core5.reactor.IOReactorStatus;
 import org.apache.hc.core5.util.Args;
@@ -54,9 +54,9 @@ import org.apache.hc.core5.util.TimeValue;
 /**
  * Base implementation of {@link HttpAsyncClient} that also implements {@link Closeable}.
  *
- * @since 4.0
+ * @since 5.0
  */
-@Contract(threading = ThreadingBehavior.SAFE)
+@Contract(threading = ThreadingBehavior.STATELESS)
 public abstract class CloseableHttpAsyncClient implements HttpAsyncClient, Closeable {
 
     public abstract void start();
@@ -69,17 +69,21 @@ public abstract class CloseableHttpAsyncClient implements HttpAsyncClient, Close
 
     public abstract void initiateShutdown();
 
-    public abstract void shutdown(ShutdownType shutdownType);
+    public abstract void shutdown(CloseMode closeMode);
+
+    public final <T> Future<T> execute(
+            final AsyncRequestProducer requestProducer,
+            final AsyncResponseConsumer<T> responseConsumer,
+            final HttpContext context,
+            final FutureCallback<T> callback) {
+        return execute(requestProducer, responseConsumer, null, context, callback);
+    }
 
     public final <T> Future<T> execute(
             final AsyncRequestProducer requestProducer,
             final AsyncResponseConsumer<T> responseConsumer,
             final FutureCallback<T> callback) {
         return execute(requestProducer, responseConsumer, HttpClientContext.create(), callback);
-    }
-
-    public final void register(final String uriPattern, final Supplier<AsyncPushConsumer> supplier) {
-        register(null, uriPattern, supplier);
     }
 
     public final Future<SimpleHttpResponse> execute(
@@ -113,6 +117,12 @@ public abstract class CloseableHttpAsyncClient implements HttpAsyncClient, Close
             final SimpleHttpRequest request,
             final FutureCallback<SimpleHttpResponse> callback) {
         return execute(request, HttpClientContext.create(), callback);
+    }
+
+    public abstract void register(String hostname, String uriPattern, Supplier<AsyncPushConsumer> supplier);
+
+    public final void register(final String uriPattern, final Supplier<AsyncPushConsumer> supplier) {
+        register(null, uriPattern, supplier);
     }
 
 }

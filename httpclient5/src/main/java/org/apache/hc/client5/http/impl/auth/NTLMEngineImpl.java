@@ -41,7 +41,7 @@ import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.hc.client5.http.auth.ByteArrayBuilder;
+import org.apache.hc.client5.http.utils.ByteArrayBuilder;
 
 /**
  * Provides an implementation for NTLMv1, NTLMv2, and NTLM2 Session forms of the NTLM
@@ -1787,7 +1787,7 @@ final class NTLMEngineImpl implements NTLMEngine {
             writeUShort( newTargetInfo, MSV_AV_CHANNEL_BINDINGS, appendLength + 8 );
             writeUShort( newTargetInfo, 16, appendLength + 10 );
 
-            byte[] channelBindingsHash;
+            final byte[] channelBindingsHash;
             try
             {
                 final byte[] certBytes = peerServerCertificate.getEncoded();

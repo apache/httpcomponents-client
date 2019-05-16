@@ -88,7 +88,7 @@ import org.apache.hc.core5.util.ByteArrayBuffer;
  * @since 5.0
  */
 @Contract(threading = ThreadingBehavior.SAFE) // So long as the responseCache implementation is threadsafe
-public class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler {
+class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler {
 
     private final HttpAsyncCache responseCache;
     private final DefaultAsyncCacheRevalidator cacheRevalidator;
@@ -120,7 +120,7 @@ public class AsyncCachingExec extends CachingExecBase implements AsyncExecChainH
         this.conditionalRequestBuilder = conditionalRequestBuilder;
     }
 
-    public AsyncCachingExec(
+    AsyncCachingExec(
             final HttpAsyncCache cache,
             final ScheduledExecutorService executorService,
             final SchedulingStrategy schedulingStrategy,
@@ -130,7 +130,7 @@ public class AsyncCachingExec extends CachingExecBase implements AsyncExecChainH
                 config);
     }
 
-    public AsyncCachingExec(
+    AsyncCachingExec(
             final ResourceFactory resourceFactory,
             final HttpAsyncCacheStorage storage,
             final ScheduledExecutorService executorService,
@@ -144,7 +144,7 @@ public class AsyncCachingExec extends CachingExecBase implements AsyncExecChainH
             final AsyncExecChain.Scope scope,
             final AsyncExecCallback asyncExecCallback) {
         scope.clientContext.setAttribute(HttpCoreContext.HTTP_RESPONSE, cacheResponse);
-        scope.execRuntime.releaseConnection();
+        scope.execRuntime.releaseEndpoint();
 
         final SimpleBody body = cacheResponse.getBody();
         final byte[] content = body != null ? body.getBodyBytes() : null;
@@ -175,7 +175,8 @@ public class AsyncCachingExec extends CachingExecBase implements AsyncExecChainH
 
         @Override
         public AsyncDataConsumer handleResponse(
-                final HttpResponse response, final EntityDetails entityDetails) throws HttpException, IOException {
+                final HttpResponse response,
+                final EntityDetails entityDetails) throws HttpException, IOException {
             return null;
         }
 
@@ -213,7 +214,7 @@ public class AsyncCachingExec extends CachingExecBase implements AsyncExecChainH
 
         final URIAuthority authority = request.getAuthority();
         final String scheme = request.getScheme();
-        final HttpHost target = authority != null ? new HttpHost(authority, scheme) : route.getTargetHost();
+        final HttpHost target = authority != null ? new HttpHost(scheme, authority) : route.getTargetHost();
         final String via = generateViaHeader(request);
 
         // default response context
@@ -309,7 +310,8 @@ public class AsyncCachingExec extends CachingExecBase implements AsyncExecChainH
 
             @Override
             public AsyncDataConsumer handleResponse(
-                    final HttpResponse backendResponse, final EntityDetails entityDetails) throws HttpException, IOException {
+                    final HttpResponse backendResponse,
+                    final EntityDetails entityDetails) throws HttpException, IOException {
                 final Date responseDate = getCurrentDate();
                 backendResponse.addHeader("Via", generateViaHeader(backendResponse));
 
@@ -356,7 +358,6 @@ public class AsyncCachingExec extends CachingExecBase implements AsyncExecChainH
         private final AsyncExecCallback fallback;
         private final HttpResponse backendResponse;
         private final EntityDetails entityDetails;
-        private final Date responseDate;
         private final AtomicBoolean writtenThrough;
         private final AtomicReference<ByteArrayBuffer> bufferRef;
         private final AtomicReference<AsyncDataConsumer> dataConsumerRef;
@@ -364,11 +365,9 @@ public class AsyncCachingExec extends CachingExecBase implements AsyncExecChainH
         CachingAsyncDataConsumer(
                 final AsyncExecCallback fallback,
                 final HttpResponse backendResponse,
-                final EntityDetails entityDetails,
-                final Date responseDate) {
+                final EntityDetails entityDetails) {
             this.fallback = fallback;
             this.backendResponse = backendResponse;
-            this.responseDate = responseDate;
             this.entityDetails = entityDetails;
             this.writtenThrough = new AtomicBoolean(false);
             this.bufferRef = new AtomicReference<>(entityDetails != null ? new ByteArrayBuffer(1024) : null);
@@ -386,7 +385,7 @@ public class AsyncCachingExec extends CachingExecBase implements AsyncExecChainH
         }
 
         @Override
-        public final int consume(final ByteBuffer src) throws IOException {
+        public final void consume(final ByteBuffer src) throws IOException {
             final ByteArrayBuffer buffer = bufferRef.get();
             if (buffer != null) {
                 if (src.hasArray()) {
@@ -406,19 +405,17 @@ public class AsyncCachingExec extends CachingExecBase implements AsyncExecChainH
                         if (dataConsumer != null) {
                             dataConsumerRef.set(dataConsumer);
                             writtenThrough.set(true);
-                            return dataConsumer.consume(ByteBuffer.wrap(buffer.array(), 0, buffer.length()));
+                            dataConsumer.consume(ByteBuffer.wrap(buffer.array(), 0, buffer.length()));
                         }
                     } catch (final HttpException ex) {
                         fallback.failed(ex);
                     }
                 }
-                return Integer.MAX_VALUE;
-            }
-            final AsyncDataConsumer dataConsumer = dataConsumerRef.get();
-            if (dataConsumer != null) {
-                return dataConsumer.consume(src);
             } else {
-                return Integer.MAX_VALUE;
+                final AsyncDataConsumer dataConsumer = dataConsumerRef.get();
+                if (dataConsumer != null) {
+                    dataConsumer.consume(src);
+                }
             }
         }
 
@@ -489,7 +486,7 @@ public class AsyncCachingExec extends CachingExecBase implements AsyncExecChainH
             });
             final boolean cacheable = responseCachingPolicy.isResponseCacheable(request, backendResponse);
             if (cacheable) {
-                cachingConsumerRef.set(new CachingAsyncDataConsumer(asyncExecCallback, backendResponse, entityDetails, responseDate));
+                cachingConsumerRef.set(new CachingAsyncDataConsumer(asyncExecCallback, backendResponse, entityDetails));
                 storeRequestIfModifiedSinceFor304Response(request, backendResponse);
             } else {
                 log.debug("Backend response is not cacheable");
@@ -783,7 +780,8 @@ public class AsyncCachingExec extends CachingExecBase implements AsyncExecChainH
 
             @Override
             public AsyncDataConsumer handleResponse(
-                    final HttpResponse backendResponse1, final EntityDetails entityDetails) throws HttpException, IOException {
+                    final HttpResponse backendResponse1,
+                    final EntityDetails entityDetails) throws HttpException, IOException {
 
                 final Date responseDate1 = getCurrentDate();
 
@@ -802,7 +800,8 @@ public class AsyncCachingExec extends CachingExecBase implements AsyncExecChainH
 
                                 @Override
                                 public AsyncDataConsumer handleResponse(
-                                        final HttpResponse backendResponse2, final EntityDetails entityDetails) throws HttpException, IOException {
+                                        final HttpResponse backendResponse2,
+                                        final EntityDetails entityDetails) throws HttpException, IOException {
                                     final Date responseDate2 = getCurrentDate();
                                     final AsyncExecCallback callback2 = evaluateResponse(backendResponse2, responseDate2);
                                     callbackRef.set(callback2);
@@ -1005,7 +1004,8 @@ public class AsyncCachingExec extends CachingExecBase implements AsyncExecChainH
 
             @Override
             public AsyncDataConsumer handleResponse(
-                    final HttpResponse backendResponse, final EntityDetails entityDetails) throws HttpException, IOException {
+                    final HttpResponse backendResponse,
+                    final EntityDetails entityDetails) throws HttpException, IOException {
                 final Date responseDate = getCurrentDate();
                 backendResponse.addHeader("Via", generateViaHeader(backendResponse));
 

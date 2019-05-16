@@ -454,7 +454,7 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
                     requestSent,
                     responseReceived,
                     originResponse.getCode(),
-                    originResponse.getAllHeaders(),
+                    originResponse.getHeaders(),
                     content != null ? HeapResourceFactory.INSTANCE.generate(null, content.array(), 0, content.length()) : null));
             return Operations.nonCancellable();
         }

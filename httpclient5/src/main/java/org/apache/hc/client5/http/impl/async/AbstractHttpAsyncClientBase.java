@@ -34,7 +34,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.hc.core5.function.Supplier;
 import org.apache.hc.core5.http.nio.AsyncPushConsumer;
-import org.apache.hc.core5.io.ShutdownType;
+import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.reactor.ConnectionInitiator;
 import org.apache.hc.core5.reactor.DefaultConnectingIOReactor;
 import org.apache.hc.core5.reactor.ExceptionEvent;
@@ -120,17 +120,18 @@ abstract class AbstractHttpAsyncClientBase extends CloseableHttpAsyncClient {
     }
 
     @Override
-    public final void shutdown(final ShutdownType shutdownType) {
+    public final void shutdown(final CloseMode closeMode) {
         if (log.isDebugEnabled()) {
-            log.debug("Shutdown " + shutdownType);
+            log.debug("Shutdown " + closeMode);
         }
         ioReactor.initiateShutdown();
-        ioReactor.shutdown(shutdownType);
+        ioReactor.close(closeMode);
+        executorService.shutdownNow();
     }
 
     @Override
     public void close() {
-        shutdown(ShutdownType.GRACEFUL);
+        shutdown(CloseMode.GRACEFUL);
     }
 
 }

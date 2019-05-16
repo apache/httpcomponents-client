@@ -26,6 +26,6 @@
  */
 
 /**
- * Client configuration APIs.
+ * HTTP client configuration APIs.
  */
 package org.apache.hc.client5.http.config;

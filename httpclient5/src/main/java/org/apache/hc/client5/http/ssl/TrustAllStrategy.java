@@ -29,6 +29,8 @@ package org.apache.hc.client5.http.ssl;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.ssl.TrustStrategy;
 
 /**
@@ -37,8 +39,9 @@ import org.apache.hc.core5.ssl.TrustStrategy;
  * context.
  *
  * @since 4.5.4
- * @since 5.0-alpha2
+ * @since 5.0
  */
+@Contract(threading = ThreadingBehavior.STATELESS)
 public class TrustAllStrategy implements TrustStrategy {
 
     public static final TrustAllStrategy INSTANCE = new TrustAllStrategy();

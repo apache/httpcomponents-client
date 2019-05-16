@@ -54,7 +54,7 @@ import org.slf4j.LoggerFactory;
  *
  * @since 4.1
  */
-@Contract(threading = ThreadingBehavior.IMMUTABLE)
+@Contract(threading = ThreadingBehavior.STATELESS)
 public class RequestAuthCache implements HttpRequestInterceptor {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -93,9 +93,9 @@ public class RequestAuthCache implements HttpRequestInterceptor {
         final HttpHost target;
         if (authority != null) {
             target = new HttpHost(
+                    request.getScheme(),
                     authority.getHostName(),
-                    authority.getPort() >= 0 ? authority.getPort() : route.getTargetHost().getPort(),
-                    request.getScheme());
+                    authority.getPort() >= 0 ? authority.getPort() : route.getTargetHost().getPort());
         } else {
             target = route.getTargetHost();
         }

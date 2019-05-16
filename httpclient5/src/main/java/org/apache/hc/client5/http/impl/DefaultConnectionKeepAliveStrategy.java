@@ -42,13 +42,14 @@ import org.apache.hc.core5.util.TimeValue;
 /**
  * Default implementation of a strategy deciding duration
  * that a connection can remain idle.
- *
+ * <p>
  * The default implementation looks solely at the 'Keep-Alive'
  * header's timeout token.
+ * </p>
  *
  * @since 4.0
  */
-@Contract(threading = ThreadingBehavior.IMMUTABLE)
+@Contract(threading = ThreadingBehavior.STATELESS)
 public class DefaultConnectionKeepAliveStrategy implements ConnectionKeepAliveStrategy {
 
     public static final DefaultConnectionKeepAliveStrategy INSTANCE = new DefaultConnectionKeepAliveStrategy();

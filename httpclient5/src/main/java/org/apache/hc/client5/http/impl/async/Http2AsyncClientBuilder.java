@@ -45,22 +45,21 @@ import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.SystemDefaultDnsResolver;
 import org.apache.hc.client5.http.async.AsyncExecChainHandler;
 import org.apache.hc.client5.http.auth.AuthSchemeProvider;
+import org.apache.hc.client5.http.auth.AuthSchemes;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.KerberosConfig;
-import org.apache.hc.client5.http.config.AuthSchemes;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.cookie.BasicCookieStore;
 import org.apache.hc.client5.http.cookie.CookieSpecProvider;
 import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.client5.http.impl.ChainElements;
-import org.apache.hc.client5.http.impl.CookieSpecRegistries;
+import org.apache.hc.client5.http.impl.CookieSpecSupport;
 import org.apache.hc.client5.http.impl.DefaultAuthenticationStrategy;
 import org.apache.hc.client5.http.impl.DefaultHttpRequestRetryHandler;
 import org.apache.hc.client5.http.impl.DefaultRedirectStrategy;
 import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
 import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
 import org.apache.hc.client5.http.impl.auth.BasicSchemeFactory;
-import org.apache.hc.client5.http.impl.auth.CredSspSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.DigestSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.KerberosSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.NTLMSchemeFactory;
@@ -75,7 +74,7 @@ import org.apache.hc.client5.http.protocol.RequestDefaultHeaders;
 import org.apache.hc.client5.http.protocol.RequestExpectContinue;
 import org.apache.hc.client5.http.protocol.ResponseProcessCookies;
 import org.apache.hc.client5.http.routing.HttpRoutePlanner;
-import org.apache.hc.client5.http.ssl.H2TlsStrategy;
+import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.concurrent.DefaultThreadFactory;
 import org.apache.hc.core5.function.Callback;
@@ -105,7 +104,8 @@ import org.apache.hc.core5.http2.nio.pool.H2ConnPool;
 import org.apache.hc.core5.http2.protocol.H2RequestConnControl;
 import org.apache.hc.core5.http2.protocol.H2RequestContent;
 import org.apache.hc.core5.http2.protocol.H2RequestTargetHost;
-import org.apache.hc.core5.io.ShutdownType;
+import org.apache.hc.core5.io.CloseMode;
+import org.apache.hc.core5.reactor.Command;
 import org.apache.hc.core5.reactor.DefaultConnectingIOReactor;
 import org.apache.hc.core5.reactor.IOEventHandlerFactory;
 import org.apache.hc.core5.reactor.IOReactorConfig;
@@ -115,10 +115,16 @@ import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.VersionInfo;
 
 /**
- * Builder for HTTP/2 {@link CloseableHttpAsyncClient} instances.
+ * Builder for HTTP/2 only {@link CloseableHttpAsyncClient} instances.
+ * <p>
+ * Concurrent message exchanges with the same connection route executed
+ * with these {@link CloseableHttpAsyncClient} instances will get
+ * automatically multiplexed over a single physical HTTP/2 connection.
+ * </p>
  * <p>
  * When a particular component is not explicitly set this class will
  * use its default implementation.
+ * <p>
  *
  * @since 5.0
  */
@@ -720,7 +726,7 @@ public class Http2AsyncClientBuilder {
 
                     @Override
                     public void execute(final IOSession ioSession) {
-                        ioSession.addFirst(new ShutdownCommand(ShutdownType.GRACEFUL));
+                        ioSession.enqueue(new ShutdownCommand(CloseMode.GRACEFUL), Command.Priority.IMMEDIATE);
                     }
 
                 });
@@ -756,17 +762,18 @@ public class Http2AsyncClientBuilder {
         Lookup<AuthSchemeProvider> authSchemeRegistryCopy = this.authSchemeRegistry;
         if (authSchemeRegistryCopy == null) {
             authSchemeRegistryCopy = RegistryBuilder.<AuthSchemeProvider>create()
-                    .register(AuthSchemes.BASIC, new BasicSchemeFactory())
-                    .register(AuthSchemes.DIGEST, new DigestSchemeFactory())
-                    .register(AuthSchemes.CREDSSP, new CredSspSchemeFactory())
-                    .register(AuthSchemes.NTLM, new NTLMSchemeFactory())
-                    .register(AuthSchemes.SPNEGO, new SPNegoSchemeFactory(KerberosConfig.DEFAULT, SystemDefaultDnsResolver.INSTANCE))
-                    .register(AuthSchemes.KERBEROS, new KerberosSchemeFactory(KerberosConfig.DEFAULT, SystemDefaultDnsResolver.INSTANCE))
+                    .register(AuthSchemes.BASIC.ident, new BasicSchemeFactory())
+                    .register(AuthSchemes.DIGEST.ident, new DigestSchemeFactory())
+                    .register(AuthSchemes.NTLM.ident, new NTLMSchemeFactory())
+                    .register(AuthSchemes.SPNEGO.ident,
+                            new SPNegoSchemeFactory(KerberosConfig.DEFAULT, SystemDefaultDnsResolver.INSTANCE))
+                    .register(AuthSchemes.KERBEROS.ident,
+                            new KerberosSchemeFactory(KerberosConfig.DEFAULT, SystemDefaultDnsResolver.INSTANCE))
                     .build();
         }
         Lookup<CookieSpecProvider> cookieSpecRegistryCopy = this.cookieSpecRegistry;
         if (cookieSpecRegistryCopy == null) {
-            cookieSpecRegistryCopy = CookieSpecRegistries.createDefault();
+            cookieSpecRegistryCopy = CookieSpecSupport.createDefault();
         }
 
         CookieStore cookieStoreCopy = this.cookieStore;
@@ -786,9 +793,9 @@ public class Http2AsyncClientBuilder {
         TlsStrategy tlsStrategyCopy = this.tlsStrategy;
         if (tlsStrategyCopy == null) {
             if (systemProperties) {
-                tlsStrategyCopy = H2TlsStrategy.getSystemDefault();
+                tlsStrategyCopy = DefaultClientTlsStrategy.getSystemDefault();
             } else {
-                tlsStrategyCopy = H2TlsStrategy.getDefault();
+                tlsStrategyCopy = DefaultClientTlsStrategy.getDefault();
             }
         }
 

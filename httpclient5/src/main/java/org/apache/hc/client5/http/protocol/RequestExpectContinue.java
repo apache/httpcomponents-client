@@ -53,7 +53,7 @@ import org.apache.hc.core5.util.Args;
  *
  * @since 4.3
  */
-@Contract(threading = ThreadingBehavior.IMMUTABLE)
+@Contract(threading = ThreadingBehavior.STATELESS)
 public class RequestExpectContinue implements HttpRequestInterceptor {
 
     public RequestExpectContinue() {

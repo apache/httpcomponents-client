@@ -27,16 +27,15 @@
 
 package org.apache.hc.client5.http.impl.nio;
 
-import java.security.AccessController;
-import java.security.PrivilegedAction;
-
 import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.SchemePortResolver;
-import org.apache.hc.client5.http.ssl.H2TlsStrategy;
+import org.apache.hc.client5.http.ssl.ConscryptClientTlsStrategy;
+import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
 import org.apache.hc.core5.pool.PoolConcurrencyPolicy;
 import org.apache.hc.core5.pool.PoolReusePolicy;
+import org.apache.hc.core5.util.ReflectionUtils;
 import org.apache.hc.core5.util.TimeValue;
 
 /**
@@ -125,7 +124,7 @@ public class PoolingAsyncClientConnectionManagerBuilder {
     /**
      * Assigns {@link PoolReusePolicy} value.
      */
-    public final PoolingAsyncClientConnectionManagerBuilder setConnPoolPolicy(final PoolReusePolicy connPoolPolicy) {
+    public final PoolingAsyncClientConnectionManagerBuilder setConnPoolPolicy(final PoolReusePolicy poolReusePolicy) {
         this.poolReusePolicy = poolReusePolicy;
         return this;
     }
@@ -178,15 +177,20 @@ public class PoolingAsyncClientConnectionManagerBuilder {
         final TlsStrategy tlsStrategyCopy;
         if (tlsStrategy != null) {
             tlsStrategyCopy = tlsStrategy;
-        } else if (systemProperties) {
-            tlsStrategyCopy = AccessController.doPrivileged(new PrivilegedAction<TlsStrategy>() {
-                @Override
-                public TlsStrategy run() {
-                    return H2TlsStrategy.getSystemDefault();
-                }
-            });
         } else {
-            tlsStrategyCopy = H2TlsStrategy.getDefault();
+            if (ReflectionUtils.determineJRELevel() <= 8 && ConscryptClientTlsStrategy.isSupported()) {
+                if (systemProperties) {
+                    tlsStrategyCopy = ConscryptClientTlsStrategy.getSystemDefault();
+                } else {
+                    tlsStrategyCopy = ConscryptClientTlsStrategy.getDefault();
+                }
+            } else {
+                if (systemProperties) {
+                    tlsStrategyCopy = DefaultClientTlsStrategy.getSystemDefault();
+                } else {
+                    tlsStrategyCopy = DefaultClientTlsStrategy.getDefault();
+                }
+            }
         }
         final PoolingAsyncClientConnectionManager poolingmgr = new PoolingAsyncClientConnectionManager(
                 RegistryBuilder.<TlsStrategy>create()

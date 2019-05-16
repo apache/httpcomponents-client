@@ -27,7 +27,6 @@
 
 package org.apache.hc.client5.http.impl.async;
 
-import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -42,9 +41,13 @@ import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.concurrent.Cancellable;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.nio.AsyncClientExchangeHandler;
+import org.apache.hc.core5.http.nio.AsyncPushConsumer;
+import org.apache.hc.core5.http.nio.HandlerFactory;
 import org.apache.hc.core5.http2.HttpVersionPolicy;
+import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.reactor.ConnectionInitiator;
 import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 import org.slf4j.Logger;
 
 class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
@@ -52,6 +55,7 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
     private final Logger log;
     private final AsyncClientConnectionManager manager;
     private final ConnectionInitiator connectionInitiator;
+    private final HandlerFactory<AsyncPushConsumer> pushHandlerFactory;
     private final HttpVersionPolicy versionPolicy;
     private final AtomicReference<AsyncConnectionEndpoint> endpointRef;
     private volatile boolean reusable;
@@ -62,23 +66,25 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
             final Logger log,
             final AsyncClientConnectionManager manager,
             final ConnectionInitiator connectionInitiator,
+            final HandlerFactory<AsyncPushConsumer> pushHandlerFactory,
             final HttpVersionPolicy versionPolicy) {
         super();
         this.log = log;
         this.manager = manager;
         this.connectionInitiator = connectionInitiator;
+        this.pushHandlerFactory = pushHandlerFactory;
         this.versionPolicy = versionPolicy;
         this.endpointRef = new AtomicReference<>(null);
         this.validDuration = TimeValue.NEG_ONE_MILLISECONDS;
     }
 
     @Override
-    public boolean isConnectionAcquired() {
+    public boolean isEndpointAcquired() {
         return endpointRef.get() != null;
     }
 
     @Override
-    public Cancellable acquireConnection(
+    public Cancellable acquireEndpoint(
             final HttpRoute route,
             final Object object,
             final HttpClientContext context,
@@ -86,10 +92,11 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
         if (endpointRef.get() == null) {
             state = object;
             final RequestConfig requestConfig = context.getRequestConfig();
+            final Timeout connectionRequestTimeout = requestConfig.getConnectionRequestTimeout();
             return Operations.cancellable(manager.lease(
                     route,
                     object,
-                    requestConfig.getConnectionRequestTimeout(),
+                    connectionRequestTimeout,
                     new FutureCallback<AsyncConnectionEndpoint>() {
 
                         @Override
@@ -116,13 +123,9 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
 
     private void discardEndpoint(final AsyncConnectionEndpoint endpoint) {
         try {
-            endpoint.shutdown();
+            endpoint.close(CloseMode.IMMEDIATE);
             if (log.isDebugEnabled()) {
                 log.debug(ConnPoolSupport.getId(endpoint) + ": discarding endpoint");
-            }
-        } catch (final IOException ex) {
-            if (log.isDebugEnabled()) {
-                log.debug(ConnPoolSupport.getId(endpoint) + ": " + ex.getMessage(), ex);
             }
         } finally {
             manager.release(endpoint, null, TimeValue.ZERO_MILLISECONDS);
@@ -130,7 +133,7 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
     }
 
     @Override
-    public void releaseConnection() {
+    public void releaseEndpoint() {
         final AsyncConnectionEndpoint endpoint = endpointRef.getAndSet(null);
         if (endpoint != null) {
             if (reusable) {
@@ -145,7 +148,7 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
     }
 
     @Override
-    public void discardConnection() {
+    public void discardEndpoint() {
         final AsyncConnectionEndpoint endpoint = endpointRef.getAndSet(null);
         if (endpoint != null) {
             discardEndpoint(endpoint);
@@ -174,13 +177,13 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
     }
 
     @Override
-    public boolean isConnected() {
+    public boolean isEndpointConnected() {
         final AsyncConnectionEndpoint endpoint = endpointRef.get();
         return endpoint != null && endpoint.isConnected();
     }
 
     @Override
-    public Cancellable connect(
+    public Cancellable connectEndpoint(
             final HttpClientContext context,
             final FutureCallback<AsyncExecRuntime> callback) {
         final AsyncConnectionEndpoint endpoint = ensureValid();
@@ -189,20 +192,17 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
             return Operations.nonCancellable();
         }
         final RequestConfig requestConfig = context.getRequestConfig();
-        final TimeValue timeout = requestConfig.getConnectionTimeout();
+        final Timeout connectTimeout = requestConfig.getConnectTimeout();
         return Operations.cancellable(manager.connect(
                 endpoint,
                 connectionInitiator,
-                timeout,
+                connectTimeout,
                 versionPolicy,
                 context,
                 new FutureCallback<AsyncConnectionEndpoint>() {
 
                     @Override
                     public void completed(final AsyncConnectionEndpoint endpoint) {
-                        if (TimeValue.isPositive(timeout)) {
-                            endpoint.setSocketTimeout(timeout.toMillisIntBound());
-                        }
                         callback.completed(InternalHttpAsyncExecRuntime.this);
                     }
 
@@ -223,6 +223,11 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
     @Override
     public void upgradeTls(final HttpClientContext context) {
         final AsyncConnectionEndpoint endpoint = ensureValid();
+        final RequestConfig requestConfig = context.getRequestConfig();
+        final Timeout connectTimeout = requestConfig.getConnectTimeout();
+        if (TimeValue.isPositive(connectTimeout)) {
+            endpoint.setSocketTimeout(connectTimeout);
+        }
         manager.upgrade(endpoint, versionPolicy, context);
     }
 
@@ -233,9 +238,23 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
             if (log.isDebugEnabled()) {
                 log.debug(ConnPoolSupport.getId(endpoint) + ": executing " + ConnPoolSupport.getId(exchangeHandler));
             }
+            final RequestConfig requestConfig = context.getRequestConfig();
+            final Timeout responseTimeout = requestConfig.getResponseTimeout();
+            if (responseTimeout != null) {
+                endpoint.setSocketTimeout(responseTimeout);
+            }
             endpoint.execute(exchangeHandler, context);
+            if (context.getRequestConfig().isHardCancellationEnabled()) {
+                return new Cancellable() {
+                    @Override
+                    public boolean cancel() {
+                        exchangeHandler.cancel();
+                        return true;
+                    }
+                };
+            }
         } else {
-            connect(context, new FutureCallback<AsyncExecRuntime>() {
+            connectEndpoint(context, new FutureCallback<AsyncExecRuntime>() {
 
                 @Override
                 public void completed(final AsyncExecRuntime runtime) {
@@ -243,7 +262,7 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
                         log.debug(ConnPoolSupport.getId(endpoint) + ": executing " + ConnPoolSupport.getId(exchangeHandler));
                     }
                     try {
-                        endpoint.execute(exchangeHandler, context);
+                        endpoint.execute(exchangeHandler, pushHandlerFactory, context);
                     } catch (final RuntimeException ex) {
                         failed(ex);
                     }
@@ -280,7 +299,7 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
 
     @Override
     public AsyncExecRuntime fork() {
-        return new InternalHttpAsyncExecRuntime(log, manager, connectionInitiator, versionPolicy);
+        return new InternalHttpAsyncExecRuntime(log, manager, connectionInitiator, pushHandlerFactory, versionPolicy);
     }
 
 }

@@ -26,11 +26,6 @@
  */
 package org.apache.hc.client5.http.impl.classic;
 
-/**
- * The actual system clock.
- *
- * @since 4.2
- */
 class SystemClock implements Clock {
 
     @Override

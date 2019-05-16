@@ -134,7 +134,7 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
         final byte[] body101 = HttpTestUtils.getRandomBytes(101);
         final ByteArrayInputStream buf = new ByteArrayInputStream(body101);
         final ConsumableInputStream cis = new ConsumableInputStream(buf);
-        final HttpEntity entity = new InputStreamEntity(cis, 101);
+        final HttpEntity entity = new InputStreamEntity(cis, 101, null);
         resp2.setEntity(entity);
 
         backendExpectsAnyRequestAndReturn(resp2);

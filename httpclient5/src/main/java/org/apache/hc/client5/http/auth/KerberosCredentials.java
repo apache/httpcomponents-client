@@ -34,7 +34,7 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.ietf.jgss.GSSCredential;
 
 /**
- * {@link Credentials} implementation based on GSSCredential for Kerberos Authentication.
+ * Kerberos specific {@link Credentials} representation based on {@link GSSCredential}.
  *
  * @since 4.4
  */

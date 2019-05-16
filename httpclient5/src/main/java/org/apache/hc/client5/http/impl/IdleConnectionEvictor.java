@@ -28,12 +28,14 @@
 package org.apache.hc.client5.http.impl;
 
 import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
 
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.concurrent.DefaultThreadFactory;
 import org.apache.hc.core5.pool.ConnPoolControl;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 
 /**
  * This class maintains a background thread to enforce an eviction policy for expired / idle
@@ -41,6 +43,7 @@ import org.apache.hc.core5.util.TimeValue;
  *
  * @since 4.4
  */
+@Contract(threading = ThreadingBehavior.SAFE_CONDITIONAL)
 public final class IdleConnectionEvictor {
 
     private final ThreadFactory threadFactory;
@@ -91,8 +94,8 @@ public final class IdleConnectionEvictor {
         return thread.isAlive();
     }
 
-    public void awaitTermination(final long time, final TimeUnit tunit) throws InterruptedException {
-        thread.join((tunit != null ? tunit : TimeUnit.MILLISECONDS).toMillis(time));
+    public void awaitTermination(final Timeout timeout) throws InterruptedException {
+        thread.join(timeout != null ? timeout.toMillis() : Long.MAX_VALUE);
     }
 
 }

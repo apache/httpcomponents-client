@@ -34,6 +34,13 @@ import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.util.Args;
 
+/**
+ * Concurrent map of integer counts.
+ *
+ * @since 5.0
+ *
+ * @param <T> identifier used as a map key
+ */
 @Contract(threading = ThreadingBehavior.SAFE)
 public final class ConcurrentCountMap<T> {
 

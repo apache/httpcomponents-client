@@ -28,9 +28,9 @@ package org.apache.hc.client5.http.impl.io;
 
 import java.io.IOException;
 import java.util.Set;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -55,13 +55,14 @@ import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.config.Registry;
 import org.apache.hc.core5.http.config.RegistryBuilder;
-import org.apache.hc.core5.http.config.SocketConfig;
 import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
 import org.apache.hc.core5.http.io.HttpConnectionFactory;
+import org.apache.hc.core5.http.io.SocketConfig;
 import org.apache.hc.core5.http.protocol.HttpContext;
-import org.apache.hc.core5.io.ShutdownType;
+import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.pool.ConnPoolControl;
 import org.apache.hc.core5.pool.LaxConnPool;
 import org.apache.hc.core5.pool.ManagedConnPool;
@@ -82,7 +83,7 @@ import org.slf4j.LoggerFactory;
  * {@link ManagedHttpClientConnection}s and is able to service connection requests
  * from multiple execution threads. Connections are pooled on a per route
  * basis. A request for a route which already the manager has persistent
- * connections for available in the pool will be services by leasing
+ * connections for available in the pool will be serviced by leasing
  * a connection from the pool rather than creating a new connection.
  * <p>
  * {@code ClientConnectionPoolManager} maintains a maximum limit of connection
@@ -120,8 +121,8 @@ public class PoolingHttpClientConnectionManager
 
     public PoolingHttpClientConnectionManager() {
         this(RegistryBuilder.<ConnectionSocketFactory>create()
-                .register("http", PlainConnectionSocketFactory.getSocketFactory())
-                .register("https", SSLConnectionSocketFactory.getSocketFactory())
+                .register(URIScheme.HTTP.id, PlainConnectionSocketFactory.getSocketFactory())
+                .register(URIScheme.HTTPS.id, SSLConnectionSocketFactory.getSocketFactory())
                 .build());
     }
 
@@ -222,16 +223,16 @@ public class PoolingHttpClientConnectionManager
 
     @Override
     public void close() {
-        shutdown(ShutdownType.GRACEFUL);
+        close(CloseMode.GRACEFUL);
     }
 
     @Override
-    public void shutdown(final ShutdownType shutdownType) {
+    public void close(final CloseMode closeMode) {
         if (this.closed.compareAndSet(false, true)) {
             if (this.log.isDebugEnabled()) {
-                this.log.debug("Shutdown connection pool " + shutdownType);
+                this.log.debug("Shutdown connection pool " + closeMode);
             }
-            this.pool.shutdown(shutdownType);
+            this.pool.close(closeMode);
             this.log.debug("Connection pool shut down");
         }
     }
@@ -263,16 +264,16 @@ public class PoolingHttpClientConnectionManager
 
             @Override
             public synchronized ConnectionEndpoint get(
-                    final long timeout,
-                    final TimeUnit tunit) throws InterruptedException, ExecutionException, TimeoutException {
+                    final Timeout timeout) throws InterruptedException, ExecutionException, TimeoutException {
+                Args.notNull(timeout, "Operation timeout");
                 if (this.endpoint != null) {
                     return this.endpoint;
                 }
                 final PoolEntry<HttpRoute, ManagedHttpClientConnection> poolEntry;
                 try {
-                    poolEntry = leaseFuture.get(timeout, tunit);
+                    poolEntry = leaseFuture.get(timeout.getDuration(), timeout.getTimeUnit());
                     if (poolEntry == null || leaseFuture.isCancelled()) {
-                        throw new InterruptedException();
+                        throw new ExecutionException(new CancellationException("Operation cancelled"));
                     }
                 } catch (final TimeoutException ex) {
                     leaseFuture.cancel(true);
@@ -293,7 +294,7 @@ public class PoolingHttpClientConnectionManager
                                 if (log.isDebugEnabled()) {
                                     log.debug("Connection " + ConnPoolSupport.getId(conn) + " is stale");
                                 }
-                                poolEntry.discardConnection(ShutdownType.IMMEDIATE);
+                                poolEntry.discardConnection(CloseMode.IMMEDIATE);
                             }
                         }
                     }
@@ -337,7 +338,7 @@ public class PoolingHttpClientConnectionManager
         }
         final ManagedHttpClientConnection conn = entry.getConnection();
         if (conn != null && keepAlive == null) {
-            conn.shutdown(ShutdownType.GRACEFUL);
+            conn.close(CloseMode.GRACEFUL);
         }
         boolean reusable = conn != null && conn.isOpen();
         try {
@@ -523,10 +524,10 @@ public class PoolingHttpClientConnectionManager
         }
 
         @Override
-        public void shutdown(final ShutdownType shutdownType) {
+        public void close(final CloseMode closeMode) {
             final PoolEntry<HttpRoute, ManagedHttpClientConnection> poolEntry = poolEntryRef.get();
             if (poolEntry != null) {
-                poolEntry.discardConnection(shutdownType);
+                poolEntry.discardConnection(closeMode);
             }
         }
 
@@ -534,7 +535,7 @@ public class PoolingHttpClientConnectionManager
         public void close() throws IOException {
             final PoolEntry<HttpRoute, ManagedHttpClientConnection> poolEntry = poolEntryRef.get();
             if (poolEntry != null) {
-                poolEntry.discardConnection(ShutdownType.GRACEFUL);
+                poolEntry.discardConnection(CloseMode.GRACEFUL);
             }
         }
 
@@ -546,7 +547,7 @@ public class PoolingHttpClientConnectionManager
         }
 
         @Override
-        public void setSocketTimeout(final int timeout) {
+        public void setSocketTimeout(final Timeout timeout) {
             getValidatedPoolEntry().getConnection().setSocketTimeout(timeout);
         }
 

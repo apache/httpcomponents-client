@@ -261,7 +261,7 @@ public class TestCacheUpdateHandler {
         final HttpCacheEntry updatedEntry = impl.updateCacheEntry(null, entry,
                 new Date(), new Date(), response);
 
-        final Header[] updatedHeaders = updatedEntry.getAllHeaders();
+        final Header[] updatedHeaders = updatedEntry.getHeaders();
         headersContain(updatedHeaders, "Content-Encoding", "identity");
         headersNotContain(updatedHeaders, "Content-Encoding", "gzip");
     }

@@ -26,7 +26,6 @@
  */
 
 /**
- * Default implementations of standard and common HTTP state
- * management policies.
+ * Standard and common HTTP cookie management policies.
  */
 package org.apache.hc.client5.http.impl.cookie;

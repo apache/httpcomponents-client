@@ -30,13 +30,12 @@ import java.net.URI;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.apache.hc.client5.http.config.Configurable;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.core5.concurrent.Cancellable;
 import org.apache.hc.core5.concurrent.CancellableDependency;
 import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 
-public class HttpUriRequestBase extends BasicClassicHttpRequest implements CancellableDependency, Configurable {
+public class HttpUriRequestBase extends BasicClassicHttpRequest implements HttpUriRequest, CancellableDependency {
 
     private static final long serialVersionUID = 1L;
 
@@ -88,6 +87,16 @@ public class HttpUriRequestBase extends BasicClassicHttpRequest implements Cance
             cancellable.cancel();
         }
         this.cancelled.set(false);
+    }
+
+    @Override
+    public void abort() throws UnsupportedOperationException {
+        cancel();
+    }
+
+    @Override
+    public boolean isAborted() {
+        return isCancelled();
     }
 
     public void setConfig(final RequestConfig requestConfig) {

@@ -26,15 +26,23 @@
  */
 package org.apache.hc.client5.http.async.methods;
 
+import java.io.IOException;
+
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.nio.AsyncEntityConsumer;
-import org.apache.hc.core5.http.nio.entity.BasicAsyncEntityConsumer;
 import org.apache.hc.core5.http.nio.support.AbstractAsyncResponseConsumer;
+import org.apache.hc.core5.http.protocol.HttpContext;
 
-import java.io.IOException;
-
+/**
+ * HTTP response consumer that generates a {@link SimpleHttpResponse} instance based on events
+ * of an incoming data stream.
+ *
+ * @since 5.0
+ *
+ * @see SimpleBody
+ */
 public final class SimpleResponseConsumer extends AbstractAsyncResponseConsumer<SimpleHttpResponse, byte[]> {
 
     SimpleResponseConsumer(final AsyncEntityConsumer<byte[]> entityConsumer) {
@@ -42,7 +50,11 @@ public final class SimpleResponseConsumer extends AbstractAsyncResponseConsumer<
     }
 
     public static SimpleResponseConsumer create() {
-        return new SimpleResponseConsumer(new BasicAsyncEntityConsumer());
+        return new SimpleResponseConsumer(new SimpleAsyncEntityConsumer());
+    }
+
+    @Override
+    public void informationResponse(final HttpResponse response, final HttpContext context) throws HttpException, IOException {
     }
 
     @Override
@@ -52,9 +64,5 @@ public final class SimpleResponseConsumer extends AbstractAsyncResponseConsumer<
             simpleResponse.setBodyBytes(entity, contentType);
         }
         return simpleResponse;
-    }
-
-    @Override
-    public void informationResponse(final HttpResponse response) throws HttpException, IOException {
     }
 }

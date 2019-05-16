@@ -41,34 +41,43 @@ import org.apache.hc.core5.concurrent.ComplexCancellable;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.nio.AsyncClientExchangeHandler;
-import org.apache.hc.core5.http.nio.command.ExecutionCommand;
+import org.apache.hc.core5.http.nio.AsyncPushConsumer;
+import org.apache.hc.core5.http.nio.HandlerFactory;
+import org.apache.hc.core5.http.nio.command.RequestExecutionCommand;
 import org.apache.hc.core5.http2.nio.pool.H2ConnPool;
-import org.apache.hc.core5.io.ShutdownType;
+import org.apache.hc.core5.io.CloseMode;
+import org.apache.hc.core5.reactor.Command;
 import org.apache.hc.core5.reactor.IOSession;
 import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 import org.slf4j.Logger;
 
 class InternalHttp2AsyncExecRuntime implements AsyncExecRuntime {
 
     private final Logger log;
     private final H2ConnPool connPool;
+    private final HandlerFactory<AsyncPushConsumer> pushHandlerFactory;
     private final AtomicReference<Endpoint> sessionRef;
     private volatile boolean reusable;
 
-    InternalHttp2AsyncExecRuntime(final Logger log, final H2ConnPool connPool) {
+    InternalHttp2AsyncExecRuntime(
+            final Logger log,
+            final H2ConnPool connPool,
+            final HandlerFactory<AsyncPushConsumer> pushHandlerFactory) {
         super();
         this.log = log;
         this.connPool = connPool;
+        this.pushHandlerFactory = pushHandlerFactory;
         this.sessionRef = new AtomicReference<>(null);
     }
 
     @Override
-    public boolean isConnectionAcquired() {
+    public boolean isEndpointAcquired() {
         return sessionRef.get() != null;
     }
 
     @Override
-    public Cancellable acquireConnection(
+    public Cancellable acquireEndpoint(
             final HttpRoute route,
             final Object object,
             final HttpClientContext context,
@@ -76,9 +85,10 @@ class InternalHttp2AsyncExecRuntime implements AsyncExecRuntime {
         if (sessionRef.get() == null) {
             final HttpHost target = route.getTargetHost();
             final RequestConfig requestConfig = context.getRequestConfig();
+            final Timeout connectTimeout = requestConfig.getConnectTimeout();
             return Operations.cancellable(connPool.getSession(
                     target,
-                    requestConfig.getConnectionTimeout(),
+                    connectTimeout,
                     new FutureCallback<IOSession>() {
 
                         @Override
@@ -105,18 +115,18 @@ class InternalHttp2AsyncExecRuntime implements AsyncExecRuntime {
     }
 
     @Override
-    public void releaseConnection() {
+    public void releaseEndpoint() {
         final Endpoint endpoint = sessionRef.getAndSet(null);
         if (endpoint != null && !reusable) {
-            endpoint.session.shutdown(ShutdownType.GRACEFUL);
+            endpoint.session.close(CloseMode.GRACEFUL);
         }
     }
 
     @Override
-    public void discardConnection() {
+    public void discardEndpoint() {
         final Endpoint endpoint = sessionRef.getAndSet(null);
         if (endpoint != null) {
-            endpoint.session.shutdown(ShutdownType.GRACEFUL);
+            endpoint.session.close(CloseMode.GRACEFUL);
         }
     }
 
@@ -128,13 +138,13 @@ class InternalHttp2AsyncExecRuntime implements AsyncExecRuntime {
         }
         final Endpoint endpoint = sessionRef.getAndSet(null);
         if (endpoint != null) {
-            endpoint.session.shutdown(ShutdownType.GRACEFUL);
+            endpoint.session.close(CloseMode.GRACEFUL);
         }
         return false;
     }
 
     @Override
-    public boolean isConnected() {
+    public boolean isEndpointConnected() {
         final Endpoint endpoint = sessionRef.get();
         return endpoint != null && !endpoint.session.isClosed();
     }
@@ -149,7 +159,7 @@ class InternalHttp2AsyncExecRuntime implements AsyncExecRuntime {
     }
 
     @Override
-    public Cancellable connect(
+    public Cancellable connectEndpoint(
             final HttpClientContext context,
             final FutureCallback<AsyncExecRuntime> callback) {
         final Endpoint endpoint = ensureValid();
@@ -159,7 +169,9 @@ class InternalHttp2AsyncExecRuntime implements AsyncExecRuntime {
         }
         final HttpHost target = endpoint.target;
         final RequestConfig requestConfig = context.getRequestConfig();
-        return Operations.cancellable(connPool.getSession(target, requestConfig.getConnectionTimeout(), new FutureCallback<IOSession>() {
+        final Timeout connectTimeout = requestConfig.getConnectTimeout();
+        return Operations.cancellable(connPool.getSession(target, connectTimeout,
+            new FutureCallback<IOSession>() {
 
             @Override
             public void completed(final IOSession ioSession) {
@@ -196,11 +208,14 @@ class InternalHttp2AsyncExecRuntime implements AsyncExecRuntime {
             if (log.isDebugEnabled()) {
                 log.debug(ConnPoolSupport.getId(endpoint) + ": executing " + ConnPoolSupport.getId(exchangeHandler));
             }
-            session.addLast(new ExecutionCommand(exchangeHandler, complexCancellable, context));
+            session.enqueue(
+                    new RequestExecutionCommand(exchangeHandler, pushHandlerFactory, complexCancellable, context),
+                    Command.Priority.NORMAL);
         } else {
             final HttpHost target = endpoint.target;
             final RequestConfig requestConfig = context.getRequestConfig();
-            connPool.getSession(target, requestConfig.getConnectionTimeout(), new FutureCallback<IOSession>() {
+            final Timeout connectTimeout = requestConfig.getConnectTimeout();
+            connPool.getSession(target, connectTimeout, new FutureCallback<IOSession>() {
 
                 @Override
                 public void completed(final IOSession ioSession) {
@@ -209,7 +224,9 @@ class InternalHttp2AsyncExecRuntime implements AsyncExecRuntime {
                     if (log.isDebugEnabled()) {
                         log.debug(ConnPoolSupport.getId(endpoint) + ": executing " + ConnPoolSupport.getId(exchangeHandler));
                     }
-                    session.addLast(new ExecutionCommand(exchangeHandler, complexCancellable, context));
+                    session.enqueue(
+                            new RequestExecutionCommand(exchangeHandler, pushHandlerFactory, complexCancellable, context),
+                            Command.Priority.NORMAL);
                 }
 
                 @Override
@@ -250,7 +267,7 @@ class InternalHttp2AsyncExecRuntime implements AsyncExecRuntime {
 
     @Override
     public AsyncExecRuntime fork() {
-        return new InternalHttp2AsyncExecRuntime(log, connPool);
+        return new InternalHttp2AsyncExecRuntime(log, connPool, pushHandlerFactory);
     }
 
 }

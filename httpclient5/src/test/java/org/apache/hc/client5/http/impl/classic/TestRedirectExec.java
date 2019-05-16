@@ -99,15 +99,15 @@ public class TestRedirectExec {
         final ClassicHttpResponse response1 = Mockito.spy(new BasicClassicHttpResponse(HttpStatus.SC_MOVED_TEMPORARILY));
         final URI redirect = new URI("http://localhost:80/redirect");
         response1.setHeader(HttpHeaders.LOCATION, redirect.toASCIIString());
-        final InputStream instream1 = Mockito.spy(new ByteArrayInputStream(new byte[] {1, 2, 3}));
+        final InputStream inStream1 = Mockito.spy(new ByteArrayInputStream(new byte[] {1, 2, 3}));
         final HttpEntity entity1 = EntityBuilder.create()
-                .setStream(instream1)
+                .setStream(inStream1)
                 .build();
         response1.setEntity(entity1);
         final ClassicHttpResponse response2 = Mockito.spy(new BasicClassicHttpResponse(HttpStatus.SC_OK));
-        final InputStream instream2 = Mockito.spy(new ByteArrayInputStream(new byte[] {1, 2, 3}));
+        final InputStream inStream2 = Mockito.spy(new ByteArrayInputStream(new byte[] {1, 2, 3}));
         final HttpEntity entity2 = EntityBuilder.create()
-                .setStream(instream2)
+                .setStream(inStream2)
                 .build();
         response2.setEntity(entity2);
 
@@ -130,9 +130,9 @@ public class TestRedirectExec {
         Assert.assertSame(request, allValues.get(0));
 
         Mockito.verify(response1, Mockito.times(1)).close();
-        Mockito.verify(instream1, Mockito.times(2)).close();
+        Mockito.verify(inStream1, Mockito.times(2)).close();
         Mockito.verify(response2, Mockito.never()).close();
-        Mockito.verify(instream2, Mockito.never()).close();
+        Mockito.verify(inStream2, Mockito.never()).close();
     }
 
     @Test(expected = RedirectException.class)
@@ -332,9 +332,9 @@ public class TestRedirectExec {
         final ClassicHttpResponse response1 = Mockito.spy(new BasicClassicHttpResponse(HttpStatus.SC_MOVED_TEMPORARILY));
         final URI redirect = new URI("http://localhost:80/redirect");
         response1.setHeader(HttpHeaders.LOCATION, redirect.toASCIIString());
-        final InputStream instream1 = Mockito.spy(new ByteArrayInputStream(new byte[] {1, 2, 3}));
+        final InputStream inStream1 = Mockito.spy(new ByteArrayInputStream(new byte[] {1, 2, 3}));
         final HttpEntity entity1 = EntityBuilder.create()
-                .setStream(instream1)
+                .setStream(inStream1)
                 .build();
         response1.setEntity(entity1);
         Mockito.when(chain.proceed(
@@ -349,7 +349,7 @@ public class TestRedirectExec {
         try {
             redirectExec.execute(request, scope, chain);
         } catch (final Exception ex) {
-            Mockito.verify(instream1, Mockito.times(2)).close();
+            Mockito.verify(inStream1, Mockito.times(2)).close();
             Mockito.verify(response1).close();
             throw ex;
         }

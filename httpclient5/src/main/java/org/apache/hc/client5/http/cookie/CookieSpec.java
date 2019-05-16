@@ -40,9 +40,6 @@ import org.apache.hc.core5.http.Header;
  *   <li>  formatting of "Cookie" header
  * </ul>
  * for a given host, port and path of origin
- * <p>
- * Please do not use methods marked as @Obsolete. They have been rendered
- * obsolete by RFC 6265.
  *
  * @since 4.0
  */

@@ -111,7 +111,7 @@ public class AsyncRandomHandler implements AsyncServerExchangeHandler {
             final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_OK);
             final AsyncEntityProducer entityProducer = new RandomBinAsyncEntityProducer(n);
             entityProducerRef.set(entityProducer);
-            responseChannel.sendResponse(response, entityProducer);
+            responseChannel.sendResponse(response, entityProducer, context);
         } else {
             throw new ProtocolException("Invalid request path: " + path);
         }
@@ -123,8 +123,7 @@ public class AsyncRandomHandler implements AsyncServerExchangeHandler {
     }
 
     @Override
-    public int consume(final ByteBuffer src) throws IOException {
-        return Integer.MAX_VALUE;
+    public void consume(final ByteBuffer src) throws IOException {
     }
 
     @Override
@@ -165,7 +164,7 @@ public class AsyncRandomHandler implements AsyncServerExchangeHandler {
         private final ByteBuffer buffer;
 
         public RandomBinAsyncEntityProducer(final long len) {
-            super(2048, 512, ContentType.DEFAULT_TEXT);
+            super(512, ContentType.DEFAULT_TEXT);
             length = len;
             remaining = len;
             buffer = ByteBuffer.allocate(1024);
@@ -187,7 +186,7 @@ public class AsyncRandomHandler implements AsyncServerExchangeHandler {
         }
 
         @Override
-        public int available() {
+        public int availableData() {
             return Integer.MAX_VALUE;
         }
 
@@ -198,13 +197,13 @@ public class AsyncRandomHandler implements AsyncServerExchangeHandler {
                 final byte b = RANGE[(int) (Math.random() * RANGE.length)];
                 buffer.put(b);
             }
+            remaining -= chunk;
+
             buffer.flip();
-            final int bytesWritten = channel.write(buffer);
-            if (bytesWritten > 0) {
-                remaining -= bytesWritten;
-            }
+            channel.write(buffer);
             buffer.compact();
-            if (remaining <= 0) {
+
+            if (remaining <= 0 && buffer.position() == 0) {
                 channel.endStream();
             }
         }

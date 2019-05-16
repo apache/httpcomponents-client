@@ -40,6 +40,7 @@ import org.apache.hc.client5.http.impl.ConnectionShutdownException;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
@@ -47,21 +48,22 @@ import org.apache.hc.core5.http.ConnectionReuseStrategy;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.message.RequestLine;
-import org.apache.hc.core5.io.ShutdownType;
+import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TimeValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * The last request executor in the HTTP request execution chain
- * that is responsible for execution of request / response
- * exchanges with the opposite endpoint.
+ * Usually the last request execution handler in the classic request execution
+ * chain that is responsible for execution of request / response exchanges with
+ * the opposite endpoint.
  *
  * @since 4.3
  */
-@Contract(threading = ThreadingBehavior.IMMUTABLE_CONDITIONAL)
-final class MainClientExec implements ExecChainHandler {
+@Contract(threading = ThreadingBehavior.STATELESS)
+@Internal
+public final class MainClientExec implements ExecChainHandler {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -108,9 +110,6 @@ final class MainClientExec implements ExecChainHandler {
                 userToken = userTokenHandler.getUserToken(route, context);
                 context.setAttribute(HttpClientContext.USER_TOKEN, userToken);
             }
-            if (userToken != null) {
-                execRuntime.setConnectionState(userToken);
-            }
 
             // The connection is in or can be brought to a re-usable state.
             if (reuseStrategy.keepAlive(request, response, context)) {
@@ -125,8 +124,7 @@ final class MainClientExec implements ExecChainHandler {
                     }
                     this.log.debug("Connection can be kept alive " + s);
                 }
-                execRuntime.setConnectionValidFor(duration);
-                execRuntime.markConnectionReusable();
+                execRuntime.markConnectionReusable(userToken, duration);
             } else {
                 execRuntime.markConnectionNonReusable();
             }
@@ -134,7 +132,7 @@ final class MainClientExec implements ExecChainHandler {
             final HttpEntity entity = response.getEntity();
             if (entity == null || !entity.isStreaming()) {
                 // connection not needed and (assumed to be) in re-usable state
-                execRuntime.releaseConnection();
+                execRuntime.releaseEndpoint();
                 return new CloseableHttpResponse(response, null);
             }
             ResponseEntityProxy.enchance(response, execRuntime);
@@ -143,13 +141,13 @@ final class MainClientExec implements ExecChainHandler {
             final InterruptedIOException ioex = new InterruptedIOException(
                     "Connection has been shut down");
             ioex.initCause(ex);
-            execRuntime.discardConnection();
+            execRuntime.discardEndpoint();
             throw ioex;
         } catch (final HttpException | RuntimeException | IOException ex) {
-            execRuntime.discardConnection();
+            execRuntime.discardEndpoint();
             throw ex;
         } catch (final Error error) {
-            connectionManager.shutdown(ShutdownType.IMMEDIATE);
+            connectionManager.close(CloseMode.IMMEDIATE);
             throw error;
         }
 

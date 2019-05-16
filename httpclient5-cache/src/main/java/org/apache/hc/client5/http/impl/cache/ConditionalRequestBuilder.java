@@ -32,17 +32,11 @@ import java.util.Map;
 import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.impl.MessageCopier;
-import org.apache.hc.core5.annotation.Contract;
-import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HeaderElement;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.message.MessageSupport;
 
-/**
- * @since 4.1
- */
-@Contract(threading = ThreadingBehavior.IMMUTABLE)
 class ConditionalRequestBuilder<T extends HttpRequest> {
 
     private final MessageCopier<T> messageCopier;
@@ -63,7 +57,7 @@ class ConditionalRequestBuilder<T extends HttpRequest> {
      */
     public T buildConditionalRequest(final T request, final HttpCacheEntry cacheEntry) {
         final T newRequest = messageCopier.copy(request);
-        newRequest.setHeaders(request.getAllHeaders());
+        newRequest.setHeaders(request.getHeaders());
         final Header eTag = cacheEntry.getFirstHeader(HeaderConstants.ETAG);
         if (eTag != null) {
             newRequest.setHeader(HeaderConstants.IF_NONE_MATCH, eTag.getValue());
@@ -102,7 +96,7 @@ class ConditionalRequestBuilder<T extends HttpRequest> {
      */
     public T buildConditionalRequestFromVariants(final T request, final Map<String, Variant> variants) {
         final T newRequest = messageCopier.copy(request);
-        newRequest.setHeaders(request.getAllHeaders());
+        newRequest.setHeaders(request.getHeaders());
 
         // we do not support partial content so all etags are used
         final StringBuilder etags = new StringBuilder();

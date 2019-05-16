@@ -33,7 +33,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.apache.hc.client5.http.RouteInfo;
-import org.apache.hc.client5.http.config.CookieSpecs;
+import org.apache.hc.client5.http.cookie.CookieSpecs;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.cookie.Cookie;
 import org.apache.hc.client5.http.cookie.CookieOrigin;
@@ -62,7 +62,7 @@ import org.slf4j.LoggerFactory;
  *
  * @since 4.0
  */
-@Contract(threading = ThreadingBehavior.IMMUTABLE)
+@Contract(threading = ThreadingBehavior.STATELESS)
 public class RequestAddCookies implements HttpRequestInterceptor {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -108,7 +108,7 @@ public class RequestAddCookies implements HttpRequestInterceptor {
         final RequestConfig config = clientContext.getRequestConfig();
         String policy = config.getCookieSpec();
         if (policy == null) {
-            policy = CookieSpecs.DEFAULT;
+            policy = CookieSpecs.STANDARD.ident;
         }
         if (this.log.isDebugEnabled()) {
             this.log.debug("CookieSpec selected: " + policy);

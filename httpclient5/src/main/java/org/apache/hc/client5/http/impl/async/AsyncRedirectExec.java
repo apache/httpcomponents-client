@@ -43,6 +43,9 @@ import org.apache.hc.client5.http.protocol.RedirectLocations;
 import org.apache.hc.client5.http.protocol.RedirectStrategy;
 import org.apache.hc.client5.http.routing.HttpRoutePlanner;
 import org.apache.hc.client5.http.utils.URIUtils;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.Internal;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
@@ -57,7 +60,20 @@ import org.apache.hc.core5.util.LangUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-class AsyncRedirectExec implements AsyncExecChainHandler {
+/**
+ * Request execution handler in the asynchronous request execution chain
+ * responsbile for handling of request redirects.
+ * <p>
+ * Further responsibilities such as communication with the opposite
+ * endpoint is delegated to the next executor in the request execution
+ * chain.
+ * </p>
+ *
+ * @since 5.0
+ */
+@Contract(threading = ThreadingBehavior.STATELESS)
+@Internal
+public final class AsyncRedirectExec implements AsyncExecChainHandler {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -123,7 +139,7 @@ class AsyncRedirectExec implements AsyncExecChainHandler {
                         case HttpStatus.SC_SEE_OTHER:
                             if (!StandardMethods.isSafe(request.getMethod())) {
                                 final HttpRequest httpGet = new BasicHttpRequest(StandardMethods.GET.name(), redirectUri);
-                                httpGet.setHeaders(scope.originalRequest.getAllHeaders());
+                                httpGet.setHeaders(scope.originalRequest.getHeaders());
                                 state.currentRequest = httpGet;
                                 state.currentEntityProducer = null;
                                 break;
@@ -201,7 +217,7 @@ class AsyncRedirectExec implements AsyncExecChainHandler {
                     } else {
                         try {
                             if (state.reroute) {
-                                scope.execRuntime.releaseConnection();
+                                scope.execRuntime.releaseEndpoint();
                             }
                             internalExecute(state, chain, asyncExecCallback);
                         } catch (final IOException | HttpException ex) {

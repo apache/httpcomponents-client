@@ -35,7 +35,7 @@ import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.LangUtils;
 
 /**
- * Basic user principal used for HTTP authentication
+ * Basic username based principal representation.
  *
  * @since 4.0
  */

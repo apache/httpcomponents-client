@@ -96,7 +96,7 @@ public class AsyncEchoHandler implements AsyncServerExchangeHandler {
                     final BasicAsyncEntityProducer entityProducer = new BasicAsyncEntityProducer(content, contentType);
                     entityProducerRef.set(entityProducer);
                     try {
-                        responseChannel.sendResponse(new BasicHttpResponse(HttpStatus.SC_OK), entityProducer);
+                        responseChannel.sendResponse(new BasicHttpResponse(HttpStatus.SC_OK), entityProducer, context);
                     } catch (final IOException | HttpException ex) {
                         failed(ex);
                     }
@@ -114,7 +114,7 @@ public class AsyncEchoHandler implements AsyncServerExchangeHandler {
 
             });
         } else {
-            responseChannel.sendResponse(new BasicHttpResponse(HttpStatus.SC_OK), null);
+            responseChannel.sendResponse(new BasicHttpResponse(HttpStatus.SC_OK), null, context);
             entityConsumer.releaseResources();
         }
     }
@@ -125,8 +125,8 @@ public class AsyncEchoHandler implements AsyncServerExchangeHandler {
     }
 
     @Override
-    public int consume(final ByteBuffer src) throws IOException {
-        return entityConsumer.consume(src);
+    public void consume(final ByteBuffer src) throws IOException {
+        entityConsumer.consume(src);
     }
 
     @Override

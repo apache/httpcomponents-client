@@ -32,6 +32,11 @@ import org.apache.hc.core5.pool.ConnPoolControl;
 import org.apache.hc.core5.pool.PoolStats;
 import org.apache.hc.core5.util.Identifiable;
 
+/**
+ * Connection pooling support methods.
+ *
+ * @since 5.0
+ */
 @Internal
 public final class ConnPoolSupport {
 
@@ -39,11 +44,10 @@ public final class ConnPoolSupport {
         if (object == null) {
             return null;
         }
-        if (object instanceof Identifiable) {
-            return ((Identifiable) object).getId();
-        } else {
-            return object.getClass().getSimpleName() + "-" + Integer.toHexString(System.identityHashCode(object));
-        }
+        return object instanceof Identifiable
+                        ? ((Identifiable) object).getId()
+                        : object.getClass().getSimpleName() + "-"
+                                        + Integer.toHexString(System.identityHashCode(object));
     }
 
     public static String formatStats(

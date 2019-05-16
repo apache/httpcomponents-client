@@ -32,7 +32,6 @@ import java.net.PasswordAuthentication;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -41,11 +40,12 @@ import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.CredentialsStore;
 import org.apache.hc.client5.http.auth.NTCredentials;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
-import org.apache.hc.client5.http.config.AuthSchemes;
+import org.apache.hc.client5.http.auth.AuthSchemes;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.Args;
 
@@ -62,11 +62,11 @@ public class SystemDefaultCredentialsProvider implements CredentialsStore {
 
     static {
         SCHEME_MAP = new ConcurrentHashMap<>();
-        SCHEME_MAP.put(AuthSchemes.BASIC.toUpperCase(Locale.ROOT), "Basic");
-        SCHEME_MAP.put(AuthSchemes.DIGEST.toUpperCase(Locale.ROOT), "Digest");
-        SCHEME_MAP.put(AuthSchemes.NTLM.toUpperCase(Locale.ROOT), "NTLM");
-        SCHEME_MAP.put(AuthSchemes.SPNEGO.toUpperCase(Locale.ROOT), "SPNEGO");
-        SCHEME_MAP.put(AuthSchemes.KERBEROS.toUpperCase(Locale.ROOT), "Kerberos");
+        SCHEME_MAP.put(AuthSchemes.BASIC.name(), "Basic");
+        SCHEME_MAP.put(AuthSchemes.DIGEST.name(), "Digest");
+        SCHEME_MAP.put(AuthSchemes.NTLM.name(), "NTLM");
+        SCHEME_MAP.put(AuthSchemes.SPNEGO.name(), "SPNEGO");
+        SCHEME_MAP.put(AuthSchemes.KERBEROS.name(), "Kerberos");
     }
 
     private static String translateAuthScheme(final String key) {
@@ -127,7 +127,7 @@ public class SystemDefaultCredentialsProvider implements CredentialsStore {
         final String host = authscope.getHost();
         if (host != null) {
             final HttpClientContext clientContext = context != null ? HttpClientContext.adapt(context) : null;
-            final String protocol = authscope.getProtocol() != null ? authscope.getProtocol() : (authscope.getPort() == 443 ? "https" : "http");
+            final String protocol = authscope.getProtocol() != null ? authscope.getProtocol() : (authscope.getPort() == 443 ? URIScheme.HTTPS.id : URIScheme.HTTP.id);
             PasswordAuthentication systemcreds = getSystemCreds(
                     protocol, authscope, Authenticator.RequestorType.SERVER, clientContext);
             if (systemcreds == null) {
@@ -135,22 +135,13 @@ public class SystemDefaultCredentialsProvider implements CredentialsStore {
                         protocol, authscope, Authenticator.RequestorType.PROXY, clientContext);
             }
             if (systemcreds == null) {
-                final String proxyHost = System.getProperty(protocol + ".proxyHost");
-                if (proxyHost != null) {
-                    final String proxyPort = System.getProperty(protocol + ".proxyPort");
-                    if (proxyPort != null) {
-                        try {
-                            final AuthScope systemScope = new AuthScope(proxyHost, Integer.parseInt(proxyPort));
-                            if (authscope.match(systemScope) >= 0) {
-                                final String proxyUser = System.getProperty(protocol + ".proxyUser");
-                                if (proxyUser != null) {
-                                    final String proxyPassword = System.getProperty(protocol + ".proxyPassword");
-                                    systemcreds = new PasswordAuthentication(proxyUser, proxyPassword != null ? proxyPassword.toCharArray() : new char[] {});
-                                }
-                            }
-                        } catch (final NumberFormatException ex) {
-                        }
-                    }
+                // Look for values given using http.proxyUser/http.proxyPassword or
+                // https.proxyUser/https.proxyPassword. We cannot simply use the protocol from
+                // the origin since a proxy retrieved from https.proxyHost/https.proxyPort will
+                // still use http as protocol
+                systemcreds = getProxyCredentials("http", authscope);
+                if (systemcreds == null) {
+                    systemcreds = getProxyCredentials("https", authscope);
                 }
             }
             if (systemcreds != null) {
@@ -158,7 +149,7 @@ public class SystemDefaultCredentialsProvider implements CredentialsStore {
                 if (domain != null) {
                     return new NTCredentials(systemcreds.getUserName(), systemcreds.getPassword(), null, domain);
                 }
-                if (AuthSchemes.NTLM.equalsIgnoreCase(authscope.getAuthScheme())) {
+                if (AuthSchemes.NTLM.ident.equalsIgnoreCase(authscope.getAuthScheme())) {
                     // Domain may be specified in a fully qualified user name
                     return new NTCredentials(
                             systemcreds.getUserName(), systemcreds.getPassword(), null, null);
@@ -166,6 +157,34 @@ public class SystemDefaultCredentialsProvider implements CredentialsStore {
                 return new UsernamePasswordCredentials(systemcreds.getUserName(), systemcreds.getPassword());
             }
         }
+        return null;
+    }
+
+    private static PasswordAuthentication getProxyCredentials(final String protocol, final AuthScope authscope) {
+        final String proxyHost = System.getProperty(protocol + ".proxyHost");
+        if (proxyHost == null) {
+            return null;
+        }
+        final String proxyPort = System.getProperty(protocol + ".proxyPort");
+        if (proxyPort == null) {
+            return null;
+        }
+
+        try {
+            final AuthScope systemScope = new AuthScope(proxyHost, Integer.parseInt(proxyPort));
+            if (authscope.match(systemScope) >= 0) {
+                final String proxyUser = System.getProperty(protocol + ".proxyUser");
+                if (proxyUser == null) {
+                    return null;
+                }
+                final String proxyPassword = System.getProperty(protocol + ".proxyPassword");
+
+                return new PasswordAuthentication(proxyUser,
+                        proxyPassword != null ? proxyPassword.toCharArray() : new char[] {});
+            }
+        } catch (final NumberFormatException ex) {
+        }
+
         return null;
     }
 

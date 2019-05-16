@@ -28,10 +28,10 @@
 package org.apache.hc.client5.http.io;
 
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import org.apache.hc.core5.concurrent.Cancellable;
+import org.apache.hc.core5.util.Timeout;
 
 /**
  * Represents a request for a {@link ConnectionEndpoint} whose life cycle
@@ -51,9 +51,7 @@ public interface LeaseRequest extends Cancellable {
      * before this began, an {@link InterruptedException} will
      * be thrown.
      *
-     * @param timeout   the timeout, 0 or negative for no timeout
-     * @param tunit     the unit for the {@code timeout},
-     *                  may be {@code null} only if there is no timeout
+     * @param timeout   the operation timeout.
      *
      * @return  a connection that can be used to communicate
      *          along the given route
@@ -63,7 +61,7 @@ public interface LeaseRequest extends Cancellable {
      * @throws InterruptedException
      *         if the calling thread is interrupted while waiting
      */
-    ConnectionEndpoint get(long timeout, TimeUnit tunit)
+    ConnectionEndpoint get(Timeout timeout)
             throws InterruptedException, ExecutionException, TimeoutException;
 
 }

@@ -32,8 +32,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.apache.hc.client5.http.impl.ConnPoolSupport;
-import org.apache.hc.core5.annotation.Contract;
-import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.ConnectionReuseStrategy;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpConnection;
@@ -62,15 +60,11 @@ import org.apache.hc.core5.http2.impl.nio.ClientHttpProtocolNegotiator;
 import org.apache.hc.core5.http2.impl.nio.Http2StreamListener;
 import org.apache.hc.core5.reactor.IOEventHandler;
 import org.apache.hc.core5.reactor.IOEventHandlerFactory;
-import org.apache.hc.core5.reactor.TlsCapableIOSession;
+import org.apache.hc.core5.reactor.ProtocolIOSession;
 import org.apache.hc.core5.util.Args;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * @since 5.0
- */
-@Contract(threading = ThreadingBehavior.IMMUTABLE)
 class HttpAsyncClientEventHandlerFactory implements IOEventHandlerFactory {
 
     private final Logger streamLog = LoggerFactory.getLogger(InternalHttpAsyncClient.class);
@@ -110,7 +104,7 @@ class HttpAsyncClientEventHandlerFactory implements IOEventHandlerFactory {
     }
 
     @Override
-    public IOEventHandler createHandler(final TlsCapableIOSession ioSession, final Object attachment) {
+    public IOEventHandler createHandler(final ProtocolIOSession ioSession, final Object attachment) {
         final Logger sessionLog = LoggerFactory.getLogger(ioSession.getClass());
         if (sessionLog.isDebugEnabled()
                 || streamLog.isDebugEnabled()

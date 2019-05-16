@@ -30,26 +30,53 @@ package org.apache.hc.client5.http.nio;
 import java.net.SocketAddress;
 import java.util.concurrent.Future;
 
+import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Internal;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.reactor.ConnectionInitiator;
-import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 
 /**
+ * Connection operator that performs connection connect and upgrade operations.
+ *
  * @since 5.0
  */
+@Contract(threading = ThreadingBehavior.STATELESS)
 @Internal
 public interface AsyncClientConnectionOperator {
 
+    /**
+     * Initiates operation to create a connection to the remote endpoint using
+     * the provided {@link ConnectionInitiator}.
+     *
+     * @param connectionInitiator the connection initiator.
+     * @param host the address of the opposite endpoint.
+     * @param localAddress the address of the local endpoint.
+     * @param connectTimeout the timeout of the connect operation.
+     * @param attachment the attachment, which can be any object representing custom parameter
+     *                    of the operation.
+     * @param callback the future result callback.
+     */
     Future<ManagedAsyncClientConnection> connect(
             ConnectionInitiator connectionInitiator,
             HttpHost host,
             SocketAddress localAddress,
-            TimeValue connectTimeout,
+            Timeout connectTimeout,
             Object attachment,
             FutureCallback<ManagedAsyncClientConnection> callback);
 
-    void upgrade(ManagedAsyncClientConnection connection, HttpHost host, Object attachment);
+
+    /**
+     * Upgrades transport security of the given managed connection
+     * by using the TLS security protocol.
+     *
+     * @param conn the managed connection.
+     * @param host the address of the opposite endpoint with TLS security.
+     * @param attachment the attachment, which can be any object representing custom parameter
+     *                    of the operation.
+     */
+    void upgrade(ManagedAsyncClientConnection conn, HttpHost host, Object attachment);
 
 }

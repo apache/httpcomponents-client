@@ -77,13 +77,13 @@ public class TestConditionalRequestBuilder {
 
         Assert.assertEquals(theMethod, newRequest.getMethod());
         Assert.assertEquals(theUri, newRequest.getRequestUri());
-        Assert.assertEquals(2, newRequest.getAllHeaders().length);
+        Assert.assertEquals(2, newRequest.getHeaders().length);
 
-        Assert.assertEquals("Accept-Encoding", newRequest.getAllHeaders()[0].getName());
-        Assert.assertEquals("gzip", newRequest.getAllHeaders()[0].getValue());
+        Assert.assertEquals("Accept-Encoding", newRequest.getHeaders()[0].getName());
+        Assert.assertEquals("gzip", newRequest.getHeaders()[0].getValue());
 
-        Assert.assertEquals("If-Modified-Since", newRequest.getAllHeaders()[1].getName());
-        Assert.assertEquals(lastModified, newRequest.getAllHeaders()[1].getValue());
+        Assert.assertEquals("If-Modified-Since", newRequest.getHeaders()[1].getName());
+        Assert.assertEquals(lastModified, newRequest.getHeaders()[1].getValue());
     }
 
     @Test
@@ -133,13 +133,13 @@ public class TestConditionalRequestBuilder {
         Assert.assertEquals(theMethod, newRequest.getMethod());
         Assert.assertEquals(theUri, newRequest.getRequestUri());
 
-        Assert.assertEquals(3, newRequest.getAllHeaders().length);
+        Assert.assertEquals(3, newRequest.getHeaders().length);
 
-        Assert.assertEquals("Accept-Encoding", newRequest.getAllHeaders()[0].getName());
-        Assert.assertEquals("gzip", newRequest.getAllHeaders()[0].getValue());
+        Assert.assertEquals("Accept-Encoding", newRequest.getHeaders()[0].getName());
+        Assert.assertEquals("gzip", newRequest.getHeaders()[0].getValue());
 
-        Assert.assertEquals("If-None-Match", newRequest.getAllHeaders()[1].getName());
-        Assert.assertEquals(theETag, newRequest.getAllHeaders()[1].getValue());
+        Assert.assertEquals("If-None-Match", newRequest.getHeaders()[1].getName());
+        Assert.assertEquals(theETag, newRequest.getHeaders()[1].getValue());
     }
 
     @Test

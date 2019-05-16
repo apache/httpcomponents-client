@@ -123,7 +123,7 @@ public class TestRequestExpectContinue {
         final ClassicHttpRequest request = new BasicClassicHttpRequest("POST", "/");
         final RequestExpectContinue interceptor = new RequestExpectContinue();
         interceptor.process(request, null, context);
-        Assert.assertEquals(0, request.getAllHeaders().length);
+        Assert.assertEquals(0, request.getHeaders().length);
     }
 
 }

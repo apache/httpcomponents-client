@@ -160,7 +160,7 @@ public class TestProtocolExec {
         try {
             protocolExec.execute(request, scope, chain);
         } catch (final Exception ex) {
-            Mockito.verify(execRuntime).discardConnection();
+            Mockito.verify(execRuntime).discardEndpoint();
             throw ex;
         }
     }
@@ -181,7 +181,7 @@ public class TestProtocolExec {
         try {
             protocolExec.execute(request, scope, chain);
         } catch (final Exception ex) {
-            Mockito.verify(execRuntime).discardConnection();
+            Mockito.verify(execRuntime).discardEndpoint();
             throw ex;
         }
     }
@@ -202,7 +202,7 @@ public class TestProtocolExec {
         try {
             protocolExec.execute(request, scope, chain);
         } catch (final Exception ex) {
-            Mockito.verify(execRuntime).discardConnection();
+            Mockito.verify(execRuntime).discardEndpoint();
             throw ex;
         }
     }
@@ -214,14 +214,14 @@ public class TestProtocolExec {
         final ClassicHttpRequest request = new HttpGet("http://foo/test");
         final ClassicHttpResponse response1 = new BasicClassicHttpResponse(401, "Huh?");
         response1.setHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=test");
-        final InputStream instream1 = Mockito.spy(new ByteArrayInputStream(new byte[] {1, 2, 3}));
+        final InputStream inStream1 = Mockito.spy(new ByteArrayInputStream(new byte[] {1, 2, 3}));
         response1.setEntity(EntityBuilder.create()
-                .setStream(instream1)
+                .setStream(inStream1)
                 .build());
         final ClassicHttpResponse response2 = new BasicClassicHttpResponse(200, "OK");
-        final InputStream instream2 = Mockito.spy(new ByteArrayInputStream(new byte[] {2, 3, 4}));
+        final InputStream inStream2 = Mockito.spy(new ByteArrayInputStream(new byte[] {2, 3, 4}));
         response2.setEntity(EntityBuilder.create()
-                .setStream(instream2)
+                .setStream(inStream2)
                 .build());
 
         final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
@@ -240,8 +240,8 @@ public class TestProtocolExec {
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
         final ClassicHttpResponse finalResponse = protocolExec.execute(request, scope, chain);
         Mockito.verify(chain, Mockito.times(2)).proceed(request, scope);
-        Mockito.verify(instream1).close();
-        Mockito.verify(instream2, Mockito.never()).close();
+        Mockito.verify(inStream1).close();
+        Mockito.verify(inStream2, Mockito.never()).close();
 
         Assert.assertNotNull(finalResponse);
         Assert.assertEquals(200, finalResponse.getCode());
@@ -253,14 +253,14 @@ public class TestProtocolExec {
         final ClassicHttpRequest request = new HttpGet("http://foo/test");
         final ClassicHttpResponse response1 = new BasicClassicHttpResponse(401, "Huh?");
         response1.setHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=test");
-        final InputStream instream1 = Mockito.spy(new ByteArrayInputStream(new byte[] {1, 2, 3}));
+        final InputStream inStream1 = Mockito.spy(new ByteArrayInputStream(new byte[] {1, 2, 3}));
         response1.setEntity(EntityBuilder.create()
-                .setStream(instream1)
+                .setStream(inStream1)
                 .build());
         final ClassicHttpResponse response2 = new BasicClassicHttpResponse(200, "OK");
-        final InputStream instream2 = Mockito.spy(new ByteArrayInputStream(new byte[] {2, 3, 4}));
+        final InputStream inStream2 = Mockito.spy(new ByteArrayInputStream(new byte[] {2, 3, 4}));
         response2.setEntity(EntityBuilder.create()
-                .setStream(instream2)
+                .setStream(inStream2)
                 .build());
 
         final HttpClientContext context = new HttpClientContext();
@@ -286,8 +286,8 @@ public class TestProtocolExec {
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
         final ClassicHttpResponse finalResponse = protocolExec.execute(request, scope, chain);
         Mockito.verify(chain, Mockito.times(2)).proceed(request, scope);
-        Mockito.verify(execRuntime).disconnect();
-        Mockito.verify(instream2, Mockito.never()).close();
+        Mockito.verify(execRuntime).disconnectEndpoint();
+        Mockito.verify(inStream2, Mockito.never()).close();
 
         Assert.assertNotNull(finalResponse);
         Assert.assertEquals(200, finalResponse.getCode());
@@ -299,15 +299,15 @@ public class TestProtocolExec {
         final HttpRoute route = new HttpRoute(target);
         final HttpClientContext context = new HttpClientContext();
         final HttpPost request = new HttpPost("http://foo/test");
-        final InputStream instream0 = new ByteArrayInputStream(new byte[] {1, 2, 3});
+        final InputStream inStream0 = new ByteArrayInputStream(new byte[] {1, 2, 3});
         request.setEntity(EntityBuilder.create()
-                .setStream(instream0)
+                .setStream(inStream0)
                 .build());
         final ClassicHttpResponse response1 = new BasicClassicHttpResponse(401, "Huh?");
         response1.setHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=test");
-        final InputStream instream1 = new ByteArrayInputStream(new byte[] {1, 2, 3});
+        final InputStream inStream1 = new ByteArrayInputStream(new byte[] {1, 2, 3});
         response1.setEntity(EntityBuilder.create()
-                .setStream(instream1)
+                .setStream(inStream1)
                 .build());
 
         final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();

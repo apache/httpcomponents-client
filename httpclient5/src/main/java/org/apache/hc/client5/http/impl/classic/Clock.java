@@ -26,12 +26,6 @@
  */
 package org.apache.hc.client5.http.impl.classic;
 
-/**
- * Interface used to enable easier testing of time-related behavior.
- *
- * @since 4.2
- *
- */
 interface Clock {
 
     /**

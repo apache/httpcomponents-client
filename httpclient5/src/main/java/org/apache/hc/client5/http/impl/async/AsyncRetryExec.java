@@ -35,6 +35,9 @@ import org.apache.hc.client5.http.async.AsyncExecChain;
 import org.apache.hc.client5.http.async.AsyncExecChainHandler;
 import org.apache.hc.client5.http.impl.RequestCopier;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.Internal;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpRequest;
@@ -45,7 +48,21 @@ import org.apache.hc.core5.util.Args;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-class AsyncRetryExec implements AsyncExecChainHandler {
+/**
+ * Request execution handler in the asynchronous request execution chain
+ * responsbile for making a decision whether a request failed due to
+ * an I/O error should be re-executed.
+ * <p>
+ * Further responsibilities such as communication with the opposite
+ * endpoint is delegated to the next executor in the request execution
+ * chain.
+ * </p>
+ *
+ * @since 5.0
+ */
+@Contract(threading = ThreadingBehavior.STATELESS)
+@Internal
+public final class AsyncRetryExec implements AsyncExecChainHandler {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -105,7 +122,7 @@ class AsyncRetryExec implements AsyncExecChainHandler {
                             log.info("Retrying request to " + route);
                         }
                         try {
-                            scope.execRuntime.discardConnection();
+                            scope.execRuntime.discardEndpoint();
                             if (entityProducer != null) {
                                 entityProducer.releaseResources();
                             }

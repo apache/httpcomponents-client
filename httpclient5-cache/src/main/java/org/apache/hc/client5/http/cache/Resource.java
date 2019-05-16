@@ -30,13 +30,22 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.Serializable;
 
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
+
 /**
  * Represents a disposable system resource used for handling
  * cached response bodies.
+ * <p>
+ * Implementations of this interface are expected to be threading-safe.
+ * </p>
  *
  * @since 4.1
  */
+@Contract(threading = ThreadingBehavior.SAFE)
 public abstract class Resource implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     /**
      * Returns resource content as a {@link InputStream}.

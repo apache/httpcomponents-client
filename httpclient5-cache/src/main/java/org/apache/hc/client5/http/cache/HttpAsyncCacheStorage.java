@@ -29,6 +29,8 @@ package org.apache.hc.client5.http.cache;
 import java.util.Collection;
 import java.util.Map;
 
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.concurrent.Cancellable;
 import org.apache.hc.core5.concurrent.FutureCallback;
 
@@ -37,9 +39,13 @@ import org.apache.hc.core5.concurrent.FutureCallback;
  * storage backend that can then be plugged into the  asynchronous
  * (non-blocking ) request execution
  * pipeline.
+ * <p>
+ * Implementations of this interface are expected to be threading-safe.
+ * </p>
  *
  * @since 5.0
  */
+@Contract(threading = ThreadingBehavior.SAFE)
 public interface HttpAsyncCacheStorage {
 
     /**

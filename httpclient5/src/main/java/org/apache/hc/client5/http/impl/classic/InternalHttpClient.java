@@ -47,6 +47,7 @@ import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.routing.HttpRoutePlanner;
 import org.apache.hc.client5.http.routing.RoutingSupport;
 import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.concurrent.CancellableDependency;
 import org.apache.hc.core5.http.ClassicHttpRequest;
@@ -64,11 +65,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Internal class.
+ * Internal implementation of {@link CloseableHttpClient}.
+ * <p>
+ * Concurrent message exchanges executed by this client will get assigned to
+ * separate connections leased from the connection pool.
+ * </p>
  *
  * @since 4.3
  */
 @Contract(threading = ThreadingBehavior.SAFE_CONDITIONAL)
+@Internal
 class InternalHttpClient extends CloseableHttpClient implements Configurable {
 
     private final Logger log = LoggerFactory.getLogger(getClass());

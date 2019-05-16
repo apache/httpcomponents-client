@@ -33,13 +33,9 @@ import java.security.SecureRandom;
 import java.util.Formatter;
 import java.util.Locale;
 
-import org.apache.hc.core5.annotation.Contract;
-import org.apache.hc.core5.annotation.ThreadingBehavior;
-
 /**
  * Should produce reasonably unique tokens.
  */
-@Contract(threading = ThreadingBehavior.SAFE)
 class BasicIdGenerator {
 
     private final String hostname;

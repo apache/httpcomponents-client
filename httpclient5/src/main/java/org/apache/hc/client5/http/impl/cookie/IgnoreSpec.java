@@ -42,7 +42,7 @@ import org.apache.hc.core5.http.Header;
  *
  * @since 4.1
  */
-@Contract(threading = ThreadingBehavior.SAFE)
+@Contract(threading = ThreadingBehavior.STATELESS)
 public class IgnoreSpec extends CookieSpecBase {
 
     @Override

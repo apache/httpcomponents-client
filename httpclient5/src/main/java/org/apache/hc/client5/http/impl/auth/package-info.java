@@ -26,7 +26,6 @@
  */
 
 /**
- * Default implementations of standard and common HTTP authentication
- * schemes.
+ * Standard and common HTTP authentication schemes.
  */
 package org.apache.hc.client5.http.impl.auth;

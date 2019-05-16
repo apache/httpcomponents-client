@@ -44,6 +44,7 @@ import org.apache.hc.client5.http.impl.routing.BasicRouteDirector;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.routing.HttpRouteDirector;
 import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
@@ -64,13 +65,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Request executor in the HTTP request execution chain
+ * Request execution handler in the classic request execution chain
  * that is responsible for establishing connection to the target
- * origin server as specified by the current route.
+ * origin server as specified by the current connection route.
  *
  * @since 5.0
  */
-@Contract(threading = ThreadingBehavior.IMMUTABLE_CONDITIONAL)
+@Contract(threading = ThreadingBehavior.STATELESS)
+@Internal
 public final class ConnectExec implements ExecChainHandler {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -91,7 +93,7 @@ public final class ConnectExec implements ExecChainHandler {
         this.reuseStrategy      = reuseStrategy;
         this.proxyHttpProcessor = proxyHttpProcessor;
         this.proxyAuthStrategy  = proxyAuthStrategy;
-        this.authenticator      = new HttpAuthenticator();
+        this.authenticator      = new HttpAuthenticator(log);
         this.routeDirector      = new BasicRouteDirector();
     }
 
@@ -107,12 +109,12 @@ public final class ConnectExec implements ExecChainHandler {
         final HttpClientContext context = scope.clientContext;
         final ExecRuntime execRuntime = scope.execRuntime;
 
-        if (!execRuntime.isConnectionAcquired()) {
+        if (!execRuntime.isEndpointAcquired()) {
             final Object userToken = context.getUserToken();
-            execRuntime.acquireConnection(route, userToken, context);
+            execRuntime.acquireEndpoint(route, userToken, context);
         }
         try {
-            if (!execRuntime.isConnected()) {
+            if (!execRuntime.isEndpointConnected()) {
                 this.log.debug("Opening connection " + route);
 
                 final RouteTracker tracker = new RouteTracker(route);
@@ -124,13 +126,13 @@ public final class ConnectExec implements ExecChainHandler {
                     switch (step) {
 
                         case HttpRouteDirector.CONNECT_TARGET:
-                            execRuntime.connect(context);
+                            execRuntime.connectEndpoint(context);
                             tracker.connectTarget(route.isSecure());
                             break;
                         case HttpRouteDirector.CONNECT_PROXY:
-                            execRuntime.connect(context);
+                            execRuntime.connectEndpoint(context);
                             final HttpHost proxy  = route.getProxyHost();
-                            tracker.connectProxy(proxy, false);
+                            tracker.connectProxy(proxy, route.isSecure() && !route.isTunnelled());
                             break;
                         case HttpRouteDirector.TUNNEL_TARGET: {
                             final boolean secure = createTunnelToTarget(route, request, execRuntime, context);
@@ -169,7 +171,7 @@ public final class ConnectExec implements ExecChainHandler {
             return chain.proceed(request, scope);
 
         } catch (final IOException | HttpException | RuntimeException ex) {
-            execRuntime.discardConnection();
+            execRuntime.discardEndpoint();
             throw ex;
         }
     }
@@ -216,7 +218,7 @@ public final class ConnectExec implements ExecChainHandler {
             if (config.isAuthenticationEnabled()) {
                 if (this.authenticator.isChallenged(proxy, ChallengeType.PROXY, response,
                         proxyAuthExchange, context)) {
-                    if (this.authenticator.prepareAuthResponse(proxy, ChallengeType.PROXY, response,
+                    if (this.authenticator.updateAuthState(proxy, ChallengeType.PROXY, response,
                             this.proxyAuthStrategy, proxyAuthExchange, context)) {
                         // Retry request
                         if (this.reuseStrategy.keepAlive(request, response, context)) {
@@ -225,7 +227,7 @@ public final class ConnectExec implements ExecChainHandler {
                             final HttpEntity entity = response.getEntity();
                             EntityUtils.consume(entity);
                         } else {
-                            execRuntime.disconnect();
+                            execRuntime.disconnectEndpoint();
                         }
                         response = null;
                     }
@@ -239,7 +241,7 @@ public final class ConnectExec implements ExecChainHandler {
             // Buffer response content
             final HttpEntity entity = response.getEntity();
             final String responseMessage = entity != null ? EntityUtils.toString(entity) : null;
-            execRuntime.disconnect();
+            execRuntime.disconnectEndpoint();
             throw new TunnelRefusedException("CONNECT refused by proxy: " + new StatusLine(response), responseMessage);
         }
 

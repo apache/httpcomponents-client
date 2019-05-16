@@ -31,6 +31,8 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.TimeValue;
@@ -40,6 +42,7 @@ import org.apache.hc.core5.util.TimeValue;
  *
  * @since 4.3
  */
+@Contract(threading = ThreadingBehavior.STATELESS)
 public interface ConnectionSocketFactory {
 
     /**

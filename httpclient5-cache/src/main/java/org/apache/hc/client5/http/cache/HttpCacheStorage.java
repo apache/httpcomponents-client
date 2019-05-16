@@ -29,13 +29,20 @@ package org.apache.hc.client5.http.cache;
 import java.util.Collection;
 import java.util.Map;
 
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
+
 /**
  * {@literal HttpCacheStorage} represents an abstract HTTP cache
  * storage backend that can then be plugged into the classic
  * (blocking) request execution pipeline.
+ * <p>
+ * Implementations of this interface are expected to be threading-safe.
+ * </p>
  *
  * @since 4.1
  */
+@Contract(threading = ThreadingBehavior.SAFE)
 public interface HttpCacheStorage {
 
     /**

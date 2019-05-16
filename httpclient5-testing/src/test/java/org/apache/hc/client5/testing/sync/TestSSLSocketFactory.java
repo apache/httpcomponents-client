@@ -45,6 +45,7 @@ import javax.net.ssl.SSLSocket;
 
 import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
+import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder;
 import org.apache.hc.client5.http.ssl.TrustAllStrategy;
 import org.apache.hc.client5.http.ssl.TrustSelfSignedStrategy;
 import org.apache.hc.client5.testing.SSLTestContexts;
@@ -54,7 +55,7 @@ import org.apache.hc.core5.http.impl.bootstrap.SSLServerSetupHandler;
 import org.apache.hc.core5.http.impl.bootstrap.ServerBootstrap;
 import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.HttpContext;
-import org.apache.hc.core5.io.ShutdownType;
+import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.ssl.SSLContexts;
 import org.apache.hc.core5.ssl.TrustStrategy;
 import org.apache.hc.core5.util.TimeValue;
@@ -72,7 +73,7 @@ public class TestSSLSocketFactory {
     @After
     public void shutDown() throws Exception {
         if (this.server != null) {
-            this.server.shutdown(ShutdownType.GRACEFUL);
+            this.server.close(CloseMode.GRACEFUL);
         }
     }
 
@@ -107,8 +108,13 @@ public class TestSSLSocketFactory {
                 SSLTestContexts.createClientSSLContext(), hostVerifier);
         try (final Socket socket = socketFactory.createSocket(context)) {
             final InetSocketAddress remoteAddress = new InetSocketAddress("localhost", this.server.getLocalPort());
-            final HttpHost target = new HttpHost("localhost", this.server.getLocalPort(), "https");
-            try (SSLSocket sslSocket = (SSLSocket) socketFactory.connectSocket(TimeValue.ZERO_MILLISECONDS, socket, target, remoteAddress, null,
+            final HttpHost target = new HttpHost("https", "localhost", this.server.getLocalPort());
+            try (final SSLSocket sslSocket = (SSLSocket) socketFactory.connectSocket(
+                    TimeValue.ZERO_MILLISECONDS,
+                    socket,
+                    target,
+                    remoteAddress,
+                    null,
                     context)) {
                 final SSLSession sslsession = sslSocket.getSession();
 
@@ -128,12 +134,18 @@ public class TestSSLSocketFactory {
         this.server.start();
 
         final HttpContext context = new BasicHttpContext();
-        final SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(
-                SSLTestContexts.createClientSSLContext(), SSLConnectionSocketFactory.getDefaultHostnameVerifier());
+        final SSLConnectionSocketFactory socketFactory = SSLConnectionSocketFactoryBuilder.create()
+                .setSslContext(SSLTestContexts.createClientSSLContext())
+                .build();
         try (final Socket socket = socketFactory.createSocket(context)) {
             final InetSocketAddress remoteAddress = new InetSocketAddress("localhost", this.server.getLocalPort());
-            final HttpHost target = new HttpHost("localhost", this.server.getLocalPort(), "https");
-            try (SSLSocket sslSocket = (SSLSocket) socketFactory.connectSocket(TimeValue.ZERO_MILLISECONDS, socket, target, remoteAddress, null,
+            final HttpHost target = new HttpHost("https", "localhost", this.server.getLocalPort());
+            try (final SSLSocket sslSocket = (SSLSocket) socketFactory.connectSocket(
+                    TimeValue.ZERO_MILLISECONDS,
+                    socket,
+                    target,
+                    remoteAddress,
+                    null,
                     context)) {
                 final SSLSession sslsession = sslSocket.getSession();
 
@@ -157,8 +169,13 @@ public class TestSSLSocketFactory {
                 SSLTestContexts.createClientSSLContext(), hostVerifier);
         try (final Socket socket = socketFactory.createSocket(context)) {
             final InetSocketAddress remoteAddress = new InetSocketAddress("localhost", this.server.getLocalPort());
-            final HttpHost target = new HttpHost("localhost", this.server.getLocalPort(), "https");
-            try (SSLSocket sslSocket = (SSLSocket) socketFactory.connectSocket(TimeValue.ZERO_MILLISECONDS, socket, target, remoteAddress, null,
+            final HttpHost target = new HttpHost("https", "localhost", this.server.getLocalPort());
+            try (final SSLSocket sslSocket = (SSLSocket) socketFactory.connectSocket(
+                    TimeValue.ZERO_MILLISECONDS,
+                    socket,
+                    target,
+                    remoteAddress,
+                    null,
                     context)) {
                 final SSLSession sslsession = sslSocket.getSession();
 
@@ -191,13 +208,18 @@ public class TestSSLSocketFactory {
                 SSLTestContexts.createClientSSLContext(), hostVerifier);
         try (final Socket socket = socketFactory.createSocket(context)) {
             final InetSocketAddress remoteAddress = new InetSocketAddress("localhost", this.server.getLocalPort());
-            final HttpHost target = new HttpHost("localhost", this.server.getLocalPort(), "https");
-            try (SSLSocket sslSocket = (SSLSocket) socketFactory.connectSocket(TimeValue.ZERO_MILLISECONDS, socket, target, remoteAddress, null,
+            final HttpHost target = new HttpHost("https", "localhost", this.server.getLocalPort());
+            try (final SSLSocket sslSocket = (SSLSocket) socketFactory.connectSocket(
+                    TimeValue.ZERO_MILLISECONDS,
+                    socket, target,
+                    remoteAddress,
+                    null,
                     context)) {
                 final SSLSession sslsession = sslSocket.getSession();
 
                 Assert.assertNotNull(sslsession);
                 Assert.assertTrue(hostVerifier.isFired());
+                sslSocket.getInputStream().read();
             }
         }
     }
@@ -220,7 +242,7 @@ public class TestSSLSocketFactory {
 
         try (final Socket socket = socketFactory.createSocket(context)) {
             final InetSocketAddress remoteAddress = new InetSocketAddress("localhost", this.server.getLocalPort());
-            final HttpHost target = new HttpHost("localhost", this.server.getLocalPort(), "https");
+            final HttpHost target = new HttpHost("https", "localhost", this.server.getLocalPort());
             try (final SSLSocket sslSocket = (SSLSocket) socketFactory.connectSocket(TimeValue.ZERO_MILLISECONDS, socket, target, remoteAddress,
                     null, context)) {
                 // empty for now
@@ -272,7 +294,7 @@ public class TestSSLSocketFactory {
 
         try (final Socket socket = socketFactory.createSocket(context)) {
             final InetSocketAddress remoteAddress = new InetSocketAddress("localhost", this.server.getLocalPort());
-            final HttpHost target = new HttpHost("localhost", this.server.getLocalPort(), "https");
+            final HttpHost target = new HttpHost("https", "localhost", this.server.getLocalPort());
             try (final SSLSocket sslSocket = (SSLSocket) socketFactory.connectSocket(TimeValue.ZERO_MILLISECONDS, socket, target, remoteAddress,
                     null, context)) {
                 // empty for now
@@ -302,7 +324,7 @@ public class TestSSLSocketFactory {
                 SSLTestContexts.createClientSSLContext());
         try (final Socket socket = socketFactory.createSocket(context)) {
             final InetSocketAddress remoteAddress = new InetSocketAddress("localhost", this.server.getLocalPort());
-            final HttpHost target = new HttpHost("localhost", this.server.getLocalPort(), "https");
+            final HttpHost target = new HttpHost("https", "localhost", this.server.getLocalPort());
             try (final SSLSocket sslSocket = (SSLSocket) socketFactory.connectSocket(TimeValue.ZERO_MILLISECONDS, socket, target, remoteAddress,
                     null, context)) {
                 final SSLSession sslsession = sslSocket.getSession();
@@ -333,7 +355,62 @@ public class TestSSLSocketFactory {
                 SSLTestContexts.createClientSSLContext());
         try (final Socket socket = socketFactory.createSocket(context)) {
             final InetSocketAddress remoteAddress = new InetSocketAddress("localhost", this.server.getLocalPort());
-            final HttpHost target = new HttpHost("localhost", this.server.getLocalPort(), "https");
+            final HttpHost target = new HttpHost("https", "localhost", this.server.getLocalPort());
+            socketFactory.connectSocket(TimeValue.ZERO_MILLISECONDS, socket, target, remoteAddress, null, context);
+        }
+    }
+
+    @Test
+    public void testWeakCiphersDisabledByDefault() {
+        final String[] weakCiphersSuites = {
+                "SSL_RSA_WITH_RC4_128_SHA",
+                "SSL_RSA_WITH_3DES_EDE_CBC_SHA",
+                "TLS_DH_anon_WITH_AES_128_CBC_SHA",
+                "SSL_RSA_EXPORT_WITH_DES40_CBC_SHA",
+                "SSL_RSA_WITH_NULL_SHA",
+                "SSL_RSA_WITH_3DES_EDE_CBC_SHA",
+                "TLS_ECDHE_ECDSA_WITH_RC4_128_SHA",
+                "TLS_ECDH_ECDSA_WITH_3DES_EDE_CBC_SHA",
+                "TLS_DH_anon_WITH_AES_256_GCM_SHA384",
+                "TLS_ECDH_anon_WITH_AES_256_CBC_SHA",
+                "TLS_RSA_WITH_NULL_SHA256",
+                "SSL_RSA_EXPORT_WITH_RC4_40_MD5",
+                "SSL_DH_anon_EXPORT_WITH_RC4_40_MD5",
+                "TLS_KRB5_EXPORT_WITH_RC4_40_SHA",
+                "SSL_RSA_EXPORT_WITH_RC2_CBC_40_MD5"
+        };
+        for (final String cipherSuite : weakCiphersSuites) {
+            try {
+                testWeakCipherDisabledByDefault(cipherSuite);
+                Assert.fail("IOException expected");
+            } catch (final Exception e) {
+                Assert.assertTrue(e instanceof IOException || e instanceof IllegalArgumentException);
+            }
+        }
+    }
+
+    private void testWeakCipherDisabledByDefault(final String cipherSuite) throws Exception {
+        // @formatter:off
+        this.server = ServerBootstrap.bootstrap()
+                .setSslContext(SSLTestContexts.createServerSSLContext())
+                .setSslSetupHandler(new SSLServerSetupHandler() {
+
+                    @Override
+                    public void initialize(final SSLServerSocket socket) {
+                        socket.setEnabledCipherSuites(new String[] {cipherSuite});
+                    }
+
+                })
+                .create();
+        // @formatter:on
+        this.server.start();
+
+        final HttpContext context = new BasicHttpContext();
+        final SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(
+                SSLTestContexts.createClientSSLContext());
+        try (final Socket socket = socketFactory.createSocket(context)) {
+            final InetSocketAddress remoteAddress = new InetSocketAddress("localhost", this.server.getLocalPort());
+            final HttpHost target = new HttpHost("https", "localhost", this.server.getLocalPort());
             socketFactory.connectSocket(TimeValue.ZERO_MILLISECONDS, socket, target, remoteAddress, null, context);
         }
     }

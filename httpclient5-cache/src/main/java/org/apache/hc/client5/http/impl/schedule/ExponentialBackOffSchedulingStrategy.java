@@ -52,9 +52,9 @@ import org.apache.hc.core5.util.TimeValue;
  * </pre>
  * The resulting delay won't exceed {@link #getMaxExpiry()}.
  *
- * @since 4.3
+ * @since 5.0
  */
-@Contract(threading = ThreadingBehavior.SAFE)
+@Contract(threading = ThreadingBehavior.STATELESS)
 public class ExponentialBackOffSchedulingStrategy implements SchedulingStrategy {
 
     public static final long DEFAULT_BACK_OFF_RATE = 10;
@@ -91,7 +91,7 @@ public class ExponentialBackOffSchedulingStrategy implements SchedulingStrategy 
 
     @Override
     public TimeValue schedule(final int attemptNumber) {
-        return TimeValue.ofMillis(calculateDelayInMillis(attemptNumber));
+        return TimeValue.ofMilliseconds(calculateDelayInMillis(attemptNumber));
     }
 
     public long getBackOffRate() {
