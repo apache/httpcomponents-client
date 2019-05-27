@@ -110,11 +110,7 @@ public final class AsyncRedirectExec implements AsyncExecChainHandler {
         final HttpRoute currentRoute = scope.route;
         chain.proceed(request, entityProducer, scope, new AsyncExecCallback() {
 
-            @Override
-            public AsyncDataConsumer handleResponse(
-                    final HttpResponse response,
-                    final EntityDetails entityDetails) throws HttpException, IOException {
-
+            private void redirect(final HttpResponse response) throws HttpException, IOException {
                 state.redirectURI = null;
                 final RequestConfig config = clientContext.getRequestConfig();
                 if (config.isRedirectsEnabled() && redirectStrategy.isRedirected(request, response, clientContext)) {
@@ -178,6 +174,15 @@ public final class AsyncRedirectExec implements AsyncExecChainHandler {
                         }
                     }
                 }
+            }
+
+            @Override
+            public AsyncDataConsumer handleResponse(
+                    final HttpResponse response,
+                    final EntityDetails entityDetails) throws HttpException, IOException {
+
+                redirect(response);
+
                 if (state.redirectURI != null) {
                     if (log.isDebugEnabled()) {
                         log.debug(scope.exchangeId + ": redirecting to '" + state.redirectURI + "' via " + currentRoute);
@@ -185,6 +190,19 @@ public final class AsyncRedirectExec implements AsyncExecChainHandler {
                     return null;
                 }
                 return asyncExecCallback.handleResponse(response, entityDetails);
+            }
+
+            @Override
+            public void handleInformationResponse(final HttpResponse response) throws HttpException, IOException {
+                redirect(response);
+
+                if (state.redirectURI != null) {
+                    if (log.isDebugEnabled()) {
+                        log.debug(scope.exchangeId + ": redirecting to '" + state.redirectURI + "' via " + currentRoute);
+                    }
+                } else {
+                    asyncExecCallback.handleInformationResponse(response);
+                }
             }
 
             @Override

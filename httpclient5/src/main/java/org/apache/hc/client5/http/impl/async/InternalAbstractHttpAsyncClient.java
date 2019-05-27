@@ -264,6 +264,11 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
                                 }
 
                                 @Override
+                                public void handleInformationResponse(final HttpResponse response) throws HttpException, IOException {
+                                    responseConsumer.informationResponse(response, context);
+                                }
+
+                                @Override
                                 public void completed() {
                                     if (log.isDebugEnabled()) {
                                         log.debug(exchangeId + ": message exchange successfully completed");

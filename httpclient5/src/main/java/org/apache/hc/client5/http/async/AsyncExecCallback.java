@@ -55,6 +55,14 @@ public interface AsyncExecCallback {
             EntityDetails entityDetails) throws HttpException, IOException;
 
     /**
+     * Triggered to signal receipt of a information response message head sent by the server
+     * in response to the request being executed.
+     *
+     * @param response the response message head.
+     */
+    void handleInformationResponse(HttpResponse response) throws HttpException, IOException;
+
+    /**
      * Triggered to signal completion of the message exchange.
      * <p>
      * Implementations of this message are expected to perform resource deallocation

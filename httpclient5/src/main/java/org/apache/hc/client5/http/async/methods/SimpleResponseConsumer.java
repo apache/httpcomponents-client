@@ -65,5 +65,4 @@ public final class SimpleResponseConsumer extends AbstractAsyncResponseConsumer<
         }
         return simpleResponse;
     }
-
 }

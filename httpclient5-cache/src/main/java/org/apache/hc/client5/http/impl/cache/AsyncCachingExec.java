@@ -181,6 +181,10 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
         }
 
         @Override
+        public void handleInformationResponse(final HttpResponse response) throws HttpException, IOException {
+        }
+
+        @Override
         public void completed() {
             command.run();
         }
@@ -314,6 +318,16 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                 final AsyncExecCallback callback = new BackendResponseHandler(target, request, requestDate, responseDate, scope, asyncExecCallback);
                 callbackRef.set(callback);
                 return callback.handleResponse(backendResponse, entityDetails);
+            }
+
+            @Override
+            public void handleInformationResponse(final HttpResponse response) throws HttpException, IOException {
+                final AsyncExecCallback callback = callbackRef.getAndSet(null);
+                if (callback != null) {
+                    callback.handleInformationResponse(response);
+                } else {
+                    asyncExecCallback.handleInformationResponse(response);
+                }
             }
 
             @Override
@@ -499,6 +513,11 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                 return cachingDataConsumer;
             }
             return asyncExecCallback.handleResponse(backendResponse, entityDetails);
+        }
+
+        @Override
+        public void handleInformationResponse(final HttpResponse response) throws HttpException, IOException {
+            asyncExecCallback.handleInformationResponse(response);
         }
 
         void triggerNewCacheEntryResponse(final HttpResponse backendResponse, final Date responseDate, final ByteArrayBuffer buffer) {
@@ -790,6 +809,16 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                                 }
 
                                 @Override
+                                public void handleInformationResponse(final HttpResponse response) throws HttpException, IOException {
+                                    final AsyncExecCallback callback2 = callbackRef.getAndSet(null);
+                                    if (callback2 != null) {
+                                        callback2.handleInformationResponse(response);
+                                    } else {
+                                        asyncExecCallback.handleInformationResponse(response);
+                                    }
+                                }
+
+                                @Override
                                 public void completed() {
                                     final AsyncExecCallback callback2 = callbackRef.getAndSet(null);
                                     if (callback2 != null) {
@@ -819,6 +848,16 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                 }
                 callbackRef.set(callback1);
                 return callback1.handleResponse(backendResponse1, entityDetails);
+            }
+
+            @Override
+            public void handleInformationResponse(final HttpResponse response) throws HttpException, IOException {
+                final AsyncExecCallback callback1 = callbackRef.getAndSet(null);
+                if (callback1 != null) {
+                    callback1.handleInformationResponse(response);
+                } else {
+                    asyncExecCallback.handleInformationResponse(response);
+                }
             }
 
             @Override
@@ -1026,6 +1065,16 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                 }
                 callbackRef.set(callback);
                 return callback.handleResponse(backendResponse, entityDetails);
+            }
+
+            @Override
+            public void handleInformationResponse(final HttpResponse response) throws HttpException, IOException {
+                final AsyncExecCallback callback = callbackRef.getAndSet(null);
+                if (callback != null) {
+                    callback.handleInformationResponse(response);
+                } else {
+                    asyncExecCallback.handleInformationResponse(response);
+                }
             }
 
             @Override
