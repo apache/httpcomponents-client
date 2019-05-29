@@ -93,7 +93,7 @@ public class Wire {
                     buffer.insert(0, header);
                     this.log.debug(this.id + " " + buffer.toString());
                     buffer.setLength(0);
-            } else if ((ch < 32) || (ch > 127)) {
+            } else if ((ch < 32) || (ch >= 127)) {
                 buffer.append("[0x");
                 buffer.append(Integer.toHexString(ch));
                 buffer.append("]");
