@@ -111,7 +111,7 @@ public class TestPublicSuffixListParser {
 
         cookie.setDomain(".blah");
         cookie.setAttribute(Cookie.DOMAIN_ATTR, ".blah");
-        Assert.assertFalse(filter.match(cookie, new CookieOrigin("somehost.blah", 80, "/stuff", false)));
+        Assert.assertTrue(filter.match(cookie, new CookieOrigin("somehost.blah", 80, "/stuff", false)));
     }
 
     @Test
