@@ -142,17 +142,17 @@ public final class PublicSuffixMatcher {
         if (domain.startsWith(".")) {
             return null;
         }
-        String domainName = null;
-        String segment = domain.toLowerCase(Locale.ROOT);
+        final String normalized = domain.toLowerCase(Locale.ROOT);
+        String segment = normalized;
+        String result = null;
         while (segment != null) {
-
             // An exception rule takes priority over any other matching rule.
-            if (hasException(IDN.toUnicode(segment), expectedType)) {
+            final String key = IDN.toUnicode(segment);
+            if (hasException(key, expectedType)) {
                 return segment;
             }
-
-            if (hasRule(IDN.toUnicode(segment), expectedType)) {
-                break;
+            if (hasRule(key, expectedType)) {
+                return result;
             }
 
             final int nextdot = segment.indexOf('.');
@@ -160,15 +160,13 @@ public final class PublicSuffixMatcher {
 
             if (nextSegment != null) {
                 if (hasRule("*." + IDN.toUnicode(nextSegment), expectedType)) {
-                    break;
+                    return result;
                 }
             }
-            if (nextdot != -1) {
-                domainName = segment;
-            }
+            result = segment;
             segment = nextSegment;
         }
-        return domainName;
+        return normalized;
     }
 
     /**
