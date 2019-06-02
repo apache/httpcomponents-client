@@ -46,7 +46,7 @@ import org.apache.hc.core5.util.ByteArrayBuffer;
  *
  * @since 4.3
  */
-abstract class AbstractMultipartForm {
+abstract class AbstractMultipartFormat {
 
     static ByteArrayBuffer encode(
             final Charset charset, final String string) {
@@ -103,25 +103,25 @@ abstract class AbstractMultipartForm {
      * @param boundary to use  - must not be {@code null}
      * @throws IllegalArgumentException if charset is null or boundary is null
      */
-    public AbstractMultipartForm(final Charset charset, final String boundary) {
+    public AbstractMultipartFormat(final Charset charset, final String boundary) {
         super();
         Args.notNull(boundary, "Multipart boundary");
         this.charset = charset != null ? charset : StandardCharsets.ISO_8859_1;
         this.boundary = boundary;
     }
 
-    public AbstractMultipartForm(final String boundary) {
+    public AbstractMultipartFormat(final String boundary) {
         this(null, boundary);
     }
 
-    public abstract List<FormBodyPart> getBodyParts();
+    public abstract List<MultipartPart> getParts();
 
     void doWriteTo(
         final OutputStream out,
         final boolean writeContent) throws IOException {
 
         final ByteArrayBuffer boundaryEncoded = encode(this.charset, this.boundary);
-        for (final FormBodyPart part: getBodyParts()) {
+        for (final MultipartPart part: getParts()) {
             writeBytes(TWO_DASHES, out);
             writeBytes(boundaryEncoded, out);
             writeBytes(CR_LF, out);
@@ -145,7 +145,7 @@ abstract class AbstractMultipartForm {
       * Write the multipart header fields; depends on the style.
       */
     protected abstract void formatMultipartHeader(
-        final FormBodyPart part,
+        final MultipartPart part,
         final OutputStream out) throws IOException;
 
     /**
@@ -173,7 +173,7 @@ abstract class AbstractMultipartForm {
      */
     public long getTotalLength() {
         long contentLen = 0;
-        for (final FormBodyPart part: getBodyParts()) {
+        for (final MultipartPart part: getParts()) {
             final ContentBody body = part.getBody();
             final long len = body.getContentLength();
             if (len >= 0) {

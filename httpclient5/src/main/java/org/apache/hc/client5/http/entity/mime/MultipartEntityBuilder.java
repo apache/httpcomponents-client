@@ -56,13 +56,14 @@ public class MultipartEntityBuilder {
             "-_1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
                     .toCharArray();
 
-    private final static String DEFAULT_SUBTYPE = "form-data";
+    private final static String FORM_SUBTYPE = "form-data";
+    private final static String MIXED_SUBTYPE = "mixed";
 
     private ContentType contentType;
     private HttpMultipartMode mode = HttpMultipartMode.STRICT;
     private String boundary = null;
     private Charset charset = null;
-    private List<FormBodyPart> bodyParts = null;
+    private List<MultipartPart> multipartParts = null;
 
     public static MultipartEntityBuilder create() {
         return new MultipartEntityBuilder();
@@ -117,14 +118,14 @@ public class MultipartEntityBuilder {
     /**
      * @since 4.4
      */
-    public MultipartEntityBuilder addPart(final FormBodyPart bodyPart) {
-        if (bodyPart == null) {
+    public MultipartEntityBuilder addPart(final MultipartPart multipartPart) {
+        if (multipartPart == null) {
             return this;
         }
-        if (this.bodyParts == null) {
-            this.bodyParts = new ArrayList<>();
+        if (this.multipartParts == null) {
+            this.multipartParts = new ArrayList<>();
         }
-        this.bodyParts.add(bodyPart);
+        this.multipartParts.add(multipartPart);
         return this;
     }
 
@@ -202,28 +203,46 @@ public class MultipartEntityBuilder {
             paramsList.add(new BasicNameValuePair("charset", charsetCopy.name()));
         }
         final NameValuePair[] params = paramsList.toArray(new NameValuePair[paramsList.size()]);
-        final ContentType contentTypeCopy = contentType != null ?
-                contentType.withParameters(params) :
-                ContentType.create("multipart/" + DEFAULT_SUBTYPE, params);
-        final List<FormBodyPart> bodyPartsCopy = bodyParts != null ? new ArrayList<>(bodyParts) :
-                Collections.<FormBodyPart>emptyList();
+
+        final ContentType contentTypeCopy;
+        if (contentType != null) {
+            contentTypeCopy = contentType.withParameters(params);
+        } else {
+            boolean formData = false;
+            if (multipartParts != null) {
+                for (final MultipartPart multipartPart : multipartParts) {
+                    if (multipartPart instanceof FormBodyPart) {
+                        formData = true;
+                        break;
+                    }
+                }
+            }
+
+            if (formData) {
+                contentTypeCopy = ContentType.create("multipart/" + FORM_SUBTYPE, params);
+            } else {
+                contentTypeCopy = ContentType.create("multipart/" + MIXED_SUBTYPE, params);
+            }
+        }
+        final List<MultipartPart> multipartPartsCopy = multipartParts != null ? new ArrayList<>(multipartParts) :
+                Collections.<MultipartPart>emptyList();
         final HttpMultipartMode modeCopy = mode != null ? mode : HttpMultipartMode.STRICT;
-        final AbstractMultipartForm form;
+        final AbstractMultipartFormat form;
         switch (modeCopy) {
             case BROWSER_COMPATIBLE:
-                form = new HttpBrowserCompatibleMultipart(charsetCopy, boundaryCopy, bodyPartsCopy);
+                form = new HttpBrowserCompatibleMultipart(charsetCopy, boundaryCopy, multipartPartsCopy);
                 break;
             case RFC6532:
-                form = new HttpRFC6532Multipart(charsetCopy, boundaryCopy, bodyPartsCopy);
+                form = new HttpRFC6532Multipart(charsetCopy, boundaryCopy, multipartPartsCopy);
                 break;
             case RFC7578:
                 if (charsetCopy == null) {
                     charsetCopy = StandardCharsets.UTF_8;
                 }
-                form = new HttpRFC7578Multipart(charsetCopy, boundaryCopy, bodyPartsCopy);
+                form = new HttpRFC7578Multipart(charsetCopy, boundaryCopy, multipartPartsCopy);
                 break;
             default:
-                form = new HttpStrictMultipart(StandardCharsets.US_ASCII, boundaryCopy, bodyPartsCopy);
+                form = new HttpStrictMultipart(StandardCharsets.US_ASCII, boundaryCopy, multipartPartsCopy);
         }
         return new MultipartFormEntity(form, contentTypeCopy, form.getTotalLength());
     }

@@ -36,31 +36,18 @@ import org.apache.hc.core5.util.Args;
  *
  * @since 4.0
  */
-public class FormBodyPart {
-
+public class FormBodyPart extends MultipartPart {
     private final String name;
-    private final Header header;
-    private final ContentBody body;
 
     FormBodyPart(final String name, final ContentBody body, final Header header) {
-        super();
+        super(body, header);
         Args.notNull(name, "Name");
         Args.notNull(body, "Body");
         this.name = name;
-        this.body = body;
-        this.header = header != null ? header : new Header();
     }
 
     public String getName() {
         return this.name;
-    }
-
-    public ContentBody getBody() {
-        return this.body;
-    }
-
-    public Header getHeader() {
-        return this.header;
     }
 
     public void addField(final String name, final String value) {

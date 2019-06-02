@@ -43,12 +43,12 @@ import org.apache.hc.core5.http.HttpEntity;
 
 class MultipartFormEntity implements HttpEntity {
 
-    private final AbstractMultipartForm multipart;
+    private final AbstractMultipartFormat multipart;
     private final ContentType contentType;
     private final long contentLength;
 
     MultipartFormEntity(
-            final AbstractMultipartForm multipart,
+            final AbstractMultipartFormat multipart,
             final ContentType contentType,
             final long contentLength) {
         super();
@@ -57,7 +57,7 @@ class MultipartFormEntity implements HttpEntity {
         this.contentLength = contentLength;
     }
 
-    AbstractMultipartForm getMultipart() {
+    AbstractMultipartFormat getMultipart() {
         return this.multipart;
     }
 
