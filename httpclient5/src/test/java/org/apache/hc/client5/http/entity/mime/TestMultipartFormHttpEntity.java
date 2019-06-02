@@ -54,7 +54,7 @@ public class TestMultipartFormHttpEntity {
         final String contentType = entity.getContentType();
         final HeaderElement elem = BasicHeaderValueParser.INSTANCE.parseHeaderElement(contentType,
                 new ParserCursor(0, contentType.length()));
-        Assert.assertEquals("multipart/form-data", elem.getName());
+        Assert.assertEquals("multipart/mixed", elem.getName());
         final NameValuePair p1 = elem.getParameterByName("boundary");
         Assert.assertNotNull(p1);
         Assert.assertEquals("whatever", p1.getValue());
@@ -70,7 +70,7 @@ public class TestMultipartFormHttpEntity {
         final String contentType = entity.getContentType();
         final HeaderElement elem = BasicHeaderValueParser.INSTANCE.parseHeaderElement(contentType,
                 new ParserCursor(0, contentType.length()));
-        Assert.assertEquals("multipart/form-data", elem.getName());
+        Assert.assertEquals("multipart/mixed", elem.getName());
         final NameValuePair p1 = elem.getParameterByName("boundary");
         Assert.assertNotNull(p1);
 
