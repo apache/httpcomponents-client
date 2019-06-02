@@ -27,45 +27,37 @@
 
 package org.apache.hc.client5.http.entity.mime;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.charset.Charset;
-import java.util.List;
-
 /**
- * HttpStrictMultipart represents a collection of MIME multipart encoded content bodies,
- * implementing the strict (RFC 822, RFC 2045, RFC 2046 compliant) interpretation
- * of the spec.
+ * MultipartPart class represents a content body that can be used as a part of multipart encoded
+ * entities. This class automatically populates the header with standard fields based on
+ * the content description of the enclosed body.
  *
- * @since 4.3
+ * @since 5.0
  */
-class HttpStrictMultipart extends AbstractMultipartFormat {
+public class MultipartPart {
 
-    private final List<MultipartPart> parts;
+    private final Header header;
+    private final ContentBody body;
 
-    public HttpStrictMultipart(
-            final Charset charset,
-            final String boundary,
-            final List<MultipartPart> parts) {
-        super(charset, boundary);
-        this.parts = parts;
+    MultipartPart(final ContentBody body, final Header header) {
+        super();
+        this.body = body;
+        this.header = header != null ? header : new Header();
     }
 
-    @Override
-    public List<MultipartPart> getParts() {
-        return this.parts;
+    public ContentBody getBody() {
+        return this.body;
     }
 
-    @Override
-    protected void formatMultipartHeader(
-        final MultipartPart part,
-        final OutputStream out) throws IOException {
-
-        // For strict, we output all fields with MIME-standard encoding.
-        final Header header = part.getHeader();
-        for (final MinimalField field: header) {
-            writeField(field, out);
-        }
+    public Header getHeader() {
+        return this.header;
     }
 
+    void addField(final String name, final String value) {
+        addField(new MinimalField(name, value));
+    }
+
+    void addField(final MinimalField field) {
+        this.header.addField(field);
+    }
 }

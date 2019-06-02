@@ -40,26 +40,26 @@ import java.util.List;
  *
  * @since 4.3
  */
-class HttpRFC6532Multipart extends AbstractMultipartForm {
+class HttpRFC6532Multipart extends AbstractMultipartFormat {
 
-    private final List<FormBodyPart> parts;
+    private final List<MultipartPart> parts;
 
     public HttpRFC6532Multipart(
             final Charset charset,
             final String boundary,
-            final List<FormBodyPart> parts) {
+            final List<MultipartPart> parts) {
         super(charset, boundary);
         this.parts = parts;
     }
 
     @Override
-    public List<FormBodyPart> getBodyParts() {
+    public List<MultipartPart> getParts() {
         return this.parts;
     }
 
     @Override
     protected void formatMultipartHeader(
-        final FormBodyPart part,
+        final MultipartPart part,
         final OutputStream out) throws IOException {
 
         // For RFC6532, we output all fields with UTF-8 encoding.

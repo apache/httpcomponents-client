@@ -40,27 +40,27 @@ import org.apache.commons.codec.DecoderException;
 import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.util.ByteArrayBuffer;
 
-public class HttpRFC7578Multipart extends AbstractMultipartForm {
+public class HttpRFC7578Multipart extends AbstractMultipartFormat {
 
     private static final PercentCodec PERCENT_CODEC = new PercentCodec();
 
-    private final List<FormBodyPart> parts;
+    private final List<MultipartPart> parts;
 
     public HttpRFC7578Multipart(
         final Charset charset,
         final String boundary,
-        final List<FormBodyPart> parts) {
+        final List<MultipartPart> parts) {
         super(charset, boundary);
         this.parts = parts;
     }
 
     @Override
-    public List<FormBodyPart> getBodyParts() {
+    public List<MultipartPart> getParts() {
         return parts;
     }
 
     @Override
-    protected void formatMultipartHeader(final FormBodyPart part, final OutputStream out) throws IOException {
+    protected void formatMultipartHeader(final MultipartPart part, final OutputStream out) throws IOException {
         for (final MinimalField field: part.getHeader()) {
             if (MIME.CONTENT_DISPOSITION.equalsIgnoreCase(field.getName())) {
                 writeBytes(field.getName(), charset, out);
