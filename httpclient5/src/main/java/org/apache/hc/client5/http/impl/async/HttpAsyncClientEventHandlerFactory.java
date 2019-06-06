@@ -38,7 +38,7 @@ import org.apache.hc.core5.http.HttpConnection;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.config.CharCodingConfig;
-import org.apache.hc.core5.http.config.H1Config;
+import org.apache.hc.core5.http.config.Http1Config;
 import org.apache.hc.core5.http.impl.DefaultConnectionReuseStrategy;
 import org.apache.hc.core5.http.impl.Http1StreamListener;
 import org.apache.hc.core5.http.impl.nio.ClientHttp1StreamDuplexerFactory;
@@ -55,9 +55,9 @@ import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.apache.hc.core5.http2.config.H2Config;
 import org.apache.hc.core5.http2.frame.FramePrinter;
 import org.apache.hc.core5.http2.frame.RawFrame;
-import org.apache.hc.core5.http2.impl.nio.ClientHttp2StreamMultiplexerFactory;
+import org.apache.hc.core5.http2.impl.nio.ClientH2StreamMultiplexerFactory;
 import org.apache.hc.core5.http2.impl.nio.ClientHttpProtocolNegotiator;
-import org.apache.hc.core5.http2.impl.nio.Http2StreamListener;
+import org.apache.hc.core5.http2.impl.nio.H2StreamListener;
 import org.apache.hc.core5.reactor.IOEventHandler;
 import org.apache.hc.core5.reactor.IOEventHandlerFactory;
 import org.apache.hc.core5.reactor.ProtocolIOSession;
@@ -78,7 +78,7 @@ class HttpAsyncClientEventHandlerFactory implements IOEventHandlerFactory {
     private final HandlerFactory<AsyncPushConsumer> exchangeHandlerFactory;
     private final HttpVersionPolicy versionPolicy;
     private final H2Config h2Config;
-    private final H1Config h1Config;
+    private final Http1Config h1Config;
     private final CharCodingConfig charCodingConfig;
     private final ConnectionReuseStrategy http1ConnectionReuseStrategy;
     private final NHttpMessageParserFactory<HttpResponse> http1ResponseParserFactory;
@@ -89,14 +89,14 @@ class HttpAsyncClientEventHandlerFactory implements IOEventHandlerFactory {
             final HandlerFactory<AsyncPushConsumer> exchangeHandlerFactory,
             final HttpVersionPolicy versionPolicy,
             final H2Config h2Config,
-            final H1Config h1Config,
+            final Http1Config h1Config,
             final CharCodingConfig charCodingConfig,
             final ConnectionReuseStrategy connectionReuseStrategy) {
         this.httpProcessor = Args.notNull(httpProcessor, "HTTP processor");
         this.exchangeHandlerFactory = exchangeHandlerFactory;
         this.versionPolicy = versionPolicy != null ? versionPolicy : HttpVersionPolicy.NEGOTIATE;
         this.h2Config = h2Config != null ? h2Config : H2Config.DEFAULT;
-        this.h1Config = h1Config != null ? h1Config : H1Config.DEFAULT;
+        this.h1Config = h1Config != null ? h1Config : Http1Config.DEFAULT;
         this.charCodingConfig = charCodingConfig != null ? charCodingConfig : CharCodingConfig.DEFAULT;
         this.http1ConnectionReuseStrategy = connectionReuseStrategy != null ? connectionReuseStrategy : DefaultConnectionReuseStrategy.INSTANCE;
         this.http1ResponseParserFactory = new DefaultHttpResponseParserFactory(h1Config);
@@ -155,12 +155,12 @@ class HttpAsyncClientEventHandlerFactory implements IOEventHandlerFactory {
                         }
 
                     });
-            final ClientHttp2StreamMultiplexerFactory http2StreamHandlerFactory = new ClientHttp2StreamMultiplexerFactory(
+            final ClientH2StreamMultiplexerFactory http2StreamHandlerFactory = new ClientH2StreamMultiplexerFactory(
                     httpProcessor,
                     exchangeHandlerFactory,
                     h2Config,
                     charCodingConfig,
-                    new Http2StreamListener() {
+                    new H2StreamListener() {
 
                         final FramePrinter framePrinter = new FramePrinter();
 
@@ -258,7 +258,7 @@ class HttpAsyncClientEventHandlerFactory implements IOEventHandlerFactory {
                 http1ResponseParserFactory,
                 http1RequestWriterFactory,
                 null);
-        final ClientHttp2StreamMultiplexerFactory http2StreamHandlerFactory = new ClientHttp2StreamMultiplexerFactory(
+        final ClientH2StreamMultiplexerFactory http2StreamHandlerFactory = new ClientH2StreamMultiplexerFactory(
                 httpProcessor,
                 exchangeHandlerFactory,
                 h2Config,

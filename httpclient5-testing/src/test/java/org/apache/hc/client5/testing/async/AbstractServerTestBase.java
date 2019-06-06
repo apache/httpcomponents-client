@@ -32,7 +32,7 @@ import org.apache.hc.core5.function.Supplier;
 import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.nio.AsyncServerExchangeHandler;
 import org.apache.hc.core5.reactor.IOReactorConfig;
-import org.apache.hc.core5.testing.nio.Http2TestServer;
+import org.apache.hc.core5.testing.nio.H2TestServer;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
 import org.junit.Rule;
@@ -53,14 +53,14 @@ public abstract class AbstractServerTestBase {
         this(URIScheme.HTTP);
     }
 
-    protected Http2TestServer server;
+    protected H2TestServer server;
 
     @Rule
     public ExternalResource serverResource = new ExternalResource() {
 
         @Override
         protected void before() throws Throwable {
-            server = new Http2TestServer(
+            server = new H2TestServer(
                     IOReactorConfig.custom()
                         .setSoTimeout(TIMEOUT)
                         .build(),

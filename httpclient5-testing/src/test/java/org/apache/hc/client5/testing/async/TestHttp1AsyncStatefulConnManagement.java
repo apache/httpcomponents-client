@@ -48,7 +48,7 @@ import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
-import org.apache.hc.core5.http.config.H1Config;
+import org.apache.hc.core5.http.config.Http1Config;
 import org.apache.hc.core5.http.nio.AsyncServerExchangeHandler;
 import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.HttpContext;
@@ -105,7 +105,7 @@ public class TestHttp1AsyncStatefulConnManagement extends AbstractIntegrationTes
 
     @Override
     public HttpHost start() throws Exception {
-        return super.start(null, H1Config.DEFAULT);
+        return super.start(null, Http1Config.DEFAULT);
     }
 
     @Test

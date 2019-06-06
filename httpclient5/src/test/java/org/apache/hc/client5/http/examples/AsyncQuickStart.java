@@ -116,11 +116,6 @@ public class AsyncQuickStart {
                 }
 
                 @Override
-                public HttpResponse getResult() {
-                    return response;
-                }
-
-                @Override
                 public void releaseResources() {
                 }
 

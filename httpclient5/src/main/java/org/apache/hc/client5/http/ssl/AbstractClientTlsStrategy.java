@@ -41,6 +41,8 @@ import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
+import org.apache.hc.core5.http.ssl.TLS;
+import org.apache.hc.core5.http.ssl.TlsCiphers;
 import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.apache.hc.core5.http2.ssl.H2TlsSupport;
 import org.apache.hc.core5.net.NamedEndpoint;
@@ -101,12 +103,12 @@ abstract class AbstractClientTlsStrategy implements TlsStrategy {
                 if (supportedProtocols != null) {
                     sslParameters.setProtocols(supportedProtocols);
                 } else if (versionPolicy != HttpVersionPolicy.FORCE_HTTP_1) {
-                    sslParameters.setProtocols(H2TlsSupport.excludeBlacklistedProtocols(sslParameters.getProtocols()));
+                    sslParameters.setProtocols(TLS.excludeWeak(sslParameters.getProtocols()));
                 }
                 if (supportedCipherSuites != null) {
                     sslParameters.setCipherSuites(supportedCipherSuites);
                 } else if (versionPolicy != HttpVersionPolicy.FORCE_HTTP_1) {
-                    sslParameters.setCipherSuites(H2TlsSupport.excludeBlacklistedCiphers(sslParameters.getCipherSuites()));
+                    sslParameters.setCipherSuites(TlsCiphers.excludeH2Blacklisted(sslParameters.getCipherSuites()));
                 }
 
                 if (versionPolicy != HttpVersionPolicy.FORCE_HTTP_1) {

@@ -34,7 +34,7 @@ import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.core5.function.Decorator;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.URIScheme;
-import org.apache.hc.core5.http.config.H1Config;
+import org.apache.hc.core5.http.config.Http1Config;
 import org.apache.hc.core5.http.nio.AsyncServerExchangeHandler;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
 import org.apache.hc.core5.http2.config.H2Config;
@@ -75,7 +75,7 @@ public abstract class AbstractIntegrationTestBase<T extends CloseableHttpAsyncCl
     public final HttpHost start(
             final HttpProcessor httpProcessor,
             final Decorator<AsyncServerExchangeHandler> exchangeHandlerDecorator,
-            final H1Config h1Config) throws Exception {
+            final Http1Config h1Config) throws Exception {
         server.start(httpProcessor, exchangeHandlerDecorator, h1Config);
         final Future<ListenerEndpoint> endpointFuture = server.listen(new InetSocketAddress(0));
         httpclient = createClient();
@@ -87,7 +87,7 @@ public abstract class AbstractIntegrationTestBase<T extends CloseableHttpAsyncCl
 
     public final HttpHost start(
             final HttpProcessor httpProcessor,
-            final H1Config h1Config) throws Exception {
+            final Http1Config h1Config) throws Exception {
         return start(httpProcessor, null, h1Config);
     }
 

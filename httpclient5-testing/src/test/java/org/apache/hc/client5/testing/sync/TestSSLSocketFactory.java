@@ -39,7 +39,7 @@ import java.security.cert.X509Certificate;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLException;
-import javax.net.ssl.SSLServerSocket;
+import javax.net.ssl.SSLParameters;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
 
@@ -49,9 +49,9 @@ import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder;
 import org.apache.hc.client5.http.ssl.TrustAllStrategy;
 import org.apache.hc.client5.http.ssl.TrustSelfSignedStrategy;
 import org.apache.hc.client5.testing.SSLTestContexts;
+import org.apache.hc.core5.function.Callback;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.impl.bootstrap.HttpServer;
-import org.apache.hc.core5.http.impl.bootstrap.SSLServerSetupHandler;
 import org.apache.hc.core5.http.impl.bootstrap.ServerBootstrap;
 import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.HttpContext;
@@ -190,11 +190,11 @@ public class TestSSLSocketFactory {
         // @formatter:off
         this.server = ServerBootstrap.bootstrap()
                 .setSslContext(SSLTestContexts.createServerSSLContext())
-                .setSslSetupHandler(new SSLServerSetupHandler() {
+                .setSslSetupHandler(new Callback<SSLParameters>() {
 
                     @Override
-                    public void initialize(final SSLServerSocket socket) throws SSLException {
-                        socket.setNeedClientAuth(true);
+                    public void execute(final SSLParameters sslParameters) {
+                        sslParameters.setNeedClientAuth(true);
                     }
 
                 })
@@ -302,47 +302,16 @@ public class TestSSLSocketFactory {
         }
     }
 
-    @Test
-    public void testTLSOnly() throws Exception {
-        // @formatter:off
-        this.server = ServerBootstrap.bootstrap()
-                .setSslContext(SSLTestContexts.createServerSSLContext())
-                .setSslSetupHandler(new SSLServerSetupHandler() {
-
-                    @Override
-                    public void initialize(final SSLServerSocket socket) throws SSLException {
-                        socket.setEnabledProtocols(new String[] {"TLSv1"});
-                    }
-
-                })
-                .create();
-        // @formatter:on
-        this.server.start();
-
-        final HttpContext context = new BasicHttpContext();
-        final SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(
-                SSLTestContexts.createClientSSLContext());
-        try (final Socket socket = socketFactory.createSocket(context)) {
-            final InetSocketAddress remoteAddress = new InetSocketAddress("localhost", this.server.getLocalPort());
-            final HttpHost target = new HttpHost("https", "localhost", this.server.getLocalPort());
-            try (final SSLSocket sslSocket = (SSLSocket) socketFactory.connectSocket(TimeValue.ZERO_MILLISECONDS, socket, target, remoteAddress,
-                    null, context)) {
-                final SSLSession sslsession = sslSocket.getSession();
-                Assert.assertNotNull(sslsession);
-            }
-        }
-    }
-
     @Test(expected = IOException.class)
     public void testSSLDisabledByDefault() throws Exception {
         // @formatter:off
         this.server = ServerBootstrap.bootstrap()
                 .setSslContext(SSLTestContexts.createServerSSLContext())
-                .setSslSetupHandler(new SSLServerSetupHandler() {
+                .setSslSetupHandler(new Callback<SSLParameters>() {
 
                     @Override
-                    public void initialize(final SSLServerSocket socket) throws SSLException {
-                        socket.setEnabledProtocols(new String[] {"SSLv3"});
+                    public void execute(final SSLParameters sslParameters) {
+                        sslParameters.setProtocols(new String[] {"SSLv3"});
                     }
 
                 })
@@ -393,11 +362,11 @@ public class TestSSLSocketFactory {
         // @formatter:off
         this.server = ServerBootstrap.bootstrap()
                 .setSslContext(SSLTestContexts.createServerSSLContext())
-                .setSslSetupHandler(new SSLServerSetupHandler() {
+                .setSslSetupHandler(new Callback<SSLParameters>() {
 
                     @Override
-                    public void initialize(final SSLServerSocket socket) {
-                        socket.setEnabledCipherSuites(new String[] {cipherSuite});
+                    public void execute(final SSLParameters sslParameters) {
+                        sslParameters.setProtocols(new String[] {cipherSuite});
                     }
 
                 })

@@ -45,7 +45,7 @@ import org.apache.hc.core5.http.HeaderElements;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.URIScheme;
-import org.apache.hc.core5.http.config.H1Config;
+import org.apache.hc.core5.http.config.Http1Config;
 import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.junit.Rule;
@@ -114,7 +114,7 @@ public class TestHttp1Async extends AbstractHttpAsyncFundamentalsTest<CloseableH
 
     @Override
     public HttpHost start() throws Exception {
-        return super.start(null, H1Config.DEFAULT);
+        return super.start(null, Http1Config.DEFAULT);
     }
 
     @Test

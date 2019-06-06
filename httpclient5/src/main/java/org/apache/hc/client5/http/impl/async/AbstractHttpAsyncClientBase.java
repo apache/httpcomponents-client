@@ -26,7 +26,6 @@
  */
 package org.apache.hc.client5.http.impl.async;
 
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -37,7 +36,6 @@ import org.apache.hc.core5.http.nio.AsyncPushConsumer;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.reactor.ConnectionInitiator;
 import org.apache.hc.core5.reactor.DefaultConnectingIOReactor;
-import org.apache.hc.core5.reactor.ExceptionEvent;
 import org.apache.hc.core5.reactor.IOReactorStatus;
 import org.apache.hc.core5.util.TimeValue;
 import org.slf4j.Logger;
@@ -99,11 +97,6 @@ abstract class AbstractHttpAsyncClientBase extends CloseableHttpAsyncClient {
     @Override
     public final IOReactorStatus getStatus() {
         return ioReactor.getStatus();
-    }
-
-    @Override
-    public final List<ExceptionEvent> getExceptionLog() {
-        return ioReactor.getExceptionLog();
     }
 
     @Override

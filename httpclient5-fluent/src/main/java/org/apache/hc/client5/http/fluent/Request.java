@@ -323,8 +323,9 @@ public class Request {
         for (final NameValuePair param : formParams) {
             paramList.add(param);
         }
-        final ContentType contentType = ContentType.create(URLEncodedUtils.CONTENT_TYPE, charset);
-        final String s = URLEncodedUtils.format(paramList, charset);
+        final ContentType contentType = charset != null ?
+                ContentType.APPLICATION_FORM_URLENCODED.withCharset(charset) : ContentType.APPLICATION_FORM_URLENCODED;
+        final String s = URLEncodedUtils.format(paramList, contentType.getCharset());
         return bodyString(s, contentType);
     }
 

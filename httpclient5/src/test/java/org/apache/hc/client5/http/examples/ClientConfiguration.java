@@ -41,9 +41,9 @@ import org.apache.hc.client5.http.SystemDefaultDnsResolver;
 import org.apache.hc.client5.http.auth.AuthSchemes;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
-import org.apache.hc.client5.http.cookie.CookieSpecs;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.cookie.BasicCookieStore;
+import org.apache.hc.client5.http.cookie.CookieSpecs;
 import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
@@ -62,7 +62,7 @@ import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.ParseException;
 import org.apache.hc.core5.http.config.CharCodingConfig;
-import org.apache.hc.core5.http.config.H1Config;
+import org.apache.hc.core5.http.config.Http1Config;
 import org.apache.hc.core5.http.config.Registry;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.impl.io.DefaultClassicHttpResponseFactory;
@@ -98,7 +98,7 @@ public class ClientConfiguration {
         final HttpMessageParserFactory<ClassicHttpResponse> responseParserFactory = new DefaultHttpResponseParserFactory() {
 
             @Override
-            public HttpMessageParser<ClassicHttpResponse> create(final H1Config h1Config) {
+            public HttpMessageParser<ClassicHttpResponse> create(final Http1Config h1Config) {
                 final LineParser lineParser = new BasicLineParser() {
 
                     @Override
@@ -118,7 +118,7 @@ public class ClientConfiguration {
         final HttpMessageWriterFactory<ClassicHttpRequest> requestWriterFactory = new DefaultHttpRequestWriterFactory();
 
         // Create HTTP/1.1 protocol configuration
-        final H1Config h1Config = H1Config.custom()
+        final Http1Config h1Config = Http1Config.custom()
                 .setMaxHeaderCount(200)
                 .setMaxLineLength(2000)
                 .build();

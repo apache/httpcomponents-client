@@ -67,7 +67,7 @@
   <properties>
     <maven.compiler.source>1.7</maven.compiler.source>
     <maven.compiler.target>1.7</maven.compiler.target>
-    <httpcore.version>5.0-beta7</httpcore.version>
+    <httpcore.version>5.0-beta8</httpcore.version>
     <log4j.version>2.9.1</log4j.version>
     <commons-codec.version>1.12</commons-codec.version>
     <conscrypt.version>1.4.1</conscrypt.version>
