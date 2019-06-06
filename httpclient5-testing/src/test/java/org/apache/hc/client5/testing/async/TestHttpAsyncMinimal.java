@@ -34,7 +34,6 @@ import java.util.Random;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.hc.client5.http.async.methods.AsyncRequestBuilder;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
 import org.apache.hc.client5.http.impl.async.MinimalHttpAsyncClient;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManager;
@@ -47,10 +46,13 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.Message;
+import org.apache.hc.core5.http.Methods;
 import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.config.Http1Config;
 import org.apache.hc.core5.http.nio.AsyncClientEndpoint;
+import org.apache.hc.core5.http.nio.entity.AsyncEntityProducers;
 import org.apache.hc.core5.http.nio.entity.BasicAsyncEntityConsumer;
+import org.apache.hc.core5.http.nio.support.BasicRequestProducer;
 import org.apache.hc.core5.http.nio.support.BasicResponseConsumer;
 import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.apache.hc.core5.http2.config.H2Config;
@@ -122,9 +124,8 @@ public class TestHttpAsyncMinimal extends AbstractHttpAsyncFundamentalsTest<Mini
             final Queue<Future<Message<HttpResponse, byte[]>>> queue = new LinkedList<>();
             for (int i = 0; i < reqCount; i++) {
                 final Future<Message<HttpResponse, byte[]>> future = endpoint.execute(
-                        AsyncRequestBuilder.post(target, "/echo/")
-                                .setEntity(b1, ContentType.APPLICATION_OCTET_STREAM)
-                                .build(),
+                        new BasicRequestProducer(Methods.GET, target, "/echo/",
+                                AsyncEntityProducers.create(b1, ContentType.APPLICATION_OCTET_STREAM)),
                         new BasicResponseConsumer<>(new BasicAsyncEntityConsumer()), HttpClientContext.create(), null);
                 queue.add(future);
             }

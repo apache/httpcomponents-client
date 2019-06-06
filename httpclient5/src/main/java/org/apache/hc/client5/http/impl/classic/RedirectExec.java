@@ -33,12 +33,10 @@ import java.net.URI;
 import org.apache.hc.client5.http.CircularRedirectException;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.RedirectException;
-import org.apache.hc.client5.http.StandardMethods;
 import org.apache.hc.client5.http.auth.AuthExchange;
 import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecChainHandler;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
-import org.apache.hc.client5.http.classic.methods.RequestBuilder;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.protocol.RedirectLocations;
@@ -54,8 +52,10 @@ import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.Methods;
 import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.LangUtils;
 import org.slf4j.Logger;
@@ -146,7 +146,7 @@ public final class RedirectExec implements ExecChainHandler {
                         case HttpStatus.SC_MOVED_PERMANENTLY:
                         case HttpStatus.SC_MOVED_TEMPORARILY:
                         case HttpStatus.SC_SEE_OTHER:
-                            if (!StandardMethods.isSafe(request.getMethod())) {
+                            if (!Methods.isSafe(request.getMethod())) {
                                 final HttpGet httpGet = new HttpGet(redirectUri);
                                 httpGet.setHeaders(originalRequest.getHeaders());
                                 redirect = httpGet;
@@ -155,7 +155,8 @@ public final class RedirectExec implements ExecChainHandler {
                             }
                     }
                     if (redirect == null) {
-                        redirect = RequestBuilder.copy(originalRequest).setUri(redirectUri).build();
+                        redirect = new BasicClassicHttpRequest(originalRequest.getMethod(), redirectUri);
+                        redirect.setEntity(originalRequest.getEntity());
                     }
 
                     final HttpHost newTarget = URIUtils.extractHost(redirectUri);

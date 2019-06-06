@@ -33,7 +33,10 @@ import java.util.Locale;
  * Common HTTP methods defined by the HTTP spec.
  *
  * @since 5.0
+ *
+ * @deprecated Use {@link org.apache.hc.core5.http.Methods}
  */
+@Deprecated
 public enum StandardMethods {
 
     GET(true, true),

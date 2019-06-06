@@ -41,6 +41,7 @@ import javax.security.auth.x500.X500Principal;
 
 import org.apache.hc.core5.http.ParseException;
 import org.apache.hc.core5.http.ProtocolVersion;
+import org.apache.hc.core5.http.ssl.TLS;
 import org.slf4j.Logger;
 
 final class TlsSessionValidator {

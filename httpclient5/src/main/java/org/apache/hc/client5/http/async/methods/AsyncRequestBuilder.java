@@ -35,11 +35,11 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.apache.hc.client5.http.StandardMethods;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.Methods;
 import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.http.ProtocolVersion;
 import org.apache.hc.core5.http.message.BasicHeader;
@@ -66,7 +66,10 @@ import org.apache.hc.core5.util.TextUtils;
  * </p>
  *
  * @since 5.0
+ *
+ * @deprecated Use {@link org.apache.hc.core5.http.nio.support.AsyncRequestBuilder}
  */
+@Deprecated
 public class AsyncRequestBuilder {
 
     private HttpHost host;
@@ -88,7 +91,7 @@ public class AsyncRequestBuilder {
         this.method = method;
     }
 
-    AsyncRequestBuilder(final StandardMethods method) {
+    AsyncRequestBuilder(final Methods method) {
         this(method.name());
     }
 
@@ -98,18 +101,18 @@ public class AsyncRequestBuilder {
         this.uri = uri;
     }
 
-    AsyncRequestBuilder(final StandardMethods method, final HttpHost host, final String path) {
+    AsyncRequestBuilder(final Methods method, final HttpHost host, final String path) {
         super();
         this.method = method.name();
         this.host = host;
         this.path = path;
     }
 
-    AsyncRequestBuilder(final StandardMethods method, final URI uri) {
+    AsyncRequestBuilder(final Methods method, final URI uri) {
         this(method.name(), uri);
     }
 
-    AsyncRequestBuilder(final StandardMethods method, final String uri) {
+    AsyncRequestBuilder(final Methods method, final String uri) {
         this(method.name(), uri != null ? URI.create(uri) : null);
     }
 
@@ -123,131 +126,131 @@ public class AsyncRequestBuilder {
     }
 
     public static AsyncRequestBuilder get() {
-        return new AsyncRequestBuilder(StandardMethods.GET);
+        return new AsyncRequestBuilder(Methods.GET);
     }
 
     public static AsyncRequestBuilder get(final URI uri) {
-        return new AsyncRequestBuilder(StandardMethods.GET, uri);
+        return new AsyncRequestBuilder(Methods.GET, uri);
     }
 
     public static AsyncRequestBuilder get(final String uri) {
-        return new AsyncRequestBuilder(StandardMethods.GET, uri);
+        return new AsyncRequestBuilder(Methods.GET, uri);
     }
 
     public static AsyncRequestBuilder get(final HttpHost host, final String path) {
-        return new AsyncRequestBuilder(StandardMethods.GET, host, path);
+        return new AsyncRequestBuilder(Methods.GET, host, path);
     }
 
     public static AsyncRequestBuilder head() {
-        return new AsyncRequestBuilder(StandardMethods.HEAD);
+        return new AsyncRequestBuilder(Methods.HEAD);
     }
 
     public static AsyncRequestBuilder head(final URI uri) {
-        return new AsyncRequestBuilder(StandardMethods.HEAD, uri);
+        return new AsyncRequestBuilder(Methods.HEAD, uri);
     }
 
     public static AsyncRequestBuilder head(final String uri) {
-        return new AsyncRequestBuilder(StandardMethods.HEAD, uri);
+        return new AsyncRequestBuilder(Methods.HEAD, uri);
     }
 
     public static AsyncRequestBuilder head(final HttpHost host, final String path) {
-        return new AsyncRequestBuilder(StandardMethods.HEAD, host, path);
+        return new AsyncRequestBuilder(Methods.HEAD, host, path);
     }
 
     public static AsyncRequestBuilder patch() {
-        return new AsyncRequestBuilder(StandardMethods.PATCH);
+        return new AsyncRequestBuilder(Methods.PATCH);
     }
 
     public static AsyncRequestBuilder patch(final URI uri) {
-        return new AsyncRequestBuilder(StandardMethods.PATCH, uri);
+        return new AsyncRequestBuilder(Methods.PATCH, uri);
     }
 
     public static AsyncRequestBuilder patch(final String uri) {
-        return new AsyncRequestBuilder(StandardMethods.PATCH, uri);
+        return new AsyncRequestBuilder(Methods.PATCH, uri);
     }
 
     public static AsyncRequestBuilder patch(final HttpHost host, final String path) {
-        return new AsyncRequestBuilder(StandardMethods.PATCH, host, path);
+        return new AsyncRequestBuilder(Methods.PATCH, host, path);
     }
 
     public static AsyncRequestBuilder post() {
-        return new AsyncRequestBuilder(StandardMethods.POST);
+        return new AsyncRequestBuilder(Methods.POST);
     }
 
     public static AsyncRequestBuilder post(final URI uri) {
-        return new AsyncRequestBuilder(StandardMethods.POST, uri);
+        return new AsyncRequestBuilder(Methods.POST, uri);
     }
 
     public static AsyncRequestBuilder post(final String uri) {
-        return new AsyncRequestBuilder(StandardMethods.POST, uri);
+        return new AsyncRequestBuilder(Methods.POST, uri);
     }
 
     public static AsyncRequestBuilder post(final HttpHost host, final String path) {
-        return new AsyncRequestBuilder(StandardMethods.POST, host, path);
+        return new AsyncRequestBuilder(Methods.POST, host, path);
     }
 
     public static AsyncRequestBuilder put() {
-        return new AsyncRequestBuilder(StandardMethods.PUT);
+        return new AsyncRequestBuilder(Methods.PUT);
     }
 
     public static AsyncRequestBuilder put(final URI uri) {
-        return new AsyncRequestBuilder(StandardMethods.PUT, uri);
+        return new AsyncRequestBuilder(Methods.PUT, uri);
     }
 
     public static AsyncRequestBuilder put(final String uri) {
-        return new AsyncRequestBuilder(StandardMethods.PUT, uri);
+        return new AsyncRequestBuilder(Methods.PUT, uri);
     }
 
     public static AsyncRequestBuilder put(final HttpHost host, final String path) {
-        return new AsyncRequestBuilder(StandardMethods.PUT, host, path);
+        return new AsyncRequestBuilder(Methods.PUT, host, path);
     }
 
     public static AsyncRequestBuilder delete() {
-        return new AsyncRequestBuilder(StandardMethods.DELETE);
+        return new AsyncRequestBuilder(Methods.DELETE);
     }
 
     public static AsyncRequestBuilder delete(final URI uri) {
-        return new AsyncRequestBuilder(StandardMethods.DELETE, uri);
+        return new AsyncRequestBuilder(Methods.DELETE, uri);
     }
 
     public static AsyncRequestBuilder delete(final String uri) {
-        return new AsyncRequestBuilder(StandardMethods.DELETE, uri);
+        return new AsyncRequestBuilder(Methods.DELETE, uri);
     }
 
     public static AsyncRequestBuilder delete(final HttpHost host, final String path) {
-        return new AsyncRequestBuilder(StandardMethods.DELETE, host, path);
+        return new AsyncRequestBuilder(Methods.DELETE, host, path);
     }
 
     public static AsyncRequestBuilder trace() {
-        return new AsyncRequestBuilder(StandardMethods.TRACE);
+        return new AsyncRequestBuilder(Methods.TRACE);
     }
 
     public static AsyncRequestBuilder trace(final URI uri) {
-        return new AsyncRequestBuilder(StandardMethods.TRACE, uri);
+        return new AsyncRequestBuilder(Methods.TRACE, uri);
     }
 
     public static AsyncRequestBuilder trace(final String uri) {
-        return new AsyncRequestBuilder(StandardMethods.TRACE, uri);
+        return new AsyncRequestBuilder(Methods.TRACE, uri);
     }
 
     public static AsyncRequestBuilder trace(final HttpHost host, final String path) {
-        return new AsyncRequestBuilder(StandardMethods.TRACE, host, path);
+        return new AsyncRequestBuilder(Methods.TRACE, host, path);
     }
 
     public static AsyncRequestBuilder options() {
-        return new AsyncRequestBuilder(StandardMethods.OPTIONS);
+        return new AsyncRequestBuilder(Methods.OPTIONS);
     }
 
     public static AsyncRequestBuilder options(final URI uri) {
-        return new AsyncRequestBuilder(StandardMethods.OPTIONS, uri);
+        return new AsyncRequestBuilder(Methods.OPTIONS, uri);
     }
 
     public static AsyncRequestBuilder options(final String uri) {
-        return new AsyncRequestBuilder(StandardMethods.OPTIONS, uri);
+        return new AsyncRequestBuilder(Methods.OPTIONS, uri);
     }
 
     public static AsyncRequestBuilder options(final HttpHost host, final String path) {
-        return new AsyncRequestBuilder(StandardMethods.OPTIONS, host, path);
+        return new AsyncRequestBuilder(Methods.OPTIONS, host, path);
     }
 
     public AsyncRequestBuilder setCharset(final Charset charset) {
@@ -411,8 +414,7 @@ public class AsyncRequestBuilder {
     public AsyncRequestProducer build() {
         AsyncEntityProducer entityProducerCopy = this.entityProducer;
         if (parameters != null && !parameters.isEmpty()) {
-            if (entityProducerCopy == null && (StandardMethods.POST.name().equalsIgnoreCase(method)
-                    || StandardMethods.PUT.name().equalsIgnoreCase(method))) {
+            if (entityProducerCopy == null && (Methods.POST.isSame(method) || Methods.PUT.isSame(method))) {
                 final String content = URLEncodedUtils.format(
                         parameters,
                         charset != null ? charset : ContentType.APPLICATION_FORM_URLENCODED.getCharset());
@@ -431,8 +433,8 @@ public class AsyncRequestBuilder {
             }
         }
 
-        if (entityProducerCopy != null && StandardMethods.TRACE.name().equalsIgnoreCase(method)) {
-            throw new IllegalStateException(StandardMethods.TRACE.name() + " requests may not include an entity.");
+        if (entityProducerCopy != null && Methods.isSafe(method)) {
+            throw new IllegalStateException(Methods.TRACE + " requests may not include an entity.");
         }
 
         final ConfigurableHttpRequest request = host != null ?

@@ -33,6 +33,7 @@ import javax.net.ssl.SSLEngine;
 
 import org.apache.hc.core5.function.Factory;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
+import org.apache.hc.core5.http.ssl.TLS;
 import org.apache.hc.core5.reactor.ssl.SSLBufferMode;
 import org.apache.hc.core5.reactor.ssl.TlsDetails;
 import org.apache.hc.core5.ssl.SSLContexts;

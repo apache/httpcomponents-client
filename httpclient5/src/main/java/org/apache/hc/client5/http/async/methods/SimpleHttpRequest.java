@@ -30,11 +30,11 @@ package org.apache.hc.client5.http.async.methods;
 import java.net.URI;
 import java.util.Iterator;
 
-import org.apache.hc.client5.http.StandardMethods;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.Methods;
 import org.apache.hc.core5.util.Args;
 
 /**
@@ -73,11 +73,11 @@ public final class SimpleHttpRequest extends ConfigurableHttpRequest {
         super(method, requestUri);
     }
 
-    SimpleHttpRequest(final StandardMethods method, final URI requestUri) {
+    SimpleHttpRequest(final Methods method, final URI requestUri) {
         this(method.name(), requestUri);
     }
 
-    SimpleHttpRequest(final StandardMethods method, final HttpHost host, final String path) {
+    SimpleHttpRequest(final Methods method, final HttpHost host, final String path) {
         this(method.name(), host, path);
     }
 

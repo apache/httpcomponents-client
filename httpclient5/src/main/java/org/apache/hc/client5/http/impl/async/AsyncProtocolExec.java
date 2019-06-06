@@ -34,7 +34,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.hc.client5.http.AuthenticationStrategy;
 import org.apache.hc.client5.http.HttpRoute;
-import org.apache.hc.client5.http.StandardMethods;
 import org.apache.hc.client5.http.async.AsyncExecCallback;
 import org.apache.hc.client5.http.async.AsyncExecChain;
 import org.apache.hc.client5.http.async.AsyncExecChainHandler;
@@ -58,6 +57,7 @@ import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.Methods;
 import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.nio.AsyncDataConsumer;
 import org.apache.hc.core5.http.nio.AsyncEntityProducer;
@@ -181,7 +181,7 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
                 clientContext.setAttribute(HttpCoreContext.HTTP_RESPONSE, response);
                 httpProcessor.process(response, entityDetails, clientContext);
 
-                if (request.getMethod().equalsIgnoreCase(StandardMethods.TRACE.name())) {
+                if (Methods.TRACE.isSame(request.getMethod())) {
                     // Do not perform authentication for TRACE request
                     return asyncExecCallback.handleResponse(response, entityDetails);
                 }

@@ -67,7 +67,10 @@ import org.apache.hc.core5.util.Args;
  * </p>
  *
  * @since 4.3
+ *
+ * @deprecated Use {@link org.apache.hc.core5.http.io.support.ClassicRequestBuilder}
  */
+@Deprecated
 public class RequestBuilder {
 
     private String method;

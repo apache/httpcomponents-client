@@ -30,7 +30,6 @@ import java.net.URI;
 import java.util.List;
 
 import org.apache.hc.client5.http.classic.methods.HttpGet;
-import org.apache.hc.client5.http.classic.methods.RequestBuilder;
 import org.apache.hc.client5.http.cookie.BasicCookieStore;
 import org.apache.hc.client5.http.cookie.Cookie;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
@@ -39,6 +38,7 @@ import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
 
 /**
  * A example that demonstrates how HttpClient APIs can be used to perform
@@ -69,7 +69,7 @@ public class ClientFormLogin {
                 }
             }
 
-            final ClassicHttpRequest login = RequestBuilder.post()
+            final ClassicHttpRequest login = ClassicRequestBuilder.post()
                     .setUri(new URI("https://someportal/"))
                     .addParameter("IDToken1", "username")
                     .addParameter("IDToken2", "password")

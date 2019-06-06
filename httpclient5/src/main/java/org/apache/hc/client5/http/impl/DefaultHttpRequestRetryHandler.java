@@ -38,12 +38,12 @@ import java.util.Set;
 import javax.net.ssl.SSLException;
 
 import org.apache.hc.client5.http.HttpRequestRetryHandler;
-import org.apache.hc.client5.http.StandardMethods;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.concurrent.CancellableDependency;
 import org.apache.hc.core5.http.ConnectionClosedException;
 import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.Methods;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.Args;
 
@@ -163,7 +163,7 @@ public class DefaultHttpRequestRetryHandler implements HttpRequestRetryHandler {
      * @since 4.2
      */
     protected boolean handleAsIdempotent(final HttpRequest request) {
-        return StandardMethods.isIdempotent(request.getMethod());
+        return Methods.isIdempotent(request.getMethod());
     }
 
 }

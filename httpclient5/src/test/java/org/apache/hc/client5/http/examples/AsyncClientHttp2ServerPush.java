@@ -33,7 +33,6 @@ import java.util.concurrent.Future;
 
 import org.apache.hc.client5.http.async.methods.AbstractBinPushConsumer;
 import org.apache.hc.client5.http.async.methods.AbstractCharResponseConsumer;
-import org.apache.hc.client5.http.async.methods.AsyncRequestBuilder;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
 import org.apache.hc.core5.function.Supplier;
@@ -42,8 +41,10 @@ import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.Methods;
 import org.apache.hc.core5.http.message.StatusLine;
 import org.apache.hc.core5.http.nio.AsyncPushConsumer;
+import org.apache.hc.core5.http.nio.support.BasicRequestProducer;
 import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.apache.hc.core5.http2.config.H2Config;
 import org.apache.hc.core5.io.CloseMode;
@@ -117,7 +118,7 @@ public class AsyncClientHttp2ServerPush {
         final HttpHost target = new HttpHost("nghttp2.org");
         final String requestURI = "/httpbin/";
         final Future<Void> future = client.execute(
-                AsyncRequestBuilder.get(target, requestURI).build(),
+                new BasicRequestProducer(Methods.GET, target, requestURI),
                 new AbstractCharResponseConsumer<Void>() {
 
                     @Override

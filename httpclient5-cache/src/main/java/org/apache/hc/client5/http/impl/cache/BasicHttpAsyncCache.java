@@ -31,7 +31,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.hc.client5.http.StandardMethods;
 import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpAsyncCacheInvalidator;
 import org.apache.hc.client5.http.cache.HttpAsyncCacheStorage;
@@ -48,6 +47,7 @@ import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.Methods;
 import org.apache.hc.core5.http.message.RequestLine;
 import org.apache.hc.core5.http.message.StatusLine;
 import org.apache.hc.core5.util.ByteArrayBuffer;
@@ -100,7 +100,7 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
         if (log.isDebugEnabled()) {
             log.debug("Flush cache entries: " + host + "; " + new RequestLine(request));
         }
-        if (!StandardMethods.isSafe(request.getMethod())) {
+        if (!Methods.isSafe(request.getMethod())) {
             final String cacheKey = cacheKeyGenerator.generateKey(host, request);
             return storage.removeEntry(cacheKey, new FutureCallback<Boolean>() {
 
@@ -147,7 +147,7 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
         if (log.isDebugEnabled()) {
             log.debug("Flush cache entries invalidated by exchange: " + host + "; " + new RequestLine(request) + " -> " + new StatusLine(response));
         }
-        if (!StandardMethods.isSafe(request.getMethod())) {
+        if (!Methods.isSafe(request.getMethod())) {
             return cacheInvalidator.flushCacheEntriesInvalidatedByExchange(host, request, response, cacheKeyGenerator, storage, callback);
         }
         callback.completed(Boolean.TRUE);

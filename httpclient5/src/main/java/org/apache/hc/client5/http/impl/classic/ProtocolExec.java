@@ -34,7 +34,6 @@ import java.util.Iterator;
 
 import org.apache.hc.client5.http.AuthenticationStrategy;
 import org.apache.hc.client5.http.HttpRoute;
-import org.apache.hc.client5.http.StandardMethods;
 import org.apache.hc.client5.http.auth.AuthExchange;
 import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
@@ -58,6 +57,7 @@ import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.Methods;
 import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.protocol.HttpCoreContext;
@@ -167,7 +167,7 @@ public final class ProtocolExec implements ExecChainHandler {
                 context.setAttribute(HttpCoreContext.HTTP_RESPONSE, response);
                 httpProcessor.process(response, response.getEntity(), context);
 
-                if (request.getMethod().equalsIgnoreCase(StandardMethods.TRACE.name())) {
+                if (Methods.TRACE.isSame(request.getMethod())) {
                     // Do not perform authentication for TRACE request
                     return response;
                 }
