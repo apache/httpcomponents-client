@@ -1,3 +1,26 @@
+Release 4.5.9
+-------------------
+
+This is a maintenance release that fixes a number defects discovered since 4.5.8.
+
+
+Changelog:
+-------------------
+
+* HTTPCLIENT-1991: incorrect handling of non-standard DNS entries by PublicSuffixMatcher
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Fix bug in URIBuilder#isPathEmpty method to verify if encodedPath is an empty string
+  Contributed by Varun Nandi <varunkn at amazon.com>
+
+* HTTPCLIENT-1984: Add normalize URI to RequestConfig copy constructor
+  Contributed by Matt Nelson <matt.nelson at cerner.com>
+
+* HTTPCLIENT-1976: Unsafe deserialization in DefaultHttpCacheEntrySerializer
+  Contributed by Artem Smotrakov <artem.smotrakov ar gmail.com>
+
+
+
 Release 4.5.8
 -------------------
 
