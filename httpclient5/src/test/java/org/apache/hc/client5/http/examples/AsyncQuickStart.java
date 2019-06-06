@@ -34,7 +34,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 
 import org.apache.hc.client5.http.async.methods.AbstractCharResponseConsumer;
-import org.apache.hc.client5.http.async.methods.AsyncRequestBuilder;
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequests;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
@@ -45,6 +44,7 @@ import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.nio.AsyncRequestProducer;
+import org.apache.hc.core5.http.nio.support.AsyncRequestBuilder;
 
 public class AsyncQuickStart {
 

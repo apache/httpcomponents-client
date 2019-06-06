@@ -41,7 +41,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 
-import org.apache.hc.client5.http.StandardMethods;
 import org.apache.hc.client5.http.classic.methods.ClassicHttpRequests;
 import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
 import org.apache.hc.client5.http.config.Configurable;
@@ -56,6 +55,7 @@ import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.core5.http.Methods;
 import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
 import org.apache.hc.core5.http.io.entity.FileEntity;
@@ -81,7 +81,7 @@ public class Request {
 
     private SimpleDateFormat dateFormatter;
 
-    public static Request create(final StandardMethods method, final URI uri) {
+    public static Request create(final Methods method, final URI uri) {
       return new Request(new HttpUriRequestBase(method.name(), uri));
   }
 

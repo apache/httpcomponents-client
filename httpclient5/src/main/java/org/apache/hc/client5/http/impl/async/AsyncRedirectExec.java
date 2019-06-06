@@ -32,7 +32,6 @@ import java.net.URI;
 import org.apache.hc.client5.http.CircularRedirectException;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.RedirectException;
-import org.apache.hc.client5.http.StandardMethods;
 import org.apache.hc.client5.http.async.AsyncExecCallback;
 import org.apache.hc.client5.http.async.AsyncExecChain;
 import org.apache.hc.client5.http.async.AsyncExecChainHandler;
@@ -52,6 +51,7 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.Methods;
 import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
 import org.apache.hc.core5.http.nio.AsyncDataConsumer;
@@ -142,8 +142,8 @@ public final class AsyncRedirectExec implements AsyncExecChainHandler {
                         case HttpStatus.SC_MOVED_PERMANENTLY:
                         case HttpStatus.SC_MOVED_TEMPORARILY:
                         case HttpStatus.SC_SEE_OTHER:
-                            if (!StandardMethods.isSafe(request.getMethod())) {
-                                final HttpRequest httpGet = new BasicHttpRequest(StandardMethods.GET.name(), redirectUri);
+                            if (!Methods.isSafe(request.getMethod())) {
+                                final HttpRequest httpGet = new BasicHttpRequest(Methods.GET, redirectUri);
                                 httpGet.setHeaders(scope.originalRequest.getHeaders());
                                 state.currentRequest = httpGet;
                                 state.currentEntityProducer = null;

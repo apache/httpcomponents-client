@@ -29,13 +29,15 @@ package org.apache.hc.client5.http.ssl;
 
 import org.apache.hc.core5.http.ParseException;
 import org.apache.hc.core5.http.ProtocolVersion;
-import org.apache.hc.core5.http.message.ParserCursor;
 
 /**
  * Supported {@code TLS} protocol versions.
  *
  * @since 5.0
+ *
+ * @deprecated Use {@link org.apache.hc.core5.http.ssl.TLS}
  */
+@Deprecated
 public enum TLS {
 
     V_1_0("TLSv1",   new ProtocolVersion("TLS", 1, 0)),
@@ -68,11 +70,7 @@ public enum TLS {
     }
 
     public static ProtocolVersion parse(final String s) throws ParseException {
-        if (s == null) {
-            return null;
-        }
-        final ParserCursor cursor = new ParserCursor(0, s.length());
-        return TlsVersionParser.INSTANCE.parse(s, cursor, null);
+        return org.apache.hc.core5.http.ssl.TLS.parse(s);
     }
 
 }

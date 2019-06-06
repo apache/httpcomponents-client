@@ -31,14 +31,15 @@ import java.nio.CharBuffer;
 import java.util.concurrent.Future;
 
 import org.apache.hc.client5.http.async.methods.AbstractCharResponseConsumer;
-import org.apache.hc.client5.http.async.methods.AsyncRequestBuilder;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.Methods;
 import org.apache.hc.core5.http.message.StatusLine;
+import org.apache.hc.core5.http.nio.support.BasicRequestProducer;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.reactor.IOReactorConfig;
 import org.apache.hc.core5.util.Timeout;
@@ -65,7 +66,7 @@ public class AsyncClientHttpExchangeStreaming {
 
         for (final String requestUri: requestUris) {
             final Future<Void> future = client.execute(
-                    AsyncRequestBuilder.get(target, requestUri).build(),
+                    new BasicRequestProducer(Methods.GET, target, requestUri),
                     new AbstractCharResponseConsumer<Void>() {
 
                         @Override
