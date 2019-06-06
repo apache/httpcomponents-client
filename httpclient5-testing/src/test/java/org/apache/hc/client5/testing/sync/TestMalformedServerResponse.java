@@ -38,7 +38,7 @@ import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpStatus;
-import org.apache.hc.core5.http.config.H1Config;
+import org.apache.hc.core5.http.config.Http1Config;
 import org.apache.hc.core5.http.impl.bootstrap.HttpServer;
 import org.apache.hc.core5.http.impl.bootstrap.ServerBootstrap;
 import org.apache.hc.core5.http.impl.io.DefaultBHttpServerConnection;
@@ -54,7 +54,7 @@ public class TestMalformedServerResponse {
 
     static class BrokenServerConnection extends DefaultBHttpServerConnection {
 
-        public BrokenServerConnection(final H1Config h1Config) {
+        public BrokenServerConnection(final Http1Config h1Config) {
             super(null, h1Config);
         }
 
@@ -81,7 +81,7 @@ public class TestMalformedServerResponse {
 
         @Override
         public DefaultBHttpServerConnection createConnection(final Socket socket) throws IOException {
-            final BrokenServerConnection conn = new BrokenServerConnection(H1Config.DEFAULT);
+            final BrokenServerConnection conn = new BrokenServerConnection(Http1Config.DEFAULT);
             conn.bind(socket);
             return conn;
         }

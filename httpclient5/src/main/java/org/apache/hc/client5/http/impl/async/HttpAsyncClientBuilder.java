@@ -94,7 +94,7 @@ import org.apache.hc.core5.http.HttpRequestInterceptor;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpResponseInterceptor;
 import org.apache.hc.core5.http.config.CharCodingConfig;
-import org.apache.hc.core5.http.config.H1Config;
+import org.apache.hc.core5.http.config.Http1Config;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.config.NamedElementChain;
 import org.apache.hc.core5.http.config.RegistryBuilder;
@@ -211,7 +211,7 @@ public class HttpAsyncClientBuilder {
     private AsyncClientConnectionManager connManager;
     private boolean connManagerShared;
     private IOReactorConfig ioReactorConfig;
-    private H1Config h1Config;
+    private Http1Config h1Config;
     private H2Config h2Config;
     private CharCodingConfig charCodingConfig;
     private SchemePortResolver schemePortResolver;
@@ -271,9 +271,9 @@ public class HttpAsyncClientBuilder {
     }
 
     /**
-     * Sets {@link H1Config} configuration.
+     * Sets {@link Http1Config} configuration.
      */
-    public final HttpAsyncClientBuilder setH1Config(final H1Config h1Config) {
+    public final HttpAsyncClientBuilder setHttp1Config(final Http1Config h1Config) {
         this.h1Config = h1Config;
         return this;
     }
@@ -920,7 +920,7 @@ public class HttpAsyncClientBuilder {
                 },
                 versionPolicy != null ? versionPolicy : HttpVersionPolicy.NEGOTIATE,
                 h2Config != null ? h2Config : H2Config.DEFAULT,
-                h1Config != null ? h1Config : H1Config.DEFAULT,
+                h1Config != null ? h1Config : Http1Config.DEFAULT,
                 charCodingConfig != null ? charCodingConfig : CharCodingConfig.DEFAULT,
                 reuseStrategyCopy);
         final DefaultConnectingIOReactor ioReactor = new DefaultConnectingIOReactor(
@@ -928,6 +928,7 @@ public class HttpAsyncClientBuilder {
                 ioReactorConfig != null ? ioReactorConfig : IOReactorConfig.DEFAULT,
                 threadFactory != null ? threadFactory : new DefaultThreadFactory("httpclient-dispatch", true),
                 null,
+                LoggingExceptionCallback.INSTANCE,
                 null,
                 new Callback<IOSession>() {
 

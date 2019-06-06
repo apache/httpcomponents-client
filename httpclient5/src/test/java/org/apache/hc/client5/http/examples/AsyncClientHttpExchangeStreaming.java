@@ -96,11 +96,6 @@ public class AsyncClientHttpExchangeStreaming {
                         }
 
                         @Override
-                        public Void getResult() {
-                            return null;
-                        }
-
-                        @Override
                         public void failed(final Exception cause) {
                             System.out.println(requestUri + "->" + cause);
                         }

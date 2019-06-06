@@ -31,7 +31,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -50,6 +49,8 @@ import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.http.ssl.TLS;
+import org.apache.hc.core5.http.ssl.TlsCiphers;
 import org.apache.hc.core5.io.Closer;
 import org.apache.hc.core5.ssl.SSLContexts;
 import org.apache.hc.core5.ssl.SSLInitializationException;
@@ -238,32 +239,12 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
         if (supportedProtocols != null) {
             sslsock.setEnabledProtocols(supportedProtocols);
         } else {
-            // If supported protocols are not explicitly set, remove all SSL protocol versions
-            final String[] allProtocols = sslsock.getEnabledProtocols();
-            final List<String> enabledProtocols = new ArrayList<>(allProtocols.length);
-            for (final String protocol: allProtocols) {
-                if (!protocol.startsWith("SSL")) {
-                    enabledProtocols.add(protocol);
-                }
-            }
-            if (!enabledProtocols.isEmpty()) {
-                sslsock.setEnabledProtocols(enabledProtocols.toArray(new String[enabledProtocols.size()]));
-            }
+            sslsock.setEnabledProtocols((TLS.excludeWeak(sslsock.getEnabledProtocols())));
         }
         if (supportedCipherSuites != null) {
             sslsock.setEnabledCipherSuites(supportedCipherSuites);
         } else {
-            // If cipher suites are not explicitly set, remove all insecure ones
-            final String[] allCipherSuites = sslsock.getEnabledCipherSuites();
-            final List<String> enabledCipherSuites = new ArrayList<>(allCipherSuites.length);
-            for (final String cipherSuite : allCipherSuites) {
-                if (!isWeakCipherSuite(cipherSuite)) {
-                    enabledCipherSuites.add(cipherSuite);
-                }
-            }
-            if (!enabledCipherSuites.isEmpty()) {
-                sslsock.setEnabledCipherSuites(enabledCipherSuites.toArray(new String[enabledCipherSuites.size()]));
-            }
+            sslsock.setEnabledCipherSuites(TlsCiphers.excludeWeak(sslsock.getEnabledCipherSuites()));
         }
 
         if (this.log.isDebugEnabled()) {

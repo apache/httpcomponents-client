@@ -38,8 +38,8 @@ import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.Message;
-import org.apache.hc.core5.http.config.H1Config;
-import org.apache.hc.core5.http.nio.BasicRequestProducer;
+import org.apache.hc.core5.http.config.Http1Config;
+import org.apache.hc.core5.http.nio.support.BasicRequestProducer;
 import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.apache.hc.core5.http2.config.H2Config;
 import org.apache.hc.core5.io.CloseMode;
@@ -69,7 +69,7 @@ public class ReactiveClientFullDuplexExchange {
         final MinimalHttpAsyncClient client = HttpAsyncClients.createMinimal(
                 HttpVersionPolicy.NEGOTIATE,
                 H2Config.DEFAULT,
-                H1Config.DEFAULT,
+                Http1Config.DEFAULT,
                 ioReactorConfig);
 
         client.start();

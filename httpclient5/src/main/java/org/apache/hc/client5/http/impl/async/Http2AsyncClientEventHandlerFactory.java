@@ -40,9 +40,9 @@ import org.apache.hc.core5.http.protocol.HttpProcessor;
 import org.apache.hc.core5.http2.config.H2Config;
 import org.apache.hc.core5.http2.frame.FramePrinter;
 import org.apache.hc.core5.http2.frame.RawFrame;
-import org.apache.hc.core5.http2.impl.nio.ClientHttp2StreamMultiplexerFactory;
-import org.apache.hc.core5.http2.impl.nio.Http2OnlyClientProtocolNegotiator;
-import org.apache.hc.core5.http2.impl.nio.Http2StreamListener;
+import org.apache.hc.core5.http2.impl.nio.ClientH2StreamMultiplexerFactory;
+import org.apache.hc.core5.http2.impl.nio.H2OnlyClientProtocolNegotiator;
+import org.apache.hc.core5.http2.impl.nio.H2StreamListener;
 import org.apache.hc.core5.reactor.IOEventHandler;
 import org.apache.hc.core5.reactor.IOEventHandlerFactory;
 import org.apache.hc.core5.reactor.ProtocolIOSession;
@@ -84,12 +84,12 @@ class Http2AsyncClientEventHandlerFactory implements IOEventHandlerFactory {
                 || framePayloadLog.isDebugEnabled()
                 || flowCtrlLog.isDebugEnabled()) {
             final String id = ConnPoolSupport.getId(ioSession);
-            final ClientHttp2StreamMultiplexerFactory http2StreamHandlerFactory = new ClientHttp2StreamMultiplexerFactory(
+            final ClientH2StreamMultiplexerFactory http2StreamHandlerFactory = new ClientH2StreamMultiplexerFactory(
                     httpProcessor,
                     exchangeHandlerFactory,
                     h2Config,
                     charCodingConfig,
-                    new Http2StreamListener() {
+                    new H2StreamListener() {
 
                         final FramePrinter framePrinter = new FramePrinter();
 
@@ -173,15 +173,15 @@ class Http2AsyncClientEventHandlerFactory implements IOEventHandlerFactory {
 
                     });
             final LoggingIOSession loggingIOSession = new LoggingIOSession(ioSession, id, sessionLog, wireLog);
-            return new Http2OnlyClientProtocolNegotiator(loggingIOSession, http2StreamHandlerFactory, false);
+            return new H2OnlyClientProtocolNegotiator(loggingIOSession, http2StreamHandlerFactory, false);
         }
-        final ClientHttp2StreamMultiplexerFactory http2StreamHandlerFactory = new ClientHttp2StreamMultiplexerFactory(
+        final ClientH2StreamMultiplexerFactory http2StreamHandlerFactory = new ClientH2StreamMultiplexerFactory(
                 httpProcessor,
                 exchangeHandlerFactory,
                 h2Config,
                 charCodingConfig,
                 null);
-        return new Http2OnlyClientProtocolNegotiator(ioSession, http2StreamHandlerFactory, false);
+        return new H2OnlyClientProtocolNegotiator(ioSession, http2StreamHandlerFactory, false);
    }
 
 }

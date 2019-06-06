@@ -42,7 +42,7 @@ import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.ContentLengthStrategy;
 import org.apache.hc.core5.http.config.CharCodingConfig;
-import org.apache.hc.core5.http.config.H1Config;
+import org.apache.hc.core5.http.config.Http1Config;
 import org.apache.hc.core5.http.impl.DefaultContentLengthStrategy;
 import org.apache.hc.core5.http.impl.io.DefaultHttpRequestWriterFactory;
 import org.apache.hc.core5.http.io.HttpConnectionFactory;
@@ -60,7 +60,7 @@ public class ManagedHttpClientConnectionFactory implements HttpConnectionFactory
 
     public static final ManagedHttpClientConnectionFactory INSTANCE = new ManagedHttpClientConnectionFactory();
 
-    private final H1Config h1Config;
+    private final Http1Config h1Config;
     private final CharCodingConfig charCodingConfig;
     private final HttpMessageWriterFactory<ClassicHttpRequest> requestWriterFactory;
     private final HttpMessageParserFactory<ClassicHttpResponse> responseParserFactory;
@@ -68,14 +68,14 @@ public class ManagedHttpClientConnectionFactory implements HttpConnectionFactory
     private final ContentLengthStrategy outgoingContentStrategy;
 
     public ManagedHttpClientConnectionFactory(
-            final H1Config h1Config,
+            final Http1Config h1Config,
             final CharCodingConfig charCodingConfig,
             final HttpMessageWriterFactory<ClassicHttpRequest> requestWriterFactory,
             final HttpMessageParserFactory<ClassicHttpResponse> responseParserFactory,
             final ContentLengthStrategy incomingContentStrategy,
             final ContentLengthStrategy outgoingContentStrategy) {
         super();
-        this.h1Config = h1Config != null ? h1Config : H1Config.DEFAULT;
+        this.h1Config = h1Config != null ? h1Config : Http1Config.DEFAULT;
         this.charCodingConfig = charCodingConfig != null ? charCodingConfig : CharCodingConfig.DEFAULT;
         this.requestWriterFactory = requestWriterFactory != null ? requestWriterFactory :
                 DefaultHttpRequestWriterFactory.INSTANCE;
@@ -88,7 +88,7 @@ public class ManagedHttpClientConnectionFactory implements HttpConnectionFactory
     }
 
     public ManagedHttpClientConnectionFactory(
-            final H1Config h1Config,
+            final Http1Config h1Config,
             final CharCodingConfig charCodingConfig,
             final HttpMessageWriterFactory<ClassicHttpRequest> requestWriterFactory,
             final HttpMessageParserFactory<ClassicHttpResponse> responseParserFactory) {
@@ -96,7 +96,7 @@ public class ManagedHttpClientConnectionFactory implements HttpConnectionFactory
     }
 
     public ManagedHttpClientConnectionFactory(
-            final H1Config h1Config,
+            final Http1Config h1Config,
             final CharCodingConfig charCodingConfig,
             final HttpMessageParserFactory<ClassicHttpResponse> responseParserFactory) {
         this(h1Config, charCodingConfig, null, responseParserFactory);

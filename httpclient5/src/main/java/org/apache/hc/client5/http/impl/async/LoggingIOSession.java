@@ -81,11 +81,6 @@ class LoggingIOSession implements ProtocolIOSession {
     }
 
     @Override
-    public Lock lock() {
-        return this.session.lock();
-    }
-
-    @Override
     public boolean hasCommands() {
         return this.session.hasCommands();
     }
@@ -220,6 +215,11 @@ class LoggingIOSession implements ProtocolIOSession {
     @Override
     public void updateWriteTime() {
         this.session.updateWriteTime();
+    }
+
+    @Override
+    public long getLastEventTime() {
+        return this.session.getLastEventTime();
     }
 
     @Override

@@ -48,10 +48,10 @@ import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.Message;
 import org.apache.hc.core5.http.URIScheme;
-import org.apache.hc.core5.http.config.H1Config;
+import org.apache.hc.core5.http.config.Http1Config;
 import org.apache.hc.core5.http.nio.AsyncClientEndpoint;
-import org.apache.hc.core5.http.nio.BasicResponseConsumer;
 import org.apache.hc.core5.http.nio.entity.BasicAsyncEntityConsumer;
+import org.apache.hc.core5.http.nio.support.BasicResponseConsumer;
 import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.apache.hc.core5.http2.config.H2Config;
 import org.apache.hc.core5.reactor.IOReactorConfig;
@@ -91,10 +91,10 @@ public class TestHttpAsyncMinimal extends AbstractHttpAsyncFundamentalsTest<Mini
                 .build();
         if (version.greaterEquals(HttpVersion.HTTP_2)) {
             return HttpAsyncClients.createMinimal(
-                    HttpVersionPolicy.FORCE_HTTP_2, H2Config.DEFAULT, H1Config.DEFAULT, ioReactorConfig, connectionManager);
+                    HttpVersionPolicy.FORCE_HTTP_2, H2Config.DEFAULT, Http1Config.DEFAULT, ioReactorConfig, connectionManager);
         } else {
             return HttpAsyncClients.createMinimal(
-                    HttpVersionPolicy.FORCE_HTTP_1, H2Config.DEFAULT, H1Config.DEFAULT, ioReactorConfig, connectionManager);
+                    HttpVersionPolicy.FORCE_HTTP_1, H2Config.DEFAULT, Http1Config.DEFAULT, ioReactorConfig, connectionManager);
         }
     }
 
@@ -103,7 +103,7 @@ public class TestHttpAsyncMinimal extends AbstractHttpAsyncFundamentalsTest<Mini
         if (version.greaterEquals(HttpVersion.HTTP_2)) {
             return super.start(null, H2Config.DEFAULT);
         } else {
-            return super.start(null, H1Config.DEFAULT);
+            return super.start(null, Http1Config.DEFAULT);
         }
     }
 

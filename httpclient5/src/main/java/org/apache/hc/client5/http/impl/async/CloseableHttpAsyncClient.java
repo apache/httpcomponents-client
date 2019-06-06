@@ -27,7 +27,6 @@
 package org.apache.hc.client5.http.impl.async;
 
 import java.io.Closeable;
-import java.util.List;
 import java.util.concurrent.Future;
 
 import org.apache.hc.client5.http.async.HttpAsyncClient;
@@ -46,7 +45,6 @@ import org.apache.hc.core5.http.nio.AsyncRequestProducer;
 import org.apache.hc.core5.http.nio.AsyncResponseConsumer;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.io.CloseMode;
-import org.apache.hc.core5.reactor.ExceptionEvent;
 import org.apache.hc.core5.reactor.IOReactorStatus;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TimeValue;
@@ -62,8 +60,6 @@ public abstract class CloseableHttpAsyncClient implements HttpAsyncClient, Close
     public abstract void start();
 
     public abstract IOReactorStatus getStatus();
-
-    public abstract List<ExceptionEvent> getExceptionLog();
 
     public abstract void awaitShutdown(TimeValue waitTime) throws InterruptedException;
 

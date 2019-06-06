@@ -147,11 +147,6 @@ public class AsyncClientHttp2ServerPush {
                     }
 
                     @Override
-                    public Void getResult() {
-                        return null;
-                    }
-
-                    @Override
                     public void releaseResources() {
                     }
 

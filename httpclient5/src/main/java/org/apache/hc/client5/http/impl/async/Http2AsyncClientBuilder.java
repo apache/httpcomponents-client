@@ -721,6 +721,7 @@ public class Http2AsyncClientBuilder {
                 ioReactorConfig != null ? ioReactorConfig : IOReactorConfig.DEFAULT,
                 threadFactory != null ? threadFactory : new DefaultThreadFactory("httpclient-dispatch", true),
                 null,
+                LoggingExceptionCallback.INSTANCE,
                 null,
                 new Callback<IOSession>() {
 

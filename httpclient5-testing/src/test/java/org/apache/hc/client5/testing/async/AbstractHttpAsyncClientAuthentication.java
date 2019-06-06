@@ -62,7 +62,7 @@ import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.URIScheme;
-import org.apache.hc.core5.http.config.H1Config;
+import org.apache.hc.core5.http.config.Http1Config;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.config.Registry;
 import org.apache.hc.core5.http.config.RegistryBuilder;
@@ -72,7 +72,7 @@ import org.apache.hc.core5.http.nio.AsyncServerExchangeHandler;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.protocol.HttpCoreContext;
 import org.apache.hc.core5.http2.config.H2Config;
-import org.apache.hc.core5.http2.impl.Http2Processors;
+import org.apache.hc.core5.http2.impl.H2Processors;
 import org.apache.hc.core5.net.URIAuthority;
 import org.junit.Assert;
 import org.junit.Test;
@@ -102,14 +102,14 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
             final Decorator<AsyncServerExchangeHandler> exchangeHandlerDecorator) throws Exception {
         if (protocolVersion.greaterEquals(HttpVersion.HTTP_2_0)) {
             return super.start(
-                    Http2Processors.server(),
+                    H2Processors.server(),
                     exchangeHandlerDecorator,
                     H2Config.DEFAULT);
         } else {
             return super.start(
                     HttpProcessors.server(),
                     exchangeHandlerDecorator,
-                    H1Config.DEFAULT);
+                    Http1Config.DEFAULT);
         }
     }
 

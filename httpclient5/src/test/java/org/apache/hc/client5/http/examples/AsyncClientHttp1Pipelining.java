@@ -39,7 +39,7 @@ import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
 import org.apache.hc.client5.http.impl.async.MinimalHttpAsyncClient;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.config.H1Config;
+import org.apache.hc.core5.http.config.Http1Config;
 import org.apache.hc.core5.http.nio.AsyncClientEndpoint;
 import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.apache.hc.core5.io.CloseMode;
@@ -58,7 +58,7 @@ public class AsyncClientHttp1Pipelining {
                 .build();
 
         final MinimalHttpAsyncClient client = HttpAsyncClients.createMinimal(
-                HttpVersionPolicy.FORCE_HTTP_1, null, H1Config.DEFAULT, ioReactorConfig);
+                HttpVersionPolicy.FORCE_HTTP_1, null, Http1Config.DEFAULT, ioReactorConfig);
 
         client.start();
 

@@ -38,7 +38,7 @@ import org.apache.hc.core5.concurrent.DefaultThreadFactory;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.config.CharCodingConfig;
-import org.apache.hc.core5.http.config.H1Config;
+import org.apache.hc.core5.http.config.Http1Config;
 import org.apache.hc.core5.http.impl.DefaultConnectionReuseStrategy;
 import org.apache.hc.core5.http.nio.AsyncPushConsumer;
 import org.apache.hc.core5.http.nio.HandlerFactory;
@@ -150,7 +150,7 @@ public final class HttpAsyncClients {
     public static MinimalHttpAsyncClient createMinimal(
             final HttpVersionPolicy versionPolicy,
             final H2Config h2Config,
-            final H1Config h1Config,
+            final Http1Config h1Config,
             final IOReactorConfig ioReactorConfig,
             final AsyncClientConnectionManager connmgr) {
         final AsyncPushConsumerRegistry pushConsumerRegistry = new AsyncPushConsumerRegistry();
@@ -185,7 +185,7 @@ public final class HttpAsyncClients {
     public static MinimalHttpAsyncClient createMinimal(
             final HttpVersionPolicy versionPolicy,
             final H2Config h2Config,
-            final H1Config h1Config,
+            final Http1Config h1Config,
             final IOReactorConfig ioReactorConfig) {
         return createMinimal(versionPolicy, h2Config, h1Config, ioReactorConfig,
                 PoolingAsyncClientConnectionManagerBuilder.create().build());
@@ -196,7 +196,7 @@ public final class HttpAsyncClients {
      * HTTP/1.1 and HTTP/2 message transport without advanced HTTP protocol
      * functionality.
      */
-    public static MinimalHttpAsyncClient createMinimal(final H2Config h2Config, final H1Config h1Config) {
+    public static MinimalHttpAsyncClient createMinimal(final H2Config h2Config, final Http1Config h1Config) {
         return createMinimal(HttpVersionPolicy.NEGOTIATE, h2Config, h1Config, IOReactorConfig.DEFAULT);
     }
 
@@ -206,7 +206,7 @@ public final class HttpAsyncClients {
      * functionality.
      */
     public static MinimalHttpAsyncClient createMinimal() {
-        return createMinimal(H2Config.DEFAULT, H1Config.DEFAULT);
+        return createMinimal(H2Config.DEFAULT, Http1Config.DEFAULT);
     }
 
     /**
@@ -218,7 +218,7 @@ public final class HttpAsyncClients {
         return createMinimal(
                 HttpVersionPolicy.NEGOTIATE,
                 H2Config.DEFAULT,
-                H1Config.DEFAULT,
+                Http1Config.DEFAULT,
                 IOReactorConfig.DEFAULT,
                 connManager);
     }
