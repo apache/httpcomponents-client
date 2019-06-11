@@ -135,7 +135,7 @@ public final class MainClientExec implements ExecChainHandler {
                 execRuntime.releaseEndpoint();
                 return new CloseableHttpResponse(response, null);
             }
-            ResponseEntityProxy.enchance(response, execRuntime);
+            ResponseEntityProxy.enhance(response, execRuntime);
             return new CloseableHttpResponse(response, execRuntime);
         } catch (final ConnectionShutdownException ex) {
             final InterruptedIOException ioex = new InterruptedIOException(
