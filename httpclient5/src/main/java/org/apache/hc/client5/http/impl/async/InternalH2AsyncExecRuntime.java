@@ -52,7 +52,7 @@ import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
 import org.slf4j.Logger;
 
-class InternalHttp2AsyncExecRuntime implements AsyncExecRuntime {
+class InternalH2AsyncExecRuntime implements AsyncExecRuntime {
 
     private final Logger log;
     private final H2ConnPool connPool;
@@ -60,7 +60,7 @@ class InternalHttp2AsyncExecRuntime implements AsyncExecRuntime {
     private final AtomicReference<Endpoint> sessionRef;
     private volatile boolean reusable;
 
-    InternalHttp2AsyncExecRuntime(
+    InternalH2AsyncExecRuntime(
             final Logger log,
             final H2ConnPool connPool,
             final HandlerFactory<AsyncPushConsumer> pushHandlerFactory) {
@@ -95,7 +95,7 @@ class InternalHttp2AsyncExecRuntime implements AsyncExecRuntime {
                         public void completed(final IOSession ioSession) {
                             sessionRef.set(new Endpoint(target, ioSession));
                             reusable = true;
-                            callback.completed(InternalHttp2AsyncExecRuntime.this);
+                            callback.completed(InternalH2AsyncExecRuntime.this);
                         }
 
                         @Override
@@ -177,7 +177,7 @@ class InternalHttp2AsyncExecRuntime implements AsyncExecRuntime {
             public void completed(final IOSession ioSession) {
                 sessionRef.set(new Endpoint(target, ioSession));
                 reusable = true;
-                callback.completed(InternalHttp2AsyncExecRuntime.this);
+                callback.completed(InternalH2AsyncExecRuntime.this);
             }
 
             @Override
@@ -267,7 +267,7 @@ class InternalHttp2AsyncExecRuntime implements AsyncExecRuntime {
 
     @Override
     public AsyncExecRuntime fork() {
-        return new InternalHttp2AsyncExecRuntime(log, connPool, pushHandlerFactory);
+        return new InternalH2AsyncExecRuntime(log, connPool, pushHandlerFactory);
     }
 
 }

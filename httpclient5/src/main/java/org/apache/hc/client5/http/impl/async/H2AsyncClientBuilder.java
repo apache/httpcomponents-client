@@ -128,7 +128,7 @@ import org.apache.hc.core5.util.VersionInfo;
  *
  * @since 5.0
  */
-public class Http2AsyncClientBuilder {
+public class H2AsyncClientBuilder {
 
     private static class RequestInterceptorEntry {
 
@@ -217,18 +217,18 @@ public class Http2AsyncClientBuilder {
 
     private List<Closeable> closeables;
 
-    public static Http2AsyncClientBuilder create() {
-        return new Http2AsyncClientBuilder();
+    public static H2AsyncClientBuilder create() {
+        return new H2AsyncClientBuilder();
     }
 
-    protected Http2AsyncClientBuilder() {
+    protected H2AsyncClientBuilder() {
         super();
     }
 
     /**
      * Sets {@link H2Config} configuration.
      */
-    public final Http2AsyncClientBuilder setH2Config(final H2Config h2Config) {
+    public final H2AsyncClientBuilder setH2Config(final H2Config h2Config) {
         this.h2Config = h2Config;
         return this;
     }
@@ -236,7 +236,7 @@ public class Http2AsyncClientBuilder {
     /**
      * Sets {@link IOReactorConfig} configuration.
      */
-    public final Http2AsyncClientBuilder setIOReactorConfig(final IOReactorConfig ioReactorConfig) {
+    public final H2AsyncClientBuilder setIOReactorConfig(final IOReactorConfig ioReactorConfig) {
         this.ioReactorConfig = ioReactorConfig;
         return this;
     }
@@ -244,7 +244,7 @@ public class Http2AsyncClientBuilder {
     /**
      * Sets {@link CharCodingConfig} configuration.
      */
-    public final Http2AsyncClientBuilder setCharCodingConfig(final CharCodingConfig charCodingConfig) {
+    public final H2AsyncClientBuilder setCharCodingConfig(final CharCodingConfig charCodingConfig) {
         this.charCodingConfig = charCodingConfig;
         return this;
     }
@@ -253,7 +253,7 @@ public class Http2AsyncClientBuilder {
      * Assigns {@link AuthenticationStrategy} instance for target
      * host authentication.
      */
-    public final Http2AsyncClientBuilder setTargetAuthenticationStrategy(
+    public final H2AsyncClientBuilder setTargetAuthenticationStrategy(
             final AuthenticationStrategy targetAuthStrategy) {
         this.targetAuthStrategy = targetAuthStrategy;
         return this;
@@ -263,7 +263,7 @@ public class Http2AsyncClientBuilder {
      * Assigns {@link AuthenticationStrategy} instance for proxy
      * authentication.
      */
-    public final Http2AsyncClientBuilder setProxyAuthenticationStrategy(
+    public final H2AsyncClientBuilder setProxyAuthenticationStrategy(
             final AuthenticationStrategy proxyAuthStrategy) {
         this.proxyAuthStrategy = proxyAuthStrategy;
         return this;
@@ -272,7 +272,7 @@ public class Http2AsyncClientBuilder {
     /**
      * Adds this protocol interceptor to the head of the protocol processing list.
      */
-    public final Http2AsyncClientBuilder addRequestInterceptorFirst(final HttpResponseInterceptor interceptor) {
+    public final H2AsyncClientBuilder addRequestInterceptorFirst(final HttpResponseInterceptor interceptor) {
         Args.notNull(interceptor, "Interceptor");
         if (responseInterceptors == null) {
             responseInterceptors = new LinkedList<>();
@@ -284,7 +284,7 @@ public class Http2AsyncClientBuilder {
     /**
      * Adds this protocol interceptor to the tail of the protocol processing list.
      */
-    public final Http2AsyncClientBuilder addResponseInterceptorLast(final HttpResponseInterceptor interceptor) {
+    public final H2AsyncClientBuilder addResponseInterceptorLast(final HttpResponseInterceptor interceptor) {
         Args.notNull(interceptor, "Interceptor");
         if (responseInterceptors == null) {
             responseInterceptors = new LinkedList<>();
@@ -296,7 +296,7 @@ public class Http2AsyncClientBuilder {
     /**
      * Adds this execution interceptor before an existing interceptor.
      */
-    public final Http2AsyncClientBuilder addExecInterceptorBefore(final String existing, final String name, final AsyncExecChainHandler interceptor) {
+    public final H2AsyncClientBuilder addExecInterceptorBefore(final String existing, final String name, final AsyncExecChainHandler interceptor) {
         Args.notBlank(existing, "Existing");
         Args.notBlank(name, "Name");
         Args.notNull(interceptor, "Interceptor");
@@ -310,7 +310,7 @@ public class Http2AsyncClientBuilder {
     /**
      * Adds this execution interceptor after interceptor with the given name.
      */
-    public final Http2AsyncClientBuilder addExecInterceptorAfter(final String existing, final String name, final AsyncExecChainHandler interceptor) {
+    public final H2AsyncClientBuilder addExecInterceptorAfter(final String existing, final String name, final AsyncExecChainHandler interceptor) {
         Args.notBlank(existing, "Existing");
         Args.notBlank(name, "Name");
         Args.notNull(interceptor, "Interceptor");
@@ -324,7 +324,7 @@ public class Http2AsyncClientBuilder {
     /**
      * Replace an existing interceptor with the given name with new interceptor.
      */
-    public final Http2AsyncClientBuilder replaceExecInterceptor(final String existing, final AsyncExecChainHandler interceptor) {
+    public final H2AsyncClientBuilder replaceExecInterceptor(final String existing, final AsyncExecChainHandler interceptor) {
         Args.notBlank(existing, "Existing");
         Args.notNull(interceptor, "Interceptor");
         if (execInterceptors == null) {
@@ -337,7 +337,7 @@ public class Http2AsyncClientBuilder {
     /**
      * Add an interceptor to the head of the processing list.
      */
-    public final Http2AsyncClientBuilder addExecInterceptorFirst(final String name, final AsyncExecChainHandler interceptor) {
+    public final H2AsyncClientBuilder addExecInterceptorFirst(final String name, final AsyncExecChainHandler interceptor) {
         Args.notNull(name, "Name");
         Args.notNull(interceptor, "Interceptor");
         execInterceptors.add(new ExecInterceptorEntry(ExecInterceptorEntry.Postion.FIRST, name, interceptor, null));
@@ -347,7 +347,7 @@ public class Http2AsyncClientBuilder {
     /**
      * Add an interceptor to the tail of the processing list.
      */
-    public final Http2AsyncClientBuilder addExecInterceptorLast(final String name, final AsyncExecChainHandler interceptor) {
+    public final H2AsyncClientBuilder addExecInterceptorLast(final String name, final AsyncExecChainHandler interceptor) {
         Args.notNull(name, "Name");
         Args.notNull(interceptor, "Interceptor");
         execInterceptors.add(new ExecInterceptorEntry(ExecInterceptorEntry.Postion.LAST, name, interceptor, null));
@@ -357,7 +357,7 @@ public class Http2AsyncClientBuilder {
     /**
      * Adds this protocol interceptor to the head of the protocol processing list.
      */
-    public final Http2AsyncClientBuilder addRequestInterceptorFirst(final HttpRequestInterceptor interceptor) {
+    public final H2AsyncClientBuilder addRequestInterceptorFirst(final HttpRequestInterceptor interceptor) {
         Args.notNull(interceptor, "Interceptor");
         if (requestInterceptors == null) {
             requestInterceptors = new LinkedList<>();
@@ -369,7 +369,7 @@ public class Http2AsyncClientBuilder {
     /**
      * Adds this protocol interceptor to the tail of the protocol processing list.
      */
-    public final Http2AsyncClientBuilder addResponseInterceptorLast(final HttpRequestInterceptor interceptor) {
+    public final H2AsyncClientBuilder addResponseInterceptorLast(final HttpRequestInterceptor interceptor) {
         Args.notNull(interceptor, "Interceptor");
         if (requestInterceptors == null) {
             requestInterceptors = new LinkedList<>();
@@ -384,7 +384,7 @@ public class Http2AsyncClientBuilder {
      * Please note this value can be overridden by the {@link #disableAutomaticRetries()}
      * method.
      */
-    public final Http2AsyncClientBuilder setRetryHandler(final HttpRequestRetryHandler retryHandler) {
+    public final H2AsyncClientBuilder setRetryHandler(final HttpRequestRetryHandler retryHandler) {
         this.retryHandler = retryHandler;
         return this;
     }
@@ -396,7 +396,7 @@ public class Http2AsyncClientBuilder {
      * method.
      * </p>
      */
-    public Http2AsyncClientBuilder setRedirectStrategy(final RedirectStrategy redirectStrategy) {
+    public H2AsyncClientBuilder setRedirectStrategy(final RedirectStrategy redirectStrategy) {
         this.redirectStrategy = redirectStrategy;
         return this;
     }
@@ -404,7 +404,7 @@ public class Http2AsyncClientBuilder {
     /**
      * Assigns {@link SchemePortResolver} instance.
      */
-    public final Http2AsyncClientBuilder setSchemePortResolver(final SchemePortResolver schemePortResolver) {
+    public final H2AsyncClientBuilder setSchemePortResolver(final SchemePortResolver schemePortResolver) {
         this.schemePortResolver = schemePortResolver;
         return this;
     }
@@ -412,7 +412,7 @@ public class Http2AsyncClientBuilder {
     /**
      * Assigns {@link DnsResolver} instance.
      */
-    public final Http2AsyncClientBuilder setDnsResolver(final DnsResolver dnsResolver) {
+    public final H2AsyncClientBuilder setDnsResolver(final DnsResolver dnsResolver) {
         this.dnsResolver = dnsResolver;
         return this;
     }
@@ -420,7 +420,7 @@ public class Http2AsyncClientBuilder {
     /**
      * Assigns {@link TlsStrategy} instance.
      */
-    public final Http2AsyncClientBuilder setTlsStrategy(final TlsStrategy tlsStrategy) {
+    public final H2AsyncClientBuilder setTlsStrategy(final TlsStrategy tlsStrategy) {
         this.tlsStrategy = tlsStrategy;
         return this;
     }
@@ -428,7 +428,7 @@ public class Http2AsyncClientBuilder {
     /**
      * Assigns {@link ThreadFactory} instance.
      */
-    public final Http2AsyncClientBuilder setThreadFactory(final ThreadFactory threadFactory) {
+    public final H2AsyncClientBuilder setThreadFactory(final ThreadFactory threadFactory) {
         this.threadFactory = threadFactory;
         return this;
     }
@@ -436,7 +436,7 @@ public class Http2AsyncClientBuilder {
     /**
      * Assigns {@code User-Agent} value.
      */
-    public final Http2AsyncClientBuilder setUserAgent(final String userAgent) {
+    public final H2AsyncClientBuilder setUserAgent(final String userAgent) {
         this.userAgent = userAgent;
         return this;
     }
@@ -444,7 +444,7 @@ public class Http2AsyncClientBuilder {
     /**
      * Assigns default request header values.
      */
-    public final Http2AsyncClientBuilder setDefaultHeaders(final Collection<? extends Header> defaultHeaders) {
+    public final H2AsyncClientBuilder setDefaultHeaders(final Collection<? extends Header> defaultHeaders) {
         this.defaultHeaders = defaultHeaders;
         return this;
     }
@@ -452,7 +452,7 @@ public class Http2AsyncClientBuilder {
     /**
      * Assigns {@link HttpRoutePlanner} instance.
      */
-    public final Http2AsyncClientBuilder setRoutePlanner(final HttpRoutePlanner routePlanner) {
+    public final H2AsyncClientBuilder setRoutePlanner(final HttpRoutePlanner routePlanner) {
         this.routePlanner = routePlanner;
         return this;
     }
@@ -462,7 +462,7 @@ public class Http2AsyncClientBuilder {
      * for request execution if not explicitly set in the client execution
      * context.
      */
-    public final Http2AsyncClientBuilder setDefaultCredentialsProvider(final CredentialsProvider credentialsProvider) {
+    public final H2AsyncClientBuilder setDefaultCredentialsProvider(final CredentialsProvider credentialsProvider) {
         this.credentialsProvider = credentialsProvider;
         return this;
     }
@@ -472,7 +472,7 @@ public class Http2AsyncClientBuilder {
      * be used for request execution if not explicitly set in the client execution
      * context.
      */
-    public final Http2AsyncClientBuilder setDefaultAuthSchemeRegistry(final Lookup<AuthSchemeProvider> authSchemeRegistry) {
+    public final H2AsyncClientBuilder setDefaultAuthSchemeRegistry(final Lookup<AuthSchemeProvider> authSchemeRegistry) {
         this.authSchemeRegistry = authSchemeRegistry;
         return this;
     }
@@ -482,7 +482,7 @@ public class Http2AsyncClientBuilder {
      * which will be used for request execution if not explicitly set in the client
      * execution context.
      */
-    public final Http2AsyncClientBuilder setDefaultCookieSpecRegistry(final Lookup<CookieSpecProvider> cookieSpecRegistry) {
+    public final H2AsyncClientBuilder setDefaultCookieSpecRegistry(final Lookup<CookieSpecProvider> cookieSpecRegistry) {
         this.cookieSpecRegistry = cookieSpecRegistry;
         return this;
     }
@@ -491,7 +491,7 @@ public class Http2AsyncClientBuilder {
      * Assigns default {@link CookieStore} instance which will be used for
      * request execution if not explicitly set in the client execution context.
      */
-    public final Http2AsyncClientBuilder setDefaultCookieStore(final CookieStore cookieStore) {
+    public final H2AsyncClientBuilder setDefaultCookieStore(final CookieStore cookieStore) {
         this.cookieStore = cookieStore;
         return this;
     }
@@ -501,7 +501,7 @@ public class Http2AsyncClientBuilder {
      * for request execution if not explicitly set in the client execution
      * context.
      */
-    public final Http2AsyncClientBuilder setDefaultRequestConfig(final RequestConfig config) {
+    public final H2AsyncClientBuilder setDefaultRequestConfig(final RequestConfig config) {
         this.defaultRequestConfig = config;
         return this;
     }
@@ -510,7 +510,7 @@ public class Http2AsyncClientBuilder {
      * Use system properties when creating and configuring default
      * implementations.
      */
-    public final Http2AsyncClientBuilder useSystemProperties() {
+    public final H2AsyncClientBuilder useSystemProperties() {
         this.systemProperties = true;
         return this;
     }
@@ -518,7 +518,7 @@ public class Http2AsyncClientBuilder {
     /**
      * Disables automatic redirect handling.
      */
-    public final Http2AsyncClientBuilder disableRedirectHandling() {
+    public final H2AsyncClientBuilder disableRedirectHandling() {
         redirectHandlingDisabled = true;
         return this;
     }
@@ -526,7 +526,7 @@ public class Http2AsyncClientBuilder {
     /**
      * Disables automatic request recovery and re-execution.
      */
-    public final Http2AsyncClientBuilder disableAutomaticRetries() {
+    public final H2AsyncClientBuilder disableAutomaticRetries() {
         automaticRetriesDisabled = true;
         return this;
     }
@@ -534,7 +534,7 @@ public class Http2AsyncClientBuilder {
     /**
      * Disables state (cookie) management.
      */
-    public final Http2AsyncClientBuilder disableCookieManagement() {
+    public final H2AsyncClientBuilder disableCookieManagement() {
         this.cookieManagementDisabled = true;
         return this;
     }
@@ -542,7 +542,7 @@ public class Http2AsyncClientBuilder {
     /**
      * Disables authentication scheme caching.
      */
-    public final Http2AsyncClientBuilder disableAuthCaching() {
+    public final H2AsyncClientBuilder disableAuthCaching() {
         this.authCachingDisabled = true;
         return this;
     }
@@ -561,7 +561,7 @@ public class Http2AsyncClientBuilder {
      * in the connection pool. Connections whose inactivity period exceeds this value will
      * get closed and evicted from the pool.
      */
-    public final Http2AsyncClientBuilder evictIdleConnections(final TimeValue maxIdleTime) {
+    public final H2AsyncClientBuilder evictIdleConnections(final TimeValue maxIdleTime) {
         this.evictIdleConnections = true;
         this.maxIdleTime = maxIdleTime;
         return this;
@@ -595,7 +595,7 @@ public class Http2AsyncClientBuilder {
     public CloseableHttpAsyncClient build() {
         final NamedElementChain<AsyncExecChainHandler> execChainDefinition = new NamedElementChain<>();
         execChainDefinition.addLast(
-                new Http2AsyncMainClientExec(),
+                new H2AsyncMainClientExec(),
                 ChainElements.MAIN_TRANSPORT.name());
 
         AuthenticationStrategy targetAuthStrategyCopy = this.targetAuthStrategy;
@@ -704,7 +704,7 @@ public class Http2AsyncClientBuilder {
         }
 
         final AsyncPushConsumerRegistry pushConsumerRegistry = new AsyncPushConsumerRegistry();
-        final IOEventHandlerFactory ioEventHandlerFactory = new Http2AsyncClientEventHandlerFactory(
+        final IOEventHandlerFactory ioEventHandlerFactory = new H2AsyncClientEventHandlerFactory(
                 new DefaultHttpProcessor(new H2RequestContent(), new H2RequestTargetHost(), new H2RequestConnControl()),
                 new HandlerFactory<AsyncPushConsumer>() {
 
@@ -828,7 +828,7 @@ public class Http2AsyncClientBuilder {
         }
         closeablesCopy.add(connPool);
 
-        return new InternalHttp2AsyncClient(
+        return new InternalH2AsyncClient(
                 ioReactor,
                 execChain,
                 pushConsumerRegistry,

@@ -73,8 +73,8 @@ public final class CachingHttpAsyncClients {
      * Creates builder object for construction of custom HTTP/2
      * {@link CloseableHttpAsyncClient} instances.
      */
-    public static CachingHttp2AsyncClientBuilder customHttp2() {
-        return CachingHttp2AsyncClientBuilder.create();
+    public static CachingH2AsyncClientBuilder customHttp2() {
+        return CachingH2AsyncClientBuilder.create();
     }
 
     /**
@@ -82,7 +82,7 @@ public final class CachingHttpAsyncClients {
      * response cache.
      */
     public static CloseableHttpAsyncClient createHttp2MemoryBound() {
-        return CachingHttp2AsyncClientBuilder.create().build();
+        return CachingH2AsyncClientBuilder.create().build();
     }
 
     /**
@@ -92,7 +92,7 @@ public final class CachingHttpAsyncClients {
      * @param cacheDir location of response cache.
      */
     public static CloseableHttpAsyncClient createHttp2FileBound(final File cacheDir) {
-        return CachingHttp2AsyncClientBuilder.create().setCacheDir(cacheDir).build();
+        return CachingH2AsyncClientBuilder.create().setCacheDir(cacheDir).build();
     }
 
 }

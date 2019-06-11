@@ -66,7 +66,7 @@ import org.slf4j.LoggerFactory;
  */
 @Contract(threading = ThreadingBehavior.STATELESS)
 @Internal
-public class Http2AsyncMainClientExec implements AsyncExecChainHandler {
+public class H2AsyncMainClientExec implements AsyncExecChainHandler {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 

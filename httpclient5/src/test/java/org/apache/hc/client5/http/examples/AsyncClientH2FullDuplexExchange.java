@@ -58,7 +58,7 @@ import org.apache.hc.core5.util.Timeout;
 /**
  * This example demonstrates a full-duplex, streaming HTTP/2 message exchange.
  */
-public class AsyncClientHttp2FullDuplexExchange {
+public class AsyncClientH2FullDuplexExchange {
 
     public static void main(final String[] args) throws Exception {
 

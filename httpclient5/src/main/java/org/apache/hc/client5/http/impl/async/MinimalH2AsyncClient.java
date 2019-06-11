@@ -88,12 +88,12 @@ import org.apache.hc.core5.util.Timeout;
  * @since 5.0
  */
 @Contract(threading = ThreadingBehavior.SAFE_CONDITIONAL)
-public final class MinimalHttp2AsyncClient extends AbstractMinimalHttpAsyncClientBase {
+public final class MinimalH2AsyncClient extends AbstractMinimalHttpAsyncClientBase {
 
     private final H2ConnPool connPool;
     private final ConnectionInitiator connectionInitiator;
 
-    MinimalHttp2AsyncClient(
+    MinimalH2AsyncClient(
             final IOEventHandlerFactory eventHandlerFactory,
             final AsyncPushConsumerRegistry pushConsumerRegistry,
             final IOReactorConfig reactorConfig,

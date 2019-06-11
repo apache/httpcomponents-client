@@ -63,12 +63,12 @@ import org.apache.hc.core5.reactor.DefaultConnectingIOReactor;
  */
 @Contract(threading = ThreadingBehavior.SAFE_CONDITIONAL)
 @Internal
-public final class InternalHttp2AsyncClient extends InternalAbstractHttpAsyncClient {
+public final class InternalH2AsyncClient extends InternalAbstractHttpAsyncClient {
 
     private final HttpRoutePlanner routePlanner;
     private final H2ConnPool connPool;
 
-    InternalHttp2AsyncClient(
+    InternalH2AsyncClient(
             final DefaultConnectingIOReactor ioReactor,
             final AsyncExecChainElement execChain,
             final AsyncPushConsumerRegistry pushConsumerRegistry,
@@ -89,7 +89,7 @@ public final class InternalHttp2AsyncClient extends InternalAbstractHttpAsyncCli
 
     @Override
     AsyncExecRuntime crerateAsyncExecRuntime(final HandlerFactory<AsyncPushConsumer> pushHandlerFactory) {
-        return new InternalHttp2AsyncExecRuntime(log, connPool, pushHandlerFactory);
+        return new InternalH2AsyncExecRuntime(log, connPool, pushHandlerFactory);
     }
 
     @Override
