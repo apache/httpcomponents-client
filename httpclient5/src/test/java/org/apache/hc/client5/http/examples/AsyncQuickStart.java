@@ -48,7 +48,7 @@ import org.apache.hc.core5.http.nio.AsyncRequestProducer;
 
 public class AsyncQuickStart {
 
-    public static void mainfinal (final String[] args) throws Exception {
+    public static void main (final String[] args) throws Exception {
         final CloseableHttpAsyncClient httpclient = HttpAsyncClients.createDefault();
         try {
             // Start the client
