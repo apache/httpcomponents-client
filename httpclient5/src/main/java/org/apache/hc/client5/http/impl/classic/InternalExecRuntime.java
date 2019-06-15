@@ -98,7 +98,7 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
             final RequestConfig requestConfig = context.getRequestConfig();
             final Timeout connectionRequestTimeout = requestConfig.getConnectionRequestTimeout();
             if (log.isDebugEnabled()) {
-                log.debug(id + ": aquiring endpoint (" + connectionRequestTimeout + ")");
+                log.debug(id + ": acquiring endpoint (" + connectionRequestTimeout + ")");
             }
             final LeaseRequest connRequest = manager.lease(id, route, connectionRequestTimeout, object);
             state = object;
@@ -117,7 +117,7 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
                     cancellableDependency.setDependency(this);
                 }
                 if (log.isDebugEnabled()) {
-                    log.debug(id + ": aquired endpoint " + ConnPoolSupport.getId(connectionEndpoint));
+                    log.debug(id + ": acquired endpoint " + ConnPoolSupport.getId(connectionEndpoint));
                 }
             } catch(final TimeoutException ex) {
                 throw new ConnectionRequestTimeoutException(ex.getMessage());

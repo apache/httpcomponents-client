@@ -32,6 +32,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.net.UnknownHostException;
+import java.util.Arrays;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -44,9 +45,12 @@ import org.apache.hc.core5.net.NamedEndpoint;
 import org.apache.hc.core5.reactor.ConnectionInitiator;
 import org.apache.hc.core5.reactor.IOSession;
 import org.apache.hc.core5.util.Timeout;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 final class MultihomeIOSessionRequester {
 
+    private final Logger log = LoggerFactory.getLogger(getClass());
     private final DnsResolver dnsResolver;
 
     MultihomeIOSessionRequester(final DnsResolver dnsResolver) {
@@ -61,9 +65,18 @@ final class MultihomeIOSessionRequester {
             final Timeout connectTimeout,
             final Object attachment,
             final FutureCallback<IOSession> callback) {
+
         if (remoteAddress != null) {
+            if (log.isDebugEnabled()) {
+                log.debug(remoteEndpoint + ": connecting " + localAddress + " to " + remoteAddress + " (" + connectTimeout + ")");
+            }
             return connectionInitiator.connect(remoteEndpoint, remoteAddress, localAddress, connectTimeout, attachment, callback);
         }
+
+        if (log.isDebugEnabled()) {
+            log.debug(remoteEndpoint + ": resolving remote address");
+        }
+
         final ComplexFuture<IOSession> future = new ComplexFuture<>(callback);
         final InetAddress[] remoteAddresses;
         try {
@@ -72,6 +85,11 @@ final class MultihomeIOSessionRequester {
             future.failed(ex);
             return future;
         }
+
+        if (log.isDebugEnabled()) {
+            log.debug(remoteEndpoint + ": resolved to " + Arrays.asList(remoteAddresses));
+        }
+
         final Runnable runnable = new Runnable() {
 
             private final AtomicInteger attempt = new AtomicInteger(0);
@@ -79,6 +97,11 @@ final class MultihomeIOSessionRequester {
             void executeNext() {
                 final int index = attempt.getAndIncrement();
                 final InetSocketAddress remoteAddress = new InetSocketAddress(remoteAddresses[index], remoteEndpoint.getPort());
+
+                if (log.isDebugEnabled()) {
+                    log.debug(remoteEndpoint + ": connecting " + localAddress + " to " + remoteAddress + " (" + connectTimeout + ")");
+                }
+
                 final Future<IOSession> sessionFuture = connectionInitiator.connect(
                         remoteEndpoint,
                         remoteAddress,
@@ -89,18 +112,32 @@ final class MultihomeIOSessionRequester {
 
                             @Override
                             public void completed(final IOSession session) {
+                                if (log.isDebugEnabled()) {
+                                    if (log.isDebugEnabled()) {
+                                        log.debug(remoteEndpoint + ": connected " + session.getId() + " " +
+                                                session.getLocalAddress() + "->" + session.getRemoteAddress());
+                                    }
+                                }
                                 future.completed(session);
                             }
 
                             @Override
                             public void failed(final Exception cause) {
                                 if (attempt.get() >= remoteAddresses.length) {
+                                    if (log.isDebugEnabled()) {
+                                        log.debug(remoteEndpoint + ": connection to " + remoteAddress + " failed " +
+                                                "(" + cause.getClass() + "); terminating operation");
+                                    }
                                     if (cause instanceof IOException) {
                                         future.failed(new HttpHostConnectException((IOException) cause, remoteEndpoint, remoteAddresses));
                                     } else {
                                         future.failed(cause);
                                     }
                                 } else {
+                                    if (log.isDebugEnabled()) {
+                                        log.debug(remoteEndpoint + ": connection to " + remoteAddress + " failed " +
+                                                "(" + cause.getClass() + "); retrying connection to the next address");
+                                    }
                                     executeNext();
                                 }
                             }

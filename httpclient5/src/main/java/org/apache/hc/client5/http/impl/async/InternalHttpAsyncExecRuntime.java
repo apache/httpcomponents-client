@@ -95,7 +95,7 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
             final RequestConfig requestConfig = context.getRequestConfig();
             final Timeout connectionRequestTimeout = requestConfig.getConnectionRequestTimeout();
             if (log.isDebugEnabled()) {
-                log.debug(id + ": aquiring endpoint (" + connectionRequestTimeout + ")");
+                log.debug(id + ": acquiring endpoint (" + connectionRequestTimeout + ")");
             }
             return Operations.cancellable(manager.lease(
                     id,
@@ -109,7 +109,7 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
                             endpointRef.set(connectionEndpoint);
                             reusable = connectionEndpoint.isConnected();
                             if (log.isDebugEnabled()) {
-                                log.debug(id + ": aquired endpoint " + ConnPoolSupport.getId(connectionEndpoint));
+                                log.debug(id + ": acquired endpoint " + ConnPoolSupport.getId(connectionEndpoint));
                             }
                             callback.completed(InternalHttpAsyncExecRuntime.this);
                         }
