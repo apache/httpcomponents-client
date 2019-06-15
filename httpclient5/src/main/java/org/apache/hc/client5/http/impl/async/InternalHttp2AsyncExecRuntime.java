@@ -89,7 +89,7 @@ class InternalHttp2AsyncExecRuntime implements AsyncExecRuntime {
             final RequestConfig requestConfig = context.getRequestConfig();
             final Timeout connectTimeout = requestConfig.getConnectTimeout();
             if (log.isDebugEnabled()) {
-                log.debug(id + ": aquiring endpoint (" + connectTimeout + ")");
+                log.debug(id + ": acquiring endpoint (" + connectTimeout + ")");
             }
             return Operations.cancellable(connPool.getSession(
                     target,
@@ -101,7 +101,7 @@ class InternalHttp2AsyncExecRuntime implements AsyncExecRuntime {
                             sessionRef.set(new Endpoint(target, ioSession));
                             reusable = true;
                             if (log.isDebugEnabled()) {
-                                log.debug(id + ": aquired endpoint");
+                                log.debug(id + ": acquired endpoint");
                             }
                             callback.completed(InternalHttp2AsyncExecRuntime.this);
                         }
