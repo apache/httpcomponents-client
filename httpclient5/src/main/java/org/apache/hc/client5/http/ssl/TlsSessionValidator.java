@@ -124,14 +124,14 @@ final class TlsSessionValidator {
                 }
             }
             if (certs.length < 1) {
-                throw new SSLPeerUnverifiedException("Peer ceritifate chain is empty");
+                throw new SSLPeerUnverifiedException("Peer certificate chain is empty");
             }
             final Certificate peerCertificate = certs[0];
             final X509Certificate x509Certificate;
             if (peerCertificate instanceof X509Certificate) {
                 x509Certificate = (X509Certificate) peerCertificate;
             } else {
-                throw new SSLPeerUnverifiedException("Unexpected ceritifcate type: " + peerCertificate.getType());
+                throw new SSLPeerUnverifiedException("Unexpected certificate type: " + peerCertificate.getType());
             }
             if (hostnameVerifier instanceof HttpClientHostnameVerifier) {
                 ((HttpClientHostnameVerifier) hostnameVerifier).verify(hostname, x509Certificate);

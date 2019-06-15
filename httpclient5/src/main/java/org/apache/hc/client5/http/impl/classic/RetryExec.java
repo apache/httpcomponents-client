@@ -79,6 +79,7 @@ public final class RetryExec implements ExecChainHandler {
             final ExecChain chain) throws IOException, HttpException {
         Args.notNull(request, "HTTP request");
         Args.notNull(scope, "Scope");
+        final String exchangeId = scope.exchangeId;
         final HttpRoute route = scope.route;
         final HttpClientContext context = scope.clientContext;
         ClassicHttpRequest currentRequest = request;
@@ -91,24 +92,20 @@ public final class RetryExec implements ExecChainHandler {
                 }
                 final HttpEntity requestEntity = request.getEntity();
                 if (requestEntity != null && !requestEntity.isRepeatable()) {
-                    this.log.debug("Cannot retry non-repeatable request");
+                    if (log.isDebugEnabled()) {
+                        log.debug(exchangeId + ": cannot retry non-repeatable request");
+                    }
                     throw ex;
                 }
                 if (retryHandler.retryRequest(request, ex, execCount, context)) {
-                    if (this.log.isInfoEnabled()) {
-                        this.log.info("I/O exception ("+ ex.getClass().getName() +
-                                ") caught when processing request to "
-                                + route +
-                                ": "
-                                + ex.getMessage());
+                    if (log.isDebugEnabled()) {
+                        log.debug(exchangeId + ": " + ex.getMessage(), ex);
                     }
-                    if (this.log.isDebugEnabled()) {
-                        this.log.debug(ex.getMessage(), ex);
+                    if (log.isInfoEnabled()) {
+                        log.info("Recoverable I/O exception ("+ ex.getClass().getName() + ") " +
+                                "caught when processing request to " + route);
                     }
                     currentRequest = ClassicRequestCopier.INSTANCE.copy(scope.originalRequest);
-                    if (this.log.isInfoEnabled()) {
-                        this.log.info("Retrying request to " + route);
-                    }
                 } else {
                     if (ex instanceof NoHttpResponseException) {
                         final NoHttpResponseException updatedex = new NoHttpResponseException(

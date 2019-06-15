@@ -73,6 +73,7 @@ public interface AsyncClientConnectionManager extends ModalCloseable {
      * after having executed a {@code CONNECT} method to all intermediate
      * proxy hops.
      *
+     * @param id unique operation ID or {@code null}.
      * @param route HTTP route of the requested connection.
      * @param state expected state of the connection or {@code null}
      *              if the connection is not expected to carry any state.
@@ -80,6 +81,7 @@ public interface AsyncClientConnectionManager extends ModalCloseable {
      * @param callback result callback.
      */
     Future<AsyncConnectionEndpoint> lease(
+            String id,
             HttpRoute route,
             Object state,
             Timeout requestTimeout,

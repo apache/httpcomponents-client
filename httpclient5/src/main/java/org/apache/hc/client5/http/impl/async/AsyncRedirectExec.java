@@ -107,6 +107,7 @@ public final class AsyncRedirectExec implements AsyncExecChainHandler {
         final AsyncEntityProducer entityProducer = state.currentEntityProducer;
         final AsyncExecChain.Scope scope = state.currentScope;
         final HttpClientContext clientContext = scope.clientContext;
+        final String exchangeId = scope.exchangeId;
         final HttpRoute currentRoute = scope.route;
         chain.proceed(request, entityProducer, scope, new AsyncExecCallback() {
 
@@ -126,7 +127,7 @@ public final class AsyncRedirectExec implements AsyncExecChainHandler {
 
                     final URI redirectUri = redirectStrategy.getLocationURI(request, response, clientContext);
                     if (log.isDebugEnabled()) {
-                        log.debug("Redirect requested to location '" + redirectUri + "'");
+                        log.debug(exchangeId + ": redirect requested to location '" + redirectUri + "'");
                     }
                     if (!config.isCircularRedirectsAllowed()) {
                         if (state.redirectLocations.contains(redirectUri)) {
@@ -164,12 +165,16 @@ public final class AsyncRedirectExec implements AsyncExecChainHandler {
                         if (!LangUtils.equals(currentRoute, newRoute)) {
                             state.reroute = true;
                             final AuthExchange targetAuthExchange = clientContext.getAuthExchange(currentRoute.getTargetHost());
-                            log.debug("Resetting target auth state");
+                            if (log.isDebugEnabled()) {
+                                log.debug(exchangeId + ": resetting target auth state");
+                            }
                             targetAuthExchange.reset();
                             if (currentRoute.getProxyHost() != null) {
                                 final AuthExchange proxyAuthExchange = clientContext.getAuthExchange(currentRoute.getProxyHost());
                                 if (proxyAuthExchange.isConnectionBased()) {
-                                    log.debug("Resetting proxy auth state");
+                                    if (log.isDebugEnabled()) {
+                                        log.debug(exchangeId + ": resetting proxy auth state");
+                                    }
                                     proxyAuthExchange.reset();
                                 }
                             }
@@ -180,7 +185,7 @@ public final class AsyncRedirectExec implements AsyncExecChainHandler {
                 }
                 if (state.redirectURI != null) {
                     if (log.isDebugEnabled()) {
-                        log.debug(scope.exchangeId + ": redirecting to '" + state.redirectURI + "' via " + currentRoute);
+                        log.debug(exchangeId + ": redirecting to '" + state.redirectURI + "' via " + currentRoute);
                     }
                     return null;
                 }
@@ -194,7 +199,9 @@ public final class AsyncRedirectExec implements AsyncExecChainHandler {
                 } else {
                     final AsyncEntityProducer entityProducer = state.currentEntityProducer;
                     if (entityProducer != null && !entityProducer.isRepeatable()) {
-                        log.debug("Cannot redirect non-repeatable request");
+                        if (log.isDebugEnabled()) {
+                            log.debug(exchangeId + ": cannot redirect non-repeatable request");
+                        }
                         asyncExecCallback.completed();
                     } else {
                         try {

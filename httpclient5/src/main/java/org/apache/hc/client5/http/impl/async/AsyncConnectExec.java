@@ -126,37 +126,25 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
         final AsyncExecRuntime execRuntime = scope.execRuntime;
         final State state = new State(route);
 
-        final Runnable routeInitiation = new Runnable() {
-
-            @Override
-            public void run() {
-                if (log.isDebugEnabled()) {
-                    log.debug(exchangeId + ": connection acquired");
-                }
-                if (execRuntime.isEndpointConnected()) {
-                    try {
-                        chain.proceed(request, entityProducer, scope, asyncExecCallback);
-                    } catch (final HttpException | IOException ex) {
-                        asyncExecCallback.failed(ex);
-                    }
-                } else {
-                    proceedToNextHop(state, request, entityProducer, scope, chain, asyncExecCallback);
-                }
-            }
-
-        };
-
         if (!execRuntime.isEndpointAcquired()) {
             final Object userToken = clientContext.getUserToken();
             if (log.isDebugEnabled()) {
                 log.debug(exchangeId + ": acquiring connection with route " + route);
             }
             cancellableDependency.setDependency(execRuntime.acquireEndpoint(
-                    route, userToken, clientContext, new FutureCallback<AsyncExecRuntime>() {
+                    exchangeId, route, userToken, clientContext, new FutureCallback<AsyncExecRuntime>() {
 
                         @Override
                         public void completed(final AsyncExecRuntime execRuntime) {
-                            routeInitiation.run();
+                            if (execRuntime.isEndpointConnected()) {
+                                try {
+                                    chain.proceed(request, entityProducer, scope, asyncExecCallback);
+                                } catch (final HttpException | IOException ex) {
+                                    asyncExecCallback.failed(ex);
+                                }
+                            } else {
+                                proceedToNextHop(state, request, entityProducer, scope, chain, asyncExecCallback);
+                            }
                         }
 
                         @Override
@@ -171,7 +159,15 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
 
                     }));
         } else {
-            routeInitiation.run();
+            if (execRuntime.isEndpointConnected()) {
+                try {
+                    chain.proceed(request, entityProducer, scope, asyncExecCallback);
+                } catch (final HttpException | IOException ex) {
+                    asyncExecCallback.failed(ex);
+                }
+            } else {
+                proceedToNextHop(state, request, entityProducer, scope, chain, asyncExecCallback);
+            }
         }
 
     }
@@ -184,8 +180,9 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
             final AsyncExecChain chain,
             final AsyncExecCallback asyncExecCallback) {
         final RouteTracker tracker = state.tracker;
-        final AsyncExecRuntime execRuntime = scope.execRuntime;
+        final String exchangeId = scope.exchangeId;
         final HttpRoute route = scope.route;
+        final AsyncExecRuntime execRuntime = scope.execRuntime;
         final CancellableDependency operation = scope.cancellableDependency;
         final HttpClientContext clientContext = scope.clientContext;
 
@@ -200,7 +197,9 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
                         @Override
                         public void completed(final AsyncExecRuntime execRuntime) {
                             tracker.connectTarget(route.isSecure());
-                            log.debug("Connected to target");
+                            if (log.isDebugEnabled()) {
+                                log.debug(exchangeId + ": connected to target");
+                            }
                             proceedToNextHop(state, request, entityProducer, scope, chain, asyncExecCallback);
                         }
 
@@ -224,7 +223,9 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
                         public void completed(final AsyncExecRuntime execRuntime) {
                             final HttpHost proxy  = route.getProxyHost();
                             tracker.connectProxy(proxy, route.isSecure() && !route.isTunnelled());
-                            log.debug("Connected to proxy");
+                            if (log.isDebugEnabled()) {
+                                log.debug(exchangeId + ": connected to proxy");
+                            }
                             proceedToNextHop(state, request, entityProducer, scope, chain, asyncExecCallback);
                         }
 
@@ -256,7 +257,9 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
 
                             @Override
                             public void completed() {
-                                log.debug("Tunnel to target created");
+                                if (log.isDebugEnabled()) {
+                                    log.debug(exchangeId + ": tunnel to target created");
+                                }
                                 tracker.tunnelTarget(false);
                                 proceedToNextHop(state, request, entityProducer, scope, chain, asyncExecCallback);
                             }
@@ -282,7 +285,9 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
 
                 case HttpRouteDirector.LAYER_PROTOCOL:
                     execRuntime.upgradeTls(clientContext);
-                    log.debug("Upgraded to TLS");
+                    if (log.isDebugEnabled()) {
+                        log.debug(exchangeId + ": upgraded to TLS");
+                    }
                     tracker.layerProtocol(route.isSecure());
                     break;
 
@@ -292,7 +297,9 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
                     return;
 
                 case HttpRouteDirector.COMPLETE:
-                    log.debug("Route fully established");
+                    if (log.isDebugEnabled()) {
+                        log.debug(exchangeId + ": route fully established");
+                    }
                     try {
                         chain.proceed(request, entityProducer, scope, asyncExecCallback);
                     } catch (final HttpException | IOException ex) {

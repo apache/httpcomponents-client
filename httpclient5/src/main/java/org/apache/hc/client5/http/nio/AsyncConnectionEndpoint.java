@@ -57,11 +57,13 @@ public abstract class AsyncConnectionEndpoint implements ModalCloseable {
     /**
      * Initiates a message exchange using the given handler.
      *
+     * @param id unique operation ID or {@code null}.
      * @param exchangeHandler the message exchange handler.
      * @param pushHandlerFactory the push handler factory.
      * @param context the execution context.
      */
     public abstract void execute(
+            String id,
             AsyncClientExchangeHandler exchangeHandler,
             HandlerFactory<AsyncPushConsumer> pushHandlerFactory,
             HttpContext context);
@@ -86,18 +88,21 @@ public abstract class AsyncConnectionEndpoint implements ModalCloseable {
     /**
      * Initiates a message exchange using the given handler.
      *
+     * @param id unique operation ID or {@code null}.
      * @param exchangeHandler the message exchange handler.
      * @param context the execution context.
      */
     public void execute(
+            final String id,
             final AsyncClientExchangeHandler exchangeHandler,
             final HttpContext context) {
-        execute(exchangeHandler, null, context);
+        execute(id, exchangeHandler, null, context);
     }
 
     /**
      * Initiates message exchange using the given request producer and response consumer.
      *
+     * @param id unique operation ID or {@code null}.
      * @param requestProducer the request producer.
      * @param responseConsumer the response consumer.
      * @param pushHandlerFactory the push handler factory.
@@ -107,13 +112,14 @@ public abstract class AsyncConnectionEndpoint implements ModalCloseable {
      * @return the result future.
      */
     public final <T> Future<T> execute(
+            final String id,
             final AsyncRequestProducer requestProducer,
             final AsyncResponseConsumer<T> responseConsumer,
             final HandlerFactory<AsyncPushConsumer> pushHandlerFactory,
             final HttpContext context,
             final FutureCallback<T> callback) {
         final BasicFuture<T> future = new BasicFuture<>(callback);
-        execute(new BasicClientExchangeHandler<>(requestProducer, responseConsumer,
+        execute(id, new BasicClientExchangeHandler<>(requestProducer, responseConsumer,
                         new FutureCallback<T>() {
 
                             @Override
@@ -140,6 +146,7 @@ public abstract class AsyncConnectionEndpoint implements ModalCloseable {
     /**
      * Initiates message exchange using the given request producer and response consumer.
      *
+     * @param id unique operation ID or {@code null}.
      * @param requestProducer the request producer.
      * @param responseConsumer the response consumer.
      * @param context the execution context.
@@ -148,16 +155,18 @@ public abstract class AsyncConnectionEndpoint implements ModalCloseable {
      * @return the result future.
      */
     public final <T> Future<T> execute(
+            final String id,
             final AsyncRequestProducer requestProducer,
             final AsyncResponseConsumer<T> responseConsumer,
             final HttpContext context,
             final FutureCallback<T> callback) {
-        return execute(requestProducer, responseConsumer, null, context, callback);
+        return execute(id, requestProducer, responseConsumer, null, context, callback);
     }
 
     /**
      * Initiates message exchange using the given request producer and response consumer.
      *
+     * @param id unique operation ID or {@code null}.
      * @param requestProducer the request producer.
      * @param responseConsumer the response consumer.
      * @param pushHandlerFactory the push handler factory.
@@ -166,16 +175,18 @@ public abstract class AsyncConnectionEndpoint implements ModalCloseable {
      * @return the result future.
      */
     public final <T> Future<T> execute(
+            final String id,
             final AsyncRequestProducer requestProducer,
             final AsyncResponseConsumer<T> responseConsumer,
             final HandlerFactory<AsyncPushConsumer> pushHandlerFactory,
             final FutureCallback<T> callback) {
-        return execute(requestProducer, responseConsumer, pushHandlerFactory, null, callback);
+        return execute(id, requestProducer, responseConsumer, pushHandlerFactory, null, callback);
     }
 
     /**
      * Initiates message exchange using the given request producer and response consumer.
      *
+     * @param id unique operation ID or {@code null}.
      * @param requestProducer the request producer.
      * @param responseConsumer the response consumer.
      * @param callback the result callback.
@@ -183,10 +194,11 @@ public abstract class AsyncConnectionEndpoint implements ModalCloseable {
      * @return the result future.
      */
     public final <T> Future<T> execute(
+            final String id,
             final AsyncRequestProducer requestProducer,
             final AsyncResponseConsumer<T> responseConsumer,
             final FutureCallback<T> callback) {
-        return execute(requestProducer, responseConsumer, null, null, callback);
+        return execute(id, requestProducer, responseConsumer, null, null, callback);
     }
 
 }

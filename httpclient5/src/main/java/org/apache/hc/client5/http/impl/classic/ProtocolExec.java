@@ -107,6 +107,7 @@ public final class ProtocolExec implements ExecChainHandler {
         Args.notNull(request, "HTTP request");
         Args.notNull(scope, "Scope");
 
+        final String exchangeId = scope.exchangeId;
         final HttpRoute route = scope.route;
         final HttpClientContext context = scope.clientContext;
         final ExecRuntime execRuntime = scope.execRuntime;
@@ -150,13 +151,13 @@ public final class ProtocolExec implements ExecChainHandler {
 
                 if (!request.containsHeader(HttpHeaders.AUTHORIZATION)) {
                     if (log.isDebugEnabled()) {
-                        log.debug("Target auth state: " + targetAuthExchange.getState());
+                        log.debug(exchangeId + ": target auth state: " + targetAuthExchange.getState());
                     }
                     authenticator.addAuthResponse(target, ChallengeType.TARGET, request, targetAuthExchange, context);
                 }
                 if (!request.containsHeader(HttpHeaders.PROXY_AUTHORIZATION) && !route.isTunnelled()) {
                     if (log.isDebugEnabled()) {
-                        log.debug("Proxy auth state: " + proxyAuthExchange.getState());
+                        log.debug(exchangeId + ": proxy auth state: " + proxyAuthExchange.getState());
                     }
                     authenticator.addAuthResponse(proxy, ChallengeType.PROXY, request, proxyAuthExchange, context);
                 }
@@ -172,7 +173,9 @@ public final class ProtocolExec implements ExecChainHandler {
                 }
                 final HttpEntity requestEntity = request.getEntity();
                 if (requestEntity != null && !requestEntity.isRepeatable()) {
-                    log.debug("Cannot retry non-repeatable request");
+                    if (log.isDebugEnabled()) {
+                        log.debug(exchangeId + ": Cannot retry non-repeatable request");
+                    }
                     return response;
                 }
                 if (needAuthentication(targetAuthExchange, proxyAuthExchange, route, request, response, context)) {
@@ -184,12 +187,16 @@ public final class ProtocolExec implements ExecChainHandler {
                         execRuntime.disconnectEndpoint();
                         if (proxyAuthExchange.getState() == AuthExchange.State.SUCCESS
                                 && proxyAuthExchange.isConnectionBased()) {
-                            log.debug("Resetting proxy auth state");
+                            if (log.isDebugEnabled()) {
+                                log.debug(exchangeId + ": resetting proxy auth state");
+                            }
                             proxyAuthExchange.reset();
                         }
                         if (targetAuthExchange.getState() == AuthExchange.State.SUCCESS
                                 && targetAuthExchange.isConnectionBased()) {
-                            log.debug("Resetting target auth state");
+                            if (log.isDebugEnabled()) {
+                                log.debug(exchangeId + ": resetting target auth state");
+                            }
                             targetAuthExchange.reset();
                         }
                     }

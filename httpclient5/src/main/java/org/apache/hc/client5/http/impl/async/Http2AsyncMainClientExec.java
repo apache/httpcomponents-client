@@ -177,10 +177,11 @@ public class Http2AsyncMainClientExec implements AsyncExecChainHandler {
 
         if (log.isDebugEnabled()) {
             operation.setDependency(execRuntime.execute(
+                    exchangeId,
                     new LoggingAsyncClientExchangeHandler(log, exchangeId, internalExchangeHandler),
                     clientContext));
         } else {
-            operation.setDependency(execRuntime.execute( internalExchangeHandler, clientContext));
+            operation.setDependency(execRuntime.execute(exchangeId, internalExchangeHandler, clientContext));
         }
     }
 

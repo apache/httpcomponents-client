@@ -105,17 +105,23 @@ public final class ConnectExec implements ExecChainHandler {
         Args.notNull(request, "HTTP request");
         Args.notNull(scope, "Scope");
 
+        final String exchangeId = scope.exchangeId;
         final HttpRoute route = scope.route;
         final HttpClientContext context = scope.clientContext;
         final ExecRuntime execRuntime = scope.execRuntime;
 
         if (!execRuntime.isEndpointAcquired()) {
             final Object userToken = context.getUserToken();
-            execRuntime.acquireEndpoint(route, userToken, context);
+            if (log.isDebugEnabled()) {
+                log.debug(exchangeId + ": acquiring connection with route " + route);
+            }
+            execRuntime.acquireEndpoint(exchangeId, route, userToken, context);
         }
         try {
             if (!execRuntime.isEndpointConnected()) {
-                this.log.debug("Opening connection " + route);
+                if (log.isDebugEnabled()) {
+                    log.debug(exchangeId + ": opening connection " + route);
+                }
 
                 final RouteTracker tracker = new RouteTracker(route);
                 int step;
@@ -135,8 +141,10 @@ public final class ConnectExec implements ExecChainHandler {
                             tracker.connectProxy(proxy, route.isSecure() && !route.isTunnelled());
                             break;
                         case HttpRouteDirector.TUNNEL_TARGET: {
-                            final boolean secure = createTunnelToTarget(route, request, execRuntime, context);
-                            this.log.debug("Tunnel to target created.");
+                            final boolean secure = createTunnelToTarget(exchangeId, route, request, execRuntime, context);
+                            if (log.isDebugEnabled()) {
+                                log.debug(exchangeId + ": tunnel to target created.");
+                            }
                             tracker.tunnelTarget(secure);
                         }   break;
 
@@ -147,7 +155,9 @@ public final class ConnectExec implements ExecChainHandler {
                             // fact:  Source -> P1 -> Target       (2 hops)
                             final int hop = fact.getHopCount()-1; // the hop to establish
                             final boolean secure = createTunnelToProxy(route, hop, context);
-                            this.log.debug("Tunnel to proxy created.");
+                            if (log.isDebugEnabled()) {
+                                log.debug(exchangeId + ": tunnel to proxy created.");
+                            }
                             tracker.tunnelProxy(route.getHopTarget(hop), secure);
                         }   break;
 
@@ -185,6 +195,7 @@ public final class ConnectExec implements ExecChainHandler {
      * information about the tunnel, that is left to the caller.
      */
     private boolean createTunnelToTarget(
+            final String exchangeId,
             final HttpRoute route,
             final HttpRequest request,
             final ExecRuntime execRuntime,
@@ -207,7 +218,7 @@ public final class ConnectExec implements ExecChainHandler {
             connect.removeHeaders(HttpHeaders.PROXY_AUTHORIZATION);
             this.authenticator.addAuthResponse(proxy, ChallengeType.PROXY, connect, proxyAuthExchange, context);
 
-            response = execRuntime.execute(connect, context);
+            response = execRuntime.execute(exchangeId, connect, context);
             this.proxyHttpProcessor.process(response, response.getEntity(), context);
 
             final int status = response.getCode();
@@ -222,7 +233,9 @@ public final class ConnectExec implements ExecChainHandler {
                             this.proxyAuthStrategy, proxyAuthExchange, context)) {
                         // Retry request
                         if (this.reuseStrategy.keepAlive(request, response, context)) {
-                            this.log.debug("Connection kept alive");
+                            if (log.isDebugEnabled()) {
+                                log.debug(exchangeId + ": connection kept alive");
+                            }
                             // Consume response content
                             final HttpEntity entity = response.getEntity();
                             EntityUtils.consume(entity);

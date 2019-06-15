@@ -93,17 +93,18 @@ public final class MainClientExec implements ExecChainHandler {
             final ExecChain chain) throws IOException, HttpException {
         Args.notNull(request, "HTTP request");
         Args.notNull(scope, "Scope");
+        final String exchangeId = scope.exchangeId;
         final HttpRoute route = scope.route;
         final HttpClientContext context = scope.clientContext;
         final ExecRuntime execRuntime = scope.execRuntime;
 
+        if (log.isDebugEnabled()) {
+            log.debug(exchangeId + ": executing " + new RequestLine(request));
+        }
         try {
-            if (this.log.isDebugEnabled()) {
-                this.log.debug("Executing request " + new RequestLine(request));
-            }
             RequestEntityProxy.enhance(request);
 
-            final ClassicHttpResponse response = execRuntime.execute(request, context);
+            final ClassicHttpResponse response = execRuntime.execute(exchangeId, request, context);
 
             Object userToken = context.getUserToken();
             if (userToken == null) {
@@ -122,7 +123,7 @@ public final class MainClientExec implements ExecChainHandler {
                     } else {
                         s = "indefinitely";
                     }
-                    this.log.debug("Connection can be kept alive " + s);
+                    this.log.debug(exchangeId + ": connection can be kept alive " + s);
                 }
                 execRuntime.markConnectionReusable(userToken, duration);
             } else {

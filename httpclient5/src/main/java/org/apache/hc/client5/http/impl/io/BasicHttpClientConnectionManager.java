@@ -178,12 +178,12 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
         this.socketConfig = socketConfig != null ? socketConfig : SocketConfig.DEFAULT;
     }
 
-    public LeaseRequest lease(final HttpRoute route, final Object state) {
-        return lease(route, Timeout.DISABLED, state);
+    public LeaseRequest lease(final String id, final HttpRoute route, final Object state) {
+        return lease(id, route, Timeout.DISABLED, state);
     }
 
     @Override
-    public LeaseRequest lease(final HttpRoute route, final Timeout requestTimeout, final Object state) {
+    public LeaseRequest lease(final String id, final HttpRoute route, final Timeout requestTimeout, final Object state) {
         return new LeaseRequest() {
 
             @Override
@@ -417,6 +417,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
 
         @Override
         public ClassicHttpResponse execute(
+                final String id,
                 final ClassicHttpRequest request,
                 final HttpRequestExecutor requestExecutor,
                 final HttpContext context) throws IOException, HttpException {

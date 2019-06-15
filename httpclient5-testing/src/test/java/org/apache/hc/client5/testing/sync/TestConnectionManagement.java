@@ -79,7 +79,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
         final ClassicHttpRequest request = new BasicClassicHttpRequest("GET", target, uri);
         final HttpContext context = new BasicHttpContext();
 
-        final LeaseRequest leaseRequest1 = this.connManager.lease(route, null);
+        final LeaseRequest leaseRequest1 = this.connManager.lease("id1", route,null);
         final ConnectionEndpoint endpoint1 = leaseRequest1.get(Timeout.ZERO_MILLISECONDS);
 
         this.connManager.connect(endpoint1, TimeValue.NEG_ONE_MILLISECONDS, context);
@@ -89,14 +89,14 @@ public class TestConnectionManagement extends LocalServerTestBase {
 
         final HttpRequestExecutor exec = new HttpRequestExecutor();
         exec.preProcess(request, httpProcessor, context);
-        try (final ClassicHttpResponse response1 = endpoint1.execute(request, exec, context)) {
+        try (final ClassicHttpResponse response1 = endpoint1.execute("id1", request, exec, context)) {
             Assert.assertEquals(HttpStatus.SC_OK, response1.getCode());
         }
 
         // check that there is no auto-release by default
         try {
             // this should fail quickly, connection has not been released
-            final LeaseRequest leaseRequest2 = this.connManager.lease(route, null);
+            final LeaseRequest leaseRequest2 = this.connManager.lease("id2", route,null);
             leaseRequest2.get(Timeout.ofMilliseconds(10));
             Assert.fail("TimeoutException expected");
         } catch (final TimeoutException ex) {
@@ -105,13 +105,13 @@ public class TestConnectionManagement extends LocalServerTestBase {
 
         endpoint1.close();
         this.connManager.release(endpoint1, null, TimeValue.NEG_ONE_MILLISECONDS);
-        final LeaseRequest leaseRequest2 = this.connManager.lease(route, null);
+        final LeaseRequest leaseRequest2 = this.connManager.lease("id2", route,null);
         final ConnectionEndpoint endpoint2 = leaseRequest2.get(Timeout.ZERO_MILLISECONDS);
         Assert.assertFalse(endpoint2.isConnected());
 
         this.connManager.connect(endpoint2, TimeValue.NEG_ONE_MILLISECONDS, context);
 
-        try (final ClassicHttpResponse response2 = endpoint2.execute(request, exec, context)) {
+        try (final ClassicHttpResponse response2 = endpoint2.execute("id2", request, exec, context)) {
             Assert.assertEquals(HttpStatus.SC_OK, response2.getCode());
         }
 
@@ -119,12 +119,12 @@ public class TestConnectionManagement extends LocalServerTestBase {
         // expect the next connection obtained to be open
         this.connManager.release(endpoint2, null, TimeValue.NEG_ONE_MILLISECONDS);
 
-        final LeaseRequest leaseRequest3 = this.connManager.lease(route, null);
+        final LeaseRequest leaseRequest3 = this.connManager.lease("id3", route,null);
         final ConnectionEndpoint endpoint3 = leaseRequest3.get(Timeout.ZERO_MILLISECONDS);
         Assert.assertTrue(endpoint3.isConnected());
 
         // repeat the communication, no need to prepare the request again
-        try (final ClassicHttpResponse response3 = endpoint3.execute(request, exec, context)) {
+        try (final ClassicHttpResponse response3 = endpoint3.execute("id3", request, exec, context)) {
             Assert.assertEquals(HttpStatus.SC_OK, response3.getCode());
         }
 
@@ -148,7 +148,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
         final ClassicHttpRequest request = new BasicClassicHttpRequest("GET", target, uri);
         final HttpContext context = new BasicHttpContext();
 
-        final LeaseRequest leaseRequest1 = this.connManager.lease(route, null);
+        final LeaseRequest leaseRequest1 = this.connManager.lease("id1", route,null);
         final ConnectionEndpoint endpoint1 = leaseRequest1.get(Timeout.ZERO_MILLISECONDS);
         this.connManager.connect(endpoint1, TimeValue.NEG_ONE_MILLISECONDS, context);
 
@@ -157,14 +157,14 @@ public class TestConnectionManagement extends LocalServerTestBase {
 
         final HttpRequestExecutor exec = new HttpRequestExecutor();
         exec.preProcess(request, httpProcessor, context);
-        try (final ClassicHttpResponse response1 = endpoint1.execute(request, exec, context)) {
+        try (final ClassicHttpResponse response1 = endpoint1.execute("id1", request, exec, context)) {
             Assert.assertEquals(HttpStatus.SC_OK, response1.getCode());
         }
 
         // check that there is no auto-release by default
         try {
             // this should fail quickly, connection has not been released
-            final LeaseRequest leaseRequest2 = this.connManager.lease(route, null);
+            final LeaseRequest leaseRequest2 = this.connManager.lease("id2", route,null);
             leaseRequest2.get(Timeout.ofMilliseconds(10));
             Assert.fail("TimeoutException expected");
         } catch (final TimeoutException ex) {
@@ -174,38 +174,38 @@ public class TestConnectionManagement extends LocalServerTestBase {
         endpoint1.close();
         this.connManager.release(endpoint1, null, TimeValue.ofMilliseconds(100));
 
-        final LeaseRequest leaseRequest2 = this.connManager.lease(route, null);
+        final LeaseRequest leaseRequest2 = this.connManager.lease("id2", route,null);
         final ConnectionEndpoint endpoint2 = leaseRequest2.get(Timeout.ZERO_MILLISECONDS);
         Assert.assertFalse(endpoint2.isConnected());
 
         this.connManager.connect(endpoint2, TimeValue.NEG_ONE_MILLISECONDS, context);
 
-        try (final ClassicHttpResponse response2 = endpoint2.execute(request, exec, context)) {
+        try (final ClassicHttpResponse response2 = endpoint2.execute("id2", request, exec, context)) {
             Assert.assertEquals(HttpStatus.SC_OK, response2.getCode());
         }
 
         this.connManager.release(endpoint2, null, TimeValue.ofMilliseconds(100));
 
-        final LeaseRequest leaseRequest3 = this.connManager.lease(route, null);
+        final LeaseRequest leaseRequest3 = this.connManager.lease("id3", route,null);
         final ConnectionEndpoint endpoint3 = leaseRequest3.get(Timeout.ZERO_MILLISECONDS);
         Assert.assertTrue(endpoint3.isConnected());
 
         // repeat the communication, no need to prepare the request again
-        try (final ClassicHttpResponse response3 = endpoint3.execute(request, exec, context)) {
+        try (final ClassicHttpResponse response3 = endpoint3.execute("id3", request, exec, context)) {
             Assert.assertEquals(HttpStatus.SC_OK, response3.getCode());
         }
 
         this.connManager.release(endpoint3, null, TimeValue.ofMilliseconds(100));
         Thread.sleep(150);
 
-        final LeaseRequest leaseRequest4 = this.connManager.lease(route, null);
+        final LeaseRequest leaseRequest4 = this.connManager.lease("id4", route,null);
         final ConnectionEndpoint endpoint4 = leaseRequest4.get(Timeout.ZERO_MILLISECONDS);
         Assert.assertFalse(endpoint4.isConnected());
 
         // repeat the communication, no need to prepare the request again
         this.connManager.connect(endpoint4, TimeValue.NEG_ONE_MILLISECONDS, context);
 
-        try (final ClassicHttpResponse response4 = endpoint4.execute(request, exec, context)) {
+        try (final ClassicHttpResponse response4 = endpoint4.execute("id4", request, exec, context)) {
             Assert.assertEquals(HttpStatus.SC_OK, response4.getCode());
         }
 
@@ -221,7 +221,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
         final HttpRoute route = new HttpRoute(target, null, false);
         final HttpContext context = new BasicHttpContext();
 
-        final LeaseRequest leaseRequest1 = this.connManager.lease(route, null);
+        final LeaseRequest leaseRequest1 = this.connManager.lease("id1", route,null);
         final ConnectionEndpoint endpoint1 = leaseRequest1.get(Timeout.ZERO_MILLISECONDS);
         this.connManager.connect(endpoint1, TimeValue.NEG_ONE_MILLISECONDS, context);
 
@@ -270,7 +270,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
         final HttpRoute route = new HttpRoute(target, null, false);
         final HttpContext context = new BasicHttpContext();
 
-        final LeaseRequest leaseRequest1 = this.connManager.lease(route, null);
+        final LeaseRequest leaseRequest1 = this.connManager.lease("id1", route,null);
         final ConnectionEndpoint endpoint1 = leaseRequest1.get(Timeout.ZERO_MILLISECONDS);
         this.connManager.connect(endpoint1, TimeValue.NEG_ONE_MILLISECONDS, context);
 

@@ -59,6 +59,7 @@ public interface AsyncExecRuntime {
      * Initiates operation to acquire a connection endpoint. Endpoints can leased from a pool
      * or unconnected new endpoint can be created.
      *
+     * @param id unique operation ID or {@code null}.
      * @param route the connection route.
      * @param state the expected connection state. May be {@code null} if connection
      *              can be state-less or its state is irrelevant.
@@ -67,6 +68,7 @@ public interface AsyncExecRuntime {
      * @return handle that can be used to cancel the operation.
      */
     Cancellable acquireEndpoint(
+            String id,
             HttpRoute route,
             Object state,
             HttpClientContext context,
@@ -121,10 +123,12 @@ public interface AsyncExecRuntime {
     /**
      * Initiates a message exchange using the given handler.
      *
+     * @param id unique operation ID or {@code null}.
      * @param exchangeHandler the client message handler.
      * @param context the execution context.
      */
     Cancellable execute(
+            String id,
             AsyncClientExchangeHandler exchangeHandler,
             HttpClientContext context);
 
