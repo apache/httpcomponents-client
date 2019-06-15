@@ -51,14 +51,10 @@ public final class ConnPoolSupport {
     }
 
     public static String formatStats(
-            final Object object,
             final HttpRoute route,
             final Object state,
             final ConnPoolControl<HttpRoute> connPool) {
         final StringBuilder buf = new StringBuilder();
-        if (object != null) {
-            buf.append("[id: ").append(getId(object)).append("]");
-        }
         buf.append("[route: ").append(route).append("]");
         if (state != null) {
             buf.append("[state: ").append(state).append("]");

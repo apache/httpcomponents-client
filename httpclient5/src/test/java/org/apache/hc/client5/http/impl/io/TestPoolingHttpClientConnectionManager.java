@@ -116,7 +116,7 @@ public class TestPoolingHttpClientConnectionManager {
                 Mockito.<FutureCallback<PoolEntry<HttpRoute, ManagedHttpClientConnection>>>eq(null)))
                 .thenReturn(future);
 
-        final LeaseRequest connRequest1 = mgr.lease(route, null);
+        final LeaseRequest connRequest1 = mgr.lease("some-id", route, null);
         final ConnectionEndpoint endpoint1 = connRequest1.get(Timeout.ofSeconds(1));
         Assert.assertNotNull(endpoint1);
         Assert.assertNotSame(conn, endpoint1);
@@ -148,7 +148,7 @@ public class TestPoolingHttpClientConnectionManager {
                 Mockito.<FutureCallback<PoolEntry<HttpRoute, ManagedHttpClientConnection>>>eq(null)))
                 .thenReturn(future);
 
-        final LeaseRequest connRequest1 = mgr.lease(route, null);
+        final LeaseRequest connRequest1 = mgr.lease("some-id", route, null);
         final ConnectionEndpoint endpoint1 = connRequest1.get(Timeout.ofSeconds(1));
         Assert.assertNotNull(endpoint1);
         Assert.assertNotSame(conn, endpoint1);
@@ -175,7 +175,7 @@ public class TestPoolingHttpClientConnectionManager {
                 Mockito.<FutureCallback<PoolEntry<HttpRoute, ManagedHttpClientConnection>>>eq(null)))
                 .thenReturn(future);
 
-        final LeaseRequest connRequest1 = mgr.lease(route, null);
+        final LeaseRequest connRequest1 = mgr.lease("some-id", route, null);
         connRequest1.get(Timeout.ofSeconds(1));
     }
 
@@ -193,7 +193,7 @@ public class TestPoolingHttpClientConnectionManager {
                 Mockito.<FutureCallback<PoolEntry<HttpRoute, ManagedHttpClientConnection>>>eq(null)))
                 .thenReturn(future);
 
-        final LeaseRequest connRequest1 = mgr.lease(route, null);
+        final LeaseRequest connRequest1 = mgr.lease("some-id", route, null);
         connRequest1.get(Timeout.ofSeconds(1));
     }
 
@@ -215,7 +215,7 @@ public class TestPoolingHttpClientConnectionManager {
                 .thenReturn(future);
         Mockito.when(conn.isOpen()).thenReturn(Boolean.TRUE);
 
-        final LeaseRequest connRequest1 = mgr.lease(route, null);
+        final LeaseRequest connRequest1 = mgr.lease("some-id", route, null);
         final ConnectionEndpoint endpoint1 = connRequest1.get(Timeout.ofSeconds(1));
         Assert.assertNotNull(endpoint1);
         Assert.assertTrue(endpoint1.isConnected());
@@ -244,7 +244,7 @@ public class TestPoolingHttpClientConnectionManager {
                 .thenReturn(future);
         Mockito.when(conn.isOpen()).thenReturn(Boolean.FALSE);
 
-        final LeaseRequest connRequest1 = mgr.lease(route, null);
+        final LeaseRequest connRequest1 = mgr.lease("some-id", route, null);
         final ConnectionEndpoint endpoint1 = connRequest1.get(Timeout.ofSeconds(1));
         Assert.assertNotNull(endpoint1);
         Assert.assertFalse(endpoint1.isConnected());
@@ -276,7 +276,7 @@ public class TestPoolingHttpClientConnectionManager {
                 Mockito.<FutureCallback<PoolEntry<HttpRoute, ManagedHttpClientConnection>>>eq(null)))
                 .thenReturn(future);
 
-        final LeaseRequest connRequest1 = mgr.lease(route, null);
+        final LeaseRequest connRequest1 = mgr.lease("some-id", route, null);
         final ConnectionEndpoint endpoint1 = connRequest1.get(Timeout.ofSeconds(1));
         Assert.assertNotNull(endpoint1);
 
@@ -329,7 +329,7 @@ public class TestPoolingHttpClientConnectionManager {
                 Mockito.<FutureCallback<PoolEntry<HttpRoute, ManagedHttpClientConnection>>>eq(null)))
                 .thenReturn(future);
 
-        final LeaseRequest connRequest1 = mgr.lease(route, null);
+        final LeaseRequest connRequest1 = mgr.lease("some-id", route, null);
         final ConnectionEndpoint endpoint1 = connRequest1.get(Timeout.ofSeconds(1));
         Assert.assertNotNull(endpoint1);
 

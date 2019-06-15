@@ -48,6 +48,7 @@ import org.apache.hc.core5.http2.nio.pool.H2ConnPool;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.reactor.Command;
 import org.apache.hc.core5.reactor.IOSession;
+import org.apache.hc.core5.util.Identifiable;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
 import org.slf4j.Logger;
@@ -78,6 +79,7 @@ class InternalHttp2AsyncExecRuntime implements AsyncExecRuntime {
 
     @Override
     public Cancellable acquireEndpoint(
+            final String id,
             final HttpRoute route,
             final Object object,
             final HttpClientContext context,
@@ -86,6 +88,9 @@ class InternalHttp2AsyncExecRuntime implements AsyncExecRuntime {
             final HttpHost target = route.getTargetHost();
             final RequestConfig requestConfig = context.getRequestConfig();
             final Timeout connectTimeout = requestConfig.getConnectTimeout();
+            if (log.isDebugEnabled()) {
+                log.debug(id + ": aquiring endpoint (" + connectTimeout + ")");
+            }
             return Operations.cancellable(connPool.getSession(
                     target,
                     connectTimeout,
@@ -95,6 +100,9 @@ class InternalHttp2AsyncExecRuntime implements AsyncExecRuntime {
                         public void completed(final IOSession ioSession) {
                             sessionRef.set(new Endpoint(target, ioSession));
                             reusable = true;
+                            if (log.isDebugEnabled()) {
+                                log.debug(id + ": aquired endpoint");
+                            }
                             callback.completed(InternalHttp2AsyncExecRuntime.this);
                         }
 
@@ -114,11 +122,18 @@ class InternalHttp2AsyncExecRuntime implements AsyncExecRuntime {
         return Operations.nonCancellable();
     }
 
+    private void closeEndpoint(final Endpoint endpoint) {
+        endpoint.session.close(CloseMode.GRACEFUL);
+        if (log.isDebugEnabled()) {
+            log.debug(ConnPoolSupport.getId(endpoint) + ": endpoint closed");
+        }
+    }
+
     @Override
     public void releaseEndpoint() {
         final Endpoint endpoint = sessionRef.getAndSet(null);
         if (endpoint != null && !reusable) {
-            endpoint.session.close(CloseMode.GRACEFUL);
+            closeEndpoint(endpoint);
         }
     }
 
@@ -126,7 +141,7 @@ class InternalHttp2AsyncExecRuntime implements AsyncExecRuntime {
     public void discardEndpoint() {
         final Endpoint endpoint = sessionRef.getAndSet(null);
         if (endpoint != null) {
-            endpoint.session.close(CloseMode.GRACEFUL);
+            closeEndpoint(endpoint);
         }
     }
 
@@ -138,7 +153,7 @@ class InternalHttp2AsyncExecRuntime implements AsyncExecRuntime {
         }
         final Endpoint endpoint = sessionRef.getAndSet(null);
         if (endpoint != null) {
-            endpoint.session.close(CloseMode.GRACEFUL);
+            closeEndpoint(endpoint);
         }
         return false;
     }
@@ -170,6 +185,9 @@ class InternalHttp2AsyncExecRuntime implements AsyncExecRuntime {
         final HttpHost target = endpoint.target;
         final RequestConfig requestConfig = context.getRequestConfig();
         final Timeout connectTimeout = requestConfig.getConnectTimeout();
+        if (log.isDebugEnabled()) {
+            log.debug(ConnPoolSupport.getId(endpoint) + ": connecting endpoint (" + connectTimeout + ")");
+        }
         return Operations.cancellable(connPool.getSession(target, connectTimeout,
             new FutureCallback<IOSession>() {
 
@@ -177,6 +195,9 @@ class InternalHttp2AsyncExecRuntime implements AsyncExecRuntime {
             public void completed(final IOSession ioSession) {
                 sessionRef.set(new Endpoint(target, ioSession));
                 reusable = true;
+                if (log.isDebugEnabled()) {
+                    log.debug(ConnPoolSupport.getId(endpoint) + ": endpoint connected");
+                }
                 callback.completed(InternalHttp2AsyncExecRuntime.this);
             }
 
@@ -200,13 +221,15 @@ class InternalHttp2AsyncExecRuntime implements AsyncExecRuntime {
     }
 
     @Override
-    public Cancellable execute(final AsyncClientExchangeHandler exchangeHandler, final HttpClientContext context) {
+    public Cancellable execute(
+            final String id,
+            final AsyncClientExchangeHandler exchangeHandler, final HttpClientContext context) {
         final ComplexCancellable complexCancellable = new ComplexCancellable();
         final Endpoint endpoint = ensureValid();
         final IOSession session = endpoint.session;
         if (!session.isClosed()) {
             if (log.isDebugEnabled()) {
-                log.debug(ConnPoolSupport.getId(endpoint) + ": executing " + ConnPoolSupport.getId(exchangeHandler));
+                log.debug(ConnPoolSupport.getId(endpoint) + ": start execution " + id);
             }
             session.enqueue(
                     new RequestExecutionCommand(exchangeHandler, pushHandlerFactory, complexCancellable, context),
@@ -222,7 +245,7 @@ class InternalHttp2AsyncExecRuntime implements AsyncExecRuntime {
                     sessionRef.set(new Endpoint(target, ioSession));
                     reusable = true;
                     if (log.isDebugEnabled()) {
-                        log.debug(ConnPoolSupport.getId(endpoint) + ": executing " + ConnPoolSupport.getId(exchangeHandler));
+                        log.debug(ConnPoolSupport.getId(endpoint) + ": start execution " + id);
                     }
                     session.enqueue(
                             new RequestExecutionCommand(exchangeHandler, pushHandlerFactory, complexCancellable, context),
@@ -254,7 +277,7 @@ class InternalHttp2AsyncExecRuntime implements AsyncExecRuntime {
         reusable = false;
     }
 
-    static class Endpoint {
+    static class Endpoint implements Identifiable {
 
         final HttpHost target;
         final IOSession session;
@@ -263,6 +286,12 @@ class InternalHttp2AsyncExecRuntime implements AsyncExecRuntime {
             this.target = target;
             this.session = session;
         }
+
+        @Override
+        public String getId() {
+            return session.getId();
+        }
+
     }
 
     @Override

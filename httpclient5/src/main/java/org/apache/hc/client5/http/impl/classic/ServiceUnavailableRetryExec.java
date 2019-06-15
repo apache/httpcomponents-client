@@ -79,6 +79,7 @@ public final class ServiceUnavailableRetryExec implements ExecChainHandler {
             final ExecChain chain) throws IOException, HttpException {
         Args.notNull(request, "HTTP request");
         Args.notNull(scope, "Scope");
+        final String exchangeId = scope.exchangeId;
         final HttpClientContext context = scope.clientContext;
         ClassicHttpRequest currentRequest = request;
         for (int c = 1;; c++) {
@@ -94,7 +95,7 @@ public final class ServiceUnavailableRetryExec implements ExecChainHandler {
                     if (nextInterval > 0) {
                         try {
                             if (this.log.isDebugEnabled()) {
-                                this.log.debug("Wait for " + ((double) nextInterval / 1000) + " seconds" );
+                                this.log.debug(exchangeId + ": wait for " + ((double) nextInterval / 1000) + " seconds" );
                             }
                             Thread.sleep(nextInterval);
                         } catch (final InterruptedException e) {

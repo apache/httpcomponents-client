@@ -66,13 +66,14 @@ public interface HttpClientConnectionManager extends ModalCloseable {
      * to upgrade the underlying transport to Transport Layer Security after having
      * executed a {@code CONNECT} method to all intermediate proxy hops.
      *
+     * @param id unique operation ID or {@code null}.
      * @param route HTTP route of the requested connection.
      * @param requestTimeout lease request timeout.
      * @param state expected state of the connection or {@code null}
      *              if the connection is not expected to carry any state.
      * @since 5.0
      */
-    LeaseRequest lease(HttpRoute route, Timeout requestTimeout, Object state);
+    LeaseRequest lease(String id, HttpRoute route, Timeout requestTimeout, Object state);
 
     /**
      * Releases the endpoint back to the manager making it potentially

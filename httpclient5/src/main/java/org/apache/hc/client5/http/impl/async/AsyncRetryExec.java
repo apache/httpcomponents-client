@@ -81,6 +81,8 @@ public final class AsyncRetryExec implements AsyncExecChainHandler {
             final AsyncExecChain chain,
             final AsyncExecCallback asyncExecCallback) throws HttpException, IOException {
 
+        final String exchangeId = scope.exchangeId;
+
         chain.proceed(RequestCopier.INSTANCE.copy(request), entityProducer, scope, new AsyncExecCallback() {
 
             @Override
@@ -101,31 +103,27 @@ public final class AsyncRetryExec implements AsyncExecChainHandler {
                     final HttpRoute route = scope.route;
                     final HttpClientContext clientContext = scope.clientContext;
                     if (entityProducer != null && !entityProducer.isRepeatable()) {
-                        log.debug("Cannot retry non-repeatable request");
-                    } else if (retryHandler.retryRequest(request, (IOException) cause, execCount, clientContext)) {
-                        if (log.isInfoEnabled()) {
-                            log.info("I/O exception ("+ cause.getClass().getName() +
-                                    ") caught when processing request to "
-                                    + route +
-                                    ": "
-                                    + cause.getMessage());
-                        }
                         if (log.isDebugEnabled()) {
-                            log.debug(cause.getMessage(), cause);
+                            log.debug(exchangeId + ": cannot retry non-repeatable request");
+                        }
+                    } else if (retryHandler.retryRequest(request, (IOException) cause, execCount, clientContext)) {
+                        if (log.isDebugEnabled()) {
+                            log.debug(exchangeId + ": " + cause.getMessage(), cause);
                         }
                         if (log.isInfoEnabled()) {
-                            log.info("Retrying request to " + route);
+                            log.info("Recoverable I/O exception ("+ cause.getClass().getName() + ") " +
+                                    "caught when processing request to " + route);
+                        }
+                        scope.execRuntime.discardEndpoint();
+                        if (entityProducer != null) {
+                            entityProducer.releaseResources();
                         }
                         try {
-                            scope.execRuntime.discardEndpoint();
-                            if (entityProducer != null) {
-                                entityProducer.releaseResources();
-                            }
                             internalExecute(execCount + 1, request, entityProducer, scope, chain, asyncExecCallback);
-                            return;
                         } catch (final IOException | HttpException ex) {
-                            log.error(ex.getMessage(), ex);
+                            asyncExecCallback.failed(ex);
                         }
+                        return;
                     }
                 }
                 asyncExecCallback.failed(cause);

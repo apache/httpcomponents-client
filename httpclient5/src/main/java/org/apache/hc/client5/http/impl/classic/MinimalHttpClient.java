@@ -38,6 +38,7 @@ import org.apache.hc.client5.http.config.Configurable;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.ConnectionShutdownException;
 import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
+import org.apache.hc.client5.http.impl.ExecSupport;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.protocol.RequestClientConnControl;
@@ -130,11 +131,12 @@ public class MinimalHttpClient extends CloseableHttpClient {
         }
 
         final HttpRoute route = new HttpRoute(RoutingSupport.normalize(target, schemePortResolver));
+        final String exchangeId = ExecSupport.getNextExchangeId();
         final ExecRuntime execRuntime = new InternalExecRuntime(log, connManager, requestExecutor,
                 request instanceof CancellableDependency ? (CancellableDependency) request : null);
         try {
             if (!execRuntime.isEndpointAcquired()) {
-                execRuntime.acquireEndpoint(route, null, clientContext);
+                execRuntime.acquireEndpoint(exchangeId, route, null, clientContext);
             }
             if (!execRuntime.isEndpointConnected()) {
                 execRuntime.connectEndpoint(clientContext);
@@ -144,7 +146,7 @@ public class MinimalHttpClient extends CloseableHttpClient {
             context.setAttribute(HttpClientContext.HTTP_ROUTE, route);
 
             httpProcessor.process(request, request.getEntity(), context);
-            final ClassicHttpResponse response = execRuntime.execute(request, clientContext);
+            final ClassicHttpResponse response = execRuntime.execute(exchangeId, request, clientContext);
             httpProcessor.process(response, response.getEntity(), context);
 
             if (reuseStrategy.keepAlive(request, response, context)) {

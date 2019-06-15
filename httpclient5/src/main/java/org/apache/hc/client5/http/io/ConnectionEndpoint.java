@@ -57,11 +57,13 @@ public abstract class ConnectionEndpoint implements ModalCloseable {
      * Once the endpoint is no longer needed it MUST be released with {@link #close(org.apache.hc.core5.io.CloseMode)}.
      * </p>
      *
+     * @param id unique operation ID or {@code null}.
      * @param request the request message.
      * @param executor the request executor.
      * @param context the execution context.
      */
     public abstract ClassicHttpResponse execute(
+            String id,
             ClassicHttpRequest request,
             HttpRequestExecutor executor,
             HttpContext context) throws IOException, HttpException;

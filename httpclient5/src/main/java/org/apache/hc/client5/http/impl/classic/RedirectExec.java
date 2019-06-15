@@ -112,12 +112,15 @@ public final class RedirectExec implements ExecChainHandler {
         ClassicHttpRequest currentRequest = request;
         ExecChain.Scope currentScope = scope;
         for (int redirectCount = 0;;) {
+            final String exchangeId = currentScope.exchangeId;
             final ClassicHttpResponse response = chain.proceed(currentRequest, currentScope);
             try {
                 if (config.isRedirectsEnabled() && this.redirectStrategy.isRedirected(request, response, context)) {
                     final HttpEntity requestEntity = request.getEntity();
                     if (requestEntity != null && !requestEntity.isRepeatable()) {
-                        this.log.debug("Cannot redirect non-repeatable request");
+                        if (log.isDebugEnabled()) {
+                            log.debug(exchangeId + ": cannot redirect non-repeatable request");
+                        }
                         return response;
                     }
                     if (redirectCount >= maxRedirects) {
@@ -126,8 +129,8 @@ public final class RedirectExec implements ExecChainHandler {
                     redirectCount++;
 
                     final URI redirectUri = this.redirectStrategy.getLocationURI(currentRequest, response, context);
-                    if (this.log.isDebugEnabled()) {
-                        this.log.debug("Redirect requested to location '" + redirectUri + "'");
+                    if (log.isDebugEnabled()) {
+                        log.debug(exchangeId + ": redirect requested to location '" + redirectUri + "'");
                     }
                     if (!config.isCircularRedirectsAllowed()) {
                         if (redirectLocations.contains(redirectUri)) {
@@ -165,14 +168,20 @@ public final class RedirectExec implements ExecChainHandler {
                     if (!LangUtils.equals(currentRoute.getTargetHost(), newTarget)) {
                         final HttpRoute newRoute = this.routePlanner.determineRoute(newTarget, context);
                         if (!LangUtils.equals(currentRoute, newRoute)) {
-                            log.debug("New route required");
+                            if (log.isDebugEnabled()) {
+                                log.debug(exchangeId + ": new route required");
+                            }
                             final AuthExchange targetAuthExchange = context.getAuthExchange(currentRoute.getTargetHost());
-                            this.log.debug("Resetting target auth state");
+                            if (log.isDebugEnabled()) {
+                                log.debug(exchangeId + ": resetting target auth state");
+                            }
                             targetAuthExchange.reset();
                             if (currentRoute.getProxyHost() != null) {
                                 final AuthExchange proxyAuthExchange = context.getAuthExchange(currentRoute.getProxyHost());
                                 if (proxyAuthExchange.isConnectionBased()) {
-                                    this.log.debug("Resetting proxy auth state");
+                                    if (log.isDebugEnabled()) {
+                                        log.debug(exchangeId + ": resetting proxy auth state");
+                                    }
                                     proxyAuthExchange.reset();
                                 }
                             }
@@ -185,8 +194,8 @@ public final class RedirectExec implements ExecChainHandler {
                         }
                     }
 
-                    if (this.log.isDebugEnabled()) {
-                        this.log.debug("Redirecting to '" + redirectUri + "' via " + currentRoute);
+                    if (log.isDebugEnabled()) {
+                        log.debug(exchangeId + ": redirecting to '" + redirectUri + "' via " + currentRoute);
                     }
                     currentRequest = redirect;
                     RequestEntityProxy.enhance(currentRequest);
@@ -205,7 +214,9 @@ public final class RedirectExec implements ExecChainHandler {
                 try {
                     EntityUtils.consume(response.getEntity());
                 } catch (final IOException ioex) {
-                    this.log.debug("I/O error while releasing connection", ioex);
+                    if (log.isDebugEnabled()) {
+                        log.debug(exchangeId + ": I/O error while releasing connection", ioex);
+                    }
                 } finally {
                     response.close();
                 }

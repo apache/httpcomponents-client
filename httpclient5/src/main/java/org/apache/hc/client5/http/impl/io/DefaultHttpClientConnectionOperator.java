@@ -40,6 +40,7 @@ import org.apache.hc.client5.http.HttpHostConnectException;
 import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.SystemDefaultDnsResolver;
 import org.apache.hc.client5.http.UnsupportedSchemeException;
+import org.apache.hc.client5.http.impl.ConnPoolSupport;
 import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
 import org.apache.hc.client5.http.io.HttpClientConnectionOperator;
 import org.apache.hc.client5.http.io.ManagedHttpClientConnection;
@@ -145,13 +146,13 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
 
             final InetSocketAddress remoteAddress = new InetSocketAddress(address, port);
             if (this.log.isDebugEnabled()) {
-                this.log.debug("Connecting to " + remoteAddress);
+                this.log.debug(ConnPoolSupport.getId(conn) + ": connecting to " + remoteAddress);
             }
             try {
                 sock = sf.connectSocket(connectTimeout, sock, host, remoteAddress, localAddress, context);
                 conn.bind(sock);
                 if (this.log.isDebugEnabled()) {
-                    this.log.debug("Connection established " + conn);
+                    this.log.debug(ConnPoolSupport.getId(conn) + ": connection established " + conn);
                 }
                 return;
             } catch (final SocketTimeoutException ex) {
@@ -172,7 +173,7 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
                 }
             }
             if (this.log.isDebugEnabled()) {
-                this.log.debug("Connect to " + remoteAddress + " timed out. " +
+                this.log.debug(ConnPoolSupport.getId(conn) + ": connect to " + remoteAddress + " timed out. " +
                         "Connection will be retried using another IP address");
             }
         }
