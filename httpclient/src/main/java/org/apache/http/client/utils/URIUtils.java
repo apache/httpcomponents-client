@@ -217,14 +217,17 @@ public class URIUtils {
             uribuilder.setFragment(null);
         }
         if (flags.contains(UriFlag.NORMALIZE)) {
-            final List<String> pathSegments = new ArrayList<String>(uribuilder.getPathSegments());
+            final List<String> originalPathSegments = uribuilder.getPathSegments();
+            final List<String> pathSegments = new ArrayList<String>(originalPathSegments);
             for (final Iterator<String> it = pathSegments.iterator(); it.hasNext(); ) {
                 final String pathSegment = it.next();
                 if (pathSegment.isEmpty() && it.hasNext()) {
                     it.remove();
                 }
             }
-            uribuilder.setPathSegments(pathSegments);
+            if (pathSegments.size() != originalPathSegments.size()) {
+                uribuilder.setPathSegments(pathSegments);
+            }
         }
         if (uribuilder.isPathEmpty()) {
             uribuilder.setPathSegments("");
