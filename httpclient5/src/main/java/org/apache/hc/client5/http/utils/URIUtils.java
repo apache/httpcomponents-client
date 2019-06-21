@@ -28,6 +28,8 @@ package org.apache.hc.client5.http.utils;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Stack;
@@ -83,20 +85,19 @@ public class URIUtils {
         if (dropFragment) {
             uribuilder.setFragment(null);
         }
-        final String path = uribuilder.getPath();
-        if (TextUtils.isEmpty(path)) {
-            uribuilder.setPath("/");
-        } else {
-            final StringBuilder buf = new StringBuilder(path.length());
-            boolean foundSlash = false;
-            for (int i = 0; i < path.length(); i++) {
-                final char ch = path.charAt(i);
-                if (ch != '/' || !foundSlash) {
-                    buf.append(ch);
-                }
-                foundSlash = ch == '/';
+        final List<String> originalPathSegments = uribuilder.getPathSegments();
+        final List<String> pathSegments = new ArrayList<>(originalPathSegments);
+        for (final Iterator<String> it = pathSegments.iterator(); it.hasNext(); ) {
+            final String pathSegment = it.next();
+            if (pathSegment.isEmpty() && it.hasNext()) {
+                it.remove();
             }
-            uribuilder.setPath(buf.toString());
+        }
+        if (pathSegments.size() != originalPathSegments.size()) {
+            uribuilder.setPathSegments(pathSegments);
+        }
+        if (pathSegments.isEmpty()) {
+            uribuilder.setPathSegments("");
         }
         return uribuilder.build();
     }
