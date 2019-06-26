@@ -69,7 +69,9 @@ public class TestPublicSuffixMatcher {
         Assert.assertEquals("blah.blah.tokyo.jp", matcher.getDomainRoot("blah.blah.tokyo.jp"));
         Assert.assertEquals("blah.ac.jp", matcher.getDomainRoot("blah.blah.ac.jp"));
         Assert.assertEquals("garbage", matcher.getDomainRoot("garbage"));
-        Assert.assertEquals("garbage.garbage", matcher.getDomainRoot("garbage.garbage"));
+        Assert.assertEquals("garbage", matcher.getDomainRoot("garbage.garbage"));
+        Assert.assertEquals("garbage", matcher.getDomainRoot("*.garbage.garbage"));
+        Assert.assertEquals("garbage", matcher.getDomainRoot("*.garbage.garbage.garbage"));
     }
 
     @Test
