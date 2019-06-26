@@ -168,10 +168,13 @@ public final class PublicSuffixMatcher {
                     return result;
                 }
             }
-            result = segment;
+            // Update result if nextSegment is not null, or it's the first occurrence of the loop
+            if (nextSegment != null || result == null) {
+                result = segment;
+            }
             segment = nextSegment;
         }
-        return normalized;
+        return result;
     }
 
     /**
