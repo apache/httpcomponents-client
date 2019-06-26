@@ -275,6 +275,18 @@ public class TestDefaultHostnameVerifier {
         Assert.assertTrue(DefaultHostnameVerifier.matchIdentityStrict("mail.a.b.c.com", "m*.a.b.c.com"));
     }
 
+    @Test
+    public void testHTTPCLIENT_1997() {
+        Assert.assertTrue(DefaultHostnameVerifier.matchIdentity(
+                "service.apps.dev.b.cloud.a", "*.apps.dev.b.cloud.a"));
+        Assert.assertTrue(DefaultHostnameVerifier.matchIdentityStrict(
+                "service.apps.dev.b.cloud.a", "*.apps.dev.b.cloud.a"));
+        Assert.assertTrue(DefaultHostnameVerifier.matchIdentity(
+                "service.apps.dev.b.cloud.a", "*.apps.dev.b.cloud.a", publicSuffixMatcher));
+        Assert.assertTrue(DefaultHostnameVerifier.matchIdentityStrict(
+                "service.apps.dev.b.cloud.a", "*.apps.dev.b.cloud.a", publicSuffixMatcher));
+    }
+
     @Test // Check compressed IPv6 hostname matching
     public void testHTTPCLIENT_1316() throws Exception{
         final String host1 = "2001:0db8:aaaa:bbbb:cccc:0:0:0001";
