@@ -171,7 +171,7 @@ public final class PublicSuffixMatcher {
             result = segment;
             segment = nextSegment;
         }
-        return normalized;
+        return result;
     }
 
     /**
