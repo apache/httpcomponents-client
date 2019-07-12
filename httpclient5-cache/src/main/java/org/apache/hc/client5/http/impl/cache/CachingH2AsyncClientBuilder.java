@@ -39,7 +39,7 @@ import org.apache.hc.client5.http.cache.HttpAsyncCacheStorageAdaptor;
 import org.apache.hc.client5.http.cache.HttpCacheStorage;
 import org.apache.hc.client5.http.cache.ResourceFactory;
 import org.apache.hc.client5.http.impl.ChainElements;
-import org.apache.hc.client5.http.impl.async.Http2AsyncClientBuilder;
+import org.apache.hc.client5.http.impl.async.H2AsyncClientBuilder;
 import org.apache.hc.client5.http.impl.schedule.ImmediateSchedulingStrategy;
 import org.apache.hc.client5.http.schedule.SchedulingStrategy;
 import org.apache.hc.core5.http.config.NamedElementChain;
@@ -50,7 +50,7 @@ import org.apache.hc.core5.http.config.NamedElementChain;
  *
  * @since 5.0
  */
-public class CachingHttp2AsyncClientBuilder extends Http2AsyncClientBuilder {
+public class CachingH2AsyncClientBuilder extends H2AsyncClientBuilder {
 
     private ResourceFactory resourceFactory;
     private HttpAsyncCacheStorage storage;
@@ -60,51 +60,51 @@ public class CachingHttp2AsyncClientBuilder extends Http2AsyncClientBuilder {
     private HttpAsyncCacheInvalidator httpCacheInvalidator;
     private boolean deleteCache;
 
-    public static CachingHttp2AsyncClientBuilder create() {
-        return new CachingHttp2AsyncClientBuilder();
+    public static CachingH2AsyncClientBuilder create() {
+        return new CachingH2AsyncClientBuilder();
     }
 
-    protected CachingHttp2AsyncClientBuilder() {
+    protected CachingH2AsyncClientBuilder() {
         super();
         this.deleteCache = true;
     }
 
-    public final CachingHttp2AsyncClientBuilder setResourceFactory(final ResourceFactory resourceFactory) {
+    public final CachingH2AsyncClientBuilder setResourceFactory(final ResourceFactory resourceFactory) {
         this.resourceFactory = resourceFactory;
         return this;
     }
 
-    public final CachingHttp2AsyncClientBuilder setHttpCacheStorage(final HttpCacheStorage storage) {
+    public final CachingH2AsyncClientBuilder setHttpCacheStorage(final HttpCacheStorage storage) {
         this.storage = storage != null ? new HttpAsyncCacheStorageAdaptor(storage) : null;
         return this;
     }
 
-    public final CachingHttp2AsyncClientBuilder setHttpCacheStorage(final HttpAsyncCacheStorage storage) {
+    public final CachingH2AsyncClientBuilder setHttpCacheStorage(final HttpAsyncCacheStorage storage) {
         this.storage = storage;
         return this;
     }
 
-    public final CachingHttp2AsyncClientBuilder setCacheDir(final File cacheDir) {
+    public final CachingH2AsyncClientBuilder setCacheDir(final File cacheDir) {
         this.cacheDir = cacheDir;
         return this;
     }
 
-    public final CachingHttp2AsyncClientBuilder setSchedulingStrategy(final SchedulingStrategy schedulingStrategy) {
+    public final CachingH2AsyncClientBuilder setSchedulingStrategy(final SchedulingStrategy schedulingStrategy) {
         this.schedulingStrategy = schedulingStrategy;
         return this;
     }
 
-    public final CachingHttp2AsyncClientBuilder setCacheConfig(final CacheConfig cacheConfig) {
+    public final CachingH2AsyncClientBuilder setCacheConfig(final CacheConfig cacheConfig) {
         this.cacheConfig = cacheConfig;
         return this;
     }
 
-    public final CachingHttp2AsyncClientBuilder setHttpCacheInvalidator(final HttpAsyncCacheInvalidator cacheInvalidator) {
+    public final CachingH2AsyncClientBuilder setHttpCacheInvalidator(final HttpAsyncCacheInvalidator cacheInvalidator) {
         this.httpCacheInvalidator = cacheInvalidator;
         return this;
     }
 
-    public CachingHttp2AsyncClientBuilder setDeleteCache(final boolean deleteCache) {
+    public CachingH2AsyncClientBuilder setDeleteCache(final boolean deleteCache) {
         this.deleteCache = deleteCache;
         return this;
     }

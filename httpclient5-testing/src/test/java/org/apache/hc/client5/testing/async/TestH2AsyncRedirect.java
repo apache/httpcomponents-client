@@ -29,42 +29,41 @@ package org.apache.hc.client5.testing.async;
 import java.util.Arrays;
 import java.util.Collection;
 
-import org.apache.hc.client5.http.AuthenticationStrategy;
-import org.apache.hc.client5.http.auth.AuthSchemeProvider;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
-import org.apache.hc.client5.http.impl.async.Http2AsyncClientBuilder;
-import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManager;
+import org.apache.hc.client5.http.impl.async.H2AsyncClientBuilder;
 import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.client5.testing.SSLTestContexts;
 import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.URIScheme;
-import org.apache.hc.core5.http.config.Lookup;
 import org.junit.Rule;
 import org.junit.rules.ExternalResource;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 @RunWith(Parameterized.class)
-public class TestHttp2ClientAuthentication extends AbstractHttpAsyncClientAuthentication<CloseableHttpAsyncClient> {
+public class TestH2AsyncRedirect extends AbstractHttpAsyncRedirectsTest<CloseableHttpAsyncClient> {
 
     @Parameterized.Parameters(name = "HTTP/2 {0}")
     public static Collection<Object[]> protocols() {
         return Arrays.asList(new Object[][]{
-                {URIScheme.HTTP},
-                {URIScheme.HTTPS},
+                { URIScheme.HTTP },
+                { URIScheme.HTTPS }
         });
     }
 
-    protected Http2AsyncClientBuilder clientBuilder;
-    protected PoolingAsyncClientConnectionManager connManager;
+    protected H2AsyncClientBuilder clientBuilder;
+
+    public TestH2AsyncRedirect(final URIScheme scheme) {
+        super(HttpVersion.HTTP_2, scheme);
+    }
 
     @Rule
     public ExternalResource clientResource = new ExternalResource() {
 
         @Override
         protected void before() throws Throwable {
-            clientBuilder = Http2AsyncClientBuilder.create()
+            clientBuilder = H2AsyncClientBuilder.create()
                     .setDefaultRequestConfig(RequestConfig.custom()
                             .setConnectionRequestTimeout(TIMEOUT)
                             .setConnectTimeout(TIMEOUT)
@@ -74,22 +73,8 @@ public class TestHttp2ClientAuthentication extends AbstractHttpAsyncClientAuthen
 
     };
 
-    public TestHttp2ClientAuthentication(final URIScheme scheme) {
-        super(scheme, HttpVersion.HTTP_2);
-    }
-
     @Override
-    void setDefaultAuthSchemeRegistry(final Lookup<AuthSchemeProvider> authSchemeRegistry) {
-        clientBuilder.setDefaultAuthSchemeRegistry(authSchemeRegistry);
-    }
-
-    @Override
-    void setTargetAuthenticationStrategy(final AuthenticationStrategy targetAuthStrategy) {
-        clientBuilder.setTargetAuthenticationStrategy(targetAuthStrategy);
-    }
-
-    @Override
-    protected CloseableHttpAsyncClient createClient() throws Exception {
+    protected CloseableHttpAsyncClient createClient() {
         return clientBuilder.build();
     }
 
