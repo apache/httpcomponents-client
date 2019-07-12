@@ -50,7 +50,7 @@ import org.apache.hc.core5.util.Timeout;
  * This example demonstrates concurrent (multiplexed) execution of multiple
  * HTTP/2 message exchanges.
  */
-public class AsyncClientHttp2Multiplexing {
+public class AsyncClientH2Multiplexing {
 
     public static void main(final String[] args) throws Exception {
 

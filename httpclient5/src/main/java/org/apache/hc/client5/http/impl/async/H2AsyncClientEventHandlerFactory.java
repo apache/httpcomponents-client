@@ -50,7 +50,7 @@ import org.apache.hc.core5.util.Args;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-class Http2AsyncClientEventHandlerFactory implements IOEventHandlerFactory {
+class H2AsyncClientEventHandlerFactory implements IOEventHandlerFactory {
 
     private final Logger wireLog = LoggerFactory.getLogger("org.apache.hc.client5.http.wire");
     private final Logger headerLog = LoggerFactory.getLogger("org.apache.hc.client5.http.headers");
@@ -63,7 +63,7 @@ class Http2AsyncClientEventHandlerFactory implements IOEventHandlerFactory {
     private final H2Config h2Config;
     private final CharCodingConfig charCodingConfig;
 
-    Http2AsyncClientEventHandlerFactory(
+    H2AsyncClientEventHandlerFactory(
             final HttpProcessor httpProcessor,
             final HandlerFactory<AsyncPushConsumer> exchangeHandlerFactory,
             final H2Config h2Config,

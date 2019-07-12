@@ -54,7 +54,7 @@ import org.apache.hc.core5.util.Timeout;
 /**
  * This example demonstrates handling of HTTP/2 message exchanges pushed by the server.
  */
-public class AsyncClientHttp2ServerPush {
+public class AsyncClientH2ServerPush {
 
     public static void main(final String[] args) throws Exception {
 
