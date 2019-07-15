@@ -1,15 +1,12 @@
-﻿Release 5.0-BETA4
+﻿Release 5.0-BETA5
 -------------------
 
 This BETA release picks up the latest fixes and performance improvements from HttpCore
 and addresses a number of issues found since the previous BETA release.
 
-Notable features in this release:
-
-* Security improvements.
-
-* URI handling improvements.
-
+IMPORTANT: This release is expected to be the last BETA version. If no major
+design flaws are found the actual 5.0 API will be frozen and the next version will be
+promoted to GA.
 
 Notable changes and features included in the 5.0 series are:
 
@@ -42,10 +39,42 @@ Notable changes and features included in the 5.0 series are:
 HttpClient 5.0 releases can be co-located with earlier major versions on the same classpath
 due to the change in package names and Maven module coordinates.
 
-The 5.0 APIs are considered feature complete and are not expected to undergo any major changes
-anymore. The focus of development is now shifting to API polish, code stabilisation
-and documentation improvements.
 
+Changelog:
+-------------------
+
+* Information response (1xx) processing support.
+  Contributed by Kirill Usov <kirill.usov at gmail.com>
+
+* HTTPCLIENT-1968: Preserve escaped PATHSAFE characters when normalizing URI path segments.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-1992: Impossible to access trailer-headers available in chunked transfer-encoding
+  with classic API.
+  Contributed by Serkan Turgut <sturgut at amazon.com>
+
+* HTTPCLIENT-1991: incorrect handling of non-standard DNS entries by PublicSuffixMatcher.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Refactor to enable support for non-form based multipart requests
+  Contributed by Adam Retter <adam.retter at googlemail.com>
+
+* HTTPCLIENT-1981: disallow TRACE requests with an enclosed entity
+  Contributed by Jay Modi <jay at elastic dot com>
+
+
+
+Release 5.0-BETA4
+-------------------
+
+This BETA release picks up the latest fixes and performance improvements from HttpCore
+and addresses a number of issues found since the previous BETA release.
+
+Notable features in this release:
+
+* Security improvements.
+
+* URI handling improvements.
 
 
 Changelog:
