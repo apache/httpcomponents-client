@@ -111,6 +111,6 @@ public class ReactiveClientFullDuplexExchange {
         requestFuture.get(1, TimeUnit.MINUTES);
 
         System.out.println("Shutting down");
-        client.shutdown(CloseMode.GRACEFUL);
+        client.close(CloseMode.GRACEFUL);
     }
 }

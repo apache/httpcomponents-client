@@ -27,7 +27,6 @@
 
 package org.apache.hc.client5.http.impl.classic;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -44,17 +43,18 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.io.HttpClientResponseHandler;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.io.ModalCloseable;
 import org.apache.hc.core5.util.Args;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Base implementation of {@link HttpClient} that also implements {@link Closeable}.
+ * Base implementation of {@link HttpClient} that also implements {@link ModalCloseable}.
  *
  * @since 4.3
  */
 @Contract(threading = ThreadingBehavior.SAFE)
-public abstract class CloseableHttpClient implements HttpClient, Closeable {
+public abstract class CloseableHttpClient implements HttpClient, ModalCloseable {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 

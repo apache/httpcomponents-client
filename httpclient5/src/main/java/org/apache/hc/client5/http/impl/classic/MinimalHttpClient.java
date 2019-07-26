@@ -186,4 +186,9 @@ public class MinimalHttpClient extends CloseableHttpClient {
         this.connManager.close();
     }
 
+    @Override
+    public void close(final CloseMode closeMode) {
+        this.connManager.close(closeMode);
+    }
+
 }

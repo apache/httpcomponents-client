@@ -87,7 +87,7 @@ public class AsyncClientHttpExchange {
         }
 
         System.out.println("Shutting down");
-        client.shutdown(CloseMode.GRACEFUL);
+        client.close(CloseMode.GRACEFUL);
     }
 
 }
