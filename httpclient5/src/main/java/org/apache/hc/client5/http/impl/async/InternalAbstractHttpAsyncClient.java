@@ -30,6 +30,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -64,6 +65,8 @@ import org.apache.hc.core5.http.nio.DataStreamChannel;
 import org.apache.hc.core5.http.nio.HandlerFactory;
 import org.apache.hc.core5.http.nio.RequestChannel;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.io.CloseMode;
+import org.apache.hc.core5.io.ModalCloseable;
 import org.apache.hc.core5.reactor.DefaultConnectingIOReactor;
 
 abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBase {
@@ -74,7 +77,7 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
     private final CookieStore cookieStore;
     private final CredentialsProvider credentialsProvider;
     private final RequestConfig defaultConfig;
-    private final List<Closeable> closeables;
+    private final ConcurrentLinkedQueue<Closeable> closeables;
 
     InternalAbstractHttpAsyncClient(
             final DefaultConnectingIOReactor ioReactor,
@@ -94,18 +97,22 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
         this.cookieStore = cookieStore;
         this.credentialsProvider = credentialsProvider;
         this.defaultConfig = defaultConfig;
-        this.closeables = closeables;
+        this.closeables = closeables != null ? new ConcurrentLinkedQueue<>(closeables) : null;
     }
 
     @Override
-    public void close() {
-        super.close();
-        if (closeables != null) {
-            for (final Closeable closeable: closeables) {
+    void internalClose(final CloseMode closeMode) {
+        if (this.closeables != null) {
+            Closeable closeable;
+            while ((closeable = this.closeables.poll()) != null) {
                 try {
-                    closeable.close();
+                    if (closeable instanceof ModalCloseable) {
+                        ((ModalCloseable) closeable).close(closeMode);
+                    } else {
+                        closeable.close();
+                    }
                 } catch (final IOException ex) {
-                    log.error(ex.getMessage(), ex);
+                    this.log.error(ex.getMessage(), ex);
                 }
             }
         }

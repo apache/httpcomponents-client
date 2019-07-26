@@ -63,7 +63,7 @@ public abstract class AbstractIntegrationTestBase<T extends CloseableHttpAsyncCl
         @Override
         protected void after() {
             if (httpclient != null) {
-                httpclient.shutdown(CloseMode.GRACEFUL);
+                httpclient.close(CloseMode.GRACEFUL);
                 httpclient = null;
             }
         }

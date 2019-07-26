@@ -83,7 +83,7 @@ public class AsyncClientAuthentication {
         future.get();
 
         System.out.println("Shutting down");
-        httpclient.shutdown(CloseMode.GRACEFUL);
+        httpclient.close(CloseMode.GRACEFUL);
 
     }
 }

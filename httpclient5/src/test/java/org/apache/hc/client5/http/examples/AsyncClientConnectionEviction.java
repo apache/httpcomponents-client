@@ -121,7 +121,7 @@ public class AsyncClientConnectionEviction {
         future2.get();
 
         System.out.println("Shutting down");
-        client.shutdown(CloseMode.GRACEFUL);
+        client.close(CloseMode.GRACEFUL);
     }
 
 }

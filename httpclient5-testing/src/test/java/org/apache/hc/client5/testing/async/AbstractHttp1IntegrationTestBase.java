@@ -99,7 +99,7 @@ public abstract class AbstractHttp1IntegrationTestBase extends AbstractServerTes
         @Override
         protected void after() {
             if (httpclient != null) {
-                httpclient.shutdown(CloseMode.GRACEFUL);
+                httpclient.close(CloseMode.GRACEFUL);
                 httpclient = null;
             }
         }
