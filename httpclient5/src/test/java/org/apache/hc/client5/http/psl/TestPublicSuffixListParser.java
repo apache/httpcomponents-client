@@ -52,7 +52,7 @@ public class TestPublicSuffixListParser {
             in.close();
         }
         Assert.assertNotNull(suffixList);
-        Assert.assertEquals(Arrays.asList("jp", "ac.jp", "*.tokyo.jp", "no", "h\u00E5.no"), suffixList.getRules());
+        Assert.assertEquals(Arrays.asList("xx", "jp", "ac.jp", "*.tokyo.jp", "no", "h\u00E5.no"), suffixList.getRules());
         Assert.assertEquals(Arrays.asList("metro.tokyo.jp"), suffixList.getExceptions());
     }
 

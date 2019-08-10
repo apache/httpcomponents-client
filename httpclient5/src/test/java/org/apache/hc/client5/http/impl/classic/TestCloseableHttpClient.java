@@ -84,7 +84,7 @@ public class TestCloseableHttpClient {
         client.execute(httpget);
 
         Mockito.verify(client).doExecute(
-                Mockito.eq(new HttpHost("somehost", 444, "https")),
+                Mockito.eq(new HttpHost("https", "somehost", 444)),
                 Mockito.same(httpget),
                 (HttpContext) Mockito.isNull());
     }
@@ -105,26 +105,25 @@ public class TestCloseableHttpClient {
         final HttpGet httpget = new HttpGet("https://somehost:444/stuff");
 
         Mockito.when(client.doExecute(
-                new HttpHost("somehost", 444, "https"), httpget, null)).thenReturn(response);
+                new HttpHost("https", "somehost", 444), httpget, null)).thenReturn(response);
 
         final CloseableHttpResponse result = client.execute(httpget);
         Assert.assertSame(response, result);
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     public void testExecuteRequestHandleResponse() throws Exception {
         final HttpGet httpget = new HttpGet("https://somehost:444/stuff");
 
         Mockito.when(client.doExecute(
-                new HttpHost("somehost", 444, "https"), httpget, null)).thenReturn(response);
+                new HttpHost("https", "somehost", 444), httpget, null)).thenReturn(response);
 
         final HttpClientResponseHandler<HttpResponse> handler = Mockito.mock(HttpClientResponseHandler.class);
 
         client.execute(httpget, handler);
 
         Mockito.verify(client).doExecute(
-                Mockito.eq(new HttpHost("somehost", 444, "https")),
+                Mockito.eq(new HttpHost("https", "somehost", 444)),
                 Mockito.same(httpget),
                 (HttpContext) Mockito.isNull());
         Mockito.verify(handler).handleResponse(response);
@@ -132,12 +131,11 @@ public class TestCloseableHttpClient {
     }
 
     @Test(expected=IOException.class)
-    @SuppressWarnings("unchecked")
     public void testExecuteRequestHandleResponseIOException() throws Exception {
         final HttpGet httpget = new HttpGet("https://somehost:444/stuff");
 
         Mockito.when(client.doExecute(
-                new HttpHost("somehost", 444, "https"), httpget, null)).thenReturn(response);
+                new HttpHost("https", "somehost", 444), httpget, null)).thenReturn(response);
 
         final HttpClientResponseHandler<HttpResponse> handler = Mockito.mock(HttpClientResponseHandler.class);
 
@@ -147,7 +145,7 @@ public class TestCloseableHttpClient {
             client.execute(httpget, handler);
         } catch (final IOException ex) {
             Mockito.verify(client).doExecute(
-                    Mockito.eq(new HttpHost("somehost", 444, "https")),
+                    Mockito.eq(new HttpHost("https", "somehost", 444)),
                     Mockito.same(httpget),
                     (HttpContext) Mockito.isNull());
             Mockito.verify(originResponse).close();
@@ -156,12 +154,11 @@ public class TestCloseableHttpClient {
     }
 
     @Test(expected=RuntimeException.class)
-    @SuppressWarnings("unchecked")
     public void testExecuteRequestHandleResponseHttpException() throws Exception {
         final HttpGet httpget = new HttpGet("https://somehost:444/stuff");
 
         Mockito.when(client.doExecute(
-                new HttpHost("somehost", 444, "https"), httpget, null)).thenReturn(response);
+                new HttpHost("https", "somehost", 444), httpget, null)).thenReturn(response);
 
         final HttpClientResponseHandler<HttpResponse> handler = Mockito.mock(HttpClientResponseHandler.class);
 
@@ -171,7 +168,7 @@ public class TestCloseableHttpClient {
             client.execute(httpget, handler);
         } catch (final RuntimeException ex) {
             Mockito.verify(client).doExecute(
-                    Mockito.eq(new HttpHost("somehost", 444, "https")),
+                    Mockito.eq(new HttpHost("https", "somehost", 444)),
                     Mockito.same(httpget),
                     (HttpContext) Mockito.isNull());
             Mockito.verify(response).close();

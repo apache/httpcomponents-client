@@ -50,10 +50,11 @@ import org.apache.hc.core5.http.protocol.HttpContext;
  * based authentication schemes such as NTLM or that of the SSL session
  * with the client authentication turned on. If both are unavailable,
  * {@code null} token will be returned.
+ * </p>
  *
  * @since 4.0
  */
-@Contract(threading = ThreadingBehavior.IMMUTABLE)
+@Contract(threading = ThreadingBehavior.STATELESS)
 public class DefaultUserTokenHandler implements UserTokenHandler {
 
     public static final DefaultUserTokenHandler INSTANCE = new DefaultUserTokenHandler();

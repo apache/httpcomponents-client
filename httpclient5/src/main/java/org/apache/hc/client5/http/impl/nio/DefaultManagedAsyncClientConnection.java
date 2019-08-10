@@ -36,37 +36,33 @@ import javax.net.ssl.SSLSession;
 
 import org.apache.hc.client5.http.impl.ConnPoolSupport;
 import org.apache.hc.client5.http.nio.ManagedAsyncClientConnection;
-import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.http.EndpointDetails;
 import org.apache.hc.core5.http.HttpConnection;
 import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.ProtocolVersion;
 import org.apache.hc.core5.http.nio.command.ShutdownCommand;
-import org.apache.hc.core5.io.ShutdownType;
+import org.apache.hc.core5.io.CloseMode;
+import org.apache.hc.core5.net.NamedEndpoint;
 import org.apache.hc.core5.reactor.Command;
 import org.apache.hc.core5.reactor.IOEventHandler;
 import org.apache.hc.core5.reactor.IOSession;
-import org.apache.hc.core5.reactor.ssl.SSLBufferManagement;
+import org.apache.hc.core5.reactor.ProtocolLayer;
+import org.apache.hc.core5.reactor.ssl.SSLBufferMode;
 import org.apache.hc.core5.reactor.ssl.SSLSessionInitializer;
 import org.apache.hc.core5.reactor.ssl.SSLSessionVerifier;
 import org.apache.hc.core5.reactor.ssl.TlsDetails;
 import org.apache.hc.core5.reactor.ssl.TransportSecurityLayer;
 import org.apache.hc.core5.util.Identifiable;
+import org.apache.hc.core5.util.Timeout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Default {@link ManagedAsyncClientConnection} implementation.
- *
- * @since 5.0
- */
-@Internal
 final class DefaultManagedAsyncClientConnection implements ManagedAsyncClientConnection, Identifiable {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final IOSession ioSession;
-    private final int socketTimeout;
+    private final Timeout socketTimeout;
     private final AtomicBoolean closed;
 
     public DefaultManagedAsyncClientConnection(final IOSession ioSession) {
@@ -81,12 +77,12 @@ final class DefaultManagedAsyncClientConnection implements ManagedAsyncClientCon
     }
 
     @Override
-    public void shutdown(final ShutdownType shutdownType) {
+    public void close(final CloseMode closeMode) {
         if (this.closed.compareAndSet(false, true)) {
             if (log.isDebugEnabled()) {
-                log.debug(getId() + ": Shutdown connection " + shutdownType);
+                log.debug(getId() + ": Shutdown connection " + closeMode);
             }
-            ioSession.shutdown(shutdownType);
+            ioSession.close(closeMode);
         }
     }
 
@@ -96,7 +92,7 @@ final class DefaultManagedAsyncClientConnection implements ManagedAsyncClientCon
             if (log.isDebugEnabled()) {
                 log.debug(getId() + ": Close connection");
             }
-            ioSession.addFirst(new ShutdownCommand(ShutdownType.GRACEFUL));
+            ioSession.enqueue(new ShutdownCommand(CloseMode.GRACEFUL), Command.Priority.IMMEDIATE);
         }
     }
 
@@ -106,12 +102,12 @@ final class DefaultManagedAsyncClientConnection implements ManagedAsyncClientCon
     }
 
     @Override
-    public void setSocketTimeout(final int timeout) {
+    public void setSocketTimeout(final Timeout timeout) {
         ioSession.setSocketTimeout(timeout);
     }
 
     @Override
-    public int getSocketTimeout() {
+    public Timeout getSocketTimeout() {
         return ioSession.getSocketTimeout();
     }
 
@@ -127,35 +123,40 @@ final class DefaultManagedAsyncClientConnection implements ManagedAsyncClientCon
 
     @Override
     public EndpointDetails getEndpointDetails() {
-        final IOEventHandler handler = ioSession.getHandler();
-        if (handler instanceof HttpConnection) {
-            return ((HttpConnection) handler).getEndpointDetails();
-        } else {
-            return null;
+        if (ioSession instanceof ProtocolLayer) {
+            final IOEventHandler handler = ((ProtocolLayer) ioSession).getHandler();
+            if (handler instanceof HttpConnection) {
+                return ((HttpConnection) handler).getEndpointDetails();
+            }
         }
+        return null;
     }
 
     @Override
     public ProtocolVersion getProtocolVersion() {
-        final IOEventHandler handler = ioSession.getHandler();
-        if (handler instanceof HttpConnection) {
-            return ((HttpConnection) handler).getProtocolVersion();
-        } else {
-            return HttpVersion.DEFAULT;
+        if (ioSession instanceof ProtocolLayer) {
+            final IOEventHandler handler = ((ProtocolLayer) ioSession).getHandler();
+            if (handler instanceof HttpConnection) {
+                return ((HttpConnection) handler).getProtocolVersion();
+            }
         }
+        return HttpVersion.DEFAULT;
     }
 
     @Override
     public void startTls(
             final SSLContext sslContext,
-            final SSLBufferManagement sslBufferManagement,
+            final NamedEndpoint endpoint,
+            final SSLBufferMode sslBufferMode,
             final SSLSessionInitializer initializer,
-            final SSLSessionVerifier verifier) throws UnsupportedOperationException {
+            final SSLSessionVerifier verifier,
+            final Timeout handshakeTimeout) throws UnsupportedOperationException {
         if (log.isDebugEnabled()) {
             log.debug(getId() + ": start TLS");
         }
         if (ioSession instanceof TransportSecurityLayer) {
-            ((TransportSecurityLayer) ioSession).startTls(sslContext, sslBufferManagement, initializer, verifier);
+            ((TransportSecurityLayer) ioSession).startTls(sslContext, endpoint, sslBufferMode, initializer, verifier,
+                handshakeTimeout);
         } else {
             throw new UnsupportedOperationException("TLS upgrade not supported");
         }
@@ -173,24 +174,16 @@ final class DefaultManagedAsyncClientConnection implements ManagedAsyncClientCon
     }
 
     @Override
-    public void submitPriorityCommand(final Command command) {
+    public void submitCommand(final Command command, final Command.Priority priority) {
         if (log.isDebugEnabled()) {
-            log.debug(getId() + ": priority command " + command);
+            log.debug(getId() + ": " + command.getClass().getSimpleName() + " with " + priority + " priority");
         }
-        ioSession.addFirst(command);
-    }
-
-    @Override
-    public void submitCommand(final Command command) {
-        if (log.isDebugEnabled()) {
-            log.debug(getId() + ": command " + command);
-        }
-        ioSession.addLast(command);
+        ioSession.enqueue(command, Command.Priority.IMMEDIATE);
     }
 
     @Override
     public void passivate() {
-        ioSession.setSocketTimeout(0);
+        ioSession.setSocketTimeout(Timeout.ZERO_MILLISECONDS);
     }
 
     @Override

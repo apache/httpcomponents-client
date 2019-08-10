@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.concurrent.Future;
 
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
+import org.apache.hc.client5.http.async.methods.SimpleHttpRequests;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
@@ -42,7 +43,7 @@ import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManager;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
-import org.apache.hc.client5.http.ssl.H2TlsStrategy;
+import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.client5.testing.SSLTestContexts;
 import org.apache.hc.core5.function.Supplier;
 import org.apache.hc.core5.http.ContentType;
@@ -53,9 +54,9 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.URIScheme;
-import org.apache.hc.core5.http.config.H1Config;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.nio.AsyncServerExchangeHandler;
 import org.apache.hc.core5.http.protocol.HttpCoreContext;
@@ -84,13 +85,17 @@ public class TestHttp1AsyncRedirects extends AbstractHttpAsyncRedirectsTest<Clos
     protected HttpAsyncClientBuilder clientBuilder;
     protected PoolingAsyncClientConnectionManager connManager;
 
+    public TestHttp1AsyncRedirects(final URIScheme scheme) {
+        super(HttpVersion.HTTP_1_1, scheme);
+    }
+
     @Rule
     public ExternalResource connManagerResource = new ExternalResource() {
 
         @Override
         protected void before() throws Throwable {
             connManager = PoolingAsyncClientConnectionManagerBuilder.create()
-                    .setTlsStrategy(new H2TlsStrategy(SSLTestContexts.createClientSSLContext()))
+                    .setTlsStrategy(new DefaultClientTlsStrategy(SSLTestContexts.createClientSSLContext()))
                     .build();
         }
 
@@ -111,26 +116,17 @@ public class TestHttp1AsyncRedirects extends AbstractHttpAsyncRedirectsTest<Clos
         protected void before() throws Throwable {
             clientBuilder = HttpAsyncClientBuilder.create()
                     .setDefaultRequestConfig(RequestConfig.custom()
-                            .setConnectionTimeout(TIMEOUT)
                             .setConnectionRequestTimeout(TIMEOUT)
+                            .setConnectTimeout(TIMEOUT)
                             .build())
                     .setConnectionManager(connManager);
         }
 
     };
 
-    public TestHttp1AsyncRedirects(final URIScheme scheme) {
-        super(scheme);
-    }
-
     @Override
     protected CloseableHttpAsyncClient createClient() throws Exception {
         return clientBuilder.build();
-    }
-
-    @Override
-    public final HttpHost start() throws Exception {
-        return super.start(null, H1Config.DEFAULT);
     }
 
     static class NoKeepAliveRedirectService extends AbstractSimpleServerExchangeHandler {
@@ -168,6 +164,7 @@ public class TestHttp1AsyncRedirects extends AbstractHttpAsyncRedirectsTest<Clos
 
     }
 
+    @Override
     @Test
     public void testBasicRedirect300() throws Exception {
         server.register("*", new Supplier<AsyncServerExchangeHandler>() {
@@ -182,7 +179,7 @@ public class TestHttp1AsyncRedirects extends AbstractHttpAsyncRedirectsTest<Clos
 
         final HttpClientContext context = HttpClientContext.create();
         final Future<SimpleHttpResponse> future = httpclient.execute(
-                SimpleHttpRequest.get(target, "/oldlocation/"), context, null);
+                SimpleHttpRequests.GET.create(target, "/oldlocation/"), context, null);
         final HttpResponse response = future.get();
         Assert.assertNotNull(response);
 
@@ -206,7 +203,7 @@ public class TestHttp1AsyncRedirects extends AbstractHttpAsyncRedirectsTest<Clos
         final HttpHost target = start();
         final HttpClientContext context = HttpClientContext.create();
         final Future<SimpleHttpResponse> future = httpclient.execute(
-                SimpleHttpRequest.get(target, "/oldlocation/"), context, null);
+                SimpleHttpRequests.GET.create(target, "/oldlocation/"), context, null);
         final HttpResponse response = future.get();
         Assert.assertNotNull(response);
 
@@ -214,7 +211,7 @@ public class TestHttp1AsyncRedirects extends AbstractHttpAsyncRedirectsTest<Clos
 
         Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
         Assert.assertEquals("/newlocation/", request.getRequestUri());
-        Assert.assertEquals(target, new HttpHost(request.getAuthority(), request.getScheme()));
+        Assert.assertEquals(target, new HttpHost(request.getScheme(), request.getAuthority()));
     }
 
     @Test
@@ -237,7 +234,7 @@ public class TestHttp1AsyncRedirects extends AbstractHttpAsyncRedirectsTest<Clos
         final HttpClientContext context = HttpClientContext.create();
 
         final Future<SimpleHttpResponse> future = httpclient.execute(
-                SimpleHttpRequest.get(target, "/oldlocation/"), context, null);
+                SimpleHttpRequests.GET.create(target, "/oldlocation/"), context, null);
         final HttpResponse response = future.get();
         Assert.assertNotNull(response);
 

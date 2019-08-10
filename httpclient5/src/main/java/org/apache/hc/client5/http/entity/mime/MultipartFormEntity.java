@@ -43,12 +43,12 @@ import org.apache.hc.core5.http.HttpEntity;
 
 class MultipartFormEntity implements HttpEntity {
 
-    private final AbstractMultipartForm multipart;
+    private final AbstractMultipartFormat multipart;
     private final ContentType contentType;
     private final long contentLength;
 
     MultipartFormEntity(
-            final AbstractMultipartForm multipart,
+            final AbstractMultipartFormat multipart,
             final ContentType contentType,
             final long contentLength) {
         super();
@@ -57,7 +57,7 @@ class MultipartFormEntity implements HttpEntity {
         this.contentLength = contentLength;
     }
 
-    AbstractMultipartForm getMultipart() {
+    AbstractMultipartFormat getMultipart() {
         return this.multipart;
     }
 
@@ -98,15 +98,15 @@ class MultipartFormEntity implements HttpEntity {
         } else if (this.contentLength > 25 * 1024) {
             throw new ContentTooLongException("Content length is too long: " + this.contentLength);
         }
-        final ByteArrayOutputStream outstream = new ByteArrayOutputStream();
-        writeTo(outstream);
-        outstream.flush();
-        return new ByteArrayInputStream(outstream.toByteArray());
+        final ByteArrayOutputStream outStream = new ByteArrayOutputStream();
+        writeTo(outStream);
+        outStream.flush();
+        return new ByteArrayInputStream(outStream.toByteArray());
     }
 
     @Override
-    public void writeTo(final OutputStream outstream) throws IOException {
-        this.multipart.writeTo(outstream);
+    public void writeTo(final OutputStream outStream) throws IOException {
+        this.multipart.writeTo(outStream);
     }
 
     @Override

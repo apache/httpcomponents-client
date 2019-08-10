@@ -42,45 +42,41 @@ import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.ContentLengthStrategy;
 import org.apache.hc.core5.http.Header;
-import org.apache.hc.core5.http.config.H1Config;
+import org.apache.hc.core5.http.config.Http1Config;
 import org.apache.hc.core5.http.impl.io.DefaultBHttpClientConnection;
 import org.apache.hc.core5.http.impl.io.SocketHolder;
 import org.apache.hc.core5.http.io.HttpMessageParserFactory;
 import org.apache.hc.core5.http.io.HttpMessageWriterFactory;
 import org.apache.hc.core5.http.message.RequestLine;
 import org.apache.hc.core5.http.message.StatusLine;
-import org.apache.hc.core5.io.ShutdownType;
+import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.util.Identifiable;
+import org.apache.hc.core5.util.Timeout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Default {@link ManagedHttpClientConnection} implementation.
- *
- * @since 4.3
- */
 final class DefaultManagedHttpClientConnection
         extends DefaultBHttpClientConnection implements ManagedHttpClientConnection, Identifiable {
 
     private final Logger log = LoggerFactory.getLogger(DefaultManagedHttpClientConnection.class);
-    private final Logger headerlog = LoggerFactory.getLogger("org.apache.hc.client5.http.headers");
-    private final Logger wirelog = LoggerFactory.getLogger("org.apache.hc.client5.http.wire");
+    private final Logger headerLog = LoggerFactory.getLogger("org.apache.hc.client5.http.headers");
+    private final Logger wireLog = LoggerFactory.getLogger("org.apache.hc.client5.http.wire");
 
     private final String id;
     private final AtomicBoolean closed;
 
-    private int socketTimeout;
+    private Timeout socketTimeout;
 
     public DefaultManagedHttpClientConnection(
             final String id,
-            final CharsetDecoder chardecoder,
-            final CharsetEncoder charencoder,
-            final H1Config h1Config,
+            final CharsetDecoder charDecoder,
+            final CharsetEncoder charEncoder,
+            final Http1Config h1Config,
             final ContentLengthStrategy incomingContentStrategy,
             final ContentLengthStrategy outgoingContentStrategy,
             final HttpMessageWriterFactory<ClassicHttpRequest> requestWriterFactory,
             final HttpMessageParserFactory<ClassicHttpResponse> responseParserFactory) {
-        super(h1Config, chardecoder, charencoder, incomingContentStrategy, outgoingContentStrategy, requestWriterFactory, responseParserFactory);
+        super(h1Config, charDecoder, charEncoder, incomingContentStrategy, outgoingContentStrategy, requestWriterFactory, responseParserFactory);
         this.id = id;
         this.closed = new AtomicBoolean();
     }
@@ -103,7 +99,7 @@ final class DefaultManagedHttpClientConnection
             throw new InterruptedIOException("Connection already shutdown");
         }
         super.bind(socketHolder);
-        socketTimeout = socketHolder.getSocket().getSoTimeout();
+        socketTimeout = Timeout.ofMilliseconds(socketHolder.getSocket().getSoTimeout());
     }
 
     @Override
@@ -133,7 +129,7 @@ final class DefaultManagedHttpClientConnection
     }
 
     @Override
-    public void setSocketTimeout(final int timeout) {
+    public void setSocketTimeout(final Timeout timeout) {
         if (this.log.isDebugEnabled()) {
             this.log.debug(this.id + ": set socket timeout to " + timeout);
         }
@@ -141,46 +137,46 @@ final class DefaultManagedHttpClientConnection
     }
 
     @Override
-    public void shutdown(final ShutdownType shutdownType) {
+    public void close(final CloseMode closeMode) {
         if (this.closed.compareAndSet(false, true)) {
             if (this.log.isDebugEnabled()) {
-                this.log.debug(this.id + ": Shutdown connection " + shutdownType);
+                this.log.debug(this.id + ": close connection " + closeMode);
             }
-            super.shutdown(shutdownType);
+            super.close(closeMode);
         }
     }
 
     @Override
     public void bind(final Socket socket) throws IOException {
-        super.bind(this.wirelog.isDebugEnabled() ? new LoggingSocketHolder(socket, this.id, this.wirelog) : new SocketHolder(socket));
-        socketTimeout = socket.getSoTimeout();
+        super.bind(this.wireLog.isDebugEnabled() ? new LoggingSocketHolder(socket, this.id, this.wireLog) : new SocketHolder(socket));
+        socketTimeout = Timeout.ofMilliseconds(socket.getSoTimeout());
     }
 
     @Override
     protected void onResponseReceived(final ClassicHttpResponse response) {
-        if (response != null && this.headerlog.isDebugEnabled()) {
-            this.headerlog.debug(this.id + " << " + new StatusLine(response));
-            final Header[] headers = response.getAllHeaders();
+        if (response != null && this.headerLog.isDebugEnabled()) {
+            this.headerLog.debug(this.id + " << " + new StatusLine(response));
+            final Header[] headers = response.getHeaders();
             for (final Header header : headers) {
-                this.headerlog.debug(this.id + " << " + header.toString());
+                this.headerLog.debug(this.id + " << " + header.toString());
             }
         }
     }
 
     @Override
     protected void onRequestSubmitted(final ClassicHttpRequest request) {
-        if (request != null && this.headerlog.isDebugEnabled()) {
-            this.headerlog.debug(this.id + " >> " + new RequestLine(request));
-            final Header[] headers = request.getAllHeaders();
+        if (request != null && this.headerLog.isDebugEnabled()) {
+            this.headerLog.debug(this.id + " >> " + new RequestLine(request));
+            final Header[] headers = request.getHeaders();
             for (final Header header : headers) {
-                this.headerlog.debug(this.id + " >> " + header.toString());
+                this.headerLog.debug(this.id + " >> " + header.toString());
             }
         }
     }
 
     @Override
     public void passivate() {
-        super.setSocketTimeout(0);
+        super.setSocketTimeout(Timeout.ZERO_MILLISECONDS);
     }
 
     @Override

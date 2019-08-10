@@ -75,6 +75,13 @@ public class AuthExchange {
     }
 
     /**
+     * Returns {@code true} if the actual authentication scheme is connection based.
+     */
+    public boolean isConnectionBased() {
+        return this.authScheme != null && this.authScheme.isConnectionBased();
+    }
+
+    /**
      * Resets the auth state with {@link AuthScheme} and clears auth options.
      *
      * @param authScheme auth scheme. May not be null.

@@ -35,7 +35,7 @@ import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.LangUtils;
 
 /**
- * Simple {@link Credentials} implementation based on a user name / password
+ * Simple {@link Credentials} representation based on a user name / password
  * pair.
  *
  * @since 4.0

@@ -38,7 +38,6 @@ import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HeaderElement;
 import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
 import org.apache.hc.core5.http.message.MessageSupport;
@@ -58,7 +57,7 @@ public class TestConditionalRequestBuilder {
     }
 
     @Test
-    public void testBuildConditionalRequestWithLastModified() throws ProtocolException {
+    public void testBuildConditionalRequestWithLastModified() {
         final String theMethod = "GET";
         final String theUri = "/theuri";
         final String lastModified = "this is my last modified date";
@@ -78,13 +77,13 @@ public class TestConditionalRequestBuilder {
 
         Assert.assertEquals(theMethod, newRequest.getMethod());
         Assert.assertEquals(theUri, newRequest.getRequestUri());
-        Assert.assertEquals(2, newRequest.getAllHeaders().length);
+        Assert.assertEquals(2, newRequest.getHeaders().length);
 
-        Assert.assertEquals("Accept-Encoding", newRequest.getAllHeaders()[0].getName());
-        Assert.assertEquals("gzip", newRequest.getAllHeaders()[0].getValue());
+        Assert.assertEquals("Accept-Encoding", newRequest.getHeaders()[0].getName());
+        Assert.assertEquals("gzip", newRequest.getHeaders()[0].getValue());
 
-        Assert.assertEquals("If-Modified-Since", newRequest.getAllHeaders()[1].getName());
-        Assert.assertEquals(lastModified, newRequest.getAllHeaders()[1].getValue());
+        Assert.assertEquals("If-Modified-Since", newRequest.getHeaders()[1].getName());
+        Assert.assertEquals(lastModified, newRequest.getHeaders()[1].getValue());
     }
 
     @Test
@@ -111,7 +110,7 @@ public class TestConditionalRequestBuilder {
     }
 
     @Test
-    public void testBuildConditionalRequestWithETag() throws ProtocolException {
+    public void testBuildConditionalRequestWithETag() {
         final String theMethod = "GET";
         final String theUri = "/theuri";
         final String theETag = "this is my eTag";
@@ -134,13 +133,13 @@ public class TestConditionalRequestBuilder {
         Assert.assertEquals(theMethod, newRequest.getMethod());
         Assert.assertEquals(theUri, newRequest.getRequestUri());
 
-        Assert.assertEquals(3, newRequest.getAllHeaders().length);
+        Assert.assertEquals(3, newRequest.getHeaders().length);
 
-        Assert.assertEquals("Accept-Encoding", newRequest.getAllHeaders()[0].getName());
-        Assert.assertEquals("gzip", newRequest.getAllHeaders()[0].getValue());
+        Assert.assertEquals("Accept-Encoding", newRequest.getHeaders()[0].getName());
+        Assert.assertEquals("gzip", newRequest.getHeaders()[0].getValue());
 
-        Assert.assertEquals("If-None-Match", newRequest.getAllHeaders()[1].getName());
-        Assert.assertEquals(theETag, newRequest.getAllHeaders()[1].getValue());
+        Assert.assertEquals("If-None-Match", newRequest.getHeaders()[1].getName());
+        Assert.assertEquals(theETag, newRequest.getHeaders()[1].getValue());
     }
 
     @Test

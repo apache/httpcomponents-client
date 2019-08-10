@@ -41,7 +41,7 @@ import org.apache.hc.core5.http.protocol.HttpContext;
  *
  * @since 4.0
  */
-@Contract(threading = ThreadingBehavior.IMMUTABLE)
+@Contract(threading = ThreadingBehavior.STATELESS)
 public class BasicSchemeFactory implements AuthSchemeProvider {
 
     private final Charset charset;

@@ -172,13 +172,13 @@ public class TestCredentials {
     public void testUsernamePasswordCredentialsSerialization() throws Exception {
         final UsernamePasswordCredentials orig = new UsernamePasswordCredentials("name","pwd".toCharArray());
         final ByteArrayOutputStream outbuffer = new ByteArrayOutputStream();
-        final ObjectOutputStream outstream = new ObjectOutputStream(outbuffer);
-        outstream.writeObject(orig);
-        outstream.close();
+        final ObjectOutputStream outStream = new ObjectOutputStream(outbuffer);
+        outStream.writeObject(orig);
+        outStream.close();
         final byte[] raw = outbuffer.toByteArray();
-        final ByteArrayInputStream inbuffer = new ByteArrayInputStream(raw);
-        final ObjectInputStream instream = new ObjectInputStream(inbuffer);
-        final UsernamePasswordCredentials clone = (UsernamePasswordCredentials) instream.readObject();
+        final ByteArrayInputStream inBuffer = new ByteArrayInputStream(raw);
+        final ObjectInputStream inStream = new ObjectInputStream(inBuffer);
+        final UsernamePasswordCredentials clone = (UsernamePasswordCredentials) inStream.readObject();
         Assert.assertEquals(orig, clone);
     }
 
@@ -186,13 +186,13 @@ public class TestCredentials {
     public void testNTCredentialsSerialization() throws Exception {
         final NTCredentials orig = new NTCredentials("name","pwd".toCharArray(), "somehost", "domain");
         final ByteArrayOutputStream outbuffer = new ByteArrayOutputStream();
-        final ObjectOutputStream outstream = new ObjectOutputStream(outbuffer);
-        outstream.writeObject(orig);
-        outstream.close();
+        final ObjectOutputStream outStream = new ObjectOutputStream(outbuffer);
+        outStream.writeObject(orig);
+        outStream.close();
         final byte[] raw = outbuffer.toByteArray();
-        final ByteArrayInputStream inbuffer = new ByteArrayInputStream(raw);
-        final ObjectInputStream instream = new ObjectInputStream(inbuffer);
-        final NTCredentials clone = (NTCredentials) instream.readObject();
+        final ByteArrayInputStream inBuffer = new ByteArrayInputStream(raw);
+        final ObjectInputStream inStream = new ObjectInputStream(inBuffer);
+        final NTCredentials clone = (NTCredentials) inStream.readObject();
         Assert.assertEquals(orig, clone);
     }
 

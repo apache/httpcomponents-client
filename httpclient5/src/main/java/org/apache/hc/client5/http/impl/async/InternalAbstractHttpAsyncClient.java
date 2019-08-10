@@ -30,6 +30,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -57,11 +58,15 @@ import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.nio.AsyncDataConsumer;
 import org.apache.hc.core5.http.nio.AsyncEntityProducer;
+import org.apache.hc.core5.http.nio.AsyncPushConsumer;
 import org.apache.hc.core5.http.nio.AsyncRequestProducer;
 import org.apache.hc.core5.http.nio.AsyncResponseConsumer;
 import org.apache.hc.core5.http.nio.DataStreamChannel;
+import org.apache.hc.core5.http.nio.HandlerFactory;
 import org.apache.hc.core5.http.nio.RequestChannel;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.io.CloseMode;
+import org.apache.hc.core5.io.ModalCloseable;
 import org.apache.hc.core5.reactor.DefaultConnectingIOReactor;
 
 abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBase {
@@ -72,7 +77,7 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
     private final CookieStore cookieStore;
     private final CredentialsProvider credentialsProvider;
     private final RequestConfig defaultConfig;
-    private final List<Closeable> closeables;
+    private final ConcurrentLinkedQueue<Closeable> closeables;
 
     InternalAbstractHttpAsyncClient(
             final DefaultConnectingIOReactor ioReactor,
@@ -92,18 +97,22 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
         this.cookieStore = cookieStore;
         this.credentialsProvider = credentialsProvider;
         this.defaultConfig = defaultConfig;
-        this.closeables = closeables;
+        this.closeables = closeables != null ? new ConcurrentLinkedQueue<>(closeables) : null;
     }
 
     @Override
-    public void close() {
-        super.close();
-        if (closeables != null) {
-            for (final Closeable closeable: closeables) {
+    void internalClose(final CloseMode closeMode) {
+        if (this.closeables != null) {
+            Closeable closeable;
+            while ((closeable = this.closeables.poll()) != null) {
                 try {
-                    closeable.close();
+                    if (closeable instanceof ModalCloseable) {
+                        ((ModalCloseable) closeable).close(closeMode);
+                    } else {
+                        closeable.close();
+                    }
                 } catch (final IOException ex) {
-                    log.error(ex.getMessage(), ex);
+                    this.log.error(ex.getMessage(), ex);
                 }
             }
         }
@@ -127,7 +136,7 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
         }
     }
 
-    abstract AsyncExecRuntime crerateAsyncExecRuntime();
+    abstract AsyncExecRuntime crerateAsyncExecRuntime(HandlerFactory<AsyncPushConsumer> pushHandlerFactory);
 
     abstract HttpRoute determineRoute(HttpRequest request, HttpClientContext clientContext) throws HttpException;
 
@@ -135,6 +144,7 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
     public <T> Future<T> execute(
             final AsyncRequestProducer requestProducer,
             final AsyncResponseConsumer<T> responseConsumer,
+            final HandlerFactory<AsyncPushConsumer> pushHandlerFactory,
             final HttpContext context,
             final FutureCallback<T> callback) {
         ensureRunning();
@@ -146,7 +156,8 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
                 @Override
                 public void sendRequest(
                         final HttpRequest request,
-                        final EntityDetails entityDetails) throws HttpException, IOException {
+                        final EntityDetails entityDetails,
+                        final HttpContext context) throws HttpException, IOException {
 
                     RequestConfig requestConfig = null;
                     if (request instanceof Configurable) {
@@ -157,10 +168,10 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
                     }
                     final HttpRoute route = determineRoute(request, clientContext);
                     final String exchangeId = ExecSupport.getNextExchangeId();
-                    final AsyncExecRuntime execRuntime = crerateAsyncExecRuntime();
                     if (log.isDebugEnabled()) {
                         log.debug(exchangeId + ": preparing request execution");
                     }
+                    final AsyncExecRuntime execRuntime = crerateAsyncExecRuntime(pushHandlerFactory);
 
                     setupContext(clientContext);
 
@@ -237,7 +248,7 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
                                         outputTerminated.set(true);
                                         requestProducer.releaseResources();
                                     }
-                                    responseConsumer.consumeResponse(response, entityDetails,
+                                    responseConsumer.consumeResponse(response, entityDetails, context,
                                             new FutureCallback<T>() {
 
                                                 @Override
@@ -260,12 +271,18 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
                                 }
 
                                 @Override
+                                public void handleInformationResponse(
+                                        final HttpResponse response) throws HttpException, IOException {
+                                    responseConsumer.informationResponse(response, context);
+                                }
+
+                                @Override
                                 public void completed() {
                                     if (log.isDebugEnabled()) {
                                         log.debug(exchangeId + ": message exchange successfully completed");
                                     }
                                     try {
-                                        execRuntime.releaseConnection();
+                                        execRuntime.releaseEndpoint();
                                     } finally {
                                         responseConsumer.releaseResources();
                                         requestProducer.releaseResources();
@@ -278,7 +295,7 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
                                         log.debug(exchangeId + ": request failed: " + cause.getMessage());
                                     }
                                     try {
-                                        execRuntime.discardConnection();
+                                        execRuntime.discardEndpoint();
                                         responseConsumer.failed(cause);
                                     } finally {
                                         try {
@@ -293,7 +310,7 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
                             });
                 }
 
-            });
+            }, context);
         } catch (final HttpException | IOException ex) {
             future.failed(ex);
         }

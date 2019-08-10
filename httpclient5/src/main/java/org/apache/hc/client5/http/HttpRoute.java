@@ -41,7 +41,7 @@ import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.LangUtils;
 
 /**
- * The route for a request.
+ * Connection route definition for HTTP requests.
  *
  * @since 4.0
  */
@@ -271,9 +271,8 @@ public final class HttpRoute implements RouteInfo, Cloneable {
                 LangUtils.equals(this.targetHost, that.targetHost) &&
                 LangUtils.equals(this.localAddress, that.localAddress) &&
                 LangUtils.equals(this.proxyChain, that.proxyChain);
-        } else {
-            return false;
         }
+        return false;
     }
 
 

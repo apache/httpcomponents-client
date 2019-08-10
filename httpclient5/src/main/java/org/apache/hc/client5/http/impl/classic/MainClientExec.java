@@ -37,8 +37,10 @@ import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecChainHandler;
 import org.apache.hc.client5.http.classic.ExecRuntime;
 import org.apache.hc.client5.http.impl.ConnectionShutdownException;
+import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
@@ -46,23 +48,26 @@ import org.apache.hc.core5.http.ConnectionReuseStrategy;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.message.RequestLine;
+import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TimeValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * The last request executor in the HTTP request execution chain
- * that is responsible for execution of request / response
- * exchanges with the opposite endpoint.
+ * Usually the last request execution handler in the classic request execution
+ * chain that is responsible for execution of request / response exchanges with
+ * the opposite endpoint.
  *
  * @since 4.3
  */
-@Contract(threading = ThreadingBehavior.IMMUTABLE_CONDITIONAL)
-final class MainClientExec implements ExecChainHandler {
+@Contract(threading = ThreadingBehavior.STATELESS)
+@Internal
+public final class MainClientExec implements ExecChainHandler {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
+    private final HttpClientConnectionManager connectionManager;
     private final ConnectionReuseStrategy reuseStrategy;
     private final ConnectionKeepAliveStrategy keepAliveStrategy;
     private final UserTokenHandler userTokenHandler;
@@ -71,15 +76,14 @@ final class MainClientExec implements ExecChainHandler {
      * @since 4.4
      */
     public MainClientExec(
+            final HttpClientConnectionManager connectionManager,
             final ConnectionReuseStrategy reuseStrategy,
             final ConnectionKeepAliveStrategy keepAliveStrategy,
             final UserTokenHandler userTokenHandler) {
-        Args.notNull(reuseStrategy, "Connection reuse strategy");
-        Args.notNull(keepAliveStrategy, "Connection keep alive strategy");
-        Args.notNull(userTokenHandler, "User token handler");
-        this.reuseStrategy      = reuseStrategy;
-        this.keepAliveStrategy  = keepAliveStrategy;
-        this.userTokenHandler   = userTokenHandler;
+        this.connectionManager = Args.notNull(connectionManager, "Connection manager");
+        this.reuseStrategy = Args.notNull(reuseStrategy, "Connection reuse strategy");
+        this.keepAliveStrategy = Args.notNull(keepAliveStrategy, "Connection keep alive strategy");
+        this.userTokenHandler = Args.notNull(userTokenHandler, "User token handler");
     }
 
     @Override
@@ -89,25 +93,23 @@ final class MainClientExec implements ExecChainHandler {
             final ExecChain chain) throws IOException, HttpException {
         Args.notNull(request, "HTTP request");
         Args.notNull(scope, "Scope");
+        final String exchangeId = scope.exchangeId;
         final HttpRoute route = scope.route;
         final HttpClientContext context = scope.clientContext;
         final ExecRuntime execRuntime = scope.execRuntime;
 
+        if (log.isDebugEnabled()) {
+            log.debug(exchangeId + ": executing " + new RequestLine(request));
+        }
         try {
-            if (this.log.isDebugEnabled()) {
-                this.log.debug("Executing request " + new RequestLine(request));
-            }
             RequestEntityProxy.enhance(request);
 
-            final ClassicHttpResponse response = execRuntime.execute(request, context);
+            final ClassicHttpResponse response = execRuntime.execute(exchangeId, request, context);
 
             Object userToken = context.getUserToken();
             if (userToken == null) {
                 userToken = userTokenHandler.getUserToken(route, context);
                 context.setAttribute(HttpClientContext.USER_TOKEN, userToken);
-            }
-            if (userToken != null) {
-                execRuntime.setConnectionState(userToken);
             }
 
             // The connection is in or can be brought to a re-usable state.
@@ -121,10 +123,9 @@ final class MainClientExec implements ExecChainHandler {
                     } else {
                         s = "indefinitely";
                     }
-                    this.log.debug("Connection can be kept alive " + s);
+                    this.log.debug(exchangeId + ": connection can be kept alive " + s);
                 }
-                execRuntime.setConnectionValidFor(duration);
-                execRuntime.markConnectionReusable();
+                execRuntime.markConnectionReusable(userToken, duration);
             } else {
                 execRuntime.markConnectionNonReusable();
             }
@@ -132,21 +133,23 @@ final class MainClientExec implements ExecChainHandler {
             final HttpEntity entity = response.getEntity();
             if (entity == null || !entity.isStreaming()) {
                 // connection not needed and (assumed to be) in re-usable state
-                execRuntime.releaseConnection();
+                execRuntime.releaseEndpoint();
                 return new CloseableHttpResponse(response, null);
-            } else {
-                ResponseEntityProxy.enchance(response, execRuntime);
-                return new CloseableHttpResponse(response, execRuntime);
             }
+            ResponseEntityProxy.enhance(response, execRuntime);
+            return new CloseableHttpResponse(response, execRuntime);
         } catch (final ConnectionShutdownException ex) {
             final InterruptedIOException ioex = new InterruptedIOException(
                     "Connection has been shut down");
             ioex.initCause(ex);
-            execRuntime.discardConnection();
+            execRuntime.discardEndpoint();
             throw ioex;
         } catch (final HttpException | RuntimeException | IOException ex) {
-            execRuntime.discardConnection();
+            execRuntime.discardEndpoint();
             throw ex;
+        } catch (final Error error) {
+            connectionManager.close(CloseMode.IMMEDIATE);
+            throw error;
         }
 
     }

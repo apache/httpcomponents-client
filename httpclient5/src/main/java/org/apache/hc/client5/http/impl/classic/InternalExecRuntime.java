@@ -35,6 +35,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.classic.ExecRuntime;
 import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.ConnPoolSupport;
 import org.apache.hc.client5.http.io.ConnectionEndpoint;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.io.LeaseRequest;
@@ -46,7 +47,7 @@ import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.ConnectionRequestTimeoutException;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
-import org.apache.hc.core5.io.ShutdownType;
+import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
@@ -85,17 +86,21 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
     }
 
     @Override
-    public boolean isConnectionAcquired() {
+    public boolean isEndpointAcquired() {
         return endpointRef.get() != null;
     }
 
     @Override
-    public void acquireConnection(final HttpRoute route, final Object object, final HttpClientContext context) throws IOException {
+    public void acquireEndpoint(
+            final String id, final HttpRoute route, final Object object, final HttpClientContext context) throws IOException {
         Args.notNull(route, "Route");
         if (endpointRef.get() == null) {
             final RequestConfig requestConfig = context.getRequestConfig();
-            final Timeout requestTimeout = requestConfig.getConnectionRequestTimeout();
-            final LeaseRequest connRequest = manager.lease(route, requestTimeout, object);
+            final Timeout connectionRequestTimeout = requestConfig.getConnectionRequestTimeout();
+            if (log.isDebugEnabled()) {
+                log.debug(id + ": acquiring endpoint (" + connectionRequestTimeout + ")");
+            }
+            final LeaseRequest connRequest = manager.lease(id, route, connectionRequestTimeout, object);
             state = object;
             if (cancellableDependency != null) {
                 if (cancellableDependency.isCancelled()) {
@@ -105,11 +110,14 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
                 cancellableDependency.setDependency(connRequest);
             }
             try {
-                final ConnectionEndpoint connectionEndpoint = connRequest.get(requestTimeout.getDuration(), requestTimeout.getTimeUnit());
+                final ConnectionEndpoint connectionEndpoint = connRequest.get(connectionRequestTimeout);
                 endpointRef.set(connectionEndpoint);
                 reusable = connectionEndpoint.isConnected();
                 if (cancellableDependency != null) {
                     cancellableDependency.setDependency(this);
+                }
+                if (log.isDebugEnabled()) {
+                    log.debug(id + ": acquired endpoint " + ConnPoolSupport.getId(connectionEndpoint));
                 }
             } catch(final TimeoutException ex) {
                 throw new ConnectionRequestTimeoutException(ex.getMessage());
@@ -137,7 +145,7 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
     }
 
     @Override
-    public boolean isConnected() {
+    public boolean isEndpointConnected() {
         final ConnectionEndpoint endpoint = endpointRef.get();
         return endpoint != null && endpoint.isConnected();
     }
@@ -149,15 +157,18 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
             }
         }
         final RequestConfig requestConfig = context.getRequestConfig();
-        final TimeValue timeout = requestConfig.getConnectionTimeout();
-        manager.connect(endpoint, timeout, context);
-        if (TimeValue.isPositive(timeout)) {
-            endpoint.setSocketTimeout(timeout.toMillisIntBound());
+        final Timeout connectTimeout = requestConfig.getConnectTimeout();
+        if (log.isDebugEnabled()) {
+            log.debug(ConnPoolSupport.getId(endpoint) + ": connecting endpoint (" + connectTimeout + ")");
+        }
+        manager.connect(endpoint, connectTimeout, context);
+        if (log.isDebugEnabled()) {
+            log.debug(ConnPoolSupport.getId(endpoint) + ": endpoint connected");
         }
     }
 
     @Override
-    public void connect(final HttpClientContext context) throws IOException {
+    public void connectEndpoint(final HttpClientContext context) throws IOException {
         final ConnectionEndpoint endpoint = ensureValid();
         if (!endpoint.isConnected()) {
             connectEndpoint(endpoint, context);
@@ -165,27 +176,48 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
     }
 
     @Override
-    public void disconnect() throws IOException {
+    public void disconnectEndpoint() throws IOException {
         final ConnectionEndpoint endpoint = endpointRef.get();
         if (endpoint != null) {
             endpoint.close();
-            log.debug("Disconnected");
+            if (log.isDebugEnabled()) {
+                log.debug(ConnPoolSupport.getId(endpoint) + ": endpoint closed");
+            }
         }
     }
 
     @Override
     public void upgradeTls(final HttpClientContext context) throws IOException {
         final ConnectionEndpoint endpoint = ensureValid();
+        final RequestConfig requestConfig = context.getRequestConfig();
+        final Timeout connectTimeout = requestConfig.getConnectTimeout();
+        if (TimeValue.isPositive(connectTimeout)) {
+            endpoint.setSocketTimeout(connectTimeout);
+        }
+        if (log.isDebugEnabled()) {
+            log.debug(ConnPoolSupport.getId(endpoint) + ": upgrading endpoint (" + connectTimeout + ")");
+        }
         manager.upgrade(endpoint, context);
     }
 
     @Override
-    public ClassicHttpResponse execute(final ClassicHttpRequest request, final HttpClientContext context) throws IOException, HttpException {
+    public ClassicHttpResponse execute(
+            final String id,
+            final ClassicHttpRequest request,
+            final HttpClientContext context) throws IOException, HttpException {
         final ConnectionEndpoint endpoint = ensureValid();
         if (!endpoint.isConnected()) {
             connectEndpoint(endpoint, context);
         }
-        return endpoint.execute(request, requestExecutor, context);
+        final RequestConfig requestConfig = context.getRequestConfig();
+        final Timeout responseTimeout = requestConfig.getResponseTimeout();
+        if (responseTimeout != null) {
+            endpoint.setSocketTimeout(responseTimeout);
+        }
+        if (log.isDebugEnabled()) {
+            log.debug(ConnPoolSupport.getId(endpoint) + ": start execution " + id);
+        }
+        return endpoint.execute(id, request, requestExecutor, context);
     }
 
     @Override
@@ -194,8 +226,10 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
     }
 
     @Override
-    public void markConnectionReusable() {
-        reusable = true;
+    public void markConnectionReusable(final Object state, final TimeValue validDuration) {
+        this.reusable = true;
+        this.state = state;
+        this.validDuration = validDuration;
     }
 
     @Override
@@ -203,55 +237,53 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
         reusable = false;
     }
 
-    @Override
-    public void setConnectionState(final Object state) {
-        this.state = state;
+    private void discardEndpoint(final ConnectionEndpoint endpoint) {
+        try {
+            endpoint.close(CloseMode.IMMEDIATE);
+            if (log.isDebugEnabled()) {
+                log.debug(ConnPoolSupport.getId(endpoint) + ": endpoint closed");
+            }
+        } finally {
+            if (log.isDebugEnabled()) {
+                log.debug(ConnPoolSupport.getId(endpoint) + ": discarding endpoint");
+            }
+            manager.release(endpoint, null, TimeValue.ZERO_MILLISECONDS);
+        }
     }
 
     @Override
-    public void setConnectionValidFor(final TimeValue duration) {
-        validDuration = duration;
-    }
-
-    @Override
-    public void releaseConnection() {
+    public void releaseEndpoint() {
         final ConnectionEndpoint endpoint = endpointRef.getAndSet(null);
         if (endpoint != null) {
             if (reusable) {
+                if (log.isDebugEnabled()) {
+                    log.debug(ConnPoolSupport.getId(endpoint) + ": releasing valid endpoint");
+                }
                 manager.release(endpoint, state, validDuration);
             } else {
-                try {
-                    endpoint.close();
-                    log.debug("Connection discarded");
-                } catch (final IOException ex) {
-                    if (log.isDebugEnabled()) {
-                        log.debug(ex.getMessage(), ex);
-                    }
-                } finally {
-                    manager.release(endpoint, null, TimeValue.ZERO_MILLISECONDS);
-                }
+                discardEndpoint(endpoint);
             }
         }
     }
 
     @Override
-    public void discardConnection() {
+    public void discardEndpoint() {
         final ConnectionEndpoint endpoint = endpointRef.getAndSet(null);
         if (endpoint != null) {
-            try {
-                endpoint.shutdown(ShutdownType.IMMEDIATE);
-                log.debug("Connection discarded");
-            } finally {
-                manager.release(endpoint, null, TimeValue.ZERO_MILLISECONDS);
-            }
+            discardEndpoint(endpoint);
         }
     }
 
     @Override
     public boolean cancel() {
         final boolean alreadyReleased = endpointRef.get() == null;
-        log.debug("Cancelling request execution");
-        discardConnection();
+        final ConnectionEndpoint endpoint = endpointRef.getAndSet(null);
+        if (endpoint != null) {
+            if (log.isDebugEnabled()) {
+                log.debug(ConnPoolSupport.getId(endpoint) + ": cancel");
+            }
+            discardEndpoint(endpoint);
+        }
         return !alreadyReleased;
     }
 

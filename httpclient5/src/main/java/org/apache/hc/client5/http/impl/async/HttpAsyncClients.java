@@ -28,15 +28,17 @@
 package org.apache.hc.client5.http.impl.async;
 
 import org.apache.hc.client5.http.DnsResolver;
+import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.SystemDefaultDnsResolver;
+import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.nio.AsyncClientConnectionManager;
-import org.apache.hc.client5.http.ssl.H2TlsStrategy;
+import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.core5.concurrent.DefaultThreadFactory;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.config.CharCodingConfig;
-import org.apache.hc.core5.http.config.H1Config;
+import org.apache.hc.core5.http.config.Http1Config;
 import org.apache.hc.core5.http.impl.DefaultConnectionReuseStrategy;
 import org.apache.hc.core5.http.nio.AsyncPushConsumer;
 import org.apache.hc.core5.http.nio.HandlerFactory;
@@ -59,7 +61,7 @@ import org.apache.hc.core5.util.VersionInfo;
  *
  * @since 5.0
  */
-public class HttpAsyncClients {
+public final class HttpAsyncClients {
 
     private HttpAsyncClients() {
         super();
@@ -93,8 +95,8 @@ public class HttpAsyncClients {
      * {@link CloseableHttpAsyncClient} instances optimized for HTTP/2 protocol
      * and message multiplexing
      */
-    public static Http2AsyncClientBuilder customHttp2() {
-        return Http2AsyncClientBuilder.create();
+    public static H2AsyncClientBuilder customHttp2() {
+        return H2AsyncClientBuilder.create();
     }
 
     /**
@@ -102,7 +104,7 @@ public class HttpAsyncClients {
      * optimized for HTTP/2 protocol and message multiplexing.
      */
     public static CloseableHttpAsyncClient createHttp2Default() {
-        return Http2AsyncClientBuilder.create().build();
+        return H2AsyncClientBuilder.create().build();
     }
 
     /**
@@ -110,7 +112,7 @@ public class HttpAsyncClients {
      * system properties optimized for HTTP/2 protocol and message multiplexing.
      */
     public static CloseableHttpAsyncClient createHttp2System() {
-        return Http2AsyncClientBuilder.create().useSystemProperties().build();
+        return H2AsyncClientBuilder.create().useSystemProperties().build();
     }
 
     private static HttpProcessor createMinimalProtocolProcessor() {
@@ -127,7 +129,8 @@ public class HttpAsyncClients {
             final AsyncPushConsumerRegistry pushConsumerRegistry,
             final HttpVersionPolicy versionPolicy,
             final IOReactorConfig ioReactorConfig,
-            final AsyncClientConnectionManager connmgr) {
+            final AsyncClientConnectionManager connmgr,
+            final SchemePortResolver schemePortResolver) {
         return new MinimalHttpAsyncClient(
                 eventHandlerFactory,
                 pushConsumerRegistry,
@@ -135,7 +138,8 @@ public class HttpAsyncClients {
                 ioReactorConfig,
                 new DefaultThreadFactory("httpclient-main", true),
                 new DefaultThreadFactory("httpclient-dispatch", true),
-                connmgr);
+                connmgr,
+                schemePortResolver);
     }
 
     /**
@@ -146,7 +150,7 @@ public class HttpAsyncClients {
     public static MinimalHttpAsyncClient createMinimal(
             final HttpVersionPolicy versionPolicy,
             final H2Config h2Config,
-            final H1Config h1Config,
+            final Http1Config h1Config,
             final IOReactorConfig ioReactorConfig,
             final AsyncClientConnectionManager connmgr) {
         final AsyncPushConsumerRegistry pushConsumerRegistry = new AsyncPushConsumerRegistry();
@@ -169,7 +173,8 @@ public class HttpAsyncClients {
                 pushConsumerRegistry,
                 versionPolicy,
                 ioReactorConfig,
-                connmgr);
+                connmgr,
+                DefaultSchemePortResolver.INSTANCE);
     }
 
     /**
@@ -180,7 +185,7 @@ public class HttpAsyncClients {
     public static MinimalHttpAsyncClient createMinimal(
             final HttpVersionPolicy versionPolicy,
             final H2Config h2Config,
-            final H1Config h1Config,
+            final Http1Config h1Config,
             final IOReactorConfig ioReactorConfig) {
         return createMinimal(versionPolicy, h2Config, h1Config, ioReactorConfig,
                 PoolingAsyncClientConnectionManagerBuilder.create().build());
@@ -191,7 +196,7 @@ public class HttpAsyncClients {
      * HTTP/1.1 and HTTP/2 message transport without advanced HTTP protocol
      * functionality.
      */
-    public static MinimalHttpAsyncClient createMinimal(final H2Config h2Config, final H1Config h1Config) {
+    public static MinimalHttpAsyncClient createMinimal(final H2Config h2Config, final Http1Config h1Config) {
         return createMinimal(HttpVersionPolicy.NEGOTIATE, h2Config, h1Config, IOReactorConfig.DEFAULT);
     }
 
@@ -201,7 +206,7 @@ public class HttpAsyncClients {
      * functionality.
      */
     public static MinimalHttpAsyncClient createMinimal() {
-        return createMinimal(H2Config.DEFAULT, H1Config.DEFAULT);
+        return createMinimal(H2Config.DEFAULT, Http1Config.DEFAULT);
     }
 
     /**
@@ -213,18 +218,18 @@ public class HttpAsyncClients {
         return createMinimal(
                 HttpVersionPolicy.NEGOTIATE,
                 H2Config.DEFAULT,
-                H1Config.DEFAULT,
+                Http1Config.DEFAULT,
                 IOReactorConfig.DEFAULT,
                 connManager);
     }
 
-    private static MinimalHttp2AsyncClient createMinimalHttp2AsyncClientImpl(
+    private static MinimalH2AsyncClient createMinimalHttp2AsyncClientImpl(
             final IOEventHandlerFactory eventHandlerFactory,
             final AsyncPushConsumerRegistry pushConsumerRegistry,
             final IOReactorConfig ioReactorConfig,
             final DnsResolver dnsResolver,
             final TlsStrategy tlsStrategy) {
-        return new MinimalHttp2AsyncClient(
+        return new MinimalH2AsyncClient(
                 eventHandlerFactory,
                 pushConsumerRegistry,
                 ioReactorConfig,
@@ -235,17 +240,17 @@ public class HttpAsyncClients {
     }
 
     /**
-     * Creates {@link MinimalHttp2AsyncClient} instance optimized for HTTP/2 multiplexing message
+     * Creates {@link MinimalH2AsyncClient} instance optimized for HTTP/2 multiplexing message
      * transport without advanced HTTP protocol functionality.
      */
-    public static MinimalHttp2AsyncClient createHttp2Minimal(
+    public static MinimalH2AsyncClient createHttp2Minimal(
             final H2Config h2Config,
             final IOReactorConfig ioReactorConfig,
             final DnsResolver dnsResolver,
             final TlsStrategy tlsStrategy) {
         final AsyncPushConsumerRegistry pushConsumerRegistry = new AsyncPushConsumerRegistry();
         return createMinimalHttp2AsyncClientImpl(
-                new Http2AsyncClientEventHandlerFactory(
+                new H2AsyncClientEventHandlerFactory(
                         createMinimalProtocolProcessor(),
                         new HandlerFactory<AsyncPushConsumer>() {
 
@@ -264,10 +269,10 @@ public class HttpAsyncClients {
     }
 
     /**
-     * Creates {@link MinimalHttp2AsyncClient} instance optimized for HTTP/2 multiplexing message
+     * Creates {@link MinimalH2AsyncClient} instance optimized for HTTP/2 multiplexing message
      * transport without advanced HTTP protocol functionality.
      */
-    public static MinimalHttp2AsyncClient createHttp2Minimal(
+    public static MinimalH2AsyncClient createHttp2Minimal(
             final H2Config h2Config,
             final IOReactorConfig ioReactorConfig,
             final TlsStrategy tlsStrategy) {
@@ -275,28 +280,28 @@ public class HttpAsyncClients {
     }
 
     /**
-     * Creates {@link MinimalHttp2AsyncClient} instance optimized for HTTP/2 multiplexing message
+     * Creates {@link MinimalH2AsyncClient} instance optimized for HTTP/2 multiplexing message
      * transport without advanced HTTP protocol functionality.
      */
-    public static MinimalHttp2AsyncClient createHttp2Minimal(
+    public static MinimalH2AsyncClient createHttp2Minimal(
             final H2Config h2Config,
             final IOReactorConfig ioReactorConfig) {
-        return createHttp2Minimal(h2Config, ioReactorConfig, H2TlsStrategy.getDefault());
+        return createHttp2Minimal(h2Config, ioReactorConfig, DefaultClientTlsStrategy.getDefault());
     }
 
     /**
-     * Creates {@link MinimalHttp2AsyncClient} instance optimized for HTTP/2 multiplexing message
+     * Creates {@link MinimalH2AsyncClient} instance optimized for HTTP/2 multiplexing message
      * transport without advanced HTTP protocol functionality.
      */
-    public static MinimalHttp2AsyncClient createHttp2Minimal(final H2Config h2Config) {
+    public static MinimalH2AsyncClient createHttp2Minimal(final H2Config h2Config) {
         return createHttp2Minimal(h2Config, IOReactorConfig.DEFAULT);
     }
 
     /**
-     * Creates {@link MinimalHttp2AsyncClient} instance optimized for HTTP/2 multiplexing message
+     * Creates {@link MinimalH2AsyncClient} instance optimized for HTTP/2 multiplexing message
      * transport without advanced HTTP protocol functionality.
      */
-    public static MinimalHttp2AsyncClient createHttp2Minimal() {
+    public static MinimalH2AsyncClient createHttp2Minimal() {
         return createHttp2Minimal(H2Config.DEFAULT);
     }
 

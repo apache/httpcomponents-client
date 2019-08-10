@@ -41,7 +41,7 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
  *
  * @since 4.4
  */
-@Contract(threading = ThreadingBehavior.IMMUTABLE)
+@Contract(threading = ThreadingBehavior.STATELESS)
 public final class PublicSuffixListParser {
 
     public PublicSuffixListParser() {

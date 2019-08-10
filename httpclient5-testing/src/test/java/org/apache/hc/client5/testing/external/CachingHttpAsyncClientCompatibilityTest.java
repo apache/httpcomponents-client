@@ -38,6 +38,7 @@ import java.util.regex.Pattern;
 import javax.net.ssl.SSLContext;
 
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
+import org.apache.hc.client5.http.async.methods.SimpleHttpRequests;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.cache.CacheResponseStatus;
 import org.apache.hc.client5.http.cache.HttpCacheContext;
@@ -47,7 +48,7 @@ import org.apache.hc.client5.http.impl.cache.CachingHttpAsyncClients;
 import org.apache.hc.client5.http.impl.cache.HeapResourceFactory;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManager;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
-import org.apache.hc.client5.http.ssl.H2TlsStrategy;
+import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
@@ -64,9 +65,9 @@ public class CachingHttpAsyncClientCompatibilityTest {
     public static void main(final String... args) throws Exception {
         final CachingHttpAsyncClientCompatibilityTest[] tests = new CachingHttpAsyncClientCompatibilityTest[] {
                 new CachingHttpAsyncClientCompatibilityTest(
-                        HttpVersion.HTTP_1_1, new HttpHost("localhost", 8080, "http")),
+                        HttpVersion.HTTP_1_1, new HttpHost("http", "localhost", 8080)),
                 new CachingHttpAsyncClientCompatibilityTest(
-                        HttpVersion.HTTP_2_0, new HttpHost("localhost", 8080, "http"))
+                        HttpVersion.HTTP_2_0, new HttpHost("http", "localhost", 8080))
         };
         for (final CachingHttpAsyncClientCompatibilityTest test: tests) {
             try {
@@ -90,7 +91,7 @@ public class CachingHttpAsyncClientCompatibilityTest {
         final SSLContext sslContext = SSLContexts.custom()
                 .loadTrustMaterial(getClass().getResource("/test-ca.keystore"), "nopassword".toCharArray()).build();
         this.connManager = PoolingAsyncClientConnectionManagerBuilder.create()
-                .setTlsStrategy(new H2TlsStrategy(sslContext))
+                .setTlsStrategy(new DefaultClientTlsStrategy(sslContext))
                 .build();
         this.client = CachingHttpAsyncClients.custom()
                 .setCacheConfig(CacheConfig.custom()
@@ -107,7 +108,7 @@ public class CachingHttpAsyncClientCompatibilityTest {
         client.close();
     }
 
-    enum TestResult {OK, NOK};
+    enum TestResult {OK, NOK}
 
     private void logResult(final TestResult result, final HttpRequest request, final String message) {
         final StringBuilder buf = new StringBuilder();
@@ -130,7 +131,7 @@ public class CachingHttpAsyncClientCompatibilityTest {
         // Initial ping
         {
             final HttpCacheContext context = HttpCacheContext.create();
-            final SimpleHttpRequest options = SimpleHttpRequest.options(target, "*");
+            final SimpleHttpRequest options = SimpleHttpRequests.OPTIONS.create(target, "*");
             final Future<SimpleHttpResponse> future = client.execute(options, context, null);
             try {
                 final SimpleHttpResponse response = future.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
@@ -154,7 +155,7 @@ public class CachingHttpAsyncClientCompatibilityTest {
 
             final Pattern linkPattern = Pattern.compile("^<(.*)>;rel=preload$");
             final List<String> links = new ArrayList<>();
-            final SimpleHttpRequest getRoot1 = SimpleHttpRequest.get(target, "/");
+            final SimpleHttpRequest getRoot1 = SimpleHttpRequests.GET.create(target, "/");
             final Future<SimpleHttpResponse> future1 = client.execute(getRoot1, context, null);
             try {
                 final SimpleHttpResponse response = future1.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
@@ -178,7 +179,7 @@ public class CachingHttpAsyncClientCompatibilityTest {
                 logResult(TestResult.NOK, getRoot1, "(time out)");
             }
             for (final String link: links) {
-                final SimpleHttpRequest getLink = SimpleHttpRequest.get(target, link);
+                final SimpleHttpRequest getLink = SimpleHttpRequests.GET.create(target, link);
                 final Future<SimpleHttpResponse> linkFuture = client.execute(getLink, context, null);
                 try {
                     final SimpleHttpResponse response = linkFuture.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
@@ -197,7 +198,7 @@ public class CachingHttpAsyncClientCompatibilityTest {
                 }
             }
 
-            final SimpleHttpRequest getRoot2 = SimpleHttpRequest.get(target, "/");
+            final SimpleHttpRequest getRoot2 = SimpleHttpRequests.GET.create(target, "/");
             final Future<SimpleHttpResponse> future2 = client.execute(getRoot2, context, null);
             try {
                 final SimpleHttpResponse response = future2.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
@@ -215,7 +216,7 @@ public class CachingHttpAsyncClientCompatibilityTest {
                 logResult(TestResult.NOK, getRoot2, "(time out)");
             }
             for (final String link: links) {
-                final SimpleHttpRequest getLink = SimpleHttpRequest.get(target, link);
+                final SimpleHttpRequest getLink = SimpleHttpRequests.GET.create(target, link);
                 final Future<SimpleHttpResponse> linkFuture = client.execute(getLink, context, null);
                 try {
                     final SimpleHttpResponse response = linkFuture.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());

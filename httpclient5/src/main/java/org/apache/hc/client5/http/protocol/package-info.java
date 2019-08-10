@@ -26,6 +26,7 @@
  */
 
 /**
- * Client specific HTTP protocol handlers.
+ * HTTP protocol interceptors that enable advanced functionality
+ * such as HTTP state management and authentication state caching.
  */
 package org.apache.hc.client5.http.protocol;

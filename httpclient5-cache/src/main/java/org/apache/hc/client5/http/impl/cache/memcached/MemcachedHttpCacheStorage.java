@@ -145,9 +145,8 @@ public class MemcachedHttpCacheStorage extends AbstractBinaryCacheStorage<CASVal
         }
         if (storageObject instanceof byte[]) {
             return (byte[]) storageObject;
-        } else {
-            throw new ResourceIOException("Unexpected cache content: " + storageObject.getClass());
         }
+        throw new ResourceIOException("Unexpected cache content: " + storageObject.getClass());
     }
 
     @Override

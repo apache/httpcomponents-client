@@ -35,9 +35,6 @@ import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.util.ByteArrayBuffer;
 
-/**
- * @since 4.1
- */
 interface HttpCache {
 
     String generateKey (HttpHost host, HttpRequest request, HttpCacheEntry cacheEntry);

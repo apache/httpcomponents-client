@@ -30,7 +30,7 @@ package org.apache.hc.client5.http.impl;
 import org.apache.hc.core5.http.HttpMessage;
 
 /**
- * Abstract HTTP message cloner.
+ * Abstract HTTP message copier.
  *
  * @since 5.0
  */

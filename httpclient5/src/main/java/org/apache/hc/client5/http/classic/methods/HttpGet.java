@@ -31,17 +31,6 @@ import java.net.URI;
 
 /**
  * HTTP GET method.
- * <p>
- * The HTTP GET method is defined in section 9.3 of
- * <a href="http://www.ietf.org/rfc/rfc2616.txt">RFC2616</a>:
- * </p>
- * <blockquote>
- * The GET method means retrieve whatever information (in the form of an
- * entity) is identified by the Request-URI. If the Request-URI refers
- * to a data-producing process, it is the produced data which shall be
- * returned as the entity in the response and not the source text of the
- * process, unless that text happens to be the output of the process.
- * </blockquote>
  *
  * @since 4.0
  */
@@ -51,11 +40,20 @@ public class HttpGet extends HttpUriRequestBase {
 
     public final static String METHOD_NAME = "GET";
 
+    /**
+     * Creates a new instance initialized with the given URI.
+     *
+     * @param uri a non-null request URI.
+     * @throws IllegalArgumentException if the uri is null.
+     */
     public HttpGet(final URI uri) {
         super(METHOD_NAME, uri);
     }
 
     /**
+     * Creates a new instance initialized with the given URI.
+     *
+     * @param uri a non-null request URI.
      * @throws IllegalArgumentException if the uri is invalid.
      */
     public HttpGet(final String uri) {

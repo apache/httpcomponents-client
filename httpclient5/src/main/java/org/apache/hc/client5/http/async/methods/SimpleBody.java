@@ -33,6 +33,11 @@ import java.nio.charset.StandardCharsets;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.util.Args;
 
+/**
+ * Message body representation as a simple text string or an array of bytes.
+ *
+ * @since 5.0
+ */
 public final class SimpleBody {
 
     private final byte[] bodyAsBytes;
@@ -49,11 +54,10 @@ public final class SimpleBody {
         Args.notNull(body, "Body");
         if (body.length() > 2048) {
             return new SimpleBody(null, body, contentType);
-        } else {
-            final Charset charset = (contentType != null ? contentType : ContentType.DEFAULT_TEXT).getCharset();
-            final byte[] bytes = body.getBytes(charset != null ? charset : StandardCharsets.US_ASCII);
-            return new SimpleBody(bytes, null, contentType);
         }
+        final Charset charset = (contentType != null ? contentType : ContentType.DEFAULT_TEXT).getCharset();
+        final byte[] bytes = body.getBytes(charset != null ? charset : StandardCharsets.US_ASCII);
+        return new SimpleBody(bytes, null, contentType);
     }
 
     static SimpleBody create(final byte[] body, final ContentType contentType) {

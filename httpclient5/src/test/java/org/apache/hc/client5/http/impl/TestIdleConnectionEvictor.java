@@ -27,12 +27,12 @@
 
 package org.apache.hc.client5.http.impl;
 
-import java.util.concurrent.TimeUnit;
-
 import org.apache.hc.core5.pool.ConnPoolControl;
 import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 import org.junit.Assert;
 import org.junit.Test;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
 /**
@@ -44,7 +44,7 @@ public class TestIdleConnectionEvictor {
     public void testEvictExpiredAndIdle() throws Exception {
         final ConnPoolControl<?> cm = Mockito.mock(ConnPoolControl.class);
         final IdleConnectionEvictor connectionEvictor = new IdleConnectionEvictor(cm,
-                TimeValue.ofMillis(500), TimeValue.ofSeconds(3));
+                TimeValue.ofMilliseconds(500), TimeValue.ofSeconds(3));
         connectionEvictor.start();
 
         Thread.sleep(1000);
@@ -55,7 +55,7 @@ public class TestIdleConnectionEvictor {
         Assert.assertTrue(connectionEvictor.isRunning());
 
         connectionEvictor.shutdown();
-        connectionEvictor.awaitTermination(1, TimeUnit.SECONDS);
+        connectionEvictor.awaitTermination(Timeout.ofSeconds(1));
         Assert.assertFalse(connectionEvictor.isRunning());
     }
 
@@ -63,18 +63,18 @@ public class TestIdleConnectionEvictor {
     public void testEvictExpiredOnly() throws Exception {
         final ConnPoolControl<?> cm = Mockito.mock(ConnPoolControl.class);
         final IdleConnectionEvictor connectionEvictor = new IdleConnectionEvictor(cm,
-                TimeValue.ofMillis(500), null);
+                TimeValue.ofMilliseconds(500), null);
         connectionEvictor.start();
 
         Thread.sleep(1000);
 
         Mockito.verify(cm, Mockito.atLeast(1)).closeExpired();
-        Mockito.verify(cm, Mockito.never()).closeIdle(Mockito.<TimeValue>any());
+        Mockito.verify(cm, Mockito.never()).closeIdle(ArgumentMatchers.<TimeValue>any());
 
         Assert.assertTrue(connectionEvictor.isRunning());
 
         connectionEvictor.shutdown();
-        connectionEvictor.awaitTermination(1, TimeUnit.SECONDS);
+        connectionEvictor.awaitTermination(Timeout.ofSeconds(1));
         Assert.assertFalse(connectionEvictor.isRunning());
     }
 

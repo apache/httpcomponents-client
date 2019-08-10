@@ -30,7 +30,6 @@ import java.util.Date;
 import java.util.Map;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
-import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.concurrent.Cancellable;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.HttpHost;
@@ -38,10 +37,6 @@ import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.util.ByteArrayBuffer;
 
-/**
- * @since 5.0
- */
-@Internal
 interface HttpAsyncCache {
 
     String generateKey (HttpHost host, HttpRequest request, HttpCacheEntry cacheEntry);

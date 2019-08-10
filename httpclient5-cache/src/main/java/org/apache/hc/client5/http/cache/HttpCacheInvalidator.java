@@ -28,7 +28,9 @@ package org.apache.hc.client5.http.cache;
 
 import java.net.URI;
 
+import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Internal;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.function.Resolver;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
@@ -40,6 +42,7 @@ import org.apache.hc.core5.http.HttpResponse;
  *
  * @since 4.3
  */
+@Contract(threading = ThreadingBehavior.STATELESS)
 @Internal
 public interface HttpCacheInvalidator {
 

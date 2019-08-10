@@ -31,20 +31,6 @@ import java.net.URI;
 
 /**
  * HTTP PATCH method.
- * <p>
- * The HTTP PATCH method is defined in <a
- * href="http://tools.ietf.org/html/rfc5789">RF5789</a>:
- * </p>
- * <blockquote> The PATCH
- * method requests that a set of changes described in the request entity be
- * applied to the resource identified by the Request- URI. Differs from the PUT
- * method in the way the server processes the enclosed entity to modify the
- * resource identified by the Request-URI. In a PUT request, the enclosed entity
- * origin server, and the client is requesting that the stored version be
- * replaced. With PATCH, however, the enclosed entity contains a set of
- * instructions describing how a resource currently residing on the origin
- * server should be modified to produce a new version.
- * </blockquote>
  *
  * @since 4.2
  */
@@ -54,10 +40,22 @@ public class HttpPatch extends HttpUriRequestBase {
 
     public final static String METHOD_NAME = "PATCH";
 
+    /**
+     * Creates a new instance initialized with the given URI.
+     *
+     * @param uri a non-null request URI.
+     * @throws IllegalArgumentException if the uri is null.
+     */
     public HttpPatch(final URI uri) {
         super(METHOD_NAME, uri);
     }
 
+    /**
+     * Creates a new instance initialized with the given URI.
+     *
+     * @param uri a non-null request URI.
+     * @throws IllegalArgumentException if the uri is invalid.
+     */
     public HttpPatch(final String uri) {
         this(URI.create(uri));
     }

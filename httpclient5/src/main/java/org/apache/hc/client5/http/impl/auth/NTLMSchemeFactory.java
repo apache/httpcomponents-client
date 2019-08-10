@@ -40,7 +40,7 @@ import org.apache.hc.core5.http.protocol.HttpContext;
  *
  * @since 4.1
  */
-@Contract(threading = ThreadingBehavior.IMMUTABLE)
+@Contract(threading = ThreadingBehavior.STATELESS)
 public class NTLMSchemeFactory implements AuthSchemeProvider {
 
     @Override

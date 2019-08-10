@@ -34,9 +34,6 @@ import java.util.Date;
  * (also referred to as "magic-cookie") that the HTTP agent and the target
  * server can exchange to maintain a session. In its simples form an HTTP
  * cookie is merely a name / value pair.
- * <p>
- * Please do not use attributes marked as @Obsolete. They have been rendered
- * obsolete by RFC 6265.
  *
  * @since 4.0
  */

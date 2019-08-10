@@ -28,6 +28,8 @@ package org.apache.hc.client5.http.utils;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Stack;
@@ -83,8 +85,19 @@ public class URIUtils {
         if (dropFragment) {
             uribuilder.setFragment(null);
         }
-        if (TextUtils.isEmpty(uribuilder.getPath())) {
-            uribuilder.setPath("/");
+        final List<String> originalPathSegments = uribuilder.getPathSegments();
+        final List<String> pathSegments = new ArrayList<>(originalPathSegments);
+        for (final Iterator<String> it = pathSegments.iterator(); it.hasNext(); ) {
+            final String pathSegment = it.next();
+            if (pathSegment.isEmpty() && it.hasNext()) {
+                it.remove();
+            }
+        }
+        if (pathSegments.size() != originalPathSegments.size()) {
+            uribuilder.setPathSegments(pathSegments);
+        }
+        if (pathSegments.isEmpty()) {
+            uribuilder.setPathSegments("");
         }
         return uribuilder.build();
     }
@@ -281,7 +294,7 @@ public class URIUtils {
             final String scheme = uri.getScheme();
             if (!TextUtils.isBlank(host)) {
                 try {
-                    target = new HttpHost(host, port, scheme);
+                    target = new HttpHost(scheme, host, port);
                 } catch (final IllegalArgumentException ignore) {
                 }
             }

@@ -40,9 +40,11 @@ import org.apache.hc.client5.http.entity.GZIPInputStreamFactory;
 import org.apache.hc.client5.http.entity.InputStreamFactory;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HeaderElement;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpException;
@@ -55,8 +57,8 @@ import org.apache.hc.core5.http.message.ParserCursor;
 import org.apache.hc.core5.util.Args;
 
 /**
- * Request executor in the request execution chain that is responsible
- * for automatic response content decompression.
+ * Request execution handler in the classic request execution chain
+ * that is responsible for automatic response content decompression.
  * <p>
  * Further responsibilities such as communication with the opposite
  * endpoint is delegated to the next executor in the request execution
@@ -65,10 +67,11 @@ import org.apache.hc.core5.util.Args;
  *
  * @since 5.0
  */
-@Contract(threading = ThreadingBehavior.IMMUTABLE)
+@Contract(threading = ThreadingBehavior.STATELESS)
+@Internal
 public final class ContentCompressionExec implements ExecChainHandler {
 
-    private final String[] acceptEncoding;
+    private final Header acceptEncoding;
     private final Lookup<InputStreamFactory> decoderRegistry;
     private final boolean ignoreUnknown;
 
@@ -76,8 +79,10 @@ public final class ContentCompressionExec implements ExecChainHandler {
             final List<String> acceptEncoding,
             final Lookup<InputStreamFactory> decoderRegistry,
             final boolean ignoreUnknown) {
-        this.acceptEncoding = acceptEncoding != null ? acceptEncoding.toArray(
-                new String[acceptEncoding.size()]) : new String[] {"gzip", "x-gzip", "deflate"};
+        this.acceptEncoding = MessageSupport.format(HttpHeaders.ACCEPT_ENCODING,
+            acceptEncoding != null ? acceptEncoding.toArray(
+                new String[acceptEncoding.size()]) : new String[] {"gzip", "x-gzip", "deflate"});
+
         this.decoderRegistry = decoderRegistry != null ? decoderRegistry :
                 RegistryBuilder.<InputStreamFactory>create()
                         .register("gzip", GZIPInputStreamFactory.getInstance())
@@ -117,7 +122,7 @@ public final class ContentCompressionExec implements ExecChainHandler {
 
         /* Signal support for Accept-Encoding transfer encodings. */
         if (!request.containsHeader(HttpHeaders.ACCEPT_ENCODING) && requestConfig.isContentCompressionEnabled()) {
-            request.addHeader(MessageSupport.format(HttpHeaders.ACCEPT_ENCODING, acceptEncoding));
+            request.addHeader(acceptEncoding);
         }
 
         final ClassicHttpResponse response = chain.proceed(request, scope);

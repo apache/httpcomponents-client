@@ -31,16 +31,22 @@ import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.AuthSchemeProvider;
 import org.apache.hc.client5.http.auth.KerberosConfig;
 import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.Experimental;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.protocol.HttpContext;
 
 /**
  * {@link AuthSchemeProvider} implementation that creates and initializes
  * {@link SPNegoScheme} instances.
+ * <p>
+ * Please note this class is considered experimental and may be discontinued or removed
+ * in the future.
+ * </p>
  *
  * @since 4.2
  */
-@Contract(threading = ThreadingBehavior.IMMUTABLE)
+@Contract(threading = ThreadingBehavior.STATELESS)
+@Experimental
 public class SPNegoSchemeFactory implements AuthSchemeProvider {
 
     private final KerberosConfig config;

@@ -31,7 +31,6 @@ import org.apache.hc.client5.http.auth.AuthenticationException;
 /**
  * Signals NTLM protocol failure.
  *
- *
  * @since 4.0
  */
 public class NTLMEngineException extends AuthenticationException {

@@ -59,18 +59,18 @@ public class HttpClientCompatibilityTest {
     public static void main(final String... args) throws Exception {
         final HttpClientCompatibilityTest[] tests = new HttpClientCompatibilityTest[] {
                 new HttpClientCompatibilityTest(
-                        new HttpHost("localhost", 8080, "http"), null, null),
+                        new HttpHost("http", "localhost", 8080), null, null),
                 new HttpClientCompatibilityTest(
-                        new HttpHost("test-httpd", 8080, "http"), new HttpHost("localhost", 8888), null),
+                        new HttpHost("http", "test-httpd", 8080), new HttpHost("localhost", 8888), null),
                 new HttpClientCompatibilityTest(
-                        new HttpHost("test-httpd", 8080, "http"), new HttpHost("localhost", 8889),
+                        new HttpHost("http", "test-httpd", 8080), new HttpHost("localhost", 8889),
                         new UsernamePasswordCredentials("squid", "nopassword".toCharArray())),
                 new HttpClientCompatibilityTest(
-                        new HttpHost("localhost", 8443, "https"), null, null),
+                        new HttpHost("https", "localhost", 8443), null, null),
                 new HttpClientCompatibilityTest(
-                        new HttpHost("test-httpd", 8443, "https"), new HttpHost("localhost", 8888), null),
+                        new HttpHost("https", "test-httpd", 8443), new HttpHost("localhost", 8888), null),
                 new HttpClientCompatibilityTest(
-                        new HttpHost("test-httpd", 8443, "https"), new HttpHost("localhost", 8889),
+                        new HttpHost("https", "test-httpd", 8443), new HttpHost("localhost", 8889),
                         new UsernamePasswordCredentials("squid", "nopassword".toCharArray()))
         };
         for (final HttpClientCompatibilityTest test: tests) {
@@ -116,7 +116,7 @@ public class HttpClientCompatibilityTest {
         client.close();
     }
 
-    enum TestResult {OK, NOK};
+    enum TestResult {OK, NOK}
 
     private void logResult(final TestResult result, final HttpRequest request, final String message) {
         final StringBuilder buf = new StringBuilder();

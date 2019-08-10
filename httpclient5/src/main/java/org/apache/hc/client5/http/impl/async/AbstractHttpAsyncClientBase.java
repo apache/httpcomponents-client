@@ -26,7 +26,6 @@
  */
 package org.apache.hc.client5.http.impl.async;
 
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -34,10 +33,9 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.hc.core5.function.Supplier;
 import org.apache.hc.core5.http.nio.AsyncPushConsumer;
-import org.apache.hc.core5.io.ShutdownType;
+import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.reactor.ConnectionInitiator;
 import org.apache.hc.core5.reactor.DefaultConnectingIOReactor;
-import org.apache.hc.core5.reactor.ExceptionEvent;
 import org.apache.hc.core5.reactor.IOReactorStatus;
 import org.apache.hc.core5.util.TimeValue;
 import org.slf4j.Logger;
@@ -102,11 +100,6 @@ abstract class AbstractHttpAsyncClientBase extends CloseableHttpAsyncClient {
     }
 
     @Override
-    public final List<ExceptionEvent> getExceptionLog() {
-        return ioReactor.getExceptionLog();
-    }
-
-    @Override
     public final void awaitShutdown(final TimeValue waitTime) throws InterruptedException {
         ioReactor.awaitShutdown(waitTime);
     }
@@ -119,18 +112,23 @@ abstract class AbstractHttpAsyncClientBase extends CloseableHttpAsyncClient {
         ioReactor.initiateShutdown();
     }
 
+    void internalClose(final CloseMode closeMode) {
+    }
+
     @Override
-    public final void shutdown(final ShutdownType shutdownType) {
+    public final void close(final CloseMode closeMode) {
         if (log.isDebugEnabled()) {
-            log.debug("Shutdown " + shutdownType);
+            log.debug("Shutdown " + closeMode);
         }
         ioReactor.initiateShutdown();
-        ioReactor.shutdown(shutdownType);
+        ioReactor.close(closeMode);
+        executorService.shutdownNow();
+        internalClose(closeMode);
     }
 
     @Override
     public void close() {
-        shutdown(ShutdownType.GRACEFUL);
+        close(CloseMode.GRACEFUL);
     }
 
 }

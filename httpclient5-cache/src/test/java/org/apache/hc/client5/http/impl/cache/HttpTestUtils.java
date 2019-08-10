@@ -119,8 +119,7 @@ public class HttpTestUtils {
         if (i1 == null && i2 == null) {
             return true;
         }
-        if (i1 == null || i2 == null)
-         {
+        if (i1 == null || i2 == null) {
             return false; // avoid possible NPEs below
         }
         int b1 = -1;
@@ -160,7 +159,7 @@ public class HttpTestUtils {
      * with the same canonical header values.
      */
     public static boolean isEndToEndHeaderSubset(final HttpMessage r1, final HttpMessage r2) {
-        for (final Header h : r1.getAllHeaders()) {
+        for (final Header h : r1.getHeaders()) {
             if (!isHopByHopHeader(h.getName())) {
                 final String r1val = getCanonicalHeaderValue(r1, h.getName());
                 final String r2val = getCanonicalHeaderValue(r2, h.getName());
@@ -234,7 +233,7 @@ public class HttpTestUtils {
      *  @return an {@link HttpEntity}
      */
     public static HttpEntity makeBody(final int nbytes) {
-        return new ByteArrayEntity(getRandomBytes(nbytes));
+        return new ByteArrayEntity(getRandomBytes(nbytes), null);
     }
 
     public static HttpCacheEntry makeCacheEntry(final Date requestDate, final Date responseDate) {

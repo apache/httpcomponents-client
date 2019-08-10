@@ -30,6 +30,8 @@ import java.util.Collection;
 import java.util.Map;
 
 import org.apache.hc.client5.http.impl.Operations;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.concurrent.Cancellable;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.util.Args;
@@ -40,6 +42,7 @@ import org.apache.hc.core5.util.Args;
  *
  * @since 5.0
  */
+@Contract(threading = ThreadingBehavior.SAFE_CONDITIONAL)
 public final class HttpAsyncCacheStorageAdaptor implements HttpAsyncCacheStorage {
 
     private final HttpCacheStorage cacheStorage;
@@ -48,6 +51,7 @@ public final class HttpAsyncCacheStorageAdaptor implements HttpAsyncCacheStorage
         this.cacheStorage = Args.notNull(cacheStorage, "Cache strorage");
     }
 
+    @Override
     public Cancellable putEntry(final String key, final HttpCacheEntry entry, final FutureCallback<Boolean> callback) {
         Args.notEmpty(key, "Key");
         Args.notNull(entry, "Cache ehtry");
@@ -61,6 +65,7 @@ public final class HttpAsyncCacheStorageAdaptor implements HttpAsyncCacheStorage
         return Operations.nonCancellable();
     }
 
+    @Override
     public Cancellable getEntry(final String key, final FutureCallback<HttpCacheEntry> callback) {
         Args.notEmpty(key, "Key");
         Args.notNull(callback, "Callback");
@@ -73,6 +78,7 @@ public final class HttpAsyncCacheStorageAdaptor implements HttpAsyncCacheStorage
         return Operations.nonCancellable();
     }
 
+    @Override
     public Cancellable removeEntry(final String key, final FutureCallback<Boolean> callback) {
         Args.notEmpty(key, "Key");
         Args.notNull(callback, "Callback");
@@ -85,6 +91,7 @@ public final class HttpAsyncCacheStorageAdaptor implements HttpAsyncCacheStorage
         return Operations.nonCancellable();
     }
 
+    @Override
     public Cancellable updateEntry(
             final String key, final HttpCacheCASOperation casOperation, final FutureCallback<Boolean> callback) {
         Args.notEmpty(key, "Key");
@@ -99,6 +106,7 @@ public final class HttpAsyncCacheStorageAdaptor implements HttpAsyncCacheStorage
         return Operations.nonCancellable();
     }
 
+    @Override
     public Cancellable getEntries(final Collection<String> keys, final FutureCallback<Map<String, HttpCacheEntry>> callback) {
         Args.notNull(keys, "Key");
         Args.notNull(callback, "Callback");

@@ -26,11 +26,11 @@
  */
 package org.apache.hc.client5.http.io;
 
-import java.io.Closeable;
 import java.io.IOException;
 
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.io.ModalCloseable;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
 
@@ -41,14 +41,16 @@ import org.apache.hc.core5.util.Timeout;
  * HTTP connections, manage persistent connections and synchronize access to
  * persistent connections making sure that only one thread of execution can
  * have access to a connection at a time.
+ * </p>
  * <p>
  * Implementations of this interface must be thread-safe. Access to shared
  * data must be synchronized as methods of this interface may be executed
  * from multiple threads.
+ * </p>
  *
  * @since 4.3
  */
-public interface HttpClientConnectionManager extends Closeable {
+public interface HttpClientConnectionManager extends ModalCloseable {
 
     /**
      * Returns a {@link LeaseRequest} object which can be used to obtain
@@ -64,13 +66,14 @@ public interface HttpClientConnectionManager extends Closeable {
      * to upgrade the underlying transport to Transport Layer Security after having
      * executed a {@code CONNECT} method to all intermediate proxy hops.
      *
+     * @param id unique operation ID or {@code null}.
      * @param route HTTP route of the requested connection.
      * @param requestTimeout lease request timeout.
      * @param state expected state of the connection or {@code null}
      *              if the connection is not expected to carry any state.
      * @since 5.0
      */
-    LeaseRequest lease(HttpRoute route, Timeout requestTimeout, Object state);
+    LeaseRequest lease(String id, HttpRoute route, Timeout requestTimeout, Object state);
 
     /**
      * Releases the endpoint back to the manager making it potentially
@@ -93,16 +96,14 @@ public interface HttpClientConnectionManager extends Closeable {
      * @param endpoint      the managed endpoint.
      * @param connectTimeout connect timeout.
      * @param context the actual HTTP context.
-     * @throws IOException
      */
     void connect(ConnectionEndpoint endpoint, TimeValue connectTimeout, HttpContext context) throws IOException;
 
     /**
-     * Upgrades the endpoint's underlying transport to Transport Layer Security.
+     * Upgrades transport security of the given endpoint by using the TLS security protocol.
      *
      * @param endpoint      the managed endpoint.
      * @param context the actual HTTP context.
-     * @throws IOException
      */
     void upgrade(ConnectionEndpoint endpoint, HttpContext context) throws IOException;
 

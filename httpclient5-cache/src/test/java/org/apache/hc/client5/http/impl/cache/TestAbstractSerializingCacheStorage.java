@@ -46,6 +46,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Answers;
 import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -153,7 +154,7 @@ public class TestAbstractSerializingCacheStorage {
         });
 
         verify(impl).getForUpdateCAS("bar");
-        verify(impl).store(Mockito.eq("bar"), Mockito.<byte[]>any());
+        verify(impl).store(ArgumentMatchers.eq("bar"), ArgumentMatchers.<byte[]>any());
     }
 
     @Test
@@ -165,7 +166,7 @@ public class TestAbstractSerializingCacheStorage {
         when(impl.digestToStorageKey(key)).thenReturn("bar");
         when(impl.getForUpdateCAS("bar")).thenReturn("stuff");
         when(impl.getStorageObject("stuff")).thenReturn(serialize(key, existingValue));
-        when(impl.updateCAS(Mockito.eq("bar"), Mockito.eq("stuff"), Mockito.<byte[]>any())).thenReturn(true);
+        when(impl.updateCAS(ArgumentMatchers.eq("bar"), ArgumentMatchers.eq("stuff"), ArgumentMatchers.<byte[]>any())).thenReturn(true);
 
         impl.updateEntry(key, new HttpCacheCASOperation() {
 
@@ -178,7 +179,7 @@ public class TestAbstractSerializingCacheStorage {
 
         verify(impl).getForUpdateCAS("bar");
         verify(impl).getStorageObject("stuff");
-        verify(impl).updateCAS(Mockito.eq("bar"), Mockito.eq("stuff"), Mockito.<byte[]>any());
+        verify(impl).updateCAS(ArgumentMatchers.eq("bar"), ArgumentMatchers.eq("stuff"), ArgumentMatchers.<byte[]>any());
     }
 
     @Test
@@ -190,7 +191,7 @@ public class TestAbstractSerializingCacheStorage {
         when(impl.digestToStorageKey(key)).thenReturn("bar");
         when(impl.getForUpdateCAS("bar")).thenReturn("stuff");
         when(impl.getStorageObject("stuff")).thenReturn(serialize("not-foo", existingValue));
-        when(impl.updateCAS(Mockito.eq("bar"), Mockito.eq("stuff"), Mockito.<byte[]>any())).thenReturn(true);
+        when(impl.updateCAS(ArgumentMatchers.eq("bar"), ArgumentMatchers.eq("stuff"), ArgumentMatchers.<byte[]>any())).thenReturn(true);
 
         impl.updateEntry(key, new HttpCacheCASOperation() {
 
@@ -204,7 +205,7 @@ public class TestAbstractSerializingCacheStorage {
 
         verify(impl).getForUpdateCAS("bar");
         verify(impl).getStorageObject("stuff");
-        verify(impl).store(Mockito.eq("bar"), Mockito.<byte[]>any());
+        verify(impl).store(ArgumentMatchers.eq("bar"), ArgumentMatchers.<byte[]>any());
     }
 
     @Test
@@ -216,7 +217,7 @@ public class TestAbstractSerializingCacheStorage {
         when(impl.digestToStorageKey(key)).thenReturn("bar");
         when(impl.getForUpdateCAS("bar")).thenReturn("stuff");
         when(impl.getStorageObject("stuff")).thenReturn(serialize(key, existingValue));
-        when(impl.updateCAS(Mockito.eq("bar"), Mockito.eq("stuff"), Mockito.<byte[]>any())).thenReturn(false, true);
+        when(impl.updateCAS(ArgumentMatchers.eq("bar"), ArgumentMatchers.eq("stuff"), ArgumentMatchers.<byte[]>any())).thenReturn(false, true);
 
         impl.updateEntry(key, new HttpCacheCASOperation() {
 
@@ -229,7 +230,7 @@ public class TestAbstractSerializingCacheStorage {
 
         verify(impl, Mockito.times(2)).getForUpdateCAS("bar");
         verify(impl, Mockito.times(2)).getStorageObject("stuff");
-        verify(impl, Mockito.times(2)).updateCAS(Mockito.eq("bar"), Mockito.eq("stuff"), Mockito.<byte[]>any());
+        verify(impl, Mockito.times(2)).updateCAS(ArgumentMatchers.eq("bar"), ArgumentMatchers.eq("stuff"), ArgumentMatchers.<byte[]>any());
     }
 
     @Test
@@ -241,7 +242,7 @@ public class TestAbstractSerializingCacheStorage {
         when(impl.digestToStorageKey(key)).thenReturn("bar");
         when(impl.getForUpdateCAS("bar")).thenReturn("stuff");
         when(impl.getStorageObject("stuff")).thenReturn(serialize(key, existingValue));
-        when(impl.updateCAS(Mockito.eq("bar"), Mockito.eq("stuff"), Mockito.<byte[]>any())).thenReturn(false, false, false, true);
+        when(impl.updateCAS(ArgumentMatchers.eq("bar"), ArgumentMatchers.eq("stuff"), ArgumentMatchers.<byte[]>any())).thenReturn(false, false, false, true);
 
         try {
             impl.updateEntry(key, new HttpCacheCASOperation() {
@@ -258,7 +259,7 @@ public class TestAbstractSerializingCacheStorage {
 
         verify(impl, Mockito.times(3)).getForUpdateCAS("bar");
         verify(impl, Mockito.times(3)).getStorageObject("stuff");
-        verify(impl, Mockito.times(3)).updateCAS(Mockito.eq("bar"), Mockito.eq("stuff"), Mockito.<byte[]>any());
+        verify(impl, Mockito.times(3)).updateCAS(ArgumentMatchers.eq("bar"), ArgumentMatchers.eq("stuff"), ArgumentMatchers.<byte[]>any());
     }
 
     @Test
@@ -273,7 +274,7 @@ public class TestAbstractSerializingCacheStorage {
         when(impl.digestToStorageKey(key1)).thenReturn(storageKey1);
         when(impl.digestToStorageKey(key2)).thenReturn(storageKey2);
 
-        when(impl.bulkRestore(Mockito.<String>anyCollection())).thenAnswer(new Answer<Map<String, byte[]>>() {
+        when(impl.bulkRestore(ArgumentMatchers.<String>anyCollection())).thenAnswer(new Answer<Map<String, byte[]>>() {
 
             @Override
             public Map<String, byte[]> answer(final InvocationOnMock invocation) throws Throwable {
@@ -311,7 +312,7 @@ public class TestAbstractSerializingCacheStorage {
         when(impl.digestToStorageKey(key1)).thenReturn(storageKey1);
         when(impl.digestToStorageKey(key2)).thenReturn(storageKey2);
 
-        when(impl.bulkRestore(Mockito.<String>anyCollection())).thenAnswer(new Answer<Map<String, byte[]>>() {
+        when(impl.bulkRestore(ArgumentMatchers.<String>anyCollection())).thenAnswer(new Answer<Map<String, byte[]>>() {
 
             @Override
             public Map<String, byte[]> answer(final InvocationOnMock invocation) throws Throwable {

@@ -29,7 +29,6 @@ package org.apache.hc.client5.http;
 /**
  * Signals a circular redirect
  *
- *
  * @since 4.0
  */
 public class CircularRedirectException extends RedirectException {

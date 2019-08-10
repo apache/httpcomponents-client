@@ -30,6 +30,7 @@ package org.apache.hc.client5.http.impl.classic;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.apache.hc.client5.http.ClientProtocolException;
 import org.apache.hc.client5.http.HttpRoute;
@@ -47,6 +48,7 @@ import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.routing.HttpRoutePlanner;
 import org.apache.hc.client5.http.routing.RoutingSupport;
 import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.concurrent.CancellableDependency;
 import org.apache.hc.core5.http.ClassicHttpRequest;
@@ -58,17 +60,24 @@ import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
 import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.io.CloseMode;
+import org.apache.hc.core5.io.ModalCloseable;
 import org.apache.hc.core5.net.URIAuthority;
 import org.apache.hc.core5.util.Args;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Internal class.
+ * Internal implementation of {@link CloseableHttpClient}.
+ * <p>
+ * Concurrent message exchanges executed by this client will get assigned to
+ * separate connections leased from the connection pool.
+ * </p>
  *
  * @since 4.3
  */
 @Contract(threading = ThreadingBehavior.SAFE_CONDITIONAL)
+@Internal
 class InternalHttpClient extends CloseableHttpClient implements Configurable {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -82,7 +91,7 @@ class InternalHttpClient extends CloseableHttpClient implements Configurable {
     private final CookieStore cookieStore;
     private final CredentialsProvider credentialsProvider;
     private final RequestConfig defaultConfig;
-    private final List<Closeable> closeables;
+    private final ConcurrentLinkedQueue<Closeable> closeables;
 
     public InternalHttpClient(
             final HttpClientConnectionManager connManager,
@@ -105,7 +114,7 @@ class InternalHttpClient extends CloseableHttpClient implements Configurable {
         this.cookieStore = cookieStore;
         this.credentialsProvider = credentialsProvider;
         this.defaultConfig = defaultConfig;
-        this.closeables = closeables;
+        this.closeables = closeables != null ?  new ConcurrentLinkedQueue<>(closeables) : null;
     }
 
     private HttpRoute determineRoute(
@@ -159,6 +168,10 @@ class InternalHttpClient extends CloseableHttpClient implements Configurable {
             setupContext(localcontext);
             final HttpRoute route = determineRoute(target, request, localcontext);
             final String exchangeId = ExecSupport.getNextExchangeId();
+            if (log.isDebugEnabled()) {
+                log.debug(exchangeId + ": preparing request execution");
+            }
+
             final ExecRuntime execRuntime = new InternalExecRuntime(log, connManager, requestExecutor,
                     request instanceof CancellableDependency ? (CancellableDependency) request : null);
             final ExecChain.Scope scope = new ExecChain.Scope(exchangeId, route, request, execRuntime, localcontext);
@@ -176,10 +189,20 @@ class InternalHttpClient extends CloseableHttpClient implements Configurable {
 
     @Override
     public void close() {
+        close(CloseMode.GRACEFUL);
+    }
+
+    @Override
+    public void close(final CloseMode closeMode) {
         if (this.closeables != null) {
-            for (final Closeable closeable: this.closeables) {
+            Closeable closeable;
+            while ((closeable = this.closeables.poll()) != null) {
                 try {
-                    closeable.close();
+                    if (closeable instanceof ModalCloseable) {
+                        ((ModalCloseable) closeable).close(closeMode);
+                    } else {
+                        closeable.close();
+                    }
                 } catch (final IOException ex) {
                     this.log.error(ex.getMessage(), ex);
                 }

@@ -41,7 +41,7 @@ import org.apache.hc.core5.util.Args;
  *
  * @since 4.0
  */
-public class BasicClientCookie implements SetCookie, Cloneable, Serializable {
+public final class BasicClientCookie implements SetCookie, Cloneable, Serializable {
 
     private static final long serialVersionUID = -3869795591041535538L;
 

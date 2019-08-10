@@ -39,26 +39,26 @@ import java.util.List;
  *
  * @since 4.3
  */
-class HttpStrictMultipart extends AbstractMultipartForm {
+class HttpStrictMultipart extends AbstractMultipartFormat {
 
-    private final List<FormBodyPart> parts;
+    private final List<MultipartPart> parts;
 
     public HttpStrictMultipart(
             final Charset charset,
             final String boundary,
-            final List<FormBodyPart> parts) {
+            final List<MultipartPart> parts) {
         super(charset, boundary);
         this.parts = parts;
     }
 
     @Override
-    public List<FormBodyPart> getBodyParts() {
+    public List<MultipartPart> getParts() {
         return this.parts;
     }
 
     @Override
     protected void formatMultipartHeader(
-        final FormBodyPart part,
+        final MultipartPart part,
         final OutputStream out) throws IOException {
 
         // For strict, we output all fields with MIME-standard encoding.

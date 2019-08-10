@@ -27,16 +27,15 @@
   <parent>
     <groupId>org.apache.httpcomponents</groupId>
     <artifactId>httpcomponents-parent</artifactId>
-    <version>10</version>
-    <relativePath>../httpcomponents-parent/pom.xml</relativePath>
+    <version>11</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.apache.httpcomponents.client5</groupId>
   <artifactId>httpclient5-parent</artifactId>
   <name>Apache HttpComponents Client Parent</name>
-  <version>5.0-beta2-SNAPSHOT</version>
+  <version>5.0-beta6-SNAPSHOT</version>
   <description>Apache HttpComponents Client is a library of components for building client side HTTP services</description>
-  <url>http://hc.apache.org/httpcomponents-client</url>
+  <url>http://hc.apache.org/httpcomponents-client-5.0.x/</url>
   <inceptionYear>1999</inceptionYear>
   <packaging>pom</packaging>
 
@@ -62,23 +61,25 @@
     <connection>scm:git:https://git-wip-us.apache.org/repos/asf/httpcomponents-client.git</connection>
     <developerConnection>scm:git:https://git-wip-us.apache.org/repos/asf/httpcomponents-client.git</developerConnection>
     <url>https://github.com/apache/httpcomponents-client/tree/${project.scm.tag}</url>
-    <tag>5.0-beta2-SNAPSHOT</tag>
+    <tag>5.0-beta6-SNAPSHOT</tag>
   </scm>
 
   <properties>
     <maven.compiler.source>1.7</maven.compiler.source>
     <maven.compiler.target>1.7</maven.compiler.target>
-    <httpcore.version>5.0-beta2</httpcore.version>
+    <httpcore.version>5.0-beta8</httpcore.version>
     <log4j.version>2.9.1</log4j.version>
-    <commons-codec.version>1.10</commons-codec.version>
+    <commons-codec.version>1.12</commons-codec.version>
+    <conscrypt.version>1.4.1</conscrypt.version>
     <ehcache.version>3.4.0</ehcache.version>
     <memcached.version>2.12.3</memcached.version>
     <slf4j.version>1.7.25</slf4j.version>
     <junit.version>4.12</junit.version>
-    <easymock.version>2.5.2</easymock.version>
-    <mockito.version>2.7.22</mockito.version>
-    <jna.version>4.2.1</jna.version>
+    <easymock.version>3.6</easymock.version>
+    <mockito.version>2.23.0</mockito.version>
+    <jna.version>5.2.0</jna.version>
     <hc.stylecheck.version>1</hc.stylecheck.version>
+    <rxjava.version>2.2.7</rxjava.version>
   </properties>
 
   <dependencyManagement>
@@ -96,6 +97,11 @@
       <dependency>
         <groupId>org.apache.httpcomponents.core5</groupId>
         <artifactId>httpcore5-testing</artifactId>
+        <version>${httpcore.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.httpcomponents.core5</groupId>
+        <artifactId>httpcore5-reactive</artifactId>
         <version>${httpcore.version}</version>
       </dependency>
       <dependency>
@@ -119,6 +125,11 @@
         <version>${commons-codec.version}</version>
       </dependency>
       <dependency>
+        <groupId>org.conscrypt</groupId>
+        <artifactId>conscrypt-openjdk-uber</artifactId>
+        <version>${conscrypt.version}</version>
+      </dependency>
+      <dependency>
         <groupId>org.ehcache.modules</groupId>
         <artifactId>ehcache-api</artifactId>
         <version>${ehcache.version}</version>
@@ -139,6 +150,12 @@
         <version>${jna.version}</version>
       </dependency>
       <dependency>
+        <groupId>io.reactivex.rxjava2</groupId>
+        <artifactId>rxjava</artifactId>
+        <version>${rxjava.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
         <groupId>junit</groupId>
         <artifactId>junit</artifactId>
         <version>${junit.version}</version>
@@ -156,12 +173,6 @@
         <version>${easymock.version}</version>
         <scope>test</scope>
       </dependency>
-      <dependency>
-        <groupId>org.easymock</groupId>
-        <artifactId>easymockclassextension</artifactId>
-        <version>${easymock.version}</version>
-        <scope>test</scope>
-      </dependency>
     </dependencies>
   </dependencyManagement>
 
@@ -171,7 +182,6 @@
     <module>httpclient5-cache</module>
     <module>httpclient5-win</module>
     <module>httpclient5-testing</module>
-    <module>httpclient5-osgi</module>
   </modules>
 
   <build>
@@ -233,87 +243,12 @@
           <quiet>true</quiet>
           <source>${maven.compiler.source}</source>
           <links>
-            <link>http://docs.oracle.com/javase/6/docs/api/</link>
-            <link>http://hc.apache.org/httpcomponents-core-ga/httpcore/apidocs/</link>
+            <link>http://docs.oracle.com/javase/7/docs/api/</link>
+            <link>http://hc.apache.org/httpcomponents-core-5.0.x/httpcore5/apidocs/</link>
+            <link>http://hc.apache.org/httpcomponents-core-5.0.x/httpcore5-h2/apidocs/</link>
           </links>
         </configuration>
       </plugin>
-
-      <!--
-      <plugin>
-        <groupId>com.agilejava.docbkx</groupId>
-        <artifactId>docbkx-maven-plugin</artifactId>
-        <dependencies>
-          <dependency>
-            <groupId>org.docbook</groupId>
-            <artifactId>docbook-xml</artifactId>
-            <version>4.4</version>
-            <scope>runtime</scope>
-          </dependency>
-        </dependencies>
-        <executions>
-          <execution>
-            <id>tutorial-site</id>
-            <goals>
-              <goal>generate-html</goal>
-              <goal>generate-pdf</goal>
-            </goals>
-            <phase>pre-site</phase>
-          </execution>
-        </executions>
-        <configuration>
-          <includes>index.xml</includes>
-          <chunkedOutput>true</chunkedOutput>
-          <xincludeSupported>true</xincludeSupported>
-          <foCustomization>src/docbkx/resources/xsl/fopdf.xsl</foCustomization>
-          <htmlCustomization>src/docbkx/resources/xsl/html_chunk.xsl</htmlCustomization>
-          <htmlStylesheet>css/hc-tutorial.css</htmlStylesheet>
-          <entities>
-            <entity>
-              <name>version</name>
-              <value>${project.version}</value>
-            </entity>
-          </entities>
-          <postProcess>
-            <copy todir="target/site/tutorial/html" failonerror="false">
-              <fileset dir="target/docbkx/html/index">
-                <include name="**/*.html" />
-              </fileset>
-            </copy>
-            <copy todir="target/site/tutorial/html" failonerror="false">
-              <fileset dir="src/docbkx/resources">
-                <include name="**/*.css" />
-                <include name="**/*.png" />
-                <include name="**/*.gif" />
-                <include name="**/*.jpg" />
-              </fileset>
-            </copy>
-            <copy file="target/docbkx/pdf/index.pdf" tofile="target/site/tutorial/pdf/httpclient-tutorial.pdf" failonerror="false" />
-          </postProcess>
-        </configuration>
-      </plugin>
-      -->
-        <plugin>
-          <artifactId>maven-resources-plugin</artifactId>
-          <executions>
-            <execution>
-              <id>copy-resources</id>
-              <phase>pre-site</phase>
-              <goals>
-                <goal>copy-resources</goal>
-              </goals>
-              <configuration>
-                <outputDirectory>${basedir}/target/site/examples</outputDirectory>
-                <resources>
-                  <resource>
-                    <directory>src/examples</directory>
-                    <filtering>false</filtering>
-                  </resource>
-                </resources>
-              </configuration>
-            </execution>
-          </executions>
-        </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
@@ -351,21 +286,6 @@
               <goal>checkstyle</goal>
             </goals>
           </execution>
-          <execution>
-            <id>validate-examples</id>
-            <phase>validate</phase>
-            <configuration>
-              <configLocation>hc-stylecheck/minimal.xml</configLocation>
-              <headerLocation>hc-stylecheck/asl2.header</headerLocation>
-              <consoleOutput>true</consoleOutput>
-              <failsOnError>true</failsOnError>
-              <linkXRef>false</linkXRef>
-              <sourceDirectory>${basedir}/src/examples</sourceDirectory>
-            </configuration>
-            <goals>
-              <goal>checkstyle</goal>
-            </goals>
-          </execution>
         </executions>
       </plugin>
       <plugin>
@@ -384,12 +304,16 @@
             <exclude>src/docbkx/resources/**</exclude>
             <exclude>src/test/resources/*.truststore</exclude>
             <exclude>.checkstyle</exclude>
-            <exclude>.externalToolBuilders/**</exclude>			
+            <exclude>.externalToolBuilders/**</exclude>
             <exclude>maven-eclipse.xml</exclude>
             <exclude>**/serial</exclude>
             <exclude>**/index.txt</exclude>
           </excludes>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
       </plugin>
     </plugins>
   </build>
@@ -403,9 +327,11 @@
         <reportSets>
           <reportSet>
             <reports>
+              <report>dependency-info</report>
               <report>dependency-management</report>
-              <report>issue-tracking</report>
-              <report>license</report>
+              <report>issue-management</report>
+              <report>licenses</report>
+              <report>mailing-lists</report>
               <report>scm</report>
               <report>summary</report>
             </reports>

@@ -99,13 +99,13 @@ class CombinedEntity implements HttpEntity {
     }
 
     @Override
-    public void writeTo(final OutputStream outstream) throws IOException {
-        Args.notNull(outstream, "Output stream");
-        try (InputStream instream = getContent()) {
+    public void writeTo(final OutputStream outStream) throws IOException {
+        Args.notNull(outStream, "Output stream");
+        try (InputStream inStream = getContent()) {
             int l;
             final byte[] tmp = new byte[2048];
-            while ((l = instream.read(tmp)) != -1) {
-                outstream.write(tmp, 0, l);
+            while ((l = inStream.read(tmp)) != -1) {
+                outStream.write(tmp, 0, l);
             }
         }
     }

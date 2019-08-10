@@ -35,16 +35,16 @@ import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManager;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
-import org.apache.hc.client5.http.ssl.H2TlsStrategy;
+import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.client5.testing.SSLTestContexts;
 import org.apache.hc.core5.function.Decorator;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.URIScheme;
-import org.apache.hc.core5.http.config.H1Config;
+import org.apache.hc.core5.http.config.Http1Config;
 import org.apache.hc.core5.http.impl.HttpProcessors;
 import org.apache.hc.core5.http.nio.AsyncServerExchangeHandler;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
-import org.apache.hc.core5.io.ShutdownType;
+import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.reactor.ListenerEndpoint;
 import org.junit.Rule;
 import org.junit.rules.ExternalResource;
@@ -69,7 +69,7 @@ public abstract class AbstractHttp1IntegrationTestBase extends AbstractServerTes
         @Override
         protected void before() throws Throwable {
             connManager = PoolingAsyncClientConnectionManagerBuilder.create()
-                    .setTlsStrategy(new H2TlsStrategy(SSLTestContexts.createClientSSLContext()))
+                    .setTlsStrategy(new DefaultClientTlsStrategy(SSLTestContexts.createClientSSLContext()))
                     .build();
         }
 
@@ -90,8 +90,8 @@ public abstract class AbstractHttp1IntegrationTestBase extends AbstractServerTes
         protected void before() throws Throwable {
             clientBuilder = HttpAsyncClientBuilder.create()
                     .setDefaultRequestConfig(RequestConfig.custom()
-                            .setConnectionTimeout(TIMEOUT)
                             .setConnectionRequestTimeout(TIMEOUT)
+                            .setConnectTimeout(TIMEOUT)
                             .build())
                     .setConnectionManager(connManager);
         }
@@ -99,7 +99,7 @@ public abstract class AbstractHttp1IntegrationTestBase extends AbstractServerTes
         @Override
         protected void after() {
             if (httpclient != null) {
-                httpclient.shutdown(ShutdownType.GRACEFUL);
+                httpclient.close(CloseMode.GRACEFUL);
                 httpclient = null;
             }
         }
@@ -109,24 +109,24 @@ public abstract class AbstractHttp1IntegrationTestBase extends AbstractServerTes
     public HttpHost start(
             final HttpProcessor httpProcessor,
             final Decorator<AsyncServerExchangeHandler> exchangeHandlerDecorator,
-            final H1Config h1Config) throws Exception {
+            final Http1Config h1Config) throws Exception {
         server.start(httpProcessor, exchangeHandlerDecorator, h1Config);
         final Future<ListenerEndpoint> endpointFuture = server.listen(new InetSocketAddress(0));
         httpclient = clientBuilder.build();
         httpclient.start();
         final ListenerEndpoint endpoint = endpointFuture.get();
         final InetSocketAddress address = (InetSocketAddress) endpoint.getAddress();
-        return new HttpHost("localhost", address.getPort(), scheme.name());
+        return new HttpHost(scheme.name(), "localhost", address.getPort());
     }
 
     public HttpHost start(
             final HttpProcessor httpProcessor,
-            final H1Config h1Config) throws Exception {
+            final Http1Config h1Config) throws Exception {
         return start(httpProcessor, null, h1Config);
     }
 
     public HttpHost start() throws Exception {
-        return start(HttpProcessors.server(), H1Config.DEFAULT);
+        return start(HttpProcessors.server(), Http1Config.DEFAULT);
     }
 
 }

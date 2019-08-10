@@ -31,20 +31,6 @@ import java.net.URI;
 
 /**
  * HTTP HEAD method.
- * <p>
- * The HTTP HEAD method is defined in section 9.4 of
- * <a href="http://www.ietf.org/rfc/rfc2616.txt">RFC2616</a>:
- * </p>
- * <blockquote>
- * The HEAD method is identical to GET except that the server MUST NOT
- * return a message-body in the response. The metainformation contained
- * in the HTTP headers in response to a HEAD request SHOULD be identical
- * to the information sent in response to a GET request. This method can
- * be used for obtaining metainformation about the entity implied by the
- * request without transferring the entity-body itself. This method is
- * often used for testing hypertext links for validity, accessibility,
- * and recent modification.
- * </blockquote>
  *
  * @since 4.0
  */
@@ -54,11 +40,18 @@ public class HttpHead extends HttpUriRequestBase {
 
     public final static String METHOD_NAME = "HEAD";
 
+    /**
+     * Creates a new instance initialized with the given URI.
+     *
+     * @param uri a non-null request URI.
+     * @throws IllegalArgumentException if the uri is null.
+     */
     public HttpHead(final URI uri) {
         super(METHOD_NAME, uri);
     }
 
     /**
+     * @param uri a non-null request URI.
      * @throws IllegalArgumentException if the uri is invalid.
      */
     public HttpHead(final String uri) {

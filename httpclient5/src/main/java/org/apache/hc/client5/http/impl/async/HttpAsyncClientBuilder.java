@@ -46,15 +46,15 @@ import org.apache.hc.client5.http.SystemDefaultDnsResolver;
 import org.apache.hc.client5.http.UserTokenHandler;
 import org.apache.hc.client5.http.async.AsyncExecChainHandler;
 import org.apache.hc.client5.http.auth.AuthSchemeProvider;
+import org.apache.hc.client5.http.auth.AuthSchemes;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.KerberosConfig;
-import org.apache.hc.client5.http.config.AuthSchemes;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.cookie.BasicCookieStore;
 import org.apache.hc.client5.http.cookie.CookieSpecProvider;
 import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.client5.http.impl.ChainElements;
-import org.apache.hc.client5.http.impl.CookieSpecRegistries;
+import org.apache.hc.client5.http.impl.CookieSpecSupport;
 import org.apache.hc.client5.http.impl.DefaultAuthenticationStrategy;
 import org.apache.hc.client5.http.impl.DefaultConnectionKeepAliveStrategy;
 import org.apache.hc.client5.http.impl.DefaultHttpRequestRetryHandler;
@@ -65,7 +65,6 @@ import org.apache.hc.client5.http.impl.IdleConnectionEvictor;
 import org.apache.hc.client5.http.impl.NoopUserTokenHandler;
 import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
 import org.apache.hc.client5.http.impl.auth.BasicSchemeFactory;
-import org.apache.hc.client5.http.impl.auth.CredSspSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.DigestSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.KerberosSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.NTLMSchemeFactory;
@@ -95,7 +94,7 @@ import org.apache.hc.core5.http.HttpRequestInterceptor;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpResponseInterceptor;
 import org.apache.hc.core5.http.config.CharCodingConfig;
-import org.apache.hc.core5.http.config.H1Config;
+import org.apache.hc.core5.http.config.Http1Config;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.config.NamedElementChain;
 import org.apache.hc.core5.http.config.RegistryBuilder;
@@ -114,8 +113,9 @@ import org.apache.hc.core5.http2.config.H2Config;
 import org.apache.hc.core5.http2.protocol.H2RequestConnControl;
 import org.apache.hc.core5.http2.protocol.H2RequestContent;
 import org.apache.hc.core5.http2.protocol.H2RequestTargetHost;
-import org.apache.hc.core5.io.ShutdownType;
+import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.pool.ConnPoolControl;
+import org.apache.hc.core5.reactor.Command;
 import org.apache.hc.core5.reactor.DefaultConnectingIOReactor;
 import org.apache.hc.core5.reactor.IOEventHandlerFactory;
 import org.apache.hc.core5.reactor.IOReactorConfig;
@@ -125,7 +125,14 @@ import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.VersionInfo;
 
 /**
- * Builder for {@link CloseableHttpAsyncClient} instances.
+ * Builder for {@link CloseableHttpAsyncClient} instances that can negotiate
+ * the most optimal HTTP protocol version during the {@code TLS} handshake
+ * with {@code ALPN} extension if supported by the Java runtime.
+ * <p>
+ * Concurrent message exchanges executed by {@link CloseableHttpAsyncClient}
+ * instances created with this builder will get automatically assigned to
+ * separate connections leased from the connection pool.
+ * </p>
  * <p>
  * When a particular component is not explicitly set this class will
  * use its default implementation. System properties will be taken
@@ -204,7 +211,7 @@ public class HttpAsyncClientBuilder {
     private AsyncClientConnectionManager connManager;
     private boolean connManagerShared;
     private IOReactorConfig ioReactorConfig;
-    private H1Config h1Config;
+    private Http1Config h1Config;
     private H2Config h2Config;
     private CharCodingConfig charCodingConfig;
     private SchemePortResolver schemePortResolver;
@@ -264,9 +271,9 @@ public class HttpAsyncClientBuilder {
     }
 
     /**
-     * Sets {@link H1Config} configuration.
+     * Sets {@link Http1Config} configuration.
      */
-    public final HttpAsyncClientBuilder setH1Config(final H1Config h1Config) {
+    public final HttpAsyncClientBuilder setHttp1Config(final Http1Config h1Config) {
         this.h1Config = h1Config;
         return this;
     }
@@ -372,7 +379,7 @@ public class HttpAsyncClientBuilder {
     /**
      * Adds this protocol interceptor to the head of the protocol processing list.
      */
-    public final HttpAsyncClientBuilder addRequestInterceptorFirst(final HttpResponseInterceptor interceptor) {
+    public final HttpAsyncClientBuilder addResponseInterceptorFirst(final HttpResponseInterceptor interceptor) {
         Args.notNull(interceptor, "Interceptor");
         if (responseInterceptors == null) {
             responseInterceptors = new LinkedList<>();
@@ -469,7 +476,7 @@ public class HttpAsyncClientBuilder {
     /**
      * Adds this protocol interceptor to the tail of the protocol processing list.
      */
-    public final HttpAsyncClientBuilder addResponseInterceptorLast(final HttpRequestInterceptor interceptor) {
+    public final HttpAsyncClientBuilder addRequestInterceptorLast(final HttpRequestInterceptor interceptor) {
         Args.notNull(interceptor, "Interceptor");
         if (requestInterceptors == null) {
             requestInterceptors = new LinkedList<>();
@@ -913,7 +920,7 @@ public class HttpAsyncClientBuilder {
                 },
                 versionPolicy != null ? versionPolicy : HttpVersionPolicy.NEGOTIATE,
                 h2Config != null ? h2Config : H2Config.DEFAULT,
-                h1Config != null ? h1Config : H1Config.DEFAULT,
+                h1Config != null ? h1Config : Http1Config.DEFAULT,
                 charCodingConfig != null ? charCodingConfig : CharCodingConfig.DEFAULT,
                 reuseStrategyCopy);
         final DefaultConnectingIOReactor ioReactor = new DefaultConnectingIOReactor(
@@ -921,12 +928,13 @@ public class HttpAsyncClientBuilder {
                 ioReactorConfig != null ? ioReactorConfig : IOReactorConfig.DEFAULT,
                 threadFactory != null ? threadFactory : new DefaultThreadFactory("httpclient-dispatch", true),
                 null,
+                LoggingExceptionCallback.INSTANCE,
                 null,
                 new Callback<IOSession>() {
 
                     @Override
                     public void execute(final IOSession ioSession) {
-                        ioSession.addFirst(new ShutdownCommand(ShutdownType.GRACEFUL));
+                        ioSession.enqueue(new ShutdownCommand(CloseMode.GRACEFUL), Command.Priority.IMMEDIATE);
                     }
 
                 });
@@ -962,17 +970,18 @@ public class HttpAsyncClientBuilder {
         Lookup<AuthSchemeProvider> authSchemeRegistryCopy = this.authSchemeRegistry;
         if (authSchemeRegistryCopy == null) {
             authSchemeRegistryCopy = RegistryBuilder.<AuthSchemeProvider>create()
-                    .register(AuthSchemes.BASIC, new BasicSchemeFactory())
-                    .register(AuthSchemes.DIGEST, new DigestSchemeFactory())
-                    .register(AuthSchemes.CREDSSP, new CredSspSchemeFactory())
-                    .register(AuthSchemes.NTLM, new NTLMSchemeFactory())
-                    .register(AuthSchemes.SPNEGO, new SPNegoSchemeFactory(KerberosConfig.DEFAULT, SystemDefaultDnsResolver.INSTANCE))
-                    .register(AuthSchemes.KERBEROS, new KerberosSchemeFactory(KerberosConfig.DEFAULT, SystemDefaultDnsResolver.INSTANCE))
+                    .register(AuthSchemes.BASIC.ident, new BasicSchemeFactory())
+                    .register(AuthSchemes.DIGEST.ident, new DigestSchemeFactory())
+                    .register(AuthSchemes.NTLM.ident, new NTLMSchemeFactory())
+                    .register(AuthSchemes.SPNEGO.ident,
+                            new SPNegoSchemeFactory(KerberosConfig.DEFAULT, SystemDefaultDnsResolver.INSTANCE))
+                    .register(AuthSchemes.KERBEROS.ident,
+                            new KerberosSchemeFactory(KerberosConfig.DEFAULT, SystemDefaultDnsResolver.INSTANCE))
                     .build();
         }
         Lookup<CookieSpecProvider> cookieSpecRegistryCopy = this.cookieSpecRegistry;
         if (cookieSpecRegistryCopy == null) {
-            cookieSpecRegistryCopy = CookieSpecRegistries.createDefault();
+            cookieSpecRegistryCopy = CookieSpecSupport.createDefault();
         }
 
         CookieStore cookieStoreCopy = this.cookieStore;

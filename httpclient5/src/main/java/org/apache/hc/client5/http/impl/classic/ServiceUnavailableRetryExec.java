@@ -35,6 +35,7 @@ import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecChainHandler;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
@@ -56,8 +57,9 @@ import org.slf4j.LoggerFactory;
  *
  * @since 4.3
  */
-@Contract(threading = ThreadingBehavior.IMMUTABLE_CONDITIONAL)
-final class ServiceUnavailableRetryExec implements ExecChainHandler {
+@Contract(threading = ThreadingBehavior.STATELESS)
+@Internal
+public final class ServiceUnavailableRetryExec implements ExecChainHandler {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -77,6 +79,7 @@ final class ServiceUnavailableRetryExec implements ExecChainHandler {
             final ExecChain chain) throws IOException, HttpException {
         Args.notNull(request, "HTTP request");
         Args.notNull(scope, "Scope");
+        final String exchangeId = scope.exchangeId;
         final HttpClientContext context = scope.clientContext;
         ClassicHttpRequest currentRequest = request;
         for (int c = 1;; c++) {
@@ -92,7 +95,7 @@ final class ServiceUnavailableRetryExec implements ExecChainHandler {
                     if (nextInterval > 0) {
                         try {
                             if (this.log.isDebugEnabled()) {
-                                this.log.debug("Wait for " + ((double) nextInterval / 1000) + " seconds" );
+                                this.log.debug(exchangeId + ": wait for " + ((double) nextInterval / 1000) + " seconds" );
                             }
                             Thread.sleep(nextInterval);
                         } catch (final InterruptedException e) {

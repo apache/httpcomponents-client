@@ -32,6 +32,7 @@ import java.util.Locale;
 
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpStatus;
@@ -76,16 +77,17 @@ public class EchoHandler implements HttpRequestHandler {
         // For some reason, just putting the incoming entity into
         // the response will not work. We have to buffer the message.
         final byte[] data;
+        final ContentType contentType;
         if (entity == null) {
             data = new byte [0];
+            contentType = null;
         } else {
             data = EntityUtils.toByteArray(entity);
+            final String contentTypeStr = entity.getContentType();
+            contentType = contentTypeStr == null ? null : ContentType.parse(contentTypeStr);
         }
 
-        final ByteArrayEntity bae = new ByteArrayEntity(data);
-        if (entity != null) {
-            bae.setContentType(entity.getContentType());
-        }
+        final ByteArrayEntity bae = new ByteArrayEntity(data, contentType);
         entity = bae;
 
         response.setCode(HttpStatus.SC_OK);

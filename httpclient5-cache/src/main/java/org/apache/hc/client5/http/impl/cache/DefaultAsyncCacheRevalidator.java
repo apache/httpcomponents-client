@@ -51,7 +51,7 @@ class DefaultAsyncCacheRevalidator extends CacheRevalidatorBase {
 
     interface RevalidationCall {
 
-        void execute(AsyncExecCallback asyncExecCallback);;
+        void execute(AsyncExecCallback asyncExecCallback);
     }
 
     static class InternalScheduledExecutor implements ScheduledExecutor {
@@ -67,9 +67,8 @@ class DefaultAsyncCacheRevalidator extends CacheRevalidatorBase {
             if (timeValue.toMillis() <= 0) {
                 command.run();
                 return new Operations.CompletedFuture<Void>(null);
-            } else {
-                return executor.schedule(command, timeValue);
             }
+            return executor.schedule(command, timeValue);
         }
 
         @Override
@@ -125,9 +124,16 @@ class DefaultAsyncCacheRevalidator extends CacheRevalidatorBase {
 
                                 @Override
                                 public AsyncDataConsumer handleResponse(
-                                        final HttpResponse response, final EntityDetails entityDetails) throws HttpException, IOException {
+                                        final HttpResponse response,
+                                        final EntityDetails entityDetails) throws HttpException, IOException {
                                     responseRef.set(response);
                                     return asyncExecCallback.handleResponse(response, entityDetails);
+                                }
+
+                                @Override
+                                public void handleInformationResponse(
+                                        final HttpResponse response) throws HttpException, IOException {
+                                    asyncExecCallback.handleInformationResponse(response);
                                 }
 
                                 @Override

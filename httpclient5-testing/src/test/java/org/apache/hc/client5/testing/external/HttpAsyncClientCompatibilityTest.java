@@ -34,6 +34,7 @@ import java.util.concurrent.TimeoutException;
 import javax.net.ssl.SSLContext;
 
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
+import org.apache.hc.client5.http.async.methods.SimpleHttpRequests;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.Credentials;
@@ -45,7 +46,7 @@ import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManager;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
-import org.apache.hc.client5.http.ssl.H2TlsStrategy;
+import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.core5.http.HeaderElements;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
@@ -64,30 +65,30 @@ public class HttpAsyncClientCompatibilityTest {
         final HttpAsyncClientCompatibilityTest[] tests = new HttpAsyncClientCompatibilityTest[] {
                 new HttpAsyncClientCompatibilityTest(
                         HttpVersion.HTTP_1_1,
-                        new HttpHost("localhost", 8080, "http"), null, null),
+                        new HttpHost("http", "localhost", 8080), null, null),
                 new HttpAsyncClientCompatibilityTest(
                         HttpVersion.HTTP_1_1,
-                        new HttpHost("test-httpd", 8080, "http"), new HttpHost("localhost", 8888), null),
+                        new HttpHost("http", "test-httpd", 8080), new HttpHost("localhost", 8888), null),
                 new HttpAsyncClientCompatibilityTest(
                         HttpVersion.HTTP_1_1,
-                        new HttpHost("test-httpd", 8080, "http"), new HttpHost("localhost", 8889),
+                        new HttpHost("http", "test-httpd", 8080), new HttpHost("localhost", 8889),
                         new UsernamePasswordCredentials("squid", "nopassword".toCharArray())),
                 new HttpAsyncClientCompatibilityTest(
                         HttpVersion.HTTP_1_1,
-                        new HttpHost("localhost", 8443, "https"), null, null),
+                        new HttpHost("https", "localhost", 8443), null, null),
                 new HttpAsyncClientCompatibilityTest(
                         HttpVersion.HTTP_1_1,
-                        new HttpHost("test-httpd", 8443, "https"), new HttpHost("localhost", 8888), null),
+                        new HttpHost("https", "test-httpd", 8443), new HttpHost("localhost", 8888), null),
                 new HttpAsyncClientCompatibilityTest(
                         HttpVersion.HTTP_1_1,
-                        new HttpHost("test-httpd", 8443, "https"), new HttpHost("localhost", 8889),
+                        new HttpHost("https", "test-httpd", 8443), new HttpHost("localhost", 8889),
                         new UsernamePasswordCredentials("squid", "nopassword".toCharArray())),
                 new HttpAsyncClientCompatibilityTest(
                         HttpVersion.HTTP_2_0,
-                        new HttpHost("localhost", 8080, "http"), null, null),
+                        new HttpHost("http", "localhost", 8080), null, null),
                 new HttpAsyncClientCompatibilityTest(
                         HttpVersion.HTTP_2_0,
-                        new HttpHost("localhost", 8443, "https"), null, null)
+                        new HttpHost("https", "localhost", 8443), null, null)
         };
         for (final HttpAsyncClientCompatibilityTest test: tests) {
             try {
@@ -125,7 +126,7 @@ public class HttpAsyncClientCompatibilityTest {
         final SSLContext sslContext = SSLContexts.custom()
                 .loadTrustMaterial(getClass().getResource("/test-ca.keystore"), "nopassword".toCharArray()).build();
         this.connManager = PoolingAsyncClientConnectionManagerBuilder.create()
-                .setTlsStrategy(new H2TlsStrategy(sslContext))
+                .setTlsStrategy(new DefaultClientTlsStrategy(sslContext))
                 .build();
         this.client = HttpAsyncClients.custom()
                 .setVersionPolicy(this.protocolVersion == HttpVersion.HTTP_2 ? HttpVersionPolicy.FORCE_HTTP_2 : HttpVersionPolicy.FORCE_HTTP_1)
@@ -139,7 +140,7 @@ public class HttpAsyncClientCompatibilityTest {
         client.close();
     }
 
-    enum TestResult {OK, NOK};
+    enum TestResult {OK, NOK}
 
     private void logResult(final TestResult result, final HttpRequest request, final String message) {
         final StringBuilder buf = new StringBuilder();
@@ -167,7 +168,7 @@ public class HttpAsyncClientCompatibilityTest {
             final HttpClientContext context = HttpClientContext.create();
             context.setCredentialsProvider(credentialsProvider);
 
-            final SimpleHttpRequest options = SimpleHttpRequest.options(target, "*");
+            final SimpleHttpRequest options = SimpleHttpRequests.OPTIONS.create(target, "*");
             final Future<SimpleHttpResponse> future = client.execute(options, context, null);
             try {
                 final SimpleHttpResponse response = future.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
@@ -192,7 +193,7 @@ public class HttpAsyncClientCompatibilityTest {
 
             final String[] requestUris = new String[] {"/", "/news.html", "/status.html"};
             for (final String requestUri: requestUris) {
-                final SimpleHttpRequest httpGet = SimpleHttpRequest.get(target, requestUri);
+                final SimpleHttpRequest httpGet = SimpleHttpRequests.GET.create(target, requestUri);
                 final Future<SimpleHttpResponse> future = client.execute(httpGet, context, null);
                 try {
                     final SimpleHttpResponse response = future.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
@@ -219,7 +220,7 @@ public class HttpAsyncClientCompatibilityTest {
             final HttpClientContext context = HttpClientContext.create();
             context.setCredentialsProvider(credentialsProvider);
 
-            final SimpleHttpRequest httpGetSecret = SimpleHttpRequest.get(target, "/private/big-secret.txt");
+            final SimpleHttpRequest httpGetSecret = SimpleHttpRequests.GET.create(target, "/private/big-secret.txt");
             final Future<SimpleHttpResponse> future = client.execute(httpGetSecret, context, null);
             try {
                 final SimpleHttpResponse response = future.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
@@ -245,7 +246,7 @@ public class HttpAsyncClientCompatibilityTest {
             final HttpClientContext context = HttpClientContext.create();
             context.setCredentialsProvider(credentialsProvider);
 
-            final SimpleHttpRequest httpGetSecret = SimpleHttpRequest.get(target, "/private/big-secret.txt");
+            final SimpleHttpRequest httpGetSecret = SimpleHttpRequests.GET.create(target, "/private/big-secret.txt");
             final Future<SimpleHttpResponse> future = client.execute(httpGetSecret, context, null);
             try {
                 final SimpleHttpResponse response = future.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
@@ -271,7 +272,7 @@ public class HttpAsyncClientCompatibilityTest {
             final HttpClientContext context = HttpClientContext.create();
             context.setCredentialsProvider(credentialsProvider);
 
-            final SimpleHttpRequest httpGetSecret = SimpleHttpRequest.get(target, "/private/big-secret.txt");
+            final SimpleHttpRequest httpGetSecret = SimpleHttpRequests.GET.create(target, "/private/big-secret.txt");
             final Future<SimpleHttpResponse> future = client.execute(httpGetSecret, context, null);
             try {
                 final SimpleHttpResponse response = future.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
@@ -298,7 +299,7 @@ public class HttpAsyncClientCompatibilityTest {
             final HttpClientContext context = HttpClientContext.create();
             context.setCredentialsProvider(credentialsProvider);
 
-            final SimpleHttpRequest httpGetSecret = SimpleHttpRequest.get(target, "/private/big-secret.txt");
+            final SimpleHttpRequest httpGetSecret = SimpleHttpRequests.GET.create(target, "/private/big-secret.txt");
             httpGetSecret.setHeader(HttpHeaders.CONNECTION, HeaderElements.CLOSE);
             final Future<SimpleHttpResponse> future = client.execute(httpGetSecret, context, null);
             try {

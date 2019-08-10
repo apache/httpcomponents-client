@@ -48,7 +48,7 @@ import org.apache.hc.core5.util.Args;
  *
  * @since 4.0
  */
-@Contract(threading = ThreadingBehavior.SAFE_CONDITIONAL)
+@Contract(threading = ThreadingBehavior.SAFE)
 public abstract class CookieSpecBase extends AbstractCookieSpec {
 
     public CookieSpecBase() {

@@ -29,10 +29,10 @@ package org.apache.hc.client5.http.async;
 import java.util.concurrent.Future;
 
 import org.apache.hc.core5.concurrent.FutureCallback;
-import org.apache.hc.core5.function.Supplier;
 import org.apache.hc.core5.http.nio.AsyncPushConsumer;
 import org.apache.hc.core5.http.nio.AsyncRequestProducer;
 import org.apache.hc.core5.http.nio.AsyncResponseConsumer;
+import org.apache.hc.core5.http.nio.HandlerFactory;
 import org.apache.hc.core5.http.protocol.HttpContext;
 
 /**
@@ -59,25 +59,16 @@ public interface HttpAsyncClient {
      * @param <T> the result type of request execution.
      * @param requestProducer request producer callback.
      * @param responseConsumer response consumer callback.
-     * @param context HTTP context
-     * @param callback future callback.
+     * @param pushHandlerFactory the push handler factory. Optional and may be {@code null}.
+     * @param context HTTP context. Optional and may be {@code null}.
+     * @param callback future callback. Optional and may be {@code null}.
      * @return future representing pending completion of the operation.
      */
     <T> Future<T> execute(
             AsyncRequestProducer requestProducer,
             AsyncResponseConsumer<T> responseConsumer,
+            HandlerFactory<AsyncPushConsumer> pushHandlerFactory,
             HttpContext context,
             FutureCallback<T> callback);
-
-    /**
-     * Registers {@link AsyncPushConsumer} for the given host and the URI pattern.
-     *
-     * @param hostname the name of the host this consumer intended for.
-     *                 Can be {@code null} if applies to all hosts
-     * @param uriPattern URI request pattern
-     * @param supplier supplier that will be used to supply a consumer instance
-     *                 for the given combination of hostname and URI pattern.
-     */
-    void register(String hostname, String uriPattern, Supplier<AsyncPushConsumer> supplier);
 
 }

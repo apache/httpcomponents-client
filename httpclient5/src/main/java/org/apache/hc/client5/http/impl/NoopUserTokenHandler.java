@@ -37,7 +37,7 @@ import org.apache.hc.core5.http.protocol.HttpContext;
  *
  * @since 4.3
  */
-@Contract(threading = ThreadingBehavior.IMMUTABLE)
+@Contract(threading = ThreadingBehavior.STATELESS)
 public class NoopUserTokenHandler implements UserTokenHandler {
 
     public static final NoopUserTokenHandler INSTANCE = new NoopUserTokenHandler();

@@ -47,7 +47,7 @@ public class TestMultipartEntityBuilder {
         final MultipartFormEntity entity = MultipartEntityBuilder.create().buildEntity();
         Assert.assertNotNull(entity);
         Assert.assertTrue(entity.getMultipart() instanceof HttpStrictMultipart);
-        Assert.assertEquals(0, entity.getMultipart().getBodyParts().size());
+        Assert.assertEquals(0, entity.getMultipart().getParts().size());
     }
 
     @Test
@@ -72,7 +72,7 @@ public class TestMultipartEntityBuilder {
                 .addBinaryBody("p4", new ByteArrayInputStream(new byte[]{}))
                 .buildEntity();
         Assert.assertNotNull(entity);
-        final List<FormBodyPart> bodyParts = entity.getMultipart().getBodyParts();
+        final List<MultipartPart> bodyParts = entity.getMultipart().getParts();
         Assert.assertNotNull(bodyParts);
         Assert.assertEquals(4, bodyParts.size());
     }
@@ -146,7 +146,7 @@ public class TestMultipartEntityBuilder {
     }
     @Test
     public void testMultipartWriteToRFC7578Mode() throws Exception {
-        final List<NameValuePair> parameters = new ArrayList<NameValuePair>();
+        final List<NameValuePair> parameters = new ArrayList<>();
         parameters.add(new BasicNameValuePair(MIME.FIELD_PARAM_NAME, "test"));
         parameters.add(new BasicNameValuePair(MIME.FIELD_PARAM_FILENAME, "hello \u03BA\u03CC\u03C3\u03BC\u03B5!%"));
 

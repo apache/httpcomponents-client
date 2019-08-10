@@ -39,6 +39,8 @@ import org.slf4j.LoggerFactory;
  * algorithm. The hashes produced are hex-encoded SHA-256
  * digests and hence are always 64-character hexadecimal
  * strings.
+ *
+ * @since 4.1
  */
 public final class SHA256KeyHashingScheme implements KeyHashingScheme {
 

@@ -39,16 +39,30 @@ import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.nio.AsyncPushConsumer;
 import org.apache.hc.core5.http.nio.entity.AbstractCharDataConsumer;
+import org.apache.hc.core5.http.protocol.HttpContext;
 
+/**
+ * Abstract push response consumer that processes response body data as a character stream.
+ *
+ * @since 5.0
+ */
 public abstract class AbstractCharPushConsumer extends AbstractCharDataConsumer implements AsyncPushConsumer {
 
+    /**
+     * Triggered to signal the beginning of data processing.
+     *
+     * @param response the response message head
+     * @param contentType the content type of the response body,
+     *                    or {@code null} if the response does not enclose a response entity.
+     */
     protected abstract void start(HttpRequest promise, HttpResponse response, ContentType contentType) throws HttpException, IOException;
 
     @Override
     public final void consumePromise(
             final HttpRequest promise,
             final HttpResponse response,
-            final EntityDetails entityDetails) throws HttpException, IOException {
+            final EntityDetails entityDetails,
+            final HttpContext context) throws HttpException, IOException {
         if (entityDetails != null) {
             final ContentType contentType;
             try {
@@ -61,7 +75,7 @@ public abstract class AbstractCharPushConsumer extends AbstractCharDataConsumer 
                 charset = StandardCharsets.US_ASCII;
             }
             setCharset(charset);
-            start(promise, response, contentType);
+            start(promise, response, contentType != null ? contentType : ContentType.DEFAULT_TEXT);
         } else {
             start(promise, response, null);
             completed();

@@ -31,6 +31,7 @@ import java.util.concurrent.Future;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.UserTokenHandler;
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
+import org.apache.hc.client5.http.async.methods.SimpleHttpRequests;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
@@ -38,7 +39,7 @@ import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManager;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
-import org.apache.hc.client5.http.ssl.H2TlsStrategy;
+import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.client5.testing.SSLTestContexts;
 import org.apache.hc.core5.function.Supplier;
 import org.apache.hc.core5.http.ContentType;
@@ -47,7 +48,7 @@ import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
-import org.apache.hc.core5.http.config.H1Config;
+import org.apache.hc.core5.http.config.Http1Config;
 import org.apache.hc.core5.http.nio.AsyncServerExchangeHandler;
 import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.HttpContext;
@@ -68,7 +69,7 @@ public class TestHttp1AsyncStatefulConnManagement extends AbstractIntegrationTes
         @Override
         protected void before() throws Throwable {
             connManager = PoolingAsyncClientConnectionManagerBuilder.create()
-                    .setTlsStrategy(new H2TlsStrategy(SSLTestContexts.createClientSSLContext()))
+                    .setTlsStrategy(new DefaultClientTlsStrategy(SSLTestContexts.createClientSSLContext()))
                     .build();
         }
 
@@ -89,7 +90,7 @@ public class TestHttp1AsyncStatefulConnManagement extends AbstractIntegrationTes
         protected void before() throws Throwable {
             clientBuilder = HttpAsyncClientBuilder.create()
                     .setDefaultRequestConfig(RequestConfig.custom()
-                            .setConnectionTimeout(TIMEOUT)
+                            .setConnectTimeout(TIMEOUT)
                             .setConnectionRequestTimeout(TIMEOUT)
                             .build())
                     .setConnectionManager(connManager);
@@ -104,7 +105,7 @@ public class TestHttp1AsyncStatefulConnManagement extends AbstractIntegrationTes
 
     @Override
     public HttpHost start() throws Exception {
-        return super.start(null, H1Config.DEFAULT);
+        return super.start(null, Http1Config.DEFAULT);
     }
 
     @Test
@@ -215,7 +216,7 @@ public class TestHttp1AsyncStatefulConnManagement extends AbstractIntegrationTes
             try {
                 context.setAttribute("user", uid);
                 for (int r = 0; r < requestCount; r++) {
-                    final SimpleHttpRequest httpget = SimpleHttpRequest.get(target, "/");
+                    final SimpleHttpRequest httpget = SimpleHttpRequests.GET.create(target, "/");
                     final Future<SimpleHttpResponse> future = httpclient.execute(httpget, null);
                     future.get();
 
@@ -276,7 +277,7 @@ public class TestHttp1AsyncStatefulConnManagement extends AbstractIntegrationTes
         final HttpContext context1 = new BasicHttpContext();
         context1.setAttribute("user", "stuff");
 
-        final Future<SimpleHttpResponse> future1 = httpclient.execute(SimpleHttpRequest.get(target, "/"), context1, null);
+        final Future<SimpleHttpResponse> future1 = httpclient.execute(SimpleHttpRequests.GET.create(target, "/"), context1, null);
         final HttpResponse response1 = future1.get();
         Assert.assertNotNull(response1);
         Assert.assertEquals(200, response1.getCode());
@@ -291,8 +292,8 @@ public class TestHttp1AsyncStatefulConnManagement extends AbstractIntegrationTes
         // Send it to another route. Must be a keepalive.
         final HttpContext context2 = new BasicHttpContext();
 
-        final Future<SimpleHttpResponse> future2 = httpclient.execute(SimpleHttpRequest.get(
-                new HttpHost("127.0.0.1", target.getPort(), target.getSchemeName()),"/"), context2, null);
+        final Future<SimpleHttpResponse> future2 = httpclient.execute(SimpleHttpRequests.GET.create(
+                new HttpHost(target.getSchemeName(), "127.0.0.1", target.getPort()),"/"), context2, null);
         final HttpResponse response2 = future2.get();
         Assert.assertNotNull(response2);
         Assert.assertEquals(200, response2.getCode());
@@ -309,7 +310,7 @@ public class TestHttp1AsyncStatefulConnManagement extends AbstractIntegrationTes
         // The killed conn is the oldest, which means the first HTTPGet ([localhost][stuff]).
         // When this happens, the RouteSpecificPool becomes empty.
         final HttpContext context3 = new BasicHttpContext();
-        final Future<SimpleHttpResponse> future3 = httpclient.execute(SimpleHttpRequest.get(target, "/"), context3, null);
+        final Future<SimpleHttpResponse> future3 = httpclient.execute(SimpleHttpRequests.GET.create(target, "/"), context3, null);
         final HttpResponse response3 = future3.get();
         Assert.assertNotNull(response3);
         Assert.assertEquals(200, response3.getCode());

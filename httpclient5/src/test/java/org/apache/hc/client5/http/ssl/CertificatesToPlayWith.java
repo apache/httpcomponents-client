@@ -550,4 +550,29 @@ public class CertificatesToPlayWith {
         "-----END CERTIFICATE-----"
         ).getBytes();
 
+    public final static byte[] EMAIL_ALT_SUBJECT_NAME = (
+        "-----BEGIN CERTIFICATE-----\n" +
+        "MIIDpTCCAo2gAwIBAgIJANqkMEtlkelbMA0GCSqGSIb3DQEBCwUAMHAxCzAJBgNV\n" +
+        "BAYTAlVTMQswCQYDVQQIDAJWQTERMA8GA1UEBwwIU29tZUNpdHkxEjAQBgNVBAoM\n" +
+        "CU15Q29tcGFueTETMBEGA1UECwwKTXlEaXZpc2lvbjEYMBYGA1UEAwwPd3d3LmNv\n" +
+        "bXBhbnkuY29tMB4XDTE4MDIxNTA3MjkzMFoXDTIwMDIxNTA3MjkzMFowcDELMAkG\n" +
+        "A1UEBhMCVVMxCzAJBgNVBAgMAlZBMREwDwYDVQQHDAhTb21lQ2l0eTESMBAGA1UE\n" +
+        "CgwJTXlDb21wYW55MRMwEQYDVQQLDApNeURpdmlzaW9uMRgwFgYDVQQDDA93d3cu\n" +
+        "Y29tcGFueS5jb20wggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQC4v6Oq\n" +
+        "Ua0goRVn1cmT7MOpJhXFm3A70bTpvJIRpEjtGIz99hb34/9r5AYyf1VhKyWmBq24\n" +
+        "XNcOJ59XOlyjjbm2Tl811ufTOdcNbPadoVBmMt4039OSUFpVb4wAw2XPWLTCG2h1\n" +
+        "HNj9GuFHmwcDsg5EiIRrhDGQm2LLLAGoe5PdReoMZCeeWzNWvKTCV14pyRzwQhJL\n" +
+        "F1OmzLYzovbPfB8LZVhQgDbLsh034FScivf2oKDB+NEzAEagNpnrFR0MFLWGYsu1\n" +
+        "nWD5RiZi78HFGiibmhH7QrEPfGlo2eofuUga6naoBUROqkmMCIL8n1HZ/Ur0oGny\n" +
+        "vQCj1AyrfOhuVC53AgMBAAGjQjBAMAsGA1UdDwQEAwIEMDATBgNVHSUEDDAKBggr\n" +
+        "BgEFBQcDATAcBgNVHREEFTATgRFlbWFpbEBleGFtcGxlLmNvbTANBgkqhkiG9w0B\n" +
+        "AQsFAAOCAQEAZ0IsqRrsEmJ6Fa9Yo6PQtrKJrejN2TTDddVgyLQdokzWh/25JFad\n" +
+        "NCMYPH5KjTUyKf96hJDlDayjbKk1PMMhSZMU5OG9NOuGMH/dQttruG1ojse7KIKg\n" +
+        "yHDQrfq5Exxgfa7CMHRKAoTCY7JZhSLyVbTMVhmGfuUDad/RA86ZisXycp0ZmS97\n" +
+        "qDkAmzFL0sL0ZUWNNUh4ZUWvCUZwiuN08z70NjGqXMTDCf68p3SYxbII0xTfScgf\n" +
+        "aQ/A/hD7IbGGTexeoTwpEj01DNvefbQV6//neo32/R5XD0D5jn3TCgZcMThA6H3a\n" +
+        "VkEghVg+s7uMfL/UEebOBQWXQJ/uVoknMA==\n" +
+        "-----END CERTIFICATE-----"
+        ).getBytes();
+
 }

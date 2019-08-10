@@ -34,24 +34,26 @@ import java.util.Random;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.hc.client5.http.async.methods.AsyncRequestBuilder;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
 import org.apache.hc.client5.http.impl.async.MinimalHttpAsyncClient;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManager;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
-import org.apache.hc.client5.http.ssl.H2TlsStrategy;
+import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.client5.testing.SSLTestContexts;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.Message;
+import org.apache.hc.core5.http.Methods;
 import org.apache.hc.core5.http.URIScheme;
-import org.apache.hc.core5.http.config.H1Config;
+import org.apache.hc.core5.http.config.Http1Config;
 import org.apache.hc.core5.http.nio.AsyncClientEndpoint;
-import org.apache.hc.core5.http.nio.BasicResponseConsumer;
+import org.apache.hc.core5.http.nio.entity.AsyncEntityProducers;
 import org.apache.hc.core5.http.nio.entity.BasicAsyncEntityConsumer;
+import org.apache.hc.core5.http.nio.support.BasicRequestProducer;
+import org.apache.hc.core5.http.nio.support.BasicResponseConsumer;
 import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.apache.hc.core5.http2.config.H2Config;
 import org.apache.hc.core5.reactor.IOReactorConfig;
@@ -84,17 +86,17 @@ public class TestHttpAsyncMinimal extends AbstractHttpAsyncFundamentalsTest<Mini
     @Override
     protected MinimalHttpAsyncClient createClient() throws Exception {
         final PoolingAsyncClientConnectionManager connectionManager = PoolingAsyncClientConnectionManagerBuilder.create()
-                .setTlsStrategy(new H2TlsStrategy(SSLTestContexts.createClientSSLContext()))
+                .setTlsStrategy(new DefaultClientTlsStrategy(SSLTestContexts.createClientSSLContext()))
                 .build();
         final IOReactorConfig ioReactorConfig = IOReactorConfig.custom()
                 .setSoTimeout(TIMEOUT)
                 .build();
         if (version.greaterEquals(HttpVersion.HTTP_2)) {
             return HttpAsyncClients.createMinimal(
-                    HttpVersionPolicy.FORCE_HTTP_2, H2Config.DEFAULT, H1Config.DEFAULT, ioReactorConfig, connectionManager);
+                    HttpVersionPolicy.FORCE_HTTP_2, H2Config.DEFAULT, Http1Config.DEFAULT, ioReactorConfig, connectionManager);
         } else {
             return HttpAsyncClients.createMinimal(
-                    HttpVersionPolicy.FORCE_HTTP_1, H2Config.DEFAULT, H1Config.DEFAULT, ioReactorConfig, connectionManager);
+                    HttpVersionPolicy.FORCE_HTTP_1, H2Config.DEFAULT, Http1Config.DEFAULT, ioReactorConfig, connectionManager);
         }
     }
 
@@ -103,7 +105,7 @@ public class TestHttpAsyncMinimal extends AbstractHttpAsyncFundamentalsTest<Mini
         if (version.greaterEquals(HttpVersion.HTTP_2)) {
             return super.start(null, H2Config.DEFAULT);
         } else {
-            return super.start(null, H1Config.DEFAULT);
+            return super.start(null, Http1Config.DEFAULT);
         }
     }
 
@@ -122,9 +124,8 @@ public class TestHttpAsyncMinimal extends AbstractHttpAsyncFundamentalsTest<Mini
             final Queue<Future<Message<HttpResponse, byte[]>>> queue = new LinkedList<>();
             for (int i = 0; i < reqCount; i++) {
                 final Future<Message<HttpResponse, byte[]>> future = endpoint.execute(
-                        AsyncRequestBuilder.post(target, "/echo/")
-                                .setEntity(b1, ContentType.APPLICATION_OCTET_STREAM)
-                                .build(),
+                        new BasicRequestProducer(Methods.GET, target, "/echo/",
+                                AsyncEntityProducers.create(b1, ContentType.APPLICATION_OCTET_STREAM)),
                         new BasicResponseConsumer<>(new BasicAsyncEntityConsumer()), HttpClientContext.create(), null);
                 queue.add(future);
             }

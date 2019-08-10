@@ -28,6 +28,8 @@
 package org.apache.hc.client5.http.routing;
 
 import org.apache.hc.client5.http.RouteInfo;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 
 /**
  * Provides directions on establishing a route.
@@ -36,6 +38,7 @@ import org.apache.hc.client5.http.RouteInfo;
  *
  * @since 4.0
  */
+@Contract(threading = ThreadingBehavior.STATELESS)
 public interface HttpRouteDirector {
 
     /** Indicates that the route can not be established at all. */

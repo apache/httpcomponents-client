@@ -36,7 +36,6 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.hc.client5.http.AuthenticationStrategy;
 import org.apache.hc.client5.http.ConnectionKeepAliveStrategy;
@@ -46,19 +45,19 @@ import org.apache.hc.client5.http.ServiceUnavailableRetryStrategy;
 import org.apache.hc.client5.http.SystemDefaultDnsResolver;
 import org.apache.hc.client5.http.UserTokenHandler;
 import org.apache.hc.client5.http.auth.AuthSchemeProvider;
+import org.apache.hc.client5.http.auth.AuthSchemes;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.KerberosConfig;
 import org.apache.hc.client5.http.classic.BackoffManager;
 import org.apache.hc.client5.http.classic.ConnectionBackoffStrategy;
 import org.apache.hc.client5.http.classic.ExecChainHandler;
-import org.apache.hc.client5.http.config.AuthSchemes;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.cookie.BasicCookieStore;
 import org.apache.hc.client5.http.cookie.CookieSpecProvider;
 import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.client5.http.entity.InputStreamFactory;
 import org.apache.hc.client5.http.impl.ChainElements;
-import org.apache.hc.client5.http.impl.CookieSpecRegistries;
+import org.apache.hc.client5.http.impl.CookieSpecSupport;
 import org.apache.hc.client5.http.impl.DefaultAuthenticationStrategy;
 import org.apache.hc.client5.http.impl.DefaultConnectionKeepAliveStrategy;
 import org.apache.hc.client5.http.impl.DefaultHttpRequestRetryHandler;
@@ -69,7 +68,6 @@ import org.apache.hc.client5.http.impl.IdleConnectionEvictor;
 import org.apache.hc.client5.http.impl.NoopUserTokenHandler;
 import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
 import org.apache.hc.client5.http.impl.auth.BasicSchemeFactory;
-import org.apache.hc.client5.http.impl.auth.CredSspSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.DigestSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.KerberosSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.NTLMSchemeFactory;
@@ -112,6 +110,7 @@ import org.apache.hc.core5.http.protocol.RequestUserAgent;
 import org.apache.hc.core5.pool.ConnPoolControl;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 import org.apache.hc.core5.util.VersionInfo;
 
 /**
@@ -230,6 +229,7 @@ public class HttpClientBuilder {
     private boolean cookieManagementDisabled;
     private boolean authCachingDisabled;
     private boolean connectionStateDisabled;
+    private boolean defaultUserAgentDisabled;
 
     private List<Closeable> closeables;
 
@@ -364,7 +364,7 @@ public class HttpClientBuilder {
     /**
      * Adds this protocol interceptor to the head of the protocol processing list.
      */
-    public final HttpClientBuilder addRequestInterceptorFirst(final HttpResponseInterceptor interceptor) {
+    public final HttpClientBuilder addResponseInterceptorFirst(final HttpResponseInterceptor interceptor) {
         Args.notNull(interceptor, "Interceptor");
         if (responseInterceptors == null) {
             responseInterceptors = new LinkedList<>();
@@ -400,7 +400,7 @@ public class HttpClientBuilder {
     /**
      * Adds this protocol interceptor to the tail of the protocol processing list.
      */
-    public final HttpClientBuilder addResponseInterceptorLast(final HttpRequestInterceptor interceptor) {
+    public final HttpClientBuilder addRequestInterceptorLast(final HttpRequestInterceptor interceptor) {
         Args.notNull(interceptor, "Interceptor");
         if (requestInterceptors == null) {
             requestInterceptors = new LinkedList<>();
@@ -614,7 +614,7 @@ public class HttpClientBuilder {
      * be used for request execution if not explicitly set in the client execution
      * context.
      *
-     * @see CookieSpecRegistries
+     * @see CookieSpecSupport
      *
      */
     public final HttpClientBuilder setDefaultCookieSpecRegistry(
@@ -695,6 +695,16 @@ public class HttpClientBuilder {
     public final HttpClientBuilder evictIdleConnections(final TimeValue maxIdleTime) {
         this.evictIdleConnections = true;
         this.maxIdleTime = maxIdleTime;
+        return this;
+    }
+
+    /**
+     * Disables the default user agent set by this builder if none has been provided by the user.
+     *
+     * @since 4.5.7
+     */
+    public final HttpClientBuilder disableDefaultUserAgent() {
+        this.defaultUserAgentDisabled = true;
         return this;
     }
 
@@ -780,7 +790,7 @@ public class HttpClientBuilder {
             if (systemProperties) {
                 userAgentCopy = System.getProperty("http.agent");
             }
-            if (userAgentCopy == null) {
+            if (userAgentCopy == null && !defaultUserAgentDisabled) {
                 userAgentCopy = VersionInfo.getSoftwareInfo("Apache-HttpClient",
                         "org.apache.hc.client5", getClass());
             }
@@ -788,7 +798,7 @@ public class HttpClientBuilder {
 
         final NamedElementChain<ExecChainHandler> execChainDefinition = new NamedElementChain<>();
         execChainDefinition.addLast(
-                new MainClientExec(reuseStrategyCopy, keepAliveStrategyCopy, userTokenHandlerCopy),
+                new MainClientExec(connManagerCopy, reuseStrategyCopy, keepAliveStrategyCopy, userTokenHandlerCopy),
                 ChainElements.MAIN_TRANSPORT.name());
         execChainDefinition.addFirst(
                 new ConnectExec(
@@ -951,17 +961,16 @@ public class HttpClientBuilder {
         Lookup<AuthSchemeProvider> authSchemeRegistryCopy = this.authSchemeRegistry;
         if (authSchemeRegistryCopy == null) {
             authSchemeRegistryCopy = RegistryBuilder.<AuthSchemeProvider>create()
-                .register(AuthSchemes.BASIC, new BasicSchemeFactory())
-                .register(AuthSchemes.DIGEST, new DigestSchemeFactory())
-                .register(AuthSchemes.CREDSSP, new CredSspSchemeFactory())
-                .register(AuthSchemes.NTLM, new NTLMSchemeFactory())
-                .register(AuthSchemes.SPNEGO, new SPNegoSchemeFactory(KerberosConfig.DEFAULT, SystemDefaultDnsResolver.INSTANCE))
-                .register(AuthSchemes.KERBEROS, new KerberosSchemeFactory(KerberosConfig.DEFAULT, SystemDefaultDnsResolver.INSTANCE))
+                .register(AuthSchemes.BASIC.ident, new BasicSchemeFactory())
+                .register(AuthSchemes.DIGEST.ident, new DigestSchemeFactory())
+                .register(AuthSchemes.NTLM.ident, new NTLMSchemeFactory())
+                .register(AuthSchemes.SPNEGO.ident, new SPNegoSchemeFactory(KerberosConfig.DEFAULT, SystemDefaultDnsResolver.INSTANCE))
+                .register(AuthSchemes.KERBEROS.ident, new KerberosSchemeFactory(KerberosConfig.DEFAULT, SystemDefaultDnsResolver.INSTANCE))
                 .build();
         }
         Lookup<CookieSpecProvider> cookieSpecRegistryCopy = this.cookieSpecRegistry;
         if (cookieSpecRegistryCopy == null) {
-            cookieSpecRegistryCopy = CookieSpecRegistries.createDefault();
+            cookieSpecRegistryCopy = CookieSpecSupport.createDefault();
         }
 
         CookieStore defaultCookieStore = this.cookieStore;
@@ -993,7 +1002,7 @@ public class HttpClientBuilder {
                         public void close() throws IOException {
                             connectionEvictor.shutdown();
                             try {
-                                connectionEvictor.awaitTermination(1L, TimeUnit.SECONDS);
+                                connectionEvictor.awaitTermination(Timeout.ofSeconds(1));
                             } catch (final InterruptedException interrupted) {
                                 Thread.currentThread().interrupt();
                             }

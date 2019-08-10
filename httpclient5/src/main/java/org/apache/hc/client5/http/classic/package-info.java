@@ -26,6 +26,6 @@
  */
 
 /**
- * Client HTTP communication APIs.
+ * HTTP client APIs based on the classic (blocking) I/O model.
  */
 package org.apache.hc.client5.http.classic;

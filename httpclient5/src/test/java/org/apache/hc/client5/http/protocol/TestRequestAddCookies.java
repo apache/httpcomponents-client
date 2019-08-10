@@ -31,7 +31,7 @@ import java.util.Date;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.RouteInfo.LayerType;
 import org.apache.hc.client5.http.RouteInfo.TunnelType;
-import org.apache.hc.client5.http.config.CookieSpecs;
+import org.apache.hc.client5.http.cookie.CookieSpecs;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.cookie.BasicCookieStore;
 import org.apache.hc.client5.http.cookie.CookieOrigin;
@@ -53,6 +53,7 @@ import org.apache.hc.core5.http.protocol.HttpCoreContext;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
 public class TestRequestAddCookies {
@@ -74,15 +75,12 @@ public class TestRequestAddCookies {
         cookie2.setPath("/");
         this.cookieStore.addCookie(cookie2);
 
-        final CookieSpecProvider laxCookiePolicyPRovider = new RFC6265CookieSpecProvider(
-                RFC6265CookieSpecProvider.CompatibilityLevel.RELAXED, null);
-        final CookieSpecProvider strictCookiePolicyPRovider = new RFC6265CookieSpecProvider(
-                RFC6265CookieSpecProvider.CompatibilityLevel.STRICT, null);
         this.cookieSpecRegistry = RegistryBuilder.<CookieSpecProvider>create()
-            .register(CookieSpecs.DEFAULT, laxCookiePolicyPRovider)
-            .register(CookieSpecs.STANDARD, laxCookiePolicyPRovider)
-            .register(CookieSpecs.STANDARD_STRICT, strictCookiePolicyPRovider)
-            .register(CookieSpecs.IGNORE_COOKIES, new IgnoreSpecProvider())
+            .register(CookieSpecs.STANDARD.ident, new RFC6265CookieSpecProvider(
+                    RFC6265CookieSpecProvider.CompatibilityLevel.RELAXED, null))
+            .register(CookieSpecs.STANDARD_STRICT.ident,  new RFC6265CookieSpecProvider(
+                    RFC6265CookieSpecProvider.CompatibilityLevel.STRICT, null))
+            .register(CookieSpecs.IGNORE_COOKIES.ident, new IgnoreSpecProvider())
             .build();
     }
 
@@ -205,7 +203,8 @@ public class TestRequestAddCookies {
     public void testAddCookiesUsingExplicitCookieSpec() throws Exception {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         final RequestConfig config = RequestConfig.custom()
-            .setCookieSpec(CookieSpecs.STANDARD_STRICT).build();
+                .setCookieSpec(CookieSpecs.STANDARD_STRICT.ident)
+                .build();
         final HttpRoute route = new HttpRoute(this.target, null, false);
 
         final HttpClientContext context = HttpClientContext.create();
@@ -292,10 +291,10 @@ public class TestRequestAddCookies {
     public void testAuthDefaultHttpsPortWhenProxy() throws Exception {
         final HttpRequest request = new BasicHttpRequest("GET", "/stuff");
 
-        this.target = new HttpHost("localhost", -1, "https");
+        this.target = new HttpHost("https", "localhost", -1);
         final HttpRoute route = new HttpRoute(
-                new HttpHost("localhost", 443, "https"), null,
-                new HttpHost("localhost", 8888), true, TunnelType.TUNNELLED, LayerType.LAYERED);
+                new HttpHost("https", "localhost", 443), null,
+                new HttpHost("http", "localhost", 8888), true, TunnelType.TUNNELLED, LayerType.LAYERED);
 
         final HttpClientContext context = HttpClientContext.create();
         context.setAttribute(HttpClientContext.HTTP_ROUTE, route);
@@ -345,7 +344,7 @@ public class TestRequestAddCookies {
         Assert.assertEquals(1, headers.length);
         Assert.assertEquals("name1=value1; name2=value2", headers[0].getValue());
 
-        Mockito.verify(this.cookieStore, Mockito.times(1)).clearExpired(Mockito.<Date>any());
+        Mockito.verify(this.cookieStore, Mockito.times(1)).clearExpired(ArgumentMatchers.<Date>any());
     }
 
     @Test

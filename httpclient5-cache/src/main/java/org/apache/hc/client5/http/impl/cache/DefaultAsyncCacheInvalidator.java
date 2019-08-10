@@ -56,7 +56,7 @@ import org.slf4j.LoggerFactory;
  *
  * @since 5.0
  */
-@Contract(threading = ThreadingBehavior.IMMUTABLE)
+@Contract(threading = ThreadingBehavior.STATELESS)
 @Internal
 public class DefaultAsyncCacheInvalidator extends CacheInvalidatorBase implements HttpAsyncCacheInvalidator {
 
@@ -174,9 +174,8 @@ public class DefaultAsyncCacheInvalidator extends CacheInvalidatorBase implement
         if (uri != null && isSameHost(requestUri, uri)) {
             removeEntry(storage, cacheKeyResolver.resolve(uri));
             return true;
-        } else {
-            return false;
         }
+        return false;
     }
 
     @Override

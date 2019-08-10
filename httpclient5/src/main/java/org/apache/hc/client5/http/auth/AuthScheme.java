@@ -42,11 +42,14 @@ import org.apache.hc.core5.http.protocol.HttpContext;
  * authentication scheme and they may carry a particular security context and be authorized
  * for a particular user identity. It is important that such schemes always provide
  * the user identity they represent through the {@link #getPrincipal()} method.
+ * </p>
  * <p>
  * Authentication scheme are expected to transition through a series of standard phases or
  * states.
+ * </p>
  * <p>
  * Authentication scheme starts off its life cycle with no context and no specific state.
+ * </p>
  * <p>
  * The {@link #processChallenge(AuthChallenge, HttpContext)} method is called  to
  * process an authentication challenge received either from the target server or a proxy.
@@ -55,6 +58,7 @@ import org.apache.hc.core5.http.protocol.HttpContext;
  * challenge details. Standard authentication schemes are expected to provide a realm
  * attribute in the challenge. {@link #getRealm()} can be called to obtain an identifier
  * of the realm that requires authorization.
+ * </p>
  * <p>
  * Once the challenge has been fully processed the {@link #isResponseReady(HttpHost,
  * CredentialsProvider, HttpContext)} method to determine whether the scheme is capable of
@@ -62,15 +66,18 @@ import org.apache.hc.core5.http.protocol.HttpContext;
  * required to do so. If this method returns {@code false} the authentication is considered
  * to be in FAILED state and no authorization response. Otherwise the scheme is considered
  * to be in RESPONSE_READY state.
+ * </p>
  * <p>
  * Once the scheme is ready to respond to the challenge the {@link #generateAuthResponse(
  * HttpHost, HttpRequest, HttpContext)} method to generate a response token, which will
  * be sent to the opposite endpoint in the subsequent request message.
+ * </p>
  * <p>
  * Certain non-standard schemes may involve multiple challenge / response exchanges to
  * fully establish a shared context and complete the authentication process. Authentication
  * schemes are required to return {@code true} {@link #isChallengeComplete()} once the
  * handshake is considered complete.
+ * </p>
  * <p>
  * The authentication scheme is considered successfully completed and in SUCCESS state
  * if the opposite endpoint accepts the request message containing the authorization
@@ -78,6 +85,7 @@ import org.apache.hc.core5.http.protocol.HttpContext;
  * If the opposite endpoint sends status code 401 or 407 in response to a request message
  * containing the terminal authorization response, the scheme is considered unsuccessful
  * and in FAILED state.
+ * </p>
  *
  * @since 4.0
  */

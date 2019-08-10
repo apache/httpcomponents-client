@@ -32,17 +32,18 @@ import org.apache.hc.client5.http.async.methods.SimpleBody;
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.nio.AsyncEntityProducer;
 import org.apache.hc.core5.http.nio.AsyncRequestConsumer;
 import org.apache.hc.core5.http.nio.AsyncServerRequestHandler;
-import org.apache.hc.core5.http.nio.BasicResponseProducer;
 import org.apache.hc.core5.http.nio.entity.BasicAsyncEntityConsumer;
 import org.apache.hc.core5.http.nio.entity.BasicAsyncEntityProducer;
 import org.apache.hc.core5.http.nio.entity.StringAsyncEntityProducer;
 import org.apache.hc.core5.http.nio.support.AbstractAsyncRequesterConsumer;
 import org.apache.hc.core5.http.nio.support.AbstractServerExchangeHandler;
+import org.apache.hc.core5.http.nio.support.BasicResponseProducer;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.protocol.HttpCoreContext;
 
@@ -53,6 +54,7 @@ public abstract class AbstractSimpleServerExchangeHandler extends AbstractServer
     @Override
     protected final AsyncRequestConsumer<SimpleHttpRequest> supplyConsumer(
             final HttpRequest request,
+            final EntityDetails entityDetails,
             final HttpContext context) throws HttpException {
         return new AbstractAsyncRequesterConsumer<SimpleHttpRequest, byte[]>(new BasicAsyncEntityConsumer()) {
 
@@ -88,7 +90,7 @@ public abstract class AbstractSimpleServerExchangeHandler extends AbstractServer
         } else {
             entityProducer = null;
         }
-        responseTrigger.submitResponse(new BasicResponseProducer(response, entityProducer));
+        responseTrigger.submitResponse(new BasicResponseProducer(response, entityProducer), context);
 
     }
 

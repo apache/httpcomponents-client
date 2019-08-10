@@ -14,12 +14,13 @@
 # limitations under the License.
 
 language: java
+dist: trusty
 sudo: false
 
 jdk:
   - openjdk7
   - oraclejdk8
-  - oraclejdk9
+  - openjdk11
 
 after_success:
   - mvn clean cobertura:cobertura coveralls:report

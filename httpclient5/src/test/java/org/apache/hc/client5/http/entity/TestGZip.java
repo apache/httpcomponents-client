@@ -41,6 +41,7 @@ import org.apache.hc.core5.http.io.entity.InputStreamEntity;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.junit.Assert;
 import org.junit.Test;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
 public class TestGZip {
@@ -48,8 +49,7 @@ public class TestGZip {
     @Test
     public void testBasic() throws Exception {
         final String s = "some kind of text";
-        final StringEntity e = new StringEntity(s, ContentType.TEXT_PLAIN);
-        e.setChunked(false);
+        final StringEntity e = new StringEntity(s, ContentType.TEXT_PLAIN, false);
         final GzipCompressingEntity gzipe = new GzipCompressingEntity(e);
         Assert.assertTrue(gzipe.isChunked());
         Assert.assertEquals(-1, gzipe.getContentLength());
@@ -63,7 +63,7 @@ public class TestGZip {
         final GzipCompressingEntity gzipe = new GzipCompressingEntity(in);
         final ByteArrayOutputStream buf = new ByteArrayOutputStream();
         gzipe.writeTo(buf);
-        final ByteArrayEntity out = new ByteArrayEntity(buf.toByteArray());
+        final ByteArrayEntity out = new ByteArrayEntity(buf.toByteArray(), ContentType.APPLICATION_OCTET_STREAM);
         final GzipDecompressingEntity gunzipe = new GzipDecompressingEntity(out);
         Assert.assertEquals("some kind of text", EntityUtils.toString(gunzipe, StandardCharsets.US_ASCII));
     }
@@ -71,7 +71,7 @@ public class TestGZip {
     @Test
     public void testCompressionIOExceptionLeavesOutputStreamOpen() throws Exception {
         final HttpEntity in = Mockito.mock(HttpEntity.class);
-        Mockito.doThrow(new IOException("Ooopsie")).when(in).writeTo(Mockito.<OutputStream>any());
+        Mockito.doThrow(new IOException("Ooopsie")).when(in).writeTo(ArgumentMatchers.<OutputStream>any());
         final GzipCompressingEntity gzipe = new GzipCompressingEntity(in);
         final OutputStream out = Mockito.mock(OutputStream.class);
         try {
@@ -95,7 +95,7 @@ public class TestGZip {
             bytes[i] = (byte) (data[i] & 0xff);
         }
 
-        try (final GzipDecompressingEntity entity = new GzipDecompressingEntity(new InputStreamEntity(new ByteArrayInputStream(bytes)))) {
+        try (final GzipDecompressingEntity entity = new GzipDecompressingEntity(new InputStreamEntity(new ByteArrayInputStream(bytes), ContentType.APPLICATION_OCTET_STREAM))) {
             Assert.assertEquals("stream-1\nstream-2\n", EntityUtils.toString(entity, StandardCharsets.US_ASCII));
         }
     }

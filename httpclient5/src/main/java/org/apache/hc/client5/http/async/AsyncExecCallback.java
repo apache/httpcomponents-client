@@ -33,12 +33,50 @@ import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.nio.AsyncDataConsumer;
 
+/**
+ * AsyncExecCallback methods represent response processing events
+ * in the client side request execution chain.
+ *
+ * @since 5.0
+ */
 public interface AsyncExecCallback {
 
-    AsyncDataConsumer handleResponse(HttpResponse response, EntityDetails entityDetails) throws HttpException, IOException;
+    /**
+     * Triggered to signal receipt of a response message head sent by the server
+     * in response to the request being executed.
+     *
+     * @param response the response message head.
+     * @param entityDetails the response entity details or {@code null} if the response
+     *                      does not enclose an entity.
+     * @return the data consumer to be used for processing of incoming response message body.
+     */
+    AsyncDataConsumer handleResponse(
+            HttpResponse response,
+            EntityDetails entityDetails) throws HttpException, IOException;
 
+    /**
+     * Triggered to signal receipt of an intermediate response message.
+     *
+     * @param response the intermediate response message.
+     */
+    void handleInformationResponse(HttpResponse response) throws HttpException, IOException;
+
+    /**
+     * Triggered to signal completion of the message exchange.
+     * <p>
+     * Implementations of this message are expected to perform resource deallocation
+     * allocated in the course of the request execution and response processing.
+     * </p>
+     */
     void completed();
 
+    /**
+     * Triggered to signal a failure occurred during the message exchange.
+     * <p>
+     * Implementations of this message are expected to perform resource deallocation
+     * allocated in the course of the request execution and response processing.
+     * </p>
+     */
     void failed(Exception cause);
 
 }

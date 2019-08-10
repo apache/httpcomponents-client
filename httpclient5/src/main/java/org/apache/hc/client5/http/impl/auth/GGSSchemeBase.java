@@ -57,6 +57,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * Common behavior for {@code GSS} based authentication schemes.
+ *
  * @since 4.2
  */
 public abstract class GGSSchemeBase implements AuthScheme {

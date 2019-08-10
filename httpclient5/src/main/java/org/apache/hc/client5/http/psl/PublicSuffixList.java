@@ -39,6 +39,7 @@ import org.apache.hc.core5.util.Args;
  * <p>
  * An up-to-date list of suffixes can be obtained from
  * <a href="http://publicsuffix.org/">publicsuffix.org</a>
+ * </p>
  *
  * @since 4.4
  */

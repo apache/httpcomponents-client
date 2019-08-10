@@ -29,6 +29,7 @@ package org.apache.hc.client5.http.impl.classic;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.hc.client5.http.classic.HttpClient;
@@ -40,8 +41,8 @@ import org.apache.hc.core5.http.io.HttpClientResponseHandler;
 import org.apache.hc.core5.http.protocol.HttpContext;
 
 /**
- * HttpAsyncClientWithFuture wraps calls to execute with a {@link HttpRequestFutureTask}
- * and schedules them using the provided executor service. Scheduled calls may be cancelled.
+ * This class schedules message execution execution and processing
+ * as {@link FutureTask}s with the provided {@link ExecutorService}.
  */
 @Contract(threading = ThreadingBehavior.SAFE_CONDITIONAL)
 public class FutureRequestExecutionService implements Closeable {
@@ -82,7 +83,7 @@ public class FutureRequestExecutionService implements Closeable {
      *            handler that will process the response.
      * @return HttpAsyncClientFutureTask for the scheduled request.
      */
-    public <T> HttpRequestFutureTask<T> execute(
+    public <T> FutureTask<T> execute(
             final ClassicHttpRequest request,
             final HttpContext context,
             final HttpClientResponseHandler<T> HttpClientResponseHandler) {
@@ -105,7 +106,7 @@ public class FutureRequestExecutionService implements Closeable {
      *            started, completed, failed, or cancelled.
      * @return HttpAsyncClientFutureTask for the scheduled request.
      */
-    public <T> HttpRequestFutureTask<T> execute(
+    public <T> FutureTask<T> execute(
             final ClassicHttpRequest request,
             final HttpContext context,
             final HttpClientResponseHandler<T> HttpClientResponseHandler,

@@ -34,11 +34,11 @@ import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.core5.function.Decorator;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.URIScheme;
-import org.apache.hc.core5.http.config.H1Config;
+import org.apache.hc.core5.http.config.Http1Config;
 import org.apache.hc.core5.http.nio.AsyncServerExchangeHandler;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
 import org.apache.hc.core5.http2.config.H2Config;
-import org.apache.hc.core5.io.ShutdownType;
+import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.reactor.ListenerEndpoint;
 import org.junit.Rule;
 import org.junit.rules.ExternalResource;
@@ -63,7 +63,7 @@ public abstract class AbstractIntegrationTestBase<T extends CloseableHttpAsyncCl
         @Override
         protected void after() {
             if (httpclient != null) {
-                httpclient.shutdown(ShutdownType.GRACEFUL);
+                httpclient.close(CloseMode.GRACEFUL);
                 httpclient = null;
             }
         }
@@ -75,19 +75,19 @@ public abstract class AbstractIntegrationTestBase<T extends CloseableHttpAsyncCl
     public final HttpHost start(
             final HttpProcessor httpProcessor,
             final Decorator<AsyncServerExchangeHandler> exchangeHandlerDecorator,
-            final H1Config h1Config) throws Exception {
+            final Http1Config h1Config) throws Exception {
         server.start(httpProcessor, exchangeHandlerDecorator, h1Config);
         final Future<ListenerEndpoint> endpointFuture = server.listen(new InetSocketAddress(0));
         httpclient = createClient();
         httpclient.start();
         final ListenerEndpoint endpoint = endpointFuture.get();
         final InetSocketAddress address = (InetSocketAddress) endpoint.getAddress();
-        return new HttpHost("localhost", address.getPort(), scheme.name());
+        return new HttpHost(scheme.name(), "localhost", address.getPort());
     }
 
     public final HttpHost start(
             final HttpProcessor httpProcessor,
-            final H1Config h1Config) throws Exception {
+            final Http1Config h1Config) throws Exception {
         return start(httpProcessor, null, h1Config);
     }
 
@@ -101,7 +101,7 @@ public abstract class AbstractIntegrationTestBase<T extends CloseableHttpAsyncCl
         httpclient.start();
         final ListenerEndpoint endpoint = endpointFuture.get();
         final InetSocketAddress address = (InetSocketAddress) endpoint.getAddress();
-        return new HttpHost("localhost", address.getPort(), scheme.name());
+        return new HttpHost(scheme.name(), "localhost", address.getPort());
     }
 
 

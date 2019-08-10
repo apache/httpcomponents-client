@@ -29,6 +29,8 @@ package org.apache.hc.client5.http.protocol;
 
 import java.net.URI;
 
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
@@ -42,9 +44,11 @@ import org.apache.hc.core5.http.protocol.HttpContext;
  * Implementations of this interface must be thread-safe. Access to shared
  * data must be synchronized as methods of this interface may be executed
  * from multiple threads.
+ * </p>
  *
  * @since 4.1
  */
+@Contract(threading = ThreadingBehavior.STATELESS)
 public interface RedirectStrategy {
 
     /**

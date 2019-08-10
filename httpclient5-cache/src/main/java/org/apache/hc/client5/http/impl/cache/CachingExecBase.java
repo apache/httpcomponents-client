@@ -51,6 +51,7 @@ import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.ProtocolVersion;
+import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.message.MessageSupport;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.VersionInfo;
@@ -145,9 +146,8 @@ public class CachingExecBase {
         if (fatalError != null && !fatalError.isEmpty()) {
             setResponseStatus(context, CacheResponseStatus.CACHE_MODULE_RESPONSE);
             return responseGenerator.getErrorForRequest(fatalError.get(0));
-        } else {
-            return null;
         }
+        return null;
     }
 
     void recordCacheMiss(final HttpHost target, final HttpRequest request) {
@@ -281,7 +281,7 @@ public class CachingExecBase {
         final String value;
         final int major = pv.getMajor();
         final int minor = pv.getMinor();
-        if ("http".equalsIgnoreCase(pv.getProtocol())) {
+        if (URIScheme.HTTP.same(pv.getProtocol())) {
             value = String.format("%d.%d localhost (Apache-HttpClient/%s (cache))", major, minor,
                     release);
         } else {

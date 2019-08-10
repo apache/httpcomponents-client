@@ -38,7 +38,7 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
  *
  * @since 5.0
  */
-@Contract(threading = ThreadingBehavior.IMMUTABLE)
+@Contract(threading = ThreadingBehavior.STATELESS)
 public class DeflateInputStreamFactory implements InputStreamFactory {
 
     /**

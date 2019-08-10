@@ -26,27 +26,8 @@
  */
 
 /**
- * Default HTTP client implementation.
- * <p>
- * The usual execution flow can be demonstrated by the code snippet below:
- * </p>
- * <pre>
- * CloseableHttpClient httpclient = HttpClients.createDefault();
- * try {
- *      HttpGet httpGet = new HttpGet("http://targethost/homepage");
- *      CloseableHttpResponse response = httpclient.execute(httpGet);
- *      try {
- *          System.out.println(response.getStatusLine());
- *          HttpEntity entity = response.getEntity();
- *          // do something useful with the response body
- *          // and ensure it is fully consumed
- *          EntityUtils.consume(entity);
- *      } finally {
- *          response.close();
- *      }
- * } finally {
- *      httpclient.close();
- * }
- * </pre>
+ * Classic HTTP client API implementation that supports HTTP/1.1 transport
+ * only. This implementation is mostly API compatible with HttpClient 4.5.
+ * Please use the asynchronous client API implementation for HTTP/2 transport.
  */
 package org.apache.hc.client5.http.impl.classic;

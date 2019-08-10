@@ -58,7 +58,7 @@ public class MinimalField {
         this.name = name;
         this.value = value;
         this.parameters = parameters != null ?
-                Collections.unmodifiableList(new ArrayList<NameValuePair>(parameters)) : Collections.<NameValuePair>emptyList();
+                Collections.unmodifiableList(new ArrayList<>(parameters)) : Collections.<NameValuePair>emptyList();
     }
 
     public MinimalField(final MinimalField from) {

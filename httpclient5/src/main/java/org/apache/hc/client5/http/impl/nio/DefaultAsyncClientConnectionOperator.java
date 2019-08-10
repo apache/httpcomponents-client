@@ -38,7 +38,6 @@ import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
 import org.apache.hc.client5.http.nio.AsyncClientConnectionOperator;
 import org.apache.hc.client5.http.nio.ManagedAsyncClientConnection;
 import org.apache.hc.client5.http.routing.RoutingSupport;
-import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.concurrent.ComplexFuture;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.HttpHost;
@@ -47,14 +46,8 @@ import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
 import org.apache.hc.core5.reactor.ConnectionInitiator;
 import org.apache.hc.core5.reactor.IOSession;
 import org.apache.hc.core5.util.Args;
-import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 
-/**
- * Default {@link AsyncClientConnectionOperator} implementation.
- *
- * @since 5.0
- */
-@Internal
 final class DefaultAsyncClientConnectionOperator implements AsyncClientConnectionOperator {
 
     private final SchemePortResolver schemePortResolver;
@@ -75,7 +68,7 @@ final class DefaultAsyncClientConnectionOperator implements AsyncClientConnectio
             final ConnectionInitiator connectionInitiator,
             final HttpHost host,
             final SocketAddress localAddress,
-            final TimeValue connectTimeout,
+            final Timeout connectTimeout,
             final Object attachment,
             final FutureCallback<ManagedAsyncClientConnection> callback) {
         Args.notNull(connectionInitiator, "Connection initiator");
@@ -102,7 +95,8 @@ final class DefaultAsyncClientConnectionOperator implements AsyncClientConnectio
                                     host,
                                     session.getLocalAddress(),
                                     session.getRemoteAddress(),
-                                    attachment);
+                                    attachment,
+                                    connectTimeout);
                         }
                         future.completed(connection);
                     }
@@ -131,7 +125,8 @@ final class DefaultAsyncClientConnectionOperator implements AsyncClientConnectio
                     host,
                     connection.getLocalAddress(),
                     connection.getRemoteAddress(),
-                    attachment);
+                    attachment,
+                    null);
         }
 
     }

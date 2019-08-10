@@ -29,21 +29,10 @@ package org.apache.hc.client5.http.classic.methods;
 
 import java.net.URI;
 
+import org.apache.hc.core5.http.HttpEntity;
+
 /**
  * HTTP TRACE method.
- * <p>
- * The HTTP TRACE method is defined in section 9.6 of
- * <a href="http://www.ietf.org/rfc/rfc2616.txt">RFC2616</a>:
- * </p>
- * <blockquote>
- *  The TRACE method is used to invoke a remote, application-layer loop-
- *  back of the request message. The final recipient of the request
- *  SHOULD reflect the message received back to the client as the
- *  entity-body of a 200 (OK) response. The final recipient is either the
- *  origin server or the first proxy or gateway to receive a Max-Forwards
- *  value of zero (0) in the request (see section 14.31). A TRACE request
- *  MUST NOT include an entity.
- * </blockquote>
  *
  * @since 4.0
  */
@@ -53,15 +42,29 @@ public class HttpTrace extends HttpUriRequestBase {
 
     public final static String METHOD_NAME = "TRACE";
 
+    /**
+     * Creates a new instance initialized with the given URI.
+     *
+     * @param uri a non-null request URI.
+     * @throws IllegalArgumentException if the uri is null.
+     */
     public HttpTrace(final URI uri) {
         super(METHOD_NAME, uri);
     }
 
     /**
+     * Creates a new instance initialized with the given URI.
+     *
+     * @param uri a non-null request URI.
      * @throws IllegalArgumentException if the uri is invalid.
      */
     public HttpTrace(final String uri) {
         this(URI.create(uri));
+    }
+
+    @Override
+    public void setEntity(final HttpEntity entity) {
+        throw new IllegalStateException(METHOD_NAME + " requests may not include an entity.");
     }
 
 }

@@ -36,7 +36,7 @@ import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.KerberosConfig;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
-import org.apache.hc.client5.http.config.AuthSchemes;
+import org.apache.hc.client5.http.auth.AuthSchemes;
 import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
 import org.apache.hc.client5.http.impl.auth.SPNegoScheme;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
@@ -160,7 +160,7 @@ public class TestSPNegoScheme extends LocalServerTestBase {
         credentialsProvider.setCredentials(new AuthScope(null, null, -1, null, null), use_jaas_creds);
 
         final Registry<AuthSchemeProvider> authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
-            .register(AuthSchemes.SPNEGO, nsf)
+            .register(AuthSchemes.SPNEGO.ident, nsf)
             .build();
         this.httpclient = HttpClients.custom()
             .setDefaultAuthSchemeRegistry(authSchemeRegistry)
@@ -191,7 +191,7 @@ public class TestSPNegoScheme extends LocalServerTestBase {
         credentialsProvider.setCredentials(new AuthScope(null, null, -1, null, null), use_jaas_creds);
 
         final Registry<AuthSchemeProvider> authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
-            .register(AuthSchemes.SPNEGO, nsf)
+            .register(AuthSchemes.SPNEGO.ident, nsf)
             .build();
         this.httpclient = HttpClients.custom()
             .setDefaultAuthSchemeRegistry(authSchemeRegistry)

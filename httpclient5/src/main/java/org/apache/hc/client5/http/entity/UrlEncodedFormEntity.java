@@ -27,7 +27,6 @@
 package org.apache.hc.client5.http.entity;
 
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import org.apache.hc.core5.http.ContentType;
@@ -52,17 +51,18 @@ public class UrlEncodedFormEntity extends StringEntity {
      *
      * @since 4.2
      */
-    public UrlEncodedFormEntity (
-        final Iterable <? extends NameValuePair> parameters,
-        final Charset charset) {
-        super(URLEncodedUtils.format(parameters,
-                charset != null ? charset : StandardCharsets.ISO_8859_1),
-                ContentType.create(URLEncodedUtils.CONTENT_TYPE, charset));
+    public UrlEncodedFormEntity(
+            final Iterable<? extends NameValuePair> parameters,
+            final Charset charset) {
+        super(URLEncodedUtils.format(
+                parameters,
+                charset != null ? charset : ContentType.APPLICATION_FORM_URLENCODED.getCharset()),
+                charset != null ? ContentType.APPLICATION_FORM_URLENCODED.withCharset(charset) : ContentType.APPLICATION_FORM_URLENCODED);
     }
 
     /**
      * Constructs a new {@link UrlEncodedFormEntity} with the list
-     * of parameters with the default encoding of {@link StandardCharsets#ISO_8859_1}
+     * of parameters with the default encoding of {@link ContentType#APPLICATION_FORM_URLENCODED}
      *
      * @param parameters list of name/value pairs
      */
@@ -72,7 +72,7 @@ public class UrlEncodedFormEntity extends StringEntity {
 
     /**
      * Constructs a new {@link UrlEncodedFormEntity} with the list
-     * of parameters with the default encoding of {@link StandardCharsets#ISO_8859_1}
+     * of parameters with the default encoding of {@link ContentType#APPLICATION_FORM_URLENCODED}
      *
      * @param parameters iterable collection of name/value pairs
      *

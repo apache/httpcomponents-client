@@ -31,32 +31,30 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.security.cert.Certificate;
-import java.security.cert.X509Certificate;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import javax.net.SocketFactory;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
-import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
-import javax.security.auth.x500.X500Principal;
 
-import org.apache.hc.client5.http.psl.PublicSuffixMatcherLoader;
 import org.apache.hc.client5.http.socket.LayeredConnectionSocketFactory;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.http.ssl.TLS;
+import org.apache.hc.core5.http.ssl.TlsCiphers;
+import org.apache.hc.core5.io.Closer;
 import org.apache.hc.core5.ssl.SSLContexts;
 import org.apache.hc.core5.ssl.SSLInitializationException;
 import org.apache.hc.core5.util.Args;
-import org.apache.hc.core5.util.TextUtils;
 import org.apache.hc.core5.util.TimeValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,90 +64,22 @@ import org.slf4j.LoggerFactory;
  * <p>
  * SSLSocketFactory can be used to validate the identity of the HTTPS server against a list of
  * trusted certificates and to authenticate to the HTTPS server using a private key.
- * <p>
- * SSLSocketFactory will enable server authentication when supplied with
- * a {@link java.security.KeyStore trust-store} file containing one or several trusted certificates. The client
- * secure socket will reject the connection during the SSL session handshake if the target HTTPS
- * server attempts to authenticate itself with a non-trusted certificate.
- * <p>
- * Use JDK keytool utility to import a trusted certificate and generate a trust-store file:
- *    <pre>
- *     keytool -import -alias "my server cert" -file server.crt -keystore my.truststore
- *    </pre>
- * <p>
- * In special cases the standard trust verification process can be bypassed by using a custom
- * {@link org.apache.hc.core5.ssl.TrustStrategy}. This interface is primarily intended for allowing self-signed
- * certificates to be accepted as trusted without having to add them to the trust-store file.
- * <p>
- * SSLSocketFactory will enable client authentication when supplied with
- * a {@link java.security.KeyStore key-store} file containing a private key/public certificate
- * pair. The client secure socket will use the private key to authenticate
- * itself to the target HTTPS server during the SSL session handshake if
- * requested to do so by the server.
- * The target HTTPS server will in its turn verify the certificate presented
- * by the client in order to establish client's authenticity.
- * <p>
- * Use the following sequence of actions to generate a key-store file
- * </p>
- *   <ul>
- *     <li>
- *      <p>
- *      Use JDK keytool utility to generate a new key
- *      </p>
- *      <pre>keytool -genkey -v -alias "my client key" -validity 365 -keystore my.keystore</pre>
- *      <p>
- *      For simplicity use the same password for the key as that of the key-store
- *      </p>
- *     </li>
- *     <li>
- *      <p>
- *      Issue a certificate signing request (CSR)
- *      </p>
- *      <pre>keytool -certreq -alias "my client key" -file mycertreq.csr -keystore my.keystore</pre>
- *     </li>
- *     <li>
- *      <p>
- *      Send the certificate request to the trusted Certificate Authority for signature.
- *      One may choose to act as her own CA and sign the certificate request using a PKI
- *      tool, such as OpenSSL.
- *      </p>
- *     </li>
- *     <li>
- *      <p>
- *       Import the trusted CA root certificate
- *      </p>
- *       <pre>keytool -import -alias "my trusted ca" -file caroot.crt -keystore my.keystore</pre>
- *     </li>
- *     <li>
- *       <p>
- *       Import the PKCS#7 file containing the complete certificate chain
- *       </p>
- *       <pre>keytool -import -alias "my client key" -file mycert.p7 -keystore my.keystore</pre>
- *     </li>
- *     <li>
- *       <p>
- *       Verify the content of the resultant keystore file
- *       </p>
- *       <pre>keytool -list -v -keystore my.keystore</pre>
- *     </li>
- *   </ul>
  *
  * @since 4.3
  */
-@Contract(threading = ThreadingBehavior.SAFE)
+@Contract(threading = ThreadingBehavior.STATELESS)
 public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactory {
 
-    public static final String TLS   = "TLS";
-    public static final String SSL   = "SSL";
+    private static final String WEAK_KEY_EXCHANGES
+            = "^(TLS|SSL)_(NULL|ECDH_anon|DH_anon|DH_anon_EXPORT|DHE_RSA_EXPORT|DHE_DSS_EXPORT|"
+            + "DSS_EXPORT|DH_DSS_EXPORT|DH_RSA_EXPORT|RSA_EXPORT|KRB5_EXPORT)_(.*)";
+    private static final String WEAK_CIPHERS
+            = "^(TLS|SSL)_(.*)_WITH_(NULL|DES_CBC|DES40_CBC|DES_CBC_40|3DES_EDE_CBC|RC4_128|RC4_40|RC2_CBC_40)_(.*)";
+    private static final List<Pattern> WEAK_CIPHER_SUITE_PATTERNS = Collections.unmodifiableList(Arrays.asList(
+            Pattern.compile(WEAK_KEY_EXCHANGES, Pattern.CASE_INSENSITIVE),
+            Pattern.compile(WEAK_CIPHERS, Pattern.CASE_INSENSITIVE)));
 
     private final Logger log = LoggerFactory.getLogger(getClass());
-
-    /**
-     * @since 4.4
-     */
-    public static HostnameVerifier getDefaultHostnameVerifier() {
-        return new DefaultHostnameVerifier(PublicSuffixMatcherLoader.getDefault());
-    }
 
     /**
      * Obtains default SSL socket factory with an SSL context based on the standard JSSE
@@ -159,14 +89,7 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
      * @return default SSL socket factory
      */
     public static SSLConnectionSocketFactory getSocketFactory() throws SSLInitializationException {
-        return new SSLConnectionSocketFactory(SSLContexts.createDefault(), getDefaultHostnameVerifier());
-    }
-
-    private static String[] split(final String s) {
-        if (TextUtils.isBlank(s)) {
-            return null;
-        }
-        return s.split(" *, *");
+        return new SSLConnectionSocketFactory(SSLContexts.createDefault(), HttpsSupport.getDefaultHostnameVerifier());
     }
 
     /**
@@ -179,19 +102,29 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
      */
     public static SSLConnectionSocketFactory getSystemSocketFactory() throws SSLInitializationException {
         return new SSLConnectionSocketFactory(
-            (javax.net.ssl.SSLSocketFactory) javax.net.ssl.SSLSocketFactory.getDefault(),
-            split(System.getProperty("https.protocols")),
-            split(System.getProperty("https.cipherSuites")),
-            getDefaultHostnameVerifier());
+                (javax.net.ssl.SSLSocketFactory) javax.net.ssl.SSLSocketFactory.getDefault(),
+                HttpsSupport.getSystemProtocols(),
+                HttpsSupport.getSystemCipherSuits(),
+                HttpsSupport.getDefaultHostnameVerifier());
+    }
+
+    static boolean isWeakCipherSuite(final String cipherSuite) {
+        for (final Pattern pattern : WEAK_CIPHER_SUITE_PATTERNS) {
+            if (pattern.matcher(cipherSuite).matches()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private final javax.net.ssl.SSLSocketFactory socketfactory;
     private final HostnameVerifier hostnameVerifier;
     private final String[] supportedProtocols;
     private final String[] supportedCipherSuites;
+    private final TlsSessionValidator tlsSessionValidator;
 
     public SSLConnectionSocketFactory(final SSLContext sslContext) {
-        this(sslContext, getDefaultHostnameVerifier());
+        this(sslContext, HttpsSupport.getDefaultHostnameVerifier());
     }
 
     /**
@@ -235,7 +168,8 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
         this.socketfactory = Args.notNull(socketfactory, "SSL socket factory");
         this.supportedProtocols = supportedProtocols;
         this.supportedCipherSuites = supportedCipherSuites;
-        this.hostnameVerifier = hostnameVerifier != null ? hostnameVerifier : getDefaultHostnameVerifier();
+        this.hostnameVerifier = hostnameVerifier != null ? hostnameVerifier : HttpsSupport.getDefaultHostnameVerifier();
+        this.tlsSessionValidator = new TlsSessionValidator(log);
     }
 
     /**
@@ -277,10 +211,7 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
             }
             sock.connect(remoteAddress, connectTimeout != null ? connectTimeout.toMillisIntBound() : 0);
         } catch (final IOException ex) {
-            try {
-                sock.close();
-            } catch (final IOException ignore) {
-            }
+            Closer.closeQuietly(sock);
             throw ex;
         }
         // Setup SSL layering if necessary
@@ -290,9 +221,8 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
             sslsock.startHandshake();
             verifyHostname(sslsock, host.getHostName());
             return sock;
-        } else {
-            return createLayeredSocket(sock, host.getHostName(), remoteAddress.getPort(), context);
         }
+        return createLayeredSocket(sock, host.getHostName(), remoteAddress.getPort(), context);
     }
 
     @Override
@@ -309,20 +239,12 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
         if (supportedProtocols != null) {
             sslsock.setEnabledProtocols(supportedProtocols);
         } else {
-            // If supported protocols are not explicitly set, remove all SSL protocol versions
-            final String[] allProtocols = sslsock.getEnabledProtocols();
-            final List<String> enabledProtocols = new ArrayList<>(allProtocols.length);
-            for (final String protocol: allProtocols) {
-                if (!protocol.startsWith("SSL")) {
-                    enabledProtocols.add(protocol);
-                }
-            }
-            if (!enabledProtocols.isEmpty()) {
-                sslsock.setEnabledProtocols(enabledProtocols.toArray(new String[enabledProtocols.size()]));
-            }
+            sslsock.setEnabledProtocols((TLS.excludeWeak(sslsock.getEnabledProtocols())));
         }
         if (supportedCipherSuites != null) {
             sslsock.setEnabledCipherSuites(supportedCipherSuites);
+        } else {
+            sslsock.setEnabledCipherSuites(TlsCiphers.excludeWeak(sslsock.getEnabledCipherSuites()));
         }
 
         if (this.log.isDebugEnabled()) {
@@ -359,63 +281,18 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
             if (session == null) {
                 throw new SSLHandshakeException("SSL session not available");
             }
-
-            if (this.log.isDebugEnabled()) {
-                this.log.debug("Secure session established");
-                this.log.debug(" negotiated protocol: " + session.getProtocol());
-                this.log.debug(" negotiated cipher suite: " + session.getCipherSuite());
-
-                try {
-
-                    final Certificate[] certs = session.getPeerCertificates();
-                    final X509Certificate x509 = (X509Certificate) certs[0];
-                    final X500Principal peer = x509.getSubjectX500Principal();
-
-                    this.log.debug(" peer principal: " + peer.toString());
-                    final Collection<List<?>> altNames1 = x509.getSubjectAlternativeNames();
-                    if (altNames1 != null) {
-                        final List<String> altNames = new ArrayList<>();
-                        for (final List<?> aC : altNames1) {
-                            if (!aC.isEmpty()) {
-                                altNames.add((String) aC.get(1));
-                            }
-                        }
-                        this.log.debug(" peer alternative names: " + altNames);
-                    }
-
-                    final X500Principal issuer = x509.getIssuerX500Principal();
-                    this.log.debug(" issuer principal: " + issuer.toString());
-                    final Collection<List<?>> altNames2 = x509.getIssuerAlternativeNames();
-                    if (altNames2 != null) {
-                        final List<String> altNames = new ArrayList<>();
-                        for (final List<?> aC : altNames2) {
-                            if (!aC.isEmpty()) {
-                                altNames.add((String) aC.get(1));
-                            }
-                        }
-                        this.log.debug(" issuer alternative names: " + altNames);
-                    }
-                } catch (final Exception ignore) {
-                }
-            }
-
-            if (this.hostnameVerifier instanceof HttpClientHostnameVerifier) {
-                final Certificate[] certs = session.getPeerCertificates();
-                final X509Certificate x509 = (X509Certificate) certs[0];
-                ((HttpClientHostnameVerifier) this.hostnameVerifier).verify(hostname, x509);
-            } else if (!this.hostnameVerifier.verify(hostname, session)) {
-                final Certificate[] certs = session.getPeerCertificates();
-                final X509Certificate x509 = (X509Certificate) certs[0];
-                final List<SubjectName> subjectAlts = DefaultHostnameVerifier.getSubjectAltNames(x509);
-                throw new SSLPeerUnverifiedException("Certificate for <" + hostname + "> doesn't match any " +
-                        "of the subject alternative names: " + subjectAlts);
-            }
-            // verifyHostName() didn't blowup - good!
+            verifySession(hostname, session);
         } catch (final IOException iox) {
             // close the socket before re-throwing the exception
-            try { sslsock.close(); } catch (final Exception x) { /*ignore*/ }
+            Closer.closeQuietly(sslsock);
             throw iox;
         }
+    }
+
+    protected void verifySession(
+            final String hostname,
+            final SSLSession sslsession) throws SSLException {
+        tlsSessionValidator.verifySession(hostname, sslsession, hostnameVerifier);
     }
 
 }

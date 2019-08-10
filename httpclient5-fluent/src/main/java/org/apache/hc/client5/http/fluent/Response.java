@@ -43,6 +43,11 @@ import org.apache.hc.core5.http.io.HttpClientResponseHandler;
 import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 
+/**
+ * HTTP response used by the fluent facade.
+ *
+ * @since 4.2
+ */
 public class Response {
 
     private final ClassicHttpResponse response;
@@ -106,9 +111,7 @@ public class Response {
             final HttpEntity entity = this.response.getEntity();
             if (entity != null) {
                 final ByteArrayEntity byteArrayEntity = new ByteArrayEntity(
-                        EntityUtils.toByteArray(entity));
-                final ContentType contentType = EntityUtils.getContentTypeOrDefault(entity);
-                byteArrayEntity.setContentType(contentType.toString());
+                        EntityUtils.toByteArray(entity), ContentType.parse(entity.getContentType()));
                 this.response.setEntity(byteArrayEntity);
             }
             return this.response;

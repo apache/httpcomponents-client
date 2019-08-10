@@ -32,38 +32,41 @@ import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.ByteChannel;
 import java.nio.channels.SelectionKey;
+import java.util.concurrent.locks.Lock;
 
 import javax.net.ssl.SSLContext;
 
 import org.apache.hc.client5.http.impl.Wire;
-import org.apache.hc.core5.io.ShutdownType;
+import org.apache.hc.core5.io.CloseMode;
+import org.apache.hc.core5.net.NamedEndpoint;
 import org.apache.hc.core5.reactor.Command;
 import org.apache.hc.core5.reactor.IOEventHandler;
-import org.apache.hc.core5.reactor.TlsCapableIOSession;
-import org.apache.hc.core5.reactor.ssl.SSLBufferManagement;
+import org.apache.hc.core5.reactor.ProtocolIOSession;
+import org.apache.hc.core5.reactor.ssl.SSLBufferMode;
 import org.apache.hc.core5.reactor.ssl.SSLSessionInitializer;
 import org.apache.hc.core5.reactor.ssl.SSLSessionVerifier;
 import org.apache.hc.core5.reactor.ssl.TlsDetails;
+import org.apache.hc.core5.util.Timeout;
 import org.slf4j.Logger;
 
-class LoggingIOSession implements TlsCapableIOSession {
+class LoggingIOSession implements ProtocolIOSession {
 
     private final Logger log;
-    private final Wire wirelog;
+    private final Wire wireLog;
     private final String id;
-    private final TlsCapableIOSession session;
+    private final ProtocolIOSession session;
     private final ByteChannel channel;
 
-    public LoggingIOSession(final TlsCapableIOSession session, final String id, final Logger log, final Logger wirelog) {
+    public LoggingIOSession(final ProtocolIOSession session, final String id, final Logger log, final Logger wireLog) {
         super();
         this.session = session;
         this.id = id;
         this.log = log;
-        this.wirelog = new Wire(wirelog, this.id);
+        this.wireLog = new Wire(wireLog, this.id);
         this.channel = new LoggingByteChannel();
     }
 
-    public LoggingIOSession(final TlsCapableIOSession session, final String id, final Logger log) {
+    public LoggingIOSession(final ProtocolIOSession session, final String id, final Logger log) {
         this(session, id, log, null);
     }
 
@@ -73,18 +76,23 @@ class LoggingIOSession implements TlsCapableIOSession {
     }
 
     @Override
-    public void addLast(final Command command) {
-        this.session.addLast(command);
+    public Lock getLock() {
+        return this.session.getLock();
     }
 
     @Override
-    public void addFirst(final Command command) {
-        this.session.addFirst(command);
+    public boolean hasCommands() {
+        return this.session.hasCommands();
     }
 
     @Override
-    public Command getCommand() {
-        return this.session.getCommand();
+    public Command poll() {
+        return this.session.poll();
+    }
+
+    @Override
+    public void enqueue(final Command command, final Command.Priority priority) {
+        this.session.enqueue(command, priority);
     }
 
     @Override
@@ -169,20 +177,20 @@ class LoggingIOSession implements TlsCapableIOSession {
     }
 
     @Override
-    public void shutdown(final ShutdownType shutdownType) {
+    public void close(final CloseMode closeMode) {
         if (this.log.isDebugEnabled()) {
-            this.log.debug(this.id + " " + this.session + ": Shutdown " + shutdownType);
+            this.log.debug(this.id + " " + this.session + ": Close " + closeMode);
         }
-        this.session.shutdown(shutdownType);
+        this.session.close(closeMode);
     }
 
     @Override
-    public int getSocketTimeout() {
+    public Timeout getSocketTimeout() {
         return this.session.getSocketTimeout();
     }
 
     @Override
-    public void setSocketTimeout(final int timeout) {
+    public void setSocketTimeout(final Timeout timeout) {
         if (this.log.isDebugEnabled()) {
             this.log.debug(this.id + " " + this.session + ": Set timeout " + timeout);
         }
@@ -210,27 +218,39 @@ class LoggingIOSession implements TlsCapableIOSession {
     }
 
     @Override
+    public long getLastEventTime() {
+        return this.session.getLastEventTime();
+    }
+
+    @Override
     public IOEventHandler getHandler() {
         return this.session.getHandler();
     }
 
     @Override
-    public void setHandler(final IOEventHandler handler) {
-        this.session.setHandler(handler);
+    public void upgrade(final IOEventHandler handler) {
+        this.session.upgrade(handler);
     }
 
     @Override
     public void startTls(
             final SSLContext sslContext,
-            final SSLBufferManagement sslBufferManagement,
+            final NamedEndpoint endpoint,
+            final SSLBufferMode sslBufferMode,
             final SSLSessionInitializer initializer,
-            final SSLSessionVerifier verifier) throws UnsupportedOperationException {
-        session.startTls(sslContext, sslBufferManagement, initializer, verifier);
+            final SSLSessionVerifier verifier,
+            final Timeout handshakeTimeout) throws UnsupportedOperationException {
+        session.startTls(sslContext, endpoint, sslBufferMode, initializer, verifier, handshakeTimeout);
     }
 
     @Override
     public TlsDetails getTlsDetails() {
         return session.getTlsDetails();
+    }
+
+    @Override
+    public NamedEndpoint getInitialEndpoint() {
+        return session.getInitialEndpoint();
     }
 
     @Override
@@ -246,12 +266,12 @@ class LoggingIOSession implements TlsCapableIOSession {
             if (log.isDebugEnabled()) {
                 log.debug(id + " " + session + ": " + bytesRead + " bytes read");
             }
-            if (bytesRead > 0 && wirelog.isEnabled()) {
+            if (bytesRead > 0 && wireLog.isEnabled()) {
                 final ByteBuffer b = dst.duplicate();
                 final int p = b.position();
                 b.limit(p);
                 b.position(p - bytesRead);
-                wirelog.input(b);
+                wireLog.input(b);
             }
             return bytesRead;
         }
@@ -262,12 +282,12 @@ class LoggingIOSession implements TlsCapableIOSession {
             if (log.isDebugEnabled()) {
                 log.debug(id + " " + session + ": " + byteWritten + " bytes written");
             }
-            if (byteWritten > 0 && wirelog.isEnabled()) {
+            if (byteWritten > 0 && wireLog.isEnabled()) {
                 final ByteBuffer b = src.duplicate();
                 final int p = b.position();
                 b.limit(p);
                 b.position(p - byteWritten);
-                wirelog.output(b);
+                wireLog.output(b);
             }
             return byteWritten;
         }

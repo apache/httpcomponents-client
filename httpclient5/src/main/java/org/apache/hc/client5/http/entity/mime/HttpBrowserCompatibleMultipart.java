@@ -38,20 +38,20 @@ import java.util.List;
  *
  * @since 4.3
  */
-class HttpBrowserCompatibleMultipart extends AbstractMultipartForm {
+class HttpBrowserCompatibleMultipart extends AbstractMultipartFormat {
 
-    private final List<FormBodyPart> parts;
+    private final List<MultipartPart> parts;
 
     public HttpBrowserCompatibleMultipart(
             final Charset charset,
             final String boundary,
-            final List<FormBodyPart> parts) {
+            final List<MultipartPart> parts) {
         super(charset, boundary);
         this.parts = parts;
     }
 
     @Override
-    public List<FormBodyPart> getBodyParts() {
+    public List<MultipartPart> getParts() {
         return this.parts;
     }
 
@@ -60,13 +60,15 @@ class HttpBrowserCompatibleMultipart extends AbstractMultipartForm {
       */
     @Override
     protected void formatMultipartHeader(
-            final FormBodyPart part,
+            final MultipartPart part,
             final OutputStream out) throws IOException {
         // For browser-compatible, only write Content-Disposition
         // Use content charset
         final Header header = part.getHeader();
         final MinimalField cd = header.getField(MIME.CONTENT_DISPOSITION);
-        writeField(cd, this.charset, out);
+        if (cd != null) {
+            writeField(cd, this.charset, out);
+        }
         final String filename = part.getBody().getFilename();
         if (filename != null) {
             final MinimalField ct = header.getField(MIME.CONTENT_TYPE);

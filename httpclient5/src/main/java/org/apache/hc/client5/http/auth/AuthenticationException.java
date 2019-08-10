@@ -31,7 +31,6 @@ import org.apache.hc.core5.http.ProtocolException;
 /**
  * Signals a failure in authentication process
  *
- *
  * @since 4.0
  */
 public class AuthenticationException extends ProtocolException {

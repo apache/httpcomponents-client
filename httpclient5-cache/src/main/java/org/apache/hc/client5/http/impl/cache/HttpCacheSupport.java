@@ -32,6 +32,7 @@ import java.net.URISyntaxException;
 import org.apache.hc.client5.http.utils.URIUtils;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.net.URIAuthority;
 import org.apache.hc.core5.net.URIBuilder;
 import org.apache.hc.core5.util.Args;
@@ -65,7 +66,7 @@ public final class HttpCacheSupport {
         final URIAuthority authority = request.getAuthority();
         if (authority != null) {
             final String scheme = request.getScheme();
-            buf.append(scheme != null ? scheme : "http").append("://");
+            buf.append(scheme != null ? scheme : URIScheme.HTTP.id).append("://");
             buf.append(authority.getHostName());
             if (authority.getPort() >= 0) {
                 buf.append(":").append(authority.getPort());
@@ -103,12 +104,12 @@ public final class HttpCacheSupport {
         final URIBuilder builder = new URIBuilder(requestUri.isAbsolute() ? URIUtils.resolve(BASE_URI, requestUri) : requestUri) ;
         if (builder.getHost() != null) {
             if (builder.getScheme() == null) {
-                builder.setScheme("http");
+                builder.setScheme(URIScheme.HTTP.id);
             }
             if (builder.getPort() <= -1) {
-                if ("http".equalsIgnoreCase(builder.getScheme())) {
+                if (URIScheme.HTTP.same(builder.getScheme())) {
                     builder.setPort(80);
-                } else if ("https".equalsIgnoreCase(builder.getScheme())) {
+                } else if (URIScheme.HTTPS.same(builder.getScheme())) {
                     builder.setPort(443);
                 }
             }

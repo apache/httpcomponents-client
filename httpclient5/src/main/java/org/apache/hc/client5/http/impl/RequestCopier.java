@@ -32,10 +32,16 @@ import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
 
+/**
+ * {@link HttpRequest} copier.
+ *
+ * @since 5.0
+ */
 public final class RequestCopier implements MessageCopier<HttpRequest> {
 
     public static final RequestCopier INSTANCE = new RequestCopier();
 
+    @Override
     public HttpRequest copy(final HttpRequest original) {
         if (original == null) {
             return null;

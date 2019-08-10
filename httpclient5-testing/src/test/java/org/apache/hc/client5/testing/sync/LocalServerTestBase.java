@@ -39,10 +39,11 @@ import org.apache.hc.client5.testing.classic.RandomHandler;
 import org.apache.hc.core5.function.Decorator;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.URIScheme;
-import org.apache.hc.core5.http.config.SocketConfig;
 import org.apache.hc.core5.http.io.HttpServerRequestHandler;
+import org.apache.hc.core5.http.io.SocketConfig;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
-import org.apache.hc.core5.io.ShutdownType;
+import org.apache.hc.core5.io.CloseMode;
+import org.apache.hc.core5.io.Closer;
 import org.apache.hc.core5.testing.classic.ClassicTestServer;
 import org.apache.hc.core5.util.Timeout;
 import org.junit.Rule;
@@ -86,7 +87,7 @@ public abstract class LocalServerTestBase {
         protected void after() {
             if (server != null) {
                 try {
-                    server.shutdown(ShutdownType.IMMEDIATE);
+                    server.shutdown(CloseMode.IMMEDIATE);
                     server = null;
                 } catch (final Exception ignore) {
                 }
@@ -110,21 +111,16 @@ public abstract class LocalServerTestBase {
                     .build());
             clientBuilder = HttpClientBuilder.create()
                     .setDefaultRequestConfig(RequestConfig.custom()
-                        .setConnectionTimeout(TIMEOUT)
-                        .setConnectionRequestTimeout(TIMEOUT)
-                        .build())
+                            .setConnectionRequestTimeout(TIMEOUT)
+                            .setConnectTimeout(TIMEOUT)
+                            .build())
                     .setConnectionManager(connManager);
         }
 
         @Override
         protected void after() {
-            if (httpclient != null) {
-                try {
-                    httpclient.close();
-                    httpclient = null;
-                } catch (final Exception ignore) {
-                }
-            }
+            Closer.closeQuietly(httpclient);
+            httpclient = null;
         }
 
     };
@@ -138,7 +134,7 @@ public abstract class LocalServerTestBase {
             this.httpclient = this.clientBuilder.build();
         }
 
-        return new HttpHost("localhost", this.server.getPort(), this.scheme.name());
+        return new HttpHost(this.scheme.name(), "localhost", this.server.getPort());
     }
 
     public HttpHost start() throws Exception {

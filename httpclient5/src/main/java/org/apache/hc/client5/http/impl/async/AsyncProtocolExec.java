@@ -34,7 +34,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.hc.client5.http.AuthenticationStrategy;
 import org.apache.hc.client5.http.HttpRoute;
-import org.apache.hc.client5.http.StandardMethods;
 import org.apache.hc.client5.http.async.AsyncExecCallback;
 import org.apache.hc.client5.http.async.AsyncExecChain;
 import org.apache.hc.client5.http.async.AsyncExecChainHandler;
@@ -49,6 +48,7 @@ import org.apache.hc.client5.http.impl.auth.HttpAuthenticator;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.utils.URIUtils;
 import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.Header;
@@ -57,6 +57,7 @@ import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.Methods;
 import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.nio.AsyncDataConsumer;
 import org.apache.hc.core5.http.nio.AsyncEntityProducer;
@@ -68,17 +69,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Request executor in the request execution chain that is responsible
- * for implementation of HTTP specification requirements.
+ * Request execution handler in the asynchronous request execution chain
+ * that is responsible for implementation of HTTP specification requirements.
  * <p>
  * Further responsibilities such as communication with the opposite
  * endpoint is delegated to the next executor in the request execution
  * chain.
+ * </p>
  *
  * @since 5.0
  */
-@Contract(threading = ThreadingBehavior.IMMUTABLE)
-class AsyncProtocolExec implements AsyncExecChainHandler {
+@Contract(threading = ThreadingBehavior.STATELESS)
+@Internal
+public final class AsyncProtocolExec implements AsyncExecChainHandler {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -94,7 +97,7 @@ class AsyncProtocolExec implements AsyncExecChainHandler {
         this.httpProcessor = Args.notNull(httpProcessor, "HTTP protocol processor");
         this.targetAuthStrategy = Args.notNull(targetAuthStrategy, "Target authentication strategy");
         this.proxyAuthStrategy = Args.notNull(proxyAuthStrategy, "Proxy authentication strategy");
-        this.authenticator = new HttpAuthenticator();
+        this.authenticator = new HttpAuthenticator(log);
     }
 
     @Override
@@ -140,6 +143,7 @@ class AsyncProtocolExec implements AsyncExecChainHandler {
             final AsyncExecChain.Scope scope,
             final AsyncExecChain chain,
             final AsyncExecCallback asyncExecCallback) throws HttpException, IOException {
+        final String exchangeId = scope.exchangeId;
         final HttpRoute route = scope.route;
         final HttpClientContext clientContext = scope.clientContext;
         final AsyncExecRuntime execRuntime = scope.execRuntime;
@@ -156,13 +160,13 @@ class AsyncProtocolExec implements AsyncExecChainHandler {
 
         if (!request.containsHeader(HttpHeaders.AUTHORIZATION)) {
             if (log.isDebugEnabled()) {
-                log.debug("Target auth state: " + targetAuthExchange.getState());
+                log.debug(exchangeId + ": target auth state: " + targetAuthExchange.getState());
             }
             authenticator.addAuthResponse(target, ChallengeType.TARGET, request, targetAuthExchange, clientContext);
         }
         if (!request.containsHeader(HttpHeaders.PROXY_AUTHORIZATION) && !route.isTunnelled()) {
             if (log.isDebugEnabled()) {
-                log.debug("Proxy auth state: " + proxyAuthExchange.getState());
+                log.debug(exchangeId + ": proxy auth state: " + proxyAuthExchange.getState());
             }
             authenticator.addAuthResponse(proxy, ChallengeType.PROXY, request, proxyAuthExchange, clientContext);
         }
@@ -171,44 +175,54 @@ class AsyncProtocolExec implements AsyncExecChainHandler {
 
             @Override
             public AsyncDataConsumer handleResponse(
-                    final HttpResponse response, final EntityDetails entityDetails) throws HttpException, IOException {
+                    final HttpResponse response,
+                    final EntityDetails entityDetails) throws HttpException, IOException {
 
                 clientContext.setAttribute(HttpCoreContext.HTTP_RESPONSE, response);
                 httpProcessor.process(response, entityDetails, clientContext);
 
-                if (request.getMethod().equalsIgnoreCase(StandardMethods.TRACE.name())) {
+                if (Methods.TRACE.isSame(request.getMethod())) {
                     // Do not perform authentication for TRACE request
                     return asyncExecCallback.handleResponse(response, entityDetails);
                 }
                 if (needAuthentication(targetAuthExchange, proxyAuthExchange, route, request, response, clientContext)) {
                     challenged.set(true);
                     return null;
-                } else {
-                    challenged.set(false);
-                    return asyncExecCallback.handleResponse(response, entityDetails);
                 }
+                challenged.set(false);
+                return asyncExecCallback.handleResponse(response, entityDetails);
+            }
+
+            @Override
+            public void handleInformationResponse(
+                    final HttpResponse response) throws HttpException, IOException {
+                asyncExecCallback.handleInformationResponse(response);
             }
 
             @Override
             public void completed() {
-                if (!execRuntime.isConnected()) {
+                if (!execRuntime.isEndpointConnected()) {
                     if (proxyAuthExchange.getState() == AuthExchange.State.SUCCESS
-                            && proxyAuthExchange.getAuthScheme() != null
-                            && proxyAuthExchange.getAuthScheme().isConnectionBased()) {
-                        log.debug("Resetting proxy auth state");
+                            && proxyAuthExchange.isConnectionBased()) {
+                        if (log.isDebugEnabled()) {
+                            log.debug(exchangeId + ": resetting proxy auth state");
+                        }
                         proxyAuthExchange.reset();
                     }
                     if (targetAuthExchange.getState() == AuthExchange.State.SUCCESS
-                            && targetAuthExchange.getAuthScheme() != null
-                            && targetAuthExchange.getAuthScheme().isConnectionBased()) {
-                        log.debug("Resetting target auth state");
+                            && targetAuthExchange.isConnectionBased()) {
+                        if (log.isDebugEnabled()) {
+                            log.debug(exchangeId + ": esetting target auth state");
+                        }
                         targetAuthExchange.reset();
                     }
                 }
 
                 if (challenged.get()) {
                     if (entityProducer != null && !entityProducer.isRepeatable()) {
-                        log.debug("Cannot retry non-repeatable request");
+                        if (log.isDebugEnabled()) {
+                            log.debug(exchangeId + ": annot retry non-repeatable request");
+                        }
                         asyncExecCallback.completed();
                     } else {
                         // Reset request headers
@@ -233,6 +247,14 @@ class AsyncProtocolExec implements AsyncExecChainHandler {
 
             @Override
             public void failed(final Exception cause) {
+                if (cause instanceof IOException || cause instanceof RuntimeException) {
+                    if (proxyAuthExchange.isConnectionBased()) {
+                        proxyAuthExchange.reset();
+                    }
+                    if (targetAuthExchange.isConnectionBased()) {
+                        targetAuthExchange.reset();
+                    }
+                }
                 asyncExecCallback.failed(cause);
             }
 
@@ -261,11 +283,11 @@ class AsyncProtocolExec implements AsyncExecChainHandler {
                     proxy, ChallengeType.PROXY, response, proxyAuthExchange, context);
 
             if (targetAuthRequested) {
-                return authenticator.prepareAuthResponse(target, ChallengeType.TARGET, response,
+                return authenticator.updateAuthState(target, ChallengeType.TARGET, response,
                         targetAuthStrategy, targetAuthExchange, context);
             }
             if (proxyAuthRequested) {
-                return authenticator.prepareAuthResponse(proxy, ChallengeType.PROXY, response,
+                return authenticator.updateAuthState(proxy, ChallengeType.PROXY, response,
                         proxyAuthStrategy, proxyAuthExchange, context);
             }
         }

@@ -41,18 +41,13 @@ import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 
-import org.apache.hc.client5.http.classic.methods.HttpDelete;
-import org.apache.hc.client5.http.classic.methods.HttpGet;
-import org.apache.hc.client5.http.classic.methods.HttpHead;
-import org.apache.hc.client5.http.classic.methods.HttpOptions;
-import org.apache.hc.client5.http.classic.methods.HttpPatch;
-import org.apache.hc.client5.http.classic.methods.HttpPost;
-import org.apache.hc.client5.http.classic.methods.HttpPut;
-import org.apache.hc.client5.http.classic.methods.HttpTrace;
+import org.apache.hc.client5.http.classic.methods.ClassicHttpRequests;
 import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
 import org.apache.hc.client5.http.config.Configurable;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.Header;
@@ -60,107 +55,116 @@ import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.core5.http.Methods;
 import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
 import org.apache.hc.core5.http.io.entity.FileEntity;
 import org.apache.hc.core5.http.io.entity.InputStreamEntity;
-import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.net.URLEncodedUtils;
 import org.apache.hc.core5.util.Timeout;
 
+/**
+ * HTTP request used by the fluent facade.
+ *
+ * @since 4.2
+ */
 public class Request {
 
     public static final String DATE_FORMAT = "EEE, dd MMM yyyy HH:mm:ss zzz";
     public static final Locale DATE_LOCALE = Locale.US;
     public static final TimeZone TIME_ZONE = TimeZone.getTimeZone("GMT");
 
-    private final HttpUriRequestBase request;
+    private final ClassicHttpRequest request;
     private Boolean useExpectContinue;
-    private Timeout connectionTimeout;
+    private Timeout connectTimeout;
     private HttpHost proxy;
 
     private SimpleDateFormat dateFormatter;
+
+    public static Request create(final Methods method, final URI uri) {
+      return new Request(new HttpUriRequestBase(method.name(), uri));
+  }
 
     public static Request create(final String methodName, final String uri) {
         return new Request(new HttpUriRequestBase(methodName, URI.create(uri)));
     }
 
     public static Request create(final String methodName, final URI uri) {
-        return new Request(new HttpUriRequestBase(methodName, uri));
-    }
+      return new Request(new HttpUriRequestBase(methodName, uri));
+  }
 
     public static Request Get(final URI uri) {
-        return new Request(new HttpUriRequestBase(HttpGet.METHOD_NAME, uri));
+       return new Request(ClassicHttpRequests.GET.create(uri));
     }
 
     public static Request Get(final String uri) {
-        return new Request(new HttpUriRequestBase(HttpGet.METHOD_NAME, URI.create(uri)));
+        return new Request(ClassicHttpRequests.GET.create(uri));
     }
 
     public static Request Head(final URI uri) {
-        return new Request(new HttpUriRequestBase(HttpHead.METHOD_NAME, uri));
+        return new Request(ClassicHttpRequests.HEAD.create(uri));
     }
 
     public static Request Head(final String uri) {
-        return new Request(new HttpUriRequestBase(HttpHead.METHOD_NAME, URI.create(uri)));
+        return new Request(ClassicHttpRequests.HEAD.create(uri));
     }
 
     public static Request Post(final URI uri) {
-        return new Request(new HttpUriRequestBase(HttpPost.METHOD_NAME, uri));
+        return new Request(ClassicHttpRequests.POST.create(uri));
     }
 
     public static Request Post(final String uri) {
-        return new Request(new HttpUriRequestBase(HttpPost.METHOD_NAME, URI.create(uri)));
+      return new Request(ClassicHttpRequests.POST.create(uri));
     }
 
     public static Request Patch(final URI uri) {
-        return new Request(new HttpUriRequestBase(HttpPatch.METHOD_NAME, uri));
+      return new Request(ClassicHttpRequests.PATCH.create(uri));
     }
 
     public static Request Patch(final String uri) {
-        return new Request(new HttpUriRequestBase(HttpPatch.METHOD_NAME, URI.create(uri)));
+      return new Request(ClassicHttpRequests.PATCH.create(uri));
     }
 
     public static Request Put(final URI uri) {
-        return new Request(new HttpUriRequestBase(HttpPut.METHOD_NAME, uri));
+      return new Request(ClassicHttpRequests.PUT.create(uri));
     }
 
     public static Request Put(final String uri) {
-        return new Request(new HttpUriRequestBase(HttpPut.METHOD_NAME, URI.create(uri)));
+      return new Request(ClassicHttpRequests.PUT.create(uri));
     }
 
     public static Request Trace(final URI uri) {
-        return new Request(new HttpUriRequestBase(HttpTrace.METHOD_NAME, uri));
+      return new Request(ClassicHttpRequests.TRACE.create(uri));
     }
 
     public static Request Trace(final String uri) {
-        return new Request(new HttpUriRequestBase(HttpTrace.METHOD_NAME, URI.create(uri)));
+      return new Request(ClassicHttpRequests.TRACE.create(uri));
     }
 
     public static Request Delete(final URI uri) {
-        return new Request(new HttpUriRequestBase(HttpDelete.METHOD_NAME, uri));
+      return new Request(ClassicHttpRequests.DELETE.create(uri));
     }
 
     public static Request Delete(final String uri) {
-        return new Request(new HttpUriRequestBase(HttpDelete.METHOD_NAME, URI.create(uri)));
+      return new Request(ClassicHttpRequests.DELETE.create(uri));
     }
 
     public static Request Options(final URI uri) {
-        return new Request(new HttpUriRequestBase(HttpOptions.METHOD_NAME, uri));
+      return new Request(ClassicHttpRequests.OPTIONS.create(uri));
     }
 
     public static Request Options(final String uri) {
-        return new Request(new HttpUriRequestBase(HttpOptions.METHOD_NAME, URI.create(uri)));
+      return new Request(ClassicHttpRequests.OPTIONS.create(uri));
     }
 
-    Request(final HttpUriRequestBase request) {
+    Request(final ClassicHttpRequest request) {
         super();
         this.request = request;
     }
 
     ClassicHttpResponse internalExecute(
             final CloseableHttpClient client,
-            final HttpContext localContext) throws IOException {
+            final HttpClientContext localContext) throws IOException {
         final RequestConfig.Builder builder;
         if (client instanceof Configurable) {
             builder = RequestConfig.copy(((Configurable) client).getConfig());
@@ -170,23 +174,23 @@ public class Request {
         if (this.useExpectContinue != null) {
             builder.setExpectContinueEnabled(this.useExpectContinue);
         }
-        if (this.connectionTimeout != null) {
-            builder.setConnectionTimeout(this.connectionTimeout);
+        if (this.connectTimeout != null) {
+            builder.setConnectTimeout(this.connectTimeout);
         }
         if (this.proxy != null) {
             builder.setProxy(this.proxy);
         }
         final RequestConfig config = builder.build();
-        this.request.setConfig(config);
+        localContext.setRequestConfig(config);
         return client.execute(this.request, localContext);
     }
 
     public Response execute() throws IOException {
-        return new Response(internalExecute(Executor.CLIENT, null));
+        return execute(Executor.CLIENT);
     }
 
-    public void abort() throws UnsupportedOperationException {
-        this.request.cancel();
+    public Response execute(final CloseableHttpClient client) throws IOException {
+        return new Response(internalExecute(client, HttpClientContext.create()));
     }
 
     //// HTTP header operations
@@ -245,6 +249,10 @@ public class Request {
         return this.dateFormatter;
     }
 
+    ClassicHttpRequest getRequest() {
+      return request;
+    }
+
     public Request setDate(final Date date) {
         this.request.setHeader(HttpHeader.DATE, getDateFormat().format(date));
         return this;
@@ -279,8 +287,8 @@ public class Request {
 
     //// HTTP connection parameter operations
 
-    public Request connectionTimeout(final Timeout timeout) {
-        this.connectionTimeout = timeout;
+    public Request connectTimeout(final Timeout timeout) {
+        this.connectTimeout = timeout;
         return this;
     }
 
@@ -315,8 +323,9 @@ public class Request {
         for (final NameValuePair param : formParams) {
             paramList.add(param);
         }
-        final ContentType contentType = ContentType.create(URLEncodedUtils.CONTENT_TYPE, charset);
-        final String s = URLEncodedUtils.format(paramList, charset);
+        final ContentType contentType = charset != null ?
+                ContentType.APPLICATION_FORM_URLENCODED.withCharset(charset) : ContentType.APPLICATION_FORM_URLENCODED;
+        final String s = URLEncodedUtils.format(paramList, contentType.getCharset());
         return bodyString(s, contentType);
     }
 
@@ -339,7 +348,7 @@ public class Request {
     }
 
     public Request bodyByteArray(final byte[] b) {
-        return body(new ByteArrayEntity(b));
+        return body(new ByteArrayEntity(b, null));
     }
 
     /**
@@ -350,7 +359,7 @@ public class Request {
     }
 
     public Request bodyByteArray(final byte[] b, final int off, final int len) {
-        return body(new ByteArrayEntity(b, off, len));
+        return body(new ByteArrayEntity(b, off, len, null));
     }
 
     /**
@@ -360,12 +369,12 @@ public class Request {
         return body(new ByteArrayEntity(b, off, len, contentType));
     }
 
-    public Request bodyStream(final InputStream instream) {
-        return body(new InputStreamEntity(instream, -1, null));
+    public Request bodyStream(final InputStream inStream) {
+        return body(new InputStreamEntity(inStream, -1, null));
     }
 
-    public Request bodyStream(final InputStream instream, final ContentType contentType) {
-        return body(new InputStreamEntity(instream, -1, contentType));
+    public Request bodyStream(final InputStream inStream, final ContentType contentType) {
+        return body(new InputStreamEntity(inStream, -1, contentType));
     }
 
     @Override

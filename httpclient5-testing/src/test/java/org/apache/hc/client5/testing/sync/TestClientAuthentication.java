@@ -100,6 +100,7 @@ public class TestClientAuthentication extends LocalServerTestBase {
         });
     }
 
+    @Override
     public HttpHost start() throws IOException {
         return start(new BasicTestAuthenticator("test:test", "test realm"));
     }
@@ -201,7 +202,7 @@ public class TestClientAuthentication extends LocalServerTestBase {
         httpput.setEntity(new InputStreamEntity(
                 new ByteArrayInputStream(
                         new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 } ),
-                        -1));
+                        -1, null));
         final HttpClientContext context = HttpClientContext.create();
         final TestCredentialsProvider credsProvider = new TestCredentialsProvider(
                 new UsernamePasswordCredentials("test", "test".toCharArray()));
@@ -224,7 +225,7 @@ public class TestClientAuthentication extends LocalServerTestBase {
         httpput.setEntity(new InputStreamEntity(
                 new ByteArrayInputStream(
                         new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 } ),
-                        -1));
+                        -1, null));
 
         final HttpClientContext context = HttpClientContext.create();
         final TestCredentialsProvider credsProvider = new TestCredentialsProvider(
@@ -269,7 +270,7 @@ public class TestClientAuthentication extends LocalServerTestBase {
         final HttpPost httppost = new HttpPost("/");
         httppost.setEntity(new InputStreamEntity(
                 new ByteArrayInputStream(
-                        new byte[] { 0,1,2,3,4,5,6,7,8,9 }), -1));
+                        new byte[] { 0,1,2,3,4,5,6,7,8,9 }), -1, null));
 
         final HttpClientContext context = HttpClientContext.create();
         context.setRequestConfig(RequestConfig.custom()
@@ -464,9 +465,8 @@ public class TestClientAuthentication extends LocalServerTestBase {
             public boolean authenticate(final URIAuthority authority, final String requestUri, final String credentials) {
                 if (requestUri.equals("/secure") || requestUri.startsWith("/secure/")) {
                     return super.authenticate(authority, requestUri, credentials);
-                } else {
-                    return true;
                 }
+                return true;
             }
         });
 
@@ -667,14 +667,9 @@ public class TestClientAuthentication extends LocalServerTestBase {
             public boolean authenticate(final URIAuthority authority, final String requestUri, final String credentials) {
                 final boolean authenticated = super.authenticate(authority, requestUri, credentials);
                 if (authenticated) {
-                    if (this.count.incrementAndGet() % 4 != 0) {
-                        return true;
-                    } else {
-                        return false;
-                    }
-                } else {
-                    return false;
+                    return this.count.incrementAndGet() % 4 != 0;
                 }
+                return false;
             }
         };
 

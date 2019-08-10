@@ -27,7 +27,6 @@
 
 package org.apache.hc.client5.http.nio;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.util.concurrent.Future;
 
@@ -36,11 +35,16 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.concurrent.BasicFuture;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.nio.AsyncClientExchangeHandler;
+import org.apache.hc.core5.http.nio.AsyncPushConsumer;
 import org.apache.hc.core5.http.nio.AsyncRequestProducer;
 import org.apache.hc.core5.http.nio.AsyncResponseConsumer;
+import org.apache.hc.core5.http.nio.HandlerFactory;
 import org.apache.hc.core5.http.nio.support.BasicClientExchangeHandler;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.protocol.HttpCoreContext;
+import org.apache.hc.core5.io.CloseMode;
+import org.apache.hc.core5.io.ModalCloseable;
+import org.apache.hc.core5.util.Timeout;
 
 /**
  * Client connection endpoint that can be used to execute message exchanges.
@@ -48,17 +52,74 @@ import org.apache.hc.core5.http.protocol.HttpCoreContext;
  * @since 5.0
  */
 @Contract(threading = ThreadingBehavior.SAFE)
-public abstract class AsyncConnectionEndpoint implements Closeable {
+public abstract class AsyncConnectionEndpoint implements ModalCloseable {
 
-    public abstract void execute(AsyncClientExchangeHandler exchangeHandler, HttpContext context);
+    /**
+     * Initiates a message exchange using the given handler.
+     *
+     * @param id unique operation ID or {@code null}.
+     * @param exchangeHandler the message exchange handler.
+     * @param pushHandlerFactory the push handler factory.
+     * @param context the execution context.
+     */
+    public abstract void execute(
+            String id,
+            AsyncClientExchangeHandler exchangeHandler,
+            HandlerFactory<AsyncPushConsumer> pushHandlerFactory,
+            HttpContext context);
 
-    public <T> Future<T> execute(
+    /**
+     * Determines if the connection to the remote endpoint is still open and valid.
+     */
+    public abstract boolean isConnected();
+
+    /**
+     * Sets socket timeout.
+     *
+     * @param timeout the socket timeout.
+     */
+    public abstract void setSocketTimeout(Timeout timeout);
+
+    @Override
+    public final void close() throws IOException {
+        close(CloseMode.GRACEFUL);
+    }
+
+    /**
+     * Initiates a message exchange using the given handler.
+     *
+     * @param id unique operation ID or {@code null}.
+     * @param exchangeHandler the message exchange handler.
+     * @param context the execution context.
+     */
+    public void execute(
+            final String id,
+            final AsyncClientExchangeHandler exchangeHandler,
+            final HttpContext context) {
+        execute(id, exchangeHandler, null, context);
+    }
+
+    /**
+     * Initiates message exchange using the given request producer and response consumer.
+     *
+     * @param id unique operation ID or {@code null}.
+     * @param requestProducer the request producer.
+     * @param responseConsumer the response consumer.
+     * @param pushHandlerFactory the push handler factory.
+     * @param context the execution context.
+     * @param callback the result callback.
+     * @param <T> the result representation.
+     * @return the result future.
+     */
+    public final <T> Future<T> execute(
+            final String id,
             final AsyncRequestProducer requestProducer,
             final AsyncResponseConsumer<T> responseConsumer,
+            final HandlerFactory<AsyncPushConsumer> pushHandlerFactory,
             final HttpContext context,
             final FutureCallback<T> callback) {
         final BasicFuture<T> future = new BasicFuture<>(callback);
-        execute(new BasicClientExchangeHandler<>(requestProducer, responseConsumer,
+        execute(id, new BasicClientExchangeHandler<>(requestProducer, responseConsumer,
                         new FutureCallback<T>() {
 
                             @Override
@@ -77,21 +138,67 @@ public abstract class AsyncConnectionEndpoint implements Closeable {
                             }
 
                         }),
+                pushHandlerFactory,
                 context != null ? context : HttpCoreContext.create());
         return future;
     }
 
-    public <T> Future<T> execute(
+    /**
+     * Initiates message exchange using the given request producer and response consumer.
+     *
+     * @param id unique operation ID or {@code null}.
+     * @param requestProducer the request producer.
+     * @param responseConsumer the response consumer.
+     * @param context the execution context.
+     * @param callback the result callback.
+     * @param <T> the result representation.
+     * @return the result future.
+     */
+    public final <T> Future<T> execute(
+            final String id,
+            final AsyncRequestProducer requestProducer,
+            final AsyncResponseConsumer<T> responseConsumer,
+            final HttpContext context,
+            final FutureCallback<T> callback) {
+        return execute(id, requestProducer, responseConsumer, null, context, callback);
+    }
+
+    /**
+     * Initiates message exchange using the given request producer and response consumer.
+     *
+     * @param id unique operation ID or {@code null}.
+     * @param requestProducer the request producer.
+     * @param responseConsumer the response consumer.
+     * @param pushHandlerFactory the push handler factory.
+     * @param callback the result callback.
+     * @param <T> the result representation.
+     * @return the result future.
+     */
+    public final <T> Future<T> execute(
+            final String id,
+            final AsyncRequestProducer requestProducer,
+            final AsyncResponseConsumer<T> responseConsumer,
+            final HandlerFactory<AsyncPushConsumer> pushHandlerFactory,
+            final FutureCallback<T> callback) {
+        return execute(id, requestProducer, responseConsumer, pushHandlerFactory, null, callback);
+    }
+
+    /**
+     * Initiates message exchange using the given request producer and response consumer.
+     *
+     * @param id unique operation ID or {@code null}.
+     * @param requestProducer the request producer.
+     * @param responseConsumer the response consumer.
+     * @param callback the result callback.
+     * @param <T> the result representation.
+     * @return the result future.
+     */
+    public final <T> Future<T> execute(
+            final String id,
             final AsyncRequestProducer requestProducer,
             final AsyncResponseConsumer<T> responseConsumer,
             final FutureCallback<T> callback) {
-        return execute(requestProducer, responseConsumer, null, callback);
+        return execute(id, requestProducer, responseConsumer, null, null, callback);
     }
-
-    public abstract boolean isConnected();
-
-    public abstract void setSocketTimeout(int timeout);
-
-    public abstract void shutdown() throws IOException;
 
 }

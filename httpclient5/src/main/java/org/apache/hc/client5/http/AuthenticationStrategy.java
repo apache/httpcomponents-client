@@ -33,6 +33,8 @@ import java.util.Map;
 import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.ChallengeType;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.protocol.HttpContext;
 
 /**
@@ -44,6 +46,7 @@ import org.apache.hc.core5.http.protocol.HttpContext;
  *
  * @since 4.2
  */
+@Contract(threading = ThreadingBehavior.STATELESS)
 public interface AuthenticationStrategy {
 
     /**

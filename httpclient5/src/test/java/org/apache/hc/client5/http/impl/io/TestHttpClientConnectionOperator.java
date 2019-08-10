@@ -44,7 +44,7 @@ import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
 import org.apache.hc.client5.http.socket.LayeredConnectionSocketFactory;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.config.Lookup;
-import org.apache.hc.core5.http.config.SocketConfig;
+import org.apache.hc.core5.http.io.SocketConfig;
 import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.TimeValue;
@@ -64,7 +64,6 @@ public class TestHttpClientConnectionOperator {
     private DnsResolver dnsResolver;
     private DefaultHttpClientConnectionOperator connectionOperator;
 
-    @SuppressWarnings("unchecked")
     @Before
     public void setup() throws Exception {
         conn = Mockito.mock(ManagedHttpClientConnection.class);
@@ -106,7 +105,7 @@ public class TestHttpClientConnectionOperator {
             .setSoLinger(50, TimeUnit.MILLISECONDS)
             .build();
         final InetSocketAddress localAddress = new InetSocketAddress(local, 0);
-        connectionOperator.connect(conn, host, localAddress, TimeValue.ofMillis(1000), socketConfig, context);
+        connectionOperator.connect(conn, host, localAddress, TimeValue.ofMilliseconds(1000), socketConfig, context);
 
         Mockito.verify(socket).setKeepAlive(true);
         Mockito.verify(socket).setReuseAddress(true);
@@ -115,7 +114,7 @@ public class TestHttpClientConnectionOperator {
         Mockito.verify(socket).setTcpNoDelay(true);
 
         Mockito.verify(plainSocketFactory).connectSocket(
-                TimeValue.ofMillis(1000),
+                TimeValue.ofMilliseconds(1000),
                 socket,
                 host,
                 new InetSocketAddress(ip1, 80),
@@ -143,7 +142,7 @@ public class TestHttpClientConnectionOperator {
                 Mockito.<InetSocketAddress>any(),
                 Mockito.<HttpContext>any())).thenThrow(new SocketTimeoutException());
 
-        connectionOperator.connect(conn, host, null, TimeValue.ofMillis(1000), SocketConfig.DEFAULT, context);
+        connectionOperator.connect(conn, host, null, TimeValue.ofMilliseconds(1000), SocketConfig.DEFAULT, context);
     }
 
     @Test(expected=HttpHostConnectException.class)
@@ -165,7 +164,7 @@ public class TestHttpClientConnectionOperator {
                 Mockito.<InetSocketAddress>any(),
                 Mockito.<HttpContext>any())).thenThrow(new ConnectException());
 
-        connectionOperator.connect(conn, host, null, TimeValue.ofMillis(1000), SocketConfig.DEFAULT, context);
+        connectionOperator.connect(conn, host, null, TimeValue.ofMilliseconds(1000), SocketConfig.DEFAULT, context);
     }
 
     @Test
@@ -196,10 +195,10 @@ public class TestHttpClientConnectionOperator {
                 Mockito.<HttpContext>any())).thenReturn(socket);
 
         final InetSocketAddress localAddress = new InetSocketAddress(local, 0);
-        connectionOperator.connect(conn, host, localAddress, TimeValue.ofMillis(1000), SocketConfig.DEFAULT, context);
+        connectionOperator.connect(conn, host, localAddress, TimeValue.ofMilliseconds(1000), SocketConfig.DEFAULT, context);
 
         Mockito.verify(plainSocketFactory).connectSocket(
-                TimeValue.ofMillis(1000),
+                TimeValue.ofMilliseconds(1000),
                 socket,
                 host,
                 new InetSocketAddress(ip2, 80),
@@ -227,10 +226,10 @@ public class TestHttpClientConnectionOperator {
                 Mockito.<HttpContext>any())).thenReturn(socket);
 
         final InetSocketAddress localAddress = new InetSocketAddress(local, 0);
-        connectionOperator.connect(conn, host, localAddress, TimeValue.ofMillis(1000), SocketConfig.DEFAULT, context);
+        connectionOperator.connect(conn, host, localAddress, TimeValue.ofMilliseconds(1000), SocketConfig.DEFAULT, context);
 
         Mockito.verify(plainSocketFactory).connectSocket(
-                TimeValue.ofMillis(1000),
+                TimeValue.ofMilliseconds(1000),
                 socket,
                 host,
                 new InetSocketAddress(ip, 80),
@@ -243,7 +242,7 @@ public class TestHttpClientConnectionOperator {
     @Test
     public void testUpgrade() throws Exception {
         final HttpContext context = new BasicHttpContext();
-        final HttpHost host = new HttpHost("somehost", -1, "https");
+        final HttpHost host = new HttpHost("https", "somehost", -1);
 
         Mockito.when(conn.isOpen()).thenReturn(true);
         Mockito.when(conn.getSocket()).thenReturn(socket);
@@ -264,7 +263,7 @@ public class TestHttpClientConnectionOperator {
     @Test(expected=UnsupportedSchemeException.class)
     public void testUpgradeUpsupportedScheme() throws Exception {
         final HttpContext context = new BasicHttpContext();
-        final HttpHost host = new HttpHost("somehost", -1, "httpsssss");
+        final HttpHost host = new HttpHost("httpsssss", "somehost", -1);
         Mockito.when(socketFactoryRegistry.lookup("http")).thenReturn(plainSocketFactory);
 
         connectionOperator.upgrade(conn, host, context);
@@ -273,7 +272,7 @@ public class TestHttpClientConnectionOperator {
     @Test(expected=UnsupportedSchemeException.class)
     public void testUpgradeNonLayeringScheme() throws Exception {
         final HttpContext context = new BasicHttpContext();
-        final HttpHost host = new HttpHost("somehost", -1, "http");
+        final HttpHost host = new HttpHost("http", "somehost", -1);
         Mockito.when(socketFactoryRegistry.lookup("http")).thenReturn(plainSocketFactory);
 
         connectionOperator.upgrade(conn, host, context);

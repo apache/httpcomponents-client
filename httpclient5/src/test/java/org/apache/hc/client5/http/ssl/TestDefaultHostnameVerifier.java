@@ -164,6 +164,10 @@ public class TestDefaultHostnameVerifier {
 
         exceptionPlease(impl, "1.1.1.2", x509);
         exceptionPlease(impl, "dummy-value.com", x509);
+
+        in = new ByteArrayInputStream(CertificatesToPlayWith.EMAIL_ALT_SUBJECT_NAME);
+        x509 = (X509Certificate) cf.generateCertificate(in);
+        impl.verify("www.company.com", x509);
     }
 
     @Test
@@ -269,6 +273,18 @@ public class TestDefaultHostnameVerifier {
     public void testHTTPCLIENT_1255() {
         Assert.assertTrue(DefaultHostnameVerifier.matchIdentity("mail.a.b.c.com", "m*.a.b.c.com"));
         Assert.assertTrue(DefaultHostnameVerifier.matchIdentityStrict("mail.a.b.c.com", "m*.a.b.c.com"));
+    }
+
+    @Test
+    public void testHTTPCLIENT_1997() {
+        Assert.assertTrue(DefaultHostnameVerifier.matchIdentity(
+                "service.apps.dev.b.cloud.a", "*.apps.dev.b.cloud.a"));
+        Assert.assertTrue(DefaultHostnameVerifier.matchIdentityStrict(
+                "service.apps.dev.b.cloud.a", "*.apps.dev.b.cloud.a"));
+        Assert.assertTrue(DefaultHostnameVerifier.matchIdentity(
+                "service.apps.dev.b.cloud.a", "*.apps.dev.b.cloud.a", publicSuffixMatcher));
+        Assert.assertTrue(DefaultHostnameVerifier.matchIdentityStrict(
+                "service.apps.dev.b.cloud.a", "*.apps.dev.b.cloud.a", publicSuffixMatcher));
     }
 
     @Test // Check compressed IPv6 hostname matching

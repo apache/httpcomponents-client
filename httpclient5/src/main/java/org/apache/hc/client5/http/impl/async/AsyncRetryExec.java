@@ -35,6 +35,9 @@ import org.apache.hc.client5.http.async.AsyncExecChain;
 import org.apache.hc.client5.http.async.AsyncExecChainHandler;
 import org.apache.hc.client5.http.impl.RequestCopier;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.Internal;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpRequest;
@@ -45,7 +48,21 @@ import org.apache.hc.core5.util.Args;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-class AsyncRetryExec implements AsyncExecChainHandler {
+/**
+ * Request execution handler in the asynchronous request execution chain
+ * responsbile for making a decision whether a request failed due to
+ * an I/O error should be re-executed.
+ * <p>
+ * Further responsibilities such as communication with the opposite
+ * endpoint is delegated to the next executor in the request execution
+ * chain.
+ * </p>
+ *
+ * @since 5.0
+ */
+@Contract(threading = ThreadingBehavior.STATELESS)
+@Internal
+public final class AsyncRetryExec implements AsyncExecChainHandler {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -64,6 +81,8 @@ class AsyncRetryExec implements AsyncExecChainHandler {
             final AsyncExecChain chain,
             final AsyncExecCallback asyncExecCallback) throws HttpException, IOException {
 
+        final String exchangeId = scope.exchangeId;
+
         chain.proceed(RequestCopier.INSTANCE.copy(request), entityProducer, scope, new AsyncExecCallback() {
 
             @Override
@@ -71,6 +90,11 @@ class AsyncRetryExec implements AsyncExecChainHandler {
                     final HttpResponse response,
                     final EntityDetails entityDetails) throws HttpException, IOException {
                 return asyncExecCallback.handleResponse(response, entityDetails);
+            }
+
+            @Override
+            public void handleInformationResponse(final HttpResponse response) throws HttpException, IOException {
+                asyncExecCallback.handleInformationResponse(response);
             }
 
             @Override
@@ -84,31 +108,27 @@ class AsyncRetryExec implements AsyncExecChainHandler {
                     final HttpRoute route = scope.route;
                     final HttpClientContext clientContext = scope.clientContext;
                     if (entityProducer != null && !entityProducer.isRepeatable()) {
-                        log.debug("Cannot retry non-repeatable request");
-                    } else if (retryHandler.retryRequest(request, (IOException) cause, execCount, clientContext)) {
-                        if (log.isInfoEnabled()) {
-                            log.info("I/O exception ("+ cause.getClass().getName() +
-                                    ") caught when processing request to "
-                                    + route +
-                                    ": "
-                                    + cause.getMessage());
-                        }
                         if (log.isDebugEnabled()) {
-                            log.debug(cause.getMessage(), cause);
+                            log.debug(exchangeId + ": cannot retry non-repeatable request");
+                        }
+                    } else if (retryHandler.retryRequest(request, (IOException) cause, execCount, clientContext)) {
+                        if (log.isDebugEnabled()) {
+                            log.debug(exchangeId + ": " + cause.getMessage(), cause);
                         }
                         if (log.isInfoEnabled()) {
-                            log.info("Retrying request to " + route);
+                            log.info("Recoverable I/O exception ("+ cause.getClass().getName() + ") " +
+                                    "caught when processing request to " + route);
+                        }
+                        scope.execRuntime.discardEndpoint();
+                        if (entityProducer != null) {
+                            entityProducer.releaseResources();
                         }
                         try {
-                            scope.execRuntime.discardConnection();
-                            if (entityProducer != null) {
-                                entityProducer.releaseResources();
-                            }
                             internalExecute(execCount + 1, request, entityProducer, scope, chain, asyncExecCallback);
-                            return;
                         } catch (final IOException | HttpException ex) {
-                            log.error(ex.getMessage(), ex);
+                            asyncExecCallback.failed(ex);
                         }
+                        return;
                     }
                 }
                 asyncExecCallback.failed(cause);

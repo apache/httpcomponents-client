@@ -87,7 +87,7 @@ class HttpRequestTaskCallable<V> implements Callable<V> {
                 started = System.currentTimeMillis();
                 try {
                     metrics.getScheduledConnections().decrementAndGet();
-                    final V result = httpclient.execute(request, responseHandler, context);
+                    final V result = httpclient.execute(request, context, responseHandler);
                     ended = System.currentTimeMillis();
                     metrics.getSuccessfulConnections().increment(started);
                     if (callback != null) {
@@ -107,9 +107,8 @@ class HttpRequestTaskCallable<V> implements Callable<V> {
                 metrics.getTasks().increment(started);
                 metrics.getActiveConnections().decrementAndGet();
             }
-        } else {
-            throw new CancellationException();
         }
+        throw new CancellationException();
     }
 
     public void cancel() {

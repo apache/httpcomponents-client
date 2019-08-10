@@ -30,8 +30,6 @@ package org.apache.hc.client5.http.impl.cache;
 import java.io.File;
 
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
-import org.apache.hc.core5.annotation.Contract;
-import org.apache.hc.core5.annotation.ThreadingBehavior;
 
 /**
  * Factory methods for {@link CloseableHttpAsyncClient} instances
@@ -39,8 +37,7 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
  *
  * @since 5.0
  */
-@Contract(threading = ThreadingBehavior.IMMUTABLE)
-public class CachingHttpAsyncClients {
+public final class CachingHttpAsyncClients {
 
     private CachingHttpAsyncClients() {
         super();
@@ -76,8 +73,8 @@ public class CachingHttpAsyncClients {
      * Creates builder object for construction of custom HTTP/2
      * {@link CloseableHttpAsyncClient} instances.
      */
-    public static CachingHttp2AsyncClientBuilder customHttp2() {
-        return CachingHttp2AsyncClientBuilder.create();
+    public static CachingH2AsyncClientBuilder customHttp2() {
+        return CachingH2AsyncClientBuilder.create();
     }
 
     /**
@@ -85,7 +82,7 @@ public class CachingHttpAsyncClients {
      * response cache.
      */
     public static CloseableHttpAsyncClient createHttp2MemoryBound() {
-        return CachingHttp2AsyncClientBuilder.create().build();
+        return CachingH2AsyncClientBuilder.create().build();
     }
 
     /**
@@ -95,7 +92,7 @@ public class CachingHttpAsyncClients {
      * @param cacheDir location of response cache.
      */
     public static CloseableHttpAsyncClient createHttp2FileBound(final File cacheDir) {
-        return CachingHttp2AsyncClientBuilder.create().setCacheDir(cacheDir).build();
+        return CachingH2AsyncClientBuilder.create().setCacheDir(cacheDir).build();
     }
 
 }

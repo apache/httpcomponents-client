@@ -28,7 +28,7 @@
   <parent>
     <groupId>org.apache.httpcomponents.client5</groupId>
     <artifactId>httpclient5-parent</artifactId>
-    <version>5.0-beta2-SNAPSHOT</version>
+    <version>5.0-beta6-SNAPSHOT</version>
   </parent>
   <artifactId>httpclient5-win</artifactId>
   <name>Apache HttpClient Windows features</name>
@@ -92,8 +92,9 @@
           <quiet>true</quiet>
           <source>${maven.compiler.source}</source>
           <links>
-            <link>http://docs.oracle.com/javase/6/docs/api/</link>
-            <link>http://hc.apache.org/httpcomponents-core-ga/httpcore/apidocs/</link>
+            <link>http://docs.oracle.com/javase/7/docs/api/</link>
+            <link>http://hc.apache.org/httpcomponents-core-5.0.x/httpcore5/apidocs/</link>
+            <link>http://hc.apache.org/httpcomponents-core-5.0.x/httpcore5-h2/apidocs/</link>
           </links>
         </configuration>
         <reportSets>

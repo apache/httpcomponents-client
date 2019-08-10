@@ -35,7 +35,7 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
 
 /**
  * This cookie comparator ensures that multiple cookies satisfying
- * a common criteria are ordered in the {@code Cookie} header such
+ * a common criteria are ordered in the {@link Cookie} header such
  * that those with more specific Path attributes precede those with
  * less specific.
  *
@@ -48,7 +48,7 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
  *
  * @since 4.0
  */
-@Contract(threading = ThreadingBehavior.IMMUTABLE)
+@Contract(threading = ThreadingBehavior.STATELESS)
 public class CookiePathComparator implements Serializable, Comparator<Cookie> {
 
     public static final CookiePathComparator INSTANCE = new CookiePathComparator();

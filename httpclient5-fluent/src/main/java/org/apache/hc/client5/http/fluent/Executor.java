@@ -47,10 +47,12 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.util.TimeValue;
 
 /**
- * An Executor for fluent requests.
+ * Executor for {@link Request}s.
  * <p>
  * A connection pool with maximum 100 connections per route and
  * a total maximum of 200 connections is used internally.
+ *
+ * @since 4.2
  */
 public class Executor {
 

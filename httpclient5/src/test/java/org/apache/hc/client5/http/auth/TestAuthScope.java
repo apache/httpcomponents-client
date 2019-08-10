@@ -48,7 +48,7 @@ public class TestAuthScope {
 
     @Test
     public void testByOrigin() {
-        final HttpHost host = new HttpHost("somehost", 8080, "http");
+        final HttpHost host = new HttpHost("http", "somehost", 8080);
         final AuthScope authscope = new AuthScope(host);
         Assert.assertEquals(null, authscope.getAuthScheme());
         Assert.assertEquals("somehost", authscope.getHost());
@@ -70,7 +70,7 @@ public class TestAuthScope {
 
     @Test
     public void testByOriginMixedCaseHostname() throws Exception {
-        final HttpHost host = new HttpHost("SomeHost", 8080, "http");
+        final HttpHost host = new HttpHost("http", "SomeHost", 8080);
         final AuthScope authscope = new AuthScope(host);
         Assert.assertEquals("somehost", authscope.getHost());
     }

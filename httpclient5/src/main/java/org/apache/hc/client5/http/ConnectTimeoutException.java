@@ -38,7 +38,6 @@ import org.apache.hc.core5.net.NamedEndpoint;
  * A timeout while connecting to an HTTP server or waiting for an
  * available connection from an HttpConnectionManager.
  *
- *
  * @since 4.0
  */
 public class ConnectTimeoutException extends InterruptedIOException {

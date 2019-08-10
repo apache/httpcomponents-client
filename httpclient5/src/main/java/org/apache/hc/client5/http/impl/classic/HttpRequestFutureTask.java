@@ -31,18 +31,12 @@ import java.util.concurrent.FutureTask;
 import org.apache.hc.core5.concurrent.Cancellable;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 
-/**
- * FutureTask implementation that wraps a HttpAsyncClientCallable and exposes various task
- * specific metrics.
- *
- * @param <V>
- */
-public class HttpRequestFutureTask<V> extends FutureTask<V> {
+final class HttpRequestFutureTask<V> extends FutureTask<V> {
 
     private final ClassicHttpRequest request;
     private final HttpRequestTaskCallable<V> callable;
 
-    public HttpRequestFutureTask(
+    HttpRequestFutureTask(
             final ClassicHttpRequest request,
             final HttpRequestTaskCallable<V> httpCallable) {
         super(httpCallable);
@@ -50,10 +44,6 @@ public class HttpRequestFutureTask<V> extends FutureTask<V> {
         this.callable = httpCallable;
     }
 
-    /*
-     * (non-Javadoc)
-     * @see java.util.concurrent.FutureTask#cancel(boolean)
-     */
     @Override
     public boolean cancel(final boolean mayInterruptIfRunning) {
         callable.cancel();

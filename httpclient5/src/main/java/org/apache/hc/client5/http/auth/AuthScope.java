@@ -38,7 +38,7 @@ import org.apache.hc.core5.util.LangUtils;
  * {@code AuthScope} represents an authentication scope consisting of
  * an application protocol, a host name, a port number, a realm name
  * and an authentication scheme name.
- * </p>
+ *
  * @since 4.0
  */
 @Contract(threading = ThreadingBehavior.IMMUTABLE)
@@ -216,9 +216,8 @@ public class AuthScope {
                     && this.port == that.port
                     && LangUtils.equals(this.realm, that.realm)
                     && LangUtils.equals(this.authScheme, that.authScheme);
-        } else {
-            return false;
         }
+        return false;
     }
 
     @Override

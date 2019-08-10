@@ -65,10 +65,35 @@ public class TestAbstractHttpClientResponseHandler {
     @SuppressWarnings("boxing")
     @Test
     public void testUnsuccessfulResponse() throws Exception {
-        final InputStream instream = Mockito.mock(InputStream.class);
+        final InputStream inStream = Mockito.mock(InputStream.class);
         final HttpEntity entity = Mockito.mock(HttpEntity.class);
         Mockito.when(entity.isStreaming()).thenReturn(true);
-        Mockito.when(entity.getContent()).thenReturn(instream);
+        Mockito.when(entity.getContent()).thenReturn(inStream);
+        final ClassicHttpResponse response = Mockito.mock(ClassicHttpResponse.class);
+        Mockito.when(response.getCode()).thenReturn(404);
+        Mockito.when(response.getReasonPhrase()).thenReturn("NOT FOUND");
+        Mockito.when(response.getEntity()).thenReturn(entity);
+
+        final BasicHttpClientResponseHandler handler = new BasicHttpClientResponseHandler();
+        try {
+            handler.handleResponse(response);
+            Assert.fail("HttpResponseException expected");
+        } catch (final HttpResponseException ex) {
+            Assert.assertEquals(404, ex.getStatusCode());
+            Assert.assertEquals("NOT FOUND", ex.getReasonPhrase());
+            Assert.assertEquals("status code: 404, reason phrase: NOT FOUND", ex.getMessage());
+        }
+        Mockito.verify(entity).getContent();
+        Mockito.verify(inStream).close();
+    }
+
+    @SuppressWarnings("boxing")
+    @Test
+    public void testUnsuccessfulResponseEmptyReason() throws Exception {
+        final InputStream inStream = Mockito.mock(InputStream.class);
+        final HttpEntity entity = Mockito.mock(HttpEntity.class);
+        Mockito.when(entity.isStreaming()).thenReturn(true);
+        Mockito.when(entity.getContent()).thenReturn(inStream);
         final ClassicHttpResponse response = Mockito.mock(ClassicHttpResponse.class);
         Mockito.when(response.getCode()).thenReturn(404);
         Mockito.when(response.getEntity()).thenReturn(entity);
@@ -79,9 +104,10 @@ public class TestAbstractHttpClientResponseHandler {
             Assert.fail("HttpResponseException expected");
         } catch (final HttpResponseException ex) {
             Assert.assertEquals(404, ex.getStatusCode());
+            Assert.assertNull(ex.getReasonPhrase());
+            Assert.assertEquals("status code: 404", ex.getMessage());
         }
         Mockito.verify(entity).getContent();
-        Mockito.verify(instream).close();
+        Mockito.verify(inStream).close();
     }
-
 }

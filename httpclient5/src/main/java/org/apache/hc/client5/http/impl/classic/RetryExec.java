@@ -35,6 +35,7 @@ import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecChainHandler;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
@@ -46,9 +47,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Request executor in the request execution chain that is responsible
- * for making a decision whether a request failed due to an I/O error
- * should be re-executed.
+ * Request execution handler in the classic request execution chain
+ * responsible for making a decision whether a request failed due to
+ * an I/O error should be re-executed.
  * <p>
  * Further responsibilities such as communication with the opposite
  * endpoint is delegated to the next executor in the request execution
@@ -57,8 +58,9 @@ import org.slf4j.LoggerFactory;
  *
  * @since 4.3
  */
-@Contract(threading = ThreadingBehavior.IMMUTABLE_CONDITIONAL)
-final class RetryExec implements ExecChainHandler {
+@Contract(threading = ThreadingBehavior.STATELESS)
+@Internal
+public final class RetryExec implements ExecChainHandler {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -77,6 +79,7 @@ final class RetryExec implements ExecChainHandler {
             final ExecChain chain) throws IOException, HttpException {
         Args.notNull(request, "HTTP request");
         Args.notNull(scope, "Scope");
+        final String exchangeId = scope.exchangeId;
         final HttpRoute route = scope.route;
         final HttpClientContext context = scope.clientContext;
         ClassicHttpRequest currentRequest = request;
@@ -89,33 +92,28 @@ final class RetryExec implements ExecChainHandler {
                 }
                 final HttpEntity requestEntity = request.getEntity();
                 if (requestEntity != null && !requestEntity.isRepeatable()) {
-                    this.log.debug("Cannot retry non-repeatable request");
+                    if (log.isDebugEnabled()) {
+                        log.debug(exchangeId + ": cannot retry non-repeatable request");
+                    }
                     throw ex;
                 }
                 if (retryHandler.retryRequest(request, ex, execCount, context)) {
-                    if (this.log.isInfoEnabled()) {
-                        this.log.info("I/O exception ("+ ex.getClass().getName() +
-                                ") caught when processing request to "
-                                + route +
-                                ": "
-                                + ex.getMessage());
+                    if (log.isDebugEnabled()) {
+                        log.debug(exchangeId + ": " + ex.getMessage(), ex);
                     }
-                    if (this.log.isDebugEnabled()) {
-                        this.log.debug(ex.getMessage(), ex);
+                    if (log.isInfoEnabled()) {
+                        log.info("Recoverable I/O exception ("+ ex.getClass().getName() + ") " +
+                                "caught when processing request to " + route);
                     }
                     currentRequest = ClassicRequestCopier.INSTANCE.copy(scope.originalRequest);
-                    if (this.log.isInfoEnabled()) {
-                        this.log.info("Retrying request to " + route);
-                    }
                 } else {
                     if (ex instanceof NoHttpResponseException) {
                         final NoHttpResponseException updatedex = new NoHttpResponseException(
                                 route.getTargetHost().toHostString() + " failed to respond");
                         updatedex.setStackTrace(ex.getStackTrace());
                         throw updatedex;
-                    } else {
-                        throw ex;
                     }
+                    throw ex;
                 }
             }
         }

@@ -46,6 +46,7 @@ import org.apache.hc.client5.http.impl.routing.BasicRouteDirector;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.routing.HttpRouteDirector;
 import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.concurrent.CancellableDependency;
 import org.apache.hc.core5.concurrent.FutureCallback;
@@ -67,13 +68,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Request executor in the HTTP request execution chain
+ * Request execution handler in the asynchronous request execution chain
  * that is responsible for establishing connection to the target
- * origin server as specified by the current route.
+ * origin server as specified by the current connection route.
  *
  * @since 5.0
  */
-@Contract(threading = ThreadingBehavior.IMMUTABLE_CONDITIONAL)
+@Contract(threading = ThreadingBehavior.STATELESS)
+@Internal
 public final class AsyncConnectExec implements AsyncExecChainHandler {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -90,7 +92,7 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
         Args.notNull(proxyAuthStrategy, "Proxy authentication strategy");
         this.proxyHttpProcessor = proxyHttpProcessor;
         this.proxyAuthStrategy  = proxyAuthStrategy;
-        this.authenticator      = new HttpAuthenticator();
+        this.authenticator      = new HttpAuthenticator(log);
         this.routeDirector      = new BasicRouteDirector();
     }
 
@@ -124,37 +126,25 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
         final AsyncExecRuntime execRuntime = scope.execRuntime;
         final State state = new State(route);
 
-        final Runnable routeInitiation = new Runnable() {
-
-            @Override
-            public void run() {
-                if (log.isDebugEnabled()) {
-                    log.debug(exchangeId + ": connection acquired");
-                }
-                if (execRuntime.isConnected()) {
-                    try {
-                        chain.proceed(request, entityProducer, scope, asyncExecCallback);
-                    } catch (final HttpException | IOException ex) {
-                        asyncExecCallback.failed(ex);
-                    }
-                } else {
-                    proceedToNextHop(state, request, entityProducer, scope, chain, asyncExecCallback);
-                }
-            }
-
-        };
-
-        if (!execRuntime.isConnectionAcquired()) {
+        if (!execRuntime.isEndpointAcquired()) {
             final Object userToken = clientContext.getUserToken();
             if (log.isDebugEnabled()) {
                 log.debug(exchangeId + ": acquiring connection with route " + route);
             }
-            cancellableDependency.setDependency(execRuntime.acquireConnection(
-                    route, userToken, clientContext, new FutureCallback<AsyncExecRuntime>() {
+            cancellableDependency.setDependency(execRuntime.acquireEndpoint(
+                    exchangeId, route, userToken, clientContext, new FutureCallback<AsyncExecRuntime>() {
 
                         @Override
                         public void completed(final AsyncExecRuntime execRuntime) {
-                            routeInitiation.run();
+                            if (execRuntime.isEndpointConnected()) {
+                                try {
+                                    chain.proceed(request, entityProducer, scope, asyncExecCallback);
+                                } catch (final HttpException | IOException ex) {
+                                    asyncExecCallback.failed(ex);
+                                }
+                            } else {
+                                proceedToNextHop(state, request, entityProducer, scope, chain, asyncExecCallback);
+                            }
                         }
 
                         @Override
@@ -169,7 +159,15 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
 
                     }));
         } else {
-            routeInitiation.run();
+            if (execRuntime.isEndpointConnected()) {
+                try {
+                    chain.proceed(request, entityProducer, scope, asyncExecCallback);
+                } catch (final HttpException | IOException ex) {
+                    asyncExecCallback.failed(ex);
+                }
+            } else {
+                proceedToNextHop(state, request, entityProducer, scope, chain, asyncExecCallback);
+            }
         }
 
     }
@@ -182,8 +180,9 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
             final AsyncExecChain chain,
             final AsyncExecCallback asyncExecCallback) {
         final RouteTracker tracker = state.tracker;
-        final AsyncExecRuntime execRuntime = scope.execRuntime;
+        final String exchangeId = scope.exchangeId;
         final HttpRoute route = scope.route;
+        final AsyncExecRuntime execRuntime = scope.execRuntime;
         final CancellableDependency operation = scope.cancellableDependency;
         final HttpClientContext clientContext = scope.clientContext;
 
@@ -193,12 +192,14 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
             step = routeDirector.nextStep(route, fact);
             switch (step) {
                 case HttpRouteDirector.CONNECT_TARGET:
-                    operation.setDependency(execRuntime.connect(clientContext, new FutureCallback<AsyncExecRuntime>() {
+                    operation.setDependency(execRuntime.connectEndpoint(clientContext, new FutureCallback<AsyncExecRuntime>() {
 
                         @Override
                         public void completed(final AsyncExecRuntime execRuntime) {
                             tracker.connectTarget(route.isSecure());
-                            log.debug("Connected to target");
+                            if (log.isDebugEnabled()) {
+                                log.debug(exchangeId + ": connected to target");
+                            }
                             proceedToNextHop(state, request, entityProducer, scope, chain, asyncExecCallback);
                         }
 
@@ -216,13 +217,15 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
                     return;
 
                 case HttpRouteDirector.CONNECT_PROXY:
-                    operation.setDependency(execRuntime.connect(clientContext, new FutureCallback<AsyncExecRuntime>() {
+                    operation.setDependency(execRuntime.connectEndpoint(clientContext, new FutureCallback<AsyncExecRuntime>() {
 
                         @Override
                         public void completed(final AsyncExecRuntime execRuntime) {
                             final HttpHost proxy  = route.getProxyHost();
-                            tracker.connectProxy(proxy, false);
-                            log.debug("Connected to proxy");
+                            tracker.connectProxy(proxy, route.isSecure() && !route.isTunnelled());
+                            if (log.isDebugEnabled()) {
+                                log.debug(exchangeId + ": connected to proxy");
+                            }
                             proceedToNextHop(state, request, entityProducer, scope, chain, asyncExecCallback);
                         }
 
@@ -247,13 +250,22 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
 
                             @Override
                             public AsyncDataConsumer handleResponse(
-                                    final HttpResponse response, final EntityDetails entityDetails) throws HttpException, IOException {
+                                    final HttpResponse response,
+                                    final EntityDetails entityDetails) throws HttpException, IOException {
                                 return asyncExecCallback.handleResponse(response, entityDetails);
                             }
 
                             @Override
+                            public void handleInformationResponse(
+                                    final HttpResponse response) throws HttpException, IOException {
+                                asyncExecCallback.handleInformationResponse(response);
+                            }
+
+                            @Override
                             public void completed() {
-                                log.debug("Tunnel to target created");
+                                if (log.isDebugEnabled()) {
+                                    log.debug(exchangeId + ": tunnel to target created");
+                                }
                                 tracker.tunnelTarget(false);
                                 proceedToNextHop(state, request, entityProducer, scope, chain, asyncExecCallback);
                             }
@@ -279,7 +291,9 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
 
                 case HttpRouteDirector.LAYER_PROTOCOL:
                     execRuntime.upgradeTls(clientContext);
-                    log.debug("Upgraded to TLS");
+                    if (log.isDebugEnabled()) {
+                        log.debug(exchangeId + ": upgraded to TLS");
+                    }
                     tracker.layerProtocol(route.isSecure());
                     break;
 
@@ -289,7 +303,9 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
                     return;
 
                 case HttpRouteDirector.COMPLETE:
-                    log.debug("Route fully established");
+                    if (log.isDebugEnabled()) {
+                        log.debug(exchangeId + ": route fully established");
+                    }
                     try {
                         chain.proceed(request, entityProducer, scope, asyncExecCallback);
                     } catch (final HttpException | IOException ex) {
@@ -326,7 +342,8 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
 
             @Override
             public AsyncDataConsumer handleResponse(
-                    final HttpResponse response, final EntityDetails entityDetails) throws HttpException, IOException {
+                    final HttpResponse response,
+                    final EntityDetails entityDetails) throws HttpException, IOException {
 
                 clientContext.setAttribute(HttpCoreContext.HTTP_RESPONSE, response);
                 proxyHttpProcessor.process(response, entityDetails, clientContext);
@@ -339,20 +356,22 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
                 if (needAuthentication(proxyAuthExchange, proxy, response, clientContext)) {
                     state.challenged = true;
                     return null;
-                } else {
-                    state.challenged = false;
-                    if (status >= HttpStatus.SC_REDIRECTION) {
-                        state.tunnelRefused = true;
-                        return asyncExecCallback.handleResponse(response, entityDetails);
-                    } else {
-                        return null;
-                    }
                 }
+                state.challenged = false;
+                if (status >= HttpStatus.SC_REDIRECTION) {
+                    state.tunnelRefused = true;
+                    return asyncExecCallback.handleResponse(response, entityDetails);
+                }
+                return null;
+            }
+
+            @Override
+            public void handleInformationResponse(final HttpResponse response) throws HttpException, IOException {
             }
 
             @Override
             public void completed() {
-                if (!execRuntime.isConnected()) {
+                if (!execRuntime.isEndpointConnected()) {
                     state.tracker.reset();
                 }
                 if (state.challenged) {
@@ -388,7 +407,7 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
         if (config.isAuthenticationEnabled()) {
             final boolean proxyAuthRequested = authenticator.isChallenged(proxy, ChallengeType.PROXY, response, proxyAuthExchange, context);
             if (proxyAuthRequested) {
-                return authenticator.prepareAuthResponse(proxy, ChallengeType.PROXY, response,
+                return authenticator.updateAuthState(proxy, ChallengeType.PROXY, response,
                         proxyAuthStrategy, proxyAuthExchange, context);
             }
         }

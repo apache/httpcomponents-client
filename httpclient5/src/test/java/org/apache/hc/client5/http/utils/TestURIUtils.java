@@ -51,8 +51,8 @@ public class TestURIUtils {
                 URI.create("http://thishost/stuff"), null).toString());
         Assert.assertEquals("/", URIUtils.rewriteURI(
                 URI.create("http://thishost//"), null).toString());
-        Assert.assertEquals("/stuff///morestuff", URIUtils.rewriteURI(
-                URI.create("http://thishost//stuff///morestuff"), null).toString());
+        Assert.assertEquals("/stuff/morestuff", URIUtils.rewriteURI(
+                URI.create("http://thishost//stuff/morestuff"), null).toString());
         Assert.assertEquals("http://thathost/stuff", URIUtils.rewriteURI(
                 URI.create("http://thishost/stuff#crap"), target, true).toString());
         Assert.assertEquals("http://thathost/stuff#crap", URIUtils.rewriteURI(
@@ -78,6 +78,8 @@ public class TestURIUtils {
         Assert.assertEquals("http://thishost/Fragment_identifier%23Examples",
                 URIUtils.rewriteURI(
                         URI.create("http://thishost/Fragment_identifier%23Examples")).toString());
+        Assert.assertEquals("http://thathost/foo%3Abar", URIUtils.rewriteURI(
+                URI.create("http://thishost/foo%3Abar"), target).toString());
     }
 
     @Test
@@ -96,7 +98,7 @@ public class TestURIUtils {
 
     @Test
     public void testRewriteScheme() throws Exception {
-        final HttpHost target = new HttpHost("thathost", -1, "file"); // scheme should be copied
+        final HttpHost target = new HttpHost("file", "thathost", -1); // scheme should be copied
         Assert.assertEquals("file://thathost/stuff", URIUtils.rewriteURI(
                 URI.create("http://thishost:80/stuff#crap"), target, true).toString());
     }
@@ -120,7 +122,7 @@ public class TestURIUtils {
         Assert.assertEquals("http://a/b/c/g", URIUtils.resolve(this.baseURI, "./g").toString());
         Assert.assertEquals("http://a/b/c/g/", URIUtils.resolve(this.baseURI, "g/").toString());
         Assert.assertEquals("http://a/g", URIUtils.resolve(this.baseURI, "/g").toString());
-        Assert.assertEquals("http://g/", URIUtils.resolve(this.baseURI, "//g").toString());
+        Assert.assertEquals("http://g", URIUtils.resolve(this.baseURI, "//g").toString());
         Assert.assertEquals("http://a/b/c/d;p?y", URIUtils.resolve(this.baseURI, "?y").toString());
         Assert.assertEquals("http://a/b/c/d;p?y#f", URIUtils.resolve(this.baseURI, "?y#f")
                 .toString());
@@ -240,7 +242,7 @@ public class TestURIUtils {
 
     @Test
     public void testHttpLocationWithRelativeFragment() throws Exception {
-        final HttpHost target = new HttpHost("localhost", -1, "http");
+        final HttpHost target = new HttpHost("http", "localhost", -1);
         final URI requestURI = new URI("/stuff#blahblah");
 
         final URI location = URIUtils.resolve(requestURI, target, null);
@@ -253,7 +255,7 @@ public class TestURIUtils {
 
     @Test
     public void testHttpLocationWithAbsoluteFragment() throws Exception {
-        final HttpHost target = new HttpHost("localhost", 80, "http");
+        final HttpHost target = new HttpHost("http", "localhost", 80);
 
         final URI requestURI = new URIBuilder()
             .setHost(target.getHostName())
@@ -269,7 +271,7 @@ public class TestURIUtils {
 
     @Test
     public void testHttpLocationRedirect() throws Exception {
-        final HttpHost target = new HttpHost("localhost", -1, "http");
+        final HttpHost target = new HttpHost("http", "localhost", -1);
         final URI requestURI = new URI("/People.htm#tim");
 
         final URI redirect = new URI("http://localhost/people.html");
@@ -286,7 +288,7 @@ public class TestURIUtils {
 
     @Test
     public void testHttpLocationWithRedirectFragment() throws Exception {
-        final HttpHost target = new HttpHost("localhost", -1, "http");
+        final HttpHost target = new HttpHost("http", "localhost", -1);
         final URI requestURI = new URI("/~tim");
 
         final URI redirect1 = new URI("http://localhost/People.htm#tim");

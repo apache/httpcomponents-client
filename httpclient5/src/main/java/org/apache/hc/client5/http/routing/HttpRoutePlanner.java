@@ -28,6 +28,8 @@
 package org.apache.hc.client5.http.routing;
 
 import org.apache.hc.client5.http.HttpRoute;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.protocol.HttpContext;
@@ -44,6 +46,7 @@ import org.apache.hc.core5.http.protocol.HttpContext;
  *
  * @since 4.0
  */
+@Contract(threading = ThreadingBehavior.STATELESS)
 public interface HttpRoutePlanner {
 
     /**

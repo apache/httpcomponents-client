@@ -35,6 +35,7 @@ import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.io.Closer;
 import org.apache.hc.core5.util.TimeValue;
 
 /**
@@ -42,7 +43,7 @@ import org.apache.hc.core5.util.TimeValue;
  *
  * @since 4.3
  */
-@Contract(threading = ThreadingBehavior.IMMUTABLE)
+@Contract(threading = ThreadingBehavior.STATELESS)
 public class PlainConnectionSocketFactory implements ConnectionSocketFactory {
 
     public static final PlainConnectionSocketFactory INSTANCE = new PlainConnectionSocketFactory();
@@ -75,10 +76,7 @@ public class PlainConnectionSocketFactory implements ConnectionSocketFactory {
         try {
             sock.connect(remoteAddress, TimeValue.isPositive(connectTimeout) ? connectTimeout.toMillisIntBound() : 0);
         } catch (final IOException ex) {
-            try {
-                sock.close();
-            } catch (final IOException ignore) {
-            }
+            Closer.closeQuietly(sock);
             throw ex;
         }
         return sock;

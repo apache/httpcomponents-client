@@ -26,9 +26,6 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
-/**
- * @since 4.1
- */
 enum RequestProtocolError {
 
     UNKNOWN,

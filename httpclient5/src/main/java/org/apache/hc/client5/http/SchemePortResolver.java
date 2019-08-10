@@ -26,6 +26,8 @@
  */
 package org.apache.hc.client5.http;
 
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HttpHost;
 
 /**
@@ -33,6 +35,7 @@ import org.apache.hc.core5.http.HttpHost;
  *
  * @since 4.3
  */
+@Contract(threading = ThreadingBehavior.STATELESS)
 public interface SchemePortResolver {
 
     /**

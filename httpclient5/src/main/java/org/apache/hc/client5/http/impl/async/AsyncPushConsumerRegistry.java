@@ -32,7 +32,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import org.apache.hc.core5.function.Supplier;
-import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.nio.AsyncPushConsumer;
 import org.apache.hc.core5.http.protocol.UriPatternMatcher;
@@ -60,7 +59,7 @@ class AsyncPushConsumerRegistry {
         return primary;
     }
 
-    public AsyncPushConsumer get(final HttpRequest request) throws HttpException {
+    public AsyncPushConsumer get(final HttpRequest request) {
         Args.notNull(request, "Request");
         final URIAuthority authority = request.getAuthority();
         final String key = authority != null ? authority.getHostName().toLowerCase(Locale.ROOT) : null;

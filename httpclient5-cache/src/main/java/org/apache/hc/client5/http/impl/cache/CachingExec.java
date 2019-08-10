@@ -49,8 +49,6 @@ import org.apache.hc.client5.http.impl.classic.ClassicRequestCopier;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.schedule.SchedulingStrategy;
 import org.apache.hc.client5.http.utils.DateUtils;
-import org.apache.hc.core5.annotation.Contract;
-import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.Header;
@@ -100,8 +98,7 @@ import org.slf4j.LoggerFactory;
  *
  * @since 4.3
  */
-@Contract(threading = ThreadingBehavior.SAFE) // So long as the responseCache implementation is threadsafe
-public class CachingExec extends CachingExecBase implements ExecChainHandler {
+class CachingExec extends CachingExecBase implements ExecChainHandler {
 
     private final HttpCache responseCache;
     private final DefaultCacheRevalidator cacheRevalidator;
@@ -135,7 +132,7 @@ public class CachingExec extends CachingExecBase implements ExecChainHandler {
         this.conditionalRequestBuilder = conditionalRequestBuilder;
     }
 
-    public CachingExec(
+    CachingExec(
             final HttpCache cache,
             final ScheduledExecutorService executorService,
             final SchedulingStrategy schedulingStrategy,
@@ -145,7 +142,7 @@ public class CachingExec extends CachingExecBase implements ExecChainHandler {
                 config);
     }
 
-    public CachingExec(
+    CachingExec(
             final ResourceFactory resourceFactory,
             final HttpCacheStorage storage,
             final ScheduledExecutorService executorService,
@@ -169,7 +166,7 @@ public class CachingExec extends CachingExecBase implements ExecChainHandler {
 
         final URIAuthority authority = request.getAuthority();
         final String scheme = request.getScheme();
-        final HttpHost target = authority != null ? new HttpHost(authority, scheme) : route.getTargetHost();
+        final HttpHost target = authority != null ? new HttpHost(scheme, authority) : route.getTargetHost();
         final String via = generateViaHeader(request);
 
         // default response context
@@ -261,10 +258,9 @@ public class CachingExec extends CachingExecBase implements ExecChainHandler {
                 recordCacheFailure(target, request);
                 if (!mayCallBackend(request)) {
                     return convert(generateGatewayTimeout(context), scope);
-                } else {
-                    setResponseStatus(scope.clientContext, CacheResponseStatus.FAILURE);
-                    return chain.proceed(request, scope);
                 }
+                setResponseStatus(scope.clientContext, CacheResponseStatus.FAILURE);
+                return chain.proceed(request, scope);
             }
         } else if (!mayCallBackend(request)) {
             log.debug("Cache entry not suitable but only-if-cached requested");
@@ -295,9 +291,8 @@ public class CachingExec extends CachingExecBase implements ExecChainHandler {
 
                     });
                     return convert(response, scope);
-                } else {
-                    return revalidateCacheEntry(target, request, scope, chain, entry);
                 }
+                return revalidateCacheEntry(target, request, scope, chain, entry);
             } catch (final IOException ioex) {
                 return convert(handleRevalidationFailure(request, context, entry, now), scope);
             }
@@ -380,10 +375,9 @@ public class CachingExec extends CachingExecBase implements ExecChainHandler {
         if (cacheable) {
             storeRequestIfModifiedSinceFor304Response(request, backendResponse);
             return cacheAndReturnResponse(target, request, backendResponse, scope, requestDate, responseDate);
-        } else {
-            log.debug("Backend response is not cacheable");
-            responseCache.flushCacheEntriesFor(target, request);
         }
+        log.debug("Backend response is not cacheable");
+        responseCache.flushCacheEntriesFor(target, request);
         return backendResponse;
     }
 
@@ -399,11 +393,11 @@ public class CachingExec extends CachingExecBase implements ExecChainHandler {
         final HttpEntity entity = backendResponse.getEntity();
         if (entity != null) {
             buf = new ByteArrayBuffer(1024);
-            final InputStream instream = entity.getContent();
+            final InputStream inStream = entity.getContent();
             final byte[] tmp = new byte[2048];
             long total = 0;
             int l;
-            while ((l = instream.read(tmp)) != -1) {
+            while ((l = inStream.read(tmp)) != -1) {
                 buf.append(tmp, 0, l);
                 total += l;
                 if (total > cacheConfig.getMaxObjectSize()) {

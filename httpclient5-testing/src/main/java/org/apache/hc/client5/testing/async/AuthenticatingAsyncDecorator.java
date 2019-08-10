@@ -45,11 +45,11 @@ import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
 import org.apache.hc.core5.http.message.BasicHttpResponse;
 import org.apache.hc.core5.http.nio.AsyncResponseProducer;
 import org.apache.hc.core5.http.nio.AsyncServerExchangeHandler;
-import org.apache.hc.core5.http.nio.BasicResponseProducer;
 import org.apache.hc.core5.http.nio.CapacityChannel;
 import org.apache.hc.core5.http.nio.DataStreamChannel;
 import org.apache.hc.core5.http.nio.ResponseChannel;
 import org.apache.hc.core5.http.nio.entity.BasicAsyncEntityProducer;
+import org.apache.hc.core5.http.nio.support.BasicResponseProducer;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.net.URIAuthority;
 import org.apache.hc.core5.util.Args;
@@ -89,7 +89,7 @@ public class AuthenticatingAsyncDecorator implements AsyncServerExchangeHandler 
 
         if (authenticated) {
             if (expectContinue) {
-                responseChannel.sendInformation(new BasicClassicHttpResponse(HttpStatus.SC_CONTINUE));
+                responseChannel.sendInformation(new BasicClassicHttpResponse(HttpStatus.SC_CONTINUE), context);
             }
             exchangeHandler.handleRequest(request, entityDetails, responseChannel, context);
         } else {
@@ -103,7 +103,7 @@ public class AuthenticatingAsyncDecorator implements AsyncServerExchangeHandler 
                     unauthorized,
                     new BasicAsyncEntityProducer("Unauthorized", ContentType.TEXT_PLAIN));
             responseProducerRef.set(responseProducer);
-            responseProducer.sendResponse(responseChannel);
+            responseProducer.sendResponse(responseChannel, context);
         }
 
     }
@@ -119,12 +119,10 @@ public class AuthenticatingAsyncDecorator implements AsyncServerExchangeHandler 
     }
 
     @Override
-    public final int consume(final ByteBuffer src) throws IOException {
+    public final void consume(final ByteBuffer src) throws IOException {
         final AsyncResponseProducer responseProducer = responseProducerRef.get();
         if (responseProducer == null) {
-            return exchangeHandler.consume(src);
-        } else {
-            return Integer.MAX_VALUE;
+            exchangeHandler.consume(src);
         }
     }
 

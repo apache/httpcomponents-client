@@ -58,7 +58,7 @@ import org.slf4j.LoggerFactory;
  *
  * @since 4.4
  */
-@Contract(threading = ThreadingBehavior.IMMUTABLE_CONDITIONAL)
+@Contract(threading = ThreadingBehavior.STATELESS)
 public final class DefaultHostnameVerifier implements HttpClientHostnameVerifier {
 
     enum HostNameType {
@@ -286,11 +286,13 @@ public final class DefaultHostnameVerifier implements HttpClientHostnameVerifier
             for (final List<?> entry : entries) {
                 final Integer type = entry.size() >= 2 ? (Integer) entry.get(0) : null;
                 if (type != null) {
-                    final Object o = entry.get(1);
-                    if (o instanceof String) {
-                        result.add(new SubjectName((String) o, type.intValue()));
-                    } else if (o instanceof byte[]) {
-                        // TODO ASN.1 DER encoded form
+                    if (type == SubjectName.DNS || type == SubjectName.IP) {
+                        final Object o = entry.get(1);
+                        if (o instanceof String) {
+                            result.add(new SubjectName((String) o, type));
+                        } else if (o instanceof byte[]) {
+                            // TODO ASN.1 DER encoded form
+                        }
                     }
                 }
             }

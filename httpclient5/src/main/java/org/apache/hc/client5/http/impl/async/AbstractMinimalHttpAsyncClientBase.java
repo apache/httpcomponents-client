@@ -29,12 +29,15 @@ package org.apache.hc.client5.http.impl.async;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 
+import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.core5.concurrent.Cancellable;
 import org.apache.hc.core5.concurrent.ComplexFuture;
 import org.apache.hc.core5.concurrent.FutureCallback;
-import org.apache.hc.core5.function.Supplier;
 import org.apache.hc.core5.http.nio.AsyncClientExchangeHandler;
+import org.apache.hc.core5.http.nio.AsyncPushConsumer;
 import org.apache.hc.core5.http.nio.AsyncRequestProducer;
 import org.apache.hc.core5.http.nio.AsyncResponseConsumer;
+import org.apache.hc.core5.http.nio.HandlerFactory;
 import org.apache.hc.core5.http.nio.support.BasicClientExchangeHandler;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.reactor.DefaultConnectingIOReactor;
@@ -52,44 +55,41 @@ abstract class AbstractMinimalHttpAsyncClientBase extends AbstractHttpAsyncClien
     public final <T> Future<T> execute(
             final AsyncRequestProducer requestProducer,
             final AsyncResponseConsumer<T> responseConsumer,
+            final HandlerFactory<AsyncPushConsumer> pushHandlerFactory,
             final HttpContext context,
             final FutureCallback<T> callback) {
         final ComplexFuture<T> future = new ComplexFuture<>(callback);
-        execute(new BasicClientExchangeHandler<>(
-                        requestProducer,
-                        responseConsumer,
-                        callback),
-                context, future, new Supplier<T>() {
+        future.setDependency(execute(new BasicClientExchangeHandler<>(
+                requestProducer,
+                responseConsumer,
+                new FutureCallback<T>() {
 
                     @Override
-                    public T get() {
-                        return responseConsumer.getResult();
+                    public void completed(final T result) {
+                        future.completed(result);
                     }
 
-                });
+                    @Override
+                    public void failed(final Exception ex) {
+                        future.failed(ex);
+                    }
+
+                    @Override
+                    public void cancelled() {
+                        future.cancel();
+                    }
+
+                }), pushHandlerFactory, context));
         return future;
     }
 
-    public final <T extends AsyncClientExchangeHandler> Future<T> execute(
-            final T exchangeHandler,
-            final HttpContext context,
-            final FutureCallback<T> callback) {
-        final ComplexFuture<T> future = new ComplexFuture<>(callback);
-        execute(exchangeHandler, context, future, new Supplier<T>() {
-
-            @Override
-            public T get() {
-                return exchangeHandler;
-            }
-
-        });
-        return future;
+    public final Cancellable execute(final AsyncClientExchangeHandler exchangeHandler) {
+        return execute(exchangeHandler, null, HttpClientContext.create());
     }
 
-    abstract <T> void execute(
+    public abstract Cancellable execute(
             AsyncClientExchangeHandler exchangeHandler,
-            HttpContext context,
-            ComplexFuture<T> resultFuture,
-            Supplier<T> resultSupplier);
+            HandlerFactory<AsyncPushConsumer> pushHandlerFactory,
+            HttpContext context);
 
 }
