@@ -54,20 +54,14 @@ public class AuthSupport {
         if (authority == null) {
             return;
         }
-        final String userinfo = authority.getUserInfo();
-        if (userinfo == null) {
+        final String userInfo = authority.getUserInfo();
+        if (userInfo == null) {
             return;
         }
-        final int atColon = userinfo.indexOf(':');
-        final String userName;
-        final char[] password;
-        if (atColon >= 0) {
-            userName = userinfo.substring(0, atColon);
-            password = userinfo.substring(atColon + 1).toCharArray();
-        } else {
-            userName = userinfo.substring(0, atColon);
-            password = null;
-        }
+        final int atColon = userInfo.indexOf(':');
+        final String userName = atColon >= 0 ? userInfo.substring(0, atColon) : userInfo;
+        final char[] password = atColon >= 0 ? userInfo.substring(atColon + 1).toCharArray() : null;
+
         credentialsStore.setCredentials(
                 new AuthScope(scheme, authority.getHostName(), authority.getPort(), null, AuthSchemes.BASIC.ident),
                 new UsernamePasswordCredentials(userName, password));
