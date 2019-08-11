@@ -7,16 +7,19 @@ import org.apache.hc.core5.net.URIAuthority;
 import org.junit.Assert;
 import org.junit.Test;
 
+/**
+ * Simple tests for {@link AuthSupport}.
+ */
 public class TestAuthSupport {
 
     @Test
     public void testExtractFromAuthority() {
-        URIAuthority uriAuthority = new URIAuthority("testUser", "localhost", 8080);
-        BasicCredentialsProvider basicCredentialsProvider = new BasicCredentialsProvider();
+        final URIAuthority uriAuthority = new URIAuthority("testUser", "localhost", 8080);
+        final BasicCredentialsProvider basicCredentialsProvider = new BasicCredentialsProvider();
 
         AuthSupport.extractFromAuthority("http", uriAuthority, basicCredentialsProvider);
 
-        Credentials credentials = basicCredentialsProvider.getCredentials(new AuthScope("localhost", 8080), null);
+        final Credentials credentials = basicCredentialsProvider.getCredentials(new AuthScope("localhost", 8080), null);
         Assert.assertEquals("testUser", credentials.getUserPrincipal().getName());
         Assert.assertNull(credentials.getPassword());
     }
