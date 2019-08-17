@@ -30,12 +30,16 @@ package org.apache.hc.client5.http.socket;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.security.AccessController;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
 
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.io.Closer;
+import org.apache.hc.core5.util.Asserts;
 import org.apache.hc.core5.util.TimeValue;
 
 /**
@@ -74,7 +78,22 @@ public class PlainConnectionSocketFactory implements ConnectionSocketFactory {
             sock.bind(localAddress);
         }
         try {
-            sock.connect(remoteAddress, TimeValue.isPositive(connectTimeout) ? connectTimeout.toMillisIntBound() : 0);
+            // Run this under a doPrivileged to support lib users that run under a SecurityManager this allows granting connect permissions
+            // only to this library
+            try {
+                AccessController.doPrivileged(new PrivilegedExceptionAction<Object>() {
+                    @Override
+                    public Object run() throws IOException {
+                        sock.connect(remoteAddress, TimeValue.isPositive(connectTimeout) ? connectTimeout.toMillisIntBound() : 0);
+                        return null;
+                    }
+                });
+            } catch (final PrivilegedActionException e) {
+                Asserts.check(e.getCause() instanceof  IOException,
+                        "method contract violation only checked exceptions are wrapped: " + e.getCause());
+                // only checked exceptions are wrapped - error and RTExceptions are rethrown by doPrivileged
+                throw (IOException) e.getCause();
+            }
         } catch (final IOException ex) {
             Closer.closeQuietly(sock);
             throw ex;

@@ -31,6 +31,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.security.AccessController;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -55,6 +58,7 @@ import org.apache.hc.core5.io.Closer;
 import org.apache.hc.core5.ssl.SSLContexts;
 import org.apache.hc.core5.ssl.SSLInitializationException;
 import org.apache.hc.core5.util.Args;
+import org.apache.hc.core5.util.Asserts;
 import org.apache.hc.core5.util.TimeValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -209,7 +213,22 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
             if (this.log.isDebugEnabled()) {
                 this.log.debug("Connecting socket to " + remoteAddress + " with timeout " + connectTimeout);
             }
-            sock.connect(remoteAddress, connectTimeout != null ? connectTimeout.toMillisIntBound() : 0);
+            // Run this under a doPrivileged to support lib users that run under a SecurityManager this allows granting connect permissions
+            // only to this library
+            try {
+                AccessController.doPrivileged(new PrivilegedExceptionAction<Object>() {
+                    @Override
+                    public Object run() throws IOException {
+                        sock.connect(remoteAddress, connectTimeout != null ? connectTimeout.toMillisIntBound() : 0);
+                        return null;
+                    }
+                });
+            } catch (final PrivilegedActionException e) {
+                Asserts.check(e.getCause() instanceof  IOException,
+                        "method contract violation only checked exceptions are wrapped: " + e.getCause());
+                // only checked exceptions are wrapped - error and RTExceptions are rethrown by doPrivileged
+                throw (IOException) e.getCause();
+            }
         } catch (final IOException ex) {
             Closer.closeQuietly(sock);
             throw ex;
