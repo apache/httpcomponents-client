@@ -380,86 +380,137 @@ public class RequestConfig implements Cloneable {
             this.hardCancellationEnabled = true;
         }
 
+        /**
+         * @see #isExpectContinueEnabled()
+         */
         public Builder setExpectContinueEnabled(final boolean expectContinueEnabled) {
             this.expectContinueEnabled = expectContinueEnabled;
             return this;
         }
 
+        /**
+         * @see #getProxy()
+         */
         public Builder setProxy(final HttpHost proxy) {
             this.proxy = proxy;
             return this;
         }
 
+        /**
+         * @see #getCookieSpec()
+         */
         public Builder setCookieSpec(final String cookieSpec) {
             this.cookieSpec = cookieSpec;
             return this;
         }
 
+        /**
+         * @see #isRedirectsEnabled()
+         */
         public Builder setRedirectsEnabled(final boolean redirectsEnabled) {
             this.redirectsEnabled = redirectsEnabled;
             return this;
         }
 
+        /**
+         * @see #isCircularRedirectsAllowed()
+         */
         public Builder setCircularRedirectsAllowed(final boolean circularRedirectsAllowed) {
             this.circularRedirectsAllowed = circularRedirectsAllowed;
             return this;
         }
 
+        /**
+         * @see #getMaxRedirects()
+         */
         public Builder setMaxRedirects(final int maxRedirects) {
             this.maxRedirects = maxRedirects;
             return this;
         }
 
+        /**
+         * @see #isAuthenticationEnabled()
+         */
         public Builder setAuthenticationEnabled(final boolean authenticationEnabled) {
             this.authenticationEnabled = authenticationEnabled;
             return this;
         }
 
+        /**
+         * @see #getTargetPreferredAuthSchemes()
+         */
         public Builder setTargetPreferredAuthSchemes(final Collection<String> targetPreferredAuthSchemes) {
             this.targetPreferredAuthSchemes = targetPreferredAuthSchemes;
             return this;
         }
 
+        /**
+         * @see #getProxyPreferredAuthSchemes()
+         */
         public Builder setProxyPreferredAuthSchemes(final Collection<String> proxyPreferredAuthSchemes) {
             this.proxyPreferredAuthSchemes = proxyPreferredAuthSchemes;
             return this;
         }
 
+        /**
+         * @see #getConnectionRequestTimeout()
+         */
         public Builder setConnectionRequestTimeout(final Timeout connectionRequestTimeout) {
             this.connectionRequestTimeout = connectionRequestTimeout;
             return this;
         }
 
+        /**
+         * @see #getConnectionRequestTimeout()
+         */
         public Builder setConnectionRequestTimeout(final long connectionRequestTimeout, final TimeUnit timeUnit) {
             this.connectionRequestTimeout = Timeout.of(connectionRequestTimeout, timeUnit);
             return this;
         }
 
+        /**
+         * @see #getConnectTimeout()
+         */
         public Builder setConnectTimeout(final Timeout connectTimeout) {
             this.connectTimeout = connectTimeout;
             return this;
         }
 
+        /**
+         * @see #getConnectTimeout()
+         */
         public Builder setConnectTimeout(final long connectTimeout, final TimeUnit timeUnit) {
             this.connectTimeout = Timeout.of(connectTimeout, timeUnit);
             return this;
         }
 
+        /**
+         * @see #getResponseTimeout()
+         */
         public Builder setResponseTimeout(final Timeout responseTimeout) {
             this.responseTimeout = responseTimeout;
             return this;
         }
 
+        /**
+         * @see #getResponseTimeout()
+         */
         public Builder setResponseTimeout(final long responseTimeout, final TimeUnit timeUnit) {
             this.responseTimeout = Timeout.of(responseTimeout, timeUnit);
             return this;
         }
 
+        /**
+         * @see #isContentCompressionEnabled()
+         */
         public Builder setContentCompressionEnabled(final boolean contentCompressionEnabled) {
             this.contentCompressionEnabled = contentCompressionEnabled;
             return this;
         }
 
+        /**
+         * @see #isHardCancellationEnabled()
+         */
         public Builder setHardCancellationEnabled(final boolean hardCancellationEnabled) {
             this.hardCancellationEnabled = hardCancellationEnabled;
             return this;
