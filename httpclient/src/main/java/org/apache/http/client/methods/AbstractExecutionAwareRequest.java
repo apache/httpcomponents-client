@@ -27,8 +27,7 @@
 package org.apache.http.client.methods;
 
 import java.io.IOException;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicMarkableReference;
 
 import org.apache.http.HttpRequest;
 import org.apache.http.client.utils.CloneUtils;
@@ -41,13 +40,11 @@ import org.apache.http.message.AbstractHttpMessage;
 public abstract class AbstractExecutionAwareRequest extends AbstractHttpMessage implements
         HttpExecutionAware, AbortableHttpRequest, Cloneable, HttpRequest {
 
-    private final AtomicBoolean aborted;
-    private final AtomicReference<Cancellable> cancellableRef;
+    private final AtomicMarkableReference<Cancellable> cancellableRef;
 
     protected AbstractExecutionAwareRequest() {
         super();
-        this.aborted = new AtomicBoolean(false);
-        this.cancellableRef = new AtomicReference<Cancellable>(null);
+        this.cancellableRef = new AtomicMarkableReference<Cancellable>(null, false);
     }
 
     /**
@@ -90,17 +87,19 @@ public abstract class AbstractExecutionAwareRequest extends AbstractHttpMessage 
 
     @Override
     public void abort() {
-        if (this.aborted.compareAndSet(false, true)) {
-            final Cancellable cancellable = this.cancellableRef.getAndSet(null);
-            if (cancellable != null) {
-                cancellable.cancel();
+        while (!cancellableRef.isMarked()) {
+            final Cancellable actualCancellable = cancellableRef.getReference();
+            if (cancellableRef.compareAndSet(actualCancellable, actualCancellable, false, true)) {
+                if (actualCancellable != null) {
+                    actualCancellable.cancel();
+                }
             }
         }
     }
 
     @Override
     public boolean isAborted() {
-        return this.aborted.get();
+        return this.cancellableRef.isMarked();
     }
 
     /**
@@ -108,8 +107,9 @@ public abstract class AbstractExecutionAwareRequest extends AbstractHttpMessage 
      */
     @Override
     public void setCancellable(final Cancellable cancellable) {
-        if (!this.aborted.get()) {
-            this.cancellableRef.set(cancellable);
+        final Cancellable actualCancellable = cancellableRef.getReference();
+        if (!cancellableRef.compareAndSet(actualCancellable, cancellable, false, false)) {
+            cancellable.cancel();
         }
     }
 
@@ -123,9 +123,12 @@ public abstract class AbstractExecutionAwareRequest extends AbstractHttpMessage 
 
     /**
      * @since 4.2
+     *
+     * @deprecated Do not use.
      */
+    @Deprecated
     public void completed() {
-        this.cancellableRef.set(null);
+        this.cancellableRef.set(null, false);
     }
 
     /**
@@ -134,11 +137,16 @@ public abstract class AbstractExecutionAwareRequest extends AbstractHttpMessage 
      * @since 4.2
      */
     public void reset() {
-        final Cancellable cancellable = this.cancellableRef.getAndSet(null);
-        if (cancellable != null) {
-            cancellable.cancel();
+        for (;;) {
+            final boolean marked = cancellableRef.isMarked();
+            final Cancellable actualCancellable = cancellableRef.getReference();
+            if (actualCancellable != null) {
+                actualCancellable.cancel();
+            }
+            if (cancellableRef.compareAndSet(actualCancellable, null, marked, false)) {
+                break;
+            }
         }
-        this.aborted.set(false);
     }
 
 }
