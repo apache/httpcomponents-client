@@ -27,11 +27,12 @@
 
 package org.apache.hc.client5.testing.sync;
 
+import java.net.URI;
+
 import org.apache.hc.client5.http.ClientProtocolException;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.impl.IdleConnectionEvictor;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
@@ -50,10 +51,10 @@ public class TestIdleConnectionEviction extends LocalServerTestBase {
         final IdleConnectionEvictor idleConnectionMonitor = new IdleConnectionEvictor(this.connManager, TimeValue.ofMilliseconds(50));
         idleConnectionMonitor.start();
 
-        final HttpGet httpget = new HttpGet("/random/1024");
+        final URI requestUri = new URI("/random/1024");
         final WorkerThread[] workers = new WorkerThread[5];
         for (int i = 0; i < workers.length; i++) {
-            workers[i] = new WorkerThread(httpclient, target, httpget, 200);
+            workers[i] = new WorkerThread(httpclient, target, requestUri, 200);
         }
         for (final WorkerThread worker : workers) {
             worker.start();
@@ -72,7 +73,7 @@ public class TestIdleConnectionEviction extends LocalServerTestBase {
 
         private final CloseableHttpClient httpclient;
         private final HttpHost target;
-        private final ClassicHttpRequest request;
+        private final URI requestUri;
         private final int count;
 
         private volatile Exception ex;
@@ -80,12 +81,12 @@ public class TestIdleConnectionEviction extends LocalServerTestBase {
         public WorkerThread(
                 final CloseableHttpClient httpclient,
                 final HttpHost target,
-                final ClassicHttpRequest request,
+                final URI requestUri,
                 final int count) {
             super();
             this.httpclient = httpclient;
             this.target = target;
-            this.request = request;
+            this.requestUri = requestUri;
             this.count = count;
         }
 
@@ -93,13 +94,15 @@ public class TestIdleConnectionEviction extends LocalServerTestBase {
         public void run() {
             try {
                 for (int i = 0; i < this.count; i++) {
-                    final ClassicHttpResponse response = this.httpclient.execute(this.target, this.request);
-                    final int status = response.getCode();
-                    if (status != 200) {
-                        throw new ClientProtocolException("Unexpected status code: " + status);
+                    final HttpGet httpget = new HttpGet(this.requestUri);
+                    try (final ClassicHttpResponse response = this.httpclient.execute(this.target, httpget)) {
+                        final int status = response.getCode();
+                        if (status != 200) {
+                            throw new ClientProtocolException("Unexpected status code: " + status);
+                        }
+                        EntityUtils.consume(response.getEntity());
+                        Thread.sleep(10);
                     }
-                    EntityUtils.consume(response.getEntity());
-                    Thread.sleep(10);
                 }
             } catch (final Exception ex) {
                 this.ex = ex;
