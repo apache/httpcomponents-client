@@ -264,11 +264,10 @@ public class RequestConfig implements Cloneable {
 
     /**
      * Returns the timeout in milliseconds used when requesting a connection
-     * from the connection manager. A timeout value of zero is interpreted
-     * as an infinite timeout.
+     * from the connection manager.
      * <p>
      * A timeout value of zero is interpreted as an infinite timeout.
-     * A negative value is interpreted as undefined (system default).
+     * A negative value is interpreted as undefined (system default if applicable).
      * </p>
      * <p>
      * Default: {@code -1}
@@ -280,10 +279,9 @@ public class RequestConfig implements Cloneable {
 
     /**
      * Determines the timeout in milliseconds until a connection is established.
-     * A timeout value of zero is interpreted as an infinite timeout.
      * <p>
      * A timeout value of zero is interpreted as an infinite timeout.
-     * A negative value is interpreted as undefined (system default).
+     * A negative value is interpreted as undefined (system default if applicable).
      * </p>
      * <p>
      * Default: {@code -1}
@@ -295,11 +293,11 @@ public class RequestConfig implements Cloneable {
 
     /**
      * Defines the socket timeout ({@code SO_TIMEOUT}) in milliseconds,
-     * which is the timeout for waiting for data  or, put differently,
+     * which is the timeout for waiting for data or, put differently,
      * a maximum period inactivity between two consecutive data packets).
      * <p>
      * A timeout value of zero is interpreted as an infinite timeout.
-     * A negative value is interpreted as undefined (system default).
+     * A negative value is interpreted as undefined (system default if applicable).
      * </p>
      * <p>
      * Default: {@code -1}
