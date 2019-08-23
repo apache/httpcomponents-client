@@ -27,8 +27,7 @@
 package org.apache.hc.client5.http.classic.methods;
 
 import java.net.URI;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicMarkableReference;
 
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.core5.concurrent.Cancellable;
@@ -39,31 +38,31 @@ public class HttpUriRequestBase extends BasicClassicHttpRequest implements HttpU
 
     private static final long serialVersionUID = 1L;
 
+    private final AtomicMarkableReference<Cancellable> cancellableRef;
     private RequestConfig requestConfig;
-    private final AtomicBoolean cancelled;
-    private final AtomicReference<Cancellable> cancellableRef;
 
     public HttpUriRequestBase(final String method, final URI requestUri) {
         super(method, requestUri);
-        this.cancelled = new AtomicBoolean(false);
-        this.cancellableRef = new AtomicReference<>(null);
+        this.cancellableRef = new AtomicMarkableReference<>(null, false);
     }
 
     @Override
     public boolean cancel() {
-        if (this.cancelled.compareAndSet(false, true)) {
-            final Cancellable cancellable = this.cancellableRef.getAndSet(null);
-            if (cancellable != null) {
-                cancellable.cancel();
+        while (!cancellableRef.isMarked()) {
+            final Cancellable actualCancellable = cancellableRef.getReference();
+            if (cancellableRef.compareAndSet(actualCancellable, actualCancellable, false, true)) {
+                if (actualCancellable != null) {
+                    actualCancellable.cancel();
+                }
+                return true;
             }
-            return true;
         }
         return false;
     }
 
     @Override
     public boolean isCancelled() {
-        return cancelled.get();
+        return cancellableRef.isMarked();
     }
 
     /**
@@ -71,8 +70,9 @@ public class HttpUriRequestBase extends BasicClassicHttpRequest implements HttpU
      */
     @Override
     public void setDependency(final Cancellable cancellable) {
-        if (!this.cancelled.get()) {
-            this.cancellableRef.set(cancellable);
+        final Cancellable actualCancellable = cancellableRef.getReference();
+        if (!cancellableRef.compareAndSet(actualCancellable, cancellable, false, false)) {
+            cancellable.cancel();
         }
     }
 
@@ -82,11 +82,16 @@ public class HttpUriRequestBase extends BasicClassicHttpRequest implements HttpU
      * @since 4.2
      */
     public void reset() {
-        final Cancellable cancellable = this.cancellableRef.getAndSet(null);
-        if (cancellable != null) {
-            cancellable.cancel();
+        for (;;) {
+            final boolean marked = cancellableRef.isMarked();
+            final Cancellable actualCancellable = cancellableRef.getReference();
+            if (actualCancellable != null) {
+                actualCancellable.cancel();
+            }
+            if (cancellableRef.compareAndSet(actualCancellable, null, marked, false)) {
+                break;
+            }
         }
-        this.cancelled.set(false);
     }
 
     @Override
