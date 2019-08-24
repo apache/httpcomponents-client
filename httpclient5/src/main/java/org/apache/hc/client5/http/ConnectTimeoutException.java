@@ -27,32 +27,20 @@
 
 package org.apache.hc.client5.http;
 
-import java.io.IOException;
-import java.io.InterruptedIOException;
-import java.net.InetAddress;
-import java.util.Arrays;
+import java.net.SocketTimeoutException;
 
 import org.apache.hc.core5.net.NamedEndpoint;
 
 /**
- * A timeout while connecting to an HTTP server or waiting for an
- * available connection from an HttpConnectionManager.
+ * A timeout while connecting to an HTTP server or waiting for an available connection from a connection manager.
  *
  * @since 4.0
  */
-public class ConnectTimeoutException extends InterruptedIOException {
+public class ConnectTimeoutException extends SocketTimeoutException {
 
     private static final long serialVersionUID = -4816682903149535989L;
 
     private final NamedEndpoint namedEndpoint;
-
-    /**
-     * Creates a ConnectTimeoutException with a {@code null} detail message.
-     */
-    public ConnectTimeoutException() {
-        super();
-        this.namedEndpoint = null;
-    }
 
     /**
      * Creates a ConnectTimeoutException with the specified detail message.
@@ -62,23 +50,9 @@ public class ConnectTimeoutException extends InterruptedIOException {
         this.namedEndpoint = null;
     }
 
-    /**
-     * Creates a ConnectTimeoutException based on original {@link IOException}.
-     *
-     * @since 4.3
-     */
-    public ConnectTimeoutException(
-            final IOException cause,
-            final NamedEndpoint namedEndpoint,
-            final InetAddress... remoteAddresses) {
-        super("Connect to " +
-                (namedEndpoint != null ? namedEndpoint : "remote endpoint") +
-                (remoteAddresses != null && remoteAddresses.length > 0 ?
-                        " " + Arrays.asList(remoteAddresses) : "") +
-                ((cause != null && cause.getMessage() != null) ?
-                        " failed: " + cause.getMessage() : " timed out"));
+    public ConnectTimeoutException(final String message, final NamedEndpoint namedEndpoint) {
+        super(message);
         this.namedEndpoint = namedEndpoint;
-        initCause(cause);
     }
 
     /**

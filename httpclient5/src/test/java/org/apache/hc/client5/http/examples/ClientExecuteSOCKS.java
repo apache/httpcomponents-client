@@ -31,9 +31,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.net.Socket;
-import java.net.SocketTimeoutException;
 
-import org.apache.hc.client5.http.ConnectTimeoutException;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
@@ -106,11 +104,7 @@ public class ClientExecuteSOCKS {
             if (localAddress != null) {
                 sock.bind(localAddress);
             }
-            try {
-                sock.connect(remoteAddress, connectTimeout != null ? connectTimeout.toMillisIntBound() : 0);
-            } catch (final SocketTimeoutException ex) {
-                throw new ConnectTimeoutException(ex, host, remoteAddress.getAddress());
-            }
+            sock.connect(remoteAddress, connectTimeout != null ? connectTimeout.toMillisIntBound() : 0);
             return sock;
         }
 

@@ -27,16 +27,12 @@
 package org.apache.hc.client5.http.impl.io;
 
 import java.io.IOException;
-import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.NoRouteToHostException;
 import java.net.Socket;
-import java.net.SocketTimeoutException;
 
-import org.apache.hc.client5.http.ConnectTimeoutException;
+import org.apache.hc.client5.http.ConnectExceptionSupport;
 import org.apache.hc.client5.http.DnsResolver;
-import org.apache.hc.client5.http.HttpHostConnectException;
 import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.SystemDefaultDnsResolver;
 import org.apache.hc.client5.http.UnsupportedSchemeException;
@@ -155,21 +151,9 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
                     this.log.debug(ConnPoolSupport.getId(conn) + ": connection established " + conn);
                 }
                 return;
-            } catch (final SocketTimeoutException ex) {
+            } catch (final IOException ex) {
                 if (last) {
-                    throw new ConnectTimeoutException(ex, host, addresses);
-                }
-            } catch (final ConnectException ex) {
-                if (last) {
-                    final String msg = ex.getMessage();
-                    if ("Connection timed out".equals(msg)) {
-                        throw new ConnectTimeoutException(ex, host, addresses);
-                    }
-                    throw new HttpHostConnectException(ex, host, addresses);
-                }
-            } catch (final NoRouteToHostException ex) {
-                if (last) {
-                    throw ex;
+                    throw ConnectExceptionSupport.enhance(ex, host, addresses);
                 }
             }
             if (this.log.isDebugEnabled()) {

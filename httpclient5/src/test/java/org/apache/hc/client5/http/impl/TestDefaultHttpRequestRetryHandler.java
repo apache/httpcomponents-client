@@ -27,9 +27,9 @@
 package org.apache.hc.client5.http.impl;
 
 import java.io.IOException;
+import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 
-import org.apache.hc.client5.http.ConnectTimeoutException;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.junit.Assert;
 import org.junit.Test;
@@ -45,7 +45,7 @@ public class TestDefaultHttpRequestRetryHandler {
         final DefaultHttpRequestRetryHandler retryHandler = new DefaultHttpRequestRetryHandler();
         Assert.assertEquals(3, retryHandler.getRetryCount());
 
-        Assert.assertFalse(retryHandler.retryRequest(request, new ConnectTimeoutException(), 1, null));
+        Assert.assertFalse(retryHandler.retryRequest(request, new SocketTimeoutException(), 1, null));
     }
 
     @Test
@@ -82,7 +82,7 @@ public class TestDefaultHttpRequestRetryHandler {
 
         final DefaultHttpRequestRetryHandler retryHandler = new DefaultHttpRequestRetryHandler();
 
-        Assert.assertFalse(retryHandler.retryRequest(request, new ConnectTimeoutException(), 3, null));
+        Assert.assertFalse(retryHandler.retryRequest(request, new SocketTimeoutException(), 3, null));
     }
 
 }

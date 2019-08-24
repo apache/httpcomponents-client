@@ -26,16 +26,12 @@
  */
 package org.apache.hc.client5.http;
 
-import java.io.IOException;
 import java.net.ConnectException;
-import java.net.InetAddress;
-import java.util.Arrays;
 
 import org.apache.hc.core5.net.NamedEndpoint;
 
 /**
- * A {@link ConnectException} that specifies the {@link NamedEndpoint} that was
- * being connected to.
+ * A {@link ConnectException} that specifies the {@link NamedEndpoint} that was being connected to.
  *
  * @since 4.0
  */
@@ -46,22 +42,16 @@ public class HttpHostConnectException extends ConnectException {
     private final NamedEndpoint namedEndpoint;
 
     /**
-     * Creates a HttpHostConnectException based on original {@link java.io.IOException}.
-     *
-     * @since 5.0
+     * Creates a HttpHostConnectException with the specified detail message.
      */
-    public HttpHostConnectException(
-            final IOException cause,
-            final NamedEndpoint namedEndpoint,
-            final InetAddress... remoteAddresses) {
-        super("Connect to " +
-                (namedEndpoint != null ? namedEndpoint : "remote endpoint") +
-                (remoteAddresses != null && remoteAddresses .length > 0 ?
-                        " " + Arrays.asList(remoteAddresses) : "") +
-                ((cause != null && cause.getMessage() != null) ?
-                        " failed: " + cause.getMessage() : " refused"));
+    public HttpHostConnectException(final String message) {
+        super(message);
+        this.namedEndpoint = null;
+    }
+
+    public HttpHostConnectException(final String message, final NamedEndpoint namedEndpoint) {
+        super(message);
         this.namedEndpoint = namedEndpoint;
-        initCause(cause);
     }
 
     /**

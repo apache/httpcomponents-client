@@ -36,8 +36,8 @@ import java.util.Arrays;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.hc.client5.http.ConnectExceptionSupport;
 import org.apache.hc.client5.http.DnsResolver;
-import org.apache.hc.client5.http.HttpHostConnectException;
 import org.apache.hc.client5.http.SystemDefaultDnsResolver;
 import org.apache.hc.core5.concurrent.ComplexFuture;
 import org.apache.hc.core5.concurrent.FutureCallback;
@@ -129,7 +129,7 @@ final class MultihomeIOSessionRequester {
                                                 "(" + cause.getClass() + "); terminating operation");
                                     }
                                     if (cause instanceof IOException) {
-                                        future.failed(new HttpHostConnectException((IOException) cause, remoteEndpoint, remoteAddresses));
+                                        future.failed(ConnectExceptionSupport.enhance((IOException) cause, remoteEndpoint, remoteAddresses));
                                     } else {
                                         future.failed(cause);
                                     }
