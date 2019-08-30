@@ -29,6 +29,7 @@ package org.apache.http.impl.client;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Arrays;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -81,16 +82,26 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
 
     public static final DefaultRedirectStrategy INSTANCE = new DefaultRedirectStrategy();
 
-    /**
-     * Redirectable methods.
-     */
-    private static final String[] REDIRECT_METHODS = new String[] {
-        HttpGet.METHOD_NAME,
-        HttpHead.METHOD_NAME
-    };
+    private final String[] redirectMethods;
 
     public DefaultRedirectStrategy() {
+        this(new String[] {
+            HttpGet.METHOD_NAME,
+            HttpHead.METHOD_NAME
+        });
+    }
+
+    /**
+     * Constructs a new instance to redirect the given HTTP methods.
+     *
+     * @param redirectMethods The methods to redirect.
+     * @since 4.5.10
+     */
+    public DefaultRedirectStrategy(final String[] redirectMethods) {
         super();
+        final String[] tmp = redirectMethods.clone();
+        Arrays.sort(tmp);
+        this.redirectMethods = tmp;
     }
 
     @Override
@@ -198,12 +209,7 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
      * @since 4.2
      */
     protected boolean isRedirectable(final String method) {
-        for (final String m: REDIRECT_METHODS) {
-            if (m.equalsIgnoreCase(method)) {
-                return true;
-            }
-        }
-        return false;
+        return Arrays.binarySearch(redirectMethods, method) >= 0;
     }
 
     @Override
