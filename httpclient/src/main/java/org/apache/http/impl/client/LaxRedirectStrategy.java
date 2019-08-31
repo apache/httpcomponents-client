@@ -47,24 +47,13 @@ public class LaxRedirectStrategy extends DefaultRedirectStrategy {
 
     public static final LaxRedirectStrategy INSTANCE = new LaxRedirectStrategy();
 
-    /**
-     * Redirectable methods.
-     */
-    private static final String[] REDIRECT_METHODS = new String[] {
-        HttpGet.METHOD_NAME,
-        HttpPost.METHOD_NAME,
-        HttpHead.METHOD_NAME,
-        HttpDelete.METHOD_NAME
-    };
-
-    @Override
-    protected boolean isRedirectable(final String method) {
-        for (final String m: REDIRECT_METHODS) {
-            if (m.equalsIgnoreCase(method)) {
-                return true;
-            }
-        }
-        return false;
+    public LaxRedirectStrategy() {
+        super(new String[] {
+            HttpGet.METHOD_NAME,
+            HttpPost.METHOD_NAME,
+            HttpHead.METHOD_NAME,
+            HttpDelete.METHOD_NAME
+        });
     }
 
 }
