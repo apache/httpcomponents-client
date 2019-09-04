@@ -1,3 +1,30 @@
+Release 4.5.10
+-------------------
+
+This is a maintenance release that fixes a number defects discovered since 4.5.9
+and upgrades HttpCore dependency to version 4.4.12.
+
+
+Changelog:
+-------------------
+
+* Refactor DefaultRedirectStrategy for subclassing.
+  Contributed by Gary Gregory <ggregory at apache.org>
+
+* Improved handling of request cancellation.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Fixed concurrent use of threading unsafe HttpUriRequest messages.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-1997: Return the last domain segment instead of normalized domain name
+  from PublicSuffixMatcher#getDomainRoot in case there is no match.
+  Contributed by jeromedemangel <jeromedemangel at gmail.com>
+
+* Preserve original encoding of the URI path component if the URI is valid.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+
 Release 4.5.9
 -------------------
 
