@@ -46,13 +46,12 @@ public class DefaultBackoffStrategy implements ConnectionBackoffStrategy {
 
     @Override
     public boolean shouldBackoff(final Throwable t) {
-        return (t instanceof SocketTimeoutException
-                || t instanceof ConnectException);
+        return t instanceof SocketTimeoutException || t instanceof ConnectException;
     }
 
     @Override
     public boolean shouldBackoff(final HttpResponse resp) {
-        return (resp.getCode() == HttpStatus.SC_SERVICE_UNAVAILABLE);
+        return resp.getCode() == HttpStatus.SC_SERVICE_UNAVAILABLE;
     }
 
 }
