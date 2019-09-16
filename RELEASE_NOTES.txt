@@ -1,3 +1,16 @@
+Release 4.5.11
+-------------------
+
+This is a maintenance release that fixes a number defects discovered since 4.5.10.
+
+
+Changelog:
+-------------------
+
+* Added family property #145.
+  Contributed by behrangsa
+
+
 Release 4.5.10
 -------------------
 
