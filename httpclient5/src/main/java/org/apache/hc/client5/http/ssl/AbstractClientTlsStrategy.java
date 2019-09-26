@@ -34,6 +34,7 @@ import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLException;
+import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.SSLParameters;
 import javax.net.ssl.SSLSession;
 
@@ -44,6 +45,7 @@ import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
 import org.apache.hc.core5.http.ssl.TLS;
 import org.apache.hc.core5.http.ssl.TlsCiphers;
 import org.apache.hc.core5.http2.HttpVersionPolicy;
+import org.apache.hc.core5.http2.ssl.ApplicationProtocols;
 import org.apache.hc.core5.http2.ssl.H2TlsSupport;
 import org.apache.hc.core5.net.NamedEndpoint;
 import org.apache.hc.core5.reactor.ssl.SSLBufferMode;
@@ -107,7 +109,7 @@ abstract class AbstractClientTlsStrategy implements TlsStrategy {
                 }
                 if (supportedCipherSuites != null) {
                     sslParameters.setCipherSuites(supportedCipherSuites);
-                } else if (versionPolicy != HttpVersionPolicy.FORCE_HTTP_1) {
+                } else if (versionPolicy == HttpVersionPolicy.FORCE_HTTP_2) {
                     sslParameters.setCipherSuites(TlsCiphers.excludeH2Blacklisted(sslParameters.getCipherSuites()));
                 }
 
@@ -130,7 +132,15 @@ abstract class AbstractClientTlsStrategy implements TlsStrategy {
             @Override
             public TlsDetails verify(final NamedEndpoint endpoint, final SSLEngine sslEngine) throws SSLException {
                 verifySession(host.getHostName(), sslEngine.getSession());
-                return createTlsDetails(sslEngine);
+                final TlsDetails tlsDetails = createTlsDetails(sslEngine);
+                final String negotiatedCipherSuite = sslEngine.getSession().getCipherSuite();
+                if (tlsDetails != null && ApplicationProtocols.HTTP_2.id.equals(tlsDetails.getApplicationProtocol())) {
+                    if (TlsCiphers.isH2Blacklisted(negotiatedCipherSuite)) {
+                        throw new SSLHandshakeException("Cipher suite `" + negotiatedCipherSuite
+                            + "` does not provide adequate security for HTTP/2");
+                    }
+                }
+                return tlsDetails;
             }
 
         }, handshakeTimeout);
