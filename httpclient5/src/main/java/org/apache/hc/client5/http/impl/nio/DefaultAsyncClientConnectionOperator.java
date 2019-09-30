@@ -90,13 +90,18 @@ final class DefaultAsyncClientConnectionOperator implements AsyncClientConnectio
                     public void completed(final IOSession session) {
                         final DefaultManagedAsyncClientConnection connection = new DefaultManagedAsyncClientConnection(session);
                         if (tlsStrategy != null) {
-                            tlsStrategy.upgrade(
-                                    connection,
-                                    host,
-                                    session.getLocalAddress(),
-                                    session.getRemoteAddress(),
-                                    attachment,
-                                    connectTimeout);
+                            try {
+                                tlsStrategy.upgrade(
+                                        connection,
+                                        host,
+                                        session.getLocalAddress(),
+                                        session.getRemoteAddress(),
+                                        attachment,
+                                        connectTimeout);
+                            } catch (final Exception ex) {
+                                future.failed(ex);
+                                return;
+                            }
                         }
                         future.completed(connection);
                     }
