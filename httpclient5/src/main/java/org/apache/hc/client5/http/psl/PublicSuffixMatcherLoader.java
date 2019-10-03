@@ -89,7 +89,7 @@ public final class PublicSuffixMatcherLoader {
                             }
                         }
                     } else {
-                        DEFAULT_INSTANCE = new PublicSuffixMatcher(Arrays.asList("com"), null);
+                        DEFAULT_INSTANCE = new PublicSuffixMatcher(DomainType.ICANN, Arrays.asList("com"), null);
                     }
                 }
             }
