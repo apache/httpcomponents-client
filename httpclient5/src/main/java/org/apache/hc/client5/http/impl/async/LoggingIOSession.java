@@ -159,6 +159,11 @@ class LoggingIOSession implements ProtocolIOSession {
     }
 
     @Override
+    public boolean isOpen() {
+        return channel.isOpen();
+    }
+
+    @Override
     public void close() {
         if (this.log.isDebugEnabled()) {
             this.log.debug(this.id + " " + this.session + ": Close");
@@ -256,6 +261,16 @@ class LoggingIOSession implements ProtocolIOSession {
     @Override
     public String toString() {
         return this.id + " " + this.session.toString();
+    }
+
+    @Override
+    public int read(final ByteBuffer dst) throws IOException {
+        return channel.read(dst);
+    }
+
+    @Override
+    public int write(final ByteBuffer src) throws IOException {
+        return channel.write(src);
     }
 
     class LoggingByteChannel implements ByteChannel {

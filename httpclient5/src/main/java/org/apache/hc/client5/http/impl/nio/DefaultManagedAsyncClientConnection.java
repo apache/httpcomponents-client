@@ -46,7 +46,6 @@ import org.apache.hc.core5.net.NamedEndpoint;
 import org.apache.hc.core5.reactor.Command;
 import org.apache.hc.core5.reactor.IOEventHandler;
 import org.apache.hc.core5.reactor.IOSession;
-import org.apache.hc.core5.reactor.ProtocolLayer;
 import org.apache.hc.core5.reactor.ssl.SSLBufferMode;
 import org.apache.hc.core5.reactor.ssl.SSLSessionInitializer;
 import org.apache.hc.core5.reactor.ssl.SSLSessionVerifier;
@@ -123,22 +122,18 @@ final class DefaultManagedAsyncClientConnection implements ManagedAsyncClientCon
 
     @Override
     public EndpointDetails getEndpointDetails() {
-        if (ioSession instanceof ProtocolLayer) {
-            final IOEventHandler handler = ((ProtocolLayer) ioSession).getHandler();
-            if (handler instanceof HttpConnection) {
-                return ((HttpConnection) handler).getEndpointDetails();
-            }
+        final IOEventHandler handler = ioSession.getHandler();
+        if (handler instanceof HttpConnection) {
+            return ((HttpConnection) handler).getEndpointDetails();
         }
         return null;
     }
 
     @Override
     public ProtocolVersion getProtocolVersion() {
-        if (ioSession instanceof ProtocolLayer) {
-            final IOEventHandler handler = ((ProtocolLayer) ioSession).getHandler();
-            if (handler instanceof HttpConnection) {
-                return ((HttpConnection) handler).getProtocolVersion();
-            }
+        final IOEventHandler handler = ioSession.getHandler();
+        if (handler instanceof HttpConnection) {
+            return ((HttpConnection) handler).getProtocolVersion();
         }
         return HttpVersion.DEFAULT;
     }
