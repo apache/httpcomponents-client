@@ -1,4 +1,4 @@
-﻿Release 5.0-BETA5
+﻿Release 5.0-BETA6
 -------------------
 
 This BETA release picks up the latest fixes and performance improvements from HttpCore
@@ -39,6 +39,46 @@ Notable changes and features included in the 5.0 series are:
 HttpClient 5.0 releases can be co-located with earlier major versions on the same classpath
 due to the change in package names and Maven module coordinates.
 
+
+Changelog:
+-------------------
+
+* Fixed fallback PublicSuffixMatcher.
+  Contributed by Ryan Schmitt <rschmitt at apache.org>
+
+* Enforce h2 TLS rules after negotiating TLS, not before.
+  Contributed by Ryan Schmitt <rschmitt at apache.org>
+
+* HTTPCLIENT-2013: Revised handling of connect exceptions; improved consistency in behavior
+  of the classic and async clients; ConnectTimeoutException now extends SocketTimeoutException.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Improved handling of request cancellation (classic API).
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Fixed concurrent use of threading unsafe ClassicHttpRequest messages.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Execute Socket#connect under doPrivileged.
+  Contributed by Simon Willnauer <simonw at apache.org>
+
+* HTTPCLIENT-2009: Fixed StringIndexOutOfBoundsException in AuthSupport#extractFromAuthority.
+  Contributed by itonyli <429284840 at qq.com>
+
+* Make Accept-Encoding header handling thread-safe.
+  Contributed by Linton Miller <linton.miller at coxautoinc.com>
+
+
+
+Release 5.0-BETA5
+-------------------
+
+This BETA release picks up the latest fixes and performance improvements from HttpCore
+and addresses a number of issues found since the previous BETA release.
+
+IMPORTANT: This release is expected to be the last BETA version. If no major
+design flaws are found the actual 5.0 API will be frozen and the next version will be
+promoted to GA.
 
 Changelog:
 -------------------
