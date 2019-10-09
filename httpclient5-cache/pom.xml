@@ -28,7 +28,7 @@
   <parent>
     <groupId>org.apache.httpcomponents.client5</groupId>
     <artifactId>httpclient5-parent</artifactId>
-    <version>5.0-beta6-SNAPSHOT</version>
+    <version>5.0-beta7-SNAPSHOT</version>
   </parent>
   <artifactId>httpclient5-cache</artifactId>
   <name>Apache HttpClient Cache</name>
