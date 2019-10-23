@@ -38,7 +38,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-import org.apache.commons.codec.binary.Base64;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.HttpCacheStorageEntry;
 import org.apache.hc.client5.http.cache.ResourceIOException;
@@ -119,9 +118,12 @@ public class TestByteArrayCacheEntrySerializer {
         final Map<String,String> variantMap = new HashMap<>();
         variantMap.put("test variant 1","true");
         variantMap.put("test variant 2","true");
-        final HttpCacheEntry cacheEntry = new HttpCacheEntry(new Date(), new Date(),
-                HttpStatus.SC_OK, headers,
-                new HeapResource(Base64.decodeBase64(body.getBytes(UTF8))), variantMap);
+        final HttpCacheEntry cacheEntry = new HttpCacheEntry(
+                new Date(),
+                new Date(),
+                HttpStatus.SC_OK,
+                headers,
+                new HeapResource(body.getBytes(UTF8)), variantMap);
 
         return new HttpCacheStorageEntry(key, cacheEntry);
     }
