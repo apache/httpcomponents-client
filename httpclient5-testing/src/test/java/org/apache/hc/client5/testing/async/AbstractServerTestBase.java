@@ -64,7 +64,7 @@ public abstract class AbstractServerTestBase {
                     IOReactorConfig.custom()
                         .setSoTimeout(TIMEOUT)
                         .build(),
-                    scheme == URIScheme.HTTPS ? SSLTestContexts.createServerSSLContext() : null);
+                    scheme == URIScheme.HTTPS ? SSLTestContexts.createServerSSLContext() : null, null, null);
             server.register("/echo/*", new Supplier<AsyncServerExchangeHandler>() {
 
                 @Override

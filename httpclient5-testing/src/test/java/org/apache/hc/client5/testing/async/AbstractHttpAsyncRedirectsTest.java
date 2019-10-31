@@ -687,7 +687,7 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
         final HttpHost redirectTarget = start();
 
         final H2TestServer secondServer = new H2TestServer(IOReactorConfig.DEFAULT,
-                scheme == URIScheme.HTTPS ? SSLTestContexts.createServerSSLContext() : null);
+                scheme == URIScheme.HTTPS ? SSLTestContexts.createServerSSLContext() : null, null, null);
         try {
             secondServer.register("/redirect/*", new Supplier<AsyncServerExchangeHandler>() {
 

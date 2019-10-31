@@ -97,7 +97,7 @@ final class DefaultManagedAsyncClientConnection implements ManagedAsyncClientCon
 
     @Override
     public boolean isOpen() {
-        return !ioSession.isClosed();
+        return ioSession.isOpen();
     }
 
     @Override

@@ -177,11 +177,6 @@ class LoggingIOSession implements ProtocolIOSession {
     }
 
     @Override
-    public boolean isClosed() {
-        return this.session.isClosed();
-    }
-
-    @Override
     public void close(final CloseMode closeMode) {
         if (this.log.isDebugEnabled()) {
             this.log.debug(this.id + " " + this.session + ": Close " + closeMode);

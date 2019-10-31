@@ -149,7 +149,7 @@ class InternalH2AsyncExecRuntime implements AsyncExecRuntime {
     public boolean validateConnection() {
         if (reusable) {
             final Endpoint endpoint = sessionRef.get();
-            return endpoint != null && !endpoint.session.isClosed();
+            return endpoint != null && endpoint.session.isOpen();
         }
         final Endpoint endpoint = sessionRef.getAndSet(null);
         if (endpoint != null) {
@@ -161,7 +161,7 @@ class InternalH2AsyncExecRuntime implements AsyncExecRuntime {
     @Override
     public boolean isEndpointConnected() {
         final Endpoint endpoint = sessionRef.get();
-        return endpoint != null && !endpoint.session.isClosed();
+        return endpoint != null && endpoint.session.isOpen();
     }
 
 
@@ -178,7 +178,7 @@ class InternalH2AsyncExecRuntime implements AsyncExecRuntime {
             final HttpClientContext context,
             final FutureCallback<AsyncExecRuntime> callback) {
         final Endpoint endpoint = ensureValid();
-        if (!endpoint.session.isClosed()) {
+        if (endpoint.session.isOpen()) {
             callback.completed(this);
             return Operations.nonCancellable();
         }
@@ -227,7 +227,7 @@ class InternalH2AsyncExecRuntime implements AsyncExecRuntime {
         final ComplexCancellable complexCancellable = new ComplexCancellable();
         final Endpoint endpoint = ensureValid();
         final IOSession session = endpoint.session;
-        if (!session.isClosed()) {
+        if (session.isOpen()) {
             if (log.isDebugEnabled()) {
                 log.debug(ConnPoolSupport.getId(endpoint) + ": start execution " + id);
             }
