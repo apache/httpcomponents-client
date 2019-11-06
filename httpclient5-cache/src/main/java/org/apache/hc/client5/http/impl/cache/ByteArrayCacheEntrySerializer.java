@@ -55,23 +55,7 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
 @Contract(threading = ThreadingBehavior.STATELESS)
 public final class ByteArrayCacheEntrySerializer implements HttpCacheEntrySerializer<byte[]> {
 
-    private static final List<Pattern> ALLOWED_CLASS_PATTERNS = Collections.unmodifiableList(Arrays.asList(
-            Pattern.compile("^(\\[L)?org\\.apache\\.hc\\.(.*)"),
-            Pattern.compile("^(\\[L)?java\\.util\\.(.*)"),
-            Pattern.compile("^(\\[L)?java\\.lang\\.(.*)$"),
-            Pattern.compile("^\\[B$")));
-
     public static final ByteArrayCacheEntrySerializer INSTANCE = new ByteArrayCacheEntrySerializer();
-
-    private final List<Pattern> allowedClassPatterns;
-
-    ByteArrayCacheEntrySerializer(final Pattern... allowedClassPatterns) {
-        this.allowedClassPatterns = Collections.unmodifiableList(Arrays.asList(allowedClassPatterns));
-    }
-
-    public ByteArrayCacheEntrySerializer() {
-        this.allowedClassPatterns = ALLOWED_CLASS_PATTERNS;
-    }
 
     @Override
     public byte[] serialize(final HttpCacheStorageEntry cacheEntry) throws ResourceIOException {
@@ -92,42 +76,54 @@ public final class ByteArrayCacheEntrySerializer implements HttpCacheEntrySerial
         if (serializedObject == null) {
             return null;
         }
-        try (final ObjectInputStream ois = new RestrictedObjectInputStream(
-                new ByteArrayInputStream(serializedObject), allowedClassPatterns)) {
+        try (final ObjectInputStream ois = new RestrictedObjectInputStream(new ByteArrayInputStream(serializedObject))) {
             return (HttpCacheStorageEntry) ois.readObject();
         } catch (final IOException | ClassNotFoundException ex) {
             throw new ResourceIOException(ex.getMessage(), ex);
         }
     }
 
-    private static class RestrictedObjectInputStream extends ObjectInputStream {
+    // visible for testing
+    static class RestrictedObjectInputStream extends ObjectInputStream {
 
-        private final List<Pattern> allowedClassPatterns;
+        private static final List<Pattern> ALLOWED_CLASS_PATTERNS = Collections.unmodifiableList(Arrays.asList(
+                Pattern.compile("^(\\[L)?org\\.apache\\.hc\\.(.*)"),
+                Pattern.compile("^(?:\\[+L)?java\\.util\\..*$"),
+                Pattern.compile("^(?:\\[+L)?java\\.lang\\..*$"),
+                Pattern.compile("^\\[+Z$"), // boolean
+                Pattern.compile("^\\[+B$"), // byte
+                Pattern.compile("^\\[+C$"), // char
+                Pattern.compile("^\\[+D$"), // double
+                Pattern.compile("^\\[+F$"), // float
+                Pattern.compile("^\\[+I$"), // int
+                Pattern.compile("^\\[+J$"), // long
+                Pattern.compile("^\\[+S$") // short
+        ));
 
-        private RestrictedObjectInputStream(final InputStream in, final List<Pattern> patterns) throws IOException {
+        private RestrictedObjectInputStream(final InputStream in) throws IOException {
             super(in);
-            this.allowedClassPatterns = patterns;
         }
 
         @Override
-        protected Class<?> resolveClass(final ObjectStreamClass desc) throws IOException, ClassNotFoundException {
-            if (isProhibited(desc)) {
+        protected Class<?> resolveClass(final ObjectStreamClass objectStreamClass) throws IOException, ClassNotFoundException {
+            final String className = objectStreamClass.getName();
+            if (!isAllowedClassName(className)) {
                 throw new ResourceIOException(String.format(
-                        "Class %s is not allowed for deserialization", desc.getName()));
+                        "Class %s is not allowed for deserialization", objectStreamClass.getName()));
             }
-            return super.resolveClass(desc);
+            return super.resolveClass(objectStreamClass);
         }
 
-        private boolean isProhibited(final ObjectStreamClass desc) {
-            if (allowedClassPatterns != null) {
-                for (final Pattern pattern : allowedClassPatterns) {
-                    if (pattern.matcher(desc.getName()).matches()) {
-                        return false;
-                    }
+        // visible for testing
+        static boolean isAllowedClassName(final String className) {
+            for (final Pattern allowedClassPattern : ALLOWED_CLASS_PATTERNS) {
+                if (allowedClassPattern.matcher(className).matches()) {
+                    return true;
                 }
             }
-            return true;
+            return false;
         }
+
     }
 
 }
