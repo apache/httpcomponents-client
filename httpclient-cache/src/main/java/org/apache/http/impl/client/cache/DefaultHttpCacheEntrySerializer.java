@@ -55,10 +55,18 @@ import org.apache.http.client.cache.HttpCacheEntrySerializer;
 public class DefaultHttpCacheEntrySerializer implements HttpCacheEntrySerializer {
 
     private static final List<Pattern> ALLOWED_CLASS_PATTERNS = Collections.unmodifiableList(Arrays.asList(
-            Pattern.compile("^(\\[L)?org\\.apache\\.http\\.(.*)"),
-            Pattern.compile("^(\\[L)?java\\.util\\.(.*)"),
-            Pattern.compile("^(\\[L)?java\\.lang\\.(.*)$"),
-            Pattern.compile("^\\[B$")));
+            Pattern.compile("^(?:\\[+L)?org\\.apache\\.http\\..*$"),
+            Pattern.compile("^(?:\\[+L)?java\\.util\\..*$"),
+            Pattern.compile("^(?:\\[+L)?java\\.lang\\..*$"),
+            Pattern.compile("^\\[+Z$"), // boolean
+            Pattern.compile("^\\[+B$"), // byte
+            Pattern.compile("^\\[+C$"), // char
+            Pattern.compile("^\\[+D$"), // double
+            Pattern.compile("^\\[+F$"), // float
+            Pattern.compile("^\\[+I$"), // int
+            Pattern.compile("^\\[+J$"), // long
+            Pattern.compile("^\\[+S$") // short
+    ));
 
     private final List<Pattern> allowedClassPatterns;
 
