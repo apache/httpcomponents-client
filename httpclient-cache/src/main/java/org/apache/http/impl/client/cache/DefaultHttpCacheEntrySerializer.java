@@ -54,30 +54,6 @@ import org.apache.http.client.cache.HttpCacheEntrySerializer;
 @Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class DefaultHttpCacheEntrySerializer implements HttpCacheEntrySerializer {
 
-    private static final List<Pattern> ALLOWED_CLASS_PATTERNS = Collections.unmodifiableList(Arrays.asList(
-            Pattern.compile("^(?:\\[+L)?org\\.apache\\.http\\..*$"),
-            Pattern.compile("^(?:\\[+L)?java\\.util\\..*$"),
-            Pattern.compile("^(?:\\[+L)?java\\.lang\\..*$"),
-            Pattern.compile("^\\[+Z$"), // boolean
-            Pattern.compile("^\\[+B$"), // byte
-            Pattern.compile("^\\[+C$"), // char
-            Pattern.compile("^\\[+D$"), // double
-            Pattern.compile("^\\[+F$"), // float
-            Pattern.compile("^\\[+I$"), // int
-            Pattern.compile("^\\[+J$"), // long
-            Pattern.compile("^\\[+S$") // short
-    ));
-
-    private final List<Pattern> allowedClassPatterns;
-
-    DefaultHttpCacheEntrySerializer(final Pattern... allowedClassPatterns) {
-        this.allowedClassPatterns = Collections.unmodifiableList(Arrays.asList(allowedClassPatterns));
-    }
-
-    public DefaultHttpCacheEntrySerializer() {
-        this.allowedClassPatterns = ALLOWED_CLASS_PATTERNS;
-    }
-
     @Override
     public void writeTo(final HttpCacheEntry cacheEntry, final OutputStream os) throws IOException {
         final ObjectOutputStream oos = new ObjectOutputStream(os);
@@ -90,7 +66,7 @@ public class DefaultHttpCacheEntrySerializer implements HttpCacheEntrySerializer
 
     @Override
     public HttpCacheEntry readFrom(final InputStream is) throws IOException {
-        final ObjectInputStream ois = new RestrictedObjectInputStream(is, allowedClassPatterns);
+        final ObjectInputStream ois = new RestrictedObjectInputStream(is);
         try {
             return (HttpCacheEntry) ois.readObject();
         } catch (final ClassNotFoundException ex) {
@@ -100,32 +76,47 @@ public class DefaultHttpCacheEntrySerializer implements HttpCacheEntrySerializer
         }
     }
 
-    private static class RestrictedObjectInputStream extends ObjectInputStream {
+    // visible for testing
+    static class RestrictedObjectInputStream extends ObjectInputStream {
 
-        private final List<Pattern> allowedClassPatterns;
+        private static final List<Pattern> ALLOWED_CLASS_PATTERNS = Collections.unmodifiableList(Arrays.asList(
+                Pattern.compile("^(?:\\[+L)?org\\.apache\\.http\\..*$"),
+                Pattern.compile("^(?:\\[+L)?java\\.util\\..*$"),
+                Pattern.compile("^(?:\\[+L)?java\\.lang\\..*$"),
+                Pattern.compile("^\\[+Z$"), // boolean
+                Pattern.compile("^\\[+B$"), // byte
+                Pattern.compile("^\\[+C$"), // char
+                Pattern.compile("^\\[+D$"), // double
+                Pattern.compile("^\\[+F$"), // float
+                Pattern.compile("^\\[+I$"), // int
+                Pattern.compile("^\\[+J$"), // long
+                Pattern.compile("^\\[+S$") // short
+        ));
 
-        private RestrictedObjectInputStream(final InputStream in, final List<Pattern> patterns) throws IOException {
+        private RestrictedObjectInputStream(final InputStream in) throws IOException {
             super(in);
-            this.allowedClassPatterns = patterns;
         }
 
         @Override
-        protected Class<?> resolveClass(final ObjectStreamClass desc) throws IOException, ClassNotFoundException {
-            if (isProhibited(desc)) {
-                throw new HttpCacheEntrySerializationException(String.format(
-                        "Class %s is not allowed for deserialization", desc.getName()));
+        protected Class<?> resolveClass(final ObjectStreamClass objectStreamClass) throws IOException, ClassNotFoundException {
+            final String className = objectStreamClass.getName();
+            if (!isAllowedClassName(className)) {
+                final String message = String.format("Class %s is not allowed for deserialization", className);
+                throw new HttpCacheEntrySerializationException(message);
             }
-            return super.resolveClass(desc);
+            return super.resolveClass(objectStreamClass);
         }
 
-        private boolean isProhibited(final ObjectStreamClass desc) {
-            for (final Pattern pattern : allowedClassPatterns) {
-                if (pattern.matcher(desc.getName()).matches()) {
-                    return false;
+        // visible for testing
+        static boolean isAllowedClassName(final String className) {
+            for (final Pattern allowedClassPattern : ALLOWED_CLASS_PATTERNS) {
+                if (allowedClassPattern.matcher(className).matches()) {
+                    return true;
                 }
             }
-            return true;
+            return false;
         }
+
     }
 
 }

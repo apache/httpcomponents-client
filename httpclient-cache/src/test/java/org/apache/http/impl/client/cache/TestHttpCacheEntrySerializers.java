@@ -26,6 +26,7 @@
  */
 package org.apache.http.impl.client.cache;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayInputStream;
@@ -38,7 +39,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.Header;
@@ -72,25 +72,182 @@ public class TestHttpCacheEntrySerializers {
         readWriteVerify(makeCacheEntryWithVariantMap());
     }
 
+    @Test
+    public void isAllowedClassNameStringTrue() {
+        assertIsAllowedClassNameTrue(String.class.getName());
+    }
+
+    @Test
+    public void isAllowedClassNameStringArrayTrue() {
+        assertIsAllowedClassNameTrue("[L" + String.class.getName());
+    }
+
+    @Test
+    public void isAllowedClassNameStringArrayArrayTrue() {
+        assertIsAllowedClassNameTrue("[[L" + String.class.getName());
+    }
+
+    @Test
+    public void isAllowedClassNameDataTrue() {
+        assertIsAllowedClassNameTrue(Date.class.getName());
+    }
+
+    @Test
+    public void isAllowedClassNameStatusLineTrue() {
+        assertIsAllowedClassNameTrue(StatusLine.class.getName());
+    }
+
+    @Test
+    public void isAllowedClassNameResourceTrue() {
+        assertIsAllowedClassNameTrue(Resource.class.getName());
+    }
+
+    @Test
+    public void isAllowedClassNameByteArrayTrue() {
+        assertIsAllowedClassNameTrue("[B");
+    }
+
+    @Test
+    public void isAllowedClassNameByteArrayArrayTrue() {
+        assertIsAllowedClassNameTrue("[[B");
+    }
+
+    @Test
+    public void isAllowedClassNameCharArrayTrue() {
+        assertIsAllowedClassNameTrue("[C");
+    }
+
+    @Test
+    public void isAllowedClassNameCharArrayArrayTrue() {
+        assertIsAllowedClassNameTrue("[[C");
+    }
+
+    @Test
+    public void isAllowedClassNameDoubleArrayTrue() {
+        assertIsAllowedClassNameTrue("[D");
+    }
+
+    @Test
+    public void isAllowedClassNameDoubleArrayArrayTrue() {
+        assertIsAllowedClassNameTrue("[[D");
+    }
+
+    @Test
+    public void isAllowedClassNameFloatArrayTrue() {
+        assertIsAllowedClassNameTrue("[F");
+    }
+
+    @Test
+    public void isAllowedClassNameFloatArrayArrayTrue() {
+        assertIsAllowedClassNameTrue("[[F");
+    }
+
+    @Test
+    public void isAllowedClassNameIntArrayTrue() {
+        assertIsAllowedClassNameTrue("[I");
+    }
+
+    @Test
+    public void isAllowedClassNameIntArrayArrayTrue() {
+        assertIsAllowedClassNameTrue("[[I");
+    }
+
+    @Test
+    public void isAllowedClassNameLongArrayTrue() {
+        assertIsAllowedClassNameTrue("[J");
+    }
+
+    @Test
+    public void isAllowedClassNameLongArrayArrayTrue() {
+        assertIsAllowedClassNameTrue("[[J");
+    }
+
+    @Test
+    public void isAllowedClassNameShortArrayTrue() {
+        assertIsAllowedClassNameTrue("[S");
+    }
+
+    @Test
+    public void isAllowedClassNameShortArrayArrayTrue() {
+        assertIsAllowedClassNameTrue("[[S");
+    }
+
+    @Test
+    public void isAllowedClassNameCollectionsInvokerTransformerFalse() {
+        assertIsAllowedClassNameFalse("org.apache.commons.collections.functors.InvokerTransformer");
+    }
+
+    @Test
+    public void isAllowedClassNameCollections4InvokerTransformerFalse() {
+        assertIsAllowedClassNameFalse("org.apache.commons.collections4.functors.InvokerTransformer");
+    }
+
+    @Test
+    public void isAllowedClassNameCollectionsInstantiateTransformerFalse() {
+        assertIsAllowedClassNameFalse("org.apache.commons.collections.functors.InstantiateTransformer");
+    }
+
+    @Test
+    public void isAllowedClassNameCollections4InstantiateTransformerFalse() {
+        assertIsAllowedClassNameFalse("org.apache.commons.collections4.functors.InstantiateTransformer");
+    }
+
+    @Test
+    public void isAllowedClassNameGroovyConvertedClosureFalse() {
+        assertIsAllowedClassNameFalse("org.codehaus.groovy.runtime.ConvertedClosure");
+    }
+
+    @Test
+    public void isAllowedClassNameGroovyMethodClosureFalse() {
+        assertIsAllowedClassNameFalse("org.codehaus.groovy.runtime.MethodClosure");
+    }
+
+    @Test
+    public void isAllowedClassNameSpringObjectFactoryFalse() {
+        assertIsAllowedClassNameFalse("org.springframework.beans.factory.ObjectFactory");
+    }
+
+    @Test
+    public void isAllowedClassNameCalanTemplatesImplFalse() {
+        assertIsAllowedClassNameFalse("com.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl");
+    }
+
+    @Test
+    public void isAllowedClassNameCalanTemplatesImplArrayFalse() {
+        assertIsAllowedClassNameFalse("[Lcom.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl");
+    }
+
+    @Test
+    public void isAllowedClassNameJavaRmiRegistryFalse() {
+        assertIsAllowedClassNameFalse("java.rmi.registry.Registry");
+    }
+
+    @Test
+    public void isAllowedClassNameJavaRmiServerRemoteObjectInvocationHandlerFalse() {
+        assertIsAllowedClassNameFalse("java.rmi.server.RemoteObjectInvocationHandler");
+    }
+
+    @Test
+    public void isAllowedClassNameJavaxXmlTransformTemplatesFalse() {
+        assertIsAllowedClassNameFalse("javax.xml.transform.Templates");
+    }
+
+    @Test
+    public void isAllowedClassNameJavaxManagementMBeanServerInvocationHandlerFalse() {
+        assertIsAllowedClassNameFalse("javax.management.MBeanServerInvocationHandler");
+    }
+
+    private static void assertIsAllowedClassNameTrue(final String className) {
+        assertTrue(DefaultHttpCacheEntrySerializer.RestrictedObjectInputStream.isAllowedClassName(className));
+    }
+
+    private static void assertIsAllowedClassNameFalse(final String className) {
+        assertFalse(DefaultHttpCacheEntrySerializer.RestrictedObjectInputStream.isAllowedClassName(className));
+    }
+
     @Test(expected = HttpCacheEntrySerializationException.class)
     public void throwExceptionIfUnsafeDeserialization() throws IOException {
         impl.readFrom(new ByteArrayInputStream(serializeProhibitedObject()));
-    }
-
-    @Test(expected = HttpCacheEntrySerializationException.class)
-    public void allowClassesToBeDeserialized() throws IOException {
-        impl = new DefaultHttpCacheEntrySerializer(
-                Pattern.compile("javax.sql.rowset.BaseRowSet"),
-                Pattern.compile("com.sun.rowset.JdbcRowSetImpl"));
-        readVerify(serializeProhibitedObject());
-    }
-
-    @Test(expected = HttpCacheEntrySerializationException.class)
-    public void allowClassesToBeDeserializedByRegex() throws IOException {
-        impl = new DefaultHttpCacheEntrySerializer(
-                Pattern.compile(("^com\\.sun\\.rowset\\.(.*)")),
-                Pattern.compile("^javax\\.sql\\.rowset\\.BaseRowSet$"));
-        readVerify(serializeProhibitedObject());
     }
 
     private byte[] serializeProhibitedObject() throws IOException {
@@ -105,11 +262,7 @@ public class TestHttpCacheEntrySerializers {
         return baos.toByteArray();
     }
 
-    private void readVerify(final byte[] data) throws IOException {
-        impl.readFrom(new ByteArrayInputStream(data));
-    }
-
-    public void readWriteVerify(final HttpCacheEntry writeEntry) throws IOException {
+    private void readWriteVerify(final HttpCacheEntry writeEntry) throws IOException {
         // write the entry
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
         impl.writeTo(writeEntry, out);
