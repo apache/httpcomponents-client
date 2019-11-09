@@ -227,7 +227,7 @@ public class PoolingHttpClientConnectionManager
         final StringBuilder buf = new StringBuilder();
         final PoolStats totals = this.pool.getTotalStats();
         final PoolStats stats = this.pool.getStats(route);
-        buf.append("[total kept alive: ").append(totals.getAvailable()).append("; ");
+        buf.append("[total available: ").append(totals.getAvailable()).append("; ");
         buf.append("route allocated: ").append(stats.getLeased() + stats.getAvailable());
         buf.append(" of ").append(stats.getMax()).append("; ");
         buf.append("total allocated: ").append(totals.getLeased() + totals.getAvailable());
