@@ -288,7 +288,7 @@ public class TestHttpCacheEntrySerializers {
         variantMap.put("test variant 1","true");
         variantMap.put("test variant 2","true");
         final HttpCacheEntry cacheEntry = new HttpCacheEntry(new Date(), new Date(),
-                slObj, headers, new HeapResource(Base64.decodeBase64(body
+                slObj, headers, new HeapResource(Base64.encodeBase64(body
                         .getBytes(UTF8))), variantMap, HeaderConstants.GET_METHOD);
 
         return cacheEntry;
