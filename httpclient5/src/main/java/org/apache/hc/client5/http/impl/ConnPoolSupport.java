@@ -61,7 +61,7 @@ public final class ConnPoolSupport {
         }
         final PoolStats totals = connPool.getTotalStats();
         final PoolStats stats = connPool.getStats(route);
-        buf.append("[total kept alive: ").append(totals.getAvailable()).append("; ");
+        buf.append("[total available: ").append(totals.getAvailable()).append("; ");
         buf.append("route allocated: ").append(stats.getLeased() + stats.getAvailable());
         buf.append(" of ").append(stats.getMax()).append("; ");
         buf.append("total allocated: ").append(totals.getLeased() + totals.getAvailable());
