@@ -34,6 +34,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+
 import org.apache.http.Consts;
 import org.apache.http.NameValuePair;
 import org.apache.http.conn.util.InetAddressUtils;
@@ -497,7 +498,7 @@ public class URIBuilder {
      * @since 4.3
      */
     public boolean isOpaque() {
-        return isPathEmpty();
+        return this.pathSegments == null && this.encodedPath == null;
     }
 
     public String getScheme() {
