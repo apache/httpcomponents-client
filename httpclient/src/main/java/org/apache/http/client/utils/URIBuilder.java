@@ -79,8 +79,7 @@ public class URIBuilder {
      * @throws URISyntaxException if the input is not a valid URI
      */
     public URIBuilder(final String string) throws URISyntaxException {
-        super();
-        digestURI(new URI(string));
+        this(new URI(string), null);
     }
 
     /**
@@ -88,7 +87,26 @@ public class URIBuilder {
      * @param uri
      */
     public URIBuilder(final URI uri) {
+        this(uri, null);
+    }
+
+    /**
+     * Construct an instance from the string which must be a valid URI.
+     *
+     * @param string a valid URI in string form
+     * @throws URISyntaxException if the input is not a valid URI
+     */
+    public URIBuilder(final String string, final Charset charset) throws URISyntaxException {
+        this(new URI(string), charset);
+    }
+
+    /**
+     * Construct an instance from the provided URI.
+     * @param uri
+     */
+    public URIBuilder(final URI uri, final Charset charset) {
         super();
+        setCharset(charset);
         digestURI(uri);
     }
 
