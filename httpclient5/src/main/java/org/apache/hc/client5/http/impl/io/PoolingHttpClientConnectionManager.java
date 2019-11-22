@@ -287,7 +287,7 @@ public class PoolingHttpClientConnectionManager
                     log.debug(id + ": endpoint leased " + ConnPoolSupport.formatStats(route, state, pool));
                 }
                 try {
-                    if (TimeValue.isPositive(validateAfterInactivity)) {
+                    if (TimeValue.isNonNegative(validateAfterInactivity)) {
                         final ManagedHttpClientConnection conn = poolEntry.getConnection();
                         if (conn != null
                                 && poolEntry.getUpdated() + validateAfterInactivity.toMillis() <= System.currentTimeMillis()) {
