@@ -193,9 +193,10 @@ public final class DefaultHostnameVerifier implements HttpClientHostnameVerifier
 
     private static boolean matchIdentity(final String host, final String identity,
                                          final PublicSuffixMatcher publicSuffixMatcher,
+                                         final DomainType domainType,
                                          final boolean strict) {
         if (publicSuffixMatcher != null && host.contains(".")) {
-            if (!matchDomainRoot(host, publicSuffixMatcher.getDomainRoot(identity, DomainType.ICANN))) {
+            if (!matchDomainRoot(host, publicSuffixMatcher.getDomainRoot(identity, domainType))) {
                 return false;
             }
         }
@@ -230,20 +231,32 @@ public final class DefaultHostnameVerifier implements HttpClientHostnameVerifier
 
     static boolean matchIdentity(final String host, final String identity,
                                  final PublicSuffixMatcher publicSuffixMatcher) {
-        return matchIdentity(host, identity, publicSuffixMatcher, false);
+        return matchIdentity(host, identity, publicSuffixMatcher, null, false);
     }
 
     static boolean matchIdentity(final String host, final String identity) {
-        return matchIdentity(host, identity, null, false);
+        return matchIdentity(host, identity, null, null, false);
     }
 
     static boolean matchIdentityStrict(final String host, final String identity,
                                        final PublicSuffixMatcher publicSuffixMatcher) {
-        return matchIdentity(host, identity, publicSuffixMatcher, true);
+        return matchIdentity(host, identity, publicSuffixMatcher, null, true);
     }
 
     static boolean matchIdentityStrict(final String host, final String identity) {
-        return matchIdentity(host, identity, null, true);
+        return matchIdentity(host, identity, null, null, true);
+    }
+
+    static boolean matchIdentity(final String host, final String identity,
+                                 final PublicSuffixMatcher publicSuffixMatcher,
+                                 final DomainType domainType) {
+        return matchIdentity(host, identity, publicSuffixMatcher, domainType, false);
+    }
+
+    static boolean matchIdentityStrict(final String host, final String identity,
+                                       final PublicSuffixMatcher publicSuffixMatcher,
+                                       final DomainType domainType) {
+        return matchIdentity(host, identity, publicSuffixMatcher, domainType, true);
     }
 
     static String extractCN(final String subjectPrincipal) throws SSLException {
