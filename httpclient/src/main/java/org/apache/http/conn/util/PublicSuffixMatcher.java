@@ -166,9 +166,15 @@ public final class PublicSuffixMatcher {
             result = segment;
             segment = nextSegment;
         }
-        return result;
-    }
 
+        // If no expectations then this result is good.
+        if (expectedType == null || expectedType == DomainType.UNKNOWN) {
+            return result;
+        }
+
+        // If we did have expectations apparently there was no match
+        return null;
+    }
     /**
      * Tests whether the given domain matches any of entry from the public suffix list.
      */
