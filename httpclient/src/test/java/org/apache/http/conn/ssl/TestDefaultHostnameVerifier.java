@@ -28,14 +28,20 @@
 package org.apache.http.conn.ssl;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
+import java.util.List;
 
 import javax.net.ssl.SSLException;
 
 import org.apache.http.conn.util.DomainType;
+import org.apache.http.conn.util.PublicSuffixList;
+import org.apache.http.conn.util.PublicSuffixListParser;
 import org.apache.http.conn.util.PublicSuffixMatcher;
 import org.junit.Assert;
 import org.junit.Before;
@@ -50,10 +56,22 @@ public class TestDefaultHostnameVerifier {
     private PublicSuffixMatcher publicSuffixMatcher;
     private DefaultHostnameVerifier implWithPublicSuffixCheck;
 
+    private static final String PUBLIC_SUFFIX_MATCHER_SOURCE_FILE = "suffixlistmatcher.txt";
+
+    private static final Charset UTF_8 = Charset.forName("UTF-8");
+
     @Before
-    public void setup() {
+    public void setup() throws IOException {
         impl = new DefaultHostnameVerifier();
-        publicSuffixMatcher = new PublicSuffixMatcher(DomainType.ICANN, Arrays.asList("com", "co.jp", "gov.uk"), null);
+
+        // Load the test PublicSuffixMatcher
+        final ClassLoader classLoader = getClass().getClassLoader();
+        final InputStream in = classLoader.getResourceAsStream(PUBLIC_SUFFIX_MATCHER_SOURCE_FILE);
+        Assert.assertNotNull(in);
+        final List<PublicSuffixList> lists = new PublicSuffixListParser().parseByType(
+                new InputStreamReader(in, UTF_8));
+        publicSuffixMatcher = new PublicSuffixMatcher(lists);
+
         implWithPublicSuffixCheck = new DefaultHostnameVerifier(publicSuffixMatcher);
     }
 
@@ -275,18 +293,88 @@ public class TestDefaultHostnameVerifier {
         Assert.assertTrue(DefaultHostnameVerifier.matchIdentityStrict("mail.a.b.c.com", "m*.a.b.c.com"));
     }
 
+
     @Test
-    public void testHTTPCLIENT_1997() {
-        Assert.assertTrue(DefaultHostnameVerifier.matchIdentity(
-                "service.apps.dev.b.cloud.a", "*.apps.dev.b.cloud.a"));
-        Assert.assertTrue(DefaultHostnameVerifier.matchIdentityStrict(
-                "service.apps.dev.b.cloud.a", "*.apps.dev.b.cloud.a"));
-        Assert.assertTrue(DefaultHostnameVerifier.matchIdentity(
-                "service.apps.dev.b.cloud.a", "*.apps.dev.b.cloud.a", publicSuffixMatcher));
-        Assert.assertTrue(DefaultHostnameVerifier.matchIdentityStrict(
-                "service.apps.dev.b.cloud.a", "*.apps.dev.b.cloud.a", publicSuffixMatcher));
+    public void testHTTPCLIENT_1997_ANY() { // Only True on all domains
+        String domain;
+        // Unknown
+        domain = "dev.b.cloud.a";
+        Assert.assertTrue(DefaultHostnameVerifier.matchIdentity(        "service.apps." + domain, "*.apps." + domain));
+        Assert.assertTrue(DefaultHostnameVerifier.matchIdentityStrict(  "service.apps." + domain, "*.apps." + domain));
+        Assert.assertTrue(DefaultHostnameVerifier.matchIdentity(        "service.apps." + domain, "*.apps." + domain, publicSuffixMatcher));
+        Assert.assertTrue(DefaultHostnameVerifier.matchIdentityStrict(  "service.apps." + domain, "*.apps." + domain, publicSuffixMatcher));
+
+        // ICANN
+        domain = "dev.b.cloud.com";
+        Assert.assertTrue(DefaultHostnameVerifier.matchIdentity(        "service.apps." + domain, "*.apps." + domain));
+        Assert.assertTrue(DefaultHostnameVerifier.matchIdentityStrict(  "service.apps." + domain, "*.apps." + domain));
+        Assert.assertTrue(DefaultHostnameVerifier.matchIdentity(        "service.apps." + domain, "*.apps." + domain, publicSuffixMatcher));
+        Assert.assertTrue(DefaultHostnameVerifier.matchIdentityStrict(  "service.apps." + domain, "*.apps." + domain, publicSuffixMatcher));
+
+        // PRIVATE
+        domain = "dev.b.cloud.lan";
+        Assert.assertTrue(DefaultHostnameVerifier.matchIdentity(        "service.apps." + domain, "*.apps." + domain));
+        Assert.assertTrue(DefaultHostnameVerifier.matchIdentityStrict(  "service.apps." + domain, "*.apps." + domain));
+        Assert.assertTrue(DefaultHostnameVerifier.matchIdentity(        "service.apps." + domain, "*.apps." + domain, publicSuffixMatcher));
+        Assert.assertTrue(DefaultHostnameVerifier.matchIdentityStrict(  "service.apps." + domain, "*.apps." + domain, publicSuffixMatcher));
     }
 
+    @Test
+    public void testHTTPCLIENT_1997_ICANN() { // Only True on ICANN domains
+        String domain;
+        // Unknown
+        domain = "dev.b.cloud.a";
+        Assert.assertFalse(DefaultHostnameVerifier.matchIdentity(        "service.apps." + domain, "*.apps." + domain, publicSuffixMatcher, DomainType.ICANN));
+        Assert.assertFalse(DefaultHostnameVerifier.matchIdentityStrict(  "service.apps." + domain, "*.apps." + domain, publicSuffixMatcher, DomainType.ICANN));
+
+        // ICANN
+        domain = "dev.b.cloud.com";
+        Assert.assertTrue(DefaultHostnameVerifier.matchIdentity(        "service.apps." + domain, "*.apps." + domain, publicSuffixMatcher, DomainType.ICANN));
+        Assert.assertTrue(DefaultHostnameVerifier.matchIdentityStrict(  "service.apps." + domain, "*.apps." + domain, publicSuffixMatcher, DomainType.ICANN));
+
+        // PRIVATE
+        domain = "dev.b.cloud.lan";
+        Assert.assertFalse(DefaultHostnameVerifier.matchIdentity(        "service.apps." + domain, "*.apps." + domain, publicSuffixMatcher, DomainType.ICANN));
+        Assert.assertFalse(DefaultHostnameVerifier.matchIdentityStrict(  "service.apps." + domain, "*.apps." + domain, publicSuffixMatcher, DomainType.ICANN));
+    }
+
+    @Test
+    public void testHTTPCLIENT_1997_PRIVATE() { // Only True on PRIVATE domains
+        String domain;
+        // Unknown
+        domain = "dev.b.cloud.a";
+        Assert.assertFalse(DefaultHostnameVerifier.matchIdentity(        "service.apps." + domain, "*.apps." + domain, publicSuffixMatcher, DomainType.PRIVATE));
+        Assert.assertFalse(DefaultHostnameVerifier.matchIdentityStrict(  "service.apps." + domain, "*.apps." + domain, publicSuffixMatcher, DomainType.PRIVATE));
+
+        // ICANN
+        domain = "dev.b.cloud.com";
+        Assert.assertFalse(DefaultHostnameVerifier.matchIdentity(        "service.apps." + domain, "*.apps." + domain, publicSuffixMatcher, DomainType.PRIVATE));
+        Assert.assertFalse(DefaultHostnameVerifier.matchIdentityStrict(  "service.apps." + domain, "*.apps." + domain, publicSuffixMatcher, DomainType.PRIVATE));
+
+        // PRIVATE
+        domain = "dev.b.cloud.lan";
+        Assert.assertTrue(DefaultHostnameVerifier.matchIdentity(        "service.apps." + domain, "*.apps." + domain, publicSuffixMatcher, DomainType.PRIVATE));
+        Assert.assertTrue(DefaultHostnameVerifier.matchIdentityStrict(  "service.apps." + domain, "*.apps." + domain, publicSuffixMatcher, DomainType.PRIVATE));
+    }
+
+    @Test
+    public void testHTTPCLIENT_1997_UNKNOWN() { // Only True on all domains (same as ANY)
+        String domain;
+        // Unknown
+        domain = "dev.b.cloud.a";
+        Assert.assertTrue(DefaultHostnameVerifier.matchIdentity(        "service.apps." + domain, "*.apps." + domain, publicSuffixMatcher, DomainType.UNKNOWN));
+        Assert.assertTrue(DefaultHostnameVerifier.matchIdentityStrict(  "service.apps." + domain, "*.apps." + domain, publicSuffixMatcher, DomainType.UNKNOWN));
+
+        // ICANN
+        domain = "dev.b.cloud.com";
+        Assert.assertTrue(DefaultHostnameVerifier.matchIdentity(        "service.apps." + domain, "*.apps." + domain, publicSuffixMatcher, DomainType.UNKNOWN));
+        Assert.assertTrue(DefaultHostnameVerifier.matchIdentityStrict(  "service.apps." + domain, "*.apps." + domain, publicSuffixMatcher, DomainType.UNKNOWN));
+
+        // PRIVATE
+        domain = "dev.b.cloud.lan";
+        Assert.assertTrue(DefaultHostnameVerifier.matchIdentity(        "service.apps." + domain, "*.apps." + domain, publicSuffixMatcher, DomainType.UNKNOWN));
+        Assert.assertTrue(DefaultHostnameVerifier.matchIdentityStrict(  "service.apps." + domain, "*.apps." + domain, publicSuffixMatcher, DomainType.UNKNOWN));
+    }
     @Test // Check compressed IPv6 hostname matching
     public void testHTTPCLIENT_1316() throws Exception{
         final String host1 = "2001:0db8:aaaa:bbbb:cccc:0:0:0001";
