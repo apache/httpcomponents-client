@@ -46,7 +46,9 @@ import org.apache.hc.core5.util.Args;
  * at a fixed interval.
  *
  * @since 4.2
+ * @see DefaultHttpRequestRetryStrategy
  */
+@Deprecated
 @Contract(threading = ThreadingBehavior.STATELESS)
 public class DefaultServiceUnavailableRetryStrategy implements ServiceUnavailableRetryStrategy {
 

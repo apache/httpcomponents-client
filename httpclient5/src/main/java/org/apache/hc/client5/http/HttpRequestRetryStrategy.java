@@ -32,22 +32,19 @@ import java.io.IOException;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.util.TimeValue;
 
 /**
- * A handler for determining if an HttpRequest should be retried after a
- * recoverable exception during execution.
- * <p>
- * Implementations of this interface must be thread-safe. Access to shared
- * data must be synchronized as methods of this interface may be executed
- * from multiple threads.
+ * Strategy interface that allows API users to plug in their own logic to
+ * control whether or not a retry should automatically be done, how many times
+ * it should be retried and so on.
  *
- * @since 4.0
- * @see HttpRequestRetryStrategy
+ * @since 5.0
  */
-@Deprecated
 @Contract(threading = ThreadingBehavior.STATELESS)
-public interface HttpRequestRetryHandler {
+public interface HttpRequestRetryStrategy {
 
     /**
      * Determines if a method should be retried after an IOException
@@ -63,5 +60,31 @@ public interface HttpRequestRetryHandler {
      * otherwise
      */
     boolean retryRequest(HttpRequest request, IOException exception, int executionCount, HttpContext context);
+
+    /**
+     * Determines if a method should be retried given the response from
+     * the target server.
+     *
+     * @param response the response from the target server
+     * @param executionCount the number of times this method has been
+     * unsuccessfully executed
+     * @param context the context for the request execution
+
+     * @return {@code true} if the method should be retried, {@code false}
+     * otherwise
+     */
+    boolean retryRequest(HttpResponse response, int executionCount, HttpContext context);
+
+    /**
+     * Determines the retry interval between subsequent retries.
+
+     * @param response the response from the target server
+     * @param executionCount the number of times this method has been
+     * unsuccessfully executed
+     * @param context the context for the request execution
+     *
+     * @return the retry interval between subsequent retries
+     */
+    TimeValue getRetryInterval(HttpResponse response, int executionCount, HttpContext context);
 
 }
