@@ -37,7 +37,7 @@ import org.apache.hc.core5.http.HttpStatus;
 /**
  * This {@link ConnectionBackoffStrategy} backs off either for a raw
  * network socket or connection timeout or if the server explicitly
- * sends a 503 (Service Unavailable) response.
+ * sends a 429 (Too Many Requests) or a 503 (Service Unavailable) response.
  *
  * @since 4.2
  */
@@ -51,7 +51,8 @@ public class DefaultBackoffStrategy implements ConnectionBackoffStrategy {
 
     @Override
     public boolean shouldBackoff(final HttpResponse resp) {
-        return resp.getCode() == HttpStatus.SC_SERVICE_UNAVAILABLE;
+        return resp.getCode() == HttpStatus.SC_TOO_MANY_REQUESTS ||
+            resp.getCode() == HttpStatus.SC_SERVICE_UNAVAILABLE;
     }
 
 }
