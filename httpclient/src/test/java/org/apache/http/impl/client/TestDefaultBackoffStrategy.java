@@ -79,9 +79,16 @@ public class TestDefaultBackoffStrategy {
     }
 
     @Test
-    public void doesNotBackOffForNon503StatusCodes() {
+    public void backsOffForTooManyRequests() {
+        final HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1,
+                429, "Too Many Requests");
+        assertTrue(impl.shouldBackoff(resp));
+    }
+
+    @Test
+    public void doesNotBackOffForNon429And503StatusCodes() {
         for(int i = 100; i <= 599; i++) {
-            if (i == HttpStatus.SC_SERVICE_UNAVAILABLE) {
+            if (i== 429|| i == HttpStatus.SC_SERVICE_UNAVAILABLE) {
                 continue;
             }
             final HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1,

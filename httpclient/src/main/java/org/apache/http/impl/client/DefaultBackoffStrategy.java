@@ -49,7 +49,8 @@ public class DefaultBackoffStrategy implements ConnectionBackoffStrategy {
 
     @Override
     public boolean shouldBackoff(final HttpResponse resp) {
-        return resp.getStatusLine().getStatusCode() == HttpStatus.SC_SERVICE_UNAVAILABLE;
+        return resp.getStatusLine().getStatusCode() == 429 ||
+            resp.getStatusLine().getStatusCode() == HttpStatus.SC_SERVICE_UNAVAILABLE;
     }
 
 }
