@@ -43,7 +43,7 @@ import org.apache.hc.core5.http.protocol.HttpContext;
  * from multiple threads.
  *
  * @since 4.0
- * @see HttpRequestRetryStrategy
+ * @deprecated This interface has been replaced by {@link HttpRequestRetryStrategy}
  */
 @Deprecated
 @Contract(threading = ThreadingBehavior.STATELESS)

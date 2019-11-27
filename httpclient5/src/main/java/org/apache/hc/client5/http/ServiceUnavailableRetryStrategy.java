@@ -38,7 +38,7 @@ import org.apache.hc.core5.http.protocol.HttpContext;
  * it should be retried and so on.
  *
  * @since 4.2
- * @see HttpRequestRetryStrategy
+ * @deprecated This interface has been replaced by {@link HttpRequestRetryStrategy}
  */
 @Deprecated
 @Contract(threading = ThreadingBehavior.STATELESS)

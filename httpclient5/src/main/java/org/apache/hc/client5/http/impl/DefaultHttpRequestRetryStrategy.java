@@ -196,13 +196,13 @@ public class DefaultHttpRequestRetryStrategy implements HttpRequestRetryStrategy
             final HttpContext context) {
         Args.notNull(response, "response");
 
-        return executionCount <= maxRetries && retriableCodes.contains(response.getCode());
+        return executionCount <= this.maxRetries && retriableCodes.contains(response.getCode());
     }
 
     @Override
     public TimeValue getRetryInterval(
             final HttpResponse response,
-            int executionCount,
+            final int executionCount,
             final HttpContext context) {
         Args.notNull(response, "response");
 
@@ -231,7 +231,7 @@ public class DefaultHttpRequestRetryStrategy implements HttpRequestRetryStrategy
      * @return the maximum number of retries for a request
      */
     public int getMaxRetries() {
-        return maxRetries;
+        return this.maxRetries;
     }
 
     protected boolean handleAsIdempotent(final HttpRequest request) {

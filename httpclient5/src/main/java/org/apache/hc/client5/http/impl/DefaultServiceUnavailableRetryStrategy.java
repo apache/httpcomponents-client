@@ -46,7 +46,7 @@ import org.apache.hc.core5.util.Args;
  * at a fixed interval.
  *
  * @since 4.2
- * @see DefaultHttpRequestRetryStrategy
+ * @deprecated This implementation has been replaced by {@link DefaultHttpRequestRetryStrategy}
  */
 @Deprecated
 @Contract(threading = ThreadingBehavior.STATELESS)

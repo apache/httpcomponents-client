@@ -51,7 +51,7 @@ import org.apache.hc.core5.util.Args;
  * The default {@link HttpRequestRetryHandler} used by request executors.
  *
  * @since 4.0
- * @see DefaultHttpRequestRetryStrategy
+ * @deprecated This implementation has been replaced by {@link DefaultHttpRequestRetryStrategy}
  */
 @Deprecated
 @Contract(threading = ThreadingBehavior.STATELESS)
