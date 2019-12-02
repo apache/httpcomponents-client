@@ -50,7 +50,7 @@ public interface HttpRequestRetryStrategy {
      * Determines if a method should be retried after an IOException
      * occurs during execution.
      *
-     * @param request request failed die to an I/O exception.
+     * @param request request failed due to an I/O exception.
      * @param exception the exception that occurred
      * @param executionCount the number of times this method has been
      * unsuccessfully executed
