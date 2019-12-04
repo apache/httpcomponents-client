@@ -33,6 +33,7 @@ import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.concurrent.Cancellable;
 import org.apache.hc.core5.concurrent.ComplexFuture;
 import org.apache.hc.core5.concurrent.FutureCallback;
+import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.nio.AsyncClientExchangeHandler;
 import org.apache.hc.core5.http.nio.AsyncPushConsumer;
 import org.apache.hc.core5.http.nio.AsyncRequestProducer;
@@ -52,7 +53,8 @@ abstract class AbstractMinimalHttpAsyncClientBase extends AbstractHttpAsyncClien
     }
 
     @Override
-    public final <T> Future<T> execute(
+    protected <T> Future<T> doExecute(
+            final HttpHost httphost,
             final AsyncRequestProducer requestProducer,
             final AsyncResponseConsumer<T> responseConsumer,
             final HandlerFactory<AsyncPushConsumer> pushHandlerFactory,

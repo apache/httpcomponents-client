@@ -26,8 +26,12 @@
  */
 package org.apache.hc.client5.http.routing;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+
 import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
+import org.apache.hc.client5.http.utils.URIUtils;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
@@ -47,6 +51,18 @@ public final class RoutingSupport {
                 throw new ProtocolException("Protocol scheme is not specified");
             }
             return new HttpHost(scheme, authority);
+        } else {
+            try {
+                final URI requestURI = request.getUri();
+                if (requestURI.isAbsolute()) {
+                    final HttpHost httpHost = URIUtils.extractHost(requestURI);
+                    if (httpHost == null) {
+                        throw new ProtocolException("URI does not specify a valid host name: " + requestURI);
+                    }
+                    return httpHost;
+                }
+            } catch (final URISyntaxException ignore) {
+            }
         }
         return null;
     }

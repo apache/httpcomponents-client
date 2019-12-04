@@ -28,12 +28,10 @@
 package org.apache.hc.client5.http.impl.classic;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 
 import org.apache.hc.client5.http.ClientProtocolException;
 import org.apache.hc.client5.http.classic.HttpClient;
-import org.apache.hc.client5.http.utils.URIUtils;
+import org.apache.hc.client5.http.routing.RoutingSupport;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.ClassicHttpRequest;
@@ -78,22 +76,11 @@ public abstract class CloseableHttpClient implements HttpClient, ModalCloseable 
     }
 
     private static HttpHost determineTarget(final ClassicHttpRequest request) throws ClientProtocolException {
-        // A null target may be acceptable if there is a default target.
-        // Otherwise, the null target is detected in the director.
-        HttpHost target = null;
-        URI requestURI = null;
         try {
-            requestURI = request.getUri();
-        } catch (final URISyntaxException ignore) {
+            return RoutingSupport.determineHost(request);
+        } catch (final HttpException ex) {
+            throw new ClientProtocolException(ex);
         }
-        if (requestURI != null && requestURI.isAbsolute()) {
-            target = URIUtils.extractHost(requestURI);
-            if (target == null) {
-                throw new ClientProtocolException("URI does not specify a valid host name: "
-                        + requestURI);
-            }
-        }
-        return target;
     }
 
     @Override

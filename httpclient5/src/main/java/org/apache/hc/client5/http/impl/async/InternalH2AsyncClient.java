@@ -39,12 +39,11 @@ import org.apache.hc.client5.http.cookie.CookieSpecProvider;
 import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.routing.HttpRoutePlanner;
-import org.apache.hc.client5.http.routing.RoutingSupport;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HttpException;
-import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.nio.AsyncPushConsumer;
 import org.apache.hc.core5.http.nio.HandlerFactory;
@@ -93,8 +92,8 @@ public final class InternalH2AsyncClient extends InternalAbstractHttpAsyncClient
     }
 
     @Override
-    HttpRoute determineRoute(final HttpRequest request, final HttpClientContext clientContext) throws HttpException {
-        final HttpRoute route = routePlanner.determineRoute(RoutingSupport.determineHost(request), clientContext);
+    HttpRoute determineRoute(final HttpHost httpHost, final HttpClientContext clientContext) throws HttpException {
+        final HttpRoute route = routePlanner.determineRoute(httpHost, clientContext);
         if (route.isTunnelled()) {
             throw new HttpException("HTTP/2 tunneling not supported");
         }

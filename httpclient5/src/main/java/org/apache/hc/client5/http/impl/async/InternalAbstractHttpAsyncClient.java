@@ -48,10 +48,12 @@ import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.client5.http.impl.ExecSupport;
 import org.apache.hc.client5.http.impl.RequestCopier;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.client5.http.routing.RoutingSupport;
 import org.apache.hc.core5.concurrent.ComplexFuture;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
@@ -138,10 +140,11 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
 
     abstract AsyncExecRuntime createAsyncExecRuntime(HandlerFactory<AsyncPushConsumer> pushHandlerFactory);
 
-    abstract HttpRoute determineRoute(HttpRequest request, HttpClientContext clientContext) throws HttpException;
+    abstract HttpRoute determineRoute(HttpHost httpHost, HttpClientContext clientContext) throws HttpException;
 
     @Override
-    public <T> Future<T> execute(
+    protected <T> Future<T> doExecute(
+            final HttpHost httpHost,
             final AsyncRequestProducer requestProducer,
             final AsyncResponseConsumer<T> responseConsumer,
             final HandlerFactory<AsyncPushConsumer> pushHandlerFactory,
@@ -150,7 +153,7 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
         ensureRunning();
         final ComplexFuture<T> future = new ComplexFuture<>(callback);
         try {
-            final HttpClientContext clientContext = HttpClientContext.adapt(context);
+            final HttpClientContext clientContext = context != null ? HttpClientContext.adapt(context) : HttpClientContext.create();
             requestProducer.sendRequest(new RequestChannel() {
 
                 @Override
@@ -166,7 +169,9 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
                     if (requestConfig != null) {
                         clientContext.setRequestConfig(requestConfig);
                     }
-                    final HttpRoute route = determineRoute(request, clientContext);
+                    final HttpRoute route = determineRoute(
+                            httpHost != null ? httpHost : RoutingSupport.determineHost(request),
+                            clientContext);
                     final String exchangeId = ExecSupport.getNextExchangeId();
                     if (log.isDebugEnabled()) {
                         log.debug(exchangeId + ": preparing request execution");
