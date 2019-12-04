@@ -95,7 +95,7 @@ public final class InternalHttpAsyncClient extends InternalAbstractHttpAsyncClie
     }
 
     @Override
-    AsyncExecRuntime crerateAsyncExecRuntime(final HandlerFactory<AsyncPushConsumer> pushHandlerFactory) {
+    AsyncExecRuntime createAsyncExecRuntime(final HandlerFactory<AsyncPushConsumer> pushHandlerFactory) {
         return new InternalHttpAsyncExecRuntime(log, connmgr, getConnectionInitiator(), pushHandlerFactory, versionPolicy);
     }
 

@@ -136,7 +136,7 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
         }
     }
 
-    abstract AsyncExecRuntime crerateAsyncExecRuntime(HandlerFactory<AsyncPushConsumer> pushHandlerFactory);
+    abstract AsyncExecRuntime createAsyncExecRuntime(HandlerFactory<AsyncPushConsumer> pushHandlerFactory);
 
     abstract HttpRoute determineRoute(HttpRequest request, HttpClientContext clientContext) throws HttpException;
 
@@ -171,7 +171,7 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
                     if (log.isDebugEnabled()) {
                         log.debug(exchangeId + ": preparing request execution");
                     }
-                    final AsyncExecRuntime execRuntime = crerateAsyncExecRuntime(pushHandlerFactory);
+                    final AsyncExecRuntime execRuntime = createAsyncExecRuntime(pushHandlerFactory);
 
                     setupContext(clientContext);
 

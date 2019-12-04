@@ -88,7 +88,7 @@ public final class InternalH2AsyncClient extends InternalAbstractHttpAsyncClient
     }
 
     @Override
-    AsyncExecRuntime crerateAsyncExecRuntime(final HandlerFactory<AsyncPushConsumer> pushHandlerFactory) {
+    AsyncExecRuntime createAsyncExecRuntime(final HandlerFactory<AsyncPushConsumer> pushHandlerFactory) {
         return new InternalH2AsyncExecRuntime(log, connPool, pushHandlerFactory);
     }
 
