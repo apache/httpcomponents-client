@@ -362,7 +362,19 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
 
     @Override
     public void shutdown() {
-        close();
+        if (this.isShutdown.compareAndSet(false, true)) {
+            if (this.conn != null) {
+                this.log.debug("Shutting down connection");
+                try {
+                    this.conn.shutdown();
+                } catch (final IOException iox) {
+                    if (this.log.isDebugEnabled()) {
+                        this.log.debug("I/O exception shutting down connection", iox);
+                    }
+                }
+                this.conn = null;
+            }
+        }
     }
 
 }

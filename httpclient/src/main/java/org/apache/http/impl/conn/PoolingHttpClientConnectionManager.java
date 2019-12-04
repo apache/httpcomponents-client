@@ -63,6 +63,7 @@ import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.pool.ConnFactory;
 import org.apache.http.pool.ConnPoolControl;
+import org.apache.http.pool.PoolEntry;
 import org.apache.http.pool.PoolEntryCallback;
 import org.apache.http.pool.PoolStats;
 import org.apache.http.protocol.HttpContext;
@@ -265,6 +266,7 @@ public class PoolingHttpClientConnectionManager
         if (this.log.isDebugEnabled()) {
             this.log.debug("Connection request: " + format(route, state) + formatStats(route));
         }
+        Asserts.check(!this.isShutDown.get(), "Connection pool shut down");
         final Future<CPoolEntry> future = this.pool.lease(route, state, null);
         return new ConnectionRequest() {
 
@@ -408,6 +410,23 @@ public class PoolingHttpClientConnectionManager
         if (this.isShutDown.compareAndSet(false, true)) {
             this.log.debug("Connection manager is shutting down");
             try {
+                this.pool.enumLeased(new PoolEntryCallback<HttpRoute, ManagedHttpClientConnection>() {
+
+                    @Override
+                    public void process(final PoolEntry<HttpRoute, ManagedHttpClientConnection> entry) {
+                        final ManagedHttpClientConnection connection = entry.getConnection();
+                        if (connection != null) {
+                            try {
+                                connection.shutdown();
+                            } catch (final IOException iox) {
+                                if (log.isDebugEnabled()) {
+                                    log.debug("I/O exception shutting down connection", iox);
+                                }
+                            }
+                        }
+                    }
+
+                });
                 this.pool.shutdown();
             } catch (final IOException ex) {
                 this.log.debug("I/O exception shutting down connection manager", ex);
