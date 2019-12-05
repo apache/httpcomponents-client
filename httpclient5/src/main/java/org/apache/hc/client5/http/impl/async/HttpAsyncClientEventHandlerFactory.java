@@ -31,7 +31,6 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.hc.client5.http.impl.ConnPoolSupport;
 import org.apache.hc.core5.http.ConnectionReuseStrategy;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpConnection;
@@ -68,7 +67,6 @@ import org.slf4j.LoggerFactory;
 class HttpAsyncClientEventHandlerFactory implements IOEventHandlerFactory {
 
     private final Logger streamLog = LoggerFactory.getLogger(InternalHttpAsyncClient.class);
-    private final Logger wireLog = LoggerFactory.getLogger("org.apache.hc.client5.http.wire");
     private final Logger headerLog = LoggerFactory.getLogger("org.apache.hc.client5.http.headers");
     private final Logger frameLog = LoggerFactory.getLogger("org.apache.hc.client5.http2.frame");
     private final Logger framePayloadLog = LoggerFactory.getLogger("org.apache.hc.client5.http2.frame.payload");
@@ -105,15 +103,12 @@ class HttpAsyncClientEventHandlerFactory implements IOEventHandlerFactory {
 
     @Override
     public IOEventHandler createHandler(final ProtocolIOSession ioSession, final Object attachment) {
-        final Logger sessionLog = LoggerFactory.getLogger(ioSession.getClass());
-        if (sessionLog.isDebugEnabled()
-                || streamLog.isDebugEnabled()
-                || wireLog.isDebugEnabled()
+        if (streamLog.isDebugEnabled()
                 || headerLog.isDebugEnabled()
                 || frameLog.isDebugEnabled()
                 || framePayloadLog.isDebugEnabled()
                 || flowCtrlLog.isDebugEnabled()) {
-            final String id = ConnPoolSupport.getId(ioSession);
+            final String id = ioSession.getId();
             final ClientHttp1StreamDuplexerFactory http1StreamHandlerFactory = new ClientHttp1StreamDuplexerFactory(
                     httpProcessor,
                     h1Config,
@@ -243,9 +238,8 @@ class HttpAsyncClientEventHandlerFactory implements IOEventHandlerFactory {
                         }
 
                     });
-            final LoggingIOSession loggingIOSession = new LoggingIOSession(ioSession, id, sessionLog, wireLog);
             return new ClientHttpProtocolNegotiator(
-                            loggingIOSession,
+                            ioSession,
                             http1StreamHandlerFactory,
                             http2StreamHandlerFactory,
                             attachment instanceof HttpVersionPolicy ? (HttpVersionPolicy) attachment : versionPolicy);

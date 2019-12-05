@@ -720,7 +720,7 @@ public class H2AsyncClientBuilder {
                 ioEventHandlerFactory,
                 ioReactorConfig != null ? ioReactorConfig : IOReactorConfig.DEFAULT,
                 threadFactory != null ? threadFactory : new DefaultThreadFactory("httpclient-dispatch", true),
-                null,
+                LoggingIOSessionDecorator.INSTANCE,
                 LoggingExceptionCallback.INSTANCE,
                 null,
                 new Callback<IOSession>() {

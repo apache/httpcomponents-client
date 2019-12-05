@@ -34,7 +34,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
 
-import org.apache.hc.client5.http.impl.ConnPoolSupport;
 import org.apache.hc.client5.http.nio.ManagedAsyncClientConnection;
 import org.apache.hc.core5.http.EndpointDetails;
 import org.apache.hc.core5.http.HttpConnection;
@@ -72,7 +71,7 @@ final class DefaultManagedAsyncClientConnection implements ManagedAsyncClientCon
 
     @Override
     public String getId() {
-        return ConnPoolSupport.getId(ioSession);
+        return ioSession.getId();
     }
 
     @Override

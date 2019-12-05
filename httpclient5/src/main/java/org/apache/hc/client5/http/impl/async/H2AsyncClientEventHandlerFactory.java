@@ -30,7 +30,6 @@ package org.apache.hc.client5.http.impl.async;
 import java.io.IOException;
 import java.util.List;
 
-import org.apache.hc.client5.http.impl.ConnPoolSupport;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpConnection;
 import org.apache.hc.core5.http.config.CharCodingConfig;
@@ -52,7 +51,6 @@ import org.slf4j.LoggerFactory;
 
 class H2AsyncClientEventHandlerFactory implements IOEventHandlerFactory {
 
-    private final Logger wireLog = LoggerFactory.getLogger("org.apache.hc.client5.http.wire");
     private final Logger headerLog = LoggerFactory.getLogger("org.apache.hc.client5.http.headers");
     private final Logger frameLog = LoggerFactory.getLogger("org.apache.hc.client5.http2.frame");
     private final Logger framePayloadLog = LoggerFactory.getLogger("org.apache.hc.client5.http2.frame.payload");
@@ -76,14 +74,11 @@ class H2AsyncClientEventHandlerFactory implements IOEventHandlerFactory {
 
     @Override
     public IOEventHandler createHandler(final ProtocolIOSession ioSession, final Object attachment) {
-        final Logger sessionLog = LoggerFactory.getLogger(ioSession.getClass());
-        if (sessionLog.isDebugEnabled()
-                || wireLog.isDebugEnabled()
-                || headerLog.isDebugEnabled()
+        if (headerLog.isDebugEnabled()
                 || frameLog.isDebugEnabled()
                 || framePayloadLog.isDebugEnabled()
                 || flowCtrlLog.isDebugEnabled()) {
-            final String id = ConnPoolSupport.getId(ioSession);
+            final String id = ioSession.getId();
             final ClientH2StreamMultiplexerFactory http2StreamHandlerFactory = new ClientH2StreamMultiplexerFactory(
                     httpProcessor,
                     exchangeHandlerFactory,
@@ -172,8 +167,7 @@ class H2AsyncClientEventHandlerFactory implements IOEventHandlerFactory {
                         }
 
                     });
-            final LoggingIOSession loggingIOSession = new LoggingIOSession(ioSession, id, sessionLog, wireLog);
-            return new H2OnlyClientProtocolNegotiator(loggingIOSession, http2StreamHandlerFactory, false);
+            return new H2OnlyClientProtocolNegotiator(ioSession, http2StreamHandlerFactory, false);
         }
         final ClientH2StreamMultiplexerFactory http2StreamHandlerFactory = new ClientH2StreamMultiplexerFactory(
                 httpProcessor,

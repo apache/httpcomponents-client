@@ -105,7 +105,7 @@ public final class MinimalH2AsyncClient extends AbstractMinimalHttpAsyncClientBa
                 eventHandlerFactory,
                 reactorConfig,
                 workerThreadFactory,
-                null,
+                LoggingIOSessionDecorator.INSTANCE,
                 LoggingExceptionCallback.INSTANCE,
                 null,
                 new Callback<IOSession>() {
