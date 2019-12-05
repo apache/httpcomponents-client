@@ -30,7 +30,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URI;
 
-import org.apache.hc.client5.http.HttpRequestRetryHandler;
+import org.apache.hc.client5.http.HttpRequestRetryStrategy;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
@@ -44,6 +44,7 @@ import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpRequestInterceptor;
+import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
 import org.apache.hc.core5.http.io.HttpClientConnection;
@@ -54,6 +55,7 @@ import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.net.URIBuilder;
+import org.apache.hc.core5.util.TimeValue;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -122,7 +124,7 @@ public class TestClientRequestExecution extends LocalServerTestBase {
 
         };
 
-        final HttpRequestRetryHandler requestRetryHandler = new HttpRequestRetryHandler() {
+        final HttpRequestRetryStrategy requestRetryStrategy = new HttpRequestRetryStrategy() {
 
             @Override
             public boolean retryRequest(
@@ -133,12 +135,28 @@ public class TestClientRequestExecution extends LocalServerTestBase {
                 return true;
             }
 
+            @Override
+            public boolean retryRequest(
+                    final HttpResponse response,
+                    final int executionCount,
+                    final HttpContext context) {
+                return false;
+            }
+
+            @Override
+            public TimeValue getRetryInterval(
+                    final HttpResponse response,
+                    final int executionCount,
+                    final HttpContext context) {
+                return TimeValue.ofSeconds(1L);
+            }
+
         };
 
         this.httpclient = this.clientBuilder
             .addRequestInterceptorFirst(interceptor)
             .setRequestExecutor(new FaultyHttpRequestExecutor("Oppsie"))
-            .setRetryHandler(requestRetryHandler)
+            .setRetryStrategy(requestRetryStrategy)
             .build();
 
         final HttpHost target = start();
@@ -163,7 +181,7 @@ public class TestClientRequestExecution extends LocalServerTestBase {
     public void testNonRepeatableEntity() throws Exception {
         this.server.registerHandler("*", new SimpleService());
 
-        final HttpRequestRetryHandler requestRetryHandler = new HttpRequestRetryHandler() {
+        final HttpRequestRetryStrategy requestRetryStrategy = new HttpRequestRetryStrategy() {
 
             @Override
             public boolean retryRequest(
@@ -174,11 +192,27 @@ public class TestClientRequestExecution extends LocalServerTestBase {
                 return true;
             }
 
+            @Override
+            public boolean retryRequest(
+                    final HttpResponse response,
+                    final int executionCount,
+                    final HttpContext context) {
+                return false;
+            }
+
+            @Override
+            public TimeValue getRetryInterval(
+                    final HttpResponse response,
+                    final int executionCount,
+                    final HttpContext context) {
+                return TimeValue.ofSeconds(1L);
+            }
+
         };
 
         this.httpclient = this.clientBuilder
             .setRequestExecutor(new FaultyHttpRequestExecutor("a message showing that this failed"))
-            .setRetryHandler(requestRetryHandler)
+            .setRetryStrategy(requestRetryStrategy)
             .build();
 
         final HttpHost target = start();

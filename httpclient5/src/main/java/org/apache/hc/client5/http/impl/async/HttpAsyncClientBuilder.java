@@ -41,6 +41,7 @@ import java.util.concurrent.ThreadFactory;
 import org.apache.hc.client5.http.AuthenticationStrategy;
 import org.apache.hc.client5.http.ConnectionKeepAliveStrategy;
 import org.apache.hc.client5.http.HttpRequestRetryHandler;
+import org.apache.hc.client5.http.HttpRequestRetryStrategy;
 import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.SystemDefaultDnsResolver;
 import org.apache.hc.client5.http.UserTokenHandler;
@@ -57,7 +58,7 @@ import org.apache.hc.client5.http.impl.ChainElements;
 import org.apache.hc.client5.http.impl.CookieSpecSupport;
 import org.apache.hc.client5.http.impl.DefaultAuthenticationStrategy;
 import org.apache.hc.client5.http.impl.DefaultConnectionKeepAliveStrategy;
-import org.apache.hc.client5.http.impl.DefaultHttpRequestRetryHandler;
+import org.apache.hc.client5.http.impl.DefaultHttpRequestRetryStrategy;
 import org.apache.hc.client5.http.impl.DefaultRedirectStrategy;
 import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
 import org.apache.hc.client5.http.impl.DefaultUserTokenHandler;
@@ -227,6 +228,7 @@ public class HttpAsyncClientBuilder {
     private HttpRoutePlanner routePlanner;
     private RedirectStrategy redirectStrategy;
     private HttpRequestRetryHandler retryHandler;
+    private HttpRequestRetryStrategy retryStrategy;
 
     private ConnectionReuseStrategy reuseStrategy;
 
@@ -493,6 +495,17 @@ public class HttpAsyncClientBuilder {
      */
     public final HttpAsyncClientBuilder setRetryHandler(final HttpRequestRetryHandler retryHandler) {
         this.retryHandler = retryHandler;
+        return this;
+    }
+
+    /**
+     * Assigns {@link HttpRequestRetryStrategy} instance.
+     * <p>
+     * Please note this value can be overridden by the {@link #disableAutomaticRetries()}
+     * method.
+     */
+    public final HttpAsyncClientBuilder setRetryStrategy(final HttpRequestRetryStrategy retryStrategy) {
+        this.retryStrategy = retryStrategy;
         return this;
     }
 
@@ -824,13 +837,20 @@ public class HttpAsyncClientBuilder {
 
         // Add request retry executor, if not disabled
         if (!automaticRetriesDisabled) {
-            HttpRequestRetryHandler retryHandlerCopy = this.retryHandler;
-            if (retryHandlerCopy == null) {
-                retryHandlerCopy = DefaultHttpRequestRetryHandler.INSTANCE;
+            final HttpRequestRetryHandler retryHandlerCopy = this.retryHandler;
+            if (retryHandlerCopy != null) {
+                execChainDefinition.addFirst(
+                        new AsyncRetryExec(retryHandlerCopy),
+                        ChainElements.RETRY_IO_ERROR.name());
+            } else {
+                HttpRequestRetryStrategy retryStrategyCopy = this.retryStrategy;
+                if (retryStrategyCopy == null) {
+                    retryStrategyCopy = DefaultHttpRequestRetryStrategy.INSTANCE;
+                }
+                execChainDefinition.addFirst(
+                        new AsyncHttpRequestRetryExec(retryStrategyCopy),
+                        ChainElements.RETRY.name());
             }
-            execChainDefinition.addFirst(
-                    new AsyncRetryExec(retryHandlerCopy),
-                    ChainElements.RETRY_IO_ERROR.name());
         }
 
         HttpRoutePlanner routePlannerCopy = this.routePlanner;
