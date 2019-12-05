@@ -54,7 +54,7 @@ import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.cookie.BasicCookieStore;
 import org.apache.hc.client5.http.cookie.CookieSpecProvider;
 import org.apache.hc.client5.http.cookie.CookieStore;
-import org.apache.hc.client5.http.impl.ChainElements;
+import org.apache.hc.client5.http.impl.ChainElement;
 import org.apache.hc.client5.http.impl.CookieSpecSupport;
 import org.apache.hc.client5.http.impl.DefaultAuthenticationStrategy;
 import org.apache.hc.client5.http.impl.DefaultConnectionKeepAliveStrategy;
@@ -759,7 +759,7 @@ public class HttpAsyncClientBuilder {
         final NamedElementChain<AsyncExecChainHandler> execChainDefinition = new NamedElementChain<>();
         execChainDefinition.addLast(
                 new HttpAsyncMainClientExec(keepAliveStrategyCopy, userTokenHandlerCopy),
-                ChainElements.MAIN_TRANSPORT.name());
+                ChainElement.MAIN_TRANSPORT.name());
 
         AuthenticationStrategy targetAuthStrategyCopy = this.targetAuthStrategy;
         if (targetAuthStrategyCopy == null) {
@@ -785,7 +785,7 @@ public class HttpAsyncClientBuilder {
                 new AsyncConnectExec(
                         new DefaultHttpProcessor(new RequestTargetHost(), new RequestUserAgent(userAgentCopy)),
                         proxyAuthStrategyCopy),
-                ChainElements.CONNECT.name());
+                ChainElement.CONNECT.name());
 
         final HttpProcessorBuilder b = HttpProcessorBuilder.create();
         if (requestInterceptors != null) {
@@ -833,7 +833,7 @@ public class HttpAsyncClientBuilder {
         final HttpProcessor httpProcessor = b.build();
         execChainDefinition.addFirst(
                 new AsyncProtocolExec(httpProcessor, targetAuthStrategyCopy, proxyAuthStrategyCopy),
-                ChainElements.PROTOCOL.name());
+                ChainElement.PROTOCOL.name());
 
         // Add request retry executor, if not disabled
         if (!automaticRetriesDisabled) {
@@ -841,7 +841,7 @@ public class HttpAsyncClientBuilder {
             if (retryHandlerCopy != null) {
                 execChainDefinition.addFirst(
                         new AsyncRetryExec(retryHandlerCopy),
-                        ChainElements.RETRY_IO_ERROR.name());
+                        ChainElement.RETRY_IO_ERROR.name());
             } else {
                 HttpRequestRetryStrategy retryStrategyCopy = this.retryStrategy;
                 if (retryStrategyCopy == null) {
@@ -849,7 +849,7 @@ public class HttpAsyncClientBuilder {
                 }
                 execChainDefinition.addFirst(
                         new AsyncHttpRequestRetryExec(retryStrategyCopy),
-                        ChainElements.RETRY.name());
+                        ChainElement.RETRY.name());
             }
         }
 
@@ -883,7 +883,7 @@ public class HttpAsyncClientBuilder {
             }
             execChainDefinition.addFirst(
                     new AsyncRedirectExec(routePlannerCopy, redirectStrategyCopy),
-                    ChainElements.REDIRECT.name());
+                    ChainElement.REDIRECT.name());
         }
 
         List<Closeable> closeablesCopy = closeables != null ? new ArrayList<>(closeables) : null;

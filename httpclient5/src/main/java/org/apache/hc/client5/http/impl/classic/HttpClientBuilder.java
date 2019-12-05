@@ -57,7 +57,7 @@ import org.apache.hc.client5.http.cookie.BasicCookieStore;
 import org.apache.hc.client5.http.cookie.CookieSpecProvider;
 import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.client5.http.entity.InputStreamFactory;
-import org.apache.hc.client5.http.impl.ChainElements;
+import org.apache.hc.client5.http.impl.ChainElement;
 import org.apache.hc.client5.http.impl.CookieSpecSupport;
 import org.apache.hc.client5.http.impl.DefaultAuthenticationStrategy;
 import org.apache.hc.client5.http.impl.DefaultConnectionKeepAliveStrategy;
@@ -812,13 +812,13 @@ public class HttpClientBuilder {
         final NamedElementChain<ExecChainHandler> execChainDefinition = new NamedElementChain<>();
         execChainDefinition.addLast(
                 new MainClientExec(connManagerCopy, reuseStrategyCopy, keepAliveStrategyCopy, userTokenHandlerCopy),
-                ChainElements.MAIN_TRANSPORT.name());
+                ChainElement.MAIN_TRANSPORT.name());
         execChainDefinition.addFirst(
                 new ConnectExec(
                         reuseStrategyCopy,
                         new DefaultHttpProcessor(new RequestTargetHost(), new RequestUserAgent(userAgentCopy)),
                         proxyAuthStrategyCopy),
-                ChainElements.CONNECT.name());
+                ChainElement.CONNECT.name());
 
         final HttpProcessorBuilder b = HttpProcessorBuilder.create();
         if (requestInterceptors != null) {
@@ -868,7 +868,7 @@ public class HttpClientBuilder {
         final HttpProcessor httpProcessor = b.build();
         execChainDefinition.addFirst(
                 new ProtocolExec(httpProcessor, targetAuthStrategyCopy, proxyAuthStrategyCopy),
-                ChainElements.PROTOCOL.name());
+                ChainElement.PROTOCOL.name());
 
         // Add request retry executor, if not disabled
         if (!automaticRetriesDisabled) {
@@ -877,7 +877,7 @@ public class HttpClientBuilder {
             if (retryHandlerCopy != null) {
                 execChainDefinition.addFirst(
                         new RetryExec(retryHandlerCopy),
-                        ChainElements.RETRY_IO_ERROR.name());
+                        ChainElement.RETRY_IO_ERROR.name());
             } else {
                 HttpRequestRetryStrategy retryStrategyCopy = this.retryStrategy;
                 if (retryStrategyCopy == null) {
@@ -885,7 +885,7 @@ public class HttpClientBuilder {
                 }
                 execChainDefinition.addFirst(
                         new HttpRequestRetryExec(retryStrategyCopy),
-                        ChainElements.RETRY.name());
+                        ChainElement.RETRY.name());
             }
         }
 
@@ -910,7 +910,7 @@ public class HttpClientBuilder {
         if (serviceUnavailStrategyCopy != null) {
             execChainDefinition.addFirst(
                     new ServiceUnavailableRetryExec(serviceUnavailStrategyCopy),
-                    ChainElements.RETRY_SERVICE_UNAVAILABLE.name());
+                    ChainElement.RETRY_SERVICE_UNAVAILABLE.name());
         }
 
         // Add redirect executor, if not disabled
@@ -921,7 +921,7 @@ public class HttpClientBuilder {
             }
             execChainDefinition.addFirst(
                     new RedirectExec(routePlannerCopy, redirectStrategyCopy),
-                    ChainElements.REDIRECT.name());
+                    ChainElement.REDIRECT.name());
         }
 
         if (!contentCompressionDisabled) {
@@ -934,18 +934,18 @@ public class HttpClientBuilder {
                 final Registry<InputStreamFactory> decoderRegistry = b2.build();
                 execChainDefinition.addFirst(
                         new ContentCompressionExec(encodings, decoderRegistry, true),
-                        ChainElements.REDIRECT.name());
+                        ChainElement.REDIRECT.name());
             } else {
                 execChainDefinition.addFirst(
                         new ContentCompressionExec(true),
-                        ChainElements.REDIRECT.name());
+                        ChainElement.REDIRECT.name());
             }
         }
 
         // Optionally, add connection back-off executor
         if (this.backoffManager != null && this.connectionBackoffStrategy != null) {
             execChainDefinition.addFirst(new BackoffStrategyExec(this.connectionBackoffStrategy, this.backoffManager),
-                    ChainElements.BACK_OFF.name());
+                    ChainElement.BACK_OFF.name());
         }
 
         if (execInterceptors != null) {

@@ -36,7 +36,7 @@ import org.apache.hc.client5.http.cache.HttpCacheInvalidator;
 import org.apache.hc.client5.http.cache.HttpCacheStorage;
 import org.apache.hc.client5.http.cache.ResourceFactory;
 import org.apache.hc.client5.http.classic.ExecChainHandler;
-import org.apache.hc.client5.http.impl.ChainElements;
+import org.apache.hc.client5.http.impl.ChainElement;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.schedule.ImmediateSchedulingStrategy;
 import org.apache.hc.client5.http.schedule.SchedulingStrategy;
@@ -161,7 +161,7 @@ public class CachingHttpClientBuilder extends HttpClientBuilder {
                 httpCache,
                 cacheRevalidator,
                 config);
-        execChainDefinition.addBefore(ChainElements.PROTOCOL.name(), cachingExec, ChainElements.CACHING.name());
+        execChainDefinition.addBefore(ChainElement.PROTOCOL.name(), cachingExec, ChainElement.CACHING.name());
     }
 
 }
