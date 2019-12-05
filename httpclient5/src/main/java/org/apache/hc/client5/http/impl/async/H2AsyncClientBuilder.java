@@ -53,7 +53,7 @@ import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.cookie.BasicCookieStore;
 import org.apache.hc.client5.http.cookie.CookieSpecProvider;
 import org.apache.hc.client5.http.cookie.CookieStore;
-import org.apache.hc.client5.http.impl.ChainElements;
+import org.apache.hc.client5.http.impl.ChainElement;
 import org.apache.hc.client5.http.impl.CookieSpecSupport;
 import org.apache.hc.client5.http.impl.DefaultAuthenticationStrategy;
 import org.apache.hc.client5.http.impl.DefaultHttpRequestRetryStrategy;
@@ -609,7 +609,7 @@ public class H2AsyncClientBuilder {
         final NamedElementChain<AsyncExecChainHandler> execChainDefinition = new NamedElementChain<>();
         execChainDefinition.addLast(
                 new H2AsyncMainClientExec(),
-                ChainElements.MAIN_TRANSPORT.name());
+                ChainElement.MAIN_TRANSPORT.name());
 
         AuthenticationStrategy targetAuthStrategyCopy = this.targetAuthStrategy;
         if (targetAuthStrategyCopy == null) {
@@ -635,7 +635,7 @@ public class H2AsyncClientBuilder {
                 new AsyncConnectExec(
                         new DefaultHttpProcessor(new RequestTargetHost(), new RequestUserAgent(userAgentCopy)),
                         proxyAuthStrategyCopy),
-                ChainElements.CONNECT.name());
+                ChainElement.CONNECT.name());
 
         final HttpProcessorBuilder b = HttpProcessorBuilder.create();
         if (requestInterceptors != null) {
@@ -683,7 +683,7 @@ public class H2AsyncClientBuilder {
         final HttpProcessor httpProcessor = b.build();
         execChainDefinition.addFirst(
                 new AsyncProtocolExec(httpProcessor, targetAuthStrategyCopy, proxyAuthStrategyCopy),
-                ChainElements.PROTOCOL.name());
+                ChainElement.PROTOCOL.name());
 
         // Add request retry executor, if not disabled
         if (!automaticRetriesDisabled) {
@@ -691,7 +691,7 @@ public class H2AsyncClientBuilder {
             if (retryHandlerCopy != null) {
                 execChainDefinition.addFirst(
                         new AsyncRetryExec(retryHandlerCopy),
-                        ChainElements.RETRY_IO_ERROR.name());
+                        ChainElement.RETRY_IO_ERROR.name());
             } else {
                 HttpRequestRetryStrategy retryStrategyCopy = this.retryStrategy;
                 if (retryStrategyCopy == null) {
@@ -699,7 +699,7 @@ public class H2AsyncClientBuilder {
                 }
                 execChainDefinition.addFirst(
                         new AsyncHttpRequestRetryExec(retryStrategyCopy),
-                        ChainElements.RETRY.name());
+                        ChainElement.RETRY.name());
             }
         }
 
@@ -720,7 +720,7 @@ public class H2AsyncClientBuilder {
             }
             execChainDefinition.addFirst(
                     new AsyncRedirectExec(routePlannerCopy, redirectStrategyCopy),
-                    ChainElements.REDIRECT.name());
+                    ChainElement.REDIRECT.name());
         }
 
         final AsyncPushConsumerRegistry pushConsumerRegistry = new AsyncPushConsumerRegistry();
