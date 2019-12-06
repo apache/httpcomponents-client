@@ -31,8 +31,11 @@ import org.apache.hc.client5.testing.SSLTestContexts;
 import org.apache.hc.core5.function.Supplier;
 import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.nio.AsyncServerExchangeHandler;
+import org.apache.hc.core5.reactive.ReactiveServerExchangeHandler;
 import org.apache.hc.core5.reactor.IOReactorConfig;
 import org.apache.hc.core5.testing.nio.H2TestServer;
+import org.apache.hc.core5.testing.reactive.ReactiveEchoProcessor;
+import org.apache.hc.core5.testing.reactive.ReactiveRandomProcessor;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
 import org.junit.Rule;
@@ -69,7 +72,11 @@ public abstract class AbstractServerTestBase {
 
                 @Override
                 public AsyncServerExchangeHandler get() {
-                    return new AsyncEchoHandler();
+                    if (isReactive()) {
+                        return new ReactiveServerExchangeHandler(new ReactiveEchoProcessor());
+                    } else {
+                        return new AsyncEchoHandler();
+                    }
                 }
 
             });
@@ -77,7 +84,11 @@ public abstract class AbstractServerTestBase {
 
                 @Override
                 public AsyncServerExchangeHandler get() {
-                    return new AsyncRandomHandler();
+                    if (isReactive()) {
+                        return new ReactiveServerExchangeHandler(new ReactiveRandomProcessor());
+                    } else {
+                        return new AsyncRandomHandler();
+                    }
                 }
 
             });
@@ -93,4 +104,7 @@ public abstract class AbstractServerTestBase {
 
     };
 
+    protected boolean isReactive() {
+        return false;
+    }
 }
