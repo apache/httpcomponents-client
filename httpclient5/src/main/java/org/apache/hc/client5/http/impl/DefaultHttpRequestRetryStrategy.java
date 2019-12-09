@@ -78,7 +78,7 @@ public class DefaultHttpRequestRetryStrategy implements HttpRequestRetryStrategy
     /**
      * Derived {@code IOExceptions} which shall not be retried
      */
-    private final Set<Class<? extends IOException>> nonRetriableClasses;
+    private final Set<Class<? extends IOException>> nonRetriableIOExceptionClasses;
 
     /**
      * HTTP status codes which shall be retried
@@ -94,10 +94,8 @@ public class DefaultHttpRequestRetryStrategy implements HttpRequestRetryStrategy
         Args.positive(defaultRetryInterval.getDuration(), "defaultRetryInterval");
         this.maxRetries = maxRetries;
         this.defaultRetryInterval = defaultRetryInterval;
-        this.nonRetriableClasses = new HashSet<>();
-        this.nonRetriableClasses.addAll(clazzes);
-        this.retriableCodes = new HashSet<>();
-        this.retriableCodes.addAll(codes);
+        this.nonRetriableIOExceptionClasses = new HashSet<>(clazzes);
+        this.retriableCodes = new HashSet<>(codes);
     }
 
     /**
@@ -163,19 +161,19 @@ public class DefaultHttpRequestRetryStrategy implements HttpRequestRetryStrategy
     public boolean retryRequest(
             final HttpRequest request,
             final IOException exception,
-            final int executionCount,
+            final int execCount,
             final HttpContext context) {
         Args.notNull(request, "request");
         Args.notNull(exception, "exception");
 
-        if (executionCount > this.maxRetries) {
+        if (execCount > this.maxRetries) {
             // Do not retry if over max retries
             return false;
         }
-        if (this.nonRetriableClasses.contains(exception.getClass())) {
+        if (this.nonRetriableIOExceptionClasses.contains(exception.getClass())) {
             return false;
         } else {
-            for (final Class<? extends IOException> rejectException : this.nonRetriableClasses) {
+            for (final Class<? extends IOException> rejectException : this.nonRetriableIOExceptionClasses) {
                 if (rejectException.isInstance(exception)) {
                     return false;
                 }
@@ -192,17 +190,17 @@ public class DefaultHttpRequestRetryStrategy implements HttpRequestRetryStrategy
     @Override
     public boolean retryRequest(
             final HttpResponse response,
-            final int executionCount,
+            final int execCount,
             final HttpContext context) {
         Args.notNull(response, "response");
 
-        return executionCount <= this.maxRetries && retriableCodes.contains(response.getCode());
+        return execCount <= this.maxRetries && retriableCodes.contains(response.getCode());
     }
 
     @Override
     public TimeValue getRetryInterval(
             final HttpResponse response,
-            final int executionCount,
+            final int execCount,
             final HttpContext context) {
         Args.notNull(response, "response");
 
