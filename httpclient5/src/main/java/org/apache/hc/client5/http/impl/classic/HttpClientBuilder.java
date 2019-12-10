@@ -42,7 +42,6 @@ import org.apache.hc.client5.http.ConnectionKeepAliveStrategy;
 import org.apache.hc.client5.http.HttpRequestRetryHandler;
 import org.apache.hc.client5.http.HttpRequestRetryStrategy;
 import org.apache.hc.client5.http.SchemePortResolver;
-import org.apache.hc.client5.http.ServiceUnavailableRetryStrategy;
 import org.apache.hc.client5.http.SystemDefaultDnsResolver;
 import org.apache.hc.client5.http.UserTokenHandler;
 import org.apache.hc.client5.http.auth.AuthSchemeProvider;
@@ -210,7 +209,6 @@ public class HttpClientBuilder {
     private RedirectStrategy redirectStrategy;
     private ConnectionBackoffStrategy connectionBackoffStrategy;
     private BackoffManager backoffManager;
-    private ServiceUnavailableRetryStrategy serviceUnavailStrategy;
     private Lookup<AuthSchemeProvider> authSchemeRegistry;
     private Lookup<CookieSpecProvider> cookieSpecRegistry;
     private LinkedHashMap<String, InputStreamFactory> contentDecoderMap;
@@ -583,15 +581,6 @@ public class HttpClientBuilder {
     }
 
     /**
-     * Assigns {@link ServiceUnavailableRetryStrategy} instance.
-     */
-    public final HttpClientBuilder setServiceUnavailableRetryStrategy(
-            final ServiceUnavailableRetryStrategy serviceUnavailStrategy) {
-        this.serviceUnavailStrategy = serviceUnavailStrategy;
-        return this;
-    }
-
-    /**
      * Assigns default {@link CookieStore} instance which will be used for
      * request execution if not explicitly set in the client execution context.
      */
@@ -903,14 +892,6 @@ public class HttpClientBuilder {
             } else {
                 routePlannerCopy = new DefaultRoutePlanner(schemePortResolverCopy);
             }
-        }
-
-        // Optionally, add service unavailable retry executor
-        final ServiceUnavailableRetryStrategy serviceUnavailStrategyCopy = this.serviceUnavailStrategy;
-        if (serviceUnavailStrategyCopy != null) {
-            execChainDefinition.addFirst(
-                    new ServiceUnavailableRetryExec(serviceUnavailStrategyCopy),
-                    ChainElement.RETRY_SERVICE_UNAVAILABLE.name());
         }
 
         // Add redirect executor, if not disabled
