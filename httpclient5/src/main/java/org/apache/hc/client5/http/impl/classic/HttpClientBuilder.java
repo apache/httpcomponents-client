@@ -39,7 +39,6 @@ import java.util.Map;
 
 import org.apache.hc.client5.http.AuthenticationStrategy;
 import org.apache.hc.client5.http.ConnectionKeepAliveStrategy;
-import org.apache.hc.client5.http.HttpRequestRetryHandler;
 import org.apache.hc.client5.http.HttpRequestRetryStrategy;
 import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.ServiceUnavailableRetryStrategy;
@@ -204,7 +203,6 @@ public class HttpClientBuilder {
     private LinkedList<ResponseInterceptorEntry> responseInterceptors;
     private LinkedList<ExecInterceptorEntry> execInterceptors;
 
-    private HttpRequestRetryHandler retryHandler;
     private HttpRequestRetryStrategy retryStrategy;
     private HttpRoutePlanner routePlanner;
     private RedirectStrategy redirectStrategy;
@@ -493,17 +491,6 @@ public class HttpClientBuilder {
      */
     public final HttpClientBuilder disableAuthCaching() {
         this.authCachingDisabled = true;
-        return this;
-    }
-
-    /**
-     * Assigns {@link HttpRequestRetryHandler} instance.
-     * <p>
-     * Please note this value can be overridden by the {@link #disableAutomaticRetries()}
-     * method.
-     */
-    public final HttpClientBuilder setRetryHandler(final HttpRequestRetryHandler retryHandler) {
-        this.retryHandler = retryHandler;
         return this;
     }
 
@@ -872,21 +859,13 @@ public class HttpClientBuilder {
 
         // Add request retry executor, if not disabled
         if (!automaticRetriesDisabled) {
-            // This needs to be cleaned up as soon as HttpRequestRetryHandler will be removed
-            final HttpRequestRetryHandler retryHandlerCopy = this.retryHandler;
-            if (retryHandlerCopy != null) {
-                execChainDefinition.addFirst(
-                        new RetryExec(retryHandlerCopy),
-                        ChainElement.RETRY_IO_ERROR.name());
-            } else {
-                HttpRequestRetryStrategy retryStrategyCopy = this.retryStrategy;
-                if (retryStrategyCopy == null) {
-                    retryStrategyCopy = DefaultHttpRequestRetryStrategy.INSTANCE;
-                }
-                execChainDefinition.addFirst(
-                        new HttpRequestRetryExec(retryStrategyCopy),
-                        ChainElement.RETRY.name());
+            HttpRequestRetryStrategy retryStrategyCopy = this.retryStrategy;
+            if (retryStrategyCopy == null) {
+                retryStrategyCopy = DefaultHttpRequestRetryStrategy.INSTANCE;
             }
+            execChainDefinition.addFirst(
+                    new HttpRequestRetryExec(retryStrategyCopy),
+                    ChainElement.RETRY.name());
         }
 
         HttpRoutePlanner routePlannerCopy = this.routePlanner;
