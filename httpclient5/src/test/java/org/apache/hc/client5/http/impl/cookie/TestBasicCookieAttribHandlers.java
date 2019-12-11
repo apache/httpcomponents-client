@@ -193,32 +193,32 @@ public class TestBasicCookieAttribHandlers {
         final CookieAttributeHandler h = new BasicDomainHandler();
         try {
             h.parse(null, null);
-            Assert.fail("IllegalArgumentException must have been thrown");
-        } catch (final IllegalArgumentException ex) {
+            Assert.fail("NullPointerException must have been thrown");
+        } catch (final NullPointerException ex) {
             // expected
         }
         try {
             h.validate(null, null);
-            Assert.fail("IllegalArgumentException must have been thrown");
-        } catch (final IllegalArgumentException ex) {
+            Assert.fail("NullPointerException must have been thrown");
+        } catch (final NullPointerException ex) {
             // expected
         }
         try {
             h.validate(new BasicClientCookie("name", "value"), null);
-            Assert.fail("IllegalArgumentException must have been thrown");
-        } catch (final IllegalArgumentException ex) {
+            Assert.fail("NullPointerException must have been thrown");
+        } catch (final NullPointerException ex) {
             // expected
         }
         try {
             h.match(null, null);
-            Assert.fail("IllegalArgumentException must have been thrown");
-        } catch (final IllegalArgumentException ex) {
+            Assert.fail("NullPointerException must have been thrown");
+        } catch (final NullPointerException ex) {
             // expected
         }
         try {
             h.match(new BasicClientCookie("name", "value"), null);
-            Assert.fail("IllegalArgumentException must have been thrown");
-        } catch (final IllegalArgumentException ex) {
+            Assert.fail("NullPointerException must have been thrown");
+        } catch (final NullPointerException ex) {
             // expected
         }
     }
@@ -302,20 +302,20 @@ public class TestBasicCookieAttribHandlers {
         final CookieAttributeHandler h = new BasicPathHandler();
         try {
             h.parse(null, null);
-            Assert.fail("IllegalArgumentException must have been thrown");
-        } catch (final IllegalArgumentException ex) {
+            Assert.fail("NullPointerException must have been thrown");
+        } catch (final NullPointerException ex) {
             // expected
         }
         try {
             h.match(null, null);
-            Assert.fail("IllegalArgumentException must have been thrown");
-        } catch (final IllegalArgumentException ex) {
+            Assert.fail("NullPointerException must have been thrown");
+        } catch (final NullPointerException ex) {
             // expected
         }
         try {
             h.match(new BasicClientCookie("name", "value"), null);
-            Assert.fail("IllegalArgumentException must have been thrown");
-        } catch (final IllegalArgumentException ex) {
+            Assert.fail("NullPointerException must have been thrown");
+        } catch (final NullPointerException ex) {
             // expected
         }
     }
@@ -351,8 +351,8 @@ public class TestBasicCookieAttribHandlers {
         final CookieAttributeHandler h = new BasicMaxAgeHandler();
         try {
             h.parse(null, null);
-            Assert.fail("IllegalArgumentException must have been thrown");
-        } catch (final IllegalArgumentException ex) {
+            Assert.fail("NullPointerException must have been thrown");
+        } catch (final NullPointerException ex) {
             // expected
         }
     }
@@ -390,20 +390,20 @@ public class TestBasicCookieAttribHandlers {
         final CookieAttributeHandler h = new BasicSecureHandler();
         try {
             h.parse(null, null);
-            Assert.fail("IllegalArgumentException must have been thrown");
-        } catch (final IllegalArgumentException ex) {
+            Assert.fail("NullPointerException must have been thrown");
+        } catch (final NullPointerException ex) {
             // expected
         }
         try {
             h.match(null, null);
-            Assert.fail("IllegalArgumentException must have been thrown");
-        } catch (final IllegalArgumentException ex) {
+            Assert.fail("NullPointerException must have been thrown");
+        } catch (final NullPointerException ex) {
             // expected
         }
         try {
             h.match(new BasicClientCookie("name", "value"), null);
-            Assert.fail("IllegalArgumentException must have been thrown");
-        } catch (final IllegalArgumentException ex) {
+            Assert.fail("NullPointerException must have been thrown");
+        } catch (final NullPointerException ex) {
             // expected
         }
     }
@@ -445,15 +445,15 @@ public class TestBasicCookieAttribHandlers {
     public void testBasicExpiresInvalidInput() throws Exception {
         try {
             new BasicExpiresHandler(null);
-            Assert.fail("IllegalArgumentException must have been thrown");
-        } catch (final IllegalArgumentException ex) {
+            Assert.fail("NullPointerException must have been thrown");
+        } catch (final NullPointerException ex) {
             // expected
         }
         final CookieAttributeHandler h = new BasicExpiresHandler(new String[] {DateUtils.PATTERN_RFC1123});
         try {
             h.parse(null, null);
-            Assert.fail("IllegalArgumentException must have been thrown");
-        } catch (final IllegalArgumentException ex) {
+            Assert.fail("NullPointerException must have been thrown");
+        } catch (final NullPointerException ex) {
             // expected
         }
     }

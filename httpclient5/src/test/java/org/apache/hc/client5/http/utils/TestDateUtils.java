@@ -80,20 +80,20 @@ public class TestDateUtils {
     public void testInvalidInput() throws Exception {
         try {
             DateUtils.parseDate(null, null, null);
-            Assert.fail("IllegalArgumentException should habe been thrown");
-        } catch (final IllegalArgumentException ex) {
+            Assert.fail("NullPointerException should habe been thrown");
+        } catch (final NullPointerException ex) {
             // expected
         }
         try {
             DateUtils.formatDate(null);
-            Assert.fail("IllegalArgumentException should habe been thrown");
-        } catch (final IllegalArgumentException ex) {
+            Assert.fail("NullPointerException should habe been thrown");
+        } catch (final NullPointerException ex) {
             // expected
         }
         try {
             DateUtils.formatDate(new Date(), null);
-            Assert.fail("IllegalArgumentException should habe been thrown");
-        } catch (final IllegalArgumentException ex) {
+            Assert.fail("NullPointerException should habe been thrown");
+        } catch (final NullPointerException ex) {
             // expected
         }
     }

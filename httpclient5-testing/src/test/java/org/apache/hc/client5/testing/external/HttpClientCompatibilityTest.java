@@ -157,7 +157,7 @@ public class HttpClientCompatibilityTest {
         }
         // Basic GET requests
         {
-            connManager.closeIdle(TimeValue.NEG_ONE_MILLISECONDS);
+            connManager.closeIdle(TimeValue.NEG_ONE_MILLISECOND);
             final HttpClientContext context = HttpClientContext.create();
             context.setCredentialsProvider(credentialsProvider);
             final String[] requestUris = new String[] {"/", "/news.html", "/status.html"};
@@ -178,7 +178,7 @@ public class HttpClientCompatibilityTest {
         }
         // Wrong target auth scope
         {
-            connManager.closeIdle(TimeValue.NEG_ONE_MILLISECONDS);
+            connManager.closeIdle(TimeValue.NEG_ONE_MILLISECOND);
             credentialsProvider.setCredentials(
                     new AuthScope("http", "otherhost", -1, "Restricted Files", null),
                     new UsernamePasswordCredentials("testuser", "nopassword".toCharArray()));
@@ -200,7 +200,7 @@ public class HttpClientCompatibilityTest {
         }
         // Wrong target credentials
         {
-            connManager.closeIdle(TimeValue.NEG_ONE_MILLISECONDS);
+            connManager.closeIdle(TimeValue.NEG_ONE_MILLISECOND);
             credentialsProvider.setCredentials(
                     new AuthScope(target),
                     new UsernamePasswordCredentials("testuser", "wrong password".toCharArray()));
@@ -222,7 +222,7 @@ public class HttpClientCompatibilityTest {
         }
         // Correct target credentials
         {
-            connManager.closeIdle(TimeValue.NEG_ONE_MILLISECONDS);
+            connManager.closeIdle(TimeValue.NEG_ONE_MILLISECOND);
             credentialsProvider.setCredentials(
                     new AuthScope(target),
                     new UsernamePasswordCredentials("testuser", "nopassword".toCharArray()));
@@ -244,7 +244,7 @@ public class HttpClientCompatibilityTest {
         }
         // Correct target credentials (no keep-alive)
         {
-            connManager.closeIdle(TimeValue.NEG_ONE_MILLISECONDS);
+            connManager.closeIdle(TimeValue.NEG_ONE_MILLISECOND);
             credentialsProvider.setCredentials(
                     new AuthScope(target),
                     new UsernamePasswordCredentials("testuser", "nopassword".toCharArray()));

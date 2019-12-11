@@ -50,7 +50,7 @@ import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
-import org.apache.hc.core5.http.Methods;
+import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TimeValue;
@@ -226,7 +226,7 @@ public class DefaultHttpRequestRetryStrategy implements HttpRequestRetryStrategy
     }
 
     protected boolean handleAsIdempotent(final HttpRequest request) {
-        return Methods.isIdempotent(request.getMethod());
+        return Method.isIdempotent(request.getMethod());
     }
 
 }

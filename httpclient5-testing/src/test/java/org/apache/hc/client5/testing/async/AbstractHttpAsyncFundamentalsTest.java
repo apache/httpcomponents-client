@@ -45,7 +45,7 @@ import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.Message;
-import org.apache.hc.core5.http.Methods;
+import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.nio.entity.AsyncEntityProducers;
 import org.apache.hc.core5.http.nio.entity.BasicAsyncEntityConsumer;
@@ -98,7 +98,7 @@ public abstract class AbstractHttpAsyncFundamentalsTest<T extends CloseableHttpA
             final Random rnd = new Random(System.currentTimeMillis());
             rnd.nextBytes(b1);
             final Future<Message<HttpResponse, byte[]>> future = httpclient.execute(
-                    new BasicRequestProducer(Methods.GET, target, "/echo/",
+                    new BasicRequestProducer(Method.GET, target, "/echo/",
                             AsyncEntityProducers.create(b1, ContentType.APPLICATION_OCTET_STREAM)),
                     new BasicResponseConsumer<>(new BasicAsyncEntityConsumer()), HttpClientContext.create(), null);
             final Message<HttpResponse, byte[]> responseMessage = future.get();
@@ -122,7 +122,7 @@ public abstract class AbstractHttpAsyncFundamentalsTest<T extends CloseableHttpA
         final Queue<Future<Message<HttpResponse, byte[]>>> queue = new LinkedList<>();
         for (int i = 0; i < reqCount; i++) {
             final Future<Message<HttpResponse, byte[]>> future = httpclient.execute(
-                    new BasicRequestProducer(Methods.POST, target, "/echo/",
+                    new BasicRequestProducer(Method.POST, target, "/echo/",
                             AsyncEntityProducers.create(b1, ContentType.APPLICATION_OCTET_STREAM)),
                     new BasicResponseConsumer<>(new BasicAsyncEntityConsumer()), HttpClientContext.create(), null);
             queue.add(future);

@@ -104,7 +104,7 @@ public class ClientExecuteSOCKS {
             if (localAddress != null) {
                 sock.bind(localAddress);
             }
-            sock.connect(remoteAddress, connectTimeout != null ? connectTimeout.toMillisIntBound() : 0);
+            sock.connect(remoteAddress, connectTimeout != null ? connectTimeout.toMillisecondsIntBound() : 0);
             return sock;
         }
 

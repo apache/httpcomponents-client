@@ -45,7 +45,7 @@ import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
 import org.apache.hc.core5.http.ssl.TLS;
 import org.apache.hc.core5.http.ssl.TlsCiphers;
 import org.apache.hc.core5.http2.HttpVersionPolicy;
-import org.apache.hc.core5.http2.ssl.ApplicationProtocols;
+import org.apache.hc.core5.http2.ssl.ApplicationProtocol;
 import org.apache.hc.core5.http2.ssl.H2TlsSupport;
 import org.apache.hc.core5.net.NamedEndpoint;
 import org.apache.hc.core5.reactor.ssl.SSLBufferMode;
@@ -134,7 +134,7 @@ abstract class AbstractClientTlsStrategy implements TlsStrategy {
                 verifySession(host.getHostName(), sslEngine.getSession());
                 final TlsDetails tlsDetails = createTlsDetails(sslEngine);
                 final String negotiatedCipherSuite = sslEngine.getSession().getCipherSuite();
-                if (tlsDetails != null && ApplicationProtocols.HTTP_2.id.equals(tlsDetails.getApplicationProtocol())) {
+                if (tlsDetails != null && ApplicationProtocol.HTTP_2.id.equals(tlsDetails.getApplicationProtocol())) {
                     if (TlsCiphers.isH2Blacklisted(negotiatedCipherSuite)) {
                         throw new SSLHandshakeException("Cipher suite `" + negotiatedCipherSuite
                             + "` does not provide adequate security for HTTP/2");

@@ -64,7 +64,7 @@ class DefaultAsyncCacheRevalidator extends CacheRevalidatorBase {
 
         @Override
         public Future<?> schedule(final Runnable command, final TimeValue timeValue) throws RejectedExecutionException {
-            if (timeValue.toMillis() <= 0) {
+            if (timeValue.toMilliseconds() <= 0) {
                 command.run();
                 return new Operations.CompletedFuture<Void>(null);
             }

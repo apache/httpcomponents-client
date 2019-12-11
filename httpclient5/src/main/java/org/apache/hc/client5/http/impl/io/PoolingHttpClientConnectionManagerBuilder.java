@@ -208,7 +208,7 @@ public class PoolingHttpClientConnectionManagerBuilder {
                         .build(),
                 poolConcurrencyPolicy,
                 poolReusePolicy,
-                timeToLive != null ? timeToLive : TimeValue.NEG_ONE_MILLISECONDS,
+                timeToLive != null ? timeToLive : TimeValue.NEG_ONE_MILLISECOND,
                 schemePortResolver,
                 dnsResolver,
                 connectionFactory);

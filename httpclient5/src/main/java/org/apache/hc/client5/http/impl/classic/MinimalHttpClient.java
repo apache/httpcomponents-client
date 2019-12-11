@@ -150,7 +150,7 @@ public class MinimalHttpClient extends CloseableHttpClient {
             httpProcessor.process(response, response.getEntity(), context);
 
             if (reuseStrategy.keepAlive(request, response, context)) {
-                execRuntime.markConnectionReusable(null, TimeValue.NEG_ONE_MILLISECONDS);
+                execRuntime.markConnectionReusable(null, TimeValue.NEG_ONE_MILLISECOND);
             } else {
                 execRuntime.markConnectionNonReusable();
             }

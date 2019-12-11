@@ -108,8 +108,8 @@ public class ExponentialBackOffSchedulingStrategy implements SchedulingStrategy 
 
     protected TimeValue calculateDelay(final int consecutiveFailedAttempts) {
         if (consecutiveFailedAttempts > 0) {
-            final long delay = (long) (initialExpiry.toMillis() * Math.pow(backOffRate, consecutiveFailedAttempts - 1));
-            return TimeValue.ofMilliseconds(Math.min(delay, maxExpiry.toMillis()));
+            final long delay = (long) (initialExpiry.toMilliseconds() * Math.pow(backOffRate, consecutiveFailedAttempts - 1));
+            return TimeValue.ofMilliseconds(Math.min(delay, maxExpiry.toMilliseconds()));
         }
         return TimeValue.ZERO_MILLISECONDS;
     }

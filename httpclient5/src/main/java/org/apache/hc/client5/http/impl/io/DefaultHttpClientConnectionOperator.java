@@ -123,7 +123,7 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
             final boolean last = i == addresses.length - 1;
 
             Socket sock = sf.createSocket(context);
-            sock.setSoTimeout(socketConfig.getSoTimeout().toMillisIntBound());
+            sock.setSoTimeout(socketConfig.getSoTimeout().toMillisecondsIntBound());
             sock.setReuseAddress(socketConfig.isSoReuseAddress());
             sock.setTcpNoDelay(socketConfig.isTcpNoDelay());
             sock.setKeepAlive(socketConfig.isSoKeepAlive());
@@ -134,7 +134,7 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
                 sock.setSendBufferSize(socketConfig.getSndBufSize());
             }
 
-            final int linger = socketConfig.getSoLinger().toMillisIntBound();
+            final int linger = socketConfig.getSoLinger().toMillisecondsIntBound();
             if (linger >= 0) {
                 sock.setSoLinger(true, linger);
             }

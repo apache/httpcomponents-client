@@ -93,7 +93,7 @@ public class SSLConnectionSocketFactoryBuilder {
     public final SSLConnectionSocketFactoryBuilder setTlsVersions(final TLS... tlslVersions) {
         this.tlsVersions = new String[tlslVersions.length];
         for (int i = 0; i < tlslVersions.length; i++) {
-            this.tlsVersions[i] = tlslVersions[i].ident;
+            this.tlsVersions[i] = tlslVersions[i].id;
         }
         return this;
     }

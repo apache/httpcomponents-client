@@ -46,7 +46,7 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.Message;
-import org.apache.hc.core5.http.Methods;
+import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.config.Http1Config;
 import org.apache.hc.core5.http.nio.AsyncClientEndpoint;
@@ -124,7 +124,7 @@ public class TestHttpAsyncMinimal extends AbstractHttpAsyncFundamentalsTest<Mini
             final Queue<Future<Message<HttpResponse, byte[]>>> queue = new LinkedList<>();
             for (int i = 0; i < reqCount; i++) {
                 final Future<Message<HttpResponse, byte[]>> future = endpoint.execute(
-                        new BasicRequestProducer(Methods.GET, target, "/echo/",
+                        new BasicRequestProducer(Method.GET, target, "/echo/",
                                 AsyncEntityProducers.create(b1, ContentType.APPLICATION_OCTET_STREAM)),
                         new BasicResponseConsumer<>(new BasicAsyncEntityConsumer()), HttpClientContext.create(), null);
                 queue.add(future);

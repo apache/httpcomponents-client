@@ -132,7 +132,7 @@ public class CachingHttpClientCompatibilityTest {
         }
         // GET with links
         {
-            connManager.closeIdle(TimeValue.NEG_ONE_MILLISECONDS);
+            connManager.closeIdle(TimeValue.NEG_ONE_MILLISECOND);
             final HttpCacheContext context = HttpCacheContext.create();
             final Pattern linkPattern = Pattern.compile("^<(.*)>;rel=preload$");
             final List<String> links = new ArrayList<>();

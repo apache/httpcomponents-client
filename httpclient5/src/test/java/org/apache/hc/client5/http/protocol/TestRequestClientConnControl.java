@@ -41,7 +41,7 @@ import org.junit.Test;
 
 public class TestRequestClientConnControl {
 
-    @Test(expected=IllegalArgumentException.class)
+    @Test(expected=NullPointerException.class)
     public void testRequestParameterCheck() throws Exception {
         final HttpClientContext context = HttpClientContext.create();
         final HttpRequestInterceptor interceptor = new RequestClientConnControl();

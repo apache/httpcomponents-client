@@ -57,7 +57,7 @@ import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
-import org.apache.hc.core5.http.Methods;
+import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.nio.AsyncDataConsumer;
 import org.apache.hc.core5.http.nio.AsyncEntityProducer;
@@ -181,7 +181,7 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
                 clientContext.setAttribute(HttpCoreContext.HTTP_RESPONSE, response);
                 httpProcessor.process(response, entityDetails, clientContext);
 
-                if (Methods.TRACE.isSame(request.getMethod())) {
+                if (Method.TRACE.isSame(request.getMethod())) {
                     // Do not perform authentication for TRACE request
                     return asyncExecCallback.handleResponse(response, entityDetails);
                 }

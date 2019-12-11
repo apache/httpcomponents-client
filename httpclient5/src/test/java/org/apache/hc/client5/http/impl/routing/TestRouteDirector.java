@@ -81,7 +81,7 @@ public class TestRouteDirector {
         }
     }
 
-    @Test(expected=IllegalArgumentException.class)
+    @Test(expected=NullPointerException.class)
     public void testIllegal() {
         final HttpRouteDirector rowdy = new BasicRouteDirector();
         final HttpRoute route = new HttpRoute(TARGET1);

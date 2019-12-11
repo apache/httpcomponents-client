@@ -30,7 +30,7 @@ package org.apache.hc.client5.http.async.methods;
 import java.net.URI;
 
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.Methods;
+import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
 
 /**
@@ -43,96 +43,96 @@ public enum HttpRequests {
     DELETE {
         @Override
         public BasicHttpRequest create(final URI uri) {
-            return new BasicHttpRequest(Methods.DELETE, uri);
+            return new BasicHttpRequest(Method.DELETE, uri);
         }
 
         @Override
         public BasicHttpRequest create(final HttpHost host, final String path) {
-            return new BasicHttpRequest(Methods.DELETE, host, path);
+            return new BasicHttpRequest(Method.DELETE, host, path);
         }
     },
 
     GET {
         @Override
         public BasicHttpRequest create(final URI uri) {
-            return new BasicHttpRequest(Methods.GET, uri);
+            return new BasicHttpRequest(Method.GET, uri);
         }
 
         @Override
         public BasicHttpRequest create(final HttpHost host, final String path) {
-            return new BasicHttpRequest(Methods.GET, host, path);
+            return new BasicHttpRequest(Method.GET, host, path);
         }
     },
 
     HEAD {
         @Override
         public BasicHttpRequest create(final URI uri) {
-            return new BasicHttpRequest(Methods.HEAD, uri);
+            return new BasicHttpRequest(Method.HEAD, uri);
         }
 
         @Override
         public BasicHttpRequest create(final HttpHost host, final String path) {
-            return new BasicHttpRequest(Methods.HEAD, host, path);
+            return new BasicHttpRequest(Method.HEAD, host, path);
         }
     },
 
     OPTIONS {
         @Override
         public BasicHttpRequest create(final URI uri) {
-            return new BasicHttpRequest(Methods.OPTIONS, uri);
+            return new BasicHttpRequest(Method.OPTIONS, uri);
         }
 
         @Override
         public BasicHttpRequest create(final HttpHost host, final String path) {
-            return new BasicHttpRequest(Methods.OPTIONS, host, path);
+            return new BasicHttpRequest(Method.OPTIONS, host, path);
         }
     },
 
     PATCH {
         @Override
         public BasicHttpRequest create(final URI uri) {
-            return new BasicHttpRequest(Methods.PATCH, uri);
+            return new BasicHttpRequest(Method.PATCH, uri);
         }
 
         @Override
         public BasicHttpRequest create(final HttpHost host, final String path) {
-            return new BasicHttpRequest(Methods.PATCH, host, path);
+            return new BasicHttpRequest(Method.PATCH, host, path);
         }
     },
 
     POST {
         @Override
         public BasicHttpRequest create(final URI uri) {
-            return new BasicHttpRequest(Methods.POST, uri);
+            return new BasicHttpRequest(Method.POST, uri);
         }
 
         @Override
         public BasicHttpRequest create(final HttpHost host, final String path) {
-            return new BasicHttpRequest(Methods.POST, host, path);
+            return new BasicHttpRequest(Method.POST, host, path);
         }
     },
 
     PUT {
         @Override
         public BasicHttpRequest create(final URI uri) {
-            return new BasicHttpRequest(Methods.PUT, uri);
+            return new BasicHttpRequest(Method.PUT, uri);
         }
 
         @Override
         public BasicHttpRequest create(final HttpHost host, final String path) {
-            return new BasicHttpRequest(Methods.PUT, host, path);
+            return new BasicHttpRequest(Method.PUT, host, path);
         }
     },
 
     TRACE {
         @Override
         public BasicHttpRequest create(final URI uri) {
-            return new BasicHttpRequest(Methods.TRACE, uri);
+            return new BasicHttpRequest(Method.TRACE, uri);
         }
 
         @Override
         public BasicHttpRequest create(final HttpHost host, final String path) {
-            return new BasicHttpRequest(Methods.TRACE, host, path);
+            return new BasicHttpRequest(Method.TRACE, host, path);
         }
     };
 

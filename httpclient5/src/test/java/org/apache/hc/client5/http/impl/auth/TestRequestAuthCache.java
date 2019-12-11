@@ -71,14 +71,14 @@ public class TestRequestAuthCache {
         this.credProvider.setCredentials(this.authscope2, this.creds2);
     }
 
-    @Test(expected=IllegalArgumentException.class)
+    @Test(expected=NullPointerException.class)
     public void testRequestParameterCheck() throws Exception {
         final HttpClientContext context = HttpClientContext.create();
         final HttpRequestInterceptor interceptor = new RequestAuthCache();
         interceptor.process(null, null, context);
     }
 
-    @Test(expected=IllegalArgumentException.class)
+    @Test(expected=NullPointerException.class)
     public void testContextParameterCheck() throws Exception {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         final HttpRequestInterceptor interceptor = new RequestAuthCache();

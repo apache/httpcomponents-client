@@ -57,7 +57,7 @@ import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpResponse;
-import org.apache.hc.core5.http.Methods;
+import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.protocol.HttpCoreContext;
@@ -167,7 +167,7 @@ public final class ProtocolExec implements ExecChainHandler {
                 context.setAttribute(HttpCoreContext.HTTP_RESPONSE, response);
                 httpProcessor.process(response, response.getEntity(), context);
 
-                if (Methods.TRACE.isSame(request.getMethod())) {
+                if (Method.TRACE.isSame(request.getMethod())) {
                     // Do not perform authentication for TRACE request
                     return response;
                 }

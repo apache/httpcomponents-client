@@ -142,7 +142,7 @@ public class TestHttpCacheEntry {
         try {
             new HttpCacheEntry(null, new Date(), HttpStatus.SC_OK, new Header[]{}, mockResource);
             fail("Should have thrown exception");
-        } catch (final IllegalArgumentException expected) {
+        } catch (final NullPointerException expected) {
         }
     }
 
@@ -152,7 +152,7 @@ public class TestHttpCacheEntry {
         try {
             new HttpCacheEntry(new Date(), null, HttpStatus.SC_OK, new Header[]{}, mockResource);
             fail("Should have thrown exception");
-        } catch (final IllegalArgumentException expected) {
+        } catch (final NullPointerException expected) {
         }
     }
 
@@ -162,7 +162,7 @@ public class TestHttpCacheEntry {
         try {
             new HttpCacheEntry(new Date(), new Date(), HttpStatus.SC_OK, null, mockResource);
             fail("Should have thrown exception");
-        } catch (final IllegalArgumentException expected) {
+        } catch (final NullPointerException expected) {
         }
     }
 

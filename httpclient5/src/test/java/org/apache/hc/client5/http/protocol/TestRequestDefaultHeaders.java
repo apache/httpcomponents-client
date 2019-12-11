@@ -41,7 +41,7 @@ import org.junit.Test;
 
 public class TestRequestDefaultHeaders {
 
-    @Test(expected=IllegalArgumentException.class)
+    @Test(expected=NullPointerException.class)
     public void testRequestParameterCheck() throws Exception {
         final HttpContext context = new BasicHttpContext();
         final HttpRequestInterceptor interceptor = new RequestDefaultHeaders();

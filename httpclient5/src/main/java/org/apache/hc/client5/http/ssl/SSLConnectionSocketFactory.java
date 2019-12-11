@@ -208,7 +208,7 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
         }
         try {
             if (TimeValue.isPositive(connectTimeout) && sock.getSoTimeout() == 0) {
-                sock.setSoTimeout(connectTimeout.toMillisIntBound());
+                sock.setSoTimeout(connectTimeout.toMillisecondsIntBound());
             }
             if (this.log.isDebugEnabled()) {
                 this.log.debug("Connecting socket to " + remoteAddress + " with timeout " + connectTimeout);
@@ -219,7 +219,7 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
                 AccessController.doPrivileged(new PrivilegedExceptionAction<Object>() {
                     @Override
                     public Object run() throws IOException {
-                        sock.connect(remoteAddress, connectTimeout != null ? connectTimeout.toMillisIntBound() : 0);
+                        sock.connect(remoteAddress, connectTimeout != null ? connectTimeout.toMillisecondsIntBound() : 0);
                         return null;
                     }
                 });

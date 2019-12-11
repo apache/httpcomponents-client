@@ -114,13 +114,13 @@ public class TestDefaultRedirectStrategy {
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_SEE_OTHER, "Redirect");
         try {
             redirectStrategy.isRedirected(null, response, context);
-            Assert.fail("IllegalArgumentException expected");
-        } catch (final IllegalArgumentException expected) {
+            Assert.fail("NullPointerException expected");
+        } catch (final NullPointerException expected) {
         }
         try {
             redirectStrategy.isRedirected(httpget, null, context);
-            Assert.fail("IllegalArgumentException expected");
-        } catch (final IllegalArgumentException expected) {
+            Assert.fail("NullPointerException expected");
+        } catch (final NullPointerException expected) {
         }
     }
 
@@ -207,18 +207,18 @@ public class TestDefaultRedirectStrategy {
         response.addHeader("Location", "http://localhost/stuff");
         try {
             redirectStrategy.getLocationURI(null, response, context);
-            Assert.fail("IllegalArgumentException expected");
-        } catch (final IllegalArgumentException expected) {
+            Assert.fail("NullPointerException expected");
+        } catch (final NullPointerException expected) {
         }
         try {
             redirectStrategy.getLocationURI(httpget, null, context);
-            Assert.fail("IllegalArgumentException expected");
-        } catch (final IllegalArgumentException expected) {
+            Assert.fail("NullPointerException expected");
+        } catch (final NullPointerException expected) {
         }
         try {
             redirectStrategy.getLocationURI(httpget, response, null);
-            Assert.fail("IllegalArgumentException expected");
-        } catch (final IllegalArgumentException expected) {
+            Assert.fail("NullPointerException expected");
+        } catch (final NullPointerException expected) {
         }
     }
 

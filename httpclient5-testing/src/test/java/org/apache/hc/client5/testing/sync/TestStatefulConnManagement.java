@@ -107,7 +107,7 @@ public class TestStatefulConnManagement extends LocalServerTestBase {
             worker.start();
         }
         for (final HttpWorker worker : workers) {
-            worker.join(LONG_TIMEOUT.toMillis());
+            worker.join(LONG_TIMEOUT.toMilliseconds());
         }
         for (final HttpWorker worker : workers) {
             final Exception ex = worker.getException();

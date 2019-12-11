@@ -69,7 +69,7 @@ public class DefaultConnectionKeepAliveStrategy implements ConnectionKeepAliveSt
                 }
             }
         }
-        return TimeValue.NEG_ONE_MILLISECONDS;
+        return TimeValue.NEG_ONE_MILLISECOND;
     }
 
 }

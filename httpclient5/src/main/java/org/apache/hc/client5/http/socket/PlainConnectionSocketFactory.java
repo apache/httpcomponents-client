@@ -84,7 +84,7 @@ public class PlainConnectionSocketFactory implements ConnectionSocketFactory {
                 AccessController.doPrivileged(new PrivilegedExceptionAction<Object>() {
                     @Override
                     public Object run() throws IOException {
-                        sock.connect(remoteAddress, TimeValue.isPositive(connectTimeout) ? connectTimeout.toMillisIntBound() : 0);
+                        sock.connect(remoteAddress, TimeValue.isPositive(connectTimeout) ? connectTimeout.toMillisecondsIntBound() : 0);
                         return null;
                     }
                 });

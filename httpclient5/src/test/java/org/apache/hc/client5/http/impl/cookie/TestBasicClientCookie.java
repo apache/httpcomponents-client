@@ -48,8 +48,8 @@ public class TestBasicClientCookie {
         Assert.assertEquals("value", cookie.getValue());
         try {
             new BasicClientCookie(null, null);
-            Assert.fail("IllegalArgumentException should have been thrown");
-        } catch (final IllegalArgumentException ex) {
+            Assert.fail("NullPointerException should have been thrown");
+        } catch (final NullPointerException ex) {
             //expected
         }
     }

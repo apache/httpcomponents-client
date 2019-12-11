@@ -54,14 +54,14 @@ public class TestResponseProcessCookies {
         this.cookieStore = new BasicCookieStore();
     }
 
-    @Test(expected=IllegalArgumentException.class)
+    @Test(expected=NullPointerException.class)
     public void testResponseParameterCheck() throws Exception {
         final HttpClientContext context = HttpClientContext.create();
         final HttpResponseInterceptor interceptor = new ResponseProcessCookies();
         interceptor.process(null, null, context);
     }
 
-    @Test(expected=IllegalArgumentException.class)
+    @Test(expected=NullPointerException.class)
     public void testContextParameterCheck() throws Exception {
         final HttpResponse response = new BasicHttpResponse(200, "OK");
         final HttpResponseInterceptor interceptor = new ResponseProcessCookies();

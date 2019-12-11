@@ -47,7 +47,7 @@ import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
-import org.apache.hc.core5.http.Methods;
+import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.message.RequestLine;
 import org.apache.hc.core5.http.message.StatusLine;
 import org.apache.hc.core5.util.ByteArrayBuffer;
@@ -100,7 +100,7 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
         if (log.isDebugEnabled()) {
             log.debug("Flush cache entries: " + host + "; " + new RequestLine(request));
         }
-        if (!Methods.isSafe(request.getMethod())) {
+        if (!Method.isSafe(request.getMethod())) {
             final String cacheKey = cacheKeyGenerator.generateKey(host, request);
             return storage.removeEntry(cacheKey, new FutureCallback<Boolean>() {
 
@@ -147,7 +147,7 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
         if (log.isDebugEnabled()) {
             log.debug("Flush cache entries invalidated by exchange: " + host + "; " + new RequestLine(request) + " -> " + new StatusLine(response));
         }
-        if (!Methods.isSafe(request.getMethod())) {
+        if (!Method.isSafe(request.getMethod())) {
             return cacheInvalidator.flushCacheEntriesInvalidatedByExchange(host, request, response, cacheKeyGenerator, storage, callback);
         }
         callback.completed(Boolean.TRUE);

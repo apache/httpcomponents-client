@@ -121,7 +121,7 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
     }
 
     public PoolingAsyncClientConnectionManager(final Lookup<TlsStrategy> tlsStrategyLookup) {
-        this(tlsStrategyLookup, PoolConcurrencyPolicy.STRICT, TimeValue.NEG_ONE_MILLISECONDS);
+        this(tlsStrategyLookup, PoolConcurrencyPolicy.STRICT, TimeValue.NEG_ONE_MILLISECOND);
     }
 
     public PoolingAsyncClientConnectionManager(
@@ -246,7 +246,7 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
                         final ManagedAsyncClientConnection connection = poolEntry.getConnection();
                         final TimeValue timeValue = PoolingAsyncClientConnectionManager.this.validateAfterInactivity;
                         if (TimeValue.isPositive(timeValue) && connection != null &&
-                                poolEntry.getUpdated() + timeValue.toMillis() <= System.currentTimeMillis()) {
+                                poolEntry.getUpdated() + timeValue.toMilliseconds() <= System.currentTimeMillis()) {
                             final ProtocolVersion protocolVersion = connection.getProtocolVersion();
                             if (HttpVersion.HTTP_2_0.greaterEquals(protocolVersion)) {
                                 connection.submitCommand(new PingCommand(new BasicPingHandler(new Callback<Boolean>() {

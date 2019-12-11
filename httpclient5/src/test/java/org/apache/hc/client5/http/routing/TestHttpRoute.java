@@ -239,7 +239,7 @@ public class TestHttpRoute {
             new HttpRoute(null, null, chain1, false,
                                   TunnelType.TUNNELLED, LayerType.PLAIN);
             Assert.fail("missing target not detected");
-        } catch (final IllegalArgumentException iax) {
+        } catch (final NullPointerException iax) {
             // expected
         }
 
@@ -532,7 +532,7 @@ public class TestHttpRoute {
         try {
             new HttpRoute(TARGET1, LOCAL61, null, false);
             Assert.fail("missing proxy not detected");
-        } catch (final IllegalArgumentException iax) {
+        } catch (final NullPointerException iax) {
             // expected
         }
     }

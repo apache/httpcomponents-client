@@ -121,7 +121,7 @@ public class TestRouteTracker {
         try {
             new RouteTracker(null, LOCAL41);
             Assert.fail("null target not detected");
-        } catch (final IllegalArgumentException iax) {
+        } catch (final NullPointerException iax) {
             // expected
         }
     }
@@ -191,14 +191,14 @@ public class TestRouteTracker {
         try {
             rt.connectProxy(null, true);
             Assert.fail("missing proxy argument not detected (connect/false)");
-        } catch (final IllegalArgumentException iax) {
+        } catch (final NullPointerException iax) {
             // expected
         }
 
         try {
             rt.connectProxy(null, false);
             Assert.fail("missing proxy argument not detected (connect/true)");
-        } catch (final IllegalArgumentException iax) {
+        } catch (final NullPointerException iax) {
             // expected
         }
 
@@ -207,14 +207,14 @@ public class TestRouteTracker {
         try {
             rt.tunnelProxy(null, false);
             Assert.fail("missing proxy argument not detected (tunnel/false)");
-        } catch (final IllegalArgumentException iax) {
+        } catch (final NullPointerException iax) {
             // expected
         }
 
         try {
             rt.tunnelProxy(null, true);
             Assert.fail("missing proxy argument not detected (tunnel/true)");
-        } catch (final IllegalArgumentException iax) {
+        } catch (final NullPointerException iax) {
             // expected
         }
 

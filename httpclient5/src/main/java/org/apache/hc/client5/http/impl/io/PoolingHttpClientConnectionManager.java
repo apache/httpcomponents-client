@@ -136,7 +136,7 @@ public class PoolingHttpClientConnectionManager
     public PoolingHttpClientConnectionManager(
             final Registry<ConnectionSocketFactory> socketFactoryRegistry,
             final HttpConnectionFactory<ManagedHttpClientConnection> connFactory) {
-        this(socketFactoryRegistry, PoolConcurrencyPolicy.STRICT, TimeValue.NEG_ONE_MILLISECONDS, connFactory);
+        this(socketFactoryRegistry, PoolConcurrencyPolicy.STRICT, TimeValue.NEG_ONE_MILLISECOND, connFactory);
     }
 
     public PoolingHttpClientConnectionManager(
@@ -290,7 +290,7 @@ public class PoolingHttpClientConnectionManager
                     if (TimeValue.isNonNegative(validateAfterInactivity)) {
                         final ManagedHttpClientConnection conn = poolEntry.getConnection();
                         if (conn != null
-                                && poolEntry.getUpdated() + validateAfterInactivity.toMillis() <= System.currentTimeMillis()) {
+                                && poolEntry.getUpdated() + validateAfterInactivity.toMilliseconds() <= System.currentTimeMillis()) {
                             boolean stale;
                             try {
                                 stale = conn.isStale();

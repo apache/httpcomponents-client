@@ -41,7 +41,7 @@ import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
-import org.apache.hc.core5.http.Methods;
+import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.message.StatusLine;
 import org.apache.hc.core5.http.nio.AsyncPushConsumer;
 import org.apache.hc.core5.http.nio.support.BasicRequestProducer;
@@ -118,7 +118,7 @@ public class AsyncClientH2ServerPush {
         final HttpHost target = new HttpHost("nghttp2.org");
         final String requestURI = "/httpbin/";
         final Future<Void> future = client.execute(
-                new BasicRequestProducer(Methods.GET, target, requestURI),
+                new BasicRequestProducer(Method.GET, target, requestURI),
                 new AbstractCharResponseConsumer<Void>() {
 
                     @Override

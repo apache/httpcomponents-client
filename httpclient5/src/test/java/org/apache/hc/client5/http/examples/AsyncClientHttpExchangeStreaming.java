@@ -37,7 +37,7 @@ import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpResponse;
-import org.apache.hc.core5.http.Methods;
+import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.message.StatusLine;
 import org.apache.hc.core5.http.nio.support.BasicRequestProducer;
 import org.apache.hc.core5.io.CloseMode;
@@ -66,7 +66,7 @@ public class AsyncClientHttpExchangeStreaming {
 
         for (final String requestUri: requestUris) {
             final Future<Void> future = client.execute(
-                    new BasicRequestProducer(Methods.GET, target, requestUri),
+                    new BasicRequestProducer(Method.GET, target, requestUri),
                     new AbstractCharResponseConsumer<Void>() {
 
                         @Override

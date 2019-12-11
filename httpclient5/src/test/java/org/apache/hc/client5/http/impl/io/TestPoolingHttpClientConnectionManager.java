@@ -98,7 +98,7 @@ public class TestPoolingHttpClientConnectionManager {
         final HttpHost target = new HttpHost("localhost", 80);
         final HttpRoute route = new HttpRoute(target);
 
-        final PoolEntry<HttpRoute, ManagedHttpClientConnection> entry = new PoolEntry<>(route, TimeValue.NEG_ONE_MILLISECONDS);
+        final PoolEntry<HttpRoute, ManagedHttpClientConnection> entry = new PoolEntry<>(route, TimeValue.NEG_ONE_MILLISECOND);
         entry.assignConnection(conn);
 
         Mockito.when(future.isCancelled()).thenReturn(Boolean.FALSE);
@@ -121,7 +121,7 @@ public class TestPoolingHttpClientConnectionManager {
         Assert.assertNotNull(endpoint1);
         Assert.assertNotSame(conn, endpoint1);
 
-        mgr.release(endpoint1, null, TimeValue.NEG_ONE_MILLISECONDS);
+        mgr.release(endpoint1, null, TimeValue.NEG_ONE_MILLISECOND);
 
         Mockito.verify(pool).release(entry, true);
     }
@@ -131,7 +131,7 @@ public class TestPoolingHttpClientConnectionManager {
         final HttpHost target = new HttpHost("localhost", 80);
         final HttpRoute route = new HttpRoute(target);
 
-        final PoolEntry<HttpRoute, ManagedHttpClientConnection> entry = new PoolEntry<>(route, TimeValue.NEG_ONE_MILLISECONDS);
+        final PoolEntry<HttpRoute, ManagedHttpClientConnection> entry = new PoolEntry<>(route, TimeValue.NEG_ONE_MILLISECOND);
 
         Mockito.when(future.isCancelled()).thenReturn(Boolean.FALSE);
         Mockito.when(socketFactoryRegistry.lookup("http")).thenReturn(plainSocketFactory);
@@ -153,7 +153,7 @@ public class TestPoolingHttpClientConnectionManager {
         Assert.assertNotNull(endpoint1);
         Assert.assertNotSame(conn, endpoint1);
 
-        mgr.release(endpoint1, null, TimeValue.NEG_ONE_MILLISECONDS);
+        mgr.release(endpoint1, null, TimeValue.NEG_ONE_MILLISECOND);
 
         Mockito.verify(pool).release(entry, false);
     }
@@ -163,7 +163,7 @@ public class TestPoolingHttpClientConnectionManager {
         final HttpHost target = new HttpHost("localhost", 80);
         final HttpRoute route = new HttpRoute(target);
 
-        final PoolEntry<HttpRoute, ManagedHttpClientConnection> entry = new PoolEntry<>(route, TimeValue.NEG_ONE_MILLISECONDS);
+        final PoolEntry<HttpRoute, ManagedHttpClientConnection> entry = new PoolEntry<>(route, TimeValue.NEG_ONE_MILLISECOND);
         entry.assignConnection(conn);
 
         Mockito.when(future.isCancelled()).thenReturn(Boolean.TRUE);
@@ -202,7 +202,7 @@ public class TestPoolingHttpClientConnectionManager {
         final HttpHost target = new HttpHost("localhost", 80);
         final HttpRoute route = new HttpRoute(target);
 
-        final PoolEntry<HttpRoute, ManagedHttpClientConnection> entry = new PoolEntry<>(route, TimeValue.NEG_ONE_MILLISECONDS);
+        final PoolEntry<HttpRoute, ManagedHttpClientConnection> entry = new PoolEntry<>(route, TimeValue.NEG_ONE_MILLISECOND);
         entry.assignConnection(conn);
 
         Mockito.when(future.isCancelled()).thenReturn(Boolean.FALSE);
@@ -220,7 +220,7 @@ public class TestPoolingHttpClientConnectionManager {
         Assert.assertNotNull(endpoint1);
         Assert.assertTrue(endpoint1.isConnected());
 
-        mgr.release(endpoint1, "some state", TimeValue.NEG_ONE_MILLISECONDS);
+        mgr.release(endpoint1, "some state", TimeValue.NEG_ONE_MILLISECOND);
 
         Mockito.verify(pool).release(entry, true);
         Assert.assertEquals("some state", entry.getState());
@@ -231,7 +231,7 @@ public class TestPoolingHttpClientConnectionManager {
         final HttpHost target = new HttpHost("localhost", 80);
         final HttpRoute route = new HttpRoute(target);
 
-        final PoolEntry<HttpRoute, ManagedHttpClientConnection> entry = new PoolEntry<>(route, TimeValue.NEG_ONE_MILLISECONDS);
+        final PoolEntry<HttpRoute, ManagedHttpClientConnection> entry = new PoolEntry<>(route, TimeValue.NEG_ONE_MILLISECOND);
         entry.assignConnection(conn);
 
         Mockito.when(future.isCancelled()).thenReturn(Boolean.FALSE);
@@ -249,7 +249,7 @@ public class TestPoolingHttpClientConnectionManager {
         Assert.assertNotNull(endpoint1);
         Assert.assertFalse(endpoint1.isConnected());
 
-        mgr.release(endpoint1, "some state", TimeValue.NEG_ONE_MILLISECONDS);
+        mgr.release(endpoint1, "some state", TimeValue.NEG_ONE_MILLISECOND);
 
         Mockito.verify(pool).release(entry, false);
         Assert.assertEquals(null, entry.getState());
@@ -262,7 +262,7 @@ public class TestPoolingHttpClientConnectionManager {
         final InetAddress local = InetAddress.getByAddress(new byte[]{127, 0, 0, 1});
         final HttpRoute route = new HttpRoute(target, local, true);
 
-        final PoolEntry<HttpRoute, ManagedHttpClientConnection> entry = new PoolEntry<>(route, TimeValue.NEG_ONE_MILLISECONDS);
+        final PoolEntry<HttpRoute, ManagedHttpClientConnection> entry = new PoolEntry<>(route, TimeValue.NEG_ONE_MILLISECOND);
         entry.assignConnection(conn);
 
         Mockito.when(future.isCancelled()).thenReturn(Boolean.FALSE);
@@ -315,7 +315,7 @@ public class TestPoolingHttpClientConnectionManager {
         final InetAddress local = InetAddress.getByAddress(new byte[] {127, 0, 0, 1});
         final HttpRoute route = new HttpRoute(target, local, proxy, true);
 
-        final PoolEntry<HttpRoute, ManagedHttpClientConnection> entry = new PoolEntry<>(route, TimeValue.NEG_ONE_MILLISECONDS);
+        final PoolEntry<HttpRoute, ManagedHttpClientConnection> entry = new PoolEntry<>(route, TimeValue.NEG_ONE_MILLISECOND);
         entry.assignConnection(conn);
 
         Mockito.when(future.isCancelled()).thenReturn(Boolean.FALSE);

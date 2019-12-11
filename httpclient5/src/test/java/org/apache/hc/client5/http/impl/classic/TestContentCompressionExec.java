@@ -39,7 +39,7 @@ import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.Methods;
+import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
@@ -77,7 +77,7 @@ public class TestContentCompressionExec {
 
     @Test
     public void testContentEncodingNoEntity() throws Exception {
-        final ClassicHttpRequest request = new BasicClassicHttpRequest(Methods.GET, host, "/");
+        final ClassicHttpRequest request = new BasicClassicHttpRequest(Method.GET, host, "/");
         final ClassicHttpResponse response = new BasicClassicHttpResponse(200, "OK");
 
         Mockito.when(execChain.proceed(request, scope)).thenReturn(response);
@@ -90,7 +90,7 @@ public class TestContentCompressionExec {
 
     @Test
     public void testNoContentEncoding() throws Exception {
-        final ClassicHttpRequest request = new BasicClassicHttpRequest(Methods.GET, host, "/");
+        final ClassicHttpRequest request = new BasicClassicHttpRequest(Method.GET, host, "/");
         final ClassicHttpResponse response = new BasicClassicHttpResponse(200, "OK");
         final StringEntity original = new StringEntity("plain stuff");
         response.setEntity(original);
@@ -106,7 +106,7 @@ public class TestContentCompressionExec {
 
     @Test
     public void testGzipContentEncoding() throws Exception {
-        final ClassicHttpRequest request = new BasicClassicHttpRequest(Methods.GET, host, "/");
+        final ClassicHttpRequest request = new BasicClassicHttpRequest(Method.GET, host, "/");
         final ClassicHttpResponse response = new BasicClassicHttpResponse(200, "OK");
         final HttpEntity original = EntityBuilder.create().setText("encoded stuff").setContentEncoding("GZip").build();
         response.setEntity(original);
@@ -122,7 +122,7 @@ public class TestContentCompressionExec {
 
     @Test
     public void testGzipContentEncodingZeroLength() throws Exception {
-        final ClassicHttpRequest request = new BasicClassicHttpRequest(Methods.GET, host, "/");
+        final ClassicHttpRequest request = new BasicClassicHttpRequest(Method.GET, host, "/");
         final ClassicHttpResponse response = new BasicClassicHttpResponse(200, "OK");
         final HttpEntity original = EntityBuilder.create().setText("").setContentEncoding("GZip").build();
         response.setEntity(original);
@@ -138,7 +138,7 @@ public class TestContentCompressionExec {
 
     @Test
     public void testXGzipContentEncoding() throws Exception {
-        final ClassicHttpRequest request = new BasicClassicHttpRequest(Methods.GET, host, "/");
+        final ClassicHttpRequest request = new BasicClassicHttpRequest(Method.GET, host, "/");
         final ClassicHttpResponse response = new BasicClassicHttpResponse(200, "OK");
         final HttpEntity original = EntityBuilder.create().setText("encoded stuff").setContentEncoding("x-gzip").build();
         response.setEntity(original);
@@ -154,7 +154,7 @@ public class TestContentCompressionExec {
 
     @Test
     public void testDeflateContentEncoding() throws Exception {
-        final ClassicHttpRequest request = new BasicClassicHttpRequest(Methods.GET, host, "/");
+        final ClassicHttpRequest request = new BasicClassicHttpRequest(Method.GET, host, "/");
         final ClassicHttpResponse response = new BasicClassicHttpResponse(200, "OK");
         final HttpEntity original = EntityBuilder.create().setText("encoded stuff").setContentEncoding("deFlaTe").build();
         response.setEntity(original);
@@ -170,7 +170,7 @@ public class TestContentCompressionExec {
 
     @Test
     public void testIdentityContentEncoding() throws Exception {
-        final ClassicHttpRequest request = new BasicClassicHttpRequest(Methods.GET, host, "/");
+        final ClassicHttpRequest request = new BasicClassicHttpRequest(Method.GET, host, "/");
         final ClassicHttpResponse response = new BasicClassicHttpResponse(200, "OK");
         final HttpEntity original = EntityBuilder.create().setText("encoded stuff").setContentEncoding("identity").build();
         response.setEntity(original);
@@ -186,7 +186,7 @@ public class TestContentCompressionExec {
 
     @Test(expected=HttpException.class)
     public void testUnknownContentEncoding() throws Exception {
-        final ClassicHttpRequest request = new BasicClassicHttpRequest(Methods.GET, host, "/");
+        final ClassicHttpRequest request = new BasicClassicHttpRequest(Method.GET, host, "/");
         final ClassicHttpResponse response = new BasicClassicHttpResponse(200, "OK");
         final HttpEntity original = EntityBuilder.create().setText("encoded stuff").setContentEncoding("whatever").build();
         response.setEntity(original);
@@ -200,7 +200,7 @@ public class TestContentCompressionExec {
 
     @Test
     public void testContentEncodingRequestParameter() throws Exception {
-        final ClassicHttpRequest request = new BasicClassicHttpRequest(Methods.GET, host, "/");
+        final ClassicHttpRequest request = new BasicClassicHttpRequest(Method.GET, host, "/");
         final ClassicHttpResponse response = new BasicClassicHttpResponse(200, "OK");
         final HttpEntity original = EntityBuilder.create().setText("encoded stuff").setContentEncoding("GZip").build();
         response.setEntity(original);

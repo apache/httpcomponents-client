@@ -75,7 +75,7 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
         this.pushHandlerFactory = pushHandlerFactory;
         this.versionPolicy = versionPolicy;
         this.endpointRef = new AtomicReference<>(null);
-        this.validDuration = TimeValue.NEG_ONE_MILLISECONDS;
+        this.validDuration = TimeValue.NEG_ONE_MILLISECOND;
     }
 
     @Override

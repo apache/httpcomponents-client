@@ -478,7 +478,7 @@ public final class MinimalHttpAsyncClient extends AbstractMinimalHttpAsyncClient
         @Override
         public void releaseAndReuse() {
             if (released.compareAndSet(false, true)) {
-                manager.release(connectionEndpoint, null, TimeValue.NEG_ONE_MILLISECONDS);
+                manager.release(connectionEndpoint, null, TimeValue.NEG_ONE_MILLISECOND);
             }
         }
 

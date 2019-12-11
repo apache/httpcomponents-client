@@ -95,7 +95,7 @@ public final class IdleConnectionEvictor {
     }
 
     public void awaitTermination(final Timeout timeout) throws InterruptedException {
-        thread.join(timeout != null ? timeout.toMillis() : Long.MAX_VALUE);
+        thread.join(timeout != null ? timeout.toMilliseconds() : Long.MAX_VALUE);
     }
 
 }

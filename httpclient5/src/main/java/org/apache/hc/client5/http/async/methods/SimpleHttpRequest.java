@@ -34,7 +34,7 @@ import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.Methods;
+import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.util.Args;
 
 /**
@@ -73,11 +73,11 @@ public final class SimpleHttpRequest extends ConfigurableHttpRequest {
         super(method, requestUri);
     }
 
-    SimpleHttpRequest(final Methods method, final URI requestUri) {
+    SimpleHttpRequest(final Method method, final URI requestUri) {
         this(method.name(), requestUri);
     }
 
-    SimpleHttpRequest(final Methods method, final HttpHost host, final String path) {
+    SimpleHttpRequest(final Method method, final HttpHost host, final String path) {
         this(method.name(), host, path);
     }
 

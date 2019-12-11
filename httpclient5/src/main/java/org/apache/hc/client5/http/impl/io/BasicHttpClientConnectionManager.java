@@ -280,7 +280,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
                     if (this.log.isDebugEnabled()) {
                         this.log.debug("Connection can be kept alive for " + keepAlive);
                     }
-                    this.expiry = this.updated + keepAlive.toMillis();
+                    this.expiry = this.updated + keepAlive.toMilliseconds();
                 } else {
                     if (this.log.isDebugEnabled()) {
                         this.log.debug("Connection can be kept alive indefinitely");
@@ -345,7 +345,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
             return;
         }
         if (!this.leased) {
-            long time = idleTime.toMillis();
+            long time = idleTime.toMilliseconds();
             if (time < 0) {
                 time = 0;
             }

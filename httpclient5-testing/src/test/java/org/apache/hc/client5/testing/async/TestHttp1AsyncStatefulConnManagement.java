@@ -157,7 +157,7 @@ public class TestHttp1AsyncStatefulConnManagement extends AbstractIntegrationTes
             worker.start();
         }
         for (final HttpWorker worker : workers) {
-            worker.join(LONG_TIMEOUT.toMillis());
+            worker.join(LONG_TIMEOUT.toMilliseconds());
         }
         for (final HttpWorker worker : workers) {
             final Exception ex = worker.getException();

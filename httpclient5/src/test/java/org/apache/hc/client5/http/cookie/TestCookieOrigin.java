@@ -45,7 +45,7 @@ public class TestCookieOrigin {
     }
 
     @SuppressWarnings("unused")
-    @Test(expected=IllegalArgumentException.class)
+    @Test(expected=NullPointerException.class)
     public void testNullHost() {
         new CookieOrigin(null, 80, "/", false);
     }
@@ -63,7 +63,7 @@ public class TestCookieOrigin {
     }
 
     @SuppressWarnings("unused")
-    @Test(expected=IllegalArgumentException.class)
+    @Test(expected=NullPointerException.class)
     public void testNullPath() {
         new CookieOrigin("www.apache.org", 80, null, false);
     }

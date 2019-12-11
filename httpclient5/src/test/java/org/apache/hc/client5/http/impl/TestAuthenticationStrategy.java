@@ -64,18 +64,18 @@ public class TestAuthenticationStrategy {
         final HttpClientContext context = HttpClientContext.create();
         try {
             authStrategy.select(null, Collections.<String, AuthChallenge>emptyMap(), context);
-            Assert.fail("IllegalArgumentException expected");
-        } catch (final IllegalArgumentException ex) {
+            Assert.fail("NullPointerException expected");
+        } catch (final NullPointerException ex) {
         }
         try {
             authStrategy.select(ChallengeType.TARGET, null, context);
-            Assert.fail("IllegalArgumentException expected");
-        } catch (final IllegalArgumentException ex) {
+            Assert.fail("NullPointerException expected");
+        } catch (final NullPointerException ex) {
         }
         try {
             authStrategy.select(ChallengeType.TARGET, Collections.<String, AuthChallenge>emptyMap(), null);
-            Assert.fail("IllegalArgumentException expected");
-        } catch (final IllegalArgumentException ex) {
+            Assert.fail("NullPointerException expected");
+        } catch (final NullPointerException ex) {
         }
     }
 

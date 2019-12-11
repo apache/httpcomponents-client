@@ -82,8 +82,8 @@ public class TestLaxCookieAttribHandlers {
         final CookieAttributeHandler h = new LaxMaxAgeHandler();
         try {
             h.parse(null, "stuff");
-            Assert.fail("IllegalArgumentException must have been thrown");
-        } catch (final IllegalArgumentException ex) {
+            Assert.fail("NullPointerException must have been thrown");
+        } catch (final NullPointerException ex) {
             // expected
         }
     }
