@@ -55,14 +55,10 @@ public class CookieIdentityComparator implements Serializable, Comparator<Cookie
             String d1 = c1.getDomain();
             if (d1 == null) {
                 d1 = "";
-            } else if (d1.indexOf('.') == -1) {
-                d1 = d1 + ".local";
             }
             String d2 = c2.getDomain();
             if (d2 == null) {
                 d2 = "";
-            } else if (d2.indexOf('.') == -1) {
-                d2 = d2 + ".local";
             }
             res = d1.compareToIgnoreCase(d2);
         }

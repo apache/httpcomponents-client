@@ -81,22 +81,6 @@ public class TestCookieIdentityComparator {
     }
 
     @Test
-    public void testCookieIdentityComparasionByNameAndLocalHost() {
-        final CookieIdentityComparator comparator = new CookieIdentityComparator();
-        final BasicClientCookie c1 = new BasicClientCookie("name", "value1");
-        c1.setDomain("localhost");
-        final BasicClientCookie c2 = new BasicClientCookie("name", "value2");
-        c2.setDomain("localhost");
-        Assert.assertTrue(comparator.compare(c1, c2) == 0);
-
-        final BasicClientCookie c3 = new BasicClientCookie("name", "value1");
-        c3.setDomain("localhost.local");
-        final BasicClientCookie c4 = new BasicClientCookie("name", "value2");
-        c4.setDomain("localhost");
-        Assert.assertTrue(comparator.compare(c3, c4) == 0);
-    }
-
-    @Test
     public void testCookieIdentityComparasionByNameDomainAndPath() {
         final CookieIdentityComparator comparator = new CookieIdentityComparator();
         final BasicClientCookie c1 = new BasicClientCookie("name", "value1");
