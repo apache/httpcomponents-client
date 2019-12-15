@@ -863,7 +863,7 @@ public class H2AsyncClientBuilder {
                 public void run() {
                     try {
                         while (!Thread.currentThread().isInterrupted()) {
-                            Thread.sleep(maxIdleTime.toMillis());
+                            maxIdleTime.sleep();
                             connPool.closeIdle(maxIdleTime);
                         }
                     } catch (final InterruptedException ex) {
