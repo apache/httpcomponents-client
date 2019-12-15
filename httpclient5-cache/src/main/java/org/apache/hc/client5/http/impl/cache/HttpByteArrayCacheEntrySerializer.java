@@ -61,6 +61,7 @@ import org.apache.hc.core5.http.message.BasicHttpRequest;
 import org.apache.hc.core5.http.message.BasicLineFormatter;
 import org.apache.hc.core5.http.message.StatusLine;
 import org.apache.hc.core5.util.CharArrayBuffer;
+import org.apache.hc.core5.util.TimeValue;
 
 /**
  * Cache serializer and deserializer that uses an HTTP-like format.
@@ -402,15 +403,15 @@ public class HttpByteArrayCacheEntrySerializer implements HttpCacheEntrySerializ
     }
 
     /**
-     * Cache validity policy that always returns an age of 0.
+     * Cache validity policy that always returns an age of {@link TimeValue#ZERO_MILLISECONDS}.
      *
      * This prevents the Age header from being written to the cache (it does not make sense to cache it),
      * and is the only thing the policy is used for in this case.
      */
     private static class NoAgeCacheValidityPolicy extends CacheValidityPolicy {
         @Override
-        public long getCurrentAgeSecs(final HttpCacheEntry entry, final Date now) {
-            return 0L;
+        public TimeValue getCurrentAge(final HttpCacheEntry entry, final Date now) {
+            return TimeValue.ZERO_MILLISECONDS;
         }
     }
 }

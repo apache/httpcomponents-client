@@ -40,6 +40,7 @@ import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.message.BasicHeader;
+import org.apache.hc.core5.util.TimeValue;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -108,11 +109,11 @@ public class TestCachedHttpResponseGenerator {
 
     @Test
     public void testAgeHeaderIsPopulatedWithCurrentAgeOfCacheEntryIfNonZero() throws Exception {
-        currentAge(10L);
+        currentAge(TimeValue.ofSeconds(10L));
 
         final SimpleHttpResponse response = impl.generateResponse(request, entry);
 
-        verify(mockValidityPolicy).getCurrentAgeSecs(same(entry), isA(Date.class));
+        verify(mockValidityPolicy).getCurrentAge(same(entry), isA(Date.class));
 
         final Header ageHdr = response.getFirstHeader("Age");
         Assert.assertNotNull(ageHdr);
@@ -121,11 +122,11 @@ public class TestCachedHttpResponseGenerator {
 
     @Test
     public void testAgeHeaderIsNotPopulatedIfCurrentAgeOfCacheEntryIsZero() throws Exception {
-        currentAge(0L);
+        currentAge(TimeValue.ofSeconds(0L));
 
         final SimpleHttpResponse response = impl.generateResponse(request, entry);
 
-        verify(mockValidityPolicy).getCurrentAgeSecs(same(entry), isA(Date.class));
+        verify(mockValidityPolicy).getCurrentAge(same(entry), isA(Date.class));
 
         final Header ageHdr = response.getFirstHeader("Age");
         Assert.assertNull(ageHdr);
@@ -133,21 +134,21 @@ public class TestCachedHttpResponseGenerator {
 
     @Test
     public void testAgeHeaderIsPopulatedWithMaxAgeIfCurrentAgeTooBig() throws Exception {
-        currentAge(CacheValidityPolicy.MAX_AGE + 1L);
+        currentAge(TimeValue.ofSeconds(CacheValidityPolicy.MAX_AGE.toSeconds() + 1L));
 
         final SimpleHttpResponse response = impl.generateResponse(request, entry);
 
-        verify(mockValidityPolicy).getCurrentAgeSecs(same(entry), isA(Date.class));
+        verify(mockValidityPolicy).getCurrentAge(same(entry), isA(Date.class));
 
         final Header ageHdr = response.getFirstHeader("Age");
         Assert.assertNotNull(ageHdr);
-        Assert.assertEquals(CacheValidityPolicy.MAX_AGE, Long.parseLong(ageHdr.getValue()));
+        Assert.assertEquals(CacheValidityPolicy.MAX_AGE.toSeconds(), Long.parseLong(ageHdr.getValue()));
     }
 
-    private void currentAge(final long sec) {
+    private void currentAge(final TimeValue age) {
         when(
-                mockValidityPolicy.getCurrentAgeSecs(same(entry),
-                        isA(Date.class))).thenReturn(sec);
+                mockValidityPolicy.getCurrentAge(same(entry),
+                        isA(Date.class))).thenReturn(age);
     }
 
     @Test

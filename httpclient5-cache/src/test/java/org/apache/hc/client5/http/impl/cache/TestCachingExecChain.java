@@ -79,6 +79,7 @@ import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.net.URIAuthority;
 import org.apache.hc.core5.util.ByteArrayBuffer;
+import org.apache.hc.core5.util.TimeValue;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.easymock.IExpectationSetters;
@@ -316,7 +317,7 @@ public abstract class TestCachingExecChain {
         cacheEntrySuitable(true);
         responseIsGeneratedFromCache(SimpleHttpResponse.create(HttpStatus.SC_OK));
         requestIsFatallyNonCompliant(null);
-        entryHasStaleness(0L);
+        entryHasStaleness(TimeValue.ZERO_MILLISECONDS);
 
         replayMocks();
         final ClassicHttpResponse result = execute(request);
@@ -353,7 +354,7 @@ public abstract class TestCachingExecChain {
         cacheEntrySuitable(true);
         getCacheEntryReturns(mockCacheEntry);
         responseIsGeneratedFromCache(SimpleHttpResponse.create(HttpStatus.SC_OK));
-        entryHasStaleness(0L);
+        entryHasStaleness(TimeValue.ZERO_MILLISECONDS);
 
         replayMocks();
         execute(request);
@@ -1348,7 +1349,7 @@ public abstract class TestCachingExecChain {
         getCacheEntryReturns(entry);
         cacheEntrySuitable(true);
         responseIsGeneratedFromCache(SimpleHttpResponse.create(HttpStatus.SC_OK));
-        entryHasStaleness(0);
+        entryHasStaleness(TimeValue.ZERO_MILLISECONDS);
 
         replayMocks();
         final ClassicHttpResponse resp = execute(request);
@@ -1675,9 +1676,9 @@ public abstract class TestCachingExecChain {
             .andReturn(suitable);
     }
 
-    private void entryHasStaleness(final long staleness) {
+    private void entryHasStaleness(final TimeValue staleness) {
         expect(
-            mockValidityPolicy.getStalenessSecs((HttpCacheEntry) anyObject(), (Date) anyObject()))
+            mockValidityPolicy.getStaleness((HttpCacheEntry) anyObject(), (Date) anyObject()))
             .andReturn(staleness);
     }
 

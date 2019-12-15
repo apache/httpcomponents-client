@@ -54,6 +54,7 @@ import org.apache.hc.core5.http.ProtocolVersion;
 import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.message.MessageSupport;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.VersionInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -189,7 +190,7 @@ public class CachingExecBase {
             cachedResponse = responseGenerator.generateResponse(request, entry);
         }
         setResponseStatus(context, CacheResponseStatus.CACHE_HIT);
-        if (validityPolicy.getStalenessSecs(entry, now) > 0L) {
+        if (TimeValue.isPositive(validityPolicy.getStaleness(entry, now))) {
             cachedResponse.addHeader(HeaderConstants.WARNING,"110 localhost \"Response is stale\"");
         }
         return cachedResponse;
@@ -247,10 +248,11 @@ public class CachingExecBase {
             final HeaderElement elt = it.next();
             if (HeaderConstants.CACHE_CONTROL_MAX_STALE.equals(elt.getName())) {
                 try {
+                    // in seconds
                     final int maxStale = Integer.parseInt(elt.getValue());
-                    final long age = validityPolicy.getCurrentAgeSecs(entry, now);
-                    final long lifetime = validityPolicy.getFreshnessLifetimeSecs(entry);
-                    if (age - lifetime > maxStale) {
+                    final TimeValue age = validityPolicy.getCurrentAge(entry, now);
+                    final TimeValue lifetime = validityPolicy.getFreshnessLifetime(entry);
+                    if (age.toSeconds() - lifetime.toSeconds() > maxStale) {
                         return true;
                     }
                 } catch (final NumberFormatException nfe) {

@@ -40,6 +40,7 @@ import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
+import org.apache.hc.core5.util.TimeValue;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -68,7 +69,7 @@ public class TestCacheValidityPolicy {
                 new BasicHeader("Server", "MockServer/1.0")
         };
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers);
-        assertEquals(2147483648L, impl.getApparentAgeSecs(entry));
+        assertEquals(CacheValidityPolicy.MAX_AGE, impl.getApparentAge(entry));
     }
 
     @Test
@@ -77,15 +78,15 @@ public class TestCacheValidityPolicy {
                 .formatDate(tenSecondsAgo)) };
 
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(now, sixSecondsAgo, headers);
-        assertEquals(4, impl.getApparentAgeSecs(entry));
+        assertEquals(TimeValue.ofSeconds(4), impl.getApparentAge(entry));
     }
 
     @Test
     public void testNegativeApparentAgeIsBroughtUpToZero() {
         final Header[] headers = new Header[] { new BasicHeader("Date", DateUtils
                 .formatDate(sixSecondsAgo)) };
-        final HttpCacheEntry entry  = HttpTestUtils.makeCacheEntry(now,tenSecondsAgo,headers);
-        assertEquals(0, impl.getApparentAgeSecs(entry));
+        final HttpCacheEntry entry  = HttpTestUtils.makeCacheEntry(now, tenSecondsAgo, headers);
+        assertEquals(TimeValue.ofSeconds(0), impl.getApparentAge(entry));
     }
 
     @Test
@@ -94,11 +95,11 @@ public class TestCacheValidityPolicy {
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers);
         impl = new CacheValidityPolicy() {
             @Override
-            protected long getApparentAgeSecs(final HttpCacheEntry ent) {
-                return 6;
+            protected TimeValue getApparentAge(final HttpCacheEntry ent) {
+                return TimeValue.ofSeconds(6);
             }
         };
-        assertEquals(10, impl.getCorrectedReceivedAgeSecs(entry));
+        assertEquals(TimeValue.ofSeconds(10), impl.getCorrectedReceivedAge(entry));
     }
 
     @Test
@@ -107,17 +108,17 @@ public class TestCacheValidityPolicy {
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers);
         impl = new CacheValidityPolicy() {
             @Override
-            protected long getApparentAgeSecs(final HttpCacheEntry ent) {
-                return 10;
+            protected TimeValue getApparentAge(final HttpCacheEntry ent) {
+                return TimeValue.ofSeconds(10);
             }
         };
-        assertEquals(10, impl.getCorrectedReceivedAgeSecs(entry));
+        assertEquals(TimeValue.ofSeconds(10), impl.getCorrectedReceivedAge(entry));
     }
 
     @Test
     public void testResponseDelayIsDifferenceBetweenResponseAndRequestTimes() {
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(tenSecondsAgo, sixSecondsAgo);
-        assertEquals(4, impl.getResponseDelaySecs(entry));
+        assertEquals(TimeValue.ofSeconds(4), impl.getResponseDelay(entry));
     }
 
     @Test
@@ -125,22 +126,22 @@ public class TestCacheValidityPolicy {
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
         impl = new CacheValidityPolicy() {
             @Override
-            protected long getCorrectedReceivedAgeSecs(final HttpCacheEntry ent) {
-                return 7;
+            protected TimeValue getCorrectedReceivedAge(final HttpCacheEntry ent) {
+                return TimeValue.ofSeconds(7);
             }
 
             @Override
-            protected long getResponseDelaySecs(final HttpCacheEntry ent) {
-                return 13;
+            protected TimeValue getResponseDelay(final HttpCacheEntry ent) {
+                return TimeValue.ofSeconds(13);
             }
         };
-        assertEquals(20, impl.getCorrectedInitialAgeSecs(entry));
+        assertEquals(TimeValue.ofSeconds(20), impl.getCorrectedInitialAge(entry));
     }
 
     @Test
     public void testResidentTimeSecondsIsTimeSinceResponseTime() {
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(now, sixSecondsAgo);
-        assertEquals(6, impl.getResidentTimeSecs(entry, now));
+        assertEquals(TimeValue.ofSeconds(6), impl.getResidentTime(entry, now));
     }
 
     @Test
@@ -148,29 +149,29 @@ public class TestCacheValidityPolicy {
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
         impl = new CacheValidityPolicy() {
             @Override
-            protected long getCorrectedInitialAgeSecs(final HttpCacheEntry ent) {
-                return 11;
+            protected TimeValue getCorrectedInitialAge(final HttpCacheEntry ent) {
+                return TimeValue.ofSeconds(11);
             }
             @Override
-            protected long getResidentTimeSecs(final HttpCacheEntry ent, final Date d) {
-                return 17;
+            protected TimeValue getResidentTime(final HttpCacheEntry ent, final Date d) {
+                return TimeValue.ofSeconds(17);
             }
         };
-        assertEquals(28, impl.getCurrentAgeSecs(entry, new Date()));
+        assertEquals(TimeValue.ofSeconds(28), impl.getCurrentAge(entry, new Date()));
     }
 
     @Test
     public void testFreshnessLifetimeIsSMaxAgeIfPresent() {
         final Header[] headers = new Header[] { new BasicHeader("Cache-Control", "s-maxage=10") };
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers);
-        assertEquals(10, impl.getFreshnessLifetimeSecs(entry));
+        assertEquals(TimeValue.ofSeconds(10), impl.getFreshnessLifetime(entry));
     }
 
     @Test
     public void testFreshnessLifetimeIsMaxAgeIfPresent() {
         final Header[] headers = new Header[] { new BasicHeader("Cache-Control", "max-age=10") };
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers);
-        assertEquals(10, impl.getFreshnessLifetimeSecs(entry));
+        assertEquals(TimeValue.ofSeconds(10), impl.getFreshnessLifetime(entry));
     }
 
     @Test
@@ -178,12 +179,12 @@ public class TestCacheValidityPolicy {
         Header[] headers = new Header[] { new BasicHeader("Cache-Control", "max-age=10"),
                 new BasicHeader("Cache-Control", "s-maxage=20") };
         HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers);
-        assertEquals(10, impl.getFreshnessLifetimeSecs(entry));
+        assertEquals(TimeValue.ofSeconds(10), impl.getFreshnessLifetime(entry));
 
         headers = new Header[] { new BasicHeader("Cache-Control", "max-age=20"),
                 new BasicHeader("Cache-Control", "s-maxage=10") };
         entry = HttpTestUtils.makeCacheEntry(headers);
-        assertEquals(10, impl.getFreshnessLifetimeSecs(entry));
+        assertEquals(TimeValue.ofSeconds(10), impl.getFreshnessLifetime(entry));
     }
 
     @Test
@@ -193,7 +194,7 @@ public class TestCacheValidityPolicy {
                 new BasicHeader("Expires", DateUtils.formatDate(sixSecondsAgo)) };
 
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers);
-        assertEquals(10, impl.getFreshnessLifetimeSecs(entry));
+        assertEquals(TimeValue.ofSeconds(10), impl.getFreshnessLifetime(entry));
     }
 
     @Test
@@ -203,7 +204,7 @@ public class TestCacheValidityPolicy {
                 new BasicHeader("Expires", DateUtils.formatDate(sixSecondsAgo)) };
 
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers);
-        assertEquals(10, impl.getFreshnessLifetimeSecs(entry));
+        assertEquals(TimeValue.ofSeconds(10), impl.getFreshnessLifetime(entry));
     }
 
     @Test
@@ -213,7 +214,7 @@ public class TestCacheValidityPolicy {
                 new BasicHeader("Expires", DateUtils.formatDate(sixSecondsAgo)) };
 
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers);
-        assertEquals(4, impl.getFreshnessLifetimeSecs(entry));
+        assertEquals(TimeValue.ofSeconds(4), impl.getFreshnessLifetime(entry));
     }
 
     @Test
@@ -223,14 +224,14 @@ public class TestCacheValidityPolicy {
                 new BasicHeader("Last-Modified", DateUtils.formatDate(elevenSecondsAgo))
         };
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers);
-        assertEquals(1, impl.getHeuristicFreshnessLifetimeSecs(entry, 0.1f, 0));
+        assertEquals(TimeValue.ofSeconds(1), impl.getHeuristicFreshnessLifetime(entry, 0.1f, TimeValue.ZERO_MILLISECONDS));
     }
 
     @Test
     public void testHeuristicFreshnessLifetimeDefaultsProperly() {
-        final long defaultFreshness = 10;
+        final TimeValue defaultFreshness = TimeValue.ofSeconds(10);
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
-        assertEquals(defaultFreshness, impl.getHeuristicFreshnessLifetimeSecs(entry, 0.1f, defaultFreshness));
+        assertEquals(defaultFreshness, impl.getHeuristicFreshnessLifetime(entry, 0.1f, defaultFreshness));
     }
 
     @Test
@@ -241,7 +242,7 @@ public class TestCacheValidityPolicy {
         };
 
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers);
-        assertTrue(impl.getHeuristicFreshnessLifetimeSecs(entry, 0.1f, 10) >= 0);
+        assertTrue(TimeValue.isNonNegative(impl.getHeuristicFreshnessLifetime(entry, 0.1f, TimeValue.ofSeconds(10))));
     }
 
     @Test
@@ -249,15 +250,15 @@ public class TestCacheValidityPolicy {
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
         impl = new CacheValidityPolicy() {
             @Override
-            public long getCurrentAgeSecs(final HttpCacheEntry e, final Date d) {
+            public TimeValue getCurrentAge(final HttpCacheEntry e, final Date d) {
                 assertSame(entry, e);
                 assertEquals(now, d);
-                return 6;
+                return TimeValue.ofSeconds(6);
             }
             @Override
-            public long getFreshnessLifetimeSecs(final HttpCacheEntry e) {
+            public TimeValue getFreshnessLifetime(final HttpCacheEntry e) {
                 assertSame(entry, e);
-                return 10;
+                return TimeValue.ofSeconds(10);
             }
         };
         assertTrue(impl.isResponseFresh(entry, now));
@@ -268,15 +269,15 @@ public class TestCacheValidityPolicy {
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
         impl = new CacheValidityPolicy() {
             @Override
-            public long getCurrentAgeSecs(final HttpCacheEntry e, final Date d) {
+            public TimeValue getCurrentAge(final HttpCacheEntry e, final Date d) {
                 assertEquals(now, d);
                 assertSame(entry, e);
-                return 6;
+                return TimeValue.ofSeconds(6);
             }
             @Override
-            public long getFreshnessLifetimeSecs(final HttpCacheEntry e) {
+            public TimeValue getFreshnessLifetime(final HttpCacheEntry e) {
                 assertSame(entry, e);
-                return 6;
+                return TimeValue.ofSeconds(6);
             }
         };
         assertFalse(impl.isResponseFresh(entry, now));
@@ -287,15 +288,15 @@ public class TestCacheValidityPolicy {
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
         impl = new CacheValidityPolicy() {
             @Override
-            public long getCurrentAgeSecs(final HttpCacheEntry e, final Date d) {
+            public TimeValue getCurrentAge(final HttpCacheEntry e, final Date d) {
                 assertEquals(now, d);
                 assertSame(entry, e);
-                return 10;
+                return TimeValue.ofSeconds(10);
             }
             @Override
-            public long getFreshnessLifetimeSecs(final HttpCacheEntry e) {
+            public TimeValue getFreshnessLifetime(final HttpCacheEntry e) {
                 assertSame(entry, e);
-                return 6;
+                return TimeValue.ofSeconds(6);
             }
         };
         assertFalse(impl.isResponseFresh(entry, now));
@@ -364,21 +365,24 @@ public class TestCacheValidityPolicy {
     public void testNegativeAgeHeaderValueReturnsMaxAge() {
         final Header[] headers = new Header[] { new BasicHeader("Age", "-100") };
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers);
-        assertEquals(CacheValidityPolicy.MAX_AGE, impl.getAgeValue(entry));
+        // in seconds
+        assertEquals(CacheValidityPolicy.MAX_AGE.toSeconds(), impl.getAgeValue(entry));
     }
 
     @Test
     public void testMalformedAgeHeaderValueReturnsMaxAge() {
         final Header[] headers = new Header[] { new BasicHeader("Age", "asdf") };
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers);
-        assertEquals(CacheValidityPolicy.MAX_AGE, impl.getAgeValue(entry));
+        // in seconds
+        assertEquals(CacheValidityPolicy.MAX_AGE.toSeconds(), impl.getAgeValue(entry));
     }
 
     @Test
     public void testMalformedCacheControlMaxAgeHeaderReturnsZero() {
         final Header[] headers = new Header[] { new BasicHeader("Cache-Control", "max-age=asdf") };
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers);
-        assertEquals(0, impl.getMaxAge(entry));
+        // in seconds
+        assertEquals(0L, impl.getMaxAge(entry));
     }
 
     @Test

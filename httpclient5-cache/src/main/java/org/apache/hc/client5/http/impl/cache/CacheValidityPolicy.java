@@ -39,46 +39,48 @@ import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.MessageHeaders;
 import org.apache.hc.core5.http.message.MessageSupport;
+import org.apache.hc.core5.util.TimeValue;
 
 class CacheValidityPolicy {
 
-    public static final long MAX_AGE = 2147483648L;
+    public static final TimeValue MAX_AGE = TimeValue.ofSeconds(Integer.MAX_VALUE + 1L);
 
     CacheValidityPolicy() {
         super();
     }
 
-    public long getCurrentAgeSecs(final HttpCacheEntry entry, final Date now) {
-        return getCorrectedInitialAgeSecs(entry) + getResidentTimeSecs(entry, now);
+    public TimeValue getCurrentAge(final HttpCacheEntry entry, final Date now) {
+        return TimeValue.ofSeconds(getCorrectedInitialAge(entry).toSeconds() + getResidentTime(entry, now).toSeconds());
     }
 
-    public long getFreshnessLifetimeSecs(final HttpCacheEntry entry) {
+    public TimeValue getFreshnessLifetime(final HttpCacheEntry entry) {
         final long maxAge = getMaxAge(entry);
         if (maxAge > -1) {
-            return maxAge;
+            return TimeValue.ofSeconds(maxAge);
         }
 
         final Date dateValue = entry.getDate();
         if (dateValue == null) {
-            return 0L;
+            return TimeValue.ZERO_MILLISECONDS;
         }
 
         final Date expiry = DateUtils.parseDate(entry, HeaderConstants.EXPIRES);
         if (expiry == null) {
-            return 0;
+            return TimeValue.ZERO_MILLISECONDS;
         }
         final long diff = expiry.getTime() - dateValue.getTime();
-        return (diff / 1000);
+        return TimeValue.ofSeconds(diff / 1000);
     }
 
     public boolean isResponseFresh(final HttpCacheEntry entry, final Date now) {
-        return (getCurrentAgeSecs(entry, now) < getFreshnessLifetimeSecs(entry));
+        return getCurrentAge(entry, now).compareTo(getFreshnessLifetime(entry)) == -1;
     }
 
     /**
      * Decides if this response is fresh enough based Last-Modified and Date, if available.
-     * This entry is meant to be used when isResponseFresh returns false.  The algorithm is as follows:
+     * This entry is meant to be used when isResponseFresh returns false.
      *
+     * The algorithm is as follows:
      * if last-modified and date are defined, freshness lifetime is coefficient*(date-lastModified),
      * else freshness lifetime is defaultLifetime
      *
@@ -89,21 +91,21 @@ class CacheValidityPolicy {
      * @return {@code true} if the response is fresh
      */
     public boolean isResponseHeuristicallyFresh(final HttpCacheEntry entry,
-            final Date now, final float coefficient, final long defaultLifetime) {
-        return (getCurrentAgeSecs(entry, now) < getHeuristicFreshnessLifetimeSecs(entry, coefficient, defaultLifetime));
+            final Date now, final float coefficient, final TimeValue defaultLifetime) {
+        return getCurrentAge(entry, now).compareTo(getHeuristicFreshnessLifetime(entry, coefficient, defaultLifetime)) == -1;
     }
 
-    public long getHeuristicFreshnessLifetimeSecs(final HttpCacheEntry entry,
-            final float coefficient, final long defaultLifetime) {
+    public TimeValue getHeuristicFreshnessLifetime(final HttpCacheEntry entry,
+            final float coefficient, final TimeValue defaultLifetime) {
         final Date dateValue = entry.getDate();
         final Date lastModifiedValue = DateUtils.parseDate(entry, HeaderConstants.LAST_MODIFIED);
 
         if (dateValue != null && lastModifiedValue != null) {
             final long diff = dateValue.getTime() - lastModifiedValue.getTime();
             if (diff < 0) {
-                return 0;
+                return TimeValue.ZERO_MILLISECONDS;
             }
-            return (long)(coefficient * (diff / 1000));
+            return TimeValue.ofSeconds((long) (coefficient * diff / 1000));
         }
 
         return defaultLifetime;
@@ -128,8 +130,9 @@ class CacheValidityPolicy {
             final HeaderElement elt = it.next();
             if (HeaderConstants.STALE_WHILE_REVALIDATE.equalsIgnoreCase(elt.getName())) {
                 try {
+                    // in seconds
                     final int allowedStalenessLifetime = Integer.parseInt(elt.getValue());
-                    if (getStalenessSecs(entry, now) <= allowedStalenessLifetime) {
+                    if (getStaleness(entry, now).compareTo(TimeValue.ofSeconds(allowedStalenessLifetime)) <= 0) {
                         return true;
                     }
                 } catch (final NumberFormatException nfe) {
@@ -142,20 +145,21 @@ class CacheValidityPolicy {
     }
 
     public boolean mayReturnStaleIfError(final HttpRequest request, final HttpCacheEntry entry, final Date now) {
-        final long stalenessSecs = getStalenessSecs(entry, now);
-        return mayReturnStaleIfError(request, HeaderConstants.CACHE_CONTROL, stalenessSecs)
-                || mayReturnStaleIfError(entry, HeaderConstants.CACHE_CONTROL, stalenessSecs);
+        final TimeValue staleness = getStaleness(entry, now);
+        return mayReturnStaleIfError(request, HeaderConstants.CACHE_CONTROL, staleness)
+                || mayReturnStaleIfError(entry, HeaderConstants.CACHE_CONTROL, staleness);
     }
 
-    private boolean mayReturnStaleIfError(final MessageHeaders headers, final String name, final long stalenessSecs) {
+    private boolean mayReturnStaleIfError(final MessageHeaders headers, final String name, final TimeValue staleness) {
         boolean result = false;
         final Iterator<HeaderElement> it = MessageSupport.iterate(headers, name);
         while (it.hasNext()) {
             final HeaderElement elt = it.next();
             if (HeaderConstants.STALE_IF_ERROR.equals(elt.getName())) {
                 try {
-                    final int staleIfErrorSecs = Integer.parseInt(elt.getValue());
-                    if (stalenessSecs <= staleIfErrorSecs) {
+                    // in seconds
+                    final int staleIfError = Integer.parseInt(elt.getValue());
+                    if (staleness.compareTo(TimeValue.ofSeconds(staleIfError)) <= 0) {
                         result = true;
                         break;
                     }
@@ -192,56 +196,58 @@ class CacheValidityPolicy {
         return true;
     }
 
-    protected long getApparentAgeSecs(final HttpCacheEntry entry) {
+    protected TimeValue getApparentAge(final HttpCacheEntry entry) {
         final Date dateValue = entry.getDate();
         if (dateValue == null) {
             return MAX_AGE;
         }
         final long diff = entry.getResponseDate().getTime() - dateValue.getTime();
         if (diff < 0L) {
-            return 0;
+            return TimeValue.ZERO_MILLISECONDS;
         }
-        return (diff / 1000);
+        return TimeValue.ofSeconds(diff / 1000);
     }
 
     protected long getAgeValue(final HttpCacheEntry entry) {
+        // This is a header value, we leave as-is
         long ageValue = 0;
         for (final Header hdr : entry.getHeaders(HeaderConstants.AGE)) {
             long hdrAge;
             try {
                 hdrAge = Long.parseLong(hdr.getValue());
                 if (hdrAge < 0) {
-                    hdrAge = MAX_AGE;
+                    hdrAge = MAX_AGE.toSeconds();
                 }
             } catch (final NumberFormatException nfe) {
-                hdrAge = MAX_AGE;
+                hdrAge = MAX_AGE.toSeconds();
             }
             ageValue = (hdrAge > ageValue) ? hdrAge : ageValue;
         }
         return ageValue;
     }
 
-    protected long getCorrectedReceivedAgeSecs(final HttpCacheEntry entry) {
-        final long apparentAge = getApparentAgeSecs(entry);
+    protected TimeValue getCorrectedReceivedAge(final HttpCacheEntry entry) {
+        final TimeValue apparentAge = getApparentAge(entry);
         final long ageValue = getAgeValue(entry);
-        return (apparentAge > ageValue) ? apparentAge : ageValue;
+        return (apparentAge.toSeconds() > ageValue) ? apparentAge : TimeValue.ofSeconds(ageValue);
     }
 
-    protected long getResponseDelaySecs(final HttpCacheEntry entry) {
+    protected TimeValue getResponseDelay(final HttpCacheEntry entry) {
         final long diff = entry.getResponseDate().getTime() - entry.getRequestDate().getTime();
-        return (diff / 1000L);
+        return TimeValue.ofSeconds(diff / 1000);
     }
 
-    protected long getCorrectedInitialAgeSecs(final HttpCacheEntry entry) {
-        return getCorrectedReceivedAgeSecs(entry) + getResponseDelaySecs(entry);
+    protected TimeValue getCorrectedInitialAge(final HttpCacheEntry entry) {
+        return TimeValue.ofSeconds(getCorrectedReceivedAge(entry).toSeconds() + getResponseDelay(entry).toSeconds());
     }
 
-    protected long getResidentTimeSecs(final HttpCacheEntry entry, final Date now) {
+    protected TimeValue getResidentTime(final HttpCacheEntry entry, final Date now) {
         final long diff = now.getTime() - entry.getResponseDate().getTime();
-        return (diff / 1000L);
+        return TimeValue.ofSeconds(diff / 1000);
     }
 
     protected long getMaxAge(final HttpCacheEntry entry) {
+        // This is a header value, we leave as-is
         long maxAge = -1;
         final Iterator<HeaderElement> it = MessageSupport.iterate(entry, HeaderConstants.CACHE_CONTROL);
         while (it.hasNext()) {
@@ -272,13 +278,13 @@ class CacheValidityPolicy {
         return false;
     }
 
-    public long getStalenessSecs(final HttpCacheEntry entry, final Date now) {
-        final long age = getCurrentAgeSecs(entry, now);
-        final long freshness = getFreshnessLifetimeSecs(entry);
-        if (age <= freshness) {
-            return 0L;
+    public TimeValue getStaleness(final HttpCacheEntry entry, final Date now) {
+        final TimeValue age = getCurrentAge(entry, now);
+        final TimeValue freshness = getFreshnessLifetime(entry);
+        if (age.compareTo(freshness) <= 0) {
+            return TimeValue.ZERO_MILLISECONDS;
         }
-        return (age - freshness);
+        return TimeValue.ofSeconds(age.toSeconds() - freshness.toSeconds());
     }
 
 
