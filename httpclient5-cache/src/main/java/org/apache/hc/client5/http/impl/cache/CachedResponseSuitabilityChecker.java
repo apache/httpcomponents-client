@@ -104,7 +104,7 @@ class CachedResponseSuitabilityChecker {
         while (it.hasNext()) {
             final HeaderElement elt = it.next();
             if (HeaderConstants.CACHE_CONTROL_MAX_STALE.equals(elt.getName())) {
-                if ((elt.getValue() == null || "".equals(elt.getValue().trim())) && maxStale == -1) {
+                if ((elt.getValue() == null || elt.getValue().trim().isEmpty()) && maxStale == -1) {
                     maxStale = Long.MAX_VALUE;
                 } else {
                     try {

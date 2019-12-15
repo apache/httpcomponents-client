@@ -138,7 +138,7 @@ class ResponseProtocolCompliance {
                 }
             }
             final String newHeaderValue = buf.toString();
-            if (!"".equals(newHeaderValue)) {
+            if (!newHeaderValue.isEmpty()) {
                 newHeaders.add(new BasicHeader(HttpHeaders.CONTENT_ENCODING, newHeaderValue));
             }
         }
