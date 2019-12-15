@@ -38,6 +38,7 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.message.MessageSupport;
+import org.apache.hc.core5.util.TimeValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,7 +53,7 @@ class CachedResponseSuitabilityChecker {
     private final boolean sharedCache;
     private final boolean useHeuristicCaching;
     private final float heuristicCoefficient;
-    private final long heuristicDefaultLifetime;
+    private final TimeValue heuristicDefaultLifetime;
     private final CacheValidityPolicy validityStrategy;
 
     CachedResponseSuitabilityChecker(final CacheValidityPolicy validityStrategy,
@@ -74,7 +75,7 @@ class CachedResponseSuitabilityChecker {
             return true;
         }
         if (useHeuristicCaching &&
-                validityStrategy.isResponseHeuristicallyFresh(entry, now, heuristicCoefficient, heuristicDefaultLifetime)) {
+                validityStrategy.isResponseHeuristicallyFresh(entry, now, heuristicCoefficient, heuristicDefaultLifetime.toSeconds())) {
             return true;
         }
         if (originInsistsOnFreshness(entry)) {

@@ -27,6 +27,7 @@
 package org.apache.hc.client5.http.impl.cache;
 
 import org.apache.hc.core5.util.Args;
+import org.apache.hc.core5.util.TimeValue;
 
 /**
  * <p>Java Beans-style configuration for caching {@link org.apache.hc.client5.http.classic.HttpClient}.
@@ -129,10 +130,10 @@ public class CacheConfig implements Cloneable {
      */
     public final static float DEFAULT_HEURISTIC_COEFFICIENT = 0.1f;
 
-    /** Default lifetime in seconds to be assumed when we cannot calculate
+    /** Default lifetime to be assumed when we cannot calculate
      * freshness heuristically.
      */
-    public final static long DEFAULT_HEURISTIC_LIFETIME = 0;
+    public final static TimeValue DEFAULT_HEURISTIC_LIFETIME = TimeValue.ZERO_MILLISECONDS;
 
     /** Default number of worker threads to allow for background revalidations
      * resulting from the stale-while-revalidate directive.
@@ -148,7 +149,7 @@ public class CacheConfig implements Cloneable {
     private final boolean weakETagOnPutDeleteAllowed;
     private final boolean heuristicCachingEnabled;
     private final float heuristicCoefficient;
-    private final long heuristicDefaultLifetime;
+    private final TimeValue heuristicDefaultLifetime;
     private final boolean sharedCache;
     private final boolean freshnessCheckEnabled;
     private final int asynchronousWorkers;
@@ -162,7 +163,7 @@ public class CacheConfig implements Cloneable {
             final boolean weakETagOnPutDeleteAllowed,
             final boolean heuristicCachingEnabled,
             final float heuristicCoefficient,
-            final long heuristicDefaultLifetime,
+            final TimeValue heuristicDefaultLifetime,
             final boolean sharedCache,
             final boolean freshnessCheckEnabled,
             final int asynchronousWorkers,
@@ -250,7 +251,7 @@ public class CacheConfig implements Cloneable {
      * Get the default lifetime to be used if heuristic freshness calculation is
      * not possible.
      */
-    public long getHeuristicDefaultLifetime() {
+    public TimeValue getHeuristicDefaultLifetime() {
         return heuristicDefaultLifetime;
     }
 
@@ -315,7 +316,7 @@ public class CacheConfig implements Cloneable {
         private boolean weakETagOnPutDeleteAllowed;
         private boolean heuristicCachingEnabled;
         private float heuristicCoefficient;
-        private long heuristicDefaultLifetime;
+        private TimeValue heuristicDefaultLifetime;
         private boolean sharedCache;
         private boolean freshnessCheckEnabled;
         private int asynchronousWorkers;
@@ -404,17 +405,16 @@ public class CacheConfig implements Cloneable {
         }
 
         /**
-         * Sets default lifetime in seconds to be used if heuristic freshness
-         * calculation is not possible. Explicit cache control directives on
-         * either the request or origin response will override this, as will
-         * the heuristic {@code Last-Modified} freshness calculation if it is
-         * available.
-         * @param heuristicDefaultLifetime is the number of seconds to
-         *   consider a cache-eligible response fresh in the absence of other
-         *   information. Set this to {@code 0} to disable this style of
-         *   heuristic caching.
+         * Sets default lifetime to be used if heuristic freshness calculation
+         * is not possible. Explicit cache control directives on either the
+         * request or origin response will override this, as will the heuristic
+         * {@code Last-Modified} freshness calculation if it is available.
+         *
+         * @param heuristicDefaultLifetime is the number to consider a
+         *   cache-eligible response fresh in the absence of other information.
+         *   Set this to {@code 0} to disable this style of heuristic caching.
          */
-        public Builder setHeuristicDefaultLifetime(final long heuristicDefaultLifetime) {
+        public Builder setHeuristicDefaultLifetime(final TimeValue heuristicDefaultLifetime) {
             this.heuristicDefaultLifetime = heuristicDefaultLifetime;
             return this;
         }

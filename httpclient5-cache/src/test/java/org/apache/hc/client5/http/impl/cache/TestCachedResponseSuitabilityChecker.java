@@ -35,6 +35,7 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
+import org.apache.hc.core5.util.TimeValue;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -243,7 +244,7 @@ public class TestCachedResponseSuitabilityChecker {
 
         final CacheConfig config = CacheConfig.custom()
             .setHeuristicCachingEnabled(true)
-            .setHeuristicDefaultLifetime(20)
+            .setHeuristicDefaultLifetime(TimeValue.ofSeconds(20L))
             .build();
         impl = new CachedResponseSuitabilityChecker(config);
 
