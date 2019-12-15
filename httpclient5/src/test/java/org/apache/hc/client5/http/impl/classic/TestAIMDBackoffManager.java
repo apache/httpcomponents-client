@@ -34,6 +34,7 @@ import java.util.Random;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.classic.BackoffManager;
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.util.TimeValue;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -166,7 +167,7 @@ public class TestAIMDBackoffManager {
             cd++;
         }
         final long now = System.currentTimeMillis();
-        impl.setCooldownMillis(cd);
+        impl.setCoolDown(TimeValue.ofMilliseconds(cd));
         clock.setCurrentTime(now);
         impl.probe(route);
         final int max0 = connPerRoute.getMaxPerRoute(route);
