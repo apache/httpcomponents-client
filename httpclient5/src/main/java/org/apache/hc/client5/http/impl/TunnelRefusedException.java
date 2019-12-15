@@ -38,15 +38,15 @@ public class TunnelRefusedException extends HttpException {
 
     private static final long serialVersionUID = -8646722842745617323L;
 
-    private final String responseMesage;
+    private final String responseMessage;
 
-    public TunnelRefusedException(final String message, final String responseMesage) {
+    public TunnelRefusedException(final String message, final String responseMessage) {
         super(message);
-        this.responseMesage = responseMesage;
+        this.responseMessage = responseMessage;
     }
 
     public String getResponseMessage() {
-        return this.responseMesage;
+        return this.responseMessage;
     }
 
 }
