@@ -66,7 +66,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Usually the last HTTP/1.1 request execution handler in the asynchronous
  * request execution chain that is responsible for execution of
- * request / response exchanges with the opposite endpoint.
+ * request/response exchanges with the opposite endpoint.
  *
  * @since 5.0
  */

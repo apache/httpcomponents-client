@@ -154,7 +154,7 @@ public class PoolingAsyncClientConnectionManagerBuilder {
     }
 
     /**
-     * Sets period after inactivity in milliseconds after which persistent
+     * Sets period after inactivity after which persistent
      * connections must be checked to ensure they are still valid.
      *
      * @see org.apache.hc.core5.http.io.HttpClientConnection#isStale()

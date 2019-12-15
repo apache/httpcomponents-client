@@ -476,7 +476,7 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
     }
 
     /**
-     * Defines period of inactivity in milliseconds after which persistent connections must
+     * Defines period of inactivity after which persistent connections must
      * be re-validated prior to being {@link #lease(String, HttpRoute, Object, Timeout,
      * FutureCallback)} leased} to the consumer. Non-positive value passed
      * to this method disables connection validation. This check helps detect connections

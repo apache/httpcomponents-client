@@ -36,13 +36,13 @@ import org.apache.hc.core5.util.TimeValue;
  * An implementation that backs off exponentially based on the number of
  * consecutive failed attempts. It uses the following defaults:
  * <pre>
- *         no delay in case it was never tried or didn't fail so far
- *     6 secs delay for one failed attempt (= {@link #getInitialExpiry()})
- *    60 secs delay for two failed attempts
- *    10 mins delay for three failed attempts
- *   100 mins delay for four failed attempts
- *  ~16 hours delay for five failed attempts
- *   24 hours delay for six or more failed attempts (= {@link #getMaxExpiry()})
+ *      no delay in case it was never tried or didn't fail so far
+ *     6 s delay for one failed attempt (= {@link #getInitialExpiry()})
+ *    60 s delay for two failed attempts
+ *  10 min delay for three failed attempts
+ * 100 min delay for four failed attempts
+ *   ~16 h delay for five failed attempts
+ *    24 h delay for six or more failed attempts (= {@link #getMaxExpiry()})
  * </pre>
  *
  * The following equation is used to calculate the delay for a specific pending operation:

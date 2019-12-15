@@ -118,7 +118,7 @@ public final class DateUtils {
     }
 
     /**
-     * Tests if the first message is after (newer) than seconds message
+     * Tests if the first message is after (newer) than second one
      * using the given message header for comparison.
      *
      * @param message1 the first message
@@ -154,7 +154,7 @@ public final class DateUtils {
     }
 
     /**
-     * Tests if the first message is before (older) than seconds message
+     * Tests if the first message is before (older) than the second one
      * using the given message header for comparison.
      *
      * @param message1 the first message
