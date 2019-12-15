@@ -39,7 +39,7 @@ import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.ConnPoolSupport;
 import org.apache.hc.client5.http.impl.ExecSupport;
 import org.apache.hc.client5.http.impl.classic.RequestFailedException;
-import org.apache.hc.client5.http.impl.nio.MultuhomeConnectionInitiator;
+import org.apache.hc.client5.http.impl.nio.MultihomeConnectionInitiator;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
@@ -118,7 +118,7 @@ public final class MinimalH2AsyncClient extends AbstractMinimalHttpAsyncClientBa
                 }),
                 pushConsumerRegistry,
                 threadFactory);
-        this.connectionInitiator = new MultuhomeConnectionInitiator(getConnectionInitiator(), dnsResolver);
+        this.connectionInitiator = new MultihomeConnectionInitiator(getConnectionInitiator(), dnsResolver);
         this.connPool = new H2ConnPool(this.connectionInitiator, new Resolver<HttpHost, InetSocketAddress>() {
 
             @Override

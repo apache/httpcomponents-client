@@ -46,12 +46,12 @@ import org.apache.hc.core5.util.Timeout;
  * @since 5.0
  */
 @Contract(threading = ThreadingBehavior.SAFE_CONDITIONAL)
-public final class MultuhomeConnectionInitiator implements ConnectionInitiator {
+public final class MultihomeConnectionInitiator implements ConnectionInitiator {
 
     private final ConnectionInitiator connectionInitiator;
     private final MultihomeIOSessionRequester sessionRequester;
 
-    public MultuhomeConnectionInitiator(
+    public MultihomeConnectionInitiator(
             final ConnectionInitiator connectionInitiator,
             final DnsResolver dnsResolver) {
         this.connectionInitiator = Args.notNull(connectionInitiator, "Connection initiator");

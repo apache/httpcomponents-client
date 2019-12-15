@@ -65,7 +65,7 @@ import org.apache.hc.client5.http.impl.auth.KerberosSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.NTLMSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.SPNegoSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.SystemDefaultCredentialsProvider;
-import org.apache.hc.client5.http.impl.nio.MultuhomeConnectionInitiator;
+import org.apache.hc.client5.http.impl.nio.MultihomeConnectionInitiator;
 import org.apache.hc.client5.http.impl.routing.DefaultRoutePlanner;
 import org.apache.hc.client5.http.protocol.RedirectStrategy;
 import org.apache.hc.client5.http.protocol.RequestAddCookies;
@@ -800,7 +800,7 @@ public class H2AsyncClientBuilder {
             }
         }
 
-        final MultuhomeConnectionInitiator connectionInitiator = new MultuhomeConnectionInitiator(ioReactor, dnsResolver);
+        final MultihomeConnectionInitiator connectionInitiator = new MultihomeConnectionInitiator(ioReactor, dnsResolver);
         final H2ConnPool connPool = new H2ConnPool(connectionInitiator, new Resolver<HttpHost, InetSocketAddress>() {
 
             @Override
