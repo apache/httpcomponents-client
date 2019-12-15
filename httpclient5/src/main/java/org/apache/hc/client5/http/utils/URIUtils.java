@@ -163,7 +163,7 @@ public class URIUtils {
      * @param reference the URI reference
      * @return the resulting URI
      */
-    public static URI resolve(final URI baseURI, final URI reference){
+    public static URI resolve(final URI baseURI, final URI reference) {
         Args.notNull(baseURI, "Base URI");
         Args.notNull(reference, "Reference URI");
         final String s = reference.toASCIIString();

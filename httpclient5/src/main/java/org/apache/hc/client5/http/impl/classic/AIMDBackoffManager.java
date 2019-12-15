@@ -60,8 +60,8 @@ public class AIMDBackoffManager implements BackoffManager {
 
     private final ConnPoolControl<HttpRoute> connPerRoute;
     private final Clock clock;
-    private final Map<HttpRoute,Long> lastRouteProbes;
-    private final Map<HttpRoute,Long> lastRouteBackoffs;
+    private final Map<HttpRoute, Long> lastRouteProbes;
+    private final Map<HttpRoute, Long> lastRouteBackoffs;
     private long coolDown = 5 * 1000L;
     private double backoffFactor = 0.5;
     private int cap = 2; // Per RFC 2616 sec 8.1.4
@@ -121,7 +121,7 @@ public class AIMDBackoffManager implements BackoffManager {
         }
     }
 
-    private Long getLastUpdate(final Map<HttpRoute,Long> updates, final HttpRoute route) {
+    private Long getLastUpdate(final Map<HttpRoute, Long> updates, final HttpRoute route) {
         Long lastUpdate = updates.get(route);
         if (lastUpdate == null) {
             lastUpdate = Long.valueOf(0L);
