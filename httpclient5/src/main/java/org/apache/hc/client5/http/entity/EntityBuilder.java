@@ -72,7 +72,7 @@ public class EntityBuilder {
     private ContentType contentType;
     private String contentEncoding;
     private boolean chunked;
-    private boolean gzipCompress;
+    private boolean gzipCompressed;
 
     EntityBuilder() {
         super();
@@ -288,15 +288,15 @@ public class EntityBuilder {
     /**
      * Returns {@code true} if entity is to be GZIP compressed, {@code false} otherwise.
      */
-    public boolean isGzipCompress() {
-        return gzipCompress;
+    public boolean isGzipCompressed() {
+        return gzipCompressed;
     }
 
     /**
      * Makes entity GZIP compressed.
      */
-    public EntityBuilder gzipCompress() {
-        this.gzipCompress = true;
+    public EntityBuilder gzipCompressed() {
+        this.gzipCompressed = true;
         return this;
     }
 
@@ -328,7 +328,7 @@ public class EntityBuilder {
         } else {
             throw new IllegalStateException("No entity set");
         }
-        if (this.gzipCompress) {
+        if (this.gzipCompressed) {
             return new GzipCompressingEntity(e);
         }
         return e;
