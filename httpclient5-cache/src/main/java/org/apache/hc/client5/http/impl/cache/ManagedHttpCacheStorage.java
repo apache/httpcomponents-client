@@ -90,7 +90,7 @@ public class ManagedHttpCacheStorage implements HttpCacheStorage, Closeable {
         this.active = new AtomicBoolean(true);
     }
 
-    private void ensureValidState() throws IllegalStateException {
+    private void ensureValidState() {
         if (!this.active.get()) {
             throw new IllegalStateException("Cache has been shut down");
         }
