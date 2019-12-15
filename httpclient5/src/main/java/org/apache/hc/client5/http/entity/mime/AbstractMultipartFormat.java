@@ -91,7 +91,7 @@ abstract class AbstractMultipartFormat {
 
     static final ByteArrayBuffer FIELD_SEP = encode(StandardCharsets.ISO_8859_1, ": ");
     static final ByteArrayBuffer CR_LF = encode(StandardCharsets.ISO_8859_1, "\r\n");
-    static final ByteArrayBuffer TWO_DASHES = encode(StandardCharsets.ISO_8859_1, "--");
+    static final ByteArrayBuffer TWO_HYPHENS = encode(StandardCharsets.ISO_8859_1, "--");
 
     final Charset charset;
     final String boundary;
@@ -122,7 +122,7 @@ abstract class AbstractMultipartFormat {
 
         final ByteArrayBuffer boundaryEncoded = encode(this.charset, this.boundary);
         for (final MultipartPart part: getParts()) {
-            writeBytes(TWO_DASHES, out);
+            writeBytes(TWO_HYPHENS, out);
             writeBytes(boundaryEncoded, out);
             writeBytes(CR_LF, out);
 
@@ -135,9 +135,9 @@ abstract class AbstractMultipartFormat {
             }
             writeBytes(CR_LF, out);
         }
-        writeBytes(TWO_DASHES, out);
+        writeBytes(TWO_HYPHENS, out);
         writeBytes(boundaryEncoded, out);
-        writeBytes(TWO_DASHES, out);
+        writeBytes(TWO_HYPHENS, out);
         writeBytes(CR_LF, out);
     }
 

@@ -247,10 +247,10 @@ public class CachingExecBase {
             final HeaderElement elt = it.next();
             if (HeaderConstants.CACHE_CONTROL_MAX_STALE.equals(elt.getName())) {
                 try {
-                    final int maxstale = Integer.parseInt(elt.getValue());
+                    final int maxStale = Integer.parseInt(elt.getValue());
                     final long age = validityPolicy.getCurrentAgeSecs(entry, now);
                     final long lifetime = validityPolicy.getFreshnessLifetimeSecs(entry);
-                    if (age - lifetime > maxstale) {
+                    if (age - lifetime > maxStale) {
                         return true;
                     }
                 } catch (final NumberFormatException nfe) {

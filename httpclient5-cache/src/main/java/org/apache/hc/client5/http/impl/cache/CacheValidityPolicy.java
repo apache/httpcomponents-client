@@ -53,9 +53,9 @@ class CacheValidityPolicy {
     }
 
     public long getFreshnessLifetimeSecs(final HttpCacheEntry entry) {
-        final long maxage = getMaxAge(entry);
-        if (maxage > -1) {
-            return maxage;
+        final long maxAge = getMaxAge(entry);
+        if (maxAge > -1) {
+            return maxAge;
         }
 
         final Date dateValue = entry.getDate();
@@ -242,23 +242,23 @@ class CacheValidityPolicy {
     }
 
     protected long getMaxAge(final HttpCacheEntry entry) {
-        long maxage = -1;
+        long maxAge = -1;
         final Iterator<HeaderElement> it = MessageSupport.iterate(entry, HeaderConstants.CACHE_CONTROL);
         while (it.hasNext()) {
             final HeaderElement elt = it.next();
             if (HeaderConstants.CACHE_CONTROL_MAX_AGE.equals(elt.getName()) || "s-maxage".equals(elt.getName())) {
                 try {
                     final long currMaxAge = Long.parseLong(elt.getValue());
-                    if (maxage == -1 || currMaxAge < maxage) {
-                        maxage = currMaxAge;
+                    if (maxAge == -1 || currMaxAge < maxAge) {
+                        maxAge = currMaxAge;
                     }
                 } catch (final NumberFormatException nfe) {
                     // be conservative if can't parse
-                    maxage = 0;
+                    maxAge = 0;
                 }
             }
         }
-        return maxage;
+        return maxAge;
     }
 
     public boolean hasCacheControlDirective(final HttpCacheEntry entry, final String directive) {

@@ -42,13 +42,13 @@ public interface CredentialsStore extends CredentialsProvider {
      * Sets the {@link Credentials credentials} for the given authentication
      * scope. Any previous credentials for the given scope will be overwritten.
      *
-     * @param authscope the {@link AuthScope authentication scope}
+     * @param authScope the {@link AuthScope authentication scope}
      * @param credentials the authentication {@link Credentials credentials}
      * for the given scope.
      *
      * @see #getCredentials(AuthScope, org.apache.hc.core5.http.protocol.HttpContext)
      */
-    void setCredentials(AuthScope authscope, Credentials credentials);
+    void setCredentials(AuthScope authScope, Credentials credentials);
 
     /**
      * Clears all credentials.

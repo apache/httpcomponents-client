@@ -121,7 +121,7 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
         return false;
     }
 
-    private final javax.net.ssl.SSLSocketFactory socketfactory;
+    private final javax.net.ssl.SSLSocketFactory socketFactory;
     private final HostnameVerifier hostnameVerifier;
     private final String[] supportedProtocols;
     private final String[] supportedCipherSuites;
@@ -156,20 +156,20 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
      * @since 4.4
      */
     public SSLConnectionSocketFactory(
-            final javax.net.ssl.SSLSocketFactory socketfactory,
+            final javax.net.ssl.SSLSocketFactory socketFactory,
             final HostnameVerifier hostnameVerifier) {
-        this(socketfactory, null, null, hostnameVerifier);
+        this(socketFactory, null, null, hostnameVerifier);
     }
 
     /**
      * @since 4.4
      */
     public SSLConnectionSocketFactory(
-            final javax.net.ssl.SSLSocketFactory socketfactory,
+            final javax.net.ssl.SSLSocketFactory socketFactory,
             final String[] supportedProtocols,
             final String[] supportedCipherSuites,
             final HostnameVerifier hostnameVerifier) {
-        this.socketfactory = Args.notNull(socketfactory, "SSL socket factory");
+        this.socketFactory = Args.notNull(socketFactory, "SSL socket factory");
         this.supportedProtocols = supportedProtocols;
         this.supportedCipherSuites = supportedCipherSuites;
         this.hostnameVerifier = hostnameVerifier != null ? hostnameVerifier : HttpsSupport.getDefaultHostnameVerifier();
@@ -250,7 +250,7 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
             final String target,
             final int port,
             final HttpContext context) throws IOException {
-        final SSLSocket sslsock = (SSLSocket) this.socketfactory.createSocket(
+        final SSLSocket sslsock = (SSLSocket) this.socketFactory.createSocket(
                 socket,
                 target,
                 port,
@@ -310,8 +310,8 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
 
     protected void verifySession(
             final String hostname,
-            final SSLSession sslsession) throws SSLException {
-        tlsSessionValidator.verifySession(hostname, sslsession, hostnameVerifier);
+            final SSLSession sslSession) throws SSLException {
+        tlsSessionValidator.verifySession(hostname, sslSession, hostnameVerifier);
     }
 
 }

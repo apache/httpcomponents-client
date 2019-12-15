@@ -68,7 +68,7 @@ import org.apache.hc.core5.reactor.DefaultConnectingIOReactor;
 @Internal
 public final class InternalHttpAsyncClient extends InternalAbstractHttpAsyncClient {
 
-    private final AsyncClientConnectionManager connmgr;
+    private final AsyncClientConnectionManager manager;
     private final HttpRoutePlanner routePlanner;
     private final HttpVersionPolicy versionPolicy;
 
@@ -77,7 +77,7 @@ public final class InternalHttpAsyncClient extends InternalAbstractHttpAsyncClie
             final AsyncExecChainElement execChain,
             final AsyncPushConsumerRegistry pushConsumerRegistry,
             final ThreadFactory threadFactory,
-            final AsyncClientConnectionManager connmgr,
+            final AsyncClientConnectionManager manager,
             final HttpRoutePlanner routePlanner,
             final HttpVersionPolicy versionPolicy,
             final Lookup<CookieSpecProvider> cookieSpecRegistry,
@@ -88,14 +88,14 @@ public final class InternalHttpAsyncClient extends InternalAbstractHttpAsyncClie
             final List<Closeable> closeables) {
         super(ioReactor, pushConsumerRegistry, threadFactory, execChain,
                 cookieSpecRegistry, authSchemeRegistry, cookieStore, credentialsProvider, defaultConfig, closeables);
-        this.connmgr = connmgr;
+        this.manager = manager;
         this.routePlanner = routePlanner;
         this.versionPolicy = versionPolicy;
     }
 
     @Override
     AsyncExecRuntime createAsyncExecRuntime(final HandlerFactory<AsyncPushConsumer> pushHandlerFactory) {
-        return new InternalHttpAsyncExecRuntime(log, connmgr, getConnectionInitiator(), pushHandlerFactory, versionPolicy);
+        return new InternalHttpAsyncExecRuntime(log, manager, getConnectionInitiator(), pushHandlerFactory, versionPolicy);
     }
 
     @Override

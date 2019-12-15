@@ -88,13 +88,13 @@ public class SystemDefaultCredentialsProvider implements CredentialsStore {
     }
 
     @Override
-    public void setCredentials(final AuthScope authscope, final Credentials credentials) {
-        internal.setCredentials(authscope, credentials);
+    public void setCredentials(final AuthScope authScope, final Credentials credentials) {
+        internal.setCredentials(authScope, credentials);
     }
 
     private static PasswordAuthentication getSystemCreds(
             final String protocol,
-            final AuthScope authscope,
+            final AuthScope authScope,
             final Authenticator.RequestorType requestorType,
             final HttpClientContext context) {
         final HttpRequest request = context != null ? context.getRequest() : null;
@@ -107,41 +107,41 @@ public class SystemDefaultCredentialsProvider implements CredentialsStore {
         }
         // use null addr, because the authentication fails if it does not exactly match the expected realm's host
         return Authenticator.requestPasswordAuthentication(
-                authscope.getHost(),
+                authScope.getHost(),
                 null,
-                authscope.getPort(),
+                authScope.getPort(),
                 protocol,
-                authscope.getRealm(),
-                translateAuthScheme(authscope.getAuthScheme()),
+                authScope.getRealm(),
+                translateAuthScheme(authScope.getAuthScheme()),
                 targetHostURL,
                 requestorType);
     }
 
     @Override
-    public Credentials getCredentials(final AuthScope authscope, final HttpContext context) {
-        Args.notNull(authscope, "Auth scope");
-        final Credentials localcreds = internal.getCredentials(authscope, context);
+    public Credentials getCredentials(final AuthScope authScope, final HttpContext context) {
+        Args.notNull(authScope, "Auth scope");
+        final Credentials localcreds = internal.getCredentials(authScope, context);
         if (localcreds != null) {
             return localcreds;
         }
-        final String host = authscope.getHost();
+        final String host = authScope.getHost();
         if (host != null) {
             final HttpClientContext clientContext = context != null ? HttpClientContext.adapt(context) : null;
-            final String protocol = authscope.getProtocol() != null ? authscope.getProtocol() : (authscope.getPort() == 443 ? URIScheme.HTTPS.id : URIScheme.HTTP.id);
+            final String protocol = authScope.getProtocol() != null ? authScope.getProtocol() : (authScope.getPort() == 443 ? URIScheme.HTTPS.id : URIScheme.HTTP.id);
             PasswordAuthentication systemcreds = getSystemCreds(
-                    protocol, authscope, Authenticator.RequestorType.SERVER, clientContext);
+                    protocol, authScope, Authenticator.RequestorType.SERVER, clientContext);
             if (systemcreds == null) {
                 systemcreds = getSystemCreds(
-                        protocol, authscope, Authenticator.RequestorType.PROXY, clientContext);
+                        protocol, authScope, Authenticator.RequestorType.PROXY, clientContext);
             }
             if (systemcreds == null) {
                 // Look for values given using http.proxyUser/http.proxyPassword or
                 // https.proxyUser/https.proxyPassword. We cannot simply use the protocol from
                 // the origin since a proxy retrieved from https.proxyHost/https.proxyPort will
                 // still use http as protocol
-                systemcreds = getProxyCredentials("http", authscope);
+                systemcreds = getProxyCredentials("http", authScope);
                 if (systemcreds == null) {
-                    systemcreds = getProxyCredentials("https", authscope);
+                    systemcreds = getProxyCredentials("https", authScope);
                 }
             }
             if (systemcreds != null) {
@@ -149,7 +149,7 @@ public class SystemDefaultCredentialsProvider implements CredentialsStore {
                 if (domain != null) {
                     return new NTCredentials(systemcreds.getUserName(), systemcreds.getPassword(), null, domain);
                 }
-                if (AuthSchemes.NTLM.ident.equalsIgnoreCase(authscope.getAuthScheme())) {
+                if (AuthSchemes.NTLM.ident.equalsIgnoreCase(authScope.getAuthScheme())) {
                     // Domain may be specified in a fully qualified user name
                     return new NTCredentials(
                             systemcreds.getUserName(), systemcreds.getPassword(), null, null);
@@ -160,7 +160,7 @@ public class SystemDefaultCredentialsProvider implements CredentialsStore {
         return null;
     }
 
-    private static PasswordAuthentication getProxyCredentials(final String protocol, final AuthScope authscope) {
+    private static PasswordAuthentication getProxyCredentials(final String protocol, final AuthScope authScope) {
         final String proxyHost = System.getProperty(protocol + ".proxyHost");
         if (proxyHost == null) {
             return null;
@@ -172,7 +172,7 @@ public class SystemDefaultCredentialsProvider implements CredentialsStore {
 
         try {
             final AuthScope systemScope = new AuthScope(proxyHost, Integer.parseInt(proxyPort));
-            if (authscope.match(systemScope) >= 0) {
+            if (authScope.match(systemScope) >= 0) {
                 final String proxyUser = System.getProperty(protocol + ".proxyUser");
                 if (proxyUser == null) {
                     return null;

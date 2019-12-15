@@ -50,9 +50,9 @@ public class DefaultBackoffStrategy implements ConnectionBackoffStrategy {
     }
 
     @Override
-    public boolean shouldBackoff(final HttpResponse resp) {
-        return resp.getCode() == HttpStatus.SC_TOO_MANY_REQUESTS ||
-            resp.getCode() == HttpStatus.SC_SERVICE_UNAVAILABLE;
+    public boolean shouldBackoff(final HttpResponse response) {
+        return response.getCode() == HttpStatus.SC_TOO_MANY_REQUESTS ||
+            response.getCode() == HttpStatus.SC_SERVICE_UNAVAILABLE;
     }
 
 }

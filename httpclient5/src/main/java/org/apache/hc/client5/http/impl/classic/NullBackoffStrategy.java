@@ -43,7 +43,7 @@ public class NullBackoffStrategy implements ConnectionBackoffStrategy {
     }
 
     @Override
-    public boolean shouldBackoff(final HttpResponse resp) {
+    public boolean shouldBackoff(final HttpResponse response) {
         return false;
     }
 }

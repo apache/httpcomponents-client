@@ -54,7 +54,7 @@ abstract class AbstractMinimalHttpAsyncClientBase extends AbstractHttpAsyncClien
 
     @Override
     protected <T> Future<T> doExecute(
-            final HttpHost httphost,
+            final HttpHost httpHost,
             final AsyncRequestProducer requestProducer,
             final AsyncResponseConsumer<T> responseConsumer,
             final HandlerFactory<AsyncPushConsumer> pushHandlerFactory,

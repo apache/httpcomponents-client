@@ -56,9 +56,9 @@ public interface ConnectionBackoffStrategy {
      * signal. Implementations MUST restrict themselves to examining
      * the response header and MUST NOT consume any of the response
      * body, if any.
-     * @param resp the {@code HttpResponse} that was received
+     * @param response the {@code HttpResponse} that was received
      * @return {@code true} if a backoff signal should be
      *   given
      */
-    boolean shouldBackoff(HttpResponse resp);
+    boolean shouldBackoff(HttpResponse response);
 }

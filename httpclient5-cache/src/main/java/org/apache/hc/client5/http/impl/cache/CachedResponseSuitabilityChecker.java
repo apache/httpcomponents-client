@@ -80,11 +80,11 @@ class CachedResponseSuitabilityChecker {
         if (originInsistsOnFreshness(entry)) {
             return false;
         }
-        final long maxstale = getMaxStale(request);
-        if (maxstale == -1) {
+        final long maxStale = getMaxStale(request);
+        if (maxStale == -1) {
             return false;
         }
-        return (maxstale > validityStrategy.getStalenessSecs(entry, now));
+        return (maxStale > validityStrategy.getStalenessSecs(entry, now));
     }
 
     private boolean originInsistsOnFreshness(final HttpCacheEntry entry) {
@@ -99,30 +99,30 @@ class CachedResponseSuitabilityChecker {
     }
 
     private long getMaxStale(final HttpRequest request) {
-        long maxstale = -1;
+        long maxStale = -1;
         final Iterator<HeaderElement> it = MessageSupport.iterate(request, HeaderConstants.CACHE_CONTROL);
         while (it.hasNext()) {
             final HeaderElement elt = it.next();
             if (HeaderConstants.CACHE_CONTROL_MAX_STALE.equals(elt.getName())) {
-                if ((elt.getValue() == null || "".equals(elt.getValue().trim())) && maxstale == -1) {
-                    maxstale = Long.MAX_VALUE;
+                if ((elt.getValue() == null || "".equals(elt.getValue().trim())) && maxStale == -1) {
+                    maxStale = Long.MAX_VALUE;
                 } else {
                     try {
                         long val = Long.parseLong(elt.getValue());
                         if (val < 0) {
                             val = 0;
                         }
-                        if (maxstale == -1 || val < maxstale) {
-                            maxstale = val;
+                        if (maxStale == -1 || val < maxStale) {
+                            maxStale = val;
                         }
                     } catch (final NumberFormatException nfe) {
                         // err on the side of preserving semantic transparency
-                        maxstale = 0;
+                        maxStale = 0;
                     }
                 }
             }
         }
-        return maxstale;
+        return maxStale;
     }
 
     /**
@@ -185,9 +185,9 @@ class CachedResponseSuitabilityChecker {
 
             if (HeaderConstants.CACHE_CONTROL_MAX_AGE.equals(elt.getName())) {
                 try {
-                    final int maxage = Integer.parseInt(elt.getValue());
-                    if (validityStrategy.getCurrentAgeSecs(entry, now) > maxage) {
-                        log.debug("Response from cache was NOT suitable due to max age");
+                    final int maxAge = Integer.parseInt(elt.getValue());
+                    if (validityStrategy.getCurrentAgeSecs(entry, now) > maxAge) {
+                        log.debug("Response from cache was not suitable due to max age");
                         return false;
                     }
                 } catch (final NumberFormatException ex) {
@@ -199,9 +199,9 @@ class CachedResponseSuitabilityChecker {
 
             if (HeaderConstants.CACHE_CONTROL_MAX_STALE.equals(elt.getName())) {
                 try {
-                    final int maxstale = Integer.parseInt(elt.getValue());
-                    if (validityStrategy.getFreshnessLifetimeSecs(entry) > maxstale) {
-                        log.debug("Response from cache was not suitable due to Max stale freshness");
+                    final int maxStale = Integer.parseInt(elt.getValue());
+                    if (validityStrategy.getFreshnessLifetimeSecs(entry) > maxStale) {
+                        log.debug("Response from cache was not suitable due to max stale freshness");
                         return false;
                     }
                 } catch (final NumberFormatException ex) {
@@ -213,13 +213,13 @@ class CachedResponseSuitabilityChecker {
 
             if (HeaderConstants.CACHE_CONTROL_MIN_FRESH.equals(elt.getName())) {
                 try {
-                    final long minfresh = Long.parseLong(elt.getValue());
-                    if (minfresh < 0L) {
+                    final long minFresh = Long.parseLong(elt.getValue());
+                    if (minFresh < 0L) {
                         return false;
                     }
                     final long age = validityStrategy.getCurrentAgeSecs(entry, now);
                     final long freshness = validityStrategy.getFreshnessLifetimeSecs(entry);
-                    if (freshness - age < minfresh) {
+                    if (freshness - age < minFresh) {
                         log.debug("Response from cache was not suitable due to min fresh " +
                                 "freshness requirement");
                         return false;

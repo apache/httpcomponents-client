@@ -127,14 +127,14 @@ public class AuthScope {
     /**
      * Creates a copy of the given credentials scope.
      */
-    public AuthScope(final AuthScope authscope) {
+    public AuthScope(final AuthScope authScope) {
         super();
-        Args.notNull(authscope, "Scope");
-        this.protocol = authscope.getProtocol();
-        this.host = authscope.getHost();
-        this.port = authscope.getPort();
-        this.realm = authscope.getRealm();
-        this.authScheme = authscope.getAuthScheme();
+        Args.notNull(authScope, "Scope");
+        this.protocol = authScope.getProtocol();
+        this.host = authScope.getHost();
+        this.port = authScope.getPort();
+        this.realm = authScope.getRealm();
+        this.authScheme = authScope.getAuthScheme();
     }
 
     public String getProtocol() {

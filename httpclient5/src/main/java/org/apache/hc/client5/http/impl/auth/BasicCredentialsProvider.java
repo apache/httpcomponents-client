@@ -57,32 +57,32 @@ public class BasicCredentialsProvider implements CredentialsStore {
 
     @Override
     public void setCredentials(
-            final AuthScope authscope,
+            final AuthScope authScope,
             final Credentials credentials) {
-        Args.notNull(authscope, "Authentication scope");
-        credMap.put(authscope, credentials);
+        Args.notNull(authScope, "Authentication scope");
+        credMap.put(authScope, credentials);
     }
 
     /**
      * Find matching {@link Credentials credentials} for the given authentication scope.
      *
      * @param map the credentials hash map
-     * @param authscope the {@link AuthScope authentication scope}
+     * @param authScope the {@link AuthScope authentication scope}
      * @return the credentials
      *
      */
     private static Credentials matchCredentials(
             final Map<AuthScope, Credentials> map,
-            final AuthScope authscope) {
+            final AuthScope authScope) {
         // see if we get a direct hit
-        Credentials creds = map.get(authscope);
+        Credentials creds = map.get(authScope);
         if (creds == null) {
             // Nope.
             // Do a full scan
             int bestMatchFactor  = -1;
             AuthScope bestMatch  = null;
             for (final AuthScope current: map.keySet()) {
-                final int factor = authscope.match(current);
+                final int factor = authScope.match(current);
                 if (factor > bestMatchFactor) {
                     bestMatchFactor = factor;
                     bestMatch = current;
@@ -96,10 +96,10 @@ public class BasicCredentialsProvider implements CredentialsStore {
     }
 
     @Override
-    public Credentials getCredentials(final AuthScope authscope,
+    public Credentials getCredentials(final AuthScope authScope,
                                       final HttpContext httpContext) {
-        Args.notNull(authscope, "Authentication scope");
-        return matchCredentials(this.credMap, authscope);
+        Args.notNull(authScope, "Authentication scope");
+        return matchCredentials(this.credMap, authScope);
     }
 
     @Override

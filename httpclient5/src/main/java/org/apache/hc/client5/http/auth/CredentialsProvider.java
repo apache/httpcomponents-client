@@ -44,11 +44,11 @@ public interface CredentialsProvider {
      * Returns {@link Credentials credentials} for the given authentication scope,
      * if available.
      *
-     * @param authscope the {@link AuthScope authentication scope}
+     * @param authScope the {@link AuthScope authentication scope}
      * @param context the {@link HttpContext http context}
      * @return the credentials
      * @since 5.0
      */
-    Credentials getCredentials(AuthScope authscope, HttpContext context);
+    Credentials getCredentials(AuthScope authScope, HttpContext context);
 
 }

@@ -60,7 +60,7 @@ public interface ConnectionSocketFactory {
      * Connects the socket to the target host with the given resolved remote address.
      *
      * @param connectTimeout connect timeout.
-     * @param sock the socket to connect, as obtained from {@link #createSocket(HttpContext)}.
+     * @param socket the socket to connect, as obtained from {@link #createSocket(HttpContext)}.
      * {@code null} indicates that a new socket should be created and connected.
      * @param host target host as specified by the caller (end user).
      * @param remoteAddress the resolved remote address to connect to.
@@ -75,7 +75,7 @@ public interface ConnectionSocketFactory {
      */
     Socket connectSocket(
         TimeValue connectTimeout,
-        Socket sock,
+        Socket socket,
         HttpHost host,
         InetSocketAddress remoteAddress,
         InetSocketAddress localAddress,

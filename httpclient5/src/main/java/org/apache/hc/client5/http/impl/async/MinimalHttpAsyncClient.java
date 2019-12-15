@@ -98,7 +98,7 @@ import org.apache.hc.core5.util.Timeout;
 @Contract(threading = ThreadingBehavior.SAFE_CONDITIONAL)
 public final class MinimalHttpAsyncClient extends AbstractMinimalHttpAsyncClientBase {
 
-    private final AsyncClientConnectionManager connmgr;
+    private final AsyncClientConnectionManager manager;
     private final SchemePortResolver schemePortResolver;
     private final HttpVersionPolicy versionPolicy;
 
@@ -109,7 +109,7 @@ public final class MinimalHttpAsyncClient extends AbstractMinimalHttpAsyncClient
             final IOReactorConfig reactorConfig,
             final ThreadFactory threadFactory,
             final ThreadFactory workerThreadFactory,
-            final AsyncClientConnectionManager connmgr,
+            final AsyncClientConnectionManager manager,
             final SchemePortResolver schemePortResolver) {
         super(new DefaultConnectingIOReactor(
                 eventHandlerFactory,
@@ -128,7 +128,7 @@ public final class MinimalHttpAsyncClient extends AbstractMinimalHttpAsyncClient
                 }),
                 pushConsumerRegistry,
                 threadFactory);
-        this.connmgr = connmgr;
+        this.manager = manager;
         this.schemePortResolver = schemePortResolver != null ? schemePortResolver : DefaultSchemePortResolver.INSTANCE;
         this.versionPolicy = versionPolicy != null ? versionPolicy : HttpVersionPolicy.NEGOTIATE;
     }
@@ -142,7 +142,7 @@ public final class MinimalHttpAsyncClient extends AbstractMinimalHttpAsyncClient
         final HttpRoute route = new HttpRoute(RoutingSupport.normalize(host, schemePortResolver));
         final ComplexFuture<AsyncConnectionEndpoint> resultFuture = new ComplexFuture<>(callback);
         final String exchangeId = ExecSupport.getNextExchangeId();
-        final Future<AsyncConnectionEndpoint> leaseFuture = connmgr.lease(
+        final Future<AsyncConnectionEndpoint> leaseFuture = manager.lease(
                 exchangeId,
                 route,
                 null,
@@ -154,7 +154,7 @@ public final class MinimalHttpAsyncClient extends AbstractMinimalHttpAsyncClient
                         if (connectionEndpoint.isConnected()) {
                             resultFuture.completed(connectionEndpoint);
                         } else {
-                            final Future<AsyncConnectionEndpoint> connectFuture = connmgr.connect(
+                            final Future<AsyncConnectionEndpoint> connectFuture = manager.connect(
                                     connectionEndpoint,
                                     getConnectionInitiator(),
                                     connectTimeout,
@@ -478,7 +478,7 @@ public final class MinimalHttpAsyncClient extends AbstractMinimalHttpAsyncClient
         @Override
         public void releaseAndReuse() {
             if (released.compareAndSet(false, true)) {
-                connmgr.release(connectionEndpoint, null, TimeValue.NEG_ONE_MILLISECONDS);
+                manager.release(connectionEndpoint, null, TimeValue.NEG_ONE_MILLISECONDS);
             }
         }
 
@@ -486,7 +486,7 @@ public final class MinimalHttpAsyncClient extends AbstractMinimalHttpAsyncClient
         public void releaseAndDiscard() {
             if (released.compareAndSet(false, true)) {
                 Closer.closeQuietly(connectionEndpoint);
-                connmgr.release(connectionEndpoint, null, TimeValue.ZERO_MILLISECONDS);
+                manager.release(connectionEndpoint, null, TimeValue.ZERO_MILLISECONDS);
             }
         }
 

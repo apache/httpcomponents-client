@@ -99,29 +99,29 @@ public class Executor {
         return this;
     }
 
-    public Executor auth(final AuthScope authScope, final Credentials creds) {
+    public Executor auth(final AuthScope authScope, final Credentials credentials) {
         if (this.credentialsStore == null) {
             this.credentialsStore = new BasicCredentialsProvider();
         }
-        this.credentialsStore.setCredentials(authScope, creds);
+        this.credentialsStore.setCredentials(authScope, credentials);
         return this;
     }
 
-    public Executor auth(final HttpHost host, final Credentials creds) {
-        return auth(new AuthScope(host), creds);
+    public Executor auth(final HttpHost host, final Credentials credentials) {
+        return auth(new AuthScope(host), credentials);
     }
 
     /**
      * @since 4.4
      */
-    public Executor auth(final String host, final Credentials creds) {
+    public Executor auth(final String host, final Credentials credentials) {
         final HttpHost httpHost;
         try {
             httpHost = HttpHost.create(host);
         } catch (final URISyntaxException ex) {
             throw new IllegalArgumentException("Invalid host: " + host);
         }
-        return auth(httpHost, creds);
+        return auth(httpHost, credentials);
     }
 
     public Executor authPreemptive(final HttpHost host) {

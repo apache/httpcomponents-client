@@ -38,7 +38,7 @@ public class Wire {
 
     private static final int MAX_STRING_BUILDER_SIZE = 2048;
 
-    private static final ThreadLocal<StringBuilder> threadLocal = new ThreadLocal<>();
+    private static final ThreadLocal<StringBuilder> THREAD_LOCAL = new ThreadLocal<>();
 
     /**
      * Returns a {@code StringBuilder} that this Layout implementation can use to write the formatted log event to.
@@ -46,12 +46,11 @@ public class Wire {
      * @return a {@code StringBuilder}
      */
     private static StringBuilder getStringBuilder() {
-        StringBuilder result = threadLocal.get();
+        StringBuilder result = THREAD_LOCAL.get();
         if (result == null) {
             result = new StringBuilder(MAX_STRING_BUILDER_SIZE);
-            threadLocal.set(result);
+            THREAD_LOCAL.set(result);
         }
-        // TODO Delegate to Log4j's 2.9 StringBuilds.trimToMaxSize() when it is released.
         trimToMaxSize(result, MAX_STRING_BUILDER_SIZE);
         result.setLength(0);
         return result;
@@ -64,7 +63,6 @@ public class Wire {
      * @param stringBuilder the StringBuilder to check
      * @param maxSize the maximum number of characters the StringBuilder is allowed to have
      */
-    // TODO Delete wheb Log4j's 2.9 (see #trimToMaxSize(StringBuild))
     private static void trimToMaxSize(final StringBuilder stringBuilder, final int maxSize) {
         if (stringBuilder != null && stringBuilder.capacity() > maxSize) {
             stringBuilder.setLength(maxSize);
