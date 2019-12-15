@@ -91,7 +91,7 @@ public class ExponentialBackOffSchedulingStrategy implements SchedulingStrategy 
 
     @Override
     public TimeValue schedule(final int attemptNumber) {
-        return TimeValue.ofMilliseconds(calculateDelayInMillis(attemptNumber));
+        return calculateDelay(attemptNumber);
     }
 
     public long getBackOffRate() {
@@ -106,12 +106,12 @@ public class ExponentialBackOffSchedulingStrategy implements SchedulingStrategy 
         return maxExpiry;
     }
 
-    protected long calculateDelayInMillis(final int consecutiveFailedAttempts) {
+    protected TimeValue calculateDelay(final int consecutiveFailedAttempts) {
         if (consecutiveFailedAttempts > 0) {
             final long delay = (long) (initialExpiry.toMillis() * Math.pow(backOffRate, consecutiveFailedAttempts - 1));
-            return Math.min(delay, maxExpiry.toMillis());
+            return TimeValue.ofMilliseconds(Math.min(delay, maxExpiry.toMillis()));
         }
-        return 0;
+        return TimeValue.ZERO_MILLISECONDS;
     }
 
 }
