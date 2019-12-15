@@ -283,7 +283,7 @@ public class DigestScheme implements AuthScheme, Serializable {
         }
 
         final StringBuilder sb = new StringBuilder(8);
-        try (final Formatter formatter = new Formatter(sb, Locale.US)) {
+        try (final Formatter formatter = new Formatter(sb, Locale.ROOT)) {
             formatter.format("%08x", nounceCount);
         }
         final String nc = sb.toString();
