@@ -370,6 +370,7 @@
           <excludes>
             <exclude>src/docbkx/resources/**</exclude>
             <exclude>src/test/resources/*.truststore</exclude>
+            <exclude>src/test/resources/*.serialized</exclude>
             <exclude>.checkstyle</exclude>
           </excludes>
         </configuration>
