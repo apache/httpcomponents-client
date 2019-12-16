@@ -1,0 +1,13 @@
+HTTP/1.1 200 OK
+Content-type: text/html
+Cache-control: public, max-age=31536000
+Content-Length: 11
+hc-sk: xyzzy
+hc-resp-date: 2611108800000
+hc-req-date: 165214800000
+hc-varmap-key: {Accept-Encoding=gzip}
+hc-varmap-val: {Accept-Encoding=gzip}https://example.com:1234/foo
+hc-varmap-key: {Accept-Encoding=compress}
+hc-varmap-val: {Accept-Encoding=compress}https://example.com:1234/foo
+
+Hello World

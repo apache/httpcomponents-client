@@ -21,3 +21,4 @@
 *.html   text diff=html
 *.css    text
 *.js     text
+*.serialized binary
