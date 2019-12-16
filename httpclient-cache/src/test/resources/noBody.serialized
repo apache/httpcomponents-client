@@ -1,0 +1,8 @@
+HTTP/1.1 204 No Content
+Content-type: text/html
+Cache-control: public, max-age=31536000
+hc-sk: xyzzy
+hc-resp-date: 2611108800000
+hc-req-date: 165214800000
+hc-no-content: true
+
