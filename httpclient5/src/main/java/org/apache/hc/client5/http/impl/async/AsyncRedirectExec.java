@@ -138,20 +138,20 @@ public final class AsyncRedirectExec implements AsyncExecChainHandler {
 
                     final int statusCode = response.getCode();
 
+                    state.currentRequest = null;
                     switch (statusCode) {
                         case HttpStatus.SC_MOVED_PERMANENTLY:
                         case HttpStatus.SC_MOVED_TEMPORARILY:
                         case HttpStatus.SC_SEE_OTHER:
                             if (!Methods.isSafe(request.getMethod())) {
-                                final HttpRequest httpGet = new BasicHttpRequest(Methods.GET, redirectUri);
-                                httpGet.setHeaders(scope.originalRequest.getHeaders());
-                                state.currentRequest = httpGet;
+                                state.currentRequest = new BasicHttpRequest(Methods.GET, redirectUri);
                                 state.currentEntityProducer = null;
-                                break;
                             }
-                        default:
-                            state.currentRequest = new BasicHttpRequest(request.getMethod(), redirectUri);
                     }
+                    if (state.currentRequest == null) {
+                        state.currentRequest = new BasicHttpRequest(request.getMethod(), redirectUri);
+                    }
+                    state.currentRequest.setHeaders(scope.originalRequest.getHeaders());
                     final HttpHost newTarget = URIUtils.extractHost(redirectUri);
                     if (newTarget == null) {
                         throw new ProtocolException("Redirect URI does not specify a valid host name: " + redirectUri);

@@ -147,17 +147,14 @@ public final class RedirectExec implements ExecChainHandler {
                         case HttpStatus.SC_MOVED_TEMPORARILY:
                         case HttpStatus.SC_SEE_OTHER:
                             if (!Methods.isSafe(request.getMethod())) {
-                                final HttpGet httpGet = new HttpGet(redirectUri);
-                                httpGet.setHeaders(originalRequest.getHeaders());
-                                redirect = httpGet;
-                            } else {
-                                redirect = null;
+                                redirect = new HttpGet(redirectUri);
                             }
                     }
                     if (redirect == null) {
                         redirect = new BasicClassicHttpRequest(originalRequest.getMethod(), redirectUri);
                         redirect.setEntity(originalRequest.getEntity());
                     }
+                    redirect.setHeaders(originalRequest.getHeaders());
 
                     final HttpHost newTarget = URIUtils.extractHost(redirectUri);
                     if (newTarget == null) {
