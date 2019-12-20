@@ -264,7 +264,7 @@ public class TestMultipartMixed {
         @SuppressWarnings("resource")
         final MultipartPart p2 = MultipartPartBuilder.create(
                 new InputStreamBody(new FileInputStream(tmpfile), s2 + ".tmp")).build();
-        final HttpBrowserCompatibleMultipart multipart = new HttpBrowserCompatibleMultipart(
+        final LegacyMultipart multipart = new LegacyMultipart(
                 StandardCharsets.UTF_8, "foo",
                 Arrays.<MultipartPart>asList(p1, p2));
 

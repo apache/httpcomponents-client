@@ -300,7 +300,7 @@ public class TestMultipartForm {
         final FormBodyPart p2 = FormBodyPartBuilder.create(
                 "field2",
                 new InputStreamBody(new FileInputStream(tmpfile), s2 + ".tmp")).build();
-        final HttpBrowserCompatibleMultipart multipart = new HttpBrowserCompatibleMultipart(
+        final LegacyMultipart multipart = new LegacyMultipart(
                 StandardCharsets.UTF_8, "foo",
                 Arrays.<MultipartPart>asList(p1, p2));
 

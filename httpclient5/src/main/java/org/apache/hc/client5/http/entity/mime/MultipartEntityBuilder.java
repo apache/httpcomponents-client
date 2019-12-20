@@ -56,9 +56,6 @@ public class MultipartEntityBuilder {
             "-_1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
                     .toCharArray();
 
-    private final static String FORM_SUBTYPE = "form-data";
-    private final static String MIXED_SUBTYPE = "mixed";
-
     private ContentType contentType;
     private HttpMultipartMode mode = HttpMultipartMode.STRICT;
     private String boundary = null;
@@ -78,7 +75,7 @@ public class MultipartEntityBuilder {
     }
 
     public MultipartEntityBuilder setLaxMode() {
-        this.mode = HttpMultipartMode.BROWSER_COMPATIBLE;
+        this.mode = HttpMultipartMode.LEGACY;
         return this;
     }
 
@@ -219,9 +216,9 @@ public class MultipartEntityBuilder {
             }
 
             if (formData) {
-                contentTypeCopy = ContentType.create("multipart/" + FORM_SUBTYPE, params);
+                contentTypeCopy = ContentType.MULTIPART_FORM_DATA.withParameters(params);
             } else {
-                contentTypeCopy = ContentType.create("multipart/" + MIXED_SUBTYPE, params);
+                contentTypeCopy = ContentType.create("multipart/mixed", params);
             }
         }
         final List<MultipartPart> multipartPartsCopy = multipartParts != null ? new ArrayList<>(multipartParts) :
@@ -229,17 +226,18 @@ public class MultipartEntityBuilder {
         final HttpMultipartMode modeCopy = mode != null ? mode : HttpMultipartMode.STRICT;
         final AbstractMultipartFormat form;
         switch (modeCopy) {
-            case BROWSER_COMPATIBLE:
-                form = new HttpBrowserCompatibleMultipart(charsetCopy, boundaryCopy, multipartPartsCopy);
+            case LEGACY:
+                form = new LegacyMultipart(charsetCopy, boundaryCopy, multipartPartsCopy);
                 break;
-            case RFC6532:
-                form = new HttpRFC6532Multipart(charsetCopy, boundaryCopy, multipartPartsCopy);
-                break;
-            case RFC7578:
-                if (charsetCopy == null) {
-                    charsetCopy = StandardCharsets.UTF_8;
+            case EXTENDED:
+                if (ContentType.MULTIPART_FORM_DATA.isSameMimeType(ContentType.MULTIPART_FORM_DATA)) {
+                    if (charsetCopy == null) {
+                        charsetCopy = StandardCharsets.UTF_8;
+                    }
+                    form = new HttpRFC7578Multipart(charsetCopy, boundaryCopy, multipartPartsCopy);
+                } else {
+                    form = new HttpRFC6532Multipart(charsetCopy, boundaryCopy, multipartPartsCopy);
                 }
-                form = new HttpRFC7578Multipart(charsetCopy, boundaryCopy, multipartPartsCopy);
                 break;
             default:
                 form = new HttpStrictMultipart(StandardCharsets.US_ASCII, boundaryCopy, multipartPartsCopy);

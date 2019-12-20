@@ -58,7 +58,7 @@ public class TestMultipartEntityBuilder {
                 .setLaxMode()
                 .buildEntity();
         Assert.assertNotNull(entity);
-        Assert.assertTrue(entity.getMultipart() instanceof HttpBrowserCompatibleMultipart);
+        Assert.assertTrue(entity.getMultipart() instanceof LegacyMultipart);
         Assert.assertEquals("blah-blah", entity.getMultipart().boundary);
         Assert.assertEquals(StandardCharsets.UTF_8, entity.getMultipart().charset);
     }
@@ -151,7 +151,7 @@ public class TestMultipartEntityBuilder {
         parameters.add(new BasicNameValuePair(MimeConsts.FIELD_PARAM_FILENAME, "hello \u03BA\u03CC\u03C3\u03BC\u03B5!%"));
 
         final MultipartFormEntity entity = MultipartEntityBuilder.create()
-                .setMode(HttpMultipartMode.RFC7578)
+                .setMode(HttpMultipartMode.EXTENDED)
                 .setBoundary("xxxxxxxxxxxxxxxxxxxxxxxx")
                 .addPart(new FormBodyPartBuilder()
                         .setName("test")

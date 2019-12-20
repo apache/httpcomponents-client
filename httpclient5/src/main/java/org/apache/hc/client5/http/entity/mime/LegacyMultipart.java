@@ -38,11 +38,11 @@ import java.util.List;
  *
  * @since 4.3
  */
-class HttpBrowserCompatibleMultipart extends AbstractMultipartFormat {
+class LegacyMultipart extends AbstractMultipartFormat {
 
     private final List<MultipartPart> parts;
 
-    public HttpBrowserCompatibleMultipart(
+    public LegacyMultipart(
             final Charset charset,
             final String boundary,
             final List<MultipartPart> parts) {

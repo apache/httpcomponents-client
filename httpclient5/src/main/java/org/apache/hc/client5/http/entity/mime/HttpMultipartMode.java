@@ -28,18 +28,35 @@
 package org.apache.hc.client5.http.entity.mime;
 
 /**
+ * MIME compliance mode.
  *
  * @since 4.0
  */
 public enum HttpMultipartMode {
 
-    /** RFC 822, RFC 2045, RFC 2046 compliant */
+    /**
+     * Legacy compatibility mode.
+     * <p>
+     * In this mode only the most essential fields are generated
+     * such as Content-Type and Content-Disposition.
+     */
+    LEGACY,
+
+    /**
+     * Strict MIME specification conformance.
+     * <p>
+     * Presently conforms to RFC 822, RFC 2045, RFC 2046.
+     */
     STRICT,
-    /** browser-compatible mode, i.e. only write Content-Disposition; use content charset */
-    BROWSER_COMPATIBLE,
-    /** RFC 6532 compliant */
-    RFC6532,
-    /** RFC 7578 compliant */
-    RFC7578
+
+    /**
+     * Extended MIME specification conformance.
+     * <p>
+     * In this mode header field values may contain international UTF-8 encoded
+     * characters.
+     * <p>
+     * Presently conforms to RFC 6532 and RFC 7578.
+     */
+    EXTENDED,
 
 }
