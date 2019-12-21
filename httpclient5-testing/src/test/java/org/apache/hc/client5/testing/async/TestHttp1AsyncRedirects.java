@@ -110,7 +110,7 @@ public class TestHttp1AsyncRedirects extends AbstractHttpAsyncRedirectsTest<Clos
     };
 
     @Rule
-    public ExternalResource clientResource = new ExternalResource() {
+    public ExternalResource clientBuilderResource = new ExternalResource() {
 
         @Override
         protected void before() throws Throwable {

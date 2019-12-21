@@ -84,7 +84,7 @@ public class TestHttp1AsyncStatefulConnManagement extends AbstractIntegrationTes
     };
 
     @Rule
-    public ExternalResource clientResource = new ExternalResource() {
+    public ExternalResource clientBuilderResource = new ExternalResource() {
 
         @Override
         protected void before() throws Throwable {

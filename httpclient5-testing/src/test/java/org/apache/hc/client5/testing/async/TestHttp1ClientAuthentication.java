@@ -100,7 +100,7 @@ public class TestHttp1ClientAuthentication extends AbstractHttpAsyncClientAuthen
     };
 
     @Rule
-    public ExternalResource clientResource = new ExternalResource() {
+    public ExternalResource clientBuilderResource = new ExternalResource() {
 
         @Override
         protected void before() throws Throwable {

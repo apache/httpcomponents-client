@@ -89,7 +89,7 @@ public class TestHttp1Async extends AbstractHttpAsyncFundamentalsTest<CloseableH
     };
 
     @Rule
-    public ExternalResource clientResource = new ExternalResource() {
+    public ExternalResource clientBuilderResource = new ExternalResource() {
 
         @Override
         protected void before() throws Throwable {

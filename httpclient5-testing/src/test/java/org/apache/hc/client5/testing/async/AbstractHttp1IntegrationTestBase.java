@@ -84,7 +84,7 @@ public abstract class AbstractHttp1IntegrationTestBase extends AbstractServerTes
     };
 
     @Rule
-    public ExternalResource clientResource = new ExternalResource() {
+    public ExternalResource clientBuilderResource = new ExternalResource() {
 
         @Override
         protected void before() throws Throwable {
