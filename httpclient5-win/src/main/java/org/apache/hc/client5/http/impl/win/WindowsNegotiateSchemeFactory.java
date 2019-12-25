@@ -54,7 +54,7 @@ public class WindowsNegotiateSchemeFactory implements AuthSchemeProvider {
 
     @Override
     public AuthScheme create(final HttpContext context) {
-        return new WindowsNegotiateScheme(AuthSchemes.SPNEGO.ident, servicePrincipalName);
+        return new WindowsNegotiateScheme(AuthSchemes.SPNEGO.id, servicePrincipalName);
     }
 
 }

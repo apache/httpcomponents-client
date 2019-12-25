@@ -69,7 +69,7 @@ public class TestHttpAuthenticator {
 
         @Override
         public String getName() {
-            return AuthSchemes.BASIC.ident;
+            return AuthSchemes.BASIC.id;
         }
 
     }

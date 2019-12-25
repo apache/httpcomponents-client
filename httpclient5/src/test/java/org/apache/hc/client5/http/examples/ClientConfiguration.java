@@ -193,10 +193,10 @@ public class ClientConfiguration {
         final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
         // Create global request configuration
         final RequestConfig defaultRequestConfig = RequestConfig.custom()
-            .setCookieSpec(CookieSpecs.STANDARD.ident)
+            .setCookieSpec(CookieSpecs.STANDARD.id)
             .setExpectContinueEnabled(true)
-            .setTargetPreferredAuthSchemes(Arrays.asList(AuthSchemes.NTLM.ident, AuthSchemes.DIGEST.ident))
-            .setProxyPreferredAuthSchemes(Arrays.asList(AuthSchemes.BASIC.ident))
+            .setTargetPreferredAuthSchemes(Arrays.asList(AuthSchemes.NTLM.id, AuthSchemes.DIGEST.id))
+            .setProxyPreferredAuthSchemes(Arrays.asList(AuthSchemes.BASIC.id))
             .build();
 
         // Create an HttpClient with the given custom dependencies and configuration.

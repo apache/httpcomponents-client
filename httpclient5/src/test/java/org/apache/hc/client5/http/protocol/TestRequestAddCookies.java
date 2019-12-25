@@ -76,11 +76,11 @@ public class TestRequestAddCookies {
         this.cookieStore.addCookie(cookie2);
 
         this.cookieSpecRegistry = RegistryBuilder.<CookieSpecProvider>create()
-            .register(CookieSpecs.STANDARD.ident, new RFC6265CookieSpecProvider(
+            .register(CookieSpecs.STANDARD.id, new RFC6265CookieSpecProvider(
                     RFC6265CookieSpecProvider.CompatibilityLevel.RELAXED, null))
-            .register(CookieSpecs.STANDARD_STRICT.ident,  new RFC6265CookieSpecProvider(
+            .register(CookieSpecs.STANDARD_STRICT.id,  new RFC6265CookieSpecProvider(
                     RFC6265CookieSpecProvider.CompatibilityLevel.STRICT, null))
-            .register(CookieSpecs.IGNORE_COOKIES.ident, new IgnoreSpecProvider())
+            .register(CookieSpecs.IGNORE_COOKIES.id, new IgnoreSpecProvider())
             .build();
     }
 
@@ -203,7 +203,7 @@ public class TestRequestAddCookies {
     public void testAddCookiesUsingExplicitCookieSpec() throws Exception {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         final RequestConfig config = RequestConfig.custom()
-                .setCookieSpec(CookieSpecs.STANDARD_STRICT.ident)
+                .setCookieSpec(CookieSpecs.STANDARD_STRICT.id)
                 .build();
         final HttpRoute route = new HttpRoute(this.target, null, false);
 

@@ -50,11 +50,11 @@ public final class CookieSpecSupport {
      */
     public static RegistryBuilder<CookieSpecProvider> createDefaultBuilder(final PublicSuffixMatcher publicSuffixMatcher) {
         return RegistryBuilder.<CookieSpecProvider>create()
-                .register(CookieSpecs.STANDARD.ident, new RFC6265CookieSpecProvider(
+                .register(CookieSpecs.STANDARD.id, new RFC6265CookieSpecProvider(
                         RFC6265CookieSpecProvider.CompatibilityLevel.RELAXED, publicSuffixMatcher))
-                .register(CookieSpecs.STANDARD_STRICT.ident, new RFC6265CookieSpecProvider(
+                .register(CookieSpecs.STANDARD_STRICT.id, new RFC6265CookieSpecProvider(
                         RFC6265CookieSpecProvider.CompatibilityLevel.STRICT, publicSuffixMatcher))
-                .register(CookieSpecs.IGNORE_COOKIES.ident, new IgnoreSpecProvider());
+                .register(CookieSpecs.IGNORE_COOKIES.id, new IgnoreSpecProvider());
     }
 
     /**

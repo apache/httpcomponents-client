@@ -63,7 +63,7 @@ public class AuthSupport {
         final char[] password = atColon >= 0 ? userInfo.substring(atColon + 1).toCharArray() : null;
 
         credentialsStore.setCredentials(
-                new AuthScope(scheme, authority.getHostName(), authority.getPort(), null, AuthSchemes.BASIC.ident),
+                new AuthScope(scheme, authority.getHostName(), authority.getPort(), null, AuthSchemes.BASIC.id),
                 new UsernamePasswordCredentials(userName, password));
     }
 

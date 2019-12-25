@@ -51,10 +51,10 @@ public enum CookieSpecs {
      */
     IGNORE_COOKIES("ignoreCookies");
 
-    public final String ident;
+    public final String id;
 
-    CookieSpecs(final String ident) {
-        this.ident = ident;
+    CookieSpecs(final String id) {
+        this.id = id;
     }
 
 }

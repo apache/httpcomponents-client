@@ -86,7 +86,7 @@ public class WindowsNegotiateScheme implements AuthScheme {
     WindowsNegotiateScheme(final String scheme, final String servicePrincipalName) {
         super();
 
-        this.scheme = (scheme == null) ? AuthSchemes.SPNEGO.ident : scheme;
+        this.scheme = (scheme == null) ? AuthSchemes.SPNEGO.id : scheme;
         this.continueNeeded = true;
         this.servicePrincipalName = servicePrincipalName;
 

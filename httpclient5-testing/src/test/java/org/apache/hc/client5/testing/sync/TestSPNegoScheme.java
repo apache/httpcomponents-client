@@ -160,7 +160,7 @@ public class TestSPNegoScheme extends LocalServerTestBase {
         credentialsProvider.setCredentials(new AuthScope(null, null, -1, null, null), use_jaas_creds);
 
         final Registry<AuthSchemeProvider> authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
-            .register(AuthSchemes.SPNEGO.ident, nsf)
+            .register(AuthSchemes.SPNEGO.id, nsf)
             .build();
         this.httpclient = HttpClients.custom()
             .setDefaultAuthSchemeRegistry(authSchemeRegistry)
@@ -191,7 +191,7 @@ public class TestSPNegoScheme extends LocalServerTestBase {
         credentialsProvider.setCredentials(new AuthScope(null, null, -1, null, null), use_jaas_creds);
 
         final Registry<AuthSchemeProvider> authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
-            .register(AuthSchemes.SPNEGO.ident, nsf)
+            .register(AuthSchemes.SPNEGO.id, nsf)
             .build();
         this.httpclient = HttpClients.custom()
             .setDefaultAuthSchemeRegistry(authSchemeRegistry)
