@@ -27,6 +27,7 @@
 package org.apache.hc.client5.http.impl.auth;
 
 import org.apache.hc.client5.http.DnsResolver;
+import org.apache.hc.client5.http.auth.AuthSchemes;
 import org.apache.hc.client5.http.auth.KerberosConfig;
 import org.apache.hc.core5.annotation.Experimental;
 import org.ietf.jgss.GSSException;
@@ -60,7 +61,7 @@ public class SPNegoScheme extends GGSSchemeBase {
 
     @Override
     public String getName() {
-        return "Negotiate";
+        return AuthSchemes.SPNEGO.id;
     }
 
     @Override

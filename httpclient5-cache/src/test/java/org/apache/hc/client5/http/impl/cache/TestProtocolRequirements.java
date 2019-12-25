@@ -37,6 +37,7 @@ import java.util.regex.Pattern;
 
 import org.apache.hc.client5.http.ClientProtocolException;
 import org.apache.hc.client5.http.HttpRoute;
+import org.apache.hc.client5.http.auth.AuthSchemes;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.utils.DateUtils;
@@ -4520,7 +4521,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     protected void testSharedCacheRevalidatesAuthorizedResponse(
             final ClassicHttpResponse authorizedResponse, final int minTimes, final int maxTimes) throws Exception {
         if (config.isSharedCache()) {
-            final String authorization = "Basic dXNlcjpwYXNzd2Q=";
+            final String authorization = AuthSchemes.BASIC.id + " dXNlcjpwYXNzd2Q=";
             final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
             req1.setHeader("Authorization",authorization);
 
@@ -4584,8 +4585,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     protected void testSharedCacheMustUseNewRequestHeadersWhenRevalidatingAuthorizedResponse(
             final ClassicHttpResponse authorizedResponse) throws Exception {
         if (config.isSharedCache()) {
-            final String authorization1 = "Basic dXNlcjpwYXNzd2Q=";
-            final String authorization2 = "Basic dXNlcjpwYXNzd2Qy";
+            final String authorization1 = AuthSchemes.BASIC.id + " dXNlcjpwYXNzd2Q=";
+            final String authorization2 = AuthSchemes.BASIC.id + " dXNlcjpwYXNzd2Qy";
 
             final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
             req1.setHeader("Authorization",authorization1);

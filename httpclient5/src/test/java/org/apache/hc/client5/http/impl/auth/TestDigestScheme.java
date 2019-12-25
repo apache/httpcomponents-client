@@ -39,6 +39,7 @@ import java.util.Map;
 
 import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.AuthScheme;
+import org.apache.hc.client5.http.auth.AuthSchemes;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.AuthenticationException;
 import org.apache.hc.client5.http.auth.ChallengeType;
@@ -77,14 +78,14 @@ public class TestDigestScheme {
 
     @Test(expected=MalformedChallengeException.class)
     public void testDigestAuthenticationEmptyChallenge1() throws Exception {
-        final AuthChallenge authChallenge = parse("Digest");
+        final AuthChallenge authChallenge = parse(AuthSchemes.DIGEST.id);
         final AuthScheme authscheme = new DigestScheme();
         authscheme.processChallenge(authChallenge, null);
     }
 
     @Test(expected=MalformedChallengeException.class)
     public void testDigestAuthenticationEmptyChallenge2() throws Exception {
-        final AuthChallenge authChallenge = parse("Digest ");
+        final AuthChallenge authChallenge = parse(AuthSchemes.DIGEST.id + " ");
         final AuthScheme authscheme = new DigestScheme();
         authscheme.processChallenge(authChallenge, null);
     }
@@ -98,7 +99,7 @@ public class TestDigestScheme {
         final Credentials creds = new UsernamePasswordCredentials("username","password".toCharArray());
         credentialsProvider.setCredentials(authScope, creds);
 
-        final String challenge = "Digest realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\"";
+        final String challenge = AuthSchemes.DIGEST.id + " realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\"";
         final AuthChallenge authChallenge = parse(challenge);
         final DigestScheme authscheme = new DigestScheme();
         authscheme.processChallenge(authChallenge, null);
@@ -125,7 +126,7 @@ public class TestDigestScheme {
         final Credentials creds = new UsernamePasswordCredentials("username","password".toCharArray());
         credentialsProvider.setCredentials(authScope, creds);
 
-        final String challenge = "Digest realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\"";
+        final String challenge = AuthSchemes.DIGEST.id + " realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\"";
         final AuthChallenge authChallenge = parse(challenge);
         final DigestScheme authscheme = new DigestScheme();
         authscheme.processChallenge(authChallenge, null);
@@ -149,7 +150,7 @@ public class TestDigestScheme {
         final Credentials creds = new UsernamePasswordCredentials("username","password".toCharArray());
         credentialsProvider.setCredentials(authScope, creds);
 
-        final String challenge = "Digest realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\"";
+        final String challenge = AuthSchemes.DIGEST.id + " realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\"";
         final AuthChallenge authChallenge = parse(challenge);
         final DigestScheme authscheme = new DigestScheme();
         authscheme.processChallenge(authChallenge, null);
@@ -180,7 +181,7 @@ public class TestDigestScheme {
         final Credentials creds = new UsernamePasswordCredentials("username","password".toCharArray());
         credentialsProvider.setCredentials(authScope, creds);
 
-        final String challenge = "Digest realm=\"realm1\", " +
+        final String challenge = AuthSchemes.DIGEST.id + " realm=\"realm1\", " +
                 "nonce=\"f2a3f18799759d4f1a1c068b92b573cb\", " +
                 "algorithm=SHA";
         final AuthChallenge authChallenge = parse(challenge);
@@ -207,7 +208,7 @@ public class TestDigestScheme {
         final Credentials creds = new UsernamePasswordCredentials("username","password".toCharArray());
         credentialsProvider.setCredentials(authScope, creds);
 
-        final String challenge = "Digest realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\"";
+        final String challenge = AuthSchemes.DIGEST.id + " realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\"";
         final AuthChallenge authChallenge = parse(challenge);
         final DigestScheme authscheme = new DigestScheme();
         authscheme.processChallenge(authChallenge, null);
@@ -232,7 +233,7 @@ public class TestDigestScheme {
         final Credentials creds = new UsernamePasswordCredentials("username","password".toCharArray());
         credentialsProvider.setCredentials(authScope, creds);
 
-        final String challenge = "Digest no-realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\"";
+        final String challenge = AuthSchemes.DIGEST.id + " no-realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\"";
         final AuthChallenge authChallenge = parse(challenge);
         final DigestScheme authscheme = new DigestScheme();
         authscheme.processChallenge(authChallenge, null);
@@ -250,7 +251,7 @@ public class TestDigestScheme {
         final Credentials creds = new UsernamePasswordCredentials("username","password".toCharArray());
         credentialsProvider.setCredentials(authScope, creds);
 
-        final String challenge = "Digest realm=\"realm1\", no-nonce=\"f2a3f18799759d4f1a1c068b92b573cb\"";
+        final String challenge = AuthSchemes.DIGEST.id + " realm=\"realm1\", no-nonce=\"f2a3f18799759d4f1a1c068b92b573cb\"";
         final AuthChallenge authChallenge = parse(challenge);
         final DigestScheme authscheme = new DigestScheme();
         authscheme.processChallenge(authChallenge, null);
@@ -278,7 +279,7 @@ public class TestDigestScheme {
         final Credentials creds = new UsernamePasswordCredentials(username, password.toCharArray());
         credentialsProvider.setCredentials(authScope, creds);
 
-        final String challenge="Digest realm=\"" + realm + "\", "
+        final String challenge=AuthSchemes.DIGEST.id + " realm=\"" + realm + "\", "
             + "nonce=\"" + nonce + "\", "
             + "opaque=\"SomeString\", "
             + "stale=false, "
@@ -329,7 +330,7 @@ public class TestDigestScheme {
         final Credentials creds = new UsernamePasswordCredentials(username, password.toCharArray());
         credentialsProvider.setCredentials(authScope, creds);
 
-        final String challenge="Digest realm=\"" + realm + "\", "
+        final String challenge=AuthSchemes.DIGEST.id + " realm=\"" + realm + "\", "
             + "nonce=\"" + nonce + "\", "
             + "opaque=\"SomeString\", "
             + "stale=false, "
@@ -374,7 +375,7 @@ public class TestDigestScheme {
         final Credentials creds = new UsernamePasswordCredentials(username, password.toCharArray());
         credentialsProvider.setCredentials(authScope, creds);
 
-        final String challenge="Digest realm=\"" + realm + "\", "
+        final String challenge=AuthSchemes.DIGEST.id + " realm=\"" + realm + "\", "
             + "nonce=\"" + nonce + "\", "
             + "opaque=\"SomeString\", "
             + "stale=false, "
@@ -409,7 +410,7 @@ public class TestDigestScheme {
         final Credentials creds = new UsernamePasswordCredentials(username, password.toCharArray());
         credentialsProvider.setCredentials(authScope, creds);
 
-        final String challenge="Digest realm=\"" + realm + "\", "
+        final String challenge=AuthSchemes.DIGEST.id + " realm=\"" + realm + "\", "
             + "nonce=\"" + nonce + "\", "
             + "opaque=\"SomeString\", "
             + "stale=false, "
@@ -427,7 +428,7 @@ public class TestDigestScheme {
 
     @Test
     public void testDigestAuthenticationWithStaleNonce() throws Exception {
-        final String challenge = "Digest realm=\"realm1\", " +
+        final String challenge = AuthSchemes.DIGEST.id + " realm=\"realm1\", " +
                 "nonce=\"f2a3f18799759d4f1a1c068b92b573cb\", stale=\"true\"";
         final AuthChallenge authChallenge = parse(challenge);
         final AuthScheme authscheme = new DigestScheme();
@@ -437,7 +438,7 @@ public class TestDigestScheme {
     }
 
     private static Map<String, String> parseAuthResponse(final String authResponse) {
-        if (!authResponse.startsWith("Digest ")) {
+        if (!authResponse.startsWith(AuthSchemes.DIGEST.id + " ")) {
             return null;
         }
         final String s = authResponse.substring(7);
@@ -459,7 +460,7 @@ public class TestDigestScheme {
         final Credentials creds = new UsernamePasswordCredentials("username","password".toCharArray());
         credentialsProvider.setCredentials(authScope, creds);
 
-        final String challenge1 = "Digest realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\", qop=auth";
+        final String challenge1 = AuthSchemes.DIGEST.id + " realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\", qop=auth";
         final AuthChallenge authChallenge1 = parse(challenge1);
 
         final DigestScheme authscheme = new DigestScheme();
@@ -475,7 +476,7 @@ public class TestDigestScheme {
 
         final Map<String, String> table2 = parseAuthResponse(authResponse2);
         Assert.assertEquals("00000002", table2.get("nc"));
-        final String challenge2 = "Digest realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\", qop=auth";
+        final String challenge2 = AuthSchemes.DIGEST.id + " realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\", qop=auth";
         final AuthChallenge authChallenge2 = parse(challenge2);
         authscheme.processChallenge(authChallenge2, null);
 
@@ -484,7 +485,7 @@ public class TestDigestScheme {
 
         final Map<String, String> table3 = parseAuthResponse(authResponse3);
         Assert.assertEquals("00000003", table3.get("nc"));
-        final String challenge3 = "Digest realm=\"realm1\", nonce=\"e273f1776275974f1a120d8b92c5b3cb\", qop=auth";
+        final String challenge3 = AuthSchemes.DIGEST.id + " realm=\"realm1\", nonce=\"e273f1776275974f1a120d8b92c5b3cb\", qop=auth";
         final AuthChallenge authChallenge3 = parse(challenge3);
         authscheme.processChallenge(authChallenge3, null);
 
@@ -504,7 +505,7 @@ public class TestDigestScheme {
         final Credentials creds = new UsernamePasswordCredentials("username","password".toCharArray());
         credentialsProvider.setCredentials(authScope, creds);
 
-        final String challenge1 = "Digest qop=\"auth\", algorithm=MD5-sess, nonce=\"1234567890abcdef\", " +
+        final String challenge1 = AuthSchemes.DIGEST.id + " qop=\"auth\", algorithm=MD5-sess, nonce=\"1234567890abcdef\", " +
                 "charset=utf-8, realm=\"subnet.domain.com\"";
         final AuthChallenge authChallenge1 = parse(challenge1);
         final DigestScheme authscheme = new DigestScheme();
@@ -527,7 +528,7 @@ public class TestDigestScheme {
         Assert.assertEquals(cnonce1, cnonce2);
         Assert.assertEquals(sessionKey1, sessionKey2);
 
-        final String challenge2 = "Digest qop=\"auth\", algorithm=MD5-sess, nonce=\"1234567890abcdef\", " +
+        final String challenge2 = AuthSchemes.DIGEST.id + " qop=\"auth\", algorithm=MD5-sess, nonce=\"1234567890abcdef\", " +
             "charset=utf-8, realm=\"subnet.domain.com\"";
         final AuthChallenge authChallenge2 = parse(challenge2);
         authscheme.processChallenge(authChallenge2, null);
@@ -542,7 +543,7 @@ public class TestDigestScheme {
         Assert.assertEquals(cnonce1, cnonce3);
         Assert.assertEquals(sessionKey1, sessionKey3);
 
-        final String challenge3 = "Digest qop=\"auth\", algorithm=MD5-sess, nonce=\"fedcba0987654321\", " +
+        final String challenge3 = AuthSchemes.DIGEST.id + " qop=\"auth\", algorithm=MD5-sess, nonce=\"fedcba0987654321\", " +
             "charset=utf-8, realm=\"subnet.domain.com\"";
         final AuthChallenge authChallenge3 = parse(challenge3);
         authscheme.processChallenge(authChallenge3, null);
@@ -594,7 +595,7 @@ public class TestDigestScheme {
         final Credentials creds = new UsernamePasswordCredentials("username","password".toCharArray());
         credentialsProvider.setCredentials(authScope, creds);
 
-        final String challenge = "Digest realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\", " +
+        final String challenge = AuthSchemes.DIGEST.id + " realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\", " +
                 "qop=\"auth,auth-int\"";
         final AuthChallenge authChallenge = parse(challenge);
         final DigestScheme authscheme = new DigestScheme();
@@ -621,7 +622,7 @@ public class TestDigestScheme {
         final Credentials creds = new UsernamePasswordCredentials("username","password".toCharArray());
         credentialsProvider.setCredentials(authScope, creds);
 
-        final String challenge = "Digest realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\", " +
+        final String challenge = AuthSchemes.DIGEST.id + " realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\", " +
                 "qop=\"auth-int\"";
         final AuthChallenge authChallenge = parse(challenge);
         final DigestScheme authscheme = new DigestScheme();
@@ -649,7 +650,7 @@ public class TestDigestScheme {
         final Credentials creds = new UsernamePasswordCredentials("username","password".toCharArray());
         credentialsProvider.setCredentials(authScope, creds);
 
-        final String challenge = "Digest realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\", " +
+        final String challenge = AuthSchemes.DIGEST.id + " realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\", " +
                 "qop=\"auth,auth-int\"";
         final AuthChallenge authChallenge = parse(challenge);
         final DigestScheme authscheme = new DigestScheme();
@@ -676,7 +677,7 @@ public class TestDigestScheme {
         final Credentials creds = new UsernamePasswordCredentials("username","password".toCharArray());
         credentialsProvider.setCredentials(authScope, creds);
 
-        final String challenge = "Digest Realm=\"-\", " +
+        final String challenge = AuthSchemes.DIGEST.id + " Realm=\"-\", " +
                 "nonce=\"YjYuNGYyYmJhMzUuY2I5ZDhlZDE5M2ZlZDM 1Mjk3NGJkNTIyYjgyNTcwMjQ=\", " +
                 "opaque=\"98700A3D9CE17065E2246B41035C6609\", qop=\"auth\"";
         final AuthChallenge authChallenge = parse(challenge);
@@ -698,7 +699,7 @@ public class TestDigestScheme {
         final Credentials creds = new UsernamePasswordCredentials("username","password".toCharArray());
         credentialsProvider.setCredentials(authScope, creds);
 
-        final String challenge = "Digest realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\", " +
+        final String challenge = AuthSchemes.DIGEST.id + " realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\", " +
                 "qop=\"auth-int\"";
         final AuthChallenge authChallenge = parse(challenge);
         final DigestScheme authscheme = new DigestScheme();
@@ -710,7 +711,7 @@ public class TestDigestScheme {
 
     @Test
     public void testSerialization() throws Exception {
-        final String challenge = "Digest realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\", " +
+        final String challenge = AuthSchemes.DIGEST.id + " realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\", " +
                 "qop=\"auth,auth-int\"";
         final AuthChallenge authChallenge = parse(challenge);
         final DigestScheme digestScheme = new DigestScheme();

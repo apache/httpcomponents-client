@@ -78,7 +78,7 @@ public class TestSPNegoScheme extends LocalServerTestBase {
                 final ClassicHttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
             response.setCode(HttpStatus.SC_UNAUTHORIZED);
-            response.addHeader(new BasicHeader("WWW-Authenticate", "Negotiate blablabla"));
+            response.addHeader(new BasicHeader("WWW-Authenticate", AuthSchemes.SPNEGO.id + " blablabla"));
             response.addHeader(new BasicHeader("Connection", "Keep-Alive"));
             response.setEntity(new StringEntity("auth required "));
         }

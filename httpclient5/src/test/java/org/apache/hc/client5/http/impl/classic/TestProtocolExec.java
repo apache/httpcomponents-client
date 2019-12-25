@@ -39,6 +39,7 @@ import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.AuthExchange;
 import org.apache.hc.client5.http.auth.AuthScheme;
+import org.apache.hc.client5.http.auth.AuthSchemes;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.Credentials;
@@ -213,7 +214,7 @@ public class TestProtocolExec {
         final HttpClientContext context = new HttpClientContext();
         final ClassicHttpRequest request = new HttpGet("http://foo/test");
         final ClassicHttpResponse response1 = new BasicClassicHttpResponse(401, "Huh?");
-        response1.setHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=test");
+        response1.setHeader(HttpHeaders.WWW_AUTHENTICATE, AuthSchemes.BASIC.id + " realm=test");
         final InputStream inStream1 = Mockito.spy(new ByteArrayInputStream(new byte[] {1, 2, 3}));
         response1.setEntity(EntityBuilder.create()
                 .setStream(inStream1)
@@ -252,7 +253,7 @@ public class TestProtocolExec {
         final HttpRoute route = new HttpRoute(target, proxy);
         final ClassicHttpRequest request = new HttpGet("http://foo/test");
         final ClassicHttpResponse response1 = new BasicClassicHttpResponse(401, "Huh?");
-        response1.setHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=test");
+        response1.setHeader(HttpHeaders.WWW_AUTHENTICATE, AuthSchemes.BASIC.id + " realm=test");
         final InputStream inStream1 = Mockito.spy(new ByteArrayInputStream(new byte[] {1, 2, 3}));
         response1.setEntity(EntityBuilder.create()
                 .setStream(inStream1)
@@ -304,7 +305,7 @@ public class TestProtocolExec {
                 .setStream(inStream0)
                 .build());
         final ClassicHttpResponse response1 = new BasicClassicHttpResponse(401, "Huh?");
-        response1.setHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=test");
+        response1.setHeader(HttpHeaders.WWW_AUTHENTICATE, AuthSchemes.BASIC.id + " realm=test");
         final InputStream inStream1 = new ByteArrayInputStream(new byte[] {1, 2, 3});
         response1.setEntity(EntityBuilder.create()
                 .setStream(inStream1)

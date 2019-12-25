@@ -30,6 +30,7 @@ import java.security.Principal;
 
 import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.AuthScheme;
+import org.apache.hc.client5.http.auth.AuthSchemes;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.AuthenticationException;
 import org.apache.hc.client5.http.auth.Credentials;
@@ -80,7 +81,7 @@ public final class NTLMScheme implements AuthScheme {
 
     @Override
     public String getName() {
-        return "ntlm";
+        return AuthSchemes.NTLM.id;
     }
 
     @Override
@@ -168,7 +169,7 @@ public final class NTLMScheme implements AuthScheme {
         } else {
             throw new AuthenticationException("Unexpected state: " + this.state);
         }
-        return "NTLM " + response;
+        return AuthSchemes.NTLM.id + " " + response;
     }
 
     @Override

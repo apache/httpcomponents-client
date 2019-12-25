@@ -31,6 +31,7 @@ import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.apache.hc.client5.http.auth.AuthSchemes;
 import org.apache.hc.client5.testing.auth.Authenticator;
 import org.apache.hc.client5.testing.auth.BasicAuthTokenExtractor;
 import org.apache.hc.core5.http.ContentType;
@@ -95,7 +96,7 @@ public class AuthenticatingAsyncDecorator implements AsyncServerExchangeHandler 
         } else {
             final HttpResponse unauthorized = new BasicHttpResponse(HttpStatus.SC_UNAUTHORIZED);
             final String realm = authenticator.getRealm(authority, requestUri);
-            unauthorized.addHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"" + realm + "\"");
+            unauthorized.addHeader(HttpHeaders.WWW_AUTHENTICATE, AuthSchemes.BASIC.id + " realm=\"" + realm + "\"");
 
             customizeUnauthorizedResponse(unauthorized);
 
