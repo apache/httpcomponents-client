@@ -38,7 +38,7 @@ import org.apache.hc.core5.http.io.entity.EntityUtils;
 
 /**
  * An example of how HttpClient can be customized to authenticate
- * preemptively using BASIC scheme.
+ * preemptively using Basic scheme.
  * <b/>
  * Generally, preemptive authentication can be considered less
  * secure than a response to an authentication challenge
@@ -49,7 +49,7 @@ public class ClientPreemptiveBasicAuthentication {
     public static void main(final String[] args) throws Exception {
         try (final CloseableHttpClient httpclient = HttpClients.createDefault()) {
 
-            // Generate BASIC scheme object and add it to the local auth cache
+            // Generate Basic scheme object and add it to the local auth cache
             final BasicScheme basicAuth = new BasicScheme();
             basicAuth.initPreemptive(new UsernamePasswordCredentials("user", "passwd".toCharArray()));
 

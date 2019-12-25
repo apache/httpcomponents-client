@@ -34,7 +34,7 @@ import org.ietf.jgss.GSSException;
 import org.ietf.jgss.Oid;
 
 /**
- * KERBEROS authentication scheme.
+ * Kerberos authentication scheme.
  * <p>
  * Please note this class is considered experimental and may be discontinued or removed
  * in the future.

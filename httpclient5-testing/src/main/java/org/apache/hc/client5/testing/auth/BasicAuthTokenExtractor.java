@@ -52,7 +52,7 @@ public class BasicAuthTokenExtractor {
                     final BinaryDecoder codec = new Base64();
                     return new String(codec.decode(credsRaw), StandardCharsets.US_ASCII);
                 } catch (final DecoderException ex) {
-                    throw new ProtocolException("Malformed BASIC credentials");
+                    throw new ProtocolException("Malformed Basic credentials");
                 }
             }
         }
