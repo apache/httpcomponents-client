@@ -942,11 +942,11 @@ public class HttpClientBuilder {
         Lookup<AuthSchemeProvider> authSchemeRegistryCopy = this.authSchemeRegistry;
         if (authSchemeRegistryCopy == null) {
             authSchemeRegistryCopy = RegistryBuilder.<AuthSchemeProvider>create()
-                .register(AuthSchemes.BASIC.ident, new BasicSchemeFactory())
-                .register(AuthSchemes.DIGEST.ident, new DigestSchemeFactory())
-                .register(AuthSchemes.NTLM.ident, new NTLMSchemeFactory())
-                .register(AuthSchemes.SPNEGO.ident, new SPNegoSchemeFactory(KerberosConfig.DEFAULT, SystemDefaultDnsResolver.INSTANCE))
-                .register(AuthSchemes.KERBEROS.ident, new KerberosSchemeFactory(KerberosConfig.DEFAULT, SystemDefaultDnsResolver.INSTANCE))
+                .register(AuthSchemes.BASIC.id, new BasicSchemeFactory())
+                .register(AuthSchemes.DIGEST.id, new DigestSchemeFactory())
+                .register(AuthSchemes.NTLM.id, new NTLMSchemeFactory())
+                .register(AuthSchemes.SPNEGO.id, new SPNegoSchemeFactory(KerberosConfig.DEFAULT, SystemDefaultDnsResolver.INSTANCE))
+                .register(AuthSchemes.KERBEROS.id, new KerberosSchemeFactory(KerberosConfig.DEFAULT, SystemDefaultDnsResolver.INSTANCE))
                 .build();
         }
         Lookup<CookieSpecProvider> cookieSpecRegistryCopy = this.cookieSpecRegistry;

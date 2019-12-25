@@ -81,10 +81,10 @@ public class TestWindowsNegotiateScheme extends LocalServerTestBase {
         // you can contact the server that authenticated you." is associated with SEC_E_DOWNGRADE_DETECTED.
 
         final Registry<AuthSchemeProvider> authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
-            .register(AuthSchemes.SPNEGO.ident, new AuthSchemeProvider() {
+            .register(AuthSchemes.SPNEGO.id, new AuthSchemeProvider() {
                 @Override
                 public AuthScheme create(final HttpContext context) {
-                    return new WindowsNegotiateSchemeGetTokenFail(AuthSchemes.SPNEGO.ident, "HTTP/example.com");
+                    return new WindowsNegotiateSchemeGetTokenFail(AuthSchemes.SPNEGO.id, "HTTP/example.com");
                 }
             }).build();
         final CloseableHttpClient customClient = HttpClientBuilder.create()

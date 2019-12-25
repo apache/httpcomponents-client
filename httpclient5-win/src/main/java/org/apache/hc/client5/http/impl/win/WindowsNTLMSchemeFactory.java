@@ -54,7 +54,7 @@ public class WindowsNTLMSchemeFactory implements AuthSchemeProvider {
 
     @Override
     public AuthScheme create(final HttpContext context) {
-        return new WindowsNegotiateScheme(AuthSchemes.NTLM.ident, servicePrincipalName);
+        return new WindowsNegotiateScheme(AuthSchemes.NTLM.id, servicePrincipalName);
     }
 
 }

@@ -65,11 +65,11 @@ public class DefaultAuthenticationStrategy implements AuthenticationStrategy {
 
     private static final List<String> DEFAULT_SCHEME_PRIORITY =
         Collections.unmodifiableList(Arrays.asList(
-                AuthSchemes.SPNEGO.ident,
-                AuthSchemes.KERBEROS.ident,
-                AuthSchemes.NTLM.ident,
-                AuthSchemes.DIGEST.ident,
-                AuthSchemes.BASIC.ident));
+                AuthSchemes.SPNEGO.id,
+                AuthSchemes.KERBEROS.id,
+                AuthSchemes.NTLM.id,
+                AuthSchemes.DIGEST.id,
+                AuthSchemes.BASIC.id));
 
     @Override
     public List<AuthScheme> select(

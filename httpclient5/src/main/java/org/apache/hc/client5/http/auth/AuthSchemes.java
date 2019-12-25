@@ -65,10 +65,10 @@ public enum AuthSchemes {
      */
     KERBEROS("Kerberos");
 
-    public final String ident;
+    public final String id;
 
-    AuthSchemes(final String ident) {
-        this.ident = ident;
+    AuthSchemes(final String id) {
+        this.id = id;
     }
 
 }

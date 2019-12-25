@@ -149,7 +149,7 @@ public class SystemDefaultCredentialsProvider implements CredentialsStore {
                 if (domain != null) {
                     return new NTCredentials(systemcreds.getUserName(), systemcreds.getPassword(), null, domain);
                 }
-                if (AuthSchemes.NTLM.ident.equalsIgnoreCase(authScope.getAuthScheme())) {
+                if (AuthSchemes.NTLM.id.equalsIgnoreCase(authScope.getAuthScheme())) {
                     // Domain may be specified in a fully qualified user name
                     return new NTCredentials(
                             systemcreds.getUserName(), systemcreds.getPassword(), null, null);

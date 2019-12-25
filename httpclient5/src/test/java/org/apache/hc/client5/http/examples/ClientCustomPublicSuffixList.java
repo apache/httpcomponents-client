@@ -63,8 +63,8 @@ public class ClientCustomPublicSuffixList {
 
         final RFC6265CookieSpecProvider cookieSpecProvider = new RFC6265CookieSpecProvider(publicSuffixMatcher);
         final Lookup<CookieSpecProvider> cookieSpecRegistry = RegistryBuilder.<CookieSpecProvider>create()
-                .register(CookieSpecs.STANDARD.ident, cookieSpecProvider)
-                .register(CookieSpecs.STANDARD_STRICT.ident, cookieSpecProvider)
+                .register(CookieSpecs.STANDARD.id, cookieSpecProvider)
+                .register(CookieSpecs.STANDARD_STRICT.id, cookieSpecProvider)
                 .build();
         final SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
                 SSLContexts.createDefault(),

@@ -73,10 +73,10 @@ public class TestRequestConfig {
                 .setRedirectsEnabled(false)
                 .setCircularRedirectsAllowed(true)
                 .setMaxRedirects(100)
-                .setCookieSpec(CookieSpecs.STANDARD.ident)
+                .setCookieSpec(CookieSpecs.STANDARD.id)
                 .setProxy(new HttpHost("someproxy"))
-                .setTargetPreferredAuthSchemes(Collections.singletonList(AuthSchemes.NTLM.ident))
-                .setProxyPreferredAuthSchemes(Collections.singletonList(AuthSchemes.DIGEST.ident))
+                .setTargetPreferredAuthSchemes(Collections.singletonList(AuthSchemes.NTLM.id))
+                .setProxyPreferredAuthSchemes(Collections.singletonList(AuthSchemes.DIGEST.id))
                 .setContentCompressionEnabled(false)
                 .build();
         final RequestConfig config = RequestConfig.copy(config0).build();
@@ -87,10 +87,10 @@ public class TestRequestConfig {
         Assert.assertEquals(false, config.isRedirectsEnabled());
         Assert.assertEquals(true, config.isCircularRedirectsAllowed());
         Assert.assertEquals(100, config.getMaxRedirects());
-        Assert.assertEquals(CookieSpecs.STANDARD.ident, config.getCookieSpec());
+        Assert.assertEquals(CookieSpecs.STANDARD.id, config.getCookieSpec());
         Assert.assertEquals(new HttpHost("someproxy"), config.getProxy());
-        Assert.assertEquals(Collections.singletonList(AuthSchemes.NTLM.ident), config.getTargetPreferredAuthSchemes());
-        Assert.assertEquals(Collections.singletonList(AuthSchemes.DIGEST.ident), config.getProxyPreferredAuthSchemes());
+        Assert.assertEquals(Collections.singletonList(AuthSchemes.NTLM.id), config.getTargetPreferredAuthSchemes());
+        Assert.assertEquals(Collections.singletonList(AuthSchemes.DIGEST.id), config.getProxyPreferredAuthSchemes());
         Assert.assertEquals(false, config.isContentCompressionEnabled());
     }
 

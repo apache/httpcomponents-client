@@ -130,7 +130,7 @@ public class TestAuthenticationStrategy {
     public void testCustomAuthPreference() throws Exception {
         final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
         final RequestConfig config = RequestConfig.custom()
-            .setTargetPreferredAuthSchemes(Collections.singletonList(AuthSchemes.BASIC.ident))
+            .setTargetPreferredAuthSchemes(Collections.singletonList(AuthSchemes.BASIC.id))
             .build();
 
         final HttpClientContext context = HttpClientContext.create();
