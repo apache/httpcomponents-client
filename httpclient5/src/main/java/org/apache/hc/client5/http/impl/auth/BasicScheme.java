@@ -42,6 +42,7 @@ import java.util.Map;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.AuthScheme;
+import org.apache.hc.client5.http.auth.AuthSchemes;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.AuthStateCacheable;
 import org.apache.hc.client5.http.auth.AuthenticationException;
@@ -99,7 +100,7 @@ public class BasicScheme implements AuthScheme, Serializable {
 
     @Override
     public String getName() {
-        return "basic";
+        return AuthSchemes.BASIC.id;
     }
 
     @Override
@@ -173,7 +174,7 @@ public class BasicScheme implements AuthScheme, Serializable {
         }
         final byte[] encodedCreds = this.base64codec.encode(this.buffer.toByteArray());
         this.buffer.reset();
-        return "Basic " + new String(encodedCreds, 0, encodedCreds.length, StandardCharsets.US_ASCII);
+        return AuthSchemes.BASIC.id + " " + new String(encodedCreds, 0, encodedCreds.length, StandardCharsets.US_ASCII);
     }
 
     private void writeObject(final ObjectOutputStream out) throws IOException {

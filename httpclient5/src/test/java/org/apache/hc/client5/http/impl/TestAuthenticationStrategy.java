@@ -29,6 +29,7 @@ package org.apache.hc.client5.http.impl;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import org.apache.hc.client5.http.auth.AuthChallenge;
@@ -84,9 +85,9 @@ public class TestAuthenticationStrategy {
         final HttpClientContext context = HttpClientContext.create();
 
         final Map<String, AuthChallenge> challenges = new HashMap<>();
-        challenges.put("basic", new AuthChallenge(ChallengeType.TARGET, "Basic",
+        challenges.put(AuthSchemes.BASIC.id.toLowerCase(Locale.ROOT), new AuthChallenge(ChallengeType.TARGET, AuthSchemes.BASIC.id,
                 new BasicNameValuePair("realm", "test")));
-        challenges.put("digest", new AuthChallenge(ChallengeType.TARGET, "Digest",
+        challenges.put(AuthSchemes.DIGEST.id.toLowerCase(Locale.ROOT), new AuthChallenge(ChallengeType.TARGET, AuthSchemes.DIGEST.id,
                 new BasicNameValuePair("realm", "test"), new BasicNameValuePair("nonce", "1234")));
 
         final List<AuthScheme> authSchemes = authStrategy.select(ChallengeType.TARGET, challenges, context);
@@ -100,16 +101,16 @@ public class TestAuthenticationStrategy {
         final HttpClientContext context = HttpClientContext.create();
 
         final Map<String, AuthChallenge> challenges = new HashMap<>();
-        challenges.put("basic", new AuthChallenge(ChallengeType.TARGET, "Basic",
+        challenges.put(AuthSchemes.BASIC.id.toLowerCase(Locale.ROOT), new AuthChallenge(ChallengeType.TARGET, AuthSchemes.BASIC.id,
                 new BasicNameValuePair("realm", "realm1")));
-        challenges.put("digest", new AuthChallenge(ChallengeType.TARGET, "Digest",
+        challenges.put(AuthSchemes.DIGEST.id.toLowerCase(Locale.ROOT), new AuthChallenge(ChallengeType.TARGET, AuthSchemes.DIGEST.id,
                 new BasicNameValuePair("realm", "realm2"), new BasicNameValuePair("nonce", "1234")));
         challenges.put("whatever", new AuthChallenge(ChallengeType.TARGET, "Whatever",
                 new BasicNameValuePair("realm", "realm3")));
 
         final Registry<AuthSchemeProvider> authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
-            .register("basic", new BasicSchemeFactory())
-            .register("digest", new DigestSchemeFactory()).build();
+            .register(AuthSchemes.BASIC.id, new BasicSchemeFactory())
+            .register(AuthSchemes.DIGEST.id, new DigestSchemeFactory()).build();
         context.setAuthSchemeRegistry(authSchemeRegistry);
 
         final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
@@ -136,14 +137,14 @@ public class TestAuthenticationStrategy {
         final HttpClientContext context = HttpClientContext.create();
 
         final Map<String, AuthChallenge> challenges = new HashMap<>();
-        challenges.put("basic", new AuthChallenge(ChallengeType.TARGET, "Basic",
+        challenges.put(AuthSchemes.BASIC.id.toLowerCase(Locale.ROOT), new AuthChallenge(ChallengeType.TARGET, AuthSchemes.BASIC.id,
                 new BasicNameValuePair("realm", "realm1")));
-        challenges.put("digest", new AuthChallenge(ChallengeType.TARGET, "Digest",
+        challenges.put(AuthSchemes.DIGEST.id.toLowerCase(Locale.ROOT), new AuthChallenge(ChallengeType.TARGET, AuthSchemes.DIGEST.id,
                 new BasicNameValuePair("realm", "realm2"), new BasicNameValuePair("nonce", "1234")));
 
         final Registry<AuthSchemeProvider> authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
-            .register("basic", new BasicSchemeFactory())
-            .register("digest", new DigestSchemeFactory()).build();
+            .register(AuthSchemes.BASIC.id, new BasicSchemeFactory())
+            .register(AuthSchemes.DIGEST.id, new DigestSchemeFactory()).build();
         context.setAuthSchemeRegistry(authSchemeRegistry);
         context.setRequestConfig(config);
 

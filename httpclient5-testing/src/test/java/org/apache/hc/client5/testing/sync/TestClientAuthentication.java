@@ -39,6 +39,7 @@ import org.apache.hc.client5.http.auth.AuthCache;
 import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.AuthSchemeProvider;
+import org.apache.hc.client5.http.auth.AuthSchemes;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.Credentials;
@@ -719,7 +720,7 @@ public class TestClientAuthentication extends LocalServerTestBase {
 
                             @Override
                             protected void customizeUnauthorizedResponse(final ClassicHttpResponse unauthorized) {
-                                unauthorized.addHeader(HttpHeaders.WWW_AUTHENTICATE, "Digest realm=\"test realm\" invalid");
+                                unauthorized.addHeader(HttpHeaders.WWW_AUTHENTICATE, AuthSchemes.DIGEST.id + " realm=\"test realm\" invalid");
                             }
 
                         };

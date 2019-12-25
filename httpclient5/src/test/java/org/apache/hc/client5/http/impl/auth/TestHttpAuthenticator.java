@@ -94,9 +94,9 @@ public class TestHttpAuthenticator {
         this.credentialsProvider = Mockito.mock(CredentialsProvider.class);
         this.context.setAttribute(HttpClientContext.CREDS_PROVIDER, this.credentialsProvider);
         this.authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
-            .register("basic", new BasicSchemeFactory())
-            .register("digest", new DigestSchemeFactory())
-            .register("ntlm", new NTLMSchemeFactory()).build();
+            .register(AuthSchemes.BASIC.id, new BasicSchemeFactory())
+            .register(AuthSchemes.DIGEST.id, new DigestSchemeFactory())
+            .register(AuthSchemes.NTLM.id, new NTLMSchemeFactory()).build();
         this.context.setAttribute(HttpClientContext.AUTHSCHEME_REGISTRY, this.authSchemeRegistry);
         this.authCache = Mockito.mock(AuthCache.class);
         this.context.setAttribute(HttpClientContext.AUTH_CACHE, this.authCache);
@@ -106,7 +106,7 @@ public class TestHttpAuthenticator {
     @Test
     public void testUpdateAuthExchange() throws Exception {
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
-        response.setHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=test");
+        response.setHeader(HttpHeaders.WWW_AUTHENTICATE, AuthSchemes.BASIC.id + " realm=test");
         Assert.assertTrue(this.httpAuthenticator.isChallenged(
                 this.defaultHost, ChallengeType.TARGET, response, this.authExchange, this.context));
         Mockito.verifyZeroInteractions(this.authCache);
@@ -115,7 +115,7 @@ public class TestHttpAuthenticator {
     @Test
     public void testAuthenticationRequestedAfterSuccess() throws Exception {
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
-        response.setHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=test");
+        response.setHeader(HttpHeaders.WWW_AUTHENTICATE, AuthSchemes.BASIC.id + " realm=test");
 
         this.authExchange.select(this.authScheme);
         this.authExchange.setState(AuthExchange.State.SUCCESS);
@@ -165,8 +165,8 @@ public class TestHttpAuthenticator {
     public void testAuthentication() throws Exception {
         final HttpHost host = new HttpHost("somehost", 80);
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
-        response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"test\""));
-        response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, "Digest realm=\"realm1\", nonce=\"1234\""));
+        response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, AuthSchemes.BASIC.id + " realm=\"test\""));
+        response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, AuthSchemes.DIGEST.id + " realm=\"realm1\", nonce=\"1234\""));
         response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, "whatever realm=\"realm1\", stuff=\"1234\""));
 
         final Credentials credentials = new UsernamePasswordCredentials("user", "pass".toCharArray());
@@ -183,10 +183,10 @@ public class TestHttpAuthenticator {
         Assert.assertNotNull(options);
         final AuthScheme authScheme1 = options.poll();
         Assert.assertNotNull(authScheme1);
-        Assert.assertEquals("digest", authScheme1.getName());
+        Assert.assertEquals(AuthSchemes.DIGEST.id, authScheme1.getName());
         final AuthScheme authScheme2 = options.poll();
         Assert.assertNotNull(authScheme2);
-        Assert.assertEquals("basic", authScheme2.getName());
+        Assert.assertEquals(AuthSchemes.BASIC.id, authScheme2.getName());
         Assert.assertNull(options.poll());
     }
 
@@ -195,11 +195,11 @@ public class TestHttpAuthenticator {
         final HttpHost host = new HttpHost("somehost", 80);
         final HttpResponse response =
             new BasicHttpResponse(HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
-        response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"test\""));
-        response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, "Digest realm=\"realm1\", nonce=\"1234\""));
+        response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, AuthSchemes.BASIC.id + " realm=\"test\""));
+        response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, AuthSchemes.DIGEST.id + " realm=\"realm1\", nonce=\"1234\""));
 
         final Credentials credentials = new UsernamePasswordCredentials("user", "pass".toCharArray());
-        Mockito.when(this.credentialsProvider.getCredentials(Mockito.eq(new AuthScope(host, "test", "basic")),
+        Mockito.when(this.credentialsProvider.getCredentials(Mockito.eq(new AuthScope(host, "test", AuthSchemes.BASIC.id)),
                                                              Mockito.<HttpContext>any())).thenReturn(credentials);
 
         final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
@@ -212,7 +212,7 @@ public class TestHttpAuthenticator {
         Assert.assertNotNull(options);
         final AuthScheme authScheme1 = options.poll();
         Assert.assertNotNull(authScheme1);
-        Assert.assertEquals("basic", authScheme1.getName());
+        Assert.assertEquals(AuthSchemes.BASIC.id, authScheme1.getName());
         Assert.assertNull(options.poll());
     }
 
@@ -244,8 +244,8 @@ public class TestHttpAuthenticator {
     public void testAuthenticationNoCredentials() throws Exception {
         final HttpHost host = new HttpHost("somehost", 80);
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
-        response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"test\""));
-        response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, "Digest realm=\"realm1\", nonce=\"1234\""));
+        response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, AuthSchemes.BASIC.id + " realm=\"test\""));
+        response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, AuthSchemes.DIGEST.id + " realm=\"realm1\", nonce=\"1234\""));
 
         final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
 
@@ -257,8 +257,8 @@ public class TestHttpAuthenticator {
     public void testAuthenticationFailed() throws Exception {
         final HttpHost host = new HttpHost("somehost", 80);
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
-        response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"test\""));
-        response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, "Digest realm=\"realm1\", nonce=\"1234\""));
+        response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, AuthSchemes.BASIC.id + " realm=\"test\""));
+        response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, AuthSchemes.DIGEST.id + " realm=\"realm1\", nonce=\"1234\""));
 
         this.authExchange.setState(AuthExchange.State.CHALLENGED);
         this.authExchange.select(this.authScheme);
@@ -277,8 +277,8 @@ public class TestHttpAuthenticator {
     public void testAuthenticationFailedPreviously() throws Exception {
         final HttpHost host = new HttpHost("somehost", 80);
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
-        response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"test\""));
-        response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, "Digest realm=\"realm1\", nonce=\"1234\""));
+        response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, AuthSchemes.BASIC.id + " realm=\"test\""));
+        response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, AuthSchemes.DIGEST.id + " realm=\"realm1\", nonce=\"1234\""));
 
         this.authExchange.setState(AuthExchange.State.FAILURE);
 
@@ -294,8 +294,8 @@ public class TestHttpAuthenticator {
     public void testAuthenticationFailure() throws Exception {
         final HttpHost host = new HttpHost("somehost", 80);
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
-        response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"test\""));
-        response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, "Digest realm=\"realm1\", nonce=\"1234\""));
+        response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, AuthSchemes.BASIC.id + " realm=\"test\""));
+        response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, AuthSchemes.DIGEST.id + " realm=\"realm1\", nonce=\"1234\""));
         response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, "whatever realm=\"realm1\", stuff=\"1234\""));
 
         final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
@@ -312,8 +312,8 @@ public class TestHttpAuthenticator {
     public void testAuthenticationHandshaking() throws Exception {
         final HttpHost host = new HttpHost("somehost", 80);
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
-        response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"test\""));
-        response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, "Digest realm=\"realm1\", stale=true, nonce=\"1234\""));
+        response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, AuthSchemes.BASIC.id + " realm=\"test\""));
+        response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, AuthSchemes.DIGEST.id + " realm=\"realm1\", stale=true, nonce=\"1234\""));
         response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, "whatever realm=\"realm1\", stuff=\"1234\""));
 
         final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
@@ -331,11 +331,11 @@ public class TestHttpAuthenticator {
     public void testAuthenticationNoMatchingChallenge() throws Exception {
         final HttpHost host = new HttpHost("somehost", 80);
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
-        response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, "Digest realm=\"realm1\", nonce=\"1234\""));
+        response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, AuthSchemes.DIGEST.id + " realm=\"realm1\", nonce=\"1234\""));
         response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, "whatever realm=\"realm1\", stuff=\"1234\""));
 
         final Credentials credentials = new UsernamePasswordCredentials("user", "pass".toCharArray());
-        Mockito.when(this.credentialsProvider.getCredentials(Mockito.eq(new AuthScope(host, "realm1", "digest")),
+        Mockito.when(this.credentialsProvider.getCredentials(Mockito.eq(new AuthScope(host, "realm1", AuthSchemes.DIGEST.id)),
                                                              Mockito.<HttpContext>any())).thenReturn(credentials);
 
         final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
@@ -351,7 +351,7 @@ public class TestHttpAuthenticator {
         Assert.assertNotNull(options);
         final AuthScheme authScheme1 = options.poll();
         Assert.assertNotNull(authScheme1);
-        Assert.assertEquals("digest", authScheme1.getName());
+        Assert.assertEquals(AuthSchemes.DIGEST.id, authScheme1.getName());
         Assert.assertNull(options.poll());
     }
 
