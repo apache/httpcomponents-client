@@ -42,9 +42,9 @@ import org.apache.hc.core5.http.io.entity.EntityUtils;
 
 /**
  * An example of how HttpClient can authenticate multiple requests
- * using the same DIGEST scheme. After the initial request / response exchange
+ * using the same Digest scheme. After the initial request / response exchange
  * all subsequent requests sharing the same execution context can re-use
- * the last DIGEST nonce value to authenticate with the server.
+ * the last Digest nonce value to authenticate with the server.
  */
 public class ClientPreemptiveDigestAuthentication {
 
