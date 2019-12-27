@@ -32,6 +32,7 @@ import java.net.PasswordAuthentication;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -62,11 +63,11 @@ public class SystemDefaultCredentialsProvider implements CredentialsStore {
 
     static {
         SCHEME_MAP = new ConcurrentHashMap<>();
-        SCHEME_MAP.put(AuthSchemes.BASIC.name(), "Basic");
-        SCHEME_MAP.put(AuthSchemes.DIGEST.name(), "Digest");
-        SCHEME_MAP.put(AuthSchemes.NTLM.name(), "NTLM");
-        SCHEME_MAP.put(AuthSchemes.SPNEGO.name(), "SPNEGO");
-        SCHEME_MAP.put(AuthSchemes.KERBEROS.name(), "Kerberos");
+        SCHEME_MAP.put(AuthSchemes.BASIC.id.toLowerCase(Locale.ROOT), "Basic");
+        SCHEME_MAP.put(AuthSchemes.DIGEST.id.toLowerCase(Locale.ROOT), "Digest");
+        SCHEME_MAP.put(AuthSchemes.NTLM.id.toLowerCase(Locale.ROOT), "NTLM");
+        SCHEME_MAP.put(AuthSchemes.SPNEGO.id.toLowerCase(Locale.ROOT), "SPNEGO");
+        SCHEME_MAP.put(AuthSchemes.KERBEROS.id.toLowerCase(Locale.ROOT), "Kerberos");
     }
 
     private static String translateAuthScheme(final String key) {
