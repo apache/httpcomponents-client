@@ -54,7 +54,7 @@ public interface AuthenticationStrategy {
      * in their order of preference.
      *
      * @param challengeType challenge type.
-     * @param challenges collection of challenges.
+     * @param challenges map of challenges keyed by lowercase auth scheme names.
      * @param context HTTP context.
      * @return authentication auth schemes that can be used for authentication. Can be empty.
      *
