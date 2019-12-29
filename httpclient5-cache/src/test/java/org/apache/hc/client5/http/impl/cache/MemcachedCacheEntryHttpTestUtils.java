@@ -55,7 +55,6 @@ class MemcachedCacheEntryHttpTestUtils {
     private final static String TEST_RESOURCE_DIR = "src/test/resources/";
     static final String TEST_STORAGE_KEY = "xyzzy";
 
-
     /**
      * Template for incrementally building a new HttpCacheStorageEntry test object, starting from defaults.
      */
@@ -331,5 +330,4 @@ class MemcachedCacheEntryHttpTestUtils {
             throw new IOException(String.format("Expected to read %d bytes but only got %d", intLength, bytesRead));
         }
     }
-
 }
