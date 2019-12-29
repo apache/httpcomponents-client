@@ -150,7 +150,7 @@ public class HttpByteArrayCacheEntrySerializer implements HttpCacheEntrySerializ
             final String storageKey = getCachePseudoHeaderAndRemove(response, SC_HEADER_NAME_STORAGE_KEY);
             final Date requestDate = getCachePseudoHeaderDateAndRemove(response, SC_HEADER_NAME_REQUEST_DATE);
             final Date responseDate = getCachePseudoHeaderDateAndRemove(response, SC_HEADER_NAME_RESPONSE_DATE);
-            final boolean noBody = Boolean.parseBoolean(getOptionalCachePseudoHeaderAndRemove(response, SC_HEADER_NAME_NO_CONTENT));
+            final boolean noBody = getCachePseudoHeaderBooleanAndRemove(response, SC_HEADER_NAME_NO_CONTENT);
             final Map<String, String> variantMap = getVariantMapPseudoHeadersAndRemove(response);
             unescapeHeaders(response);
 
@@ -308,6 +308,19 @@ public class HttpByteArrayCacheEntrySerializer implements HttpCacheEntrySerializ
             throw new ResourceIOException("Invalid value for header '" + name + "'", e);
         }
     }
+
+    /**
+     * Get the boolean value for a single metadata pseudo-header, and remove it from the response object.
+     *
+     * @param response Response object to get and remove the pseudo-header from
+     * @param name     Name of metadata pseudo-header
+     * @return Value for metadata pseudo-header
+     */
+    private static boolean getCachePseudoHeaderBooleanAndRemove(ClassicHttpResponse response, String name) {
+        // parseBoolean does not throw any exceptions, so no try/catch required.
+        return Boolean.parseBoolean(getOptionalCachePseudoHeaderAndRemove(response, name));
+    }
+
 
     /**
      * Get the variant map metadata pseudo-header, and remove it from the response object.
