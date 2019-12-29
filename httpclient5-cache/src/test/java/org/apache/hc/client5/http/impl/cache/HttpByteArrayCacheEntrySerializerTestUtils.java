@@ -155,20 +155,22 @@ class HttpByteArrayCacheEntrySerializerTestUtils {
      * @throws Exception if anything goes wrong
      */
     static void verifyHttpCacheEntryFromBytes(final HttpCacheEntrySerializer<byte[]> serializer, final HttpCacheStorageEntry httpCacheStorageEntry, final byte[] testBytes) throws Exception {
-        final HttpCacheStorageEntry testMemcachedCacheEntryFromBytes = memcachedCacheEntryFromBytes(serializer, testBytes);
+        final HttpCacheStorageEntry testEntry = httpCacheStorageEntryFromBytes(serializer, testBytes);
 
-        assertCacheEntriesEqual(httpCacheStorageEntry, testMemcachedCacheEntryFromBytes);
+        assertCacheEntriesEqual(httpCacheStorageEntry, testEntry);
     }
 
     /**
-     * Verify that the given test file deserializes to the given storage key and an equivalent cache entry.
+     * Verify that the given test file deserializes to a cache entry equivalent to the one given.
      *
      * @param serializer Deserializer
      * @param httpCacheStorageEntry    Cache entry to verify
      * @param testFileName  Name of test file to deserialize
+     * @param reserializeFiles If true, test files will be regenerated and saved to disk
      * @throws Exception if anything goes wrong
      */
-    static void verifyHttpCacheEntryFromTestFile(final HttpCacheEntrySerializer<byte[]> serializer, final HttpCacheStorageEntry httpCacheStorageEntry,
+    static void verifyHttpCacheEntryFromTestFile(final HttpCacheEntrySerializer<byte[]> serializer,
+                                                 final HttpCacheStorageEntry httpCacheStorageEntry,
                                                  final String testFileName,
                                                  final boolean reserializeFiles) throws Exception {
         if (reserializeFiles) {
@@ -196,13 +198,13 @@ class HttpByteArrayCacheEntrySerializerTestUtils {
     }
 
     /**
-     * Create a new memcached cache object from the given bytes.
+     * Create a new cache object from the given bytes.
      *
      * @param serializer Deserializer
      * @param testBytes         Bytes to deserialize
      * @return Deserialized object
      */
-    static HttpCacheStorageEntry memcachedCacheEntryFromBytes(final HttpCacheEntrySerializer<byte[]> serializer, final byte[] testBytes) throws ResourceIOException {
+    static HttpCacheStorageEntry httpCacheStorageEntryFromBytes(final HttpCacheEntrySerializer<byte[]> serializer, final byte[] testBytes) throws ResourceIOException {
         return serializer.deserialize(testBytes);
     }
 
@@ -266,7 +268,7 @@ class HttpByteArrayCacheEntrySerializerTestUtils {
     }
 
     /**
-     * Save the given storage key and cache entry serialized to the given file.
+     * Save the given cache entry serialized to the given file.
      *
      * @param serializer Serializer
      * @param httpCacheStorageEntry Cache entry to serialize and save
@@ -289,10 +291,11 @@ class HttpByteArrayCacheEntrySerializerTestUtils {
 
     /**
      * Copy bytes from the given input stream to the given destination buffer until the buffer is full,
-     * or end-of-file is reached.
+     * or end-of-file is reached, and return the number of bytes read.
      *
      * @param src Input stream to read from
      * @param dest Output buffer to write to
+     * @return Number of bytes read
      * @throws IOException if an I/O error occurs
      */
     private static int readFully(final InputStream src, final byte[] dest) throws IOException {
@@ -313,6 +316,7 @@ class HttpByteArrayCacheEntrySerializerTestUtils {
      *
      * @param src Input stream to read from
      * @param length Maximum bytes to read
+     * @return All bytes from file
      * @throws IOException if an I/O error occurs or end-of-file is reached before the requested
      *                     number of bytes have been read
      */

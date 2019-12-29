@@ -50,7 +50,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import static org.apache.hc.client5.http.impl.cache.HttpByteArrayCacheEntrySerializerTestUtils.makeTestFileObject;
-import static org.apache.hc.client5.http.impl.cache.HttpByteArrayCacheEntrySerializerTestUtils.memcachedCacheEntryFromBytes;
+import static org.apache.hc.client5.http.impl.cache.HttpByteArrayCacheEntrySerializerTestUtils.httpCacheStorageEntryFromBytes;
 import static org.apache.hc.client5.http.impl.cache.HttpByteArrayCacheEntrySerializerTestUtils.readTestFileBytes;
 import static org.apache.hc.client5.http.impl.cache.HttpByteArrayCacheEntrySerializerTestUtils.testWithCache;
 import static org.apache.hc.client5.http.impl.cache.HttpByteArrayCacheEntrySerializerTestUtils.verifyHttpCacheEntryFromTestFile;
@@ -73,7 +73,7 @@ public class TestHttpByteArrayCacheEntrySerializer {
 
     private HttpCacheEntrySerializer<byte[]> serializer;
 
-    // Manually set this to true to re-generate all of the .serialized files
+    // Manually set this to true to re-generate all of the serialized files
     private final boolean reserializeFiles = false;
 
     @Before
@@ -191,7 +191,7 @@ public class TestHttpByteArrayCacheEntrySerializer {
     }
 
     /**
-     * Attempt to stora a cache entry with a null storage key.
+     * Attempt to store a cache entry with a null storage key.
      *
      * @throws Exception is expected
      */
@@ -298,7 +298,7 @@ public class TestHttpByteArrayCacheEntrySerializer {
     public void testInvalidCacheEntry() throws Exception {
         // This file is a JPEG not a cache entry, so should fail to deserialize
         final byte[] bytes = readTestFileBytes(TEST_CONTENT_FILE_NAME);
-        memcachedCacheEntryFromBytes(serializer, bytes);
+        httpCacheStorageEntryFromBytes(serializer, bytes);
     }
 
     /**
@@ -310,7 +310,7 @@ public class TestHttpByteArrayCacheEntrySerializer {
     public void testMissingHeaderCacheEntry() throws Exception {
         // This file hand-edited to be missing a necessary header
         final byte[] bytes = readTestFileBytes(MISSING_HEADER_TEST_SERIALIZED_NAME);
-        memcachedCacheEntryFromBytes(serializer, bytes);
+        httpCacheStorageEntryFromBytes(serializer, bytes);
     }
 
     /**
@@ -322,7 +322,7 @@ public class TestHttpByteArrayCacheEntrySerializer {
     public void testInvalidHeaderCacheEntry() throws Exception {
         // This file hand-edited to have an invalid header
         final byte[] bytes = readTestFileBytes(INVALID_HEADER_TEST_SERIALIZED_NAME);
-        memcachedCacheEntryFromBytes(serializer, bytes);
+        httpCacheStorageEntryFromBytes(serializer, bytes);
     }
 
     /**
@@ -334,7 +334,7 @@ public class TestHttpByteArrayCacheEntrySerializer {
     public void testVariantMapMissingKeyCacheEntry() throws Exception {
         // This file hand-edited to be missing a VariantCache key
         final byte[] bytes = readTestFileBytes(VARIANTMAP_MISSING_KEY_TEST_SERIALIZED_NAME);
-        memcachedCacheEntryFromBytes(serializer, bytes);
+        httpCacheStorageEntryFromBytes(serializer, bytes);
     }
 
     /**
@@ -346,7 +346,7 @@ public class TestHttpByteArrayCacheEntrySerializer {
     public void testVariantMapMissingValueCacheEntry() throws Exception {
         // This file hand-edited to be missing a VariantCache value
         final byte[] bytes = readTestFileBytes(VARIANTMAP_MISSING_VALUE_TEST_SERIALIZED_NAME);
-        memcachedCacheEntryFromBytes(serializer, bytes);
+        httpCacheStorageEntryFromBytes(serializer, bytes);
     }
 
     /**
@@ -365,12 +365,12 @@ public class TestHttpByteArrayCacheEntrySerializer {
         final HttpCacheStorageEntryTestTemplate cacheObjectValues = HttpCacheStorageEntryTestTemplate.makeDefault();
         final HttpCacheStorageEntry testEntry = cacheObjectValues.toEntry();
 
-        final HttpByteArrayCacheEntrySerializer testMemcachedEntry = new HttpByteArrayCacheEntrySerializer() {
+        final HttpByteArrayCacheEntrySerializer testSerializer = new HttpByteArrayCacheEntrySerializer() {
             protected AbstractMessageWriter<SimpleHttpResponse> makeHttpResponseWriter(final SessionOutputBuffer outputBuffer) {
                 return throwyHttpWriter;
             }
         };
-        testMemcachedEntry.serialize(testEntry);
+        testSerializer.serialize(testEntry);
     }
 
     /**
@@ -386,12 +386,12 @@ public class TestHttpByteArrayCacheEntrySerializer {
                 when(throwyParser).
                 parse(Mockito.any(SessionInputBuffer.class), Mockito.any(InputStream.class));
 
-        final HttpByteArrayCacheEntrySerializer testMemcachedEntry = new HttpByteArrayCacheEntrySerializer() {
+        final HttpByteArrayCacheEntrySerializer testSerializer = new HttpByteArrayCacheEntrySerializer() {
             @Override
             protected AbstractMessageParser<ClassicHttpResponse> makeHttpResponseParser() {
                 return throwyParser;
             }
         };
-        testMemcachedEntry.deserialize(new byte[0]);
+        testSerializer.deserialize(new byte[0]);
     }
 }
