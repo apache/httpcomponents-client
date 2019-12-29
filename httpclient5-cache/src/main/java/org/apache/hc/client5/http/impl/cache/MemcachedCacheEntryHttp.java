@@ -62,8 +62,6 @@ import org.apache.hc.core5.http.message.BasicLineFormatter;
 import org.apache.hc.core5.http.message.StatusLine;
 import org.apache.hc.core5.util.CharArrayBuffer;
 
-// TODO: Not sure about status message, currently seems to be discarded?
-// TODO: Not sure about protocol version, do we still need that?
 /**
  * Cache serializer and deserializer that uses an HTTP-like format.
  *
@@ -127,7 +125,6 @@ public class MemcachedCacheEntryHttp implements HttpCacheEntrySerializer<byte[]>
 
             if (bodyBytes == null) {
                 // This means no content, for example a 204 response
-                // TODO: Is this still needed?
                 httpResponse.addHeader(SC_HEADER_NAME_NO_CONTENT, Boolean.TRUE.toString());
             }
 

@@ -80,8 +80,6 @@ class MemcachedCacheEntryHttpTestUtils {
                 new HashMap<String, String>());
         final String requestMethod = getOrDefault(template, "requestMethod", null);
         final String storageKey = getOrDefault(template, "storageKey", TEST_STORAGE_KEY);
-        // TODO: Status code seems hacky
-        // TODO: Need to cram in response type in ("REQUEST_METHOD_HEADER_NAME")
         return new HttpCacheStorageEntry(storageKey,
                 new HttpCacheEntry(
                         requestDate,
@@ -220,10 +218,6 @@ class MemcachedCacheEntryHttpTestUtils {
         assertEquals(expectedContent.getRequestDate(), actualContent.getRequestDate());
         assertEquals(expectedContent.getResponseDate(), actualContent.getResponseDate());
         assertEquals(expectedContent.getRequestMethod(), actualContent.getRequestMethod());
-
-        // TODO Are these stored anywhere?
-//        assertEquals(expectedContent.getProtocolVersion(), actual.getStatusLine().getProtocolVersion());
-//        assertEquals(expectedContent.getReasonPhrase(), actual.getStatusLine().getReasonPhrase());
         assertEquals(expectedContent.getStatus(), actualContent.getStatus());
 
         assertArrayEquals(expectedContent.getVariantMap().keySet().toArray(), actualContent.getVariantMap().keySet().toArray());

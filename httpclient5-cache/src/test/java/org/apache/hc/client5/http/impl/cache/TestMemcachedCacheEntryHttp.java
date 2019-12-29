@@ -140,8 +140,6 @@ public class TestMemcachedCacheEntryHttp {
         final Map<String, Object> cacheObjectValues = new HashMap<String, Object>();
         cacheObjectValues.put("resource", null);
         cacheObjectValues.put("responseCode", 204);
-//        cacheObjectValues.put("statusLine", new BasicStatusLine(new ProtocolVersion("HTTP", 1, 1),
-//                204, "No Content"));
 
         final HttpCacheStorageEntry testEntry = buildSimpleTestObjectFromTemplate(cacheObjectValues);
 
@@ -254,8 +252,6 @@ public class TestMemcachedCacheEntryHttp {
         final Map<String, Object> cacheObjectValues = new HashMap<String, Object>();
         cacheObjectValues.put("resource", null);
         cacheObjectValues.put("responseCode", 204);
-//        cacheObjectValues.put("statusLine", new BasicStatusLine(new ProtocolVersion("HTTP", 1, 1),
-//                204, "No Content"));
 
         final HttpCacheStorageEntry testEntry = buildSimpleTestObjectFromTemplate(cacheObjectValues);
 
