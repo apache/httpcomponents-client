@@ -339,6 +339,14 @@ public class MemcachedCacheEntryHttp implements HttpCacheEntrySerializer<byte[]>
         return variantMap;
     }
 
+    /**
+     * Copy bytes from the given source buffer and input stream to the given output stream until end-of-file is reached.
+     *
+     * @param srcBuf Buffered input source
+     * @param src Unbuffered input source
+     * @param dest Output destination
+     * @throws IOException if an I/O error occurs
+     */
     private static void copyBytes(final SessionInputBuffer srcBuf, final InputStream src, final OutputStream dest) throws IOException {
         final byte[] buf = new byte[BUFFER_SIZE];
         int lastBytesRead;
@@ -346,7 +354,6 @@ public class MemcachedCacheEntryHttp implements HttpCacheEntrySerializer<byte[]>
             dest.write(buf, 0, lastBytesRead);
         }
     }
-
 
     /**
      * Writer for SimpleHttpResponse.
