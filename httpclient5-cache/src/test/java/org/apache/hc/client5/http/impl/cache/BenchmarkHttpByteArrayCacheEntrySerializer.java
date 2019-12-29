@@ -109,7 +109,7 @@ public class BenchmarkHttpByteArrayCacheEntrySerializer {
         // Verify once to make sure everything is right, and maybe warm things up a little
         verifyHttpCacheEntryFromBytes(serializer, testEntry, testBytes);
 
-        System.out.printf("%40s: %6d bytes\n", testName + " serialized size", testBytes.length);
+        System.out.printf("%40s: %6d bytes%n", testName + " serialized size", testBytes.length);
 
         simpleBenchmark(testName + " serialize", new Runnable() {
             public void run () {
@@ -153,6 +153,10 @@ public class BenchmarkHttpByteArrayCacheEntrySerializer {
         final long end = System.nanoTime();
         final long elapsed = end - start;
         final long each = elapsed / runs;
-        System.out.printf("%40s: %6d runs in %7.3f ms, %7.3f ms/run\n", testName, runs, elapsed/1000000.0, each/1000000.0);
+        System.out.printf("%40s: %6d runs in %7.3f ms, %7.3f ms/run%n", testName, runs, nanoToFractionalMilli(elapsed), nanoToFractionalMilli(each));
+    }
+
+    private static final double nanoToFractionalMilli(long ns) {
+        return ns /1000000.0;
     }
 }

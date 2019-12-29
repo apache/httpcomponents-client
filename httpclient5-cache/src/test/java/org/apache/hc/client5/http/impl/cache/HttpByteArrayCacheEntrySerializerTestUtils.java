@@ -33,7 +33,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
@@ -120,7 +120,7 @@ class HttpByteArrayCacheEntrySerializerTestUtils {
      */
     private static final HttpCacheStorageEntryTestTemplate DEFAULT_HTTP_CACHE_STORAGE_ENTRY_TEST_TEMPLATE = new HttpCacheStorageEntryTestTemplate();
     static {
-        DEFAULT_HTTP_CACHE_STORAGE_ENTRY_TEST_TEMPLATE.resource = new HeapResource("Hello World".getBytes(Charset.forName("UTF-8")));
+        DEFAULT_HTTP_CACHE_STORAGE_ENTRY_TEST_TEMPLATE.resource = new HeapResource("Hello World".getBytes(StandardCharsets.UTF_8));
         DEFAULT_HTTP_CACHE_STORAGE_ENTRY_TEST_TEMPLATE.requestDate = new Date(165214800000L);
         DEFAULT_HTTP_CACHE_STORAGE_ENTRY_TEST_TEMPLATE.responseDate = new Date(2611108800000L);
         DEFAULT_HTTP_CACHE_STORAGE_ENTRY_TEST_TEMPLATE.responseCode = 200;
