@@ -42,6 +42,7 @@ import org.apache.hc.client5.http.cache.HttpCacheEntrySerializer;
 import org.apache.hc.client5.http.cache.HttpCacheStorageEntry;
 import org.apache.hc.client5.http.cache.Resource;
 import org.apache.hc.client5.http.cache.ResourceIOException;
+import org.apache.hc.core5.annotation.Experimental;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpException;
@@ -67,6 +68,7 @@ import org.apache.hc.core5.util.CharArrayBuffer;
  * Existing libraries for reading and writing HTTP are used, and metadata is encoded into HTTP
  * pseudo-headers for storage.
  */
+@Experimental
 public class HttpByteArrayCacheEntrySerializer implements HttpCacheEntrySerializer<byte[]> {
     public static final HttpByteArrayCacheEntrySerializer INSTANCE = new HttpByteArrayCacheEntrySerializer();
 
