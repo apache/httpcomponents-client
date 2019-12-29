@@ -96,6 +96,7 @@ public class HttpByteArrayCacheEntrySerializer implements HttpCacheEntrySerializ
         // content doesn't need null-check because it's validated in the HttpCacheStorageEntry constructor
 
         // Fake HTTP request, required by response generator
+        // Use request method from httpCacheEntry, but as far as I can tell it will only ever return "GET".
         final HttpRequest httpRequest = new BasicHttpRequest(httpCacheEntry.getContent().getRequestMethod(), "/");
 
         final CacheValidityPolicy cacheValidityPolicy = new NoAgeCacheValidityPolicy();

@@ -223,7 +223,6 @@ class HttpByteArrayCacheEntrySerializerTestUtils {
 
         assertEquals(expectedContent.getRequestDate(), actualContent.getRequestDate());
         assertEquals(expectedContent.getResponseDate(), actualContent.getResponseDate());
-        assertEquals(expectedContent.getRequestMethod(), actualContent.getRequestMethod());
         assertEquals(expectedContent.getStatus(), actualContent.getStatus());
 
         assertArrayEquals(expectedContent.getVariantMap().keySet().toArray(), actualContent.getVariantMap().keySet().toArray());
