@@ -70,9 +70,6 @@ import org.apache.hc.core5.util.CharArrayBuffer;
 public class MemcachedCacheEntryHttp implements HttpCacheEntrySerializer<byte[]> {
     public static final MemcachedCacheEntryHttp INSTANCE = new MemcachedCacheEntryHttp();
 
-    // TODO: Is there an existing constant we can use?
-    private static final String CONTENT_LENGTH = "Content-Length";
-
     private static final String SC_CACHE_ENTRY_PREFIX = "hc-";
 
     private static final String SC_HEADER_NAME_STORAGE_KEY = SC_CACHE_ENTRY_PREFIX + "sk";
@@ -116,7 +113,9 @@ public class MemcachedCacheEntryHttp implements HttpCacheEntrySerializer<byte[]>
                 httpResponse.addHeader(SC_HEADER_NAME_NO_CONTENT, Boolean.TRUE.toString());
             }
 
-            // TODO: Do we need a CharsetEncoder to pass to SessionOutputBufferImpl?  Or default is OK?
+            // Use the default, ASCII-only encoder for HTTP protocol and header values
+            // It's the only thing that's widely used, and it's not worth any extra effort
+            // to support anything else.
             final SessionOutputBufferImpl outputBuffer = new SessionOutputBufferImpl(BUFFER_SIZE);
             final AbstractMessageWriter<SimpleHttpResponse> httpResponseWriter = makeHttpResponseWriter(outputBuffer);
             httpResponseWriter.write(httpResponse, outputBuffer, out);
@@ -171,8 +170,7 @@ public class MemcachedCacheEntryHttp implements HttpCacheEntrySerializer<byte[]>
                     variantMap
             );
 
-            final HttpCacheStorageEntry httpCacheStorageEntry = new HttpCacheStorageEntry(storageKey, httpCacheEntry);
-            return httpCacheStorageEntry;
+            return new HttpCacheStorageEntry(storageKey, httpCacheEntry);
         } catch (final IOException|HttpException e) {
             throw new ResourceIOException("Error deserializing cache entry", e);
         }
@@ -349,8 +347,14 @@ public class MemcachedCacheEntryHttp implements HttpCacheEntrySerializer<byte[]>
         }
     }
 
-    // TODO: Seems hacky I had to do this!
-    public class SimpleHttpResponseWriter extends AbstractMessageWriter<SimpleHttpResponse> {
+
+    /**
+     * Writer for SimpleHttpResponse.
+     *
+     * Copied from DefaultHttpResponseWriter, but wrapping a SimpleHttpResponse instead of a ClassicHttpResponse
+     */
+    // Seems like the DefaultHttpResponseWriter should be able to do this, but it doesn't seem to be able to
+    private class SimpleHttpResponseWriter extends AbstractMessageWriter<SimpleHttpResponse> {
 
         public SimpleHttpResponseWriter() {
             super(BasicLineFormatter.INSTANCE);
@@ -358,7 +362,7 @@ public class MemcachedCacheEntryHttp implements HttpCacheEntrySerializer<byte[]>
 
         @Override
         protected void writeHeadLine(
-                final SimpleHttpResponse message, final CharArrayBuffer lineBuf) throws IOException {
+                final SimpleHttpResponse message, final CharArrayBuffer lineBuf) {
             final ProtocolVersion transportVersion = message.getVersion();
             BasicLineFormatter.INSTANCE.formatStatusLine(lineBuf, new StatusLine(
                     transportVersion != null ? transportVersion : HttpVersion.HTTP_1_1,
