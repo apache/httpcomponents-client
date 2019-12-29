@@ -158,7 +158,7 @@ public class TestMemcachedCacheEntryHttp {
     @Test
     public void testSimpleVariantMap() throws Exception {
         final HttpCacheStorageEntryTestTemplate cacheObjectValues = HttpCacheStorageEntryTestTemplate.makeDefault();
-        final Map<String, String> variantMap = new HashMap<String, String>();
+        final Map<String, String> variantMap = new HashMap<>();
         variantMap.put("{Accept-Encoding=gzip}","{Accept-Encoding=gzip}https://example.com:1234/foo");
         variantMap.put("{Accept-Encoding=compress}","{Accept-Encoding=compress}https://example.com:1234/foo");
         cacheObjectValues.variantMap = variantMap;
@@ -241,7 +241,7 @@ public class TestMemcachedCacheEntryHttp {
     @Test
     public void variantMapTestFromPreviouslySerialized() throws Exception {
         final HttpCacheStorageEntryTestTemplate cacheObjectValues = HttpCacheStorageEntryTestTemplate.makeDefault();
-        final Map<String, String> variantMap = new HashMap<String, String>();
+        final Map<String, String> variantMap = new HashMap<>();
         variantMap.put("{Accept-Encoding=gzip}","{Accept-Encoding=gzip}https://example.com:1234/foo");
         variantMap.put("{Accept-Encoding=compress}","{Accept-Encoding=compress}https://example.com:1234/foo");
         cacheObjectValues.variantMap = variantMap;

@@ -316,7 +316,7 @@ public class MemcachedCacheEntryHttp implements HttpCacheEntrySerializer<byte[]>
      */
     private static Map<String, String> getVariantMapPseudoHeadersAndRemove(final HttpResponse response) throws ResourceIOException {
         final Header[] headers = response.getHeaders();
-        final Map<String, String> variantMap = new HashMap<String, String>(0);
+        final Map<String, String> variantMap = new HashMap<>(0);
         String lastKey = null;
         for (final Header header : headers) {
             if (header.getName().equals(SC_HEADER_NAME_VARIANT_MAP_KEY)) {

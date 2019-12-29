@@ -128,9 +128,9 @@ class MemcachedCacheEntryHttpTestUtils {
                 new BasicHeader("Content-type", "text/html"),
                 new BasicHeader("Cache-control", "public, max-age=31536000"),
         };
-        DEFAULT_HTTP_CACHE_STORAGE_ENTRY_TEST_TEMPLATE.variantMap = Collections.<String, String>emptyMap();
+        DEFAULT_HTTP_CACHE_STORAGE_ENTRY_TEST_TEMPLATE.variantMap = Collections.emptyMap();
         DEFAULT_HTTP_CACHE_STORAGE_ENTRY_TEST_TEMPLATE.storageKey = TEST_STORAGE_KEY;
-    };
+    }
 
     /**
      * Test serializing and deserializing the given object with the given factory.
