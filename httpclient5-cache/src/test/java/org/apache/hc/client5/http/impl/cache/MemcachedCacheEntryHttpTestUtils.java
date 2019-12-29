@@ -164,17 +164,9 @@ class MemcachedCacheEntryHttpTestUtils {
      */
     static byte[] readTestFileBytes(final String testFileName) throws Exception {
         final File testFile = makeTestFileObject(testFileName);
-        final byte[] bytes = new byte[(int) testFile.length()];
-        FileInputStream testStream = null;
-        try {
-            testStream = new FileInputStream(testFile);
-            readFully(testStream, bytes);
-        } finally {
-            if (testStream != null) {
-                testStream.close();
-            }
+        try(final FileInputStream testStream = new FileInputStream(testFile)) {
+            return readFullyStrict(testStream, testFile.length());
         }
-        return bytes;
     }
 
     /**
@@ -225,11 +217,11 @@ class MemcachedCacheEntryHttpTestUtils {
         if (expectedContent.getResource() == null) {
             assertNull("Expected null resource", actualContent.getResource());
         } else {
-            final byte[] expectedBytes = readFully(
+            final byte[] expectedBytes = readFullyStrict(
                     expectedContent.getResource().getInputStream(),
                     (int) expectedContent.getResource().length()
             );
-            final byte[] actualBytes = readFully(
+            final byte[] actualBytes = readFullyStrict(
                     actualContent.getResource().getInputStream(),
                     (int) actualContent.getResource().length()
             );
@@ -269,7 +261,15 @@ class MemcachedCacheEntryHttpTestUtils {
         }
     }
 
-    static void readFully(final InputStream src, final byte[] dest) throws IOException {
+    /**
+     * Copy bytes from the given input stream to the given destination buffer until the buffer is full,
+     * or end-of-file is reached.
+     *
+     * @param src Input stream to read from
+     * @param dest Output buffer to write to
+     * @throws IOException if an I/O error occurs
+     */
+    private static int readFully(final InputStream src, final byte[] dest) throws IOException {
         final int destPos = 0;
         final int length = dest.length;
         int totalBytesRead = 0;
@@ -278,11 +278,31 @@ class MemcachedCacheEntryHttpTestUtils {
         while (totalBytesRead < length && (lastBytesRead = src.read(dest, destPos + totalBytesRead, length - totalBytesRead)) != -1) {
             totalBytesRead += lastBytesRead;
         }
+        return totalBytesRead;
     }
 
-    static byte[] readFully(final InputStream src, final int length) throws IOException {
-        final byte[] dest = new byte[length];
-        readFully(src, dest);
-        return dest;
+    /**
+     * Copy bytes from the given input stream to a new buffer until the given length is reached,
+     * and returns the new buffer.  If end-of-file is reached first, an IOException is thrown
+     *
+     * @param src Input stream to read from
+     * @param length Maximum bytes to read
+     * @throws IOException if an I/O error occurs or end-of-file is reached before the requested
+     *                     number of bytes have been read
+     */
+    static byte[] readFullyStrict(final InputStream src, final long length) throws IOException {
+        if (length > Integer.MAX_VALUE) {
+            throw new IllegalArgumentException(String.format("Length %d is too large to fit in an array", length));
+        }
+        final int intLength = (int) length;
+        final byte[] dest = new byte[intLength];
+        final int bytesRead = readFully(src, dest);
+
+        if (bytesRead == intLength) {
+            return dest;
+        } else {
+            throw new IOException(String.format("Expected to read %d bytes but only got %d", intLength, bytesRead));
+        }
     }
+
 }
