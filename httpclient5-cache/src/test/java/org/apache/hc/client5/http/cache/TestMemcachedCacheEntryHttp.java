@@ -38,7 +38,6 @@ import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.impl.cache.FileResource;
 import org.apache.hc.client5.http.impl.cache.HeapResource;
 import org.apache.hc.client5.http.impl.cache.MemcachedCacheEntryHttp;
-import org.apache.hc.client5.http.impl.cache.MemcachedCacheEntryHttpException;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
@@ -271,28 +270,28 @@ public class TestMemcachedCacheEntryHttp {
         memcachedCacheEntryFromBytes(cacheEntryFactory, bytes);
     }
 
-    @Test(expected = MemcachedCacheEntryHttpException.class)
+    @Test(expected = ResourceIOException.class)
     public void testMissingHeaderCacheEntry() throws Exception {
         // This file is a JPEG not a cache entry
         final byte[] bytes = readTestFileBytes(MISSING_HEADER_TEST_SERIALIZED_NAME);
         memcachedCacheEntryFromBytes(cacheEntryFactory, bytes);
     }
 
-    @Test(expected = MemcachedCacheEntryHttpException.class)
+    @Test(expected = ResourceIOException.class)
     public void testInvalidHeaderCacheEntry() throws Exception {
         // This file is a JPEG not a cache entry
         final byte[] bytes = readTestFileBytes(INVALID_HEADER_TEST_SERIALIZED_NAME);
         memcachedCacheEntryFromBytes(cacheEntryFactory, bytes);
     }
 
-    @Test(expected = MemcachedCacheEntryHttpException.class)
+    @Test(expected = ResourceIOException.class)
     public void testVariantMapMissingKeyCacheEntry() throws Exception {
         // This file is a JPEG not a cache entry
         final byte[] bytes = readTestFileBytes(VARIANTMAP_MISSING_KEY_TEST_SERIALIZED_NAME);
         memcachedCacheEntryFromBytes(cacheEntryFactory, bytes);
     }
 
-    @Test(expected = MemcachedCacheEntryHttpException.class)
+    @Test(expected = ResourceIOException.class)
     public void testVariantMapMissingValueCacheEntry() throws Exception {
         // This file is a JPEG not a cache entry, so should fail to deserialize
         final byte[] bytes = readTestFileBytes(VARIANTMAP_MISSING_VALUE_TEST_SERIALIZED_NAME);

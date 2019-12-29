@@ -279,12 +279,12 @@ public class MemcachedCacheEntryHttp implements HttpCacheEntrySerializer<byte[]>
      * @param response Response object to get and remove the pseudo-header from
      * @param name     Name of metadata pseudo-header
      * @return Value for metadata pseudo-header
-     * @throws MemcachedCacheEntryHttpException if the given pseudo-header is not found
+     * @throws ResourceIOException if the given pseudo-header is not found
      */
-    private static String getCachePseudoHeaderAndRemove(final HttpResponse response, final String name) {
+    private static String getCachePseudoHeaderAndRemove(final HttpResponse response, final String name) throws ResourceIOException {
         final String headerValue = getOptionalCachePseudoHeaderAndRemove(response, name);
         if (headerValue == null) {
-            throw new MemcachedCacheEntryHttpException("Expected cache header '" + name + "' not found");
+            throw new ResourceIOException("Expected cache header '" + name + "' not found");
         }
         return headerValue;
     }
@@ -311,16 +311,16 @@ public class MemcachedCacheEntryHttp implements HttpCacheEntrySerializer<byte[]>
      * @param response Response object to get and remove the pseudo-header from
      * @param name     Name of metadata pseudo-header
      * @return Value for metadata pseudo-header
-     * @throws MemcachedCacheEntryHttpException if the given pseudo-header is not found, or contains invalid data
+     * @throws ResourceIOException if the given pseudo-header is not found, or contains invalid data
      */
-    private static Date getCachePseudoHeaderDateAndRemove(final HttpResponse response, final String name) {
+    private static Date getCachePseudoHeaderDateAndRemove(final HttpResponse response, final String name) throws ResourceIOException{
         final String value = getCachePseudoHeaderAndRemove(response, name);
         response.removeHeaders(name);
         try {
             final long timestamp = Long.parseLong(value);
             return new Date(timestamp);
         } catch (final NumberFormatException e) {
-            throw new MemcachedCacheEntryHttpException("Invalid value for header '" + name + "'", e);
+            throw new ResourceIOException("Invalid value for header '" + name + "'", e);
         }
     }
 
@@ -329,9 +329,9 @@ public class MemcachedCacheEntryHttp implements HttpCacheEntrySerializer<byte[]>
      *
      * @param response Response object to get and remove the pseudo-header from
      * @return Extracted variant map
-     * @throws MemcachedCacheEntryHttpException if the given pseudo-header is not found, or contains invalid data
+     * @throws ResourceIOException if the given pseudo-header is not found, or contains invalid data
      */
-    private static Map<String, String> getVariantMapPseudoHeaderAndRemove(final HttpResponse response) {
+    private static Map<String, String> getVariantMapPseudoHeaderAndRemove(final HttpResponse response) throws ResourceIOException {
         final Header[] headers = response.getHeaders();
         final Map<String, String> variantMap = new HashMap<String, String>(0);
         String lastKey = null;
@@ -341,7 +341,7 @@ public class MemcachedCacheEntryHttp implements HttpCacheEntrySerializer<byte[]>
                 response.removeHeader(header);
             } else if (header.getName().equals(SC_HEADER_NAME_VARIANT_MAP_VALUE)) {
                 if (lastKey == null) {
-                    throw new MemcachedCacheEntryHttpException("Found mismatched variant map key/value headers");
+                    throw new ResourceIOException("Found mismatched variant map key/value headers");
                 }
                 variantMap.put(lastKey, header.getValue());
                 lastKey = null;
@@ -350,7 +350,7 @@ public class MemcachedCacheEntryHttp implements HttpCacheEntrySerializer<byte[]>
         }
 
         if (lastKey != null) {
-            throw new MemcachedCacheEntryHttpException("Found mismatched variant map key/value headers");
+            throw new ResourceIOException("Found mismatched variant map key/value headers");
         }
 
         return variantMap;
