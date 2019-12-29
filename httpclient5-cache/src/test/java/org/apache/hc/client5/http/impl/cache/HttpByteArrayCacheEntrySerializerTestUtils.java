@@ -45,11 +45,11 @@ import org.apache.hc.client5.http.cache.Resource;
 import org.apache.hc.client5.http.cache.ResourceIOException;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.message.BasicHeader;
-import org.junit.Assert;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
 
 class HttpByteArrayCacheEntrySerializerTestUtils {
     private final static String TEST_RESOURCE_DIR = "src/test/resources/";
@@ -232,14 +232,20 @@ class HttpByteArrayCacheEntrySerializerTestUtils {
                     expectedContent.getVariantMap().get(key), actualContent.getVariantMap().get(key));
         }
 
-        // Requires that all expected headers are present
-        // Allows actual headers to contain headers not present in expected
-        // Multiple values for the same header are not currently supported
+        // Verify that the same headers are present on the expected and actual content.
         for(final Header expectedHeader: expectedContent.getHeaders()) {
             final Header actualHeader = actualContent.getFirstHeader(expectedHeader.getName());
 
-            Assert.assertEquals(expectedHeader.getName(), actualHeader.getName());
-            Assert.assertEquals(expectedHeader.getValue(), actualHeader.getValue());
+            if (actualHeader == null) {
+                if (expectedHeader.getName().equalsIgnoreCase("content-length")) {
+                    // This header is added by the cache implementation, and can be safely ignored
+                } else {
+                    fail("Expected header " + expectedHeader.getName() + " was not found");
+                }
+            } else {
+                assertEquals(expectedHeader.getName(), actualHeader.getName());
+                assertEquals(expectedHeader.getValue(), actualHeader.getValue());
+            }
         }
 
         if (expectedContent.getResource() == null) {
