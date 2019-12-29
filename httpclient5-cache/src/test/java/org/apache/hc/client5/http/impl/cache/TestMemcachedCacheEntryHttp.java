@@ -51,12 +51,10 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import static org.apache.hc.client5.http.impl.cache.MemcachedCacheEntryHttpTestUtils.buildSimpleTestObjectFromTemplate;
-import static org.apache.hc.client5.http.impl.cache.MemcachedCacheEntryHttpTestUtils.makeMockSlowReadInputStream;
 import static org.apache.hc.client5.http.impl.cache.MemcachedCacheEntryHttpTestUtils.makeTestFileObject;
 import static org.apache.hc.client5.http.impl.cache.MemcachedCacheEntryHttpTestUtils.memcachedCacheEntryFromBytes;
 import static org.apache.hc.client5.http.impl.cache.MemcachedCacheEntryHttpTestUtils.readTestFileBytes;
 import static org.apache.hc.client5.http.impl.cache.MemcachedCacheEntryHttpTestUtils.testWithCache;
-import static org.apache.hc.client5.http.impl.cache.MemcachedCacheEntryHttpTestUtils.verifyHttpCacheEntryFromBytes;
 import static org.apache.hc.client5.http.impl.cache.MemcachedCacheEntryHttpTestUtils.verifyHttpCacheEntryFromTestFile;
 
 public class TestMemcachedCacheEntryHttp {
@@ -328,33 +326,5 @@ public class TestMemcachedCacheEntryHttp {
             }
         };
         testMemcachedEntry.deserialize(new byte[0]);
-    }
-
-    /**
-     * Test edge cases in read lengths.
-     *
-     * This basically tests the copyBytes() helper method used by deserialize.
-     * The SessionInputBuffer read method can return any number of bytes, and copyBytes
-     * has a while loop to keep reading until all bytes are read.  The other tests read
-     * the entire buffer at once, so don't test the while loop at all.  This test mocks
-     * the underlying InputStream read method to return 1 byte at a time, which should
-     * exercise all of the edge cases in that method.
-     *
-     * @throws Exception if anything goes wrong
-     */
-    @Test
-    public void testDeserializeWithSlowReader() throws Exception {
-        final byte[] bytes = readTestFileBytes(SIMPLE_OBJECT_SERIALIZED_NAME);
-
-        final MemcachedCacheEntryHttp testMemcachedEntry = new MemcachedCacheEntryHttp() {
-            @Override
-            protected InputStream makeByteArrayInputStream(byte[] bytes) {
-                return makeMockSlowReadInputStream(bytes, 1);
-            }
-        };
-
-        final HttpCacheStorageEntry testEntry = buildSimpleTestObjectFromTemplate(Collections.<String, Object>emptyMap());
-
-        verifyHttpCacheEntryFromBytes(testMemcachedEntry, testEntry, bytes);
     }
 }

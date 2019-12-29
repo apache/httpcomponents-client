@@ -46,9 +46,6 @@ import org.apache.hc.client5.http.cache.ResourceIOException;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.junit.Assert;
-import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -272,67 +269,6 @@ class MemcachedCacheEntryHttpTestUtils {
         }
     }
 
-    /**
-     * Create an InputStream with a read(...) method that returns from the given buffer up to
-     * the given number of bytes.
-     *
-     * @param readBytes Bytes to simulate reading
-     * @param maxReadLength Largest number of bytes to return in a single call to read(...)
-     * @return Mock InputSream which behaves as described above
-     */
-    static InputStream makeMockSlowReadInputStream(final byte[] readBytes, final int maxReadLength) {
-        try {
-            final InputStream mockInputStream = Mockito.mock(InputStream.class);
-            final Answer<Integer> shortReadAnswer = makeMockSlowReadAnswer(readBytes, maxReadLength);
-            Mockito.when(mockInputStream.read(Mockito.<byte[]>any(), Mockito.anyInt(), Mockito.anyInt())).
-                    thenAnswer(shortReadAnswer);
-            Mockito.when(mockInputStream.read()).
-                    thenAnswer(shortReadAnswer);
-            // No need to mock 2-argument read, base class implements it in terms of 3-argument form
-            return mockInputStream;
-        } catch (final IOException ex) {
-            throw new RuntimeException("Failure creating mock", ex);
-        }
-    }
-
-    /**
-     * Create an Answer function for InputStream#read(...) which will return from the given buffer up to the
-     * given number of bytes at a time.
-     *
-     * This allows for testing the various edge cases from how read(...) behaves.
-     *
-     * @param readBytes Bytes to simulate reading
-     * @param maxReadLength Largest number of bytes to return in a single call to read(...)
-     * @return Answer object for mock read which behaves as described above
-     */
-    private static Answer<Integer> makeMockSlowReadAnswer(final byte[] readBytes, final int maxReadLength) {
-        return new Answer<Integer>() {
-            int curPos = 0;
-
-            @Override
-            public Integer answer(final InvocationOnMock invocationOnMock) {
-                final boolean hasArguments = invocationOnMock.getArguments().length > 0;
-                final byte[] outBuf = hasArguments ? invocationOnMock.<byte[]>getArgument(0) : new byte[1];
-                final int outPos = hasArguments ? invocationOnMock.<Integer>getArgument(1) : 0;
-                final int length = hasArguments ? invocationOnMock.<Integer>getArgument(2) : 1;
-
-                final int bytesToCopy = Math.min(Math.min(readBytes.length - curPos, length), maxReadLength);
-                if (bytesToCopy <= 0) {
-                    return -1;
-                }
-
-                System.arraycopy(readBytes, curPos, outBuf, outPos, bytesToCopy);
-                curPos += bytesToCopy;
-                if (hasArguments) {
-                    return bytesToCopy;
-                } else {
-                    return (int) outBuf[0];
-                }
-            }
-        };
-    }
-
-    // Adapted from MemcachedCacheEntryHttp#copyBytes
     static void readFully(final InputStream src, final byte[] dest) throws IOException {
         final int destPos = 0;
         final int length = dest.length;
@@ -344,7 +280,6 @@ class MemcachedCacheEntryHttpTestUtils {
         }
     }
 
-    // Adapted from MemcachedCacheEntryHttp#copyBytes
     static byte[] readFully(final InputStream src, final int length) throws IOException {
         final byte[] dest = new byte[length];
         readFully(src, dest);
