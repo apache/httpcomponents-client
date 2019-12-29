@@ -317,7 +317,7 @@ public class HttpByteArrayCacheEntrySerializer implements HttpCacheEntrySerializ
      * @param name     Name of metadata pseudo-header
      * @return Value for metadata pseudo-header
      */
-    private static boolean getCachePseudoHeaderBooleanAndRemove(ClassicHttpResponse response, String name) {
+    private static boolean getCachePseudoHeaderBooleanAndRemove(final ClassicHttpResponse response, final String name) {
         // parseBoolean does not throw any exceptions, so no try/catch required.
         return Boolean.parseBoolean(getOptionalCachePseudoHeaderAndRemove(response, name));
     }
