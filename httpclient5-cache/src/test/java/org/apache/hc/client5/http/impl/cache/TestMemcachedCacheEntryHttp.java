@@ -139,7 +139,7 @@ public class TestMemcachedCacheEntryHttp {
     public void noBodyTest() throws Exception {
         final Map<String, Object> cacheObjectValues = new HashMap<String, Object>();
         cacheObjectValues.put("resource", null);
-        cacheObjectValues.put("statusCode", 204);
+        cacheObjectValues.put("responseCode", 204);
 //        cacheObjectValues.put("statusLine", new BasicStatusLine(new ProtocolVersion("HTTP", 1, 1),
 //                204, "No Content"));
 
@@ -253,7 +253,7 @@ public class TestMemcachedCacheEntryHttp {
     public void noBodyTestFromPreviouslySerialized() throws Exception {
         final Map<String, Object> cacheObjectValues = new HashMap<String, Object>();
         cacheObjectValues.put("resource", null);
-        cacheObjectValues.put("statusCode", 204);
+        cacheObjectValues.put("responseCode", 204);
 //        cacheObjectValues.put("statusLine", new BasicStatusLine(new ProtocolVersion("HTTP", 1, 1),
 //                204, "No Content"));
 
@@ -264,35 +264,35 @@ public class TestMemcachedCacheEntryHttp {
 
     @Test(expected = ResourceIOException.class)
     public void testInvalidCacheEntry() throws Exception {
-        // This file is a JPEG not a cache entry
+        // This file is a JPEG not a cache entry, so should fail to deserialize
         final byte[] bytes = readTestFileBytes(TEST_CONTENT_FILE_NAME);
         memcachedCacheEntryFromBytes(serializer, bytes);
     }
 
     @Test(expected = ResourceIOException.class)
     public void testMissingHeaderCacheEntry() throws Exception {
-        // This file is a JPEG not a cache entry
+        // This file hand-edited to be missing a necessary header
         final byte[] bytes = readTestFileBytes(MISSING_HEADER_TEST_SERIALIZED_NAME);
         memcachedCacheEntryFromBytes(serializer, bytes);
     }
 
     @Test(expected = ResourceIOException.class)
     public void testInvalidHeaderCacheEntry() throws Exception {
-        // This file is a JPEG not a cache entry
+        // This file hand-edited to have an invalid header
         final byte[] bytes = readTestFileBytes(INVALID_HEADER_TEST_SERIALIZED_NAME);
         memcachedCacheEntryFromBytes(serializer, bytes);
     }
 
     @Test(expected = ResourceIOException.class)
     public void testVariantMapMissingKeyCacheEntry() throws Exception {
-        // This file is a JPEG not a cache entry
+        // This file hand-edited to be missing a VariantCache key
         final byte[] bytes = readTestFileBytes(VARIANTMAP_MISSING_KEY_TEST_SERIALIZED_NAME);
         memcachedCacheEntryFromBytes(serializer, bytes);
     }
 
     @Test(expected = ResourceIOException.class)
     public void testVariantMapMissingValueCacheEntry() throws Exception {
-        // This file is a JPEG not a cache entry, so should fail to deserialize
+        // This file hand-edited to be missing a VariantCache value
         final byte[] bytes = readTestFileBytes(VARIANTMAP_MISSING_VALUE_TEST_SERIALIZED_NAME);
         memcachedCacheEntryFromBytes(serializer, bytes);
     }

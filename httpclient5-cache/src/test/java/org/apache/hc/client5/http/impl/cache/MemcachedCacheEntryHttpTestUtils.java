@@ -43,7 +43,6 @@ import org.apache.hc.client5.http.cache.HttpCacheEntrySerializer;
 import org.apache.hc.client5.http.cache.HttpCacheStorageEntry;
 import org.apache.hc.client5.http.cache.Resource;
 import org.apache.hc.client5.http.cache.ResourceIOException;
-import org.apache.hc.client5.http.impl.cache.HeapResource;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.junit.Assert;

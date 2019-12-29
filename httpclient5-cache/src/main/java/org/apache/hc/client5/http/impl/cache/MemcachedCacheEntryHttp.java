@@ -180,7 +180,7 @@ public class MemcachedCacheEntryHttp implements HttpCacheEntrySerializer<byte[]>
             final HttpCacheEntry httpCacheEntry = new HttpCacheEntry(
                     requestDate,
                     responseDate,
-                    200, // TODO: Where to get the status code?
+                    response.getCode(),
                     response.getHeaders(),
                     resource,
                     variantMap
