@@ -25,20 +25,18 @@
  *
  */
 
-package org.apache.http.impl.client.cache;
+package org.apache.hc.client5.http.impl.cache;
 
-import org.apache.http.client.cache.HttpCacheEntry;
-import org.apache.http.impl.client.cache.memcached.MemcachedCacheEntry;
-import org.apache.http.impl.client.cache.memcached.MemcachedCacheEntryFactory;
-
-public class MemcachedCacheEntryHttpFactory implements MemcachedCacheEntryFactory {
-    @Override
-    public MemcachedCacheEntry getMemcachedCacheEntry(final String key, final HttpCacheEntry entry) {
-        return new MemcachedCacheEntryHttp(key, entry);
+/**
+ * Problem while serializing or deserializing a cache entry.
+ */
+// TODO: Revisit and see if this can be replaced by ResourceIOException
+public class MemcachedCacheEntryHttpException extends RuntimeException {
+    public MemcachedCacheEntryHttpException(final String message) {
+        super(message);
     }
 
-    @Override
-    public MemcachedCacheEntry getUnsetCacheEntry() {
-        return new MemcachedCacheEntryHttp();
+    public MemcachedCacheEntryHttpException(final String message, final Throwable cause) {
+        super(message, cause);
     }
 }

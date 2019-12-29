@@ -25,7 +25,7 @@
  *
  */
 
-package org.apache.http.impl.client.cache;
+package org.apache.hc.client5.http.cache;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -38,15 +38,16 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.http.Header;
-import org.apache.http.ProtocolVersion;
-import org.apache.http.StatusLine;
-import org.apache.http.client.cache.HttpCacheEntry;
-import org.apache.http.client.cache.Resource;
-import org.apache.http.impl.client.cache.memcached.MemcachedCacheEntry;
-import org.apache.http.impl.client.cache.memcached.MemcachedCacheEntryFactory;
-import org.apache.http.message.BasicHeader;
-import org.apache.http.message.BasicStatusLine;
+import org.apache.hc.client5.http.impl.cache.HeapResource;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.message.BasicHeader;
+//import org.apache.http.client.cache.HttpCacheEntry;
+//import org.apache.http.client.cache.Resource;
+//import org.apache.http.impl.client.cache.memcached.MemcachedCacheEntry;
+//import org.apache.http.impl.client.cache.memcached.MemcachedCacheEntryFactory;
+//import org.apache.http.message.BasicHeader;
+//import org.apache.http.message.BasicStatusLine;
+import org.junit.Assert;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -58,6 +59,7 @@ import static org.junit.Assert.fail;
 
 class MemcachedCacheEntryHttpTestUtils {
     private final static String TEST_RESOURCE_DIR = "src/test/resources/";
+    static final String TEST_STORAGE_KEY = "xyzzy";
 
     /**
      * Create a new HttpCacheEntry object with default fields, except for those overridden by name in the template.
@@ -65,15 +67,13 @@ class MemcachedCacheEntryHttpTestUtils {
      * @param template Map of field names to override in the test object
      * @return New object for testing
      */
-    static HttpCacheEntry buildSimpleTestObjectFromTemplate(final Map<String, Object> template) {
+    static HttpCacheStorageEntry buildSimpleTestObjectFromTemplate(final Map<String, Object> template) {
         final Resource resource = getOrDefault(template, "resource",
                 new HeapResource("Hello World".getBytes(Charset.forName("UTF-8"))));
 
         final Date requestDate = getOrDefault(template, "requestDate", new Date(165214800000L));
         final Date responseDate = getOrDefault(template, "responseDate", new Date(2611108800000L));
-        final StatusLine statusLine = getOrDefault(template, "statusLine",
-                new BasicStatusLine(new ProtocolVersion("HTTP", 1, 1),
-                        200, "OK"));
+        final Integer responseCode = getOrDefault(template, "responseCode", 200);
         final Header[] responseHeaders = getOrDefault(template, "headers",
                 new Header[]{
                         new BasicHeader("Content-type", "text/html"),
@@ -82,7 +82,18 @@ class MemcachedCacheEntryHttpTestUtils {
         final Map<String, String> variantMap = getOrDefault(template, "variantMap",
                 new HashMap<String, String>());
         final String requestMethod = getOrDefault(template, "requestMethod", null);
-        return new HttpCacheEntry(requestDate, responseDate, statusLine, responseHeaders, resource, variantMap, requestMethod);
+        final String storageKey = getOrDefault(template, "storageKey", TEST_STORAGE_KEY);
+        // TODO: Status code seems hacky
+        // TODO: Need to cram in response type in ("REQUEST_METHOD_HEADER_NAME")
+        return new HttpCacheStorageEntry(storageKey,
+                new HttpCacheEntry(
+                        requestDate,
+                        responseDate,
+                        responseCode,
+                        responseHeaders,
+                        resource,
+                        variantMap)
+        );
     }
 
     /**
@@ -109,62 +120,59 @@ class MemcachedCacheEntryHttpTestUtils {
      * <p>
      * Compares fields to ensure the deserialized object is equivalent to the original object.
      *
-     * @param storageKey        Storage key to serialize and deserialize
-     * @param httpCacheEntry    Original object to serialize and test against
-     * @param cacheEntryFactory Factory for creating serializers
+     * @param httpCacheStorageEntry    Original object to serialize and test against
+     * @param serializer Factory for creating serializers
      * @throws Exception if anything goes wrong
      */
-    static void testWithCache(final String storageKey, final HttpCacheEntry httpCacheEntry, final MemcachedCacheEntryFactory cacheEntryFactory) throws Exception {
-        final MemcachedCacheEntry memcachedCacheEntry = cacheEntryFactory.getMemcachedCacheEntry(storageKey, httpCacheEntry);
+    static void testWithCache(final HttpCacheStorageEntry httpCacheStorageEntry, final HttpCacheEntrySerializer<byte[]> serializer) throws Exception {
+//        final HttpCacheStorageEntry memcachedCacheEntry = serializer.serializer.getMemcachedCacheEntry(storageKey, httpCacheEntry);
+//
+//        final HttpCacheEntry testHttpCacheEntry = memcachedCacheEntry.getHttpCacheEntry();
+//        assertCacheEntriesEqual(httpCacheEntry, testHttpCacheEntry);
 
-        final HttpCacheEntry testHttpCacheEntry = memcachedCacheEntry.getHttpCacheEntry();
-        assertCacheEntriesEqual(httpCacheEntry, testHttpCacheEntry);
-
-        final byte[] testBytes = memcachedCacheEntry.toByteArray();
+        final byte[] testBytes = serializer.serialize(httpCacheStorageEntry);
         // For debugging
 //        String testString = new String(testBytes, StandardCharsets.UTF_8);
 //        System.out.println(testString);
 //        System.out.printf("Cache entry is %d bytes\n", testBytes.length);
 
-        verifyHttpCacheEntryFromBytes(storageKey, httpCacheEntry, cacheEntryFactory, testBytes);
+        verifyHttpCacheEntryFromBytes(httpCacheStorageEntry, serializer, testBytes);
     }
 
     /**
      * Verify that the given bytes deserialize to the given storage key and an equivalent cache entry.
      *
-     * @param storageKey        Storage key to verify
-     * @param httpCacheEntry    Cache entry to verify
-     * @param cacheEntryFactory Deserializer factory
-     * @param testBytes         Bytes to deserialize
+     * @param httpCacheStorageEntry Cache entry to verify
+     * @param serializer Deserializer
+     * @param testBytes Bytes to deserialize
      * @throws Exception if anything goes wrong
      */
-    static void verifyHttpCacheEntryFromBytes(final String storageKey, final HttpCacheEntry httpCacheEntry, final MemcachedCacheEntryFactory cacheEntryFactory, final byte[] testBytes) throws Exception {
-        final MemcachedCacheEntry testMemcachedCacheEntryFromBytes = memcachedCacheEntryFromBytes(cacheEntryFactory, testBytes);
+    static void verifyHttpCacheEntryFromBytes(final HttpCacheStorageEntry httpCacheStorageEntry, final HttpCacheEntrySerializer<byte[]> serializer, final byte[] testBytes) throws Exception {
+        final HttpCacheStorageEntry testMemcachedCacheEntryFromBytes = memcachedCacheEntryFromBytes(serializer, testBytes);
 
-        assertEquals(storageKey, testMemcachedCacheEntryFromBytes.getStorageKey());
-        assertCacheEntriesEqual(httpCacheEntry, testMemcachedCacheEntryFromBytes.getHttpCacheEntry());
+        assertCacheEntriesEqual(httpCacheStorageEntry, testMemcachedCacheEntryFromBytes);
     }
 
     /**
      * Verify that the given test file deserializes to the given storage key and an equivalent cache entry.
      *
      * @param storageKey        Storage key to verify
-     * @param httpCacheEntry    Cache entry to verify
-     * @param cacheEntryFactory Deserializer factory
+     * @param httpCacheStorageEntry    Cache entry to verify
+     * @param serializer Deserializer
      * @param testFileName  Name of test file to deserialize
      * @throws Exception if anything goes wrong
      */
-    static void verifyHttpCacheEntryFromTestFile(final String storageKey, final HttpCacheEntry httpCacheEntry,
-                                                 final MemcachedCacheEntryFactory cacheEntryFactory, final String testFileName,
+    static void verifyHttpCacheEntryFromTestFile(final String storageKey, final HttpCacheStorageEntry httpCacheStorageEntry,
+                                                 final HttpCacheEntrySerializer<byte[]> serializer, final String testFileName,
                                                  final boolean reserializeFiles) throws Exception {
         if (reserializeFiles) {
             final File toFile = makeTestFileObject(testFileName);
-            saveEntryToFile(storageKey, httpCacheEntry, cacheEntryFactory, toFile);
+            saveEntryToFile(storageKey, httpCacheStorageEntry, serializer, toFile);
         }
 
         final byte[] bytes = readTestFileBytes(testFileName);
 
-        verifyHttpCacheEntryFromBytes(storageKey, httpCacheEntry, cacheEntryFactory, bytes);
+        verifyHttpCacheEntryFromBytes(httpCacheStorageEntry, serializer, bytes);
     }
 
     /**
@@ -192,14 +200,15 @@ class MemcachedCacheEntryHttpTestUtils {
     /**
      * Create a new memcached cache object from the given bytes.
      *
-     * @param cacheEntryFactory Deserializer factory
+     * @param serializer Deserializer
      * @param testBytes         Bytes to deserialize
      * @return Deserialized object
      */
-    static MemcachedCacheEntry memcachedCacheEntryFromBytes(final MemcachedCacheEntryFactory cacheEntryFactory, final byte[] testBytes) {
-        final MemcachedCacheEntry newMemcachedCacheEntryFromBytes = cacheEntryFactory.getUnsetCacheEntry();
-        newMemcachedCacheEntryFromBytes.set(testBytes);
-        return newMemcachedCacheEntryFromBytes;
+    static HttpCacheStorageEntry memcachedCacheEntryFromBytes(final HttpCacheEntrySerializer<byte[]> serializer, final byte[] testBytes) throws ResourceIOException {
+        return serializer.deserialize(testBytes);
+//        final HttpCacheStorageEntry newMemcachedCacheEntryFromBytes = cacheEntryFactory.getUnsetCacheEntry();
+//        newMemcachedCacheEntryFromBytes.set(testBytes);
+//        return newMemcachedCacheEntryFromBytes;
     }
 
     /**
@@ -209,41 +218,47 @@ class MemcachedCacheEntryHttpTestUtils {
      * @param actual   Actual cache entry object
      * @throws Exception if anything goes wrong
      */
-    static void assertCacheEntriesEqual(final HttpCacheEntry expected, final HttpCacheEntry actual) throws Exception {
-        assertEquals(expected.getRequestDate(), actual.getRequestDate());
-        assertEquals(expected.getResponseDate(), actual.getResponseDate());
-        assertEquals(expected.getRequestMethod(), actual.getRequestMethod());
+    static void assertCacheEntriesEqual(final HttpCacheStorageEntry expected, final HttpCacheStorageEntry actual) throws Exception {
+        assertEquals(expected.getKey(), actual.getKey());
 
-        assertEquals(expected.getStatusLine().getProtocolVersion(), actual.getStatusLine().getProtocolVersion());
-        assertEquals(expected.getStatusLine().getReasonPhrase(), actual.getStatusLine().getReasonPhrase());
-        assertEquals(expected.getStatusLine().getStatusCode(), actual.getStatusLine().getStatusCode());
+        final HttpCacheEntry expectedContent = expected.getContent();
+        final HttpCacheEntry actualContent = actual.getContent();
 
-        assertArrayEquals(expected.getVariantMap().keySet().toArray(), actual.getVariantMap().keySet().toArray());
-        for (final String key : expected.getVariantMap().keySet()) {
+        assertEquals(expectedContent.getRequestDate(), actualContent.getRequestDate());
+        assertEquals(expectedContent.getResponseDate(), actualContent.getResponseDate());
+        assertEquals(expectedContent.getRequestMethod(), actualContent.getRequestMethod());
+
+        // TODO Are these stored anywhere?
+//        assertEquals(expectedContent.getProtocolVersion(), actual.getStatusLine().getProtocolVersion());
+//        assertEquals(expectedContent.getReasonPhrase(), actual.getStatusLine().getReasonPhrase());
+        assertEquals(expectedContent.getStatus(), actualContent.getStatus());
+
+        assertArrayEquals(expectedContent.getVariantMap().keySet().toArray(), actualContent.getVariantMap().keySet().toArray());
+        for (final String key : expectedContent.getVariantMap().keySet()) {
             assertEquals("Expected same variantMap values for key '" + key + "'",
-                    expected.getVariantMap().get(key), actual.getVariantMap().get(key));
+                    expectedContent.getVariantMap().get(key), actualContent.getVariantMap().get(key));
         }
 
         // Would love a cleaner way to do this if anybody knows of one
-        assertEquals(expected.getAllHeaders().length, actual.getAllHeaders().length);
-        for (int i = 0; i < expected.getAllHeaders().length; i++) {
-            final Header actualHeader = actual.getAllHeaders()[i];
-            final Header expectedHeader = expected.getAllHeaders()[i];
+        assertEquals(expectedContent.getHeaders().length, actualContent.getHeaders().length);
+        for (int i = 0; i < expectedContent.getHeaders().length; i++) {
+            final Header actualHeader = actualContent.getHeaders()[i];
+            final Header expectedHeader = expectedContent.getHeaders()[i];
 
-            assertEquals(expectedHeader.getName(), actualHeader.getName());
-            assertEquals(expectedHeader.getValue(), actualHeader.getValue());
+            Assert.assertEquals(expectedHeader.getName(), actualHeader.getName());
+            Assert.assertEquals(expectedHeader.getValue(), actualHeader.getValue());
         }
 
-        if (expected.getResource() == null) {
-            assertNull("Expected null resource", actual.getResource());
+        if (expectedContent.getResource() == null) {
+            assertNull("Expected null resource", actualContent.getResource());
         } else {
             final byte[] expectedBytes = readFully(
-                    expected.getResource().getInputStream(),
-                    (int) expected.getResource().length()
+                    expectedContent.getResource().getInputStream(),
+                    (int) expectedContent.getResource().length()
             );
             final byte[] actualBytes = readFully(
-                    actual.getResource().getInputStream(),
-                    (int) actual.getResource().length()
+                    actualContent.getResource().getInputStream(),
+                    (int) actualContent.getResource().length()
             );
             assertArrayEquals(expectedBytes, actualBytes);
         }
@@ -263,15 +278,14 @@ class MemcachedCacheEntryHttpTestUtils {
     /**
      * Save the given storage key and cache entry serialized to the given file.
      *
-     * @param storageKey        Storage key to serialize and save
-     * @param httpCacheEntry    Cache entry to serialize and save
-     * @param cacheEntryFactory Serializer factory
-     * @param outFile           Output file to write to
+     * @param storageKey Storage key to serialize and save
+     * @param httpCacheStorageEntry Cache entry to serialize and save
+     * @param serializer Serializer
+     * @param outFile Output file to write to
      * @throws Exception if anything goes wrong
      */
-    static void saveEntryToFile(final String storageKey, final HttpCacheEntry httpCacheEntry, final MemcachedCacheEntryFactory cacheEntryFactory, final File outFile) throws Exception {
-        final MemcachedCacheEntry memcachedCacheEntry = cacheEntryFactory.getMemcachedCacheEntry(storageKey, httpCacheEntry);
-        final byte[] bytes = memcachedCacheEntry.toByteArray();
+    static void saveEntryToFile(final String storageKey, final HttpCacheStorageEntry httpCacheStorageEntry, final HttpCacheEntrySerializer<byte[]> serializer, final File outFile) throws Exception {
+        final byte[] bytes = serializer.serialize(httpCacheStorageEntry);
 
         OutputStream out = null;
         try {
@@ -311,6 +325,8 @@ class MemcachedCacheEntryHttpTestUtils {
             final Resource mockResource = Mockito.mock(Resource.class);
             Mockito.when(mockResource.length()).thenReturn(Long.valueOf(readBytes.length));
             Mockito.when(mockResource.getInputStream()).thenReturn(mockInputStream);
+            // TODO: This is what's called, and it doesn't simulate a slow reader anymore, is that testing still necessary?
+            Mockito.when(mockResource.get()).thenReturn(readBytes);
 
             return mockResource;
         } catch (final IOException ex) {
@@ -358,9 +374,9 @@ class MemcachedCacheEntryHttpTestUtils {
             @Override
             public Integer answer(final InvocationOnMock invocationOnMock) throws Throwable {
                 final boolean hasArguments = invocationOnMock.getArguments().length > 0;
-                final byte[] outBuf = hasArguments ? invocationOnMock.getArgumentAt(0, byte[].class) : new byte[1];
-                final int outPos = hasArguments ? invocationOnMock.getArgumentAt(1, Integer.class) : 0;
-                final int length = hasArguments ? invocationOnMock.getArgumentAt(2, Integer.class) : 1;
+                final byte[] outBuf = hasArguments ? invocationOnMock.<byte[]>getArgument(0) : new byte[1];
+                final int outPos = hasArguments ? invocationOnMock.<Integer>getArgument(1) : 0;
+                final int length = hasArguments ? invocationOnMock.<Integer>getArgument(2) : 1;
 
                 final int bytesToCopy = Math.min(Math.min(readBytes.length - curPos, length), maxReadLength);
                 if (bytesToCopy <= 0) {
@@ -376,7 +392,7 @@ class MemcachedCacheEntryHttpTestUtils {
                 }
             }
         };
-    };
+    }
 
     // Adapted from MemcachedCacheEntryHttp#copyBytes
     static void readFully(final InputStream src, final byte[] dest) throws IOException {
@@ -401,12 +417,11 @@ class MemcachedCacheEntryHttpTestUtils {
      * Simulate a failure from the resource close method, and return the exception that was thrown by the serializer.
      *
      *
-     * @param storageKey Storage key string to test
      * @param testException Exception to throw from the test helper
      * @return Actual exception caught
      * @throws IOException Should never happen
      */
-    static Throwable resourceCloseExceptionOnSerializationTestHelper(final String storageKey, final Throwable testException) throws IOException {
+    static Throwable resourceCloseExceptionOnSerializationTestHelper(final HttpCacheEntrySerializer<byte[]> serializer, final Throwable testException) throws IOException {
         final Resource mockResource = makeMockSlowReadResource("Hello World", 4096);
         final InputStream mockInputStream = mockResource.getInputStream();
 
@@ -422,14 +437,13 @@ class MemcachedCacheEntryHttpTestUtils {
                 when(mockInputStream).
                 close();
 
-        final Map<String, Object> cacheObjectValues = new HashMap<String, Object>();
+        final Map<String, Object> cacheObjectValues = new HashMap<>();
         cacheObjectValues.put("resource", mockResource);
-        final HttpCacheEntry testEntry = buildSimpleTestObjectFromTemplate(cacheObjectValues);
+        final HttpCacheStorageEntry testEntry = buildSimpleTestObjectFromTemplate(cacheObjectValues);
 
-        final MemcachedCacheEntryHttp testMemcachedEntry = new MemcachedCacheEntryHttp(storageKey, testEntry);
         try {
-            testMemcachedEntry.toByteArray();
-            fail("Expected MemcachedCacheEntryHttpException exception but none was thrown");
+            serializer.serialize(testEntry);
+            fail("Expected exception but none was thrown");
         } catch (final Throwable ex) {
             return ex;
         }
