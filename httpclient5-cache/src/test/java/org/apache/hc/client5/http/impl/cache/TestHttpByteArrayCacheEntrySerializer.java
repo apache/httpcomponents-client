@@ -57,7 +57,7 @@ import static org.apache.hc.client5.http.impl.cache.HttpByteArrayCacheEntrySeria
 import static org.apache.hc.client5.http.impl.cache.HttpByteArrayCacheEntrySerializerTestUtils.HttpCacheStorageEntryTestTemplate;
 
 public class TestHttpByteArrayCacheEntrySerializer {
-    private static final String SERIALIAZED_EXTENSION = ".serialized";
+    private static final String SERIALIAZED_EXTENSION = ".httpbytes.serialized";
 
     private static final String FILE_TEST_SERIALIZED_NAME = "ApacheLogo" + SERIALIAZED_EXTENSION;
     private static final String SIMPLE_OBJECT_SERIALIZED_NAME = "simpleObject" + SERIALIAZED_EXTENSION;
