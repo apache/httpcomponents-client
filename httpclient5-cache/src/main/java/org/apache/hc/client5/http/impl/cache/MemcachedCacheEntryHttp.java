@@ -106,16 +106,18 @@ public class MemcachedCacheEntryHttp implements HttpCacheEntrySerializer<byte[]>
             addMetadataPseudoHeaders(httpResponse, httpCacheEntry);
 
             final byte[] bodyBytes = httpResponse.getBodyBytes();
-            final int resourceLength = bodyBytes == null ? 0 : bodyBytes.length;
+            final int resourceLength;
 
             if (bodyBytes == null) {
                 // This means no content, for example a 204 response
                 httpResponse.addHeader(SC_HEADER_NAME_NO_CONTENT, Boolean.TRUE.toString());
+                resourceLength = 0;
+            } else {
+                resourceLength = bodyBytes.length;
             }
 
-            // Use the default, ASCII-only encoder for HTTP protocol and header values
-            // It's the only thing that's widely used, and it's not worth any extra effort
-            // to support anything else.
+            // Use the default, ASCII-only encoder for HTTP protocol and header values.
+            // It's the only thing that's widely used, and it's not worth it to support anything else.
             final SessionOutputBufferImpl outputBuffer = new SessionOutputBufferImpl(BUFFER_SIZE);
             final AbstractMessageWriter<SimpleHttpResponse> httpResponseWriter = makeHttpResponseWriter(outputBuffer);
             httpResponseWriter.write(httpResponse, outputBuffer, out);
@@ -136,9 +138,8 @@ public class MemcachedCacheEntryHttp implements HttpCacheEntrySerializer<byte[]>
     @Override
     public HttpCacheStorageEntry deserialize(final byte[] serializedObject) throws ResourceIOException {
         try (final InputStream in = makeByteArrayInputStream(serializedObject);
-                final ByteArrayOutputStream bytesOut = new ByteArrayOutputStream(serializedObject.length) // this is bigger than necessary but will save us from reallocating
+             final ByteArrayOutputStream bytesOut = new ByteArrayOutputStream(serializedObject.length) // this is bigger than necessary but will save us from reallocating
         ) {
-
             final SessionInputBufferImpl inputBuffer = new SessionInputBufferImpl(BUFFER_SIZE);
             final AbstractMessageParser<ClassicHttpResponse> responseParser = makeHttpResponseParser();
             final ClassicHttpResponse response = responseParser.parse(inputBuffer, in);
@@ -148,16 +149,15 @@ public class MemcachedCacheEntryHttp implements HttpCacheEntrySerializer<byte[]>
             final Date requestDate = getCachePseudoHeaderDateAndRemove(response, SC_HEADER_NAME_REQUEST_DATE);
             final Date responseDate = getCachePseudoHeaderDateAndRemove(response, SC_HEADER_NAME_RESPONSE_DATE);
             final boolean noBody = Boolean.parseBoolean(getOptionalCachePseudoHeaderAndRemove(response, SC_HEADER_NAME_NO_CONTENT));
-            final Map<String, String> variantMap = getVariantMapPseudoHeaderAndRemove(response);
+            final Map<String, String> variantMap = getVariantMapPseudoHeadersAndRemove(response);
             unescapeHeaders(response);
-
-            copyBytes(inputBuffer, in, bytesOut);
 
             final Resource resource;
             if (noBody) {
                 // This means no content, for example a 204 response
                 resource = null;
             } else {
+                copyBytes(inputBuffer, in, bytesOut);
                 resource = new HeapResource(bytesOut.toByteArray());
             }
 
@@ -314,7 +314,7 @@ public class MemcachedCacheEntryHttp implements HttpCacheEntrySerializer<byte[]>
      * @return Extracted variant map
      * @throws ResourceIOException if the given pseudo-header is not found, or contains invalid data
      */
-    private static Map<String, String> getVariantMapPseudoHeaderAndRemove(final HttpResponse response) throws ResourceIOException {
+    private static Map<String, String> getVariantMapPseudoHeadersAndRemove(final HttpResponse response) throws ResourceIOException {
         final Header[] headers = response.getHeaders();
         final Map<String, String> variantMap = new HashMap<String, String>(0);
         String lastKey = null;
