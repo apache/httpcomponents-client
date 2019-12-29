@@ -25,7 +25,7 @@
  *
  */
 
-package org.apache.hc.client5.http.cache;
+package org.apache.hc.client5.http.impl.cache;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -33,10 +33,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.hc.client5.http.impl.cache.ByteArrayCacheEntrySerializer;
-import org.apache.hc.client5.http.impl.cache.FileResource;
-import org.apache.hc.client5.http.impl.cache.HeapResource;
-import org.apache.hc.client5.http.impl.cache.MemcachedCacheEntryHttp;
+import org.apache.hc.client5.http.cache.HttpCacheEntrySerializer;
+import org.apache.hc.client5.http.cache.HttpCacheStorageEntry;
+import org.apache.hc.client5.http.cache.ResourceIOException;
 //import org.apache.http.client.cache.HttpCacheEntry;
 //import org.apache.http.impl.client.cache.memcached.MemcachedCacheEntry;
 //import org.apache.http.impl.client.cache.memcached.MemcachedCacheEntryFactory;
@@ -44,21 +43,20 @@ import org.apache.hc.client5.http.impl.cache.MemcachedCacheEntryHttp;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.apache.hc.client5.http.cache.MemcachedCacheEntryHttpTestUtils.buildSimpleTestObjectFromTemplate;
-import static org.apache.hc.client5.http.cache.MemcachedCacheEntryHttpTestUtils.makeTestFileObject;
-import static org.apache.hc.client5.http.cache.MemcachedCacheEntryHttpTestUtils.readFully;
-import static org.apache.hc.client5.http.cache.MemcachedCacheEntryHttpTestUtils.verifyHttpCacheEntryFromBytes;
+import static org.apache.hc.client5.http.impl.cache.MemcachedCacheEntryHttpTestUtils.buildSimpleTestObjectFromTemplate;
+import static org.apache.hc.client5.http.impl.cache.MemcachedCacheEntryHttpTestUtils.makeTestFileObject;
+import static org.apache.hc.client5.http.impl.cache.MemcachedCacheEntryHttpTestUtils.readFully;
+import static org.apache.hc.client5.http.impl.cache.MemcachedCacheEntryHttpTestUtils.verifyHttpCacheEntryFromBytes;
 
 public class BenchmarkMemcachedCacheEntryHttp {
     private static final String TEST_CONTENT_FILE_NAME = "ApacheLogo.png";
 
-    // TODO: Name is no longer accurate
-    private HttpCacheEntrySerializer<byte[]> cacheEntryFactory;
+    private HttpCacheEntrySerializer<byte[]> serializer;
     private String newCacheName;
 
     @Before
     public void before() {
-        cacheEntryFactory = MemcachedCacheEntryHttp.INSTANCE;
+        serializer = MemcachedCacheEntryHttp.INSTANCE;
         newCacheName = "HTTP";
     }
 
@@ -66,7 +64,7 @@ public class BenchmarkMemcachedCacheEntryHttp {
     public void simpleTestBenchmark() throws Exception {
         final HttpCacheStorageEntry testEntry = buildSimpleTestObjectFromTemplate(Collections.<String, Object>emptyMap());
 
-        benchmarkSerializeDeserialize(newCacheName + " simple object", testEntry, cacheEntryFactory);
+        benchmarkSerializeDeserialize(newCacheName + " simple object", testEntry, serializer);
     }
 
     @Test
@@ -75,7 +73,7 @@ public class BenchmarkMemcachedCacheEntryHttp {
         cacheObjectValues.put("resource", new FileResource(makeTestFileObject(TEST_CONTENT_FILE_NAME)));
         final HttpCacheStorageEntry testEntry = buildSimpleTestObjectFromTemplate(cacheObjectValues);
 
-        benchmarkSerializeDeserialize(newCacheName + " file object", testEntry, cacheEntryFactory);
+        benchmarkSerializeDeserialize(newCacheName + " file object", testEntry, serializer);
     }
 
     @Test

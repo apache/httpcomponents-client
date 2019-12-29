@@ -25,7 +25,7 @@
  *
  */
 
-package org.apache.hc.client5.http.cache;
+package org.apache.hc.client5.http.impl.cache;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -38,6 +38,11 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.hc.client5.http.cache.HttpCacheEntry;
+import org.apache.hc.client5.http.cache.HttpCacheEntrySerializer;
+import org.apache.hc.client5.http.cache.HttpCacheStorageEntry;
+import org.apache.hc.client5.http.cache.Resource;
+import org.apache.hc.client5.http.cache.ResourceIOException;
 import org.apache.hc.client5.http.impl.cache.HeapResource;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.message.BasicHeader;
@@ -149,19 +154,17 @@ class MemcachedCacheEntryHttpTestUtils {
     /**
      * Verify that the given test file deserializes to the given storage key and an equivalent cache entry.
      *
-     * @param storageKey        Storage key to verify
-     * @param httpCacheStorageEntry    Cache entry to verify
      * @param serializer Deserializer
+     * @param httpCacheStorageEntry    Cache entry to verify
      * @param testFileName  Name of test file to deserialize
      * @throws Exception if anything goes wrong
      */
-    // TODO: storageKey is no longer used, get rid of it!
-    static void verifyHttpCacheEntryFromTestFile(final String storageKey, final HttpCacheStorageEntry httpCacheStorageEntry,
-                                                 final HttpCacheEntrySerializer<byte[]> serializer, final String testFileName,
+    static void verifyHttpCacheEntryFromTestFile(final HttpCacheEntrySerializer<byte[]> serializer, final HttpCacheStorageEntry httpCacheStorageEntry,
+                                                 final String testFileName,
                                                  final boolean reserializeFiles) throws Exception {
         if (reserializeFiles) {
             final File toFile = makeTestFileObject(testFileName);
-            saveEntryToFile(storageKey, httpCacheStorageEntry, serializer, toFile);
+            saveEntryToFile(serializer, httpCacheStorageEntry, toFile);
         }
 
         final byte[] bytes = readTestFileBytes(testFileName);
@@ -269,14 +272,12 @@ class MemcachedCacheEntryHttpTestUtils {
     /**
      * Save the given storage key and cache entry serialized to the given file.
      *
-     * @param storageKey Storage key to serialize and save
-     * @param httpCacheStorageEntry Cache entry to serialize and save
      * @param serializer Serializer
+     * @param httpCacheStorageEntry Cache entry to serialize and save
      * @param outFile Output file to write to
      * @throws Exception if anything goes wrong
      */
-    // TODO: storageKey is no longer used, get rid of it!
-    static void saveEntryToFile(final String storageKey, final HttpCacheStorageEntry httpCacheStorageEntry, final HttpCacheEntrySerializer<byte[]> serializer, final File outFile) throws Exception {
+    static void saveEntryToFile(final HttpCacheEntrySerializer<byte[]> serializer, final HttpCacheStorageEntry httpCacheStorageEntry, final File outFile) throws Exception {
         final byte[] bytes = serializer.serialize(httpCacheStorageEntry);
 
         OutputStream out = null;

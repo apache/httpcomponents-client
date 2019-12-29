@@ -25,7 +25,7 @@
  *
  */
 
-package org.apache.hc.client5.http.cache;
+package org.apache.hc.client5.http.impl.cache;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -35,9 +35,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
-import org.apache.hc.client5.http.impl.cache.FileResource;
-import org.apache.hc.client5.http.impl.cache.HeapResource;
-import org.apache.hc.client5.http.impl.cache.MemcachedCacheEntryHttp;
+import org.apache.hc.client5.http.cache.HttpCacheEntrySerializer;
+import org.apache.hc.client5.http.cache.HttpCacheStorageEntry;
+import org.apache.hc.client5.http.cache.ResourceIOException;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
@@ -50,12 +50,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import static org.apache.hc.client5.http.cache.MemcachedCacheEntryHttpTestUtils.buildSimpleTestObjectFromTemplate;
-import static org.apache.hc.client5.http.cache.MemcachedCacheEntryHttpTestUtils.makeTestFileObject;
-import static org.apache.hc.client5.http.cache.MemcachedCacheEntryHttpTestUtils.memcachedCacheEntryFromBytes;
-import static org.apache.hc.client5.http.cache.MemcachedCacheEntryHttpTestUtils.readTestFileBytes;
-import static org.apache.hc.client5.http.cache.MemcachedCacheEntryHttpTestUtils.testWithCache;
-import static org.apache.hc.client5.http.cache.MemcachedCacheEntryHttpTestUtils.verifyHttpCacheEntryFromTestFile;
+import static org.apache.hc.client5.http.impl.cache.MemcachedCacheEntryHttpTestUtils.buildSimpleTestObjectFromTemplate;
+import static org.apache.hc.client5.http.impl.cache.MemcachedCacheEntryHttpTestUtils.makeTestFileObject;
+import static org.apache.hc.client5.http.impl.cache.MemcachedCacheEntryHttpTestUtils.memcachedCacheEntryFromBytes;
+import static org.apache.hc.client5.http.impl.cache.MemcachedCacheEntryHttpTestUtils.readTestFileBytes;
+import static org.apache.hc.client5.http.impl.cache.MemcachedCacheEntryHttpTestUtils.testWithCache;
+import static org.apache.hc.client5.http.impl.cache.MemcachedCacheEntryHttpTestUtils.verifyHttpCacheEntryFromTestFile;
 
 public class TestMemcachedCacheEntryHttp {
     private static final String FILE_TEST_SERIALIZED_NAME = "ApacheLogo.serialized";
@@ -70,15 +70,14 @@ public class TestMemcachedCacheEntryHttp {
 
     private static final String TEST_CONTENT_FILE_NAME = "ApacheLogo.png";
 
-    // TODO: Rename, no longer an accurate name
-    private HttpCacheEntrySerializer<byte[]> cacheEntryFactory;
+    private HttpCacheEntrySerializer<byte[]> serializer;
 
     // Manually set this to true to re-generate all of the .serialized files
     private final boolean reserializeFiles = false;
 
     @Before
     public void before() {
-        cacheEntryFactory = MemcachedCacheEntryHttp.INSTANCE;
+        serializer = MemcachedCacheEntryHttp.INSTANCE;
     }
 
     /**
@@ -90,7 +89,7 @@ public class TestMemcachedCacheEntryHttp {
     public void simpleObjectTest() throws Exception {
         final HttpCacheStorageEntry testEntry = buildSimpleTestObjectFromTemplate(Collections.<String, Object>emptyMap());
 
-        testWithCache(testEntry, cacheEntryFactory);
+        testWithCache(testEntry, serializer);
     }
 
     /**
@@ -104,7 +103,7 @@ public class TestMemcachedCacheEntryHttp {
         cacheObjectValues.put("resource", new FileResource(makeTestFileObject(TEST_CONTENT_FILE_NAME)));
         final HttpCacheStorageEntry testEntry = buildSimpleTestObjectFromTemplate(cacheObjectValues);
 
-        testWithCache(testEntry, cacheEntryFactory);
+        testWithCache(testEntry, serializer);
     }
 
     @Test
@@ -113,7 +112,7 @@ public class TestMemcachedCacheEntryHttp {
         cacheObjectValues.put("headers", new Header[0]);
         final HttpCacheStorageEntry testEntry = buildSimpleTestObjectFromTemplate(cacheObjectValues);
 
-        testWithCache(testEntry, cacheEntryFactory);
+        testWithCache(testEntry, serializer);
     }
 
     @Test
@@ -124,7 +123,7 @@ public class TestMemcachedCacheEntryHttp {
         });
         final HttpCacheStorageEntry testEntry = buildSimpleTestObjectFromTemplate(cacheObjectValues);
 
-        testWithCache(testEntry, cacheEntryFactory);
+        testWithCache(testEntry, serializer);
     }
 
     @Test
@@ -133,7 +132,7 @@ public class TestMemcachedCacheEntryHttp {
         cacheObjectValues.put("resource", new HeapResource(new byte[0]));
         final HttpCacheStorageEntry testEntry = buildSimpleTestObjectFromTemplate(cacheObjectValues);
 
-        testWithCache(testEntry, cacheEntryFactory);
+        testWithCache(testEntry, serializer);
     }
 
     @Test
@@ -146,7 +145,7 @@ public class TestMemcachedCacheEntryHttp {
 
         final HttpCacheStorageEntry testEntry = buildSimpleTestObjectFromTemplate(cacheObjectValues);
 
-        testWithCache(testEntry, cacheEntryFactory);
+        testWithCache(testEntry, serializer);
     }
 
     @Test
@@ -158,7 +157,7 @@ public class TestMemcachedCacheEntryHttp {
         cacheObjectValues.put("variantMap", variantMap);
         final HttpCacheStorageEntry testEntry = buildSimpleTestObjectFromTemplate(cacheObjectValues);
 
-        testWithCache(testEntry, cacheEntryFactory);
+        testWithCache(testEntry, serializer);
     }
 
     /**
@@ -179,7 +178,7 @@ public class TestMemcachedCacheEntryHttp {
         });
         final HttpCacheStorageEntry testEntry = buildSimpleTestObjectFromTemplate(cacheObjectValues);
 
-        testWithCache(testEntry, cacheEntryFactory);
+        testWithCache(testEntry, serializer);
     }
 
     @Test(expected = IllegalStateException.class)
@@ -188,7 +187,7 @@ public class TestMemcachedCacheEntryHttp {
         cacheObjectValues.put("storageKey", null);
 
         final HttpCacheStorageEntry testEntry = buildSimpleTestObjectFromTemplate(cacheObjectValues);
-        cacheEntryFactory.serialize(testEntry);
+        serializer.serialize(testEntry);
     }
 
     /**
@@ -202,7 +201,7 @@ public class TestMemcachedCacheEntryHttp {
     public void simpleTestFromPreviouslySerialized() throws Exception {
         final HttpCacheStorageEntry testEntry = buildSimpleTestObjectFromTemplate(Collections.<String, Object>emptyMap());
 
-        verifyHttpCacheEntryFromTestFile(MemcachedCacheEntryHttpTestUtils.TEST_STORAGE_KEY, testEntry, cacheEntryFactory, SIMPLE_OBJECT_SERIALIZED_NAME, reserializeFiles);
+        verifyHttpCacheEntryFromTestFile(serializer, testEntry, SIMPLE_OBJECT_SERIALIZED_NAME, reserializeFiles);
     }
 
     /**
@@ -218,7 +217,7 @@ public class TestMemcachedCacheEntryHttp {
         cacheObjectValues.put("resource", new FileResource(makeTestFileObject(TEST_CONTENT_FILE_NAME)));
         final HttpCacheStorageEntry testEntry = buildSimpleTestObjectFromTemplate(cacheObjectValues);
 
-        verifyHttpCacheEntryFromTestFile(MemcachedCacheEntryHttpTestUtils.TEST_STORAGE_KEY, testEntry, cacheEntryFactory, FILE_TEST_SERIALIZED_NAME, reserializeFiles);
+        verifyHttpCacheEntryFromTestFile(serializer, testEntry, FILE_TEST_SERIALIZED_NAME, reserializeFiles);
     }
 
     // TODO: Add explanations for these tests
@@ -231,7 +230,7 @@ public class TestMemcachedCacheEntryHttp {
         cacheObjectValues.put("variantMap", variantMap);
         final HttpCacheStorageEntry testEntry = buildSimpleTestObjectFromTemplate(cacheObjectValues);
 
-        verifyHttpCacheEntryFromTestFile(MemcachedCacheEntryHttpTestUtils.TEST_STORAGE_KEY, testEntry, cacheEntryFactory, VARIANTMAP_TEST_SERIALIZED_NAME, reserializeFiles);
+        verifyHttpCacheEntryFromTestFile(serializer, testEntry, VARIANTMAP_TEST_SERIALIZED_NAME, reserializeFiles);
     }
 
     @Test
@@ -247,7 +246,7 @@ public class TestMemcachedCacheEntryHttp {
         });
         final HttpCacheStorageEntry testEntry = buildSimpleTestObjectFromTemplate(cacheObjectValues);
 
-        verifyHttpCacheEntryFromTestFile(MemcachedCacheEntryHttpTestUtils.TEST_STORAGE_KEY, testEntry, cacheEntryFactory, ESCAPED_HEADER_TEST_SERIALIZED_NAME, reserializeFiles);
+        verifyHttpCacheEntryFromTestFile(serializer, testEntry, ESCAPED_HEADER_TEST_SERIALIZED_NAME, reserializeFiles);
     }
 
     @Test
@@ -260,42 +259,42 @@ public class TestMemcachedCacheEntryHttp {
 
         final HttpCacheStorageEntry testEntry = buildSimpleTestObjectFromTemplate(cacheObjectValues);
 
-        verifyHttpCacheEntryFromTestFile(MemcachedCacheEntryHttpTestUtils.TEST_STORAGE_KEY, testEntry, cacheEntryFactory, NO_BODY_TEST_SERIALIZED_NAME, reserializeFiles);
+        verifyHttpCacheEntryFromTestFile(serializer, testEntry, NO_BODY_TEST_SERIALIZED_NAME, reserializeFiles);
     }
 
     @Test(expected = ResourceIOException.class)
     public void testInvalidCacheEntry() throws Exception {
         // This file is a JPEG not a cache entry
         final byte[] bytes = readTestFileBytes(TEST_CONTENT_FILE_NAME);
-        memcachedCacheEntryFromBytes(cacheEntryFactory, bytes);
+        memcachedCacheEntryFromBytes(serializer, bytes);
     }
 
     @Test(expected = ResourceIOException.class)
     public void testMissingHeaderCacheEntry() throws Exception {
         // This file is a JPEG not a cache entry
         final byte[] bytes = readTestFileBytes(MISSING_HEADER_TEST_SERIALIZED_NAME);
-        memcachedCacheEntryFromBytes(cacheEntryFactory, bytes);
+        memcachedCacheEntryFromBytes(serializer, bytes);
     }
 
     @Test(expected = ResourceIOException.class)
     public void testInvalidHeaderCacheEntry() throws Exception {
         // This file is a JPEG not a cache entry
         final byte[] bytes = readTestFileBytes(INVALID_HEADER_TEST_SERIALIZED_NAME);
-        memcachedCacheEntryFromBytes(cacheEntryFactory, bytes);
+        memcachedCacheEntryFromBytes(serializer, bytes);
     }
 
     @Test(expected = ResourceIOException.class)
     public void testVariantMapMissingKeyCacheEntry() throws Exception {
         // This file is a JPEG not a cache entry
         final byte[] bytes = readTestFileBytes(VARIANTMAP_MISSING_KEY_TEST_SERIALIZED_NAME);
-        memcachedCacheEntryFromBytes(cacheEntryFactory, bytes);
+        memcachedCacheEntryFromBytes(serializer, bytes);
     }
 
     @Test(expected = ResourceIOException.class)
     public void testVariantMapMissingValueCacheEntry() throws Exception {
         // This file is a JPEG not a cache entry, so should fail to deserialize
         final byte[] bytes = readTestFileBytes(VARIANTMAP_MISSING_VALUE_TEST_SERIALIZED_NAME);
-        memcachedCacheEntryFromBytes(cacheEntryFactory, bytes);
+        memcachedCacheEntryFromBytes(serializer, bytes);
     }
 
     /**
