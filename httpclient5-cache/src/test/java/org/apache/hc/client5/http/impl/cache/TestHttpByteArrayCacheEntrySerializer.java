@@ -57,15 +57,17 @@ import static org.apache.hc.client5.http.impl.cache.HttpByteArrayCacheEntrySeria
 import static org.apache.hc.client5.http.impl.cache.HttpByteArrayCacheEntrySerializerTestUtils.HttpCacheStorageEntryTestTemplate;
 
 public class TestHttpByteArrayCacheEntrySerializer {
-    private static final String FILE_TEST_SERIALIZED_NAME = "ApacheLogo.serialized";
-    private static final String SIMPLE_OBJECT_SERIALIZED_NAME = "simpleObject.serialized";
-    private static final String VARIANTMAP_TEST_SERIALIZED_NAME = "variantMap.serialized";
-    private static final String ESCAPED_HEADER_TEST_SERIALIZED_NAME = "escapedHeader.serialized";
-    private static final String NO_BODY_TEST_SERIALIZED_NAME = "noBody.serialized";
-    private static final String MISSING_HEADER_TEST_SERIALIZED_NAME = "missingHeader.serialized";
-    private static final String INVALID_HEADER_TEST_SERIALIZED_NAME = "invalidHeader.serialized";
-    private static final String VARIANTMAP_MISSING_KEY_TEST_SERIALIZED_NAME = "variantMapMissingKey.serialized";
-    private static final String VARIANTMAP_MISSING_VALUE_TEST_SERIALIZED_NAME = "variantMapMissingValue.serialized";
+    private static final String SERIALIAZED_EXTENSION = ".serialized";
+
+    private static final String FILE_TEST_SERIALIZED_NAME = "ApacheLogo" + SERIALIAZED_EXTENSION;
+    private static final String SIMPLE_OBJECT_SERIALIZED_NAME = "simpleObject" + SERIALIAZED_EXTENSION;
+    private static final String VARIANTMAP_TEST_SERIALIZED_NAME = "variantMap" + SERIALIAZED_EXTENSION;
+    private static final String ESCAPED_HEADER_TEST_SERIALIZED_NAME = "escapedHeader" + SERIALIAZED_EXTENSION;
+    private static final String NO_BODY_TEST_SERIALIZED_NAME = "noBody" + SERIALIAZED_EXTENSION;
+    private static final String MISSING_HEADER_TEST_SERIALIZED_NAME = "missingHeader" + SERIALIAZED_EXTENSION;
+    private static final String INVALID_HEADER_TEST_SERIALIZED_NAME = "invalidHeader" + SERIALIAZED_EXTENSION;
+    private static final String VARIANTMAP_MISSING_KEY_TEST_SERIALIZED_NAME = "variantMapMissingKey" + SERIALIAZED_EXTENSION;
+    private static final String VARIANTMAP_MISSING_VALUE_TEST_SERIALIZED_NAME = "variantMapMissingValue" + SERIALIAZED_EXTENSION;
 
     private static final String TEST_CONTENT_FILE_NAME = "ApacheLogo.png";
 
