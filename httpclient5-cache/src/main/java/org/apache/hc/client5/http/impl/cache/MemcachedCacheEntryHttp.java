@@ -105,15 +105,6 @@ public class MemcachedCacheEntryHttp implements HttpCacheEntrySerializer<byte[]>
         final SimpleHttpResponse httpResponse = cachedHttpResponseGenerator.generateResponse(httpRequest, httpCacheEntry.getContent());
 
         try(final ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-            // TODO: Probably this is not necessary.
-            // The response generator will add Content-Length if it doesn't already exist
-            // Remove the generated one...
-            httpResponse.removeHeaders(CONTENT_LENGTH);
-            // ...and add in the original if it was present
-            if (httpCacheEntry.getContent().getHeaders(CONTENT_LENGTH).length >= 1) {
-                httpResponse.addHeader(httpCacheEntry.getContent().getFirstHeader(CONTENT_LENGTH));
-            }
-
             escapeHeaders(httpResponse);
             addMetadataPseudoHeaders(httpResponse, httpCacheEntry);
 

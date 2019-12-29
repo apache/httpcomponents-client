@@ -116,17 +116,6 @@ public class TestMemcachedCacheEntryHttp {
     }
 
     @Test
-    public void contentLengthTest() throws Exception {
-        final Map<String, Object> cacheObjectValues = new HashMap<String, Object>();
-        cacheObjectValues.put("headers", new Header[] {
-                new BasicHeader("Content-Length", "999"),
-        });
-        final HttpCacheStorageEntry testEntry = buildSimpleTestObjectFromTemplate(cacheObjectValues);
-
-        testWithCache(testEntry, serializer);
-    }
-
-    @Test
     public void emptyBodyTest() throws Exception {
         final Map<String, Object> cacheObjectValues = new HashMap<String, Object>();
         cacheObjectValues.put("resource", new HeapResource(new byte[0]));

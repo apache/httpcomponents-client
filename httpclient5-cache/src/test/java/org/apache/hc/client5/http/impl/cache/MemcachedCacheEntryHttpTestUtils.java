@@ -226,11 +226,11 @@ class MemcachedCacheEntryHttpTestUtils {
                     expectedContent.getVariantMap().get(key), actualContent.getVariantMap().get(key));
         }
 
-        // Would love a cleaner way to do this if anybody knows of one
-        assertEquals(expectedContent.getHeaders().length, actualContent.getHeaders().length);
-        for (int i = 0; i < expectedContent.getHeaders().length; i++) {
-            final Header actualHeader = actualContent.getHeaders()[i];
-            final Header expectedHeader = expectedContent.getHeaders()[i];
+        // Requires that all expected headers are present
+        // Allows actual headers to contain extra
+        // Multiple values for the same header are not currently supported
+        for(Header expectedHeader: expectedContent.getHeaders()) {
+            final Header actualHeader = actualContent.getFirstHeader(expectedHeader.getName());
 
             Assert.assertEquals(expectedHeader.getName(), actualHeader.getName());
             Assert.assertEquals(expectedHeader.getValue(), actualHeader.getValue());

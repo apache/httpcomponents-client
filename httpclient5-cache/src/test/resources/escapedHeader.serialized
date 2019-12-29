@@ -1,4 +1,5 @@
 HTTP/1.1 200 OK
+Content-Length: 11
 hc-esc-hc-test-1: hc-test-1-value
 hc-esc-hc-sk: hc-sk-value
 hc-esc-hc-resp-date: hc-resp-date-value
