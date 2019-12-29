@@ -36,10 +36,6 @@ import java.util.Map;
 import org.apache.hc.client5.http.cache.HttpCacheEntrySerializer;
 import org.apache.hc.client5.http.cache.HttpCacheStorageEntry;
 import org.apache.hc.client5.http.cache.ResourceIOException;
-//import org.apache.http.client.cache.HttpCacheEntry;
-//import org.apache.http.impl.client.cache.memcached.MemcachedCacheEntry;
-//import org.apache.http.impl.client.cache.memcached.MemcachedCacheEntryFactory;
-//import org.apache.http.impl.client.cache.memcached.MemcachedCacheEntryFactoryImpl;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -112,7 +108,7 @@ public class BenchmarkMemcachedCacheEntryHttp {
         final byte[] testBytes = serializer.serialize(testEntry);
 
         // Verify once to make sure everything is right, and maybe warm things up a little
-        verifyHttpCacheEntryFromBytes(testEntry, serializer, testBytes);
+        verifyHttpCacheEntryFromBytes(serializer, testEntry, testBytes);
 
         System.out.printf("%40s: %6d bytes\n", testName + " serialized size", testBytes.length);
 

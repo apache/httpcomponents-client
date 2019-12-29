@@ -78,7 +78,6 @@ class MemcachedCacheEntryHttpTestUtils {
                 });
         final Map<String, String> variantMap = getOrDefault(template, "variantMap",
                 new HashMap<String, String>());
-        final String requestMethod = getOrDefault(template, "requestMethod", null);
         final String storageKey = getOrDefault(template, "storageKey", TEST_STORAGE_KEY);
         return new HttpCacheStorageEntry(storageKey,
                 new HttpCacheEntry(
@@ -115,34 +114,24 @@ class MemcachedCacheEntryHttpTestUtils {
      * <p>
      * Compares fields to ensure the deserialized object is equivalent to the original object.
      *
-     * @param httpCacheStorageEntry    Original object to serialize and test against
      * @param serializer Factory for creating serializers
+     * @param httpCacheStorageEntry    Original object to serialize and test against
      * @throws Exception if anything goes wrong
      */
-    static void testWithCache(final HttpCacheStorageEntry httpCacheStorageEntry, final HttpCacheEntrySerializer<byte[]> serializer) throws Exception {
-//        final HttpCacheStorageEntry memcachedCacheEntry = serializer.serializer.getMemcachedCacheEntry(storageKey, httpCacheEntry);
-//
-//        final HttpCacheEntry testHttpCacheEntry = memcachedCacheEntry.getHttpCacheEntry();
-//        assertCacheEntriesEqual(httpCacheEntry, testHttpCacheEntry);
-
+    static void testWithCache(final HttpCacheEntrySerializer<byte[]> serializer, final HttpCacheStorageEntry httpCacheStorageEntry) throws Exception {
         final byte[] testBytes = serializer.serialize(httpCacheStorageEntry);
-        // For debugging
-//        String testString = new String(testBytes, StandardCharsets.UTF_8);
-//        System.out.println(testString);
-//        System.out.printf("Cache entry is %d bytes\n", testBytes.length);
-
-        verifyHttpCacheEntryFromBytes(httpCacheStorageEntry, serializer, testBytes);
+        verifyHttpCacheEntryFromBytes(serializer, httpCacheStorageEntry, testBytes);
     }
 
     /**
      * Verify that the given bytes deserialize to the given storage key and an equivalent cache entry.
      *
-     * @param httpCacheStorageEntry Cache entry to verify
      * @param serializer Deserializer
+     * @param httpCacheStorageEntry Cache entry to verify
      * @param testBytes Bytes to deserialize
      * @throws Exception if anything goes wrong
      */
-    static void verifyHttpCacheEntryFromBytes(final HttpCacheStorageEntry httpCacheStorageEntry, final HttpCacheEntrySerializer<byte[]> serializer, final byte[] testBytes) throws Exception {
+    static void verifyHttpCacheEntryFromBytes(final HttpCacheEntrySerializer<byte[]> serializer, final HttpCacheStorageEntry httpCacheStorageEntry, final byte[] testBytes) throws Exception {
         final HttpCacheStorageEntry testMemcachedCacheEntryFromBytes = memcachedCacheEntryFromBytes(serializer, testBytes);
 
         assertCacheEntriesEqual(httpCacheStorageEntry, testMemcachedCacheEntryFromBytes);
@@ -166,7 +155,7 @@ class MemcachedCacheEntryHttpTestUtils {
 
         final byte[] bytes = readTestFileBytes(testFileName);
 
-        verifyHttpCacheEntryFromBytes(httpCacheStorageEntry, serializer, bytes);
+        verifyHttpCacheEntryFromBytes(serializer, httpCacheStorageEntry, bytes);
     }
 
     /**
@@ -229,7 +218,7 @@ class MemcachedCacheEntryHttpTestUtils {
         // Requires that all expected headers are present
         // Allows actual headers to contain extra
         // Multiple values for the same header are not currently supported
-        for(Header expectedHeader: expectedContent.getHeaders()) {
+        for(final Header expectedHeader: expectedContent.getHeaders()) {
             final Header actualHeader = actualContent.getFirstHeader(expectedHeader.getName());
 
             Assert.assertEquals(expectedHeader.getName(), actualHeader.getName());
@@ -256,9 +245,8 @@ class MemcachedCacheEntryHttpTestUtils {
      *
      * @param testFileName Name of test file
      * @return File for this test file
-     * @throws Exception if anything goes wrong
      */
-    static File makeTestFileObject(final String testFileName) throws Exception {
+    static File makeTestFileObject(final String testFileName) {
         return new File(TEST_RESOURCE_DIR + testFileName);
     }
 
@@ -322,7 +310,7 @@ class MemcachedCacheEntryHttpTestUtils {
             int curPos = 0;
 
             @Override
-            public Integer answer(final InvocationOnMock invocationOnMock) throws Throwable {
+            public Integer answer(final InvocationOnMock invocationOnMock) {
                 final boolean hasArguments = invocationOnMock.getArguments().length > 0;
                 final byte[] outBuf = hasArguments ? invocationOnMock.<byte[]>getArgument(0) : new byte[1];
                 final int outPos = hasArguments ? invocationOnMock.<Integer>getArgument(1) : 0;

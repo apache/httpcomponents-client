@@ -89,7 +89,7 @@ public class TestMemcachedCacheEntryHttp {
     public void simpleObjectTest() throws Exception {
         final HttpCacheStorageEntry testEntry = buildSimpleTestObjectFromTemplate(Collections.<String, Object>emptyMap());
 
-        testWithCache(testEntry, serializer);
+        testWithCache(serializer, testEntry);
     }
 
     /**
@@ -103,7 +103,7 @@ public class TestMemcachedCacheEntryHttp {
         cacheObjectValues.put("resource", new FileResource(makeTestFileObject(TEST_CONTENT_FILE_NAME)));
         final HttpCacheStorageEntry testEntry = buildSimpleTestObjectFromTemplate(cacheObjectValues);
 
-        testWithCache(testEntry, serializer);
+        testWithCache(serializer, testEntry);
     }
 
     @Test
@@ -112,7 +112,7 @@ public class TestMemcachedCacheEntryHttp {
         cacheObjectValues.put("headers", new Header[0]);
         final HttpCacheStorageEntry testEntry = buildSimpleTestObjectFromTemplate(cacheObjectValues);
 
-        testWithCache(testEntry, serializer);
+        testWithCache(serializer, testEntry);
     }
 
     @Test
@@ -121,7 +121,7 @@ public class TestMemcachedCacheEntryHttp {
         cacheObjectValues.put("resource", new HeapResource(new byte[0]));
         final HttpCacheStorageEntry testEntry = buildSimpleTestObjectFromTemplate(cacheObjectValues);
 
-        testWithCache(testEntry, serializer);
+        testWithCache(serializer, testEntry);
     }
 
     @Test
@@ -132,7 +132,7 @@ public class TestMemcachedCacheEntryHttp {
 
         final HttpCacheStorageEntry testEntry = buildSimpleTestObjectFromTemplate(cacheObjectValues);
 
-        testWithCache(testEntry, serializer);
+        testWithCache(serializer, testEntry);
     }
 
     @Test
@@ -144,7 +144,7 @@ public class TestMemcachedCacheEntryHttp {
         cacheObjectValues.put("variantMap", variantMap);
         final HttpCacheStorageEntry testEntry = buildSimpleTestObjectFromTemplate(cacheObjectValues);
 
-        testWithCache(testEntry, serializer);
+        testWithCache(serializer, testEntry);
     }
 
     /**
@@ -165,7 +165,7 @@ public class TestMemcachedCacheEntryHttp {
         });
         final HttpCacheStorageEntry testEntry = buildSimpleTestObjectFromTemplate(cacheObjectValues);
 
-        testWithCache(testEntry, serializer);
+        testWithCache(serializer, testEntry);
     }
 
     @Test(expected = IllegalStateException.class)
