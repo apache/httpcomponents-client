@@ -41,12 +41,6 @@ import java.util.Map;
 import org.apache.hc.client5.http.impl.cache.HeapResource;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.message.BasicHeader;
-//import org.apache.http.client.cache.HttpCacheEntry;
-//import org.apache.http.client.cache.Resource;
-//import org.apache.http.impl.client.cache.memcached.MemcachedCacheEntry;
-//import org.apache.http.impl.client.cache.memcached.MemcachedCacheEntryFactory;
-//import org.apache.http.message.BasicHeader;
-//import org.apache.http.message.BasicStatusLine;
 import org.junit.Assert;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
@@ -55,7 +49,6 @@ import org.mockito.stubbing.Answer;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
 
 class MemcachedCacheEntryHttpTestUtils {
     private final static String TEST_RESOURCE_DIR = "src/test/resources/";
@@ -162,6 +155,7 @@ class MemcachedCacheEntryHttpTestUtils {
      * @param testFileName  Name of test file to deserialize
      * @throws Exception if anything goes wrong
      */
+    // TODO: storageKey is no longer used, get rid of it!
     static void verifyHttpCacheEntryFromTestFile(final String storageKey, final HttpCacheStorageEntry httpCacheStorageEntry,
                                                  final HttpCacheEntrySerializer<byte[]> serializer, final String testFileName,
                                                  final boolean reserializeFiles) throws Exception {
@@ -206,9 +200,6 @@ class MemcachedCacheEntryHttpTestUtils {
      */
     static HttpCacheStorageEntry memcachedCacheEntryFromBytes(final HttpCacheEntrySerializer<byte[]> serializer, final byte[] testBytes) throws ResourceIOException {
         return serializer.deserialize(testBytes);
-//        final HttpCacheStorageEntry newMemcachedCacheEntryFromBytes = cacheEntryFactory.getUnsetCacheEntry();
-//        newMemcachedCacheEntryFromBytes.set(testBytes);
-//        return newMemcachedCacheEntryFromBytes;
     }
 
     /**
@@ -284,6 +275,7 @@ class MemcachedCacheEntryHttpTestUtils {
      * @param outFile Output file to write to
      * @throws Exception if anything goes wrong
      */
+    // TODO: storageKey is no longer used, get rid of it!
     static void saveEntryToFile(final String storageKey, final HttpCacheStorageEntry httpCacheStorageEntry, final HttpCacheEntrySerializer<byte[]> serializer, final File outFile) throws Exception {
         final byte[] bytes = serializer.serialize(httpCacheStorageEntry);
 
@@ -295,42 +287,6 @@ class MemcachedCacheEntryHttpTestUtils {
             if (out != null) {
                 out.close();
             }
-        }
-    }
-
-    /**
-     * Create a Resource with an InputStream with a read(...) method that returns from the given string up to
-     * the given number of bytes.
-     *
-     * @param readString Bytes to simulate reading
-     * @param maxReadLength Largest number of bytes to return in a single call to read(...)
-     * @return Mock InputSream which behaves as described above
-     */
-    static Resource makeMockSlowReadResource(final String readString, final int maxReadLength) {
-        return makeMockSlowReadResource(readString.getBytes(Charset.forName("UTF-8")) , maxReadLength);
-    }
-
-    /**
-     * Create a Resource with an InputStream with a read(...) method that returns from the given buffer up to
-     * the given number of bytes.
-     *
-     * @param readBytes Bytes to simulate reading
-     * @param maxReadLength Largest number of bytes to return in a single call to read(...)
-     * @return Mock InputSream which behaves as described above
-     */
-    static Resource makeMockSlowReadResource(final byte[] readBytes, final int maxReadLength) {
-        try {
-            final InputStream mockInputStream = makeMockSlowReadInputStream(readBytes, maxReadLength);
-
-            final Resource mockResource = Mockito.mock(Resource.class);
-            Mockito.when(mockResource.length()).thenReturn(Long.valueOf(readBytes.length));
-            Mockito.when(mockResource.getInputStream()).thenReturn(mockInputStream);
-            // TODO: This is what's called, and it doesn't simulate a slow reader anymore, is that testing still necessary?
-            Mockito.when(mockResource.get()).thenReturn(readBytes);
-
-            return mockResource;
-        } catch (final IOException ex) {
-            throw new RuntimeException("Failure creating mock", ex);
         }
     }
 
@@ -411,44 +367,5 @@ class MemcachedCacheEntryHttpTestUtils {
         final byte[] dest = new byte[length];
         readFully(src, dest);
         return dest;
-    }
-
-    /**
-     * Simulate a failure from the resource close method, and return the exception that was thrown by the serializer.
-     *
-     *
-     * @param testException Exception to throw from the test helper
-     * @return Actual exception caught
-     * @throws IOException Should never happen
-     */
-    static Throwable resourceCloseExceptionOnSerializationTestHelper(final HttpCacheEntrySerializer<byte[]> serializer, final Throwable testException) throws IOException {
-        final Resource mockResource = makeMockSlowReadResource("Hello World", 4096);
-        final InputStream mockInputStream = mockResource.getInputStream();
-
-        // Throw exception from the answer so we can throw checked exceptions not allowed by the close method signature
-        final Answer<Void> answer =  new Answer<Void>() {
-            @Override
-            public Void answer(final InvocationOnMock invocationOnMock) throws Throwable {
-                throw testException;
-            }
-        };
-        Mockito.
-                doAnswer(answer).
-                when(mockInputStream).
-                close();
-
-        final Map<String, Object> cacheObjectValues = new HashMap<>();
-        cacheObjectValues.put("resource", mockResource);
-        final HttpCacheStorageEntry testEntry = buildSimpleTestObjectFromTemplate(cacheObjectValues);
-
-        try {
-            serializer.serialize(testEntry);
-            fail("Expected exception but none was thrown");
-        } catch (final Throwable ex) {
-            return ex;
-        }
-
-        // Should not happen
-        return null;
     }
 }

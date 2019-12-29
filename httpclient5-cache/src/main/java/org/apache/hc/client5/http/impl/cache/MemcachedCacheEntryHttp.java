@@ -26,19 +26,14 @@
  */
 
 package org.apache.hc.client5.http.impl.cache;
-// Must be in Apache package to get access to cache helper classes
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.lang.reflect.UndeclaredThrowableException;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
@@ -67,28 +62,8 @@ import org.apache.hc.core5.http.message.BasicLineFormatter;
 import org.apache.hc.core5.http.message.StatusLine;
 import org.apache.hc.core5.util.CharArrayBuffer;
 
-//import org.apache.http.Header;
-//import org.apache.http.HttpException;
-//import org.apache.http.HttpRequest;
-//import org.apache.http.HttpResponse;
-//import org.apache.http.client.cache.HeaderConstants;
-//import org.apache.http.client.cache.HttpCacheEntry;
-//import org.apache.http.client.cache.Resource;
-//import org.apache.http.client.methods.CloseableHttpResponse;
-//import org.apache.http.client.methods.HttpRequestWrapper;
-//import org.apache.http.impl.client.cache.memcached.MemcachedCacheEntry;
-//import org.apache.http.impl.io.AbstractMessageParser;
-//import org.apache.http.impl.io.AbstractMessageWriter;
-//import org.apache.http.impl.io.DefaultHttpResponseParser;
-//import org.apache.http.impl.io.DefaultHttpResponseWriter;
-//import org.apache.http.impl.io.HttpTransportMetricsImpl;
-//import org.apache.http.impl.io.SessionInputBufferImpl;
-//import org.apache.http.impl.io.SessionOutputBufferImpl;
-//import org.apache.http.io.SessionInputBuffer;
-//import org.apache.http.io.SessionOutputBuffer;
-//import org.apache.http.message.BasicHttpRequest;
-//import org.apache.http.protocol.HTTP;
-
+// TODO: Not sure about status message, currently seems to be discarded?
+// TODO: Not sure about protocol version, do we still need that?
 /**
  * Cache serializer and deserializer that uses an HTTP-like format.
  *
@@ -114,14 +89,6 @@ public class MemcachedCacheEntryHttp implements HttpCacheEntrySerializer<byte[]>
 
     private static final int BUFFER_SIZE = 8192;
 
-//    private String storageKey;
-//    private HttpCacheEntry httpCacheEntry;
-
-//    public MemcachedCacheEntryHttp(final String storageKey, final HttpCacheEntry entry) {
-//        this.storageKey = storageKey;
-//        this.httpCacheEntry = entry;
-//    }
-
     public MemcachedCacheEntryHttp() {
     }
 
@@ -130,127 +97,101 @@ public class MemcachedCacheEntryHttp implements HttpCacheEntrySerializer<byte[]>
         if (httpCacheEntry.getKey() == null) {
             throw new IllegalStateException("Cannot serialize cache object with null storage key");
         }
-        // I don't think this needs validated because it's asserted in the constructor
-//        if (this.httpCacheEntry == null) {
-//            throw new IllegalStateException("Cannot serialize cache object with null cache entry");
-//        }
+        // content doesn't need null-check because it's validated in the HttpCacheStorageEntry constructor
 
-        try {
-            return new TryWithResources<byte[]>(2) {
-                public byte[] run() throws IOException, HttpException {
-                    // Fake HTTP request, required by response generator
+        // Fake HTTP request, required by response generator
+        final HttpRequest httpRequest = new BasicHttpRequest(httpCacheEntry.getContent().getRequestMethod(), "/");
 
-                    final HttpRequest httpRequest = new BasicHttpRequest(httpCacheEntry.getContent().getRequestMethod(), "/");
+        // TODO: What is the right policy here?  Not sure of the implications.
+        final CacheValidityPolicy cacheValidityPolicy = new CacheValidityPolicy();
+        final CachedHttpResponseGenerator cachedHttpResponseGenerator = new CachedHttpResponseGenerator(cacheValidityPolicy);
 
-                    // This is the package-private class that requires us to be package-private
-                    // TODO: What is the right policy here?  Not sure of the implications.
-                    final CacheValidityPolicy cacheValidityPolicy = new CacheValidityPolicy();
-                    final CachedHttpResponseGenerator cachedHttpResponseGenerator = new CachedHttpResponseGenerator(cacheValidityPolicy);
+        final SimpleHttpResponse httpResponse = cachedHttpResponseGenerator.generateResponse(httpRequest, httpCacheEntry.getContent());
 
-                    final SimpleHttpResponse httpResponse = cachedHttpResponseGenerator.generateResponse(httpRequest, httpCacheEntry.getContent());
+        try(final ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            // The response generator will add an age header, which doesn't make sense to cache
+            httpResponse.removeHeaders(HeaderConstants.AGE);
+            // The response generator will add Content-Length if it doesn't already exist
+            // Remove the generated one...
+            httpResponse.removeHeaders(CONTENT_LENGTH);
+            // ...and add in the original if it was present
+            if (httpCacheEntry.getContent().getHeaders(CONTENT_LENGTH).length >= 1) {
+                httpResponse.addHeader(httpCacheEntry.getContent().getFirstHeader(CONTENT_LENGTH));
+            }
 
-                    final ByteArrayOutputStream out = new ByteArrayOutputStream();
-                    addResource(out);
+            escapeHeaders(httpResponse);
+            addMetadataPseudoHeaders(httpResponse, httpCacheEntry);
 
-                    // The response generator will add an age header, which doesn't make sense to cache
-                    httpResponse.removeHeaders(HeaderConstants.AGE);
-                    // The response generator will add Content-Length if it doesn't already exist
-                    // Remove the generated one...
-                    httpResponse.removeHeaders(CONTENT_LENGTH);
-                    // ...and add in the original if it was present
-                    if (httpCacheEntry.getContent().getHeaders(CONTENT_LENGTH).length >= 1) {
-                        httpResponse.addHeader(httpCacheEntry.getContent().getFirstHeader(CONTENT_LENGTH));
-                    }
+            final byte[] bodyBytes = httpResponse.getBodyBytes();
+            final int resourceLength = bodyBytes == null ? 0 : bodyBytes.length;
 
-                    escapeHeaders(httpResponse);
-                    addMetadataPseudoHeaders(httpResponse, httpCacheEntry);
+            if (bodyBytes == null) {
+                // This means no content, for example a 204 response
+                // TODO: Is this still needed?
+                httpResponse.addHeader(SC_HEADER_NAME_NO_CONTENT, Boolean.TRUE.toString());
+            }
 
-                    final byte[] bodyBytes = httpResponse.getBodyBytes();
-                    final int resourceLength = bodyBytes == null ? 0 : bodyBytes.length;
+            // TODO: Do we need a CharsetEncoder to pass to SessionOutputBufferImpl?  Or default is OK?
+            final SessionOutputBufferImpl outputBuffer = new SessionOutputBufferImpl(BUFFER_SIZE);
+            final AbstractMessageWriter<SimpleHttpResponse> httpResponseWriter = makeHttpResponseWriter(outputBuffer);
+            httpResponseWriter.write(httpResponse, outputBuffer, out);
+            outputBuffer.flush(out);
+            final byte[] headerBytes = out.toByteArray();
 
-                    if (bodyBytes == null) {
-                        // This means no content, for example a 204 response
-                        // TODO: Is this still needed?
-                        httpResponse.addHeader(SC_HEADER_NAME_NO_CONTENT, Boolean.TRUE.toString());
-                    }
-
-                    // TODO: Do we need a CharsetEncoder to pass to SessionOutputBufferImpl?  Or default is OK?
-                    final SessionOutputBufferImpl outputBuffer = new SessionOutputBufferImpl(BUFFER_SIZE);
-                    final AbstractMessageWriter<SimpleHttpResponse> httpResponseWriter = makeHttpResponseWriter(outputBuffer);
-                    httpResponseWriter.write(httpResponse, outputBuffer, out);
-                    outputBuffer.flush(out);
-                    final byte[] headerBytes = out.toByteArray();
-
-                    final byte[] bytes = new byte[headerBytes.length + resourceLength];
-                    System.arraycopy(headerBytes, 0, bytes, 0, headerBytes.length);
-                    if (resourceLength > 0) {
-                        System.arraycopy(bodyBytes, 0, bytes, headerBytes.length, resourceLength);
-                    }
-                    return bytes;
-                }
-            }.runWithResources();
-        } catch (final Exception e) {
-            throw new MemcachedCacheEntryHttpException("Cache encoding error", e);
+            final byte[] bytes = new byte[headerBytes.length + resourceLength];
+            System.arraycopy(headerBytes, 0, bytes, 0, headerBytes.length);
+            if (resourceLength > 0) {
+                System.arraycopy(bodyBytes, 0, bytes, headerBytes.length, resourceLength);
+            }
+            return bytes;
+        } catch(final IOException|HttpException e) {
+            throw new ResourceIOException("Exception while serializing cache entry", e);
         }
     }
 
     @Override
     public HttpCacheStorageEntry deserialize(final byte[] serializedObject) throws ResourceIOException {
-        try {
-            return new TryWithResources<HttpCacheStorageEntry>(2) {
-                public HttpCacheStorageEntry run() throws IOException, HttpException {
-                    final InputStream in = makeByteArrayInputStream(serializedObject);
-                    addResource(in);
+        try (final InputStream in = makeByteArrayInputStream(serializedObject);
+                final ByteArrayOutputStream bytesOut = new ByteArrayOutputStream(serializedObject.length) // this is bigger than necessary but will save us from reallocating
+        ) {
 
-                    final ByteArrayOutputStream bytesOut = new ByteArrayOutputStream(serializedObject.length); // this is bigger than necessary but will save us from reallocating
-                    addResource(bytesOut);
+            final SessionInputBufferImpl inputBuffer = new SessionInputBufferImpl(BUFFER_SIZE);
+            final AbstractMessageParser<ClassicHttpResponse> responseParser = makeHttpResponseParser();
+            final ClassicHttpResponse response = responseParser.parse(inputBuffer, in);
 
-                    // We don't use this metrics object but it's required
-//                    final HttpTransportMetricsImpl metrics = new HttpTransportMetricsImpl();
-                    final SessionInputBufferImpl inputBuffer = new SessionInputBufferImpl(BUFFER_SIZE);
-//                    inputBuffer.bind(in);
-                    final AbstractMessageParser<ClassicHttpResponse> responseParser = makeHttpResponseParser();
+            // Extract metadata pseudo-headers
+            final String storageKey = getCachePseudoHeaderAndRemove(response, SC_HEADER_NAME_STORAGE_KEY);
+            final Date requestDate = getCachePseudoHeaderDateAndRemove(response, SC_HEADER_NAME_REQUEST_DATE);
+            final Date responseDate = getCachePseudoHeaderDateAndRemove(response, SC_HEADER_NAME_RESPONSE_DATE);
+            final boolean noBody = Boolean.parseBoolean(getOptionalCachePseudoHeaderAndRemove(response, SC_HEADER_NAME_NO_CONTENT));
+            final Map<String, String> variantMap = getVariantMapPseudoHeaderAndRemove(response);
+            unescapeHeaders(response);
 
-                    final ClassicHttpResponse response = responseParser.parse(inputBuffer, in);
+            copyBytes(inputBuffer, in, bytesOut);
 
-                    // Extract metadata pseudo-headers
-                    final String storageKey = getCachePseudoHeaderAndRemove(response, SC_HEADER_NAME_STORAGE_KEY);
-                    final Date requestDate = getCachePseudoHeaderDateAndRemove(response, SC_HEADER_NAME_REQUEST_DATE);
-                    final Date responseDate = getCachePseudoHeaderDateAndRemove(response, SC_HEADER_NAME_RESPONSE_DATE);
-                    final boolean noBody = Boolean.parseBoolean(getOptionalCachePseudoHeaderAndRemove(response, SC_HEADER_NAME_NO_CONTENT));
-                    final Map<String, String> variantMap = getVariantMapPseudoHeaderAndRemove(response);
-                    unescapeHeaders(response);
+            final Resource resource;
+            if (noBody) {
+                // This means no content, for example a 204 response
+                resource = null;
+            } else {
+                resource = new HeapResource(bytesOut.toByteArray());
+            }
 
-                    copyBytes(inputBuffer, in, bytesOut);
+            final HttpCacheEntry httpCacheEntry = new HttpCacheEntry(
+                    requestDate,
+                    responseDate,
+                    200, // TODO: Where to get the status code?
+                    response.getHeaders(),
+                    resource,
+                    variantMap
+            );
 
-                    final Resource resource;
-                    if (noBody) {
-                        // This means no content, for example a 204 response
-                        resource = null;
-                    } else {
-                        resource = new HeapResource(bytesOut.toByteArray());
-                    }
-
-                    final HttpCacheEntry httpCacheEntry = new HttpCacheEntry(
-                            requestDate,
-                            responseDate,
-                            200, // TODO: Where to get the status code?
-                            response.getHeaders(),
-                            resource,
-                            variantMap
-                    );
-
-                    final HttpCacheStorageEntry httpCacheStorageEntry = new HttpCacheStorageEntry(storageKey, httpCacheEntry);
-                    return httpCacheStorageEntry;
-                }
-            }.runWithResources();
-        } catch (final IOException e) {
-            throw new ResourceIOException("Error deserializing cache entry", e);
-        } catch (final HttpException e) {
+            final HttpCacheStorageEntry httpCacheStorageEntry = new HttpCacheStorageEntry(storageKey, httpCacheEntry);
+            return httpCacheStorageEntry;
+        } catch (final IOException|HttpException e) {
             throw new ResourceIOException("Error deserializing cache entry", e);
         }
     }
-
 
     /**
      * Helper method to make a new HttpResponse writer.
@@ -420,88 +361,6 @@ public class MemcachedCacheEntryHttp implements HttpCacheEntrySerializer<byte[]>
         int lastBytesRead;
         while ((lastBytesRead = srcBuf.read(buf, src)) != -1) {
             dest.write(buf, 0, lastBytesRead);
-        }
-    }
-
-//    private static void copyBytes(final InputStream src, final byte[] dest, final int destPos, final int length) throws IOException {
-//        int totalBytesRead = 0;
-//        int lastBytesRead;
-//
-//        while (totalBytesRead < length && (lastBytesRead = src.read(dest, destPos + totalBytesRead, length - totalBytesRead)) != -1) {
-//            totalBytesRead += lastBytesRead;
-//        }
-//        if (totalBytesRead < length) {
-//            throw new IOException(String.format("Expected to read %d bytes but only read %d before end of file", length, totalBytesRead));
-//        }
-//    }
-
-    /**
-     * Helper class to run wrapped code while reliably closing resources and ensuring
-     * the most interesting exception is thrown if more than one occurs.
-     *
-     * @param <ReturnType> Return type for wrapped code
-     */
-    private static abstract class TryWithResources<ReturnType> {
-        /**
-         * Resources to close when the wrapped code finishes.
-         */
-        private final List<Closeable> resources;
-
-        /**
-         * Code to run while handling resources
-         */
-        abstract ReturnType run() throws IOException, HttpException;
-
-        /**
-         * Create a resource handler with the given number of reserved resources.
-         */
-        TryWithResources(final int numResources) {
-            resources = new ArrayList<Closeable>(numResources);
-        }
-
-        /**
-         * Add a resource to be closed when the wrapped code finishes executing.
-         */
-        void addResource(final Closeable resource) {
-            resources.add(resource);
-        }
-
-        /**
-         * Run the subclass run() method, ensuring resources are closed when it finishes.
-         */
-        ReturnType runWithResources() throws IOException, HttpException {
-            boolean finishedSuccessfully = false;
-            try {
-                final ReturnType ret = run();
-                finishedSuccessfully = true;
-                return ret;
-            } finally {
-                Throwable closeException = null;
-                for (final Closeable resource : resources) {
-                    try {
-                        resource.close();
-                    } catch (final Throwable ex) { // Normally bad form to catch Throwable, but that's what Java 7 try-with-resources does
-                        // Only keep the last one, if there is more than one
-                        closeException = ex;
-                    }
-                }
-                if (closeException != null &&
-                        finishedSuccessfully) { // Only throw an exception from close() if no exception was thrown from run()
-                    try {
-                        throw closeException;
-                    } catch (final IOException ex) { // Only checked exception close() is allowed to throw
-                        throw ex;
-                    } catch (final RuntimeException ex) {
-                        throw ex;
-                    } catch (final Error ex) {
-                        throw ex;
-                    } catch (final Throwable ex) {
-                        // Defensive code, cannot happen unless there is a bug in the above code
-                        // or the close method throws something unexpected
-                        throw new UndeclaredThrowableException(closeException, "Exception of unexpected type occurred");
-                    }
-                }
-            }
         }
     }
 
