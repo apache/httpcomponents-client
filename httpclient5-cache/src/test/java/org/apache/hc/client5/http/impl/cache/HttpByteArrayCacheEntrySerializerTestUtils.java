@@ -51,7 +51,7 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
-class MemcachedCacheEntryHttpTestUtils {
+class HttpByteArrayCacheEntrySerializerTestUtils {
     private final static String TEST_RESOURCE_DIR = "src/test/resources/";
     static final String TEST_STORAGE_KEY = "xyzzy";
 

@@ -49,14 +49,14 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import static org.apache.hc.client5.http.impl.cache.MemcachedCacheEntryHttpTestUtils.makeTestFileObject;
-import static org.apache.hc.client5.http.impl.cache.MemcachedCacheEntryHttpTestUtils.memcachedCacheEntryFromBytes;
-import static org.apache.hc.client5.http.impl.cache.MemcachedCacheEntryHttpTestUtils.readTestFileBytes;
-import static org.apache.hc.client5.http.impl.cache.MemcachedCacheEntryHttpTestUtils.testWithCache;
-import static org.apache.hc.client5.http.impl.cache.MemcachedCacheEntryHttpTestUtils.verifyHttpCacheEntryFromTestFile;
-import static org.apache.hc.client5.http.impl.cache.MemcachedCacheEntryHttpTestUtils.HttpCacheStorageEntryTestTemplate;
+import static org.apache.hc.client5.http.impl.cache.HttpByteArrayCacheEntrySerializerTestUtils.makeTestFileObject;
+import static org.apache.hc.client5.http.impl.cache.HttpByteArrayCacheEntrySerializerTestUtils.memcachedCacheEntryFromBytes;
+import static org.apache.hc.client5.http.impl.cache.HttpByteArrayCacheEntrySerializerTestUtils.readTestFileBytes;
+import static org.apache.hc.client5.http.impl.cache.HttpByteArrayCacheEntrySerializerTestUtils.testWithCache;
+import static org.apache.hc.client5.http.impl.cache.HttpByteArrayCacheEntrySerializerTestUtils.verifyHttpCacheEntryFromTestFile;
+import static org.apache.hc.client5.http.impl.cache.HttpByteArrayCacheEntrySerializerTestUtils.HttpCacheStorageEntryTestTemplate;
 
-public class TestMemcachedCacheEntryHttp {
+public class TestHttpByteArrayCacheEntrySerializer {
     private static final String FILE_TEST_SERIALIZED_NAME = "ApacheLogo.serialized";
     private static final String SIMPLE_OBJECT_SERIALIZED_NAME = "simpleObject.serialized";
     private static final String VARIANTMAP_TEST_SERIALIZED_NAME = "variantMap.serialized";
@@ -76,7 +76,7 @@ public class TestMemcachedCacheEntryHttp {
 
     @Before
     public void before() {
-        serializer = MemcachedCacheEntryHttp.INSTANCE;
+        serializer = HttpByteArrayCacheEntrySerializer.INSTANCE;
     }
 
     /**
@@ -363,7 +363,7 @@ public class TestMemcachedCacheEntryHttp {
         final HttpCacheStorageEntryTestTemplate cacheObjectValues = HttpCacheStorageEntryTestTemplate.makeDefault();
         final HttpCacheStorageEntry testEntry = cacheObjectValues.toEntry();
 
-        final MemcachedCacheEntryHttp testMemcachedEntry = new MemcachedCacheEntryHttp() {
+        final HttpByteArrayCacheEntrySerializer testMemcachedEntry = new HttpByteArrayCacheEntrySerializer() {
             protected AbstractMessageWriter<SimpleHttpResponse> makeHttpResponseWriter(final SessionOutputBuffer outputBuffer) {
                 return throwyHttpWriter;
             }
@@ -384,7 +384,7 @@ public class TestMemcachedCacheEntryHttp {
                 when(throwyParser).
                 parse(Mockito.any(SessionInputBuffer.class), Mockito.any(InputStream.class));
 
-        final MemcachedCacheEntryHttp testMemcachedEntry = new MemcachedCacheEntryHttp() {
+        final HttpByteArrayCacheEntrySerializer testMemcachedEntry = new HttpByteArrayCacheEntrySerializer() {
             @Override
             protected AbstractMessageParser<ClassicHttpResponse> makeHttpResponseParser() {
                 return throwyParser;

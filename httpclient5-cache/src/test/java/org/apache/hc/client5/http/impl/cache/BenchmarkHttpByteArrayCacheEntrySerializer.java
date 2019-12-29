@@ -36,12 +36,12 @@ import org.apache.hc.client5.http.cache.ResourceIOException;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.apache.hc.client5.http.impl.cache.MemcachedCacheEntryHttpTestUtils.makeTestFileObject;
-import static org.apache.hc.client5.http.impl.cache.MemcachedCacheEntryHttpTestUtils.readFullyStrict;
-import static org.apache.hc.client5.http.impl.cache.MemcachedCacheEntryHttpTestUtils.HttpCacheStorageEntryTestTemplate;
-import static org.apache.hc.client5.http.impl.cache.MemcachedCacheEntryHttpTestUtils.verifyHttpCacheEntryFromBytes;
+import static org.apache.hc.client5.http.impl.cache.HttpByteArrayCacheEntrySerializerTestUtils.makeTestFileObject;
+import static org.apache.hc.client5.http.impl.cache.HttpByteArrayCacheEntrySerializerTestUtils.readFullyStrict;
+import static org.apache.hc.client5.http.impl.cache.HttpByteArrayCacheEntrySerializerTestUtils.HttpCacheStorageEntryTestTemplate;
+import static org.apache.hc.client5.http.impl.cache.HttpByteArrayCacheEntrySerializerTestUtils.verifyHttpCacheEntryFromBytes;
 
-public class BenchmarkMemcachedCacheEntryHttp {
+public class BenchmarkHttpByteArrayCacheEntrySerializer {
     private static final String TEST_CONTENT_FILE_NAME = "ApacheLogo.png";
 
     private HttpCacheEntrySerializer<byte[]> serializer;
@@ -49,13 +49,13 @@ public class BenchmarkMemcachedCacheEntryHttp {
 
     @Before
     public void before() {
-        serializer = MemcachedCacheEntryHttp.INSTANCE;
+        serializer = HttpByteArrayCacheEntrySerializer.INSTANCE;
         newCacheName = "HTTP";
     }
 
     @Test
     public void simpleTestBenchmark() throws Exception {
-        final HttpCacheStorageEntryTestTemplate cacheObjectValues = MemcachedCacheEntryHttpTestUtils.HttpCacheStorageEntryTestTemplate.makeDefault();
+        final HttpCacheStorageEntryTestTemplate cacheObjectValues = HttpByteArrayCacheEntrySerializerTestUtils.HttpCacheStorageEntryTestTemplate.makeDefault();
         final HttpCacheStorageEntry testEntry = cacheObjectValues.toEntry();
 
         benchmarkSerializeDeserialize(newCacheName + " simple object", testEntry, serializer);
@@ -72,7 +72,7 @@ public class BenchmarkMemcachedCacheEntryHttp {
 
     @Test
     public void oldSimpleTestBenchmark() throws Exception {
-        final HttpCacheStorageEntryTestTemplate cacheObjectValues = MemcachedCacheEntryHttpTestUtils.HttpCacheStorageEntryTestTemplate.makeDefault();
+        final HttpCacheStorageEntryTestTemplate cacheObjectValues = HttpByteArrayCacheEntrySerializerTestUtils.HttpCacheStorageEntryTestTemplate.makeDefault();
         final HttpCacheStorageEntry testEntry = cacheObjectValues.toEntry();
         final HttpCacheEntrySerializer<byte[]> oldSerializer = new ByteArrayCacheEntrySerializer();
 

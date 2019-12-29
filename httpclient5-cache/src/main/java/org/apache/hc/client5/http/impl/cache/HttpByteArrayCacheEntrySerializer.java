@@ -67,8 +67,8 @@ import org.apache.hc.core5.util.CharArrayBuffer;
  * Existing libraries for reading and writing HTTP are used, and metadata is encoded into HTTP
  * pseudo-headers for storage.
  */
-public class MemcachedCacheEntryHttp implements HttpCacheEntrySerializer<byte[]> {
-    public static final MemcachedCacheEntryHttp INSTANCE = new MemcachedCacheEntryHttp();
+public class HttpByteArrayCacheEntrySerializer implements HttpCacheEntrySerializer<byte[]> {
+    public static final HttpByteArrayCacheEntrySerializer INSTANCE = new HttpByteArrayCacheEntrySerializer();
 
     private static final String SC_CACHE_ENTRY_PREFIX = "hc-";
 
@@ -83,7 +83,7 @@ public class MemcachedCacheEntryHttp implements HttpCacheEntrySerializer<byte[]>
 
     private static final int BUFFER_SIZE = 8192;
 
-    public MemcachedCacheEntryHttp() {
+    public HttpByteArrayCacheEntrySerializer() {
     }
 
     @Override
