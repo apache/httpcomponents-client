@@ -34,8 +34,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
+import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
@@ -55,56 +55,83 @@ class MemcachedCacheEntryHttpTestUtils {
     private final static String TEST_RESOURCE_DIR = "src/test/resources/";
     static final String TEST_STORAGE_KEY = "xyzzy";
 
-    /**
-     * Create a new HttpCacheEntry object with default fields, except for those overridden by name in the template.
-     *
-     * @param template Map of field names to override in the test object
-     * @return New object for testing
-     */
-    static HttpCacheStorageEntry buildSimpleTestObjectFromTemplate(final Map<String, Object> template) {
-        final Resource resource = getOrDefault(template, "resource",
-                new HeapResource("Hello World".getBytes(Charset.forName("UTF-8"))));
-
-        final Date requestDate = getOrDefault(template, "requestDate", new Date(165214800000L));
-        final Date responseDate = getOrDefault(template, "responseDate", new Date(2611108800000L));
-        final Integer responseCode = getOrDefault(template, "responseCode", 200);
-        final Header[] responseHeaders = getOrDefault(template, "headers",
-                new Header[]{
-                        new BasicHeader("Content-type", "text/html"),
-                        new BasicHeader("Cache-control", "public, max-age=31536000"),
-                });
-        final Map<String, String> variantMap = getOrDefault(template, "variantMap",
-                new HashMap<String, String>());
-        final String storageKey = getOrDefault(template, "storageKey", TEST_STORAGE_KEY);
-        return new HttpCacheStorageEntry(storageKey,
-                new HttpCacheEntry(
-                        requestDate,
-                        responseDate,
-                        responseCode,
-                        responseHeaders,
-                        resource,
-                        variantMap)
-        );
-    }
 
     /**
-     * Return the value from a map if it is present, and otherwise a default value.
-     *
-     * Implementation of map#getOrDefault for Java 6.
-     *
-     * @param map Map to get an entry from
-     * @param key Key to look up
-     * @param orDefault Value to return if the given key is not found.
-     * @param <X> Type of object expected
-     * @return Object from map, or default if not found
+     * Template for incrementally building a new HttpCacheStorageEntry test object, starting from defaults.
      */
-    static <X> X getOrDefault(final Map<String, Object> map, final String key, final X orDefault) {
-        if (map.containsKey(key)) {
-            return (X) map.get(key);
-        } else {
-            return orDefault;
+    static class HttpCacheStorageEntryTestTemplate {
+        Resource resource;
+        Date requestDate;
+        Date responseDate;
+        int responseCode;
+        Header[] responseHeaders;
+        Map<String, String> variantMap;
+        String storageKey;
+
+        /**
+         * Return a new HttpCacheStorageEntryTestTemplate instance with all default values.
+         *
+         * @return new HttpCacheStorageEntryTestTemplate instance
+         */
+        static HttpCacheStorageEntryTestTemplate makeDefault() {
+            return new HttpCacheStorageEntryTestTemplate(DEFAULT_HTTP_CACHE_STORAGE_ENTRY_TEST_TEMPLATE);
+        }
+
+        /**
+         * Convert this template to a HttpCacheStorageEntry object.
+         * @return HttpCacheStorageEntry object
+         */
+        HttpCacheStorageEntry toEntry() {
+            return new HttpCacheStorageEntry(storageKey,
+                    new HttpCacheEntry(
+                            requestDate,
+                            responseDate,
+                            responseCode,
+                            responseHeaders,
+                            resource,
+                            variantMap));
+        }
+
+        /**
+         * Create a new template with all null values.
+         */
+        private HttpCacheStorageEntryTestTemplate() {
+        }
+
+        /**
+         * Create a new template values copied from the given template
+         *
+         * @param src Template to copy values from
+         */
+        private HttpCacheStorageEntryTestTemplate(final HttpCacheStorageEntryTestTemplate src) {
+            this.resource = src.resource;
+            this.requestDate = src.requestDate;
+            this.responseDate = src.responseDate;
+            this.responseCode = src.responseCode;
+            this.responseHeaders = src.responseHeaders;
+            this.variantMap = src.variantMap;
+            this.storageKey = src.storageKey;
         }
     }
+
+    /**
+     * Template with all default values.
+     *
+     * Used by HttpCacheStorageEntryTestTemplate#makeDefault()
+     */
+    private static final HttpCacheStorageEntryTestTemplate DEFAULT_HTTP_CACHE_STORAGE_ENTRY_TEST_TEMPLATE = new HttpCacheStorageEntryTestTemplate();
+    static {
+        DEFAULT_HTTP_CACHE_STORAGE_ENTRY_TEST_TEMPLATE.resource = new HeapResource("Hello World".getBytes(Charset.forName("UTF-8")));
+        DEFAULT_HTTP_CACHE_STORAGE_ENTRY_TEST_TEMPLATE.requestDate = new Date(165214800000L);
+        DEFAULT_HTTP_CACHE_STORAGE_ENTRY_TEST_TEMPLATE.responseDate = new Date(2611108800000L);
+        DEFAULT_HTTP_CACHE_STORAGE_ENTRY_TEST_TEMPLATE.responseCode = 200;
+        DEFAULT_HTTP_CACHE_STORAGE_ENTRY_TEST_TEMPLATE.responseHeaders = new Header[]{
+                new BasicHeader("Content-type", "text/html"),
+                new BasicHeader("Cache-control", "public, max-age=31536000"),
+        };
+        DEFAULT_HTTP_CACHE_STORAGE_ENTRY_TEST_TEMPLATE.variantMap = Collections.<String, String>emptyMap();
+        DEFAULT_HTTP_CACHE_STORAGE_ENTRY_TEST_TEMPLATE.storageKey = TEST_STORAGE_KEY;
+    };
 
     /**
      * Test serializing and deserializing the given object with the given factory.
@@ -205,7 +232,7 @@ class MemcachedCacheEntryHttpTestUtils {
         }
 
         // Requires that all expected headers are present
-        // Allows actual headers to contain extra
+        // Allows actual headers to contain headers not present in expected
         // Multiple values for the same header are not currently supported
         for(final Header expectedHeader: expectedContent.getHeaders()) {
             final Header actualHeader = actualContent.getFirstHeader(expectedHeader.getName());
