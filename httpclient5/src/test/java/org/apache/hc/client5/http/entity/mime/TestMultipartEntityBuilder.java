@@ -121,8 +121,8 @@ public class TestMultipartEntityBuilder {
     @Test
     public void testMultipartWriteTo() throws Exception {
         final List<NameValuePair> parameters = new ArrayList<>();
-        parameters.add(new BasicNameValuePair(MIME.FIELD_PARAM_NAME, "test"));
-        parameters.add(new BasicNameValuePair(MIME.FIELD_PARAM_FILENAME, "hello world"));
+        parameters.add(new BasicNameValuePair(MimeConsts.FIELD_PARAM_NAME, "test"));
+        parameters.add(new BasicNameValuePair(MimeConsts.FIELD_PARAM_FILENAME, "hello world"));
         final MultipartFormEntity entity = MultipartEntityBuilder.create()
                 .setStrictMode()
                 .setBoundary("xxxxxxxxxxxxxxxxxxxxxxxx")
@@ -147,8 +147,8 @@ public class TestMultipartEntityBuilder {
     @Test
     public void testMultipartWriteToRFC7578Mode() throws Exception {
         final List<NameValuePair> parameters = new ArrayList<>();
-        parameters.add(new BasicNameValuePair(MIME.FIELD_PARAM_NAME, "test"));
-        parameters.add(new BasicNameValuePair(MIME.FIELD_PARAM_FILENAME, "hello \u03BA\u03CC\u03C3\u03BC\u03B5!%"));
+        parameters.add(new BasicNameValuePair(MimeConsts.FIELD_PARAM_NAME, "test"));
+        parameters.add(new BasicNameValuePair(MimeConsts.FIELD_PARAM_FILENAME, "hello \u03BA\u03CC\u03C3\u03BC\u03B5!%"));
 
         final MultipartFormEntity entity = MultipartEntityBuilder.create()
                 .setMode(HttpMultipartMode.RFC7578)

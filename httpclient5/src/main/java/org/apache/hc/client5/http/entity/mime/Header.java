@@ -37,12 +37,12 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * The header of an entity (see RFC 2045).
+ * The header of a MIME entity.
  */
-public class Header implements Iterable<MinimalField> {
+public class Header implements Iterable<MimeField> {
 
-    private final List<MinimalField> fields;
-    private final Map<String, List<MinimalField>> fieldMap;
+    private final List<MimeField> fields;
+    private final Map<String, List<MimeField>> fieldMap;
 
     public Header() {
         super();
@@ -50,12 +50,12 @@ public class Header implements Iterable<MinimalField> {
         this.fieldMap = new HashMap<>();
     }
 
-    public void addField(final MinimalField field) {
+    public void addField(final MimeField field) {
         if (field == null) {
             return;
         }
         final String key = field.getName().toLowerCase(Locale.ROOT);
-        List<MinimalField> values = this.fieldMap.get(key);
+        List<MimeField> values = this.fieldMap.get(key);
         if (values == null) {
             values = new LinkedList<>();
             this.fieldMap.put(key, values);
@@ -64,28 +64,28 @@ public class Header implements Iterable<MinimalField> {
         this.fields.add(field);
     }
 
-    public List<MinimalField> getFields() {
+    public List<MimeField> getFields() {
         return new ArrayList<>(this.fields);
     }
 
-    public MinimalField getField(final String name) {
+    public MimeField getField(final String name) {
         if (name == null) {
             return null;
         }
         final String key = name.toLowerCase(Locale.ROOT);
-        final List<MinimalField> list = this.fieldMap.get(key);
+        final List<MimeField> list = this.fieldMap.get(key);
         if (list != null && !list.isEmpty()) {
             return list.get(0);
         }
         return null;
     }
 
-    public List<MinimalField> getFields(final String name) {
+    public List<MimeField> getFields(final String name) {
         if (name == null) {
             return null;
         }
         final String key = name.toLowerCase(Locale.ROOT);
-        final List<MinimalField> list = this.fieldMap.get(key);
+        final List<MimeField> list = this.fieldMap.get(key);
         if (list == null || list.isEmpty()) {
             return Collections.emptyList();
         }
@@ -97,7 +97,7 @@ public class Header implements Iterable<MinimalField> {
             return 0;
         }
         final String key = name.toLowerCase(Locale.ROOT);
-        final List<MinimalField> removed = fieldMap.remove(key);
+        final List<MimeField> removed = fieldMap.remove(key);
         if (removed == null || removed.isEmpty()) {
             return 0;
         }
@@ -105,12 +105,12 @@ public class Header implements Iterable<MinimalField> {
         return removed.size();
     }
 
-    public void setField(final MinimalField field) {
+    public void setField(final MimeField field) {
         if (field == null) {
             return;
         }
         final String key = field.getName().toLowerCase(Locale.ROOT);
-        final List<MinimalField> list = fieldMap.get(key);
+        final List<MimeField> list = fieldMap.get(key);
         if (list == null || list.isEmpty()) {
             addField(field);
             return;
@@ -119,8 +119,8 @@ public class Header implements Iterable<MinimalField> {
         list.add(field);
         int firstOccurrence = -1;
         int index = 0;
-        for (final Iterator<MinimalField> it = this.fields.iterator(); it.hasNext(); index++) {
-            final MinimalField f = it.next();
+        for (final Iterator<MimeField> it = this.fields.iterator(); it.hasNext(); index++) {
+            final MimeField f = it.next();
             if (f.getName().equalsIgnoreCase(field.getName())) {
                 it.remove();
                 if (firstOccurrence == -1) {
@@ -132,7 +132,7 @@ public class Header implements Iterable<MinimalField> {
     }
 
     @Override
-    public Iterator<MinimalField> iterator() {
+    public Iterator<MimeField> iterator() {
         return Collections.unmodifiableList(fields).iterator();
     }
 

@@ -38,13 +38,13 @@ import org.apache.hc.core5.http.NameValuePair;
  *
  * @since 4.0
  */
-public class MinimalField {
+public class MimeField {
 
     private final String name;
     private final String value;
     private final List<NameValuePair> parameters;
 
-    public MinimalField(final String name, final String value) {
+    public MimeField(final String name, final String value) {
         super();
         this.name = name;
         this.value = value;
@@ -54,14 +54,14 @@ public class MinimalField {
     /**
      * @since 4.6
      */
-    public MinimalField(final String name, final String value, final List<NameValuePair> parameters) {
+    public MimeField(final String name, final String value, final List<NameValuePair> parameters) {
         this.name = name;
         this.value = value;
         this.parameters = parameters != null ?
                 Collections.unmodifiableList(new ArrayList<>(parameters)) : Collections.<NameValuePair>emptyList();
     }
 
-    public MinimalField(final MinimalField from) {
+    public MimeField(final MimeField from) {
         this(from.name, from.value, from.parameters);
     }
 

@@ -40,7 +40,7 @@ import org.apache.commons.codec.DecoderException;
 import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.util.ByteArrayBuffer;
 
-public class HttpRFC7578Multipart extends AbstractMultipartFormat {
+class HttpRFC7578Multipart extends AbstractMultipartFormat {
 
     private static final PercentCodec PERCENT_CODEC = new PercentCodec();
 
@@ -61,8 +61,8 @@ public class HttpRFC7578Multipart extends AbstractMultipartFormat {
 
     @Override
     protected void formatMultipartHeader(final MultipartPart part, final OutputStream out) throws IOException {
-        for (final MinimalField field: part.getHeader()) {
-            if (MIME.CONTENT_DISPOSITION.equalsIgnoreCase(field.getName())) {
+        for (final MimeField field: part.getHeader()) {
+            if (MimeConsts.CONTENT_DISPOSITION.equalsIgnoreCase(field.getName())) {
                 writeBytes(field.getName(), charset, out);
                 writeBytes(FIELD_SEP, out);
                 writeBytes(field.getValue(), out);
@@ -75,7 +75,7 @@ public class HttpRFC7578Multipart extends AbstractMultipartFormat {
                     writeBytes(name, out);
                     writeBytes("=\"", out);
                     if (value != null) {
-                        if (name.equalsIgnoreCase(MIME.FIELD_PARAM_FILENAME)) {
+                        if (name.equalsIgnoreCase(MimeConsts.FIELD_PARAM_FILENAME)) {
                             out.write(PERCENT_CODEC.encode(value.getBytes(charset)));
                         } else {
                             writeBytes(value, out);
@@ -120,8 +120,8 @@ public class HttpRFC7578Multipart extends AbstractMultipartFormat {
                     buffer.write(b);
                 } else {
                     buffer.write(ESCAPE_CHAR);
-                    final char hex1 = Utils.hexDigit(b >> 4);
-                    final char hex2 = Utils.hexDigit(b);
+                    final char hex1 = hexDigit(b >> 4);
+                    final char hex2 = hexDigit(b);
                     buffer.write(hex1);
                     buffer.write(hex2);
                 }
@@ -138,8 +138,8 @@ public class HttpRFC7578Multipart extends AbstractMultipartFormat {
                 final int b = bytes[i];
                 if (b == ESCAPE_CHAR) {
                     try {
-                        final int u = Utils.digit16(bytes[++i]);
-                        final int l = Utils.digit16(bytes[++i]);
+                        final int u = digit16(bytes[++i]);
+                        final int l = digit16(bytes[++i]);
                         buffer.append((char) ((u << 4) + l));
                     } catch (final ArrayIndexOutOfBoundsException e) {
                         throw new DecoderException("Invalid URL encoding: ", e);
@@ -152,41 +152,37 @@ public class HttpRFC7578Multipart extends AbstractMultipartFormat {
         }
     }
 
-    static class Utils {
+    /**
+     * Radix used in encoding and decoding.
+     */
+    private static final int RADIX = 16;
 
-        /**
-         * Radix used in encoding and decoding.
-         */
-        private static final int RADIX = 16;
-
-        /**
-         * Returns the numeric value of the character <code>b</code> in radix 16.
-         *
-         * @param b
-         *            The byte to be converted.
-         * @return The numeric value represented by the character in radix 16.
-         *
-         * @throws DecoderException
-         *             Thrown when the byte is not valid per {@link Character#digit(char,int)}
-         */
-        static int digit16(final byte b) throws DecoderException {
-            final int i = Character.digit((char) b, RADIX);
-            if (i == -1) {
-                throw new DecoderException("Invalid URL encoding: not a valid digit (radix " + RADIX + "): " + b);
-            }
-            return i;
+    /**
+     * Returns the numeric value of the character <code>b</code> in radix 16.
+     *
+     * @param b
+     *            The byte to be converted.
+     * @return The numeric value represented by the character in radix 16.
+     *
+     * @throws DecoderException
+     *             Thrown when the byte is not valid per {@link Character#digit(char,int)}
+     */
+    static int digit16(final byte b) throws DecoderException {
+        final int i = Character.digit((char) b, RADIX);
+        if (i == -1) {
+            throw new DecoderException("Invalid URL encoding: not a valid digit (radix " + RADIX + "): " + b);
         }
+        return i;
+    }
 
-        /**
-         * Returns the upper case hex digit of the lower 4 bits of the int.
-         *
-         * @param b the input int
-         * @return the upper case hex digit of the lower 4 bits of the int.
-         */
-        static char hexDigit(final int b) {
-            return Character.toUpperCase(Character.forDigit(b & 0xF, RADIX));
-        }
-
+    /**
+     * Returns the upper case hex digit of the lower 4 bits of the int.
+     *
+     * @param b the input int
+     * @return the upper case hex digit of the lower 4 bits of the int.
+     */
+    static char hexDigit(final int b) {
+        return Character.toUpperCase(Character.forDigit(b & 0xF, RADIX));
     }
 
 }

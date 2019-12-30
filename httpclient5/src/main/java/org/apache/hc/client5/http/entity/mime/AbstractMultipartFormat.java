@@ -40,9 +40,7 @@ import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.ByteArrayBuffer;
 
 /**
- * HttpMultipart represents a collection of MIME multipart encoded content bodies. This class is
- * capable of operating either in the strict (RFC 822, RFC 2045, RFC 2046 compliant) or
- * the browser compatible modes.
+ * HttpMultipart represents a collection of MIME multipart encoded content bodies.
  *
  * @since 4.3
  */
@@ -74,7 +72,7 @@ abstract class AbstractMultipartFormat {
     }
 
     static void writeField(
-            final MinimalField field, final OutputStream out) throws IOException {
+            final MimeField field, final OutputStream out) throws IOException {
         writeBytes(field.getName(), out);
         writeBytes(FIELD_SEP, out);
         writeBytes(field.getBody(), out);
@@ -82,7 +80,7 @@ abstract class AbstractMultipartFormat {
     }
 
     static void writeField(
-            final MinimalField field, final Charset charset, final OutputStream out) throws IOException {
+            final MimeField field, final Charset charset, final OutputStream out) throws IOException {
         writeBytes(field.getName(), charset, out);
         writeBytes(FIELD_SEP, out);
         writeBytes(field.getBody(), charset, out);

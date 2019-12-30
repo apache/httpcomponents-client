@@ -33,13 +33,6 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-/**
- * HttpRFC6532Multipart represents a collection of MIME multipart encoded content bodies,
- * implementing the strict (RFC 822, RFC 2045, RFC 2046 compliant) interpretation
- * of the spec, with the exception of allowing UTF-8 headers, as per RFC6532.
- *
- * @since 4.3
- */
 class HttpRFC6532Multipart extends AbstractMultipartFormat {
 
     private final List<MultipartPart> parts;
@@ -64,7 +57,7 @@ class HttpRFC6532Multipart extends AbstractMultipartFormat {
 
         // For RFC6532, we output all fields with UTF-8 encoding.
         final Header header = part.getHeader();
-        for (final MinimalField field: header) {
+        for (final MimeField field: header) {
             writeField(field, StandardCharsets.UTF_8, out);
         }
     }

@@ -80,19 +80,19 @@ public class FormBodyPartBuilder {
      */
     public FormBodyPartBuilder addField(final String name, final String value, final List<NameValuePair> parameters) {
         Args.notNull(name, "Field name");
-        this.header.addField(new MinimalField(name, value, parameters));
+        this.header.addField(new MimeField(name, value, parameters));
         return this;
     }
 
     public FormBodyPartBuilder addField(final String name, final String value) {
         Args.notNull(name, "Field name");
-        this.header.addField(new MinimalField(name, value));
+        this.header.addField(new MimeField(name, value));
         return this;
     }
 
     public FormBodyPartBuilder setField(final String name, final String value) {
         Args.notNull(name, "Field name");
-        this.header.setField(new MinimalField(name, value));
+        this.header.setField(new MimeField(name, value));
         return this;
     }
 
@@ -106,19 +106,19 @@ public class FormBodyPartBuilder {
         Asserts.notBlank(this.name, "Name");
         Asserts.notNull(this.body, "Content body");
         final Header headerCopy = new Header();
-        final List<MinimalField> fields = this.header.getFields();
-        for (final MinimalField field: fields) {
+        final List<MimeField> fields = this.header.getFields();
+        for (final MimeField field: fields) {
             headerCopy.addField(field);
         }
-        if (headerCopy.getField(MIME.CONTENT_DISPOSITION) == null) {
+        if (headerCopy.getField(MimeConsts.CONTENT_DISPOSITION) == null) {
             final List<NameValuePair> fieldParameters = new ArrayList<>();
-            fieldParameters.add(new BasicNameValuePair(MIME.FIELD_PARAM_NAME, this.name));
+            fieldParameters.add(new BasicNameValuePair(MimeConsts.FIELD_PARAM_NAME, this.name));
             if (this.body.getFilename() != null) {
-                fieldParameters.add(new BasicNameValuePair(MIME.FIELD_PARAM_FILENAME, this.body.getFilename()));
+                fieldParameters.add(new BasicNameValuePair(MimeConsts.FIELD_PARAM_FILENAME, this.body.getFilename()));
             }
-            headerCopy.addField(new MinimalField(MIME.CONTENT_DISPOSITION, "form-data", fieldParameters));
+            headerCopy.addField(new MimeField(MimeConsts.CONTENT_DISPOSITION, "form-data", fieldParameters));
         }
-        if (headerCopy.getField(MIME.CONTENT_TYPE) == null) {
+        if (headerCopy.getField(MimeConsts.CONTENT_TYPE) == null) {
             final ContentType contentType;
             if (body instanceof AbstractContentBody) {
                 contentType = ((AbstractContentBody) body).getContentType();
@@ -126,7 +126,7 @@ public class FormBodyPartBuilder {
                 contentType = null;
             }
             if (contentType != null) {
-                headerCopy.addField(new MinimalField(MIME.CONTENT_TYPE, contentType.toString()));
+                headerCopy.addField(new MimeField(MimeConsts.CONTENT_TYPE, contentType.toString()));
             } else {
                 final StringBuilder buffer = new StringBuilder();
                 buffer.append(this.body.getMimeType()); // MimeType cannot be null
@@ -134,7 +134,7 @@ public class FormBodyPartBuilder {
                     buffer.append("; charset=");
                     buffer.append(this.body.getCharset());
                 }
-                headerCopy.addField(new MinimalField(MIME.CONTENT_TYPE, buffer.toString()));
+                headerCopy.addField(new MimeField(MimeConsts.CONTENT_TYPE, buffer.toString()));
             }
         }
         return new FormBodyPart(this.name, this.body, headerCopy);

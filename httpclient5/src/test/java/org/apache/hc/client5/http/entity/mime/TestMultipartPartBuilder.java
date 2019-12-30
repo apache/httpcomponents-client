@@ -48,7 +48,7 @@ public class TestMultipartPartBuilder {
         final Header header = part.getHeader();
         Assert.assertNotNull(header);
         assertFields(Arrays.asList(
-                        new MinimalField("Content-Type", "text/plain; charset=ISO-8859-1")),
+                        new MimeField("Content-Type", "text/plain; charset=ISO-8859-1")),
                 header.getFields());
     }
 
@@ -64,7 +64,7 @@ public class TestMultipartPartBuilder {
         final Header header1 = part1.getHeader();
         Assert.assertNotNull(header1);
         assertFields(Arrays.asList(
-                        new MinimalField("Content-Type", "text/plain; charset=ISO-8859-1")),
+                        new MimeField("Content-Type", "text/plain; charset=ISO-8859-1")),
                 header1.getFields());
         final FileBody fileBody = new FileBody(new File("/path/stuff.bin"), ContentType.DEFAULT_BINARY);
         final MultipartPart part2 = builder
@@ -76,7 +76,7 @@ public class TestMultipartPartBuilder {
         final Header header2 = part2.getHeader();
         Assert.assertNotNull(header2);
         assertFields(Arrays.asList(
-                        new MinimalField("Content-Type", "application/octet-stream")),
+                        new MimeField("Content-Type", "application/octet-stream")),
                 header2.getFields());
     }
 
@@ -98,13 +98,13 @@ public class TestMultipartPartBuilder {
         Assert.assertNotNull(header1);
 
         assertFields(Arrays.asList(
-                new MinimalField("header1", "blah"),
-                new MinimalField("header3", "blah"),
-                new MinimalField("header3", "blah"),
-                new MinimalField("header3", "blah"),
-                new MinimalField("header3", "blah"),
-                new MinimalField("header3", "blah"),
-                new MinimalField("Content-Type", "text/plain; charset=ISO-8859-1")),
+                new MimeField("header1", "blah"),
+                new MimeField("header3", "blah"),
+                new MimeField("header3", "blah"),
+                new MimeField("header3", "blah"),
+                new MimeField("header3", "blah"),
+                new MimeField("header3", "blah"),
+                new MimeField("Content-Type", "text/plain; charset=ISO-8859-1")),
                 header1.getFields());
 
         final MultipartPart part2 = builder
@@ -117,9 +117,9 @@ public class TestMultipartPartBuilder {
         Assert.assertNotNull(header2);
 
         assertFields(Arrays.asList(
-                        new MinimalField("header1", "blah"),
-                        new MinimalField("header2", "yada"),
-                        new MinimalField("Content-Type", "text/plain; charset=ISO-8859-1")),
+                        new MimeField("header1", "blah"),
+                        new MimeField("header2", "yada"),
+                        new MimeField("Content-Type", "text/plain; charset=ISO-8859-1")),
                 header2.getFields());
 
         final MultipartPart part3 = builder
@@ -133,21 +133,21 @@ public class TestMultipartPartBuilder {
         Assert.assertNotNull(header3);
 
         assertFields(Arrays.asList(
-                        new MinimalField("header1", "blah"),
-                        new MinimalField("header2", "yada"),
-                        new MinimalField("Content-Disposition", "disposition stuff"),
-                        new MinimalField("Content-Type", "type stuff"),
-                        new MinimalField("Content-Transfer-Encoding", "encoding stuff")),
+                        new MimeField("header1", "blah"),
+                        new MimeField("header2", "yada"),
+                        new MimeField("Content-Disposition", "disposition stuff"),
+                        new MimeField("Content-Type", "type stuff"),
+                        new MimeField("Content-Transfer-Encoding", "encoding stuff")),
                 header3.getFields());
 
     }
 
-    private static void assertFields(final List<MinimalField> expected, final List<MinimalField> result) {
+    private static void assertFields(final List<MimeField> expected, final List<MimeField> result) {
         Assert.assertNotNull(result);
         Assert.assertEquals(expected.size(), result.size());
         for (int i = 0; i < expected.size(); i++) {
-            final MinimalField expectedField = expected.get(i);
-            final MinimalField resultField = result.get(i);
+            final MimeField expectedField = expected.get(i);
+            final MimeField resultField = result.get(i);
             Assert.assertNotNull(resultField);
             Assert.assertEquals(expectedField.getName(), resultField.getName());
             Assert.assertEquals(expectedField.getBody(), resultField.getBody());

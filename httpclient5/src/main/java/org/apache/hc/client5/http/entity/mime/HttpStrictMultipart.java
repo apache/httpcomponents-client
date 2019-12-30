@@ -32,13 +32,6 @@ import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.util.List;
 
-/**
- * HttpStrictMultipart represents a collection of MIME multipart encoded content bodies,
- * implementing the strict (RFC 822, RFC 2045, RFC 2046 compliant) interpretation
- * of the spec.
- *
- * @since 4.3
- */
 class HttpStrictMultipart extends AbstractMultipartFormat {
 
     private final List<MultipartPart> parts;
@@ -63,7 +56,7 @@ class HttpStrictMultipart extends AbstractMultipartFormat {
 
         // For strict, we output all fields with MIME-standard encoding.
         final Header header = part.getHeader();
-        for (final MinimalField field: header) {
+        for (final MimeField field: header) {
             writeField(field, out);
         }
     }

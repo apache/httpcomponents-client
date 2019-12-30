@@ -68,19 +68,19 @@ public class MultipartPartBuilder {
 
     public MultipartPartBuilder addHeader(final String name, final String value, final List<NameValuePair> parameters) {
         Args.notNull(name, "Header name");
-        this.header.addField(new MinimalField(name, value, parameters));
+        this.header.addField(new MimeField(name, value, parameters));
         return this;
     }
 
     public MultipartPartBuilder addHeader(final String name, final String value) {
         Args.notNull(name, "Header name");
-        this.header.addField(new MinimalField(name, value));
+        this.header.addField(new MimeField(name, value));
         return this;
     }
 
     public MultipartPartBuilder setHeader(final String name, final String value) {
         Args.notNull(name, "Header name");
-        this.header.setField(new MinimalField(name, value));
+        this.header.setField(new MimeField(name, value));
         return this;
     }
 
@@ -93,11 +93,11 @@ public class MultipartPartBuilder {
     public MultipartPart build() {
         Asserts.notNull(this.body, "Content body");
         final Header headerCopy = new Header();
-        final List<MinimalField> fields = this.header.getFields();
-        for (final MinimalField field: fields) {
+        final List<MimeField> fields = this.header.getFields();
+        for (final MimeField field: fields) {
             headerCopy.addField(field);
         }
-        if (headerCopy.getField(MIME.CONTENT_TYPE) == null) {
+        if (headerCopy.getField(MimeConsts.CONTENT_TYPE) == null) {
             final ContentType contentType;
             if (body instanceof AbstractContentBody) {
                 contentType = ((AbstractContentBody) body).getContentType();
@@ -105,7 +105,7 @@ public class MultipartPartBuilder {
                 contentType = null;
             }
             if (contentType != null) {
-                headerCopy.addField(new MinimalField(MIME.CONTENT_TYPE, contentType.toString()));
+                headerCopy.addField(new MimeField(MimeConsts.CONTENT_TYPE, contentType.toString()));
             } else {
                 final StringBuilder buffer = new StringBuilder();
                 buffer.append(this.body.getMimeType()); // MimeType cannot be null
@@ -113,7 +113,7 @@ public class MultipartPartBuilder {
                     buffer.append("; charset=");
                     buffer.append(this.body.getCharset());
                 }
-                headerCopy.addField(new MinimalField(MIME.CONTENT_TYPE, buffer.toString()));
+                headerCopy.addField(new MimeField(MimeConsts.CONTENT_TYPE, buffer.toString()));
             }
         }
         return new MultipartPart(this.body, headerCopy);

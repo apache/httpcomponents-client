@@ -65,13 +65,13 @@ class HttpBrowserCompatibleMultipart extends AbstractMultipartFormat {
         // For browser-compatible, only write Content-Disposition
         // Use content charset
         final Header header = part.getHeader();
-        final MinimalField cd = header.getField(MIME.CONTENT_DISPOSITION);
+        final MimeField cd = header.getField(MimeConsts.CONTENT_DISPOSITION);
         if (cd != null) {
             writeField(cd, this.charset, out);
         }
         final String filename = part.getBody().getFilename();
         if (filename != null) {
-            final MinimalField ct = header.getField(MIME.CONTENT_TYPE);
+            final MimeField ct = header.getField(MimeConsts.CONTENT_TYPE);
             writeField(ct, this.charset, out);
         }
 

@@ -27,11 +27,7 @@
 
 package org.apache.hc.client5.http.entity.mime;
 
-/**
- *
- * @since 4.0
- */
-public final class MIME {
+final class MimeConsts {
 
     public static final String CONTENT_TYPE          = "Content-Type";
     public static final String CONTENT_DISPOSITION   = "Content-Disposition";

@@ -54,10 +54,10 @@ public class MultipartPart {
     }
 
     void addField(final String name, final String value) {
-        addField(new MinimalField(name, value));
+        addField(new MimeField(name, value));
     }
 
-    void addField(final MinimalField field) {
+    void addField(final MimeField field) {
         this.header.addField(field);
     }
 }
