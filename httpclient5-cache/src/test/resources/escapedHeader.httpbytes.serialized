@@ -1,0 +1,13 @@
+HTTP/1.1 200 OK
+Content-Length: 11
+hc-esc-hc-test-1: hc-test-1-value
+hc-esc-hc-sk: hc-sk-value
+hc-esc-hc-resp-date: hc-resp-date-value
+hc-esc-hc-req-date-date: hc-req-date-value
+hc-esc-hc-varmap-key: hc-varmap-key-value
+hc-esc-hc-varmap-val: hc-varmap-val-value
+hc-sk: xyzzy
+hc-resp-date: 2611108800000
+hc-req-date: 165214800000
+
+Hello World
