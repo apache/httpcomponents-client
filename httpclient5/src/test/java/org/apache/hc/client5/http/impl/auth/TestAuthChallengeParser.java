@@ -157,7 +157,7 @@ public class TestAuthChallengeParser {
         Assert.assertNotNull(challenges);
         Assert.assertEquals(1, challenges.size());
         final AuthChallenge challenge1 = challenges.get(0);
-        Assert.assertEquals(StandardAuthScheme.BASIC, challenge1.getScheme());
+        Assert.assertEquals(StandardAuthScheme.BASIC, challenge1.getSchemeName());
         Assert.assertEquals(null, challenge1.getValue());
         final List<NameValuePair> params = challenge1.getParams();
         Assert.assertNotNull(params);
@@ -174,7 +174,7 @@ public class TestAuthChallengeParser {
         Assert.assertNotNull(challenges);
         Assert.assertEquals(1, challenges.size());
         final AuthChallenge challenge1 = challenges.get(0);
-        Assert.assertEquals(StandardAuthScheme.BASIC, challenge1.getScheme());
+        Assert.assertEquals(StandardAuthScheme.BASIC, challenge1.getSchemeName());
         Assert.assertEquals(null, challenge1.getValue());
         final List<NameValuePair> params = challenge1.getParams();
         Assert.assertNotNull(params);
@@ -193,12 +193,12 @@ public class TestAuthChallengeParser {
         Assert.assertEquals(2, challenges.size());
 
         final AuthChallenge challenge1 = challenges.get(0);
-        Assert.assertEquals("This", challenge1.getScheme());
+        Assert.assertEquals("This", challenge1.getSchemeName());
         Assert.assertEquals("xxxxxxxxxxxxxxxxxxxxxx", challenge1.getValue());
         Assert.assertNull(challenge1.getParams());
 
         final AuthChallenge challenge2 = challenges.get(1);
-        Assert.assertEquals("That", challenge2.getScheme());
+        Assert.assertEquals("That", challenge2.getSchemeName());
         Assert.assertEquals("yyyyyyyyyyyyyyyyyyyyyy", challenge2.getValue());
         Assert.assertNull(challenge2.getParams());
     }
@@ -214,7 +214,7 @@ public class TestAuthChallengeParser {
         Assert.assertEquals(2, challenges.size());
 
         final AuthChallenge challenge1 = challenges.get(0);
-        Assert.assertEquals(StandardAuthScheme.BASIC, challenge1.getScheme());
+        Assert.assertEquals(StandardAuthScheme.BASIC, challenge1.getSchemeName());
         Assert.assertEquals(null, challenge1.getValue());
         final List<NameValuePair> params1 = challenge1.getParams();
         Assert.assertNotNull(params1);
@@ -224,7 +224,7 @@ public class TestAuthChallengeParser {
         assertNameValuePair(new BasicNameValuePair("param2", "that"), params1.get(2));
 
         final AuthChallenge challenge2 = challenges.get(1);
-        Assert.assertEquals(StandardAuthScheme.BASIC, challenge2.getScheme());
+        Assert.assertEquals(StandardAuthScheme.BASIC, challenge2.getSchemeName());
         Assert.assertEquals(null, challenge2.getValue());
         final List<NameValuePair> params2 = challenge2.getParams();
         Assert.assertNotNull(params2);
@@ -245,7 +245,7 @@ public class TestAuthChallengeParser {
         Assert.assertEquals(1, challenges.size());
 
         final AuthChallenge challenge1 = challenges.get(0);
-        Assert.assertEquals("This", challenge1.getScheme());
+        Assert.assertEquals("This", challenge1.getSchemeName());
         Assert.assertEquals(null, challenge1.getValue());
         Assert.assertNull(challenge1.getParams());
     }
@@ -284,7 +284,7 @@ public class TestAuthChallengeParser {
         Assert.assertEquals(1, challenges.size());
 
         final AuthChallenge challenge1 = challenges.get(0);
-        Assert.assertEquals("blah", challenge1.getScheme());
+        Assert.assertEquals("blah", challenge1.getSchemeName());
         Assert.assertEquals("blah", challenge1.getValue());
         Assert.assertNull(challenge1.getParams());
     }
@@ -299,7 +299,7 @@ public class TestAuthChallengeParser {
         Assert.assertEquals(1, challenges.size());
 
         final AuthChallenge challenge1 = challenges.get(0);
-        Assert.assertEquals("blah", challenge1.getScheme());
+        Assert.assertEquals("blah", challenge1.getSchemeName());
         Assert.assertEquals(null, challenge1.getValue());
         final List<NameValuePair> params1 = challenge1.getParams();
         Assert.assertNotNull(params1);

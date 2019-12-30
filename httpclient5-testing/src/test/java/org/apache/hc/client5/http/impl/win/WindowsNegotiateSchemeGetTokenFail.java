@@ -32,8 +32,8 @@ import com.sun.jna.platform.win32.WinError;
 
 public final class WindowsNegotiateSchemeGetTokenFail extends WindowsNegotiateScheme {
 
-    public WindowsNegotiateSchemeGetTokenFail(final String scheme, final String servicePrincipalName) {
-        super(scheme, servicePrincipalName);
+    public WindowsNegotiateSchemeGetTokenFail(final String schemeName, final String servicePrincipalName) {
+        super(schemeName, servicePrincipalName);
     }
 
     @Override

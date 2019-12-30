@@ -88,42 +88,42 @@ public class AuthChallengeParser {
             final ChallengeType challengeType, final CharSequence buffer, final ParserCursor cursor) throws ParseException {
 
         final List<AuthChallenge> list = new ArrayList<>();
-        String scheme = null;
+        String schemeName = null;
         final List<NameValuePair> params = new ArrayList<>();
         while (!cursor.atEnd()) {
             final NameValuePair tokenOrParameter = parseTokenOrParameter(buffer, cursor);
             if (tokenOrParameter.getValue() == null && !cursor.atEnd() && buffer.charAt(cursor.getPos()) != COMMA_CHAR) {
-                if (scheme != null) {
+                if (schemeName != null) {
                     if (params.isEmpty()) {
                         throw new ParseException("Malformed auth challenge");
                     }
-                    list.add(createAuthChallenge(challengeType, scheme, params));
+                    list.add(createAuthChallenge(challengeType, schemeName, params));
                     params.clear();
                 }
-                scheme = tokenOrParameter.getName();
+                schemeName = tokenOrParameter.getName();
             } else {
                 params.add(tokenOrParameter);
                 if (!cursor.atEnd() && buffer.charAt(cursor.getPos()) != COMMA_CHAR) {
-                    scheme = null;
+                    schemeName = null;
                 }
             }
             if (!cursor.atEnd() && buffer.charAt(cursor.getPos()) == COMMA_CHAR) {
                 cursor.updatePos(cursor.getPos() + 1);
             }
         }
-        list.add(createAuthChallenge(challengeType, scheme, params));
+        list.add(createAuthChallenge(challengeType, schemeName, params));
         return list;
     }
 
-    private static AuthChallenge createAuthChallenge(final ChallengeType challengeType, final String scheme, final List<NameValuePair> params) throws ParseException {
-        if (scheme != null) {
+    private static AuthChallenge createAuthChallenge(final ChallengeType challengeType, final String schemeName, final List<NameValuePair> params) throws ParseException {
+        if (schemeName != null) {
             if (params.size() == 1) {
                 final NameValuePair nvp = params.get(0);
                 if (nvp.getValue() == null) {
-                    return new AuthChallenge(challengeType, scheme, nvp.getName(), null);
+                    return new AuthChallenge(challengeType, schemeName, nvp.getName(), null);
                 }
             }
-            return new AuthChallenge(challengeType, scheme, null, params.size() > 0 ? params : null);
+            return new AuthChallenge(challengeType, schemeName, null, params.size() > 0 ? params : null);
         }
         if (params.size() == 1) {
             final NameValuePair nvp = params.get(0);

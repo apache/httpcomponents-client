@@ -74,7 +74,7 @@ public class WindowsNegotiateScheme implements AuthScheme {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     // NTLM or Negotiate
-    private final String scheme;
+    private final String schemeName;
     private final String servicePrincipalName;
 
     private ChallengeType challengeType;
@@ -83,15 +83,15 @@ public class WindowsNegotiateScheme implements AuthScheme {
     private CtxtHandle sspiContext;
     private boolean continueNeeded;
 
-    WindowsNegotiateScheme(final String scheme, final String servicePrincipalName) {
+    WindowsNegotiateScheme(final String schemeName, final String servicePrincipalName) {
         super();
 
-        this.scheme = (scheme == null) ? StandardAuthScheme.SPNEGO : scheme;
+        this.schemeName = (schemeName == null) ? StandardAuthScheme.SPNEGO : schemeName;
         this.continueNeeded = true;
         this.servicePrincipalName = servicePrincipalName;
 
         if (this.log.isDebugEnabled()) {
-            this.log.debug("Created WindowsNegotiateScheme using " + this.scheme);
+            this.log.debug("Created WindowsNegotiateScheme using " + this.schemeName);
         }
     }
 
@@ -115,7 +115,7 @@ public class WindowsNegotiateScheme implements AuthScheme {
 
     @Override
     public String getName() {
-        return scheme;
+        return schemeName;
     }
 
     @Override
@@ -186,7 +186,7 @@ public class WindowsNegotiateScheme implements AuthScheme {
 
                 clientCred = new CredHandle();
                 final int rc = Secur32.INSTANCE.AcquireCredentialsHandle(username,
-                        scheme, Sspi.SECPKG_CRED_OUTBOUND, null, null, null, null,
+                        schemeName, Sspi.SECPKG_CRED_OUTBOUND, null, null, null, null,
                         clientCred, lifetime);
 
                 if (WinError.SEC_E_OK != rc) {
@@ -220,7 +220,7 @@ public class WindowsNegotiateScheme implements AuthScheme {
                 throw ex;
             }
         }
-        return scheme + " " + response;
+        return schemeName + " " + response;
     }
 
     private void failAuthCleanup() {

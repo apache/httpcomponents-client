@@ -28,7 +28,6 @@ package org.apache.hc.client5.http.impl.auth;
 
 import java.net.Authenticator;
 import java.net.Authenticator.RequestorType;
-import java.util.Locale;
 import java.net.InetAddress;
 import java.net.PasswordAuthentication;
 import java.net.URL;
@@ -101,7 +100,7 @@ public class TestSystemDefaultCredentialsProvider {
             new SystemDefaultCredentialsProvider().getCredentials(authScope, coreContext);
 
         Mockito.verify(authenticatorDelegate).getPasswordAuthentication(PROXY_HOST1, null, PROXY_PORT1, PROXY_PROTOCOL1,
-                                                                        PROMPT1, StandardAuthScheme.BASIC.toUpperCase(Locale.ROOT), httpRequestUrl,
+                                                                        PROMPT1, StandardAuthScheme.BASIC, httpRequestUrl,
                                                                         RequestorType.SERVER);
         Assert.assertNotNull(receivedCredentials);
         Assert.assertEquals(AUTH1.getUserName(), receivedCredentials.getUserPrincipal().getName());
@@ -119,7 +118,7 @@ public class TestSystemDefaultCredentialsProvider {
             new SystemDefaultCredentialsProvider().getCredentials(authScope, null);
 
         Mockito.verify(authenticatorDelegate).getPasswordAuthentication(PROXY_HOST1, null, PROXY_PORT1, PROXY_PROTOCOL1,
-                                                                        PROMPT1, StandardAuthScheme.BASIC.toUpperCase(Locale.ROOT), null,
+                                                                        PROMPT1, StandardAuthScheme.BASIC, null,
                                                                         RequestorType.SERVER);
         Assert.assertNotNull(receivedCredentials);
         Assert.assertEquals(AUTH1.getUserName(), receivedCredentials.getUserPrincipal().getName());

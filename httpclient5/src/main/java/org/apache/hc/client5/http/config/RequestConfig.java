@@ -373,7 +373,7 @@ public class RequestConfig implements Cloneable {
 
         /**
          * Determines the order of preference for supported authentication schemes
-         * when authenticating with the target host.
+         * by their names when authenticating with the target host.
          * <p>
          * Default: {@code null}
          * </p>
@@ -385,7 +385,7 @@ public class RequestConfig implements Cloneable {
 
         /**
          * Determines the order of preference for supported authentication schemes
-         * when authenticating with the proxy host.
+         * by their names when authenticating with the proxy host.
          * <p>
          * Default: {@code null}
          * </p>

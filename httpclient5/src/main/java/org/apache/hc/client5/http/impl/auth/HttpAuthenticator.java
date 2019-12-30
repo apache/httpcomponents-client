@@ -195,9 +195,9 @@ public final class HttpAuthenticator {
                 continue;
             }
             for (final AuthChallenge authChallenge: authChallenges) {
-                final String scheme = authChallenge.getScheme().toLowerCase(Locale.ROOT);
-                if (!challengeMap.containsKey(scheme)) {
-                    challengeMap.put(scheme, authChallenge);
+                final String schemeName = authChallenge.getSchemeName().toLowerCase(Locale.ROOT);
+                if (!challengeMap.containsKey(schemeName)) {
+                    challengeMap.put(schemeName, authChallenge);
                 }
             }
         }
@@ -220,8 +220,8 @@ public final class HttpAuthenticator {
             case UNCHALLENGED:
                 final AuthScheme authScheme = authExchange.getAuthScheme();
                 if (authScheme != null) {
-                    final String id = authScheme.getName();
-                    final AuthChallenge challenge = challengeMap.get(id.toLowerCase(Locale.ROOT));
+                    final String schemeName = authScheme.getName();
+                    final AuthChallenge challenge = challengeMap.get(schemeName.toLowerCase(Locale.ROOT));
                     if (challenge != null) {
                         this.log.debug("Authorization challenge processed");
                         try {
@@ -259,8 +259,8 @@ public final class HttpAuthenticator {
         final Queue<AuthScheme> authOptions = new LinkedList<>();
         for (final AuthScheme authScheme: preferredSchemes) {
             try {
-                final String id = authScheme.getName();
-                final AuthChallenge challenge = challengeMap.get(id.toLowerCase(Locale.ROOT));
+                final String schemeName = authScheme.getName();
+                final AuthChallenge challenge = challengeMap.get(schemeName.toLowerCase(Locale.ROOT));
                 authScheme.processChallenge(challenge, context);
                 if (authScheme.isResponseReady(host, credsProvider, context)) {
                     authOptions.add(authScheme);

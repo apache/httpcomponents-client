@@ -91,7 +91,7 @@ public class SystemDefaultCredentialsProvider implements CredentialsStore {
                 authScope.getPort(),
                 protocol,
                 authScope.getRealm(),
-                authScope.getAuthScheme(),
+                authScope.getSchemeName(),
                 targetHostURL,
                 requestorType);
     }
@@ -128,7 +128,7 @@ public class SystemDefaultCredentialsProvider implements CredentialsStore {
                 if (domain != null) {
                     return new NTCredentials(systemcreds.getUserName(), systemcreds.getPassword(), null, domain);
                 }
-                if (StandardAuthScheme.NTLM.equalsIgnoreCase(authScope.getAuthScheme())) {
+                if (StandardAuthScheme.NTLM.equalsIgnoreCase(authScope.getSchemeName())) {
                     // Domain may be specified in a fully qualified user name
                     return new NTCredentials(
                             systemcreds.getUserName(), systemcreds.getPassword(), null, null);

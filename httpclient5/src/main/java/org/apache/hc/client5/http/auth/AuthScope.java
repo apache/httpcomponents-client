@@ -48,7 +48,7 @@ public class AuthScope {
     private final String host;
     private final int port;
     private final String realm;
-    private final String authScheme;
+    private final String schemeName;
 
     /**
      * Defines auth scope with the given {@code protocol}, {@code host}, {@code port},
@@ -62,20 +62,20 @@ public class AuthScope {
      *   to any port of the host.
      * @param realm authentication realm. May be {@code null} if applies
      *   to any realm on the host.
-     * @param authScheme authentication scheme. May be {@code null} if applies
-     *   to any authScheme supported by the host.
+     * @param schemeName authentication scheme name. May be {@code null} if applies
+     *   to any auth scheme supported by the host.
      */
     public AuthScope(
             final String protocol,
             final String host,
             final int port,
             final String realm,
-            final String authScheme) {
+            final String schemeName) {
         this.protocol = protocol != null ? protocol.toLowerCase(Locale.ROOT) : null;
         this.host = host != null ? host.toLowerCase(Locale.ROOT) : null;
         this.port = port >= 0 ? port: -1;
         this.realm = realm;
-        this.authScheme = authScheme != null ? authScheme.toUpperCase(Locale.ROOT): null;
+        this.schemeName = schemeName != null ? schemeName : null;
     }
 
     /**
@@ -84,8 +84,8 @@ public class AuthScope {
      * @param origin host of origin
      * @param realm authentication realm. May be {@code null} if applies
      *   to any realm on the host.
-     * @param schemeName authentication authScheme. May be {@code null} if applies
-     *   to any authScheme supported by the host.
+     * @param schemeName authentication scheme name. May be {@code null} if applies
+     *   to any auth scheme supported by the host.
      *
      * @since 4.2
      */
@@ -98,7 +98,7 @@ public class AuthScope {
         this.host = origin.getHostName().toLowerCase(Locale.ROOT);
         this.port = origin.getPort() >= 0 ? origin.getPort() : -1;
         this.realm = realm;
-        this.authScheme = schemeName != null ? schemeName.toUpperCase(Locale.ROOT): null;
+        this.schemeName = schemeName != null ? schemeName : null;
     }
 
     /**
@@ -134,7 +134,7 @@ public class AuthScope {
         this.host = authScope.getHost();
         this.port = authScope.getPort();
         this.realm = authScope.getRealm();
-        this.authScheme = authScope.getAuthScheme();
+        this.schemeName = authScope.getSchemeName();
     }
 
     public String getProtocol() {
@@ -153,8 +153,8 @@ public class AuthScope {
         return this.realm;
     }
 
-    public String getAuthScheme() {
-        return this.authScheme;
+    public String getSchemeName() {
+        return this.schemeName;
     }
 
     /**
@@ -166,10 +166,11 @@ public class AuthScope {
      */
     public int match(final AuthScope that) {
         int factor = 0;
-        if (LangUtils.equals(this.authScheme, that.authScheme)) {
+        if (LangUtils.equals(toNullSafeLowerCase(this.schemeName),
+                             toNullSafeLowerCase(that.schemeName))) {
             factor += 1;
         } else {
-            if (this.authScheme != null && that.authScheme != null) {
+            if (this.schemeName != null && that.schemeName != null) {
                 return -1;
             }
         }
@@ -215,7 +216,8 @@ public class AuthScope {
                     && LangUtils.equals(this.host, that.host)
                     && this.port == that.port
                     && LangUtils.equals(this.realm, that.realm)
-                    && LangUtils.equals(this.authScheme, that.authScheme);
+                    && LangUtils.equals(toNullSafeLowerCase(this.schemeName),
+                                        toNullSafeLowerCase(that.schemeName));
         }
         return false;
     }
@@ -227,15 +229,19 @@ public class AuthScope {
         hash = LangUtils.hashCode(hash, this.host);
         hash = LangUtils.hashCode(hash, this.port);
         hash = LangUtils.hashCode(hash, this.realm);
-        hash = LangUtils.hashCode(hash, this.authScheme);
+        hash = LangUtils.hashCode(hash, toNullSafeLowerCase(this.schemeName));
         return hash;
+    }
+
+    private String toNullSafeLowerCase(final String str) {
+        return str != null ? str.toLowerCase(Locale.ROOT) : null;
     }
 
     @Override
     public String toString() {
         final StringBuilder buffer = new StringBuilder();
-        if (this.authScheme != null) {
-            buffer.append(this.authScheme);
+        if (this.schemeName != null) {
+            buffer.append(this.schemeName);
         } else {
             buffer.append("<any auth scheme>");
         }

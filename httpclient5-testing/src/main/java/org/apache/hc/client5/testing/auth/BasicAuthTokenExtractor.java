@@ -44,8 +44,8 @@ public class BasicAuthTokenExtractor {
             if (i == -1) {
                 throw new ProtocolException("Invalid challenge response: " + challengeResponse);
             }
-            final String authscheme = challengeResponse.substring(0, i);
-            if (authscheme.equalsIgnoreCase(StandardAuthScheme.BASIC)) {
+            final String schemeName = challengeResponse.substring(0, i);
+            if (schemeName.equalsIgnoreCase(StandardAuthScheme.BASIC)) {
                 final String s = challengeResponse.substring(i + 1).trim();
                 try {
                     final byte[] credsRaw = s.getBytes(StandardCharsets.US_ASCII);
