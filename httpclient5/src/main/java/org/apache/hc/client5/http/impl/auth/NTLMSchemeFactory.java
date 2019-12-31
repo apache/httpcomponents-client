@@ -43,6 +43,11 @@ import org.apache.hc.core5.http.protocol.HttpContext;
 @Contract(threading = ThreadingBehavior.STATELESS)
 public class NTLMSchemeFactory implements AuthSchemeFactory {
 
+    /**
+     * Singleton instance.
+     */
+    public static final NTLMSchemeFactory INSTANCE = new NTLMSchemeFactory();
+
     @Override
     public AuthScheme create(final HttpContext context) {
         return new NTLMScheme();

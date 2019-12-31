@@ -109,8 +109,8 @@ public class TestAuthenticationStrategy {
                 new BasicNameValuePair("realm", "realm3")));
 
         final Registry<AuthSchemeFactory> authSchemeRegistry = RegistryBuilder.<AuthSchemeFactory>create()
-            .register(AuthSchemes.BASIC.id, new BasicSchemeFactory())
-            .register(AuthSchemes.DIGEST.id, new DigestSchemeFactory()).build();
+            .register(AuthSchemes.BASIC.id, BasicSchemeFactory.INSTANCE)
+            .register(AuthSchemes.DIGEST.id, DigestSchemeFactory.INSTANCE).build();
         context.setAuthSchemeRegistry(authSchemeRegistry);
 
         final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
@@ -143,8 +143,8 @@ public class TestAuthenticationStrategy {
                 new BasicNameValuePair("realm", "realm2"), new BasicNameValuePair("nonce", "1234")));
 
         final Registry<AuthSchemeFactory> authSchemeRegistry = RegistryBuilder.<AuthSchemeFactory>create()
-            .register(AuthSchemes.BASIC.id, new BasicSchemeFactory())
-            .register(AuthSchemes.DIGEST.id, new DigestSchemeFactory()).build();
+            .register(AuthSchemes.BASIC.id, BasicSchemeFactory.INSTANCE)
+            .register(AuthSchemes.DIGEST.id, DigestSchemeFactory.INSTANCE).build();
         context.setAuthSchemeRegistry(authSchemeRegistry);
         context.setRequestConfig(config);
 

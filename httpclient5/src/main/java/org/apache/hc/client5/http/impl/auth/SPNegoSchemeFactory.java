@@ -27,6 +27,7 @@
 package org.apache.hc.client5.http.impl.auth;
 
 import org.apache.hc.client5.http.DnsResolver;
+import org.apache.hc.client5.http.SystemDefaultDnsResolver;
 import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.client5.http.auth.KerberosConfig;
@@ -48,6 +49,12 @@ import org.apache.hc.core5.http.protocol.HttpContext;
 @Contract(threading = ThreadingBehavior.STATELESS)
 @Experimental
 public class SPNegoSchemeFactory implements AuthSchemeFactory {
+
+    /**
+     * Singleton instance for the default configuration.
+     */
+    public static final SPNegoSchemeFactory DEFAULT = new SPNegoSchemeFactory(KerberosConfig.DEFAULT,
+            SystemDefaultDnsResolver.INSTANCE);
 
     private final KerberosConfig config;
     private final DnsResolver dnsResolver;

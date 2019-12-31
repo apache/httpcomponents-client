@@ -44,6 +44,11 @@ import org.apache.hc.core5.http.protocol.HttpContext;
 @Contract(threading = ThreadingBehavior.STATELESS)
 public class BasicSchemeFactory implements AuthSchemeFactory {
 
+    /**
+     * Singleton instance with a null Charset.
+     */
+    public static final BasicSchemeFactory INSTANCE = new BasicSchemeFactory();
+
     private final Charset charset;
 
     /**

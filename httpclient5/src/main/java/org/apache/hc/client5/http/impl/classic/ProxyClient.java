@@ -34,14 +34,12 @@ import org.apache.hc.client5.http.AuthenticationStrategy;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.RouteInfo.LayerType;
 import org.apache.hc.client5.http.RouteInfo.TunnelType;
-import org.apache.hc.client5.http.SystemDefaultDnsResolver;
 import org.apache.hc.client5.http.auth.AuthExchange;
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.client5.http.auth.AuthSchemes;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.Credentials;
-import org.apache.hc.client5.http.auth.KerberosConfig;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.DefaultAuthenticationStrategy;
 import org.apache.hc.client5.http.impl.TunnelRefusedException;
@@ -115,13 +113,11 @@ public class ProxyClient {
         this.authenticator = new HttpAuthenticator();
         this.proxyAuthExchange = new AuthExchange();
         this.authSchemeRegistry = RegistryBuilder.<AuthSchemeFactory>create()
-                .register(AuthSchemes.BASIC.id, new BasicSchemeFactory())
-                .register(AuthSchemes.DIGEST.id, new DigestSchemeFactory())
-                .register(AuthSchemes.NTLM.id, new NTLMSchemeFactory())
-                .register(AuthSchemes.SPNEGO.id,
-                        new SPNegoSchemeFactory(KerberosConfig.DEFAULT, SystemDefaultDnsResolver.INSTANCE))
-                .register(AuthSchemes.KERBEROS.id,
-                        new KerberosSchemeFactory(KerberosConfig.DEFAULT, SystemDefaultDnsResolver.INSTANCE))
+                .register(AuthSchemes.BASIC.id, BasicSchemeFactory.INSTANCE)
+                .register(AuthSchemes.DIGEST.id, DigestSchemeFactory.INSTANCE)
+                .register(AuthSchemes.NTLM.id, NTLMSchemeFactory.INSTANCE)
+                .register(AuthSchemes.SPNEGO.id, SPNegoSchemeFactory.DEFAULT)
+                .register(AuthSchemes.KERBEROS.id, KerberosSchemeFactory.DEFAULT)
                 .build();
         this.reuseStrategy = new DefaultConnectionReuseStrategy();
     }
