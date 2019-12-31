@@ -38,7 +38,7 @@ import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.cookie.Cookie;
 import org.apache.hc.client5.http.cookie.CookieOrigin;
 import org.apache.hc.client5.http.cookie.CookieSpec;
-import org.apache.hc.client5.http.cookie.CookieSpecProvider;
+import org.apache.hc.client5.http.cookie.CookieSpecFactory;
 import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
@@ -92,7 +92,7 @@ public class RequestAddCookies implements HttpRequestInterceptor {
         }
 
         // Obtain the registry of cookie specs
-        final Lookup<CookieSpecProvider> registry = clientContext.getCookieSpecRegistry();
+        final Lookup<CookieSpecFactory> registry = clientContext.getCookieSpecRegistry();
         if (registry == null) {
             this.log.debug("CookieSpec registry not specified in HTTP context");
             return;
@@ -130,7 +130,7 @@ public class RequestAddCookies implements HttpRequestInterceptor {
         final CookieOrigin cookieOrigin = new CookieOrigin(hostName, port, path, route.isSecure());
 
         // Get an instance of the selected cookie policy
-        final CookieSpecProvider provider = registry.lookup(policy);
+        final CookieSpecFactory provider = registry.lookup(policy);
         if (provider == null) {
             if (this.log.isDebugEnabled()) {
                 this.log.debug("Unsupported cookie policy: " + policy);

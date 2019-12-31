@@ -103,6 +103,7 @@ final class NTLMEngineImpl implements NTLMEngine {
         try {
             rnd = java.security.SecureRandom.getInstance("SHA1PRNG");
         } catch (final Exception ignore) {
+            // ignore
         }
         RND_GEN = rnd;
     }
@@ -233,7 +234,7 @@ final class NTLMEngineImpl implements NTLMEngine {
      *            the 8 byte array the server sent.
      * @return The type 3 message.
      * @throws NTLMEngineException
-     *             If {@encrypt(byte[],byte[])} fails.
+     *             If {@link Type3Message#Type3Message(String, String, String, char[], byte[], int, String, byte[])} fails.
      */
     static String getType3Message(final String user, final char[] password, final String host, final String domain,
             final byte[] nonce, final int type2Flags, final String target, final byte[] targetInformation)
@@ -1233,8 +1234,7 @@ final class NTLMEngineImpl implements NTLMEngine {
             if (messageContents == null) {
                 buildMessage();
             }
-            final byte[] resp;
-            if ( messageContents.length > currentOutputPosition ) {
+            if (messageContents.length > currentOutputPosition) {
                 final byte[] tmp = new byte[currentOutputPosition];
                 System.arraycopy( messageContents, 0, tmp, 0, currentOutputPosition );
                 messageContents = tmp;

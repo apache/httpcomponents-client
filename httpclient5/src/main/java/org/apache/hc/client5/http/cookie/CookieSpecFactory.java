@@ -25,22 +25,25 @@
  *
  */
 
-package org.apache.hc.client5.http.auth;
+package org.apache.hc.client5.http.cookie;
 
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.protocol.HttpContext;
 
 /**
- * Factory for {@link AuthScheme} implementations.
+ * Factory for {@link CookieSpec} implementations.
  *
  * @since 4.3
  */
-public interface AuthSchemeProvider {
+@Contract(threading = ThreadingBehavior.STATELESS)
+public interface CookieSpecFactory {
 
     /**
-     * Creates an instance of {@link AuthScheme}.
+     * Creates an instance of {@link CookieSpec}.
      *
      * @return auth scheme.
      */
-    AuthScheme create(HttpContext context);
+    CookieSpec create(HttpContext context);
 
 }

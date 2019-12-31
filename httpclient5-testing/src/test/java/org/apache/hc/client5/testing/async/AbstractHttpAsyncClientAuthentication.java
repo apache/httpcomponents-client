@@ -38,7 +38,7 @@ import org.apache.hc.client5.http.async.methods.SimpleHttpRequests;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.AuthScheme;
-import org.apache.hc.client5.http.auth.AuthSchemeProvider;
+import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.client5.http.auth.AuthSchemes;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.ChallengeType;
@@ -114,7 +114,7 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
         }
     }
 
-    abstract void setDefaultAuthSchemeRegistry(Lookup<AuthSchemeProvider> authSchemeRegistry);
+    abstract void setDefaultAuthSchemeRegistry(Lookup<AuthSchemeFactory> authSchemeRegistry);
 
     abstract void setTargetAuthenticationStrategy(AuthenticationStrategy targetAuthStrategy);
 
@@ -451,8 +451,8 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
         final TestCredentialsProvider credsProvider = new TestCredentialsProvider(
                 new UsernamePasswordCredentials("test", "test".toCharArray()));
 
-        final Registry<AuthSchemeProvider> authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
-                .register("MyBasic", new AuthSchemeProvider() {
+        final Registry<AuthSchemeFactory> authSchemeRegistry = RegistryBuilder.<AuthSchemeFactory>create()
+                .register("MyBasic", new AuthSchemeFactory() {
 
                     @Override
                     public AuthScheme create(final HttpContext context) {

@@ -36,7 +36,7 @@ import org.apache.hc.client5.http.RouteInfo.LayerType;
 import org.apache.hc.client5.http.RouteInfo.TunnelType;
 import org.apache.hc.client5.http.SystemDefaultDnsResolver;
 import org.apache.hc.client5.http.auth.AuthExchange;
-import org.apache.hc.client5.http.auth.AuthSchemeProvider;
+import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.client5.http.auth.AuthSchemes;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.ChallengeType;
@@ -94,7 +94,7 @@ public class ProxyClient {
     private final AuthenticationStrategy proxyAuthStrategy;
     private final HttpAuthenticator authenticator;
     private final AuthExchange proxyAuthExchange;
-    private final Lookup<AuthSchemeProvider> authSchemeRegistry;
+    private final Lookup<AuthSchemeFactory> authSchemeRegistry;
     private final ConnectionReuseStrategy reuseStrategy;
 
     /**
@@ -114,7 +114,7 @@ public class ProxyClient {
         this.proxyAuthStrategy = new DefaultAuthenticationStrategy();
         this.authenticator = new HttpAuthenticator();
         this.proxyAuthExchange = new AuthExchange();
-        this.authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
+        this.authSchemeRegistry = RegistryBuilder.<AuthSchemeFactory>create()
                 .register(AuthSchemes.BASIC.id, new BasicSchemeFactory())
                 .register(AuthSchemes.DIGEST.id, new DigestSchemeFactory())
                 .register(AuthSchemes.NTLM.id, new NTLMSchemeFactory())

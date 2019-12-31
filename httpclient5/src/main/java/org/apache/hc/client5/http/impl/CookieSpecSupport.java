@@ -28,9 +28,9 @@
 package org.apache.hc.client5.http.impl;
 
 import org.apache.hc.client5.http.cookie.CookieSpecs;
-import org.apache.hc.client5.http.cookie.CookieSpecProvider;
-import org.apache.hc.client5.http.impl.cookie.IgnoreSpecProvider;
-import org.apache.hc.client5.http.impl.cookie.RFC6265CookieSpecProvider;
+import org.apache.hc.client5.http.cookie.CookieSpecFactory;
+import org.apache.hc.client5.http.impl.cookie.IgnoreCookieSpecFactory;
+import org.apache.hc.client5.http.impl.cookie.RFC6265CookieSpecFactory;
 import org.apache.hc.client5.http.psl.PublicSuffixMatcher;
 import org.apache.hc.client5.http.psl.PublicSuffixMatcherLoader;
 import org.apache.hc.core5.annotation.Internal;
@@ -48,33 +48,33 @@ public final class CookieSpecSupport {
     /**
      * Creates a builder containing the default registry entries, using the provided public suffix matcher.
      */
-    public static RegistryBuilder<CookieSpecProvider> createDefaultBuilder(final PublicSuffixMatcher publicSuffixMatcher) {
-        return RegistryBuilder.<CookieSpecProvider>create()
-                .register(CookieSpecs.STANDARD.id, new RFC6265CookieSpecProvider(
-                        RFC6265CookieSpecProvider.CompatibilityLevel.RELAXED, publicSuffixMatcher))
-                .register(CookieSpecs.STANDARD_STRICT.id, new RFC6265CookieSpecProvider(
-                        RFC6265CookieSpecProvider.CompatibilityLevel.STRICT, publicSuffixMatcher))
-                .register(CookieSpecs.IGNORE_COOKIES.id, new IgnoreSpecProvider());
+    public static RegistryBuilder<CookieSpecFactory> createDefaultBuilder(final PublicSuffixMatcher publicSuffixMatcher) {
+        return RegistryBuilder.<CookieSpecFactory>create()
+                .register(CookieSpecs.STANDARD.id, new RFC6265CookieSpecFactory(
+                        RFC6265CookieSpecFactory.CompatibilityLevel.RELAXED, publicSuffixMatcher))
+                .register(CookieSpecs.STANDARD_STRICT.id, new RFC6265CookieSpecFactory(
+                        RFC6265CookieSpecFactory.CompatibilityLevel.STRICT, publicSuffixMatcher))
+                .register(CookieSpecs.IGNORE_COOKIES.id, new IgnoreCookieSpecFactory());
     }
 
     /**
      * Creates a builder containing the default registry entries with the default public suffix matcher.
      */
-    public static RegistryBuilder<CookieSpecProvider> createDefaultBuilder() {
+    public static RegistryBuilder<CookieSpecFactory> createDefaultBuilder() {
         return createDefaultBuilder(PublicSuffixMatcherLoader.getDefault());
     }
 
     /**
      * Creates the default registry, using the default public suffix matcher.
      */
-    public static Lookup<CookieSpecProvider> createDefault() {
+    public static Lookup<CookieSpecFactory> createDefault() {
         return createDefault(PublicSuffixMatcherLoader.getDefault());
     }
 
     /**
      * Creates the default registry with the provided public suffix matcher
      */
-    public static Lookup<CookieSpecProvider> createDefault(final PublicSuffixMatcher publicSuffixMatcher) {
+    public static Lookup<CookieSpecFactory> createDefault(final PublicSuffixMatcher publicSuffixMatcher) {
         return createDefaultBuilder(publicSuffixMatcher).build();
     }
 

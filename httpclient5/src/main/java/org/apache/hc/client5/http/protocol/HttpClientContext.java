@@ -35,12 +35,12 @@ import org.apache.hc.client5.http.RouteInfo;
 import org.apache.hc.client5.http.auth.AuthCache;
 import org.apache.hc.client5.http.auth.AuthExchange;
 import org.apache.hc.client5.http.auth.AuthScheme;
-import org.apache.hc.client5.http.auth.AuthSchemeProvider;
+import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.cookie.CookieOrigin;
 import org.apache.hc.client5.http.cookie.CookieSpec;
-import org.apache.hc.client5.http.cookie.CookieSpecProvider;
+import org.apache.hc.client5.http.cookie.CookieSpecFactory;
 import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.config.Lookup;
@@ -72,7 +72,7 @@ public class HttpClientContext extends HttpCoreContext {
 
     /**
      * Attribute name of a {@link org.apache.hc.core5.http.config.Lookup} object that represents
-     * the actual {@link CookieSpecProvider} registry.
+     * the actual {@link CookieSpecFactory} registry.
      */
     public static final String COOKIESPEC_REGISTRY   = "http.cookiespec-registry";
 
@@ -120,7 +120,7 @@ public class HttpClientContext extends HttpCoreContext {
 
     /**
      * Attribute name of a {@link org.apache.hc.core5.http.config.Lookup} object that represents
-     * the actual {@link AuthSchemeProvider} registry.
+     * the actual {@link AuthSchemeFactory} registry.
      */
     public static final String AUTHSCHEME_REGISTRY   = "http.authscheme-registry";
 
@@ -178,19 +178,19 @@ public class HttpClientContext extends HttpCoreContext {
         return getAttribute(name, Lookup.class);
     }
 
-    public Lookup<CookieSpecProvider> getCookieSpecRegistry() {
-        return getLookup(COOKIESPEC_REGISTRY, CookieSpecProvider.class);
+    public Lookup<CookieSpecFactory> getCookieSpecRegistry() {
+        return getLookup(COOKIESPEC_REGISTRY, CookieSpecFactory.class);
     }
 
-    public void setCookieSpecRegistry(final Lookup<CookieSpecProvider> lookup) {
+    public void setCookieSpecRegistry(final Lookup<CookieSpecFactory> lookup) {
         setAttribute(COOKIESPEC_REGISTRY, lookup);
     }
 
-    public Lookup<AuthSchemeProvider> getAuthSchemeRegistry() {
-        return getLookup(AUTHSCHEME_REGISTRY, AuthSchemeProvider.class);
+    public Lookup<AuthSchemeFactory> getAuthSchemeRegistry() {
+        return getLookup(AUTHSCHEME_REGISTRY, AuthSchemeFactory.class);
     }
 
-    public void setAuthSchemeRegistry(final Lookup<AuthSchemeProvider> lookup) {
+    public void setAuthSchemeRegistry(final Lookup<AuthSchemeFactory> lookup) {
         setAttribute(AUTHSCHEME_REGISTRY, lookup);
     }
 

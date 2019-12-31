@@ -39,11 +39,11 @@ import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.async.AsyncExecCallback;
 import org.apache.hc.client5.http.async.AsyncExecChain;
 import org.apache.hc.client5.http.async.AsyncExecRuntime;
-import org.apache.hc.client5.http.auth.AuthSchemeProvider;
+import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.config.Configurable;
 import org.apache.hc.client5.http.config.RequestConfig;
-import org.apache.hc.client5.http.cookie.CookieSpecProvider;
+import org.apache.hc.client5.http.cookie.CookieSpecFactory;
 import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.client5.http.impl.ExecSupport;
 import org.apache.hc.client5.http.impl.RequestCopier;
@@ -74,8 +74,8 @@ import org.apache.hc.core5.reactor.DefaultConnectingIOReactor;
 abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBase {
 
     private final AsyncExecChainElement execChain;
-    private final Lookup<CookieSpecProvider> cookieSpecRegistry;
-    private final Lookup<AuthSchemeProvider> authSchemeRegistry;
+    private final Lookup<CookieSpecFactory> cookieSpecRegistry;
+    private final Lookup<AuthSchemeFactory> authSchemeRegistry;
     private final CookieStore cookieStore;
     private final CredentialsProvider credentialsProvider;
     private final RequestConfig defaultConfig;
@@ -86,8 +86,8 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
             final AsyncPushConsumerRegistry pushConsumerRegistry,
             final ThreadFactory threadFactory,
             final AsyncExecChainElement execChain,
-            final Lookup<CookieSpecProvider> cookieSpecRegistry,
-            final Lookup<AuthSchemeProvider> authSchemeRegistry,
+            final Lookup<CookieSpecFactory> cookieSpecRegistry,
+            final Lookup<AuthSchemeFactory> authSchemeRegistry,
             final CookieStore cookieStore,
             final CredentialsProvider credentialsProvider,
             final RequestConfig defaultConfig,

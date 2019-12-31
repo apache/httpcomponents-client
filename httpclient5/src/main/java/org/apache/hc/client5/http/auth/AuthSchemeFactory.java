@@ -25,40 +25,22 @@
  *
  */
 
-package org.apache.hc.client5.http.impl.cookie;
+package org.apache.hc.client5.http.auth;
 
-import java.util.Collections;
-import java.util.List;
-
-import org.apache.hc.client5.http.cookie.Cookie;
-import org.apache.hc.client5.http.cookie.CookieOrigin;
-import org.apache.hc.client5.http.cookie.MalformedCookieException;
-import org.apache.hc.core5.annotation.Contract;
-import org.apache.hc.core5.annotation.ThreadingBehavior;
-import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.protocol.HttpContext;
 
 /**
- * CookieSpec that ignores all cookies
+ * Factory for {@link AuthScheme} implementations.
  *
- * @since 4.1
+ * @since 4.3
  */
-@Contract(threading = ThreadingBehavior.STATELESS)
-public class IgnoreSpec extends CookieSpecBase {
+public interface AuthSchemeFactory {
 
-    @Override
-    public List<Cookie> parse(final Header header, final CookieOrigin origin)
-            throws MalformedCookieException {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public boolean match(final Cookie cookie, final CookieOrigin origin) {
-        return false;
-    }
-
-    @Override
-    public List<Header> formatCookies(final List<Cookie> cookies) {
-        return Collections.emptyList();
-    }
+    /**
+     * Creates an instance of {@link AuthScheme}.
+     *
+     * @return auth scheme.
+     */
+    AuthScheme create(HttpContext context);
 
 }

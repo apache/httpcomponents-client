@@ -29,7 +29,7 @@ package org.apache.hc.client5.testing.sync;
 import java.io.IOException;
 
 import org.apache.hc.client5.http.auth.AuthScheme;
-import org.apache.hc.client5.http.auth.AuthSchemeProvider;
+import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.auth.AuthSchemes;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
@@ -80,8 +80,8 @@ public class TestWindowsNegotiateScheme extends LocalServerTestBase {
         // come. This error message, "The system detected a possible attempt to compromise security. Please ensure that
         // you can contact the server that authenticated you." is associated with SEC_E_DOWNGRADE_DETECTED.
 
-        final Registry<AuthSchemeProvider> authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
-            .register(AuthSchemes.SPNEGO.id, new AuthSchemeProvider() {
+        final Registry<AuthSchemeFactory> authSchemeRegistry = RegistryBuilder.<AuthSchemeFactory>create()
+            .register(AuthSchemes.SPNEGO.id, new AuthSchemeFactory() {
                 @Override
                 public AuthScheme create(final HttpContext context) {
                     return new WindowsNegotiateSchemeGetTokenFail(AuthSchemes.SPNEGO.id, "HTTP/example.com");
