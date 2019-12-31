@@ -45,6 +45,11 @@ import org.apache.hc.core5.http.protocol.HttpContext;
 @Experimental
 public class WindowsNegotiateSchemeFactory implements AuthSchemeFactory {
 
+    /**
+     * Singleton instance with a null name.
+     */
+    public static final WindowsNegotiateSchemeFactory DEFAULT = new WindowsNegotiateSchemeFactory(null);
+
     private final String servicePrincipalName;
 
     public WindowsNegotiateSchemeFactory(final String servicePrincipalName) {

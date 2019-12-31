@@ -67,10 +67,10 @@ public class WinHttpClients {
     private static HttpClientBuilder createBuilder() {
         if (isWinAuthAvailable()) {
             final Registry<AuthSchemeFactory> authSchemeRegistry = RegistryBuilder.<AuthSchemeFactory>create()
-                    .register(AuthSchemes.BASIC.id, new BasicSchemeFactory())
-                    .register(AuthSchemes.DIGEST.id, new DigestSchemeFactory())
-                    .register(AuthSchemes.NTLM.id, new WindowsNTLMSchemeFactory(null))
-                    .register(AuthSchemes.SPNEGO.id, new WindowsNegotiateSchemeFactory(null))
+                    .register(AuthSchemes.BASIC.id, BasicSchemeFactory.INSTANCE)
+                    .register(AuthSchemes.DIGEST.id, DigestSchemeFactory.INSTANCE)
+                    .register(AuthSchemes.NTLM.id, WindowsNTLMSchemeFactory.DEFAULT)
+                    .register(AuthSchemes.SPNEGO.id, WindowsNegotiateSchemeFactory.DEFAULT)
                     .build();
             return HttpClientBuilder.create()
                     .setDefaultAuthSchemeRegistry(authSchemeRegistry);

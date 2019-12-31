@@ -45,6 +45,11 @@ import org.apache.hc.core5.http.protocol.HttpContext;
 @Experimental
 public class WindowsNTLMSchemeFactory implements AuthSchemeFactory {
 
+    /**
+     * Singleton instance with a null name.
+     */
+    public static final WindowsNTLMSchemeFactory DEFAULT = new WindowsNTLMSchemeFactory(null);
+
     private final String servicePrincipalName;
 
     public WindowsNTLMSchemeFactory(final String servicePrincipalName) {

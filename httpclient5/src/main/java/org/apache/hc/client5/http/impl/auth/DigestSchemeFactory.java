@@ -42,6 +42,11 @@ import org.apache.hc.core5.http.protocol.HttpContext;
 @Contract(threading = ThreadingBehavior.STATELESS)
 public class DigestSchemeFactory implements AuthSchemeFactory {
 
+    /**
+     * Singleton instance.
+     */
+    public static final DigestSchemeFactory INSTANCE = new DigestSchemeFactory();
+
     @Override
     public AuthScheme create(final HttpContext context) {
         return new DigestScheme();
