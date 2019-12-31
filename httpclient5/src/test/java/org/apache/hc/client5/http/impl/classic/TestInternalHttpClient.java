@@ -32,13 +32,13 @@ import java.util.Arrays;
 
 import org.apache.hc.client5.http.ClientProtocolException;
 import org.apache.hc.client5.http.HttpRoute;
-import org.apache.hc.client5.http.auth.AuthSchemeProvider;
+import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecChainHandler;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.config.RequestConfig;
-import org.apache.hc.client5.http.cookie.CookieSpecProvider;
+import org.apache.hc.client5.http.cookie.CookieSpecFactory;
 import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
@@ -70,9 +70,9 @@ public class TestInternalHttpClient {
     @Mock
     private HttpRoutePlanner routePlanner;
     @Mock
-    private Lookup<CookieSpecProvider> cookieSpecRegistry;
+    private Lookup<CookieSpecFactory> cookieSpecRegistry;
     @Mock
-    private Lookup<AuthSchemeProvider> authSchemeRegistry;
+    private Lookup<AuthSchemeFactory> authSchemeRegistry;
     @Mock
     private CookieStore cookieStore;
     @Mock
@@ -175,8 +175,8 @@ public class TestInternalHttpClient {
 
         final HttpClientContext context = HttpClientContext.create();
 
-        final Lookup<CookieSpecProvider> localCookieSpecRegistry = Mockito.mock(Lookup.class);
-        final Lookup<AuthSchemeProvider> localAuthSchemeRegistry = Mockito.mock(Lookup.class);
+        final Lookup<CookieSpecFactory> localCookieSpecRegistry = Mockito.mock(Lookup.class);
+        final Lookup<AuthSchemeFactory> localAuthSchemeRegistry = Mockito.mock(Lookup.class);
         final CookieStore localCookieStore = Mockito.mock(CookieStore.class);
         final CredentialsProvider localCredentialsProvider = Mockito.mock(CredentialsProvider.class);
         final RequestConfig localConfig = RequestConfig.custom().build();

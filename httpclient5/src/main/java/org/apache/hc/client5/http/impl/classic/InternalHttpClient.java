@@ -34,13 +34,13 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.apache.hc.client5.http.ClientProtocolException;
 import org.apache.hc.client5.http.HttpRoute;
-import org.apache.hc.client5.http.auth.AuthSchemeProvider;
+import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecRuntime;
 import org.apache.hc.client5.http.config.Configurable;
 import org.apache.hc.client5.http.config.RequestConfig;
-import org.apache.hc.client5.http.cookie.CookieSpecProvider;
+import org.apache.hc.client5.http.cookie.CookieSpecFactory;
 import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.client5.http.impl.ExecSupport;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
@@ -86,8 +86,8 @@ class InternalHttpClient extends CloseableHttpClient implements Configurable {
     private final HttpRequestExecutor requestExecutor;
     private final ExecChainElement execChain;
     private final HttpRoutePlanner routePlanner;
-    private final Lookup<CookieSpecProvider> cookieSpecRegistry;
-    private final Lookup<AuthSchemeProvider> authSchemeRegistry;
+    private final Lookup<CookieSpecFactory> cookieSpecRegistry;
+    private final Lookup<AuthSchemeFactory> authSchemeRegistry;
     private final CookieStore cookieStore;
     private final CredentialsProvider credentialsProvider;
     private final RequestConfig defaultConfig;
@@ -98,8 +98,8 @@ class InternalHttpClient extends CloseableHttpClient implements Configurable {
             final HttpRequestExecutor requestExecutor,
             final ExecChainElement execChain,
             final HttpRoutePlanner routePlanner,
-            final Lookup<CookieSpecProvider> cookieSpecRegistry,
-            final Lookup<AuthSchemeProvider> authSchemeRegistry,
+            final Lookup<CookieSpecFactory> cookieSpecRegistry,
+            final Lookup<AuthSchemeFactory> authSchemeRegistry,
             final CookieStore cookieStore,
             final CredentialsProvider credentialsProvider,
             final RequestConfig defaultConfig,

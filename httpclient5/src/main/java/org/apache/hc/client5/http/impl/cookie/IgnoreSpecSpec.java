@@ -27,36 +27,38 @@
 
 package org.apache.hc.client5.http.impl.cookie;
 
-import org.apache.hc.client5.http.cookie.CookieSpec;
-import org.apache.hc.client5.http.cookie.CookieSpecProvider;
+import java.util.Collections;
+import java.util.List;
+
+import org.apache.hc.client5.http.cookie.Cookie;
+import org.apache.hc.client5.http.cookie.CookieOrigin;
+import org.apache.hc.client5.http.cookie.MalformedCookieException;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
-import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.http.Header;
 
 /**
- * {@link CookieSpecProvider} implementation that ignores all cookies.
+ * CookieSpec that ignores all cookies
  *
- * @since 4.4
+ * @since 4.1
  */
-@Contract(threading = ThreadingBehavior.SAFE)
-public class IgnoreSpecProvider implements CookieSpecProvider {
+@Contract(threading = ThreadingBehavior.STATELESS)
+public class IgnoreSpecSpec extends CookieSpecBase {
 
-    private volatile CookieSpec cookieSpec;
-
-    public IgnoreSpecProvider() {
-        super();
+    @Override
+    public List<Cookie> parse(final Header header, final CookieOrigin origin)
+            throws MalformedCookieException {
+        return Collections.emptyList();
     }
 
     @Override
-    public CookieSpec create(final HttpContext context) {
-        if (cookieSpec == null) {
-            synchronized (this) {
-                if (cookieSpec == null) {
-                    this.cookieSpec = new IgnoreSpec();
-                }
-            }
-        }
-        return this.cookieSpec;
+    public boolean match(final Cookie cookie, final CookieOrigin origin) {
+        return false;
+    }
+
+    @Override
+    public List<Header> formatCookies(final List<Cookie> cookies) {
+        return Collections.emptyList();
     }
 
 }

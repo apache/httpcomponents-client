@@ -38,7 +38,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.apache.hc.client5.http.auth.AuthCache;
 import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.AuthScheme;
-import org.apache.hc.client5.http.auth.AuthSchemeProvider;
+import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.client5.http.auth.AuthSchemes;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.ChallengeType;
@@ -652,7 +652,7 @@ public class TestClientAuthentication extends LocalServerTestBase {
         final RequestConfig config = RequestConfig.custom()
                 .setTargetPreferredAuthSchemes(Arrays.asList("MyBasic"))
                 .build();
-        final Registry<AuthSchemeProvider> authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
+        final Registry<AuthSchemeFactory> authSchemeRegistry = RegistryBuilder.<AuthSchemeFactory>create()
                 .register("MyBasic", myBasicAuthSchemeFactory)
                 .build();
         this.httpclient = this.clientBuilder

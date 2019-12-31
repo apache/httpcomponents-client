@@ -30,7 +30,7 @@ package org.apache.hc.client5.http.impl.cookie;
 import org.apache.hc.client5.http.cookie.Cookie;
 import org.apache.hc.client5.http.cookie.CookieOrigin;
 import org.apache.hc.client5.http.cookie.CookieSpec;
-import org.apache.hc.client5.http.cookie.CookieSpecProvider;
+import org.apache.hc.client5.http.cookie.CookieSpecFactory;
 import org.apache.hc.client5.http.cookie.MalformedCookieException;
 import org.apache.hc.client5.http.psl.PublicSuffixMatcher;
 import org.apache.hc.core5.annotation.Contract;
@@ -38,14 +38,14 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.protocol.HttpContext;
 
 /**
- * {@link CookieSpecProvider} implementation that provides an instance of
+ * {@link CookieSpecFactory} implementation that provides an instance of
  * RFC 6265 conformant cookie policy. The instance returned by this factory
  * can be shared by multiple threads.
  *
  * @since 4.4
  */
 @Contract(threading = ThreadingBehavior.SAFE)
-public class RFC6265CookieSpecProvider implements CookieSpecProvider {
+public class RFC6265CookieSpecFactory implements CookieSpecFactory {
 
     public enum CompatibilityLevel {
         STRICT,
@@ -58,7 +58,7 @@ public class RFC6265CookieSpecProvider implements CookieSpecProvider {
 
     private volatile CookieSpec cookieSpec;
 
-    public RFC6265CookieSpecProvider(
+    public RFC6265CookieSpecFactory(
             final CompatibilityLevel compatibilityLevel,
             final PublicSuffixMatcher publicSuffixMatcher) {
         super();
@@ -66,11 +66,11 @@ public class RFC6265CookieSpecProvider implements CookieSpecProvider {
         this.publicSuffixMatcher = publicSuffixMatcher;
     }
 
-    public RFC6265CookieSpecProvider(final PublicSuffixMatcher publicSuffixMatcher) {
+    public RFC6265CookieSpecFactory(final PublicSuffixMatcher publicSuffixMatcher) {
         this(CompatibilityLevel.RELAXED, publicSuffixMatcher);
     }
 
-    public RFC6265CookieSpecProvider() {
+    public RFC6265CookieSpecFactory() {
         this(CompatibilityLevel.RELAXED, null);
     }
 

@@ -32,7 +32,7 @@ import java.util.Queue;
 import org.apache.hc.client5.http.auth.AuthCache;
 import org.apache.hc.client5.http.auth.AuthExchange;
 import org.apache.hc.client5.http.auth.AuthScheme;
-import org.apache.hc.client5.http.auth.AuthSchemeProvider;
+import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.AuthStateCacheable;
 import org.apache.hc.client5.http.auth.AuthenticationException;
@@ -79,7 +79,7 @@ public class TestHttpAuthenticator {
     private HttpContext context;
     private HttpHost defaultHost;
     private CredentialsProvider credentialsProvider;
-    private Lookup<AuthSchemeProvider> authSchemeRegistry;
+    private Lookup<AuthSchemeFactory> authSchemeRegistry;
     private AuthCache authCache;
     private HttpAuthenticator httpAuthenticator;
 
@@ -93,7 +93,7 @@ public class TestHttpAuthenticator {
         this.defaultHost = new HttpHost("localhost", 80);
         this.credentialsProvider = Mockito.mock(CredentialsProvider.class);
         this.context.setAttribute(HttpClientContext.CREDS_PROVIDER, this.credentialsProvider);
-        this.authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
+        this.authSchemeRegistry = RegistryBuilder.<AuthSchemeFactory>create()
             .register(AuthSchemes.BASIC.id, new BasicSchemeFactory())
             .register(AuthSchemes.DIGEST.id, new DigestSchemeFactory())
             .register(AuthSchemes.NTLM.id, new NTLMSchemeFactory()).build();

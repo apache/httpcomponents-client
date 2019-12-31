@@ -28,7 +28,7 @@ package org.apache.hc.client5.http.impl.win;
 
 import java.util.Locale;
 
-import org.apache.hc.client5.http.auth.AuthSchemeProvider;
+import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.client5.http.auth.AuthSchemes;
 import org.apache.hc.client5.http.impl.auth.BasicSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.DigestSchemeFactory;
@@ -66,7 +66,7 @@ public class WinHttpClients {
 
     private static HttpClientBuilder createBuilder() {
         if (isWinAuthAvailable()) {
-            final Registry<AuthSchemeProvider> authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
+            final Registry<AuthSchemeFactory> authSchemeRegistry = RegistryBuilder.<AuthSchemeFactory>create()
                     .register(AuthSchemes.BASIC.id, new BasicSchemeFactory())
                     .register(AuthSchemes.DIGEST.id, new DigestSchemeFactory())
                     .register(AuthSchemes.NTLM.id, new WindowsNTLMSchemeFactory(null))

@@ -28,19 +28,19 @@
 package org.apache.hc.client5.http.impl.auth;
 
 import org.apache.hc.client5.http.auth.AuthScheme;
-import org.apache.hc.client5.http.auth.AuthSchemeProvider;
+import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.protocol.HttpContext;
 
 /**
- * {@link AuthSchemeProvider} implementation that creates and initializes
+ * {@link AuthSchemeFactory} implementation that creates and initializes
  * {@link DigestScheme} instances.
  *
  * @since 4.0
  */
 @Contract(threading = ThreadingBehavior.STATELESS)
-public class DigestSchemeFactory implements AuthSchemeProvider {
+public class DigestSchemeFactory implements AuthSchemeFactory {
 
     @Override
     public AuthScheme create(final HttpContext context) {

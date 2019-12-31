@@ -25,25 +25,38 @@
  *
  */
 
-package org.apache.hc.client5.http.cookie;
+package org.apache.hc.client5.http.impl.cookie;
 
+import org.apache.hc.client5.http.cookie.CookieSpec;
+import org.apache.hc.client5.http.cookie.CookieSpecFactory;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.protocol.HttpContext;
 
 /**
- * Factory for {@link CookieSpec} implementations.
+ * {@link CookieSpecFactory} implementation that ignores all cookies.
  *
- * @since 4.3
+ * @since 4.4
  */
-@Contract(threading = ThreadingBehavior.STATELESS)
-public interface CookieSpecProvider {
+@Contract(threading = ThreadingBehavior.SAFE)
+public class IgnoreCookieSpecFactory implements CookieSpecFactory {
 
-    /**
-     * Creates an instance of {@link CookieSpec}.
-     *
-     * @return auth scheme.
-     */
-    CookieSpec create(HttpContext context);
+    private volatile CookieSpec cookieSpec;
+
+    public IgnoreCookieSpecFactory() {
+        super();
+    }
+
+    @Override
+    public CookieSpec create(final HttpContext context) {
+        if (cookieSpec == null) {
+            synchronized (this) {
+                if (cookieSpec == null) {
+                    this.cookieSpec = new IgnoreSpecSpec();
+                }
+            }
+        }
+        return this.cookieSpec;
+    }
 
 }

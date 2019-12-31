@@ -34,7 +34,7 @@ import java.util.Map;
 
 import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.AuthScheme;
-import org.apache.hc.client5.http.auth.AuthSchemeProvider;
+import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
@@ -108,7 +108,7 @@ public class TestAuthenticationStrategy {
         challenges.put("whatever", new AuthChallenge(ChallengeType.TARGET, "Whatever",
                 new BasicNameValuePair("realm", "realm3")));
 
-        final Registry<AuthSchemeProvider> authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
+        final Registry<AuthSchemeFactory> authSchemeRegistry = RegistryBuilder.<AuthSchemeFactory>create()
             .register(AuthSchemes.BASIC.id, new BasicSchemeFactory())
             .register(AuthSchemes.DIGEST.id, new DigestSchemeFactory()).build();
         context.setAuthSchemeRegistry(authSchemeRegistry);
@@ -142,7 +142,7 @@ public class TestAuthenticationStrategy {
         challenges.put(AuthSchemes.DIGEST.id.toLowerCase(Locale.ROOT), new AuthChallenge(ChallengeType.TARGET, AuthSchemes.DIGEST.id,
                 new BasicNameValuePair("realm", "realm2"), new BasicNameValuePair("nonce", "1234")));
 
-        final Registry<AuthSchemeProvider> authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
+        final Registry<AuthSchemeFactory> authSchemeRegistry = RegistryBuilder.<AuthSchemeFactory>create()
             .register(AuthSchemes.BASIC.id, new BasicSchemeFactory())
             .register(AuthSchemes.DIGEST.id, new DigestSchemeFactory()).build();
         context.setAuthSchemeRegistry(authSchemeRegistry);

@@ -43,7 +43,7 @@ import org.apache.hc.client5.http.HttpRequestRetryStrategy;
 import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.SystemDefaultDnsResolver;
 import org.apache.hc.client5.http.UserTokenHandler;
-import org.apache.hc.client5.http.auth.AuthSchemeProvider;
+import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.client5.http.auth.AuthSchemes;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.KerberosConfig;
@@ -52,7 +52,7 @@ import org.apache.hc.client5.http.classic.ConnectionBackoffStrategy;
 import org.apache.hc.client5.http.classic.ExecChainHandler;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.cookie.BasicCookieStore;
-import org.apache.hc.client5.http.cookie.CookieSpecProvider;
+import org.apache.hc.client5.http.cookie.CookieSpecFactory;
 import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.client5.http.entity.InputStreamFactory;
 import org.apache.hc.client5.http.impl.ChainElement;
@@ -207,8 +207,8 @@ public class HttpClientBuilder {
     private RedirectStrategy redirectStrategy;
     private ConnectionBackoffStrategy connectionBackoffStrategy;
     private BackoffManager backoffManager;
-    private Lookup<AuthSchemeProvider> authSchemeRegistry;
-    private Lookup<CookieSpecProvider> cookieSpecRegistry;
+    private Lookup<AuthSchemeFactory> authSchemeRegistry;
+    private Lookup<CookieSpecFactory> cookieSpecRegistry;
     private LinkedHashMap<String, InputStreamFactory> contentDecoderMap;
     private CookieStore cookieStore;
     private CredentialsProvider credentialsProvider;
@@ -593,7 +593,7 @@ public class HttpClientBuilder {
      * context.
      */
     public final HttpClientBuilder setDefaultAuthSchemeRegistry(
-            final Lookup<AuthSchemeProvider> authSchemeRegistry) {
+            final Lookup<AuthSchemeFactory> authSchemeRegistry) {
         this.authSchemeRegistry = authSchemeRegistry;
         return this;
     }
@@ -607,7 +607,7 @@ public class HttpClientBuilder {
      *
      */
     public final HttpClientBuilder setDefaultCookieSpecRegistry(
-            final Lookup<CookieSpecProvider> cookieSpecRegistry) {
+            final Lookup<CookieSpecFactory> cookieSpecRegistry) {
         this.cookieSpecRegistry = cookieSpecRegistry;
         return this;
     }
@@ -939,9 +939,9 @@ public class HttpClientBuilder {
             current = current.getPrevious();
         }
 
-        Lookup<AuthSchemeProvider> authSchemeRegistryCopy = this.authSchemeRegistry;
+        Lookup<AuthSchemeFactory> authSchemeRegistryCopy = this.authSchemeRegistry;
         if (authSchemeRegistryCopy == null) {
-            authSchemeRegistryCopy = RegistryBuilder.<AuthSchemeProvider>create()
+            authSchemeRegistryCopy = RegistryBuilder.<AuthSchemeFactory>create()
                 .register(AuthSchemes.BASIC.id, new BasicSchemeFactory())
                 .register(AuthSchemes.DIGEST.id, new DigestSchemeFactory())
                 .register(AuthSchemes.NTLM.id, new NTLMSchemeFactory())
@@ -949,7 +949,7 @@ public class HttpClientBuilder {
                 .register(AuthSchemes.KERBEROS.id, new KerberosSchemeFactory(KerberosConfig.DEFAULT, SystemDefaultDnsResolver.INSTANCE))
                 .build();
         }
-        Lookup<CookieSpecProvider> cookieSpecRegistryCopy = this.cookieSpecRegistry;
+        Lookup<CookieSpecFactory> cookieSpecRegistryCopy = this.cookieSpecRegistry;
         if (cookieSpecRegistryCopy == null) {
             cookieSpecRegistryCopy = CookieSpecSupport.createDefault();
         }

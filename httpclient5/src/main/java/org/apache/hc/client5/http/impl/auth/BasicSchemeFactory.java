@@ -30,19 +30,19 @@ package org.apache.hc.client5.http.impl.auth;
 import java.nio.charset.Charset;
 
 import org.apache.hc.client5.http.auth.AuthScheme;
-import org.apache.hc.client5.http.auth.AuthSchemeProvider;
+import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.protocol.HttpContext;
 
 /**
- * {@link AuthSchemeProvider} implementation that creates and initializes
+ * {@link AuthSchemeFactory} implementation that creates and initializes
  * {@link BasicScheme} instances.
  *
  * @since 4.0
  */
 @Contract(threading = ThreadingBehavior.STATELESS)
-public class BasicSchemeFactory implements AuthSchemeProvider {
+public class BasicSchemeFactory implements AuthSchemeFactory {
 
     private final Charset charset;
 

@@ -31,7 +31,7 @@ import java.security.Principal;
 
 import org.apache.hc.client5.http.SystemDefaultDnsResolver;
 import org.apache.hc.client5.http.auth.AuthScheme;
-import org.apache.hc.client5.http.auth.AuthSchemeProvider;
+import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.KerberosConfig;
@@ -130,11 +130,11 @@ public class TestSPNegoScheme extends LocalServerTestBase {
 
     }
 
-    private static class NegotiateSchemeProviderWithMockGssManager implements AuthSchemeProvider {
+    private static class NegotiateSchemeFactoryWithMockGssManager implements AuthSchemeFactory {
 
         NegotiateSchemeWithMockGssManager scheme;
 
-        NegotiateSchemeProviderWithMockGssManager() throws Exception {
+        NegotiateSchemeFactoryWithMockGssManager() throws Exception {
             scheme = new NegotiateSchemeWithMockGssManager();
         }
 
@@ -154,12 +154,12 @@ public class TestSPNegoScheme extends LocalServerTestBase {
         this.server.registerHandler("*", new PleaseNegotiateService());
         final HttpHost target = start();
 
-        final AuthSchemeProvider nsf = new NegotiateSchemeProviderWithMockGssManager();
+        final AuthSchemeFactory nsf = new NegotiateSchemeFactoryWithMockGssManager();
         final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
         final Credentials use_jaas_creds = new UseJaasCredentials();
         credentialsProvider.setCredentials(new AuthScope(null, null, -1, null, null), use_jaas_creds);
 
-        final Registry<AuthSchemeProvider> authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
+        final Registry<AuthSchemeFactory> authSchemeRegistry = RegistryBuilder.<AuthSchemeFactory>create()
             .register(AuthSchemes.SPNEGO.id, nsf)
             .build();
         this.httpclient = HttpClients.custom()
@@ -184,13 +184,13 @@ public class TestSPNegoScheme extends LocalServerTestBase {
         this.server.registerHandler("*", new PleaseNegotiateService());
         final HttpHost target = start();
 
-        final AuthSchemeProvider nsf = new NegotiateSchemeProviderWithMockGssManager();
+        final AuthSchemeFactory nsf = new NegotiateSchemeFactoryWithMockGssManager();
 
         final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
         final Credentials use_jaas_creds = new UseJaasCredentials();
         credentialsProvider.setCredentials(new AuthScope(null, null, -1, null, null), use_jaas_creds);
 
-        final Registry<AuthSchemeProvider> authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
+        final Registry<AuthSchemeFactory> authSchemeRegistry = RegistryBuilder.<AuthSchemeFactory>create()
             .register(AuthSchemes.SPNEGO.id, nsf)
             .build();
         this.httpclient = HttpClients.custom()

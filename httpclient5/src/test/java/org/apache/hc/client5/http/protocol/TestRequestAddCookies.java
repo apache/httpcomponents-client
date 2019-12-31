@@ -36,11 +36,11 @@ import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.cookie.BasicCookieStore;
 import org.apache.hc.client5.http.cookie.CookieOrigin;
 import org.apache.hc.client5.http.cookie.CookieSpec;
-import org.apache.hc.client5.http.cookie.CookieSpecProvider;
+import org.apache.hc.client5.http.cookie.CookieSpecFactory;
 import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.client5.http.impl.cookie.BasicClientCookie;
-import org.apache.hc.client5.http.impl.cookie.IgnoreSpecProvider;
-import org.apache.hc.client5.http.impl.cookie.RFC6265CookieSpecProvider;
+import org.apache.hc.client5.http.impl.cookie.IgnoreCookieSpecFactory;
+import org.apache.hc.client5.http.impl.cookie.RFC6265CookieSpecFactory;
 import org.apache.hc.client5.http.impl.cookie.RFC6265StrictSpec;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHost;
@@ -60,7 +60,7 @@ public class TestRequestAddCookies {
 
     private HttpHost target;
     private CookieStore cookieStore;
-    private Lookup<CookieSpecProvider> cookieSpecRegistry;
+    private Lookup<CookieSpecFactory> cookieSpecRegistry;
 
     @Before
     public void setUp() {
@@ -75,12 +75,12 @@ public class TestRequestAddCookies {
         cookie2.setPath("/");
         this.cookieStore.addCookie(cookie2);
 
-        this.cookieSpecRegistry = RegistryBuilder.<CookieSpecProvider>create()
-            .register(CookieSpecs.STANDARD.id, new RFC6265CookieSpecProvider(
-                    RFC6265CookieSpecProvider.CompatibilityLevel.RELAXED, null))
-            .register(CookieSpecs.STANDARD_STRICT.id,  new RFC6265CookieSpecProvider(
-                    RFC6265CookieSpecProvider.CompatibilityLevel.STRICT, null))
-            .register(CookieSpecs.IGNORE_COOKIES.id, new IgnoreSpecProvider())
+        this.cookieSpecRegistry = RegistryBuilder.<CookieSpecFactory>create()
+            .register(CookieSpecs.STANDARD.id, new RFC6265CookieSpecFactory(
+                    RFC6265CookieSpecFactory.CompatibilityLevel.RELAXED, null))
+            .register(CookieSpecs.STANDARD_STRICT.id,  new RFC6265CookieSpecFactory(
+                    RFC6265CookieSpecFactory.CompatibilityLevel.STRICT, null))
+            .register(CookieSpecs.IGNORE_COOKIES.id, new IgnoreCookieSpecFactory())
             .build();
     }
 

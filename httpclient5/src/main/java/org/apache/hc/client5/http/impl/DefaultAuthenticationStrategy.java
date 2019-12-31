@@ -38,7 +38,7 @@ import java.util.Map;
 import org.apache.hc.client5.http.AuthenticationStrategy;
 import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.AuthScheme;
-import org.apache.hc.client5.http.auth.AuthSchemeProvider;
+import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.client5.http.auth.AuthSchemes;
 import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.config.RequestConfig;
@@ -82,7 +82,7 @@ public class DefaultAuthenticationStrategy implements AuthenticationStrategy {
         final HttpClientContext clientContext = HttpClientContext.adapt(context);
 
         final List<AuthScheme> options = new ArrayList<>();
-        final Lookup<AuthSchemeProvider> registry = clientContext.getAuthSchemeRegistry();
+        final Lookup<AuthSchemeFactory> registry = clientContext.getAuthSchemeRegistry();
         if (registry == null) {
             this.log.debug("Auth scheme registry not set in the context");
             return options;
@@ -100,15 +100,15 @@ public class DefaultAuthenticationStrategy implements AuthenticationStrategy {
         for (final String id: authPrefs) {
             final AuthChallenge challenge = challenges.get(id.toLowerCase(Locale.ROOT));
             if (challenge != null) {
-                final AuthSchemeProvider authSchemeProvider = registry.lookup(id);
-                if (authSchemeProvider == null) {
+                final AuthSchemeFactory authSchemeFactory = registry.lookup(id);
+                if (authSchemeFactory == null) {
                     if (this.log.isWarnEnabled()) {
                         this.log.warn("Authentication scheme " + id + " not supported");
                         // Try again
                     }
                     continue;
                 }
-                final AuthScheme authScheme = authSchemeProvider.create(context);
+                final AuthScheme authScheme = authSchemeFactory.create(context);
                 options.add(authScheme);
             } else {
                 if (this.log.isDebugEnabled()) {

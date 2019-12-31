@@ -44,13 +44,13 @@ import org.apache.hc.client5.http.HttpRequestRetryStrategy;
 import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.SystemDefaultDnsResolver;
 import org.apache.hc.client5.http.async.AsyncExecChainHandler;
-import org.apache.hc.client5.http.auth.AuthSchemeProvider;
+import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.client5.http.auth.AuthSchemes;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.KerberosConfig;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.cookie.BasicCookieStore;
-import org.apache.hc.client5.http.cookie.CookieSpecProvider;
+import org.apache.hc.client5.http.cookie.CookieSpecFactory;
 import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.client5.http.impl.ChainElement;
 import org.apache.hc.client5.http.impl.CookieSpecSupport;
@@ -193,8 +193,8 @@ public class H2AsyncClientBuilder {
     private RedirectStrategy redirectStrategy;
     private HttpRequestRetryStrategy retryStrategy;
 
-    private Lookup<AuthSchemeProvider> authSchemeRegistry;
-    private Lookup<CookieSpecProvider> cookieSpecRegistry;
+    private Lookup<AuthSchemeFactory> authSchemeRegistry;
+    private Lookup<CookieSpecFactory> cookieSpecRegistry;
     private CookieStore cookieStore;
     private CredentialsProvider credentialsProvider;
 
@@ -472,7 +472,7 @@ public class H2AsyncClientBuilder {
      * be used for request execution if not explicitly set in the client execution
      * context.
      */
-    public final H2AsyncClientBuilder setDefaultAuthSchemeRegistry(final Lookup<AuthSchemeProvider> authSchemeRegistry) {
+    public final H2AsyncClientBuilder setDefaultAuthSchemeRegistry(final Lookup<AuthSchemeFactory> authSchemeRegistry) {
         this.authSchemeRegistry = authSchemeRegistry;
         return this;
     }
@@ -482,7 +482,7 @@ public class H2AsyncClientBuilder {
      * which will be used for request execution if not explicitly set in the client
      * execution context.
      */
-    public final H2AsyncClientBuilder setDefaultCookieSpecRegistry(final Lookup<CookieSpecProvider> cookieSpecRegistry) {
+    public final H2AsyncClientBuilder setDefaultCookieSpecRegistry(final Lookup<CookieSpecFactory> cookieSpecRegistry) {
         this.cookieSpecRegistry = cookieSpecRegistry;
         return this;
     }
@@ -760,9 +760,9 @@ public class H2AsyncClientBuilder {
             current = current.getPrevious();
         }
 
-        Lookup<AuthSchemeProvider> authSchemeRegistryCopy = this.authSchemeRegistry;
+        Lookup<AuthSchemeFactory> authSchemeRegistryCopy = this.authSchemeRegistry;
         if (authSchemeRegistryCopy == null) {
-            authSchemeRegistryCopy = RegistryBuilder.<AuthSchemeProvider>create()
+            authSchemeRegistryCopy = RegistryBuilder.<AuthSchemeFactory>create()
                     .register(AuthSchemes.BASIC.id, new BasicSchemeFactory())
                     .register(AuthSchemes.DIGEST.id, new DigestSchemeFactory())
                     .register(AuthSchemes.NTLM.id, new NTLMSchemeFactory())
@@ -772,7 +772,7 @@ public class H2AsyncClientBuilder {
                             new KerberosSchemeFactory(KerberosConfig.DEFAULT, SystemDefaultDnsResolver.INSTANCE))
                     .build();
         }
-        Lookup<CookieSpecProvider> cookieSpecRegistryCopy = this.cookieSpecRegistry;
+        Lookup<CookieSpecFactory> cookieSpecRegistryCopy = this.cookieSpecRegistry;
         if (cookieSpecRegistryCopy == null) {
             cookieSpecRegistryCopy = CookieSpecSupport.createDefault();
         }
