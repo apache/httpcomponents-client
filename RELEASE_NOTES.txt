@@ -1,4 +1,13 @@
-﻿Release 5.0-BETA6
+﻿Release 5.0-BETA7
+-----------------
+
+This BETA release picks up the latest fixes and performance improvements from HttpCore
+and addresses a number of issues found since the previous BETA release.
+
+* HTTPCLIENT-2043: Rename classes documented as factories from *Provider #194.
+
+
+Release 5.0-BETA6
 -------------------
 
 This BETA release picks up the latest fixes and performance improvements from HttpCore
