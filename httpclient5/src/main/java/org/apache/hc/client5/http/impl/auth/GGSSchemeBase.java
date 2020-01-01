@@ -35,7 +35,7 @@ import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.SystemDefaultDnsResolver;
 import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.AuthScheme;
-import org.apache.hc.client5.http.auth.AuthSchemes;
+import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.AuthenticationException;
 import org.apache.hc.client5.http.auth.Credentials;
@@ -247,7 +247,7 @@ public abstract class GGSSchemeBase implements AuthScheme {
             if (log.isDebugEnabled()) {
                 log.debug("Sending response '" + tokenstr + "' back to the auth server");
             }
-            return AuthSchemes.SPNEGO.id + " " + tokenstr;
+            return StandardAuthScheme.SPNEGO.id + " " + tokenstr;
         default:
             throw new IllegalStateException("Illegal state: " + state);
         }

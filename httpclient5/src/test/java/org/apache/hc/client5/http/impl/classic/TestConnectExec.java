@@ -36,7 +36,7 @@ import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.RouteInfo;
 import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.AuthScheme;
-import org.apache.hc.client5.http.auth.AuthSchemes;
+import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
@@ -245,7 +245,7 @@ public class TestConnectExec {
         final HttpClientContext context = new HttpClientContext();
         final ClassicHttpRequest request = new HttpGet("http://bar/test");
         final ClassicHttpResponse response1 = new BasicClassicHttpResponse(407, "Huh?");
-        response1.setHeader(HttpHeaders.PROXY_AUTHENTICATE, AuthSchemes.BASIC.id + " realm=test");
+        response1.setHeader(HttpHeaders.PROXY_AUTHENTICATE, StandardAuthScheme.BASIC.id + " realm=test");
         final InputStream inStream1 = Mockito.spy(new ByteArrayInputStream(new byte[] {1, 2, 3}));
         response1.setEntity(EntityBuilder.create()
                 .setStream(inStream1)
@@ -286,7 +286,7 @@ public class TestConnectExec {
         final HttpClientContext context = new HttpClientContext();
         final ClassicHttpRequest request = new HttpGet("http://bar/test");
         final ClassicHttpResponse response1 = new BasicClassicHttpResponse(407, "Huh?");
-        response1.setHeader(HttpHeaders.PROXY_AUTHENTICATE, AuthSchemes.BASIC.id + " realm=test");
+        response1.setHeader(HttpHeaders.PROXY_AUTHENTICATE, StandardAuthScheme.BASIC.id + " realm=test");
         final InputStream inStream1 = Mockito.spy(new ByteArrayInputStream(new byte[] {1, 2, 3}));
         response1.setEntity(EntityBuilder.create()
                 .setStream(inStream1)

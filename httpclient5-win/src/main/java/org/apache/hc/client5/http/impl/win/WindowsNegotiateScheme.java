@@ -32,7 +32,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.hc.client5.http.RouteInfo;
 import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.AuthScheme;
-import org.apache.hc.client5.http.auth.AuthSchemes;
+import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.auth.AuthenticationException;
 import org.apache.hc.client5.http.auth.BasicUserPrincipal;
 import org.apache.hc.client5.http.auth.ChallengeType;
@@ -86,7 +86,7 @@ public class WindowsNegotiateScheme implements AuthScheme {
     WindowsNegotiateScheme(final String scheme, final String servicePrincipalName) {
         super();
 
-        this.scheme = (scheme == null) ? AuthSchemes.SPNEGO.id : scheme;
+        this.scheme = (scheme == null) ? StandardAuthScheme.SPNEGO.id : scheme;
         this.continueNeeded = true;
         this.servicePrincipalName = servicePrincipalName;
 

@@ -36,7 +36,7 @@ import java.util.List;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.AuthScheme;
-import org.apache.hc.client5.http.auth.AuthSchemes;
+import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
@@ -65,7 +65,7 @@ public class TestBasicScheme {
 
     @Test
     public void testBasicAuthenticationEmptyChallenge() throws Exception {
-        final String challenge = AuthSchemes.BASIC.id;
+        final String challenge = StandardAuthScheme.BASIC.id;
         final AuthChallenge authChallenge = parse(challenge);
         final AuthScheme authscheme = new BasicScheme();
         authscheme.processChallenge(authChallenge, null);
@@ -90,12 +90,12 @@ public class TestBasicScheme {
         Assert.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         final String authResponse = authscheme.generateAuthResponse(host, request, null);
-        Assert.assertEquals(AuthSchemes.BASIC.id + " ZGg65C32Lfw=", authResponse);
+        Assert.assertEquals(StandardAuthScheme.BASIC.id + " ZGg65C32Lfw=", authResponse);
     }
 
     @Test
     public void testBasicAuthentication() throws Exception {
-        final AuthChallenge authChallenge = parse(AuthSchemes.BASIC.id + " realm=\"test\"");
+        final AuthChallenge authChallenge = parse(StandardAuthScheme.BASIC.id + " realm=\"test\"");
 
         final BasicScheme authscheme = new BasicScheme();
         authscheme.processChallenge(authChallenge, null);
@@ -110,7 +110,7 @@ public class TestBasicScheme {
         Assert.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
         final String authResponse = authscheme.generateAuthResponse(host, request, null);
 
-        final String expected = AuthSchemes.BASIC.id + " " + new String(
+        final String expected = StandardAuthScheme.BASIC.id + " " + new String(
                 Base64.encodeBase64("testuser:testpass".getBytes(StandardCharsets.US_ASCII)),
                 StandardCharsets.US_ASCII);
         Assert.assertEquals(expected, authResponse);
@@ -121,7 +121,7 @@ public class TestBasicScheme {
 
     @Test
     public void testBasicProxyAuthentication() throws Exception {
-        final AuthChallenge authChallenge = parse(AuthSchemes.BASIC.id + " realm=\"test\"");
+        final AuthChallenge authChallenge = parse(StandardAuthScheme.BASIC.id + " realm=\"test\"");
 
         final BasicScheme authscheme = new BasicScheme();
         authscheme.processChallenge(authChallenge, null);
@@ -136,7 +136,7 @@ public class TestBasicScheme {
         Assert.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
         final String authResponse = authscheme.generateAuthResponse(host, request, null);
 
-        final String expected = AuthSchemes.BASIC.id + " " + new String(
+        final String expected = StandardAuthScheme.BASIC.id + " " + new String(
                 Base64.encodeBase64("testuser:testpass".getBytes(StandardCharsets.US_ASCII)),
                 StandardCharsets.US_ASCII);
         Assert.assertEquals(expected, authResponse);
@@ -147,7 +147,7 @@ public class TestBasicScheme {
 
     @Test
     public void testSerialization() throws Exception {
-        final AuthChallenge authChallenge = parse(AuthSchemes.BASIC.id + " realm=\"test\"");
+        final AuthChallenge authChallenge = parse(StandardAuthScheme.BASIC.id + " realm=\"test\"");
 
         final BasicScheme basicScheme = new BasicScheme();
         basicScheme.processChallenge(authChallenge, null);

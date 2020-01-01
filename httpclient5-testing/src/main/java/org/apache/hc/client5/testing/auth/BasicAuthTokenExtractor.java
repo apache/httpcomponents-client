@@ -32,7 +32,7 @@ import java.nio.charset.StandardCharsets;
 import org.apache.commons.codec.BinaryDecoder;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Base64;
-import org.apache.hc.client5.http.auth.AuthSchemes;
+import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.ProtocolException;
 
@@ -45,7 +45,7 @@ public class BasicAuthTokenExtractor {
                 throw new ProtocolException("Invalid challenge response: " + challengeResponse);
             }
             final String authscheme = challengeResponse.substring(0, i);
-            if (authscheme.equalsIgnoreCase(AuthSchemes.BASIC.id)) {
+            if (authscheme.equalsIgnoreCase(StandardAuthScheme.BASIC.id)) {
                 final String s = challengeResponse.substring(i + 1).trim();
                 try {
                     final byte[] credsRaw = s.getBytes(StandardCharsets.US_ASCII);

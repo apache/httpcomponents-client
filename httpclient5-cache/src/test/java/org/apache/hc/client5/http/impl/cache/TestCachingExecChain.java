@@ -50,7 +50,7 @@ import java.util.List;
 
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
-import org.apache.hc.client5.http.auth.AuthSchemes;
+import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.cache.CacheResponseStatus;
 import org.apache.hc.client5.http.cache.HttpCacheContext;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
@@ -738,9 +738,9 @@ public abstract class TestCachingExecChain {
             .setSharedCache(true).build());
         final Date now = new Date();
         final ClassicHttpRequest req1 = new HttpOptions("http://foo.example.com/");
-        req1.setHeader("Authorization", AuthSchemes.BASIC.id + " QWxhZGRpbjpvcGVuIHNlc2FtZQ==");
+        req1.setHeader("Authorization", StandardAuthScheme.BASIC.id + " QWxhZGRpbjpvcGVuIHNlc2FtZQ==");
         final ClassicHttpRequest req2 = new HttpGet("http://foo.example.com/");
-        req2.setHeader("Authorization", AuthSchemes.BASIC.id + " QWxhZGRpbjpvcGVuIHNlc2FtZQ==");
+        req2.setHeader("Authorization", StandardAuthScheme.BASIC.id + " QWxhZGRpbjpvcGVuIHNlc2FtZQ==");
         final ClassicHttpResponse resp1 = new BasicClassicHttpResponse(HttpStatus.SC_NO_CONTENT, "No Content");
         resp1.setHeader("Content-Length", "0");
         resp1.setHeader("ETag", "\"options-etag\"");

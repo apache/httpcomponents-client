@@ -37,21 +37,21 @@ public class TestAuthChallenge {
 
     @Test
     public void testAuthChallengeWithValue() {
-        final AuthChallenge authChallenge = new AuthChallenge(ChallengeType.TARGET, AuthSchemes.BASIC.id, "blah", null);
-        Assert.assertEquals(AuthSchemes.BASIC.id, authChallenge.getScheme());
+        final AuthChallenge authChallenge = new AuthChallenge(ChallengeType.TARGET, StandardAuthScheme.BASIC.id, "blah", null);
+        Assert.assertEquals(StandardAuthScheme.BASIC.id, authChallenge.getScheme());
         Assert.assertEquals("blah", authChallenge.getValue());
         Assert.assertEquals(null, authChallenge.getParams());
-        Assert.assertEquals(AuthSchemes.BASIC.id + " blah", authChallenge.toString());
+        Assert.assertEquals(StandardAuthScheme.BASIC.id + " blah", authChallenge.toString());
     }
 
     @Test
     public void testAuthChallengeWithParams() {
-        final AuthChallenge authChallenge = new AuthChallenge(ChallengeType.TARGET, AuthSchemes.BASIC.id, null,
+        final AuthChallenge authChallenge = new AuthChallenge(ChallengeType.TARGET, StandardAuthScheme.BASIC.id, null,
                 Arrays.asList(new BasicNameValuePair("blah", "this"), new BasicNameValuePair("blah", "that")));
-        Assert.assertEquals(AuthSchemes.BASIC.id, authChallenge.getScheme());
+        Assert.assertEquals(StandardAuthScheme.BASIC.id, authChallenge.getScheme());
         Assert.assertEquals(null, authChallenge.getValue());
         Assert.assertNotNull(authChallenge.getParams());
-        Assert.assertEquals(AuthSchemes.BASIC.id + " [blah=this, blah=that]", authChallenge.toString());
+        Assert.assertEquals(StandardAuthScheme.BASIC.id + " [blah=this, blah=that]", authChallenge.toString());
     }
 
 }

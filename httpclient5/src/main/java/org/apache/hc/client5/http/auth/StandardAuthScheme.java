@@ -32,7 +32,7 @@ package org.apache.hc.client5.http.auth;
  *
  * @since 4.3
  */
-public enum AuthSchemes {
+public enum StandardAuthScheme {
 
     /**
      * Basic authentication scheme as defined in RFC 2617 (considered inherently
@@ -67,7 +67,7 @@ public enum AuthSchemes {
 
     public final String id;
 
-    AuthSchemes(final String id) {
+    StandardAuthScheme(final String id) {
         this.id = id;
     }
 

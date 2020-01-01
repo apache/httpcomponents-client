@@ -29,7 +29,7 @@ package org.apache.hc.client5.http.impl.win;
 import java.util.Locale;
 
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
-import org.apache.hc.client5.http.auth.AuthSchemes;
+import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.impl.auth.BasicSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.DigestSchemeFactory;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
@@ -67,10 +67,10 @@ public class WinHttpClients {
     private static HttpClientBuilder createBuilder() {
         if (isWinAuthAvailable()) {
             final Registry<AuthSchemeFactory> authSchemeRegistry = RegistryBuilder.<AuthSchemeFactory>create()
-                    .register(AuthSchemes.BASIC.id, BasicSchemeFactory.INSTANCE)
-                    .register(AuthSchemes.DIGEST.id, DigestSchemeFactory.INSTANCE)
-                    .register(AuthSchemes.NTLM.id, WindowsNTLMSchemeFactory.DEFAULT)
-                    .register(AuthSchemes.SPNEGO.id, WindowsNegotiateSchemeFactory.DEFAULT)
+                    .register(StandardAuthScheme.BASIC.id, BasicSchemeFactory.INSTANCE)
+                    .register(StandardAuthScheme.DIGEST.id, DigestSchemeFactory.INSTANCE)
+                    .register(StandardAuthScheme.NTLM.id, WindowsNTLMSchemeFactory.DEFAULT)
+                    .register(StandardAuthScheme.SPNEGO.id, WindowsNegotiateSchemeFactory.DEFAULT)
                     .build();
             return HttpClientBuilder.create()
                     .setDefaultAuthSchemeRegistry(authSchemeRegistry);

@@ -40,7 +40,7 @@ import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.CredentialsStore;
 import org.apache.hc.client5.http.auth.NTCredentials;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
-import org.apache.hc.client5.http.auth.AuthSchemes;
+import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
@@ -62,11 +62,11 @@ public class SystemDefaultCredentialsProvider implements CredentialsStore {
 
     static {
         SCHEME_MAP = new ConcurrentHashMap<>();
-        SCHEME_MAP.put(AuthSchemes.BASIC.name(), "Basic");
-        SCHEME_MAP.put(AuthSchemes.DIGEST.name(), "Digest");
-        SCHEME_MAP.put(AuthSchemes.NTLM.name(), "NTLM");
-        SCHEME_MAP.put(AuthSchemes.SPNEGO.name(), "SPNEGO");
-        SCHEME_MAP.put(AuthSchemes.KERBEROS.name(), "Kerberos");
+        SCHEME_MAP.put(StandardAuthScheme.BASIC.name(), "Basic");
+        SCHEME_MAP.put(StandardAuthScheme.DIGEST.name(), "Digest");
+        SCHEME_MAP.put(StandardAuthScheme.NTLM.name(), "NTLM");
+        SCHEME_MAP.put(StandardAuthScheme.SPNEGO.name(), "SPNEGO");
+        SCHEME_MAP.put(StandardAuthScheme.KERBEROS.name(), "Kerberos");
     }
 
     private static String translateAuthScheme(final String key) {
@@ -149,7 +149,7 @@ public class SystemDefaultCredentialsProvider implements CredentialsStore {
                 if (domain != null) {
                     return new NTCredentials(systemcreds.getUserName(), systemcreds.getPassword(), null, domain);
                 }
-                if (AuthSchemes.NTLM.id.equalsIgnoreCase(authScope.getAuthScheme())) {
+                if (StandardAuthScheme.NTLM.id.equalsIgnoreCase(authScope.getAuthScheme())) {
                     // Domain may be specified in a fully qualified user name
                     return new NTCredentials(
                             systemcreds.getUserName(), systemcreds.getPassword(), null, null);
