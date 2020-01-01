@@ -28,7 +28,7 @@
 package org.apache.hc.client5.http.impl;
 
 import org.apache.hc.client5.http.HttpRoute;
-import org.apache.hc.client5.http.auth.AuthSchemes;
+import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.CredentialsStore;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
@@ -63,7 +63,7 @@ public class AuthSupport {
         final char[] password = atColon >= 0 ? userInfo.substring(atColon + 1).toCharArray() : null;
 
         credentialsStore.setCredentials(
-                new AuthScope(scheme, authority.getHostName(), authority.getPort(), null, AuthSchemes.BASIC.id),
+                new AuthScope(scheme, authority.getHostName(), authority.getPort(), null, StandardAuthScheme.BASIC),
                 new UsernamePasswordCredentials(userName, password));
     }
 

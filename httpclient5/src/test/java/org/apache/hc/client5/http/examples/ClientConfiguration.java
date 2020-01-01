@@ -38,7 +38,7 @@ import javax.net.ssl.SSLContext;
 import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.SystemDefaultDnsResolver;
-import org.apache.hc.client5.http.auth.AuthSchemes;
+import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.config.RequestConfig;
@@ -195,8 +195,8 @@ public class ClientConfiguration {
         final RequestConfig defaultRequestConfig = RequestConfig.custom()
             .setCookieSpec(CookieSpecs.STANDARD.id)
             .setExpectContinueEnabled(true)
-            .setTargetPreferredAuthSchemes(Arrays.asList(AuthSchemes.NTLM.id, AuthSchemes.DIGEST.id))
-            .setProxyPreferredAuthSchemes(Arrays.asList(AuthSchemes.BASIC.id))
+            .setTargetPreferredAuthSchemes(Arrays.asList(StandardAuthScheme.NTLM, StandardAuthScheme.DIGEST))
+            .setProxyPreferredAuthSchemes(Arrays.asList(StandardAuthScheme.BASIC))
             .build();
 
         // Create an HttpClient with the given custom dependencies and configuration.

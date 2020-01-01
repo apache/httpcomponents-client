@@ -28,47 +28,45 @@
 package org.apache.hc.client5.http.auth;
 
 /**
- * Supported authentication schemes.
+ * Authentication schemes by their names supported by the HttpClient.
  *
  * @since 4.3
  */
-public enum AuthSchemes {
+public final class StandardAuthScheme {
+
+    private StandardAuthScheme() {
+        // no instances
+    }
 
     /**
      * Basic authentication scheme as defined in RFC 2617 (considered inherently
-     * insecure, but most widely supported).
+     * insecure without transport encryption, but most widely supported).
      */
-    BASIC("Basic"),
+    public static final String BASIC = "Basic";
 
     /**
      * Digest authentication scheme as defined in RFC 2617.
      */
-    DIGEST("Digest"),
+    public static final String DIGEST = "Digest";
 
     /**
      * The NTLM authentication scheme is a proprietary Microsoft Windows
      * authentication protocol as defined in [MS-NLMP].
      */
-    NTLM("NTLM"),
+    public static final String NTLM = "NTLM";
 
     /**
      * SPNEGO authentication scheme as defined in RFC 4559 and RFC 4178
      * (considered to be the most secure among currently supported
      * authentication schemes if Kerberos is selected).
      */
-    SPNEGO("Negotiate"),
+    public static final String SPNEGO = "Negotiate";
 
     /**
      * Kerberos authentication scheme as defined in RFC 4120
      * (considered to be the most secure among currently supported
      * authentication schemes).
      */
-    KERBEROS("Kerberos");
-
-    public final String id;
-
-    AuthSchemes(final String id) {
-        this.id = id;
-    }
+    public static final String KERBEROS = "Kerberos";
 
 }

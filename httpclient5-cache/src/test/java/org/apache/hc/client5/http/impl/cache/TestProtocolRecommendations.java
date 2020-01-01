@@ -38,7 +38,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.hc.client5.http.auth.AuthSchemes;
+import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
@@ -612,7 +612,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
 
     @Test
     public void testDoesNotModifyAuthorizationOnRequests() throws Exception {
-        request.setHeader("Authorization", AuthSchemes.BASIC.id + " dXNlcjpwYXNzd2Q=");
+        request.setHeader("Authorization", StandardAuthScheme.BASIC + " dXNlcjpwYXNzd2Q=");
         testDoesNotModifyHeaderOnRequests("Authorization");
     }
 

@@ -39,7 +39,7 @@ import org.apache.hc.client5.http.AuthenticationStrategy;
 import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
-import org.apache.hc.client5.http.auth.AuthSchemes;
+import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
@@ -65,11 +65,11 @@ public class DefaultAuthenticationStrategy implements AuthenticationStrategy {
 
     private static final List<String> DEFAULT_SCHEME_PRIORITY =
         Collections.unmodifiableList(Arrays.asList(
-                AuthSchemes.SPNEGO.id,
-                AuthSchemes.KERBEROS.id,
-                AuthSchemes.NTLM.id,
-                AuthSchemes.DIGEST.id,
-                AuthSchemes.BASIC.id));
+                StandardAuthScheme.SPNEGO,
+                StandardAuthScheme.KERBEROS,
+                StandardAuthScheme.NTLM,
+                StandardAuthScheme.DIGEST,
+                StandardAuthScheme.BASIC));
 
     @Override
     public List<AuthScheme> select(

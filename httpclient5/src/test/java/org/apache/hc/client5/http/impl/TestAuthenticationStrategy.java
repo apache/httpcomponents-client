@@ -38,7 +38,7 @@ import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
-import org.apache.hc.client5.http.auth.AuthSchemes;
+import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
 import org.apache.hc.client5.http.impl.auth.BasicScheme;
@@ -85,9 +85,9 @@ public class TestAuthenticationStrategy {
         final HttpClientContext context = HttpClientContext.create();
 
         final Map<String, AuthChallenge> challenges = new HashMap<>();
-        challenges.put(AuthSchemes.BASIC.id.toLowerCase(Locale.ROOT), new AuthChallenge(ChallengeType.TARGET, AuthSchemes.BASIC.id,
+        challenges.put(StandardAuthScheme.BASIC.toLowerCase(Locale.ROOT), new AuthChallenge(ChallengeType.TARGET, StandardAuthScheme.BASIC,
                 new BasicNameValuePair("realm", "test")));
-        challenges.put(AuthSchemes.DIGEST.id.toLowerCase(Locale.ROOT), new AuthChallenge(ChallengeType.TARGET, AuthSchemes.DIGEST.id,
+        challenges.put(StandardAuthScheme.DIGEST.toLowerCase(Locale.ROOT), new AuthChallenge(ChallengeType.TARGET, StandardAuthScheme.DIGEST,
                 new BasicNameValuePair("realm", "test"), new BasicNameValuePair("nonce", "1234")));
 
         final List<AuthScheme> authSchemes = authStrategy.select(ChallengeType.TARGET, challenges, context);
@@ -101,16 +101,16 @@ public class TestAuthenticationStrategy {
         final HttpClientContext context = HttpClientContext.create();
 
         final Map<String, AuthChallenge> challenges = new HashMap<>();
-        challenges.put(AuthSchemes.BASIC.id.toLowerCase(Locale.ROOT), new AuthChallenge(ChallengeType.TARGET, AuthSchemes.BASIC.id,
+        challenges.put(StandardAuthScheme.BASIC.toLowerCase(Locale.ROOT), new AuthChallenge(ChallengeType.TARGET, StandardAuthScheme.BASIC,
                 new BasicNameValuePair("realm", "realm1")));
-        challenges.put(AuthSchemes.DIGEST.id.toLowerCase(Locale.ROOT), new AuthChallenge(ChallengeType.TARGET, AuthSchemes.DIGEST.id,
+        challenges.put(StandardAuthScheme.DIGEST.toLowerCase(Locale.ROOT), new AuthChallenge(ChallengeType.TARGET, StandardAuthScheme.DIGEST,
                 new BasicNameValuePair("realm", "realm2"), new BasicNameValuePair("nonce", "1234")));
         challenges.put("whatever", new AuthChallenge(ChallengeType.TARGET, "Whatever",
                 new BasicNameValuePair("realm", "realm3")));
 
         final Registry<AuthSchemeFactory> authSchemeRegistry = RegistryBuilder.<AuthSchemeFactory>create()
-            .register(AuthSchemes.BASIC.id, BasicSchemeFactory.INSTANCE)
-            .register(AuthSchemes.DIGEST.id, DigestSchemeFactory.INSTANCE).build();
+            .register(StandardAuthScheme.BASIC, BasicSchemeFactory.INSTANCE)
+            .register(StandardAuthScheme.DIGEST, DigestSchemeFactory.INSTANCE).build();
         context.setAuthSchemeRegistry(authSchemeRegistry);
 
         final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
@@ -131,20 +131,20 @@ public class TestAuthenticationStrategy {
     public void testCustomAuthPreference() throws Exception {
         final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
         final RequestConfig config = RequestConfig.custom()
-            .setTargetPreferredAuthSchemes(Collections.singletonList(AuthSchemes.BASIC.id))
+            .setTargetPreferredAuthSchemes(Collections.singletonList(StandardAuthScheme.BASIC))
             .build();
 
         final HttpClientContext context = HttpClientContext.create();
 
         final Map<String, AuthChallenge> challenges = new HashMap<>();
-        challenges.put(AuthSchemes.BASIC.id.toLowerCase(Locale.ROOT), new AuthChallenge(ChallengeType.TARGET, AuthSchemes.BASIC.id,
+        challenges.put(StandardAuthScheme.BASIC.toLowerCase(Locale.ROOT), new AuthChallenge(ChallengeType.TARGET, StandardAuthScheme.BASIC,
                 new BasicNameValuePair("realm", "realm1")));
-        challenges.put(AuthSchemes.DIGEST.id.toLowerCase(Locale.ROOT), new AuthChallenge(ChallengeType.TARGET, AuthSchemes.DIGEST.id,
+        challenges.put(StandardAuthScheme.DIGEST.toLowerCase(Locale.ROOT), new AuthChallenge(ChallengeType.TARGET, StandardAuthScheme.DIGEST,
                 new BasicNameValuePair("realm", "realm2"), new BasicNameValuePair("nonce", "1234")));
 
         final Registry<AuthSchemeFactory> authSchemeRegistry = RegistryBuilder.<AuthSchemeFactory>create()
-            .register(AuthSchemes.BASIC.id, BasicSchemeFactory.INSTANCE)
-            .register(AuthSchemes.DIGEST.id, DigestSchemeFactory.INSTANCE).build();
+            .register(StandardAuthScheme.BASIC, BasicSchemeFactory.INSTANCE)
+            .register(StandardAuthScheme.DIGEST, DigestSchemeFactory.INSTANCE).build();
         context.setAuthSchemeRegistry(authSchemeRegistry);
         context.setRequestConfig(config);
 

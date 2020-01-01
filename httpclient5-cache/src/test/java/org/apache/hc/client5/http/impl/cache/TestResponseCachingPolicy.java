@@ -29,7 +29,7 @@ package org.apache.hc.client5.http.impl.cache;
 import java.util.Date;
 import java.util.Random;
 
-import org.apache.hc.client5.http.auth.AuthSchemes;
+import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.classic.methods.HttpOptions;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.HttpRequest;
@@ -83,7 +83,7 @@ public class TestResponseCachingPolicy {
     @Test
     public void testResponsesToRequestsWithAuthorizationHeadersAreNotCacheableBySharedCache() {
         request = new BasicHttpRequest("GET","/");
-        request.setHeader("Authorization", AuthSchemes.BASIC.id + " dXNlcjpwYXNzd2Q=");
+        request.setHeader("Authorization", StandardAuthScheme.BASIC + " dXNlcjpwYXNzd2Q=");
         Assert.assertFalse(policy.isResponseCacheable(request,response));
     }
 
@@ -91,14 +91,14 @@ public class TestResponseCachingPolicy {
     public void testResponsesToRequestsWithAuthorizationHeadersAreCacheableByNonSharedCache() {
         policy = new ResponseCachingPolicy(0, false, false, false);
         request = new BasicHttpRequest("GET","/");
-        request.setHeader("Authorization", AuthSchemes.BASIC.id + " dXNlcjpwYXNzd2Q=");
+        request.setHeader("Authorization", StandardAuthScheme.BASIC + " dXNlcjpwYXNzd2Q=");
         Assert.assertTrue(policy.isResponseCacheable(request,response));
     }
 
     @Test
     public void testAuthorizedResponsesWithSMaxAgeAreCacheable() {
         request = new BasicHttpRequest("GET","/");
-        request.setHeader("Authorization", AuthSchemes.BASIC.id + " dXNlcjpwYXNzd2Q=");
+        request.setHeader("Authorization", StandardAuthScheme.BASIC + " dXNlcjpwYXNzd2Q=");
         response.setHeader("Cache-Control","s-maxage=3600");
         Assert.assertTrue(policy.isResponseCacheable(request,response));
     }
@@ -106,7 +106,7 @@ public class TestResponseCachingPolicy {
     @Test
     public void testAuthorizedResponsesWithMustRevalidateAreCacheable() {
         request = new BasicHttpRequest("GET","/");
-        request.setHeader("Authorization", AuthSchemes.BASIC.id + " dXNlcjpwYXNzd2Q=");
+        request.setHeader("Authorization", StandardAuthScheme.BASIC + " dXNlcjpwYXNzd2Q=");
         response.setHeader("Cache-Control","must-revalidate");
         Assert.assertTrue(policy.isResponseCacheable(request,response));
     }
@@ -114,7 +114,7 @@ public class TestResponseCachingPolicy {
     @Test
     public void testAuthorizedResponsesWithCacheControlPublicAreCacheable() {
         request = new BasicHttpRequest("GET","/");
-        request.setHeader("Authorization", AuthSchemes.BASIC.id + " dXNlcjpwYXNzd2Q=");
+        request.setHeader("Authorization", StandardAuthScheme.BASIC + " dXNlcjpwYXNzd2Q=");
         response.setHeader("Cache-Control","public");
         Assert.assertTrue(policy.isResponseCacheable(request,response));
     }
@@ -122,7 +122,7 @@ public class TestResponseCachingPolicy {
     @Test
     public void testAuthorizedResponsesWithCacheControlMaxAgeAreNotCacheable() {
         request = new BasicHttpRequest("GET","/");
-        request.setHeader("Authorization", AuthSchemes.BASIC.id + " dXNlcjpwYXNzd2Q=");
+        request.setHeader("Authorization", StandardAuthScheme.BASIC + " dXNlcjpwYXNzd2Q=");
         response.setHeader("Cache-Control","max-age=3600");
         Assert.assertFalse(policy.isResponseCacheable(request,response));
     }
@@ -143,7 +143,7 @@ public class TestResponseCachingPolicy {
     public void test206ResponseCodeIsNotCacheableUsingSharedPublicCache() {
         policy = new ResponseCachingPolicy(0, true, false, false);
 
-        request.setHeader("Authorization", AuthSchemes.BASIC.id + " QWxhZGRpbjpvcGVuIHNlc2FtZQ==");
+        request.setHeader("Authorization", StandardAuthScheme.BASIC + " QWxhZGRpbjpvcGVuIHNlc2FtZQ==");
         response.setCode(HttpStatus.SC_PARTIAL_CONTENT);
         response.setHeader("Cache-Control", "public");
         Assert.assertFalse(policy.isResponseCacheable(request, response));
@@ -414,7 +414,7 @@ public class TestResponseCachingPolicy {
     public void testVaryStarIsNotCacheableUsingSharedPublicCache() {
         policy = new ResponseCachingPolicy(0, true, false, false);
 
-        request.setHeader("Authorization", AuthSchemes.BASIC.id + " QWxhZGRpbjpvcGVuIHNlc2FtZQ==");
+        request.setHeader("Authorization", StandardAuthScheme.BASIC + " QWxhZGRpbjpvcGVuIHNlc2FtZQ==");
         response.setHeader("Cache-Control", "public");
         response.setHeader("Vary", "*");
         Assert.assertFalse(policy.isResponseCacheable(request, response));
@@ -446,7 +446,7 @@ public class TestResponseCachingPolicy {
         policy = new ResponseCachingPolicy(0, true, false, false);
 
         request = new HttpOptions("http://foo.example.com/");
-        request.setHeader("Authorization", AuthSchemes.BASIC.id + " QWxhZGRpbjpvcGVuIHNlc2FtZQ==");
+        request.setHeader("Authorization", StandardAuthScheme.BASIC + " QWxhZGRpbjpvcGVuIHNlc2FtZQ==");
         response.setCode(HttpStatus.SC_NO_CONTENT);
         response.setHeader("Cache-Control", "public");
 
@@ -471,7 +471,7 @@ public class TestResponseCachingPolicy {
     public void testResponsesWithMultipleAgeHeadersAreNotCacheableUsingSharedPublicCache() {
         policy = new ResponseCachingPolicy(0, true, false, false);
 
-        request.setHeader("Authorization", AuthSchemes.BASIC.id + " QWxhZGRpbjpvcGVuIHNlc2FtZQ==");
+        request.setHeader("Authorization", StandardAuthScheme.BASIC + " QWxhZGRpbjpvcGVuIHNlc2FtZQ==");
         response.setHeader("Cache-Control", "public");
         response.addHeader("Age", "3");
         response.addHeader("Age", "5");
@@ -489,7 +489,7 @@ public class TestResponseCachingPolicy {
     public void testResponsesWithMultipleDateHeadersAreNotCacheableUsingSharedPublicCache() {
         policy = new ResponseCachingPolicy(0, true, false, false);
 
-        request.setHeader("Authorization", AuthSchemes.BASIC.id + " QWxhZGRpbjpvcGVuIHNlc2FtZQ==");
+        request.setHeader("Authorization", StandardAuthScheme.BASIC + " QWxhZGRpbjpvcGVuIHNlc2FtZQ==");
         response.setHeader("Cache-Control", "public");
         response.addHeader("Date", DateUtils.formatDate(now));
         response.addHeader("Date", DateUtils.formatDate(sixSecondsAgo));
@@ -506,7 +506,7 @@ public class TestResponseCachingPolicy {
     public void testResponsesWithMalformedDateHeadersAreNotCacheableUsingSharedPublicCache() {
         policy = new ResponseCachingPolicy(0, true, false, false);
 
-        request.setHeader("Authorization", AuthSchemes.BASIC.id + " QWxhZGRpbjpvcGVuIHNlc2FtZQ==");
+        request.setHeader("Authorization", StandardAuthScheme.BASIC + " QWxhZGRpbjpvcGVuIHNlc2FtZQ==");
         response.setHeader("Cache-Control", "public");
         response.addHeader("Date", "garbage");
         Assert.assertFalse(policy.isResponseCacheable(request, response));
@@ -523,7 +523,7 @@ public class TestResponseCachingPolicy {
     public void testResponsesWithMultipleExpiresHeadersAreNotCacheableUsingSharedPublicCache() {
         policy = new ResponseCachingPolicy(0, true, false, false);
 
-        request.setHeader("Authorization", AuthSchemes.BASIC.id + " QWxhZGRpbjpvcGVuIHNlc2FtZQ==");
+        request.setHeader("Authorization", StandardAuthScheme.BASIC + " QWxhZGRpbjpvcGVuIHNlc2FtZQ==");
         response.setHeader("Cache-Control", "public");
         response.addHeader("Expires", DateUtils.formatDate(now));
         response.addHeader("Expires", DateUtils.formatDate(sixSecondsAgo));
@@ -546,7 +546,7 @@ public class TestResponseCachingPolicy {
     public void testResponseThatHasTooMuchContentIsNotCacheableUsingSharedPublicCache() {
         policy = new ResponseCachingPolicy(0, true, false, false);
 
-        request.setHeader("Authorization", AuthSchemes.BASIC.id + " QWxhZGRpbjpvcGVuIHNlc2FtZQ==");
+        request.setHeader("Authorization", StandardAuthScheme.BASIC + " QWxhZGRpbjpvcGVuIHNlc2FtZQ==");
         response.setHeader("Cache-Control", "public");
         response.setHeader("Content-Length", "9000");
         Assert.assertFalse(policy.isResponseCacheable(request, response));

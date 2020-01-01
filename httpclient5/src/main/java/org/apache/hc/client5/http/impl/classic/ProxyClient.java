@@ -36,7 +36,7 @@ import org.apache.hc.client5.http.RouteInfo.LayerType;
 import org.apache.hc.client5.http.RouteInfo.TunnelType;
 import org.apache.hc.client5.http.auth.AuthExchange;
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
-import org.apache.hc.client5.http.auth.AuthSchemes;
+import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.Credentials;
@@ -113,11 +113,11 @@ public class ProxyClient {
         this.authenticator = new HttpAuthenticator();
         this.proxyAuthExchange = new AuthExchange();
         this.authSchemeRegistry = RegistryBuilder.<AuthSchemeFactory>create()
-                .register(AuthSchemes.BASIC.id, BasicSchemeFactory.INSTANCE)
-                .register(AuthSchemes.DIGEST.id, DigestSchemeFactory.INSTANCE)
-                .register(AuthSchemes.NTLM.id, NTLMSchemeFactory.INSTANCE)
-                .register(AuthSchemes.SPNEGO.id, SPNegoSchemeFactory.DEFAULT)
-                .register(AuthSchemes.KERBEROS.id, KerberosSchemeFactory.DEFAULT)
+                .register(StandardAuthScheme.BASIC, BasicSchemeFactory.INSTANCE)
+                .register(StandardAuthScheme.DIGEST, DigestSchemeFactory.INSTANCE)
+                .register(StandardAuthScheme.NTLM, NTLMSchemeFactory.INSTANCE)
+                .register(StandardAuthScheme.SPNEGO, SPNegoSchemeFactory.DEFAULT)
+                .register(StandardAuthScheme.KERBEROS, KerberosSchemeFactory.DEFAULT)
                 .build();
         this.reuseStrategy = new DefaultConnectionReuseStrategy();
     }

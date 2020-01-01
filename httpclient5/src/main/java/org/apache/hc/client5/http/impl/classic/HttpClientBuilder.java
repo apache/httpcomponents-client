@@ -43,7 +43,7 @@ import org.apache.hc.client5.http.HttpRequestRetryStrategy;
 import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.UserTokenHandler;
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
-import org.apache.hc.client5.http.auth.AuthSchemes;
+import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.classic.BackoffManager;
 import org.apache.hc.client5.http.classic.ConnectionBackoffStrategy;
@@ -940,11 +940,11 @@ public class HttpClientBuilder {
         Lookup<AuthSchemeFactory> authSchemeRegistryCopy = this.authSchemeRegistry;
         if (authSchemeRegistryCopy == null) {
             authSchemeRegistryCopy = RegistryBuilder.<AuthSchemeFactory>create()
-                .register(AuthSchemes.BASIC.id, BasicSchemeFactory.INSTANCE)
-                .register(AuthSchemes.DIGEST.id, DigestSchemeFactory.INSTANCE)
-                .register(AuthSchemes.NTLM.id, NTLMSchemeFactory.INSTANCE)
-                .register(AuthSchemes.SPNEGO.id, SPNegoSchemeFactory.DEFAULT)
-                .register(AuthSchemes.KERBEROS.id, KerberosSchemeFactory.DEFAULT)
+                .register(StandardAuthScheme.BASIC, BasicSchemeFactory.INSTANCE)
+                .register(StandardAuthScheme.DIGEST, DigestSchemeFactory.INSTANCE)
+                .register(StandardAuthScheme.NTLM, NTLMSchemeFactory.INSTANCE)
+                .register(StandardAuthScheme.SPNEGO, SPNegoSchemeFactory.DEFAULT)
+                .register(StandardAuthScheme.KERBEROS, KerberosSchemeFactory.DEFAULT)
                 .build();
         }
         Lookup<CookieSpecFactory> cookieSpecRegistryCopy = this.cookieSpecRegistry;

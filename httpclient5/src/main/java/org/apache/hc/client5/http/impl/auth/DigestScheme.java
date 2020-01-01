@@ -46,7 +46,7 @@ import java.util.StringTokenizer;
 
 import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.AuthScheme;
-import org.apache.hc.client5.http.auth.AuthSchemes;
+import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.AuthenticationException;
 import org.apache.hc.client5.http.utils.ByteArrayBuilder;
@@ -127,7 +127,7 @@ public class DigestScheme implements AuthScheme, Serializable {
 
     @Override
     public String getName() {
-        return AuthSchemes.DIGEST.id;
+        return StandardAuthScheme.DIGEST;
     }
 
     @Override
@@ -375,7 +375,7 @@ public class DigestScheme implements AuthScheme, Serializable {
         final String digest = formatHex(digester.digest(digestInput));
 
         final CharArrayBuffer buffer = new CharArrayBuffer(128);
-        buffer.append(AuthSchemes.DIGEST.id + " ");
+        buffer.append(StandardAuthScheme.DIGEST + " ");
 
         final List<BasicNameValuePair> params = new ArrayList<>(20);
         params.add(new BasicNameValuePair("username", username));

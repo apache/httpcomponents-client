@@ -30,7 +30,7 @@ package org.apache.hc.client5.http.config;
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.hc.client5.http.auth.AuthSchemes;
+import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.cookie.CookieSpecs;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.util.TimeValue;
@@ -75,8 +75,8 @@ public class TestRequestConfig {
                 .setMaxRedirects(100)
                 .setCookieSpec(CookieSpecs.STANDARD.id)
                 .setProxy(new HttpHost("someproxy"))
-                .setTargetPreferredAuthSchemes(Collections.singletonList(AuthSchemes.NTLM.id))
-                .setProxyPreferredAuthSchemes(Collections.singletonList(AuthSchemes.DIGEST.id))
+                .setTargetPreferredAuthSchemes(Collections.singletonList(StandardAuthScheme.NTLM))
+                .setProxyPreferredAuthSchemes(Collections.singletonList(StandardAuthScheme.DIGEST))
                 .setContentCompressionEnabled(false)
                 .build();
         final RequestConfig config = RequestConfig.copy(config0).build();
@@ -89,8 +89,8 @@ public class TestRequestConfig {
         Assert.assertEquals(100, config.getMaxRedirects());
         Assert.assertEquals(CookieSpecs.STANDARD.id, config.getCookieSpec());
         Assert.assertEquals(new HttpHost("someproxy"), config.getProxy());
-        Assert.assertEquals(Collections.singletonList(AuthSchemes.NTLM.id), config.getTargetPreferredAuthSchemes());
-        Assert.assertEquals(Collections.singletonList(AuthSchemes.DIGEST.id), config.getProxyPreferredAuthSchemes());
+        Assert.assertEquals(Collections.singletonList(StandardAuthScheme.NTLM), config.getTargetPreferredAuthSchemes());
+        Assert.assertEquals(Collections.singletonList(StandardAuthScheme.DIGEST), config.getProxyPreferredAuthSchemes());
         Assert.assertEquals(false, config.isContentCompressionEnabled());
     }
 

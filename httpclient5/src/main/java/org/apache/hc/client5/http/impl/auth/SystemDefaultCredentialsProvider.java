@@ -32,15 +32,13 @@ import java.net.PasswordAuthentication;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.CredentialsStore;
 import org.apache.hc.client5.http.auth.NTCredentials;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
-import org.apache.hc.client5.http.auth.AuthSchemes;
+import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
@@ -57,25 +55,6 @@ import org.apache.hc.core5.util.Args;
  */
 @Contract(threading = ThreadingBehavior.SAFE)
 public class SystemDefaultCredentialsProvider implements CredentialsStore {
-
-    private static final Map<String, String> SCHEME_MAP;
-
-    static {
-        SCHEME_MAP = new ConcurrentHashMap<>();
-        SCHEME_MAP.put(AuthSchemes.BASIC.name(), "Basic");
-        SCHEME_MAP.put(AuthSchemes.DIGEST.name(), "Digest");
-        SCHEME_MAP.put(AuthSchemes.NTLM.name(), "NTLM");
-        SCHEME_MAP.put(AuthSchemes.SPNEGO.name(), "SPNEGO");
-        SCHEME_MAP.put(AuthSchemes.KERBEROS.name(), "Kerberos");
-    }
-
-    private static String translateAuthScheme(final String key) {
-        if (key == null) {
-            return null;
-        }
-        final String s = SCHEME_MAP.get(key);
-        return s != null ? s : key;
-    }
 
     private final BasicCredentialsProvider internal;
 
@@ -112,7 +91,7 @@ public class SystemDefaultCredentialsProvider implements CredentialsStore {
                 authScope.getPort(),
                 protocol,
                 authScope.getRealm(),
-                translateAuthScheme(authScope.getAuthScheme()),
+                authScope.getAuthScheme(),
                 targetHostURL,
                 requestorType);
     }
@@ -149,7 +128,7 @@ public class SystemDefaultCredentialsProvider implements CredentialsStore {
                 if (domain != null) {
                     return new NTCredentials(systemcreds.getUserName(), systemcreds.getPassword(), null, domain);
                 }
-                if (AuthSchemes.NTLM.id.equalsIgnoreCase(authScope.getAuthScheme())) {
+                if (StandardAuthScheme.NTLM.equalsIgnoreCase(authScope.getAuthScheme())) {
                     // Domain may be specified in a fully qualified user name
                     return new NTCredentials(
                             systemcreds.getUserName(), systemcreds.getPassword(), null, null);

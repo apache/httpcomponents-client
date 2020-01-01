@@ -29,7 +29,7 @@ package org.apache.hc.client5.http.impl.auth;
 import java.util.List;
 
 import org.apache.hc.client5.http.auth.AuthChallenge;
-import org.apache.hc.client5.http.auth.AuthSchemes;
+import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.http.ParseException;
@@ -151,13 +151,13 @@ public class TestAuthChallengeParser {
     @Test
     public void testParseBasicAuthChallenge() throws Exception {
         final CharArrayBuffer buffer = new CharArrayBuffer(64);
-        buffer.append(AuthSchemes.BASIC.id + " realm=blah");
+        buffer.append(StandardAuthScheme.BASIC + " realm=blah");
         final ParserCursor cursor = new ParserCursor(0, buffer.length());
         final List<AuthChallenge> challenges = parser.parse(ChallengeType.TARGET, buffer, cursor);
         Assert.assertNotNull(challenges);
         Assert.assertEquals(1, challenges.size());
         final AuthChallenge challenge1 = challenges.get(0);
-        Assert.assertEquals(AuthSchemes.BASIC.id, challenge1.getScheme());
+        Assert.assertEquals(StandardAuthScheme.BASIC, challenge1.getScheme());
         Assert.assertEquals(null, challenge1.getValue());
         final List<NameValuePair> params = challenge1.getParams();
         Assert.assertNotNull(params);
@@ -168,13 +168,13 @@ public class TestAuthChallengeParser {
     @Test
     public void testParseAuthChallengeWithBlanks() throws Exception {
         final CharArrayBuffer buffer = new CharArrayBuffer(64);
-        buffer.append("   " + AuthSchemes.BASIC.id + "  realm = blah   ");
+        buffer.append("   " + StandardAuthScheme.BASIC + "  realm = blah   ");
         final ParserCursor cursor = new ParserCursor(0, buffer.length());
         final List<AuthChallenge> challenges = parser.parse(ChallengeType.TARGET, buffer, cursor);
         Assert.assertNotNull(challenges);
         Assert.assertEquals(1, challenges.size());
         final AuthChallenge challenge1 = challenges.get(0);
-        Assert.assertEquals(AuthSchemes.BASIC.id, challenge1.getScheme());
+        Assert.assertEquals(StandardAuthScheme.BASIC, challenge1.getScheme());
         Assert.assertEquals(null, challenge1.getValue());
         final List<NameValuePair> params = challenge1.getParams();
         Assert.assertNotNull(params);
@@ -206,15 +206,15 @@ public class TestAuthChallengeParser {
     @Test
     public void testParseMultipleAuthChallengeWithParams() throws Exception {
         final CharArrayBuffer buffer = new CharArrayBuffer(64);
-        buffer.append(AuthSchemes.BASIC.id + " realm=blah, param1 = this, param2=that, " +
-                AuthSchemes.BASIC.id + " realm=\"\\\"yada\\\"\", this, that=,this-and-that  ");
+        buffer.append(StandardAuthScheme.BASIC + " realm=blah, param1 = this, param2=that, " +
+                StandardAuthScheme.BASIC + " realm=\"\\\"yada\\\"\", this, that=,this-and-that  ");
         final ParserCursor cursor = new ParserCursor(0, buffer.length());
         final List<AuthChallenge> challenges = parser.parse(ChallengeType.TARGET, buffer, cursor);
         Assert.assertNotNull(challenges);
         Assert.assertEquals(2, challenges.size());
 
         final AuthChallenge challenge1 = challenges.get(0);
-        Assert.assertEquals(AuthSchemes.BASIC.id, challenge1.getScheme());
+        Assert.assertEquals(StandardAuthScheme.BASIC, challenge1.getScheme());
         Assert.assertEquals(null, challenge1.getValue());
         final List<NameValuePair> params1 = challenge1.getParams();
         Assert.assertNotNull(params1);
@@ -224,7 +224,7 @@ public class TestAuthChallengeParser {
         assertNameValuePair(new BasicNameValuePair("param2", "that"), params1.get(2));
 
         final AuthChallenge challenge2 = challenges.get(1);
-        Assert.assertEquals(AuthSchemes.BASIC.id, challenge2.getScheme());
+        Assert.assertEquals(StandardAuthScheme.BASIC, challenge2.getScheme());
         Assert.assertEquals(null, challenge2.getValue());
         final List<NameValuePair> params2 = challenge2.getParams();
         Assert.assertNotNull(params2);

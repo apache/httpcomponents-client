@@ -31,7 +31,7 @@ import java.io.IOException;
 import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
-import org.apache.hc.client5.http.auth.AuthSchemes;
+import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
@@ -65,7 +65,7 @@ public class TestWindowsNegotiateScheme extends LocalServerTestBase {
                     final ClassicHttpRequest request,
                     final ClassicHttpResponse response,
                     final HttpContext context) throws HttpException, IOException {
-                response.addHeader(HttpHeaders.WWW_AUTHENTICATE, AuthSchemes.SPNEGO);
+                response.addHeader(HttpHeaders.WWW_AUTHENTICATE, StandardAuthScheme.SPNEGO);
                 response.setCode(HttpStatus.SC_UNAUTHORIZED);
             }
 
@@ -81,10 +81,10 @@ public class TestWindowsNegotiateScheme extends LocalServerTestBase {
         // you can contact the server that authenticated you." is associated with SEC_E_DOWNGRADE_DETECTED.
 
         final Registry<AuthSchemeFactory> authSchemeRegistry = RegistryBuilder.<AuthSchemeFactory>create()
-            .register(AuthSchemes.SPNEGO.id, new AuthSchemeFactory() {
+            .register(StandardAuthScheme.SPNEGO, new AuthSchemeFactory() {
                 @Override
                 public AuthScheme create(final HttpContext context) {
-                    return new WindowsNegotiateSchemeGetTokenFail(AuthSchemes.SPNEGO.id, "HTTP/example.com");
+                    return new WindowsNegotiateSchemeGetTokenFail(StandardAuthScheme.SPNEGO, "HTTP/example.com");
                 }
             }).build();
         final CloseableHttpClient customClient = HttpClientBuilder.create()

@@ -26,7 +26,7 @@
  */
 package org.apache.hc.client5.http.impl.auth;
 
-import org.apache.hc.client5.http.auth.AuthSchemes;
+import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
@@ -142,15 +142,15 @@ public class TestBasicCredentialsProvider {
         state.setCredentials(scope2, creds2);
         state.setCredentials(scope3, creds3);
 
-        Credentials got = state.getCredentials(new AuthScope("http", "someotherhost", 80, "someotherrealm", AuthSchemes.BASIC.id), null);
+        Credentials got = state.getCredentials(new AuthScope("http", "someotherhost", 80, "someotherrealm", StandardAuthScheme.BASIC), null);
         Credentials expected = creds1;
         Assert.assertEquals(expected, got);
 
-        got = state.getCredentials(new AuthScope("http", "someotherhost", 80, "somerealm", AuthSchemes.BASIC.id), null);
+        got = state.getCredentials(new AuthScope("http", "someotherhost", 80, "somerealm", StandardAuthScheme.BASIC), null);
         expected = creds2;
         Assert.assertEquals(expected, got);
 
-        got = state.getCredentials(new AuthScope("http", "somehost", 80, "someotherrealm", AuthSchemes.BASIC.id), null);
+        got = state.getCredentials(new AuthScope("http", "somehost", 80, "someotherrealm", StandardAuthScheme.BASIC), null);
         expected = creds3;
         Assert.assertEquals(expected, got);
     }

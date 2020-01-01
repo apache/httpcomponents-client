@@ -28,7 +28,7 @@ package org.apache.hc.client5.testing.sync;
 
 import java.io.IOException;
 
-import org.apache.hc.client5.http.auth.AuthSchemes;
+import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.NTCredentials;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
@@ -61,7 +61,7 @@ public class TestClientAuthenticationFakeNTLM extends LocalServerTestBase {
                 final HttpContext context) throws HttpException, IOException {
             response.setCode(HttpStatus.SC_UNAUTHORIZED);
             response.setHeader("Connection", "Keep-Alive");
-            response.setHeader(HttpHeaders.WWW_AUTHENTICATE, AuthSchemes.NTLM.id);
+            response.setHeader(HttpHeaders.WWW_AUTHENTICATE, StandardAuthScheme.NTLM);
         }
     }
 
@@ -93,7 +93,7 @@ public class TestClientAuthenticationFakeNTLM extends LocalServerTestBase {
         private final String authenticateHeaderValue;
 
         public NtlmType2MessageResponseHandler(final String type2Message) {
-            this.authenticateHeaderValue = AuthSchemes.NTLM.id + " " + type2Message;
+            this.authenticateHeaderValue = StandardAuthScheme.NTLM + " " + type2Message;
         }
 
         @Override
@@ -104,7 +104,7 @@ public class TestClientAuthenticationFakeNTLM extends LocalServerTestBase {
             response.setCode(HttpStatus.SC_UNAUTHORIZED);
             response.setHeader("Connection", "Keep-Alive");
             if (!request.containsHeader(HttpHeaders.AUTHORIZATION)) {
-                response.setHeader(HttpHeaders.WWW_AUTHENTICATE, AuthSchemes.NTLM.id);
+                response.setHeader(HttpHeaders.WWW_AUTHENTICATE, StandardAuthScheme.NTLM);
             } else {
                 response.setHeader(HttpHeaders.WWW_AUTHENTICATE, authenticateHeaderValue);
             }
@@ -164,7 +164,7 @@ public class TestClientAuthenticationFakeNTLM extends LocalServerTestBase {
         private final String authenticateHeaderValue;
 
         public NtlmType2MessageOnlyResponseHandler(final String type2Message) {
-            this.authenticateHeaderValue = AuthSchemes.NTLM.id + " " + type2Message;
+            this.authenticateHeaderValue = StandardAuthScheme.NTLM + " " + type2Message;
         }
 
         @Override

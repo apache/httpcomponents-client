@@ -36,7 +36,7 @@ import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.KerberosConfig;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
-import org.apache.hc.client5.http.auth.AuthSchemes;
+import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
 import org.apache.hc.client5.http.impl.auth.SPNegoScheme;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
@@ -78,7 +78,7 @@ public class TestSPNegoScheme extends LocalServerTestBase {
                 final ClassicHttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
             response.setCode(HttpStatus.SC_UNAUTHORIZED);
-            response.addHeader(new BasicHeader("WWW-Authenticate", AuthSchemes.SPNEGO.id + " blablabla"));
+            response.addHeader(new BasicHeader("WWW-Authenticate", StandardAuthScheme.SPNEGO + " blablabla"));
             response.addHeader(new BasicHeader("Connection", "Keep-Alive"));
             response.setEntity(new StringEntity("auth required "));
         }
@@ -160,7 +160,7 @@ public class TestSPNegoScheme extends LocalServerTestBase {
         credentialsProvider.setCredentials(new AuthScope(null, null, -1, null, null), use_jaas_creds);
 
         final Registry<AuthSchemeFactory> authSchemeRegistry = RegistryBuilder.<AuthSchemeFactory>create()
-            .register(AuthSchemes.SPNEGO.id, nsf)
+            .register(StandardAuthScheme.SPNEGO, nsf)
             .build();
         this.httpclient = HttpClients.custom()
             .setDefaultAuthSchemeRegistry(authSchemeRegistry)
@@ -191,7 +191,7 @@ public class TestSPNegoScheme extends LocalServerTestBase {
         credentialsProvider.setCredentials(new AuthScope(null, null, -1, null, null), use_jaas_creds);
 
         final Registry<AuthSchemeFactory> authSchemeRegistry = RegistryBuilder.<AuthSchemeFactory>create()
-            .register(AuthSchemes.SPNEGO.id, nsf)
+            .register(StandardAuthScheme.SPNEGO, nsf)
             .build();
         this.httpclient = HttpClients.custom()
             .setDefaultAuthSchemeRegistry(authSchemeRegistry)

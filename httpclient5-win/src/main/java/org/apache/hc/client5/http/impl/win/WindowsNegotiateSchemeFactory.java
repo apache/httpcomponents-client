@@ -29,7 +29,7 @@ package org.apache.hc.client5.http.impl.win;
 
 import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
-import org.apache.hc.client5.http.auth.AuthSchemes;
+import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Experimental;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
@@ -59,7 +59,7 @@ public class WindowsNegotiateSchemeFactory implements AuthSchemeFactory {
 
     @Override
     public AuthScheme create(final HttpContext context) {
-        return new WindowsNegotiateScheme(AuthSchemes.SPNEGO.id, servicePrincipalName);
+        return new WindowsNegotiateScheme(StandardAuthScheme.SPNEGO, servicePrincipalName);
     }
 
 }
