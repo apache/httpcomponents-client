@@ -183,6 +183,9 @@ public class HttpByteArrayCacheEntrySerializer implements HttpCacheEntrySerializ
      * Helper method to make a new HTTP response writer.
      * <p>
      * Useful to override for testing.
+     *
+     * @param outputBuffer Output buffer to write to
+     * @return HTTP response writer to write to
      */
     protected AbstractMessageWriter<SimpleHttpResponse> makeHttpResponseWriter(final SessionOutputBuffer outputBuffer) {
         return new SimpleHttpResponseWriter();
@@ -192,6 +195,9 @@ public class HttpByteArrayCacheEntrySerializer implements HttpCacheEntrySerializ
      * Helper method to make a new ByteArrayInputStream.
      * <p>
      * Useful to override for testing.
+     *
+     * @param bytes Bytes to read from the stream
+     * @return Stream to read the bytes from
      */
     protected InputStream makeByteArrayInputStream(final byte[] bytes) {
         return new ByteArrayInputStream(bytes);
@@ -201,6 +207,8 @@ public class HttpByteArrayCacheEntrySerializer implements HttpCacheEntrySerializ
      * Helper method to make a new HTTP Response parser.
      * <p>
      * Useful to override for testing.
+     *
+     * @return HTTP response parser
      */
     protected AbstractMessageParser<ClassicHttpResponse> makeHttpResponseParser() {
         return new DefaultHttpResponseParser();
@@ -322,7 +330,6 @@ public class HttpByteArrayCacheEntrySerializer implements HttpCacheEntrySerializ
         return Boolean.parseBoolean(getOptionalCachePseudoHeaderAndRemove(response, name));
     }
 
-
     /**
      * Get the variant map metadata pseudo-header, and remove it from the response object.
      *
@@ -400,7 +407,7 @@ public class HttpByteArrayCacheEntrySerializer implements HttpCacheEntrySerializ
      * This prevents the Age header from being written to the cache (it does not make sense to cache it),
      * and is the only thing the policy is used for in this case.
      */
-    private class NoAgeCacheValidityPolicy extends CacheValidityPolicy {
+    private static class NoAgeCacheValidityPolicy extends CacheValidityPolicy {
         @Override
         public long getCurrentAgeSecs(final HttpCacheEntry entry, final Date now) {
             return 0L;
