@@ -31,7 +31,7 @@ import java.util.Date;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.RouteInfo.LayerType;
 import org.apache.hc.client5.http.RouteInfo.TunnelType;
-import org.apache.hc.client5.http.cookie.CookieSpecs;
+import org.apache.hc.client5.http.cookie.StandardCookieSpec;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.cookie.BasicCookieStore;
 import org.apache.hc.client5.http.cookie.CookieOrigin;
@@ -76,11 +76,11 @@ public class TestRequestAddCookies {
         this.cookieStore.addCookie(cookie2);
 
         this.cookieSpecRegistry = RegistryBuilder.<CookieSpecFactory>create()
-            .register(CookieSpecs.STANDARD.id, new RFC6265CookieSpecFactory(
+            .register(StandardCookieSpec.RELAXED, new RFC6265CookieSpecFactory(
                     RFC6265CookieSpecFactory.CompatibilityLevel.RELAXED, null))
-            .register(CookieSpecs.STANDARD_STRICT.id,  new RFC6265CookieSpecFactory(
+            .register(StandardCookieSpec.STRICT,  new RFC6265CookieSpecFactory(
                     RFC6265CookieSpecFactory.CompatibilityLevel.STRICT, null))
-            .register(CookieSpecs.IGNORE_COOKIES.id, new IgnoreCookieSpecFactory())
+            .register(StandardCookieSpec.IGNORE, new IgnoreCookieSpecFactory())
             .build();
     }
 
@@ -203,7 +203,7 @@ public class TestRequestAddCookies {
     public void testAddCookiesUsingExplicitCookieSpec() throws Exception {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         final RequestConfig config = RequestConfig.custom()
-                .setCookieSpec(CookieSpecs.STANDARD_STRICT.id)
+                .setCookieSpec(StandardCookieSpec.STRICT)
                 .build();
         final HttpRoute route = new HttpRoute(this.target, null, false);
 

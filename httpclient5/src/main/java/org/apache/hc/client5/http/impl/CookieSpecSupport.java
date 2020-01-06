@@ -27,7 +27,7 @@
 
 package org.apache.hc.client5.http.impl;
 
-import org.apache.hc.client5.http.cookie.CookieSpecs;
+import org.apache.hc.client5.http.cookie.StandardCookieSpec;
 import org.apache.hc.client5.http.cookie.CookieSpecFactory;
 import org.apache.hc.client5.http.impl.cookie.IgnoreCookieSpecFactory;
 import org.apache.hc.client5.http.impl.cookie.RFC6265CookieSpecFactory;
@@ -50,11 +50,11 @@ public final class CookieSpecSupport {
      */
     public static RegistryBuilder<CookieSpecFactory> createDefaultBuilder(final PublicSuffixMatcher publicSuffixMatcher) {
         return RegistryBuilder.<CookieSpecFactory>create()
-                .register(CookieSpecs.STANDARD.id, new RFC6265CookieSpecFactory(
+                .register(StandardCookieSpec.RELAXED, new RFC6265CookieSpecFactory(
                         RFC6265CookieSpecFactory.CompatibilityLevel.RELAXED, publicSuffixMatcher))
-                .register(CookieSpecs.STANDARD_STRICT.id, new RFC6265CookieSpecFactory(
+                .register(StandardCookieSpec.STRICT, new RFC6265CookieSpecFactory(
                         RFC6265CookieSpecFactory.CompatibilityLevel.STRICT, publicSuffixMatcher))
-                .register(CookieSpecs.IGNORE_COOKIES.id, new IgnoreCookieSpecFactory());
+                .register(StandardCookieSpec.IGNORE, new IgnoreCookieSpecFactory());
     }
 
     /**

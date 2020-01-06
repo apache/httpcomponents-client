@@ -28,33 +28,31 @@
 package org.apache.hc.client5.http.cookie;
 
 /**
- * Supported cookie specifications.
+ * Cookie specifications by their names supported by the HttpClient.
  *
  * @since 4.3
  */
-public enum CookieSpecs {
+public final class StandardCookieSpec {
+
+    private StandardCookieSpec() {
+        // no instances
+    }
 
     /**
      * The RFC 6265 compliant policy (interoprability profile).
      */
-    STANDARD("standard"),
+    public static final String RELAXED = "relaxed";
 
     /**
      * The RFC 6265 compliant policy (strict profile).
      *
      * @since 4.4
      */
-    STANDARD_STRICT("standard-strict"),
+    public static final String STRICT = "strict";
 
     /**
      * The policy that ignores cookies.
      */
-    IGNORE_COOKIES("ignoreCookies");
-
-    public final String id;
-
-    CookieSpecs(final String id) {
-        this.id = id;
-    }
+    public static final String IGNORE = "ignore";
 
 }
