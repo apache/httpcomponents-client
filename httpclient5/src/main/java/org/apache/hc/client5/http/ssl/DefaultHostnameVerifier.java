@@ -164,7 +164,7 @@ public final class DefaultHostnameVerifier implements HttpClientHostnameVerifier
             final SubjectName subjectAlt = subjectAlts.get(i);
             if (subjectAlt.getType() == SubjectName.DNS) {
                 final String normalizedSubjectAlt = subjectAlt.getValue().toLowerCase(Locale.ROOT);
-                if (matchIdentityStrict(normalizedHost, normalizedSubjectAlt, publicSuffixMatcher)) {
+                if (matchIdentityStrict(normalizedHost, normalizedSubjectAlt, publicSuffixMatcher, DomainType.ICANN)) {
                     return;
                 }
             }
@@ -177,7 +177,7 @@ public final class DefaultHostnameVerifier implements HttpClientHostnameVerifier
                  final PublicSuffixMatcher publicSuffixMatcher) throws SSLException {
         final String normalizedHost = host.toLowerCase(Locale.ROOT);
         final String normalizedCn = cn.toLowerCase(Locale.ROOT);
-        if (!matchIdentityStrict(normalizedHost, normalizedCn, publicSuffixMatcher)) {
+        if (!matchIdentityStrict(normalizedHost, normalizedCn, publicSuffixMatcher, DomainType.ICANN)) {
             throw new SSLPeerUnverifiedException("Certificate for <" + host + "> doesn't match " +
                     "common name of the certificate subject: " + cn);
         }
