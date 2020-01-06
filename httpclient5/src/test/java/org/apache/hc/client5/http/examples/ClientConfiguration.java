@@ -43,7 +43,7 @@ import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.cookie.BasicCookieStore;
-import org.apache.hc.client5.http.cookie.CookieSpecs;
+import org.apache.hc.client5.http.cookie.StandardCookieSpec;
 import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
@@ -193,7 +193,7 @@ public class ClientConfiguration {
         final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
         // Create global request configuration
         final RequestConfig defaultRequestConfig = RequestConfig.custom()
-            .setCookieSpec(CookieSpecs.STANDARD.id)
+            .setCookieSpec(StandardCookieSpec.STRICT)
             .setExpectContinueEnabled(true)
             .setTargetPreferredAuthSchemes(Arrays.asList(StandardAuthScheme.NTLM, StandardAuthScheme.DIGEST))
             .setProxyPreferredAuthSchemes(Arrays.asList(StandardAuthScheme.BASIC))

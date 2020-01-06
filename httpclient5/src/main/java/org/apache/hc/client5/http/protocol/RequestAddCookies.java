@@ -33,7 +33,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.apache.hc.client5.http.RouteInfo;
-import org.apache.hc.client5.http.cookie.CookieSpecs;
+import org.apache.hc.client5.http.cookie.StandardCookieSpec;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.cookie.Cookie;
 import org.apache.hc.client5.http.cookie.CookieOrigin;
@@ -106,12 +106,12 @@ public class RequestAddCookies implements HttpRequestInterceptor {
         }
 
         final RequestConfig config = clientContext.getRequestConfig();
-        String policy = config.getCookieSpec();
-        if (policy == null) {
-            policy = CookieSpecs.STANDARD.id;
+        String cookieSpecName = config.getCookieSpec();
+        if (cookieSpecName == null) {
+            cookieSpecName = StandardCookieSpec.STRICT;
         }
         if (this.log.isDebugEnabled()) {
-            this.log.debug("CookieSpec selected: " + policy);
+            this.log.debug("Cookie spec selected: " + cookieSpecName);
         }
 
         final URIAuthority authority = request.getAuthority();
@@ -130,15 +130,15 @@ public class RequestAddCookies implements HttpRequestInterceptor {
         final CookieOrigin cookieOrigin = new CookieOrigin(hostName, port, path, route.isSecure());
 
         // Get an instance of the selected cookie policy
-        final CookieSpecFactory provider = registry.lookup(policy);
-        if (provider == null) {
+        final CookieSpecFactory factory = registry.lookup(cookieSpecName);
+        if (factory == null) {
             if (this.log.isDebugEnabled()) {
-                this.log.debug("Unsupported cookie policy: " + policy);
+                this.log.debug("Unsupported cookie spec: " + cookieSpecName);
             }
 
             return;
         }
-        final CookieSpec cookieSpec = provider.create(clientContext);
+        final CookieSpec cookieSpec = factory.create(clientContext);
         // Get all cookies available in the HTTP state
         final List<Cookie> cookies = cookieStore.getCookies();
         // Find cookies matching the given origin
