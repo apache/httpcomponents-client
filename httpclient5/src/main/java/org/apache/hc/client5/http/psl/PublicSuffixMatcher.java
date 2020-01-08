@@ -106,9 +106,8 @@ public final class PublicSuffixMatcher {
         final DomainType domainType = map.get(rule);
         if (domainType == null) {
             return false;
-        } else {
-            return expectedType == null || domainType.equals(expectedType);
         }
+        return expectedType == null || domainType.equals(expectedType);
     }
 
     private boolean hasRule(final String rule, final DomainType expectedType) {

@@ -67,8 +67,7 @@ public class DecompressingEntity extends HttpEntityWrapper {
     }
 
     private InputStream getDecompressingStream() throws IOException {
-        final InputStream in = super.getContent();
-        return new LazyDecompressingInputStream(in, inputStreamFactory);
+        return new LazyDecompressingInputStream(super.getContent(), inputStreamFactory);
     }
 
     @Override

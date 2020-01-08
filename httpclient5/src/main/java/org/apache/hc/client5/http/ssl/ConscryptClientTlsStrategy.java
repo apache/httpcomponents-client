@@ -101,9 +101,8 @@ public class ConscryptClientTlsStrategy extends AbstractClientTlsStrategy {
     TlsDetails createTlsDetails(final SSLEngine sslEngine) {
         if (Conscrypt.isConscrypt(sslEngine)) {
             return new TlsDetails(sslEngine.getSession(), Conscrypt.getApplicationProtocol(sslEngine));
-        } else {
-            return null;
         }
+        return null;
     }
 
     public static boolean isSupported() {
