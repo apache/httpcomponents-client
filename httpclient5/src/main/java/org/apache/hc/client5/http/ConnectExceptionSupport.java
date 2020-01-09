@@ -74,11 +74,10 @@ public final class ConnectExceptionSupport {
                 final IOException ex = createConnectTimeoutException(cause, namedEndpoint, remoteAddresses);
                 ex.initCause(cause);
                 return ex;
-            } else {
-                final IOException ex = createHttpHostConnectException(cause, namedEndpoint, remoteAddresses);
-                ex.setStackTrace(cause.getStackTrace());
-                return ex;
             }
+            final IOException ex = createHttpHostConnectException(cause, namedEndpoint, remoteAddresses);
+            ex.setStackTrace(cause.getStackTrace());
+            return ex;
         } else {
             return cause;
         }

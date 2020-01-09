@@ -51,18 +51,17 @@ public final class RoutingSupport {
                 throw new ProtocolException("Protocol scheme is not specified");
             }
             return new HttpHost(scheme, authority);
-        } else {
-            try {
-                final URI requestURI = request.getUri();
-                if (requestURI.isAbsolute()) {
-                    final HttpHost httpHost = URIUtils.extractHost(requestURI);
-                    if (httpHost == null) {
-                        throw new ProtocolException("URI does not specify a valid host name: " + requestURI);
-                    }
-                    return httpHost;
+        }
+        try {
+            final URI requestURI = request.getUri();
+            if (requestURI.isAbsolute()) {
+                final HttpHost httpHost = URIUtils.extractHost(requestURI);
+                if (httpHost == null) {
+                    throw new ProtocolException("URI does not specify a valid host name: " + requestURI);
                 }
-            } catch (final URISyntaxException ignore) {
+                return httpHost;
             }
+        } catch (final URISyntaxException ignore) {
         }
         return null;
     }

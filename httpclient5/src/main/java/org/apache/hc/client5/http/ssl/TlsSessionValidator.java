@@ -117,9 +117,8 @@ final class TlsSessionValidator {
                     final ProtocolVersion tls = TLS.parse(sslsession.getProtocol());
                     if (tls.greaterEquals(TLS.V_1_3.version)) {
                         return;
-                    } else {
-                        throw ex;
                     }
+                    throw ex;
                 } catch (final ParseException ex2) {
                     throw ex;
                 }

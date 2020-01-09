@@ -213,9 +213,8 @@ public final class HttpRoute implements RouteInfo, Cloneable {
         Args.check(hop < hopcount, "Hop index exceeds tracked route length");
         if (hop < hopcount - 1) {
             return this.proxyChain.get(hop);
-        } else {
-            return this.targetHost;
         }
+        return this.targetHost;
     }
 
     @Override
