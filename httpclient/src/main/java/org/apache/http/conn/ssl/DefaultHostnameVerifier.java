@@ -36,7 +36,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 import java.util.NoSuchElementException;
 
 import javax.naming.InvalidNameException;
@@ -55,6 +54,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.annotation.Contract;
 import org.apache.http.annotation.ThreadingBehavior;
+import org.apache.http.conn.util.DnsUtils;
 import org.apache.http.conn.util.DomainType;
 import org.apache.http.conn.util.InetAddressUtils;
 import org.apache.http.conn.util.PublicSuffixMatcher;
@@ -164,11 +164,11 @@ public final class DefaultHostnameVerifier implements HostnameVerifier {
 
     static void matchDNSName(final String host, final List<SubjectName> subjectAlts,
                              final PublicSuffixMatcher publicSuffixMatcher) throws SSLException {
-        final String normalizedHost = host.toLowerCase(Locale.ROOT);
+        final String normalizedHost = DnsUtils.normalize(host);
         for (int i = 0; i < subjectAlts.size(); i++) {
             final SubjectName subjectAlt = subjectAlts.get(i);
             if (subjectAlt.getType() == SubjectName.DNS) {
-                final String normalizedSubjectAlt = subjectAlt.getValue().toLowerCase(Locale.ROOT);
+                final String normalizedSubjectAlt = DnsUtils.normalize(subjectAlt.getValue());
                 if (matchIdentityStrict(normalizedHost, normalizedSubjectAlt, publicSuffixMatcher, DomainType.ICANN)) {
                     return;
                 }
@@ -180,8 +180,8 @@ public final class DefaultHostnameVerifier implements HostnameVerifier {
 
     static void matchCN(final String host, final String cn,
                  final PublicSuffixMatcher publicSuffixMatcher) throws SSLException {
-        final String normalizedHost = host.toLowerCase(Locale.ROOT);
-        final String normalizedCn = cn.toLowerCase(Locale.ROOT);
+        final String normalizedHost = DnsUtils.normalize(host);
+        final String normalizedCn = DnsUtils.normalize(cn);
         if (!matchIdentityStrict(normalizedHost, normalizedCn, publicSuffixMatcher, DomainType.ICANN)) {
             throw new SSLPeerUnverifiedException("Certificate for <" + host + "> doesn't match " +
                     "common name of the certificate subject: " + cn);

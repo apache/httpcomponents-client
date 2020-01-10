@@ -29,7 +29,6 @@ package org.apache.http.conn.util;
 import java.net.IDN;
 import java.util.Collection;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -142,7 +141,7 @@ public final class PublicSuffixMatcher {
         if (domain.startsWith(".")) {
             return null;
         }
-        final String normalized = domain.toLowerCase(Locale.ROOT);
+        final String normalized = DnsUtils.normalize(domain);
         String segment = normalized;
         String result = null;
         while (segment != null) {
