@@ -29,10 +29,10 @@ package org.apache.hc.client5.http.psl;
 import java.net.IDN;
 import java.util.Collection;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.hc.client5.http.utils.DnsUtils;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.util.Args;
@@ -146,7 +146,7 @@ public final class PublicSuffixMatcher {
         if (domain.startsWith(".")) {
             return null;
         }
-        final String normalized = domain.toLowerCase(Locale.ROOT);
+        final String normalized = DnsUtils.normalize(domain);
         String segment = normalized;
         String result = null;
         while (segment != null) {
