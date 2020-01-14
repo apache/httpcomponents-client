@@ -1,11 +1,39 @@
 Release 4.5.11
 -------------------
 
-This is a maintenance release that fixes a number defects discovered since 4.5.10.
+This is a maintenance release that fixes a number defects discovered since 4.5.10
+and upgrades HttpCore dependency to version 4.4.13.
 
 
 Changelog:
 -------------------
+
+* Improved domain name normalization by DefaultHostnameVerifier.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2033: Connection managers to immediately shut down all leased connection upon shutdown.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2020: DefaultBackoffStrategy to support TOO_MANY_REQUESTS (429).
+  Contributed by Michael Osipov <michaelo at apache.org>
+
+* HTTPCLIENT-2030: Fixed PublicSuffixMatcher#getDomainRoot behavior with invalid hostnames.
+  Contributed by Niels Basjes <niels at basjes.nl>
+
+* HTTPCLIENT-2029: URIBuilder to support parsing of non-UTF8 URIs.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2026: Fixed URIBuilder#isOpaque() logic.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Updated text in pool stats description
+  Contributed by chao chang <chang-chao at users.noreply.github.com>
+
+* HTTPCLIENT-2023: Allow nested arrays and all primitive types in DefaultHttpCacheEntrySerializer.
+  Contributed by Olof Larsson <olof at sylt.nu>
+
+* Fixed fallback PublicSuffixMatcher instance.
+  Contributed by Ryan Schmitt <rschmitt at apache.org>
 
 * Added family property #145.
   Contributed by behrangsa
