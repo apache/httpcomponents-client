@@ -41,14 +41,14 @@ public class TestRequest {
 
   @Test
   public void testGetFromString() {
-    final ClassicHttpRequest request = Request.Get(URI_STRING_FIXTURE).getRequest();
+    final ClassicHttpRequest request = Request.get(URI_STRING_FIXTURE).getRequest();
     Assert.assertEquals(HttpGet.class, request.getClass());
     Assert.assertEquals("GET", request.getMethod());
   }
 
   @Test
   public void testGetFromURI() {
-    final ClassicHttpRequest request = Request.Get(URI_FIXTURE).getRequest();
+    final ClassicHttpRequest request = Request.get(URI_FIXTURE).getRequest();
     Assert.assertEquals(HttpGet.class, request.getClass());
     Assert.assertEquals("GET", request.getMethod());
   }

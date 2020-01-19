@@ -52,7 +52,7 @@ import org.xml.sax.SAXException;
 public class FluentResponseHandling {
 
     public static void main(final String... args)throws Exception {
-        final Document result = Request.Get("http://somehost/content")
+        final Document result = Request.get("http://somehost/content")
                 .execute().handleResponse(new HttpClientResponseHandler<Document>() {
 
             @Override

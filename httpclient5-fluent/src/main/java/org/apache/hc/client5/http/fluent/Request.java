@@ -93,67 +93,67 @@ public class Request {
       return new Request(new HttpUriRequestBase(methodName, uri));
   }
 
-    public static Request Get(final URI uri) {
+    public static Request get(final URI uri) {
        return new Request(ClassicHttpRequests.get(uri));
     }
 
-    public static Request Get(final String uri) {
+    public static Request get(final String uri) {
         return new Request(ClassicHttpRequests.get(uri));
     }
 
-    public static Request Head(final URI uri) {
+    public static Request head(final URI uri) {
         return new Request(ClassicHttpRequests.head(uri));
     }
 
-    public static Request Head(final String uri) {
+    public static Request head(final String uri) {
         return new Request(ClassicHttpRequests.head(uri));
     }
 
-    public static Request Post(final URI uri) {
+    public static Request post(final URI uri) {
         return new Request(ClassicHttpRequests.post(uri));
     }
 
-    public static Request Post(final String uri) {
+    public static Request post(final String uri) {
       return new Request(ClassicHttpRequests.post(uri));
     }
 
-    public static Request Patch(final URI uri) {
+    public static Request patch(final URI uri) {
       return new Request(ClassicHttpRequests.patch(uri));
     }
 
-    public static Request Patch(final String uri) {
+    public static Request patch(final String uri) {
       return new Request(ClassicHttpRequests.patch(uri));
     }
 
-    public static Request Put(final URI uri) {
+    public static Request put(final URI uri) {
       return new Request(ClassicHttpRequests.put(uri));
     }
 
-    public static Request Put(final String uri) {
+    public static Request put(final String uri) {
       return new Request(ClassicHttpRequests.put(uri));
     }
 
-    public static Request Trace(final URI uri) {
+    public static Request trace(final URI uri) {
       return new Request(ClassicHttpRequests.trace(uri));
     }
 
-    public static Request Trace(final String uri) {
+    public static Request trace(final String uri) {
       return new Request(ClassicHttpRequests.trace(uri));
     }
 
-    public static Request Delete(final URI uri) {
+    public static Request delete(final URI uri) {
       return new Request(ClassicHttpRequests.delete(uri));
     }
 
-    public static Request Delete(final String uri) {
+    public static Request delete(final String uri) {
       return new Request(ClassicHttpRequests.delete(uri));
     }
 
-    public static Request Options(final URI uri) {
+    public static Request options(final URI uri) {
       return new Request(ClassicHttpRequests.options(uri));
     }
 
-    public static Request Options(final String uri) {
+    public static Request options(final String uri) {
       return new Request(ClassicHttpRequests.options(uri));
     }
 

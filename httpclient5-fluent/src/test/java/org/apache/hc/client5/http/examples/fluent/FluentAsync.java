@@ -50,10 +50,10 @@ public class FluentAsync {
         final Async async = Async.newInstance().use(threadpool);
 
         final Request[] requests = new Request[] {
-                Request.Get("http://www.google.com/"),
-                Request.Get("http://www.yahoo.com/"),
-                Request.Get("http://www.apache.com/"),
-                Request.Get("http://www.apple.com/")
+                Request.get("http://www.google.com/"),
+                Request.get("http://www.yahoo.com/"),
+                Request.get("http://www.apache.org/"),
+                Request.get("http://www.apple.com/")
         };
 
 

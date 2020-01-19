@@ -36,9 +36,9 @@ public class FluentQuickStart {
         // deallocation of system resources at the cost of having to buffer
         // response content in memory in some cases.
 
-        Request.Get("http://targethost/homepage")
+        Request.get("http://targethost/homepage")
             .execute().returnContent();
-        Request.Post("http://targethost/login")
+        Request.post("http://targethost/login")
             .bodyForm(Form.form().add("username",  "vip").add("password",  "secret").build())
             .execute().returnContent();
     }

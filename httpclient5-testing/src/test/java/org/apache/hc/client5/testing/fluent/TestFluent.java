@@ -95,7 +95,7 @@ public class TestFluent extends LocalServerTestBase {
     public void testGetRequest() throws Exception {
         final HttpHost target = start();
         final String baseURL = "http://localhost:" + target.getPort();
-        final String message = Request.Get(baseURL + "/").execute().returnContent().asString();
+        final String message = Request.get(baseURL + "/").execute().returnContent().asString();
         Assert.assertEquals("All is well", message);
     }
 
@@ -119,18 +119,18 @@ public class TestFluent extends LocalServerTestBase {
     public void testGetRequestFailure() throws Exception {
         final HttpHost target = start();
         final String baseURL = "http://localhost:" + target.getPort();
-        Request.Get(baseURL + "/boom").execute().returnContent().asString();
+        Request.get(baseURL + "/boom").execute().returnContent().asString();
     }
 
     @Test
     public void testPostRequest() throws Exception {
         final HttpHost target = start();
         final String baseURL = "http://localhost:" + target.getPort();
-        final String message1 = Request.Post(baseURL + "/echo")
+        final String message1 = Request.post(baseURL + "/echo")
                 .bodyString("what is up?", ContentType.TEXT_PLAIN)
                 .execute().returnContent().asString();
         Assert.assertEquals("what is up?", message1);
-        final String message2 = Request.Post(baseURL + "/echo")
+        final String message2 = Request.post(baseURL + "/echo")
                 .bodyByteArray(new byte[]{1, 2, 3}, ContentType.APPLICATION_OCTET_STREAM)
                 .execute().returnContent().asString();
         Assert.assertEquals("echo", message2);
@@ -140,7 +140,7 @@ public class TestFluent extends LocalServerTestBase {
     public void testContentAsStringWithCharset() throws Exception {
         final HttpHost target = start();
         final String baseURL = "http://localhost:" + target.getPort();
-        final Content content = Request.Post(baseURL + "/echo").bodyByteArray("Ü".getBytes("utf-8")).execute()
+        final Content content = Request.post(baseURL + "/echo").bodyByteArray("Ü".getBytes("utf-8")).execute()
                 .returnContent();
         Assert.assertEquals((byte)-61, content.asBytes()[0]);
         Assert.assertEquals((byte)-100, content.asBytes()[1]);
@@ -152,10 +152,10 @@ public class TestFluent extends LocalServerTestBase {
         final HttpHost target = start();
         final String baseURL = "http://localhost:" + target.getPort();
         for (int i = 0; i < 20; i++) {
-            Request.Get(baseURL + "/").execute().returnContent();
-            Request.Get(baseURL + "/").execute().returnResponse();
-            Request.Get(baseURL + "/").execute().discardContent();
-            Request.Get(baseURL + "/").execute().handleResponse(new HttpClientResponseHandler<Object>() {
+            Request.get(baseURL + "/").execute().returnContent();
+            Request.get(baseURL + "/").execute().returnResponse();
+            Request.get(baseURL + "/").execute().discardContent();
+            Request.get(baseURL + "/").execute().handleResponse(new HttpClientResponseHandler<Object>() {
 
                 @Override
                 public Object handleResponse(
@@ -166,7 +166,7 @@ public class TestFluent extends LocalServerTestBase {
             });
             final File tmpFile = File.createTempFile("test", ".bin");
             try {
-                Request.Get(baseURL + "/").execute().saveContent(tmpFile);
+                Request.get(baseURL + "/").execute().saveContent(tmpFile);
             } finally {
                 tmpFile.delete();
             }
