@@ -27,6 +27,7 @@
 
 package org.apache.hc.client5.http.async.methods;
 
+import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.Arrays;
 
@@ -39,7 +40,7 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 @RunWith(Parameterized.class)
-public class TestHttpRequests {
+public class TestBasicHttpRequests {
 
   private static final URI URI_FIXTURE = URI.create("http://localhost");
 
@@ -47,30 +48,32 @@ public class TestHttpRequests {
   public static Iterable<Object[]> data() {
     return Arrays.asList(new Object[][] {
       // @formatter:off
-      { HttpRequests.DELETE, "DELETE" },
-      { HttpRequests.GET, "GET" },
-      { HttpRequests.HEAD, "HEAD" },
-      { HttpRequests.OPTIONS, "OPTIONS" },
-      { HttpRequests.PATCH, "PATCH" },
-      { HttpRequests.POST, "POST" },
-      { HttpRequests.PUT, "PUT" }
+      { "delete", "DELETE" },
+      { "get", "GET" },
+      { "head", "HEAD" },
+      { "options", "OPTIONS" },
+      { "patch", "PATCH" },
+      { "post", "POST" },
+      { "put", "PUT" },
+      { "trace", "TRACE" }
       // @formatter:on
     });
   }
 
-  private final HttpRequests httpRequest;
+  private final String methodName;
 
   private final String expectedMethod;
 
-  public TestHttpRequests(final HttpRequests classicHttpRequests, final String expectedMethod) {
-    this.httpRequest = classicHttpRequests;
+  public TestBasicHttpRequests(final String methodName, final String expectedMethod) {
+    this.methodName = methodName;
     this.expectedMethod = expectedMethod;
   }
 
   @Test
-  public void testCreateClassicHttpRequest() {
-    final HttpRequest classicHttpRequest = httpRequest.create(URI_FIXTURE);
-    Assert.assertEquals(BasicHttpRequest.class, classicHttpRequest.getClass());
-    Assert.assertEquals(expectedMethod, classicHttpRequest.getMethod());
+  public void testCreateClassicHttpRequest() throws Exception {
+    final Method httpMethod = BasicHttpRequests.class.getMethod(methodName, URI.class);
+    final HttpRequest basicHttpRequest = (HttpRequest) httpMethod.invoke(null, URI_FIXTURE);
+    Assert.assertEquals(BasicHttpRequest.class, basicHttpRequest.getClass());
+    Assert.assertEquals(expectedMethod, basicHttpRequest.getMethod());
   }
 }

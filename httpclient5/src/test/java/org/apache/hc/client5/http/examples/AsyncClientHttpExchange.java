@@ -60,7 +60,7 @@ public class AsyncClientHttpExchange {
         final String[] requestUris = new String[] {"/", "/ip", "/user-agent", "/headers"};
 
         for (final String requestUri: requestUris) {
-            final SimpleHttpRequest httpget = SimpleHttpRequests.GET.create(target, requestUri);
+            final SimpleHttpRequest httpget = SimpleHttpRequests.get(target, requestUri);
             System.out.println("Executing request " + httpget.getMethod() + " " + httpget.getUri());
             final Future<SimpleHttpResponse> future = client.execute(
                     httpget,

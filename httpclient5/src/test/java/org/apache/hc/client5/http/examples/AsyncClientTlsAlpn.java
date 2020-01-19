@@ -83,7 +83,7 @@ public class AsyncClientTlsAlpn {
             final String requestUri = "/httpbin/";
             final HttpClientContext clientContext = HttpClientContext.create();
 
-            final SimpleHttpRequest request = SimpleHttpRequests.GET.create(target, requestUri);
+            final SimpleHttpRequest request = SimpleHttpRequests.get(target, requestUri);
             final Future<SimpleHttpResponse> future = client.execute(
                     SimpleRequestProducer.create(request),
                     SimpleResponseConsumer.create(),

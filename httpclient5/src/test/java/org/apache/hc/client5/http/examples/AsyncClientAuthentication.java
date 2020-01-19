@@ -56,7 +56,7 @@ public class AsyncClientAuthentication {
         httpclient.start();
 
         final String requestUri = "http://httpbin.org/basic-auth/user/passwd";
-        final SimpleHttpRequest httpget = SimpleHttpRequests.GET.create(requestUri);
+        final SimpleHttpRequest httpget = SimpleHttpRequests.get(requestUri);
 
         System.out.println("Executing request " + requestUri);
         final Future<SimpleHttpResponse> future = httpclient.execute(

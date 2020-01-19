@@ -166,7 +166,7 @@ public class TestHttp1ClientAuthentication extends AbstractHttpAsyncClientAuthen
         final HttpClientContext context = HttpClientContext.create();
         context.setCredentialsProvider(credsProvider);
 
-        final Future<SimpleHttpResponse> future = httpclient.execute(SimpleHttpRequests.GET.create(target, "/"), context, null);
+        final Future<SimpleHttpResponse> future = httpclient.execute(SimpleHttpRequests.get(target, "/"), context, null);
         final HttpResponse response = future.get();
 
         Assert.assertNotNull(response);

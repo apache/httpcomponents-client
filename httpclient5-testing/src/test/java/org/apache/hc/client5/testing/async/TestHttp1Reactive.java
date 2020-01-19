@@ -126,7 +126,7 @@ public class TestHttp1Reactive extends AbstractHttpReactiveFundamentalsTest<Clos
     public void testSequentialGetRequestsCloseConnection() throws Exception {
         final HttpHost target = start();
         for (int i = 0; i < 3; i++) {
-            final SimpleHttpRequest get = SimpleHttpRequests.GET.create(target, "/random/2048");
+            final SimpleHttpRequest get = SimpleHttpRequests.get(target, "/random/2048");
             get.setHeader(HttpHeaders.CONNECTION, HeaderElements.CLOSE);
             final AsyncRequestProducer request = AsyncRequestBuilder.get(target + "/random/2048").build();
             final ReactiveResponseConsumer consumer = new ReactiveResponseConsumer();

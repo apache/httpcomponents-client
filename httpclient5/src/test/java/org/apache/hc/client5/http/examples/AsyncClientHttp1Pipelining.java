@@ -70,7 +70,7 @@ public class AsyncClientHttp1Pipelining {
 
             final CountDownLatch latch = new CountDownLatch(requestUris.length);
             for (final String requestUri: requestUris) {
-                final SimpleHttpRequest request = SimpleHttpRequests.GET.create(target, requestUri);
+                final SimpleHttpRequest request = SimpleHttpRequests.get(target, requestUri);
                 endpoint.execute(
                         SimpleRequestProducer.create(request),
                         SimpleResponseConsumer.create(),

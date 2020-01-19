@@ -27,6 +27,7 @@
 
 package org.apache.hc.client5.http.classic.methods;
 
+import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.Arrays;
 
@@ -47,36 +48,39 @@ public class TestClassicHttpRequests {
   public static Iterable<Object[]> data() {
     return Arrays.asList(new Object[][] {
       // @formatter:off
-      { ClassicHttpRequests.DELETE, HttpDelete.class },
-      { ClassicHttpRequests.GET, HttpGet.class },
-      { ClassicHttpRequests.HEAD, HttpHead.class },
-      { ClassicHttpRequests.OPTIONS, HttpOptions.class },
-      { ClassicHttpRequests.PATCH, HttpPatch.class },
-      { ClassicHttpRequests.POST, HttpPost.class },
-      { ClassicHttpRequests.PUT, HttpPut.class }
+      { "delete", HttpDelete.class },
+      { "get", HttpGet.class },
+      { "head", HttpHead.class },
+      { "options", HttpOptions.class },
+      { "patch", HttpPatch.class },
+      { "post", HttpPost.class },
+      { "put", HttpPut.class },
+      { "trace", HttpTrace.class }
       // @formatter:on
     });
   }
 
-  private final ClassicHttpRequests classicHttpRequests;
+  private final String methodName;
 
   private final Class<ClassicHttpRequest> expectedClass;
 
-  public TestClassicHttpRequests(final ClassicHttpRequests classicHttpRequests,
+  public TestClassicHttpRequests(final String methodName,
       final Class<ClassicHttpRequest> expectedClass) {
-    this.classicHttpRequests = classicHttpRequests;
+    this.methodName = methodName;
     this.expectedClass = expectedClass;
   }
 
   @Test
-  public void testCreateFromString() {
-    Assert.assertEquals(expectedClass,
-        classicHttpRequests.create(URI_STRING_FIXTURE).getClass());
+  public void testCreateFromString() throws Exception {
+      final Method httpMethod = ClassicHttpRequests.class.getMethod(methodName, String.class);
+      Assert.assertEquals(expectedClass,
+              httpMethod.invoke(null, URI_STRING_FIXTURE).getClass());
   }
 
   @Test
-  public void testCreateFromURI() {
+  public void testCreateFromURI() throws Exception {
+    final Method httpMethod = ClassicHttpRequests.class.getMethod(methodName, URI.class);
     Assert.assertEquals(expectedClass,
-        classicHttpRequests.create(URI_FIXTURE).getClass());
+            httpMethod.invoke(null, URI_FIXTURE).getClass());
   }
 }

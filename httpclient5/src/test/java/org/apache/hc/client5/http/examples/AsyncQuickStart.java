@@ -55,7 +55,7 @@ public class AsyncQuickStart {
             httpclient.start();
 
             // Execute request
-            final SimpleHttpRequest request1 = SimpleHttpRequests.GET.create("http://httpbin.org/get");
+            final SimpleHttpRequest request1 = SimpleHttpRequests.get("http://httpbin.org/get");
             final Future<SimpleHttpResponse> future = httpclient.execute(request1, null);
             // and wait until response is received
             final SimpleHttpResponse response1 = future.get();
@@ -63,7 +63,7 @@ public class AsyncQuickStart {
 
             // One most likely would want to use a callback for operation result
             final CountDownLatch latch1 = new CountDownLatch(1);
-            final SimpleHttpRequest request2 = SimpleHttpRequests.GET.create("http://httpbin.org/get");
+            final SimpleHttpRequest request2 = SimpleHttpRequests.get("http://httpbin.org/get");
             httpclient.execute(request2, new FutureCallback<SimpleHttpResponse>() {
 
                 @Override

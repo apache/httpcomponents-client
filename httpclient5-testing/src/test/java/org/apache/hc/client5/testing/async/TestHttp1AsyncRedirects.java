@@ -179,7 +179,7 @@ public class TestHttp1AsyncRedirects extends AbstractHttpAsyncRedirectsTest<Clos
 
         final HttpClientContext context = HttpClientContext.create();
         final Future<SimpleHttpResponse> future = httpclient.execute(
-                SimpleHttpRequests.GET.create(target, "/oldlocation/"), context, null);
+                SimpleHttpRequests.get(target, "/oldlocation/"), context, null);
         final HttpResponse response = future.get();
         Assert.assertNotNull(response);
 
@@ -203,7 +203,7 @@ public class TestHttp1AsyncRedirects extends AbstractHttpAsyncRedirectsTest<Clos
         final HttpHost target = start();
         final HttpClientContext context = HttpClientContext.create();
         final Future<SimpleHttpResponse> future = httpclient.execute(
-                SimpleHttpRequests.GET.create(target, "/oldlocation/"), context, null);
+                SimpleHttpRequests.get(target, "/oldlocation/"), context, null);
         final HttpResponse response = future.get();
         Assert.assertNotNull(response);
 
@@ -234,7 +234,7 @@ public class TestHttp1AsyncRedirects extends AbstractHttpAsyncRedirectsTest<Clos
         final HttpClientContext context = HttpClientContext.create();
 
         final Future<SimpleHttpResponse> future = httpclient.execute(
-                SimpleHttpRequests.GET.create(target, "/oldlocation/"), context, null);
+                SimpleHttpRequests.get(target, "/oldlocation/"), context, null);
         final HttpResponse response = future.get();
         Assert.assertNotNull(response);
 

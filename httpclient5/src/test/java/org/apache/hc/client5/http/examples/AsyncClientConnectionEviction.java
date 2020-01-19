@@ -65,7 +65,7 @@ public class AsyncClientConnectionEviction {
 
         final HttpHost target = new HttpHost("httpbin.org");
 
-        final SimpleHttpRequest request = SimpleHttpRequests.GET.create(target, "/");
+        final SimpleHttpRequest request = SimpleHttpRequests.get(target, "/");
         final Future<SimpleHttpResponse> future1 = client.execute(
                 SimpleRequestProducer.create(request),
                 SimpleResponseConsumer.create(),

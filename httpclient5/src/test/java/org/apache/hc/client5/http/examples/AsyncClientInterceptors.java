@@ -123,7 +123,7 @@ public class AsyncClientInterceptors {
 
         final String requestUri = "http://httpbin.org/get";
         for (int i = 0; i < 20; i++) {
-            final SimpleHttpRequest httpget = SimpleHttpRequests.GET.create(requestUri);
+            final SimpleHttpRequest httpget = SimpleHttpRequests.get(requestUri);
             System.out.println("Executing request " + httpget.getMethod() + " " + httpget.getUri());
             final Future<SimpleHttpResponse> future = client.execute(
                     httpget,

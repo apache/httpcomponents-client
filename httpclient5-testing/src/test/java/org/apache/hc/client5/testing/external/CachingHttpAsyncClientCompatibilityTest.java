@@ -131,7 +131,7 @@ public class CachingHttpAsyncClientCompatibilityTest {
         // Initial ping
         {
             final HttpCacheContext context = HttpCacheContext.create();
-            final SimpleHttpRequest options = SimpleHttpRequests.OPTIONS.create(target, "*");
+            final SimpleHttpRequest options = SimpleHttpRequests.options(target, "*");
             final Future<SimpleHttpResponse> future = client.execute(options, context, null);
             try {
                 final SimpleHttpResponse response = future.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
@@ -155,7 +155,7 @@ public class CachingHttpAsyncClientCompatibilityTest {
 
             final Pattern linkPattern = Pattern.compile("^<(.*)>;rel=preload$");
             final List<String> links = new ArrayList<>();
-            final SimpleHttpRequest getRoot1 = SimpleHttpRequests.GET.create(target, "/");
+            final SimpleHttpRequest getRoot1 = SimpleHttpRequests.get(target, "/");
             final Future<SimpleHttpResponse> future1 = client.execute(getRoot1, context, null);
             try {
                 final SimpleHttpResponse response = future1.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
@@ -179,7 +179,7 @@ public class CachingHttpAsyncClientCompatibilityTest {
                 logResult(TestResult.NOK, getRoot1, "(time out)");
             }
             for (final String link: links) {
-                final SimpleHttpRequest getLink = SimpleHttpRequests.GET.create(target, link);
+                final SimpleHttpRequest getLink = SimpleHttpRequests.get(target, link);
                 final Future<SimpleHttpResponse> linkFuture = client.execute(getLink, context, null);
                 try {
                     final SimpleHttpResponse response = linkFuture.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
@@ -198,7 +198,7 @@ public class CachingHttpAsyncClientCompatibilityTest {
                 }
             }
 
-            final SimpleHttpRequest getRoot2 = SimpleHttpRequests.GET.create(target, "/");
+            final SimpleHttpRequest getRoot2 = SimpleHttpRequests.get(target, "/");
             final Future<SimpleHttpResponse> future2 = client.execute(getRoot2, context, null);
             try {
                 final SimpleHttpResponse response = future2.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
@@ -216,7 +216,7 @@ public class CachingHttpAsyncClientCompatibilityTest {
                 logResult(TestResult.NOK, getRoot2, "(time out)");
             }
             for (final String link: links) {
-                final SimpleHttpRequest getLink = SimpleHttpRequests.GET.create(target, link);
+                final SimpleHttpRequest getLink = SimpleHttpRequests.get(target, link);
                 final Future<SimpleHttpResponse> linkFuture = client.execute(getLink, context, null);
                 try {
                     final SimpleHttpResponse response = linkFuture.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
