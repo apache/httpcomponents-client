@@ -1,17 +1,8 @@
 ﻿Release 5.0-BETA7
 -----------------
 
-This BETA release picks up the latest fixes and performance improvements from HttpCore
-and addresses a number of issues found since the previous BETA release.
-
-* HTTPCLIENT-2043: Rename classes documented as factories from *Provider #194.
-
-
-Release 5.0-BETA6
--------------------
-
-This BETA release picks up the latest fixes and performance improvements from HttpCore
-and addresses a number of issues found since the previous BETA release.
+This BETA release upgrades HttpCore to the latest version  and addresses a number of issues found
+since the previous BETA release.
 
 IMPORTANT: This release is expected to be the last BETA version. If no major
 design flaws are found the actual 5.0 API will be frozen and the next version will be
@@ -48,6 +39,56 @@ Notable changes and features included in the 5.0 series are:
 HttpClient 5.0 releases can be co-located with earlier major versions on the same classpath
 due to the change in package names and Maven module coordinates.
 
+
+Changelog:
+-------------------
+
+* Improved domain name normalization by DefaultHostnameVerifier.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* DefaultHostnameVerifier: Match DNS and CN names against ICANN domains.
+  Contributed by Ryan Schmitt <rschmitt at apache.org>
+
+* HTTPCORE-615: Implement HTTP-based cache serializer-deserializer.
+  Contributed by Scott Gifford <sgifford at suspectclass.com>
+
+* HTTPCLIENT-2040: Copy headers from the original request to the redirect request.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Removed RFC 2965 specific requirements deprecated and superseded by RFC 6265.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2035: Remove HttpRequestRetryHandler in favor of HttpRequestRetryStrategy.
+  Contributed by Michael Osipov <michaelo at apache.org>
+
+* HTTPCLIENT-2019: Remove ServiceUnavailableRetryStrategy in favor of HttpRequestRetryStrategy.
+  Contributed by Michael Osipov <michaelo at apache.org>
+
+* HTTPCLIENT-2034: Introduce HttpRequestRetryStrategy.
+  Contributed by Michael Osipov <michaelo at apache.org>
+
+* CloseableHttpAsyncClient to support explicit HttpHost execution parameter.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2020: DefaultBackoffStrategy to support TOO_MANY_REQUESTS (429).
+  Contributed by Michael Osipov <michaelo at apache.org>
+
+* HTTPCLIENT-2030: Fixed PublicSuffixMatcher#getDomainRoot behavior with invalid hostnames.
+  Contributed by Niels Basjes <niels at basjes.nl>
+
+* HTTPCLIENT-2028: Connection managers to allow 0 for `validateAfterInactivity` time value.
+  Contributed by Peter Frank <pfrank at fandango.com>
+
+* HTTPCLIENT-2023: Allow nested arrays and all primitive types in DefaultHttpCacheEntrySerializer.
+  Contributed by Olof Larsson <olof at sylt.nu>
+
+
+
+Release 5.0-BETA6
+-------------------
+
+This BETA release picks up the latest fixes and performance improvements from HttpCore
+and addresses a number of issues found since the previous BETA release.
 
 Changelog:
 -------------------
