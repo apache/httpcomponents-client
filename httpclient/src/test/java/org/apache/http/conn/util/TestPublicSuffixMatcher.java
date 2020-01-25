@@ -57,11 +57,11 @@ public class TestPublicSuffixMatcher {
     @Test
     public void testGetDomainRootAnyType() {
         // Private
-        Assert.assertEquals("example.xx", matcher.getDomainRoot("example.XX"));
-        Assert.assertEquals("example.xx", matcher.getDomainRoot("www.example.XX"));
-        Assert.assertEquals("example.xx", matcher.getDomainRoot("www.blah.blah.example.XX"));
+        Assert.assertEquals("xx", matcher.getDomainRoot("example.XX"));
+        Assert.assertEquals("xx", matcher.getDomainRoot("www.example.XX"));
+        Assert.assertEquals("xx", matcher.getDomainRoot("www.blah.blah.example.XX"));
+        Assert.assertEquals("appspot.com", matcher.getDomainRoot("example.appspot.com"));
         // Too short
-        Assert.assertEquals(null, matcher.getDomainRoot("xx"));
         Assert.assertEquals(null, matcher.getDomainRoot("jp"));
         Assert.assertEquals(null, matcher.getDomainRoot("ac.jp"));
         Assert.assertEquals(null, matcher.getDomainRoot("any.tokyo.jp"));
@@ -79,11 +79,11 @@ public class TestPublicSuffixMatcher {
     @Test
     public void testGetDomainRootOnlyPRIVATE() {
         // Private
-        Assert.assertEquals("example.xx", matcher.getDomainRoot("example.XX", DomainType.PRIVATE));
-        Assert.assertEquals("example.xx", matcher.getDomainRoot("www.example.XX", DomainType.PRIVATE));
-        Assert.assertEquals("example.xx", matcher.getDomainRoot("www.blah.blah.example.XX", DomainType.PRIVATE));
+        Assert.assertEquals("xx", matcher.getDomainRoot("example.XX", DomainType.PRIVATE));
+        Assert.assertEquals("xx", matcher.getDomainRoot("www.example.XX", DomainType.PRIVATE));
+        Assert.assertEquals("xx", matcher.getDomainRoot("www.blah.blah.example.XX", DomainType.PRIVATE));
+        Assert.assertEquals("appspot.com", matcher.getDomainRoot("example.appspot.com"));
         // Too short
-        Assert.assertEquals(null, matcher.getDomainRoot("xx", DomainType.PRIVATE));
         Assert.assertEquals(null, matcher.getDomainRoot("jp", DomainType.PRIVATE));
         Assert.assertEquals(null, matcher.getDomainRoot("ac.jp", DomainType.PRIVATE));
         Assert.assertEquals(null, matcher.getDomainRoot("any.tokyo.jp", DomainType.PRIVATE));
@@ -128,6 +128,8 @@ public class TestPublicSuffixMatcher {
         Assert.assertTrue(matcher.matches(".any.tokyo.jp"));
         // exception
         Assert.assertFalse(matcher.matches(".metro.tokyo.jp"));
+        Assert.assertFalse(matcher.matches(".xx"));
+        Assert.assertFalse(matcher.matches(".appspot.com"));
     }
 
     @Test
