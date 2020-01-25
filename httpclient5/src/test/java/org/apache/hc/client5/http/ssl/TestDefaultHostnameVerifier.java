@@ -44,6 +44,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -412,6 +413,30 @@ public class TestDefaultHostnameVerifier {
             Assert.fail("SSLException expected");
         } catch (final SSLException expected) {
         }
+    }
+
+    @Test
+    public void testMatchDNSName() throws Exception {
+        DefaultHostnameVerifier.matchDNSName(
+                "host.domain.com",
+                Collections.singletonList(SubjectName.DNS("*.domain.com")),
+                publicSuffixMatcher);
+        DefaultHostnameVerifier.matchDNSName(
+                "host.xx",
+                Collections.singletonList(SubjectName.DNS("*.xx")),
+                publicSuffixMatcher);
+        DefaultHostnameVerifier.matchDNSName(
+                "host.appspot.com",
+                Collections.singletonList(SubjectName.DNS("*.appspot.com")),
+                publicSuffixMatcher);
+        DefaultHostnameVerifier.matchDNSName(
+                "demo-s3-bucket.s3.eu-central-1.amazonaws.com",
+                Collections.singletonList(SubjectName.DNS("*.s3.eu-central-1.amazonaws.com")),
+                publicSuffixMatcher);
+        DefaultHostnameVerifier.matchDNSName(
+                "hostname-workspace-1.local",
+                Collections.singletonList(SubjectName.DNS("hostname-workspace-1.local")),
+                publicSuffixMatcher);
     }
 
 }
