@@ -32,7 +32,6 @@ import java.net.URI;
 import java.util.Arrays;
 
 import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.message.BasicHttpRequest;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -40,7 +39,7 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 @RunWith(Parameterized.class)
-public class TestBasicHttpRequests {
+public class SimpleBasicHttpRequests {
 
     private static final String URI_STRING_FIXTURE = "http://localhost";
     private static final URI URI_FIXTURE = URI.create(URI_STRING_FIXTURE);
@@ -65,28 +64,28 @@ public class TestBasicHttpRequests {
 
   private final String expectedMethod;
 
-  public TestBasicHttpRequests(final String methodName, final String expectedMethod) {
+  public SimpleBasicHttpRequests(final String methodName, final String expectedMethod) {
     this.methodName = methodName;
     this.expectedMethod = expectedMethod;
   }
 
   @Test
   public void testCreateMethodUri() {
-      Assert.assertEquals(BasicHttpRequest.class, BasicHttpRequests.create(methodName, URI_FIXTURE).getClass());
-      Assert.assertEquals(BasicHttpRequest.class, BasicHttpRequests.create(expectedMethod, URI_FIXTURE).getClass());
+      Assert.assertEquals(SimpleHttpRequest.class, SimpleHttpRequests.create(methodName, URI_FIXTURE).getClass());
+      Assert.assertEquals(SimpleHttpRequest.class, SimpleHttpRequests.create(expectedMethod, URI_FIXTURE).getClass());
   }
 
   @Test
   public void testCreateMethodUriString() {
-      Assert.assertEquals(BasicHttpRequest.class, BasicHttpRequests.create(methodName, URI_STRING_FIXTURE).getClass());
-      Assert.assertEquals(BasicHttpRequest.class, BasicHttpRequests.create(expectedMethod, URI_STRING_FIXTURE).getClass());
+      Assert.assertEquals(SimpleHttpRequest.class, SimpleHttpRequests.create(methodName, URI_STRING_FIXTURE).getClass());
+      Assert.assertEquals(SimpleHttpRequest.class, SimpleHttpRequests.create(expectedMethod, URI_STRING_FIXTURE).getClass());
   }
 
   @Test
   public void testCreateClassicHttpRequest() throws Exception {
-    final Method httpMethod = BasicHttpRequests.class.getMethod(methodName, URI.class);
+    final Method httpMethod = SimpleHttpRequests.class.getMethod(methodName, URI.class);
     final HttpRequest basicHttpRequest = (HttpRequest) httpMethod.invoke(null, URI_FIXTURE);
-    Assert.assertEquals(BasicHttpRequest.class, basicHttpRequest.getClass());
+    Assert.assertEquals(SimpleHttpRequest.class, basicHttpRequest.getClass());
     Assert.assertEquals(expectedMethod, basicHttpRequest.getMethod());
   }
 }

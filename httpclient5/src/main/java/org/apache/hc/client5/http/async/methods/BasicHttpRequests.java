@@ -28,6 +28,8 @@
 package org.apache.hc.client5.http.async.methods;
 
 import java.net.URI;
+import java.util.Locale;
+import java.util.Objects;
 
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.Method;
@@ -39,6 +41,38 @@ import org.apache.hc.core5.http.message.BasicHttpRequest;
  * @since 5.0
  */
 public final class BasicHttpRequests {
+
+    // TODO Next version of HttpCore:
+    // Method.normalizedValueOf(method)
+    private static Method normalizedValueOf(final String method) {
+        return Method.valueOf(Objects.requireNonNull(method, "method").toUpperCase(Locale.ROOT));
+    }
+
+    /**
+     * Creates a new BasicHttpRequest for the given {@code method} and {@code String} URI.
+     *
+     * @param method A method supported by this class.
+     * @param uri a non-null request string URI.
+     * @return A new BasicHttpRequest.
+     */
+    public static BasicHttpRequest create(final String method, final String uri) {
+        // TODO Next version of HttpCore:
+        // return create(Method.normalizedValueOf(method), uri);
+        return create(normalizedValueOf(method), uri);
+    }
+
+    /**
+     * Creates a new BasicHttpRequest for the given {@code method} and {@code URI}.
+     *
+     * @param method A method supported by this class.
+     * @param uri a non-null request URI.
+     * @return A new BasicHttpRequest.
+     */
+    public static BasicHttpRequest create(final String method, final URI uri) {
+        // TODO Next version of HttpCore:
+        // return create(Method.normalizedValueOf(method), uri);
+        return create(normalizedValueOf(method), uri);
+    }
 
     public static BasicHttpRequest delete(final String uri) {
         return delete(URI.create(uri));
