@@ -29,11 +29,11 @@ package org.apache.hc.client5.http.async.methods;
 
 import java.net.URI;
 import java.util.Locale;
-import java.util.Objects;
 
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
+import org.apache.hc.core5.util.Args;
 
 /**
  * Common HTTP methods using {@link BasicHttpRequest} as a HTTP request message representation.
@@ -45,7 +45,7 @@ public final class BasicHttpRequests {
     // TODO Next version of HttpCore:
     // Method.normalizedValueOf(method)
     private static Method normalizedValueOf(final String method) {
-        return Method.valueOf(Objects.requireNonNull(method, "method").toUpperCase(Locale.ROOT));
+        return Method.valueOf(Args.notNull(method, "method").toUpperCase(Locale.ROOT));
     }
 
     /**

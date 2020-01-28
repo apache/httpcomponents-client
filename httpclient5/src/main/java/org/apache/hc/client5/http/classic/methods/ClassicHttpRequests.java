@@ -29,9 +29,9 @@ package org.apache.hc.client5.http.classic.methods;
 
 import java.net.URI;
 import java.util.Locale;
-import java.util.Objects;
 
 import org.apache.hc.core5.http.Method;
+import org.apache.hc.core5.util.Args;
 
 
 /**
@@ -47,7 +47,7 @@ public final class ClassicHttpRequests {
     private static Method normalizedValueOf(final String method) {
         // TODO Next version of HttpCore:
         // Method.normalizedValueOf(method)
-        return Method.valueOf(Objects.requireNonNull(method, "method").toUpperCase(Locale.ROOT));
+        return Method.valueOf(Args.notNull(method, "method").toUpperCase(Locale.ROOT));
     }
 
     /**
@@ -69,7 +69,7 @@ public final class ClassicHttpRequests {
      * @return a new HttpUriRequest.
      */
     public static HttpUriRequest create(final Method method, final URI uri) {
-        switch (Objects.requireNonNull(method, "method")) {
+        switch (Args.notNull(method, "method")) {
         case DELETE:
             return delete(uri);
         case GET:
