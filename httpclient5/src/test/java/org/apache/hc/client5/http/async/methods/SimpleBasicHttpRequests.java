@@ -25,13 +25,13 @@
  *
  */
 
-package org.apache.hc.client5.http.classic.methods;
+package org.apache.hc.client5.http.async.methods;
 
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.Arrays;
 
-import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.apache.hc.core5.http.HttpRequest;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,58 +39,53 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 @RunWith(Parameterized.class)
-public class TestClassicHttpRequests {
+public class SimpleBasicHttpRequests {
 
-  private static final String URI_STRING_FIXTURE = "http://localhost";
-  private static final URI URI_FIXTURE = URI.create(URI_STRING_FIXTURE);
+    private static final String URI_STRING_FIXTURE = "http://localhost";
+    private static final URI URI_FIXTURE = URI.create(URI_STRING_FIXTURE);
 
   @Parameters(name = "{index}: {0} => {1}")
   public static Iterable<Object[]> data() {
     return Arrays.asList(new Object[][] {
       // @formatter:off
-      { "delete", HttpDelete.class },
-      { "get", HttpGet.class },
-      { "head", HttpHead.class },
-      { "options", HttpOptions.class },
-      { "patch", HttpPatch.class },
-      { "post", HttpPost.class },
-      { "put", HttpPut.class },
-      { "trace", HttpTrace.class }
+      { "delete", "DELETE" },
+      { "get", "GET" },
+      { "head", "HEAD" },
+      { "options", "OPTIONS" },
+      { "patch", "PATCH" },
+      { "post", "POST" },
+      { "put", "PUT" },
+      { "trace", "TRACE" }
       // @formatter:on
     });
   }
 
   private final String methodName;
 
-  private final Class<ClassicHttpRequest> expectedClass;
+  private final String expectedMethod;
 
-  public TestClassicHttpRequests(final String methodName,
-      final Class<ClassicHttpRequest> expectedClass) {
+  public SimpleBasicHttpRequests(final String methodName, final String expectedMethod) {
     this.methodName = methodName;
-    this.expectedClass = expectedClass;
+    this.expectedMethod = expectedMethod;
   }
 
   @Test
   public void testCreateMethodUri() {
-      Assert.assertEquals(expectedClass, ClassicHttpRequests.create(methodName, URI_FIXTURE).getClass());
+      Assert.assertEquals(SimpleHttpRequest.class, SimpleHttpRequests.create(methodName, URI_FIXTURE).getClass());
+      Assert.assertEquals(SimpleHttpRequest.class, SimpleHttpRequests.create(expectedMethod, URI_FIXTURE).getClass());
   }
 
   @Test
   public void testCreateMethodUriString() {
-      Assert.assertEquals(expectedClass, ClassicHttpRequests.create(methodName, URI_STRING_FIXTURE).getClass());
+      Assert.assertEquals(SimpleHttpRequest.class, SimpleHttpRequests.create(methodName, URI_STRING_FIXTURE).getClass());
+      Assert.assertEquals(SimpleHttpRequest.class, SimpleHttpRequests.create(expectedMethod, URI_STRING_FIXTURE).getClass());
   }
 
   @Test
-  public void testCreateFromString() throws Exception {
-      final Method httpMethod = ClassicHttpRequests.class.getMethod(methodName, String.class);
-      Assert.assertEquals(expectedClass,
-              httpMethod.invoke(null, URI_STRING_FIXTURE).getClass());
-  }
-
-  @Test
-  public void testCreateFromURI() throws Exception {
-    final Method httpMethod = ClassicHttpRequests.class.getMethod(methodName, URI.class);
-    Assert.assertEquals(expectedClass,
-            httpMethod.invoke(null, URI_FIXTURE).getClass());
+  public void testCreateClassicHttpRequest() throws Exception {
+    final Method httpMethod = SimpleHttpRequests.class.getMethod(methodName, URI.class);
+    final HttpRequest basicHttpRequest = (HttpRequest) httpMethod.invoke(null, URI_FIXTURE);
+    Assert.assertEquals(SimpleHttpRequest.class, basicHttpRequest.getClass());
+    Assert.assertEquals(expectedMethod, basicHttpRequest.getMethod());
   }
 }

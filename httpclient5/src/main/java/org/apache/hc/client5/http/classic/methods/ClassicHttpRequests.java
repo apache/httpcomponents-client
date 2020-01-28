@@ -28,6 +28,10 @@
 package org.apache.hc.client5.http.classic.methods;
 
 import java.net.URI;
+import java.util.Locale;
+
+import org.apache.hc.core5.http.Method;
+import org.apache.hc.core5.util.Args;
 
 
 /**
@@ -39,6 +43,79 @@ import java.net.URI;
  * @since 5.0
  */
 public final class ClassicHttpRequests {
+
+    private static Method normalizedValueOf(final String method) {
+        // TODO Next version of HttpCore:
+        // Method.normalizedValueOf(method)
+        return Method.valueOf(Args.notNull(method, "method").toUpperCase(Locale.ROOT));
+    }
+
+    /**
+     * Creates a new HttpUriRequest for the given {@code Method} and {@code String} URI.
+     *
+     * @param method A method.
+     * @param uri a URI.
+     * @return a new HttpUriRequest.
+     */
+    public static HttpUriRequest create(final Method method, final String uri) {
+        return create(method, URI.create(uri));
+    }
+
+    /**
+     * Creates a new HttpUriRequest for the given {@code Method} and {@code URI}.
+     *
+     * @param method A method.
+     * @param uri a URI.
+     * @return a new HttpUriRequest.
+     */
+    public static HttpUriRequest create(final Method method, final URI uri) {
+        switch (Args.notNull(method, "method")) {
+        case DELETE:
+            return delete(uri);
+        case GET:
+            return get(uri);
+        case HEAD:
+            return head(uri);
+        case OPTIONS:
+            return options(uri);
+        case PATCH:
+            return patch(uri);
+        case POST:
+            return post(uri);
+        case PUT:
+            return put(uri);
+        case TRACE:
+            return trace(uri);
+        default:
+            throw new IllegalArgumentException(method.toString());
+        }
+    }
+
+    /**
+     * Creates a new HttpUriRequest for the given {@code method} and {@code String} URI.
+     *
+     * @param method A method supported by this class.
+     * @param uri a non-null request string URI.
+     * @throws IllegalArgumentException if the method is not supported.
+     * @throws IllegalArgumentException if the string uri is null.
+     * @return A new HttpUriRequest.
+     */
+    public static HttpUriRequest create(final String method, final String uri) {
+        return create(normalizedValueOf(method), uri);
+    }
+
+    /**
+     * Creates a new HttpUriRequest for the given {@code method} and {@code URI}.
+     *
+     * @param method A method supported by this class.
+     * @param uri a non-null request URI.
+     * @throws IllegalArgumentException if the method is not supported.
+     * @throws IllegalArgumentException if the uri is null.
+     * @return A new HttpUriRequest.
+     */
+    public static HttpUriRequest create(final String method, final URI uri) {
+        return create(normalizedValueOf(method), uri);
+    }
 
     public static HttpUriRequest delete(final String uri) {
         return delete(URI.create(uri));

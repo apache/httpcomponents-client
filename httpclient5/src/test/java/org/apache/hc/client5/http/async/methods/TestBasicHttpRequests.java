@@ -42,7 +42,8 @@ import org.junit.runners.Parameterized.Parameters;
 @RunWith(Parameterized.class)
 public class TestBasicHttpRequests {
 
-  private static final URI URI_FIXTURE = URI.create("http://localhost");
+    private static final String URI_STRING_FIXTURE = "http://localhost";
+    private static final URI URI_FIXTURE = URI.create(URI_STRING_FIXTURE);
 
   @Parameters(name = "{index}: {0} => {1}")
   public static Iterable<Object[]> data() {
@@ -67,6 +68,18 @@ public class TestBasicHttpRequests {
   public TestBasicHttpRequests(final String methodName, final String expectedMethod) {
     this.methodName = methodName;
     this.expectedMethod = expectedMethod;
+  }
+
+  @Test
+  public void testCreateMethodUri() {
+      Assert.assertEquals(BasicHttpRequest.class, BasicHttpRequests.create(methodName, URI_FIXTURE).getClass());
+      Assert.assertEquals(BasicHttpRequest.class, BasicHttpRequests.create(expectedMethod, URI_FIXTURE).getClass());
+  }
+
+  @Test
+  public void testCreateMethodUriString() {
+      Assert.assertEquals(BasicHttpRequest.class, BasicHttpRequests.create(methodName, URI_STRING_FIXTURE).getClass());
+      Assert.assertEquals(BasicHttpRequest.class, BasicHttpRequests.create(expectedMethod, URI_STRING_FIXTURE).getClass());
   }
 
   @Test

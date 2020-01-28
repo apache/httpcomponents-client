@@ -1,4 +1,22 @@
-﻿Release 5.0-BETA7
+﻿Release 5.0-BETA8
+-----------------
+
+* GitHub #204: Build requests from method names in ClassicHttpRequests:
+  ClassicHttpRequests.create(String, String)
+  ClassicHttpRequests.create(String, URI)
+  Contributed by Gary Gregory <ggregory at apache.org>
+
+* GitHub #205: Update request factory classes with matching APIs for Method and String method name inputs:
+  BasicHttpRequests.create(String, URI)
+  BasicHttpRequests.create(String, String)
+  ClassicHttpRequests.create(Method, String)
+  ClassicHttpRequests.create(Method, URI)
+  SimpleHttpRequests.create(String, URI)
+  SimpleHttpRequests.create(String, String)
+  Contributed by Gary Gregory <ggregory at apache.org>
+
+
+Release 5.0-BETA7
 -----------------
 
 This BETA release upgrades HttpCore to the latest version  and addresses a number of issues found
