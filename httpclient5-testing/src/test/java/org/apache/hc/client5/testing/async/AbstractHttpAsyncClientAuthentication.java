@@ -246,7 +246,7 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
         context.setCredentialsProvider(credsProvider);
 
         final SimpleHttpRequest put = SimpleHttpRequests.put(target, "/");
-        put.setBody("Some important stuff", ContentType.TEXT_PLAIN);
+        put.setBodyText("Some important stuff", ContentType.TEXT_PLAIN);
         final Future<SimpleHttpResponse> future = httpclient.execute(put, context, null);
         final HttpResponse response = future.get();
 
@@ -276,7 +276,7 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
         context.setRequestConfig(RequestConfig.custom().setExpectContinueEnabled(true).build());
 
         final SimpleHttpRequest put = SimpleHttpRequests.put(target, "/");
-        put.setBody("Some important stuff", ContentType.TEXT_PLAIN);
+        put.setBodyText("Some important stuff", ContentType.TEXT_PLAIN);
         final Future<SimpleHttpResponse> future = httpclient.execute(put, context, null);
         final HttpResponse response = future.get();
 
@@ -303,7 +303,7 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
         context.setRequestConfig(RequestConfig.custom().setExpectContinueEnabled(true).build());
 
         final SimpleHttpRequest put = SimpleHttpRequests.put(target, "/");
-        put.setBody("Some important stuff", ContentType.TEXT_PLAIN);
+        put.setBodyText("Some important stuff", ContentType.TEXT_PLAIN);
         final Future<SimpleHttpResponse> future = httpclient.execute(put, context, null);
         final HttpResponse response = future.get();
 

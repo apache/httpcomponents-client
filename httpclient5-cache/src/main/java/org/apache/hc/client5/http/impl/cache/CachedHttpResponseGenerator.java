@@ -76,7 +76,7 @@ class CachedHttpResponseGenerator {
             final ContentType contentType = h != null ? ContentType.parse(h.getValue()) : null;
             final byte[] content = resource.get();
             addMissingContentLengthHeader(response, content);
-            response.setBody(content, contentType);
+            response.setBodyBytes(content, contentType);
         }
 
         final TimeValue age = this.validityStrategy.getCurrentAge(entry, now);

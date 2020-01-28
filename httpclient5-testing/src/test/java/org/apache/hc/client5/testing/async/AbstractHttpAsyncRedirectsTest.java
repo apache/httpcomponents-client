@@ -110,7 +110,7 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
                     return response;
                 } else if (path.equals("/newlocation/")) {
                     final SimpleHttpResponse response = new SimpleHttpResponse(HttpStatus.SC_OK);
-                    response.setBody("Successful redirect", ContentType.TEXT_PLAIN);
+                    response.setBodyText("Successful redirect", ContentType.TEXT_PLAIN);
                     return response;
                 } else {
                     return new SimpleHttpResponse(HttpStatus.SC_NOT_FOUND);
@@ -166,7 +166,7 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
                     return response;
                 } else if (path.equals("/relativelocation/")) {
                     final SimpleHttpResponse response = new SimpleHttpResponse(HttpStatus.SC_OK);
-                    response.setBody("Successful redirect", ContentType.TEXT_PLAIN);
+                    response.setBodyText("Successful redirect", ContentType.TEXT_PLAIN);
                     return response;
                 } else {
                     return new SimpleHttpResponse(HttpStatus.SC_NOT_FOUND);
@@ -191,7 +191,7 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
                     return response;
                 } else if (path.equals("/test/relativelocation")) {
                     final SimpleHttpResponse response = new SimpleHttpResponse(HttpStatus.SC_OK);
-                    response.setBody("Successful redirect", ContentType.TEXT_PLAIN);
+                    response.setBodyText("Successful redirect", ContentType.TEXT_PLAIN);
                     return response;
                 } else {
                     return new SimpleHttpResponse(HttpStatus.SC_NOT_FOUND);
@@ -468,7 +468,7 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
         final HttpClientContext context = HttpClientContext.create();
 
         final SimpleHttpRequest post = SimpleHttpRequests.post(target, "/oldlocation/");
-        post.setBody("stuff", ContentType.TEXT_PLAIN);
+        post.setBodyText("stuff", ContentType.TEXT_PLAIN);
         final Future<SimpleHttpResponse> future = httpclient.execute(post, context, null);
         final HttpResponse response = future.get();
         Assert.assertNotNull(response);
@@ -553,7 +553,7 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
                     return response;
                 } else if (path.equals("/relativelocation/")) {
                     final SimpleHttpResponse response = new SimpleHttpResponse(HttpStatus.SC_OK);
-                    response.setBody("Successful redirect", ContentType.TEXT_PLAIN);
+                    response.setBodyText("Successful redirect", ContentType.TEXT_PLAIN);
                     return response;
                 } else {
                     return new SimpleHttpResponse(HttpStatus.SC_NOT_FOUND);
@@ -734,7 +734,7 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
                 final String path = requestURI.getPath();
                 if (path.equals("/rome")) {
                     final SimpleHttpResponse response = new SimpleHttpResponse(HttpStatus.SC_OK);
-                    response.setBody("Successful redirect", ContentType.TEXT_PLAIN);
+                    response.setBodyText("Successful redirect", ContentType.TEXT_PLAIN);
                     return response;
                 } else {
                     final SimpleHttpResponse response = new SimpleHttpResponse(HttpStatus.SC_MOVED_TEMPORARILY);

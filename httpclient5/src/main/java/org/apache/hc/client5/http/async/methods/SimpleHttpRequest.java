@@ -85,11 +85,11 @@ public final class SimpleHttpRequest extends ConfigurableHttpRequest {
         this.body = body;
     }
 
-    public void setBody(final byte[] bodyBytes, final ContentType contentType) {
+    public void setBodyBytes(final byte[] bodyBytes, final ContentType contentType) {
         this.body = SimpleBody.create(bodyBytes, contentType);
     }
 
-    public void setBody(final String bodyText, final ContentType contentType) {
+    public void setBodyText(final String bodyText, final ContentType contentType) {
         this.body = SimpleBody.create(bodyText, contentType);
     }
 
