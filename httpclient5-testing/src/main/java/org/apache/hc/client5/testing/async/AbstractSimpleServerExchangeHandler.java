@@ -65,7 +65,7 @@ public abstract class AbstractSimpleServerExchangeHandler extends AbstractServer
                     final ContentType contentType) {
                 final SimpleHttpRequest simpleRequest = SimpleHttpRequest.copy(request);
                 if (body != null) {
-                    simpleRequest.setBodyBytes(body, contentType);
+                    simpleRequest.setBody(body, contentType);
                 }
                 return simpleRequest;
             }

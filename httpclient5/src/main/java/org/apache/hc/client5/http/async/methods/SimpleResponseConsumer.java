@@ -61,7 +61,7 @@ public final class SimpleResponseConsumer extends AbstractAsyncResponseConsumer<
     protected SimpleHttpResponse buildResult(final HttpResponse response, final byte[] entity, final ContentType contentType) {
         final SimpleHttpResponse simpleResponse = SimpleHttpResponse.copy(response);
         if (entity != null) {
-            simpleResponse.setBodyBytes(entity, contentType);
+            simpleResponse.setBody(entity, contentType);
         }
         return simpleResponse;
     }
