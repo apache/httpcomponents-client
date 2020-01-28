@@ -1,4 +1,12 @@
-﻿Release 5.0-BETA7
+﻿Release 5.0-BETA8
+-----------------
+
+* Build requests from method names in ClassicHttpRequests #204.
+  ClassicHttpRequests.create(String, String)
+  ClassicHttpRequests.create(String, URI)
+  Contributed by Gary Gregory <ggregory at apache.org>
+
+Release 5.0-BETA7
 -----------------
 
 This BETA release upgrades HttpCore to the latest version  and addresses a number of issues found
