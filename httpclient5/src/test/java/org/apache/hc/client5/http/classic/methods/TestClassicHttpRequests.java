@@ -71,6 +71,16 @@ public class TestClassicHttpRequests {
   }
 
   @Test
+  public void testCreateMethodUri() {
+      Assert.assertEquals(expectedClass, ClassicHttpRequests.create(methodName, URI_FIXTURE).getClass());
+  }
+
+  @Test
+  public void testCreateMethodUriString() {
+      Assert.assertEquals(expectedClass, ClassicHttpRequests.create(methodName, URI_STRING_FIXTURE).getClass());
+  }
+
+  @Test
   public void testCreateFromString() throws Exception {
       final Method httpMethod = ClassicHttpRequests.class.getMethod(methodName, String.class);
       Assert.assertEquals(expectedClass,

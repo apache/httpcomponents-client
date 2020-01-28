@@ -28,6 +28,8 @@
 package org.apache.hc.client5.http.classic.methods;
 
 import java.net.URI;
+import java.util.Locale;
+import java.util.Objects;
 
 
 /**
@@ -39,6 +41,74 @@ import java.net.URI;
  * @since 5.0
  */
 public final class ClassicHttpRequests {
+
+    private static String cleanMethod(final String method) {
+        return Objects.requireNonNull(method, "method").toUpperCase(Locale.ROOT);
+    }
+
+    /**
+     * Creates a new HttpUriRequest for the given {@code method} and {@code String} URI.
+     *
+     * @param method A method supported by this class.
+     * @param uri a non-null request string URI.
+     * @throws IllegalArgumentException if the method is not supported.
+     * @throws IllegalArgumentException if the string uri is null.
+     * @return A new HttpUriRequest.
+     */
+    public static HttpUriRequest create(final String method, final String uri) {
+        switch (cleanMethod(method)) {
+        case HttpDelete.METHOD_NAME:
+            return ClassicHttpRequests.delete(uri);
+        case HttpGet.METHOD_NAME:
+            return ClassicHttpRequests.get(uri);
+        case HttpHead.METHOD_NAME:
+            return ClassicHttpRequests.head(uri);
+        case HttpOptions.METHOD_NAME:
+            return ClassicHttpRequests.options(uri);
+        case HttpPatch.METHOD_NAME:
+            return ClassicHttpRequests.patch(uri);
+        case HttpPost.METHOD_NAME:
+            return ClassicHttpRequests.post(uri);
+        case HttpPut.METHOD_NAME:
+            return ClassicHttpRequests.put(uri);
+        case HttpTrace.METHOD_NAME:
+            return ClassicHttpRequests.trace(uri);
+        default:
+            throw new IllegalArgumentException(method);
+        }
+    }
+
+    /**
+     * Creates a new HttpUriRequest for the given {@code method} and {@code URI}.
+     *
+     * @param method A method supported by this class.
+     * @param uri a non-null request URI.
+     * @throws IllegalArgumentException if the method is not supported.
+     * @throws IllegalArgumentException if the uri is null.
+     * @return A new HttpUriRequest.
+     */
+    public static HttpUriRequest create(final String method, final URI uri) {
+        switch (cleanMethod(method)) {
+        case HttpDelete.METHOD_NAME:
+            return ClassicHttpRequests.delete(uri);
+        case HttpGet.METHOD_NAME:
+            return ClassicHttpRequests.get(uri);
+        case HttpHead.METHOD_NAME:
+            return ClassicHttpRequests.head(uri);
+        case HttpOptions.METHOD_NAME:
+            return ClassicHttpRequests.options(uri);
+        case HttpPatch.METHOD_NAME:
+            return ClassicHttpRequests.patch(uri);
+        case HttpPost.METHOD_NAME:
+            return ClassicHttpRequests.post(uri);
+        case HttpPut.METHOD_NAME:
+            return ClassicHttpRequests.put(uri);
+        case HttpTrace.METHOD_NAME:
+            return ClassicHttpRequests.trace(uri);
+        default:
+            throw new IllegalArgumentException(method);
+        }
+    }
 
     public static HttpUriRequest delete(final String uri) {
         return delete(URI.create(uri));
