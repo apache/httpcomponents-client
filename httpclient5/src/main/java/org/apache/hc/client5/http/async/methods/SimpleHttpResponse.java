@@ -72,7 +72,7 @@ public final class SimpleHttpResponse extends BasicHttpResponse {
     public static SimpleHttpResponse create(final int code, final String content, final ContentType contentType) {
         final SimpleHttpResponse response = new SimpleHttpResponse(code);
         if (content != null) {
-            response.setBodyText(content, contentType);
+            response.setBody(content, contentType);
         }
         return response;
     }
@@ -84,7 +84,7 @@ public final class SimpleHttpResponse extends BasicHttpResponse {
     public static SimpleHttpResponse create(final int code, final byte[] content, final ContentType contentType) {
         final SimpleHttpResponse response = new SimpleHttpResponse(code);
         if (content != null) {
-            response.setBodyBytes(content, contentType);
+            response.setBody(content, contentType);
         }
         return response;
     }
@@ -97,11 +97,11 @@ public final class SimpleHttpResponse extends BasicHttpResponse {
         this.body = body;
     }
 
-    public void setBodyBytes(final byte[] bodyBytes, final ContentType contentType) {
+    public void setBody(final byte[] bodyBytes, final ContentType contentType) {
         this.body = SimpleBody.create(bodyBytes, contentType);
     }
 
-    public void setBodyText(final String bodyText, final ContentType contentType) {
+    public void setBody(final String bodyText, final ContentType contentType) {
         this.body = SimpleBody.create(bodyText, contentType);
     }
 
