@@ -29,7 +29,9 @@ package org.apache.hc.client5.http.classic.methods;
 
 import java.net.URI;
 import java.util.Locale;
-import java.util.Objects;
+
+import org.apache.hc.core5.http.Method;
+import org.apache.hc.core5.util.Args;
 
 
 /**
@@ -42,8 +44,51 @@ import java.util.Objects;
  */
 public final class ClassicHttpRequests {
 
-    private static String cleanMethod(final String method) {
-        return Objects.requireNonNull(method, "method").toUpperCase(Locale.ROOT);
+    private static Method normalizedValueOf(final String method) {
+        // TODO Next version of HttpCore:
+        // Method.normalizedValueOf(method)
+        return Method.valueOf(Args.notNull(method, "method").toUpperCase(Locale.ROOT));
+    }
+
+    /**
+     * Creates a new HttpUriRequest for the given {@code Method} and {@code String} URI.
+     *
+     * @param method A method.
+     * @param uri a URI.
+     * @return a new HttpUriRequest.
+     */
+    public static HttpUriRequest create(final Method method, final String uri) {
+        return create(method, URI.create(uri));
+    }
+
+    /**
+     * Creates a new HttpUriRequest for the given {@code Method} and {@code URI}.
+     *
+     * @param method A method.
+     * @param uri a URI.
+     * @return a new HttpUriRequest.
+     */
+    public static HttpUriRequest create(final Method method, final URI uri) {
+        switch (Args.notNull(method, "method")) {
+        case DELETE:
+            return delete(uri);
+        case GET:
+            return get(uri);
+        case HEAD:
+            return head(uri);
+        case OPTIONS:
+            return options(uri);
+        case PATCH:
+            return patch(uri);
+        case POST:
+            return post(uri);
+        case PUT:
+            return put(uri);
+        case TRACE:
+            return trace(uri);
+        default:
+            throw new IllegalArgumentException(method.toString());
+        }
     }
 
     /**
@@ -56,26 +101,7 @@ public final class ClassicHttpRequests {
      * @return A new HttpUriRequest.
      */
     public static HttpUriRequest create(final String method, final String uri) {
-        switch (cleanMethod(method)) {
-        case HttpDelete.METHOD_NAME:
-            return ClassicHttpRequests.delete(uri);
-        case HttpGet.METHOD_NAME:
-            return ClassicHttpRequests.get(uri);
-        case HttpHead.METHOD_NAME:
-            return ClassicHttpRequests.head(uri);
-        case HttpOptions.METHOD_NAME:
-            return ClassicHttpRequests.options(uri);
-        case HttpPatch.METHOD_NAME:
-            return ClassicHttpRequests.patch(uri);
-        case HttpPost.METHOD_NAME:
-            return ClassicHttpRequests.post(uri);
-        case HttpPut.METHOD_NAME:
-            return ClassicHttpRequests.put(uri);
-        case HttpTrace.METHOD_NAME:
-            return ClassicHttpRequests.trace(uri);
-        default:
-            throw new IllegalArgumentException(method);
-        }
+        return create(normalizedValueOf(method), uri);
     }
 
     /**
@@ -88,26 +114,7 @@ public final class ClassicHttpRequests {
      * @return A new HttpUriRequest.
      */
     public static HttpUriRequest create(final String method, final URI uri) {
-        switch (cleanMethod(method)) {
-        case HttpDelete.METHOD_NAME:
-            return ClassicHttpRequests.delete(uri);
-        case HttpGet.METHOD_NAME:
-            return ClassicHttpRequests.get(uri);
-        case HttpHead.METHOD_NAME:
-            return ClassicHttpRequests.head(uri);
-        case HttpOptions.METHOD_NAME:
-            return ClassicHttpRequests.options(uri);
-        case HttpPatch.METHOD_NAME:
-            return ClassicHttpRequests.patch(uri);
-        case HttpPost.METHOD_NAME:
-            return ClassicHttpRequests.post(uri);
-        case HttpPut.METHOD_NAME:
-            return ClassicHttpRequests.put(uri);
-        case HttpTrace.METHOD_NAME:
-            return ClassicHttpRequests.trace(uri);
-        default:
-            throw new IllegalArgumentException(method);
-        }
+        return create(normalizedValueOf(method), uri);
     }
 
     public static HttpUriRequest delete(final String uri) {
