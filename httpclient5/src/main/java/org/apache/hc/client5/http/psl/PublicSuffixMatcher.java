@@ -99,23 +99,15 @@ public final class PublicSuffixMatcher {
         }
     }
 
-    private static boolean hasEntry(final Map<String, DomainType> map, final String rule, final DomainType expectedType) {
+    private static DomainType findEntry(final Map<String, DomainType> map, final String rule) {
         if (map == null) {
-            return false;
+            return null;
         }
-        final DomainType domainType = map.get(rule);
-        if (domainType == null) {
-            return false;
-        }
-        return expectedType == null || domainType.equals(expectedType);
+        return map.get(rule);
     }
 
-    private boolean hasRule(final String rule, final DomainType expectedType) {
-        return hasEntry(this.rules, rule, expectedType);
-    }
-
-    private boolean hasException(final String exception, final DomainType expectedType) {
-        return hasEntry(this.exceptions, exception, expectedType);
+    private static boolean match(final DomainType domainType, final DomainType expectedType) {
+        return domainType != null && (expectedType == null || domainType.equals(expectedType));
     }
 
     /**
@@ -152,10 +144,15 @@ public final class PublicSuffixMatcher {
         while (segment != null) {
             // An exception rule takes priority over any other matching rule.
             final String key = IDN.toUnicode(segment);
-            if (hasException(key, expectedType)) {
+            final DomainType exceptionRule = findEntry(exceptions, key);
+            if (match(exceptionRule, expectedType)) {
                 return segment;
             }
-            if (hasRule(key, expectedType)) {
+            final DomainType domainRule = findEntry(rules, key);
+            if (match(domainRule, expectedType)) {
+                if (domainRule == DomainType.PRIVATE) {
+                    return segment;
+                }
                 return result;
             }
 
@@ -163,7 +160,11 @@ public final class PublicSuffixMatcher {
             final String nextSegment = nextdot != -1 ? segment.substring(nextdot + 1) : null;
 
             if (nextSegment != null) {
-                if (hasRule("*." + IDN.toUnicode(nextSegment), expectedType)) {
+                final DomainType wildcardDomainRule = findEntry(rules, "*." + IDN.toUnicode(nextSegment));
+                if (match(wildcardDomainRule, expectedType)) {
+                    if (wildcardDomainRule == DomainType.PRIVATE) {
+                        return segment;
+                    }
                     return result;
                 }
             }

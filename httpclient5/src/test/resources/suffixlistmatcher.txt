@@ -26,6 +26,8 @@
 // ===BEGIN PRIVATE DOMAINS===
 xx
 lan
+appspot.com
+s3.eu-central-1.amazonaws.com
 // ===END PRIVATE DOMAINS===
 
 // ===BEGIN ICANN DOMAINS===
