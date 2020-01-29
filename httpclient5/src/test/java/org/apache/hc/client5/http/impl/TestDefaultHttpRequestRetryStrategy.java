@@ -56,14 +56,14 @@ public class TestDefaultHttpRequestRetryStrategy {
 
     @Test
     public void testBasics() throws Exception {
-        final HttpResponse response1 = new BasicHttpResponse(503, "Oppsie");
+        final HttpResponse response1 = new BasicHttpResponse(503, "Oopsie");
         Assert.assertTrue(this.retryStrategy.retryRequest(response1, 1, null));
         Assert.assertTrue(this.retryStrategy.retryRequest(response1, 2, null));
         Assert.assertTrue(this.retryStrategy.retryRequest(response1, 3, null));
         Assert.assertFalse(this.retryStrategy.retryRequest(response1, 4, null));
-        final HttpResponse response2 = new BasicHttpResponse(500, "Big Time Oppsie");
+        final HttpResponse response2 = new BasicHttpResponse(500, "Big Time Oopsie");
         Assert.assertFalse(this.retryStrategy.retryRequest(response2, 1, null));
-        final HttpResponse response3 = new BasicHttpResponse(429, "Oppsie");
+        final HttpResponse response3 = new BasicHttpResponse(429, "Oopsie");
         Assert.assertTrue(this.retryStrategy.retryRequest(response3, 1, null));
         Assert.assertTrue(this.retryStrategy.retryRequest(response3, 2, null));
         Assert.assertTrue(this.retryStrategy.retryRequest(response3, 3, null));
@@ -74,7 +74,7 @@ public class TestDefaultHttpRequestRetryStrategy {
 
     @Test
     public void testRetryAfterHeaderAsLong() throws Exception {
-        final HttpResponse response = new BasicHttpResponse(503, "Oppsie");
+        final HttpResponse response = new BasicHttpResponse(503, "Oopsie");
         response.setHeader(HttpHeaders.RETRY_AFTER, "321");
 
         Assert.assertEquals(TimeValue.ofSeconds(321L), this.retryStrategy.getRetryInterval(response, 3, null));
@@ -82,16 +82,16 @@ public class TestDefaultHttpRequestRetryStrategy {
 
     @Test
     public void testRetryAfterHeaderAsDate() throws Exception {
-        this.retryStrategy = new DefaultHttpRequestRetryStrategy(3, TimeValue.ofMilliseconds(1L));
-        final HttpResponse response = new BasicHttpResponse(503, "Oppsie");
+        this.retryStrategy = new DefaultHttpRequestRetryStrategy(3, TimeValue.ZERO_MILLISECONDS);
+        final HttpResponse response = new BasicHttpResponse(503, "Oopsie");
         response.setHeader(HttpHeaders.RETRY_AFTER, DateUtils.formatDate(new Date(System.currentTimeMillis() + 100000L)));
 
-        Assert.assertTrue(this.retryStrategy.getRetryInterval(response, 3, null).compareTo(TimeValue.ofMilliseconds(1L)) > 0);
+        Assert.assertTrue(this.retryStrategy.getRetryInterval(response, 3, null).compareTo(TimeValue.ZERO_MILLISECONDS) > 0);
     }
 
     @Test
     public void testRetryAfterHeaderAsPastDate() throws Exception {
-        final HttpResponse response = new BasicHttpResponse(503, "Oppsie");
+        final HttpResponse response = new BasicHttpResponse(503, "Oopsie");
         response.setHeader(HttpHeaders.RETRY_AFTER, DateUtils.formatDate(new Date(System.currentTimeMillis() - 100000L)));
 
         Assert.assertEquals(TimeValue.ofMilliseconds(1234L), this.retryStrategy.getRetryInterval(response, 3, null));
@@ -99,7 +99,7 @@ public class TestDefaultHttpRequestRetryStrategy {
 
     @Test
     public void testInvalidRetryAfterHeader() throws Exception {
-        final HttpResponse response = new BasicHttpResponse(503, "Oppsie");
+        final HttpResponse response = new BasicHttpResponse(503, "Oopsie");
         response.setHeader(HttpHeaders.RETRY_AFTER, "Stuff");
 
         Assert.assertEquals(TimeValue.ofMilliseconds(1234L), retryStrategy.getRetryInterval(response, 3, null));

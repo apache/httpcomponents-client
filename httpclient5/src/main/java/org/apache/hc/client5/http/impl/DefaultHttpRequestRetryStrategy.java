@@ -91,7 +91,7 @@ public class DefaultHttpRequestRetryStrategy implements HttpRequestRetryStrategy
             final Collection<Class<? extends IOException>> clazzes,
             final Collection<Integer> codes) {
         Args.notNegative(maxRetries, "maxRetries");
-        Args.positive(defaultRetryInterval.getDuration(), "defaultRetryInterval");
+        Args.notNegative(defaultRetryInterval.getDuration(), "defaultRetryInterval");
         this.maxRetries = maxRetries;
         this.defaultRetryInterval = defaultRetryInterval;
         this.nonRetriableIOExceptionClasses = new HashSet<>(clazzes);
