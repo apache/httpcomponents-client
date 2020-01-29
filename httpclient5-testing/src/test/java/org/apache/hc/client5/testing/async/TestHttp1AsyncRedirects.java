@@ -152,7 +152,7 @@ public class TestHttp1AsyncRedirects extends AbstractHttpAsyncRedirectsTest<Clos
                     return response;
                 } else if (path.equals("/newlocation/")) {
                     final SimpleHttpResponse response = new SimpleHttpResponse(HttpStatus.SC_OK);
-                    response.setBodyText("Successful redirect", ContentType.TEXT_PLAIN);
+                    response.setBody("Successful redirect", ContentType.TEXT_PLAIN);
                     return response;
                 } else {
                     return new SimpleHttpResponse(HttpStatus.SC_NOT_FOUND);
