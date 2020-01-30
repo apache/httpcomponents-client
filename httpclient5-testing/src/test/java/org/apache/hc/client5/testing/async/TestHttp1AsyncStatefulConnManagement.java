@@ -121,7 +121,7 @@ public class TestHttp1AsyncStatefulConnManagement extends AbstractIntegrationTes
                             final SimpleHttpRequest request,
                             final HttpCoreContext context) throws HttpException {
                         final SimpleHttpResponse response = new SimpleHttpResponse(HttpStatus.SC_OK);
-                        response.setBodyText("Whatever", ContentType.TEXT_PLAIN);
+                        response.setBody("Whatever", ContentType.TEXT_PLAIN);
                         return response;
                     }
                 };
@@ -246,7 +246,7 @@ public class TestHttp1AsyncStatefulConnManagement extends AbstractIntegrationTes
                             final SimpleHttpRequest request,
                             final HttpCoreContext context) throws HttpException {
                         final SimpleHttpResponse response = new SimpleHttpResponse(HttpStatus.SC_OK);
-                        response.setBodyText("Whatever", ContentType.TEXT_PLAIN);
+                        response.setBody("Whatever", ContentType.TEXT_PLAIN);
                         return response;
                     }
                 };
