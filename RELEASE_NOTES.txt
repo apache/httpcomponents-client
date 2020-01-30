@@ -15,6 +15,13 @@
   SimpleHttpRequests.create(String, String)
   Contributed by Gary Gregory <ggregory at apache.org>
 
+* GitHub #208: Do not use input type names in method names: 
+  SimpleHttpRequest: Deprecate setBodyBytes(byte[], ContentType) in favor of setBody(byte[], ContentType)
+  SimpleHttpRequest: Deprecate setBodyText(String, ContentType) in favor of setBody(String, ContentType)
+  SimpleHttpResponse: Deprecate setBodyBytes(byte[], ContentType) in favor of setBody(byte[], ContentType)
+  SimpleHttpResponse: Deprecate setBodyText(String, ContentType) in favor of setBody(String, ContentType)
+  Contributed by Gary Gregory <ggregory at apache.org>
+
 
 Release 5.0-BETA7
 -----------------
