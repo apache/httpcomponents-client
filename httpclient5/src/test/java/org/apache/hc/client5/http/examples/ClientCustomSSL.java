@@ -69,7 +69,7 @@ public class ClientCustomSSL {
                 .build();
         // Allow TLSv1.2 protocol only
         final SSLConnectionSocketFactory sslSocketFactory = SSLConnectionSocketFactoryBuilder.create()
-                .setSslContext(SSLContexts.createSystemDefault())
+                .setSslContext(sslcontext)
                 .setTlsVersions(TLS.V_1_2)
                 .build();
         final HttpClientConnectionManager cm = PoolingHttpClientConnectionManagerBuilder.create()
