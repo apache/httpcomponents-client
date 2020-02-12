@@ -187,6 +187,7 @@ public class PoolingHttpClientConnectionManager
             final TimeValue timeToLive,
             final HttpConnectionFactory<ManagedHttpClientConnection> connFactory) {
         super();
+        this.setValidateAfterInactivity(2000);
         this.connectionOperator = Args.notNull(httpClientConnectionOperator, "Connection operator");
         switch (poolConcurrencyPolicy != null ? poolConcurrencyPolicy : PoolConcurrencyPolicy.STRICT) {
             case STRICT:
