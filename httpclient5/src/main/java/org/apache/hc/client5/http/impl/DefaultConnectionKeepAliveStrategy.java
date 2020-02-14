@@ -29,6 +29,8 @@ package org.apache.hc.client5.http.impl;
 import java.util.Iterator;
 
 import org.apache.hc.client5.http.ConnectionKeepAliveStrategy;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HeaderElement;
@@ -69,7 +71,9 @@ public class DefaultConnectionKeepAliveStrategy implements ConnectionKeepAliveSt
                 }
             }
         }
-        return TimeValue.NEG_ONE_MILLISECOND;
+        final HttpClientContext clientContext = HttpClientContext.adapt(context);
+        final RequestConfig requestConfig = clientContext.getRequestConfig();
+        return requestConfig.getConnectionKeepAlive();
     }
 
 }
