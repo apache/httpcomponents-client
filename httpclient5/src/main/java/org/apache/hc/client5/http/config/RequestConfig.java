@@ -33,6 +33,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
 
 /**
@@ -43,6 +44,7 @@ public class RequestConfig implements Cloneable {
 
     private static final Timeout DEFAULT_CONNECTION_REQUEST_TIMEOUT = Timeout.ofMinutes(3);
     private static final Timeout DEFAULT_CONNECT_TIMEOUT = Timeout.ofMinutes(3);
+    private static final TimeValue DEFAULT_CONN_KEEP_ALIVE = TimeValue.ofMinutes(3);
 
     public static final RequestConfig DEFAULT = new Builder().build();
 
@@ -58,6 +60,7 @@ public class RequestConfig implements Cloneable {
     private final Timeout connectionRequestTimeout;
     private final Timeout connectTimeout;
     private final Timeout responseTimeout;
+    private final TimeValue connectionKeepAlive;
     private final boolean contentCompressionEnabled;
     private final boolean hardCancellationEnabled;
 
@@ -66,7 +69,7 @@ public class RequestConfig implements Cloneable {
     */
     protected RequestConfig() {
         this(false, null, null, false, false, 0, false, null, null,
-                DEFAULT_CONNECTION_REQUEST_TIMEOUT, DEFAULT_CONNECT_TIMEOUT, null, false, false);
+                DEFAULT_CONNECTION_REQUEST_TIMEOUT, DEFAULT_CONNECT_TIMEOUT, null, DEFAULT_CONN_KEEP_ALIVE, false, false);
     }
 
     RequestConfig(
@@ -82,6 +85,7 @@ public class RequestConfig implements Cloneable {
             final Timeout connectionRequestTimeout,
             final Timeout connectTimeout,
             final Timeout responseTimeout,
+            final TimeValue connectionKeepAlive,
             final boolean contentCompressionEnabled,
             final boolean hardCancellationEnabled) {
         super();
@@ -97,6 +101,7 @@ public class RequestConfig implements Cloneable {
         this.connectionRequestTimeout = connectionRequestTimeout;
         this.connectTimeout = connectTimeout;
         this.responseTimeout = responseTimeout;
+        this.connectionKeepAlive = connectionKeepAlive;
         this.contentCompressionEnabled = contentCompressionEnabled;
         this.hardCancellationEnabled = hardCancellationEnabled;
     }
@@ -186,6 +191,13 @@ public class RequestConfig implements Cloneable {
     }
 
     /**
+     * @see Builder#setConnectionKeepAlive(TimeValue)
+     */
+    public TimeValue getConnectionKeepAlive() {
+        return connectionKeepAlive;
+    }
+
+    /**
      * @see Builder#setContentCompressionEnabled(boolean)
      */
     public boolean isContentCompressionEnabled() {
@@ -219,6 +231,7 @@ public class RequestConfig implements Cloneable {
         builder.append(", proxyPreferredAuthSchemes=").append(proxyPreferredAuthSchemes);
         builder.append(", connectionRequestTimeout=").append(connectionRequestTimeout);
         builder.append(", connectTimeout=").append(connectTimeout);
+        builder.append(", connectionKeepAlive=").append(connectionKeepAlive);
         builder.append(", contentCompressionEnabled=").append(contentCompressionEnabled);
         builder.append(", hardCancellationEnabled=").append(hardCancellationEnabled);
         builder.append("]");
@@ -242,6 +255,7 @@ public class RequestConfig implements Cloneable {
             .setProxyPreferredAuthSchemes(config.getProxyPreferredAuthSchemes())
             .setConnectionRequestTimeout(config.getConnectionRequestTimeout())
             .setConnectTimeout(config.getConnectTimeout())
+            .setConnectionKeepAlive(config.getConnectionKeepAlive())
             .setContentCompressionEnabled(config.isContentCompressionEnabled())
             .setHardCancellationEnabled(config.isHardCancellationEnabled());
     }
@@ -260,6 +274,7 @@ public class RequestConfig implements Cloneable {
         private Timeout connectionRequestTimeout;
         private Timeout connectTimeout;
         private Timeout responseTimeout;
+        private TimeValue connectionKeepAlive;
         private boolean contentCompressionEnabled;
         private boolean hardCancellationEnabled;
 
@@ -471,6 +486,32 @@ public class RequestConfig implements Cloneable {
         }
 
         /**
+         * Determines the default of value of connection keep-alive time period when not
+         * explicitly communicated by the origin server with a {@code Keep-Alive} response
+         * header.
+         * <p>
+         * A negative value is interpreted as an infinite keep-alive period.
+         * </p>
+         * <p>
+         * Default: 1 minute
+         * </p>
+         *
+         * @since 5.0
+         */
+        public Builder setConnectionKeepAlive(final TimeValue connectionKeepAlive) {
+            this.connectionKeepAlive = connectionKeepAlive;
+            return this;
+        }
+
+        /**
+         * @see #setConnectionKeepAlive(TimeValue)
+         */
+        public Builder setDefaultKeepAlive(final long defaultKeepAlive, final TimeUnit timeUnit) {
+            this.connectionKeepAlive = TimeValue.of(defaultKeepAlive, timeUnit);
+            return this;
+        }
+
+        /**
          * Determines whether the target server is requested to compress content.
          * <p>
          * Default: {@code true}
@@ -529,6 +570,7 @@ public class RequestConfig implements Cloneable {
                     connectionRequestTimeout != null ? connectionRequestTimeout : DEFAULT_CONNECTION_REQUEST_TIMEOUT,
                     connectTimeout != null ? connectTimeout : DEFAULT_CONNECT_TIMEOUT,
                     responseTimeout,
+                    connectionKeepAlive != null ? connectionKeepAlive : DEFAULT_CONN_KEEP_ALIVE,
                     contentCompressionEnabled,
                     hardCancellationEnabled);
         }
