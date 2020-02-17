@@ -146,7 +146,7 @@ public final class RedirectExec implements ExecChainHandler {
                         case HttpStatus.SC_MOVED_PERMANENTLY:
                         case HttpStatus.SC_MOVED_TEMPORARILY:
                         case HttpStatus.SC_SEE_OTHER:
-                            if (!Method.isSafe(request.getMethod())) {
+                            if (Method.POST.isSame(request.getMethod())) {
                                 redirect = new HttpGet(redirectUri);
                             }
                     }
