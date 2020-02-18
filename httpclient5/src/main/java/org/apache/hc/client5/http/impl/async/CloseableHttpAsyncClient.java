@@ -45,7 +45,6 @@ import org.apache.hc.core5.http.nio.AsyncRequestProducer;
 import org.apache.hc.core5.http.nio.AsyncResponseConsumer;
 import org.apache.hc.core5.http.nio.HandlerFactory;
 import org.apache.hc.core5.http.protocol.HttpContext;
-import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.io.ModalCloseable;
 import org.apache.hc.core5.reactor.IOReactorStatus;
 import org.apache.hc.core5.util.Args;
@@ -66,14 +65,6 @@ public abstract class CloseableHttpAsyncClient implements HttpAsyncClient, Modal
     public abstract void awaitShutdown(TimeValue waitTime) throws InterruptedException;
 
     public abstract void initiateShutdown();
-
-    /**
-     * @deprecated Use {@link #close(CloseMode)}
-     */
-    @Deprecated
-    public void shutdown(final CloseMode closeMode) {
-        close(closeMode);
-    }
 
     protected abstract <T> Future<T> doExecute(
             final HttpHost target,
