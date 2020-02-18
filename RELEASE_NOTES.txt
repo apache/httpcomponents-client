@@ -1,37 +1,7 @@
-﻿Release 5.0-BETA8
+﻿Release 5.0
 -----------------
 
-* GitHub #204: Build requests from method names in ClassicHttpRequests:
-  ClassicHttpRequests.create(String, String)
-  ClassicHttpRequests.create(String, URI)
-  Contributed by Gary Gregory <ggregory at apache.org>
-
-* GitHub #205: Update request factory classes with matching APIs for Method and String method name inputs:
-  BasicHttpRequests.create(String, URI)
-  BasicHttpRequests.create(String, String)
-  ClassicHttpRequests.create(Method, String)
-  ClassicHttpRequests.create(Method, URI)
-  SimpleHttpRequests.create(String, URI)
-  SimpleHttpRequests.create(String, String)
-  Contributed by Gary Gregory <ggregory at apache.org>
-
-* GitHub #208: Do not use input type names in method names: 
-  SimpleHttpRequest: Deprecate setBodyBytes(byte[], ContentType) in favor of setBody(byte[], ContentType)
-  SimpleHttpRequest: Deprecate setBodyText(String, ContentType) in favor of setBody(String, ContentType)
-  SimpleHttpResponse: Deprecate setBodyBytes(byte[], ContentType) in favor of setBody(byte[], ContentType)
-  SimpleHttpResponse: Deprecate setBodyText(String, ContentType) in favor of setBody(String, ContentType)
-  Contributed by Gary Gregory <ggregory at apache.org>
-
-
-Release 5.0-BETA7
------------------
-
-This BETA release upgrades HttpCore to the latest version  and addresses a number of issues found
-since the previous BETA release.
-
-IMPORTANT: This release is expected to be the last BETA version. If no major
-design flaws are found the actual 5.0 API will be frozen and the next version will be
-promoted to GA.
+This is the first stable (GA) release of HttpClient 5.0.
 
 Notable changes and features included in the 5.0 series are:
 
@@ -57,6 +27,8 @@ Notable changes and features included in the 5.0 series are:
 * New connection pool implementation with lax connection limit guarantees and better
   performance under higher concurrency due to absence of a global pool lock.
 
+* Support for Reactive Streams API [http://www.reactive-streams.org/]
+
 * Package name space changed to 'org.apache.hc.client5'.
 
 * Maven group id changed to 'org.apache.httpcomponents.client5'.
@@ -64,6 +36,54 @@ Notable changes and features included in the 5.0 series are:
 HttpClient 5.0 releases can be co-located with earlier major versions on the same classpath
 due to the change in package names and Maven module coordinates.
 
+
+Changelog:
+-------------------
+
+* Removed work-around for resumed TLS sessions given that JDK-8212885 fix has been ported to Java 11
+  and released in Oracle JDK 11.0.3.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Upgraded HttpCore dependency to version 5.0
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* DefaultHttpRequestRetryStrategy: Allow zero retry interval
+  Contributed by Ryan Schmitt <rschmitt at apache.org>
+
+* HTTPCLIENT-2047: fixed regression in DefaultHostnameVerifier causing rejection of certs with non-standard domains.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* GitHub #204: Build requests from method names in ClassicHttpRequests:
+  ClassicHttpRequests.create(String, String)
+  ClassicHttpRequests.create(String, URI)
+  Contributed by Gary Gregory <ggregory at apache.org>
+
+* GitHub #205: Update request factory classes with matching APIs for Method and String method name inputs:
+  BasicHttpRequests.create(String, URI)
+  BasicHttpRequests.create(String, String)
+  ClassicHttpRequests.create(Method, String)
+  ClassicHttpRequests.create(Method, URI)
+  SimpleHttpRequests.create(String, URI)
+  SimpleHttpRequests.create(String, String)
+  Contributed by Gary Gregory <ggregory at apache.org>
+
+* GitHub #208: Do not use input type names in method names: 
+  SimpleHttpRequest: Delete setBodyBytes(byte[], ContentType) in favor of setBody(byte[], ContentType)
+  SimpleHttpRequest: Delete setBodyText(String, ContentType) in favor of setBody(String, ContentType)
+  SimpleHttpResponse: Delete setBodyBytes(byte[], ContentType) in favor of setBody(byte[], ContentType)
+  SimpleHttpResponse: Delete setBodyText(String, ContentType) in favor of setBody(String, ContentType)
+  Contributed by Gary Gregory <ggregory at apache.org>
+
+
+Release 5.0-BETA7
+-----------------
+
+This BETA release upgrades HttpCore to the latest version  and addresses a number of issues found
+since the previous BETA release.
+
+IMPORTANT: This release is expected to be the last BETA version. If no major
+design flaws are found the actual 5.0 API will be frozen and the next version will be
+promoted to GA.
 
 Changelog:
 -------------------
