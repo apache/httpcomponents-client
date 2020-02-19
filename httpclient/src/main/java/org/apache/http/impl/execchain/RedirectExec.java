@@ -33,6 +33,7 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
@@ -112,7 +113,15 @@ public class RedirectExec implements ClientExecChain {
             try {
                 if (config.isRedirectsEnabled() &&
                         this.redirectStrategy.isRedirected(currentRequest.getOriginal(), response, context)) {
-
+                    if (currentRequest instanceof HttpEntityEnclosingRequest) {
+                        final HttpEntity requestEntity = ((HttpEntityEnclosingRequest) currentRequest).getEntity();
+                        if (requestEntity != null && !requestEntity.isRepeatable()) {
+                            if (log.isDebugEnabled()) {
+                                log.debug("Cannot redirect non-repeatable request");
+                            }
+                            return response;
+                        }
+                    }
                     if (redirectCount >= maxRedirects) {
                         throw new RedirectException("Maximum redirects ("+ maxRedirects + ") exceeded");
                     }
