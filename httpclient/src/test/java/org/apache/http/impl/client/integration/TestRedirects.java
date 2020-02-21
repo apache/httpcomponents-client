@@ -26,11 +26,13 @@
  */
 package org.apache.http.impl.client.integration;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.http.Consts;
 import org.apache.http.Header;
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
@@ -49,14 +51,18 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.utils.URIUtils;
 import org.apache.http.cookie.SM;
+import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicCookieStore;
+import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.http.impl.cookie.BasicClientCookie;
+import org.apache.http.localserver.EchoHandler;
 import org.apache.http.localserver.LocalServerTestBase;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpCoreContext;
+import org.apache.http.protocol.HttpExpectationVerifier;
 import org.apache.http.protocol.HttpRequestHandler;
 import org.apache.http.protocol.UriHttpRequestHandlerMapper;
 import org.apache.http.util.EntityUtils;
@@ -100,6 +106,37 @@ public class TestRedirects extends LocalServerTestBase {
                 response.setEntity(entity);
             } else {
                 response.setStatusCode(HttpStatus.SC_NOT_FOUND);
+            }
+        }
+
+    }
+
+    private static class RedirectExpectationVerifier implements HttpExpectationVerifier {
+
+        private final int statuscode;
+
+        public RedirectExpectationVerifier(final int statuscode) {
+            super();
+            this.statuscode = statuscode > 0 ? statuscode : HttpStatus.SC_MOVED_TEMPORARILY;
+        }
+
+        public RedirectExpectationVerifier() {
+            this(-1);
+        }
+
+        @Override
+        public void verify(
+                final HttpRequest request, final HttpResponse response, final HttpContext context) throws HttpException {
+            final HttpInetConnection conn = (HttpInetConnection) context.getAttribute(HttpCoreContext.HTTP_CONNECTION);
+            final int port = conn.getLocalPort();
+            final String uri = request.getRequestLine().getUri();
+            if (uri.equals("/oldlocation/")) {
+                response.setStatusCode(this.statuscode);
+                response.addHeader(new BasicHeader("Location",
+                        "http://localhost:" + port + "/newlocation/"));
+                response.addHeader(new BasicHeader("Connection", "close"));
+            } else {
+                response.setStatusCode(HttpStatus.SC_CONTINUE);
             }
         }
 
@@ -584,6 +621,133 @@ public class TestRedirects extends LocalServerTestBase {
         Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
         Assert.assertEquals("/newlocation/", reqWrapper.getRequestLine().getUri());
         Assert.assertEquals("GET", reqWrapper.getRequestLine().getMethod());
+    }
+
+    @Test
+    public void testPostRedirectMovedPermatently() throws Exception {
+        this.serverBootstrap.registerHandler("*", new BasicRedirectService(HttpStatus.SC_MOVED_PERMANENTLY));
+
+        final HttpHost target = start();
+
+        final HttpClientContext context = HttpClientContext.create();
+
+        final HttpPost httppost = new HttpPost("/oldlocation/");
+        httppost.setEntity(new StringEntity("stuff"));
+
+        final HttpResponse response = this.httpclient.execute(target, httppost, context);
+        EntityUtils.consume(response.getEntity());
+        Assert.assertEquals(HttpStatus.SC_MOVED_PERMANENTLY, response.getStatusLine().getStatusCode());
+    }
+
+    @Test
+    public void testPostRedirectMovedPermatentlyLaxStrategy() throws Exception {
+        this.serverBootstrap.registerHandler("*", new BasicRedirectService(HttpStatus.SC_MOVED_PERMANENTLY));
+        this.clientBuilder.setRedirectStrategy(LaxRedirectStrategy.INSTANCE);
+
+        final HttpHost target = start();
+
+        final HttpClientContext context = HttpClientContext.create();
+
+        final HttpPost httppost = new HttpPost("/oldlocation/");
+        httppost.setEntity(new StringEntity("stuff"));
+
+        final HttpResponse response = this.httpclient.execute(target, httppost, context);
+        EntityUtils.consume(response.getEntity());
+
+        final HttpRequest reqWrapper = context.getRequest();
+
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+        Assert.assertEquals("/newlocation/", reqWrapper.getRequestLine().getUri());
+        Assert.assertEquals("GET", reqWrapper.getRequestLine().getMethod());
+    }
+
+    @Test
+    public void testPostTemporaryRedirectLaxStrategy() throws Exception {
+        this.serverBootstrap.registerHandler("*", new BasicRedirectService(HttpStatus.SC_TEMPORARY_REDIRECT));
+        this.clientBuilder.setRedirectStrategy(LaxRedirectStrategy.INSTANCE);
+
+        final HttpHost target = start();
+
+        final HttpClientContext context = HttpClientContext.create();
+
+        final HttpPost httppost = new HttpPost("/oldlocation/");
+        httppost.setEntity(new StringEntity("stuff"));
+
+        final HttpResponse response = this.httpclient.execute(target, httppost, context);
+        EntityUtils.consume(response.getEntity());
+
+        final HttpRequest reqWrapper = context.getRequest();
+
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+        Assert.assertEquals("/newlocation/", reqWrapper.getRequestLine().getUri());
+        Assert.assertEquals("POST", reqWrapper.getRequestLine().getMethod());
+    }
+
+    @Test
+    public void testNonRepeatablePostTemporaryRedirectLaxStrategy() throws Exception {
+        this.serverBootstrap.registerHandler("*", new BasicRedirectService(HttpStatus.SC_TEMPORARY_REDIRECT));
+        this.clientBuilder.setRedirectStrategy(LaxRedirectStrategy.INSTANCE);
+
+        final HttpHost target = start();
+
+        final HttpClientContext context = HttpClientContext.create();
+
+        final HttpPost httppost = new HttpPost("/oldlocation/");
+        final byte[] content = "stuff".getBytes(Consts.ASCII);
+        httppost.setEntity(new InputStreamEntity(new ByteArrayInputStream(content), content.length));
+
+        final HttpResponse response = this.httpclient.execute(target, httppost, context);
+        EntityUtils.consume(response.getEntity());
+        Assert.assertEquals(HttpStatus.SC_TEMPORARY_REDIRECT, response.getStatusLine().getStatusCode());
+    }
+
+    @Test
+    public void testNonRepeatablePostTemporaryWithExpectContinueRedirectLaxStrategy() throws Exception {
+        this.serverBootstrap.registerHandler("*", new BasicRedirectService(HttpStatus.SC_TEMPORARY_REDIRECT));
+        this.clientBuilder.setRedirectStrategy(LaxRedirectStrategy.INSTANCE);
+
+        final HttpHost target = start();
+
+        final HttpClientContext context = HttpClientContext.create();
+        context.setRequestConfig(RequestConfig.custom()
+                .setExpectContinueEnabled(true)
+                .build());
+
+        final HttpPost httppost = new HttpPost("/oldlocation/");
+        final byte[] content = "stuff".getBytes(Consts.ASCII);
+        httppost.setEntity(new InputStreamEntity(new ByteArrayInputStream(content), content.length));
+
+        final HttpResponse response = this.httpclient.execute(target, httppost, context);
+        EntityUtils.consume(response.getEntity());
+        Assert.assertEquals(HttpStatus.SC_TEMPORARY_REDIRECT, response.getStatusLine().getStatusCode());
+    }
+
+    @Test
+    public void testNonRepeatablePostTemporaryWithExpectContinueExpectVerifierRedirectLaxStrategy() throws Exception {
+        this.serverBootstrap.registerHandler("*", new EchoHandler());
+        this.serverBootstrap.setExpectationVerifier(new RedirectExpectationVerifier(HttpStatus.SC_TEMPORARY_REDIRECT));
+
+        this.clientBuilder.setRedirectStrategy(LaxRedirectStrategy.INSTANCE);
+
+        final HttpHost target = start();
+
+        final HttpClientContext context = HttpClientContext.create();
+        context.setRequestConfig(RequestConfig.custom()
+                .setExpectContinueEnabled(true)
+                .build());
+
+        final HttpPost httppost = new HttpPost("/oldlocation/");
+        final byte[] content = "stuff".getBytes(Consts.ASCII);
+        httppost.setEntity(new InputStreamEntity(new ByteArrayInputStream(content), content.length));
+
+        final HttpResponse response = this.httpclient.execute(target, httppost, context);
+        EntityUtils.consume(response.getEntity());
+
+        final HttpRequest reqWrapper = context.getRequest();
+
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+        Assert.assertEquals("/newlocation/", reqWrapper.getRequestLine().getUri());
+        Assert.assertEquals("POST", reqWrapper.getRequestLine().getMethod());
     }
 
     @Test
