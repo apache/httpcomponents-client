@@ -112,7 +112,12 @@ public class RedirectExec implements ClientExecChain {
             try {
                 if (config.isRedirectsEnabled() &&
                         this.redirectStrategy.isRedirected(currentRequest.getOriginal(), response, context)) {
-
+                    if (!RequestEntityProxy.isRepeatable(currentRequest)) {
+                        if (log.isDebugEnabled()) {
+                            log.debug("Cannot redirect non-repeatable request");
+                        }
+                        return response;
+                    }
                     if (redirectCount >= maxRedirects) {
                         throw new RedirectException("Maximum redirects ("+ maxRedirects + ") exceeded");
                     }
