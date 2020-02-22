@@ -80,6 +80,7 @@
     <jna.version>5.2.0</jna.version>
     <hc.stylecheck.version>1</hc.stylecheck.version>
     <rxjava.version>2.2.7</rxjava.version>
+    <api.comparison.version>5.0</api.comparison.version>
   </properties>
 
   <dependencyManagement>
@@ -289,6 +290,13 @@
         </executions>
       </plugin>
       <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>clirr-maven-plugin</artifactId>
+        <configuration>
+          <comparisonVersion>${api.comparison.version}</comparisonVersion>
+        </configuration>
+      </plugin>
+      <plugin>
         <groupId>org.apache.rat</groupId>
         <artifactId>apache-rat-plugin</artifactId>
         <executions>
@@ -321,6 +329,15 @@
 
   <reporting>
     <plugins>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>clirr-maven-plugin</artifactId>
+        <version>${hc.clirr.version}</version>
+        <configuration>
+          <comparisonVersion>${api.comparison.version}</comparisonVersion>
+        </configuration>
+      </plugin>
 
       <plugin>
         <artifactId>maven-project-info-reports-plugin</artifactId>
