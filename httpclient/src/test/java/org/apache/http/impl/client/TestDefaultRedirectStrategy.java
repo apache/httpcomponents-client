@@ -113,6 +113,18 @@ public class TestDefaultRedirectStrategy {
     }
 
     @Test
+    public void testIsRedirectedPermanentRedirect() throws Exception {
+        final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
+        final HttpClientContext context = HttpClientContext.create();
+        final HttpGet httpget = new HttpGet("http://localhost/");
+        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1,
+                DefaultRedirectStrategy.SC_PERMANENT_REDIRECT, "Redirect");
+        Assert.assertTrue(redirectStrategy.isRedirected(httpget, response, context));
+        final HttpPost httppost = new HttpPost("http://localhost/");
+        Assert.assertFalse(redirectStrategy.isRedirected(httppost, response, context));
+    }
+
+    @Test
     public void testIsRedirectedSeeOther() throws Exception {
         final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
         final HttpClientContext context = HttpClientContext.create();
@@ -369,6 +381,27 @@ public class TestDefaultRedirectStrategy {
         final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
         final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1,
                 HttpStatus.SC_TEMPORARY_REDIRECT, "Temporary Redirect");
+        response.addHeader("Location", "http://localhost/stuff");
+        final HttpContext context1 = new BasicHttpContext();
+        final HttpUriRequest redirect1 = redirectStrategy.getRedirect(
+                new HttpTrace("http://localhost/"), response, context1);
+        Assert.assertEquals("TRACE", redirect1.getMethod());
+        final HttpContext context2 = new BasicHttpContext();
+        final HttpPost httppost = new HttpPost("http://localhost/");
+        final HttpEntity entity = new BasicHttpEntity();
+        httppost.setEntity(entity);
+        final HttpUriRequest redirect2 = redirectStrategy.getRedirect(
+                httppost, response, context2);
+        Assert.assertEquals("POST", redirect2.getMethod());
+        Assert.assertTrue(redirect2 instanceof HttpEntityEnclosingRequest);
+        Assert.assertSame(entity, ((HttpEntityEnclosingRequest) redirect2).getEntity());
+    }
+
+    @Test
+    public void testGetRedirectRequestForPermanentRedirect() throws Exception {
+        final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
+        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1,
+                DefaultRedirectStrategy.SC_PERMANENT_REDIRECT, "Permanent Redirect");
         response.addHeader("Location", "http://localhost/stuff");
         final HttpContext context1 = new BasicHttpContext();
         final HttpUriRequest redirect1 = redirectStrategy.getRedirect(

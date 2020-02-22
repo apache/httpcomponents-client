@@ -74,6 +74,8 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
 
     private final Log log = LogFactory.getLog(getClass());
 
+    public static final int SC_PERMANENT_REDIRECT = 308;
+
     /**
      * @deprecated (4.3) use {@link org.apache.http.client.protocol.HttpClientContext#REDIRECT_LOCATIONS}.
      */
@@ -120,6 +122,7 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
             return isRedirectable(method) && locationHeader != null;
         case HttpStatus.SC_MOVED_PERMANENTLY:
         case HttpStatus.SC_TEMPORARY_REDIRECT:
+        case SC_PERMANENT_REDIRECT:
             return isRedirectable(method);
         case HttpStatus.SC_SEE_OTHER:
             return true;
@@ -225,7 +228,7 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
             return new HttpGet(uri);
         } else {
             final int status = response.getStatusLine().getStatusCode();
-            return status == HttpStatus.SC_TEMPORARY_REDIRECT
+            return (status == HttpStatus.SC_TEMPORARY_REDIRECT || status == SC_PERMANENT_REDIRECT)
                             ? RequestBuilder.copy(request).setUri(uri).build()
                             : new HttpGet(uri);
         }
