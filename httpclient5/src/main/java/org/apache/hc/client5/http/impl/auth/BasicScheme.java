@@ -57,7 +57,7 @@ import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.Args;
 
 /**
- * Basic authentication scheme as defined in RFC 2617.
+ * Basic authentication scheme as defined in RFC 7617.
  *
  * @since 4.0
  */
