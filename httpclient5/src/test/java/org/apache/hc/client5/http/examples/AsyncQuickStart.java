@@ -49,8 +49,7 @@ import org.apache.hc.core5.http.nio.support.AsyncRequestBuilder;
 public class AsyncQuickStart {
 
     public static void main (final String[] args) throws Exception {
-        final CloseableHttpAsyncClient httpclient = HttpAsyncClients.createDefault();
-        try {
+        try (final CloseableHttpAsyncClient httpclient = HttpAsyncClients.createDefault()) {
             // Start the client
             httpclient.start();
 
@@ -143,8 +142,6 @@ public class AsyncQuickStart {
             });
             latch2.await();
 
-        } finally {
-            httpclient.close();
         }
     }
 
