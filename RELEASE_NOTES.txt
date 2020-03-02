@@ -1,3 +1,27 @@
+Release 4.5.12
+-------------------
+
+This is a maintenance release that fixes a regression introduced by the previous release
+that caused rejection of ceritificates with non-standard domains.
+
+Changelog:
+-------------------
+
+* HTTPCLIENT-2053: Add SC_PERMANENT_REDIRECT (408) to DefaultRedirectStrategy
+  Contributed by Michael Osipov <michaelo at apache.org>
+
+* HTTPCLIENT-2052: Fixed redirection of entity enclosing requests with non-repeatable entities
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2047: Fixed regression in DefaultHostnameVerifier causing rejection of certificates
+  with non-standard domains.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Bug fix: Fixed handling of private domains by PublicSuffixMatcher
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+
+
 Release 4.5.11
 -------------------
 
