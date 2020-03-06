@@ -136,7 +136,7 @@ public final class MinimalH2AsyncClient extends AbstractMinimalHttpAsyncClientBa
             final HttpContext context) {
         ensureRunning();
         final ComplexCancellable cancellable = new ComplexCancellable();
-        final HttpClientContext clientContext = HttpClientContext.adapt(context);
+        final HttpClientContext clientContext = context != null ? HttpClientContext.adapt(context) : HttpClientContext.create();
         try {
             exchangeHandler.produceRequest(new RequestChannel() {
 
