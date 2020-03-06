@@ -36,7 +36,6 @@ import org.apache.hc.client5.http.async.methods.SimpleResponseConsumer;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
-import org.apache.hc.core5.concurrent.BasicFuture;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.function.Supplier;
 import org.apache.hc.core5.http.HttpHost;
@@ -122,26 +121,7 @@ public abstract class CloseableHttpAsyncClient implements HttpAsyncClient, Modal
             final HttpContext context,
             final FutureCallback<SimpleHttpResponse> callback) {
         Args.notNull(request, "Request");
-        final BasicFuture<SimpleHttpResponse> future = new BasicFuture<>(callback);
-        execute(SimpleRequestProducer.create(request), SimpleResponseConsumer.create(), context, new FutureCallback<SimpleHttpResponse>() {
-
-            @Override
-            public void completed(final SimpleHttpResponse response) {
-                future.completed(response);
-            }
-
-            @Override
-            public void failed(final Exception ex) {
-                future.failed(ex);
-            }
-
-            @Override
-            public void cancelled() {
-                future.cancel(true);
-            }
-
-        });
-        return future;
+        return execute(SimpleRequestProducer.create(request), SimpleResponseConsumer.create(), context, callback);
     }
 
     public final Future<SimpleHttpResponse> execute(
