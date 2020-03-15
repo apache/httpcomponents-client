@@ -30,6 +30,8 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.apache.hc.client5.http.CircularRedirectException;
 import org.apache.hc.client5.http.ClientProtocolException;
@@ -63,6 +65,7 @@ import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -655,6 +658,51 @@ public class TestRedirects extends LocalServerTestBase {
 
             EntityUtils.consume(response.getEntity());
         }
+    }
+
+    @Test
+    public void testCompressionHeaderRedirect() throws Exception {
+        final Queue<String> values = new ConcurrentLinkedQueue<>();
+        final HttpHost target = start(null, new Decorator<HttpServerRequestHandler>() {
+
+            @Override
+            public HttpServerRequestHandler decorate(final HttpServerRequestHandler requestHandler) {
+                return new RedirectingDecorator(
+                        requestHandler,
+                        new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MOVED_TEMPORARILY)) {
+
+                    @Override
+                    public void handle(final ClassicHttpRequest request,
+                                       final ResponseTrigger responseTrigger,
+                                       final HttpContext context) throws HttpException, IOException {
+                        final Header header = request.getHeader(HttpHeaders.ACCEPT_ENCODING);
+                        if (header != null) {
+                            values.add(header.getValue());
+                        }
+                        super.handle(request, responseTrigger, context);
+                    }
+
+                };
+            }
+
+        });
+
+        final HttpClientContext context = HttpClientContext.create();
+
+        final HttpGet httpget = new HttpGet("/oldlocation/100");
+
+        try (final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context)) {
+            final HttpRequest reqWrapper = context.getRequest();
+
+            Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
+            Assert.assertEquals(URIUtils.create(target, "/random/100"), reqWrapper.getUri());
+
+            EntityUtils.consume(response.getEntity());
+        }
+
+        Assert.assertThat(values.poll(), CoreMatchers.equalTo("gzip, x-gzip, deflate"));
+        Assert.assertThat(values.poll(), CoreMatchers.equalTo("gzip, x-gzip, deflate"));
+        Assert.assertThat(values.poll(), CoreMatchers.nullValue());
     }
 
 }

@@ -871,17 +871,6 @@ public class HttpClientBuilder {
             }
         }
 
-        // Add redirect executor, if not disabled
-        if (!redirectHandlingDisabled) {
-            RedirectStrategy redirectStrategyCopy = this.redirectStrategy;
-            if (redirectStrategyCopy == null) {
-                redirectStrategyCopy = DefaultRedirectStrategy.INSTANCE;
-            }
-            execChainDefinition.addFirst(
-                    new RedirectExec(routePlannerCopy, redirectStrategyCopy),
-                    ChainElement.REDIRECT.name());
-        }
-
         if (!contentCompressionDisabled) {
             if (contentDecoderMap != null) {
                 final List<String> encodings = new ArrayList<>(contentDecoderMap.keySet());
@@ -892,12 +881,21 @@ public class HttpClientBuilder {
                 final Registry<InputStreamFactory> decoderRegistry = b2.build();
                 execChainDefinition.addFirst(
                         new ContentCompressionExec(encodings, decoderRegistry, true),
-                        ChainElement.REDIRECT.name());
+                        ChainElement.COMPRESS.name());
             } else {
-                execChainDefinition.addFirst(
-                        new ContentCompressionExec(true),
-                        ChainElement.REDIRECT.name());
+                execChainDefinition.addFirst(new ContentCompressionExec(true), ChainElement.COMPRESS.name());
             }
+        }
+
+        // Add redirect executor, if not disabled
+        if (!redirectHandlingDisabled) {
+            RedirectStrategy redirectStrategyCopy = this.redirectStrategy;
+            if (redirectStrategyCopy == null) {
+                redirectStrategyCopy = DefaultRedirectStrategy.INSTANCE;
+            }
+            execChainDefinition.addFirst(
+                    new RedirectExec(routePlannerCopy, redirectStrategyCopy),
+                    ChainElement.REDIRECT.name());
         }
 
         // Optionally, add connection back-off executor

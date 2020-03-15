@@ -34,6 +34,6 @@ package org.apache.hc.client5.http.impl;
  */
 public enum ChainElement {
 
-    REDIRECT, BACK_OFF, RETRY, CACHING, PROTOCOL, CONNECT, MAIN_TRANSPORT
+    REDIRECT, COMPRESS, BACK_OFF, RETRY, CACHING, PROTOCOL, CONNECT, MAIN_TRANSPORT
 
 }
