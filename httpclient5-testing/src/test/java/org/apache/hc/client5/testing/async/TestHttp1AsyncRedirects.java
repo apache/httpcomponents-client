@@ -26,15 +26,12 @@
  */
 package org.apache.hc.client5.testing.async;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Future;
 
-import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequests;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.config.RequestConfig;
@@ -44,23 +41,20 @@ import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManager;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
+import org.apache.hc.client5.testing.OldPathRedirectResolver;
 import org.apache.hc.client5.testing.SSLTestContexts;
-import org.apache.hc.core5.function.Supplier;
-import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.client5.testing.redirect.Redirect;
+import org.apache.hc.core5.function.Decorator;
 import org.apache.hc.core5.http.Header;
-import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.HttpVersion;
-import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.nio.AsyncServerExchangeHandler;
-import org.apache.hc.core5.http.protocol.HttpCoreContext;
-import org.apache.hc.core5.net.URIBuilder;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -129,54 +123,19 @@ public class TestHttp1AsyncRedirects extends AbstractHttpAsyncRedirectsTest<Clos
         return clientBuilder.build();
     }
 
-    static class NoKeepAliveRedirectService extends AbstractSimpleServerExchangeHandler {
-
-        private final int statuscode;
-
-        public NoKeepAliveRedirectService(final int statuscode) {
-            super();
-            this.statuscode = statuscode;
-        }
-
-        @Override
-        protected SimpleHttpResponse handle(
-                final SimpleHttpRequest request, final HttpCoreContext context) throws HttpException {
-            try {
-                final URI requestURI = request.getUri();
-                final String path = requestURI.getPath();
-                if (path.equals("/oldlocation/")) {
-                    final SimpleHttpResponse response = new SimpleHttpResponse(statuscode);
-                    response.addHeader(new BasicHeader("Location",
-                            new URIBuilder(requestURI).setPath("/newlocation/").build()));
-                    response.addHeader(new BasicHeader("Connection", "close"));
-                    return response;
-                } else if (path.equals("/newlocation/")) {
-                    final SimpleHttpResponse response = new SimpleHttpResponse(HttpStatus.SC_OK);
-                    response.setBody("Successful redirect", ContentType.TEXT_PLAIN);
-                    return response;
-                } else {
-                    return new SimpleHttpResponse(HttpStatus.SC_NOT_FOUND);
-                }
-            } catch (final URISyntaxException ex) {
-                throw new ProtocolException(ex.getMessage(), ex);
-            }
-        }
-
-    }
-
-    @Override
     @Test
-    public void testBasicRedirect300() throws Exception {
-        server.register("*", new Supplier<AsyncServerExchangeHandler>() {
+    public void testBasicRedirect300NoKeepAlive() throws Exception {
+        final HttpHost target = start(new Decorator<AsyncServerExchangeHandler>() {
 
             @Override
-            public AsyncServerExchangeHandler get() {
-                return new NoKeepAliveRedirectService(HttpStatus.SC_MULTIPLE_CHOICES);
+            public AsyncServerExchangeHandler decorate(final AsyncServerExchangeHandler exchangeHandler) {
+                return new RedirectingAsyncDecorator(
+                        exchangeHandler,
+                        new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MULTIPLE_CHOICES,
+                                Redirect.ConnControl.CLOSE));
             }
 
         });
-        final HttpHost target = start();
-
         final HttpClientContext context = HttpClientContext.create();
         final Future<SimpleHttpResponse> future = httpclient.execute(
                 SimpleHttpRequests.get(target, "/oldlocation/"), context, null);
@@ -191,57 +150,59 @@ public class TestHttp1AsyncRedirects extends AbstractHttpAsyncRedirectsTest<Clos
 
     @Test
     public void testBasicRedirect301NoKeepAlive() throws Exception {
-        server.register("*", new Supplier<AsyncServerExchangeHandler>() {
+        final HttpHost target = start(new Decorator<AsyncServerExchangeHandler>() {
 
             @Override
-            public AsyncServerExchangeHandler get() {
-                return new NoKeepAliveRedirectService(HttpStatus.SC_MOVED_PERMANENTLY);
+            public AsyncServerExchangeHandler decorate(final AsyncServerExchangeHandler exchangeHandler) {
+                return new RedirectingAsyncDecorator(
+                        exchangeHandler,
+                        new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MOVED_PERMANENTLY,
+                                Redirect.ConnControl.CLOSE));
             }
 
         });
-
-        final HttpHost target = start();
         final HttpClientContext context = HttpClientContext.create();
         final Future<SimpleHttpResponse> future = httpclient.execute(
-                SimpleHttpRequests.get(target, "/oldlocation/"), context, null);
+                SimpleHttpRequests.get(target, "/oldlocation/100"), context, null);
         final HttpResponse response = future.get();
         Assert.assertNotNull(response);
 
         final HttpRequest request = context.getRequest();
 
         Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
-        Assert.assertEquals("/newlocation/", request.getRequestUri());
+        Assert.assertEquals("/random/100", request.getRequestUri());
         Assert.assertEquals(target, new HttpHost(request.getScheme(), request.getAuthority()));
     }
 
     @Test
     public void testDefaultHeadersRedirect() throws Exception {
-        server.register("*", new Supplier<AsyncServerExchangeHandler>() {
-
-            @Override
-            public AsyncServerExchangeHandler get() {
-                return new NoKeepAliveRedirectService(HttpStatus.SC_MOVED_TEMPORARILY);
-            }
-
-        });
-
         final List<Header> defaultHeaders = new ArrayList<>(1);
         defaultHeaders.add(new BasicHeader(HttpHeaders.USER_AGENT, "my-test-client"));
         clientBuilder.setDefaultHeaders(defaultHeaders);
 
-        final HttpHost target = start();
+        final HttpHost target = start(new Decorator<AsyncServerExchangeHandler>() {
+
+            @Override
+            public AsyncServerExchangeHandler decorate(final AsyncServerExchangeHandler exchangeHandler) {
+                return new RedirectingAsyncDecorator(
+                        exchangeHandler,
+                        new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MOVED_PERMANENTLY,
+                                Redirect.ConnControl.CLOSE));
+            }
+
+        });
 
         final HttpClientContext context = HttpClientContext.create();
 
         final Future<SimpleHttpResponse> future = httpclient.execute(
-                SimpleHttpRequests.get(target, "/oldlocation/"), context, null);
+                SimpleHttpRequests.get(target, "/oldlocation/123"), context, null);
         final HttpResponse response = future.get();
         Assert.assertNotNull(response);
 
         final HttpRequest request = context.getRequest();
 
         Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
-        Assert.assertEquals("/newlocation/", request.getRequestUri());
+        Assert.assertEquals("/random/123", request.getRequestUri());
 
         final Header header = request.getFirstHeader(HttpHeaders.USER_AGENT);
         Assert.assertEquals("my-test-client", header.getValue());
