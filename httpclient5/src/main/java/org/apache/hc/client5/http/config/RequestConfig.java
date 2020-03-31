@@ -231,6 +231,7 @@ public class RequestConfig implements Cloneable {
         builder.append(", proxyPreferredAuthSchemes=").append(proxyPreferredAuthSchemes);
         builder.append(", connectionRequestTimeout=").append(connectionRequestTimeout);
         builder.append(", connectTimeout=").append(connectTimeout);
+        builder.append(", responseTimeout=").append(responseTimeout);
         builder.append(", connectionKeepAlive=").append(connectionKeepAlive);
         builder.append(", contentCompressionEnabled=").append(contentCompressionEnabled);
         builder.append(", hardCancellationEnabled=").append(hardCancellationEnabled);
@@ -255,6 +256,7 @@ public class RequestConfig implements Cloneable {
             .setProxyPreferredAuthSchemes(config.getProxyPreferredAuthSchemes())
             .setConnectionRequestTimeout(config.getConnectionRequestTimeout())
             .setConnectTimeout(config.getConnectTimeout())
+            .setResponseTimeout(config.getResponseTimeout())
             .setConnectionKeepAlive(config.getConnectionKeepAlive())
             .setContentCompressionEnabled(config.isContentCompressionEnabled())
             .setHardCancellationEnabled(config.isHardCancellationEnabled());
