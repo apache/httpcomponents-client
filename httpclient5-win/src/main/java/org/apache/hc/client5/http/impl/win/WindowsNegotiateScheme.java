@@ -32,12 +32,12 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.hc.client5.http.RouteInfo;
 import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.AuthScheme;
-import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.auth.AuthenticationException;
 import org.apache.hc.client5.http.auth.BasicUserPrincipal;
 import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.MalformedChallengeException;
+import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.annotation.Experimental;
 import org.apache.hc.core5.http.HttpHost;
@@ -45,6 +45,7 @@ import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.net.URIAuthority;
 import org.apache.hc.core5.util.Args;
+import org.apache.hc.core5.util.TextUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -133,12 +134,9 @@ public class WindowsNegotiateScheme implements AuthScheme {
             final AuthChallenge authChallenge,
             final HttpContext context) throws MalformedChallengeException {
         Args.notNull(authChallenge, "AuthChallenge");
-        if (authChallenge.getValue() == null) {
-            throw new MalformedChallengeException("Missing auth challenge");
-        }
         challengeType = authChallenge.getChallengeType();
         challenge = authChallenge.getValue();
-        if (challenge.isEmpty()) {
+        if (TextUtils.isBlank(challenge)) {
             if (clientCred != null) {
                 dispose(); // run cleanup first before throwing an exception otherwise can leak OS resources
                 if (continueNeeded) {

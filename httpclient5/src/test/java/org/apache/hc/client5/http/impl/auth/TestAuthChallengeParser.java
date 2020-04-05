@@ -29,8 +29,8 @@ package org.apache.hc.client5.http.impl.auth;
 import java.util.List;
 
 import org.apache.hc.client5.http.auth.AuthChallenge;
-import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.auth.ChallengeType;
+import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.http.ParseException;
 import org.apache.hc.core5.http.message.BasicNameValuePair;
@@ -306,6 +306,19 @@ public class TestAuthChallengeParser {
         Assert.assertEquals(2, params1.size());
         assertNameValuePair(new BasicNameValuePair("blah", null), params1.get(0));
         assertNameValuePair(new BasicNameValuePair("blah", null), params1.get(1));
+    }
+
+    @Test
+    public void testParseNTLMAuthChallenge() throws Exception {
+        final CharArrayBuffer buffer = new CharArrayBuffer(64);
+        buffer.append(StandardAuthScheme.NTLM);
+        final ParserCursor cursor = new ParserCursor(0, buffer.length());
+        final List<AuthChallenge> challenges = parser.parse(ChallengeType.TARGET, buffer, cursor);
+        Assert.assertNotNull(challenges);
+        Assert.assertEquals(1, challenges.size());
+        final AuthChallenge challenge1 = challenges.get(0);
+        Assert.assertEquals(StandardAuthScheme.NTLM, challenge1.getSchemeName());
+        Assert.assertEquals(null, challenge1.getValue());
     }
 
     private static void assertNameValuePair (
