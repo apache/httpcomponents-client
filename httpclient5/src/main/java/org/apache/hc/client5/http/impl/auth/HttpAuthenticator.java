@@ -257,6 +257,7 @@ public final class HttpAuthenticator {
         }
 
         final Queue<AuthScheme> authOptions = new LinkedList<>();
+        this.log.debug("Selecting authentication options");
         for (final AuthScheme authScheme: preferredSchemes) {
             try {
                 final String schemeName = authScheme.getName();
