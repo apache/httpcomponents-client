@@ -107,6 +107,11 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
             final AsyncExecChain.Scope scope,
             final AsyncExecChain chain,
             final AsyncExecCallback asyncExecCallback) throws HttpException, IOException {
+
+        if (Method.CONNECT.isSame(request.getMethod())) {
+            throw new ProtocolException("Direct execution of CONNECT is not allowed");
+        }
+
         final HttpRoute route = scope.route;
         final HttpClientContext clientContext = scope.clientContext;
 

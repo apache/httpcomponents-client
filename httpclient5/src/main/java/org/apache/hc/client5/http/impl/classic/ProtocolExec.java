@@ -107,6 +107,10 @@ public final class ProtocolExec implements ExecChainHandler {
         Args.notNull(request, "HTTP request");
         Args.notNull(scope, "Scope");
 
+        if (Method.CONNECT.isSame(request.getMethod())) {
+            throw new ProtocolException("Direct execution of CONNECT is not allowed");
+        }
+
         final String exchangeId = scope.exchangeId;
         final HttpRoute route = scope.route;
         final HttpClientContext context = scope.clientContext;
