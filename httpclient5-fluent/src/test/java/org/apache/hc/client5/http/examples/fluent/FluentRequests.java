@@ -44,6 +44,7 @@ public class FluentRequests {
         // Execute a GET with timeout settings and return response content as String.
         Request.get("http://somehost/")
                 .connectTimeout(Timeout.ofSeconds(1))
+                .responseTimeout(Timeout.ofSeconds(5))
                 .execute().returnContent().asString();
 
         // Execute a POST with the 'expect-continue' handshake, using HTTP/1.1,
