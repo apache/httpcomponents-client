@@ -77,6 +77,7 @@ public class Request {
     private final ClassicHttpRequest request;
     private Boolean useExpectContinue;
     private Timeout connectTimeout;
+    private Timeout responseTimeout;
     private HttpHost proxy;
 
     private SimpleDateFormat dateFormatter;
@@ -176,6 +177,9 @@ public class Request {
         }
         if (this.connectTimeout != null) {
             builder.setConnectTimeout(this.connectTimeout);
+        }
+        if (this.responseTimeout != null) {
+            builder.setResponseTimeout(this.responseTimeout);
         }
         if (this.proxy != null) {
             builder.setProxy(this.proxy);
@@ -289,6 +293,11 @@ public class Request {
 
     public Request connectTimeout(final Timeout timeout) {
         this.connectTimeout = timeout;
+        return this;
+    }
+
+    public Request responseTimeout(final Timeout timeout) {
+        this.responseTimeout = timeout;
         return this;
     }
 
