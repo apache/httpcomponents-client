@@ -332,18 +332,11 @@ public class TestBasicCookieAttribHandlers {
     public void testBasicMaxAgeParseInvalid() throws Exception {
         final BasicClientCookie cookie = new BasicClientCookie("name", "value");
         final CookieAttributeHandler h = new BasicMaxAgeHandler();
-        try {
-            h.parse(cookie, "garbage");
-            Assert.fail("MalformedCookieException must have been thrown");
-        } catch (final MalformedCookieException ex) {
-            // expected
-        }
-        try {
-            h.parse(cookie, null);
-            Assert.fail("MalformedCookieException must have been thrown");
-        } catch (final MalformedCookieException ex) {
-            // expected
-        }
+        h.parse(cookie, "garbage");
+        Assert.assertNull(cookie.getExpiryDate());
+
+        h.parse(cookie, null);
+        Assert.assertNull(cookie.getExpiryDate());
     }
 
     @Test
@@ -425,19 +418,11 @@ public class TestBasicCookieAttribHandlers {
     @Test
     public void testBasicExpiresParseInvalid() throws Exception {
         final BasicClientCookie cookie = new BasicClientCookie("name", "value");
-        final CookieAttributeHandler h = new BasicExpiresHandler(new String[] {DateUtils.PATTERN_RFC1123});
-        try {
-            h.parse(cookie, "garbage");
-            Assert.fail("MalformedCookieException must have been thrown");
-        } catch (final MalformedCookieException ex) {
-            // expected
-        }
-        try {
-            h.parse(cookie, null);
-            Assert.fail("MalformedCookieException must have been thrown");
-        } catch (final MalformedCookieException ex) {
-            // expected
-        }
+        final CookieAttributeHandler h = new BasicExpiresHandler(new String[]{DateUtils.PATTERN_RFC1123});
+        h.parse(cookie, "garbage");
+        Assert.assertNull(cookie.getExpiryDate());
+        h.parse(cookie, null);
+        Assert.assertNull(cookie.getExpiryDate());
     }
 
     @SuppressWarnings("unused")

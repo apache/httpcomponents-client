@@ -161,10 +161,10 @@ public class LaxExpiresHandler extends AbstractCookieAttributeHandler implements
                 }
             }
         } catch (final NumberFormatException ignore) {
-            throw new MalformedCookieException("Invalid 'expires' attribute: " + value);
+            return;
         }
         if (!foundTime || !foundDayOfMonth || !foundMonth || !foundYear) {
-            throw new MalformedCookieException("Invalid 'expires' attribute: " + value);
+            return;
         }
         if (year >= 70 && year <= 99) {
             year = 1900 + year;
@@ -173,7 +173,7 @@ public class LaxExpiresHandler extends AbstractCookieAttributeHandler implements
             year = 2000 + year;
         }
         if (day < 1 || day > 31 || year < 1601 || hour > 23 || minute > 59 || second > 59) {
-            throw new MalformedCookieException("Invalid 'expires' attribute: " + value);
+            return;
         }
 
         final Calendar c = Calendar.getInstance();
