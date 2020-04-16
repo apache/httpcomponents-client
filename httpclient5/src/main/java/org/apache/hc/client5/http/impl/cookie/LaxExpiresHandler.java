@@ -43,6 +43,7 @@ import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.message.ParserCursor;
 import org.apache.hc.core5.util.Args;
+import org.apache.hc.core5.util.TextUtils;
 
 /**
  * Cookie {@code expires} attribute handler conformant to the more relaxed interpretation
@@ -107,6 +108,9 @@ public class LaxExpiresHandler extends AbstractCookieAttributeHandler implements
     @Override
     public void parse(final SetCookie cookie, final String value) throws MalformedCookieException {
         Args.notNull(cookie, "Cookie");
+        if (TextUtils.isBlank(value)) {
+            return;
+        }
         final ParserCursor cursor = new ParserCursor(0, value.length());
         final StringBuilder content = new StringBuilder();
 
