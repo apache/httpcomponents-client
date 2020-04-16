@@ -53,16 +53,18 @@ public class BasicMaxAgeHandler extends AbstractCookieAttributeHandler implement
             throws MalformedCookieException {
         Args.notNull(cookie, "Cookie");
         if (value == null) {
-            return;
+            throw new MalformedCookieException("Missing value for 'max-age' attribute");
         }
         final int age;
         try {
             age = Integer.parseInt(value);
         } catch (final NumberFormatException e) {
-            return;
+            throw new MalformedCookieException ("Invalid 'max-age' attribute: "
+                    + value);
         }
         if (age < 0) {
-            return;
+            throw new MalformedCookieException ("Negative 'max-age' attribute: "
+                    + value);
         }
         cookie.setExpiryDate(new Date(System.currentTimeMillis() + age * 1000L));
     }
