@@ -115,6 +115,14 @@ public class TestLaxCookieAttribHandlers {
         Assert.assertEquals(0, c.get(Calendar.MILLISECOND));
     }
 
+    @Test
+    public void testParseExpiryInvalidTime0() throws Exception {
+        final BasicClientCookie cookie = new BasicClientCookie("name", "value");
+        final CookieAttributeHandler h = new LaxExpiresHandler();
+        h.parse(cookie, null);
+        Assert.assertNull(cookie.getExpiryDate());
+    }
+
     @Test(expected = MalformedCookieException.class)
     public void testParseExpiryInvalidTime1() throws Exception {
         final BasicClientCookie cookie = new BasicClientCookie("name", "value");

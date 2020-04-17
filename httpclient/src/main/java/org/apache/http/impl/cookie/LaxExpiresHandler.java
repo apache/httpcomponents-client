@@ -43,6 +43,7 @@ import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.cookie.SetCookie;
 import org.apache.http.message.ParserCursor;
 import org.apache.http.util.Args;
+import org.apache.http.util.TextUtils;
 
 /**
  *
@@ -105,6 +106,9 @@ public class LaxExpiresHandler extends AbstractCookieAttributeHandler implements
     @Override
     public void parse(final SetCookie cookie, final String value) throws MalformedCookieException {
         Args.notNull(cookie, "Cookie");
+        if (TextUtils.isBlank(value)) {
+            return;
+        }
         final ParserCursor cursor = new ParserCursor(0, value.length());
         final StringBuilder content = new StringBuilder();
 
