@@ -30,6 +30,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
@@ -150,9 +151,11 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
             final HandlerFactory<AsyncPushConsumer> pushHandlerFactory,
             final HttpContext context,
             final FutureCallback<T> callback) {
-        ensureRunning();
         final ComplexFuture<T> future = new ComplexFuture<>(callback);
         try {
+            if (!isRunning()) {
+                throw new CancellationException("Request execution cancelled");
+            }
             final HttpClientContext clientContext = context != null ? HttpClientContext.adapt(context) : HttpClientContext.create();
             requestProducer.sendRequest(new RequestChannel() {
 
@@ -316,7 +319,7 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
                 }
 
             }, context);
-        } catch (final HttpException | IOException ex) {
+        } catch (final HttpException | IOException | IllegalStateException ex) {
             future.failed(ex);
         }
         return future;

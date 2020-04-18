@@ -29,6 +29,7 @@ package org.apache.hc.client5.http.impl.async;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -209,12 +210,15 @@ public final class MinimalHttpAsyncClient extends AbstractMinimalHttpAsyncClient
             final FutureCallback<AsyncClientEndpoint> callback) {
         Args.notNull(host, "Host");
         Args.notNull(context, "HTTP context");
-        ensureRunning();
+        final BasicFuture<AsyncClientEndpoint> future = new BasicFuture<>(callback);
+        if (!isRunning()) {
+            future.failed(new CancellationException("Connection lease cancelled"));
+            return future;
+        }
         final HttpClientContext clientContext = HttpClientContext.adapt(context);
         final RequestConfig requestConfig = clientContext.getRequestConfig();
         final Timeout connectionRequestTimeout = requestConfig.getConnectionRequestTimeout();
         final Timeout connectTimeout = requestConfig.getConnectTimeout();
-        final BasicFuture<AsyncClientEndpoint> future = new BasicFuture<>(callback);
         leaseEndpoint(
                 host,
                 connectionRequestTimeout,
@@ -246,10 +250,12 @@ public final class MinimalHttpAsyncClient extends AbstractMinimalHttpAsyncClient
             final AsyncClientExchangeHandler exchangeHandler,
             final HandlerFactory<AsyncPushConsumer> pushHandlerFactory,
             final HttpContext context) {
-        ensureRunning();
         final ComplexCancellable cancellable = new ComplexCancellable();
-        final HttpClientContext clientContext = context != null ? HttpClientContext.adapt(context) : HttpClientContext.create();
         try {
+            if (!isRunning()) {
+                throw new CancellationException("Request execution cancelled");
+            }
+            final HttpClientContext clientContext = context != null ? HttpClientContext.adapt(context) : HttpClientContext.create();
             exchangeHandler.produceRequest(new RequestChannel() {
 
                 @Override
@@ -426,7 +432,7 @@ public final class MinimalHttpAsyncClient extends AbstractMinimalHttpAsyncClient
                 }
             }, context);
 
-        } catch (final HttpException | IOException ex) {
+        } catch (final HttpException | IOException | IllegalStateException ex) {
             exchangeHandler.failed(ex);
         }
         return cancellable;

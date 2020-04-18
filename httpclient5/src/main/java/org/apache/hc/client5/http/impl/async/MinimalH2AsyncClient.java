@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.List;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 
@@ -134,10 +135,12 @@ public final class MinimalH2AsyncClient extends AbstractMinimalHttpAsyncClientBa
             final AsyncClientExchangeHandler exchangeHandler,
             final HandlerFactory<AsyncPushConsumer> pushHandlerFactory,
             final HttpContext context) {
-        ensureRunning();
         final ComplexCancellable cancellable = new ComplexCancellable();
-        final HttpClientContext clientContext = context != null ? HttpClientContext.adapt(context) : HttpClientContext.create();
         try {
+            if (!isRunning()) {
+                throw new CancellationException("Request execution cancelled");
+            }
+            final HttpClientContext clientContext = context != null ? HttpClientContext.adapt(context) : HttpClientContext.create();
             exchangeHandler.produceRequest(new RequestChannel() {
 
                 @Override
@@ -270,7 +273,7 @@ public final class MinimalH2AsyncClient extends AbstractMinimalHttpAsyncClientBa
                 }
 
             }, context);
-        } catch (final HttpException | IOException ex) {
+        } catch (final HttpException | IOException | IllegalStateException ex) {
             exchangeHandler.failed(ex);
         }
         return cancellable;

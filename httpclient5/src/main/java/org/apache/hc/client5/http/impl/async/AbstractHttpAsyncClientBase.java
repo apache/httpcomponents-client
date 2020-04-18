@@ -81,13 +81,8 @@ abstract class AbstractHttpAsyncClientBase extends CloseableHttpAsyncClient {
         pushConsumerRegistry.register(hostname, uriPattern, supplier);
     }
 
-    void ensureRunning() {
-        switch (status.get()) {
-            case READY:
-                throw new IllegalStateException("Client is not running");
-            case TERMINATED:
-                throw new IllegalStateException("Client has been terminated");
-        }
+    boolean isRunning() {
+        return status.get() == Status.RUNNING;
     }
 
     ConnectionInitiator getConnectionInitiator() {
