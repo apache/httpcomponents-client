@@ -142,8 +142,13 @@ public final class AsyncRedirectExec implements AsyncExecChainHandler {
                     switch (statusCode) {
                         case HttpStatus.SC_MOVED_PERMANENTLY:
                         case HttpStatus.SC_MOVED_TEMPORARILY:
-                        case HttpStatus.SC_SEE_OTHER:
                             if (Method.POST.isSame(request.getMethod())) {
+                                state.currentRequest = new BasicHttpRequest(Method.GET, redirectUri);
+                                state.currentEntityProducer = null;
+                            }
+                            break;
+                        case HttpStatus.SC_SEE_OTHER:
+                            if (!Method.GET.isSame(request.getMethod()) && !Method.HEAD.isSame(request.getMethod())) {
                                 state.currentRequest = new BasicHttpRequest(Method.GET, redirectUri);
                                 state.currentEntityProducer = null;
                             }
