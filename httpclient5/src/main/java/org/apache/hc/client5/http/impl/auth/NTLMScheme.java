@@ -99,9 +99,7 @@ public final class NTLMScheme implements AuthScheme {
             final AuthChallenge authChallenge,
             final HttpContext context) throws MalformedChallengeException {
         Args.notNull(authChallenge, "AuthChallenge");
-        if (authChallenge.getValue() == null) {
-            throw new MalformedChallengeException("Missing auth challenge");
-        }
+
         this.challenge = authChallenge.getValue();
         if (this.challenge == null || this.challenge.isEmpty()) {
             if (this.state == State.UNINITIATED) {
