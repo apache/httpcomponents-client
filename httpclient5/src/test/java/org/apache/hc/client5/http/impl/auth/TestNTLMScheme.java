@@ -46,10 +46,10 @@ public class TestNTLMScheme {
         authScheme.processChallenge(authChallenge, null);
 
         Assert.assertFalse(
-                "Challenge with empty value received from NTML proxy must not interrupt authentication process.",
+                "Challenge with an empty value received from NTML proxy must not interrupt authentication process.",
                 authScheme.isChallengeComplete());
         Assert.assertTrue(
-                "Challenge with empty value received from NTML proxy must transit status of NTLMScheme to CHALLENGE_RECEIVED.",
+                "Challenge with an empty value received from NTML proxy must transit status of NTLMScheme to CHALLENGE_RECEIVED.",
                 authScheme.toString().contains(NTLMScheme.State.CHALLENGE_RECEIVED.toString()));
     }
 }
