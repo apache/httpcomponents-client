@@ -24,17 +24,19 @@
  * <http://www.apache.org/>.
  *
  */
+
 package org.apache.hc.client5.http.impl.auth;
 
 import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
-
 import org.junit.Assert;
 import org.junit.Test;
 
-
+/**
+ * Unit tests for {@link NTLMScheme}.
+ */
 public class TestNTLMScheme {
 
     @Test
