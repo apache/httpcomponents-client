@@ -68,10 +68,11 @@ import org.apache.http.client.protocol.RequestDefaultHeaders;
 import org.apache.http.client.protocol.RequestExpectContinue;
 import org.apache.http.client.protocol.ResponseContentEncoding;
 import org.apache.http.client.protocol.ResponseProcessCookies;
-import org.apache.http.config.ConnectionConfig;
-import org.apache.http.config.Lookup;
-import org.apache.http.config.RegistryBuilder;
 import org.apache.http.config.SocketConfig;
+import org.apache.http.config.Lookup;
+import org.apache.http.config.ConnectionConfig;
+import org.apache.http.config.Registry;
+import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.ConnectionKeepAliveStrategy;
 import org.apache.http.conn.DnsResolver;
 import org.apache.http.conn.HttpClientConnectionManager;
@@ -80,6 +81,7 @@ import org.apache.http.conn.routing.HttpRoutePlanner;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.http.conn.socket.SOCKSConnectionSocketFactory;
 import org.apache.http.conn.ssl.DefaultHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.X509HostnameVerifier;
@@ -941,6 +943,46 @@ public class HttpClientBuilder {
         return s.split(" *, *");
     }
 
+    /**
+     * Creates a HttpClientConnectionManager with a Registry<ConnectionSocketFactory>.
+     * The configuration of the connection manager will be based on the configuration of this HttpClient.
+     *
+     * @param registry the registry for protocol mapped with ConnectionSocketFactory
+     * @return HttpClientConnectionManager
+     */
+    private HttpClientConnectionManager createConnectionManager(final Registry<ConnectionSocketFactory> registry) {
+        @SuppressWarnings("resource")
+        final PoolingHttpClientConnectionManager poolingmgr = new PoolingHttpClientConnectionManager(
+                registry,
+                null,
+                null,
+                dnsResolver,
+                connTimeToLive,
+                connTimeToLiveTimeUnit != null ? connTimeToLiveTimeUnit : TimeUnit.MILLISECONDS);
+        if (defaultSocketConfig != null) {
+            poolingmgr.setDefaultSocketConfig(defaultSocketConfig);
+        }
+        if (defaultConnectionConfig != null) {
+            poolingmgr.setDefaultConnectionConfig(defaultConnectionConfig);
+        }
+        if (systemProperties) {
+            String s = System.getProperty("http.keepAlive", "true");
+            if ("true".equalsIgnoreCase(s)) {
+                s = System.getProperty("http.maxConnections", "5");
+                final int max = Integer.parseInt(s);
+                poolingmgr.setDefaultMaxPerRoute(max);
+                poolingmgr.setMaxTotal(2 * max);
+            }
+        }
+        if (maxConnTotal > 0) {
+            poolingmgr.setMaxTotal(maxConnTotal);
+        }
+        if (maxConnPerRoute > 0) {
+            poolingmgr.setDefaultMaxPerRoute(maxConnPerRoute);
+        }
+        return poolingmgr;
+    }
+
     public CloseableHttpClient build() {
         // Create main request executor
         // We copy the instance fields to avoid changing them, and rename to avoid accidental use of the wrong version
@@ -954,7 +996,18 @@ public class HttpClientBuilder {
             requestExecCopy = new HttpRequestExecutor();
         }
         HttpClientConnectionManager connManagerCopy = this.connManager;
-        if (connManagerCopy == null) {
+
+        final String socksProxyHost = System.getProperty("socksProxyHost");
+        final String socksProxyPort = System.getProperty("socksProxyPort");
+
+        if (systemProperties && socksProxyHost != null && socksProxyPort != null) {
+            // TODO should use a method that creates a new connection manager based on the current, but with a SOCKS registry
+            // replaces the current connection manager with a SOCKS oriented connection manager with configuration based on this HttpClient.
+            connManagerCopy = createConnectionManager(RegistryBuilder.<ConnectionSocketFactory>create()
+                    .register("http", SOCKSConnectionSocketFactory.getSocketFactory())
+                    .register("https", SOCKSConnectionSocketFactory.getSocketFactory())
+                    .build());
+        } else if (connManagerCopy == null) {
             LayeredConnectionSocketFactory sslSocketFactoryCopy = this.sslSocketFactory;
             if (sslSocketFactoryCopy == null) {
                 final String[] supportedProtocols = systemProperties ? split(
@@ -979,41 +1032,15 @@ public class HttpClientBuilder {
                                 hostnameVerifierCopy);
                     }
                 }
-            }
-            @SuppressWarnings("resource")
-            final PoolingHttpClientConnectionManager poolingmgr = new PoolingHttpClientConnectionManager(
-                    RegistryBuilder.<ConnectionSocketFactory>create()
+
+                connManagerCopy = createConnectionManager(RegistryBuilder.<ConnectionSocketFactory>create()
                         .register("http", PlainConnectionSocketFactory.getSocketFactory())
                         .register("https", sslSocketFactoryCopy)
-                        .build(),
-                    null,
-                    null,
-                    dnsResolver,
-                    connTimeToLive,
-                    connTimeToLiveTimeUnit != null ? connTimeToLiveTimeUnit : TimeUnit.MILLISECONDS);
-            if (defaultSocketConfig != null) {
-                poolingmgr.setDefaultSocketConfig(defaultSocketConfig);
+                        .build());
             }
-            if (defaultConnectionConfig != null) {
-                poolingmgr.setDefaultConnectionConfig(defaultConnectionConfig);
-            }
-            if (systemProperties) {
-                String s = System.getProperty("http.keepAlive", "true");
-                if ("true".equalsIgnoreCase(s)) {
-                    s = System.getProperty("http.maxConnections", "5");
-                    final int max = Integer.parseInt(s);
-                    poolingmgr.setDefaultMaxPerRoute(max);
-                    poolingmgr.setMaxTotal(2 * max);
-                }
-            }
-            if (maxConnTotal > 0) {
-                poolingmgr.setMaxTotal(maxConnTotal);
-            }
-            if (maxConnPerRoute > 0) {
-                poolingmgr.setDefaultMaxPerRoute(maxConnPerRoute);
-            }
-            connManagerCopy = poolingmgr;
+
         }
+
         ConnectionReuseStrategy reuseStrategyCopy = this.reuseStrategy;
         if (reuseStrategyCopy == null) {
             if (systemProperties) {
