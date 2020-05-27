@@ -355,7 +355,7 @@ public class PoolingHttpClientConnectionManager
         if (conn != null && keepAlive == null) {
             conn.close(CloseMode.GRACEFUL);
         }
-        boolean reusable = conn != null && conn.isOpen();
+        boolean reusable = conn != null && conn.isOpen() && conn.isConsistent();
         try {
             if (reusable) {
                 entry.updateState(state);
@@ -370,6 +370,10 @@ public class PoolingHttpClientConnectionManager
                     }
                     log.debug(ConnPoolSupport.getId(endpoint) + ": connection " + ConnPoolSupport.getId(conn) +
                             " can be kept alive " + s);
+                }
+            } else {
+                if (this.log.isDebugEnabled()) {
+                    this.log.debug(ConnPoolSupport.getId(endpoint) + ": connection is not kept alive");
                 }
             }
         } catch (final RuntimeException ex) {

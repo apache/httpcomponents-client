@@ -265,7 +265,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
                 this.conn.close(CloseMode.GRACEFUL);
             }
             this.updated = System.currentTimeMillis();
-            if (!this.conn.isOpen()) {
+            if (!this.conn.isOpen() && !this.conn.isConsistent()) {
                 this.conn = null;
                 this.route = null;
                 this.conn = null;

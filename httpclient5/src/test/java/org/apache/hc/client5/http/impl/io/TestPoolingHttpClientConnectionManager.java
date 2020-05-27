@@ -107,6 +107,7 @@ public class TestPoolingHttpClientConnectionManager {
         Mockito.when(plainSocketFactory.createSocket(Mockito.<HttpContext>any())).thenReturn(socket);
 
         Mockito.when(conn.isOpen()).thenReturn(true);
+        Mockito.when(conn.isConsistent()).thenReturn(true);
         Mockito.when(future.isCancelled()).thenReturn(false);
         Mockito.when(future.get(1, TimeUnit.SECONDS)).thenReturn(entry);
         Mockito.when(pool.lease(
@@ -213,7 +214,8 @@ public class TestPoolingHttpClientConnectionManager {
                 Mockito.<Timeout>any(),
                 Mockito.<FutureCallback<PoolEntry<HttpRoute, ManagedHttpClientConnection>>>eq(null)))
                 .thenReturn(future);
-        Mockito.when(conn.isOpen()).thenReturn(Boolean.TRUE);
+        Mockito.when(conn.isOpen()).thenReturn(true);
+        Mockito.when(conn.isConsistent()).thenReturn(true);
 
         final LeaseRequest connRequest1 = mgr.lease("some-id", route, null);
         final ConnectionEndpoint endpoint1 = connRequest1.get(Timeout.ofSeconds(1));
