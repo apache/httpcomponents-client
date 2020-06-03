@@ -217,7 +217,7 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
                     if (targetAuthExchange.getState() == AuthExchange.State.SUCCESS
                             && targetAuthExchange.isConnectionBased()) {
                         if (log.isDebugEnabled()) {
-                            log.debug(exchangeId + ": esetting target auth state");
+                            log.debug(exchangeId + ": resetting target auth state");
                         }
                         targetAuthExchange.reset();
                     }
@@ -226,7 +226,7 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
                 if (challenged.get()) {
                     if (entityProducer != null && !entityProducer.isRepeatable()) {
                         if (log.isDebugEnabled()) {
-                            log.debug(exchangeId + ": annot retry non-repeatable request");
+                            log.debug(exchangeId + ": cannot retry non-repeatable request");
                         }
                         asyncExecCallback.completed();
                     } else {
