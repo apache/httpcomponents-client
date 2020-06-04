@@ -1,4 +1,50 @@
-﻿Release 5.0
+﻿Release 5.0.1
+-----------------
+
+This release upgrades HttpCore to the latest version and addresses a number of issues found
+since 5.0 release.
+
+Changelog:
+-------------------
+
+* Bug fix: Classic connection managers fail to take #isConsistent() flag into account when
+  re-using persistent connections.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2077: Authentication failure due to incorrect NTLM auth value check.
+  Contributed by vonahok <64310078+vonahok at users.noreply.github.com>
+
+* HTTPCLIENT-2051: Corrected handling of 303 redirects.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPASYNC-160: HttpAsyncClient in INACTIVE or STOPPED state throws a IllegalStateException
+  causing the current thread to terminate.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2076: Fixed NPE in LaxExpiresHandler.
+  Contributed by heejeongkim <aprilhjk at gmail.com>
+
+* HTTPCLIENT-2074: Disallow direct execution of CONNECT methods by standard client implementations.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2075: New method Request.responseTimeout(Timeout) in Fluent HC.
+  Contributed by Ralph <ralph.geerkens at rwth-aachen.de>
+
+* HTTPCLIENT-2073: (regression) WindowsNegotiateScheme incorrectly rejects empty NTLM challenge.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2069: RequestConfig#copy does not copy #responseTimeout.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2061: Corrected sequence of request execution interceptors in classic HttpClient.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Fixed NPE for null HttpContext in minimal async clients.
+  Contributed by slisaasquatch <sli at saasquat.ch>
+
+
+
+Release 5.0
 -----------------
 
 This is the first stable (GA) release of HttpClient 5.0.
