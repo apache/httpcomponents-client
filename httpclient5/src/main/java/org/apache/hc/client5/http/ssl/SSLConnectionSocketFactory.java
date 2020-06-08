@@ -34,6 +34,7 @@ import java.net.Socket;
 import java.security.AccessController;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -41,9 +42,11 @@ import java.util.regex.Pattern;
 
 import javax.net.SocketFactory;
 import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SNIServerName;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
+import javax.net.ssl.SSLParameters;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
 
@@ -126,6 +129,7 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
     private final String[] supportedProtocols;
     private final String[] supportedCipherSuites;
     private final TlsSessionValidator tlsSessionValidator;
+    private final boolean disableSNIExtension;
 
     public SSLConnectionSocketFactory(final SSLContext sslContext) {
         this(sslContext, HttpsSupport.getDefaultHostnameVerifier());
@@ -169,11 +173,24 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
             final String[] supportedProtocols,
             final String[] supportedCipherSuites,
             final HostnameVerifier hostnameVerifier) {
+       this(socketFactory, supportedProtocols, supportedCipherSuites, hostnameVerifier, false);
+    }
+    
+    /**
+     * @since 5.0.1
+     */
+    public SSLConnectionSocketFactory(
+            final javax.net.ssl.SSLSocketFactory socketFactory,
+            final String[] supportedProtocols,
+            final String[] supportedCipherSuites,
+            final HostnameVerifier hostnameVerifier,
+            final boolean disableSNIExtension) {
         this.socketFactory = Args.notNull(socketFactory, "SSL socket factory");
         this.supportedProtocols = supportedProtocols;
         this.supportedCipherSuites = supportedCipherSuites;
         this.hostnameVerifier = hostnameVerifier != null ? hostnameVerifier : HttpsSupport.getDefaultHostnameVerifier();
         this.tlsSessionValidator = new TlsSessionValidator(log);
+        this.disableSNIExtension = disableSNIExtension;
     }
 
     /**
@@ -270,6 +287,14 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
             this.log.debug("Enabled protocols: " + Arrays.asList(sslsock.getEnabledProtocols()));
             this.log.debug("Enabled cipher suites:" + Arrays.asList(sslsock.getEnabledCipherSuites()));
         }
+        
+        // Patch for some websites - SSLHandshakeException : received handshake warning: unrecognized_name
+ 		// Same as -Djsse.enableSNIExtension=false but only for this factory
+ 		if (disableSNIExtension) {
+ 			SSLParameters p = sslsock.getSSLParameters();
+ 			p.setServerNames(new ArrayList<SNIServerName>());
+ 			sslsock.setSSLParameters(p);
+ 		}
 
         prepareSocket(sslsock);
         this.log.debug("Starting handshake");
