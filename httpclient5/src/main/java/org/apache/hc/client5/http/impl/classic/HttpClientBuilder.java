@@ -452,6 +452,9 @@ public class HttpClientBuilder {
     public final HttpClientBuilder addExecInterceptorFirst(final String name, final ExecChainHandler interceptor) {
         Args.notNull(name, "Name");
         Args.notNull(interceptor, "Interceptor");
+        if (execInterceptors == null) {
+            execInterceptors = new LinkedList<>();
+        }
         execInterceptors.add(new ExecInterceptorEntry(ExecInterceptorEntry.Postion.FIRST, name, interceptor, null));
         return this;
     }
@@ -462,6 +465,9 @@ public class HttpClientBuilder {
     public final HttpClientBuilder addExecInterceptorLast(final String name, final ExecChainHandler interceptor) {
         Args.notNull(name, "Name");
         Args.notNull(interceptor, "Interceptor");
+        if (execInterceptors == null) {
+            execInterceptors = new LinkedList<>();
+        }
         execInterceptors.add(new ExecInterceptorEntry(ExecInterceptorEntry.Postion.LAST, name, interceptor, null));
         return this;
     }
