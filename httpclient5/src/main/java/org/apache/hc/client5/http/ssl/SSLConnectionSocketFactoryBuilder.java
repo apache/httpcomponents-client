@@ -71,7 +71,7 @@ public class SSLConnectionSocketFactoryBuilder {
     private HostnameVerifier hostnameVerifier;
     private boolean systemProperties;
     private boolean disableSNIExtension;
-    
+
     /**
      * Disable the SNI extension for this specific SSLConnectionSocketFactory.
      * Acts as the -DenableSNIExtension=false JVM option but only for this factory.
@@ -162,7 +162,7 @@ public class SSLConnectionSocketFactoryBuilder {
                 tlsVersionsCopy,
                 ciphersCopy,
                 hostnameVerifier != null ? hostnameVerifier : HttpsSupport.getDefaultHostnameVerifier(),
-        		disableSNIExtension);
+                disableSNIExtension);
     }
 
 }

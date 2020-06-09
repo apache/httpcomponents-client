@@ -175,7 +175,7 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
             final HostnameVerifier hostnameVerifier) {
        this(socketFactory, supportedProtocols, supportedCipherSuites, hostnameVerifier, false);
     }
-    
+
     /**
      * @since 5.0.1
      */
@@ -287,14 +287,14 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
             this.log.debug("Enabled protocols: " + Arrays.asList(sslsock.getEnabledProtocols()));
             this.log.debug("Enabled cipher suites:" + Arrays.asList(sslsock.getEnabledCipherSuites()));
         }
-        
+
         // Patch for some websites - SSLHandshakeException : received handshake warning: unrecognized_name
- 		// Same as -Djsse.enableSNIExtension=false but only for this factory
- 		if (disableSNIExtension) {
- 			SSLParameters p = sslsock.getSSLParameters();
- 			p.setServerNames(new ArrayList<SNIServerName>());
- 			sslsock.setSSLParameters(p);
- 		}
+        // Same as -Djsse.enableSNIExtension=false but only for this factory
+        if (disableSNIExtension) {
+            final SSLParameters p = sslsock.getSSLParameters();
+            p.setServerNames(new ArrayList<SNIServerName>());
+            sslsock.setSSLParameters(p);
+        }
 
         prepareSocket(sslsock);
         this.log.debug("Starting handshake");
