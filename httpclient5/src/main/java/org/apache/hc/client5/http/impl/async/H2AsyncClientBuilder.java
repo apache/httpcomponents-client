@@ -660,7 +660,7 @@ public class H2AsyncClientBuilder {
         if (responseInterceptors != null) {
             for (final ResponseInterceptorEntry entry: responseInterceptors) {
                 if (entry.postion == ResponseInterceptorEntry.Postion.LAST) {
-                    b.addFirst(entry.interceptor);
+                    b.addLast(entry.interceptor);
                 }
             }
         }

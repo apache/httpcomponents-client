@@ -803,14 +803,14 @@ public class HttpAsyncClientBuilder {
         if (requestInterceptors != null) {
             for (final RequestInterceptorEntry entry: requestInterceptors) {
                 if (entry.postion == RequestInterceptorEntry.Postion.LAST) {
-                    b.addFirst(entry.interceptor);
+                    b.addLast(entry.interceptor);
                 }
             }
         }
         if (responseInterceptors != null) {
             for (final ResponseInterceptorEntry entry: responseInterceptors) {
                 if (entry.postion == ResponseInterceptorEntry.Postion.LAST) {
-                    b.addFirst(entry.interceptor);
+                    b.addLast(entry.interceptor);
                 }
             }
         }
