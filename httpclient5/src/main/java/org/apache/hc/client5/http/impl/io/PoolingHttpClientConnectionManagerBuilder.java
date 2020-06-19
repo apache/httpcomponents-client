@@ -41,9 +41,9 @@ import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.io.HttpConnectionFactory;
 import org.apache.hc.core5.http.io.SocketConfig;
-import org.apache.hc.core5.pool.ManagedConnPool;
 import org.apache.hc.core5.pool.PoolConcurrencyPolicy;
 import org.apache.hc.core5.pool.PoolReusePolicy;
+import org.apache.hc.core5.pool.StrictConnPool;
 import org.apache.hc.core5.util.TimeValue;
 
 /**
@@ -80,7 +80,7 @@ public class PoolingHttpClientConnectionManagerBuilder {
     private SchemePortResolver schemePortResolver;
     private DnsResolver dnsResolver;
 
-    private ManagedConnPool<HttpRoute, ManagedHttpClientConnection> managedConnPool;
+    private StrictConnPool<HttpRoute, ManagedHttpClientConnection> managedConnPool;
     private PoolConcurrencyPolicy poolConcurrencyPolicy;
     private PoolReusePolicy poolReusePolicy;
     private SocketConfig defaultSocketConfig;
@@ -103,7 +103,7 @@ public class PoolingHttpClientConnectionManagerBuilder {
 
     @Internal
     public PoolingHttpClientConnectionManagerBuilder setManagedConnPool(
-            final ManagedConnPool<HttpRoute, ManagedHttpClientConnection> managedConnPool) {
+            final StrictConnPool<HttpRoute, ManagedHttpClientConnection> managedConnPool) {
         this.managedConnPool = managedConnPool;
         return this;
     }
