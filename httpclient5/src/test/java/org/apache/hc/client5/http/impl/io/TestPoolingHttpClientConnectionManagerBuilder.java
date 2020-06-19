@@ -83,10 +83,16 @@ public class TestPoolingHttpClientConnectionManagerBuilder {
     @Before
     public void setup() throws Exception {
         MockitoAnnotations.initMocks(this);
+        mgr = PoolingHttpClientConnectionManagerBuilder.create()
+                .setConnectionSocketFactoryRegistry(socketFactoryRegistry)
+                .setSchemePortResolver(schemePortResolver)
+                .setDnsResolver(dnsResolver)
+                .setManagedConnPool(pool)
+                .build();
     }
 
     @Test
-    public void testDefaultManager() throws Exception {
+    public void testLeaseRelease() throws Exception {
         final HttpHost target = new HttpHost("localhost", 80);
         final HttpRoute route = new HttpRoute(target);
 
@@ -107,13 +113,6 @@ public class TestPoolingHttpClientConnectionManagerBuilder {
                 Mockito.<Timeout>any(),
                 Mockito.<FutureCallback<PoolEntry<HttpRoute, ManagedHttpClientConnection>>>eq(null)))
                 .thenReturn(future);
-
-        mgr = PoolingHttpClientConnectionManagerBuilder.create()
-                .setConnectionSocketFactoryRegistry(socketFactoryRegistry)
-                .setSchemePortResolver(schemePortResolver)
-                .setDnsResolver(dnsResolver)
-                .setManagedConnPool(pool)
-                .build();
 
         final LeaseRequest connRequest1 = mgr.lease("some-id", route, null);
         final ConnectionEndpoint endpoint1 = connRequest1.get(Timeout.ofSeconds(1));
