@@ -38,7 +38,6 @@ import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.config.Lookup;
-import org.apache.hc.core5.http.config.Registry;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.io.HttpConnectionFactory;
 import org.apache.hc.core5.http.io.SocketConfig;
@@ -103,7 +102,8 @@ public class PoolingHttpClientConnectionManagerBuilder {
     }
 
     @Internal
-    public PoolingHttpClientConnectionManagerBuilder setManagedConnPool(ManagedConnPool<HttpRoute, ManagedHttpClientConnection> managedConnPool) {
+    public PoolingHttpClientConnectionManagerBuilder setManagedConnPool(
+            final ManagedConnPool<HttpRoute, ManagedHttpClientConnection> managedConnPool) {
         this.managedConnPool = managedConnPool;
         return this;
     }
@@ -112,7 +112,7 @@ public class PoolingHttpClientConnectionManagerBuilder {
      * Assigns {@link Registry} instance.
      */
     public final PoolingHttpClientConnectionManagerBuilder setConnectionSocketFactoryRegistry(
-            Lookup<ConnectionSocketFactory> connectionSocketFactoryRegistry) {
+            final Lookup<ConnectionSocketFactory> connectionSocketFactoryRegistry) {
         this.connectionSocketFactoryRegistry = connectionSocketFactoryRegistry;
         return this;
     }
