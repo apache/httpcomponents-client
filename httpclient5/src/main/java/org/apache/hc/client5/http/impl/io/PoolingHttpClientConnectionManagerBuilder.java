@@ -28,16 +28,21 @@
 package org.apache.hc.client5.http.impl.io;
 
 import org.apache.hc.client5.http.DnsResolver;
+import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.io.ManagedHttpClientConnection;
 import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
 import org.apache.hc.client5.http.socket.LayeredConnectionSocketFactory;
 import org.apache.hc.client5.http.socket.PlainConnectionSocketFactory;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
+import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.http.URIScheme;
+import org.apache.hc.core5.http.config.Lookup;
+import org.apache.hc.core5.http.config.Registry;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.io.HttpConnectionFactory;
 import org.apache.hc.core5.http.io.SocketConfig;
+import org.apache.hc.core5.pool.ManagedConnPool;
 import org.apache.hc.core5.pool.PoolConcurrencyPolicy;
 import org.apache.hc.core5.pool.PoolReusePolicy;
 import org.apache.hc.core5.util.TimeValue;
@@ -70,10 +75,13 @@ import org.apache.hc.core5.util.TimeValue;
  */
 public class PoolingHttpClientConnectionManagerBuilder {
 
+    private Lookup<ConnectionSocketFactory> connectionSocketFactoryRegistry;
     private HttpConnectionFactory<ManagedHttpClientConnection> connectionFactory;
     private LayeredConnectionSocketFactory sslSocketFactory;
     private SchemePortResolver schemePortResolver;
     private DnsResolver dnsResolver;
+
+    private ManagedConnPool<HttpRoute, ManagedHttpClientConnection> managedConnPool;
     private PoolConcurrencyPolicy poolConcurrencyPolicy;
     private PoolReusePolicy poolReusePolicy;
     private SocketConfig defaultSocketConfig;
@@ -92,6 +100,21 @@ public class PoolingHttpClientConnectionManagerBuilder {
 
     PoolingHttpClientConnectionManagerBuilder() {
         super();
+    }
+
+    @Internal
+    public PoolingHttpClientConnectionManagerBuilder setManagedConnPool(ManagedConnPool<HttpRoute, ManagedHttpClientConnection> managedConnPool) {
+        this.managedConnPool = managedConnPool;
+        return this;
+    }
+
+    /**
+     * Assigns {@link Registry} instance.
+     */
+    public final PoolingHttpClientConnectionManagerBuilder setConnectionSocketFactoryRegistry(
+            Lookup<ConnectionSocketFactory> connectionSocketFactoryRegistry) {
+        this.connectionSocketFactoryRegistry = connectionSocketFactoryRegistry;
+        return this;
     }
 
     /**
@@ -197,22 +220,36 @@ public class PoolingHttpClientConnectionManagerBuilder {
     }
 
     public PoolingHttpClientConnectionManager build() {
+
+        if (connectionSocketFactoryRegistry == null) {
+            connectionSocketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create()
+                    .register(URIScheme.HTTP.id, PlainConnectionSocketFactory.getSocketFactory())
+                    .register(URIScheme.HTTPS.id, sslSocketFactory != null ? sslSocketFactory :
+                            (systemProperties ?
+                                    SSLConnectionSocketFactory.getSystemSocketFactory() :
+                                    SSLConnectionSocketFactory.getSocketFactory()))
+                    .build();
+        }
+
         @SuppressWarnings("resource")
-        final PoolingHttpClientConnectionManager poolingmgr = new PoolingHttpClientConnectionManager(
-                RegistryBuilder.<ConnectionSocketFactory>create()
-                        .register(URIScheme.HTTP.id, PlainConnectionSocketFactory.getSocketFactory())
-                        .register(URIScheme.HTTPS.id, sslSocketFactory != null ? sslSocketFactory :
-                                (systemProperties ?
-                                        SSLConnectionSocketFactory.getSystemSocketFactory() :
-                                        SSLConnectionSocketFactory.getSocketFactory()))
-                        .build(),
-                poolConcurrencyPolicy,
-                poolReusePolicy,
-                timeToLive != null ? timeToLive : TimeValue.NEG_ONE_MILLISECOND,
-                schemePortResolver,
-                dnsResolver,
-                connectionFactory);
+        final PoolingHttpClientConnectionManager poolingmgr;
+
+        if(managedConnPool == null) {
+            poolingmgr = new PoolingHttpClientConnectionManager(
+                    new DefaultHttpClientConnectionOperator(connectionSocketFactoryRegistry, schemePortResolver, dnsResolver),
+                    poolConcurrencyPolicy,
+                    poolReusePolicy,
+                    timeToLive != null ? timeToLive : TimeValue.NEG_ONE_MILLISECOND,
+                    connectionFactory);
+        } else {
+            poolingmgr = new PoolingHttpClientConnectionManager(
+                    new DefaultHttpClientConnectionOperator(connectionSocketFactoryRegistry, schemePortResolver, dnsResolver),
+                    managedConnPool,
+                    connectionFactory);
+        }
+
         poolingmgr.setValidateAfterInactivity(this.validateAfterInactivity);
+
         if (defaultSocketConfig != null) {
             poolingmgr.setDefaultSocketConfig(defaultSocketConfig);
         }

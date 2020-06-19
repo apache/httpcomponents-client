@@ -37,6 +37,7 @@ import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
 import org.apache.hc.core5.http.HttpHost;
@@ -57,7 +58,11 @@ public class ClientExecuteSOCKS {
         final Registry<ConnectionSocketFactory> reg = RegistryBuilder.<ConnectionSocketFactory>create()
                 .register("http", new MyConnectionSocketFactory())
                 .build();
-        final PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager(reg);
+
+        final PoolingHttpClientConnectionManager cm = PoolingHttpClientConnectionManagerBuilder.create()
+                .setConnectionSocketFactoryRegistry(reg)
+                .build();
+
         try (final CloseableHttpClient httpclient = HttpClients.custom()
                 .setConnectionManager(cm)
                 .build()) {
