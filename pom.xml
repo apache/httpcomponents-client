@@ -81,6 +81,7 @@
     <hc.stylecheck.version>1</hc.stylecheck.version>
     <rxjava.version>2.2.7</rxjava.version>
     <api.comparison.version>5.0</api.comparison.version>
+    <undertow.version>2.1.3.Final</undertow.version>
   </properties>
 
   <dependencyManagement>
@@ -172,6 +173,12 @@
         <groupId>org.easymock</groupId>
         <artifactId>easymock</artifactId>
         <version>${easymock.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>io.undertow</groupId>
+        <artifactId>undertow-core</artifactId>
+        <version>${undertow.version}</version>
         <scope>test</scope>
       </dependency>
     </dependencies>
