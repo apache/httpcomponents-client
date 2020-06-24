@@ -38,6 +38,7 @@ import org.apache.hc.core5.http.ParseException;
 import org.apache.hc.core5.http.message.BasicNameValuePair;
 import org.apache.hc.core5.http.message.ParserCursor;
 import org.apache.hc.core5.http.message.TokenParser;
+import org.apache.hc.core5.util.TextUtils;
 
 /**
  * Authentication challenge parser.
@@ -58,22 +59,26 @@ public class AuthChallengeParser {
     // These private static variables must be treated as immutable and never exposed outside this class
     private static final BitSet TERMINATORS = TokenParser.INIT_BITSET(BLANK, EQUAL_CHAR, COMMA_CHAR);
     private static final BitSet DELIMITER = TokenParser.INIT_BITSET(COMMA_CHAR);
+    private static final BitSet SPACE = TokenParser.INIT_BITSET(BLANK);
 
-    NameValuePair parseTokenOrParameter(final CharSequence buffer, final ParserCursor cursor) {
+    static class ChallengeInt {
 
-        tokenParser.skipWhiteSpace(buffer, cursor);
-        final String token = tokenParser.parseToken(buffer, cursor, TERMINATORS);
-        if (!cursor.atEnd()) {
-            if (buffer.charAt(cursor.getPos()) == BLANK) {
-                tokenParser.skipWhiteSpace(buffer, cursor);
-            }
-            if (!cursor.atEnd() && buffer.charAt(cursor.getPos()) == EQUAL_CHAR) {
-                cursor.updatePos(cursor.getPos() + 1);
-                final String value = tokenParser.parseValue(buffer, cursor, DELIMITER);
-                return new BasicNameValuePair(token, value);
-            }
+        final String schemeName;
+        final List<NameValuePair> params;
+
+        ChallengeInt(final String schemeName) {
+            this.schemeName = schemeName;
+            this.params = new ArrayList<>();
         }
-        return new BasicNameValuePair(token, null);
+
+        @Override
+        public String toString() {
+            return "ChallengeInternal{" +
+                    "schemeName='" + schemeName + '\'' +
+                    ", params=" + params +
+                    '}';
+        }
+
     }
 
     /**
@@ -86,52 +91,114 @@ public class AuthChallengeParser {
      */
     public List<AuthChallenge> parse(
             final ChallengeType challengeType, final CharSequence buffer, final ParserCursor cursor) throws ParseException {
-
-        final List<AuthChallenge> list = new ArrayList<>();
-        String schemeName = null;
-        final List<NameValuePair> params = new ArrayList<>();
-        while (!cursor.atEnd()) {
-            final NameValuePair tokenOrParameter = parseTokenOrParameter(buffer, cursor);
-            if (tokenOrParameter.getValue() == null && !cursor.atEnd() && buffer.charAt(cursor.getPos()) != COMMA_CHAR) {
-                if (schemeName != null) {
-                    if (params.isEmpty()) {
-                        throw new ParseException("Malformed auth challenge");
-                    }
-                    list.add(createAuthChallenge(challengeType, schemeName, params));
+        tokenParser.skipWhiteSpace(buffer, cursor);
+        if (cursor.atEnd()) {
+            throw new ParseException("Malformed auth challenge");
+        }
+        final List<ChallengeInt> internalChallenges = new ArrayList<>();
+        final String schemeName = tokenParser.parseToken(buffer, cursor, SPACE);
+        if (TextUtils.isBlank(schemeName)) {
+            throw new ParseException("Malformed auth challenge");
+        }
+        ChallengeInt current = new ChallengeInt(schemeName);
+        while (current != null) {
+            internalChallenges.add(current);
+            current = parseChallenge(buffer, cursor, current);
+        }
+        final List<AuthChallenge> challenges = new ArrayList<>(internalChallenges.size());
+        for (final ChallengeInt internal : internalChallenges) {
+            final List<NameValuePair> params = internal.params;
+            String token68 = null;
+            if (params.size() == 1) {
+                final NameValuePair param = params.get(0);
+                if (param.getValue() == null) {
+                    token68 = param.getName();
                     params.clear();
                 }
-                schemeName = tokenOrParameter.getName();
-            } else {
-                params.add(tokenOrParameter);
-                if (!cursor.atEnd() && buffer.charAt(cursor.getPos()) != COMMA_CHAR) {
-                    schemeName = null;
-                }
             }
-            if (!cursor.atEnd() && buffer.charAt(cursor.getPos()) == COMMA_CHAR) {
-                cursor.updatePos(cursor.getPos() + 1);
-            }
+            challenges.add(
+                    new AuthChallenge(challengeType, internal.schemeName, token68, !params.isEmpty() ? params : null));
         }
-        list.add(createAuthChallenge(challengeType, schemeName, params));
-        return list;
+        return challenges;
     }
 
-    private static AuthChallenge createAuthChallenge(final ChallengeType challengeType, final String schemeName, final List<NameValuePair> params) throws ParseException {
-        if (schemeName != null) {
-            if (params.size() == 1) {
-                final NameValuePair nvp = params.get(0);
-                if (nvp.getValue() == null) {
-                    return new AuthChallenge(challengeType, schemeName, nvp.getName(), null);
+    ChallengeInt parseChallenge(
+            final CharSequence buffer,
+            final ParserCursor cursor,
+            final ChallengeInt currentChallenge) throws ParseException {
+        for (;;) {
+            tokenParser.skipWhiteSpace(buffer, cursor);
+            if (cursor.atEnd()) {
+                return null;
+            }
+            final String token = parseToken(buffer, cursor);
+            if (TextUtils.isBlank(token)) {
+                throw new ParseException("Malformed auth challenge");
+            }
+            tokenParser.skipWhiteSpace(buffer, cursor);
+
+            // it gets really messy here
+            if (cursor.atEnd()) {
+                // at the end of the header
+                currentChallenge.params.add(new BasicNameValuePair(token, null));
+            } else {
+                char ch = buffer.charAt(cursor.getPos());
+                if (ch == EQUAL_CHAR) {
+                    cursor.updatePos(cursor.getPos() + 1);
+                    final String value = tokenParser.parseValue(buffer, cursor, DELIMITER);
+                    tokenParser.skipWhiteSpace(buffer, cursor);
+                    if (!cursor.atEnd()) {
+                        ch = buffer.charAt(cursor.getPos());
+                        if (ch == COMMA_CHAR) {
+                            cursor.updatePos(cursor.getPos() + 1);
+                        }
+                    }
+                    currentChallenge.params.add(new BasicNameValuePair(token, value));
+                } else if (ch == COMMA_CHAR) {
+                    cursor.updatePos(cursor.getPos() + 1);
+                    currentChallenge.params.add(new BasicNameValuePair(token, null));
+                } else {
+                    // the token represents new challenge
+                    if (currentChallenge.params.isEmpty()) {
+                        throw new ParseException("Malformed auth challenge");
+                    }
+                    return new ChallengeInt(token);
                 }
             }
-            return new AuthChallenge(challengeType, schemeName, null, params.size() > 0 ? params : null);
         }
-        if (params.size() == 1) {
-            final NameValuePair nvp = params.get(0);
-            if (nvp.getValue() == null) {
-                return new AuthChallenge(challengeType, nvp.getName(), null, null);
+    }
+
+    String parseToken(final CharSequence buf, final ParserCursor cursor) {
+        final StringBuilder dst = new StringBuilder();
+        while (!cursor.atEnd()) {
+            int pos = cursor.getPos();
+            char current = buf.charAt(pos);
+            if (TERMINATORS.get(current)) {
+                // Here it gets really ugly
+                if (current == EQUAL_CHAR) {
+                    // it can be a start of a parameter value or token68 padding
+                    // Look ahead and see if there are more '=' or at end of buffer
+                    if (pos + 1 < cursor.getUpperBound() && buf.charAt(pos + 1) != EQUAL_CHAR) {
+                        break;
+                    }
+                    do {
+                        dst.append(current);
+                        pos++;
+                        cursor.updatePos(pos);
+                        if (cursor.atEnd()) {
+                            break;
+                        }
+                        current = buf.charAt(pos);
+                    } while (current == EQUAL_CHAR);
+                } else {
+                    break;
+                }
+            } else {
+                dst.append(current);
+                cursor.updatePos(pos + 1);
             }
         }
-        throw new ParseException("Malformed auth challenge");
+        return dst.toString();
     }
 
 }
