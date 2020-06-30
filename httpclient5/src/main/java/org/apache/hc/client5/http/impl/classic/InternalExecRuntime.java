@@ -189,13 +189,8 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
     @Override
     public void upgradeTls(final HttpClientContext context) throws IOException {
         final ConnectionEndpoint endpoint = ensureValid();
-        final RequestConfig requestConfig = context.getRequestConfig();
-        final Timeout connectTimeout = requestConfig.getConnectTimeout();
-        if (TimeValue.isPositive(connectTimeout)) {
-            endpoint.setSocketTimeout(connectTimeout);
-        }
         if (log.isDebugEnabled()) {
-            log.debug(ConnPoolSupport.getId(endpoint) + ": upgrading endpoint (" + connectTimeout + ")");
+            log.debug(ConnPoolSupport.getId(endpoint) + ": upgrading endpoint");
         }
         manager.upgrade(endpoint, context);
     }
