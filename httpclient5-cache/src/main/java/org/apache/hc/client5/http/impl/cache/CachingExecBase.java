@@ -153,21 +153,21 @@ public class CachingExecBase {
 
     void recordCacheMiss(final HttpHost target, final HttpRequest request) {
         cacheMisses.getAndIncrement();
-        if (log.isTraceEnabled()) {
+        if (log.isDebugEnabled()) {
             log.debug("Cache miss [host: {}; uri: {}]", target, request.getRequestUri());
         }
     }
 
     void recordCacheHit(final HttpHost target, final HttpRequest request) {
         cacheHits.getAndIncrement();
-        if (log.isTraceEnabled()) {
+        if (log.isDebugEnabled()) {
             log.debug("Cache hit [host: {}; uri: {}]", target, request.getRequestUri());
         }
     }
 
     void recordCacheFailure(final HttpHost target, final HttpRequest request) {
         cacheMisses.getAndIncrement();
-        if (log.isTraceEnabled()) {
+        if (log.isDebugEnabled()) {
             log.debug("Cache failure [host: {}; uri: {}]", target, request.getRequestUri());
         }
     }
