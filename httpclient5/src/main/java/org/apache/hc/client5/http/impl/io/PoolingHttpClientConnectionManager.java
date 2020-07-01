@@ -510,8 +510,8 @@ public class PoolingHttpClientConnectionManager
 
     /**
      * Defines period of inactivity after which persistent connections must
-     * be re-validated prior to being {@link #lease(String, HttpRoute, Object)}  leased} to the consumer.
-     * Non-positive value passed to this method disables connection validation. This check helps
+     * be re-validated prior to being {@link #lease(String, HttpRoute, Object)} leased} to the consumer.
+     * Negative values passed to this method disable connection validation. This check helps
      * detect connections that have become stale (half-closed) while kept inactive in the pool.
      *
      * @since 4.4

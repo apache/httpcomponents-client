@@ -245,7 +245,7 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
                     public void completed(final PoolEntry<HttpRoute, ManagedAsyncClientConnection> poolEntry) {
                         final ManagedAsyncClientConnection connection = poolEntry.getConnection();
                         final TimeValue timeValue = PoolingAsyncClientConnectionManager.this.validateAfterInactivity;
-                        if (TimeValue.isPositive(timeValue) && connection != null &&
+                        if (TimeValue.isNonNegative(timeValue) && connection != null &&
                                 poolEntry.getUpdated() + timeValue.toMilliseconds() <= System.currentTimeMillis()) {
                             final ProtocolVersion protocolVersion = connection.getProtocolVersion();
                             if (HttpVersion.HTTP_2_0.greaterEquals(protocolVersion)) {
@@ -478,8 +478,8 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
     /**
      * Defines period of inactivity after which persistent connections must
      * be re-validated prior to being {@link #lease(String, HttpRoute, Object, Timeout,
-     * FutureCallback)} leased} to the consumer. Non-positive value passed
-     * to this method disables connection validation. This check helps detect connections
+     * FutureCallback)} leased} to the consumer. Negative values passed
+     * to this method disable connection validation. This check helps detect connections
      * that have become stale (half-closed) while kept inactive in the pool.
      */
     public void setValidateAfterInactivity(final TimeValue validateAfterInactivity) {
