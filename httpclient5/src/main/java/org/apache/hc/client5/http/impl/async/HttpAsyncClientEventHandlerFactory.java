@@ -121,9 +121,9 @@ class HttpAsyncClientEventHandlerFactory implements IOEventHandlerFactory {
                         @Override
                         public void onRequestHead(final HttpConnection connection, final HttpRequest request) {
                             if (headerLog.isDebugEnabled()) {
-                                headerLog.debug(id + " >> " + new RequestLine(request));
+                                headerLog.debug("{} >> {}", id, new RequestLine(request));
                                 for (final Iterator<Header> it = request.headerIterator(); it.hasNext(); ) {
-                                    headerLog.debug(id + " >> " + it.next());
+                                    headerLog.debug("{} >> {}", id, it.next());
                                 }
                             }
                         }
@@ -131,9 +131,9 @@ class HttpAsyncClientEventHandlerFactory implements IOEventHandlerFactory {
                         @Override
                         public void onResponseHead(final HttpConnection connection, final HttpResponse response) {
                             if (headerLog.isDebugEnabled()) {
-                                headerLog.debug(id + " << " + new StatusLine(response));
+                                headerLog.debug("{} << {}", id, new StatusLine(response));
                                 for (final Iterator<Header> it = response.headerIterator(); it.hasNext(); ) {
-                                    headerLog.debug(id + " << " + it.next());
+                                    headerLog.debug("{} << {}", id, it.next());
                                 }
                             }
                         }
@@ -142,9 +142,9 @@ class HttpAsyncClientEventHandlerFactory implements IOEventHandlerFactory {
                         public void onExchangeComplete(final HttpConnection connection, final boolean keepAlive) {
                             if (streamLog.isDebugEnabled()) {
                                 if (keepAlive) {
-                                    streamLog.debug(id + " Connection is kept alive");
+                                    streamLog.debug("{} Connection is kept alive", id);
                                 } else {
-                                    streamLog.debug(id + " Connection is not kept alive");
+                                    streamLog.debug("{} Connection is not kept alive", id);
                                 }
                             }
                         }
@@ -189,7 +189,7 @@ class HttpAsyncClientEventHandlerFactory implements IOEventHandlerFactory {
                         public void onHeaderInput(final HttpConnection connection, final int streamId, final List<? extends Header> headers) {
                             if (headerLog.isDebugEnabled()) {
                                 for (int i = 0; i < headers.size(); i++) {
-                                    headerLog.debug(id + " << " + headers.get(i));
+                                    headerLog.debug("{} << {}", id, headers.get(i));
                                 }
                             }
                         }
@@ -198,7 +198,7 @@ class HttpAsyncClientEventHandlerFactory implements IOEventHandlerFactory {
                         public void onHeaderOutput(final HttpConnection connection, final int streamId, final List<? extends Header> headers) {
                             if (headerLog.isDebugEnabled()) {
                                 for (int i = 0; i < headers.size(); i++) {
-                                    headerLog.debug(id + " >> " + headers.get(i));
+                                    headerLog.debug("{} >> {}", id, headers.get(i));
                                 }
                             }
                         }

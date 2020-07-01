@@ -169,7 +169,7 @@ class InternalHttpClient extends CloseableHttpClient implements Configurable {
             final HttpRoute route = determineRoute(target, request, localcontext);
             final String exchangeId = ExecSupport.getNextExchangeId();
             if (log.isDebugEnabled()) {
-                log.debug(exchangeId + ": preparing request execution");
+                log.debug("{}: preparing request execution", exchangeId);
             }
 
             final ExecRuntime execRuntime = new InternalExecRuntime(log, connManager, requestExecutor,

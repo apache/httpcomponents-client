@@ -161,7 +161,7 @@ public final class HttpAuthenticator {
             final HttpContext context) {
 
         if (this.log.isDebugEnabled()) {
-            this.log.debug(host.toHostString() + " requested authentication");
+            this.log.debug("{} requested authentication", host.toHostString());
         }
 
         final HttpClientContext clientContext = HttpClientContext.adapt(context);
@@ -190,7 +190,7 @@ public final class HttpAuthenticator {
                 authChallenges = parser.parse(challengeType, buffer, cursor);
             } catch (final ParseException ex) {
                 if (this.log.isWarnEnabled()) {
-                    this.log.warn("Malformed challenge: " + header.getValue());
+                    this.log.warn("Malformed challenge: {}", header.getValue());
                 }
                 continue;
             }
@@ -274,7 +274,7 @@ public final class HttpAuthenticator {
         }
         if (!authOptions.isEmpty()) {
             if (this.log.isDebugEnabled()) {
-                this.log.debug("Selected authentication options: " + authOptions);
+                this.log.debug("Selected authentication options: {}", authOptions);
             }
             authExchange.reset();
             authExchange.setState(AuthExchange.State.CHALLENGED);
@@ -320,8 +320,7 @@ public final class HttpAuthenticator {
                     authScheme = authOptions.remove();
                     authExchange.select(authScheme);
                     if (this.log.isDebugEnabled()) {
-                        this.log.debug("Generating response to an authentication challenge using "
-                                + authScheme.getName() + " scheme");
+                        this.log.debug("Generating response to an authentication challenge using {} scheme", authScheme.getName());
                     }
                     try {
                         final String authResponse = authScheme.generateAuthResponse(host, request, context);
@@ -332,7 +331,7 @@ public final class HttpAuthenticator {
                         break;
                     } catch (final AuthenticationException ex) {
                         if (this.log.isWarnEnabled()) {
-                            this.log.warn(authScheme + " authentication error: " + ex.getMessage());
+                            this.log.warn("{} authentication error: {}", authScheme, ex.getMessage());
                         }
                     }
                 }
@@ -350,7 +349,7 @@ public final class HttpAuthenticator {
                 request.addHeader(header);
             } catch (final AuthenticationException ex) {
                 if (this.log.isErrorEnabled()) {
-                    this.log.error(authScheme + " authentication error: " + ex.getMessage());
+                    this.log.error("{} authentication error: {}", authScheme, ex.getMessage());
                 }
             }
         }
@@ -365,7 +364,7 @@ public final class HttpAuthenticator {
                 clientContext.setAuthCache(authCache);
             }
             if (this.log.isDebugEnabled()) {
-                this.log.debug("Caching '" + authScheme.getName() + "' auth scheme for " + host);
+                this.log.debug("Caching '{}' auth scheme for {}", authScheme.getName(), host);
             }
             authCache.put(host, authScheme);
         }
@@ -376,7 +375,7 @@ public final class HttpAuthenticator {
         final AuthCache authCache = clientContext.getAuthCache();
         if (authCache != null) {
             if (this.log.isDebugEnabled()) {
-                this.log.debug("Clearing cached auth scheme for " + host);
+                this.log.debug("Clearing cached auth scheme for {}", host);
             }
             authCache.remove(host);
         }

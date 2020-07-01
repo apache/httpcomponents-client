@@ -100,7 +100,7 @@ class BasicHttpCache implements HttpCache {
     @Override
     public void flushCacheEntriesFor(final HttpHost host, final HttpRequest request) {
         if (log.isDebugEnabled()) {
-            log.debug("Flush cache entries: " + host + "; " + new RequestLine(request));
+            log.debug("Flush cache entries: {}; {}", host, new RequestLine(request));
         }
         if (!Method.isSafe(request.getMethod())) {
             final String cacheKey = cacheKeyGenerator.generateKey(host, request);
@@ -108,7 +108,7 @@ class BasicHttpCache implements HttpCache {
                 storage.removeEntry(cacheKey);
             } catch (final ResourceIOException ex) {
                 if (log.isWarnEnabled()) {
-                    log.warn("I/O error removing cache entry with key " + cacheKey);
+                    log.warn("I/O error removing cache entry with key {}", cacheKey);
                 }
             }
         }
@@ -117,7 +117,7 @@ class BasicHttpCache implements HttpCache {
     @Override
     public void flushCacheEntriesInvalidatedByRequest(final HttpHost host, final HttpRequest request) {
         if (log.isDebugEnabled()) {
-            log.debug("Flush cache entries invalidated by request: " + host + "; " + new RequestLine(request));
+            log.debug("Flush cache entries invalidated by request: {}; {}", host, new RequestLine(request));
         }
         cacheInvalidator.flushCacheEntriesInvalidatedByRequest(host, request, cacheKeyGenerator, storage);
     }
@@ -125,7 +125,7 @@ class BasicHttpCache implements HttpCache {
     @Override
     public void flushCacheEntriesInvalidatedByExchange(final HttpHost host, final HttpRequest request, final HttpResponse response) {
         if (log.isDebugEnabled()) {
-            log.debug("Flush cache entries invalidated by exchange: " + host + "; " + new RequestLine(request) + " -> " + new StatusLine(response));
+            log.debug("Flush cache entries invalidated by exchange: {}; {} -> {}", host, new RequestLine(request), new StatusLine(response));
         }
         if (!Method.isSafe(request.getMethod())) {
             cacheInvalidator.flushCacheEntriesInvalidatedByExchange(host, request, response, cacheKeyGenerator, storage);
@@ -149,7 +149,7 @@ class BasicHttpCache implements HttpCache {
             storage.putEntry(cacheKey, entry);
         } catch (final ResourceIOException ex) {
             if (log.isWarnEnabled()) {
-                log.warn("I/O error storing cache entry with key " + cacheKey);
+                log.warn("I/O error storing cache entry with key {}", cacheKey);
             }
         }
     }
@@ -173,11 +173,11 @@ class BasicHttpCache implements HttpCache {
             });
         } catch (final HttpCacheUpdateException ex) {
             if (log.isWarnEnabled()) {
-                log.warn("Cannot update cache entry with key " + cacheKey);
+                log.warn("Cannot update cache entry with key {}", cacheKey);
             }
         } catch (final ResourceIOException ex) {
             if (log.isWarnEnabled()) {
-                log.warn("I/O error updating cache entry with key " + cacheKey);
+                log.warn("I/O error updating cache entry with key {}", cacheKey);
             }
         }
     }
@@ -186,7 +186,7 @@ class BasicHttpCache implements HttpCache {
     public void reuseVariantEntryFor(
             final HttpHost host, final HttpRequest request, final Variant variant) {
         if (log.isDebugEnabled()) {
-            log.debug("Re-use variant entry: " + host + "; " + new RequestLine(request) + " / " + variant);
+            log.debug("Re-use variant entry: {}; {} / {}", host, new RequestLine(request), variant);
         }
         final String cacheKey = cacheKeyGenerator.generateKey(host, request);
         final HttpCacheEntry entry = variant.getEntry();
@@ -204,11 +204,11 @@ class BasicHttpCache implements HttpCache {
             });
         } catch (final HttpCacheUpdateException ex) {
             if (log.isWarnEnabled()) {
-                log.warn("Cannot update cache entry with key " + cacheKey);
+                log.warn("Cannot update cache entry with key {}", cacheKey);
             }
         } catch (final ResourceIOException ex) {
             if (log.isWarnEnabled()) {
-                log.warn("I/O error updating cache entry with key " + cacheKey);
+                log.warn("I/O error updating cache entry with key {}", cacheKey);
             }
         }
     }
@@ -222,7 +222,7 @@ class BasicHttpCache implements HttpCache {
             final Date requestSent,
             final Date responseReceived) {
         if (log.isDebugEnabled()) {
-            log.debug("Update cache entry: " + host + "; " + new RequestLine(request));
+            log.debug("Update cache entry: {}; {}", host, new RequestLine(request));
         }
         final String cacheKey = cacheKeyGenerator.generateKey(host, request);
         try {
@@ -236,7 +236,7 @@ class BasicHttpCache implements HttpCache {
             return updatedEntry;
         } catch (final ResourceIOException ex) {
             if (log.isWarnEnabled()) {
-                log.warn("I/O error updating cache entry with key " + cacheKey);
+                log.warn("I/O error updating cache entry with key {}", cacheKey);
             }
             return stale;
         }
@@ -251,7 +251,7 @@ class BasicHttpCache implements HttpCache {
             final Date requestSent,
             final Date responseReceived) {
         if (log.isDebugEnabled()) {
-            log.debug("Update variant cache entry: " + host + "; " + new RequestLine(request) + " / " + variant);
+            log.debug("Update variant cache entry: {}; {} / {}", host, new RequestLine(request), variant);
         }
         final HttpCacheEntry entry = variant.getEntry();
         final String cacheKey = variant.getCacheKey();
@@ -266,7 +266,7 @@ class BasicHttpCache implements HttpCache {
             return updatedEntry;
         } catch (final ResourceIOException ex) {
             if (log.isWarnEnabled()) {
-                log.warn("I/O error updating cache entry with key " + cacheKey);
+                log.warn("I/O error updating cache entry with key {}", cacheKey);
             }
             return entry;
         }
@@ -281,7 +281,7 @@ class BasicHttpCache implements HttpCache {
             final Date requestSent,
             final Date responseReceived) {
         if (log.isDebugEnabled()) {
-            log.debug("Create cache entry: " + host + "; " + new RequestLine(request));
+            log.debug("Create cache entry: {}; {}", host, new RequestLine(request));
         }
         final String cacheKey = cacheKeyGenerator.generateKey(host, request);
         try {
@@ -290,7 +290,7 @@ class BasicHttpCache implements HttpCache {
             return entry;
         } catch (final ResourceIOException ex) {
             if (log.isWarnEnabled()) {
-                log.warn("I/O error creating cache entry with key " + cacheKey);
+                log.warn("I/O error creating cache entry with key {}", cacheKey);
             }
             return new HttpCacheEntry(
                     requestSent,
@@ -304,7 +304,7 @@ class BasicHttpCache implements HttpCache {
     @Override
     public HttpCacheEntry getCacheEntry(final HttpHost host, final HttpRequest request) {
         if (log.isDebugEnabled()) {
-            log.debug("Get cache entry: " + host + "; " + new RequestLine(request));
+            log.debug("Get cache entry: {}; {}", host, new RequestLine(request));
         }
         final String cacheKey = cacheKeyGenerator.generateKey(host, request);
         final HttpCacheEntry root;
@@ -312,7 +312,7 @@ class BasicHttpCache implements HttpCache {
             root = storage.getEntry(cacheKey);
         } catch (final ResourceIOException ex) {
             if (log.isWarnEnabled()) {
-                log.warn("I/O error retrieving cache entry with key " + cacheKey);
+                log.warn("I/O error retrieving cache entry with key {}", cacheKey);
             }
             return null;
         }
@@ -331,7 +331,7 @@ class BasicHttpCache implements HttpCache {
             return storage.getEntry(variantCacheKey);
         } catch (final ResourceIOException ex) {
             if (log.isWarnEnabled()) {
-                log.warn("I/O error retrieving cache entry with key " + variantCacheKey);
+                log.warn("I/O error retrieving cache entry with key {}", variantCacheKey);
             }
             return null;
         }
@@ -340,7 +340,7 @@ class BasicHttpCache implements HttpCache {
     @Override
     public Map<String, Variant> getVariantCacheEntriesWithEtags(final HttpHost host, final HttpRequest request) {
         if (log.isDebugEnabled()) {
-            log.debug("Get variant cache entries: " + host + "; " + new RequestLine(request));
+            log.debug("Get variant cache entries: {}; {}", host, new RequestLine(request));
         }
         final Map<String,Variant> variants = new HashMap<>();
         final String cacheKey = cacheKeyGenerator.generateKey(host, request);
@@ -349,7 +349,7 @@ class BasicHttpCache implements HttpCache {
             root = storage.getEntry(cacheKey);
         } catch (final ResourceIOException ex) {
             if (log.isWarnEnabled()) {
-                log.warn("I/O error retrieving cache entry with key " + cacheKey);
+                log.warn("I/O error retrieving cache entry with key {}", cacheKey);
             }
             return variants;
         }
@@ -366,7 +366,7 @@ class BasicHttpCache implements HttpCache {
                     }
                 } catch (final ResourceIOException ex) {
                     if (log.isWarnEnabled()) {
-                        log.warn("I/O error retrieving cache entry with key " + variantCacheKey);
+                        log.warn("I/O error retrieving cache entry with key {}", variantCacheKey);
                     }
                     return variants;
                 }

@@ -108,19 +108,17 @@ public class ResponseProcessCookies implements HttpResponseInterceptor {
                         cookieStore.addCookie(cookie);
 
                         if (this.log.isDebugEnabled()) {
-                            this.log.debug("Cookie accepted [" + formatCooke(cookie) + "]");
+                            this.log.debug("Cookie accepted [{}]", formatCooke(cookie));
                         }
                     } catch (final MalformedCookieException ex) {
                         if (this.log.isWarnEnabled()) {
-                            this.log.warn("Cookie rejected [" + formatCooke(cookie) + "] "
-                                    + ex.getMessage());
+                            this.log.warn("Cookie rejected [{}] {}", formatCooke(cookie), ex.getMessage());
                         }
                     }
                 }
             } catch (final MalformedCookieException ex) {
                 if (this.log.isWarnEnabled()) {
-                    this.log.warn("Invalid cookie header: \""
-                            + header + "\". " + ex.getMessage());
+                    this.log.warn("Invalid cookie header: \"{}\". {}", header, ex.getMessage());
                 }
             }
         }

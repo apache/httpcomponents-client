@@ -127,7 +127,7 @@ public final class AsyncRedirectExec implements AsyncExecChainHandler {
 
                     final URI redirectUri = redirectStrategy.getLocationURI(request, response, clientContext);
                     if (log.isDebugEnabled()) {
-                        log.debug(exchangeId + ": redirect requested to location '" + redirectUri + "'");
+                        log.debug("{}: redirect requested to location '{}'", exchangeId, redirectUri);
                     }
                     if (!config.isCircularRedirectsAllowed()) {
                         if (state.redirectLocations.contains(redirectUri)) {
@@ -171,14 +171,14 @@ public final class AsyncRedirectExec implements AsyncExecChainHandler {
                             state.reroute = true;
                             final AuthExchange targetAuthExchange = clientContext.getAuthExchange(currentRoute.getTargetHost());
                             if (log.isDebugEnabled()) {
-                                log.debug(exchangeId + ": resetting target auth state");
+                                log.debug("{}: resetting target auth state", exchangeId);
                             }
                             targetAuthExchange.reset();
                             if (currentRoute.getProxyHost() != null) {
                                 final AuthExchange proxyAuthExchange = clientContext.getAuthExchange(currentRoute.getProxyHost());
                                 if (proxyAuthExchange.isConnectionBased()) {
                                     if (log.isDebugEnabled()) {
-                                        log.debug(exchangeId + ": resetting proxy auth state");
+                                        log.debug("{}: resetting proxy auth state", exchangeId);
                                     }
                                     proxyAuthExchange.reset();
                                 }
@@ -190,7 +190,7 @@ public final class AsyncRedirectExec implements AsyncExecChainHandler {
                 }
                 if (state.redirectURI != null) {
                     if (log.isDebugEnabled()) {
-                        log.debug(exchangeId + ": redirecting to '" + state.redirectURI + "' via " + currentRoute);
+                        log.debug("{}: redirecting to '{}' via {}", exchangeId, state.redirectURI, currentRoute);
                     }
                     return null;
                 }
@@ -211,7 +211,7 @@ public final class AsyncRedirectExec implements AsyncExecChainHandler {
                     final AsyncEntityProducer entityProducer = state.currentEntityProducer;
                     if (entityProducer != null && !entityProducer.isRepeatable()) {
                         if (log.isDebugEnabled()) {
-                            log.debug(exchangeId + ": cannot redirect non-repeatable request");
+                            log.debug("{}: cannot redirect non-repeatable request", exchangeId);
                         }
                         asyncExecCallback.completed();
                     } else {

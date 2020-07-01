@@ -68,13 +68,13 @@ final class MultihomeIOSessionRequester {
 
         if (remoteAddress != null) {
             if (log.isDebugEnabled()) {
-                log.debug(remoteEndpoint + ": connecting " + localAddress + " to " + remoteAddress + " (" + connectTimeout + ")");
+                log.debug("{}: connecting {} to {} ({})", remoteEndpoint, localAddress, remoteAddress, connectTimeout);
             }
             return connectionInitiator.connect(remoteEndpoint, remoteAddress, localAddress, connectTimeout, attachment, callback);
         }
 
         if (log.isDebugEnabled()) {
-            log.debug(remoteEndpoint + ": resolving remote address");
+            log.debug("{}: resolving remote address", remoteEndpoint);
         }
 
         final ComplexFuture<IOSession> future = new ComplexFuture<>(callback);
@@ -87,7 +87,7 @@ final class MultihomeIOSessionRequester {
         }
 
         if (log.isDebugEnabled()) {
-            log.debug(remoteEndpoint + ": resolved to " + Arrays.asList(remoteAddresses));
+            log.debug("{}: resolved to {}", remoteEndpoint, Arrays.asList(remoteAddresses));
         }
 
         final Runnable runnable = new Runnable() {
@@ -99,7 +99,7 @@ final class MultihomeIOSessionRequester {
                 final InetSocketAddress remoteAddress = new InetSocketAddress(remoteAddresses[index], remoteEndpoint.getPort());
 
                 if (log.isDebugEnabled()) {
-                    log.debug(remoteEndpoint + ": connecting " + localAddress + " to " + remoteAddress + " (" + connectTimeout + ")");
+                    log.debug("{}: connecting {} to {} ({})", remoteEndpoint, localAddress, remoteAddress, connectTimeout);
                 }
 
                 final Future<IOSession> sessionFuture = connectionInitiator.connect(
@@ -114,8 +114,7 @@ final class MultihomeIOSessionRequester {
                             public void completed(final IOSession session) {
                                 if (log.isDebugEnabled()) {
                                     if (log.isDebugEnabled()) {
-                                        log.debug(remoteEndpoint + ": connected " + session.getId() + " " +
-                                                session.getLocalAddress() + "->" + session.getRemoteAddress());
+                                        log.debug("{}: connected {} {}->{}", remoteEndpoint, session.getId(), session.getLocalAddress(), session.getRemoteAddress());
                                     }
                                 }
                                 future.completed(session);
@@ -125,8 +124,7 @@ final class MultihomeIOSessionRequester {
                             public void failed(final Exception cause) {
                                 if (attempt.get() >= remoteAddresses.length) {
                                     if (log.isDebugEnabled()) {
-                                        log.debug(remoteEndpoint + ": connection to " + remoteAddress + " failed " +
-                                                "(" + cause.getClass() + "); terminating operation");
+                                        log.debug("{}: connection to {} failed ({}); terminating operation", remoteEndpoint, remoteAddress, cause.getClass());
                                     }
                                     if (cause instanceof IOException) {
                                         future.failed(ConnectExceptionSupport.enhance((IOException) cause, remoteEndpoint, remoteAddresses));
@@ -135,8 +133,7 @@ final class MultihomeIOSessionRequester {
                                     }
                                 } else {
                                     if (log.isDebugEnabled()) {
-                                        log.debug(remoteEndpoint + ": connection to " + remoteAddress + " failed " +
-                                                "(" + cause.getClass() + "); retrying connection to the next address");
+                                        log.debug("{}: connection to {} failed ({}); retrying connection to the next address", remoteEndpoint, remoteAddress, cause.getClass());
                                     }
                                     executeNext();
                                 }

@@ -63,7 +63,7 @@ public class DefaultCacheInvalidator extends CacheInvalidatorBase implements Htt
             return storage.getEntry(cacheKey);
         } catch (final ResourceIOException ex) {
             if (log.isWarnEnabled()) {
-                log.warn("Unable to get cache entry with key " + cacheKey, ex);
+                log.warn("Unable to get cache entry with key {}", cacheKey, ex);
             }
             return null;
         }
@@ -74,7 +74,7 @@ public class DefaultCacheInvalidator extends CacheInvalidatorBase implements Htt
             storage.removeEntry(cacheKey);
         } catch (final ResourceIOException ex) {
             if (log.isWarnEnabled()) {
-                log.warn("Unable to flush cache entry with key " + cacheKey, ex);
+                log.warn("Unable to flush cache entry with key {}", cacheKey, ex);
             }
         }
     }
@@ -93,7 +93,7 @@ public class DefaultCacheInvalidator extends CacheInvalidatorBase implements Htt
         if (requestShouldNotBeCached(request) || shouldInvalidateHeadCacheEntry(request, parent)) {
             if (parent != null) {
                 if (log.isDebugEnabled()) {
-                    log.debug("Invalidating parent cache entry with key " + cacheKey);
+                    log.debug("Invalidating parent cache entry with key {}", cacheKey);
                 }
                 for (final String variantURI : parent.getVariantMap().values()) {
                     removeEntry(storage, variantURI);
@@ -102,7 +102,7 @@ public class DefaultCacheInvalidator extends CacheInvalidatorBase implements Htt
             }
             if (uri != null) {
                 if (log.isWarnEnabled()) {
-                    log.warn(s + " is not a valid URI");
+                    log.warn("{} is not a valid URI", s);
                 }
                 final Header clHdr = request.getFirstHeader("Content-Location");
                 if (clHdr != null) {

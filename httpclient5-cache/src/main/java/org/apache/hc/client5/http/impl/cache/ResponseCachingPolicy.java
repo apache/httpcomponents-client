@@ -104,7 +104,7 @@ class ResponseCachingPolicy {
 
         if (!HeaderConstants.GET_METHOD.equals(httpMethod) && !HeaderConstants.HEAD_METHOD.equals(httpMethod)) {
             if (log.isDebugEnabled()) {
-                log.debug(httpMethod + " method response is not cacheable");
+                log.debug("{} method response is not cacheable", httpMethod);
             }
             return false;
         }
@@ -115,14 +115,14 @@ class ResponseCachingPolicy {
             cacheable = true;
         } else if (uncacheableStatusCodes.contains(status)) {
             if (log.isDebugEnabled()) {
-                log.debug(status + " response is not cacheable");
+                log.debug("{} response is not cacheable", status);
             }
             return false;
         } else if (unknownStatusCode(status)) {
             // a response with an unknown status code MUST NOT be
             // cached
             if (log.isDebugEnabled()) {
-                log.debug(status + " response is unknown");
+                log.debug("{} response is unknown", status);
             }
             return false;
         }
@@ -132,7 +132,7 @@ class ResponseCachingPolicy {
             final long contentLengthValue = Long.parseLong(contentLength.getValue());
             if (contentLengthValue > this.maxObjectSizeBytes) {
                 if (log.isDebugEnabled()) {
-                    log.debug("Response content length exceeds " + this.maxObjectSizeBytes);
+                    log.debug("Response content length exceeds {}", this.maxObjectSizeBytes);
                 }
                 return false;
             }
@@ -247,7 +247,7 @@ class ResponseCachingPolicy {
         final ProtocolVersion version = request.getVersion() != null ? request.getVersion() : HttpVersion.DEFAULT;
         if (version.compareToVersion(HttpVersion.HTTP_1_1) > 0) {
             if (log.isDebugEnabled()) {
-                log.debug("Protocol version " + version + " is non-cacheable");
+                log.debug("Protocol version {} is non-cacheable", version);
             }
             return false;
         }

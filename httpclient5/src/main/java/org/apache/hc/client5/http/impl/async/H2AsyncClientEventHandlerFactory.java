@@ -118,7 +118,7 @@ class H2AsyncClientEventHandlerFactory implements IOEventHandlerFactory {
                         public void onHeaderInput(final HttpConnection connection, final int streamId, final List<? extends Header> headers) {
                             if (headerLog.isDebugEnabled()) {
                                 for (int i = 0; i < headers.size(); i++) {
-                                    headerLog.debug(id + " << " + headers.get(i));
+                                    headerLog.debug("{} << {}", id, headers.get(i));
                                 }
                             }
                         }
@@ -127,7 +127,7 @@ class H2AsyncClientEventHandlerFactory implements IOEventHandlerFactory {
                         public void onHeaderOutput(final HttpConnection connection, final int streamId, final List<? extends Header> headers) {
                             if (headerLog.isDebugEnabled()) {
                                 for (int i = 0; i < headers.size(); i++) {
-                                    headerLog.debug(id + " >> " + headers.get(i));
+                                    headerLog.debug("{} >> {}", id, headers.get(i));
                                 }
                             }
                         }

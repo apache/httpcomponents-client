@@ -206,7 +206,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
 
     private synchronized void closeConnection(final CloseMode closeMode) {
         if (this.conn != null) {
-            this.log.debug("Closing connection " + closeMode);
+            this.log.debug("Closing connection {}", closeMode);
             this.conn.close(closeMode);
             this.conn = null;
         }
@@ -215,7 +215,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
     private void checkExpiry() {
         if (this.conn != null && System.currentTimeMillis() >= this.expiry) {
             if (this.log.isDebugEnabled()) {
-                this.log.debug("Connection expired @ " + new Date(this.expiry));
+                this.log.debug("Connection expired @ {}", new Date(this.expiry));
             }
             closeConnection(CloseMode.GRACEFUL);
         }
@@ -224,7 +224,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
     synchronized ManagedHttpClientConnection getConnection(final HttpRoute route, final Object state) throws IOException {
         Asserts.check(!this.closed.get(), "Connection manager has been shut down");
         if (this.log.isDebugEnabled()) {
-            this.log.debug("Get connection for route " + route);
+            this.log.debug("Get connection for route {}", route);
         }
         Asserts.check(!this.leased, "Connection is still allocated");
         if (!LangUtils.equals(this.route, route) || !LangUtils.equals(this.state, state)) {
@@ -255,7 +255,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
         final InternalConnectionEndpoint internalEndpoint = cast(endpoint);
         final ManagedHttpClientConnection conn = internalEndpoint.detach();
         if (conn != null && this.log.isDebugEnabled()) {
-            this.log.debug("Releasing connection " + conn);
+            this.log.debug("Releasing connection {}", conn);
         }
         if (this.closed.get()) {
             return;
@@ -278,7 +278,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
                 conn.passivate();
                 if (TimeValue.isPositive(keepAlive)) {
                     if (this.log.isDebugEnabled()) {
-                        this.log.debug("Connection can be kept alive for " + keepAlive);
+                        this.log.debug("Connection can be kept alive for {}", keepAlive);
                     }
                     this.expiry = this.updated + keepAlive.toMilliseconds();
                 } else {

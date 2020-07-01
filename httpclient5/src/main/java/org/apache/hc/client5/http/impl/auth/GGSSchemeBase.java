@@ -220,7 +220,7 @@ public abstract class GGSSchemeBase implements AuthScheme {
                 final String serviceName = host.getSchemeName().toUpperCase(Locale.ROOT);
 
                 if (log.isDebugEnabled()) {
-                    log.debug("init " + authServer);
+                    log.debug("init {}", authServer);
                 }
                 token = generateToken(token, serviceName, authServer);
                 state = State.TOKEN_GENERATED;
@@ -245,7 +245,7 @@ public abstract class GGSSchemeBase implements AuthScheme {
             final Base64 codec = new Base64(0);
             final String tokenstr = new String(codec.encode(token));
             if (log.isDebugEnabled()) {
-                log.debug("Sending response '" + tokenstr + "' back to the auth server");
+                log.debug("Sending response '{}' back to the auth server", tokenstr);
             }
             return StandardAuthScheme.SPNEGO + " " + tokenstr;
         default:

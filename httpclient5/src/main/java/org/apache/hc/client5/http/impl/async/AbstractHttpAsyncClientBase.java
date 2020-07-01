@@ -113,7 +113,7 @@ abstract class AbstractHttpAsyncClientBase extends CloseableHttpAsyncClient {
     @Override
     public final void close(final CloseMode closeMode) {
         if (log.isDebugEnabled()) {
-            log.debug("Shutdown " + closeMode);
+            log.debug("Shutdown {}", closeMode);
         }
         ioReactor.initiateShutdown();
         ioReactor.close(closeMode);

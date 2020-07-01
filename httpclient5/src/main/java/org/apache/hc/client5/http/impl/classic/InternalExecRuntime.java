@@ -98,7 +98,7 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
             final RequestConfig requestConfig = context.getRequestConfig();
             final Timeout connectionRequestTimeout = requestConfig.getConnectionRequestTimeout();
             if (log.isDebugEnabled()) {
-                log.debug(id + ": acquiring endpoint (" + connectionRequestTimeout + ")");
+                log.debug("{}: acquiring endpoint ({})", id, connectionRequestTimeout);
             }
             final LeaseRequest connRequest = manager.lease(id, route, connectionRequestTimeout, object);
             state = object;
@@ -117,7 +117,7 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
                     cancellableDependency.setDependency(this);
                 }
                 if (log.isDebugEnabled()) {
-                    log.debug(id + ": acquired endpoint " + ConnPoolSupport.getId(connectionEndpoint));
+                    log.debug("{}: acquired endpoint {}", id, ConnPoolSupport.getId(connectionEndpoint));
                 }
             } catch(final TimeoutException ex) {
                 throw new ConnectionRequestTimeoutException(ex.getMessage());
@@ -159,11 +159,11 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
         final RequestConfig requestConfig = context.getRequestConfig();
         final Timeout connectTimeout = requestConfig.getConnectTimeout();
         if (log.isDebugEnabled()) {
-            log.debug(ConnPoolSupport.getId(endpoint) + ": connecting endpoint (" + connectTimeout + ")");
+            log.debug("{}: connecting endpoint ({})", ConnPoolSupport.getId(endpoint), connectTimeout);
         }
         manager.connect(endpoint, connectTimeout, context);
         if (log.isDebugEnabled()) {
-            log.debug(ConnPoolSupport.getId(endpoint) + ": endpoint connected");
+            log.debug("{}: endpoint connected", ConnPoolSupport.getId(endpoint));
         }
     }
 
@@ -181,7 +181,7 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
         if (endpoint != null) {
             endpoint.close();
             if (log.isDebugEnabled()) {
-                log.debug(ConnPoolSupport.getId(endpoint) + ": endpoint closed");
+                log.debug("{}: endpoint closed", ConnPoolSupport.getId(endpoint));
             }
         }
     }
@@ -190,7 +190,7 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
     public void upgradeTls(final HttpClientContext context) throws IOException {
         final ConnectionEndpoint endpoint = ensureValid();
         if (log.isDebugEnabled()) {
-            log.debug(ConnPoolSupport.getId(endpoint) + ": upgrading endpoint");
+            log.debug("{}: upgrading endpoint", ConnPoolSupport.getId(endpoint));
         }
         manager.upgrade(endpoint, context);
     }
@@ -210,7 +210,7 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
             endpoint.setSocketTimeout(responseTimeout);
         }
         if (log.isDebugEnabled()) {
-            log.debug(ConnPoolSupport.getId(endpoint) + ": start execution " + id);
+            log.debug("{}: start execution {}", ConnPoolSupport.getId(endpoint), id);
         }
         return endpoint.execute(id, request, requestExecutor, context);
     }
@@ -236,11 +236,11 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
         try {
             endpoint.close(CloseMode.IMMEDIATE);
             if (log.isDebugEnabled()) {
-                log.debug(ConnPoolSupport.getId(endpoint) + ": endpoint closed");
+                log.debug("{}: endpoint closed", ConnPoolSupport.getId(endpoint));
             }
         } finally {
             if (log.isDebugEnabled()) {
-                log.debug(ConnPoolSupport.getId(endpoint) + ": discarding endpoint");
+                log.debug("{}: discarding endpoint", ConnPoolSupport.getId(endpoint));
             }
             manager.release(endpoint, null, TimeValue.ZERO_MILLISECONDS);
         }
@@ -252,7 +252,7 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
         if (endpoint != null) {
             if (reusable) {
                 if (log.isDebugEnabled()) {
-                    log.debug(ConnPoolSupport.getId(endpoint) + ": releasing valid endpoint");
+                    log.debug("{}: releasing valid endpoint", ConnPoolSupport.getId(endpoint));
                 }
                 manager.release(endpoint, state, validDuration);
             } else {
@@ -275,7 +275,7 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
         final ConnectionEndpoint endpoint = endpointRef.getAndSet(null);
         if (endpoint != null) {
             if (log.isDebugEnabled()) {
-                log.debug(ConnPoolSupport.getId(endpoint) + ": cancel");
+                log.debug("{}: cancel", ConnPoolSupport.getId(endpoint));
             }
             discardEndpoint(endpoint);
         }

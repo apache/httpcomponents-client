@@ -62,7 +62,7 @@ class CacheableRequestPolicy {
 
         if (!method.equals(HeaderConstants.GET_METHOD) && !method.equals(HeaderConstants.HEAD_METHOD)) {
             if (log.isDebugEnabled()) {
-                log.debug(method + " request is not serveable from cache");
+                log.debug("{} request is not serveable from cache", method);
             }
             return false;
         }

@@ -232,7 +232,7 @@ public class PoolingHttpClientConnectionManager
     public void close(final CloseMode closeMode) {
         if (this.closed.compareAndSet(false, true)) {
             if (this.log.isDebugEnabled()) {
-                this.log.debug("Shutdown connection pool " + closeMode);
+                this.log.debug("Shutdown connection pool {}", closeMode);
             }
             this.pool.close(closeMode);
             this.log.debug("Connection pool shut down");
@@ -258,8 +258,7 @@ public class PoolingHttpClientConnectionManager
             final Object state) {
         Args.notNull(route, "HTTP route");
         if (log.isDebugEnabled()) {
-            log.debug(id + ": endpoint lease request (" + requestTimeout + ") " +
-                    ConnPoolSupport.formatStats(route, state, pool));
+            log.debug("{}: endpoint lease request ({}) {}", id, requestTimeout, ConnPoolSupport.formatStats(route, state, pool));
         }
         final Future<PoolEntry<HttpRoute, ManagedHttpClientConnection>> leaseFuture = this.pool.lease(route, state, requestTimeout, null);
         return new LeaseRequest() {
@@ -284,7 +283,7 @@ public class PoolingHttpClientConnectionManager
                     throw ex;
                 }
                 if (log.isDebugEnabled()) {
-                    log.debug(id + ": endpoint leased " + ConnPoolSupport.formatStats(route, state, pool));
+                    log.debug("{}: endpoint leased {}", id, ConnPoolSupport.formatStats(route, state, pool));
                 }
                 try {
                     if (TimeValue.isNonNegative(validateAfterInactivity)) {
@@ -299,7 +298,7 @@ public class PoolingHttpClientConnectionManager
                             }
                             if (stale) {
                                 if (log.isDebugEnabled()) {
-                                    log.debug(id + ": connection " + ConnPoolSupport.getId(conn) + " is stale");
+                                    log.debug("{}: connection {} is stale", id, ConnPoolSupport.getId(conn));
                                 }
                                 poolEntry.discardConnection(CloseMode.IMMEDIATE);
                             }
@@ -313,19 +312,19 @@ public class PoolingHttpClientConnectionManager
                     }
                     if (leaseFuture.isCancelled()) {
                         if (log.isDebugEnabled()) {
-                            log.debug(id + ": endpoint lease cancelled");
+                            log.debug("{}: endpoint lease cancelled", id);
                         }
                         pool.release(poolEntry, false);
                     } else {
                         this.endpoint = new InternalConnectionEndpoint(poolEntry);
                         if (log.isDebugEnabled()) {
-                            log.debug(id + ": acquired " + ConnPoolSupport.getId(endpoint));
+                            log.debug("{}: acquired {}", id, ConnPoolSupport.getId(endpoint));
                         }
                     }
                     return this.endpoint;
                 } catch (final Exception ex) {
                     if (log.isDebugEnabled()) {
-                        log.debug(id + ": endpoint lease failed");
+                        log.debug("{}: endpoint lease failed", id);
                     }
                     pool.release(poolEntry, false);
                     throw new ExecutionException(ex.getMessage(), ex);
@@ -349,7 +348,7 @@ public class PoolingHttpClientConnectionManager
             return;
         }
         if (log.isDebugEnabled()) {
-            log.debug(ConnPoolSupport.getId(endpoint) + ": releasing endpoint");
+            log.debug("{}: releasing endpoint", ConnPoolSupport.getId(endpoint));
         }
         final ManagedHttpClientConnection conn = entry.getConnection();
         if (conn != null && keepAlive == null) {
@@ -368,12 +367,11 @@ public class PoolingHttpClientConnectionManager
                     } else {
                         s = "indefinitely";
                     }
-                    log.debug(ConnPoolSupport.getId(endpoint) + ": connection " + ConnPoolSupport.getId(conn) +
-                            " can be kept alive " + s);
+                    log.debug("{}: connection {} can be kept alive {}", ConnPoolSupport.getId(endpoint), ConnPoolSupport.getId(conn), s);
                 }
             } else {
                 if (this.log.isDebugEnabled()) {
-                    this.log.debug(ConnPoolSupport.getId(endpoint) + ": connection is not kept alive");
+                    this.log.debug("{}: connection is not kept alive", ConnPoolSupport.getId(endpoint));
                 }
             }
         } catch (final RuntimeException ex) {
@@ -382,8 +380,7 @@ public class PoolingHttpClientConnectionManager
         } finally {
             this.pool.release(entry, reusable);
             if (this.log.isDebugEnabled()) {
-                log.debug(ConnPoolSupport.getId(endpoint) + ": connection released " +
-                        ConnPoolSupport.formatStats(entry.getRoute(), entry.getState(), pool));
+                log.debug("{}: connection released {}", ConnPoolSupport.getId(endpoint), ConnPoolSupport.formatStats(entry.getRoute(), entry.getState(), pool));
             }
         }
     }
@@ -407,7 +404,7 @@ public class PoolingHttpClientConnectionManager
             host = route.getTargetHost();
         }
         if (this.log.isDebugEnabled()) {
-            log.debug(ConnPoolSupport.getId(endpoint) + ": connecting endpoint to " + host + " (" + connectTimeout + ")");
+            log.debug("{}: connecting endpoint to {} ({})", ConnPoolSupport.getId(endpoint), host, connectTimeout);
         }
         final ManagedHttpClientConnection conn = poolEntry.getConnection();
         this.connectionOperator.connect(
@@ -418,7 +415,7 @@ public class PoolingHttpClientConnectionManager
                 defaultSocketConfig != null ? this.defaultSocketConfig : SocketConfig.DEFAULT,
                 context);
         if (log.isDebugEnabled()) {
-            log.debug(ConnPoolSupport.getId(endpoint) + ": connected " + ConnPoolSupport.getId(conn));
+            log.debug("{}: connected {}", ConnPoolSupport.getId(endpoint), ConnPoolSupport.getId(conn));
         }
     }
 
@@ -435,7 +432,7 @@ public class PoolingHttpClientConnectionManager
     public void closeIdle(final TimeValue idleTime) {
         Args.notNull(idleTime, "Idle time");
         if (this.log.isDebugEnabled()) {
-            this.log.debug("Closing connections idle longer than " + idleTime);
+            this.log.debug("Closing connections idle longer than {}", idleTime);
         }
         this.pool.closeIdle(idleTime);
     }
@@ -595,7 +592,7 @@ public class PoolingHttpClientConnectionManager
             Args.notNull(requestExecutor, "Request executor");
             final ManagedHttpClientConnection connection = getValidatedPoolEntry().getConnection();
             if (log.isDebugEnabled()) {
-                log.debug(id + ": executing exchange " + exchangeId + " over " + ConnPoolSupport.getId(connection));
+                log.debug("{}: executing exchange {} over {}", id, exchangeId, ConnPoolSupport.getId(connection));
             }
             return requestExecutor.execute(request, connection, context);
         }

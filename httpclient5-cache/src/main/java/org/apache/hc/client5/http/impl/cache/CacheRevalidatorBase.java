@@ -131,7 +131,7 @@ class CacheRevalidatorBase implements Closeable {
                     scheduledExecutor.schedule(command, executionTime);
                     pendingRequest.add(cacheKey);
                 } catch (final RejectedExecutionException ex) {
-                    log.debug("Revalidation of cache entry with key " + cacheKey + "could not be scheduled: " + ex);
+                    log.debug("Revalidation of cache entry with key {}could not be scheduled: {}", cacheKey, ex);
                 }
             }
         }
