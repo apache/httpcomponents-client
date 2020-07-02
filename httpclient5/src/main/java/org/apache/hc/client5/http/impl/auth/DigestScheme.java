@@ -465,7 +465,7 @@ public class DigestScheme implements AuthScheme, Serializable {
 
     @Override
     public String toString() {
-        return getName() + this.paramMap.toString();
+        return getName() + this.paramMap;
     }
 
 }

@@ -157,7 +157,7 @@ public class HttpAsyncClientCompatibilityTest {
         if (message != null && !TextUtils.isBlank(message)) {
             buf.append(" -> ").append(message);
         }
-        System.out.println(buf.toString());
+        System.out.println(buf);
     }
 
     void execute() throws Exception {

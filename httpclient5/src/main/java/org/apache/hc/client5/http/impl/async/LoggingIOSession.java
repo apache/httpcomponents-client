@@ -257,7 +257,7 @@ class LoggingIOSession implements IOSession {
 
     @Override
     public String toString() {
-        return this.id + " " + this.session.toString();
+        return this.id + " " + this.session;
     }
 
 }

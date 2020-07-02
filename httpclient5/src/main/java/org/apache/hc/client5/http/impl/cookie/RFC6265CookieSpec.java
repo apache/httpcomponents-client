@@ -112,7 +112,7 @@ public class RFC6265CookieSpec implements CookieSpec {
         Args.notNull(header, "Header");
         Args.notNull(origin, "Cookie origin");
         if (!header.getName().equalsIgnoreCase("Set-Cookie")) {
-            throw new MalformedCookieException("Unrecognized cookie header: '" + header.toString() + "'");
+            throw new MalformedCookieException("Unrecognized cookie header: '" + header + "'");
         }
         final CharArrayBuffer buffer;
         final ParserCursor cursor;
@@ -138,7 +138,7 @@ public class RFC6265CookieSpec implements CookieSpec {
         final int valueDelim = buffer.charAt(cursor.getPos());
         cursor.updatePos(cursor.getPos() + 1);
         if (valueDelim != '=') {
-            throw new MalformedCookieException("Cookie value is invalid: '" + header.toString() + "'");
+            throw new MalformedCookieException("Cookie value is invalid: '" + header + "'");
         }
         final String value = tokenParser.parseValue(buffer, cursor, VALUE_DELIMS);
         if (!cursor.atEnd()) {

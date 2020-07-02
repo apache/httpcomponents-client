@@ -64,7 +64,7 @@ public class ClientFormLogin {
                     System.out.println("None");
                 } else {
                     for (int i = 0; i < cookies.size(); i++) {
-                        System.out.println("- " + cookies.get(i).toString());
+                        System.out.println("- " + cookies.get(i));
                     }
                 }
             }
@@ -86,7 +86,7 @@ public class ClientFormLogin {
                     System.out.println("None");
                 } else {
                     for (int i = 0; i < cookies.size(); i++) {
-                        System.out.println("- " + cookies.get(i).toString());
+                        System.out.println("- " + cookies.get(i));
                     }
                 }
             }

@@ -87,7 +87,7 @@ public class ReactiveClientFullDuplexExchange {
 
         System.out.println(streamingResponse.getHead());
         for (final Header header : streamingResponse.getHead().getHeaders()) {
-            System.out.println(header.toString());
+            System.out.println(header);
         }
         System.out.println();
 
@@ -104,7 +104,7 @@ public class ReactiveClientFullDuplexExchange {
             .forEach(new Consumer<Notification<String>>() {
                 @Override
                 public void accept(final Notification<String> byteBufferNotification) throws Exception {
-                    System.out.println(byteBufferNotification.toString());
+                    System.out.println(byteBufferNotification);
                 }
             });
 

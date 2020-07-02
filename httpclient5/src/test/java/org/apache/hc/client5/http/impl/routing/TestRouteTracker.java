@@ -592,7 +592,7 @@ public class TestRouteTracker {
     public final static boolean checkVia(final RouteTracker rt, final HttpRoute r,
                                          final HttpRouteDirector rd, final int steps) {
 
-        final String msg = r.toString() + " @ " + rt.toString();
+        final String msg = r + " @ " + rt;
 
         boolean complete = false;
         int n = steps;

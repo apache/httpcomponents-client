@@ -158,7 +158,7 @@ final class DefaultManagedHttpClientConnection
             this.headerLog.debug("{} << {}", this.id, new StatusLine(response));
             final Header[] headers = response.getHeaders();
             for (final Header header : headers) {
-                this.headerLog.debug("{} << {}", this.id, header.toString());
+                this.headerLog.debug("{} << {}", this.id, header);
             }
         }
     }
@@ -169,7 +169,7 @@ final class DefaultManagedHttpClientConnection
             this.headerLog.debug("{} >> {}", this.id, new RequestLine(request));
             final Header[] headers = request.getHeaders();
             for (final Header header : headers) {
-                this.headerLog.debug("{} >> {}", this.id, header.toString());
+                this.headerLog.debug("{} >> {}", this.id, header);
             }
         }
     }
