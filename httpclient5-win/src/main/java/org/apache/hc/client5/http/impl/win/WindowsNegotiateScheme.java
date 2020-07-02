@@ -92,7 +92,7 @@ public class WindowsNegotiateScheme implements AuthScheme {
         this.servicePrincipalName = servicePrincipalName;
 
         if (this.log.isDebugEnabled()) {
-            this.log.debug("Created WindowsNegotiateScheme using " + this.schemeName);
+            this.log.debug("Created WindowsNegotiateScheme using {}", this.schemeName);
         }
     }
 
@@ -258,7 +258,7 @@ public class WindowsNegotiateScheme implements AuthScheme {
             }
         }
         if (this.log.isDebugEnabled()) {
-            this.log.debug("Using SPN: " + spn);
+            this.log.debug("Using SPN: {}", spn);
         }
         return spn;
     }

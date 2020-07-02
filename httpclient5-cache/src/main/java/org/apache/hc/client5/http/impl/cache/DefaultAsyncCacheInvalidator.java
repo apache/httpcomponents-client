@@ -71,9 +71,9 @@ public class DefaultAsyncCacheInvalidator extends CacheInvalidatorBase implement
             public void completed(final Boolean result) {
                 if (log.isDebugEnabled()) {
                     if (result) {
-                        log.debug("Cache entry with key " + cacheKey + " successfully flushed");
+                        log.debug("Cache entry with key {} successfully flushed", cacheKey);
                     } else {
-                        log.debug("Cache entry with key " + cacheKey + " could not be flushed");
+                        log.debug("Cache entry with key {} could not be flushed", cacheKey);
                     }
                 }
             }
@@ -81,7 +81,7 @@ public class DefaultAsyncCacheInvalidator extends CacheInvalidatorBase implement
             @Override
             public void failed(final Exception ex) {
                 if (log.isWarnEnabled()) {
-                    log.warn("Unable to flush cache entry with key " + cacheKey, ex);
+                    log.warn("Unable to flush cache entry with key {}", cacheKey, ex);
                 }
             }
 
@@ -109,7 +109,7 @@ public class DefaultAsyncCacheInvalidator extends CacheInvalidatorBase implement
                 if (requestShouldNotBeCached(request) || shouldInvalidateHeadCacheEntry(request, parentEntry)) {
                     if (parentEntry != null) {
                         if (log.isDebugEnabled()) {
-                            log.debug("Invalidating parentEntry cache entry with key " + cacheKey);
+                            log.debug("Invalidating parentEntry cache entry with key {}", cacheKey);
                         }
                         for (final String variantURI : parentEntry.getVariantMap().values()) {
                             removeEntry(storage, variantURI);
@@ -118,7 +118,7 @@ public class DefaultAsyncCacheInvalidator extends CacheInvalidatorBase implement
                     }
                     if (uri != null) {
                         if (log.isWarnEnabled()) {
-                            log.warn(s + " is not a valid URI");
+                            log.warn("{} is not a valid URI", s);
                         }
                         final Header clHdr = request.getFirstHeader("Content-Location");
                         if (clHdr != null) {

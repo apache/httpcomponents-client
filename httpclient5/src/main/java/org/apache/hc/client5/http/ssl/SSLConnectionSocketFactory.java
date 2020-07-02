@@ -211,7 +211,7 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
                 sock.setSoTimeout(connectTimeout.toMillisecondsIntBound());
             }
             if (this.log.isDebugEnabled()) {
-                this.log.debug("Connecting socket to " + remoteAddress + " with timeout " + connectTimeout);
+                this.log.debug("Connecting socket to {} with timeout {}", remoteAddress, connectTimeout);
             }
             // Run this under a doPrivileged to support lib users that run under a SecurityManager this allows granting connect permissions
             // only to this library
@@ -267,8 +267,8 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
         }
 
         if (this.log.isDebugEnabled()) {
-            this.log.debug("Enabled protocols: " + Arrays.asList(sslsock.getEnabledProtocols()));
-            this.log.debug("Enabled cipher suites:" + Arrays.asList(sslsock.getEnabledCipherSuites()));
+            this.log.debug("Enabled protocols: {}", Arrays.asList(sslsock.getEnabledProtocols()));
+            this.log.debug("Enabled cipher suites:{}", Arrays.asList(sslsock.getEnabledCipherSuites()));
         }
 
         prepareSocket(sslsock);

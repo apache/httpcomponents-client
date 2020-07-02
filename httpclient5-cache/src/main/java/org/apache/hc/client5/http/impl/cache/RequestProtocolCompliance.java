@@ -129,7 +129,7 @@ class RequestProtocolCompliance {
             } else {
                 first = false;
             }
-            newHdr.append(elt.toString());
+            newHdr.append(elt);
         }
         return newHdr.toString();
     }

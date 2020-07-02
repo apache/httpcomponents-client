@@ -111,7 +111,7 @@ public class RequestAddCookies implements HttpRequestInterceptor {
             cookieSpecName = StandardCookieSpec.STRICT;
         }
         if (this.log.isDebugEnabled()) {
-            this.log.debug("Cookie spec selected: " + cookieSpecName);
+            this.log.debug("Cookie spec selected: {}", cookieSpecName);
         }
 
         final URIAuthority authority = request.getAuthority();
@@ -133,7 +133,7 @@ public class RequestAddCookies implements HttpRequestInterceptor {
         final CookieSpecFactory factory = registry.lookup(cookieSpecName);
         if (factory == null) {
             if (this.log.isDebugEnabled()) {
-                this.log.debug("Unsupported cookie spec: " + cookieSpecName);
+                this.log.debug("Unsupported cookie spec: {}", cookieSpecName);
             }
 
             return;
@@ -149,13 +149,13 @@ public class RequestAddCookies implements HttpRequestInterceptor {
             if (!cookie.isExpired(now)) {
                 if (cookieSpec.match(cookie, cookieOrigin)) {
                     if (this.log.isDebugEnabled()) {
-                        this.log.debug("Cookie " + cookie + " match " + cookieOrigin);
+                        this.log.debug("Cookie {} match {}", cookie, cookieOrigin);
                     }
                     matchedCookies.add(cookie);
                 }
             } else {
                 if (this.log.isDebugEnabled()) {
-                    this.log.debug("Cookie " + cookie + " expired");
+                    this.log.debug("Cookie {} expired", cookie);
                 }
                 expired = true;
             }

@@ -104,7 +104,7 @@ public class RequestAuthCache implements HttpRequestInterceptor {
             final AuthScheme authScheme = authCache.get(target);
             if (authScheme != null) {
                 if (this.log.isDebugEnabled()) {
-                    this.log.debug("Re-using cached '" + authScheme.getName() + "' auth scheme for " + target);
+                    this.log.debug("Re-using cached '{}' auth scheme for {}", authScheme.getName(), target);
                 }
                 targetAuthExchange.select(authScheme);
             }
@@ -117,7 +117,7 @@ public class RequestAuthCache implements HttpRequestInterceptor {
                 final AuthScheme authScheme = authCache.get(proxy);
                 if (authScheme != null) {
                     if (this.log.isDebugEnabled()) {
-                        this.log.debug("Re-using cached '" + authScheme.getName() + "' auth scheme for " + proxy);
+                        this.log.debug("Re-using cached '{}' auth scheme for {}", authScheme.getName(), proxy);
                     }
                     proxyAuthExchange.select(authScheme);
                 }

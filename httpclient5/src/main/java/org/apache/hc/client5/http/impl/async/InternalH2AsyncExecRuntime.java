@@ -89,7 +89,7 @@ class InternalH2AsyncExecRuntime implements AsyncExecRuntime {
             final RequestConfig requestConfig = context.getRequestConfig();
             final Timeout connectTimeout = requestConfig.getConnectTimeout();
             if (log.isDebugEnabled()) {
-                log.debug(id + ": acquiring endpoint (" + connectTimeout + ")");
+                log.debug("{}: acquiring endpoint ({})", id, connectTimeout);
             }
             return Operations.cancellable(connPool.getSession(
                     target,
@@ -101,7 +101,7 @@ class InternalH2AsyncExecRuntime implements AsyncExecRuntime {
                             sessionRef.set(new Endpoint(target, ioSession));
                             reusable = true;
                             if (log.isDebugEnabled()) {
-                                log.debug(id + ": acquired endpoint");
+                                log.debug("{}: acquired endpoint", id);
                             }
                             callback.completed(InternalH2AsyncExecRuntime.this);
                         }
@@ -125,7 +125,7 @@ class InternalH2AsyncExecRuntime implements AsyncExecRuntime {
     private void closeEndpoint(final Endpoint endpoint) {
         endpoint.session.close(CloseMode.GRACEFUL);
         if (log.isDebugEnabled()) {
-            log.debug(ConnPoolSupport.getId(endpoint) + ": endpoint closed");
+            log.debug("{}: endpoint closed", ConnPoolSupport.getId(endpoint));
         }
     }
 
@@ -186,7 +186,7 @@ class InternalH2AsyncExecRuntime implements AsyncExecRuntime {
         final RequestConfig requestConfig = context.getRequestConfig();
         final Timeout connectTimeout = requestConfig.getConnectTimeout();
         if (log.isDebugEnabled()) {
-            log.debug(ConnPoolSupport.getId(endpoint) + ": connecting endpoint (" + connectTimeout + ")");
+            log.debug("{}: connecting endpoint ({})", ConnPoolSupport.getId(endpoint), connectTimeout);
         }
         return Operations.cancellable(connPool.getSession(target, connectTimeout,
             new FutureCallback<IOSession>() {
@@ -196,7 +196,7 @@ class InternalH2AsyncExecRuntime implements AsyncExecRuntime {
                 sessionRef.set(new Endpoint(target, ioSession));
                 reusable = true;
                 if (log.isDebugEnabled()) {
-                    log.debug(ConnPoolSupport.getId(endpoint) + ": endpoint connected");
+                    log.debug("{}: endpoint connected", ConnPoolSupport.getId(endpoint));
                 }
                 callback.completed(InternalH2AsyncExecRuntime.this);
             }
@@ -229,7 +229,7 @@ class InternalH2AsyncExecRuntime implements AsyncExecRuntime {
         final IOSession session = endpoint.session;
         if (session.isOpen()) {
             if (log.isDebugEnabled()) {
-                log.debug(ConnPoolSupport.getId(endpoint) + ": start execution " + id);
+                log.debug("{}: start execution {}", ConnPoolSupport.getId(endpoint), id);
             }
             session.enqueue(
                     new RequestExecutionCommand(exchangeHandler, pushHandlerFactory, complexCancellable, context),
@@ -245,7 +245,7 @@ class InternalH2AsyncExecRuntime implements AsyncExecRuntime {
                     sessionRef.set(new Endpoint(target, ioSession));
                     reusable = true;
                     if (log.isDebugEnabled()) {
-                        log.debug(ConnPoolSupport.getId(endpoint) + ": start execution " + id);
+                        log.debug("{}: start execution {}", ConnPoolSupport.getId(endpoint), id);
                     }
                     session.enqueue(
                             new RequestExecutionCommand(exchangeHandler, pushHandlerFactory, complexCancellable, context),

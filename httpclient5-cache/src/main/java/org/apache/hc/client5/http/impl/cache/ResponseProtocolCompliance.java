@@ -133,7 +133,7 @@ class ResponseProtocolCompliance {
                     if (!first) {
                         buf.append(",");
                     }
-                    buf.append(elt.toString());
+                    buf.append(elt);
                     first = false;
                 }
             }

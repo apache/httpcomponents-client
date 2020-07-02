@@ -94,7 +94,7 @@ public class DefaultAuthenticationStrategy implements AuthenticationStrategy {
             authPrefs = DEFAULT_SCHEME_PRIORITY;
         }
         if (this.log.isDebugEnabled()) {
-            this.log.debug("Authentication schemes in the order of preference: " + authPrefs);
+            this.log.debug("Authentication schemes in the order of preference: {}", authPrefs);
         }
 
         for (final String schemeName: authPrefs) {
@@ -103,7 +103,7 @@ public class DefaultAuthenticationStrategy implements AuthenticationStrategy {
                 final AuthSchemeFactory authSchemeFactory = registry.lookup(schemeName);
                 if (authSchemeFactory == null) {
                     if (this.log.isWarnEnabled()) {
-                        this.log.warn("Authentication scheme " + schemeName + " not supported");
+                        this.log.warn("Authentication scheme {} not supported", schemeName);
                         // Try again
                     }
                     continue;
@@ -112,7 +112,7 @@ public class DefaultAuthenticationStrategy implements AuthenticationStrategy {
                 options.add(authScheme);
             } else {
                 if (this.log.isDebugEnabled()) {
-                    this.log.debug("Challenge for " + schemeName + " authentication scheme not available");
+                    this.log.debug("Challenge for {} authentication scheme not available", schemeName);
                 }
             }
         }

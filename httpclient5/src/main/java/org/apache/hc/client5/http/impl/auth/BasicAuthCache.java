@@ -101,7 +101,7 @@ public class BasicAuthCache implements AuthCache {
             }
         } else {
             if (log.isDebugEnabled()) {
-                log.debug("Auth scheme " + authScheme.getClass() + " is not serializable");
+                log.debug("Auth scheme {} is not serializable", authScheme.getClass());
             }
         }
     }

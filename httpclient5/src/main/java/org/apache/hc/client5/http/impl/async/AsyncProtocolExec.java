@@ -165,13 +165,13 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
 
         if (!request.containsHeader(HttpHeaders.AUTHORIZATION)) {
             if (log.isDebugEnabled()) {
-                log.debug(exchangeId + ": target auth state: " + targetAuthExchange.getState());
+                log.debug("{}: target auth state: {}", exchangeId, targetAuthExchange.getState());
             }
             authenticator.addAuthResponse(target, ChallengeType.TARGET, request, targetAuthExchange, clientContext);
         }
         if (!request.containsHeader(HttpHeaders.PROXY_AUTHORIZATION) && !route.isTunnelled()) {
             if (log.isDebugEnabled()) {
-                log.debug(exchangeId + ": proxy auth state: " + proxyAuthExchange.getState());
+                log.debug("{}: proxy auth state: {}", exchangeId, proxyAuthExchange.getState());
             }
             authenticator.addAuthResponse(proxy, ChallengeType.PROXY, request, proxyAuthExchange, clientContext);
         }
@@ -210,14 +210,14 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
                     if (proxyAuthExchange.getState() == AuthExchange.State.SUCCESS
                             && proxyAuthExchange.isConnectionBased()) {
                         if (log.isDebugEnabled()) {
-                            log.debug(exchangeId + ": resetting proxy auth state");
+                            log.debug("{}: resetting proxy auth state", exchangeId);
                         }
                         proxyAuthExchange.reset();
                     }
                     if (targetAuthExchange.getState() == AuthExchange.State.SUCCESS
                             && targetAuthExchange.isConnectionBased()) {
                         if (log.isDebugEnabled()) {
-                            log.debug(exchangeId + ": resetting target auth state");
+                            log.debug("{}: resetting target auth state", exchangeId);
                         }
                         targetAuthExchange.reset();
                     }
@@ -226,7 +226,7 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
                 if (challenged.get()) {
                     if (entityProducer != null && !entityProducer.isRepeatable()) {
                         if (log.isDebugEnabled()) {
-                            log.debug(exchangeId + ": cannot retry non-repeatable request");
+                            log.debug("{}: cannot retry non-repeatable request", exchangeId);
                         }
                         asyncExecCallback.completed();
                     } else {

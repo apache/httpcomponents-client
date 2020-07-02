@@ -122,7 +122,7 @@ final class DefaultManagedHttpClientConnection
     public void close() throws IOException {
         if (this.closed.compareAndSet(false, true)) {
             if (this.log.isDebugEnabled()) {
-                this.log.debug(this.id + ": Close connection");
+                this.log.debug("{}: Close connection", this.id);
             }
             super.close();
         }
@@ -131,7 +131,7 @@ final class DefaultManagedHttpClientConnection
     @Override
     public void setSocketTimeout(final Timeout timeout) {
         if (this.log.isDebugEnabled()) {
-            this.log.debug(this.id + ": set socket timeout to " + timeout);
+            this.log.debug("{}: set socket timeout to {}", this.id, timeout);
         }
         super.setSocketTimeout(timeout);
     }
@@ -140,7 +140,7 @@ final class DefaultManagedHttpClientConnection
     public void close(final CloseMode closeMode) {
         if (this.closed.compareAndSet(false, true)) {
             if (this.log.isDebugEnabled()) {
-                this.log.debug(this.id + ": close connection " + closeMode);
+                this.log.debug("{}: close connection {}", this.id, closeMode);
             }
             super.close(closeMode);
         }
@@ -155,10 +155,10 @@ final class DefaultManagedHttpClientConnection
     @Override
     protected void onResponseReceived(final ClassicHttpResponse response) {
         if (response != null && this.headerLog.isDebugEnabled()) {
-            this.headerLog.debug(this.id + " << " + new StatusLine(response));
+            this.headerLog.debug("{} << {}", this.id, new StatusLine(response));
             final Header[] headers = response.getHeaders();
             for (final Header header : headers) {
-                this.headerLog.debug(this.id + " << " + header.toString());
+                this.headerLog.debug("{} << {}", this.id, header);
             }
         }
     }
@@ -166,10 +166,10 @@ final class DefaultManagedHttpClientConnection
     @Override
     protected void onRequestSubmitted(final ClassicHttpRequest request) {
         if (request != null && this.headerLog.isDebugEnabled()) {
-            this.headerLog.debug(this.id + " >> " + new RequestLine(request));
+            this.headerLog.debug("{} >> {}", this.id, new RequestLine(request));
             final Header[] headers = request.getHeaders();
             for (final Header header : headers) {
-                this.headerLog.debug(this.id + " >> " + header.toString());
+                this.headerLog.debug("{} >> {}", this.id, header);
             }
         }
     }

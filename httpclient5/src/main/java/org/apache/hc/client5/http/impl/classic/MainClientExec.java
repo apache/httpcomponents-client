@@ -99,7 +99,7 @@ public final class MainClientExec implements ExecChainHandler {
         final ExecRuntime execRuntime = scope.execRuntime;
 
         if (log.isDebugEnabled()) {
-            log.debug(exchangeId + ": executing " + new RequestLine(request));
+            log.debug("{}: executing {}", exchangeId, new RequestLine(request));
         }
         try {
             RequestEntityProxy.enhance(request);
@@ -123,7 +123,7 @@ public final class MainClientExec implements ExecChainHandler {
                     } else {
                         s = "indefinitely";
                     }
-                    this.log.debug(exchangeId + ": connection can be kept alive " + s);
+                    this.log.debug("{}: connection can be kept alive {}", exchangeId, s);
                 }
                 execRuntime.markConnectionReusable(userToken, duration);
             } else {

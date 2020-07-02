@@ -86,11 +86,11 @@ public class Wire {
             if (ch == 13) {
                 buffer.append("[\\r]");
             } else if (ch == 10) {
-                    buffer.append("[\\n]\"");
-                    buffer.insert(0, "\"");
-                    buffer.insert(0, header);
-                    this.log.debug(this.id + " " + buffer.toString());
-                    buffer.setLength(0);
+                buffer.append("[\\n]\"");
+                buffer.insert(0, "\"");
+                buffer.insert(0, header);
+                this.log.debug("{} {}", this.id, buffer);
+                buffer.setLength(0);
             } else if ((ch < 32) || (ch >= 127)) {
                 buffer.append("[0x");
                 buffer.append(Integer.toHexString(ch));
@@ -103,7 +103,7 @@ public class Wire {
             buffer.append('\"');
             buffer.insert(0, '\"');
             buffer.insert(0, header);
-            this.log.debug(this.id + " " + buffer.toString());
+            this.log.debug("{} {}", this.id, buffer);
         }
     }
 

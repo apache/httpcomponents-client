@@ -122,8 +122,8 @@ abstract class AbstractClientTlsStrategy implements TlsStrategy {
                 initializeEngine(sslEngine);
 
                 if (log.isDebugEnabled()) {
-                    log.debug("Enabled protocols: " + Arrays.asList(sslEngine.getEnabledProtocols()));
-                    log.debug("Enabled cipher suites:" + Arrays.asList(sslEngine.getEnabledCipherSuites()));
+                    log.debug("Enabled protocols: {}", Arrays.asList(sslEngine.getEnabledProtocols()));
+                    log.debug("Enabled cipher suites:{}", Arrays.asList(sslEngine.getEnabledCipherSuites()));
                 }
             }
 

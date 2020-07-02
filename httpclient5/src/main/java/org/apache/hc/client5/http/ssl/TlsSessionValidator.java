@@ -56,8 +56,8 @@ final class TlsSessionValidator {
 
         if (log.isDebugEnabled()) {
             log.debug("Secure session established");
-            log.debug(" negotiated protocol: " + sslsession.getProtocol());
-            log.debug(" negotiated cipher suite: " + sslsession.getCipherSuite());
+            log.debug(" negotiated protocol: {}", sslsession.getProtocol());
+            log.debug(" negotiated cipher suite: {}", sslsession.getCipherSuite());
 
             try {
 
@@ -67,7 +67,7 @@ final class TlsSessionValidator {
                     final X509Certificate x509 = (X509Certificate) cert;
                     final X500Principal peer = x509.getSubjectX500Principal();
 
-                    log.debug(" peer principal: " + peer.toString());
+                    log.debug(" peer principal: {}", peer);
                     final Collection<List<?>> altNames1 = x509.getSubjectAlternativeNames();
                     if (altNames1 != null) {
                         final List<String> altNames = new ArrayList<>();
@@ -76,11 +76,11 @@ final class TlsSessionValidator {
                                 altNames.add((String) aC.get(1));
                             }
                         }
-                        log.debug(" peer alternative names: " + altNames);
+                        log.debug(" peer alternative names: {}", altNames);
                     }
 
                     final X500Principal issuer = x509.getIssuerX500Principal();
-                    log.debug(" issuer principal: " + issuer.toString());
+                    log.debug(" issuer principal: {}", issuer);
                     final Collection<List<?>> altNames2 = x509.getIssuerAlternativeNames();
                     if (altNames2 != null) {
                         final List<String> altNames = new ArrayList<>();
@@ -89,7 +89,7 @@ final class TlsSessionValidator {
                                 altNames.add((String) aC.get(1));
                             }
                         }
-                        log.debug(" issuer alternative names: " + altNames);
+                        log.debug(" issuer alternative names: {}", altNames);
                     }
                 }
             } catch (final Exception ignore) {

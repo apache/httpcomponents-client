@@ -113,14 +113,14 @@ public final class ConnectExec implements ExecChainHandler {
         if (!execRuntime.isEndpointAcquired()) {
             final Object userToken = context.getUserToken();
             if (log.isDebugEnabled()) {
-                log.debug(exchangeId + ": acquiring connection with route " + route);
+                log.debug("{}: acquiring connection with route {}", exchangeId, route);
             }
             execRuntime.acquireEndpoint(exchangeId, route, userToken, context);
         }
         try {
             if (!execRuntime.isEndpointConnected()) {
                 if (log.isDebugEnabled()) {
-                    log.debug(exchangeId + ": opening connection " + route);
+                    log.debug("{}: opening connection {}", exchangeId, route);
                 }
 
                 final RouteTracker tracker = new RouteTracker(route);
@@ -143,7 +143,7 @@ public final class ConnectExec implements ExecChainHandler {
                         case HttpRouteDirector.TUNNEL_TARGET: {
                             final boolean secure = createTunnelToTarget(exchangeId, route, request, execRuntime, context);
                             if (log.isDebugEnabled()) {
-                                log.debug(exchangeId + ": tunnel to target created.");
+                                log.debug("{}: tunnel to target created.", exchangeId);
                             }
                             tracker.tunnelTarget(secure);
                         }   break;
@@ -156,7 +156,7 @@ public final class ConnectExec implements ExecChainHandler {
                             final int hop = fact.getHopCount()-1; // the hop to establish
                             final boolean secure = createTunnelToProxy(route, hop, context);
                             if (log.isDebugEnabled()) {
-                                log.debug(exchangeId + ": tunnel to proxy created.");
+                                log.debug("{}: tunnel to proxy created.", exchangeId);
                             }
                             tracker.tunnelProxy(route.getHopTarget(hop), secure);
                         }   break;
@@ -234,7 +234,7 @@ public final class ConnectExec implements ExecChainHandler {
                         // Retry request
                         if (this.reuseStrategy.keepAlive(request, response, context)) {
                             if (log.isDebugEnabled()) {
-                                log.debug(exchangeId + ": connection kept alive");
+                                log.debug("{}: connection kept alive", exchangeId);
                             }
                             // Consume response content
                             final HttpEntity entity = response.getEntity();
