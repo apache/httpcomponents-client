@@ -195,7 +195,7 @@ class CachedResponseSuitabilityChecker {
                     }
                 } catch (final NumberFormatException ex) {
                     // err conservatively
-                    log.debug("Response from cache was malformed{}", ex.getMessage());
+                    log.debug("Response from cache was malformed: {}", ex.getMessage());
                     return false;
                 }
             }
