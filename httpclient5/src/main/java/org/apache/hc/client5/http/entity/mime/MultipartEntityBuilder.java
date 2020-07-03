@@ -35,7 +35,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.apache.hc.core5.http.ContentType;
@@ -175,8 +174,8 @@ public class MultipartEntityBuilder {
     }
 
     private String generateBoundary() {
-        final Random rand = ThreadLocalRandom.current();
-        final int count = rand.nextInt(11) + 30; // a random size from 30 to 40
+        final ThreadLocalRandom rand = ThreadLocalRandom.current();
+        final int count = rand.nextInt(30, 41); // a random size from 30 to 40
         final CharBuffer buffer = CharBuffer.allocate(count);
         while (buffer.hasRemaining()) {
             buffer.append(MULTIPART_CHARS[rand.nextInt(MULTIPART_CHARS.length)]);
