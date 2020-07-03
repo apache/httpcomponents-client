@@ -29,6 +29,7 @@ package org.apache.hc.client5.http.entity.mime;
 
 import java.io.File;
 import java.io.InputStream;
+import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -174,12 +175,13 @@ public class MultipartEntityBuilder {
     }
 
     private String generateBoundary() {
-        final StringBuilder buffer = new StringBuilder();
         final Random rand = ThreadLocalRandom.current();
         final int count = rand.nextInt(11) + 30; // a random size from 30 to 40
-        for (int i = 0; i < count; i++) {
+        final CharBuffer buffer = CharBuffer.allocate(count);
+        while (buffer.hasRemaining()) {
             buffer.append(MULTIPART_CHARS[rand.nextInt(MULTIPART_CHARS.length)]);
         }
+        buffer.flip();
         return buffer.toString();
     }
 
