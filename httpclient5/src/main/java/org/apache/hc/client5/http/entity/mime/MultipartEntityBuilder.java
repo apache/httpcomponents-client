@@ -178,7 +178,7 @@ public class MultipartEntityBuilder {
         final int count = rand.nextInt(30, 41); // a random size from 30 to 40
         final CharBuffer buffer = CharBuffer.allocate(count);
         while (buffer.hasRemaining()) {
-            buffer.append(MULTIPART_CHARS[rand.nextInt(MULTIPART_CHARS.length)]);
+            buffer.put(MULTIPART_CHARS[rand.nextInt(MULTIPART_CHARS.length)]);
         }
         buffer.flip();
         return buffer.toString();
