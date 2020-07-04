@@ -36,6 +36,10 @@
   <url>http://hc.apache.org/httpcomponents-client</url>
   <packaging>jar</packaging>
 
+  <properties>
+    <Automatic-Module-Name>org.apache.httpcomponents.client5.httpclient5.testing</Automatic-Module-Name>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>org.apache.httpcomponents.core5</groupId>
