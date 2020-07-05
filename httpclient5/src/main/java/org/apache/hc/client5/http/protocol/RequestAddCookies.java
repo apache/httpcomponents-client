@@ -65,7 +65,7 @@ import org.slf4j.LoggerFactory;
 @Contract(threading = ThreadingBehavior.STATELESS)
 public class RequestAddCookies implements HttpRequestInterceptor {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger LOG = LoggerFactory.getLogger(RequestAddCookies.class);
 
     public RequestAddCookies() {
         super();
@@ -87,21 +87,21 @@ public class RequestAddCookies implements HttpRequestInterceptor {
         // Obtain cookie store
         final CookieStore cookieStore = clientContext.getCookieStore();
         if (cookieStore == null) {
-            this.log.debug("Cookie store not specified in HTTP context");
+            LOG.debug("Cookie store not specified in HTTP context");
             return;
         }
 
         // Obtain the registry of cookie specs
         final Lookup<CookieSpecFactory> registry = clientContext.getCookieSpecRegistry();
         if (registry == null) {
-            this.log.debug("CookieSpec registry not specified in HTTP context");
+            LOG.debug("CookieSpec registry not specified in HTTP context");
             return;
         }
 
         // Obtain the route (required)
         final RouteInfo route = clientContext.getHttpRoute();
         if (route == null) {
-            this.log.debug("Connection route not set in the context");
+            LOG.debug("Connection route not set in the context");
             return;
         }
 
@@ -110,8 +110,8 @@ public class RequestAddCookies implements HttpRequestInterceptor {
         if (cookieSpecName == null) {
             cookieSpecName = StandardCookieSpec.STRICT;
         }
-        if (this.log.isDebugEnabled()) {
-            this.log.debug("Cookie spec selected: {}", cookieSpecName);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Cookie spec selected: {}", cookieSpecName);
         }
 
         final URIAuthority authority = request.getAuthority();
@@ -132,8 +132,8 @@ public class RequestAddCookies implements HttpRequestInterceptor {
         // Get an instance of the selected cookie policy
         final CookieSpecFactory factory = registry.lookup(cookieSpecName);
         if (factory == null) {
-            if (this.log.isDebugEnabled()) {
-                this.log.debug("Unsupported cookie spec: {}", cookieSpecName);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Unsupported cookie spec: {}", cookieSpecName);
             }
 
             return;
@@ -148,14 +148,14 @@ public class RequestAddCookies implements HttpRequestInterceptor {
         for (final Cookie cookie : cookies) {
             if (!cookie.isExpired(now)) {
                 if (cookieSpec.match(cookie, cookieOrigin)) {
-                    if (this.log.isDebugEnabled()) {
-                        this.log.debug("Cookie {} match {}", cookie, cookieOrigin);
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Cookie {} match {}", cookie, cookieOrigin);
                     }
                     matchedCookies.add(cookie);
                 }
             } else {
-                if (this.log.isDebugEnabled()) {
-                    this.log.debug("Cookie {} expired", cookie);
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Cookie {} expired", cookie);
                 }
                 expired = true;
             }

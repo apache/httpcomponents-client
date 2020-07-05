@@ -83,7 +83,7 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
             Pattern.compile(WEAK_KEY_EXCHANGES, Pattern.CASE_INSENSITIVE),
             Pattern.compile(WEAK_CIPHERS, Pattern.CASE_INSENSITIVE)));
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger LOG = LoggerFactory.getLogger(SSLConnectionSocketFactory.class);
 
     /**
      * Obtains default SSL socket factory with an SSL context based on the standard JSSE
@@ -173,7 +173,7 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
         this.supportedProtocols = supportedProtocols;
         this.supportedCipherSuites = supportedCipherSuites;
         this.hostnameVerifier = hostnameVerifier != null ? hostnameVerifier : HttpsSupport.getDefaultHostnameVerifier();
-        this.tlsSessionValidator = new TlsSessionValidator(log);
+        this.tlsSessionValidator = new TlsSessionValidator(LOG);
     }
 
     /**
@@ -210,8 +210,8 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
             if (TimeValue.isPositive(connectTimeout) && sock.getSoTimeout() == 0) {
                 sock.setSoTimeout(connectTimeout.toMillisecondsIntBound());
             }
-            if (this.log.isDebugEnabled()) {
-                this.log.debug("Connecting socket to {} with timeout {}", remoteAddress, connectTimeout);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Connecting socket to {} with timeout {}", remoteAddress, connectTimeout);
             }
             // Run this under a doPrivileged to support lib users that run under a SecurityManager this allows granting connect permissions
             // only to this library
@@ -236,7 +236,7 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
         // Setup SSL layering if necessary
         if (sock instanceof SSLSocket) {
             final SSLSocket sslsock = (SSLSocket) sock;
-            this.log.debug("Starting handshake");
+            LOG.debug("Starting handshake");
             sslsock.startHandshake();
             verifyHostname(sslsock, host.getHostName());
             return sock;
@@ -266,13 +266,13 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
             sslsock.setEnabledCipherSuites(TlsCiphers.excludeWeak(sslsock.getEnabledCipherSuites()));
         }
 
-        if (this.log.isDebugEnabled()) {
-            this.log.debug("Enabled protocols: {}", Arrays.asList(sslsock.getEnabledProtocols()));
-            this.log.debug("Enabled cipher suites:{}", Arrays.asList(sslsock.getEnabledCipherSuites()));
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Enabled protocols: {}", (Object) sslsock.getEnabledProtocols());
+            LOG.debug("Enabled cipher suites: {}", (Object) sslsock.getEnabledCipherSuites());
         }
 
         prepareSocket(sslsock);
-        this.log.debug("Starting handshake");
+        LOG.debug("Starting handshake");
         sslsock.startHandshake();
         verifyHostname(sslsock, target);
         return sslsock;

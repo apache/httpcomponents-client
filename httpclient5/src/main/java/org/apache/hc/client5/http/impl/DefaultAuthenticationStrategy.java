@@ -59,7 +59,7 @@ import org.slf4j.LoggerFactory;
 @Contract(threading = ThreadingBehavior.STATELESS)
 public class DefaultAuthenticationStrategy implements AuthenticationStrategy {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger LOG = LoggerFactory.getLogger(DefaultAuthenticationStrategy.class);
 
     public static final DefaultAuthenticationStrategy INSTANCE = new DefaultAuthenticationStrategy();
 
@@ -84,7 +84,7 @@ public class DefaultAuthenticationStrategy implements AuthenticationStrategy {
         final List<AuthScheme> options = new ArrayList<>();
         final Lookup<AuthSchemeFactory> registry = clientContext.getAuthSchemeRegistry();
         if (registry == null) {
-            this.log.debug("Auth scheme registry not set in the context");
+            LOG.debug("Auth scheme registry not set in the context");
             return options;
         }
         final RequestConfig config = clientContext.getRequestConfig();
@@ -93,8 +93,8 @@ public class DefaultAuthenticationStrategy implements AuthenticationStrategy {
         if (authPrefs == null) {
             authPrefs = DEFAULT_SCHEME_PRIORITY;
         }
-        if (this.log.isDebugEnabled()) {
-            this.log.debug("Authentication schemes in the order of preference: {}", authPrefs);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Authentication schemes in the order of preference: {}", authPrefs);
         }
 
         for (final String schemeName: authPrefs) {
@@ -102,8 +102,8 @@ public class DefaultAuthenticationStrategy implements AuthenticationStrategy {
             if (challenge != null) {
                 final AuthSchemeFactory authSchemeFactory = registry.lookup(schemeName);
                 if (authSchemeFactory == null) {
-                    if (this.log.isWarnEnabled()) {
-                        this.log.warn("Authentication scheme {} not supported", schemeName);
+                    if (LOG.isWarnEnabled()) {
+                        LOG.warn("Authentication scheme {} not supported", schemeName);
                         // Try again
                     }
                     continue;
@@ -111,8 +111,8 @@ public class DefaultAuthenticationStrategy implements AuthenticationStrategy {
                 final AuthScheme authScheme = authSchemeFactory.create(context);
                 options.add(authScheme);
             } else {
-                if (this.log.isDebugEnabled()) {
-                    this.log.debug("Challenge for {} authentication scheme not available", schemeName);
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Challenge for {} authentication scheme not available", schemeName);
                 }
             }
         }

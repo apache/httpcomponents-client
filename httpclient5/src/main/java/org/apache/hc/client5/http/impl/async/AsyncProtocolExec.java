@@ -83,7 +83,7 @@ import org.slf4j.LoggerFactory;
 @Internal
 public final class AsyncProtocolExec implements AsyncExecChainHandler {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger LOG = LoggerFactory.getLogger(AsyncProtocolExec.class);
 
     private final HttpProcessor httpProcessor;
     private final AuthenticationStrategy targetAuthStrategy;
@@ -97,7 +97,7 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
         this.httpProcessor = Args.notNull(httpProcessor, "HTTP protocol processor");
         this.targetAuthStrategy = Args.notNull(targetAuthStrategy, "Target authentication strategy");
         this.proxyAuthStrategy = Args.notNull(proxyAuthStrategy, "Proxy authentication strategy");
-        this.authenticator = new HttpAuthenticator(log);
+        this.authenticator = new HttpAuthenticator(LOG);
     }
 
     @Override
@@ -164,14 +164,14 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
         httpProcessor.process(request, entityProducer, clientContext);
 
         if (!request.containsHeader(HttpHeaders.AUTHORIZATION)) {
-            if (log.isDebugEnabled()) {
-                log.debug("{}: target auth state: {}", exchangeId, targetAuthExchange.getState());
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{}: target auth state: {}", exchangeId, targetAuthExchange.getState());
             }
             authenticator.addAuthResponse(target, ChallengeType.TARGET, request, targetAuthExchange, clientContext);
         }
         if (!request.containsHeader(HttpHeaders.PROXY_AUTHORIZATION) && !route.isTunnelled()) {
-            if (log.isDebugEnabled()) {
-                log.debug("{}: proxy auth state: {}", exchangeId, proxyAuthExchange.getState());
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{}: proxy auth state: {}", exchangeId, proxyAuthExchange.getState());
             }
             authenticator.addAuthResponse(proxy, ChallengeType.PROXY, request, proxyAuthExchange, clientContext);
         }
@@ -209,15 +209,15 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
                 if (!execRuntime.isEndpointConnected()) {
                     if (proxyAuthExchange.getState() == AuthExchange.State.SUCCESS
                             && proxyAuthExchange.isConnectionBased()) {
-                        if (log.isDebugEnabled()) {
-                            log.debug("{}: resetting proxy auth state", exchangeId);
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("{}: resetting proxy auth state", exchangeId);
                         }
                         proxyAuthExchange.reset();
                     }
                     if (targetAuthExchange.getState() == AuthExchange.State.SUCCESS
                             && targetAuthExchange.isConnectionBased()) {
-                        if (log.isDebugEnabled()) {
-                            log.debug("{}: resetting target auth state", exchangeId);
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("{}: resetting target auth state", exchangeId);
                         }
                         targetAuthExchange.reset();
                     }
@@ -225,8 +225,8 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
 
                 if (challenged.get()) {
                     if (entityProducer != null && !entityProducer.isRepeatable()) {
-                        if (log.isDebugEnabled()) {
-                            log.debug("{}: cannot retry non-repeatable request", exchangeId);
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("{}: cannot retry non-repeatable request", exchangeId);
                         }
                         asyncExecCallback.completed();
                     } else {

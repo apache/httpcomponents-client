@@ -78,7 +78,7 @@ public class CachingExecBase {
     final RequestProtocolCompliance requestCompliance;
     final CacheConfig cacheConfig;
 
-    final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger LOG = LoggerFactory.getLogger(CachingExecBase.class);
 
     CachingExecBase(
             final CacheValidityPolicy validityPolicy,
@@ -153,22 +153,22 @@ public class CachingExecBase {
 
     void recordCacheMiss(final HttpHost target, final HttpRequest request) {
         cacheMisses.getAndIncrement();
-        if (log.isDebugEnabled()) {
-            log.debug("Cache miss [host: {}; uri: {}]", target, request.getRequestUri());
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Cache miss [host: {}; uri: {}]", target, request.getRequestUri());
         }
     }
 
     void recordCacheHit(final HttpHost target, final HttpRequest request) {
         cacheHits.getAndIncrement();
-        if (log.isDebugEnabled()) {
-            log.debug("Cache hit [host: {}; uri: {}]", target, request.getRequestUri());
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Cache hit [host: {}; uri: {}]", target, request.getRequestUri());
         }
     }
 
     void recordCacheFailure(final HttpHost target, final HttpRequest request) {
         cacheMisses.getAndIncrement();
-        if (log.isDebugEnabled()) {
-            log.debug("Cache failure [host: {}; uri: {}]", target, request.getRequestUri());
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Cache failure [host: {}; uri: {}]", target, request.getRequestUri());
         }
     }
 
@@ -235,7 +235,7 @@ public class CachingExecBase {
         while (it.hasNext()) {
             final HeaderElement elt = it.next();
             if ("only-if-cached".equals(elt.getName())) {
-                log.debug("Request marked only-if-cached");
+                LOG.debug("Request marked only-if-cached");
                 return false;
             }
         }

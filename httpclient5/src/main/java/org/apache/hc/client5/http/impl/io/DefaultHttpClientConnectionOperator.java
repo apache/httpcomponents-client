@@ -69,7 +69,7 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
 
     static final String SOCKET_FACTORY_REGISTRY = "http.socket-factory-registry";
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger LOG = LoggerFactory.getLogger(DefaultHttpClientConnectionOperator.class);
 
     private final Lookup<ConnectionSocketFactory> socketFactoryRegistry;
     private final SchemePortResolver schemePortResolver;
@@ -141,14 +141,14 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
             conn.bind(sock);
 
             final InetSocketAddress remoteAddress = new InetSocketAddress(address, port);
-            if (this.log.isDebugEnabled()) {
-                this.log.debug("{}: connecting to {}", ConnPoolSupport.getId(conn), remoteAddress);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{}: connecting to {}", ConnPoolSupport.getId(conn), remoteAddress);
             }
             try {
                 sock = sf.connectSocket(connectTimeout, sock, host, remoteAddress, localAddress, context);
                 conn.bind(sock);
-                if (this.log.isDebugEnabled()) {
-                    this.log.debug("{}: connection established {}", ConnPoolSupport.getId(conn), conn);
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("{}: connection established {}", ConnPoolSupport.getId(conn), conn);
                 }
                 return;
             } catch (final IOException ex) {
@@ -156,8 +156,8 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
                     throw ConnectExceptionSupport.enhance(ex, host, addresses);
                 }
             }
-            if (this.log.isDebugEnabled()) {
-                this.log.debug("{}: connect to {} timed out. Connection will be retried using another IP address", ConnPoolSupport.getId(conn), remoteAddress);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{}: connect to {} timed out. Connection will be retried using another IP address", ConnPoolSupport.getId(conn), remoteAddress);
             }
         }
     }

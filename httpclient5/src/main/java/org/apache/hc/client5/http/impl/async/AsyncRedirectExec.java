@@ -75,7 +75,7 @@ import org.slf4j.LoggerFactory;
 @Internal
 public final class AsyncRedirectExec implements AsyncExecChainHandler {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger LOG = LoggerFactory.getLogger(AsyncRedirectExec.class);
 
     private final HttpRoutePlanner routePlanner;
     private final RedirectStrategy redirectStrategy;
@@ -126,8 +126,8 @@ public final class AsyncRedirectExec implements AsyncExecChainHandler {
                     state.redirectCount++;
 
                     final URI redirectUri = redirectStrategy.getLocationURI(request, response, clientContext);
-                    if (log.isDebugEnabled()) {
-                        log.debug("{}: redirect requested to location '{}'", exchangeId, redirectUri);
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("{}: redirect requested to location '{}'", exchangeId, redirectUri);
                     }
                     if (!config.isCircularRedirectsAllowed()) {
                         if (state.redirectLocations.contains(redirectUri)) {
@@ -170,15 +170,15 @@ public final class AsyncRedirectExec implements AsyncExecChainHandler {
                         if (!LangUtils.equals(currentRoute, newRoute)) {
                             state.reroute = true;
                             final AuthExchange targetAuthExchange = clientContext.getAuthExchange(currentRoute.getTargetHost());
-                            if (log.isDebugEnabled()) {
-                                log.debug("{}: resetting target auth state", exchangeId);
+                            if (LOG.isDebugEnabled()) {
+                                LOG.debug("{}: resetting target auth state", exchangeId);
                             }
                             targetAuthExchange.reset();
                             if (currentRoute.getProxyHost() != null) {
                                 final AuthExchange proxyAuthExchange = clientContext.getAuthExchange(currentRoute.getProxyHost());
                                 if (proxyAuthExchange.isConnectionBased()) {
-                                    if (log.isDebugEnabled()) {
-                                        log.debug("{}: resetting proxy auth state", exchangeId);
+                                    if (LOG.isDebugEnabled()) {
+                                        LOG.debug("{}: resetting proxy auth state", exchangeId);
                                     }
                                     proxyAuthExchange.reset();
                                 }
@@ -189,8 +189,8 @@ public final class AsyncRedirectExec implements AsyncExecChainHandler {
                     }
                 }
                 if (state.redirectURI != null) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("{}: redirecting to '{}' via {}", exchangeId, state.redirectURI, currentRoute);
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("{}: redirecting to '{}' via {}", exchangeId, state.redirectURI, currentRoute);
                     }
                     return null;
                 }
@@ -210,8 +210,8 @@ public final class AsyncRedirectExec implements AsyncExecChainHandler {
                 } else {
                     final AsyncEntityProducer entityProducer = state.currentEntityProducer;
                     if (entityProducer != null && !entityProducer.isRepeatable()) {
-                        if (log.isDebugEnabled()) {
-                            log.debug("{}: cannot redirect non-repeatable request", exchangeId);
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("{}: cannot redirect non-repeatable request", exchangeId);
                         }
                         asyncExecCallback.completed();
                     } else {

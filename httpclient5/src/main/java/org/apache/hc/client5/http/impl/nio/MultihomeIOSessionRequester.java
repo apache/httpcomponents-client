@@ -50,7 +50,7 @@ import org.slf4j.LoggerFactory;
 
 final class MultihomeIOSessionRequester {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger LOG = LoggerFactory.getLogger(MultihomeIOSessionRequester.class);
     private final DnsResolver dnsResolver;
 
     MultihomeIOSessionRequester(final DnsResolver dnsResolver) {
@@ -67,14 +67,14 @@ final class MultihomeIOSessionRequester {
             final FutureCallback<IOSession> callback) {
 
         if (remoteAddress != null) {
-            if (log.isDebugEnabled()) {
-                log.debug("{}: connecting {} to {} ({})", remoteEndpoint, localAddress, remoteAddress, connectTimeout);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{}: connecting {} to {} ({})", remoteEndpoint, localAddress, remoteAddress, connectTimeout);
             }
             return connectionInitiator.connect(remoteEndpoint, remoteAddress, localAddress, connectTimeout, attachment, callback);
         }
 
-        if (log.isDebugEnabled()) {
-            log.debug("{}: resolving remote address", remoteEndpoint);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("{}: resolving remote address", remoteEndpoint);
         }
 
         final ComplexFuture<IOSession> future = new ComplexFuture<>(callback);
@@ -86,8 +86,8 @@ final class MultihomeIOSessionRequester {
             return future;
         }
 
-        if (log.isDebugEnabled()) {
-            log.debug("{}: resolved to {}", remoteEndpoint, Arrays.asList(remoteAddresses));
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("{}: resolved to {}", remoteEndpoint, Arrays.asList(remoteAddresses));
         }
 
         final Runnable runnable = new Runnable() {
@@ -98,8 +98,8 @@ final class MultihomeIOSessionRequester {
                 final int index = attempt.getAndIncrement();
                 final InetSocketAddress remoteAddress = new InetSocketAddress(remoteAddresses[index], remoteEndpoint.getPort());
 
-                if (log.isDebugEnabled()) {
-                    log.debug("{}: connecting {} to {} ({})", remoteEndpoint, localAddress, remoteAddress, connectTimeout);
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("{}: connecting {} to {} ({})", remoteEndpoint, localAddress, remoteAddress, connectTimeout);
                 }
 
                 final Future<IOSession> sessionFuture = connectionInitiator.connect(
@@ -112,9 +112,9 @@ final class MultihomeIOSessionRequester {
 
                             @Override
                             public void completed(final IOSession session) {
-                                if (log.isDebugEnabled()) {
-                                    if (log.isDebugEnabled()) {
-                                        log.debug("{}: connected {} {}->{}", remoteEndpoint, session.getId(), session.getLocalAddress(), session.getRemoteAddress());
+                                if (LOG.isDebugEnabled()) {
+                                    if (LOG.isDebugEnabled()) {
+                                        LOG.debug("{}: connected {} {}->{}", remoteEndpoint, session.getId(), session.getLocalAddress(), session.getRemoteAddress());
                                     }
                                 }
                                 future.completed(session);
@@ -123,8 +123,8 @@ final class MultihomeIOSessionRequester {
                             @Override
                             public void failed(final Exception cause) {
                                 if (attempt.get() >= remoteAddresses.length) {
-                                    if (log.isDebugEnabled()) {
-                                        log.debug("{}: connection to {} failed ({}); terminating operation", remoteEndpoint, remoteAddress, cause.getClass());
+                                    if (LOG.isDebugEnabled()) {
+                                        LOG.debug("{}: connection to {} failed ({}); terminating operation", remoteEndpoint, remoteAddress, cause.getClass());
                                     }
                                     if (cause instanceof IOException) {
                                         future.failed(ConnectExceptionSupport.enhance((IOException) cause, remoteEndpoint, remoteAddresses));
@@ -132,8 +132,8 @@ final class MultihomeIOSessionRequester {
                                         future.failed(cause);
                                     }
                                 } else {
-                                    if (log.isDebugEnabled()) {
-                                        log.debug("{}: connection to {} failed ({}); retrying connection to the next address", remoteEndpoint, remoteAddress, cause.getClass());
+                                    if (LOG.isDebugEnabled()) {
+                                        LOG.debug("{}: connection to {} failed ({}); retrying connection to the next address", remoteEndpoint, remoteAddress, cause.getClass());
                                     }
                                     executeNext();
                                 }

@@ -34,7 +34,7 @@ public class IgnoreCompleteExceptonFutureCallback<T> implements FutureCallback<T
 
     private final FutureCallback<T> callback;
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger LOG = LoggerFactory.getLogger(IgnoreCompleteExceptonFutureCallback.class);
 
     public IgnoreCompleteExceptonFutureCallback(final FutureCallback<T> callback) {
         super();
@@ -47,7 +47,7 @@ public class IgnoreCompleteExceptonFutureCallback<T> implements FutureCallback<T
             try {
                 callback.completed(result);
             } catch (final Exception ex) {
-                log.error(ex.getMessage(), ex);
+                LOG.error(ex.getMessage(), ex);
             }
         }
     }

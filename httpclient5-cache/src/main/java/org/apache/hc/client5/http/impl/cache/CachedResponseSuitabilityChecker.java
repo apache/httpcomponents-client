@@ -48,7 +48,7 @@ import org.slf4j.LoggerFactory;
  */
 class CachedResponseSuitabilityChecker {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger LOG = LoggerFactory.getLogger(CachedResponseSuitabilityChecker.class);
 
     private final boolean sharedCache;
     private final boolean useHeuristicCaching;
@@ -143,32 +143,32 @@ class CachedResponseSuitabilityChecker {
      */
     public boolean canCachedResponseBeUsed(final HttpHost host, final HttpRequest request, final HttpCacheEntry entry, final Date now) {
         if (!isFreshEnough(entry, request, now)) {
-            log.debug("Cache entry is not fresh enough");
+            LOG.debug("Cache entry is not fresh enough");
             return false;
         }
 
         if (isGet(request) && !validityStrategy.contentLengthHeaderMatchesActualLength(entry)) {
-            log.debug("Cache entry Content-Length and header information do not match");
+            LOG.debug("Cache entry Content-Length and header information do not match");
             return false;
         }
 
         if (hasUnsupportedConditionalHeaders(request)) {
-            log.debug("Request contains unsupported conditional headers");
+            LOG.debug("Request contains unsupported conditional headers");
             return false;
         }
 
         if (!isConditional(request) && entry.getStatus() == HttpStatus.SC_NOT_MODIFIED) {
-            log.debug("Unconditional request and non-modified cached response");
+            LOG.debug("Unconditional request and non-modified cached response");
             return false;
         }
 
         if (isConditional(request) && !allConditionalsMatch(request, entry, now)) {
-            log.debug("Conditional request and with mismatched conditions");
+            LOG.debug("Conditional request and with mismatched conditions");
             return false;
         }
 
         if (hasUnsupportedCacheEntryForGet(request, entry)) {
-            log.debug("HEAD response caching enabled but the cache entry does not contain a " +
+            LOG.debug("HEAD response caching enabled but the cache entry does not contain a " +
                       "request method, entity or a 204 response");
             return false;
         }
@@ -176,12 +176,12 @@ class CachedResponseSuitabilityChecker {
         while (it.hasNext()) {
             final HeaderElement elt = it.next();
             if (HeaderConstants.CACHE_CONTROL_NO_CACHE.equals(elt.getName())) {
-                log.debug("Response contained NO CACHE directive, cache was not suitable");
+                LOG.debug("Response contained NO CACHE directive, cache was not suitable");
                 return false;
             }
 
             if (HeaderConstants.CACHE_CONTROL_NO_STORE.equals(elt.getName())) {
-                log.debug("Response contained NO STORE directive, cache was not suitable");
+                LOG.debug("Response contained NO STORE directive, cache was not suitable");
                 return false;
             }
 
@@ -190,12 +190,12 @@ class CachedResponseSuitabilityChecker {
                     // in seconds
                     final int maxAge = Integer.parseInt(elt.getValue());
                     if (validityStrategy.getCurrentAge(entry, now).toSeconds() > maxAge) {
-                        log.debug("Response from cache was not suitable due to max age");
+                        LOG.debug("Response from cache was not suitable due to max age");
                         return false;
                     }
                 } catch (final NumberFormatException ex) {
                     // err conservatively
-                    log.debug("Response from cache was malformed: {}", ex.getMessage());
+                    LOG.debug("Response from cache was malformed: {}", ex.getMessage());
                     return false;
                 }
             }
@@ -205,12 +205,12 @@ class CachedResponseSuitabilityChecker {
                     // in seconds
                     final int maxStale = Integer.parseInt(elt.getValue());
                     if (validityStrategy.getFreshnessLifetime(entry).toSeconds() > maxStale) {
-                        log.debug("Response from cache was not suitable due to max stale freshness");
+                        LOG.debug("Response from cache was not suitable due to max stale freshness");
                         return false;
                     }
                 } catch (final NumberFormatException ex) {
                     // err conservatively
-                    log.debug("Response from cache was malformed: {}", ex.getMessage());
+                    LOG.debug("Response from cache was malformed: {}", ex.getMessage());
                     return false;
                 }
             }
@@ -225,19 +225,19 @@ class CachedResponseSuitabilityChecker {
                     final TimeValue age = validityStrategy.getCurrentAge(entry, now);
                     final TimeValue freshness = validityStrategy.getFreshnessLifetime(entry);
                     if (freshness.toSeconds() - age.toSeconds() < minFresh) {
-                        log.debug("Response from cache was not suitable due to min fresh " +
+                        LOG.debug("Response from cache was not suitable due to min fresh " +
                                 "freshness requirement");
                         return false;
                     }
                 } catch (final NumberFormatException ex) {
                     // err conservatively
-                    log.debug("Response from cache was malformed: {}", ex.getMessage());
+                    LOG.debug("Response from cache was malformed: {}", ex.getMessage());
                     return false;
                 }
             }
         }
 
-        log.debug("Response from cache was suitable");
+        LOG.debug("Response from cache was suitable");
         return true;
     }
 

@@ -54,7 +54,7 @@ import org.slf4j.LoggerFactory;
 @Contract(threading = ThreadingBehavior.SAFE)
 public abstract class CloseableHttpClient implements HttpClient, ModalCloseable {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger LOG = LoggerFactory.getLogger(CloseableHttpClient.class);
 
     protected abstract CloseableHttpResponse doExecute(HttpHost target, ClassicHttpRequest request,
                                                      HttpContext context) throws IOException;
@@ -211,7 +211,7 @@ public abstract class CloseableHttpClient implements HttpClient, ModalCloseable 
                 } catch (final Exception t2) {
                     // Log this exception. The original exception is more
                     // important and will be thrown to the caller.
-                    this.log.warn("Error consuming content after an exception.", t2);
+                    LOG.warn("Error consuming content after an exception.", t2);
                 }
                 throw new ClientProtocolException(t);
             }

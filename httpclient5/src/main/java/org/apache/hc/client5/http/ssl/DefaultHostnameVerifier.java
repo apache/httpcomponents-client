@@ -73,7 +73,7 @@ public final class DefaultHostnameVerifier implements HttpClientHostnameVerifier
 
     }
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger LOG = LoggerFactory.getLogger(DefaultHostnameVerifier.class);
 
     private final PublicSuffixMatcher publicSuffixMatcher;
 
@@ -93,8 +93,8 @@ public final class DefaultHostnameVerifier implements HttpClientHostnameVerifier
             verify(host, x509);
             return true;
         } catch (final SSLException ex) {
-            if (log.isDebugEnabled()) {
-                log.debug(ex.getMessage(), ex);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(ex.getMessage(), ex);
             }
             return false;
         }

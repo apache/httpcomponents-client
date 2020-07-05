@@ -80,7 +80,7 @@ import org.slf4j.LoggerFactory;
 @Internal
 class InternalHttpClient extends CloseableHttpClient implements Configurable {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger LOG = LoggerFactory.getLogger(InternalHttpClient.class);
 
     private final HttpClientConnectionManager connManager;
     private final HttpRequestExecutor requestExecutor;
@@ -168,11 +168,11 @@ class InternalHttpClient extends CloseableHttpClient implements Configurable {
             setupContext(localcontext);
             final HttpRoute route = determineRoute(target, request, localcontext);
             final String exchangeId = ExecSupport.getNextExchangeId();
-            if (log.isDebugEnabled()) {
-                log.debug("{}: preparing request execution", exchangeId);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{}: preparing request execution", exchangeId);
             }
 
-            final ExecRuntime execRuntime = new InternalExecRuntime(log, connManager, requestExecutor,
+            final ExecRuntime execRuntime = new InternalExecRuntime(LOG, connManager, requestExecutor,
                     request instanceof CancellableDependency ? (CancellableDependency) request : null);
             final ExecChain.Scope scope = new ExecChain.Scope(exchangeId, route, request, execRuntime, localcontext);
             final ClassicHttpResponse response = this.execChain.execute(ClassicRequestCopier.INSTANCE.copy(request), scope);
@@ -204,7 +204,7 @@ class InternalHttpClient extends CloseableHttpClient implements Configurable {
                         closeable.close();
                     }
                 } catch (final IOException ex) {
-                    this.log.error(ex.getMessage(), ex);
+                    LOG.error(ex.getMessage(), ex);
                 }
             }
         }

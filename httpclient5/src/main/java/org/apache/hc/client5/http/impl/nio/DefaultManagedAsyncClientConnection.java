@@ -57,7 +57,7 @@ import org.slf4j.LoggerFactory;
 
 final class DefaultManagedAsyncClientConnection implements ManagedAsyncClientConnection, Identifiable {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger LOG = LoggerFactory.getLogger(DefaultManagedAsyncClientConnection.class);
 
     private final IOSession ioSession;
     private final Timeout socketTimeout;
@@ -77,8 +77,8 @@ final class DefaultManagedAsyncClientConnection implements ManagedAsyncClientCon
     @Override
     public void close(final CloseMode closeMode) {
         if (this.closed.compareAndSet(false, true)) {
-            if (log.isDebugEnabled()) {
-                log.debug("{}: Shutdown connection {}", getId(), closeMode);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{}: Shutdown connection {}", getId(), closeMode);
             }
             ioSession.close(closeMode);
         }
@@ -87,8 +87,8 @@ final class DefaultManagedAsyncClientConnection implements ManagedAsyncClientCon
     @Override
     public void close() throws IOException {
         if (this.closed.compareAndSet(false, true)) {
-            if (log.isDebugEnabled()) {
-                log.debug("{}: Close connection", getId());
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{}: Close connection", getId());
             }
             ioSession.enqueue(new ShutdownCommand(CloseMode.GRACEFUL), Command.Priority.IMMEDIATE);
         }
@@ -145,8 +145,8 @@ final class DefaultManagedAsyncClientConnection implements ManagedAsyncClientCon
             final SSLSessionInitializer initializer,
             final SSLSessionVerifier verifier,
             final Timeout handshakeTimeout) throws UnsupportedOperationException {
-        if (log.isDebugEnabled()) {
-            log.debug("{}: start TLS", getId());
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("{}: start TLS", getId());
         }
         if (ioSession instanceof TransportSecurityLayer) {
             ((TransportSecurityLayer) ioSession).startTls(sslContext, endpoint, sslBufferMode, initializer, verifier,
@@ -169,8 +169,8 @@ final class DefaultManagedAsyncClientConnection implements ManagedAsyncClientCon
 
     @Override
     public void submitCommand(final Command command, final Command.Priority priority) {
-        if (log.isDebugEnabled()) {
-            log.debug("{}: {} with {} priority", getId(), command.getClass().getSimpleName(), priority);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("{}: {} with {} priority", getId(), command.getClass().getSimpleName(), priority);
         }
         ioSession.enqueue(command, Command.Priority.IMMEDIATE);
     }

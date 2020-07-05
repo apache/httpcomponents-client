@@ -67,7 +67,7 @@ import org.slf4j.LoggerFactory;
 @Internal
 public final class AsyncHttpRequestRetryExec implements AsyncExecChainHandler {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger LOG = LoggerFactory.getLogger(AsyncHttpRequestRetryExec.class);
 
     private final HttpRequestRetryStrategy retryStrategy;
 
@@ -101,8 +101,8 @@ public final class AsyncHttpRequestRetryExec implements AsyncExecChainHandler {
                     final EntityDetails entityDetails) throws HttpException, IOException {
                 final HttpClientContext clientContext = scope.clientContext;
                 if (entityProducer != null && !entityProducer.isRepeatable()) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("{}: cannot retry non-repeatable request", exchangeId);
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("{}: cannot retry non-repeatable request", exchangeId);
                     }
                     return asyncExecCallback.handleResponse(response, entityDetails);
                 }
@@ -139,15 +139,15 @@ public final class AsyncHttpRequestRetryExec implements AsyncExecChainHandler {
                     final HttpRoute route = scope.route;
                     final HttpClientContext clientContext = scope.clientContext;
                     if (entityProducer != null && !entityProducer.isRepeatable()) {
-                        if (log.isDebugEnabled()) {
-                            log.debug("{}: cannot retry non-repeatable request", exchangeId);
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("{}: cannot retry non-repeatable request", exchangeId);
                         }
                     } else if (retryStrategy.retryRequest(request, (IOException) cause, state.execCount, clientContext)) {
-                        if (log.isDebugEnabled()) {
-                            log.debug("{}: {}", exchangeId, cause.getMessage(), cause);
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("{}: {}", exchangeId, cause.getMessage(), cause);
                         }
-                        if (log.isInfoEnabled()) {
-                            log.info("Recoverable I/O exception ({}) caught when processing request to {}",
+                        if (LOG.isInfoEnabled()) {
+                            LOG.info("Recoverable I/O exception ({}) caught when processing request to {}",
                                     cause.getClass().getName(), route);
                         }
                         scope.execRuntime.discardEndpoint();

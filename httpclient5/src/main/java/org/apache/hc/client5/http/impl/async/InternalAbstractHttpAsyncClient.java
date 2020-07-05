@@ -71,9 +71,12 @@ import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.io.ModalCloseable;
 import org.apache.hc.core5.reactor.DefaultConnectingIOReactor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBase {
 
+    private static final Logger LOG = LoggerFactory.getLogger(InternalAbstractHttpAsyncClient.class);
     private final AsyncExecChainElement execChain;
     private final Lookup<CookieSpecFactory> cookieSpecRegistry;
     private final Lookup<AuthSchemeFactory> authSchemeRegistry;
@@ -115,7 +118,7 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
                         closeable.close();
                     }
                 } catch (final IOException ex) {
-                    this.log.error(ex.getMessage(), ex);
+                    LOG.error(ex.getMessage(), ex);
                 }
             }
         }
@@ -176,8 +179,8 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
                             httpHost != null ? httpHost : RoutingSupport.determineHost(request),
                             clientContext);
                     final String exchangeId = ExecSupport.getNextExchangeId();
-                    if (log.isDebugEnabled()) {
-                        log.debug("{}: preparing request execution", exchangeId);
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("{}: preparing request execution", exchangeId);
                     }
                     final AsyncExecRuntime execRuntime = createAsyncExecRuntime(pushHandlerFactory);
 
@@ -286,8 +289,8 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
 
                                 @Override
                                 public void completed() {
-                                    if (log.isDebugEnabled()) {
-                                        log.debug("{}: message exchange successfully completed", exchangeId);
+                                    if (LOG.isDebugEnabled()) {
+                                        LOG.debug("{}: message exchange successfully completed", exchangeId);
                                     }
                                     try {
                                         execRuntime.releaseEndpoint();
@@ -299,8 +302,8 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
 
                                 @Override
                                 public void failed(final Exception cause) {
-                                    if (log.isDebugEnabled()) {
-                                        log.debug("{}: request failed: {}", exchangeId, cause.getMessage());
+                                    if (LOG.isDebugEnabled()) {
+                                        LOG.debug("{}: request failed: {}", exchangeId, cause.getMessage());
                                     }
                                     try {
                                         execRuntime.discardEndpoint();

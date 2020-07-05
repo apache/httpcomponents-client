@@ -60,7 +60,7 @@ import org.slf4j.LoggerFactory;
 @Contract(threading = ThreadingBehavior.SAFE_CONDITIONAL)
 public class BasicAuthCache implements AuthCache {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger LOG = LoggerFactory.getLogger(BasicAuthCache.class);
 
     private final Map<HttpHost, byte[]> map;
     private final SchemePortResolver schemePortResolver;
@@ -95,13 +95,13 @@ public class BasicAuthCache implements AuthCache {
                 final HttpHost key = RoutingSupport.normalize(host, schemePortResolver);
                 this.map.put(key, buf.toByteArray());
             } catch (final IOException ex) {
-                if (log.isWarnEnabled()) {
-                    log.warn("Unexpected I/O error while serializing auth scheme", ex);
+                if (LOG.isWarnEnabled()) {
+                    LOG.warn("Unexpected I/O error while serializing auth scheme", ex);
                 }
             }
         } else {
-            if (log.isDebugEnabled()) {
-                log.debug("Auth scheme {} is not serializable", authScheme.getClass());
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Auth scheme {} is not serializable", authScheme.getClass());
             }
         }
     }
@@ -118,13 +118,13 @@ public class BasicAuthCache implements AuthCache {
                     return (AuthScheme) in.readObject();
                 }
             } catch (final IOException ex) {
-                if (log.isWarnEnabled()) {
-                    log.warn("Unexpected I/O error while de-serializing auth scheme", ex);
+                if (LOG.isWarnEnabled()) {
+                    LOG.warn("Unexpected I/O error while de-serializing auth scheme", ex);
                 }
                 return null;
             } catch (final ClassNotFoundException ex) {
-                if (log.isWarnEnabled()) {
-                    log.warn("Unexpected error while de-serializing auth scheme", ex);
+                if (LOG.isWarnEnabled()) {
+                    LOG.warn("Unexpected error while de-serializing auth scheme", ex);
                 }
                 return null;
             }

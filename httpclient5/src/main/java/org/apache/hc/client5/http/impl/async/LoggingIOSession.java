@@ -80,8 +80,8 @@ class LoggingIOSession implements IOSession {
     @Override
     public void enqueue(final Command command, final Command.Priority priority) {
         this.session.enqueue(command, priority);
-        if (this.log.isDebugEnabled()) {
-            this.log.debug("{} Enqueued {} with priority {}", this.session, command.getClass().getSimpleName(), priority);
+        if (log.isDebugEnabled()) {
+            log.debug("{} Enqueued {} with priority {}", this.session, command.getClass().getSimpleName(), priority);
         }
     }
 
@@ -127,24 +127,24 @@ class LoggingIOSession implements IOSession {
     @Override
     public void setEventMask(final int ops) {
         this.session.setEventMask(ops);
-        if (this.log.isDebugEnabled()) {
-            this.log.debug("{} {}: Event mask set {}", this.id, this.session, formatOps(ops));
+        if (log.isDebugEnabled()) {
+            log.debug("{} {}: Event mask set {}", this.id, this.session, formatOps(ops));
         }
     }
 
     @Override
     public void setEvent(final int op) {
         this.session.setEvent(op);
-        if (this.log.isDebugEnabled()) {
-            this.log.debug("{} {}: Event set {}", this.id, this.session, formatOps(op));
+        if (log.isDebugEnabled()) {
+            log.debug("{} {}: Event set {}", this.id, this.session, formatOps(op));
         }
     }
 
     @Override
     public void clearEvent(final int op) {
         this.session.clearEvent(op);
-        if (this.log.isDebugEnabled()) {
-            this.log.debug("{} {}: Event cleared {}", this.id, this.session, formatOps(op));
+        if (log.isDebugEnabled()) {
+            log.debug("{} {}: Event cleared {}", this.id, this.session, formatOps(op));
         }
     }
 
@@ -155,8 +155,8 @@ class LoggingIOSession implements IOSession {
 
     @Override
     public void close() {
-        if (this.log.isDebugEnabled()) {
-            this.log.debug("{} {}: Close", this.id, this.session);
+        if (log.isDebugEnabled()) {
+            log.debug("{} {}: Close", this.id, this.session);
         }
         this.session.close();
     }
@@ -168,8 +168,8 @@ class LoggingIOSession implements IOSession {
 
     @Override
     public void close(final CloseMode closeMode) {
-        if (this.log.isDebugEnabled()) {
-            this.log.debug("{} {}: Close {}", this.id, this.session, closeMode);
+        if (log.isDebugEnabled()) {
+            log.debug("{} {}: Close {}", this.id, this.session, closeMode);
         }
         this.session.close(closeMode);
     }
@@ -181,8 +181,8 @@ class LoggingIOSession implements IOSession {
 
     @Override
     public void setSocketTimeout(final Timeout timeout) {
-        if (this.log.isDebugEnabled()) {
-            this.log.debug("{} {}: Set timeout {}", this.id, this.session, timeout);
+        if (log.isDebugEnabled()) {
+            log.debug("{} {}: Set timeout {}", this.id, this.session, timeout);
         }
         this.session.setSocketTimeout(timeout);
     }
@@ -225,8 +225,8 @@ class LoggingIOSession implements IOSession {
     @Override
     public int read(final ByteBuffer dst) throws IOException {
         final int bytesRead = this.session.channel().read(dst);
-        if (this.log.isDebugEnabled()) {
-            this.log.debug("{} {}: {} bytes read", this.id, this.session, bytesRead);
+        if (log.isDebugEnabled()) {
+            log.debug("{} {}: {} bytes read", this.id, this.session, bytesRead);
         }
         if (bytesRead > 0 && this.wireLog.isEnabled()) {
             final ByteBuffer b = dst.duplicate();
@@ -242,8 +242,8 @@ class LoggingIOSession implements IOSession {
     @Override
     public int write(final ByteBuffer src) throws IOException {
         final int byteWritten = session.channel().write(src);
-        if (this.log.isDebugEnabled()) {
-            this.log.debug("{} {}: {} bytes written", this.id, this.session, byteWritten);
+        if (log.isDebugEnabled()) {
+            log.debug("{} {}: {} bytes written", this.id, this.session, byteWritten);
         }
         if (byteWritten > 0 && this.wireLog.isEnabled()) {
             final ByteBuffer b = src.duplicate();

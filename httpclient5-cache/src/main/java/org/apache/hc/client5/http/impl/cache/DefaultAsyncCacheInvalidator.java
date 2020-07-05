@@ -62,26 +62,26 @@ public class DefaultAsyncCacheInvalidator extends CacheInvalidatorBase implement
 
     public static final DefaultAsyncCacheInvalidator INSTANCE = new DefaultAsyncCacheInvalidator();
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger LOG = LoggerFactory.getLogger(DefaultAsyncCacheInvalidator.class);
 
     private void removeEntry(final HttpAsyncCacheStorage storage, final String cacheKey) {
         storage.removeEntry(cacheKey, new FutureCallback<Boolean>() {
 
             @Override
             public void completed(final Boolean result) {
-                if (log.isDebugEnabled()) {
+                if (LOG.isDebugEnabled()) {
                     if (result) {
-                        log.debug("Cache entry with key {} successfully flushed", cacheKey);
+                        LOG.debug("Cache entry with key {} successfully flushed", cacheKey);
                     } else {
-                        log.debug("Cache entry with key {} could not be flushed", cacheKey);
+                        LOG.debug("Cache entry with key {} could not be flushed", cacheKey);
                     }
                 }
             }
 
             @Override
             public void failed(final Exception ex) {
-                if (log.isWarnEnabled()) {
-                    log.warn("Unable to flush cache entry with key {}", cacheKey, ex);
+                if (LOG.isWarnEnabled()) {
+                    LOG.warn("Unable to flush cache entry with key {}", cacheKey, ex);
                 }
             }
 
@@ -108,8 +108,8 @@ public class DefaultAsyncCacheInvalidator extends CacheInvalidatorBase implement
             public void completed(final HttpCacheEntry parentEntry) {
                 if (requestShouldNotBeCached(request) || shouldInvalidateHeadCacheEntry(request, parentEntry)) {
                     if (parentEntry != null) {
-                        if (log.isDebugEnabled()) {
-                            log.debug("Invalidating parentEntry cache entry with key {}", cacheKey);
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("Invalidating parentEntry cache entry with key {}", cacheKey);
                         }
                         for (final String variantURI : parentEntry.getVariantMap().values()) {
                             removeEntry(storage, variantURI);
@@ -117,8 +117,8 @@ public class DefaultAsyncCacheInvalidator extends CacheInvalidatorBase implement
                         removeEntry(storage, cacheKey);
                     }
                     if (uri != null) {
-                        if (log.isWarnEnabled()) {
-                            log.warn("{} is not a valid URI", s);
+                        if (LOG.isWarnEnabled()) {
+                            LOG.warn("{} is not a valid URI", s);
                         }
                         final Header clHdr = request.getFirstHeader("Content-Location");
                         if (clHdr != null) {

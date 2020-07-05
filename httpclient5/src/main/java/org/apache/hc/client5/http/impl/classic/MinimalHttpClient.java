@@ -85,7 +85,7 @@ import org.slf4j.LoggerFactory;
 @Contract(threading = ThreadingBehavior.SAFE_CONDITIONAL)
 public class MinimalHttpClient extends CloseableHttpClient {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger LOG = LoggerFactory.getLogger(MinimalHttpClient.class);
 
     private final HttpClientConnectionManager connManager;
     private final ConnectionReuseStrategy reuseStrategy;
@@ -132,7 +132,7 @@ public class MinimalHttpClient extends CloseableHttpClient {
 
         final HttpRoute route = new HttpRoute(RoutingSupport.normalize(target, schemePortResolver));
         final String exchangeId = ExecSupport.getNextExchangeId();
-        final ExecRuntime execRuntime = new InternalExecRuntime(log, connManager, requestExecutor,
+        final ExecRuntime execRuntime = new InternalExecRuntime(LOG, connManager, requestExecutor,
                 request instanceof CancellableDependency ? (CancellableDependency) request : null);
         try {
             if (!execRuntime.isEndpointAcquired()) {
