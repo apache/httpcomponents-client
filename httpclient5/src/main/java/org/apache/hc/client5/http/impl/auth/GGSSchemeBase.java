@@ -71,7 +71,7 @@ public abstract class GGSSchemeBase implements AuthScheme {
         FAILED,
     }
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger LOG = LoggerFactory.getLogger(GGSSchemeBase.class);
 
     private final KerberosConfig config;
     private final DnsResolver dnsResolver;
@@ -115,7 +115,7 @@ public abstract class GGSSchemeBase implements AuthScheme {
             token = Base64.decodeBase64(challenge.getBytes());
             state = State.CHALLENGE_RECEIVED;
         } else {
-            log.debug("Authentication already attempted");
+            LOG.debug("Authentication already attempted");
             state = State.FAILED;
         }
     }
@@ -219,8 +219,8 @@ public abstract class GGSSchemeBase implements AuthScheme {
                 }
                 final String serviceName = host.getSchemeName().toUpperCase(Locale.ROOT);
 
-                if (log.isDebugEnabled()) {
-                    log.debug("init {}", authServer);
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("init {}", authServer);
                 }
                 token = generateToken(token, serviceName, authServer);
                 state = State.TOKEN_GENERATED;
@@ -244,8 +244,8 @@ public abstract class GGSSchemeBase implements AuthScheme {
         case TOKEN_GENERATED:
             final Base64 codec = new Base64(0);
             final String tokenstr = new String(codec.encode(token));
-            if (log.isDebugEnabled()) {
-                log.debug("Sending response '{}' back to the auth server", tokenstr);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Sending response '{}' back to the auth server", tokenstr);
             }
             return StandardAuthScheme.SPNEGO + " " + tokenstr;
         default:

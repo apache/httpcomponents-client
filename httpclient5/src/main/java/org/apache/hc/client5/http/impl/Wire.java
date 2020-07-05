@@ -89,7 +89,7 @@ public class Wire {
                 buffer.append("[\\n]\"");
                 buffer.insert(0, "\"");
                 buffer.insert(0, header);
-                this.log.debug("{} {}", this.id, buffer);
+                log.debug("{} {}", this.id, buffer);
                 buffer.setLength(0);
             } else if ((ch < 32) || (ch >= 127)) {
                 buffer.append("[0x");
@@ -103,13 +103,13 @@ public class Wire {
             buffer.append('\"');
             buffer.insert(0, '\"');
             buffer.insert(0, header);
-            this.log.debug("{} {}", this.id, buffer);
+            log.debug("{} {}", this.id, buffer);
         }
     }
 
 
     public boolean isEnabled() {
-        return this.log.isDebugEnabled();
+        return log.isDebugEnabled();
     }
 
     public void output(final byte[] b, final int pos, final int off) {

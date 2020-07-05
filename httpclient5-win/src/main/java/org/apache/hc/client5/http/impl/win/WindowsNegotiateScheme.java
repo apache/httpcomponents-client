@@ -72,7 +72,7 @@ import com.sun.jna.ptr.IntByReference;
 @Experimental
 public class WindowsNegotiateScheme implements AuthScheme {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger LOG = LoggerFactory.getLogger(WindowsNegotiateScheme.class);
 
     // NTLM or Negotiate
     private final String schemeName;
@@ -91,8 +91,8 @@ public class WindowsNegotiateScheme implements AuthScheme {
         this.continueNeeded = true;
         this.servicePrincipalName = servicePrincipalName;
 
-        if (this.log.isDebugEnabled()) {
-            this.log.debug("Created WindowsNegotiateScheme using {}", this.schemeName);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Created WindowsNegotiateScheme using {}", this.schemeName);
         }
     }
 
@@ -257,8 +257,8 @@ public class WindowsNegotiateScheme implements AuthScheme {
                 }
             }
         }
-        if (this.log.isDebugEnabled()) {
-            this.log.debug("Using SPN: {}", spn);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Using SPN: {}", spn);
         }
         return spn;
     }

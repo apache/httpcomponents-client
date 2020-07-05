@@ -74,6 +74,8 @@ import org.apache.hc.core5.reactor.IOEventHandlerFactory;
 import org.apache.hc.core5.reactor.IOReactorConfig;
 import org.apache.hc.core5.reactor.IOSession;
 import org.apache.hc.core5.util.Timeout;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Minimal implementation of HTTP/2 only {@link CloseableHttpAsyncClient}. This client
@@ -91,6 +93,7 @@ import org.apache.hc.core5.util.Timeout;
 @Contract(threading = ThreadingBehavior.SAFE_CONDITIONAL)
 public final class MinimalH2AsyncClient extends AbstractMinimalHttpAsyncClientBase {
 
+    private static final Logger LOG = LoggerFactory.getLogger(MinimalH2AsyncClient.class);
     private final H2ConnPool connPool;
     private final ConnectionInitiator connectionInitiator;
 
@@ -230,12 +233,12 @@ public final class MinimalH2AsyncClient extends AbstractMinimalHttpAsyncClientBa
                                 }
 
                             };
-                            if (log.isDebugEnabled()) {
+                            if (LOG.isDebugEnabled()) {
                                 final String exchangeId = ExecSupport.getNextExchangeId();
-                                log.debug("{}: executing message exchange {}", ConnPoolSupport.getId(session), exchangeId);
+                                LOG.debug("{}: executing message exchange {}", ConnPoolSupport.getId(session), exchangeId);
                                 session.enqueue(
                                         new RequestExecutionCommand(
-                                                new LoggingAsyncClientExchangeHandler(log, exchangeId, internalExchangeHandler),
+                                                new LoggingAsyncClientExchangeHandler(LOG, exchangeId, internalExchangeHandler),
                                                 pushHandlerFactory,
                                                 cancellable,
                                                 clientContext),

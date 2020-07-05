@@ -78,7 +78,7 @@ import org.slf4j.LoggerFactory;
 @Internal
 public final class AsyncConnectExec implements AsyncExecChainHandler {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger LOG = LoggerFactory.getLogger(AsyncConnectExec.class);
 
     private final HttpProcessor proxyHttpProcessor;
     private final AuthenticationStrategy proxyAuthStrategy;
@@ -92,7 +92,7 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
         Args.notNull(proxyAuthStrategy, "Proxy authentication strategy");
         this.proxyHttpProcessor = proxyHttpProcessor;
         this.proxyAuthStrategy  = proxyAuthStrategy;
-        this.authenticator      = new HttpAuthenticator(log);
+        this.authenticator      = new HttpAuthenticator(LOG);
         this.routeDirector      = new BasicRouteDirector();
     }
 
@@ -128,8 +128,8 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
 
         if (!execRuntime.isEndpointAcquired()) {
             final Object userToken = clientContext.getUserToken();
-            if (log.isDebugEnabled()) {
-                log.debug("{}: acquiring connection with route {}", exchangeId, route);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{}: acquiring connection with route {}", exchangeId, route);
             }
             cancellableDependency.setDependency(execRuntime.acquireEndpoint(
                     exchangeId, route, userToken, clientContext, new FutureCallback<AsyncExecRuntime>() {
@@ -197,8 +197,8 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
                         @Override
                         public void completed(final AsyncExecRuntime execRuntime) {
                             tracker.connectTarget(route.isSecure());
-                            if (log.isDebugEnabled()) {
-                                log.debug("{}: connected to target", exchangeId);
+                            if (LOG.isDebugEnabled()) {
+                                LOG.debug("{}: connected to target", exchangeId);
                             }
                             proceedToNextHop(state, request, entityProducer, scope, chain, asyncExecCallback);
                         }
@@ -223,8 +223,8 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
                         public void completed(final AsyncExecRuntime execRuntime) {
                             final HttpHost proxy  = route.getProxyHost();
                             tracker.connectProxy(proxy, route.isSecure() && !route.isTunnelled());
-                            if (log.isDebugEnabled()) {
-                                log.debug("{}: connected to proxy", exchangeId);
+                            if (LOG.isDebugEnabled()) {
+                                LOG.debug("{}: connected to proxy", exchangeId);
                             }
                             proceedToNextHop(state, request, entityProducer, scope, chain, asyncExecCallback);
                         }
@@ -263,8 +263,8 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
 
                             @Override
                             public void completed() {
-                                if (log.isDebugEnabled()) {
-                                    log.debug("{}: tunnel to target created", exchangeId);
+                                if (LOG.isDebugEnabled()) {
+                                    LOG.debug("{}: tunnel to target created", exchangeId);
                                 }
                                 tracker.tunnelTarget(false);
                                 proceedToNextHop(state, request, entityProducer, scope, chain, asyncExecCallback);
@@ -291,8 +291,8 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
 
                 case HttpRouteDirector.LAYER_PROTOCOL:
                     execRuntime.upgradeTls(clientContext);
-                    if (log.isDebugEnabled()) {
-                        log.debug("{}: upgraded to TLS", exchangeId);
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("{}: upgraded to TLS", exchangeId);
                     }
                     tracker.layerProtocol(route.isSecure());
                     break;
@@ -303,8 +303,8 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
                     return;
 
                 case HttpRouteDirector.COMPLETE:
-                    if (log.isDebugEnabled()) {
-                        log.debug("{}: route fully established", exchangeId);
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("{}: route fully established", exchangeId);
                     }
                     try {
                         chain.proceed(request, entityProducer, scope, asyncExecCallback);

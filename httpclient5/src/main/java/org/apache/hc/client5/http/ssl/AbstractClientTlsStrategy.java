@@ -61,7 +61,7 @@ import org.slf4j.LoggerFactory;
 @Contract(threading = ThreadingBehavior.STATELESS)
 abstract class AbstractClientTlsStrategy implements TlsStrategy {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger LOG = LoggerFactory.getLogger(AbstractClientTlsStrategy.class);
 
     private final SSLContext sslContext;
     private final String[] supportedProtocols;
@@ -82,7 +82,7 @@ abstract class AbstractClientTlsStrategy implements TlsStrategy {
         this.supportedCipherSuites = supportedCipherSuites;
         this.sslBufferManagement = sslBufferManagement != null ? sslBufferManagement : SSLBufferMode.STATIC;
         this.hostnameVerifier = hostnameVerifier != null ? hostnameVerifier : HttpsSupport.getDefaultHostnameVerifier();
-        this.tlsSessionValidator = new TlsSessionValidator(log);
+        this.tlsSessionValidator = new TlsSessionValidator(LOG);
     }
 
     @Override
@@ -121,9 +121,9 @@ abstract class AbstractClientTlsStrategy implements TlsStrategy {
 
                 initializeEngine(sslEngine);
 
-                if (log.isDebugEnabled()) {
-                    log.debug("Enabled protocols: {}", Arrays.asList(sslEngine.getEnabledProtocols()));
-                    log.debug("Enabled cipher suites:{}", Arrays.asList(sslEngine.getEnabledCipherSuites()));
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Enabled protocols: {}", Arrays.asList(sslEngine.getEnabledProtocols()));
+                    LOG.debug("Enabled cipher suites:{}", Arrays.asList(sslEngine.getEnabledCipherSuites()));
                 }
             }
 

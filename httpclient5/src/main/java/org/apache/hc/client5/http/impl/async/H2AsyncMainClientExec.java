@@ -68,7 +68,7 @@ import org.slf4j.LoggerFactory;
 @Internal
 public class H2AsyncMainClientExec implements AsyncExecChainHandler {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger LOG = LoggerFactory.getLogger(H2AsyncMainClientExec.class);
 
     @Override
     public void execute(
@@ -82,8 +82,8 @@ public class H2AsyncMainClientExec implements AsyncExecChainHandler {
         final HttpClientContext clientContext = scope.clientContext;
         final AsyncExecRuntime execRuntime = scope.execRuntime;
 
-        if (log.isDebugEnabled()) {
-            log.debug("{}: executing {}", exchangeId, new RequestLine(request));
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("{}: executing {}", exchangeId, new RequestLine(request));
         }
 
         final AsyncClientExchangeHandler internalExchangeHandler = new AsyncClientExchangeHandler() {
@@ -175,10 +175,10 @@ public class H2AsyncMainClientExec implements AsyncExecChainHandler {
 
         };
 
-        if (log.isDebugEnabled()) {
+        if (LOG.isDebugEnabled()) {
             operation.setDependency(execRuntime.execute(
                     exchangeId,
-                    new LoggingAsyncClientExchangeHandler(log, exchangeId, internalExchangeHandler),
+                    new LoggingAsyncClientExchangeHandler(LOG, exchangeId, internalExchangeHandler),
                     clientContext));
         } else {
             operation.setDependency(execRuntime.execute(exchangeId, internalExchangeHandler, clientContext));

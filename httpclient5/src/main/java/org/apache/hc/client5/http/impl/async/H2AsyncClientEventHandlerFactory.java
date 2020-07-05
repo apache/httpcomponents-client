@@ -51,10 +51,10 @@ import org.slf4j.LoggerFactory;
 
 class H2AsyncClientEventHandlerFactory implements IOEventHandlerFactory {
 
-    private final Logger headerLog = LoggerFactory.getLogger("org.apache.hc.client5.http.headers");
-    private final Logger frameLog = LoggerFactory.getLogger("org.apache.hc.client5.http2.frame");
-    private final Logger framePayloadLog = LoggerFactory.getLogger("org.apache.hc.client5.http2.frame.payload");
-    private final Logger flowCtrlLog = LoggerFactory.getLogger("org.apache.hc.client5.http2.flow");
+    private static final Logger HEADER_LOG = LoggerFactory.getLogger("org.apache.hc.client5.http.headers");
+    private static final Logger FRAME_LOG = LoggerFactory.getLogger("org.apache.hc.client5.http2.frame");
+    private static final Logger FRAME_PAYLOAD_LOG = LoggerFactory.getLogger("org.apache.hc.client5.http2.frame.payload");
+    private static final Logger FLOW_CTRL_LOG = LoggerFactory.getLogger("org.apache.hc.client5.http2.flow");
 
     private final HttpProcessor httpProcessor;
     private final HandlerFactory<AsyncPushConsumer> exchangeHandlerFactory;
@@ -74,10 +74,10 @@ class H2AsyncClientEventHandlerFactory implements IOEventHandlerFactory {
 
     @Override
     public IOEventHandler createHandler(final ProtocolIOSession ioSession, final Object attachment) {
-        if (headerLog.isDebugEnabled()
-                || frameLog.isDebugEnabled()
-                || framePayloadLog.isDebugEnabled()
-                || flowCtrlLog.isDebugEnabled()) {
+        if (HEADER_LOG.isDebugEnabled()
+                || FRAME_LOG.isDebugEnabled()
+                || FRAME_PAYLOAD_LOG.isDebugEnabled()
+                || FLOW_CTRL_LOG.isDebugEnabled()) {
             final String id = ioSession.getId();
             final ClientH2StreamMultiplexerFactory http2StreamHandlerFactory = new ClientH2StreamMultiplexerFactory(
                     httpProcessor,
@@ -90,7 +90,7 @@ class H2AsyncClientEventHandlerFactory implements IOEventHandlerFactory {
 
                         private void logFrameInfo(final String prefix, final RawFrame frame) {
                             try {
-                                final LogAppendable logAppendable = new LogAppendable(frameLog, prefix);
+                                final LogAppendable logAppendable = new LogAppendable(FRAME_LOG, prefix);
                                 framePrinter.printFrameInfo(frame, logAppendable);
                                 logAppendable.flush();
                             } catch (final IOException ignore) {
@@ -99,7 +99,7 @@ class H2AsyncClientEventHandlerFactory implements IOEventHandlerFactory {
 
                         private void logFramePayload(final String prefix, final RawFrame frame) {
                             try {
-                                final LogAppendable logAppendable = new LogAppendable(framePayloadLog, prefix);
+                                final LogAppendable logAppendable = new LogAppendable(FRAME_PAYLOAD_LOG, prefix);
                                 framePrinter.printPayload(frame, logAppendable);
                                 logAppendable.flush();
                             } catch (final IOException ignore) {
@@ -107,61 +107,57 @@ class H2AsyncClientEventHandlerFactory implements IOEventHandlerFactory {
                         }
 
                         private void logFlowControl(final String prefix, final int streamId, final int delta, final int actualSize) {
-                            final StringBuilder buffer = new StringBuilder();
-                            buffer.append(prefix).append(" stream ").append(streamId).append(" flow control " )
-                                    .append(delta).append(" -> ")
-                                    .append(actualSize);
-                            flowCtrlLog.debug(buffer.toString());
+                            FLOW_CTRL_LOG.debug("{} stream {} flow control {} -> {}", prefix, streamId, delta, actualSize);
                         }
 
                         @Override
                         public void onHeaderInput(final HttpConnection connection, final int streamId, final List<? extends Header> headers) {
-                            if (headerLog.isDebugEnabled()) {
+                            if (HEADER_LOG.isDebugEnabled()) {
                                 for (int i = 0; i < headers.size(); i++) {
-                                    headerLog.debug("{} << {}", id, headers.get(i));
+                                    HEADER_LOG.debug("{} << {}", id, headers.get(i));
                                 }
                             }
                         }
 
                         @Override
                         public void onHeaderOutput(final HttpConnection connection, final int streamId, final List<? extends Header> headers) {
-                            if (headerLog.isDebugEnabled()) {
+                            if (HEADER_LOG.isDebugEnabled()) {
                                 for (int i = 0; i < headers.size(); i++) {
-                                    headerLog.debug("{} >> {}", id, headers.get(i));
+                                    HEADER_LOG.debug("{} >> {}", id, headers.get(i));
                                 }
                             }
                         }
 
                         @Override
                         public void onFrameInput(final HttpConnection connection, final int streamId, final RawFrame frame) {
-                            if (frameLog.isDebugEnabled()) {
+                            if (FRAME_LOG.isDebugEnabled()) {
                                 logFrameInfo(id + " <<", frame);
                             }
-                            if (framePayloadLog.isDebugEnabled()) {
+                            if (FRAME_PAYLOAD_LOG.isDebugEnabled()) {
                                 logFramePayload(id + " <<", frame);
                             }
                         }
 
                         @Override
                         public void onFrameOutput(final HttpConnection connection, final int streamId, final RawFrame frame) {
-                            if (frameLog.isDebugEnabled()) {
+                            if (FRAME_LOG.isDebugEnabled()) {
                                 logFrameInfo(id + " >>", frame);
                             }
-                            if (framePayloadLog.isDebugEnabled()) {
+                            if (FRAME_PAYLOAD_LOG.isDebugEnabled()) {
                                 logFramePayload(id + " >>", frame);
                             }
                         }
 
                         @Override
                         public void onInputFlowControl(final HttpConnection connection, final int streamId, final int delta, final int actualSize) {
-                            if (flowCtrlLog.isDebugEnabled()) {
+                            if (FLOW_CTRL_LOG.isDebugEnabled()) {
                                 logFlowControl(id + " <<", streamId, delta, actualSize);
                             }
                         }
 
                         @Override
                         public void onOutputFlowControl(final HttpConnection connection, final int streamId, final int delta, final int actualSize) {
-                            if (flowCtrlLog.isDebugEnabled()) {
+                            if (FLOW_CTRL_LOG.isDebugEnabled()) {
                                 logFlowControl(id + " >>", streamId, delta, actualSize);
                             }
                         }

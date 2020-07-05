@@ -56,14 +56,14 @@ public class DefaultCacheInvalidator extends CacheInvalidatorBase implements Htt
 
     public static final DefaultCacheInvalidator INSTANCE = new DefaultCacheInvalidator();
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger LOG = LoggerFactory.getLogger(DefaultCacheInvalidator.class);
 
     private HttpCacheEntry getEntry(final HttpCacheStorage storage, final String cacheKey) {
         try {
             return storage.getEntry(cacheKey);
         } catch (final ResourceIOException ex) {
-            if (log.isWarnEnabled()) {
-                log.warn("Unable to get cache entry with key {}", cacheKey, ex);
+            if (LOG.isWarnEnabled()) {
+                LOG.warn("Unable to get cache entry with key {}", cacheKey, ex);
             }
             return null;
         }
@@ -73,8 +73,8 @@ public class DefaultCacheInvalidator extends CacheInvalidatorBase implements Htt
         try {
             storage.removeEntry(cacheKey);
         } catch (final ResourceIOException ex) {
-            if (log.isWarnEnabled()) {
-                log.warn("Unable to flush cache entry with key {}", cacheKey, ex);
+            if (LOG.isWarnEnabled()) {
+                LOG.warn("Unable to flush cache entry with key {}", cacheKey, ex);
             }
         }
     }
@@ -92,8 +92,8 @@ public class DefaultCacheInvalidator extends CacheInvalidatorBase implements Htt
 
         if (requestShouldNotBeCached(request) || shouldInvalidateHeadCacheEntry(request, parent)) {
             if (parent != null) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Invalidating parent cache entry with key {}", cacheKey);
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Invalidating parent cache entry with key {}", cacheKey);
                 }
                 for (final String variantURI : parent.getVariantMap().values()) {
                     removeEntry(storage, variantURI);
@@ -101,8 +101,8 @@ public class DefaultCacheInvalidator extends CacheInvalidatorBase implements Htt
                 removeEntry(storage, cacheKey);
             }
             if (uri != null) {
-                if (log.isWarnEnabled()) {
-                    log.warn("{} is not a valid URI", s);
+                if (LOG.isWarnEnabled()) {
+                    LOG.warn("{} is not a valid URI", s);
                 }
                 final Header clHdr = request.getFirstHeader("Content-Location");
                 if (clHdr != null) {

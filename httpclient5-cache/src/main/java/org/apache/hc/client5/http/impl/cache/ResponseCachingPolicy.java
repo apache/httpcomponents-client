@@ -60,7 +60,7 @@ class ResponseCachingPolicy {
                     HttpStatus.SC_MOVED_PERMANENTLY,
                     HttpStatus.SC_GONE));
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger LOG = LoggerFactory.getLogger(ResponseCachingPolicy.class);
 
     private final long maxObjectSizeBytes;
     private final boolean sharedCache;
@@ -103,8 +103,8 @@ class ResponseCachingPolicy {
         boolean cacheable = false;
 
         if (!HeaderConstants.GET_METHOD.equals(httpMethod) && !HeaderConstants.HEAD_METHOD.equals(httpMethod)) {
-            if (log.isDebugEnabled()) {
-                log.debug("{} method response is not cacheable", httpMethod);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{} method response is not cacheable", httpMethod);
             }
             return false;
         }
@@ -114,15 +114,15 @@ class ResponseCachingPolicy {
             // these response codes MAY be cached
             cacheable = true;
         } else if (uncacheableStatusCodes.contains(status)) {
-            if (log.isDebugEnabled()) {
-                log.debug("{} response is not cacheable", status);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{} response is not cacheable", status);
             }
             return false;
         } else if (unknownStatusCode(status)) {
             // a response with an unknown status code MUST NOT be
             // cached
-            if (log.isDebugEnabled()) {
-                log.debug("{} response is unknown", status);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{} response is unknown", status);
             }
             return false;
         }
@@ -131,31 +131,31 @@ class ResponseCachingPolicy {
         if (contentLength != null) {
             final long contentLengthValue = Long.parseLong(contentLength.getValue());
             if (contentLengthValue > this.maxObjectSizeBytes) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Response content length exceeds {}", this.maxObjectSizeBytes);
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Response content length exceeds {}", this.maxObjectSizeBytes);
                 }
                 return false;
             }
         }
 
         if (response.countHeaders(HeaderConstants.AGE) > 1) {
-            log.debug("Multiple Age headers");
+            LOG.debug("Multiple Age headers");
             return false;
         }
 
         if (response.countHeaders(HeaderConstants.EXPIRES) > 1) {
-            log.debug("Multiple Expires headers");
+            LOG.debug("Multiple Expires headers");
             return false;
         }
 
         if (response.countHeaders(HttpHeaders.DATE) > 1) {
-            log.debug("Multiple Date headers");
+            LOG.debug("Multiple Date headers");
             return false;
         }
 
         final Date date = DateUtils.parseDate(response, HttpHeaders.DATE);
         if (date == null) {
-            log.debug("Invalid / missing Date header");
+            LOG.debug("Invalid / missing Date header");
             return false;
         }
 
@@ -163,15 +163,15 @@ class ResponseCachingPolicy {
         while (it.hasNext()) {
             final HeaderElement elem = it.next();
             if ("*".equals(elem.getName())) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Vary * found");
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Vary * found");
                 }
                 return false;
             }
         }
 
         if (isExplicitlyNonCacheable(response)) {
-            log.debug("Response is explicitly non-cacheable");
+            LOG.debug("Response is explicitly non-cacheable");
             return false;
         }
 
@@ -246,37 +246,37 @@ class ResponseCachingPolicy {
     public boolean isResponseCacheable(final HttpRequest request, final HttpResponse response) {
         final ProtocolVersion version = request.getVersion() != null ? request.getVersion() : HttpVersion.DEFAULT;
         if (version.compareToVersion(HttpVersion.HTTP_1_1) > 0) {
-            if (log.isDebugEnabled()) {
-                log.debug("Protocol version {} is non-cacheable", version);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Protocol version {} is non-cacheable", version);
             }
             return false;
         }
 
         final String[] uncacheableRequestDirectives = { HeaderConstants.CACHE_CONTROL_NO_STORE };
         if (hasCacheControlParameterFrom(request,uncacheableRequestDirectives)) {
-            log.debug("Response is explcitily non-cacheable per cache control directive");
+            LOG.debug("Response is explcitily non-cacheable per cache control directive");
             return false;
         }
 
         if (request.getRequestUri().contains("?")) {
             if (neverCache1_0ResponsesWithQueryString && from1_0Origin(response)) {
-                log.debug("Response is not cacheable as it had a query string");
+                LOG.debug("Response is not cacheable as it had a query string");
                 return false;
             } else if (!isExplicitlyCacheable(response)) {
-                log.debug("Response is not cacheable as it is missing explicit caching headers");
+                LOG.debug("Response is not cacheable as it is missing explicit caching headers");
                 return false;
             }
         }
 
         if (expiresHeaderLessOrEqualToDateHeaderAndNoCacheControl(response)) {
-            log.debug("Expires header less or equal to Date header and no cache control directives");
+            LOG.debug("Expires header less or equal to Date header and no cache control directives");
             return false;
         }
 
         if (sharedCache) {
             if (request.countHeaders(HeaderConstants.AUTHORIZATION) > 0
                     && !hasCacheControlParameterFrom(response, AUTH_CACHEABLE_PARAMS)) {
-                log.debug("Request contains private credentials");
+                LOG.debug("Request contains private credentials");
                 return false;
             }
         }

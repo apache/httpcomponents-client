@@ -52,6 +52,8 @@ import org.apache.hc.core5.http.nio.AsyncPushConsumer;
 import org.apache.hc.core5.http.nio.HandlerFactory;
 import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.apache.hc.core5.reactor.DefaultConnectingIOReactor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Internal implementation of {@link CloseableHttpAsyncClient} that can negotiate
@@ -68,6 +70,7 @@ import org.apache.hc.core5.reactor.DefaultConnectingIOReactor;
 @Internal
 public final class InternalHttpAsyncClient extends InternalAbstractHttpAsyncClient {
 
+    private static final Logger LOG = LoggerFactory.getLogger(InternalHttpAsyncClient.class);
     private final AsyncClientConnectionManager manager;
     private final HttpRoutePlanner routePlanner;
     private final HttpVersionPolicy versionPolicy;
@@ -95,7 +98,7 @@ public final class InternalHttpAsyncClient extends InternalAbstractHttpAsyncClie
 
     @Override
     AsyncExecRuntime createAsyncExecRuntime(final HandlerFactory<AsyncPushConsumer> pushHandlerFactory) {
-        return new InternalHttpAsyncExecRuntime(log, manager, getConnectionInitiator(), pushHandlerFactory, versionPolicy);
+        return new InternalHttpAsyncExecRuntime(LOG, manager, getConnectionInitiator(), pushHandlerFactory, versionPolicy);
     }
 
     @Override

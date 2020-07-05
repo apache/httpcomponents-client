@@ -65,7 +65,7 @@ import org.slf4j.LoggerFactory;
 @Internal
 public class HttpRequestRetryExec implements ExecChainHandler {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger LOG = LoggerFactory.getLogger(HttpRequestRetryExec.class);
 
     private final HttpRequestRetryStrategy retryStrategy;
 
@@ -97,17 +97,17 @@ public class HttpRequestRetryExec implements ExecChainHandler {
                 }
                 final HttpEntity requestEntity = request.getEntity();
                 if (requestEntity != null && !requestEntity.isRepeatable()) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("{}: cannot retry non-repeatable request", exchangeId);
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("{}: cannot retry non-repeatable request", exchangeId);
                     }
                     throw ex;
                 }
                 if (retryStrategy.retryRequest(request, ex, execCount, context)) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("{}: {}", exchangeId, ex.getMessage(), ex);
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("{}: {}", exchangeId, ex.getMessage(), ex);
                     }
-                    if (log.isInfoEnabled()) {
-                        log.info("Recoverable I/O exception ({}) caught when processing request to {}",
+                    if (LOG.isInfoEnabled()) {
+                        LOG.info("Recoverable I/O exception ({}) caught when processing request to {}",
                                 ex.getClass().getName(), route);
                     }
                     currentRequest = ClassicRequestCopier.INSTANCE.copy(scope.originalRequest);
@@ -126,8 +126,8 @@ public class HttpRequestRetryExec implements ExecChainHandler {
             try {
                 final HttpEntity entity = request.getEntity();
                 if (entity != null && !entity.isRepeatable()) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("{}: cannot retry non-repeatable request", exchangeId);
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("{}: cannot retry non-repeatable request", exchangeId);
                     }
                     return response;
                 }
@@ -137,8 +137,8 @@ public class HttpRequestRetryExec implements ExecChainHandler {
                             retryStrategy.getRetryInterval(response, execCount, context);
                     if (TimeValue.isPositive(nextInterval)) {
                         try {
-                            if (log.isDebugEnabled()) {
-                                log.debug("{}: wait for {}", exchangeId, nextInterval);
+                            if (LOG.isDebugEnabled()) {
+                                LOG.debug("{}: wait for {}", exchangeId, nextInterval);
                             }
                             nextInterval.sleep();
                         } catch (final InterruptedException e) {

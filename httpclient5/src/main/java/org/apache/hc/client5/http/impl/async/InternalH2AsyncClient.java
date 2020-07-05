@@ -49,6 +49,8 @@ import org.apache.hc.core5.http.nio.AsyncPushConsumer;
 import org.apache.hc.core5.http.nio.HandlerFactory;
 import org.apache.hc.core5.http2.nio.pool.H2ConnPool;
 import org.apache.hc.core5.reactor.DefaultConnectingIOReactor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Internal implementation of HTTP/2 only {@link CloseableHttpAsyncClient}.
@@ -64,6 +66,7 @@ import org.apache.hc.core5.reactor.DefaultConnectingIOReactor;
 @Internal
 public final class InternalH2AsyncClient extends InternalAbstractHttpAsyncClient {
 
+    private static final Logger LOG = LoggerFactory.getLogger(InternalH2AsyncClient.class);
     private final HttpRoutePlanner routePlanner;
     private final H2ConnPool connPool;
 
@@ -88,7 +91,7 @@ public final class InternalH2AsyncClient extends InternalAbstractHttpAsyncClient
 
     @Override
     AsyncExecRuntime createAsyncExecRuntime(final HandlerFactory<AsyncPushConsumer> pushHandlerFactory) {
-        return new InternalH2AsyncExecRuntime(log, connPool, pushHandlerFactory);
+        return new InternalH2AsyncExecRuntime(LOG, connPool, pushHandlerFactory);
     }
 
     @Override

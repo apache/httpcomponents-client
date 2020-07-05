@@ -36,7 +36,7 @@ final class LoggingIOSessionDecorator implements Decorator<IOSession> {
 
     public final static LoggingIOSessionDecorator INSTANCE = new LoggingIOSessionDecorator();
 
-    private final Logger wireLog = LoggerFactory.getLogger("org.apache.hc.client5.http.wire");
+    private static final Logger WIRE_LOG = LoggerFactory.getLogger("org.apache.hc.client5.http.wire");
 
     private LoggingIOSessionDecorator() {
     }
@@ -44,8 +44,8 @@ final class LoggingIOSessionDecorator implements Decorator<IOSession> {
     @Override
     public IOSession decorate(final IOSession ioSession) {
         final Logger sessionLog = LoggerFactory.getLogger(ioSession.getClass());
-        if (sessionLog.isDebugEnabled() || wireLog.isDebugEnabled()) {
-            return new LoggingIOSession(ioSession, sessionLog, wireLog);
+        if (sessionLog.isDebugEnabled() || WIRE_LOG.isDebugEnabled()) {
+            return new LoggingIOSession(ioSession, sessionLog, WIRE_LOG);
         } else {
             return ioSession;
         }

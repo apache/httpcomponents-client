@@ -66,11 +66,11 @@ import org.slf4j.LoggerFactory;
 
 class HttpAsyncClientEventHandlerFactory implements IOEventHandlerFactory {
 
-    private final Logger streamLog = LoggerFactory.getLogger(InternalHttpAsyncClient.class);
-    private final Logger headerLog = LoggerFactory.getLogger("org.apache.hc.client5.http.headers");
-    private final Logger frameLog = LoggerFactory.getLogger("org.apache.hc.client5.http2.frame");
-    private final Logger framePayloadLog = LoggerFactory.getLogger("org.apache.hc.client5.http2.frame.payload");
-    private final Logger flowCtrlLog = LoggerFactory.getLogger("org.apache.hc.client5.http2.flow");
+    private static final Logger STREAM_LOG = LoggerFactory.getLogger(InternalHttpAsyncClient.class);
+    private static final Logger HEADER_LOG = LoggerFactory.getLogger("org.apache.hc.client5.http.headers");
+    private static final Logger FRAME_LOG = LoggerFactory.getLogger("org.apache.hc.client5.http2.frame");
+    private static final Logger FRAME_PAYLOAD_LOG = LoggerFactory.getLogger("org.apache.hc.client5.http2.frame.payload");
+    private static final Logger FLOW_CTRL_LOG = LoggerFactory.getLogger("org.apache.hc.client5.http2.flow");
 
     private final HttpProcessor httpProcessor;
     private final HandlerFactory<AsyncPushConsumer> exchangeHandlerFactory;
@@ -103,11 +103,11 @@ class HttpAsyncClientEventHandlerFactory implements IOEventHandlerFactory {
 
     @Override
     public IOEventHandler createHandler(final ProtocolIOSession ioSession, final Object attachment) {
-        if (streamLog.isDebugEnabled()
-                || headerLog.isDebugEnabled()
-                || frameLog.isDebugEnabled()
-                || framePayloadLog.isDebugEnabled()
-                || flowCtrlLog.isDebugEnabled()) {
+        if (STREAM_LOG.isDebugEnabled()
+                || HEADER_LOG.isDebugEnabled()
+                || FRAME_LOG.isDebugEnabled()
+                || FRAME_PAYLOAD_LOG.isDebugEnabled()
+                || FLOW_CTRL_LOG.isDebugEnabled()) {
             final String id = ioSession.getId();
             final ClientHttp1StreamDuplexerFactory http1StreamHandlerFactory = new ClientHttp1StreamDuplexerFactory(
                     httpProcessor,
@@ -120,31 +120,31 @@ class HttpAsyncClientEventHandlerFactory implements IOEventHandlerFactory {
 
                         @Override
                         public void onRequestHead(final HttpConnection connection, final HttpRequest request) {
-                            if (headerLog.isDebugEnabled()) {
-                                headerLog.debug("{} >> {}", id, new RequestLine(request));
+                            if (HEADER_LOG.isDebugEnabled()) {
+                                HEADER_LOG.debug("{} >> {}", id, new RequestLine(request));
                                 for (final Iterator<Header> it = request.headerIterator(); it.hasNext(); ) {
-                                    headerLog.debug("{} >> {}", id, it.next());
+                                    HEADER_LOG.debug("{} >> {}", id, it.next());
                                 }
                             }
                         }
 
                         @Override
                         public void onResponseHead(final HttpConnection connection, final HttpResponse response) {
-                            if (headerLog.isDebugEnabled()) {
-                                headerLog.debug("{} << {}", id, new StatusLine(response));
+                            if (HEADER_LOG.isDebugEnabled()) {
+                                HEADER_LOG.debug("{} << {}", id, new StatusLine(response));
                                 for (final Iterator<Header> it = response.headerIterator(); it.hasNext(); ) {
-                                    headerLog.debug("{} << {}", id, it.next());
+                                    HEADER_LOG.debug("{} << {}", id, it.next());
                                 }
                             }
                         }
 
                         @Override
                         public void onExchangeComplete(final HttpConnection connection, final boolean keepAlive) {
-                            if (streamLog.isDebugEnabled()) {
+                            if (STREAM_LOG.isDebugEnabled()) {
                                 if (keepAlive) {
-                                    streamLog.debug("{} Connection is kept alive", id);
+                                    STREAM_LOG.debug("{} Connection is kept alive", id);
                                 } else {
-                                    streamLog.debug("{} Connection is not kept alive", id);
+                                    STREAM_LOG.debug("{} Connection is not kept alive", id);
                                 }
                             }
                         }
@@ -161,7 +161,7 @@ class HttpAsyncClientEventHandlerFactory implements IOEventHandlerFactory {
 
                         private void logFrameInfo(final String prefix, final RawFrame frame) {
                             try {
-                                final LogAppendable logAppendable = new LogAppendable(frameLog, prefix);
+                                final LogAppendable logAppendable = new LogAppendable(FRAME_LOG, prefix);
                                 framePrinter.printFrameInfo(frame, logAppendable);
                                 logAppendable.flush();
                             } catch (final IOException ignore) {
@@ -170,7 +170,7 @@ class HttpAsyncClientEventHandlerFactory implements IOEventHandlerFactory {
 
                         private void logFramePayload(final String prefix, final RawFrame frame) {
                             try {
-                                final LogAppendable logAppendable = new LogAppendable(framePayloadLog, prefix);
+                                final LogAppendable logAppendable = new LogAppendable(FRAME_PAYLOAD_LOG, prefix);
                                 framePrinter.printPayload(frame, logAppendable);
                                 logAppendable.flush();
                             } catch (final IOException ignore) {
@@ -178,61 +178,57 @@ class HttpAsyncClientEventHandlerFactory implements IOEventHandlerFactory {
                         }
 
                         private void logFlowControl(final String prefix, final int streamId, final int delta, final int actualSize) {
-                            final StringBuilder buffer = new StringBuilder();
-                            buffer.append(prefix).append(" stream ").append(streamId).append(" flow control " )
-                                    .append(delta).append(" -> ")
-                                    .append(actualSize);
-                            flowCtrlLog.debug(buffer.toString());
+                            FLOW_CTRL_LOG.debug("{} stream {} flow control {} -> {}", prefix, streamId, delta, actualSize);
                         }
 
                         @Override
                         public void onHeaderInput(final HttpConnection connection, final int streamId, final List<? extends Header> headers) {
-                            if (headerLog.isDebugEnabled()) {
+                            if (HEADER_LOG.isDebugEnabled()) {
                                 for (int i = 0; i < headers.size(); i++) {
-                                    headerLog.debug("{} << {}", id, headers.get(i));
+                                    HEADER_LOG.debug("{} << {}", id, headers.get(i));
                                 }
                             }
                         }
 
                         @Override
                         public void onHeaderOutput(final HttpConnection connection, final int streamId, final List<? extends Header> headers) {
-                            if (headerLog.isDebugEnabled()) {
+                            if (HEADER_LOG.isDebugEnabled()) {
                                 for (int i = 0; i < headers.size(); i++) {
-                                    headerLog.debug("{} >> {}", id, headers.get(i));
+                                    HEADER_LOG.debug("{} >> {}", id, headers.get(i));
                                 }
                             }
                         }
 
                         @Override
                         public void onFrameInput(final HttpConnection connection, final int streamId, final RawFrame frame) {
-                            if (frameLog.isDebugEnabled()) {
+                            if (FRAME_LOG.isDebugEnabled()) {
                                 logFrameInfo(id + " <<", frame);
                             }
-                            if (framePayloadLog.isDebugEnabled()) {
+                            if (FRAME_PAYLOAD_LOG.isDebugEnabled()) {
                                 logFramePayload(id + " <<", frame);
                             }
                         }
 
                         @Override
                         public void onFrameOutput(final HttpConnection connection, final int streamId, final RawFrame frame) {
-                            if (frameLog.isDebugEnabled()) {
+                            if (FRAME_LOG.isDebugEnabled()) {
                                 logFrameInfo(id + " >>", frame);
                             }
-                            if (framePayloadLog.isDebugEnabled()) {
+                            if (FRAME_PAYLOAD_LOG.isDebugEnabled()) {
                                 logFramePayload(id + " >>", frame);
                             }
                         }
 
                         @Override
                         public void onInputFlowControl(final HttpConnection connection, final int streamId, final int delta, final int actualSize) {
-                            if (flowCtrlLog.isDebugEnabled()) {
+                            if (FLOW_CTRL_LOG.isDebugEnabled()) {
                                 logFlowControl(id + " <<", streamId, delta, actualSize);
                             }
                         }
 
                         @Override
                         public void onOutputFlowControl(final HttpConnection connection, final int streamId, final int delta, final int actualSize) {
-                            if (flowCtrlLog.isDebugEnabled()) {
+                            if (FLOW_CTRL_LOG.isDebugEnabled()) {
                                 logFlowControl(id + " >>", streamId, delta, actualSize);
                             }
                         }

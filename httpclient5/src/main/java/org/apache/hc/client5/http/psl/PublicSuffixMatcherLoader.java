@@ -50,6 +50,8 @@ import org.slf4j.LoggerFactory;
 @Contract(threading = ThreadingBehavior.SAFE)
 public final class PublicSuffixMatcherLoader {
 
+    private static final Logger LOG = LoggerFactory.getLogger(PublicSuffixMatcherLoader.class);
+
     private static PublicSuffixMatcher load(final InputStream in) throws IOException {
         final List<PublicSuffixList> lists = new PublicSuffixListParser().parseByType(
                 new InputStreamReader(in, StandardCharsets.UTF_8));
@@ -83,10 +85,7 @@ public final class PublicSuffixMatcherLoader {
                             DEFAULT_INSTANCE = load(url);
                         } catch (final IOException ex) {
                             // Should never happen
-                            final Logger log = LoggerFactory.getLogger(PublicSuffixMatcherLoader.class);
-                            if (log.isWarnEnabled()) {
-                                log.warn("Failure loading public suffix list from default resource", ex);
-                            }
+                            LOG.warn("Failure loading public suffix list from default resource", ex);
                         }
                     } else {
                         DEFAULT_INSTANCE = new PublicSuffixMatcher(DomainType.ICANN, Arrays.asList("com"), null);

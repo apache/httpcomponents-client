@@ -53,7 +53,7 @@ import org.slf4j.LoggerFactory;
 @Contract(threading = ThreadingBehavior.STATELESS)
 public class RequestClientConnControl implements HttpRequestInterceptor {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger LOG = LoggerFactory.getLogger(RequestClientConnControl.class);
 
     public RequestClientConnControl() {
         super();
@@ -74,7 +74,7 @@ public class RequestClientConnControl implements HttpRequestInterceptor {
         // Obtain the client connection (required)
         final RouteInfo route = clientContext.getHttpRoute();
         if (route == null) {
-            this.log.debug("Connection route not set in the context");
+            LOG.debug("Connection route not set in the context");
             return;
         }
 

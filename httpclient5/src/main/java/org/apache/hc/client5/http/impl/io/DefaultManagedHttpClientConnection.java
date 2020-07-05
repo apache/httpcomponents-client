@@ -58,9 +58,9 @@ import org.slf4j.LoggerFactory;
 final class DefaultManagedHttpClientConnection
         extends DefaultBHttpClientConnection implements ManagedHttpClientConnection, Identifiable {
 
-    private final Logger log = LoggerFactory.getLogger(DefaultManagedHttpClientConnection.class);
-    private final Logger headerLog = LoggerFactory.getLogger("org.apache.hc.client5.http.headers");
-    private final Logger wireLog = LoggerFactory.getLogger("org.apache.hc.client5.http.wire");
+    private static final Logger LOG = LoggerFactory.getLogger(DefaultManagedHttpClientConnection.class);
+    private static final Logger HEADER_LOG = LoggerFactory.getLogger("org.apache.hc.client5.http.headers");
+    private static final Logger WIRE_LOG = LoggerFactory.getLogger("org.apache.hc.client5.http.wire");
 
     private final String id;
     private final AtomicBoolean closed;
@@ -121,8 +121,8 @@ final class DefaultManagedHttpClientConnection
     @Override
     public void close() throws IOException {
         if (this.closed.compareAndSet(false, true)) {
-            if (this.log.isDebugEnabled()) {
-                this.log.debug("{}: Close connection", this.id);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{}: Close connection", this.id);
             }
             super.close();
         }
@@ -130,8 +130,8 @@ final class DefaultManagedHttpClientConnection
 
     @Override
     public void setSocketTimeout(final Timeout timeout) {
-        if (this.log.isDebugEnabled()) {
-            this.log.debug("{}: set socket timeout to {}", this.id, timeout);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("{}: set socket timeout to {}", this.id, timeout);
         }
         super.setSocketTimeout(timeout);
     }
@@ -139,8 +139,8 @@ final class DefaultManagedHttpClientConnection
     @Override
     public void close(final CloseMode closeMode) {
         if (this.closed.compareAndSet(false, true)) {
-            if (this.log.isDebugEnabled()) {
-                this.log.debug("{}: close connection {}", this.id, closeMode);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{}: close connection {}", this.id, closeMode);
             }
             super.close(closeMode);
         }
@@ -148,28 +148,28 @@ final class DefaultManagedHttpClientConnection
 
     @Override
     public void bind(final Socket socket) throws IOException {
-        super.bind(this.wireLog.isDebugEnabled() ? new LoggingSocketHolder(socket, this.id, this.wireLog) : new SocketHolder(socket));
+        super.bind(WIRE_LOG.isDebugEnabled() ? new LoggingSocketHolder(socket, this.id, WIRE_LOG) : new SocketHolder(socket));
         socketTimeout = Timeout.ofMilliseconds(socket.getSoTimeout());
     }
 
     @Override
     protected void onResponseReceived(final ClassicHttpResponse response) {
-        if (response != null && this.headerLog.isDebugEnabled()) {
-            this.headerLog.debug("{} << {}", this.id, new StatusLine(response));
+        if (response != null && HEADER_LOG.isDebugEnabled()) {
+            HEADER_LOG.debug("{} << {}", this.id, new StatusLine(response));
             final Header[] headers = response.getHeaders();
             for (final Header header : headers) {
-                this.headerLog.debug("{} << {}", this.id, header);
+                HEADER_LOG.debug("{} << {}", this.id, header);
             }
         }
     }
 
     @Override
     protected void onRequestSubmitted(final ClassicHttpRequest request) {
-        if (request != null && this.headerLog.isDebugEnabled()) {
-            this.headerLog.debug("{} >> {}", this.id, new RequestLine(request));
+        if (request != null && HEADER_LOG.isDebugEnabled()) {
+            HEADER_LOG.debug("{} >> {}", this.id, new RequestLine(request));
             final Header[] headers = request.getHeaders();
             for (final Header header : headers) {
-                this.headerLog.debug("{} >> {}", this.id, header);
+                HEADER_LOG.debug("{} >> {}", this.id, header);
             }
         }
     }

@@ -90,7 +90,7 @@ import org.slf4j.LoggerFactory;
 @Contract(threading = ThreadingBehavior.SAFE)
 public class BasicHttpClientConnectionManager implements HttpClientConnectionManager {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger LOG = LoggerFactory.getLogger(BasicHttpClientConnectionManager.class);
 
     private final HttpClientConnectionOperator connectionOperator;
     private final HttpConnectionFactory<ManagedHttpClientConnection> connFactory;
@@ -206,7 +206,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
 
     private synchronized void closeConnection(final CloseMode closeMode) {
         if (this.conn != null) {
-            this.log.debug("Closing connection {}", closeMode);
+            LOG.debug("Closing connection {}", closeMode);
             this.conn.close(closeMode);
             this.conn = null;
         }
@@ -214,8 +214,8 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
 
     private void checkExpiry() {
         if (this.conn != null && System.currentTimeMillis() >= this.expiry) {
-            if (this.log.isDebugEnabled()) {
-                this.log.debug("Connection expired @ {}", new Date(this.expiry));
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Connection expired @ {}", new Date(this.expiry));
             }
             closeConnection(CloseMode.GRACEFUL);
         }
@@ -223,8 +223,8 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
 
     synchronized ManagedHttpClientConnection getConnection(final HttpRoute route, final Object state) throws IOException {
         Asserts.check(!this.closed.get(), "Connection manager has been shut down");
-        if (this.log.isDebugEnabled()) {
-            this.log.debug("Get connection for route {}", route);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Get connection for route {}", route);
         }
         Asserts.check(!this.leased, "Connection is still allocated");
         if (!LangUtils.equals(this.route, route) || !LangUtils.equals(this.state, state)) {
@@ -254,8 +254,8 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
         Args.notNull(endpoint, "Managed endpoint");
         final InternalConnectionEndpoint internalEndpoint = cast(endpoint);
         final ManagedHttpClientConnection conn = internalEndpoint.detach();
-        if (conn != null && this.log.isDebugEnabled()) {
-            this.log.debug("Releasing connection {}", conn);
+        if (conn != null && LOG.isDebugEnabled()) {
+            LOG.debug("Releasing connection {}", conn);
         }
         if (this.closed.get()) {
             return;
@@ -270,20 +270,20 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
                 this.route = null;
                 this.conn = null;
                 this.expiry = Long.MAX_VALUE;
-                if (this.log.isDebugEnabled()) {
-                    this.log.debug("Connection is not kept alive");
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Connection is not kept alive");
                 }
             } else {
                 this.state = state;
                 conn.passivate();
                 if (TimeValue.isPositive(keepAlive)) {
-                    if (this.log.isDebugEnabled()) {
-                        this.log.debug("Connection can be kept alive for {}", keepAlive);
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Connection can be kept alive for {}", keepAlive);
                     }
                     this.expiry = this.updated + keepAlive.toMilliseconds();
                 } else {
-                    if (this.log.isDebugEnabled()) {
-                        this.log.debug("Connection can be kept alive indefinitely");
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Connection can be kept alive indefinitely");
                     }
                     this.expiry = Long.MAX_VALUE;
                 }

@@ -83,6 +83,8 @@ import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.Asserts;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Minimal implementation of {@link CloseableHttpAsyncClient}. This client is
@@ -99,6 +101,7 @@ import org.apache.hc.core5.util.Timeout;
 @Contract(threading = ThreadingBehavior.SAFE_CONDITIONAL)
 public final class MinimalHttpAsyncClient extends AbstractMinimalHttpAsyncClientBase {
 
+    private static final Logger LOG = LoggerFactory.getLogger(MinimalHttpAsyncClient.class);
     private final AsyncClientConnectionManager manager;
     private final SchemePortResolver schemePortResolver;
     private final HttpVersionPolicy versionPolicy;
@@ -465,11 +468,11 @@ public final class MinimalHttpAsyncClient extends AbstractMinimalHttpAsyncClient
             Asserts.check(!released.get(), "Endpoint has already been released");
 
             final String exchangeId = ExecSupport.getNextExchangeId();
-            if (log.isDebugEnabled()) {
-                log.debug("{}: executing message exchange {}", ConnPoolSupport.getId(connectionEndpoint), exchangeId);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{}: executing message exchange {}", ConnPoolSupport.getId(connectionEndpoint), exchangeId);
                 connectionEndpoint.execute(
                         exchangeId,
-                        new LoggingAsyncClientExchangeHandler(log, exchangeId, exchangeHandler),
+                        new LoggingAsyncClientExchangeHandler(LOG, exchangeId, exchangeHandler),
                         pushHandlerFactory,
                         context);
             } else {

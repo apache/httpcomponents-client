@@ -65,7 +65,7 @@ import org.slf4j.LoggerFactory;
 @Internal
 public final class MainClientExec implements ExecChainHandler {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger LOG = LoggerFactory.getLogger(MainClientExec.class);
 
     private final HttpClientConnectionManager connectionManager;
     private final ConnectionReuseStrategy reuseStrategy;
@@ -98,8 +98,8 @@ public final class MainClientExec implements ExecChainHandler {
         final HttpClientContext context = scope.clientContext;
         final ExecRuntime execRuntime = scope.execRuntime;
 
-        if (log.isDebugEnabled()) {
-            log.debug("{}: executing {}", exchangeId, new RequestLine(request));
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("{}: executing {}", exchangeId, new RequestLine(request));
         }
         try {
             RequestEntityProxy.enhance(request);
@@ -116,14 +116,14 @@ public final class MainClientExec implements ExecChainHandler {
             if (reuseStrategy.keepAlive(request, response, context)) {
                 // Set the idle duration of this connection
                 final TimeValue duration = keepAliveStrategy.getKeepAliveDuration(response, context);
-                if (this.log.isDebugEnabled()) {
+                if (LOG.isDebugEnabled()) {
                     final String s;
                     if (duration != null) {
                         s = "for " + duration;
                     } else {
                         s = "indefinitely";
                     }
-                    this.log.debug("{}: connection can be kept alive {}", exchangeId, s);
+                    LOG.debug("{}: connection can be kept alive {}", exchangeId, s);
                 }
                 execRuntime.markConnectionReusable(userToken, duration);
             } else {
