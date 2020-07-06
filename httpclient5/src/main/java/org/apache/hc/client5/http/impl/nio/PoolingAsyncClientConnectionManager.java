@@ -252,7 +252,7 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
 
                                     @Override
                                     public void execute(final Boolean result) {
-                                        if (!result) {
+                                        if (result == null || !result) {
                                             if (log.isDebugEnabled()) {
                                                 log.debug("{}: connection {} is stale", id, ConnPoolSupport.getId(connection));
                                             }
