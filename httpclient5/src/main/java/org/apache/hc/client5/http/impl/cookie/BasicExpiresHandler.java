@@ -46,11 +46,11 @@ import org.apache.hc.core5.util.Args;
 public class BasicExpiresHandler extends AbstractCookieAttributeHandler implements CommonCookieAttributeHandler {
 
     /** Valid date patterns */
-    private final String[] datepatterns;
+    private final String[] datePatterns;
 
-    public BasicExpiresHandler(final String[] datepatterns) {
-        Args.notNull(datepatterns, "Array of date patterns");
-        this.datepatterns = datepatterns;
+    public BasicExpiresHandler(final String[] datePatterns) {
+        Args.notNull(datePatterns, "Array of date patterns");
+        this.datePatterns = datePatterns.clone();
     }
 
     @Override
@@ -60,7 +60,7 @@ public class BasicExpiresHandler extends AbstractCookieAttributeHandler implemen
         if (value == null) {
             throw new MalformedCookieException("Missing value for 'expires' attribute");
         }
-        final Date expiry = DateUtils.parseDate(value, this.datepatterns);
+        final Date expiry = DateUtils.parseDate(value, this.datePatterns);
         if (expiry == null) {
             throw new MalformedCookieException("Invalid 'expires' attribute: "
                     + value);
