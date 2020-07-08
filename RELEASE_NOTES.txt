@@ -1,8 +1,31 @@
+Release 4.5.13
+-------------------
+
+This is a maintenance release that fixes incorrect handling of malformed authority component
+in request URIs.
+
+
+Changelog:
+-------------------
+
+* Incorrect handling of malformed authority component by URIUtils#extractHost.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Avoid updating Content-Length header in a 304 response.
+  Contributed by Dirk Henselin <dirk.henselin at vwgis.de>
+
+* Bug fix: BasicExpiresHandler is annotated as immutable but is not (#239)
+  Contributed by Gary Gregory <ggregory at apache.org>
+ 
+* HTTPCLIENT-2076: Fixed NPE in LaxExpiresHandler (#222).
+  Contributed by heejeongkim <aprilhjk at gmail.com>
+
+
 Release 4.5.12
 -------------------
 
 This is a maintenance release that fixes a regression introduced by the previous release
-that caused rejection of ceritificates with non-standard domains.
+that caused rejection of certificates with non-standard domains.
 
 Changelog:
 -------------------
@@ -19,7 +42,6 @@ Changelog:
 
 * Bug fix: Fixed handling of private domains by PublicSuffixMatcher
   Contributed by Oleg Kalnichevski <olegk at apache.org>
-
 
 
 Release 4.5.11
