@@ -20,6 +20,9 @@ Changelog:
 * Bug fix: Fixed handling of private domains by PublicSuffixMatcher
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
+* Bug fix: BasicExpiresHandler is annotated as immutable but is not. #239.
+  Contributed by Gary Gregory <ggregory at apache.org>
+ 
 
 
 Release 4.5.11
