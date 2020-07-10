@@ -1,4 +1,14 @@
-﻿Release 5.0.1
+﻿Release 5.0.2
+-----------------
+
+Changelog:
+-------------------
+
+* Bug fix: BasicExpiresHandler is annotated as immutable but is not. #240.
+  Contributed by Gary Gregory <ggregory at apache.org>
+
+
+Release 5.0.1
 -----------------
 
 This release upgrades HttpCore to the latest version and addresses a number of issues found
