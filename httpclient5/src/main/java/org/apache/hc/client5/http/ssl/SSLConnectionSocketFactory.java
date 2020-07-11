@@ -207,9 +207,6 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
             sock.bind(localAddress);
         }
         try {
-            if (TimeValue.isPositive(connectTimeout) && sock.getSoTimeout() == 0) {
-                sock.setSoTimeout(connectTimeout.toMillisecondsIntBound());
-            }
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Connecting socket to {} with timeout {}", remoteAddress, connectTimeout);
             }
