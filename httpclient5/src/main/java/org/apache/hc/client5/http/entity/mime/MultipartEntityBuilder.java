@@ -232,7 +232,7 @@ public class MultipartEntityBuilder {
                 form = new LegacyMultipart(charsetCopy, boundaryCopy, multipartPartsCopy);
                 break;
             case EXTENDED:
-                if (ContentType.MULTIPART_FORM_DATA.isSameMimeType(ContentType.MULTIPART_FORM_DATA)) {
+                if (contentTypeCopy.isSameMimeType(ContentType.MULTIPART_FORM_DATA)) {
                     if (charsetCopy == null) {
                         charsetCopy = StandardCharsets.UTF_8;
                     }
