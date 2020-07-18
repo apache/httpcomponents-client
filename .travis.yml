@@ -18,7 +18,6 @@ dist: trusty
 sudo: false
 
 jdk:
-  - openjdk7
   - oraclejdk8
   - openjdk12
   - oraclejdk12
