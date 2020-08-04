@@ -104,7 +104,12 @@ public class ProxyClient {
             final CharCodingConfig charCodingConfig,
             final RequestConfig requestConfig) {
         super();
-        this.connFactory = connFactory != null ? connFactory : new ManagedHttpClientConnectionFactory(h1Config, charCodingConfig, null, null);
+        this.connFactory = connFactory != null
+                ? connFactory
+                : ManagedHttpClientConnectionFactory.builder()
+                .http1Config(h1Config)
+                .charCodingConfig(charCodingConfig)
+                .build();
         this.requestConfig = requestConfig != null ? requestConfig : RequestConfig.DEFAULT;
         this.httpProcessor = new DefaultHttpProcessor(
                 new RequestTargetHost(), new RequestClientConnControl(), new RequestUserAgent());
