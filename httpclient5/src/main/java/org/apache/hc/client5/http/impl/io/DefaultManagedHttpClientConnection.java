@@ -47,6 +47,7 @@ import org.apache.hc.core5.http.impl.io.DefaultBHttpClientConnection;
 import org.apache.hc.core5.http.impl.io.SocketHolder;
 import org.apache.hc.core5.http.io.HttpMessageParserFactory;
 import org.apache.hc.core5.http.io.HttpMessageWriterFactory;
+import org.apache.hc.core5.http.io.ResponseOutOfOrderStrategy;
 import org.apache.hc.core5.http.message.RequestLine;
 import org.apache.hc.core5.http.message.StatusLine;
 import org.apache.hc.core5.io.CloseMode;
@@ -74,11 +75,41 @@ final class DefaultManagedHttpClientConnection
             final Http1Config h1Config,
             final ContentLengthStrategy incomingContentStrategy,
             final ContentLengthStrategy outgoingContentStrategy,
+            final ResponseOutOfOrderStrategy responseOutOfOrderStrategy,
             final HttpMessageWriterFactory<ClassicHttpRequest> requestWriterFactory,
             final HttpMessageParserFactory<ClassicHttpResponse> responseParserFactory) {
-        super(h1Config, charDecoder, charEncoder, incomingContentStrategy, outgoingContentStrategy, requestWriterFactory, responseParserFactory);
+        super(
+                h1Config,
+                charDecoder,
+                charEncoder,
+                incomingContentStrategy,
+                outgoingContentStrategy,
+                responseOutOfOrderStrategy,
+                requestWriterFactory,
+                responseParserFactory);
         this.id = id;
         this.closed = new AtomicBoolean();
+    }
+
+    public DefaultManagedHttpClientConnection(
+            final String id,
+            final CharsetDecoder charDecoder,
+            final CharsetEncoder charEncoder,
+            final Http1Config h1Config,
+            final ContentLengthStrategy incomingContentStrategy,
+            final ContentLengthStrategy outgoingContentStrategy,
+            final HttpMessageWriterFactory<ClassicHttpRequest> requestWriterFactory,
+            final HttpMessageParserFactory<ClassicHttpResponse> responseParserFactory) {
+        this(
+                id,
+                charDecoder,
+                charEncoder,
+                h1Config,
+                incomingContentStrategy,
+                outgoingContentStrategy,
+                null,
+                requestWriterFactory,
+                responseParserFactory);
     }
 
     public DefaultManagedHttpClientConnection(final String id) {
