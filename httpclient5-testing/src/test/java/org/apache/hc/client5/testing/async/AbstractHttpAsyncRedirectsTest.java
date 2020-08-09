@@ -377,6 +377,34 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
     }
 
     @Test
+    public void testPostRedirect() throws Exception {
+        final HttpHost target = start(new Decorator<AsyncServerExchangeHandler>() {
+
+            @Override
+            public AsyncServerExchangeHandler decorate(final AsyncServerExchangeHandler exchangeHandler) {
+                return new RedirectingAsyncDecorator(
+                        exchangeHandler,
+                        new OldPathRedirectResolver("/oldlocation", "/echo", HttpStatus.SC_TEMPORARY_REDIRECT));
+            }
+
+        });
+
+        final HttpClientContext context = HttpClientContext.create();
+
+        final SimpleHttpRequest post = SimpleHttpRequests.post(target, "/oldlocation/stuff");
+        post.setBody("stuff", ContentType.TEXT_PLAIN);
+        final Future<SimpleHttpResponse> future = httpclient.execute(post, context, null);
+        final HttpResponse response = future.get();
+        Assert.assertNotNull(response);
+
+        final HttpRequest request = context.getRequest();
+
+        Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
+        Assert.assertEquals("/echo/stuff", request.getRequestUri());
+        Assert.assertEquals("POST", request.getMethod());
+    }
+
+    @Test
     public void testPostRedirectSeeOther() throws Exception {
         final HttpHost target = start(new Decorator<AsyncServerExchangeHandler>() {
 

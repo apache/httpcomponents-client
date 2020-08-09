@@ -209,6 +209,9 @@ public final class AsyncRedirectExec implements AsyncExecChainHandler {
                     asyncExecCallback.completed();
                 } else {
                     final AsyncEntityProducer entityProducer = state.currentEntityProducer;
+                    if (entityProducer != null) {
+                        entityProducer.releaseResources();
+                    }
                     if (entityProducer != null && !entityProducer.isRepeatable()) {
                         if (LOG.isDebugEnabled()) {
                             LOG.debug("{}: cannot redirect non-repeatable request", exchangeId);
