@@ -286,10 +286,11 @@ public class PoolingHttpClientConnectionManager
                     LOG.debug("{}: endpoint leased {}", id, ConnPoolSupport.formatStats(route, state, pool));
                 }
                 try {
-                    if (TimeValue.isNonNegative(validateAfterInactivity)) {
+                    final TimeValue validateAfterInactivitySnapshot = validateAfterInactivity;
+                    if (TimeValue.isNonNegative(validateAfterInactivitySnapshot)) {
                         final ManagedHttpClientConnection conn = poolEntry.getConnection();
                         if (conn != null
-                                && poolEntry.getUpdated() + validateAfterInactivity.toMilliseconds() <= System.currentTimeMillis()) {
+                                && poolEntry.getUpdated() + validateAfterInactivitySnapshot.toMilliseconds() <= System.currentTimeMillis()) {
                             boolean stale;
                             try {
                                 stale = conn.isStale();
@@ -407,12 +408,13 @@ public class PoolingHttpClientConnectionManager
             LOG.debug("{}: connecting endpoint to {} ({})", ConnPoolSupport.getId(endpoint), host, connectTimeout);
         }
         final ManagedHttpClientConnection conn = poolEntry.getConnection();
+        final SocketConfig defaultSocketConfigSnapshot = defaultSocketConfig;
         this.connectionOperator.connect(
                 conn,
                 host,
                 route.getLocalSocketAddress(),
                 connectTimeout,
-                defaultSocketConfig != null ? this.defaultSocketConfig : SocketConfig.DEFAULT,
+                defaultSocketConfigSnapshot != null ? defaultSocketConfigSnapshot : SocketConfig.DEFAULT,
                 context);
         if (LOG.isDebugEnabled()) {
             LOG.debug("{}: connected {}", ConnPoolSupport.getId(endpoint), ConnPoolSupport.getId(conn));
