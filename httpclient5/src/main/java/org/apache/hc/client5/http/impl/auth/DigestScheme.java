@@ -27,6 +27,8 @@
 package org.apache.hc.client5.http.impl.auth;
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -46,13 +48,13 @@ import java.util.StringTokenizer;
 
 import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.AuthScheme;
-import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.AuthenticationException;
-import org.apache.hc.client5.http.utils.ByteArrayBuilder;
 import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.MalformedChallengeException;
+import org.apache.hc.client5.http.auth.StandardAuthScheme;
+import org.apache.hc.client5.http.utils.ByteArrayBuilder;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.HttpEntity;
@@ -103,6 +105,7 @@ public class DigestScheme implements AuthScheme, Serializable {
     private static final int QOP_AUTH_INT = 1;
     private static final int QOP_AUTH = 2;
 
+    private transient Charset defaultCharset;
     private final Map<String, String> paramMap;
     private boolean complete;
     private transient ByteArrayBuilder buffer;
@@ -117,6 +120,11 @@ public class DigestScheme implements AuthScheme, Serializable {
     private char[] password;
 
     public DigestScheme() {
+        this(StandardCharsets.ISO_8859_1);
+    }
+
+    public DigestScheme(final Charset charset) {
+        this.defaultCharset = charset != null ? charset : StandardCharsets.ISO_8859_1;
         this.paramMap = new HashMap<>();
         this.complete = false;
     }
@@ -263,11 +271,11 @@ public class DigestScheme implements AuthScheme, Serializable {
         }
 
         final String charsetName = this.paramMap.get("charset");
-        Charset charset;
+        final Charset charset;
         try {
-            charset = charsetName != null ? Charset.forName(charsetName) : StandardCharsets.ISO_8859_1;
+            charset = charsetName != null ? Charset.forName(charsetName) : defaultCharset;
         } catch (final UnsupportedCharsetException ex) {
-            charset = StandardCharsets.ISO_8859_1;
+            throw new AuthenticationException("Unsupported charset: " + charsetName);
         }
 
         String digAlg = algorithm;
@@ -468,6 +476,16 @@ public class DigestScheme implements AuthScheme, Serializable {
         final byte[] tmp = new byte[8];
         rnd.nextBytes(tmp);
         return tmp;
+    }
+
+    private void writeObject(final ObjectOutputStream out) throws IOException {
+        out.defaultWriteObject();
+        out.writeUTF(defaultCharset.name());
+    }
+
+    private void readObject(final ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        this.defaultCharset = Charset.forName(in.readUTF());
     }
 
     @Override
