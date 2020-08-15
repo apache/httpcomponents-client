@@ -16,14 +16,14 @@ http://maven.apache.org/run-maven/index.html
 
 Execute the following command in order to compile and test the components
 
-mvn test
+./mvnw test
 
 (3) Building packages 
 
 Execute the following command in order to build the JAR packages and install 
 them to the local repository:
 
-mvn install
+./mvnw install
 
 The JAR packages can be found in the target folders of their respective modules
 
@@ -39,5 +39,5 @@ where <VERSION> is the release version
 
 Check for proper license headers with:
 
-mvn apache-rat:check
+./mvnw apache-rat:check
 
