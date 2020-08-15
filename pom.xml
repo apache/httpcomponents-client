@@ -310,6 +310,7 @@
         </executions>
         <configuration>
           <excludes>
+            <exclude>.mvn/wrapper/maven-wrapper.properties</exclude>
             <exclude>src/docbkx/resources/**</exclude>
             <exclude>src/test/resources/*.truststore</exclude>
             <exclude>src/test/resources/*.serialized</exclude>
