@@ -41,6 +41,8 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.Args;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * NTLM is a proprietary authentication scheme developed by Microsoft
@@ -49,6 +51,8 @@ import org.apache.hc.core5.util.Args;
  * @since 4.0
  */
 public final class NTLMScheme implements AuthScheme {
+
+    private static final Logger LOG = LoggerFactory.getLogger(NTLMScheme.class);
 
     enum State {
         UNINITIATED,
@@ -126,12 +130,15 @@ public final class NTLMScheme implements AuthScheme {
         Args.notNull(host, "Auth host");
         Args.notNull(credentialsProvider, "CredentialsProvider");
 
+        final AuthScope authScope = new AuthScope(host, null, getName());
         final Credentials credentials = credentialsProvider.getCredentials(
-                new AuthScope(host, null, getName()), context);
+                authScope, context);
         if (credentials instanceof NTCredentials) {
             this.credentials = (NTCredentials) credentials;
             return true;
         }
+
+        LOG.debug("No credentials found for auth scope [{}]", authScope);
         return false;
     }
 

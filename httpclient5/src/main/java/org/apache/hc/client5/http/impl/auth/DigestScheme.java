@@ -64,6 +64,8 @@ import org.apache.hc.core5.http.message.BasicNameValuePair;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.CharArrayBuffer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Digest authentication scheme as defined in RFC 2617.
@@ -82,6 +84,8 @@ import org.apache.hc.core5.util.CharArrayBuffer;
 public class DigestScheme implements AuthScheme, Serializable {
 
     private static final long serialVersionUID = 3883908186234566916L;
+
+    private static final Logger LOG = LoggerFactory.getLogger(DigestScheme.class);
 
     /**
      * Hexa values used when creating 32 character long digest in HTTP DigestScheme
@@ -173,13 +177,16 @@ public class DigestScheme implements AuthScheme, Serializable {
         Args.notNull(host, "Auth host");
         Args.notNull(credentialsProvider, "CredentialsProvider");
 
+        final AuthScope authScope = new AuthScope(host, getRealm(), getName());
         final Credentials credentials = credentialsProvider.getCredentials(
-                new AuthScope(host, getRealm(), getName()), context);
+                authScope, context);
         if (credentials != null) {
             this.username = credentials.getUserPrincipal().getName();
             this.password = credentials.getPassword();
             return true;
         }
+
+        LOG.debug("No credentials found for auth scope [{}]", authScope);
         this.username = null;
         this.password = null;
         return false;

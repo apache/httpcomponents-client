@@ -55,6 +55,8 @@ import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.Args;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Basic authentication scheme as defined in RFC 2617.
@@ -65,6 +67,8 @@ import org.apache.hc.core5.util.Args;
 public class BasicScheme implements AuthScheme, Serializable {
 
     private static final long serialVersionUID = -1931571557597830536L;
+
+    private static final Logger LOG = LoggerFactory.getLogger(BasicScheme.class);
 
     private final Map<String, String> paramMap;
     private transient Charset charset;
@@ -141,13 +145,16 @@ public class BasicScheme implements AuthScheme, Serializable {
         Args.notNull(host, "Auth host");
         Args.notNull(credentialsProvider, "CredentialsProvider");
 
+        final AuthScope authScope = new AuthScope(host, getRealm(), getName());
         final Credentials credentials = credentialsProvider.getCredentials(
-                new AuthScope(host, getRealm(), getName()), context);
+                authScope, context);
         if (credentials != null) {
             this.username = credentials.getUserPrincipal().getName();
             this.password = credentials.getPassword();
             return true;
         }
+
+        LOG.debug("No credentials found for auth scope [{}]", authScope);
         this.username = null;
         this.password = null;
         return false;
