@@ -141,7 +141,8 @@ class CacheUpdateHandler {
         for (final Iterator<Header> it = response.headerIterator(); it.hasNext(); ) {
             final Header responseHeader = it.next();
             // Since we do not expect a content in a 304 response, should retain the original Content-Encoding header
-            if (HttpHeaders.CONTENT_ENCODING.equals(responseHeader.getName())) {
+            if (HttpHeaders.CONTENT_ENCODING.equals(responseHeader.getName())
+                    || HttpHeaders.CONTENT_LENGTH.equals(responseHeader.getName())) {
                 continue;
             }
             headerGroup.removeHeaders(responseHeader.getName());
@@ -159,7 +160,8 @@ class CacheUpdateHandler {
         for (final Iterator<Header> it = response.headerIterator(); it.hasNext(); ) {
             final Header responseHeader = it.next();
             // Since we do not expect a content in a 304 response, should update the cache entry with Content-Encoding
-            if (HttpHeaders.CONTENT_ENCODING.equals(responseHeader.getName())) {
+            if (HttpHeaders.CONTENT_ENCODING.equals(responseHeader.getName())
+                    || HttpHeaders.CONTENT_LENGTH.equals(responseHeader.getName())) {
                 continue;
             }
             headerGroup.addHeader(responseHeader);
