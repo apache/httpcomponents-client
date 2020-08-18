@@ -260,6 +260,27 @@ public class TestCacheEntryUpdater {
         headersNotContain(updatedHeaders, "Content-Encoding", "gzip");
     }
 
+    @Test
+    public void testContentLengthIsNotAddedWhenTransferEncodingIsPresent() throws IOException {
+        final Header[] headers = {
+                new BasicHeader("Date", DateUtils.formatDate(requestDate)),
+                new BasicHeader("ETag", "\"etag\""),
+                new BasicHeader("Transfer-Encoding", "chunked")};
+
+        entry = HttpTestUtils.makeCacheEntry(headers);
+        response.setHeaders(new Header[]{
+                new BasicHeader("Last-Modified", DateUtils.formatDate(responseDate)),
+                new BasicHeader("Cache-Control", "public"),
+                new BasicHeader("Content-Length", "0")});
+
+        final HttpCacheEntry updatedEntry = impl.updateCacheEntry(null, entry,
+                new Date(), new Date(), response);
+
+        final Header[] updatedHeaders = updatedEntry.getAllHeaders();
+        headersContain(updatedHeaders, "Transfer-Encoding", "chunked");
+        headersNotContain(updatedHeaders, "Content-Length", "0");
+    }
+
     private void headersContain(final Header[] headers, final String name, final String value) {
         for (final Header header : headers) {
             if (header.getName().equals(name)) {
