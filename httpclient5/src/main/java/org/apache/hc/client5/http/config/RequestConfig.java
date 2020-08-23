@@ -495,7 +495,7 @@ public class RequestConfig implements Cloneable {
          * A negative value is interpreted as an infinite keep-alive period.
          * </p>
          * <p>
-         * Default: 1 minute
+         * Default: 3 minutes
          * </p>
          *
          * @since 5.0
