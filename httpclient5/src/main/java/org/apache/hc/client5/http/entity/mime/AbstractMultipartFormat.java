@@ -50,7 +50,7 @@ abstract class AbstractMultipartFormat {
             final Charset charset, final String string) {
         final ByteBuffer encoded = charset.encode(CharBuffer.wrap(string));
         final ByteArrayBuffer bab = new ByteArrayBuffer(encoded.remaining());
-        bab.append(encoded.array(), encoded.position(), encoded.remaining());
+        bab.append(encoded.array(), encoded.arrayOffset() + encoded.position(), encoded.remaining());
         return bab;
     }
 
