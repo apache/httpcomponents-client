@@ -130,7 +130,7 @@ public final class ProtocolExec implements ExecChainHandler {
                     } else {
                         uri = URIUtils.rewriteURI(uri);
                     }
-                    request.setPath(uri.toASCIIString());
+                    request.setPath(uri.getPath());
                 } catch (final URISyntaxException ex) {
                     throw new ProtocolException("Invalid request URI: " + request.getRequestUri(), ex);
                 }
