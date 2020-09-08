@@ -739,6 +739,9 @@ public class H2AsyncClientBuilder {
                     case BEFORE:
                         execChainDefinition.addBefore(entry.existing, entry.interceptor, entry.name);
                         break;
+                    case REPLACE:
+                        execChainDefinition.replace(entry.existing, entry.interceptor);
+                        break;
                     case FIRST:
                         execChainDefinition.addFirst(entry.interceptor, entry.name);
                         break;
