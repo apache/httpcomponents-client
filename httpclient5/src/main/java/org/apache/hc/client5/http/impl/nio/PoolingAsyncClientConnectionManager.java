@@ -247,7 +247,7 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
                         if (TimeValue.isNonNegative(timeValue) && connection != null &&
                                 poolEntry.getUpdated() + timeValue.toMilliseconds() <= System.currentTimeMillis()) {
                             final ProtocolVersion protocolVersion = connection.getProtocolVersion();
-                            if (HttpVersion.HTTP_2_0.greaterEquals(protocolVersion)) {
+                            if (protocolVersion != null && protocolVersion.greaterEquals(HttpVersion.HTTP_2_0)) {
                                 connection.submitCommand(new PingCommand(new BasicPingHandler(new Callback<Boolean>() {
 
                                     @Override
