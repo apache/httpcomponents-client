@@ -102,31 +102,34 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
 
     @Override
     public void execute(
-            final HttpRequest request,
+            final HttpRequest userRequest,
             final AsyncEntityProducer entityProducer,
             final AsyncExecChain.Scope scope,
             final AsyncExecChain chain,
             final AsyncExecCallback asyncExecCallback) throws HttpException, IOException {
 
-        if (Method.CONNECT.isSame(request.getMethod())) {
+        if (Method.CONNECT.isSame(userRequest.getMethod())) {
             throw new ProtocolException("Direct execution of CONNECT is not allowed");
         }
 
         final HttpRoute route = scope.route;
         final HttpClientContext clientContext = scope.clientContext;
 
+        final HttpRequest request;
         if (route.getProxyHost() != null && !route.isTunnelled()) {
             try {
-                URI uri = request.getUri();
+                URI uri = userRequest.getUri();
                 if (!uri.isAbsolute()) {
                     uri = URIUtils.rewriteURI(uri, route.getTargetHost(), true);
                 } else {
                     uri = URIUtils.rewriteURI(uri);
                 }
-                request.setPath(uri.toASCIIString());
+                request = HttpProxyRequest.rewrite(userRequest, uri);
             } catch (final URISyntaxException ex) {
-                throw new ProtocolException("Invalid request URI: " + request.getRequestUri(), ex);
+                throw new ProtocolException("Invalid request URI: " + userRequest.getRequestUri(), ex);
             }
+        } else {
+            request = userRequest;
         }
 
         final URIAuthority authority = request.getAuthority();

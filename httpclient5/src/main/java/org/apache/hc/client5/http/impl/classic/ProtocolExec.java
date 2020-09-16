@@ -101,13 +101,13 @@ public final class ProtocolExec implements ExecChainHandler {
 
     @Override
     public ClassicHttpResponse execute(
-            final ClassicHttpRequest request,
+            final ClassicHttpRequest userRequest,
             final ExecChain.Scope scope,
             final ExecChain chain) throws IOException, HttpException {
-        Args.notNull(request, "HTTP request");
+        Args.notNull(userRequest, "HTTP request");
         Args.notNull(scope, "Scope");
 
-        if (Method.CONNECT.isSame(request.getMethod())) {
+        if (Method.CONNECT.isSame(userRequest.getMethod())) {
             throw new ProtocolException("Direct execution of CONNECT is not allowed");
         }
 
@@ -122,18 +122,21 @@ public final class ProtocolExec implements ExecChainHandler {
         final AuthExchange proxyAuthExchange = proxy != null ? context.getAuthExchange(proxy) : new AuthExchange();
 
         try {
+            final ClassicHttpRequest request;
             if (proxy != null && !route.isTunnelled()) {
                 try {
-                    URI uri = request.getUri();
+                    URI uri = userRequest.getUri();
                     if (!uri.isAbsolute()) {
                         uri = URIUtils.rewriteURI(uri, target, true);
                     } else {
                         uri = URIUtils.rewriteURI(uri);
                     }
-                    request.setPath(uri.toASCIIString());
+                    request = ClassicHttpProxyRequest.rewrite(userRequest, uri);
                 } catch (final URISyntaxException ex) {
-                    throw new ProtocolException("Invalid request URI: " + request.getRequestUri(), ex);
+                    throw new ProtocolException("Invalid request URI: " + userRequest.getRequestUri(), ex);
                 }
+            } else {
+                request = userRequest;
             }
 
             final URIAuthority authority = request.getAuthority();

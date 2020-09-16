@@ -39,11 +39,11 @@ import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.AuthExchange;
 import org.apache.hc.client5.http.auth.AuthScheme;
-import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
+import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecRuntime;
@@ -250,7 +250,7 @@ public class TestProtocolExec {
 
     @Test
     public void testExecEntityEnclosingRequestRetryOnAuthChallenge() throws Exception {
-        final HttpRoute route = new HttpRoute(target, proxy);
+        final HttpRoute route = new HttpRoute(target);
         final ClassicHttpRequest request = new HttpGet("http://foo/test");
         final ClassicHttpResponse response1 = new BasicClassicHttpResponse(401, "Huh?");
         response1.setHeader(HttpHeaders.WWW_AUTHENTICATE, StandardAuthScheme.BASIC + " realm=test");
@@ -266,10 +266,10 @@ public class TestProtocolExec {
 
         final HttpClientContext context = new HttpClientContext();
 
-        final AuthExchange proxyAuthExchange = new AuthExchange();
-        proxyAuthExchange.setState(AuthExchange.State.SUCCESS);
-        proxyAuthExchange.select(new NTLMScheme());
-        context.setAuthExchange(proxy, proxyAuthExchange);
+        final AuthExchange authExchange = new AuthExchange();
+        authExchange.setState(AuthExchange.State.SUCCESS);
+        authExchange.select(new NTLMScheme());
+        context.setAuthExchange(target, authExchange);
 
         final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
         credentialsProvider.setCredentials(new AuthScope(target), new UsernamePasswordCredentials("user", "pass".toCharArray()));
@@ -292,7 +292,7 @@ public class TestProtocolExec {
 
         Assert.assertNotNull(finalResponse);
         Assert.assertEquals(200, finalResponse.getCode());
-        Assert.assertNull(proxyAuthExchange.getAuthScheme());
+        Assert.assertNotNull(authExchange.getAuthScheme());
     }
 
     @Test
