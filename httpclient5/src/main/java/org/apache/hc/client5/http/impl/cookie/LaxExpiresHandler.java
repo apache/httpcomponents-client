@@ -41,9 +41,9 @@ import org.apache.hc.client5.http.cookie.MalformedCookieException;
 import org.apache.hc.client5.http.cookie.SetCookie;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
-import org.apache.hc.core5.http.message.ParserCursor;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TextUtils;
+import org.apache.hc.core5.util.Tokenizer;
 
 /**
  * Cookie {@code expires} attribute handler conformant to the more relaxed interpretation
@@ -111,7 +111,7 @@ public class LaxExpiresHandler extends AbstractCookieAttributeHandler implements
         if (TextUtils.isBlank(value)) {
             return;
         }
-        final ParserCursor cursor = new ParserCursor(0, value.length());
+        final Tokenizer.Cursor cursor = new Tokenizer.Cursor(0, value.length());
         final StringBuilder content = new StringBuilder();
 
         int second = 0, minute = 0, hour = 0, day = 0, month = 0, year = 0;
@@ -188,7 +188,7 @@ public class LaxExpiresHandler extends AbstractCookieAttributeHandler implements
         cookie.setExpiryDate(c.getTime());
     }
 
-    private void skipDelims(final CharSequence buf, final ParserCursor cursor) {
+    private void skipDelims(final CharSequence buf, final Tokenizer.Cursor cursor) {
         int pos = cursor.getPos();
         final int indexFrom = cursor.getPos();
         final int indexTo = cursor.getUpperBound();
@@ -203,7 +203,7 @@ public class LaxExpiresHandler extends AbstractCookieAttributeHandler implements
         cursor.updatePos(pos);
     }
 
-    private void copyContent(final CharSequence buf, final ParserCursor cursor, final StringBuilder dst) {
+    private void copyContent(final CharSequence buf, final Tokenizer.Cursor cursor, final StringBuilder dst) {
         int pos = cursor.getPos();
         final int indexFrom = cursor.getPos();
         final int indexTo = cursor.getUpperBound();

@@ -33,32 +33,31 @@ import java.util.List;
 
 import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.http.message.BasicNameValuePair;
-import org.apache.hc.core5.http.message.ParserCursor;
-import org.apache.hc.core5.http.message.TokenParser;
 import org.apache.hc.core5.util.CharArrayBuffer;
+import org.apache.hc.core5.util.Tokenizer;
 
 final class DistinguishedNameParser {
 
     public final static DistinguishedNameParser INSTANCE = new DistinguishedNameParser();
 
-    private static final BitSet EQUAL_OR_COMMA_OR_PLUS      = TokenParser.INIT_BITSET('=', ',', '+');
-    private static final BitSet COMMA_OR_PLUS               = TokenParser.INIT_BITSET(',', '+');
+    private static final BitSet EQUAL_OR_COMMA_OR_PLUS      = Tokenizer.INIT_BITSET('=', ',', '+');
+    private static final BitSet COMMA_OR_PLUS               = Tokenizer.INIT_BITSET(',', '+');
 
-    private final TokenParser tokenParser;
+    private final Tokenizer tokenParser;
 
     DistinguishedNameParser() {
         this.tokenParser = new InternalTokenParser();
     }
 
-    private String parseToken(final CharArrayBuffer buf, final ParserCursor cursor, final BitSet delimiters) {
+    private String parseToken(final CharArrayBuffer buf, final Tokenizer.Cursor cursor, final BitSet delimiters) {
         return tokenParser.parseToken(buf, cursor, delimiters);
     }
 
-    private String parseValue(final CharArrayBuffer buf, final ParserCursor cursor, final BitSet delimiters) {
+    private String parseValue(final CharArrayBuffer buf, final Tokenizer.Cursor cursor, final BitSet delimiters) {
         return tokenParser.parseValue(buf, cursor, delimiters);
     }
 
-    private NameValuePair parseParameter(final CharArrayBuffer buf, final ParserCursor cursor) {
+    private NameValuePair parseParameter(final CharArrayBuffer buf, final Tokenizer.Cursor cursor) {
         final String name = parseToken(buf, cursor, EQUAL_OR_COMMA_OR_PLUS);
         if (cursor.atEnd()) {
             return new BasicNameValuePair(name, null);
@@ -75,7 +74,7 @@ final class DistinguishedNameParser {
         return new BasicNameValuePair(name, value);
     }
 
-    List<NameValuePair> parse(final CharArrayBuffer buf, final ParserCursor cursor) {
+    List<NameValuePair> parse(final CharArrayBuffer buf, final Tokenizer.Cursor cursor) {
         final List<NameValuePair> params = new ArrayList<>();
         tokenParser.skipWhiteSpace(buf, cursor);
         while (!cursor.atEnd()) {
@@ -91,16 +90,16 @@ final class DistinguishedNameParser {
         }
         final CharArrayBuffer buffer = new CharArrayBuffer(s.length());
         buffer.append(s);
-        final ParserCursor cursor = new ParserCursor(0, s.length());
+        final Tokenizer.Cursor cursor = new Tokenizer.Cursor(0, s.length());
         return parse(buffer, cursor);
     }
 
-    static class InternalTokenParser extends TokenParser {
+    static class InternalTokenParser extends Tokenizer {
 
         @Override
         public void copyUnquotedContent(
                 final CharSequence buf,
-                final ParserCursor cursor,
+                final Tokenizer.Cursor cursor,
                 final BitSet delimiters,
                 final StringBuilder dst) {
             int pos = cursor.getPos();
@@ -114,7 +113,7 @@ final class DistinguishedNameParser {
                     escaped = false;
                 } else {
                     if ((delimiters != null && delimiters.get(current))
-                            || TokenParser.isWhitespace(current) || current == '\"') {
+                            || Tokenizer.isWhitespace(current) || current == '\"') {
                         break;
                     } else if (current == '\\') {
                         escaped = true;

@@ -37,8 +37,8 @@ import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.http.ParseException;
 import org.apache.hc.core5.http.message.BasicNameValuePair;
 import org.apache.hc.core5.http.message.ParserCursor;
-import org.apache.hc.core5.http.message.TokenParser;
 import org.apache.hc.core5.util.TextUtils;
+import org.apache.hc.core5.util.Tokenizer;
 
 /**
  * Authentication challenge parser.
@@ -49,7 +49,7 @@ public class AuthChallengeParser {
 
     public static final AuthChallengeParser INSTANCE = new AuthChallengeParser();
 
-    private final TokenParser tokenParser = TokenParser.INSTANCE;
+    private final Tokenizer tokenParser = Tokenizer.INSTANCE;
 
     private final static char BLANK            = ' ';
     private final static char COMMA_CHAR       = ',';
@@ -57,9 +57,9 @@ public class AuthChallengeParser {
 
     // IMPORTANT!
     // These private static variables must be treated as immutable and never exposed outside this class
-    private static final BitSet TERMINATORS = TokenParser.INIT_BITSET(BLANK, EQUAL_CHAR, COMMA_CHAR);
-    private static final BitSet DELIMITER = TokenParser.INIT_BITSET(COMMA_CHAR);
-    private static final BitSet SPACE = TokenParser.INIT_BITSET(BLANK);
+    private static final BitSet TERMINATORS = Tokenizer.INIT_BITSET(BLANK, EQUAL_CHAR, COMMA_CHAR);
+    private static final BitSet DELIMITER = Tokenizer.INIT_BITSET(COMMA_CHAR);
+    private static final BitSet SPACE = Tokenizer.INIT_BITSET(BLANK);
 
     static class ChallengeInt {
 
