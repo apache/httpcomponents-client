@@ -60,7 +60,7 @@ import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
 import org.apache.hc.core5.http.io.entity.FileEntity;
 import org.apache.hc.core5.http.io.entity.InputStreamEntity;
-import org.apache.hc.core5.net.URLEncodedUtils;
+import org.apache.hc.core5.net.WWWFormCodec;
 import org.apache.hc.core5.util.Timeout;
 
 /**
@@ -334,7 +334,7 @@ public class Request {
         }
         final ContentType contentType = charset != null ?
                 ContentType.APPLICATION_FORM_URLENCODED.withCharset(charset) : ContentType.APPLICATION_FORM_URLENCODED;
-        final String s = URLEncodedUtils.format(paramList, contentType.getCharset());
+        final String s = WWWFormCodec.format(paramList, contentType.getCharset());
         return bodyString(s, contentType);
     }
 
