@@ -73,7 +73,7 @@ public class TestURIUtils {
                 URI.create("http://thathost")).toString());
         Assert.assertEquals("http://thathost/", URIUtils.rewriteURI(
                 URI.create("http://ThatHost")).toString());
-        Assert.assertEquals("http://That_Host/", URIUtils.rewriteURI(
+        Assert.assertEquals("http://that_host/", URIUtils.rewriteURI(
                 URI.create("http://That_Host")).toString());
         Assert.assertEquals("http://thishost/Fragment_identifier%23Examples",
                 URIUtils.rewriteURI(
@@ -111,8 +111,8 @@ public class TestURIUtils {
         Assert.assertEquals("http://www.example.com/a/", URIUtils.resolve(this.baseURI, "http://www.example.com/a%2f").toString());
         Assert.assertEquals("http://www.example.com/?q=%26", URIUtils.resolve(this.baseURI, "http://www.example.com/?q=%26").toString());
         Assert.assertEquals("http://www.example.com/%23?q=%26", URIUtils.resolve(this.baseURI, "http://www.example.com/%23?q=%26").toString());
-        Assert.assertEquals("http://www.example.com/blah-(%20-blah-%20&%20-blah-%20)-blah/",
-                URIUtils.resolve(this.baseURI, "http://www.example.com/blah-%28%20-blah-%20%26%20-blah-%20%29-blah/").toString());
+        Assert.assertEquals("http://www.example.com/blah-%28%20-blah-%20%26%20-blah-%20%29-blah/",
+                URIUtils.resolve(this.baseURI, "http://www.example.com/blah-%28%20-blah-%20&%20-blah-%20)-blah/").toString());
     }
 
     @Test
@@ -122,21 +122,21 @@ public class TestURIUtils {
         Assert.assertEquals("http://a/b/c/g", URIUtils.resolve(this.baseURI, "./g").toString());
         Assert.assertEquals("http://a/b/c/g/", URIUtils.resolve(this.baseURI, "g/").toString());
         Assert.assertEquals("http://a/g", URIUtils.resolve(this.baseURI, "/g").toString());
-        Assert.assertEquals("http://g", URIUtils.resolve(this.baseURI, "//g").toString());
+        Assert.assertEquals("http://g/", URIUtils.resolve(this.baseURI, "//g").toString());
         Assert.assertEquals("http://a/b/c/d;p?y", URIUtils.resolve(this.baseURI, "?y").toString());
         Assert.assertEquals("http://a/b/c/d;p?y#f", URIUtils.resolve(this.baseURI, "?y#f")
                 .toString());
         Assert.assertEquals("http://a/b/c/g?y", URIUtils.resolve(this.baseURI, "g?y").toString());
-        Assert.assertEquals("http://a/b/c/d;p?q#s", URIUtils.resolve(this.baseURI, "#s")
+        Assert.assertEquals("http://a/b/c/d%3Bp?q#s", URIUtils.resolve(this.baseURI, "#s")
                 .toString());
         Assert.assertEquals("http://a/b/c/g#s", URIUtils.resolve(this.baseURI, "g#s").toString());
         Assert.assertEquals("http://a/b/c/g?y#s", URIUtils.resolve(this.baseURI, "g?y#s")
                 .toString());
-        Assert.assertEquals("http://a/b/c/;x", URIUtils.resolve(this.baseURI, ";x").toString());
-        Assert.assertEquals("http://a/b/c/g;x", URIUtils.resolve(this.baseURI, "g;x").toString());
-        Assert.assertEquals("http://a/b/c/g;x?y#s", URIUtils.resolve(this.baseURI, "g;x?y#s")
+        Assert.assertEquals("http://a/b/c/%3Bx", URIUtils.resolve(this.baseURI, ";x").toString());
+        Assert.assertEquals("http://a/b/c/g%3Bx", URIUtils.resolve(this.baseURI, "g;x").toString());
+        Assert.assertEquals("http://a/b/c/g%3Bx?y#s", URIUtils.resolve(this.baseURI, "g;x?y#s")
                 .toString());
-        Assert.assertEquals("http://a/b/c/d;p?q", URIUtils.resolve(this.baseURI, "").toString());
+        Assert.assertEquals("http://a/b/c/d%3Bp?q", URIUtils.resolve(this.baseURI, "").toString());
         Assert.assertEquals("http://a/b/c/", URIUtils.resolve(this.baseURI, ".").toString());
         Assert.assertEquals("http://a/b/c/", URIUtils.resolve(this.baseURI, "./").toString());
         Assert.assertEquals("http://a/b/", URIUtils.resolve(this.baseURI, "..").toString());
@@ -158,7 +158,7 @@ public class TestURIUtils {
         Assert.assertEquals("http://a/b/c/g/", URIUtils.resolve(this.baseURI, "./g/.").toString());
         Assert.assertEquals("http://a/b/c/g/h", URIUtils.resolve(this.baseURI, "g/./h").toString());
         Assert.assertEquals("http://a/b/c/h", URIUtils.resolve(this.baseURI, "g/../h").toString());
-        Assert.assertEquals("http://a/b/c/g;x=1/y", URIUtils.resolve(this.baseURI, "g;x=1/./y")
+        Assert.assertEquals("http://a/b/c/g%3Bx%3D1/y", URIUtils.resolve(this.baseURI, "g;x=1/./y")
                 .toString());
         Assert.assertEquals("http://a/b/c/y", URIUtils.resolve(this.baseURI, "g;x=1/../y")
                 .toString());
@@ -183,7 +183,7 @@ public class TestURIUtils {
         Assert.assertEquals("example://a/b/c/%7Bfoo%7D", URIUtils.resolve(this.baseURI, "eXAMPLE://a/./b/../b/%63/%7bfoo%7d").toString());
         Assert.assertEquals("file://localhost/etc/fstab", URIUtils.resolve(this.baseURI, "file://localhost/etc/fstab").toString());
         Assert.assertEquals("file:///etc/fstab", URIUtils.resolve(this.baseURI, "file:///etc/fstab").toString());
-        Assert.assertEquals("file://localhost/c:/WINDOWS/clock.avi", URIUtils.resolve(this.baseURI, "file://localhost/c:/WINDOWS/clock.avi").toString());
+        Assert.assertEquals("file://localhost/c%3A/WINDOWS/clock.avi", URIUtils.resolve(this.baseURI, "file://localhost/c:/WINDOWS/clock.avi").toString());
         Assert.assertEquals("file:///c:/WINDOWS/clock.avi", URIUtils.resolve(this.baseURI, "file:///c:/WINDOWS/clock.avi").toString());
         Assert.assertEquals("file://hostname/path/to/the%20file.txt", URIUtils.resolve(this.baseURI, "file://hostname/path/to/the%20file.txt").toString());
         Assert.assertEquals("file:///c:/path/to/the%20file.txt", URIUtils.resolve(this.baseURI, "file:///c:/path/to/the%20file.txt").toString());
