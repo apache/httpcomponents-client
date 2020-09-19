@@ -133,8 +133,8 @@ public class URIUtils {
         if (uribuilder.getUserInfo() != null) {
             uribuilder.setUserInfo(null);
         }
-        if (TextUtils.isEmpty(uribuilder.getPath())) {
-            uribuilder.setPath("/");
+        if (uribuilder.isPathEmpty()) {
+            uribuilder.setPathSegments("");
         }
         if (uribuilder.getHost() != null) {
             uribuilder.setHost(uribuilder.getHost().toLowerCase(Locale.ROOT));
@@ -203,30 +203,30 @@ public class URIUtils {
         }
         Args.check(uri.isAbsolute(), "Base URI must be absolute");
         final URIBuilder builder = new URIBuilder(uri);
-        final String path = builder.getPath();
-        if (path != null && !path.equals("/")) {
-            final String[] inputSegments = path.split("/");
+        if (!builder.isPathEmpty()) {
+            final List<String> inputSegments = builder.getPathSegments();
             final Stack<String> outputSegments = new Stack<>();
             for (final String inputSegment : inputSegments) {
-                if ((inputSegment.isEmpty()) || (".".equals(inputSegment))) {
-                    // Do nothing
-                } else if ("..".equals(inputSegment)) {
-                    if (!outputSegments.isEmpty()) {
-                        outputSegments.pop();
+                if (!inputSegment.isEmpty() && !".".equals(inputSegment)) {
+                    if ("..".equals(inputSegment)) {
+                        if (!outputSegments.isEmpty()) {
+                            outputSegments.pop();
+                        }
+                    } else {
+                        outputSegments.push(inputSegment);
                     }
-                } else {
-                    outputSegments.push(inputSegment);
                 }
             }
-            final StringBuilder outputBuffer = new StringBuilder();
-            for (final String outputSegment : outputSegments) {
-                outputBuffer.append('/').append(outputSegment);
+            if (!inputSegments.isEmpty()) {
+                final String lastSegment = inputSegments.get(inputSegments.size() - 1);
+                if (lastSegment.isEmpty()) {
+                    outputSegments.push("");
+                }
             }
-            if (path.lastIndexOf('/') == path.length() - 1) {
-                // path.endsWith("/") || path.equals("")
-                outputBuffer.append('/');
-            }
-            builder.setPath(outputBuffer.toString());
+            builder.setPathSegments(outputSegments);
+        }
+        if (builder.isPathEmpty()) {
+            builder.setPathSegments("");
         }
         if (builder.getScheme() != null) {
             builder.setScheme(builder.getScheme().toLowerCase(Locale.ROOT));

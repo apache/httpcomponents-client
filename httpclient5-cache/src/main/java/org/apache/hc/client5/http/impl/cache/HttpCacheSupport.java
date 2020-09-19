@@ -115,8 +115,8 @@ public final class HttpCacheSupport {
             }
         }
         builder.setFragment(null);
-        if (builder.getPath() == null) {
-            builder.setPath("/");
+        if (builder.isPathEmpty()) {
+            builder.setPathSegments("");
         }
         return builder.build();
     }

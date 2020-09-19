@@ -108,7 +108,7 @@ public class TestURIUtils {
         Assert.assertEquals("example://a/b/c/%7Bfoo%7D", URIUtils.resolve(this.baseURI, "eXAMPLE://a/./b/../b/%63/%7bfoo%7d").toString());
         Assert.assertEquals("http://www.example.com/%3C", URIUtils.resolve(this.baseURI, "http://www.example.com/%3c").toString());
         Assert.assertEquals("http://www.example.com/", URIUtils.resolve(this.baseURI, "HTTP://www.EXAMPLE.com/").toString());
-        Assert.assertEquals("http://www.example.com/a/", URIUtils.resolve(this.baseURI, "http://www.example.com/a%2f").toString());
+        Assert.assertEquals("http://www.example.com/a%2F", URIUtils.resolve(this.baseURI, "http://www.example.com/a%2f").toString());
         Assert.assertEquals("http://www.example.com/?q=%26", URIUtils.resolve(this.baseURI, "http://www.example.com/?q=%26").toString());
         Assert.assertEquals("http://www.example.com/%23?q=%26", URIUtils.resolve(this.baseURI, "http://www.example.com/%23?q=%26").toString());
         Assert.assertEquals("http://www.example.com/blah-%28%20-blah-%20%26%20-blah-%20%29-blah/",

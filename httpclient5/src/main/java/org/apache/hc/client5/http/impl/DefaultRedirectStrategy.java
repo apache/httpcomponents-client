@@ -45,7 +45,6 @@ import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.net.URIBuilder;
 import org.apache.hc.core5.util.Args;
-import org.apache.hc.core5.util.TextUtils;
 
 /**
  * Default implementation of {@link RedirectStrategy}.
@@ -119,9 +118,8 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
             if (host != null) {
                 b.setHost(host.toLowerCase(Locale.ROOT));
             }
-            final String path = b.getPath();
-            if (TextUtils.isEmpty(path)) {
-                b.setPath("/");
+            if (b.isPathEmpty()) {
+                b.setPathSegments("");
             }
             return b.build();
         } catch (final URISyntaxException ex) {

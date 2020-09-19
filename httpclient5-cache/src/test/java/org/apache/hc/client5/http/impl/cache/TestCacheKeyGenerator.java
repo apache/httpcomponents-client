@@ -382,7 +382,7 @@ public class TestCacheKeyGenerator {
     public void testIntermidateEncodedDotDotSegementsAreEquivalent() {
         final HttpHost host = new HttpHost("foo.example.com");
         final HttpRequest req1 = new BasicHttpRequest("GET", "/home.html");
-        final HttpRequest req2 = new BasicHttpRequest("GET", "/%7Esmith%2F../home.html");
+        final HttpRequest req2 = new BasicHttpRequest("GET", "/%7Esmith/../home.html");
         Assert.assertEquals(extractor.generateKey(host, req1), extractor.generateKey(host, req2));
     }
 
@@ -406,7 +406,7 @@ public class TestCacheKeyGenerator {
     public void testEquivalentExtraPathEncodingsAreEquivalent() {
         final HttpHost host = new HttpHost("foo.example.com");
         final HttpRequest req1 = new BasicHttpRequest("GET", "/~smith/home.html");
-        final HttpRequest req2 = new BasicHttpRequest("GET", "/%7Esmith%2Fhome.html");
+        final HttpRequest req2 = new BasicHttpRequest("GET", "/%7Esmith/home.html");
         Assert.assertEquals(extractor.generateKey(host, req1), extractor.generateKey(host, req2));
     }
 
@@ -414,7 +414,7 @@ public class TestCacheKeyGenerator {
     public void testEquivalentExtraPathEncodingsWithPercentAreEquivalent() {
         final HttpHost host = new HttpHost("foo.example.com");
         final HttpRequest req1 = new BasicHttpRequest("GET", "/~smith/home%20folder.html");
-        final HttpRequest req2 = new BasicHttpRequest("GET", "/%7Esmith%2Fhome%20folder.html");
+        final HttpRequest req2 = new BasicHttpRequest("GET", "/%7Esmith/home%20folder.html");
         Assert.assertEquals(extractor.generateKey(host, req1), extractor.generateKey(host, req2));
     }
 }
