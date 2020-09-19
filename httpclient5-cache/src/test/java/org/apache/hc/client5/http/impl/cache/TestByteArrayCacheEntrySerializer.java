@@ -34,6 +34,7 @@ import static org.junit.Assert.assertTrue;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
@@ -48,8 +49,6 @@ import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.StatusLine;
 import org.junit.Before;
 import org.junit.Test;
-
-import com.sun.rowset.JdbcRowSetImpl;
 
 public class TestByteArrayCacheEntrySerializer {
 
@@ -239,11 +238,11 @@ public class TestByteArrayCacheEntrySerializer {
     }
 
     private byte[] serializeProhibitedObject() throws IOException {
-        final JdbcRowSetImpl jdbcRowSet = new JdbcRowSetImpl();
+        final BigDecimal bigDecimal = new BigDecimal("1000.00");
         final ByteArrayOutputStream baos = new ByteArrayOutputStream();
         final ObjectOutputStream oos = new ObjectOutputStream(baos);
         try {
-            oos.writeObject(jdbcRowSet);
+            oos.writeObject(bigDecimal);
         } finally {
             oos.close();
         }
