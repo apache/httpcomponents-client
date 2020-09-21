@@ -33,7 +33,7 @@
   <artifactId>httpclient5-testing</artifactId>
   <name>Apache HttpClient Integration Tests</name>
   <description>Apache HttpClient integration tests</description>
-  <url>http://hc.apache.org/httpcomponents-client</url>
+  <url>https://hc.apache.org/httpcomponents-client-5.0.x/</url>
   <packaging>jar</packaging>
 
   <properties>
