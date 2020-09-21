@@ -34,7 +34,7 @@
   <name>Apache HttpClient Fluent</name>
   <inceptionYear>2011</inceptionYear>
   <description>Apache HttpComponents Client Fluent</description>
-  <url>http://hc.apache.org/httpcomponents-client</url>
+  <url>https://hc.apache.org/httpcomponents-client-5.0.x/</url>
   <packaging>jar</packaging>
 
   <properties>

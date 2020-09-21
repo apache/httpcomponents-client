@@ -35,7 +35,7 @@
   <name>Apache HttpComponents Client Parent</name>
   <version>5.0.2-SNAPSHOT</version>
   <description>Apache HttpComponents Client is a library of components for building client side HTTP services</description>
-  <url>http://hc.apache.org/httpcomponents-client-5.0.x/</url>
+  <url>https://hc.apache.org/httpcomponents-client-5.0.x/</url>
   <inceptionYear>1999</inceptionYear>
   <packaging>pom</packaging>
 
@@ -54,7 +54,7 @@
 
   <issueManagement>
     <system>Jira</system>
-    <url>http://issues.apache.org/jira/browse/HTTPCLIENT</url>
+    <url>https://issues.apache.org/jira/browse/HTTPCLIENT</url>
   </issueManagement>
 
   <scm>
