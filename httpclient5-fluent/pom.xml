@@ -46,7 +46,6 @@
       <groupId>org.apache.httpcomponents.client5</groupId>
       <artifactId>httpclient5</artifactId>
       <version>${project.version}</version>
-      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.httpcomponents.client5</groupId>
@@ -58,7 +57,6 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
-      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
@@ -98,7 +96,6 @@
               <resources>
                 <resource>
                   <directory>src/test/java/org/apache/hc/client5/http/examples/fluent</directory>
-                  <filtering>false</filtering>
                 </resource>
               </resources>
             </configuration>
