@@ -135,15 +135,6 @@
           </reportSet>
         </reportSets>
       </plugin>
-
-      <plugin>
-        <artifactId>maven-jxr-plugin</artifactId>
-      </plugin>
-
-      <plugin>
-        <artifactId>maven-surefire-report-plugin</artifactId>
-      </plugin>
-
     </plugins>
   </reporting>
 

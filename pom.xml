@@ -271,7 +271,6 @@
 
   <reporting>
     <plugins>
-
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>clirr-maven-plugin</artifactId>
@@ -280,7 +279,6 @@
           <comparisonVersion>${api.comparison.version}</comparisonVersion>
         </configuration>
       </plugin>
-
       <plugin>
         <artifactId>maven-project-info-reports-plugin</artifactId>
         <inherited>false</inherited>
@@ -316,6 +314,14 @@
             </reports>
           </reportSet>
         </reportSets>
+      </plugin>
+      <plugin>
+        <artifactId>maven-jxr-plugin</artifactId>
+        <version>${hc.jxr.version}</version>
+      </plugin>
+      <plugin>
+        <artifactId>maven-surefire-report-plugin</artifactId>
+        <version>${hc.surefire.version}</version>
       </plugin>
     </plugins>
   </reporting>
