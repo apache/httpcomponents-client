@@ -112,7 +112,7 @@
         <executions>
           <execution>
             <id>download-public-suffix-list</id>
-            <phase>generate-sources</phase>
+            <phase>generate-resources</phase>
             <goals>
               <goal>wget</goal>
             </goals>
@@ -178,7 +178,7 @@
 
   <profiles>
     <profile>
-      <id>release</id>
+      <id>apache-release</id>
       <build>
         <plugins>
           <plugin>
