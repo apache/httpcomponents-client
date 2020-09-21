@@ -45,10 +45,10 @@
   </issueManagement>
 
   <scm>
-    <connection>scm:git:https://git-wip-us.apache.org/repos/asf/httpcomponents-client.git</connection>
-    <developerConnection>scm:git:https://git-wip-us.apache.org/repos/asf/httpcomponents-client.git</developerConnection>
+    <connection>scm:git:https://gitbox.apache.org/repos/asf/httpcomponents-client.git</connection>
+    <developerConnection>scm:git:https://gitbox.apache.org/repos/asf/httpcomponents-client.git</developerConnection>
     <url>https://github.com/apache/httpcomponents-client/tree/${project.scm.tag}</url>
-    <tag>5.0.2-SNAPSHOT</tag>
+    <tag>master</tag>
   </scm>
 
   <properties>
