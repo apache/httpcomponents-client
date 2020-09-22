@@ -1,11 +1,69 @@
 ﻿Release 5.0.2
 -----------------
 
+This release upgrades HttpCore to the latest version, improves conformance to RFC 7235
+(Hypertext Transfer Protocol (HTTP/1.1): Authentication) and addresses a number of
+issues found since 5.0.1 release.
+
 Changelog:
 -------------------
 
-* Bug fix: BasicExpiresHandler is annotated as immutable but is not. #240.
+* HTTPCLIENT-2116: Incorrect request message composition when routing requests
+  via a proxy.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* PoolingAsyncClientConnectionManager incorrectly emits Ping commands to HTTP/1.1
+  endpoints (#255).
+  Contributed by 滕杰1 <tengjie1 at xdf.cn>
+
+* HTTPCLIENT-2115: HttpAsyncClientBuilder and H2AsyncClientBuilder fail to take
+  `replaceExecInterceptor()` into account.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2112: AbstractMultipartFormat respects ByteBuffer.arrayOffset (#253).
+  Contributed by Carter Kozak <ckozak at apache.org>
+
+* Avoid updating Content-Length header in a 304 response.
+  Contributed by Dirk Henselin <dirk.henselin at vwgis.de>
+
+* HTTPCLIENT-2105: Async clients incorrectly handle redirects of requests with enclosed
+  entity.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2100: Incorrect handling of EXTENDED mode by MultipartEntityBuilder
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2099, HTTPCLIENT-2091: SSLConnectionSocketFactory connect timeout fix (#241).
+  Contributed by Carter Kozak <ckozak at apache.org>
+
+* Bug fix: BasicExpiresHandler is annotated as immutable but is not (#240).
   Contributed by Gary Gregory <ggregory at apache.org>
+
+* HTTPCLIENT-2096: Migrate instance loggers to static fields
+  Contributed by Carter Kozak <ckozak at apache.org>
+
+* Added Automatic-Module-Name to the artefact manifests.
+  Contributed by Niels Basjes <niels at basjes.nl>
+
+* MultipartEntityBuilder#generateBoundary optimization (#233)
+  Contributed by slisaasquatch <slisaasquatch at users.noreply.github.com>
+
+* HTTPCLIENT-2094: ConnectionManager validateAfterInactivity zero duration agreement
+  Contributed by Carter Kozak <ckozak at apache.org>
+
+* RFC 7235 compliance, HTTPCLIENT-2086: Fixed parsing of token68 based (base64-encoded)
+  auth schemes.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2091: Connect timeout is used instead of socket timeout after a tls upgrade
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2084: Client builders incorrectly add message interceptors with LAST position
+  to the head of the list.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2083: Fix NPE when classic client interceptors are added.
+  Contributed by Carter Kozak <ckozak at apache.org>
 
 
 Release 5.0.1
