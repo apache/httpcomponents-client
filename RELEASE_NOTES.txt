@@ -1,4 +1,18 @@
-﻿Release 5.0.2
+﻿Release 5.0.3
+-------------------
+
+This is a maintenance release that fixes incorrect handling of malformed authority component
+in request URIs.
+
+Changelog:
+-------------------
+
+* Incorrect handling of malformed authority component by URIUtils#extractHost.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+
+
+Release 5.0.2
 -----------------
 
 This release upgrades HttpCore to the latest version, improves conformance to RFC 7235
