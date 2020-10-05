@@ -1094,6 +1094,9 @@ public class DefaultRequestDirector implements RequestDirector {
                     this.log.debug("Resetting proxy auth state");
                     proxyAuthState.reset();
                 }
+
+                // Prevent sending Authorization header to other than the original host
+                redirect.removeHeaders("Authorization");
             }
 
             final RequestWrapper wrapper = wrapRequest(redirect);
