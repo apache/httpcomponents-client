@@ -187,6 +187,10 @@ public final class RedirectExec implements ExecChainHandler {
                                     proxyAuthExchange.reset();
                                 }
                             }
+                            if (LOG.isDebugEnabled()) {
+                                LOG.debug("{}: removing Authorization header", exchangeId);
+                            }
+                            redirect.removeHeaders("Authorization");
                             currentScope = new ExecChain.Scope(
                                     currentScope.exchangeId,
                                     newRoute,
