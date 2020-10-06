@@ -58,7 +58,7 @@ public final class NTLMScheme implements AuthScheme {
         UNINITIATED,
         CHALLENGE_RECEIVED,
         MSG_TYPE1_GENERATED,
-        MSG_TYPE2_RECEVIED,
+        MSG_TYPE2_RECEIVED,
         MSG_TYPE3_GENERATED,
         FAILED,
     }
@@ -116,7 +116,7 @@ public final class NTLMScheme implements AuthScheme {
                 this.state = State.FAILED;
                 throw new MalformedChallengeException("Out of sequence NTLM response message");
             } else if (this.state == State.MSG_TYPE1_GENERATED) {
-                this.state = State.MSG_TYPE2_RECEVIED;
+                this.state = State.MSG_TYPE2_RECEIVED;
             }
         }
     }
@@ -163,7 +163,7 @@ public final class NTLMScheme implements AuthScheme {
                     this.credentials.getNetbiosDomain(),
                     this.credentials.getWorkstation());
             this.state = State.MSG_TYPE1_GENERATED;
-        } else if (this.state == State.MSG_TYPE2_RECEVIED) {
+        } else if (this.state == State.MSG_TYPE2_RECEIVED) {
             response = this.engine.generateType3Msg(
                     this.credentials.getUserName(),
                     this.credentials.getPassword(),
