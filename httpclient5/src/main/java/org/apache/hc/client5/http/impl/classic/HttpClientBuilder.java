@@ -125,6 +125,10 @@ import org.apache.hc.core5.util.VersionInfo;
  *  <li>https.proxyHost</li>
  *  <li>https.proxyPort</li>
  *  <li>http.nonProxyHosts</li>
+ *  <li>https.proxyUser</li>
+ *  <li>http.proxyUser</li>
+ *  <li>https.proxyPassword</li>
+ *  <li>http.proxyPassword</li>
  *  <li>http.keepAlive</li>
  *  <li>http.agent</li>
  * </ul>
