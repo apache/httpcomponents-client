@@ -45,8 +45,6 @@ import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.HttpVersion;
-import org.apache.hc.core5.http.ProtocolVersion;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.nio.AsyncPushConsumer;
 import org.apache.hc.core5.http.nio.HandlerFactory;
@@ -104,8 +102,7 @@ public final class InternalHttpAsyncClient extends InternalAbstractHttpAsyncClie
     @Override
     HttpRoute determineRoute(final HttpHost httpHost, final HttpClientContext clientContext) throws HttpException {
         final HttpRoute route = routePlanner.determineRoute(httpHost, clientContext);
-        final ProtocolVersion protocolVersion = clientContext.getProtocolVersion();
-        if (route.isTunnelled() && protocolVersion.greaterEquals(HttpVersion.HTTP_2_0)) {
+        if (route.isTunnelled() && versionPolicy == HttpVersionPolicy.FORCE_HTTP_2) {
             throw new HttpException("HTTP/2 tunneling not supported");
         }
         return route;
