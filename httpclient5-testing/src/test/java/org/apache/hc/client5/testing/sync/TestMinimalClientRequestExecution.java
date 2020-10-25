@@ -108,9 +108,10 @@ public class TestMinimalClientRequestExecution extends LocalServerTestBase {
 
         for (int i = 0; i < 10; i++) {
             final HttpGet request = new HttpGet("/");
-            final CloseableHttpResponse response = this.httpclient.execute(target, request);
-            EntityUtils.consume(response.getEntity());
-            Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
+            try (final CloseableHttpResponse response = this.httpclient.execute(target, request)) {
+                EntityUtils.consume(response.getEntity());
+                Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
+            }
         }
     }
 
