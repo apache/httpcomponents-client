@@ -37,6 +37,7 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.entity.StringEntity;
@@ -79,22 +80,43 @@ public class TestMinimalClientRequestExecution extends LocalServerTestBase {
         final HttpClientContext context = HttpClientContext.create();
         for (int i = 0; i < 10; i++) {
             final HttpGet request = new HttpGet("/");
-            final HttpResponse response = this.httpclient.execute(target, request, context);
-            EntityUtils.consume(response.getEntity());
-            Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
-
+            final CloseableHttpResponse response = this.httpclient.execute(target, request, context);
+            try {
+                EntityUtils.consume(response.getEntity());
+                Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+            } finally {
+                response.close();
+            }
             final HttpRequest reqWrapper = context.getRequest();
             Assert.assertNotNull(reqWrapper);
 
             final Header[] headers = reqWrapper.getAllHeaders();
             final Set<String> headerSet = new HashSet<String>();
-            for (final Header header: headers) {
+            for (final Header header : headers) {
                 headerSet.add(header.getName().toLowerCase(Locale.ROOT));
             }
             Assert.assertEquals(3, headerSet.size());
             Assert.assertTrue(headerSet.contains("connection"));
             Assert.assertTrue(headerSet.contains("host"));
             Assert.assertTrue(headerSet.contains("user-agent"));
+        }
+    }
+
+    @Test
+    public void testNonCompliantURIWithoutContext() throws Exception {
+        this.serverBootstrap.registerHandler("*", new SimpleService());
+        this.httpclient = HttpClients.createMinimal();
+        final HttpHost target = start();
+
+        for (int i = 0; i < 10; i++) {
+            final HttpGet request = new HttpGet("/");
+            final CloseableHttpResponse response = this.httpclient.execute(target, request);
+            try {
+                EntityUtils.consume(response.getEntity());
+                Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+            } finally {
+                response.close();
+            }
         }
     }
 
