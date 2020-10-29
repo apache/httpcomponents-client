@@ -275,7 +275,9 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
                 }
             } else {
                 this.state = state;
-                conn.passivate();
+                if (conn != null) {
+                    conn.passivate();
+                }
                 if (TimeValue.isPositive(keepAlive)) {
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("Connection can be kept alive for {}", keepAlive);
