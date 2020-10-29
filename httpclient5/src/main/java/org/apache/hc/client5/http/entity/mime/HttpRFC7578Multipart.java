@@ -137,13 +137,12 @@ class HttpRFC7578Multipart extends AbstractMultipartFormat {
             for (int i = 0; i < bytes.length; i++) {
                 final int b = bytes[i];
                 if (b == ESCAPE_CHAR) {
-                    try {
-                        final int u = digit16(bytes[++i]);
-                        final int l = digit16(bytes[++i]);
-                        buffer.append((char) ((u << 4) + l));
-                    } catch (final ArrayIndexOutOfBoundsException e) {
-                        throw new DecoderException("Invalid URL encoding: ", e);
+                    if (i >= bytes.length - 2) {
+                        throw new DecoderException("Invalid URL encoding: too short");
                     }
+                    final int u = digit16(bytes[++i]);
+                    final int l = digit16(bytes[++i]);
+                    buffer.append((char) ((u << 4) + l));
                 } else {
                     buffer.append(b);
                 }
