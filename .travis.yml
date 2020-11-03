@@ -17,6 +17,10 @@ language: java
 dist: trusty
 sudo: false
 
+arch:
+  - amd64
+  - arm64-graviton2
+
 jdk:
   - oraclejdk8
   - openjdk12
