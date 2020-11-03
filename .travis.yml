@@ -17,6 +17,15 @@ language: java
 dist: trusty
 sudo: false
 
+arch:
+  - amd64
+  - arm64
+
+addons:
+  apt:
+    packages:
+      - maven
+      
 jdk:
   - oraclejdk8
   - openjdk12
