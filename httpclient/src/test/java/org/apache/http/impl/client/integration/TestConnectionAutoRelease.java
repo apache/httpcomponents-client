@@ -115,8 +115,8 @@ public class TestConnectionAutoRelease extends LocalServerTestBase {
 
         final HttpEntity e = response.getEntity();
         Assert.assertNotNull(e);
-        final ByteArrayOutputStream outsteam = new ByteArrayOutputStream();
-        e.writeTo(outsteam);
+        final ByteArrayOutputStream outstream = new ByteArrayOutputStream();
+        e.writeTo(outstream);
 
         // Expect one connection in the pool
         stats = this.connManager.getTotalStats();
