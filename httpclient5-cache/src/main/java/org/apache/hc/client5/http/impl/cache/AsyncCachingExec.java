@@ -157,7 +157,9 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                     cacheResponse,
                     content != null ? new BasicEntityDetails(content.length, contentType) : null);
             if (dataConsumer != null) {
-                dataConsumer.consume(ByteBuffer.wrap(content));
+                if (content != null) {
+                    dataConsumer.consume(ByteBuffer.wrap(content));
+                }
                 dataConsumer.streamEnd(null);
             }
             asyncExecCallback.completed();
