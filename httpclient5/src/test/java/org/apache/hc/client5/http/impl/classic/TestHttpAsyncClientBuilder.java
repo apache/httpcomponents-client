@@ -75,8 +75,9 @@ public class TestHttpAsyncClientBuilder {
         INSTANCE;
 
         @Override
-        public void execute(HttpRequest request, AsyncEntityProducer entityProducer, AsyncExecChain.Scope scope,
-                            AsyncExecChain chain, AsyncExecCallback asyncExecCallback)
+        public void execute(final HttpRequest request, final AsyncEntityProducer entityProducer,
+                            final AsyncExecChain.Scope scope, final AsyncExecChain chain,
+                            final AsyncExecCallback asyncExecCallback)
                 throws HttpException, IOException {
             chain.proceed(request, entityProducer, scope, asyncExecCallback);
         }
