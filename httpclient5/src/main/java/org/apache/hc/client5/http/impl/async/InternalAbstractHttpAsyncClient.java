@@ -278,7 +278,7 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
                                                 }
 
                                             });
-                                    return responseConsumer;
+                                    return entityDetails != null ? responseConsumer : null;
                                 }
 
                                 @Override
