@@ -95,7 +95,7 @@ final class OSGiHttpRoutePlanner extends DefaultRoutePlanner {
         return new HostNameMatcher(name);
     }
 
-    private static interface HostMatcher {
+    private interface HostMatcher {
 
         boolean matches(String host);
 

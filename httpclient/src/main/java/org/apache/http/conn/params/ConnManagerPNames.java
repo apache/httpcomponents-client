@@ -43,7 +43,7 @@ public interface ConnManagerPNames {
      * <p>
      * This parameter expects a value of type {@link Long}.
      */
-    public static final String TIMEOUT = "http.conn-manager.timeout";
+    String TIMEOUT = "http.conn-manager.timeout";
 
     /**
      * Defines the maximum number of connections per route.
@@ -53,7 +53,7 @@ public interface ConnManagerPNames {
      * This parameter expects a value of type {@link ConnPerRoute}.
      * <p>
      */
-    public static final String MAX_CONNECTIONS_PER_ROUTE = "http.conn-manager.max-per-route";
+    String MAX_CONNECTIONS_PER_ROUTE = "http.conn-manager.max-per-route";
 
     /**
      * Defines the maximum number of connections in total.
@@ -62,6 +62,6 @@ public interface ConnManagerPNames {
      * <p>
      * This parameter expects a value of type {@link Integer}.
      */
-    public static final String MAX_TOTAL_CONNECTIONS = "http.conn-manager.max-total";
+    String MAX_TOTAL_CONNECTIONS = "http.conn-manager.max-total";
 
 }

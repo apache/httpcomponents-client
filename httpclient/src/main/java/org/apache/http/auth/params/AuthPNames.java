@@ -45,7 +45,7 @@ public interface AuthPNames {
      * <p>
      * This parameter expects a value of type {@link String}.
      */
-    public static final String CREDENTIAL_CHARSET = "http.auth.credential-charset";
+    String CREDENTIAL_CHARSET = "http.auth.credential-charset";
 
     /**
      * Defines the order of preference for supported
@@ -57,7 +57,7 @@ public interface AuthPNames {
      * a name of an authentication scheme as returned by
      * {@link org.apache.http.auth.AuthScheme#getSchemeName()}.
      */
-    public static final String TARGET_AUTH_PREF = "http.auth.target-scheme-pref";
+    String TARGET_AUTH_PREF = "http.auth.target-scheme-pref";
 
     /**
      * Defines the order of preference for supported
@@ -69,6 +69,6 @@ public interface AuthPNames {
      * a name of an authentication scheme as returned by
      * {@link org.apache.http.auth.AuthScheme#getSchemeName()}.
      */
-    public static final String PROXY_AUTH_PREF = "http.auth.proxy-scheme-pref";
+    String PROXY_AUTH_PREF = "http.auth.proxy-scheme-pref";
 
 }

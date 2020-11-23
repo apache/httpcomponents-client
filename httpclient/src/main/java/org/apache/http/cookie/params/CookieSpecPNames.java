@@ -50,7 +50,7 @@ public interface CookieSpecPNames {
      * with the syntax of {@link java.text.SimpleDateFormat}.
      * </p>
      */
-    public static final String DATE_PATTERNS = "http.protocol.cookie-datepatterns";
+    String DATE_PATTERNS = "http.protocol.cookie-datepatterns";
 
     /**
      * Defines whether cookies should be forced into a single
@@ -60,6 +60,6 @@ public interface CookieSpecPNames {
      * This parameter expects a value of type {@link Boolean}.
      * </p>
      */
-    public static final String SINGLE_COOKIE_HEADER = "http.protocol.single-cookie-header";
+    String SINGLE_COOKIE_HEADER = "http.protocol.single-cookie-header";
 
 }

@@ -112,7 +112,7 @@ public final class RouteTracker implements RouteInfo, Cloneable {
      * @param secure    {@code true} if the route is secure,
      *                  {@code false} otherwise
      */
-    public final void connectTarget(final boolean secure) {
+    public void connectTarget(final boolean secure) {
         Asserts.check(!this.connected, "Already connected");
         this.connected = true;
         this.secure = secure;
@@ -125,7 +125,7 @@ public final class RouteTracker implements RouteInfo, Cloneable {
      * @param secure    {@code true} if the route is secure,
      *                  {@code false} otherwise
      */
-    public final void connectProxy(final HttpHost proxy, final boolean secure) {
+    public void connectProxy(final HttpHost proxy, final boolean secure) {
         Args.notNull(proxy, "Proxy host");
         Asserts.check(!this.connected, "Already connected");
         this.connected  = true;
@@ -139,7 +139,7 @@ public final class RouteTracker implements RouteInfo, Cloneable {
      * @param secure    {@code true} if the route is secure,
      *                  {@code false} otherwise
      */
-    public final void tunnelTarget(final boolean secure) {
+    public void tunnelTarget(final boolean secure) {
         Asserts.check(this.connected, "No tunnel unless connected");
         Asserts.notNull(this.proxyChain, "No tunnel without proxy");
         this.tunnelled = TunnelType.TUNNELLED;
@@ -155,7 +155,7 @@ public final class RouteTracker implements RouteInfo, Cloneable {
      * @param secure    {@code true} if the route is secure,
      *                  {@code false} otherwise
      */
-    public final void tunnelProxy(final HttpHost proxy, final boolean secure) {
+    public void tunnelProxy(final HttpHost proxy, final boolean secure) {
         Args.notNull(proxy, "Proxy host");
         Asserts.check(this.connected, "No tunnel unless connected");
         Asserts.notNull(this.proxyChain, "No tunnel without proxy");
@@ -175,7 +175,7 @@ public final class RouteTracker implements RouteInfo, Cloneable {
      * @param secure    {@code true} if the route is secure,
      *                  {@code false} otherwise
      */
-    public final void layerProtocol(final boolean secure) {
+    public void layerProtocol(final boolean secure) {
         // it is possible to layer a protocol over a direct connection,
         // although this case is probably not considered elsewhere
         Asserts.check(this.connected, "No layered protocol unless connected");
@@ -184,17 +184,17 @@ public final class RouteTracker implements RouteInfo, Cloneable {
     }
 
     @Override
-    public final HttpHost getTargetHost() {
+    public HttpHost getTargetHost() {
         return this.targetHost;
     }
 
     @Override
-    public final InetAddress getLocalAddress() {
+    public InetAddress getLocalAddress() {
         return this.localAddress;
     }
 
     @Override
-    public final int getHopCount() {
+    public int getHopCount() {
         int hops = 0;
         if (this.connected) {
             if (proxyChain == null) {
@@ -207,7 +207,7 @@ public final class RouteTracker implements RouteInfo, Cloneable {
     }
 
     @Override
-    public final HttpHost getHopTarget(final int hop) {
+    public HttpHost getHopTarget(final int hop) {
         Args.notNegative(hop, "Hop index");
         final int hopcount = getHopCount();
         Args.check(hop < hopcount, "Hop index exceeds tracked route length");
@@ -222,36 +222,36 @@ public final class RouteTracker implements RouteInfo, Cloneable {
     }
 
     @Override
-    public final HttpHost getProxyHost() {
+    public HttpHost getProxyHost() {
         return (this.proxyChain == null) ? null : this.proxyChain[0];
     }
 
-    public final boolean isConnected() {
+    public boolean isConnected() {
         return this.connected;
     }
 
     @Override
-    public final TunnelType getTunnelType() {
+    public TunnelType getTunnelType() {
         return this.tunnelled;
     }
 
     @Override
-    public final boolean isTunnelled() {
+    public boolean isTunnelled() {
         return (this.tunnelled == TunnelType.TUNNELLED);
     }
 
     @Override
-    public final LayerType getLayerType() {
+    public LayerType getLayerType() {
         return this.layered;
     }
 
     @Override
-    public final boolean isLayered() {
+    public boolean isLayered() {
         return (this.layered == LayerType.LAYERED);
     }
 
     @Override
-    public final boolean isSecure() {
+    public boolean isSecure() {
         return this.secure;
     }
 
@@ -263,7 +263,7 @@ public final class RouteTracker implements RouteInfo, Cloneable {
      * @return  the tracked route, or
      *          {@code null} if nothing has been tracked so far
      */
-    public final HttpRoute toRoute() {
+    public HttpRoute toRoute() {
         return !this.connected ?
             null : new HttpRoute(this.targetHost, this.localAddress,
                                  this.proxyChain, this.secure,
@@ -279,7 +279,7 @@ public final class RouteTracker implements RouteInfo, Cloneable {
      *          {@code false}
      */
     @Override
-    public final boolean equals(final Object o) {
+    public boolean equals(final Object o) {
         if (o == this) {
             return true;
         }
@@ -308,7 +308,7 @@ public final class RouteTracker implements RouteInfo, Cloneable {
      * @return  the hash code
      */
     @Override
-    public final int hashCode() {
+    public int hashCode() {
         int hash = LangUtils.HASH_SEED;
         hash = LangUtils.hashCode(hash, this.targetHost);
         hash = LangUtils.hashCode(hash, this.localAddress);
@@ -330,7 +330,7 @@ public final class RouteTracker implements RouteInfo, Cloneable {
      * @return  a human-readable representation of the tracked route
      */
     @Override
-    public final String toString() {
+    public String toString() {
         final StringBuilder cab = new StringBuilder(50 + getHopCount()*30);
 
         cab.append("RouteTracker[");

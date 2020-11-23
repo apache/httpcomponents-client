@@ -145,7 +145,7 @@ public final class Scheme {
      *
      * @return  the default port for this scheme
      */
-    public final int getDefaultPort() {
+    public int getDefaultPort() {
         return defaultPort;
     }
 
@@ -160,7 +160,7 @@ public final class Scheme {
      * @deprecated (4.1)  Use {@link #getSchemeSocketFactory()}
      */
     @Deprecated
-    public final SocketFactory getSocketFactory() {
+    public SocketFactory getSocketFactory() {
         if (this.socketFactory instanceof SchemeSocketFactoryAdaptor) {
             return ((SchemeSocketFactoryAdaptor) this.socketFactory).getFactory();
         }
@@ -179,7 +179,7 @@ public final class Scheme {
      *
      * @since 4.1
      */
-    public final SchemeSocketFactory getSchemeSocketFactory() {
+    public SchemeSocketFactory getSchemeSocketFactory() {
         return this.socketFactory;
     }
 
@@ -188,7 +188,7 @@ public final class Scheme {
      *
      * @return  the name of this scheme, in lowercase
      */
-    public final String getName() {
+    public String getName() {
         return name;
     }
 
@@ -198,7 +198,7 @@ public final class Scheme {
      * @return {@code true} if layered connections are possible,
      *         {@code false} otherwise
      */
-    public final boolean isLayered() {
+    public boolean isLayered() {
         return layered;
     }
 
@@ -211,7 +211,7 @@ public final class Scheme {
      *
      * @return the given port or the defaultPort
      */
-    public final int resolvePort(final int port) {
+    public int resolvePort(final int port) {
         return port <= 0 ? defaultPort : port;
     }
 
@@ -221,7 +221,7 @@ public final class Scheme {
      * @return  a human-readable string description of this scheme
      */
     @Override
-    public final String toString() {
+    public String toString() {
         if (stringRep == null) {
             final StringBuilder buffer = new StringBuilder();
             buffer.append(this.name);
@@ -233,7 +233,7 @@ public final class Scheme {
     }
 
     @Override
-    public final boolean equals(final Object obj) {
+    public boolean equals(final Object obj) {
         if (this == obj) {
             return true;
         }
