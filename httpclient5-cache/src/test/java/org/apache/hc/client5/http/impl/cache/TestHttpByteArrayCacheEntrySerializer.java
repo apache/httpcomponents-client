@@ -366,6 +366,7 @@ public class TestHttpByteArrayCacheEntrySerializer {
         final HttpCacheStorageEntry testEntry = cacheObjectValues.toEntry();
 
         final HttpByteArrayCacheEntrySerializer testSerializer = new HttpByteArrayCacheEntrySerializer() {
+            @Override
             protected AbstractMessageWriter<SimpleHttpResponse> makeHttpResponseWriter(final SessionOutputBuffer outputBuffer) {
                 return throwyHttpWriter;
             }
