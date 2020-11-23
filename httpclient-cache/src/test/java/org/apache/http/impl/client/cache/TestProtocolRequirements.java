@@ -29,6 +29,7 @@ package org.apache.http.impl.client.cache;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.SocketTimeoutException;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Random;
 import java.util.regex.Matcher;
@@ -1584,9 +1585,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         resp1.setHeader("Cache-Control", "max-age=3600");
         resp1.setHeader("ETag", "\"etag1\"");
         final byte[] bytes1 = new byte[128];
-        for (int i = 0; i < bytes1.length; i++) {
-            bytes1[i] = (byte) 1;
-        }
+        Arrays.fill(bytes1, (byte) 1);
         resp1.setEntity(new ByteArrayEntity(bytes1));
 
         final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
@@ -1602,9 +1601,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         resp2.setHeader("ETag", "\"etag2\"");
         resp2.setHeader("Content-Range", "bytes 0-50/128");
         final byte[] bytes2 = new byte[51];
-        for (int i = 0; i < bytes2.length; i++) {
-            bytes2[i] = (byte) 2;
-        }
+        Arrays.fill(bytes2, (byte) 2);
         resp2.setEntity(new ByteArrayEntity(bytes2));
 
         final Date inTwoSeconds = new Date(now.getTime() + 2000L);
@@ -1615,9 +1612,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         resp3.setHeader("Cache-Control", "max-age=3600");
         resp3.setHeader("ETag", "\"etag2\"");
         final byte[] bytes3 = new byte[128];
-        for (int i = 0; i < bytes3.length; i++) {
-            bytes3[i] = (byte) 2;
-        }
+        Arrays.fill(bytes3, (byte) 2);
         resp3.setEntity(new ByteArrayEntity(bytes3));
 
         EasyMock.expect(
@@ -1678,9 +1673,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         resp1.setHeader("Cache-Control", "max-age=3600");
         resp1.setHeader("Last-Modified", DateUtils.formatDate(oneHourAgo));
         final byte[] bytes1 = new byte[128];
-        for (int i = 0; i < bytes1.length; i++) {
-            bytes1[i] = (byte) 1;
-        }
+        Arrays.fill(bytes1, (byte) 1);
         resp1.setEntity(new ByteArrayEntity(bytes1));
 
         final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
@@ -1696,9 +1689,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         resp2.setHeader("Last-Modified", DateUtils.formatDate(now));
         resp2.setHeader("Content-Range", "bytes 0-50/128");
         final byte[] bytes2 = new byte[51];
-        for (int i = 0; i < bytes2.length; i++) {
-            bytes2[i] = (byte) 2;
-        }
+        Arrays.fill(bytes2, (byte) 2);
         resp2.setEntity(new ByteArrayEntity(bytes2));
 
         final Date inTwoSeconds = new Date(now.getTime() + 2000L);
@@ -1709,9 +1700,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         resp3.setHeader("Cache-Control", "max-age=3600");
         resp3.setHeader("ETag", "\"etag2\"");
         final byte[] bytes3 = new byte[128];
-        for (int i = 0; i < bytes3.length; i++) {
-            bytes3[i] = (byte) 2;
-        }
+        Arrays.fill(bytes3, (byte) 2);
         resp3.setEntity(new ByteArrayEntity(bytes3));
 
         EasyMock.expect(
