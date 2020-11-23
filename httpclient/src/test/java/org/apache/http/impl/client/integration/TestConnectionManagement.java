@@ -40,7 +40,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.apache.http.HttpClientConnection;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
-import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
@@ -114,7 +113,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
         context.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, target);
 
         final HttpProcessor httpProcessor = new ImmutableHttpProcessor(
-                new HttpRequestInterceptor[] { new RequestContent(), new RequestConnControl() });
+                new RequestContent(), new RequestConnControl());
 
         final HttpRequestExecutor exec = new HttpRequestExecutor();
         exec.preProcess(request, httpProcessor, context);
@@ -203,7 +202,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
         context.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, target);
 
         final HttpProcessor httpProcessor = new ImmutableHttpProcessor(
-                new HttpRequestInterceptor[] { new RequestContent(), new RequestConnControl() });
+                new RequestContent(), new RequestConnControl());
 
         final HttpRequestExecutor exec = new HttpRequestExecutor();
         exec.preProcess(request, httpProcessor, context);
@@ -401,7 +400,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
         context.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, target);
 
         final HttpProcessor httpProcessor = new ImmutableHttpProcessor(
-                new HttpRequestInterceptor[] { new RequestContent(), new RequestConnControl() });
+                new RequestContent(), new RequestConnControl());
 
         final HttpRequestExecutor exec = new HttpRequestExecutor();
         exec.preProcess(request, httpProcessor, context);

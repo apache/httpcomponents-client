@@ -68,12 +68,11 @@ public abstract class AbstractAuthenticationHandler implements AuthenticationHan
     private final Log log = LogFactory.getLog(getClass());
 
     private static final List<String> DEFAULT_SCHEME_PRIORITY =
-        Collections.unmodifiableList(Arrays.asList(new String[] {
+        Collections.unmodifiableList(Arrays.asList(
                 AuthPolicy.SPNEGO,
                 AuthPolicy.NTLM,
                 AuthPolicy.DIGEST,
-                AuthPolicy.BASIC
-    }));
+                AuthPolicy.BASIC));
 
     public AbstractAuthenticationHandler() {
         super();
