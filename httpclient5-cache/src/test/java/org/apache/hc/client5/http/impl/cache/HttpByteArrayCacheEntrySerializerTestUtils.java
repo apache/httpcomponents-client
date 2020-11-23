@@ -283,14 +283,8 @@ class HttpByteArrayCacheEntrySerializerTestUtils {
     static void saveEntryToFile(final HttpCacheEntrySerializer<byte[]> serializer, final HttpCacheStorageEntry httpCacheStorageEntry, final File outFile) throws Exception {
         final byte[] bytes = serializer.serialize(httpCacheStorageEntry);
 
-        OutputStream out = null;
-        try {
-            out = new FileOutputStream(outFile);
+        try (OutputStream out = new FileOutputStream(outFile)) {
             out.write(bytes);
-        } finally {
-            if (out != null) {
-                out.close();
-            }
         }
     }
 
