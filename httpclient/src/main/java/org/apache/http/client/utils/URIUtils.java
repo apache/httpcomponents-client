@@ -448,7 +448,7 @@ public class URIUtils {
                     try {
                         return new HttpHost(hostname, port, scheme);
                     } catch (final IllegalArgumentException ex) {
-                        return null;
+                        // ignore
                     }
                 }
             } else {
