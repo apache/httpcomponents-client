@@ -201,7 +201,7 @@ public final class MinimalHttpAsyncClient extends AbstractMinimalHttpAsyncClient
         return resultFuture;
     }
 
-    public final Future<AsyncClientEndpoint> lease(
+    public Future<AsyncClientEndpoint> lease(
             final HttpHost host,
             final FutureCallback<AsyncClientEndpoint> callback) {
         return lease(host, HttpClientContext.create(), callback);
