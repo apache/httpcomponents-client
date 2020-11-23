@@ -240,11 +240,8 @@ public class TestByteArrayCacheEntrySerializer {
     private byte[] serializeProhibitedObject() throws IOException {
         final BigDecimal bigDecimal = new BigDecimal("1000.00");
         final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        final ObjectOutputStream oos = new ObjectOutputStream(baos);
-        try {
+        try (ObjectOutputStream oos = new ObjectOutputStream(baos)) {
             oos.writeObject(bigDecimal);
-        } finally {
-            oos.close();
         }
         return baos.toByteArray();
     }
