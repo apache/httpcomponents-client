@@ -45,7 +45,7 @@ import org.junit.Before;
  */
 public abstract class LocalServerTestBase {
 
-    public enum ProtocolScheme { http, https };
+    public enum ProtocolScheme { http, https }
 
     public static final String ORIGIN = "TEST/1.1";
 

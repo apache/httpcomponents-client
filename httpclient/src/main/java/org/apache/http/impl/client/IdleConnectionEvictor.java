@@ -117,7 +117,7 @@ public final class IdleConnectionEvictor {
             return t;
         }
 
-    };
+    }
 
 
 }
