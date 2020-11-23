@@ -50,7 +50,7 @@ class CloseableHttpResponseProxy implements InvocationHandler {
     static {
         try {
             CONSTRUCTOR = Proxy.getProxyClass(CloseableHttpResponseProxy.class.getClassLoader(),
-                    new Class<?>[] { CloseableHttpResponse.class }).getConstructor(new Class[] { InvocationHandler.class });
+                    CloseableHttpResponse.class).getConstructor(InvocationHandler.class);
         } catch (final NoSuchMethodException ex) {
             throw new IllegalStateException(ex);
         }
