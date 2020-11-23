@@ -766,7 +766,7 @@ final class NTLMEngineImpl implements NTLMEngine {
         return lmv2Response;
     }
 
-    static enum Mode
+    enum Mode
     {
         CLIENT, SERVER;
     }

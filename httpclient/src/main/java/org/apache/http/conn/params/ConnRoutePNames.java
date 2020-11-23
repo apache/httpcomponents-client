@@ -45,7 +45,7 @@ public interface ConnRoutePNames {
      * This parameter expects a value of type {@link org.apache.http.HttpHost}.
      * </p>
      */
-    public static final String DEFAULT_PROXY = "http.route.default-proxy";
+    String DEFAULT_PROXY = "http.route.default-proxy";
 
     /**
      * Parameter for the local address.
@@ -59,7 +59,7 @@ public interface ConnRoutePNames {
      * This parameter expects a value of type {@link java.net.InetAddress}.
      * </p>
      */
-    public static final String LOCAL_ADDRESS = "http.route.local-address";
+    String LOCAL_ADDRESS = "http.route.local-address";
 
     /**
      * Parameter for an forced route.
@@ -73,7 +73,7 @@ public interface ConnRoutePNames {
      * {@link org.apache.http.conn.routing.HttpRoute HttpRoute}.
      * </p>
      */
-    public static final String FORCED_ROUTE = "http.route.forced-route";
+    String FORCED_ROUTE = "http.route.forced-route";
 
 }
 

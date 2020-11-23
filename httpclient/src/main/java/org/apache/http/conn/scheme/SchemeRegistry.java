@@ -69,7 +69,7 @@ public final class SchemeRegistry {
      * @throws IllegalStateException
      *          if the scheme with the given name is not registered
      */
-    public final Scheme getScheme(final String name) {
+    public Scheme getScheme(final String name) {
         final Scheme found = get(name);
         if (found == null) {
             throw new IllegalStateException
@@ -89,7 +89,7 @@ public final class SchemeRegistry {
      * @throws IllegalStateException
      *          if a scheme with the respective name is not registered
      */
-    public final Scheme getScheme(final HttpHost host) {
+    public Scheme getScheme(final HttpHost host) {
         Args.notNull(host, "Host");
         return getScheme(host.getSchemeName());
     }
@@ -102,7 +102,7 @@ public final class SchemeRegistry {
      * @return  the scheme, or
      *          {@code null} if there is none by this name
      */
-    public final Scheme get(final String name) {
+    public Scheme get(final String name) {
         Args.notNull(name, "Scheme name");
         // leave it to the caller to use the correct name - all lowercase
         //name = name.toLowerCase(Locale.ENGLISH);
@@ -120,7 +120,7 @@ public final class SchemeRegistry {
      * @return  the scheme previously registered with that name, or
      *          {@code null} if none was registered
      */
-    public final Scheme register(final Scheme sch) {
+    public Scheme register(final Scheme sch) {
         Args.notNull(sch, "Scheme");
         final Scheme old = registeredSchemes.put(sch.getName(), sch);
         return old;
@@ -134,7 +134,7 @@ public final class SchemeRegistry {
      * @return  the unregistered scheme, or
      *          {@code null} if there was none
      */
-    public final Scheme unregister(final String name) {
+    public Scheme unregister(final String name) {
         Args.notNull(name, "Scheme name");
         // leave it to the caller to use the correct name - all lowercase
         //name = name.toLowerCase(Locale.ENGLISH);
@@ -147,7 +147,7 @@ public final class SchemeRegistry {
      *
      * @return  List containing registered scheme names.
      */
-    public final List<String> getSchemeNames() {
+    public List<String> getSchemeNames() {
         return new ArrayList<String>(registeredSchemes.keySet());
     }
 

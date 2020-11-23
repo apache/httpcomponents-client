@@ -163,7 +163,7 @@ public final class MultihomePlainSocketFactory implements SocketFactory {
      * @throws IllegalArgumentException if the argument is invalid
      */
     @Override
-    public final boolean isSecure(final Socket sock)
+    public boolean isSecure(final Socket sock)
         throws IllegalArgumentException {
 
         Args.notNull(sock, "Socket");

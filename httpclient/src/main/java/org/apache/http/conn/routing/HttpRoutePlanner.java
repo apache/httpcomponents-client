@@ -61,7 +61,7 @@ public interface HttpRoutePlanner {
      *
      * @throws HttpException    in case of a problem
      */
-    public HttpRoute determineRoute(HttpHost target,
+    HttpRoute determineRoute(HttpHost target,
                                     HttpRequest request,
                                     HttpContext context) throws HttpException;
 
