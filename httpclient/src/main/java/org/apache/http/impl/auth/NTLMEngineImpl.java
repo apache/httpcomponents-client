@@ -433,7 +433,7 @@ final class NTLMEngineImpl implements NTLMEngine {
         public byte[] getTimestamp() {
             if (timestamp == null) {
                 long time = this.currentTime;
-                time += 11644473600000l; // milliseconds from January 1, 1601 -> epoch.
+                time += 11644473600000L; // milliseconds from January 1, 1601 -> epoch.
                 time *= 10000; // tenths of a microsecond.
                 // convert to little-endian byte array.
                 timestamp = new byte[8];

@@ -99,12 +99,12 @@ public final class TestPropertiesUtils {
 
     @Test
     public void toLong() {
-        assertConverted(123l, null, long.class, 123l);
-        assertConverted(123l, null, Long.class, 123l);
-        assertConverted(456l, "456", long.class, null);
-        assertConverted(456l, "456", Long.class, null);
-        assertConverted(789l, "not a long", long.class, 789l);
-        assertConverted(789l, "not a long", Long.class, 789l);
+        assertConverted(123L, null, long.class, 123L);
+        assertConverted(123L, null, Long.class, 123L);
+        assertConverted(456L, "456", long.class, null);
+        assertConverted(456L, "456", Long.class, null);
+        assertConverted(789L, "not a long", long.class, 789L);
+        assertConverted(789L, "not a long", Long.class, 789L);
     }
 
     @Test
