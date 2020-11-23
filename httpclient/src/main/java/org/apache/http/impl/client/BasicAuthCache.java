@@ -134,12 +134,10 @@ public class BasicAuthCache implements AuthCache {
                 if (log.isWarnEnabled()) {
                     log.warn("Unexpected I/O error while de-serializing auth scheme", ex);
                 }
-                return null;
             } catch (final ClassNotFoundException ex) {
                 if (log.isWarnEnabled()) {
                     log.warn("Unexpected error while de-serializing auth scheme", ex);
                 }
-                return null;
             }
         }
         return null;

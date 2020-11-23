@@ -59,8 +59,8 @@ public class WinHttpClients {
         if (os != null && os.contains("windows")) {
             try {
                 return Sspi.MAX_TOKEN_SIZE > 0;
-            } catch (final Exception ignore) { // Likely ClassNotFound
-                return false;
+            } catch (final Exception ignore) {
+                // Likely ClassNotFound
             }
         }
         return false;
