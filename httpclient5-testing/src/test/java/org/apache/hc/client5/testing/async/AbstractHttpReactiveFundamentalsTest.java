@@ -158,6 +158,7 @@ public abstract class AbstractHttpReactiveFundamentalsTest<T extends CloseableHt
                     .build();
 
             final ReactiveResponseConsumer consumer = new ReactiveResponseConsumer(new FutureCallback<Message<HttpResponse, Publisher<ByteBuffer>>>() {
+                @Override
                 public void completed(final Message<HttpResponse, Publisher<ByteBuffer>> result) {
                     final Flowable<ByteBuffer> flowable = Flowable.fromPublisher(result.getBody())
                             .observeOn(Schedulers.io()); // Stream the data on an RxJava scheduler, not a client thread
@@ -169,7 +170,9 @@ public abstract class AbstractHttpReactiveFundamentalsTest<T extends CloseableHt
                                 }
                             });
                 }
+                @Override
                 public void failed(final Exception ex) { }
+                @Override
                 public void cancelled() { }
             });
             httpclient.execute(request, consumer, HttpClientContext.create(), null);
