@@ -1,3 +1,23 @@
+Release 4.5.14
+-------------------
+
+This is a maintenance release.
+
+
+Changelog:
+-------------------
+
+* PR #269: 4.5.x use array fill and more.
+  - Use Arrays.fill().
+  - Remove redundant modifiers. …
+  - Use Collections.addAll() and Collection.addAll() APIs instead of loops.
+  - Remove redundant returns.
+  - No need to explicitly declare an array when calling a vararg method.
+  - Remote extra semicolons (;).
+  - Use a 'L' instead of 'l' to make long literals more readable.
+  Contributed by Gary Gregory <ggregory at apache.org>
+
+
 Release 4.5.13
 -------------------
 
