@@ -9,7 +9,7 @@ Changelog:
 
 * PR #269: 4.5.x use array fill and more.
   - Use Arrays.fill().
-  - Remove redundant modifiers. …
+  - Remove redundant modifiers.
   - Use Collections.addAll() and Collection.addAll() APIs instead of loops.
   - Remove redundant returns.
   - No need to explicitly declare an array when calling a vararg method.
