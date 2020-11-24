@@ -1,4 +1,25 @@
-﻿Release 5.0.2
+﻿Release 5.0.3
+-----------------
+
+This release upgrades HttpCore to the latest version, improves conformance to RFC 7235
+(Hypertext Transfer Protocol (HTTP/1.1): Authentication) and addresses a number of
+issues found since 5.0.2 release.
+
+Changelog:
+-------------------
+
+* PR #270: Master try w res and more.
+  - Use try-with-resources.
+  - Use Arrays.fill().
+  - Add missing @override.
+  - Simplify if/else.
+  - Remove redundant modifiers. …
+  - Remove redundant returns.
+  Contributed by Gary Gregory <ggregory at apache.org>
+
+
+
+Release 5.0.2
 -----------------
 
 This release upgrades HttpCore to the latest version, improves conformance to RFC 7235
@@ -77,7 +98,7 @@ Changelog:
 
 * Bug fix: Classic connection managers fail to take #isConsistent() flag into account when
   re-using persistent connections.
-  Contributed by Oleg Kalnichevski <olegk at apache.org>
+7  Contributed by Oleg Kalnichevski <olegk at apache.org>
 
 * HTTPCLIENT-2077: Authentication failure due to incorrect NTLM auth value check.
   Contributed by vonahok <64310078+vonahok at users.noreply.github.com>
