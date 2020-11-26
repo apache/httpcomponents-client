@@ -17,6 +17,8 @@ Changelog:
   - Use a 'L' instead of 'l' to make long literals more readable.
   Contributed by Gary Gregory <ggregory at apache.org>
 
+* PublicSuffixListParser.parseByType(Reader) allocates but does not use a 256 char StringBuilder.
+  Contributed by Gary Gregory <ggregory at apache.org>
 
 Release 4.5.13
 -------------------

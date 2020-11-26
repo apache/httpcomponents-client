@@ -102,7 +102,6 @@ public final class PublicSuffixListParser {
         final List<PublicSuffixList> result = new ArrayList<PublicSuffixList>(2);
 
         final BufferedReader r = new BufferedReader(reader);
-        final StringBuilder sb = new StringBuilder(256);
 
         DomainType domainType = null;
         List<String> rules = null;
