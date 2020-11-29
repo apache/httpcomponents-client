@@ -51,8 +51,8 @@ import org.apache.hc.core5.http.HeaderElements;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
-import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.apache.hc.core5.ssl.SSLContexts;
 import org.apache.hc.core5.util.TextUtils;
@@ -64,30 +64,30 @@ public class HttpAsyncClientCompatibilityTest {
     public static void main(final String... args) throws Exception {
         final HttpAsyncClientCompatibilityTest[] tests = new HttpAsyncClientCompatibilityTest[] {
                 new HttpAsyncClientCompatibilityTest(
-                        HttpVersion.HTTP_1_1,
+                        HttpVersionPolicy.FORCE_HTTP_1,
                         new HttpHost("http", "localhost", 8080), null, null),
                 new HttpAsyncClientCompatibilityTest(
-                        HttpVersion.HTTP_1_1,
+                        HttpVersionPolicy.FORCE_HTTP_1,
                         new HttpHost("http", "test-httpd", 8080), new HttpHost("localhost", 8888), null),
                 new HttpAsyncClientCompatibilityTest(
-                        HttpVersion.HTTP_1_1,
+                        HttpVersionPolicy.FORCE_HTTP_1,
                         new HttpHost("http", "test-httpd", 8080), new HttpHost("localhost", 8889),
                         new UsernamePasswordCredentials("squid", "nopassword".toCharArray())),
                 new HttpAsyncClientCompatibilityTest(
-                        HttpVersion.HTTP_1_1,
+                        HttpVersionPolicy.FORCE_HTTP_1,
                         new HttpHost("https", "localhost", 8443), null, null),
                 new HttpAsyncClientCompatibilityTest(
-                        HttpVersion.HTTP_1_1,
+                        HttpVersionPolicy.FORCE_HTTP_1,
                         new HttpHost("https", "test-httpd", 8443), new HttpHost("localhost", 8888), null),
                 new HttpAsyncClientCompatibilityTest(
-                        HttpVersion.HTTP_1_1,
+                        HttpVersionPolicy.FORCE_HTTP_1,
                         new HttpHost("https", "test-httpd", 8443), new HttpHost("localhost", 8889),
                         new UsernamePasswordCredentials("squid", "nopassword".toCharArray())),
                 new HttpAsyncClientCompatibilityTest(
-                        HttpVersion.HTTP_2_0,
+                        HttpVersionPolicy.FORCE_HTTP_2,
                         new HttpHost("http", "localhost", 8080), null, null),
                 new HttpAsyncClientCompatibilityTest(
-                        HttpVersion.HTTP_2_0,
+                        HttpVersionPolicy.FORCE_HTTP_2,
                         new HttpHost("https", "localhost", 8443), null, null)
         };
         for (final HttpAsyncClientCompatibilityTest test: tests) {
@@ -101,7 +101,7 @@ public class HttpAsyncClientCompatibilityTest {
 
     private static final Timeout TIMEOUT = Timeout.ofSeconds(5);
 
-    private final HttpVersion protocolVersion;
+    private final HttpVersionPolicy versionPolicy;
     private final HttpHost target;
     private final HttpHost proxy;
     private final BasicCredentialsProvider credentialsProvider;
@@ -109,11 +109,11 @@ public class HttpAsyncClientCompatibilityTest {
     private final CloseableHttpAsyncClient client;
 
     HttpAsyncClientCompatibilityTest(
-            final HttpVersion protocolVersion,
+            final HttpVersionPolicy versionPolicy,
             final HttpHost target,
             final HttpHost proxy,
             final Credentials proxyCreds) throws Exception {
-        this.protocolVersion = protocolVersion;
+        this.versionPolicy = versionPolicy;
         this.target = target;
         this.proxy = proxy;
         this.credentialsProvider = new BasicCredentialsProvider();
@@ -129,7 +129,7 @@ public class HttpAsyncClientCompatibilityTest {
                 .setTlsStrategy(new DefaultClientTlsStrategy(sslContext))
                 .build();
         this.client = HttpAsyncClients.custom()
-                .setVersionPolicy(this.protocolVersion == HttpVersion.HTTP_2 ? HttpVersionPolicy.FORCE_HTTP_2 : HttpVersionPolicy.FORCE_HTTP_1)
+                .setVersionPolicy(this.versionPolicy)
                 .setConnectionManager(this.connManager)
                 .setProxy(this.proxy)
                 .setDefaultRequestConfig(requestConfig)
@@ -142,13 +142,22 @@ public class HttpAsyncClientCompatibilityTest {
 
     enum TestResult {OK, NOK}
 
-    private void logResult(final TestResult result, final HttpRequest request, final String message) {
+    private void logResult(final TestResult result,
+                           final HttpRequest request,
+                           final HttpResponse response,
+                           final String message) {
         final StringBuilder buf = new StringBuilder();
         buf.append(result);
         if (buf.length() == 2) {
             buf.append(" ");
         }
-        buf.append(": ").append(protocolVersion).append(" ").append(target);
+        buf.append(": ");
+        if (response != null) {
+            buf.append(response.getVersion()).append(" ");
+        } else {
+            buf.append(versionPolicy).append(" ");
+        }
+        buf.append(target);
         if (proxy != null) {
             buf.append(" via ").append(proxy);
         }
@@ -174,15 +183,15 @@ public class HttpAsyncClientCompatibilityTest {
                 final SimpleHttpResponse response = future.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
                 final int code = response.getCode();
                 if (code == HttpStatus.SC_OK) {
-                    logResult(TestResult.OK, options, Objects.toString(response.getFirstHeader("server")));
+                    logResult(TestResult.OK, options, response, Objects.toString(response.getFirstHeader("server")));
                 } else {
-                    logResult(TestResult.NOK, options, "(status " + code + ")");
+                    logResult(TestResult.NOK, options, response, "(status " + code + ")");
                 }
             } catch (final ExecutionException ex) {
                 final Throwable cause = ex.getCause();
-                logResult(TestResult.NOK, options, "(" + cause.getMessage() + ")");
+                logResult(TestResult.NOK, options, null, "(" + cause.getMessage() + ")");
             } catch (final TimeoutException ex) {
-                logResult(TestResult.NOK, options, "(time out)");
+                logResult(TestResult.NOK, options, null, "(time out)");
             }
         }
         // Basic GET requests
@@ -199,15 +208,15 @@ public class HttpAsyncClientCompatibilityTest {
                     final SimpleHttpResponse response = future.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
                     final int code = response.getCode();
                     if (code == HttpStatus.SC_OK) {
-                        logResult(TestResult.OK, httpGet, "200");
+                        logResult(TestResult.OK, httpGet, response, "200");
                     } else {
-                        logResult(TestResult.NOK, httpGet, "(status " + code + ")");
+                        logResult(TestResult.NOK, httpGet, response, "(status " + code + ")");
                     }
                 } catch (final ExecutionException ex) {
                     final Throwable cause = ex.getCause();
-                    logResult(TestResult.NOK, httpGet, "(" + cause.getMessage() + ")");
+                    logResult(TestResult.NOK, httpGet, null, "(" + cause.getMessage() + ")");
                 } catch (final TimeoutException ex) {
-                    logResult(TestResult.NOK, httpGet, "(time out)");
+                    logResult(TestResult.NOK, httpGet, null, "(time out)");
                 }
             }
         }
@@ -226,15 +235,15 @@ public class HttpAsyncClientCompatibilityTest {
                 final SimpleHttpResponse response = future.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
                 final int code = response.getCode();
                 if (code == HttpStatus.SC_UNAUTHORIZED) {
-                    logResult(TestResult.OK, httpGetSecret, "401 (wrong target auth scope)");
+                    logResult(TestResult.OK, httpGetSecret, response, "401 (wrong target auth scope)");
                 } else {
-                    logResult(TestResult.NOK, httpGetSecret, "(status " + code + ")");
+                    logResult(TestResult.NOK, httpGetSecret, response, "(status " + code + ")");
                 }
             } catch (final ExecutionException ex) {
                 final Throwable cause = ex.getCause();
-                logResult(TestResult.NOK, httpGetSecret, "(" + cause.getMessage() + ")");
+                logResult(TestResult.NOK, httpGetSecret, null, "(" + cause.getMessage() + ")");
             } catch (final TimeoutException ex) {
-                logResult(TestResult.NOK, httpGetSecret, "(time out)");
+                logResult(TestResult.NOK, httpGetSecret, null, "(time out)");
             }
         }
         // Wrong target credentials
@@ -252,15 +261,15 @@ public class HttpAsyncClientCompatibilityTest {
                 final SimpleHttpResponse response = future.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
                 final int code = response.getCode();
                 if (code == HttpStatus.SC_UNAUTHORIZED) {
-                    logResult(TestResult.OK, httpGetSecret, "401 (wrong target creds)");
+                    logResult(TestResult.OK, httpGetSecret, response, "401 (wrong target creds)");
                 } else {
-                    logResult(TestResult.NOK, httpGetSecret, "(status " + code + ")");
+                    logResult(TestResult.NOK, httpGetSecret, response, "(status " + code + ")");
                 }
             } catch (final ExecutionException ex) {
                 final Throwable cause = ex.getCause();
-                logResult(TestResult.NOK, httpGetSecret, "(" + cause.getMessage() + ")");
+                logResult(TestResult.NOK, httpGetSecret, null, "(" + cause.getMessage() + ")");
             } catch (final TimeoutException ex) {
-                logResult(TestResult.NOK, httpGetSecret, "(time out)");
+                logResult(TestResult.NOK, httpGetSecret, null, "(time out)");
             }
         }
         // Correct target credentials
@@ -278,19 +287,19 @@ public class HttpAsyncClientCompatibilityTest {
                 final SimpleHttpResponse response = future.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
                 final int code = response.getCode();
                 if (code == HttpStatus.SC_OK) {
-                    logResult(TestResult.OK, httpGetSecret, "200 (correct target creds)");
+                    logResult(TestResult.OK, httpGetSecret, response, "200 (correct target creds)");
                 } else {
-                    logResult(TestResult.NOK, httpGetSecret, "(status " + code + ")");
+                    logResult(TestResult.NOK, httpGetSecret, response, "(status " + code + ")");
                 }
             } catch (final ExecutionException ex) {
                 final Throwable cause = ex.getCause();
-                logResult(TestResult.NOK, httpGetSecret, "(" + cause.getMessage() + ")");
+                logResult(TestResult.NOK, httpGetSecret, null, "(" + cause.getMessage() + ")");
             } catch (final TimeoutException ex) {
-                logResult(TestResult.NOK, httpGetSecret, "(time out)");
+                logResult(TestResult.NOK, httpGetSecret, null, "(time out)");
             }
         }
         // Correct target credentials (no keep-alive)
-        if (protocolVersion.lessEquals(HttpVersion.HTTP_1_1))
+        if (versionPolicy == HttpVersionPolicy.FORCE_HTTP_1)
         {
             connManager.closeIdle(TimeValue.NEG_ONE_MILLISECOND);
             credentialsProvider.setCredentials(
@@ -306,15 +315,15 @@ public class HttpAsyncClientCompatibilityTest {
                 final SimpleHttpResponse response = future.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
                 final int code = response.getCode();
                 if (code == HttpStatus.SC_OK) {
-                    logResult(TestResult.OK, httpGetSecret, "200 (correct target creds / no keep-alive)");
+                    logResult(TestResult.OK, httpGetSecret, response, "200 (correct target creds / no keep-alive)");
                 } else {
-                    logResult(TestResult.NOK, httpGetSecret, "(status " + code + ")");
+                    logResult(TestResult.NOK, httpGetSecret, response, "(status " + code + ")");
                 }
             } catch (final ExecutionException ex) {
                 final Throwable cause = ex.getCause();
-                logResult(TestResult.NOK, httpGetSecret, "(" + cause.getMessage() + ")");
+                logResult(TestResult.NOK, httpGetSecret, null, "(" + cause.getMessage() + ")");
             } catch (final TimeoutException ex) {
-                logResult(TestResult.NOK, httpGetSecret, "(time out)");
+                logResult(TestResult.NOK, httpGetSecret, null, "(time out)");
             }
         }
     }
