@@ -174,12 +174,13 @@ public class HttpClientContext extends HttpCoreContext {
         return getAttribute(COOKIE_ORIGIN, CookieOrigin.class);
     }
 
-    private <T> Lookup<T> getLookup(final String name, final Class<T> clazz) {
-        return getAttribute(name, Lookup.class);
+    @SuppressWarnings("unchecked")
+    private <T> Lookup<T> getLookup(final String name) {
+        return (Lookup<T>) getAttribute(name, Lookup.class);
     }
 
     public Lookup<CookieSpecFactory> getCookieSpecRegistry() {
-        return getLookup(COOKIESPEC_REGISTRY, CookieSpecFactory.class);
+        return getLookup(COOKIESPEC_REGISTRY);
     }
 
     public void setCookieSpecRegistry(final Lookup<CookieSpecFactory> lookup) {
@@ -187,7 +188,7 @@ public class HttpClientContext extends HttpCoreContext {
     }
 
     public Lookup<AuthSchemeFactory> getAuthSchemeRegistry() {
-        return getLookup(AUTHSCHEME_REGISTRY, AuthSchemeFactory.class);
+        return getLookup(AUTHSCHEME_REGISTRY);
     }
 
     public void setAuthSchemeRegistry(final Lookup<AuthSchemeFactory> lookup) {
