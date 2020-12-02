@@ -99,11 +99,7 @@ class CacheEntity implements HttpEntity, Serializable {
 
     @Override
     public void consumeContent() throws IOException {
-    }
-
-    @Override
-    public Object clone() throws CloneNotSupportedException {
-        return super.clone();
+        // consume nothing
     }
 
 }
