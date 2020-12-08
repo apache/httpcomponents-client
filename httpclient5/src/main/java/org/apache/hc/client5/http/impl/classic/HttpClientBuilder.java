@@ -930,7 +930,9 @@ public class HttpClientBuilder {
                         execChainDefinition.addFirst(entry.interceptor, entry.name);
                         break;
                     case LAST:
-                        execChainDefinition.addLast(entry.interceptor, entry.name);
+                        // Don't add last, after MainClientExec, as that does not delegate to the chain
+                        // Instead, add the interceptor just before it, making it effectively the last interceptor
+                        execChainDefinition.addBefore(ChainElement.MAIN_TRANSPORT.name(), entry.interceptor, entry.name);
                         break;
                 }
             }
