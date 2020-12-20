@@ -47,11 +47,7 @@ import net.spy.memcached.CASResponse;
 import net.spy.memcached.CASValue;
 import net.spy.memcached.MemcachedClient;
 import net.spy.memcached.internal.BulkFuture;
-import net.spy.memcached.internal.BulkGetCompletionListener;
-import net.spy.memcached.internal.BulkGetFuture;
-import net.spy.memcached.internal.GetCompletionListener;
 import net.spy.memcached.internal.GetFuture;
-import net.spy.memcached.internal.OperationCompletionListener;
 import net.spy.memcached.internal.OperationFuture;
 
 /**
@@ -160,21 +156,16 @@ public class MemcachedHttpAsyncCacheStorage extends AbstractBinaryAsyncCacheStor
     }
 
     private <T> Cancellable operation(final OperationFuture<T> operationFuture, final FutureCallback<T> callback) {
-        operationFuture.addListener(new OperationCompletionListener() {
-
-            @Override
-            public void onComplete(final OperationFuture<?> future) throws Exception {
-                try {
-                    callback.completed(operationFuture.get());
-                } catch (final ExecutionException ex) {
-                    if (ex.getCause() instanceof Exception) {
-                        callback.failed((Exception) ex.getCause());
-                    } else {
-                        callback.failed(ex);
-                    }
+        operationFuture.addListener(future -> {
+            try {
+                callback.completed(operationFuture.get());
+            } catch (final ExecutionException ex) {
+                if (ex.getCause() instanceof Exception) {
+                    callback.failed((Exception) ex.getCause());
+                } else {
+                    callback.failed(ex);
                 }
             }
-
         });
         return Operations.cancellable(operationFuture);
     }
@@ -187,21 +178,16 @@ public class MemcachedHttpAsyncCacheStorage extends AbstractBinaryAsyncCacheStor
     @Override
     protected Cancellable restore(final String storageKey, final FutureCallback<byte[]> callback) {
         final GetFuture<Object> getFuture = client.asyncGet(storageKey);
-        getFuture.addListener(new GetCompletionListener() {
-
-            @Override
-            public void onComplete(final GetFuture<?> future) throws Exception {
-                try {
-                    callback.completed(castAsByteArray(getFuture.get()));
-                } catch (final ExecutionException ex) {
-                    if (ex.getCause() instanceof Exception) {
-                        callback.failed((Exception) ex.getCause());
-                    } else {
-                        callback.failed(ex);
-                    }
+        getFuture.addListener(future -> {
+            try {
+                callback.completed(castAsByteArray(getFuture.get()));
+            } catch (final ExecutionException ex) {
+                if (ex.getCause() instanceof Exception) {
+                    callback.failed((Exception) ex.getCause());
+                } else {
+                    callback.failed(ex);
                 }
             }
-
         });
         return Operations.cancellable(getFuture);
     }
@@ -242,17 +228,13 @@ public class MemcachedHttpAsyncCacheStorage extends AbstractBinaryAsyncCacheStor
     @Override
     protected Cancellable bulkRestore(final Collection<String> storageKeys, final FutureCallback<Map<String, byte[]>> callback) {
         final BulkFuture<Map<String, Object>> future = client.asyncGetBulk(storageKeys);
-        future.addListener(new BulkGetCompletionListener() {
-
-            @Override
-            public void onComplete(final BulkGetFuture<?> future) throws Exception {
-                final Map<String, ?> storageObjectMap = future.get();
-                final Map<String, byte[]> resultMap = new HashMap<>(storageObjectMap.size());
-                for (final Map.Entry<String, ?> resultEntry: storageObjectMap.entrySet()) {
-                    resultMap.put(resultEntry.getKey(), castAsByteArray(resultEntry.getValue()));
-                }
-                callback.completed(resultMap);
+        future.addListener(future1 -> {
+            final Map<String, ?> storageObjectMap = future1.get();
+            final Map<String, byte[]> resultMap = new HashMap<>(storageObjectMap.size());
+            for (final Map.Entry<String, ?> resultEntry: storageObjectMap.entrySet()) {
+                resultMap.put(resultEntry.getKey(), castAsByteArray(resultEntry.getValue()));
             }
+            callback.completed(resultMap);
         });
         return Operations.cancellable(future);
     }

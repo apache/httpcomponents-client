@@ -44,7 +44,6 @@ import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.client5.testing.OldPathRedirectResolver;
 import org.apache.hc.client5.testing.SSLTestContexts;
 import org.apache.hc.client5.testing.redirect.Redirect;
-import org.apache.hc.core5.function.Decorator;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
@@ -54,7 +53,6 @@ import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.message.BasicHeader;
-import org.apache.hc.core5.http.nio.AsyncServerExchangeHandler;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -125,17 +123,10 @@ public class TestHttp1AsyncRedirects extends AbstractHttpAsyncRedirectsTest<Clos
 
     @Test
     public void testBasicRedirect300NoKeepAlive() throws Exception {
-        final HttpHost target = start(new Decorator<AsyncServerExchangeHandler>() {
-
-            @Override
-            public AsyncServerExchangeHandler decorate(final AsyncServerExchangeHandler exchangeHandler) {
-                return new RedirectingAsyncDecorator(
-                        exchangeHandler,
-                        new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MULTIPLE_CHOICES,
-                                Redirect.ConnControl.CLOSE));
-            }
-
-        });
+        final HttpHost target = start(exchangeHandler -> new RedirectingAsyncDecorator(
+                exchangeHandler,
+                new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MULTIPLE_CHOICES,
+                        Redirect.ConnControl.CLOSE)));
         final HttpClientContext context = HttpClientContext.create();
         final Future<SimpleHttpResponse> future = httpclient.execute(SimpleRequestBuilder.get()
                         .setHttpHost(target)
@@ -152,17 +143,10 @@ public class TestHttp1AsyncRedirects extends AbstractHttpAsyncRedirectsTest<Clos
 
     @Test
     public void testBasicRedirect301NoKeepAlive() throws Exception {
-        final HttpHost target = start(new Decorator<AsyncServerExchangeHandler>() {
-
-            @Override
-            public AsyncServerExchangeHandler decorate(final AsyncServerExchangeHandler exchangeHandler) {
-                return new RedirectingAsyncDecorator(
-                        exchangeHandler,
-                        new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MOVED_PERMANENTLY,
-                                Redirect.ConnControl.CLOSE));
-            }
-
-        });
+        final HttpHost target = start(exchangeHandler -> new RedirectingAsyncDecorator(
+                exchangeHandler,
+                new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MOVED_PERMANENTLY,
+                        Redirect.ConnControl.CLOSE)));
         final HttpClientContext context = HttpClientContext.create();
         final Future<SimpleHttpResponse> future = httpclient.execute(SimpleRequestBuilder.get()
                         .setHttpHost(target)
@@ -184,17 +168,10 @@ public class TestHttp1AsyncRedirects extends AbstractHttpAsyncRedirectsTest<Clos
         defaultHeaders.add(new BasicHeader(HttpHeaders.USER_AGENT, "my-test-client"));
         clientBuilder.setDefaultHeaders(defaultHeaders);
 
-        final HttpHost target = start(new Decorator<AsyncServerExchangeHandler>() {
-
-            @Override
-            public AsyncServerExchangeHandler decorate(final AsyncServerExchangeHandler exchangeHandler) {
-                return new RedirectingAsyncDecorator(
-                        exchangeHandler,
-                        new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MOVED_PERMANENTLY,
-                                Redirect.ConnControl.CLOSE));
-            }
-
-        });
+        final HttpHost target = start(exchangeHandler -> new RedirectingAsyncDecorator(
+                exchangeHandler,
+                new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MOVED_PERMANENTLY,
+                        Redirect.ConnControl.CLOSE)));
 
         final HttpClientContext context = HttpClientContext.create();
 

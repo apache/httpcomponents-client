@@ -34,7 +34,6 @@ import java.util.Map;
 import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.utils.DateUtils;
-import org.apache.hc.core5.function.Factory;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HeaderElement;
 import org.apache.hc.core5.http.HttpRequest;
@@ -53,14 +52,7 @@ public class TestConditionalRequestBuilder {
 
     @Before
     public void setUp() throws Exception {
-        impl = new ConditionalRequestBuilder<>(new Factory<HttpRequest, HttpRequest>() {
-
-            @Override
-            public HttpRequest create(final HttpRequest request) {
-                return BasicRequestBuilder.copy(request).build();
-            }
-
-        });
+        impl = new ConditionalRequestBuilder<>(request -> BasicRequestBuilder.copy(request).build());
         request = new BasicHttpRequest("GET", "/");
     }
 

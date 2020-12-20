@@ -53,7 +53,6 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 @SuppressWarnings({"boxing","static-access"}) // test code
@@ -330,29 +329,17 @@ public class TestMainClientExec {
 
         private boolean connected;
 
-        public Answer connectAnswer() {
+        public Answer<?> connectAnswer() {
 
-            return new Answer() {
-
-                @Override
-                public Object answer(final InvocationOnMock invocationOnMock) throws Throwable {
-                    connected = true;
-                    return null;
-                }
-
+            return invocationOnMock -> {
+                connected = true;
+                return null;
             };
         }
 
         public Answer<Boolean> isConnectedAnswer() {
 
-            return new Answer<Boolean>() {
-
-                @Override
-                public Boolean answer(final InvocationOnMock invocationOnMock) throws Throwable {
-                    return connected;
-                }
-
-            };
+            return invocationOnMock -> connected;
 
         }
     }

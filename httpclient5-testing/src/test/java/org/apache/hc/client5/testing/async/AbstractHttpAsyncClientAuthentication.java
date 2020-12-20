@@ -54,7 +54,6 @@ import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.testing.BasicTestAuthenticator;
 import org.apache.hc.client5.testing.auth.Authenticator;
 import org.apache.hc.core5.function.Decorator;
-import org.apache.hc.core5.function.Supplier;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHeaders;
@@ -89,14 +88,7 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
 
     @Override
     public final HttpHost start() throws Exception {
-        return start(new Decorator<AsyncServerExchangeHandler>() {
-
-            @Override
-            public AsyncServerExchangeHandler decorate(final AsyncServerExchangeHandler requestHandler) {
-                return new AuthenticatingAsyncDecorator(requestHandler, new BasicTestAuthenticator("test:test", "test realm"));
-            }
-
-        });
+        return start(requestHandler -> new AuthenticatingAsyncDecorator(requestHandler, new BasicTestAuthenticator("test:test", "test realm")));
     }
 
     public final HttpHost start(
@@ -150,14 +142,7 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
 
     @Test
     public void testBasicAuthenticationNoCreds() throws Exception {
-        server.register("*", new Supplier<AsyncServerExchangeHandler>() {
-
-            @Override
-            public AsyncServerExchangeHandler get() {
-                return new AsyncEchoHandler();
-            }
-
-        });
+        server.register("*", AsyncEchoHandler::new);
         final HttpHost target = start();
 
         final TestCredentialsProvider credsProvider = new TestCredentialsProvider(null);
@@ -179,14 +164,7 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
 
     @Test
     public void testBasicAuthenticationFailure() throws Exception {
-        server.register("*", new Supplier<AsyncServerExchangeHandler>() {
-
-            @Override
-            public AsyncServerExchangeHandler get() {
-                return new AsyncEchoHandler();
-            }
-
-        });
+        server.register("*", AsyncEchoHandler::new);
         final HttpHost target = start();
 
         final TestCredentialsProvider credsProvider = new TestCredentialsProvider(
@@ -209,14 +187,7 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
 
     @Test
     public void testBasicAuthenticationSuccess() throws Exception {
-        server.register("*", new Supplier<AsyncServerExchangeHandler>() {
-
-            @Override
-            public AsyncServerExchangeHandler get() {
-                return new AsyncEchoHandler();
-            }
-
-        });
+        server.register("*", AsyncEchoHandler::new);
         final HttpHost target = start();
 
         final TestCredentialsProvider credsProvider = new TestCredentialsProvider(
@@ -240,14 +211,7 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
 
     @Test
     public void testBasicAuthenticationWithEntitySuccess() throws Exception {
-        server.register("*", new Supplier<AsyncServerExchangeHandler>() {
-
-            @Override
-            public AsyncServerExchangeHandler get() {
-                return new AsyncEchoHandler();
-            }
-
-        });
+        server.register("*", AsyncEchoHandler::new);
         final HttpHost target = start();
 
         final TestCredentialsProvider credsProvider = new TestCredentialsProvider(
@@ -271,14 +235,7 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
 
     @Test
     public void testBasicAuthenticationExpectationFailure() throws Exception {
-        server.register("*", new Supplier<AsyncServerExchangeHandler>() {
-
-            @Override
-            public AsyncServerExchangeHandler get() {
-                return new AsyncEchoHandler();
-            }
-
-        });
+        server.register("*", AsyncEchoHandler::new);
         final HttpHost target = start();
 
         final TestCredentialsProvider credsProvider = new TestCredentialsProvider(
@@ -300,14 +257,7 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
 
     @Test
     public void testBasicAuthenticationExpectationSuccess() throws Exception {
-        server.register("*", new Supplier<AsyncServerExchangeHandler>() {
-
-            @Override
-            public AsyncServerExchangeHandler get() {
-                return new AsyncEchoHandler();
-            }
-
-        });
+        server.register("*", AsyncEchoHandler::new);
         final HttpHost target = start();
 
         final TestCredentialsProvider credsProvider = new TestCredentialsProvider(
@@ -332,14 +282,7 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
 
     @Test
     public void testBasicAuthenticationCredentialsCaching() throws Exception {
-        server.register("*", new Supplier<AsyncServerExchangeHandler>() {
-
-            @Override
-            public AsyncServerExchangeHandler get() {
-                return new AsyncEchoHandler();
-            }
-
-        });
+        server.register("*", AsyncEchoHandler::new);
 
         final AtomicLong count = new AtomicLong(0);
         setTargetAuthenticationStrategy(new DefaultAuthenticationStrategy() {
@@ -382,14 +325,7 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
 
     @Test
     public void testAuthenticationUserinfoInRequestSuccess() throws Exception {
-        server.register("*", new Supplier<AsyncServerExchangeHandler>() {
-
-            @Override
-            public AsyncServerExchangeHandler get() {
-                return new AsyncEchoHandler();
-            }
-
-        });
+        server.register("*", AsyncEchoHandler::new);
         final HttpHost target = start();
 
         final HttpClientContext context = HttpClientContext.create();
@@ -407,14 +343,7 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
 
     @Test
     public void testAuthenticationUserinfoInRequestFailure() throws Exception {
-        server.register("*", new Supplier<AsyncServerExchangeHandler>() {
-
-            @Override
-            public AsyncServerExchangeHandler get() {
-                return new AsyncEchoHandler();
-            }
-
-        });
+        server.register("*", AsyncEchoHandler::new);
         final HttpHost target = start();
 
         final HttpClientContext context = HttpClientContext.create();
@@ -431,31 +360,17 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
 
     @Test
     public void testAuthenticationUserinfoInRedirectSuccess() throws Exception {
-        server.register("*", new Supplier<AsyncServerExchangeHandler>() {
-
-            @Override
-            public AsyncServerExchangeHandler get() {
-                return new AsyncEchoHandler();
-            }
-
-        });
+        server.register("*", AsyncEchoHandler::new);
         final HttpHost target = start();
-        server.register("/thatway", new Supplier<AsyncServerExchangeHandler>() {
+        server.register("/thatway", () -> new AbstractSimpleServerExchangeHandler() {
 
             @Override
-            public AsyncServerExchangeHandler get() {
-                return new AbstractSimpleServerExchangeHandler() {
-
-                    @Override
-                    protected SimpleHttpResponse handle(
-                            final SimpleHttpRequest request, final HttpCoreContext context) throws HttpException {
-                        final SimpleHttpResponse response = new SimpleHttpResponse(HttpStatus.SC_MOVED_PERMANENTLY);
-                        response.addHeader(new BasicHeader("Location", target.getSchemeName() + "://test:test@" + target.toHostString() + "/"));
-                        return response;
-                    }
-                };
+            protected SimpleHttpResponse handle(
+                    final SimpleHttpRequest request, final HttpCoreContext context) throws HttpException {
+                final SimpleHttpResponse response = new SimpleHttpResponse(HttpStatus.SC_MOVED_PERMANENTLY);
+                response.addHeader(new BasicHeader("Location", target.getSchemeName() + "://test:test@" + target.toHostString() + "/"));
+                return response;
             }
-
         });
 
         final HttpClientContext context = HttpClientContext.create();
@@ -473,32 +388,18 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
 
     @Test
     public void testReauthentication() throws Exception {
-        server.register("*", new Supplier<AsyncServerExchangeHandler>() {
-
-            @Override
-            public AsyncServerExchangeHandler get() {
-                return new AsyncEchoHandler();
-            }
-
-        });
+        server.register("*", AsyncEchoHandler::new);
         final TestCredentialsProvider credsProvider = new TestCredentialsProvider(
                 new UsernamePasswordCredentials("test", "test".toCharArray()));
 
         final Registry<AuthSchemeFactory> authSchemeRegistry = RegistryBuilder.<AuthSchemeFactory>create()
-                .register("MyBasic", new AuthSchemeFactory() {
+                .register("MyBasic", context -> new BasicScheme() {
+
+                    private static final long serialVersionUID = 1L;
 
                     @Override
-                    public AuthScheme create(final HttpContext context) {
-                        return new BasicScheme() {
-
-                            private static final long serialVersionUID = 1L;
-
-                            @Override
-                            public String getName() {
-                                return "MyBasic";
-                            }
-
-                        };
+                    public String getName() {
+                        return "MyBasic";
                     }
 
                 })
@@ -520,19 +421,12 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
         };
 
         final HttpHost target = start(
-                new Decorator<AsyncServerExchangeHandler>() {
+                exchangeHandler -> new AuthenticatingAsyncDecorator(exchangeHandler, authenticator) {
 
                     @Override
-                    public AsyncServerExchangeHandler decorate(final AsyncServerExchangeHandler exchangeHandler) {
-                        return new AuthenticatingAsyncDecorator(exchangeHandler, authenticator) {
-
-                            @Override
-                            protected void customizeUnauthorizedResponse(final HttpResponse unauthorized) {
-                                unauthorized.removeHeaders(HttpHeaders.WWW_AUTHENTICATE);
-                                unauthorized.addHeader(HttpHeaders.WWW_AUTHENTICATE, "MyBasic realm=\"test realm\"");
-                            }
-
-                        };
+                    protected void customizeUnauthorizedResponse(final HttpResponse unauthorized) {
+                        unauthorized.removeHeaders(HttpHeaders.WWW_AUTHENTICATE);
+                        unauthorized.addHeader(HttpHeaders.WWW_AUTHENTICATE, "MyBasic realm=\"test realm\"");
                     }
 
                 });
@@ -558,27 +452,13 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
 
     @Test
     public void testAuthenticationFallback() throws Exception {
-        server.register("*", new Supplier<AsyncServerExchangeHandler>() {
-
-            @Override
-            public AsyncServerExchangeHandler get() {
-                return new AsyncEchoHandler();
-            }
-
-        });
+        server.register("*", AsyncEchoHandler::new);
         final HttpHost target = start(
-                new Decorator<AsyncServerExchangeHandler>() {
+                exchangeHandler -> new AuthenticatingAsyncDecorator(exchangeHandler, new BasicTestAuthenticator("test:test", "test realm")) {
 
                     @Override
-                    public AsyncServerExchangeHandler decorate(final AsyncServerExchangeHandler exchangeHandler) {
-                        return new AuthenticatingAsyncDecorator(exchangeHandler, new BasicTestAuthenticator("test:test", "test realm")) {
-
-                            @Override
-                            protected void customizeUnauthorizedResponse(final HttpResponse unauthorized) {
-                                unauthorized.addHeader(HttpHeaders.WWW_AUTHENTICATE, StandardAuthScheme.DIGEST + " realm=\"test realm\" invalid");
-                            }
-
-                        };
+                    protected void customizeUnauthorizedResponse(final HttpResponse unauthorized) {
+                        unauthorized.addHeader(HttpHeaders.WWW_AUTHENTICATE, StandardAuthScheme.DIGEST + " realm=\"test realm\" invalid");
                     }
 
                 });

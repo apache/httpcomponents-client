@@ -28,7 +28,6 @@
 package org.apache.hc.client5.http.impl.classic;
 
 import java.io.Closeable;
-import java.io.IOException;
 import java.net.ProxySelector;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -43,8 +42,8 @@ import org.apache.hc.client5.http.HttpRequestRetryStrategy;
 import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.UserTokenHandler;
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
-import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
+import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.classic.BackoffManager;
 import org.apache.hc.client5.http.classic.ConnectionBackoffStrategy;
 import org.apache.hc.client5.http.classic.ExecChainHandler;
@@ -87,9 +86,7 @@ import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.http.ConnectionReuseStrategy;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpRequestInterceptor;
-import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpResponseInterceptor;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.config.NamedElementChain;
@@ -98,7 +95,6 @@ import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.impl.DefaultConnectionReuseStrategy;
 import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
 import org.apache.hc.core5.http.protocol.DefaultHttpProcessor;
-import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
 import org.apache.hc.core5.http.protocol.HttpProcessorBuilder;
 import org.apache.hc.core5.http.protocol.RequestContent;
@@ -748,13 +744,7 @@ public class HttpClientBuilder {
                 if ("true".equalsIgnoreCase(s)) {
                     reuseStrategyCopy = DefaultConnectionReuseStrategy.INSTANCE;
                 } else {
-                    reuseStrategyCopy = new ConnectionReuseStrategy() {
-                        @Override
-                        public boolean keepAlive(
-                                final HttpRequest request, final HttpResponse response, final HttpContext context) {
-                            return false;
-                        }
-                    };
+                    reuseStrategyCopy = (request, response, context) -> false;
                 }
             } else {
                 reuseStrategyCopy = DefaultConnectionReuseStrategy.INSTANCE;
@@ -985,18 +975,13 @@ public class HttpClientBuilder {
                 if (connManagerCopy instanceof ConnPoolControl) {
                     final IdleConnectionEvictor connectionEvictor = new IdleConnectionEvictor((ConnPoolControl<?>) connManagerCopy,
                             maxIdleTime, maxIdleTime);
-                    closeablesCopy.add(new Closeable() {
-
-                        @Override
-                        public void close() throws IOException {
-                            connectionEvictor.shutdown();
-                            try {
-                                connectionEvictor.awaitTermination(Timeout.ofSeconds(1));
-                            } catch (final InterruptedException interrupted) {
-                                Thread.currentThread().interrupt();
-                            }
+                    closeablesCopy.add(() -> {
+                        connectionEvictor.shutdown();
+                        try {
+                            connectionEvictor.awaitTermination(Timeout.ofSeconds(1));
+                        } catch (final InterruptedException interrupted) {
+                            Thread.currentThread().interrupt();
                         }
-
                     });
                     connectionEvictor.start();
                 }

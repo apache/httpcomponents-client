@@ -55,8 +55,6 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 @SuppressWarnings({"boxing","static-access"}) // test code
 public class TestHttpRequestRetryExec {
@@ -231,21 +229,16 @@ public class TestHttpRequestRetryExec {
 
         Mockito.when(chain.proceed(
                 Mockito.<ClassicHttpRequest>any(),
-                Mockito.<ExecChain.Scope>any())).thenAnswer(new Answer<Object>() {
-
-            @Override
-            public Object answer(final InvocationOnMock invocationOnMock) throws Throwable {
-                final Object[] args = invocationOnMock.getArguments();
-                final ClassicHttpRequest wrapper = (ClassicHttpRequest) args[0];
-                final Header[] headers = wrapper.getHeaders();
-                Assert.assertEquals(2, headers.length);
-                Assert.assertEquals("this", headers[0].getValue());
-                Assert.assertEquals("that", headers[1].getValue());
-                wrapper.addHeader("Cookie", "monster");
-                throw new IOException("Ka-boom");
-            }
-
-        });
+                Mockito.<ExecChain.Scope>any())).thenAnswer(invocationOnMock -> {
+                    final Object[] args = invocationOnMock.getArguments();
+                    final ClassicHttpRequest wrapper = (ClassicHttpRequest) args[0];
+                    final Header[] headers = wrapper.getHeaders();
+                    Assert.assertEquals(2, headers.length);
+                    Assert.assertEquals("this", headers[0].getValue());
+                    Assert.assertEquals("that", headers[1].getValue());
+                    wrapper.addHeader("Cookie", "monster");
+                    throw new IOException("Ka-boom");
+                });
         Mockito.when(retryStrategy.retryRequest(
                 Mockito.<HttpRequest>any(),
                 Mockito.<IOException>any(),
@@ -304,17 +297,12 @@ public class TestHttpRequestRetryExec {
 
         Mockito.when(chain.proceed(
                 Mockito.<ClassicHttpRequest>any(),
-                Mockito.<ExecChain.Scope>any())).thenAnswer(new Answer<Object>() {
-
-            @Override
-            public Object answer(final InvocationOnMock invocationOnMock) throws Throwable {
-                final Object[] args = invocationOnMock.getArguments();
-                final ClassicHttpRequest req = (ClassicHttpRequest) args[0];
-                req.getEntity().writeTo(new ByteArrayOutputStream());
-                throw new IOException("Ka-boom");
-            }
-
-        });
+                Mockito.<ExecChain.Scope>any())).thenAnswer(invocationOnMock -> {
+                    final Object[] args = invocationOnMock.getArguments();
+                    final ClassicHttpRequest req = (ClassicHttpRequest) args[0];
+                    req.getEntity().writeTo(new ByteArrayOutputStream());
+                    throw new IOException("Ka-boom");
+                });
         Mockito.when(retryStrategy.retryRequest(
                 Mockito.<HttpRequest>any(),
                 Mockito.<IOException>any(),

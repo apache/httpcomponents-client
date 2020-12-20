@@ -26,7 +26,6 @@
  */
 package org.apache.hc.client5.http.examples;
 
-import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
 import javax.net.ssl.SSLContext;
@@ -44,7 +43,6 @@ import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.ssl.TLS;
 import org.apache.hc.core5.ssl.SSLContexts;
-import org.apache.hc.core5.ssl.TrustStrategy;
 
 /**
  * This example demonstrates how to create secure connections with a custom SSL
@@ -55,16 +53,9 @@ public class ClientCustomSSL {
     public final static void main(final String[] args) throws Exception {
         // Trust standard CA and those trusted by our custom strategy
         final SSLContext sslcontext = SSLContexts.custom()
-                .loadTrustMaterial(new TrustStrategy() {
-
-                    @Override
-                    public boolean isTrusted(
-                            final X509Certificate[] chain,
-                            final String authType) throws CertificateException {
-                        final X509Certificate cert = chain[0];
-                        return "CN=httpbin.org".equalsIgnoreCase(cert.getSubjectDN().getName());
-                    }
-
+                .loadTrustMaterial((chain, authType) -> {
+                    final X509Certificate cert = chain[0];
+                    return "CN=httpbin.org".equalsIgnoreCase(cert.getSubjectDN().getName());
                 })
                 .build();
         // Allow TLSv1.2 protocol only

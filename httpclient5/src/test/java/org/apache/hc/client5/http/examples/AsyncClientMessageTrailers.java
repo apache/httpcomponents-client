@@ -27,12 +27,8 @@
 
 package org.apache.hc.client5.http.examples;
 
-import java.io.IOException;
 import java.util.concurrent.Future;
 
-import org.apache.hc.client5.http.async.AsyncExecCallback;
-import org.apache.hc.client5.http.async.AsyncExecChain;
-import org.apache.hc.client5.http.async.AsyncExecChainHandler;
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
@@ -43,10 +39,7 @@ import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.ContentType;
-import org.apache.hc.core5.http.HttpException;
-import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.message.StatusLine;
-import org.apache.hc.core5.http.nio.AsyncEntityProducer;
 import org.apache.hc.core5.http.nio.entity.DigestingEntityProducer;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.reactor.IOReactorConfig;
@@ -66,23 +59,13 @@ public class AsyncClientMessageTrailers {
 
         final CloseableHttpAsyncClient client = HttpAsyncClients.custom()
                 .setIOReactorConfig(ioReactorConfig)
-                .addExecInterceptorAfter(ChainElement.PROTOCOL.name(), "custom", new AsyncExecChainHandler() {
-
-                    @Override
-                    public void execute(
-                            final HttpRequest request,
-                            final AsyncEntityProducer entityProducer,
-                            final AsyncExecChain.Scope scope,
-                            final AsyncExecChain chain,
-                            final AsyncExecCallback asyncExecCallback) throws HttpException, IOException {
-                        // Send MD5 hash in a trailer by decorating the original entity producer
-                        chain.proceed(
-                                request,
-                                entityProducer != null ? new DigestingEntityProducer("MD5", entityProducer) : null,
-                                scope,
-                                asyncExecCallback);
-                    }
-
+                .addExecInterceptorAfter(ChainElement.PROTOCOL.name(), "custom", (request, entityProducer, scope, chain, asyncExecCallback) -> {
+                    // Send MD5 hash in a trailer by decorating the original entity producer
+                    chain.proceed(
+                            request,
+                            entityProducer != null ? new DigestingEntityProducer("MD5", entityProducer) : null,
+                            scope,
+                            asyncExecCallback);
                 })
                 .build();
 

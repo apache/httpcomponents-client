@@ -26,28 +26,20 @@
  */
 package org.apache.hc.client5.testing.sync;
 
-import java.io.IOException;
-
-import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
-import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.win.WinHttpClients;
 import org.apache.hc.client5.http.impl.win.WindowsNegotiateSchemeGetTokenFail;
-import org.apache.hc.core5.http.ClassicHttpRequest;
-import org.apache.hc.core5.http.ClassicHttpResponse;
-import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.config.Registry;
 import org.apache.hc.core5.http.config.RegistryBuilder;
-import org.apache.hc.core5.http.io.HttpRequestHandler;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
-import org.apache.hc.core5.http.protocol.HttpContext;
 import org.junit.Assume;
 import org.junit.Test;
 
@@ -58,17 +50,9 @@ public class TestWindowsNegotiateScheme extends LocalServerTestBase {
 
     @Test(timeout=30000) // this timeout (in ms) needs to be extended if you're actively debugging the code
     public void testNoInfiniteLoopOnSPNOutsideDomain() throws Exception {
-        this.server.registerHandler("/", new HttpRequestHandler() {
-
-            @Override
-            public void handle(
-                    final ClassicHttpRequest request,
-                    final ClassicHttpResponse response,
-                    final HttpContext context) throws HttpException, IOException {
-                response.addHeader(HttpHeaders.WWW_AUTHENTICATE, StandardAuthScheme.SPNEGO);
-                response.setCode(HttpStatus.SC_UNAUTHORIZED);
-            }
-
+        this.server.registerHandler("/", (request, response, context) -> {
+            response.addHeader(HttpHeaders.WWW_AUTHENTICATE, StandardAuthScheme.SPNEGO);
+            response.setCode(HttpStatus.SC_UNAUTHORIZED);
         });
         Assume.assumeTrue("Test can only be run on Windows", WinHttpClients.isWinAuthAvailable());
 
@@ -81,12 +65,7 @@ public class TestWindowsNegotiateScheme extends LocalServerTestBase {
         // you can contact the server that authenticated you." is associated with SEC_E_DOWNGRADE_DETECTED.
 
         final Registry<AuthSchemeFactory> authSchemeRegistry = RegistryBuilder.<AuthSchemeFactory>create()
-            .register(StandardAuthScheme.SPNEGO, new AuthSchemeFactory() {
-                @Override
-                public AuthScheme create(final HttpContext context) {
-                    return new WindowsNegotiateSchemeGetTokenFail(StandardAuthScheme.SPNEGO, "HTTP/example.com");
-                }
-            }).build();
+            .register(StandardAuthScheme.SPNEGO, context -> new WindowsNegotiateSchemeGetTokenFail(StandardAuthScheme.SPNEGO, "HTTP/example.com")).build();
         final CloseableHttpClient customClient = HttpClientBuilder.create()
                 .setDefaultAuthSchemeRegistry(authSchemeRegistry).build();
 

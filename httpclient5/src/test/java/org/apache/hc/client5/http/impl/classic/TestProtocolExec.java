@@ -70,7 +70,6 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 @SuppressWarnings({"static-access"}) // test code
@@ -317,17 +316,12 @@ public class TestProtocolExec {
 
         Mockito.when(chain.proceed(
                 Mockito.same(request),
-                Mockito.<ExecChain.Scope>any())).thenAnswer(new Answer<HttpResponse>() {
-
-            @Override
-            public HttpResponse answer(final InvocationOnMock invocationOnMock) throws Throwable {
-                final Object[] args = invocationOnMock.getArguments();
-                final ClassicHttpRequest requestEE = (ClassicHttpRequest) args[0];
-                requestEE.getEntity().writeTo(new ByteArrayOutputStream());
-                return response1;
-            }
-
-        });
+                Mockito.<ExecChain.Scope>any())).thenAnswer((Answer<HttpResponse>) invocationOnMock -> {
+                    final Object[] args = invocationOnMock.getArguments();
+                    final ClassicHttpRequest requestEE = (ClassicHttpRequest) args[0];
+                    requestEE.getEntity().writeTo(new ByteArrayOutputStream());
+                    return response1;
+                });
 
         Mockito.when(targetAuthStrategy.select(
                 Mockito.eq(ChallengeType.TARGET),

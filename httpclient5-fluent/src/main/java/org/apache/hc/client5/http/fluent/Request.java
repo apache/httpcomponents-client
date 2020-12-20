@@ -173,7 +173,7 @@ public class Request {
             builder = RequestConfig.custom();
         }
         if (this.useExpectContinue != null) {
-            builder.setExpectContinueEnabled(this.useExpectContinue);
+            builder.setExpectContinueEnabled(this.useExpectContinue.booleanValue());
         }
         if (this.connectTimeout != null) {
             builder.setConnectTimeout(this.connectTimeout);

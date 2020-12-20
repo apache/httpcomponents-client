@@ -28,9 +28,6 @@ package org.apache.hc.client5.http.impl.classic;
 
 import java.io.IOException;
 
-import org.apache.hc.client5.http.classic.ExecChain;
-import org.apache.hc.client5.http.classic.ExecChainHandler;
-import org.apache.hc.client5.http.classic.ExecChain.Scope;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
@@ -40,8 +37,6 @@ import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.impl.bootstrap.HttpServer;
 import org.apache.hc.core5.http.impl.bootstrap.ServerBootstrap;
-import org.apache.hc.core5.http.io.HttpRequestHandler;
-import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.io.CloseMode;
 import org.junit.After;
 import org.junit.Assert;
@@ -58,20 +53,13 @@ public class TestHttpClientBuilderInterceptors {
     @Before
     public void before() throws Exception {
         this.localServer = ServerBootstrap.bootstrap()
-                .register("/test", new HttpRequestHandler() {
-
-            @Override
-            public void handle(
-                    final ClassicHttpRequest request,
-                    final ClassicHttpResponse response,
-                    final HttpContext context) throws HttpException, IOException {
-                final Header testInterceptorHeader = request.getHeader("X-Test-Interceptor");
-                if (testInterceptorHeader != null) {
-                    response.setHeader(testInterceptorHeader);
-                }
-                response.setCode(200);
-            }
-        }).create();
+                .register("/test", (request, response, context) -> {
+                    final Header testInterceptorHeader = request.getHeader("X-Test-Interceptor");
+                    if (testInterceptorHeader != null) {
+                        response.setHeader(testInterceptorHeader);
+                    }
+                    response.setCode(200);
+                }).create();
 
         this.localServer.start();
         uri = "http://localhost:" + this.localServer.getLocalPort() + "/test";
@@ -80,16 +68,9 @@ public class TestHttpClientBuilderInterceptors {
                 .build();
         httpClient = HttpClientBuilder.create()
                 .setConnectionManager(cm)
-                .addExecInterceptorLast("test-interceptor", new ExecChainHandler() {
-
-                    @Override
-                    public ClassicHttpResponse execute(
-                            final ClassicHttpRequest request,
-                            final Scope scope,
-                            final ExecChain chain) throws IOException, HttpException {
-                        request.setHeader("X-Test-Interceptor", "active");
-                        return chain.proceed(request, scope);
-                    }
+                .addExecInterceptorLast("test-interceptor", (request, scope, chain) -> {
+                    request.setHeader("X-Test-Interceptor", "active");
+                    return chain.proceed(request, scope);
                 })
                 .build();
     }

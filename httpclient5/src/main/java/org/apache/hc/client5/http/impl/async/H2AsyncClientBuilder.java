@@ -29,7 +29,6 @@ package org.apache.hc.client5.http.impl.async;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
@@ -44,8 +43,8 @@ import org.apache.hc.client5.http.HttpRequestRetryStrategy;
 import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.async.AsyncExecChainHandler;
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
-import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
+import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.cookie.BasicCookieStore;
 import org.apache.hc.client5.http.cookie.CookieSpecFactory;
@@ -75,24 +74,16 @@ import org.apache.hc.client5.http.routing.HttpRoutePlanner;
 import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.concurrent.DefaultThreadFactory;
-import org.apache.hc.core5.function.Callback;
-import org.apache.hc.core5.function.Resolver;
 import org.apache.hc.core5.http.Header;
-import org.apache.hc.core5.http.HttpException;
-import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpRequestInterceptor;
 import org.apache.hc.core5.http.HttpResponseInterceptor;
 import org.apache.hc.core5.http.config.CharCodingConfig;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.config.NamedElementChain;
 import org.apache.hc.core5.http.config.RegistryBuilder;
-import org.apache.hc.core5.http.nio.AsyncPushConsumer;
-import org.apache.hc.core5.http.nio.HandlerFactory;
 import org.apache.hc.core5.http.nio.command.ShutdownCommand;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
 import org.apache.hc.core5.http.protocol.DefaultHttpProcessor;
-import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
 import org.apache.hc.core5.http.protocol.HttpProcessorBuilder;
 import org.apache.hc.core5.http.protocol.RequestTargetHost;
@@ -107,7 +98,6 @@ import org.apache.hc.core5.reactor.Command;
 import org.apache.hc.core5.reactor.DefaultConnectingIOReactor;
 import org.apache.hc.core5.reactor.IOEventHandlerFactory;
 import org.apache.hc.core5.reactor.IOReactorConfig;
-import org.apache.hc.core5.reactor.IOSession;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.VersionInfo;
@@ -710,14 +700,7 @@ public class H2AsyncClientBuilder {
         final AsyncPushConsumerRegistry pushConsumerRegistry = new AsyncPushConsumerRegistry();
         final IOEventHandlerFactory ioEventHandlerFactory = new H2AsyncClientEventHandlerFactory(
                 new DefaultHttpProcessor(new H2RequestContent(), new H2RequestTargetHost(), new H2RequestConnControl()),
-                new HandlerFactory<AsyncPushConsumer>() {
-
-                    @Override
-                    public AsyncPushConsumer create(final HttpRequest request, final HttpContext context) throws HttpException {
-                        return pushConsumerRegistry.get(request);
-                    }
-
-                },
+                (request, context) -> pushConsumerRegistry.get(request),
                 h2Config != null ? h2Config : H2Config.DEFAULT,
                 charCodingConfig != null ? charCodingConfig : CharCodingConfig.DEFAULT);
         final DefaultConnectingIOReactor ioReactor = new DefaultConnectingIOReactor(
@@ -727,14 +710,7 @@ public class H2AsyncClientBuilder {
                 LoggingIOSessionDecorator.INSTANCE,
                 LoggingExceptionCallback.INSTANCE,
                 null,
-                new Callback<IOSession>() {
-
-                    @Override
-                    public void execute(final IOSession ioSession) {
-                        ioSession.enqueue(new ShutdownCommand(CloseMode.GRACEFUL), Command.Priority.IMMEDIATE);
-                    }
-
-                });
+                ioSession -> ioSession.enqueue(new ShutdownCommand(CloseMode.GRACEFUL), Command.Priority.IMMEDIATE));
 
         if (execInterceptors != null) {
             for (final ExecInterceptorEntry entry: execInterceptors) {
@@ -808,14 +784,7 @@ public class H2AsyncClientBuilder {
         }
 
         final MultihomeConnectionInitiator connectionInitiator = new MultihomeConnectionInitiator(ioReactor, dnsResolver);
-        final H2ConnPool connPool = new H2ConnPool(connectionInitiator, new Resolver<HttpHost, InetSocketAddress>() {
-
-            @Override
-            public InetSocketAddress resolve(final HttpHost host) {
-                return null;
-            }
-
-        }, tlsStrategyCopy);
+        final H2ConnPool connPool = new H2ConnPool(connectionInitiator, host -> null, tlsStrategyCopy);
 
         List<Closeable> closeablesCopy = closeables != null ? new ArrayList<>(closeables) : null;
         if (closeablesCopy == null) {
@@ -824,14 +793,7 @@ public class H2AsyncClientBuilder {
         if (evictIdleConnections) {
             final IdleConnectionEvictor connectionEvictor = new IdleConnectionEvictor(connPool,
                     maxIdleTime != null ? maxIdleTime : TimeValue.ofSeconds(30L));
-            closeablesCopy.add(new Closeable() {
-
-                @Override
-                public void close() throws IOException {
-                    connectionEvictor.shutdown();
-                }
-
-            });
+            closeablesCopy.add(connectionEvictor::shutdown);
             connectionEvictor.start();
         }
         closeablesCopy.add(connPool);
@@ -852,12 +814,7 @@ public class H2AsyncClientBuilder {
     }
 
     private static String getProperty(final String key, final String defaultValue) {
-        return AccessController.doPrivileged(new PrivilegedAction<String>() {
-            @Override
-            public String run() {
-                return System.getProperty(key, defaultValue);
-            }
-        });
+        return AccessController.doPrivileged((PrivilegedAction<String>) () -> System.getProperty(key, defaultValue));
     }
 
     static class IdleConnectionEvictor implements Closeable {
@@ -865,20 +822,17 @@ public class H2AsyncClientBuilder {
         private final Thread thread;
 
         public IdleConnectionEvictor(final H2ConnPool connPool, final TimeValue maxIdleTime) {
-            this.thread = new DefaultThreadFactory("idle-connection-evictor", true).newThread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        while (!Thread.currentThread().isInterrupted()) {
-                            maxIdleTime.sleep();
-                            connPool.closeIdle(maxIdleTime);
-                        }
-                    } catch (final InterruptedException ex) {
-                        Thread.currentThread().interrupt();
-                    } catch (final Exception ex) {
+            this.thread = new DefaultThreadFactory("idle-connection-evictor", true).newThread(() -> {
+                try {
+                    while (!Thread.currentThread().isInterrupted()) {
+                        maxIdleTime.sleep();
+                        connPool.closeIdle(maxIdleTime);
                     }
-
+                } catch (final InterruptedException ex) {
+                    Thread.currentThread().interrupt();
+                } catch (final Exception ex) {
                 }
+
             });
         }
 

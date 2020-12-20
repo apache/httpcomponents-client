@@ -170,7 +170,7 @@ public class TestCachingExec extends TestCachingExecChain {
         mockImplMethods(CALL_BACKEND);
         requestPolicyAllowsCaching(true);
         getCacheEntryReturns(null);
-        getVariantCacheEntriesReturns(new HashMap<String,Variant>());
+        getVariantCacheEntriesReturns(new HashMap<>());
 
         requestIsFatallyNonCompliant(null);
 

@@ -118,59 +118,52 @@ class DefaultAsyncCacheRevalidator extends CacheRevalidatorBase {
             final String cacheKey ,
             final AsyncExecCallback asyncExecCallback,
             final RevalidationCall call) {
-        scheduleRevalidation(cacheKey, new Runnable() {
+        scheduleRevalidation(cacheKey, () -> call.execute(new AsyncExecCallback() {
 
-                        @Override
-                        public void run() {
-                            call.execute(new AsyncExecCallback() {
+            private final AtomicReference<HttpResponse> responseRef = new AtomicReference<>(null);
 
-                                private final AtomicReference<HttpResponse> responseRef = new AtomicReference<>(null);
+            @Override
+            public AsyncDataConsumer handleResponse(
+                    final HttpResponse response,
+                    final EntityDetails entityDetails) throws HttpException, IOException {
+                responseRef.set(response);
+                return asyncExecCallback.handleResponse(response, entityDetails);
+            }
 
-                                @Override
-                                public AsyncDataConsumer handleResponse(
-                                        final HttpResponse response,
-                                        final EntityDetails entityDetails) throws HttpException, IOException {
-                                    responseRef.set(response);
-                                    return asyncExecCallback.handleResponse(response, entityDetails);
-                                }
+            @Override
+            public void handleInformationResponse(
+                    final HttpResponse response) throws HttpException, IOException {
+                asyncExecCallback.handleInformationResponse(response);
+            }
 
-                                @Override
-                                public void handleInformationResponse(
-                                        final HttpResponse response) throws HttpException, IOException {
-                                    asyncExecCallback.handleInformationResponse(response);
-                                }
+            @Override
+            public void completed() {
+                final HttpResponse httpResponse = responseRef.getAndSet(null);
+                if (httpResponse != null && httpResponse.getCode() < HttpStatus.SC_SERVER_ERROR && !isStale(httpResponse)) {
+                    jobSuccessful(cacheKey);
+                } else {
+                    jobFailed(cacheKey);
+                }
+                asyncExecCallback.completed();
+            }
 
-                                @Override
-                                public void completed() {
-                                    final HttpResponse httpResponse = responseRef.getAndSet(null);
-                                    if (httpResponse != null && httpResponse.getCode() < HttpStatus.SC_SERVER_ERROR && !isStale(httpResponse)) {
-                                        jobSuccessful(cacheKey);
-                                    } else {
-                                        jobFailed(cacheKey);
-                                    }
-                                    asyncExecCallback.completed();
-                                }
+            @Override
+            public void failed(final Exception cause) {
+                if (cause instanceof IOException) {
+                    LOG.debug("Asynchronous revalidation failed due to I/O error", cause);
+                } else if (cause instanceof HttpException) {
+                    LOG.error("HTTP protocol exception during asynchronous revalidation", cause);
+                } else {
+                    LOG.error("Unexpected runtime exception thrown during asynchronous revalidation", cause);
+                }
+                try {
+                    jobFailed(cacheKey);
+                } finally {
+                    asyncExecCallback.failed(cause);
+                }
+            }
 
-                                @Override
-                                public void failed(final Exception cause) {
-                                    if (cause instanceof IOException) {
-                                        LOG.debug("Asynchronous revalidation failed due to I/O error", cause);
-                                    } else if (cause instanceof HttpException) {
-                                        LOG.error("HTTP protocol exception during asynchronous revalidation", cause);
-                                    } else {
-                                        LOG.error("Unexpected runtime exception thrown during asynchronous revalidation", cause);
-                                    }
-                                    try {
-                                        jobFailed(cacheKey);
-                                    } finally {
-                                        asyncExecCallback.failed(cause);
-                                    }
-                                }
-
-                            });
-                        }
-
-                    });
+        }));
     }
 
 }

@@ -29,7 +29,6 @@ package org.apache.hc.client5.http.routing;
 
 import java.net.InetAddress;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 
 import org.apache.hc.client5.http.HttpRoute;
@@ -201,14 +200,14 @@ public class TestHttpRoute {
         // we can't test hashCode in general due to its dependency
         // on InetAddress and HttpHost, but we can check for the flags
         final Set<Integer> routecodes = new HashSet<>();
-        routecodes.add(Integer.valueOf(routefff.hashCode()));
-        routecodes.add(Integer.valueOf(routefft.hashCode()));
-        routecodes.add(Integer.valueOf(routeftf.hashCode()));
-        routecodes.add(Integer.valueOf(routeftt.hashCode()));
-        routecodes.add(Integer.valueOf(routetff.hashCode()));
-        routecodes.add(Integer.valueOf(routetft.hashCode()));
-        routecodes.add(Integer.valueOf(routettf.hashCode()));
-        routecodes.add(Integer.valueOf(routettt.hashCode()));
+        routecodes.add(routefff.hashCode());
+        routecodes.add(routefft.hashCode());
+        routecodes.add(routeftf.hashCode());
+        routecodes.add(routeftt.hashCode());
+        routecodes.add(routetff.hashCode());
+        routecodes.add(routetft.hashCode());
+        routecodes.add(routettf.hashCode());
+        routecodes.add(routettt.hashCode());
         Assert.assertEquals("some flagged routes have same hashCode",
                      8, routecodes.size());
 
@@ -394,9 +393,7 @@ public class TestHttpRoute {
         Assert.assertEquals("some routes are equal", 11, routes.size());
 
         // and a run of cloning over the set
-        final Iterator<HttpRoute> iter = routes.iterator();
-        while (iter.hasNext()) {
-            final HttpRoute origin = iter.next();
+        for (final HttpRoute origin : routes) {
             final HttpRoute cloned = (HttpRoute) origin.clone();
             Assert.assertEquals("clone of " + origin, origin, cloned);
             Assert.assertTrue("clone of " + origin, routes.contains(cloned));

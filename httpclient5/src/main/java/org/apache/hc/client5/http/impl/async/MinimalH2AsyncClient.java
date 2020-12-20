@@ -27,7 +27,6 @@
 package org.apache.hc.client5.http.impl.async;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.concurrent.CancellationException;
@@ -47,13 +46,10 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.concurrent.Cancellable;
 import org.apache.hc.core5.concurrent.ComplexCancellable;
 import org.apache.hc.core5.concurrent.FutureCallback;
-import org.apache.hc.core5.function.Callback;
-import org.apache.hc.core5.function.Resolver;
 import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.nio.AsyncClientExchangeHandler;
 import org.apache.hc.core5.http.nio.AsyncPushConsumer;
@@ -106,31 +102,17 @@ public final class MinimalH2AsyncClient extends AbstractMinimalHttpAsyncClientBa
             final DnsResolver dnsResolver,
             final TlsStrategy tlsStrategy) {
         super(new DefaultConnectingIOReactor(
-                eventHandlerFactory,
-                reactorConfig,
-                workerThreadFactory,
-                LoggingIOSessionDecorator.INSTANCE,
-                LoggingExceptionCallback.INSTANCE,
-                null,
-                new Callback<IOSession>() {
-
-                    @Override
-                    public void execute(final IOSession ioSession) {
-                        ioSession.enqueue(new ShutdownCommand(CloseMode.GRACEFUL), Command.Priority.IMMEDIATE);
-                    }
-
-                }),
+                        eventHandlerFactory,
+                        reactorConfig,
+                        workerThreadFactory,
+                        LoggingIOSessionDecorator.INSTANCE,
+                        LoggingExceptionCallback.INSTANCE,
+                        null,
+                        ioSession -> ioSession.enqueue(new ShutdownCommand(CloseMode.GRACEFUL), Command.Priority.IMMEDIATE)),
                 pushConsumerRegistry,
                 threadFactory);
         this.connectionInitiator = new MultihomeConnectionInitiator(getConnectionInitiator(), dnsResolver);
-        this.connPool = new H2ConnPool(this.connectionInitiator, new Resolver<HttpHost, InetSocketAddress>() {
-
-            @Override
-            public InetSocketAddress resolve(final HttpHost object) {
-                return null;
-            }
-
-        }, tlsStrategy);
+        this.connPool = new H2ConnPool(this.connectionInitiator, object -> null, tlsStrategy);
     }
 
     @Override
@@ -144,137 +126,122 @@ public final class MinimalH2AsyncClient extends AbstractMinimalHttpAsyncClientBa
                 throw new CancellationException("Request execution cancelled");
             }
             final HttpClientContext clientContext = context != null ? HttpClientContext.adapt(context) : HttpClientContext.create();
-            exchangeHandler.produceRequest(new RequestChannel() {
-
-                @Override
-                public void sendRequest(
-                        final HttpRequest request,
-                        final EntityDetails entityDetails,
-                        final HttpContext context) throws HttpException, IOException {
-                    RequestConfig requestConfig = null;
-                    if (request instanceof Configurable) {
-                        requestConfig = ((Configurable) request).getConfig();
-                    }
-                    if (requestConfig != null) {
-                        clientContext.setRequestConfig(requestConfig);
-                    } else {
-                        requestConfig = clientContext.getRequestConfig();
-                    }
-                    final Timeout connectTimeout = requestConfig.getConnectTimeout();
-                    final HttpHost target = new HttpHost(request.getScheme(), request.getAuthority());
-
-                    final Future<IOSession> sessionFuture = connPool.getSession(target, connectTimeout,
-                        new FutureCallback<IOSession>() {
-
-                        @Override
-                        public void completed(final IOSession session) {
-                            final AsyncClientExchangeHandler internalExchangeHandler = new AsyncClientExchangeHandler() {
-
-                                @Override
-                                public void releaseResources() {
-                                    exchangeHandler.releaseResources();
-                                }
-
-                                @Override
-                                public void failed(final Exception cause) {
-                                    exchangeHandler.failed(cause);
-                                }
-
-                                @Override
-                                public void cancel() {
-                                    failed(new RequestFailedException("Request aborted"));
-                                }
-
-                                @Override
-                                public void produceRequest(
-                                        final RequestChannel channel,
-                                        final HttpContext context) throws HttpException, IOException {
-                                    channel.sendRequest(request, entityDetails, context);
-                                }
-
-                                @Override
-                                public int available() {
-                                    return exchangeHandler.available();
-                                }
-
-                                @Override
-                                public void produce(final DataStreamChannel channel) throws IOException {
-                                    exchangeHandler.produce(channel);
-                                }
-
-                                @Override
-                                public void consumeInformation(
-                                        final HttpResponse response,
-                                        final HttpContext context) throws HttpException, IOException {
-                                    exchangeHandler.consumeInformation(response, context);
-                                }
-
-                                @Override
-                                public void consumeResponse(
-                                        final HttpResponse response,
-                                        final EntityDetails entityDetails,
-                                        final HttpContext context) throws HttpException, IOException {
-                                    exchangeHandler.consumeResponse(response, entityDetails, context);
-                                }
-
-                                @Override
-                                public void updateCapacity(final CapacityChannel capacityChannel) throws IOException {
-                                    exchangeHandler.updateCapacity(capacityChannel);
-                                }
-
-                                @Override
-                                public void consume(final ByteBuffer src) throws IOException {
-                                    exchangeHandler.consume(src);
-                                }
-
-                                @Override
-                                public void streamEnd(final List<? extends Header> trailers) throws HttpException, IOException {
-                                    exchangeHandler.streamEnd(trailers);
-                                }
-
-                            };
-                            if (LOG.isDebugEnabled()) {
-                                final String exchangeId = ExecSupport.getNextExchangeId();
-                                LOG.debug("{} executing message exchange {}", exchangeId, ConnPoolSupport.getId(session));
-                                session.enqueue(
-                                        new RequestExecutionCommand(
-                                                new LoggingAsyncClientExchangeHandler(LOG, exchangeId, internalExchangeHandler),
-                                                pushHandlerFactory,
-                                                cancellable,
-                                                clientContext),
-                                        Command.Priority.NORMAL);
-                            } else {
-                                session.enqueue(
-                                        new RequestExecutionCommand(
-                                                internalExchangeHandler,
-                                                pushHandlerFactory,
-                                                cancellable,
-                                                clientContext),
-                                        Command.Priority.NORMAL);
-                            }
-                        }
-
-                        @Override
-                        public void failed(final Exception ex) {
-                            exchangeHandler.failed(ex);
-                        }
-
-                        @Override
-                        public void cancelled() {
-                            exchangeHandler.cancel();
-                        }
-
-                    });
-                    cancellable.setDependency(new Cancellable() {
-
-                        @Override
-                        public boolean cancel() {
-                            return sessionFuture.cancel(true);
-                        }
-
-                    });
+            exchangeHandler.produceRequest((request, entityDetails, context1) -> {
+                RequestConfig requestConfig = null;
+                if (request instanceof Configurable) {
+                    requestConfig = ((Configurable) request).getConfig();
                 }
+                if (requestConfig != null) {
+                    clientContext.setRequestConfig(requestConfig);
+                } else {
+                    requestConfig = clientContext.getRequestConfig();
+                }
+                final Timeout connectTimeout = requestConfig.getConnectTimeout();
+                final HttpHost target = new HttpHost(request.getScheme(), request.getAuthority());
 
+                final Future<IOSession> sessionFuture = connPool.getSession(target, connectTimeout,
+                    new FutureCallback<IOSession>() {
+
+                    @Override
+                    public void completed(final IOSession session) {
+                        final AsyncClientExchangeHandler internalExchangeHandler = new AsyncClientExchangeHandler() {
+
+                            @Override
+                            public void releaseResources() {
+                                exchangeHandler.releaseResources();
+                            }
+
+                            @Override
+                            public void failed(final Exception cause) {
+                                exchangeHandler.failed(cause);
+                            }
+
+                            @Override
+                            public void cancel() {
+                                failed(new RequestFailedException("Request aborted"));
+                            }
+
+                            @Override
+                            public void produceRequest(
+                                    final RequestChannel channel,
+                                    final HttpContext context1) throws HttpException, IOException {
+                                channel.sendRequest(request, entityDetails, context1);
+                            }
+
+                            @Override
+                            public int available() {
+                                return exchangeHandler.available();
+                            }
+
+                            @Override
+                            public void produce(final DataStreamChannel channel) throws IOException {
+                                exchangeHandler.produce(channel);
+                            }
+
+                            @Override
+                            public void consumeInformation(
+                                    final HttpResponse response,
+                                    final HttpContext context1) throws HttpException, IOException {
+                                exchangeHandler.consumeInformation(response, context1);
+                            }
+
+                            @Override
+                            public void consumeResponse(
+                                    final HttpResponse response,
+                                    final EntityDetails entityDetails,
+                                    final HttpContext context1) throws HttpException, IOException {
+                                exchangeHandler.consumeResponse(response, entityDetails, context1);
+                            }
+
+                            @Override
+                            public void updateCapacity(final CapacityChannel capacityChannel) throws IOException {
+                                exchangeHandler.updateCapacity(capacityChannel);
+                            }
+
+                            @Override
+                            public void consume(final ByteBuffer src) throws IOException {
+                                exchangeHandler.consume(src);
+                            }
+
+                            @Override
+                            public void streamEnd(final List<? extends Header> trailers) throws HttpException, IOException {
+                                exchangeHandler.streamEnd(trailers);
+                            }
+
+                        };
+                        if (LOG.isDebugEnabled()) {
+                            final String exchangeId = ExecSupport.getNextExchangeId();
+                            LOG.debug("{} executing message exchange {}", exchangeId, ConnPoolSupport.getId(session));
+                            session.enqueue(
+                                    new RequestExecutionCommand(
+                                            new LoggingAsyncClientExchangeHandler(LOG, exchangeId, internalExchangeHandler),
+                                            pushHandlerFactory,
+                                            cancellable,
+                                            clientContext),
+                                    Command.Priority.NORMAL);
+                        } else {
+                            session.enqueue(
+                                    new RequestExecutionCommand(
+                                            internalExchangeHandler,
+                                            pushHandlerFactory,
+                                            cancellable,
+                                            clientContext),
+                                    Command.Priority.NORMAL);
+                        }
+                    }
+
+                    @Override
+                    public void failed(final Exception ex) {
+                        exchangeHandler.failed(ex);
+                    }
+
+                    @Override
+                    public void cancelled() {
+                        exchangeHandler.cancel();
+                    }
+
+                });
+                cancellable.setDependency(() -> sessionFuture.cancel(true));
             }, context);
         } catch (final HttpException | IOException | IllegalStateException ex) {
             exchangeHandler.failed(ex);

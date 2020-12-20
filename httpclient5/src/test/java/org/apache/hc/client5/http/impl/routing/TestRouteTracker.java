@@ -438,19 +438,19 @@ public class TestRouteTracker {
         Assert.assertTrue(hs.add(rt4));
         Assert.assertTrue(hs.add(rt6));
 
-        Assert.assertTrue(hc0.add(Integer.valueOf(rt0.hashCode())));
-        Assert.assertTrue(hc4.add(Integer.valueOf(rt4.hashCode())));
-        Assert.assertTrue(hc6.add(Integer.valueOf(rt6.hashCode())));
+        Assert.assertTrue(hc0.add(rt0.hashCode()));
+        Assert.assertTrue(hc4.add(rt4.hashCode()));
+        Assert.assertTrue(hc6.add(rt6.hashCode()));
 
         rt = (RouteTracker) rt0.clone();
         rt.connectTarget(false);
         Assert.assertTrue(hs.add(rt));
-        Assert.assertTrue(hc0.add(Integer.valueOf(rt.hashCode())));
+        Assert.assertTrue(hc0.add(rt.hashCode()));
 
         rt = (RouteTracker) rt0.clone();
         rt.connectTarget(true);
         Assert.assertTrue(hs.add(rt));
-        Assert.assertTrue(hc0.add(Integer.valueOf(rt.hashCode())));
+        Assert.assertTrue(hc0.add(rt.hashCode()));
 
 
         // proxy (insecure) -> tunnel (insecure) -> layer (secure)
@@ -458,15 +458,15 @@ public class TestRouteTracker {
         rt.connectProxy(PROXY1, false);
         Assert.assertTrue(hs.add((RouteTracker) rt.clone()));
         // this is not guaranteed to be unique...
-        Assert.assertTrue(hc4.add(Integer.valueOf(rt.hashCode())));
+        Assert.assertTrue(hc4.add(rt.hashCode()));
 
         rt.tunnelTarget(false);
         Assert.assertTrue(hs.add((RouteTracker) rt.clone()));
-        Assert.assertTrue(hc4.add(Integer.valueOf(rt.hashCode())));
+        Assert.assertTrue(hc4.add(rt.hashCode()));
 
         rt.layerProtocol(true);
         Assert.assertTrue(hs.add((RouteTracker) rt.clone()));
-        Assert.assertTrue(hc4.add(Integer.valueOf(rt.hashCode())));
+        Assert.assertTrue(hc4.add(rt.hashCode()));
 
 
         // proxy (secure) -> tunnel (secure) -> layer (insecure)
@@ -474,15 +474,15 @@ public class TestRouteTracker {
         rt.connectProxy(PROXY1, true);
         Assert.assertTrue(hs.add((RouteTracker) rt.clone()));
         // this is not guaranteed to be unique...
-        Assert.assertTrue(hc4.add(Integer.valueOf(rt.hashCode())));
+        Assert.assertTrue(hc4.add(rt.hashCode()));
 
         rt.tunnelTarget(true);
         Assert.assertTrue(hs.add((RouteTracker) rt.clone()));
-        Assert.assertTrue(hc4.add(Integer.valueOf(rt.hashCode())));
+        Assert.assertTrue(hc4.add(rt.hashCode()));
 
         rt.layerProtocol(false);
         Assert.assertTrue(hs.add((RouteTracker) rt.clone()));
-        Assert.assertTrue(hc4.add(Integer.valueOf(rt.hashCode())));
+        Assert.assertTrue(hc4.add(rt.hashCode()));
 
 
         // PROXY1/i -> PROXY2/i -> tunnel/i -> layer/s
@@ -490,20 +490,20 @@ public class TestRouteTracker {
         rt.connectProxy(PROXY1, false);
         Assert.assertTrue(hs.add((RouteTracker) rt.clone()));
         // this is not guaranteed to be unique...
-        Assert.assertTrue(hc6.add(Integer.valueOf(rt.hashCode())));
+        Assert.assertTrue(hc6.add(rt.hashCode()));
 
         rt.tunnelProxy(PROXY2, false);
         Assert.assertTrue(hs.add((RouteTracker) rt.clone()));
         // this is not guaranteed to be unique...
-        Assert.assertTrue(hc6.add(Integer.valueOf(rt.hashCode())));
+        Assert.assertTrue(hc6.add(rt.hashCode()));
 
         rt.tunnelTarget(false);
         Assert.assertTrue(hs.add((RouteTracker) rt.clone()));
-        Assert.assertTrue(hc6.add(Integer.valueOf(rt.hashCode())));
+        Assert.assertTrue(hc6.add(rt.hashCode()));
 
         rt.layerProtocol(true);
         Assert.assertTrue(hs.add((RouteTracker) rt.clone()));
-        Assert.assertTrue(hc6.add(Integer.valueOf(rt.hashCode())));
+        Assert.assertTrue(hc6.add(rt.hashCode()));
 
 
         // PROXY1/s -> PROXY2/s -> tunnel/s -> layer/i
@@ -511,20 +511,20 @@ public class TestRouteTracker {
         rt.connectProxy(PROXY1, true);
         Assert.assertTrue(hs.add((RouteTracker) rt.clone()));
         // this is not guaranteed to be unique...
-        Assert.assertTrue(hc6.add(Integer.valueOf(rt.hashCode())));
+        Assert.assertTrue(hc6.add(rt.hashCode()));
 
         rt.tunnelProxy(PROXY2, true);
         Assert.assertTrue(hs.add((RouteTracker) rt.clone()));
         // this is not guaranteed to be unique...
-        Assert.assertTrue(hc6.add(Integer.valueOf(rt.hashCode())));
+        Assert.assertTrue(hc6.add(rt.hashCode()));
 
         rt.tunnelTarget(true);
         Assert.assertTrue(hs.add((RouteTracker) rt.clone()));
-        Assert.assertTrue(hc6.add(Integer.valueOf(rt.hashCode())));
+        Assert.assertTrue(hc6.add(rt.hashCode()));
 
         rt.layerProtocol(false);
         Assert.assertTrue(hs.add((RouteTracker) rt.clone()));
-        Assert.assertTrue(hc6.add(Integer.valueOf(rt.hashCode())));
+        Assert.assertTrue(hc6.add(rt.hashCode()));
 
 
         // PROXY2/i -> PROXY1/i -> tunnel/i -> layer/s
@@ -532,7 +532,7 @@ public class TestRouteTracker {
         rt.connectProxy(PROXY2, false);
         Assert.assertTrue(hs.add((RouteTracker) rt.clone()));
         // this is not guaranteed to be unique...
-        Assert.assertTrue(hc6.add(Integer.valueOf(rt.hashCode())));
+        Assert.assertTrue(hc6.add(rt.hashCode()));
 
         rt.tunnelProxy(PROXY1, false);
         Assert.assertTrue(hs.add((RouteTracker) rt.clone()));

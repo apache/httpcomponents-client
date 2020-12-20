@@ -67,7 +67,6 @@ import org.junit.Test;
 import org.reactivestreams.Publisher;
 
 import io.reactivex.Flowable;
-import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 
 public abstract class AbstractHttpReactiveFundamentalsTest<T extends CloseableHttpAsyncClient> extends AbstractIntegrationTestBase<T> {
@@ -163,12 +162,7 @@ public abstract class AbstractHttpReactiveFundamentalsTest<T extends CloseableHt
                     final Flowable<ByteBuffer> flowable = Flowable.fromPublisher(result.getBody())
                             .observeOn(Schedulers.io()); // Stream the data on an RxJava scheduler, not a client thread
                     ReactiveTestUtils.consumeStream(flowable)
-                            .subscribe(new Consumer<StreamDescription>() {
-                                @Override
-                                public void accept(final StreamDescription streamDescription) {
-                                    responses.add(streamDescription);
-                                }
-                            });
+                            .subscribe(responses::add);
                 }
                 @Override
                 public void failed(final Exception ex) { }
@@ -227,13 +221,10 @@ public abstract class AbstractHttpReactiveFundamentalsTest<T extends CloseableHt
         final int threadNum = 5;
         final ExecutorService executorService = Executors.newFixedThreadPool(threadNum);
         for (int i = 0; i < threadNum; i++) {
-            executorService.execute(new Runnable() {
-                @Override
-                public void run() {
-                    if (!Thread.currentThread().isInterrupted()) {
-                        final ReactiveResponseConsumer consumer = new ReactiveResponseConsumer(callback);
-                        httpclient.execute(AsyncRequestBuilder.get(target + "/random/2048").build(), consumer, null);
-                    }
+            executorService.execute(() -> {
+                if (!Thread.currentThread().isInterrupted()) {
+                    final ReactiveResponseConsumer consumer = new ReactiveResponseConsumer(callback);
+                    httpclient.execute(AsyncRequestBuilder.get(target + "/random/2048").build(), consumer, null);
                 }
             });
         }

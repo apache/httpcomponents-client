@@ -57,7 +57,6 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.concurrent.CancellableDependency;
 import org.apache.hc.core5.concurrent.ComplexFuture;
 import org.apache.hc.core5.concurrent.FutureCallback;
-import org.apache.hc.core5.function.Factory;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.Header;
@@ -102,14 +101,8 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
         super(config);
         this.responseCache = Args.notNull(cache, "Response cache");
         this.cacheRevalidator = cacheRevalidator;
-        this.conditionalRequestBuilder = new ConditionalRequestBuilder<>(new Factory<HttpRequest, HttpRequest>() {
-
-            @Override
-            public HttpRequest create(final HttpRequest request) {
-                return BasicRequestBuilder.copy(request).build();
-            }
-
-        });
+        this.conditionalRequestBuilder = new ConditionalRequestBuilder<>(request ->
+                BasicRequestBuilder.copy(request).build());
     }
 
     AsyncCachingExec(
@@ -675,14 +668,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                     cacheRevalidator.revalidateCacheEntry(
                             responseCache.generateKey(target, request, entry),
                             asyncExecCallback,
-                            new DefaultAsyncCacheRevalidator.RevalidationCall() {
-
-                                @Override
-                                public void execute(final AsyncExecCallback asyncExecCallback) {
-                                    revalidateCacheEntry(target, request, entityProducer, fork, chain, asyncExecCallback, entry);
-                                }
-
-                            });
+                            asyncExecCallback1 -> revalidateCacheEntry(target, request, entityProducer, fork, chain, asyncExecCallback1, entry));
                     triggerResponse(cacheResponse, scope, asyncExecCallback);
                 } catch (final ResourceIOException ex) {
                     asyncExecCallback.failed(ex);
@@ -771,26 +757,12 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                     recordCacheUpdate(scope.clientContext);
                 }
                 if (statusCode == HttpStatus.SC_NOT_MODIFIED) {
-                    return new AsyncExecCallbackWrapper(asyncExecCallback, new Runnable() {
-
-                        @Override
-                        public void run() {
-                            triggerUpdatedCacheEntryResponse(backendResponse, responseDate);
-                        }
-
-                    });
+                    return new AsyncExecCallbackWrapper(asyncExecCallback, () -> triggerUpdatedCacheEntryResponse(backendResponse, responseDate));
                 }
                 if (staleIfErrorAppliesTo(statusCode)
                         && !staleResponseNotAllowed(request, cacheEntry, getCurrentDate())
                         && validityPolicy.mayReturnStaleIfError(request, cacheEntry, responseDate)) {
-                    return new AsyncExecCallbackWrapper(asyncExecCallback, new Runnable() {
-
-                        @Override
-                        public void run() {
-                            triggerResponseStaleCacheEntry();
-                        }
-
-                    });
+                    return new AsyncExecCallbackWrapper(asyncExecCallback, this::triggerResponseStaleCacheEntry);
                 }
                 return new BackendResponseHandler(target, conditionalRequest, requestDate, responseDate, scope, asyncExecCallback);
             }
@@ -809,57 +781,49 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                     final HttpRequest unconditional = conditionalRequestBuilder.buildUnconditionalRequest(
                             BasicRequestBuilder.copy(scope.originalRequest).build());
 
-                    callback1 = new AsyncExecCallbackWrapper(asyncExecCallback, new Runnable() {
+                    callback1 = new AsyncExecCallbackWrapper(asyncExecCallback, () -> chainProceed(unconditional, entityProducer, scope, chain, new AsyncExecCallback() {
 
                         @Override
-                        public void run() {
-                            chainProceed(unconditional, entityProducer, scope, chain, new AsyncExecCallback() {
-
-                                @Override
-                                public AsyncDataConsumer handleResponse(
-                                        final HttpResponse backendResponse2,
-                                        final EntityDetails entityDetails) throws HttpException, IOException {
-                                    final Date responseDate2 = getCurrentDate();
-                                    final AsyncExecCallback callback2 = evaluateResponse(backendResponse2, responseDate2);
-                                    callbackRef.set(callback2);
-                                    return callback2.handleResponse(backendResponse2, entityDetails);
-                                }
-
-                                @Override
-                                public void handleInformationResponse(final HttpResponse response) throws HttpException, IOException {
-                                    final AsyncExecCallback callback2 = callbackRef.getAndSet(null);
-                                    if (callback2 != null) {
-                                        callback2.handleInformationResponse(response);
-                                    } else {
-                                        asyncExecCallback.handleInformationResponse(response);
-                                    }
-                                }
-
-                                @Override
-                                public void completed() {
-                                    final AsyncExecCallback callback2 = callbackRef.getAndSet(null);
-                                    if (callback2 != null) {
-                                        callback2.completed();
-                                    } else {
-                                        asyncExecCallback.completed();
-                                    }
-                                }
-
-                                @Override
-                                public void failed(final Exception cause) {
-                                    final AsyncExecCallback callback2 = callbackRef.getAndSet(null);
-                                    if (callback2 != null) {
-                                        callback2.failed(cause);
-                                    } else {
-                                        asyncExecCallback.failed(cause);
-                                    }
-                                }
-
-                            });
-
+                        public AsyncDataConsumer handleResponse(
+                                final HttpResponse backendResponse2,
+                                final EntityDetails entityDetails1) throws HttpException, IOException {
+                            final Date responseDate2 = getCurrentDate();
+                            final AsyncExecCallback callback2 = evaluateResponse(backendResponse2, responseDate2);
+                            callbackRef.set(callback2);
+                            return callback2.handleResponse(backendResponse2, entityDetails1);
                         }
 
-                    });
+                        @Override
+                        public void handleInformationResponse(final HttpResponse response) throws HttpException, IOException {
+                            final AsyncExecCallback callback2 = callbackRef.getAndSet(null);
+                            if (callback2 != null) {
+                                callback2.handleInformationResponse(response);
+                            } else {
+                                asyncExecCallback.handleInformationResponse(response);
+                            }
+                        }
+
+                        @Override
+                        public void completed() {
+                            final AsyncExecCallback callback2 = callbackRef.getAndSet(null);
+                            if (callback2 != null) {
+                                callback2.completed();
+                            } else {
+                                asyncExecCallback.completed();
+                            }
+                        }
+
+                        @Override
+                        public void failed(final Exception cause) {
+                            final AsyncExecCallback callback2 = callbackRef.getAndSet(null);
+                            if (callback2 != null) {
+                                callback2.failed(cause);
+                            } else {
+                                asyncExecCallback.failed(cause);
+                            }
+                        }
+
+                    }));
                 } else {
                     callback1 = evaluateResponse(backendResponse1, responseDate1);
                 }
@@ -1036,49 +1000,21 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                     final Header resultEtagHeader = backendResponse.getFirstHeader(HeaderConstants.ETAG);
                     if (resultEtagHeader == null) {
                         LOG.warn("304 response did not contain ETag");
-                        callback = new AsyncExecCallbackWrapper(asyncExecCallback, new Runnable() {
-
-                            @Override
-                            public void run() {
-                                callBackend(target, request, entityProducer, scope, chain, asyncExecCallback);
-                            }
-
-                        });
+                        callback = new AsyncExecCallbackWrapper(asyncExecCallback, () -> callBackend(target, request, entityProducer, scope, chain, asyncExecCallback));
                     } else {
                         final String resultEtag = resultEtagHeader.getValue();
                         final Variant matchingVariant = variants.get(resultEtag);
                         if (matchingVariant == null) {
                             LOG.debug("304 response did not contain ETag matching one sent in If-None-Match");
-                            callback = new AsyncExecCallbackWrapper(asyncExecCallback, new Runnable() {
-
-                                @Override
-                                public void run() {
-                                    callBackend(target, request, entityProducer, scope, chain, asyncExecCallback);
-                                }
-
-                            });
+                            callback = new AsyncExecCallbackWrapper(asyncExecCallback, () -> callBackend(target, request, entityProducer, scope, chain, asyncExecCallback));
                         } else {
                             if (revalidationResponseIsTooOld(backendResponse, matchingVariant.getEntry())) {
                                 final HttpRequest unconditional = conditionalRequestBuilder.buildUnconditionalRequest(
                                         BasicRequestBuilder.copy(request).build());
                                 scope.clientContext.setAttribute(HttpCoreContext.HTTP_REQUEST, unconditional);
-                                callback = new AsyncExecCallbackWrapper(asyncExecCallback, new Runnable() {
-
-                                    @Override
-                                    public void run() {
-                                        callBackend(target, request, entityProducer, scope, chain, asyncExecCallback);
-                                    }
-
-                                });
+                                callback = new AsyncExecCallbackWrapper(asyncExecCallback, () -> callBackend(target, request, entityProducer, scope, chain, asyncExecCallback));
                             } else {
-                                callback = new AsyncExecCallbackWrapper(asyncExecCallback, new Runnable() {
-
-                                    @Override
-                                    public void run() {
-                                        updateVariantCacheEntry(backendResponse, responseDate, matchingVariant);
-                                    }
-
-                                });
+                                callback = new AsyncExecCallbackWrapper(asyncExecCallback, () -> updateVariantCacheEntry(backendResponse, responseDate, matchingVariant));
                             }
                         }
                     }

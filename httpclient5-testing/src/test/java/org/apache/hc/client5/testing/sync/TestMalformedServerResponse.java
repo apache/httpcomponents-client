@@ -33,7 +33,6 @@ import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
-import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
@@ -43,10 +42,8 @@ import org.apache.hc.core5.http.impl.bootstrap.HttpServer;
 import org.apache.hc.core5.http.impl.bootstrap.ServerBootstrap;
 import org.apache.hc.core5.http.impl.io.DefaultBHttpServerConnection;
 import org.apache.hc.core5.http.io.HttpConnectionFactory;
-import org.apache.hc.core5.http.io.HttpRequestHandler;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
-import org.apache.hc.core5.http.protocol.HttpContext;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -91,28 +88,10 @@ public class TestMalformedServerResponse {
     public void testNoContentResponseWithGarbage() throws Exception {
         try (final HttpServer server = ServerBootstrap.bootstrap()
                 .setConnectionFactory(new BrokenServerConnectionFactory())
-                .register("/nostuff", new HttpRequestHandler() {
-
-                    @Override
-                    public void handle(
-                            final ClassicHttpRequest request,
-                            final ClassicHttpResponse response,
-                            final HttpContext context) throws HttpException, IOException {
-                        response.setCode(HttpStatus.SC_NO_CONTENT);
-                    }
-
-                })
-                .register("/stuff", new HttpRequestHandler() {
-
-                    @Override
-                    public void handle(
-                            final ClassicHttpRequest request,
-                            final ClassicHttpResponse response,
-                            final HttpContext context) throws HttpException, IOException {
-                        response.setCode(HttpStatus.SC_OK);
-                        response.setEntity(new StringEntity("Some important stuff"));
-                    }
-
+                .register("/nostuff", (request, response, context) -> response.setCode(HttpStatus.SC_NO_CONTENT))
+                .register("/stuff", (request, response, context) -> {
+                    response.setCode(HttpStatus.SC_OK);
+                    response.setEntity(new StringEntity("Some important stuff"));
                 })
                 .create()) {
             server.start();

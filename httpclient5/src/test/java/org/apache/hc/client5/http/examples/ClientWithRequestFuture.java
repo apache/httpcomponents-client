@@ -26,7 +26,6 @@
  */
 package org.apache.hc.client5.http.examples;
 
-import java.io.IOException;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -41,7 +40,6 @@ import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuil
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.concurrent.FutureCallback;
-import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.io.HttpClientResponseHandler;
 
@@ -60,12 +58,9 @@ public class ClientWithRequestFuture {
         try (final FutureRequestExecutionService requestExecService = new FutureRequestExecutionService(
                 httpclient, execService)) {
             // Because things are asynchronous, you must provide a HttpClientResponseHandler
-            final HttpClientResponseHandler<Boolean> handler = new HttpClientResponseHandler<Boolean>() {
-                @Override
-                public Boolean handleResponse(final ClassicHttpResponse response) throws IOException {
-                    // simply return true if the status was OK
-                    return response.getCode() == HttpStatus.SC_OK;
-                }
+            final HttpClientResponseHandler<Boolean> handler = response -> {
+                // simply return true if the status was OK
+                return response.getCode() == HttpStatus.SC_OK;
             };
 
             // Simple request ...

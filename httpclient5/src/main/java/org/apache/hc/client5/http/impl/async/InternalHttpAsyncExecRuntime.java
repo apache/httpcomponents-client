@@ -261,12 +261,9 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
             }
             endpoint.execute(id, exchangeHandler, context);
             if (context.getRequestConfig().isHardCancellationEnabled()) {
-                return new Cancellable() {
-                    @Override
-                    public boolean cancel() {
-                        exchangeHandler.cancel();
-                        return true;
-                    }
+                return () -> {
+                    exchangeHandler.cancel();
+                    return true;
                 };
             }
         } else {

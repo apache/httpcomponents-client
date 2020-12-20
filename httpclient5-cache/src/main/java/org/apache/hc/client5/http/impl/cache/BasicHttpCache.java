@@ -31,7 +31,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.hc.client5.http.cache.HeaderConstants;
-import org.apache.hc.client5.http.cache.HttpCacheCASOperation;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.HttpCacheInvalidator;
 import org.apache.hc.client5.http.cache.HttpCacheStorage;
@@ -163,14 +162,7 @@ class BasicHttpCache implements HttpCache {
         final String variantCacheKey = cacheKeyGenerator.generateKey(host, req, entry);
         storeEntry(variantCacheKey, entry);
         try {
-            storage.updateEntry(cacheKey, new HttpCacheCASOperation() {
-
-                @Override
-                public HttpCacheEntry execute(final HttpCacheEntry existing) throws ResourceIOException {
-                    return cacheUpdateHandler.updateParentCacheEntry(req.getRequestUri(), existing, entry, variantKey, variantCacheKey);
-                }
-
-            });
+            storage.updateEntry(cacheKey, existing -> cacheUpdateHandler.updateParentCacheEntry(req.getRequestUri(), existing, entry, variantKey, variantCacheKey));
         } catch (final HttpCacheUpdateException ex) {
             if (LOG.isWarnEnabled()) {
                 LOG.warn("Cannot update cache entry with key {}", cacheKey);
@@ -194,14 +186,7 @@ class BasicHttpCache implements HttpCache {
         final String variantCacheKey = variant.getCacheKey();
 
         try {
-            storage.updateEntry(cacheKey, new HttpCacheCASOperation() {
-
-                @Override
-                public HttpCacheEntry execute(final HttpCacheEntry existing) throws ResourceIOException {
-                    return cacheUpdateHandler.updateParentCacheEntry(request.getRequestUri(), existing, entry, variantKey, variantCacheKey);
-                }
-
-            });
+            storage.updateEntry(cacheKey, existing -> cacheUpdateHandler.updateParentCacheEntry(request.getRequestUri(), existing, entry, variantKey, variantCacheKey));
         } catch (final HttpCacheUpdateException ex) {
             if (LOG.isWarnEnabled()) {
                 LOG.warn("Cannot update cache entry with key {}", cacheKey);

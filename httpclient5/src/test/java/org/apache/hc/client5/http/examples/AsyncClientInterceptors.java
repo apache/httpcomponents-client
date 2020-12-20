@@ -33,9 +33,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.apache.hc.client5.http.async.AsyncExecCallback;
-import org.apache.hc.client5.http.async.AsyncExecChain;
-import org.apache.hc.client5.http.async.AsyncExecChainHandler;
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
@@ -55,7 +52,6 @@ import org.apache.hc.core5.http.impl.BasicEntityDetails;
 import org.apache.hc.core5.http.message.BasicHttpResponse;
 import org.apache.hc.core5.http.message.StatusLine;
 import org.apache.hc.core5.http.nio.AsyncDataConsumer;
-import org.apache.hc.core5.http.nio.AsyncEntityProducer;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.reactor.IOReactorConfig;
@@ -93,29 +89,19 @@ public class AsyncClientInterceptors {
 
                 // Simulate a 404 response for some requests without passing the message down to the backend
 
-                .addExecInterceptorAfter(ChainElement.PROTOCOL.name(), "custom", new AsyncExecChainHandler() {
-
-                    @Override
-                    public void execute(
-                            final HttpRequest request,
-                            final AsyncEntityProducer requestEntityProducer,
-                            final AsyncExecChain.Scope scope,
-                            final AsyncExecChain chain,
-                            final AsyncExecCallback asyncExecCallback) throws HttpException, IOException {
-                        final Header idHeader = request.getFirstHeader("request-id");
-                        if (idHeader != null && "13".equalsIgnoreCase(idHeader.getValue())) {
-                            final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_NOT_FOUND, "Oppsie");
-                            final ByteBuffer content = ByteBuffer.wrap("bad luck".getBytes(StandardCharsets.US_ASCII));
-                            final AsyncDataConsumer asyncDataConsumer = asyncExecCallback.handleResponse(
-                                    response,
-                                    new BasicEntityDetails(content.remaining(), ContentType.TEXT_PLAIN));
-                            asyncDataConsumer.consume(content);
-                            asyncDataConsumer.streamEnd(null);
-                        } else {
-                            chain.proceed(request, requestEntityProducer, scope, asyncExecCallback);
-                        }
+                .addExecInterceptorAfter(ChainElement.PROTOCOL.name(), "custom", (request, requestEntityProducer, scope, chain, asyncExecCallback) -> {
+                    final Header idHeader = request.getFirstHeader("request-id");
+                    if (idHeader != null && "13".equalsIgnoreCase(idHeader.getValue())) {
+                        final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_NOT_FOUND, "Oppsie");
+                        final ByteBuffer content = ByteBuffer.wrap("bad luck".getBytes(StandardCharsets.US_ASCII));
+                        final AsyncDataConsumer asyncDataConsumer = asyncExecCallback.handleResponse(
+                                response,
+                                new BasicEntityDetails(content.remaining(), ContentType.TEXT_PLAIN));
+                        asyncDataConsumer.consume(content);
+                        asyncDataConsumer.streamEnd(null);
+                    } else {
+                        chain.proceed(request, requestEntityProducer, scope, asyncExecCallback);
                     }
-
                 })
 
                 .build();

@@ -28,7 +28,6 @@ package org.apache.hc.client5.testing.async;
 
 import java.util.concurrent.Future;
 
-import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.UserTokenHandler;
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
@@ -41,7 +40,6 @@ import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBu
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.client5.testing.SSLTestContexts;
-import org.apache.hc.core5.function.Supplier;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.EndpointDetails;
 import org.apache.hc.core5.http.HttpException;
@@ -49,7 +47,6 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.config.Http1Config;
-import org.apache.hc.core5.http.nio.AsyncServerExchangeHandler;
 import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.protocol.HttpCoreContext;
@@ -111,33 +108,19 @@ public class TestHttp1AsyncStatefulConnManagement extends AbstractIntegrationTes
 
     @Test
     public void testStatefulConnections() throws Exception {
-        server.register("*", new Supplier<AsyncServerExchangeHandler>() {
+        server.register("*", () -> new AbstractSimpleServerExchangeHandler() {
 
             @Override
-            public AsyncServerExchangeHandler get() {
-                return new AbstractSimpleServerExchangeHandler() {
-
-                    @Override
-                    protected SimpleHttpResponse handle(
-                            final SimpleHttpRequest request,
-                            final HttpCoreContext context) throws HttpException {
-                        final SimpleHttpResponse response = new SimpleHttpResponse(HttpStatus.SC_OK);
-                        response.setBody("Whatever", ContentType.TEXT_PLAIN);
-                        return response;
-                    }
-                };
+            protected SimpleHttpResponse handle(
+                    final SimpleHttpRequest request,
+                    final HttpCoreContext context) throws HttpException {
+                final SimpleHttpResponse response = new SimpleHttpResponse(HttpStatus.SC_OK);
+                response.setBody("Whatever", ContentType.TEXT_PLAIN);
+                return response;
             }
-
         });
 
-        final UserTokenHandler userTokenHandler = new UserTokenHandler() {
-
-            @Override
-            public Object getUserToken(final HttpRoute route, final HttpContext context) {
-                return context.getAttribute("user");
-            }
-
-        };
+        final UserTokenHandler userTokenHandler = (route, context) -> context.getAttribute("user");
         clientBuilder.setUserTokenHandler(userTokenHandler);
         final HttpHost target = start();
 
@@ -239,36 +222,22 @@ public class TestHttp1AsyncStatefulConnManagement extends AbstractIntegrationTes
 
     @Test
     public void testRouteSpecificPoolRecylcing() throws Exception {
-        server.register("*", new Supplier<AsyncServerExchangeHandler>() {
+        server.register("*", () -> new AbstractSimpleServerExchangeHandler() {
 
             @Override
-            public AsyncServerExchangeHandler get() {
-                return new AbstractSimpleServerExchangeHandler() {
-
-                    @Override
-                    protected SimpleHttpResponse handle(
-                            final SimpleHttpRequest request,
-                            final HttpCoreContext context) throws HttpException {
-                        final SimpleHttpResponse response = new SimpleHttpResponse(HttpStatus.SC_OK);
-                        response.setBody("Whatever", ContentType.TEXT_PLAIN);
-                        return response;
-                    }
-                };
+            protected SimpleHttpResponse handle(
+                    final SimpleHttpRequest request,
+                    final HttpCoreContext context) throws HttpException {
+                final SimpleHttpResponse response = new SimpleHttpResponse(HttpStatus.SC_OK);
+                response.setBody("Whatever", ContentType.TEXT_PLAIN);
+                return response;
             }
-
         });
 
         // This tests what happens when a maxed connection pool needs
         // to kill the last idle connection to a route to build a new
         // one to the same route.
-        final UserTokenHandler userTokenHandler = new UserTokenHandler() {
-
-            @Override
-            public Object getUserToken(final HttpRoute route, final HttpContext context) {
-                return context.getAttribute("user");
-            }
-
-        };
+        final UserTokenHandler userTokenHandler = (route, context) -> context.getAttribute("user");
         clientBuilder.setUserTokenHandler(userTokenHandler);
 
         final HttpHost target = start();

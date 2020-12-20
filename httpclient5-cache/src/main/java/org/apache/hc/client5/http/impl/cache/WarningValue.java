@@ -358,10 +358,10 @@ class WarningValue {
     @Override
     public String toString() {
         if (warnDate != null) {
-            return String.format("%d %s %s \"%s\"", Integer.valueOf(warnCode),
+            return String.format("%d %s %s \"%s\"", warnCode,
                     warnAgent, warnText, DateUtils.formatDate(warnDate));
         } else {
-            return String.format("%d %s %s", Integer.valueOf(warnCode), warnAgent, warnText);
+            return String.format("%d %s %s", warnCode, warnAgent, warnText);
         }
     }
 
