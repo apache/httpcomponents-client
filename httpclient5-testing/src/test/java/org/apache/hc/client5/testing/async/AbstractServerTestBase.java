@@ -28,9 +28,7 @@
 package org.apache.hc.client5.testing.async;
 
 import org.apache.hc.client5.testing.SSLTestContexts;
-import org.apache.hc.core5.function.Supplier;
 import org.apache.hc.core5.http.URIScheme;
-import org.apache.hc.core5.http.nio.AsyncServerExchangeHandler;
 import org.apache.hc.core5.reactive.ReactiveServerExchangeHandler;
 import org.apache.hc.core5.reactor.IOReactorConfig;
 import org.apache.hc.core5.testing.nio.H2TestServer;
@@ -68,29 +66,19 @@ public abstract class AbstractServerTestBase {
                         .setSoTimeout(TIMEOUT)
                         .build(),
                     scheme == URIScheme.HTTPS ? SSLTestContexts.createServerSSLContext() : null, null, null);
-            server.register("/echo/*", new Supplier<AsyncServerExchangeHandler>() {
-
-                @Override
-                public AsyncServerExchangeHandler get() {
-                    if (isReactive()) {
-                        return new ReactiveServerExchangeHandler(new ReactiveEchoProcessor());
-                    } else {
-                        return new AsyncEchoHandler();
-                    }
+            server.register("/echo/*", () -> {
+                if (isReactive()) {
+                    return new ReactiveServerExchangeHandler(new ReactiveEchoProcessor());
+                } else {
+                    return new AsyncEchoHandler();
                 }
-
             });
-            server.register("/random/*", new Supplier<AsyncServerExchangeHandler>() {
-
-                @Override
-                public AsyncServerExchangeHandler get() {
-                    if (isReactive()) {
-                        return new ReactiveServerExchangeHandler(new ReactiveRandomProcessor());
-                    } else {
-                        return new AsyncRandomHandler();
-                    }
+            server.register("/random/*", () -> {
+                if (isReactive()) {
+                    return new ReactiveServerExchangeHandler(new ReactiveRandomProcessor());
+                } else {
+                    return new AsyncRandomHandler();
                 }
-
             });
         }
 

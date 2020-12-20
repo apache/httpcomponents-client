@@ -28,7 +28,6 @@ package org.apache.hc.client5.testing.async;
 
 import java.net.InetSocketAddress;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -46,9 +45,7 @@ import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.testing.OldPathRedirectResolver;
 import org.apache.hc.client5.testing.SSLTestContexts;
 import org.apache.hc.client5.testing.redirect.Redirect;
-import org.apache.hc.client5.testing.redirect.RedirectResolver;
 import org.apache.hc.core5.function.Decorator;
-import org.apache.hc.core5.function.Supplier;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
@@ -100,16 +97,9 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
 
     @Test
     public void testBasicRedirect300() throws Exception {
-        final HttpHost target = start(new Decorator<AsyncServerExchangeHandler>() {
-
-            @Override
-            public AsyncServerExchangeHandler decorate(final AsyncServerExchangeHandler exchangeHandler) {
-                return new RedirectingAsyncDecorator(
-                        exchangeHandler,
-                        new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MULTIPLE_CHOICES));
-            }
-
-        });
+        final HttpHost target = start(exchangeHandler -> new RedirectingAsyncDecorator(
+                exchangeHandler,
+                new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MULTIPLE_CHOICES)));
 
         final HttpClientContext context = HttpClientContext.create();
         final Future<SimpleHttpResponse> future = httpclient.execute(
@@ -125,16 +115,9 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
 
     @Test
     public void testBasicRedirect301() throws Exception {
-        final HttpHost target = start(new Decorator<AsyncServerExchangeHandler>() {
-
-            @Override
-            public AsyncServerExchangeHandler decorate(final AsyncServerExchangeHandler exchangeHandler) {
-                return new RedirectingAsyncDecorator(
-                        exchangeHandler,
-                        new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MOVED_PERMANENTLY));
-            }
-
-        });
+        final HttpHost target = start(exchangeHandler -> new RedirectingAsyncDecorator(
+                exchangeHandler,
+                new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MOVED_PERMANENTLY)));
         final HttpClientContext context = HttpClientContext.create();
         final Future<SimpleHttpResponse> future = httpclient.execute(
                 SimpleHttpRequests.get(target, "/oldlocation/100"), context, null);
@@ -150,16 +133,9 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
 
     @Test
     public void testBasicRedirect302() throws Exception {
-        final HttpHost target = start(new Decorator<AsyncServerExchangeHandler>() {
-
-            @Override
-            public AsyncServerExchangeHandler decorate(final AsyncServerExchangeHandler exchangeHandler) {
-                return new RedirectingAsyncDecorator(
-                        exchangeHandler,
-                        new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MOVED_TEMPORARILY));
-            }
-
-        });
+        final HttpHost target = start(exchangeHandler -> new RedirectingAsyncDecorator(
+                exchangeHandler,
+                new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MOVED_TEMPORARILY)));
         final HttpClientContext context = HttpClientContext.create();
         final Future<SimpleHttpResponse> future = httpclient.execute(
                 SimpleHttpRequests.get(target, "/oldlocation/123"), context, null);
@@ -175,27 +151,15 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
 
     @Test
     public void testBasicRedirect302NoLocation() throws Exception {
-        final HttpHost target = start(new Decorator<AsyncServerExchangeHandler>() {
-
-            @Override
-            public AsyncServerExchangeHandler decorate(final AsyncServerExchangeHandler exchangeHandler) {
-                return new RedirectingAsyncDecorator(
-                        exchangeHandler,
-                        new RedirectResolver() {
-
-                            @Override
-                            public Redirect resolve(final URI requestUri) throws URISyntaxException {
-                                final String path = requestUri.getPath();
-                                if (path.startsWith("/oldlocation")) {
-                                    return new Redirect(HttpStatus.SC_MOVED_TEMPORARILY, null);
-                                }
-                                return null;
-                            }
-
-                        });
-            }
-
-        });
+        final HttpHost target = start(exchangeHandler -> new RedirectingAsyncDecorator(
+                exchangeHandler,
+                requestUri -> {
+                    final String path = requestUri.getPath();
+                    if (path.startsWith("/oldlocation")) {
+                        return new Redirect(HttpStatus.SC_MOVED_TEMPORARILY, null);
+                    }
+                    return null;
+                }));
         final HttpClientContext context = HttpClientContext.create();
         final Future<SimpleHttpResponse> future = httpclient.execute(
                 SimpleHttpRequests.get(target, "/oldlocation/100"), context, null);
@@ -210,16 +174,9 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
 
     @Test
     public void testBasicRedirect303() throws Exception {
-        final HttpHost target = start(new Decorator<AsyncServerExchangeHandler>() {
-
-            @Override
-            public AsyncServerExchangeHandler decorate(final AsyncServerExchangeHandler exchangeHandler) {
-                return new RedirectingAsyncDecorator(
-                        exchangeHandler,
-                        new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_SEE_OTHER));
-            }
-
-        });
+        final HttpHost target = start(exchangeHandler -> new RedirectingAsyncDecorator(
+                exchangeHandler,
+                new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_SEE_OTHER)));
         final HttpClientContext context = HttpClientContext.create();
         final Future<SimpleHttpResponse> future = httpclient.execute(
                 SimpleHttpRequests.get(target, "/oldlocation/123"), context, null);
@@ -235,20 +192,12 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
 
     @Test
     public void testBasicRedirect304() throws Exception {
-        server.register("/oldlocation/*", new Supplier<AsyncServerExchangeHandler>() {
+        server.register("/oldlocation/*", () -> new AbstractSimpleServerExchangeHandler() {
 
             @Override
-            public AsyncServerExchangeHandler get() {
-
-                return new AbstractSimpleServerExchangeHandler() {
-
-                    @Override
-                    protected SimpleHttpResponse handle(final SimpleHttpRequest request,
-                                                        final HttpCoreContext context) throws HttpException {
-                        return SimpleHttpResponse.create(HttpStatus.SC_NOT_MODIFIED, (String) null);
-                    }
-                };
-
+            protected SimpleHttpResponse handle(final SimpleHttpRequest request,
+                                                final HttpCoreContext context) throws HttpException {
+                return SimpleHttpResponse.create(HttpStatus.SC_NOT_MODIFIED, (String) null);
             }
         });
         final HttpHost target = start();
@@ -266,20 +215,12 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
 
     @Test
     public void testBasicRedirect305() throws Exception {
-        server.register("/oldlocation/*", new Supplier<AsyncServerExchangeHandler>() {
+        server.register("/oldlocation/*", () -> new AbstractSimpleServerExchangeHandler() {
 
             @Override
-            public AsyncServerExchangeHandler get() {
-
-                return new AbstractSimpleServerExchangeHandler() {
-
-                    @Override
-                    protected SimpleHttpResponse handle(final SimpleHttpRequest request,
-                                                        final HttpCoreContext context) throws HttpException {
-                        return SimpleHttpResponse.create(HttpStatus.SC_USE_PROXY, (String) null);
-                    }
-                };
-
+            protected SimpleHttpResponse handle(final SimpleHttpRequest request,
+                                                final HttpCoreContext context) throws HttpException {
+                return SimpleHttpResponse.create(HttpStatus.SC_USE_PROXY, (String) null);
             }
         });
         final HttpHost target = start();
@@ -297,16 +238,9 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
 
     @Test
     public void testBasicRedirect307() throws Exception {
-        final HttpHost target = start(new Decorator<AsyncServerExchangeHandler>() {
-
-            @Override
-            public AsyncServerExchangeHandler decorate(final AsyncServerExchangeHandler exchangeHandler) {
-                return new RedirectingAsyncDecorator(
-                        exchangeHandler,
-                        new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_TEMPORARY_REDIRECT));
-            }
-
-        });
+        final HttpHost target = start(exchangeHandler -> new RedirectingAsyncDecorator(
+                exchangeHandler,
+                new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_TEMPORARY_REDIRECT)));
         final HttpClientContext context = HttpClientContext.create();
         final Future<SimpleHttpResponse> future = httpclient.execute(
                 SimpleHttpRequests.get(target, "/oldlocation/123"), context, null);
@@ -322,17 +256,10 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
 
     @Test(expected=ExecutionException.class)
     public void testMaxRedirectCheck() throws Exception {
-        final HttpHost target = start(new Decorator<AsyncServerExchangeHandler>() {
-
-            @Override
-            public AsyncServerExchangeHandler decorate(final AsyncServerExchangeHandler exchangeHandler) {
-                return new RedirectingAsyncDecorator(
-                        exchangeHandler,
-                        new OldPathRedirectResolver("/circular-oldlocation/", "/circular-oldlocation/",
-                                HttpStatus.SC_MOVED_TEMPORARILY));
-            }
-
-        });
+        final HttpHost target = start(exchangeHandler -> new RedirectingAsyncDecorator(
+                exchangeHandler,
+                new OldPathRedirectResolver("/circular-oldlocation/", "/circular-oldlocation/",
+                        HttpStatus.SC_MOVED_TEMPORARILY)));
 
         final RequestConfig config = RequestConfig.custom()
                 .setCircularRedirectsAllowed(true)
@@ -350,17 +277,10 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
 
     @Test(expected=ExecutionException.class)
     public void testCircularRedirect() throws Exception {
-        final HttpHost target = start(new Decorator<AsyncServerExchangeHandler>() {
-
-            @Override
-            public AsyncServerExchangeHandler decorate(final AsyncServerExchangeHandler exchangeHandler) {
-                return new RedirectingAsyncDecorator(
-                        exchangeHandler,
-                        new OldPathRedirectResolver("/circular-oldlocation/", "/circular-oldlocation/",
-                                HttpStatus.SC_MOVED_TEMPORARILY));
-            }
-
-        });
+        final HttpHost target = start(exchangeHandler -> new RedirectingAsyncDecorator(
+                exchangeHandler,
+                new OldPathRedirectResolver("/circular-oldlocation/", "/circular-oldlocation/",
+                        HttpStatus.SC_MOVED_TEMPORARILY)));
 
         final RequestConfig config = RequestConfig.custom()
                 .setCircularRedirectsAllowed(false)
@@ -378,16 +298,9 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
 
     @Test
     public void testPostRedirect() throws Exception {
-        final HttpHost target = start(new Decorator<AsyncServerExchangeHandler>() {
-
-            @Override
-            public AsyncServerExchangeHandler decorate(final AsyncServerExchangeHandler exchangeHandler) {
-                return new RedirectingAsyncDecorator(
-                        exchangeHandler,
-                        new OldPathRedirectResolver("/oldlocation", "/echo", HttpStatus.SC_TEMPORARY_REDIRECT));
-            }
-
-        });
+        final HttpHost target = start(exchangeHandler -> new RedirectingAsyncDecorator(
+                exchangeHandler,
+                new OldPathRedirectResolver("/oldlocation", "/echo", HttpStatus.SC_TEMPORARY_REDIRECT)));
 
         final HttpClientContext context = HttpClientContext.create();
 
@@ -406,16 +319,9 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
 
     @Test
     public void testPostRedirectSeeOther() throws Exception {
-        final HttpHost target = start(new Decorator<AsyncServerExchangeHandler>() {
-
-            @Override
-            public AsyncServerExchangeHandler decorate(final AsyncServerExchangeHandler exchangeHandler) {
-                return new RedirectingAsyncDecorator(
-                        exchangeHandler,
-                        new OldPathRedirectResolver("/oldlocation", "/echo", HttpStatus.SC_SEE_OTHER));
-            }
-
-        });
+        final HttpHost target = start(exchangeHandler -> new RedirectingAsyncDecorator(
+                exchangeHandler,
+                new OldPathRedirectResolver("/oldlocation", "/echo", HttpStatus.SC_SEE_OTHER)));
 
         final HttpClientContext context = HttpClientContext.create();
 
@@ -434,28 +340,16 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
 
     @Test
     public void testRelativeRedirect() throws Exception {
-        final HttpHost target = start(new Decorator<AsyncServerExchangeHandler>() {
+        final HttpHost target = start(exchangeHandler -> new RedirectingAsyncDecorator(
+                exchangeHandler,
+                requestUri -> {
+                    final String path = requestUri.getPath();
+                    if (path.startsWith("/oldlocation")) {
+                        return new Redirect(HttpStatus.SC_MOVED_TEMPORARILY, "/random/100");
 
-            @Override
-            public AsyncServerExchangeHandler decorate(final AsyncServerExchangeHandler exchangeHandler) {
-                return new RedirectingAsyncDecorator(
-                        exchangeHandler,
-                        new RedirectResolver() {
-
-                            @Override
-                            public Redirect resolve(final URI requestUri) throws URISyntaxException {
-                                final String path = requestUri.getPath();
-                                if (path.startsWith("/oldlocation")) {
-                                    return new Redirect(HttpStatus.SC_MOVED_TEMPORARILY, "/random/100");
-
-                                }
-                                return null;
-                            }
-
-                        });
-            }
-
-        });
+                    }
+                    return null;
+                }));
 
         final HttpClientContext context = HttpClientContext.create();
 
@@ -473,28 +367,16 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
 
     @Test
     public void testRelativeRedirect2() throws Exception {
-        final HttpHost target = start(new Decorator<AsyncServerExchangeHandler>() {
+        final HttpHost target = start(exchangeHandler -> new RedirectingAsyncDecorator(
+                exchangeHandler,
+                requestUri -> {
+                    final String path = requestUri.getPath();
+                    if (path.equals("/random/oldlocation")) {
+                        return new Redirect(HttpStatus.SC_MOVED_TEMPORARILY, "100");
 
-            @Override
-            public AsyncServerExchangeHandler decorate(final AsyncServerExchangeHandler exchangeHandler) {
-                return new RedirectingAsyncDecorator(
-                        exchangeHandler,
-                        new RedirectResolver() {
-
-                            @Override
-                            public Redirect resolve(final URI requestUri) throws URISyntaxException {
-                                final String path = requestUri.getPath();
-                                if (path.equals("/random/oldlocation")) {
-                                    return new Redirect(HttpStatus.SC_MOVED_TEMPORARILY, "100");
-
-                                }
-                                return null;
-                            }
-
-                        });
-            }
-
-        });
+                    }
+                    return null;
+                }));
 
         final HttpClientContext context = HttpClientContext.create();
 
@@ -512,28 +394,16 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
 
     @Test(expected=ExecutionException.class)
     public void testRejectBogusRedirectLocation() throws Exception {
-        final HttpHost target = start(new Decorator<AsyncServerExchangeHandler>() {
+        final HttpHost target = start(exchangeHandler -> new RedirectingAsyncDecorator(
+                exchangeHandler,
+                requestUri -> {
+                    final String path = requestUri.getPath();
+                    if (path.equals("/oldlocation/")) {
+                        return new Redirect(HttpStatus.SC_MOVED_TEMPORARILY, "xxx://bogus");
 
-            @Override
-            public AsyncServerExchangeHandler decorate(final AsyncServerExchangeHandler exchangeHandler) {
-                return new RedirectingAsyncDecorator(
-                        exchangeHandler,
-                        new RedirectResolver() {
-
-                            @Override
-                            public Redirect resolve(final URI requestUri) throws URISyntaxException {
-                                final String path = requestUri.getPath();
-                                if (path.equals("/oldlocation/")) {
-                                    return new Redirect(HttpStatus.SC_MOVED_TEMPORARILY, "xxx://bogus");
-
-                                }
-                                return null;
-                            }
-
-                        });
-            }
-
-        });
+                    }
+                    return null;
+                }));
 
         try {
             final Future<SimpleHttpResponse> future = httpclient.execute(
@@ -547,28 +417,16 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
 
     @Test(expected=ExecutionException.class)
     public void testRejectInvalidRedirectLocation() throws Exception {
-        final HttpHost target = start(new Decorator<AsyncServerExchangeHandler>() {
+        final HttpHost target = start(exchangeHandler -> new RedirectingAsyncDecorator(
+                exchangeHandler,
+                requestUri -> {
+                    final String path = requestUri.getPath();
+                    if (path.equals("/oldlocation/")) {
+                        return new Redirect(HttpStatus.SC_MOVED_TEMPORARILY, "/newlocation/?p=I have spaces");
 
-            @Override
-            public AsyncServerExchangeHandler decorate(final AsyncServerExchangeHandler exchangeHandler) {
-                return new RedirectingAsyncDecorator(
-                        exchangeHandler,
-                        new RedirectResolver() {
-
-                            @Override
-                            public Redirect resolve(final URI requestUri) throws URISyntaxException {
-                                final String path = requestUri.getPath();
-                                if (path.equals("/oldlocation/")) {
-                                    return new Redirect(HttpStatus.SC_MOVED_TEMPORARILY, "/newlocation/?p=I have spaces");
-
-                                }
-                                return null;
-                            }
-
-                        });
-            }
-
-        });
+                    }
+                    return null;
+                }));
 
         try {
             final Future<SimpleHttpResponse> future = httpclient.execute(
@@ -582,16 +440,9 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
 
     @Test
     public void testRedirectWithCookie() throws Exception {
-        final HttpHost target = start(new Decorator<AsyncServerExchangeHandler>() {
-
-            @Override
-            public AsyncServerExchangeHandler decorate(final AsyncServerExchangeHandler exchangeHandler) {
-                return new RedirectingAsyncDecorator(
-                        exchangeHandler,
-                        new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MOVED_TEMPORARILY));
-            }
-
-        });
+        final HttpHost target = start(exchangeHandler -> new RedirectingAsyncDecorator(
+                exchangeHandler,
+                new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MOVED_TEMPORARILY)));
 
         final CookieStore cookieStore = new BasicCookieStore();
         final HttpClientContext context = HttpClientContext.create();
@@ -622,17 +473,12 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
         final H2TestServer secondServer = new H2TestServer(IOReactorConfig.DEFAULT,
                 scheme == URIScheme.HTTPS ? SSLTestContexts.createServerSSLContext() : null, null, null);
         try {
-            secondServer.register("/random/*", new Supplier<AsyncServerExchangeHandler>() {
-
-                @Override
-                public AsyncServerExchangeHandler get() {
-                    if (isReactive()) {
-                        return new ReactiveServerExchangeHandler(new ReactiveRandomProcessor());
-                    } else {
-                        return new AsyncRandomHandler();
-                    }
+            secondServer.register("/random/*", () -> {
+                if (isReactive()) {
+                    return new ReactiveServerExchangeHandler(new ReactiveRandomProcessor());
+                } else {
+                    return new AsyncRandomHandler();
                 }
-
             });
             final InetSocketAddress address2;
             if (version.greaterEquals(HttpVersion.HTTP_2)) {
@@ -642,31 +488,19 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
             }
             final HttpHost redirectTarget = new HttpHost(scheme.name(), "localhost", address2.getPort());
 
-            final HttpHost target = start(new Decorator<AsyncServerExchangeHandler>() {
-
-                @Override
-                public AsyncServerExchangeHandler decorate(final AsyncServerExchangeHandler exchangeHandler) {
-                    return new RedirectingAsyncDecorator(
-                            exchangeHandler,
-                            new RedirectResolver() {
-
-                                @Override
-                                public Redirect resolve(final URI requestUri) throws URISyntaxException {
-                                    final String path = requestUri.getPath();
-                                    if (path.equals("/oldlocation")) {
-                                        final URI location = new URIBuilder(requestUri)
-                                                .setHttpHost(redirectTarget)
-                                                .setPath("/random/100")
-                                                .build();
-                                        return new Redirect(HttpStatus.SC_MOVED_PERMANENTLY, location.toString());
-                                    }
-                                    return null;
-                                }
-
-                            });
-                }
-
-            });
+            final HttpHost target = start(exchangeHandler -> new RedirectingAsyncDecorator(
+                    exchangeHandler,
+                    requestUri -> {
+                        final String path = requestUri.getPath();
+                        if (path.equals("/oldlocation")) {
+                            final URI location = new URIBuilder(requestUri)
+                                    .setHttpHost(redirectTarget)
+                                    .setPath("/random/100")
+                                    .build();
+                            return new Redirect(HttpStatus.SC_MOVED_PERMANENTLY, location.toString());
+                        }
+                        return null;
+                    }));
 
             final HttpClientContext context = HttpClientContext.create();
             final Future<SimpleHttpResponse> future = httpclient.execute(

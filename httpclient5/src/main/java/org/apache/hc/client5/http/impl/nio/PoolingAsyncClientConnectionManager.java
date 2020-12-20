@@ -49,7 +49,6 @@ import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.concurrent.ComplexFuture;
 import org.apache.hc.core5.concurrent.FutureCallback;
-import org.apache.hc.core5.function.Callback;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.ProtocolVersion;
@@ -248,19 +247,14 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
                                 poolEntry.getUpdated() + timeValue.toMilliseconds() <= System.currentTimeMillis()) {
                             final ProtocolVersion protocolVersion = connection.getProtocolVersion();
                             if (protocolVersion != null && protocolVersion.greaterEquals(HttpVersion.HTTP_2_0)) {
-                                connection.submitCommand(new PingCommand(new BasicPingHandler(new Callback<Boolean>() {
-
-                                    @Override
-                                    public void execute(final Boolean result) {
-                                        if (result == null || !result)  {
-                                            if (LOG.isDebugEnabled()) {
-                                                LOG.debug("{} connection {} is stale", id, ConnPoolSupport.getId(connection));
-                                            }
-                                            poolEntry.discardConnection(CloseMode.IMMEDIATE);
+                                connection.submitCommand(new PingCommand(new BasicPingHandler(result -> {
+                                    if (result == null || !result.booleanValue())  {
+                                        if (LOG.isDebugEnabled()) {
+                                            LOG.debug("{} connection {} is stale", id, ConnPoolSupport.getId(connection));
                                         }
-                                        leaseCompleted(poolEntry);
+                                        poolEntry.discardConnection(CloseMode.IMMEDIATE);
                                     }
-
+                                    leaseCompleted(poolEntry);
                                 })), Command.Priority.IMMEDIATE);
                             } else {
                                 if (!connection.isOpen()) {

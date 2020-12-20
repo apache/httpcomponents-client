@@ -53,7 +53,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 
@@ -77,14 +76,9 @@ public class TestDefaultCacheInvalidator {
         now = new Date();
         tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
 
-        when(cacheKeyResolver.resolve(ArgumentMatchers.<URI>any())).thenAnswer(new Answer<String>() {
-
-            @Override
-            public String answer(final InvocationOnMock invocation) throws Throwable {
-                final URI uri = invocation.getArgument(0);
-                return HttpCacheSupport.normalize(uri).toASCIIString();
-            }
-
+        when(cacheKeyResolver.resolve(ArgumentMatchers.<URI>any())).thenAnswer((Answer<String>) invocation -> {
+            final URI uri = invocation.getArgument(0);
+            return HttpCacheSupport.normalize(uri).toASCIIString();
         });
 
         host = new HttpHost("foo.example.com");
@@ -118,7 +112,7 @@ public class TestDefaultCacheInvalidator {
 
         final URI uri = new URI("http://foo.example.com:80/");
         final String key = uri.toASCIIString();
-        cacheEntryHasVariantMap(new HashMap<String,String>());
+        cacheEntryHasVariantMap(new HashMap<>());
 
         cacheReturnsEntryForUri(key);
 
@@ -140,7 +134,7 @@ public class TestDefaultCacheInvalidator {
 
         final URI uri = new URI("http://foo.example.com:80/");
         final String key = uri.toASCIIString();
-        cacheEntryHasVariantMap(new HashMap<String,String>());
+        cacheEntryHasVariantMap(new HashMap<>());
 
         cacheReturnsEntryForUri(key);
 
@@ -162,7 +156,7 @@ public class TestDefaultCacheInvalidator {
 
         final URI uri = new URI("http://foo.example.com:80/");
         final String key = uri.toASCIIString();
-        cacheEntryHasVariantMap(new HashMap<String,String>());
+        cacheEntryHasVariantMap(new HashMap<>());
 
         cacheReturnsEntryForUri(key);
 
@@ -184,7 +178,7 @@ public class TestDefaultCacheInvalidator {
 
         final URI uri = new URI("http://foo.example.com:80/");
         final String key = uri.toASCIIString();
-        cacheEntryHasVariantMap(new HashMap<String,String>());
+        cacheEntryHasVariantMap(new HashMap<>());
 
         cacheReturnsEntryForUri(key);
 
@@ -220,7 +214,7 @@ public class TestDefaultCacheInvalidator {
         final HttpRequest request = new BasicHttpRequest("GET", uri);
 
         cacheEntryisForMethod("HEAD");
-        cacheEntryHasVariantMap(new HashMap<String, String>());
+        cacheEntryHasVariantMap(new HashMap<>());
         cacheReturnsEntryForUri(key);
 
         impl.flushCacheEntriesInvalidatedByRequest(host, request, cacheKeyResolver, mockStorage);

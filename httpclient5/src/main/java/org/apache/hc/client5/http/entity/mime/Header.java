@@ -55,11 +55,7 @@ public class Header implements Iterable<MimeField> {
             return;
         }
         final String key = field.getName().toLowerCase(Locale.ROOT);
-        List<MimeField> values = this.fieldMap.get(key);
-        if (values == null) {
-            values = new LinkedList<>();
-            this.fieldMap.put(key, values);
-        }
+        final List<MimeField> values = this.fieldMap.computeIfAbsent(key, k -> new LinkedList<>());
         values.add(field);
         this.fields.add(field);
     }

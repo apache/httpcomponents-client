@@ -35,16 +35,11 @@ import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBu
 import org.apache.hc.client5.http.nio.AsyncClientConnectionManager;
 import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.core5.concurrent.DefaultThreadFactory;
-import org.apache.hc.core5.http.HttpException;
-import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.config.CharCodingConfig;
 import org.apache.hc.core5.http.config.Http1Config;
 import org.apache.hc.core5.http.impl.DefaultConnectionReuseStrategy;
-import org.apache.hc.core5.http.nio.AsyncPushConsumer;
-import org.apache.hc.core5.http.nio.HandlerFactory;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
 import org.apache.hc.core5.http.protocol.DefaultHttpProcessor;
-import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
 import org.apache.hc.core5.http.protocol.RequestUserAgent;
 import org.apache.hc.core5.http2.HttpVersionPolicy;
@@ -157,14 +152,7 @@ public final class HttpAsyncClients {
         return createMinimalHttpAsyncClientImpl(
                 new HttpAsyncClientEventHandlerFactory(
                         createMinimalProtocolProcessor(),
-                        new HandlerFactory<AsyncPushConsumer>() {
-
-                            @Override
-                            public AsyncPushConsumer create(final HttpRequest request, final HttpContext context) throws HttpException {
-                                return pushConsumerRegistry.get(request);
-                            }
-
-                        },
+                        (request, context) -> pushConsumerRegistry.get(request),
                         versionPolicy,
                         h2Config,
                         h1Config,
@@ -252,14 +240,7 @@ public final class HttpAsyncClients {
         return createMinimalHttp2AsyncClientImpl(
                 new H2AsyncClientEventHandlerFactory(
                         createMinimalProtocolProcessor(),
-                        new HandlerFactory<AsyncPushConsumer>() {
-
-                            @Override
-                            public AsyncPushConsumer create(final HttpRequest request, final HttpContext context) throws HttpException {
-                                return pushConsumerRegistry.get(request);
-                            }
-
-                        },
+                        (request, context) -> pushConsumerRegistry.get(request),
                         h2Config,
                         CharCodingConfig.DEFAULT),
                 pushConsumerRegistry,

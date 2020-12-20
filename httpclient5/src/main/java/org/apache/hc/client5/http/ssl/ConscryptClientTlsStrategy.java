@@ -109,7 +109,7 @@ public class ConscryptClientTlsStrategy extends AbstractClientTlsStrategy {
         try {
             final Class<?> clazz = Class.forName("org.conscrypt.Conscrypt");
             final Method method = clazz.getMethod("isAvailable");
-            return (Boolean) method.invoke(null);
+            return ((Boolean) method.invoke(null)).booleanValue();
         } catch (final ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
             return false;
         }

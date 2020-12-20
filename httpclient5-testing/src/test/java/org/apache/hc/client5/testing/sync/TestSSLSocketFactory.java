@@ -33,13 +33,10 @@ import java.net.Socket;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLException;
-import javax.net.ssl.SSLParameters;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
 
@@ -49,7 +46,6 @@ import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder;
 import org.apache.hc.client5.http.ssl.TrustAllStrategy;
 import org.apache.hc.client5.http.ssl.TrustSelfSignedStrategy;
 import org.apache.hc.client5.testing.SSLTestContexts;
-import org.apache.hc.core5.function.Callback;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.impl.bootstrap.HttpServer;
 import org.apache.hc.core5.http.impl.bootstrap.ServerBootstrap;
@@ -190,14 +186,7 @@ public class TestSSLSocketFactory {
         // @formatter:off
         this.server = ServerBootstrap.bootstrap()
                 .setSslContext(SSLTestContexts.createServerSSLContext())
-                .setSslSetupHandler(new Callback<SSLParameters>() {
-
-                    @Override
-                    public void execute(final SSLParameters sslParameters) {
-                        sslParameters.setNeedClientAuth(true);
-                    }
-
-                })
+                .setSslSetupHandler(sslParameters -> sslParameters.setNeedClientAuth(true))
                 .create();
         // @formatter:on
         this.server.start();
@@ -252,14 +241,7 @@ public class TestSSLSocketFactory {
 
     @Test
     public void testSSLTrustVerificationOverrideWithCustsom() throws Exception {
-        final TrustStrategy trustStrategy = new TrustStrategy() {
-
-            @Override
-            public boolean isTrusted(final X509Certificate[] chain, final String authType) throws CertificateException {
-                return chain.length == 1;
-            }
-
-        };
+        final TrustStrategy trustStrategy = (chain, authType) -> chain.length == 1;
         testSSLTrustVerificationOverride(trustStrategy);
     }
 
@@ -307,14 +289,7 @@ public class TestSSLSocketFactory {
         // @formatter:off
         this.server = ServerBootstrap.bootstrap()
                 .setSslContext(SSLTestContexts.createServerSSLContext())
-                .setSslSetupHandler(new Callback<SSLParameters>() {
-
-                    @Override
-                    public void execute(final SSLParameters sslParameters) {
-                        sslParameters.setProtocols(new String[] {"SSLv3"});
-                    }
-
-                })
+                .setSslSetupHandler(sslParameters -> sslParameters.setProtocols(new String[] {"SSLv3"}))
                 .create();
         // @formatter:on
         this.server.start();
@@ -362,14 +337,7 @@ public class TestSSLSocketFactory {
         // @formatter:off
         this.server = ServerBootstrap.bootstrap()
                 .setSslContext(SSLTestContexts.createServerSSLContext())
-                .setSslSetupHandler(new Callback<SSLParameters>() {
-
-                    @Override
-                    public void execute(final SSLParameters sslParameters) {
-                        sslParameters.setProtocols(new String[] {cipherSuite});
-                    }
-
-                })
+                .setSslSetupHandler(sslParameters -> sslParameters.setProtocols(new String[] {cipherSuite}))
                 .create();
         // @formatter:on
         this.server.start();

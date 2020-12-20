@@ -48,7 +48,6 @@ import org.apache.hc.client5.http.impl.ExecSupport;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.schedule.SchedulingStrategy;
 import org.apache.hc.client5.http.utils.DateUtils;
-import org.apache.hc.core5.function.Factory;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.Header;
@@ -111,14 +110,8 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
         super(config);
         this.responseCache = Args.notNull(cache, "Response cache");
         this.cacheRevalidator = cacheRevalidator;
-        this.conditionalRequestBuilder = new ConditionalRequestBuilder<>(new Factory<ClassicHttpRequest, ClassicHttpRequest>() {
-
-            @Override
-            public ClassicHttpRequest create(final ClassicHttpRequest classicHttpRequest) {
-                return ClassicRequestBuilder.copy(classicHttpRequest).build();
-            }
-
-        });
+        this.conditionalRequestBuilder = new ConditionalRequestBuilder<>(classicHttpRequest ->
+                    ClassicRequestBuilder.copy(classicHttpRequest).build());
     }
 
     CachingExec(
@@ -290,14 +283,7 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
                     final SimpleHttpResponse response = generateCachedResponse(request, context, entry, now);
                     cacheRevalidator.revalidateCacheEntry(
                             responseCache.generateKey(target, request, entry),
-                            new DefaultCacheRevalidator.RevalidationCall() {
-
-                        @Override
-                        public ClassicHttpResponse execute() throws HttpException, IOException {
-                            return revalidateCacheEntry(target, request, fork, chain, entry);
-                        }
-
-                    });
+                            () -> revalidateCacheEntry(target, request, fork, chain, entry));
                     return convert(response, scope);
                 }
                 return revalidateCacheEntry(target, request, scope, chain, entry);

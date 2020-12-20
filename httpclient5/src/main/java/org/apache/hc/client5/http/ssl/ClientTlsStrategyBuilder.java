@@ -171,14 +171,11 @@ public class ClientTlsStrategyBuilder {
         if (tlsDetailsFactory != null) {
             tlsDetailsFactoryCopy = tlsDetailsFactory;
         } else {
-            tlsDetailsFactoryCopy = new Factory<SSLEngine, TlsDetails>() {
-                @Override
-                public TlsDetails create(final SSLEngine sslEngine) {
-                    final SSLSession sslSession = sslEngine.getSession();
-                    final String applicationProtocol = ReflectionUtils.callGetter(sslEngine,
-                        "ApplicationProtocol", String.class);
-                    return new TlsDetails(sslSession, applicationProtocol);
-                }
+            tlsDetailsFactoryCopy = sslEngine -> {
+                final SSLSession sslSession = sslEngine.getSession();
+                final String applicationProtocol = ReflectionUtils.callGetter(sslEngine,
+                    "ApplicationProtocol", String.class);
+                return new TlsDetails(sslSession, applicationProtocol);
             };
         }
         return new DefaultClientTlsStrategy(

@@ -54,12 +54,10 @@ import org.apache.hc.core5.concurrent.Cancellable;
 import org.apache.hc.core5.concurrent.ComplexCancellable;
 import org.apache.hc.core5.concurrent.ComplexFuture;
 import org.apache.hc.core5.concurrent.FutureCallback;
-import org.apache.hc.core5.function.Callback;
 import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.nio.AsyncClientEndpoint;
@@ -78,7 +76,6 @@ import org.apache.hc.core5.reactor.Command;
 import org.apache.hc.core5.reactor.DefaultConnectingIOReactor;
 import org.apache.hc.core5.reactor.IOEventHandlerFactory;
 import org.apache.hc.core5.reactor.IOReactorConfig;
-import org.apache.hc.core5.reactor.IOSession;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.Asserts;
 import org.apache.hc.core5.util.TimeValue;
@@ -116,20 +113,13 @@ public final class MinimalHttpAsyncClient extends AbstractMinimalHttpAsyncClient
             final AsyncClientConnectionManager manager,
             final SchemePortResolver schemePortResolver) {
         super(new DefaultConnectingIOReactor(
-                eventHandlerFactory,
-                reactorConfig,
-                workerThreadFactory,
-                LoggingIOSessionDecorator.INSTANCE,
-                LoggingExceptionCallback.INSTANCE,
-                null,
-                new Callback<IOSession>() {
-
-                    @Override
-                    public void execute(final IOSession ioSession) {
-                        ioSession.enqueue(new ShutdownCommand(CloseMode.GRACEFUL), Command.Priority.NORMAL);
-                    }
-
-                }),
+                        eventHandlerFactory,
+                        reactorConfig,
+                        workerThreadFactory,
+                        LoggingIOSessionDecorator.INSTANCE,
+                        LoggingExceptionCallback.INSTANCE,
+                        null,
+                        ioSession -> ioSession.enqueue(new ShutdownCommand(CloseMode.GRACEFUL), Command.Priority.NORMAL)),
                 pushConsumerRegistry,
                 threadFactory);
         this.manager = manager;
@@ -259,180 +249,166 @@ public final class MinimalHttpAsyncClient extends AbstractMinimalHttpAsyncClient
                 throw new CancellationException("Request execution cancelled");
             }
             final HttpClientContext clientContext = context != null ? HttpClientContext.adapt(context) : HttpClientContext.create();
-            exchangeHandler.produceRequest(new RequestChannel() {
+            exchangeHandler.produceRequest((request, entityDetails, context1) -> {
+                RequestConfig requestConfig = null;
+                if (request instanceof Configurable) {
+                    requestConfig = ((Configurable) request).getConfig();
+                }
+                if (requestConfig != null) {
+                    clientContext.setRequestConfig(requestConfig);
+                } else {
+                    requestConfig = clientContext.getRequestConfig();
+                }
+                final Timeout connectionRequestTimeout = requestConfig.getConnectionRequestTimeout();
+                final Timeout connectTimeout = requestConfig.getConnectTimeout();
+                final Timeout responseTimeout = requestConfig.getResponseTimeout();
+                final HttpHost target = new HttpHost(request.getScheme(), request.getAuthority());
 
-                @Override
-                public void sendRequest(
-                        final HttpRequest request,
-                        final EntityDetails entityDetails,
-                        final HttpContext context) throws HttpException, IOException {
-                    RequestConfig requestConfig = null;
-                    if (request instanceof Configurable) {
-                        requestConfig = ((Configurable) request).getConfig();
-                    }
-                    if (requestConfig != null) {
-                        clientContext.setRequestConfig(requestConfig);
-                    } else {
-                        requestConfig = clientContext.getRequestConfig();
-                    }
-                    final Timeout connectionRequestTimeout = requestConfig.getConnectionRequestTimeout();
-                    final Timeout connectTimeout = requestConfig.getConnectTimeout();
-                    final Timeout responseTimeout = requestConfig.getResponseTimeout();
-                    final HttpHost target = new HttpHost(request.getScheme(), request.getAuthority());
+                final Future<AsyncConnectionEndpoint> leaseFuture = leaseEndpoint(
+                        target,
+                        connectionRequestTimeout,
+                        connectTimeout,
+                        clientContext,
+                        new FutureCallback<AsyncConnectionEndpoint>() {
 
-                    final Future<AsyncConnectionEndpoint> leaseFuture = leaseEndpoint(
-                            target,
-                            connectionRequestTimeout,
-                            connectTimeout,
-                            clientContext,
-                            new FutureCallback<AsyncConnectionEndpoint>() {
+                            @Override
+                            public void completed(final AsyncConnectionEndpoint connectionEndpoint) {
+                                final InternalAsyncClientEndpoint endpoint = new InternalAsyncClientEndpoint(connectionEndpoint);
+                                final AtomicInteger messageCountDown = new AtomicInteger(2);
+                                final AsyncClientExchangeHandler internalExchangeHandler = new AsyncClientExchangeHandler() {
 
-                                @Override
-                                public void completed(final AsyncConnectionEndpoint connectionEndpoint) {
-                                    final InternalAsyncClientEndpoint endpoint = new InternalAsyncClientEndpoint(connectionEndpoint);
-                                    final AtomicInteger messageCountDown = new AtomicInteger(2);
-                                    final AsyncClientExchangeHandler internalExchangeHandler = new AsyncClientExchangeHandler() {
+                                    @Override
+                                    public void releaseResources() {
+                                        try {
+                                            exchangeHandler.releaseResources();
+                                        } finally {
+                                            endpoint.releaseAndDiscard();
+                                        }
+                                    }
 
-                                        @Override
-                                        public void releaseResources() {
-                                            try {
-                                                exchangeHandler.releaseResources();
-                                            } finally {
-                                                endpoint.releaseAndDiscard();
+                                    @Override
+                                    public void failed(final Exception cause) {
+                                        try {
+                                            exchangeHandler.failed(cause);
+                                        } finally {
+                                            endpoint.releaseAndDiscard();
+                                        }
+                                    }
+
+                                    @Override
+                                    public void cancel() {
+                                        failed(new RequestFailedException("Request aborted"));
+                                    }
+
+                                    @Override
+                                    public void produceRequest(
+                                            final RequestChannel channel,
+                                            final HttpContext context1) throws HttpException, IOException {
+                                        channel.sendRequest(request, entityDetails, context1);
+                                        if (entityDetails == null) {
+                                            messageCountDown.decrementAndGet();
+                                        }
+                                    }
+
+                                    @Override
+                                    public int available() {
+                                        return exchangeHandler.available();
+                                    }
+
+                                    @Override
+                                    public void produce(final DataStreamChannel channel) throws IOException {
+                                        exchangeHandler.produce(new DataStreamChannel() {
+
+                                            @Override
+                                            public void requestOutput() {
+                                                channel.requestOutput();
                                             }
-                                        }
 
-                                        @Override
-                                        public void failed(final Exception cause) {
-                                            try {
-                                                exchangeHandler.failed(cause);
-                                            } finally {
-                                                endpoint.releaseAndDiscard();
+                                            @Override
+                                            public int write(final ByteBuffer src) throws IOException {
+                                                return channel.write(src);
                                             }
-                                        }
 
-                                        @Override
-                                        public void cancel() {
-                                            failed(new RequestFailedException("Request aborted"));
-                                        }
-
-                                        @Override
-                                        public void produceRequest(
-                                                final RequestChannel channel,
-                                                final HttpContext context) throws HttpException, IOException {
-                                            channel.sendRequest(request, entityDetails, context);
-                                            if (entityDetails == null) {
-                                                messageCountDown.decrementAndGet();
-                                            }
-                                        }
-
-                                        @Override
-                                        public int available() {
-                                            return exchangeHandler.available();
-                                        }
-
-                                        @Override
-                                        public void produce(final DataStreamChannel channel) throws IOException {
-                                            exchangeHandler.produce(new DataStreamChannel() {
-
-                                                @Override
-                                                public void requestOutput() {
-                                                    channel.requestOutput();
-                                                }
-
-                                                @Override
-                                                public int write(final ByteBuffer src) throws IOException {
-                                                    return channel.write(src);
-                                                }
-
-                                                @Override
-                                                public void endStream(final List<? extends Header> trailers) throws IOException {
-                                                    channel.endStream(trailers);
-                                                    if (messageCountDown.decrementAndGet() <= 0) {
-                                                        endpoint.releaseAndReuse();
-                                                    }
-                                                }
-
-                                                @Override
-                                                public void endStream() throws IOException {
-                                                    channel.endStream();
-                                                    if (messageCountDown.decrementAndGet() <= 0) {
-                                                        endpoint.releaseAndReuse();
-                                                    }
-                                                }
-
-                                            });
-                                        }
-
-                                        @Override
-                                        public void consumeInformation(
-                                                final HttpResponse response,
-                                                final HttpContext context) throws HttpException, IOException {
-                                            exchangeHandler.consumeInformation(response, context);
-                                        }
-
-                                        @Override
-                                        public void consumeResponse(
-                                                final HttpResponse response,
-                                                final EntityDetails entityDetails,
-                                                final HttpContext context) throws HttpException, IOException {
-                                            exchangeHandler.consumeResponse(response, entityDetails, context);
-                                            if (response.getCode() >= HttpStatus.SC_CLIENT_ERROR) {
-                                                messageCountDown.decrementAndGet();
-                                            }
-                                            if (entityDetails == null) {
+                                            @Override
+                                            public void endStream(final List<? extends Header> trailers) throws IOException {
+                                                channel.endStream(trailers);
                                                 if (messageCountDown.decrementAndGet() <= 0) {
                                                     endpoint.releaseAndReuse();
                                                 }
                                             }
-                                        }
 
-                                        @Override
-                                        public void updateCapacity(final CapacityChannel capacityChannel) throws IOException {
-                                            exchangeHandler.updateCapacity(capacityChannel);
-                                        }
+                                            @Override
+                                            public void endStream() throws IOException {
+                                                channel.endStream();
+                                                if (messageCountDown.decrementAndGet() <= 0) {
+                                                    endpoint.releaseAndReuse();
+                                                }
+                                            }
 
-                                        @Override
-                                        public void consume(final ByteBuffer src) throws IOException {
-                                            exchangeHandler.consume(src);
-                                        }
+                                        });
+                                    }
 
-                                        @Override
-                                        public void streamEnd(final List<? extends Header> trailers) throws HttpException, IOException {
+                                    @Override
+                                    public void consumeInformation(
+                                            final HttpResponse response,
+                                            final HttpContext context1) throws HttpException, IOException {
+                                        exchangeHandler.consumeInformation(response, context1);
+                                    }
+
+                                    @Override
+                                    public void consumeResponse(
+                                            final HttpResponse response,
+                                            final EntityDetails entityDetails,
+                                            final HttpContext context1) throws HttpException, IOException {
+                                        exchangeHandler.consumeResponse(response, entityDetails, context1);
+                                        if (response.getCode() >= HttpStatus.SC_CLIENT_ERROR) {
+                                            messageCountDown.decrementAndGet();
+                                        }
+                                        if (entityDetails == null) {
                                             if (messageCountDown.decrementAndGet() <= 0) {
                                                 endpoint.releaseAndReuse();
                                             }
-                                            exchangeHandler.streamEnd(trailers);
                                         }
-
-                                    };
-                                    if (responseTimeout != null) {
-                                        endpoint.setSocketTimeout(responseTimeout);
                                     }
-                                    endpoint.execute(internalExchangeHandler, pushHandlerFactory, clientContext);
+
+                                    @Override
+                                    public void updateCapacity(final CapacityChannel capacityChannel) throws IOException {
+                                        exchangeHandler.updateCapacity(capacityChannel);
+                                    }
+
+                                    @Override
+                                    public void consume(final ByteBuffer src) throws IOException {
+                                        exchangeHandler.consume(src);
+                                    }
+
+                                    @Override
+                                    public void streamEnd(final List<? extends Header> trailers) throws HttpException, IOException {
+                                        if (messageCountDown.decrementAndGet() <= 0) {
+                                            endpoint.releaseAndReuse();
+                                        }
+                                        exchangeHandler.streamEnd(trailers);
+                                    }
+
+                                };
+                                if (responseTimeout != null) {
+                                    endpoint.setSocketTimeout(responseTimeout);
                                 }
+                                endpoint.execute(internalExchangeHandler, pushHandlerFactory, clientContext);
+                            }
 
-                                @Override
-                                public void failed(final Exception ex) {
-                                    exchangeHandler.failed(ex);
-                                }
+                            @Override
+                            public void failed(final Exception ex) {
+                                exchangeHandler.failed(ex);
+                            }
 
-                                @Override
-                                public void cancelled() {
-                                    exchangeHandler.cancel();
-                                }
+                            @Override
+                            public void cancelled() {
+                                exchangeHandler.cancel();
+                            }
 
-                            });
+                        });
 
-                    cancellable.setDependency(new Cancellable() {
-
-                        @Override
-                        public boolean cancel() {
-                            return leaseFuture.cancel(true);
-                        }
-
-                    });
-                }
+                cancellable.setDependency(() -> leaseFuture.cancel(true));
             }, context);
 
         } catch (final HttpException | IOException | IllegalStateException ex) {

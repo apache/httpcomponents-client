@@ -28,7 +28,6 @@
 package org.apache.hc.client5.http.impl.async;
 
 import java.io.Closeable;
-import java.io.IOException;
 import java.net.ProxySelector;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
@@ -45,8 +44,8 @@ import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.UserTokenHandler;
 import org.apache.hc.client5.http.async.AsyncExecChainHandler;
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
-import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
+import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.cookie.BasicCookieStore;
 import org.apache.hc.client5.http.cookie.CookieSpecFactory;
@@ -82,14 +81,10 @@ import org.apache.hc.client5.http.protocol.ResponseProcessCookies;
 import org.apache.hc.client5.http.routing.HttpRoutePlanner;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.concurrent.DefaultThreadFactory;
-import org.apache.hc.core5.function.Callback;
 import org.apache.hc.core5.http.ConnectionReuseStrategy;
 import org.apache.hc.core5.http.Header;
-import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpRequestInterceptor;
-import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpResponseInterceptor;
 import org.apache.hc.core5.http.config.CharCodingConfig;
 import org.apache.hc.core5.http.config.Http1Config;
@@ -97,11 +92,8 @@ import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.config.NamedElementChain;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.impl.DefaultConnectionReuseStrategy;
-import org.apache.hc.core5.http.nio.AsyncPushConsumer;
-import org.apache.hc.core5.http.nio.HandlerFactory;
 import org.apache.hc.core5.http.nio.command.ShutdownCommand;
 import org.apache.hc.core5.http.protocol.DefaultHttpProcessor;
-import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
 import org.apache.hc.core5.http.protocol.HttpProcessorBuilder;
 import org.apache.hc.core5.http.protocol.RequestTargetHost;
@@ -117,7 +109,6 @@ import org.apache.hc.core5.reactor.Command;
 import org.apache.hc.core5.reactor.DefaultConnectingIOReactor;
 import org.apache.hc.core5.reactor.IOEventHandlerFactory;
 import org.apache.hc.core5.reactor.IOReactorConfig;
-import org.apache.hc.core5.reactor.IOSession;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.VersionInfo;
@@ -846,12 +837,7 @@ public class HttpAsyncClientBuilder {
             if (proxy != null) {
                 routePlannerCopy = new DefaultProxyRoutePlanner(proxy, schemePortResolverCopy);
             } else if (systemProperties) {
-                final ProxySelector defaultProxySelector = AccessController.doPrivileged(new PrivilegedAction<ProxySelector>() {
-                    @Override
-                    public ProxySelector run() {
-                        return ProxySelector.getDefault();
-                    }
-                });
+                final ProxySelector defaultProxySelector = AccessController.doPrivileged((PrivilegedAction<ProxySelector>) ProxySelector::getDefault);
                 routePlannerCopy = new SystemDefaultRoutePlanner(
                         schemePortResolverCopy, defaultProxySelector);
             } else {
@@ -879,14 +865,7 @@ public class HttpAsyncClientBuilder {
                 if (connManagerCopy instanceof ConnPoolControl) {
                     final IdleConnectionEvictor connectionEvictor = new IdleConnectionEvictor((ConnPoolControl<?>) connManagerCopy,
                             maxIdleTime,  maxIdleTime);
-                    closeablesCopy.add(new Closeable() {
-
-                        @Override
-                        public void close() throws IOException {
-                            connectionEvictor.shutdown();
-                        }
-
-                    });
+                    closeablesCopy.add(connectionEvictor::shutdown);
                     connectionEvictor.start();
                 }
             }
@@ -899,13 +878,7 @@ public class HttpAsyncClientBuilder {
                 if ("true".equalsIgnoreCase(s)) {
                     reuseStrategyCopy = DefaultConnectionReuseStrategy.INSTANCE;
                 } else {
-                    reuseStrategyCopy = new ConnectionReuseStrategy() {
-                        @Override
-                        public boolean keepAlive(
-                                final HttpRequest request, final HttpResponse response, final HttpContext context) {
-                            return false;
-                        }
-                    };
+                    reuseStrategyCopy = (request, response, context) -> false;
                 }
             } else {
                 reuseStrategyCopy = DefaultConnectionReuseStrategy.INSTANCE;
@@ -914,14 +887,7 @@ public class HttpAsyncClientBuilder {
         final AsyncPushConsumerRegistry pushConsumerRegistry = new AsyncPushConsumerRegistry();
         final IOEventHandlerFactory ioEventHandlerFactory = new HttpAsyncClientEventHandlerFactory(
                 new DefaultHttpProcessor(new H2RequestContent(), new H2RequestTargetHost(), new H2RequestConnControl()),
-                new HandlerFactory<AsyncPushConsumer>() {
-
-                    @Override
-                    public AsyncPushConsumer create(final HttpRequest request, final HttpContext context) throws HttpException {
-                        return pushConsumerRegistry.get(request);
-                    }
-
-                },
+                (request, context) -> pushConsumerRegistry.get(request),
                 versionPolicy != null ? versionPolicy : HttpVersionPolicy.NEGOTIATE,
                 h2Config != null ? h2Config : H2Config.DEFAULT,
                 h1Config != null ? h1Config : Http1Config.DEFAULT,
@@ -934,14 +900,7 @@ public class HttpAsyncClientBuilder {
                 LoggingIOSessionDecorator.INSTANCE,
                 LoggingExceptionCallback.INSTANCE,
                 null,
-                new Callback<IOSession>() {
-
-                    @Override
-                    public void execute(final IOSession ioSession) {
-                        ioSession.enqueue(new ShutdownCommand(CloseMode.GRACEFUL), Command.Priority.IMMEDIATE);
-                    }
-
-                });
+                ioSession -> ioSession.enqueue(new ShutdownCommand(CloseMode.GRACEFUL), Command.Priority.IMMEDIATE));
 
         if (execInterceptors != null) {
             for (final ExecInterceptorEntry entry: execInterceptors) {
@@ -1022,12 +981,7 @@ public class HttpAsyncClientBuilder {
     }
 
     private String getProperty(final String key, final String defaultValue) {
-        return AccessController.doPrivileged(new PrivilegedAction<String>() {
-            @Override
-            public String run() {
-                return System.getProperty(key, defaultValue);
-            }
-        });
+        return AccessController.doPrivileged((PrivilegedAction<String>) () -> System.getProperty(key, defaultValue));
     }
 
 }

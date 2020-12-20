@@ -70,7 +70,7 @@ public class DefaultAsyncCacheInvalidator extends CacheInvalidatorBase implement
             @Override
             public void completed(final Boolean result) {
                 if (LOG.isDebugEnabled()) {
-                    if (result) {
+                    if (result.booleanValue()) {
                         LOG.debug("Cache entry with key {} successfully flushed", cacheKey);
                     } else {
                         LOG.debug("Cache entry with key {} could not be flushed", cacheKey);

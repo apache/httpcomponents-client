@@ -45,8 +45,6 @@ import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.client5.testing.BasicTestAuthenticator;
 import org.apache.hc.client5.testing.SSLTestContexts;
-import org.apache.hc.core5.function.Decorator;
-import org.apache.hc.core5.function.Supplier;
 import org.apache.hc.core5.http.HeaderElements;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
@@ -57,7 +55,6 @@ import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.config.Http1Config;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.impl.HttpProcessors;
-import org.apache.hc.core5.http.nio.AsyncServerExchangeHandler;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -135,29 +132,15 @@ public class TestHttp1ClientAuthentication extends AbstractHttpAsyncClientAuthen
 
     @Test
     public void testBasicAuthenticationSuccessNonPersistentConnection() throws Exception {
-        server.register("*", new Supplier<AsyncServerExchangeHandler>() {
-
-            @Override
-            public AsyncServerExchangeHandler get() {
-                return new AsyncEchoHandler();
-            }
-
-        });
+        server.register("*", AsyncEchoHandler::new);
         final HttpHost target = start(
                 HttpProcessors.server(),
-                new Decorator<AsyncServerExchangeHandler>() {
+                exchangeHandler -> new AuthenticatingAsyncDecorator(exchangeHandler, new BasicTestAuthenticator("test:test", "test realm")) {
 
                     @Override
-                    public AsyncServerExchangeHandler decorate(final AsyncServerExchangeHandler exchangeHandler) {
-                        return new AuthenticatingAsyncDecorator(exchangeHandler, new BasicTestAuthenticator("test:test", "test realm")) {
-
-                            @Override
-                            protected void customizeUnauthorizedResponse(final HttpResponse unauthorized) {
-                                unauthorized.addHeader(HttpHeaders.CONNECTION, HeaderElements.CLOSE);
-                            }
-                        };
+                    protected void customizeUnauthorizedResponse(final HttpResponse unauthorized) {
+                        unauthorized.addHeader(HttpHeaders.CONNECTION, HeaderElements.CLOSE);
                     }
-
                 },
                 Http1Config.DEFAULT);
 

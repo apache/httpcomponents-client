@@ -124,7 +124,7 @@ public class HttpCacheEntry implements MessageHeaders, Serializable {
      */
     public HttpCacheEntry(final Date requestDate, final Date responseDate, final int status,
             final Header[] responseHeaders, final Resource resource) {
-        this(requestDate, responseDate, status, responseHeaders, resource, new HashMap<String,String>());
+        this(requestDate, responseDate, status, responseHeaders, resource, new HashMap<>());
     }
 
     /**

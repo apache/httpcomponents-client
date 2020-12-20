@@ -51,19 +51,7 @@ class AsyncExecChainElement {
             final AsyncEntityProducer entityProducer,
             final AsyncExecChain.Scope scope,
             final AsyncExecCallback asyncExecCallback) throws HttpException, IOException {
-        handler.execute(request, entityProducer, scope, new AsyncExecChain() {
-
-            @Override
-            public void proceed(
-                    final HttpRequest request,
-                    final AsyncEntityProducer entityProducer,
-                    final AsyncExecChain.Scope scope,
-                    final AsyncExecCallback asyncExecCallback) throws HttpException, IOException {
-                next.execute(request, entityProducer, scope, asyncExecCallback);
-            }
-
-        }, asyncExecCallback);
-
+        handler.execute(request, entityProducer, scope, next != null ? next::execute : null, asyncExecCallback);
     }
 
     @Override

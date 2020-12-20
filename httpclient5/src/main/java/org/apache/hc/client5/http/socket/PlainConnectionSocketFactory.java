@@ -81,12 +81,9 @@ public class PlainConnectionSocketFactory implements ConnectionSocketFactory {
             // Run this under a doPrivileged to support lib users that run under a SecurityManager this allows granting connect permissions
             // only to this library
             try {
-                AccessController.doPrivileged(new PrivilegedExceptionAction<Object>() {
-                    @Override
-                    public Object run() throws IOException {
-                        sock.connect(remoteAddress, TimeValue.isPositive(connectTimeout) ? connectTimeout.toMillisecondsIntBound() : 0);
-                        return null;
-                    }
+                AccessController.doPrivileged((PrivilegedExceptionAction<Object>) () -> {
+                    sock.connect(remoteAddress, TimeValue.isPositive(connectTimeout) ? connectTimeout.toMillisecondsIntBound() : 0);
+                    return null;
                 });
             } catch (final PrivilegedActionException e) {
                 Asserts.check(e.getCause() instanceof  IOException,

@@ -217,7 +217,7 @@ public class TestHttpCacheEntry {
     public void canProvideVariantMap() {
         new HttpCacheEntry(new Date(), new Date(), HttpStatus.SC_OK,
                 new Header[]{}, mockResource,
-                new HashMap<String,String>());
+                new HashMap<>());
     }
 
     @Test

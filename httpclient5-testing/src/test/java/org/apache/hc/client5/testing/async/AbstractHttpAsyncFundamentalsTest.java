@@ -175,15 +175,10 @@ public abstract class AbstractHttpAsyncFundamentalsTest<T extends CloseableHttpA
         final int threadNum = 5;
         final ExecutorService executorService = Executors.newFixedThreadPool(threadNum);
         for (int i = 0; i < threadNum; i++) {
-            executorService.execute(new Runnable() {
-
-                @Override
-                public void run() {
-                    if (!Thread.currentThread().isInterrupted()) {
-                        httpclient.execute(SimpleHttpRequests.get(target, "/random/2048"), callback);
-                    }
+            executorService.execute(() -> {
+                if (!Thread.currentThread().isInterrupted()) {
+                    httpclient.execute(SimpleHttpRequests.get(target, "/random/2048"), callback);
                 }
-
             });
         }
 

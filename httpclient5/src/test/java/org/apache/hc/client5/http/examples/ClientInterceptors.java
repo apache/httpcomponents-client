@@ -30,14 +30,11 @@ package org.apache.hc.client5.http.examples;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.apache.hc.client5.http.classic.ExecChain;
-import org.apache.hc.client5.http.classic.ExecChainHandler;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.impl.ChainElement;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
-import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.EntityDetails;
@@ -77,24 +74,16 @@ public class ClientInterceptors {
 
                 // Simulate a 404 response for some requests without passing the message down to the backend
 
-                .addExecInterceptorAfter(ChainElement.PROTOCOL.name(), "custom", new ExecChainHandler() {
+                .addExecInterceptorAfter(ChainElement.PROTOCOL.name(), "custom", (request, scope, chain) -> {
 
-                    @Override
-                    public ClassicHttpResponse execute(
-                            final ClassicHttpRequest request,
-                            final ExecChain.Scope scope,
-                            final ExecChain chain) throws IOException, HttpException {
-
-                        final Header idHeader = request.getFirstHeader("request-id");
-                        if (idHeader != null && "13".equalsIgnoreCase(idHeader.getValue())) {
-                            final ClassicHttpResponse response = new BasicClassicHttpResponse(HttpStatus.SC_NOT_FOUND, "Oppsie");
-                            response.setEntity(new StringEntity("bad luck", ContentType.TEXT_PLAIN));
-                            return response;
-                        } else {
-                            return chain.proceed(request, scope);
-                        }
+                    final Header idHeader = request.getFirstHeader("request-id");
+                    if (idHeader != null && "13".equalsIgnoreCase(idHeader.getValue())) {
+                        final ClassicHttpResponse response = new BasicClassicHttpResponse(HttpStatus.SC_NOT_FOUND, "Oppsie");
+                        response.setEntity(new StringEntity("bad luck", ContentType.TEXT_PLAIN));
+                        return response;
+                    } else {
+                        return chain.proceed(request, scope);
                     }
-
                 })
                 .build()) {
 

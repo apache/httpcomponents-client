@@ -50,10 +50,7 @@ import org.apache.hc.core5.util.Timeout;
 import org.reactivestreams.Publisher;
 
 import io.reactivex.Flowable;
-import io.reactivex.Notification;
 import io.reactivex.Observable;
-import io.reactivex.functions.Consumer;
-import io.reactivex.functions.Function;
 
 /**
  * This example demonstrates a reactive, full-duplex HTTP/1.1 message exchange using RxJava.
@@ -92,21 +89,13 @@ public class ReactiveClientFullDuplexExchange {
         System.out.println();
 
         Observable.fromPublisher(streamingResponse.getBody())
-            .map(new Function<ByteBuffer, String>() {
-                @Override
-                public String apply(final ByteBuffer byteBuffer) throws Exception {
-                    final byte[] string = new byte[byteBuffer.remaining()];
-                    byteBuffer.get(string);
-                    return new String(string);
-                }
+            .map(byteBuffer -> {
+                final byte[] string = new byte[byteBuffer.remaining()];
+                byteBuffer.get(string);
+                return new String(string);
             })
             .materialize()
-            .forEach(new Consumer<Notification<String>>() {
-                @Override
-                public void accept(final Notification<String> byteBufferNotification) throws Exception {
-                    System.out.println(byteBufferNotification);
-                }
-            });
+            .forEach(System.out::println);
 
         requestFuture.get(1, TimeUnit.MINUTES);
 

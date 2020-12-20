@@ -212,7 +212,7 @@ public class RFC6265CookieSpec implements CookieSpec {
         if (cookies.size() > 1) {
             // Create a mutable copy and sort the copy.
             sortedCookies = new ArrayList<>(cookies);
-            Collections.sort(sortedCookies, CookiePriorityComparator.INSTANCE);
+            sortedCookies.sort(CookiePriorityComparator.INSTANCE);
         } else {
             sortedCookies = cookies;
         }
