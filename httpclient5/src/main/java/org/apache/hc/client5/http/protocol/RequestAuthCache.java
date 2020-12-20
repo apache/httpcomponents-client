@@ -70,22 +70,29 @@ public class RequestAuthCache implements HttpRequestInterceptor {
         Args.notNull(context, "HTTP context");
 
         final HttpClientContext clientContext = HttpClientContext.adapt(context);
+        final String exchangeId = clientContext.getExchangeId();
 
         final AuthCache authCache = clientContext.getAuthCache();
         if (authCache == null) {
-            LOG.debug("Auth cache not set in the context");
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{} Auth cache not set in the context", exchangeId);
+            }
             return;
         }
 
         final CredentialsProvider credsProvider = clientContext.getCredentialsProvider();
         if (credsProvider == null) {
-            LOG.debug("Credentials provider not set in the context");
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{} Credentials provider not set in the context", exchangeId);
+            }
             return;
         }
 
         final RouteInfo route = clientContext.getHttpRoute();
         if (route == null) {
-            LOG.debug("Route info not set in the context");
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{} Route info not set in the context", exchangeId);
+            }
             return;
         }
 
@@ -104,7 +111,7 @@ public class RequestAuthCache implements HttpRequestInterceptor {
             final AuthScheme authScheme = authCache.get(target);
             if (authScheme != null) {
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("Re-using cached '{}' auth scheme for {}", authScheme.getName(), target);
+                    LOG.debug("{} Re-using cached '{}' auth scheme for {}", exchangeId, authScheme.getName(), target);
                 }
                 targetAuthExchange.select(authScheme);
             }
@@ -117,7 +124,7 @@ public class RequestAuthCache implements HttpRequestInterceptor {
                 final AuthScheme authScheme = authCache.get(proxy);
                 if (authScheme != null) {
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug("Re-using cached '{}' auth scheme for {}", authScheme.getName(), proxy);
+                        LOG.debug("{} Re-using cached '{}' auth scheme for {}", exchangeId, authScheme.getName(), proxy);
                     }
                     proxyAuthExchange.select(authScheme);
                 }

@@ -83,25 +83,32 @@ public class RequestAddCookies implements HttpRequestInterceptor {
         }
 
         final HttpClientContext clientContext = HttpClientContext.adapt(context);
+        final String exchangeId = clientContext.getExchangeId();
 
         // Obtain cookie store
         final CookieStore cookieStore = clientContext.getCookieStore();
         if (cookieStore == null) {
-            LOG.debug("Cookie store not specified in HTTP context");
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{} Cookie store not specified in HTTP context", exchangeId);
+            }
             return;
         }
 
         // Obtain the registry of cookie specs
         final Lookup<CookieSpecFactory> registry = clientContext.getCookieSpecRegistry();
         if (registry == null) {
-            LOG.debug("CookieSpec registry not specified in HTTP context");
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{} CookieSpec registry not specified in HTTP context", exchangeId);
+            }
             return;
         }
 
         // Obtain the route (required)
         final RouteInfo route = clientContext.getHttpRoute();
         if (route == null) {
-            LOG.debug("Connection route not set in the context");
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{} Connection route not set in the context", exchangeId);
+            }
             return;
         }
 
@@ -111,7 +118,7 @@ public class RequestAddCookies implements HttpRequestInterceptor {
             cookieSpecName = StandardCookieSpec.STRICT;
         }
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Cookie spec selected: {}", cookieSpecName);
+            LOG.debug("{} Cookie spec selected: {}", exchangeId, cookieSpecName);
         }
 
         final URIAuthority authority = request.getAuthority();
@@ -133,9 +140,8 @@ public class RequestAddCookies implements HttpRequestInterceptor {
         final CookieSpecFactory factory = registry.lookup(cookieSpecName);
         if (factory == null) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Unsupported cookie spec: {}", cookieSpecName);
+                LOG.debug("{} Unsupported cookie spec: {}", exchangeId, cookieSpecName);
             }
-
             return;
         }
         final CookieSpec cookieSpec = factory.create(clientContext);
@@ -149,13 +155,13 @@ public class RequestAddCookies implements HttpRequestInterceptor {
             if (!cookie.isExpired(now)) {
                 if (cookieSpec.match(cookie, cookieOrigin)) {
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug("Cookie {} match {}", cookie, cookieOrigin);
+                        LOG.debug("{} Cookie {} match {}", exchangeId, cookie, cookieOrigin);
                     }
                     matchedCookies.add(cookie);
                 }
             } else {
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("Cookie {} expired", cookie);
+                    LOG.debug("{} Cookie {} expired", exchangeId, cookie);
                 }
                 expired = true;
             }

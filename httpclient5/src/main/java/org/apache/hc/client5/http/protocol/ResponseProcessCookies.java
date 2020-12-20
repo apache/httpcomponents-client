@@ -70,30 +70,38 @@ public class ResponseProcessCookies implements HttpResponseInterceptor {
         Args.notNull(context, "HTTP context");
 
         final HttpClientContext clientContext = HttpClientContext.adapt(context);
+        final String exchangeId = clientContext.getExchangeId();
 
         // Obtain actual CookieSpec instance
         final CookieSpec cookieSpec = clientContext.getCookieSpec();
         if (cookieSpec == null) {
-            LOG.debug("Cookie spec not specified in HTTP context");
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{} Cookie spec not specified in HTTP context", exchangeId);
+            }
             return;
         }
         // Obtain cookie store
         final CookieStore cookieStore = clientContext.getCookieStore();
         if (cookieStore == null) {
-            LOG.debug("Cookie store not specified in HTTP context");
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{} Cookie store not specified in HTTP context", exchangeId);
+            }
             return;
         }
         // Obtain actual CookieOrigin instance
         final CookieOrigin cookieOrigin = clientContext.getCookieOrigin();
         if (cookieOrigin == null) {
-            LOG.debug("Cookie origin not specified in HTTP context");
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{} Cookie origin not specified in HTTP context", exchangeId);
+            }
             return;
         }
         final Iterator<Header> it = response.headerIterator("Set-Cookie");
-        processCookies(it, cookieSpec, cookieOrigin, cookieStore);
+        processCookies(exchangeId, it, cookieSpec, cookieOrigin, cookieStore);
     }
 
     private void processCookies(
+            final String exchangeId,
             final Iterator<Header> iterator,
             final CookieSpec cookieSpec,
             final CookieOrigin cookieOrigin,
@@ -108,17 +116,19 @@ public class ResponseProcessCookies implements HttpResponseInterceptor {
                         cookieStore.addCookie(cookie);
 
                         if (LOG.isDebugEnabled()) {
-                            LOG.debug("Cookie accepted [{}]", formatCooke(cookie));
+                            if (LOG.isDebugEnabled()) {
+                                LOG.debug("{} Cookie accepted [{}]", exchangeId, formatCooke(cookie));
+                            }
                         }
                     } catch (final MalformedCookieException ex) {
                         if (LOG.isWarnEnabled()) {
-                            LOG.warn("Cookie rejected [{}] {}", formatCooke(cookie), ex.getMessage());
+                            LOG.warn("{} Cookie rejected [{}] {}", exchangeId, formatCooke(cookie), ex.getMessage());
                         }
                     }
                 }
             } catch (final MalformedCookieException ex) {
                 if (LOG.isWarnEnabled()) {
-                    LOG.warn("Invalid cookie header: \"{}\". {}", header, ex.getMessage());
+                    LOG.warn("{} Invalid cookie header: \"{}\". {}", exchangeId, header, ex.getMessage());
                 }
             }
         }

@@ -142,13 +142,13 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
 
             final InetSocketAddress remoteAddress = new InetSocketAddress(address, port);
             if (LOG.isDebugEnabled()) {
-                LOG.debug("{}: connecting to {}", ConnPoolSupport.getId(conn), remoteAddress);
+                LOG.debug("{} connecting to {}", ConnPoolSupport.getId(conn), remoteAddress);
             }
             try {
                 sock = sf.connectSocket(connectTimeout, sock, host, remoteAddress, localAddress, context);
                 conn.bind(sock);
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("{}: connection established {}", ConnPoolSupport.getId(conn), conn);
+                    LOG.debug("{} connection established {}", ConnPoolSupport.getId(conn), conn);
                 }
                 return;
             } catch (final IOException ex) {
@@ -157,7 +157,7 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
                 }
             }
             if (LOG.isDebugEnabled()) {
-                LOG.debug("{}: connect to {} timed out. Connection will be retried using another IP address", ConnPoolSupport.getId(conn), remoteAddress);
+                LOG.debug("{} connect to {} timed out. Connection will be retried using another IP address", ConnPoolSupport.getId(conn), remoteAddress);
             }
         }
     }

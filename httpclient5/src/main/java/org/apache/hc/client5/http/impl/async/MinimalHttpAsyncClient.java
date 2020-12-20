@@ -469,7 +469,7 @@ public final class MinimalHttpAsyncClient extends AbstractMinimalHttpAsyncClient
 
             final String exchangeId = ExecSupport.getNextExchangeId();
             if (LOG.isDebugEnabled()) {
-                LOG.debug("{}: executing message exchange {}", ConnPoolSupport.getId(connectionEndpoint), exchangeId);
+                LOG.debug("{} executing message exchange {}", exchangeId, ConnPoolSupport.getId(connectionEndpoint));
                 connectionEndpoint.execute(
                         exchangeId,
                         new LoggingAsyncClientExchangeHandler(LOG, exchangeId, exchangeHandler),

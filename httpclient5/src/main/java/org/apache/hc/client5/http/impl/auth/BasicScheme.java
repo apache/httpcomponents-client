@@ -49,6 +49,7 @@ import org.apache.hc.client5.http.auth.AuthenticationException;
 import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.MalformedChallengeException;
+import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.utils.ByteArrayBuilder;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
@@ -154,7 +155,11 @@ public class BasicScheme implements AuthScheme, Serializable {
             return true;
         }
 
-        LOG.debug("No credentials found for auth scope [{}]", authScope);
+        if (LOG.isDebugEnabled()) {
+            final HttpClientContext clientContext = HttpClientContext.adapt(context);
+            final String exchangeId = clientContext.getExchangeId();
+            LOG.debug("{} No credentials found for auth scope [{}]", exchangeId, authScope);
+        }
         this.username = null;
         this.password = null;
         return false;

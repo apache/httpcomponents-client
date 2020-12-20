@@ -78,7 +78,7 @@ final class DefaultManagedAsyncClientConnection implements ManagedAsyncClientCon
     public void close(final CloseMode closeMode) {
         if (this.closed.compareAndSet(false, true)) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("{}: Shutdown connection {}", getId(), closeMode);
+                LOG.debug("{} Shutdown connection {}", getId(), closeMode);
             }
             ioSession.close(closeMode);
         }
@@ -88,7 +88,7 @@ final class DefaultManagedAsyncClientConnection implements ManagedAsyncClientCon
     public void close() throws IOException {
         if (this.closed.compareAndSet(false, true)) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("{}: Close connection", getId());
+                LOG.debug("{} Close connection", getId());
             }
             ioSession.enqueue(new ShutdownCommand(CloseMode.GRACEFUL), Command.Priority.IMMEDIATE);
         }
@@ -146,7 +146,7 @@ final class DefaultManagedAsyncClientConnection implements ManagedAsyncClientCon
             final SSLSessionVerifier verifier,
             final Timeout handshakeTimeout) throws UnsupportedOperationException {
         if (LOG.isDebugEnabled()) {
-            LOG.debug("{}: start TLS", getId());
+            LOG.debug("{} start TLS", getId());
         }
         if (ioSession instanceof TransportSecurityLayer) {
             ((TransportSecurityLayer) ioSession).startTls(sslContext, endpoint, sslBufferMode, initializer, verifier,
@@ -170,7 +170,7 @@ final class DefaultManagedAsyncClientConnection implements ManagedAsyncClientCon
     @Override
     public void submitCommand(final Command command, final Command.Priority priority) {
         if (LOG.isDebugEnabled()) {
-            LOG.debug("{}: {} with {} priority", getId(), command.getClass().getSimpleName(), priority);
+            LOG.debug("{} {} with {} priority", getId(), command.getClass().getSimpleName(), priority);
         }
         ioSession.enqueue(command, Command.Priority.IMMEDIATE);
     }

@@ -98,7 +98,7 @@ class HttpAsyncMainClientExec implements AsyncExecChainHandler {
         final AsyncExecRuntime execRuntime = scope.execRuntime;
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("{}: executing {}", exchangeId, new RequestLine(request));
+            LOG.debug("{} executing {}", exchangeId, new RequestLine(request));
         }
 
         final AtomicInteger messageCountDown = new AtomicInteger(2);

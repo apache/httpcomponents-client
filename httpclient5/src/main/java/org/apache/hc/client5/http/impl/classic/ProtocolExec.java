@@ -158,13 +158,13 @@ public final class ProtocolExec implements ExecChainHandler {
 
                 if (!request.containsHeader(HttpHeaders.AUTHORIZATION)) {
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug("{}: target auth state: {}", exchangeId, targetAuthExchange.getState());
+                        LOG.debug("{} target auth state: {}", exchangeId, targetAuthExchange.getState());
                     }
                     authenticator.addAuthResponse(target, ChallengeType.TARGET, request, targetAuthExchange, context);
                 }
                 if (!request.containsHeader(HttpHeaders.PROXY_AUTHORIZATION) && !route.isTunnelled()) {
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug("{}: proxy auth state: {}", exchangeId, proxyAuthExchange.getState());
+                        LOG.debug("{} proxy auth state: {}", exchangeId, proxyAuthExchange.getState());
                     }
                     authenticator.addAuthResponse(proxy, ChallengeType.PROXY, request, proxyAuthExchange, context);
                 }
@@ -181,7 +181,7 @@ public final class ProtocolExec implements ExecChainHandler {
                 final HttpEntity requestEntity = request.getEntity();
                 if (requestEntity != null && !requestEntity.isRepeatable()) {
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug("{}: Cannot retry non-repeatable request", exchangeId);
+                        LOG.debug("{} Cannot retry non-repeatable request", exchangeId);
                     }
                     return response;
                 }
@@ -195,14 +195,14 @@ public final class ProtocolExec implements ExecChainHandler {
                         if (proxyAuthExchange.getState() == AuthExchange.State.SUCCESS
                                 && proxyAuthExchange.isConnectionBased()) {
                             if (LOG.isDebugEnabled()) {
-                                LOG.debug("{}: resetting proxy auth state", exchangeId);
+                                LOG.debug("{} resetting proxy auth state", exchangeId);
                             }
                             proxyAuthExchange.reset();
                         }
                         if (targetAuthExchange.getState() == AuthExchange.State.SUCCESS
                                 && targetAuthExchange.isConnectionBased()) {
                             if (LOG.isDebugEnabled()) {
-                                LOG.debug("{}: resetting target auth state", exchangeId);
+                                LOG.debug("{} resetting target auth state", exchangeId);
                             }
                             targetAuthExchange.reset();
                         }

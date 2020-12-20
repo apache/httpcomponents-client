@@ -32,6 +32,7 @@ import java.util.Date;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.hc.client5.http.DnsResolver;
@@ -253,9 +254,10 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
     public synchronized void release(final ConnectionEndpoint endpoint, final Object state, final TimeValue keepAlive) {
         Args.notNull(endpoint, "Managed endpoint");
         final InternalConnectionEndpoint internalEndpoint = cast(endpoint);
+        final String id = internalEndpoint.id;
         final ManagedHttpClientConnection conn = internalEndpoint.detach();
         if (conn != null && LOG.isDebugEnabled()) {
-            LOG.debug("Releasing connection {}", conn);
+            LOG.debug("{} Releasing connection {}", id, conn);
         }
         if (this.closed.get()) {
             return;
@@ -271,7 +273,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
                 this.conn = null;
                 this.expiry = Long.MAX_VALUE;
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("Connection is not kept alive");
+                    LOG.debug("{} Connection is not kept alive", id);
                 }
             } else {
                 this.state = state;
@@ -280,12 +282,12 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
                 }
                 if (TimeValue.isPositive(keepAlive)) {
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug("Connection can be kept alive for {}", keepAlive);
+                        LOG.debug("{} Connection can be kept alive for {}", id, keepAlive);
                     }
                     this.expiry = this.updated + keepAlive.toMilliseconds();
                 } else {
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug("Connection can be kept alive indefinitely");
+                        LOG.debug("{} Connection can be kept alive indefinitely", id);
                     }
                     this.expiry = Long.MAX_VALUE;
                 }
@@ -358,14 +360,18 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
         }
     }
 
+    private static final AtomicLong COUNT = new AtomicLong(0);
+
     class InternalConnectionEndpoint extends ConnectionEndpoint {
 
         private final HttpRoute route;
         private final AtomicReference<ManagedHttpClientConnection> connRef;
+        private final String id;
 
         public InternalConnectionEndpoint(final HttpRoute route, final ManagedHttpClientConnection conn) {
             this.route = route;
             this.connRef = new AtomicReference<>(conn);
+            this.id = String.format("ep-%010d", COUNT.getAndIncrement());
         }
 
         HttpRoute getRoute() {
@@ -419,12 +425,15 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
 
         @Override
         public ClassicHttpResponse execute(
-                final String id,
+                final String exchangeId,
                 final ClassicHttpRequest request,
                 final HttpRequestExecutor requestExecutor,
                 final HttpContext context) throws IOException, HttpException {
             Args.notNull(request, "HTTP request");
             Args.notNull(requestExecutor, "Request executor");
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{} executing exchange {}", id, exchangeId);
+            }
             return requestExecutor.execute(request, getValidatedConnection(), context);
         }
 

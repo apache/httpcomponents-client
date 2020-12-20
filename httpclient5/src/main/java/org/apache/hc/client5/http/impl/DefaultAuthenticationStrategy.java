@@ -80,11 +80,14 @@ public class DefaultAuthenticationStrategy implements AuthenticationStrategy {
         Args.notNull(challenges, "Map of auth challenges");
         Args.notNull(context, "HTTP context");
         final HttpClientContext clientContext = HttpClientContext.adapt(context);
+        final String exchangeId = clientContext.getExchangeId();
 
         final List<AuthScheme> options = new ArrayList<>();
         final Lookup<AuthSchemeFactory> registry = clientContext.getAuthSchemeRegistry();
         if (registry == null) {
-            LOG.debug("Auth scheme registry not set in the context");
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{} Auth scheme registry not set in the context", exchangeId);
+            }
             return options;
         }
         final RequestConfig config = clientContext.getRequestConfig();
@@ -94,7 +97,9 @@ public class DefaultAuthenticationStrategy implements AuthenticationStrategy {
             authPrefs = DEFAULT_SCHEME_PRIORITY;
         }
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Authentication schemes in the order of preference: {}", authPrefs);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{} Authentication schemes in the order of preference: {}", exchangeId, authPrefs);
+            }
         }
 
         for (final String schemeName: authPrefs) {
@@ -103,7 +108,7 @@ public class DefaultAuthenticationStrategy implements AuthenticationStrategy {
                 final AuthSchemeFactory authSchemeFactory = registry.lookup(schemeName);
                 if (authSchemeFactory == null) {
                     if (LOG.isWarnEnabled()) {
-                        LOG.warn("Authentication scheme {} not supported", schemeName);
+                        LOG.warn("{} Authentication scheme {} not supported", exchangeId, schemeName);
                         // Try again
                     }
                     continue;
@@ -112,7 +117,7 @@ public class DefaultAuthenticationStrategy implements AuthenticationStrategy {
                 options.add(authScheme);
             } else {
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("Challenge for {} authentication scheme not available", schemeName);
+                    LOG.debug("{}, Challenge for {} authentication scheme not available", exchangeId, schemeName);
                 }
             }
         }

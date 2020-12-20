@@ -180,10 +180,11 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
                             clientContext);
                     final String exchangeId = ExecSupport.getNextExchangeId();
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug("{}: preparing request execution", exchangeId);
+                        LOG.debug("{} preparing request execution", exchangeId);
                     }
                     final AsyncExecRuntime execRuntime = createAsyncExecRuntime(pushHandlerFactory);
 
+                    clientContext.setExchangeId(exchangeId);
                     setupContext(clientContext);
 
                     final AsyncExecChain.Scope scope = new AsyncExecChain.Scope(exchangeId, route, request, future,
@@ -290,7 +291,7 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
                                 @Override
                                 public void completed() {
                                     if (LOG.isDebugEnabled()) {
-                                        LOG.debug("{}: message exchange successfully completed", exchangeId);
+                                        LOG.debug("{} message exchange successfully completed", exchangeId);
                                     }
                                     try {
                                         execRuntime.releaseEndpoint();
@@ -303,7 +304,7 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
                                 @Override
                                 public void failed(final Exception cause) {
                                     if (LOG.isDebugEnabled()) {
-                                        LOG.debug("{}: request failed: {}", exchangeId, cause.getMessage());
+                                        LOG.debug("{} request failed: {}", exchangeId, cause.getMessage());
                                     }
                                     try {
                                         execRuntime.discardEndpoint();

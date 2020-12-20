@@ -98,13 +98,13 @@ public class HttpRequestRetryExec implements ExecChainHandler {
                 final HttpEntity requestEntity = request.getEntity();
                 if (requestEntity != null && !requestEntity.isRepeatable()) {
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug("{}: cannot retry non-repeatable request", exchangeId);
+                        LOG.debug("{} cannot retry non-repeatable request", exchangeId);
                     }
                     throw ex;
                 }
                 if (retryStrategy.retryRequest(request, ex, execCount, context)) {
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug("{}: {}", exchangeId, ex.getMessage(), ex);
+                        LOG.debug("{} {}", exchangeId, ex.getMessage(), ex);
                     }
                     if (LOG.isInfoEnabled()) {
                         LOG.info("Recoverable I/O exception ({}) caught when processing request to {}",
@@ -127,7 +127,7 @@ public class HttpRequestRetryExec implements ExecChainHandler {
                 final HttpEntity entity = request.getEntity();
                 if (entity != null && !entity.isRepeatable()) {
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug("{}: cannot retry non-repeatable request", exchangeId);
+                        LOG.debug("{} cannot retry non-repeatable request", exchangeId);
                     }
                     return response;
                 }
@@ -138,7 +138,7 @@ public class HttpRequestRetryExec implements ExecChainHandler {
                     if (TimeValue.isPositive(nextInterval)) {
                         try {
                             if (LOG.isDebugEnabled()) {
-                                LOG.debug("{}: wait for {}", exchangeId, nextInterval);
+                                LOG.debug("{} wait for {}", exchangeId, nextInterval);
                             }
                             nextInterval.sleep();
                         } catch (final InterruptedException e) {

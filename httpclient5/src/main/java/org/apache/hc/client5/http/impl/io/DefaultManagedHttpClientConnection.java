@@ -153,7 +153,7 @@ final class DefaultManagedHttpClientConnection
     public void close() throws IOException {
         if (this.closed.compareAndSet(false, true)) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("{}: Close connection", this.id);
+                LOG.debug("{} Close connection", this.id);
             }
             super.close();
         }
@@ -162,7 +162,7 @@ final class DefaultManagedHttpClientConnection
     @Override
     public void setSocketTimeout(final Timeout timeout) {
         if (LOG.isDebugEnabled()) {
-            LOG.debug("{}: set socket timeout to {}", this.id, timeout);
+            LOG.debug("{} set socket timeout to {}", this.id, timeout);
         }
         super.setSocketTimeout(timeout);
     }
@@ -171,7 +171,7 @@ final class DefaultManagedHttpClientConnection
     public void close(final CloseMode closeMode) {
         if (this.closed.compareAndSet(false, true)) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("{}: close connection {}", this.id, closeMode);
+                LOG.debug("{} close connection {}", this.id, closeMode);
             }
             super.close(closeMode);
         }

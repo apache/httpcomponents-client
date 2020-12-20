@@ -102,7 +102,7 @@ public final class AsyncHttpRequestRetryExec implements AsyncExecChainHandler {
                 final HttpClientContext clientContext = scope.clientContext;
                 if (entityProducer != null && !entityProducer.isRepeatable()) {
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug("{}: cannot retry non-repeatable request", exchangeId);
+                        LOG.debug("{} cannot retry non-repeatable request", exchangeId);
                     }
                     return asyncExecCallback.handleResponse(response, entityDetails);
                 }
@@ -140,11 +140,11 @@ public final class AsyncHttpRequestRetryExec implements AsyncExecChainHandler {
                     final HttpClientContext clientContext = scope.clientContext;
                     if (entityProducer != null && !entityProducer.isRepeatable()) {
                         if (LOG.isDebugEnabled()) {
-                            LOG.debug("{}: cannot retry non-repeatable request", exchangeId);
+                            LOG.debug("{} cannot retry non-repeatable request", exchangeId);
                         }
                     } else if (retryStrategy.retryRequest(request, (IOException) cause, state.execCount, clientContext)) {
                         if (LOG.isDebugEnabled()) {
-                            LOG.debug("{}: {}", exchangeId, cause.getMessage(), cause);
+                            LOG.debug("{} {}", exchangeId, cause.getMessage(), cause);
                         }
                         if (LOG.isInfoEnabled()) {
                             LOG.info("Recoverable I/O exception ({}) caught when processing request to {}",

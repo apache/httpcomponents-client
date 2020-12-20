@@ -44,6 +44,7 @@ import org.apache.hc.client5.http.auth.InvalidCredentialsException;
 import org.apache.hc.client5.http.auth.KerberosConfig;
 import org.apache.hc.client5.http.auth.KerberosCredentials;
 import org.apache.hc.client5.http.auth.MalformedChallengeException;
+import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.protocol.HttpContext;
@@ -115,7 +116,11 @@ public abstract class GGSSchemeBase implements AuthScheme {
             token = Base64.decodeBase64(challenge.getBytes());
             state = State.CHALLENGE_RECEIVED;
         } else {
-            LOG.debug("Authentication already attempted");
+            if (LOG.isDebugEnabled()) {
+                final HttpClientContext clientContext = HttpClientContext.adapt(context);
+                final String exchangeId = clientContext.getExchangeId();
+                LOG.debug("{} Authentication already attempted", exchangeId);
+            }
             state = State.FAILED;
         }
     }
@@ -220,7 +225,9 @@ public abstract class GGSSchemeBase implements AuthScheme {
                 final String serviceName = host.getSchemeName().toUpperCase(Locale.ROOT);
 
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("init {}", authServer);
+                    final HttpClientContext clientContext = HttpClientContext.adapt(context);
+                    final String exchangeId = clientContext.getExchangeId();
+                    LOG.debug("{} init {}", exchangeId, authServer);
                 }
                 token = generateToken(token, serviceName, authServer);
                 state = State.TOKEN_GENERATED;
@@ -245,7 +252,9 @@ public abstract class GGSSchemeBase implements AuthScheme {
             final Base64 codec = new Base64(0);
             final String tokenstr = new String(codec.encode(token));
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Sending response '{}' back to the auth server", tokenstr);
+                final HttpClientContext clientContext = HttpClientContext.adapt(context);
+                final String exchangeId = clientContext.getExchangeId();
+                LOG.debug("{} Sending response '{}' back to the auth server", exchangeId, tokenstr);
             }
             return StandardAuthScheme.SPNEGO + " " + tokenstr;
         default:

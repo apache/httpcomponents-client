@@ -119,7 +119,7 @@ public final class RedirectExec implements ExecChainHandler {
                     final HttpEntity requestEntity = request.getEntity();
                     if (requestEntity != null && !requestEntity.isRepeatable()) {
                         if (LOG.isDebugEnabled()) {
-                            LOG.debug("{}: cannot redirect non-repeatable request", exchangeId);
+                            LOG.debug("{} cannot redirect non-repeatable request", exchangeId);
                         }
                         return response;
                     }
@@ -130,7 +130,7 @@ public final class RedirectExec implements ExecChainHandler {
 
                     final URI redirectUri = this.redirectStrategy.getLocationURI(currentRequest, response, context);
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug("{}: redirect requested to location '{}'", exchangeId, redirectUri);
+                        LOG.debug("{} redirect requested to location '{}'", exchangeId, redirectUri);
                     }
                     if (!config.isCircularRedirectsAllowed()) {
                         if (redirectLocations.contains(redirectUri)) {
@@ -171,18 +171,18 @@ public final class RedirectExec implements ExecChainHandler {
                         final HttpRoute newRoute = this.routePlanner.determineRoute(newTarget, context);
                         if (!LangUtils.equals(currentRoute, newRoute)) {
                             if (LOG.isDebugEnabled()) {
-                                LOG.debug("{}: new route required", exchangeId);
+                                LOG.debug("{} new route required", exchangeId);
                             }
                             final AuthExchange targetAuthExchange = context.getAuthExchange(currentRoute.getTargetHost());
                             if (LOG.isDebugEnabled()) {
-                                LOG.debug("{}: resetting target auth state", exchangeId);
+                                LOG.debug("{} resetting target auth state", exchangeId);
                             }
                             targetAuthExchange.reset();
                             if (currentRoute.getProxyHost() != null) {
                                 final AuthExchange proxyAuthExchange = context.getAuthExchange(currentRoute.getProxyHost());
                                 if (proxyAuthExchange.isConnectionBased()) {
                                     if (LOG.isDebugEnabled()) {
-                                        LOG.debug("{}: resetting proxy auth state", exchangeId);
+                                        LOG.debug("{} resetting proxy auth state", exchangeId);
                                     }
                                     proxyAuthExchange.reset();
                                 }
@@ -197,7 +197,7 @@ public final class RedirectExec implements ExecChainHandler {
                     }
 
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug("{}: redirecting to '{}' via {}", exchangeId, redirectUri, currentRoute);
+                        LOG.debug("{} redirecting to '{}' via {}", exchangeId, redirectUri, currentRoute);
                     }
                     currentRequest = redirect;
                     RequestEntityProxy.enhance(currentRequest);
@@ -217,7 +217,7 @@ public final class RedirectExec implements ExecChainHandler {
                     EntityUtils.consume(response.getEntity());
                 } catch (final IOException ioex) {
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug("{}: I/O error while releasing connection", exchangeId, ioex);
+                        LOG.debug("{} I/O error while releasing connection", exchangeId, ioex);
                     }
                 } finally {
                     response.close();

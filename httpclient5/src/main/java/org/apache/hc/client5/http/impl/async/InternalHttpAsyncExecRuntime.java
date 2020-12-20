@@ -95,7 +95,7 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
             final RequestConfig requestConfig = context.getRequestConfig();
             final Timeout connectionRequestTimeout = requestConfig.getConnectionRequestTimeout();
             if (log.isDebugEnabled()) {
-                log.debug("{}: acquiring endpoint ({})", id, connectionRequestTimeout);
+                log.debug("{} acquiring endpoint ({})", id, connectionRequestTimeout);
             }
             return Operations.cancellable(manager.lease(
                     id,
@@ -109,7 +109,7 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
                             endpointRef.set(connectionEndpoint);
                             reusable = connectionEndpoint.isConnected();
                             if (log.isDebugEnabled()) {
-                                log.debug("{}: acquired endpoint {}", id, ConnPoolSupport.getId(connectionEndpoint));
+                                log.debug("{} acquired endpoint {}", id, ConnPoolSupport.getId(connectionEndpoint));
                             }
                             callback.completed(InternalHttpAsyncExecRuntime.this);
                         }
@@ -133,11 +133,11 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
         try {
             endpoint.close(CloseMode.IMMEDIATE);
             if (log.isDebugEnabled()) {
-                log.debug("{}: endpoint closed", ConnPoolSupport.getId(endpoint));
+                log.debug("{} endpoint closed", ConnPoolSupport.getId(endpoint));
             }
         } finally {
             if (log.isDebugEnabled()) {
-                log.debug("{}: discarding endpoint", ConnPoolSupport.getId(endpoint));
+                log.debug("{} discarding endpoint", ConnPoolSupport.getId(endpoint));
             }
             manager.release(endpoint, null, TimeValue.ZERO_MILLISECONDS);
         }
@@ -149,7 +149,7 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
         if (endpoint != null) {
             if (reusable) {
                 if (log.isDebugEnabled()) {
-                    log.debug("{}: releasing valid endpoint", ConnPoolSupport.getId(endpoint));
+                    log.debug("{} releasing valid endpoint", ConnPoolSupport.getId(endpoint));
                 }
                 manager.release(endpoint, state, validDuration);
             } else {
@@ -205,7 +205,7 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
         final RequestConfig requestConfig = context.getRequestConfig();
         final Timeout connectTimeout = requestConfig.getConnectTimeout();
         if (log.isDebugEnabled()) {
-            log.debug("{}: connecting endpoint ({})", ConnPoolSupport.getId(endpoint), connectTimeout);
+            log.debug("{} connecting endpoint ({})", ConnPoolSupport.getId(endpoint), connectTimeout);
         }
         return Operations.cancellable(manager.connect(
                 endpoint,
@@ -218,7 +218,7 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
                     @Override
                     public void completed(final AsyncConnectionEndpoint endpoint) {
                         if (log.isDebugEnabled()) {
-                            log.debug("{}: endpoint connected", ConnPoolSupport.getId(endpoint));
+                            log.debug("{} endpoint connected", ConnPoolSupport.getId(endpoint));
                         }
                         callback.completed(InternalHttpAsyncExecRuntime.this);
                     }
@@ -241,7 +241,7 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
     public void upgradeTls(final HttpClientContext context) {
         final AsyncConnectionEndpoint endpoint = ensureValid();
         if (log.isDebugEnabled()) {
-            log.debug("{}: upgrading endpoint", ConnPoolSupport.getId(endpoint));
+            log.debug("{} upgrading endpoint", ConnPoolSupport.getId(endpoint));
         }
         manager.upgrade(endpoint, versionPolicy, context);
     }
@@ -252,7 +252,7 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
         final AsyncConnectionEndpoint endpoint = ensureValid();
         if (endpoint.isConnected()) {
             if (log.isDebugEnabled()) {
-                log.debug("{}: start execution {}", ConnPoolSupport.getId(endpoint), id);
+                log.debug("{} start execution {}", ConnPoolSupport.getId(endpoint), id);
             }
             final RequestConfig requestConfig = context.getRequestConfig();
             final Timeout responseTimeout = requestConfig.getResponseTimeout();
@@ -275,7 +275,7 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
                 @Override
                 public void completed(final AsyncExecRuntime runtime) {
                     if (log.isDebugEnabled()) {
-                        log.debug("{}: start execution {}", ConnPoolSupport.getId(endpoint), id);
+                        log.debug("{} start execution {}", ConnPoolSupport.getId(endpoint), id);
                     }
                     try {
                         endpoint.execute(id, exchangeHandler, pushHandlerFactory, context);
