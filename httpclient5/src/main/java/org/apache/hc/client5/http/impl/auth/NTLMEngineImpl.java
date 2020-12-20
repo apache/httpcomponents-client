@@ -1260,7 +1260,7 @@ final class NTLMEngineImpl implements NTLMEngine {
 
         Type1Message(final String domain, final String host, final Integer flags) {
             super();
-            this.flags = ((flags == null)?getDefaultFlags():flags);
+            this.flags = ((flags == null)?getDefaultFlags(): flags.intValue());
 
             // See HTTPCLIENT-1662
             final String unqualifiedHost = host;

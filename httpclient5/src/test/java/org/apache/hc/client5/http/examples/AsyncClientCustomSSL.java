@@ -26,7 +26,6 @@
  */
 package org.apache.hc.client5.http.examples;
 
-import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.concurrent.Future;
 
@@ -49,7 +48,6 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.ssl.SSLContexts;
-import org.apache.hc.core5.ssl.TrustStrategy;
 
 /**
  * This example demonstrates how to create secure connections with a custom SSL
@@ -60,16 +58,9 @@ public class AsyncClientCustomSSL {
     public static void main(final String[] args) throws Exception {
         // Trust standard CA and those trusted by our custom strategy
         final SSLContext sslcontext = SSLContexts.custom()
-                .loadTrustMaterial(new TrustStrategy() {
-
-                    @Override
-                    public boolean isTrusted(
-                            final X509Certificate[] chain,
-                            final String authType) throws CertificateException {
-                        final X509Certificate cert = chain[0];
-                        return "CN=httpbin.org".equalsIgnoreCase(cert.getSubjectDN().getName());
-                    }
-
+                .loadTrustMaterial((chain, authType) -> {
+                    final X509Certificate cert = chain[0];
+                    return "CN=httpbin.org".equalsIgnoreCase(cert.getSubjectDN().getName());
                 })
                 .build();
         final TlsStrategy tlsStrategy = ClientTlsStrategyBuilder.create()

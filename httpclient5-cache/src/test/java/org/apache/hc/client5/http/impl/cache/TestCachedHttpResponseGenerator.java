@@ -55,7 +55,7 @@ public class TestCachedHttpResponseGenerator {
 
     @Before
     public void setUp() {
-        entry = HttpTestUtils.makeCacheEntry(new HashMap<String, String>());
+        entry = HttpTestUtils.makeCacheEntry(new HashMap<>());
         request = HttpTestUtils.makeDefaultRequest();
         mockValidityPolicy = mock(CacheValidityPolicy.class);
         impl = new CachedHttpResponseGenerator(mockValidityPolicy);

@@ -39,11 +39,11 @@ import org.apache.hc.client5.http.auth.AuthCache;
 import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
-import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
+import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
@@ -60,7 +60,6 @@ import org.apache.hc.client5.testing.BasicTestAuthenticator;
 import org.apache.hc.client5.testing.auth.Authenticator;
 import org.apache.hc.client5.testing.classic.AuthenticatingDecorator;
 import org.apache.hc.client5.testing.classic.EchoHandler;
-import org.apache.hc.core5.function.Decorator;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.EndpointDetails;
@@ -74,7 +73,6 @@ import org.apache.hc.core5.http.config.Registry;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.impl.HttpProcessors;
 import org.apache.hc.core5.http.io.HttpRequestHandler;
-import org.apache.hc.core5.http.io.HttpServerRequestHandler;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.InputStreamEntity;
 import org.apache.hc.core5.http.io.entity.StringEntity;
@@ -91,14 +89,7 @@ import org.junit.Test;
 public class TestClientAuthentication extends LocalServerTestBase {
 
     public HttpHost start(final Authenticator authenticator) throws IOException {
-        return super.start(null, new Decorator<HttpServerRequestHandler>() {
-
-            @Override
-            public HttpServerRequestHandler decorate(final HttpServerRequestHandler requestHandler) {
-                return new AuthenticatingDecorator(requestHandler, authenticator);
-            }
-
-        });
+        return super.start(null, requestHandler -> new AuthenticatingDecorator(requestHandler, authenticator));
     }
 
     @Override
@@ -444,20 +435,12 @@ public class TestClientAuthentication extends LocalServerTestBase {
     @Test
     public void testAuthenticationUserinfoInRedirectSuccess() throws Exception {
         this.server.registerHandler("/*", new EchoHandler());
-        this.server.registerHandler("/thatway", new HttpRequestHandler() {
-
-            @Override
-            public void handle(
-                    final ClassicHttpRequest request,
-                    final ClassicHttpResponse response,
-                    final HttpContext context) throws HttpException, IOException {
-                final EndpointDetails endpoint = (EndpointDetails) context.getAttribute(HttpCoreContext.CONNECTION_ENDPOINT);
-                final InetSocketAddress socketAddress = (InetSocketAddress) endpoint.getLocalAddress();
-                final int port = socketAddress.getPort();
-                response.setCode(HttpStatus.SC_MOVED_PERMANENTLY);
-                response.addHeader(new BasicHeader("Location", "http://test:test@localhost:" + port + "/secure"));
-            }
-
+        this.server.registerHandler("/thatway", (request, response, context) -> {
+            final EndpointDetails endpoint = (EndpointDetails) context.getAttribute(HttpCoreContext.CONNECTION_ENDPOINT);
+            final InetSocketAddress socketAddress = (InetSocketAddress) endpoint.getLocalAddress();
+            final int port = socketAddress.getPort();
+            response.setCode(HttpStatus.SC_MOVED_PERMANENTLY);
+            response.addHeader(new BasicHeader("Location", "http://test:test@localhost:" + port + "/secure"));
         });
 
         final HttpHost target = start(new BasicTestAuthenticator("test:test", "test realm") {
@@ -594,18 +577,11 @@ public class TestClientAuthentication extends LocalServerTestBase {
 
         final HttpHost target = start(
                 HttpProcessors.server(),
-                new Decorator<HttpServerRequestHandler>() {
+                requestHandler -> new AuthenticatingDecorator(requestHandler, new BasicTestAuthenticator("test:test", "test realm")) {
 
                     @Override
-                    public HttpServerRequestHandler decorate(final HttpServerRequestHandler requestHandler) {
-                        return new AuthenticatingDecorator(requestHandler, new BasicTestAuthenticator("test:test", "test realm")) {
-
-                            @Override
-                            protected void customizeUnauthorizedResponse(final ClassicHttpResponse unauthorized) {
-                                unauthorized.addHeader(HttpHeaders.CONNECTION, HeaderElements.CLOSE);
-                            }
-
-                        };
+                    protected void customizeUnauthorizedResponse(final ClassicHttpResponse unauthorized) {
+                        unauthorized.addHeader(HttpHeaders.CONNECTION, HeaderElements.CLOSE);
                     }
 
                 });
@@ -676,19 +652,12 @@ public class TestClientAuthentication extends LocalServerTestBase {
 
         final HttpHost target = start(
                 HttpProcessors.server(),
-                new Decorator<HttpServerRequestHandler>() {
+                requestHandler -> new AuthenticatingDecorator(requestHandler, authenticator) {
 
                     @Override
-                    public HttpServerRequestHandler decorate(final HttpServerRequestHandler requestHandler) {
-                        return new AuthenticatingDecorator(requestHandler, authenticator) {
-
-                            @Override
-                            protected void customizeUnauthorizedResponse(final ClassicHttpResponse unauthorized) {
-                                unauthorized.removeHeaders(HttpHeaders.WWW_AUTHENTICATE);
-                                unauthorized.addHeader(HttpHeaders.WWW_AUTHENTICATE, "MyBasic realm=\"test realm\"");
-                            }
-
-                        };
+                    protected void customizeUnauthorizedResponse(final ClassicHttpResponse unauthorized) {
+                        unauthorized.removeHeaders(HttpHeaders.WWW_AUTHENTICATE);
+                        unauthorized.addHeader(HttpHeaders.WWW_AUTHENTICATE, "MyBasic realm=\"test realm\"");
                     }
 
                 });
@@ -712,18 +681,11 @@ public class TestClientAuthentication extends LocalServerTestBase {
 
         final HttpHost target = start(
                 HttpProcessors.server(),
-                new Decorator<HttpServerRequestHandler>() {
+                requestHandler -> new AuthenticatingDecorator(requestHandler, new BasicTestAuthenticator("test:test", "test realm")) {
 
                     @Override
-                    public HttpServerRequestHandler decorate(final HttpServerRequestHandler requestHandler) {
-                        return new AuthenticatingDecorator(requestHandler, new BasicTestAuthenticator("test:test", "test realm")) {
-
-                            @Override
-                            protected void customizeUnauthorizedResponse(final ClassicHttpResponse unauthorized) {
-                                unauthorized.addHeader(HttpHeaders.WWW_AUTHENTICATE, StandardAuthScheme.DIGEST + " realm=\"test realm\" invalid");
-                            }
-
-                        };
+                    protected void customizeUnauthorizedResponse(final ClassicHttpResponse unauthorized) {
+                        unauthorized.addHeader(HttpHeaders.WWW_AUTHENTICATE, StandardAuthScheme.DIGEST + " realm=\"test realm\" invalid");
                     }
 
                 });

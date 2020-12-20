@@ -28,7 +28,6 @@ package org.apache.hc.client5.testing.sync;
 
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -47,7 +46,6 @@ import org.apache.hc.client5.http.protocol.RedirectLocations;
 import org.apache.hc.client5.testing.OldPathRedirectResolver;
 import org.apache.hc.client5.testing.classic.RedirectingDecorator;
 import org.apache.hc.client5.testing.redirect.Redirect;
-import org.apache.hc.client5.testing.redirect.RedirectResolver;
 import org.apache.hc.core5.function.Decorator;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
@@ -58,7 +56,6 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.ProtocolException;
-import org.apache.hc.core5.http.io.HttpRequestHandler;
 import org.apache.hc.core5.http.io.HttpServerRequestHandler;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
@@ -76,16 +73,9 @@ public class TestRedirects extends LocalServerTestBase {
 
     @Test
     public void testBasicRedirect300() throws Exception {
-        final HttpHost target = start(null, new Decorator<HttpServerRequestHandler>() {
-
-            @Override
-            public HttpServerRequestHandler decorate(final HttpServerRequestHandler requestHandler) {
-                return new RedirectingDecorator(
-                        requestHandler,
-                        new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MULTIPLE_CHOICES));
-            }
-
-        });
+        final HttpHost target = start(null, requestHandler -> new RedirectingDecorator(
+                requestHandler,
+                new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MULTIPLE_CHOICES)));
 
         final HttpClientContext context = HttpClientContext.create();
         final HttpGet httpget = new HttpGet("/oldlocation/100");
@@ -106,17 +96,10 @@ public class TestRedirects extends LocalServerTestBase {
 
     @Test
     public void testBasicRedirect300NoKeepAlive() throws Exception {
-        final HttpHost target = start(null, new Decorator<HttpServerRequestHandler>() {
-
-            @Override
-            public HttpServerRequestHandler decorate(final HttpServerRequestHandler requestHandler) {
-                return new RedirectingDecorator(
-                        requestHandler,
-                        new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MULTIPLE_CHOICES,
-                                Redirect.ConnControl.CLOSE));
-            }
-
-        });
+        final HttpHost target = start(null, requestHandler -> new RedirectingDecorator(
+                requestHandler,
+                new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MULTIPLE_CHOICES,
+                        Redirect.ConnControl.CLOSE)));
 
         final HttpClientContext context = HttpClientContext.create();
         final HttpGet httpget = new HttpGet("/oldlocation/100");
@@ -137,16 +120,9 @@ public class TestRedirects extends LocalServerTestBase {
 
     @Test
     public void testBasicRedirect301() throws Exception {
-        final HttpHost target = start(null, new Decorator<HttpServerRequestHandler>() {
-
-            @Override
-            public HttpServerRequestHandler decorate(final HttpServerRequestHandler requestHandler) {
-                return new RedirectingDecorator(
-                        requestHandler,
-                        new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MOVED_PERMANENTLY));
-            }
-
-        });
+        final HttpHost target = start(null, requestHandler -> new RedirectingDecorator(
+                requestHandler,
+                new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MOVED_PERMANENTLY)));
 
         final HttpClientContext context = HttpClientContext.create();
 
@@ -172,16 +148,9 @@ public class TestRedirects extends LocalServerTestBase {
 
     @Test
     public void testBasicRedirect302() throws Exception {
-        final HttpHost target = start(null, new Decorator<HttpServerRequestHandler>() {
-
-            @Override
-            public HttpServerRequestHandler decorate(final HttpServerRequestHandler requestHandler) {
-                return new RedirectingDecorator(
-                        requestHandler,
-                        new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MOVED_TEMPORARILY));
-            }
-
-        });
+        final HttpHost target = start(null, requestHandler -> new RedirectingDecorator(
+                requestHandler,
+                new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MOVED_TEMPORARILY)));
 
         final HttpClientContext context = HttpClientContext.create();
 
@@ -200,27 +169,15 @@ public class TestRedirects extends LocalServerTestBase {
 
     @Test
     public void testBasicRedirect302NoLocation() throws Exception {
-        final HttpHost target = start(null, new Decorator<HttpServerRequestHandler>() {
-
-            @Override
-            public HttpServerRequestHandler decorate(final HttpServerRequestHandler requestHandler) {
-                return new RedirectingDecorator(
-                        requestHandler,
-                        new RedirectResolver() {
-
-                            @Override
-                            public Redirect resolve(final URI requestUri) throws URISyntaxException {
-                                final String path = requestUri.getPath();
-                                if (path.startsWith("/oldlocation")) {
-                                    return new Redirect(HttpStatus.SC_MOVED_TEMPORARILY, null);
-                                }
-                                return null;
-                            }
-
-                        });
-            }
-
-        });
+        final HttpHost target = start(null, requestHandler -> new RedirectingDecorator(
+                requestHandler,
+                requestUri -> {
+                    final String path = requestUri.getPath();
+                    if (path.startsWith("/oldlocation")) {
+                        return new Redirect(HttpStatus.SC_MOVED_TEMPORARILY, null);
+                    }
+                    return null;
+                }));
 
         final HttpClientContext context = HttpClientContext.create();
 
@@ -238,16 +195,9 @@ public class TestRedirects extends LocalServerTestBase {
 
     @Test
     public void testBasicRedirect303() throws Exception {
-        final HttpHost target = start(null, new Decorator<HttpServerRequestHandler>() {
-
-            @Override
-            public HttpServerRequestHandler decorate(final HttpServerRequestHandler requestHandler) {
-                return new RedirectingDecorator(
-                        requestHandler,
-                        new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_SEE_OTHER));
-            }
-
-        });
+        final HttpHost target = start(null, requestHandler -> new RedirectingDecorator(
+                requestHandler,
+                new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_SEE_OTHER)));
 
         final HttpClientContext context = HttpClientContext.create();
 
@@ -266,16 +216,9 @@ public class TestRedirects extends LocalServerTestBase {
 
     @Test
     public void testBasicRedirect304() throws Exception {
-        this.server.registerHandler("/oldlocation/*", new HttpRequestHandler() {
-
-            @Override
-            public void handle(final ClassicHttpRequest request,
-                               final ClassicHttpResponse response,
-                               final HttpContext context) throws HttpException, IOException {
-                response.setCode(HttpStatus.SC_NOT_MODIFIED);
-                response.addHeader(HttpHeaders.LOCATION, "/random/100");
-            }
-
+        this.server.registerHandler("/oldlocation/*", (request, response, context) -> {
+            response.setCode(HttpStatus.SC_NOT_MODIFIED);
+            response.addHeader(HttpHeaders.LOCATION, "/random/100");
         });
 
         final HttpHost target = start();
@@ -301,16 +244,9 @@ public class TestRedirects extends LocalServerTestBase {
 
     @Test
     public void testBasicRedirect305() throws Exception {
-        this.server.registerHandler("/oldlocation/*", new HttpRequestHandler() {
-
-            @Override
-            public void handle(final ClassicHttpRequest request,
-                               final ClassicHttpResponse response,
-                               final HttpContext context) throws HttpException, IOException {
-                response.setCode(HttpStatus.SC_USE_PROXY);
-                response.addHeader(HttpHeaders.LOCATION, "/random/100");
-            }
-
+        this.server.registerHandler("/oldlocation/*", (request, response, context) -> {
+            response.setCode(HttpStatus.SC_USE_PROXY);
+            response.addHeader(HttpHeaders.LOCATION, "/random/100");
         });
 
         final HttpHost target = start();
@@ -336,16 +272,9 @@ public class TestRedirects extends LocalServerTestBase {
 
     @Test
     public void testBasicRedirect307() throws Exception {
-        final HttpHost target = start(null, new Decorator<HttpServerRequestHandler>() {
-
-            @Override
-            public HttpServerRequestHandler decorate(final HttpServerRequestHandler requestHandler) {
-                return new RedirectingDecorator(
-                        requestHandler,
-                        new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_TEMPORARY_REDIRECT));
-            }
-
-        });
+        final HttpHost target = start(null, requestHandler -> new RedirectingDecorator(
+                requestHandler,
+                new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_TEMPORARY_REDIRECT)));
 
         final HttpClientContext context = HttpClientContext.create();
 
@@ -364,17 +293,10 @@ public class TestRedirects extends LocalServerTestBase {
 
     @Test(expected = ClientProtocolException.class)
     public void testMaxRedirectCheck() throws Exception {
-        final HttpHost target = start(null, new Decorator<HttpServerRequestHandler>() {
-
-            @Override
-            public HttpServerRequestHandler decorate(final HttpServerRequestHandler requestHandler) {
-                return new RedirectingDecorator(
-                        requestHandler,
-                        new OldPathRedirectResolver("/circular-oldlocation/", "/circular-oldlocation/",
-                                HttpStatus.SC_MOVED_TEMPORARILY));
-            }
-
-        });
+        final HttpHost target = start(null, requestHandler -> new RedirectingDecorator(
+                requestHandler,
+                new OldPathRedirectResolver("/circular-oldlocation/", "/circular-oldlocation/",
+                        HttpStatus.SC_MOVED_TEMPORARILY)));
 
         final RequestConfig config = RequestConfig.custom()
                 .setCircularRedirectsAllowed(true)
@@ -393,17 +315,10 @@ public class TestRedirects extends LocalServerTestBase {
 
     @Test(expected = ClientProtocolException.class)
     public void testCircularRedirect() throws Exception {
-        final HttpHost target = start(null, new Decorator<HttpServerRequestHandler>() {
-
-            @Override
-            public HttpServerRequestHandler decorate(final HttpServerRequestHandler requestHandler) {
-                return new RedirectingDecorator(
-                        requestHandler,
-                        new OldPathRedirectResolver("/circular-oldlocation/", "/circular-oldlocation/",
-                                HttpStatus.SC_MOVED_TEMPORARILY));
-            }
-
-        });
+        final HttpHost target = start(null, requestHandler -> new RedirectingDecorator(
+                requestHandler,
+                new OldPathRedirectResolver("/circular-oldlocation/", "/circular-oldlocation/",
+                        HttpStatus.SC_MOVED_TEMPORARILY)));
 
         final RequestConfig config = RequestConfig.custom()
                 .setCircularRedirectsAllowed(false)
@@ -421,16 +336,9 @@ public class TestRedirects extends LocalServerTestBase {
 
     @Test
     public void testPostRedirectSeeOther() throws Exception {
-        final HttpHost target = start(null, new Decorator<HttpServerRequestHandler>() {
-
-            @Override
-            public HttpServerRequestHandler decorate(final HttpServerRequestHandler requestHandler) {
-                return new RedirectingDecorator(
-                        requestHandler,
-                        new OldPathRedirectResolver("/oldlocation", "/echo", HttpStatus.SC_SEE_OTHER));
-            }
-
-        });
+        final HttpHost target = start(null, requestHandler -> new RedirectingDecorator(
+                requestHandler,
+                new OldPathRedirectResolver("/oldlocation", "/echo", HttpStatus.SC_SEE_OTHER)));
 
         final HttpClientContext context = HttpClientContext.create();
 
@@ -452,28 +360,16 @@ public class TestRedirects extends LocalServerTestBase {
 
     @Test
     public void testRelativeRedirect() throws Exception {
-        final HttpHost target = start(null, new Decorator<HttpServerRequestHandler>() {
+        final HttpHost target = start(null, requestHandler -> new RedirectingDecorator(
+                requestHandler,
+                requestUri -> {
+                    final String path = requestUri.getPath();
+                    if (path.startsWith("/oldlocation")) {
+                        return new Redirect(HttpStatus.SC_MOVED_TEMPORARILY, "/random/100");
 
-            @Override
-            public HttpServerRequestHandler decorate(final HttpServerRequestHandler requestHandler) {
-                return new RedirectingDecorator(
-                        requestHandler,
-                        new RedirectResolver() {
-
-                            @Override
-                            public Redirect resolve(final URI requestUri) throws URISyntaxException {
-                                final String path = requestUri.getPath();
-                                if (path.startsWith("/oldlocation")) {
-                                    return new Redirect(HttpStatus.SC_MOVED_TEMPORARILY, "/random/100");
-
-                                }
-                                return null;
-                            }
-
-                        });
-            }
-
-        });
+                    }
+                    return null;
+                }));
         final HttpClientContext context = HttpClientContext.create();
 
         final HttpGet httpget = new HttpGet("/oldlocation/stuff");
@@ -491,28 +387,16 @@ public class TestRedirects extends LocalServerTestBase {
 
     @Test
     public void testRelativeRedirect2() throws Exception {
-        final HttpHost target = start(null, new Decorator<HttpServerRequestHandler>() {
+        final HttpHost target = start(null, requestHandler -> new RedirectingDecorator(
+                requestHandler,
+                requestUri -> {
+                    final String path = requestUri.getPath();
+                    if (path.equals("/random/oldlocation")) {
+                        return new Redirect(HttpStatus.SC_MOVED_TEMPORARILY, "100");
 
-            @Override
-            public HttpServerRequestHandler decorate(final HttpServerRequestHandler requestHandler) {
-                return new RedirectingDecorator(
-                        requestHandler,
-                        new RedirectResolver() {
-
-                            @Override
-                            public Redirect resolve(final URI requestUri) throws URISyntaxException {
-                                final String path = requestUri.getPath();
-                                if (path.equals("/random/oldlocation")) {
-                                    return new Redirect(HttpStatus.SC_MOVED_TEMPORARILY, "100");
-
-                                }
-                                return null;
-                            }
-
-                        });
-            }
-
-        });
+                    }
+                    return null;
+                }));
 
         final HttpClientContext context = HttpClientContext.create();
 
@@ -532,28 +416,16 @@ public class TestRedirects extends LocalServerTestBase {
 
     @Test(expected = ClientProtocolException.class)
     public void testRejectBogusRedirectLocation() throws Exception {
-        final HttpHost target = start(null, new Decorator<HttpServerRequestHandler>() {
+        final HttpHost target = start(null, requestHandler -> new RedirectingDecorator(
+                requestHandler,
+                requestUri -> {
+                    final String path = requestUri.getPath();
+                    if (path.equals("/oldlocation")) {
+                        return new Redirect(HttpStatus.SC_MOVED_TEMPORARILY, "xxx://bogus");
 
-            @Override
-            public HttpServerRequestHandler decorate(final HttpServerRequestHandler requestHandler) {
-                return new RedirectingDecorator(
-                        requestHandler,
-                        new RedirectResolver() {
-
-                            @Override
-                            public Redirect resolve(final URI requestUri) throws URISyntaxException {
-                                final String path = requestUri.getPath();
-                                if (path.equals("/oldlocation")) {
-                                    return new Redirect(HttpStatus.SC_MOVED_TEMPORARILY, "xxx://bogus");
-
-                                }
-                                return null;
-                            }
-
-                        });
-            }
-
-        });
+                    }
+                    return null;
+                }));
 
         final HttpGet httpget = new HttpGet("/oldlocation");
 
@@ -568,28 +440,16 @@ public class TestRedirects extends LocalServerTestBase {
 
     @Test(expected = ClientProtocolException.class)
     public void testRejectInvalidRedirectLocation() throws Exception {
-        final HttpHost target = start(null, new Decorator<HttpServerRequestHandler>() {
+        final HttpHost target = start(null, requestHandler -> new RedirectingDecorator(
+                requestHandler,
+                requestUri -> {
+                    final String path = requestUri.getPath();
+                    if (path.equals("/oldlocation")) {
+                        return new Redirect(HttpStatus.SC_MOVED_TEMPORARILY, "/newlocation/?p=I have spaces");
 
-            @Override
-            public HttpServerRequestHandler decorate(final HttpServerRequestHandler requestHandler) {
-                return new RedirectingDecorator(
-                        requestHandler,
-                        new RedirectResolver() {
-
-                            @Override
-                            public Redirect resolve(final URI requestUri) throws URISyntaxException {
-                                final String path = requestUri.getPath();
-                                if (path.equals("/oldlocation")) {
-                                    return new Redirect(HttpStatus.SC_MOVED_TEMPORARILY, "/newlocation/?p=I have spaces");
-
-                                }
-                                return null;
-                            }
-
-                        });
-            }
-
-        });
+                    }
+                    return null;
+                }));
 
         final HttpGet httpget = new HttpGet("/oldlocation");
 
@@ -603,16 +463,9 @@ public class TestRedirects extends LocalServerTestBase {
 
     @Test
     public void testRedirectWithCookie() throws Exception {
-        final HttpHost target = start(null, new Decorator<HttpServerRequestHandler>() {
-
-            @Override
-            public HttpServerRequestHandler decorate(final HttpServerRequestHandler requestHandler) {
-                return new RedirectingDecorator(
-                        requestHandler,
-                        new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MOVED_TEMPORARILY));
-            }
-
-        });
+        final HttpHost target = start(null, requestHandler -> new RedirectingDecorator(
+                requestHandler,
+                new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MOVED_TEMPORARILY)));
 
         final CookieStore cookieStore = new BasicCookieStore();
 
@@ -644,16 +497,9 @@ public class TestRedirects extends LocalServerTestBase {
     public void testDefaultHeadersRedirect() throws Exception {
         this.clientBuilder.setDefaultHeaders(Collections.singletonList(new BasicHeader(HttpHeaders.USER_AGENT, "my-test-client")));
 
-        final HttpHost target = start(null, new Decorator<HttpServerRequestHandler>() {
-
-            @Override
-            public HttpServerRequestHandler decorate(final HttpServerRequestHandler requestHandler) {
-                return new RedirectingDecorator(
-                        requestHandler,
-                        new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MOVED_TEMPORARILY));
-            }
-
-        });
+        final HttpHost target = start(null, requestHandler -> new RedirectingDecorator(
+                requestHandler,
+                new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MOVED_TEMPORARILY)));
 
         final HttpClientContext context = HttpClientContext.create();
 

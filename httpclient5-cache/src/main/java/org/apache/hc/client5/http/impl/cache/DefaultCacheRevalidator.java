@@ -75,30 +75,25 @@ class DefaultCacheRevalidator extends CacheRevalidatorBase {
     public void revalidateCacheEntry(
             final String cacheKey,
             final RevalidationCall call) {
-        scheduleRevalidation(cacheKey, new Runnable() {
+        scheduleRevalidation(cacheKey, () -> {
+            try (ClassicHttpResponse httpResponse = call.execute()) {
+                if (httpResponse.getCode() < HttpStatus.SC_SERVER_ERROR && !isStale(httpResponse)) {
+                    jobSuccessful(cacheKey);
+                } else {
+                    jobFailed(cacheKey);
+                }
+            } catch (final IOException ex) {
+                jobFailed(cacheKey);
+                LOG.debug("Asynchronous revalidation failed due to I/O error", ex);
+            } catch (final HttpException ex) {
+                jobFailed(cacheKey);
+                LOG.error("HTTP protocol exception during asynchronous revalidation", ex);
+            } catch (final RuntimeException ex) {
+                jobFailed(cacheKey);
+                LOG.error("Unexpected runtime exception thrown during asynchronous revalidation", ex);
+            }
 
-                        @Override
-                        public void run() {
-                            try (ClassicHttpResponse httpResponse = call.execute()) {
-                                if (httpResponse.getCode() < HttpStatus.SC_SERVER_ERROR && !isStale(httpResponse)) {
-                                    jobSuccessful(cacheKey);
-                                } else {
-                                    jobFailed(cacheKey);
-                                }
-                            } catch (final IOException ex) {
-                                jobFailed(cacheKey);
-                                LOG.debug("Asynchronous revalidation failed due to I/O error", ex);
-                            } catch (final HttpException ex) {
-                                jobFailed(cacheKey);
-                                LOG.error("HTTP protocol exception during asynchronous revalidation", ex);
-                            } catch (final RuntimeException ex) {
-                                jobFailed(cacheKey);
-                                LOG.error("Unexpected runtime exception thrown during asynchronous revalidation", ex);
-                            }
-
-                        }
-
-                    });
+        });
     }
 
 }

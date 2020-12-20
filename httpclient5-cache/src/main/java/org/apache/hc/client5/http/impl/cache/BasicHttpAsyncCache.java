@@ -34,7 +34,6 @@ import java.util.Set;
 import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpAsyncCacheInvalidator;
 import org.apache.hc.client5.http.cache.HttpAsyncCacheStorage;
-import org.apache.hc.client5.http.cache.HttpCacheCASOperation;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.HttpCacheUpdateException;
 import org.apache.hc.client5.http.cache.ResourceFactory;
@@ -211,14 +210,7 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
             @Override
             public void completed(final Boolean result) {
                 storage.updateEntry(cacheKey,
-                        new HttpCacheCASOperation() {
-
-                            @Override
-                            public HttpCacheEntry execute(final HttpCacheEntry existing) throws ResourceIOException {
-                                return cacheUpdateHandler.updateParentCacheEntry(req.getRequestUri(), existing, entry, variantKey, variantCacheKey);
-                            }
-
-                        },
+                        existing -> cacheUpdateHandler.updateParentCacheEntry(req.getRequestUri(), existing, entry, variantKey, variantCacheKey),
                         new FutureCallback<Boolean>() {
 
                             @Override
@@ -280,14 +272,7 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
         final String variantKey = cacheKeyGenerator.generateVariantKey(request, entry);
         final String variantCacheKey = variant.getCacheKey();
         return storage.updateEntry(cacheKey,
-                new HttpCacheCASOperation() {
-
-                    @Override
-                    public HttpCacheEntry execute(final HttpCacheEntry existing) throws ResourceIOException {
-                        return cacheUpdateHandler.updateParentCacheEntry(request.getRequestUri(), existing, entry, variantKey, variantCacheKey);
-                    }
-
-                },
+                existing -> cacheUpdateHandler.updateParentCacheEntry(request.getRequestUri(), existing, entry, variantKey, variantCacheKey),
                 new FutureCallback<Boolean>() {
 
                     @Override

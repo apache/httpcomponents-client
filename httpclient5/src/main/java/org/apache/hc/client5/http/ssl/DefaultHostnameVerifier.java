@@ -297,10 +297,10 @@ public final class DefaultHostnameVerifier implements HttpClientHostnameVerifier
             for (final List<?> entry : entries) {
                 final Integer type = entry.size() >= 2 ? (Integer) entry.get(0) : null;
                 if (type != null) {
-                    if (type == SubjectName.DNS || type == SubjectName.IP) {
+                    if (type.intValue() == SubjectName.DNS || type.intValue() == SubjectName.IP) {
                         final Object o = entry.get(1);
                         if (o instanceof String) {
-                            result.add(new SubjectName((String) o, type));
+                            result.add(new SubjectName((String) o, type.intValue()));
                         } else if (o instanceof byte[]) {
                             // TODO ASN.1 DER encoded form
                         }

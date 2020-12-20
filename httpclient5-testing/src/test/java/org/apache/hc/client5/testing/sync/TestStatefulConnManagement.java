@@ -28,7 +28,6 @@ package org.apache.hc.client5.testing.sync;
 
 import java.io.IOException;
 
-import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.UserTokenHandler;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
@@ -80,14 +79,9 @@ public class TestStatefulConnManagement extends LocalServerTestBase {
         this.connManager.setMaxTotal(workerCount);
         this.connManager.setDefaultMaxPerRoute(workerCount);
 
-        final UserTokenHandler userTokenHandler = new UserTokenHandler() {
-
-            @Override
-            public Object getUserToken(final HttpRoute route, final HttpContext context) {
-                final String id = (String) context.getAttribute("user");
-                return id;
-            }
-
+        final UserTokenHandler userTokenHandler = (route, context) -> {
+            final String id = (String) context.getAttribute("user");
+            return id;
         };
         this.clientBuilder.setUserTokenHandler(userTokenHandler);
 
@@ -199,14 +193,7 @@ public class TestStatefulConnManagement extends LocalServerTestBase {
         this.connManager.setMaxTotal(maxConn);
         this.connManager.setDefaultMaxPerRoute(maxConn);
 
-        final UserTokenHandler userTokenHandler = new UserTokenHandler() {
-
-            @Override
-            public Object getUserToken(final HttpRoute route, final HttpContext context) {
-                return context.getAttribute("user");
-            }
-
-        };
+        final UserTokenHandler userTokenHandler = (route, context) -> context.getAttribute("user");
 
         this.clientBuilder.setUserTokenHandler(userTokenHandler);
 

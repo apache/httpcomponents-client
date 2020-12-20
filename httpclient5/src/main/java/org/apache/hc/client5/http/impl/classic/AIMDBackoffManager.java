@@ -91,11 +91,11 @@ public class AIMDBackoffManager implements BackoffManager {
             final int curr = connPerRoute.getMaxPerRoute(route);
             final Long lastUpdate = getLastUpdate(lastRouteBackoffs, route);
             final long now = clock.getCurrentTime();
-            if (now - lastUpdate.longValue() < coolDown.toMilliseconds()) {
+            if (now - lastUpdate < coolDown.toMilliseconds()) {
                 return;
             }
             connPerRoute.setMaxPerRoute(route, getBackedOffPoolSize(curr));
-            lastRouteBackoffs.put(route, Long.valueOf(now));
+            lastRouteBackoffs.put(route, now);
         }
     }
 
@@ -114,19 +114,19 @@ public class AIMDBackoffManager implements BackoffManager {
             final Long lastProbe = getLastUpdate(lastRouteProbes, route);
             final Long lastBackoff = getLastUpdate(lastRouteBackoffs, route);
             final long now = clock.getCurrentTime();
-            if (now - lastProbe.longValue() < coolDown.toMilliseconds()
-                || now - lastBackoff.longValue() < coolDown.toMilliseconds()) {
+            if (now - lastProbe < coolDown.toMilliseconds()
+                || now - lastBackoff < coolDown.toMilliseconds()) {
                 return;
             }
             connPerRoute.setMaxPerRoute(route, max);
-            lastRouteProbes.put(route, Long.valueOf(now));
+            lastRouteProbes.put(route, now);
         }
     }
 
     private Long getLastUpdate(final Map<HttpRoute, Long> updates, final HttpRoute route) {
         Long lastUpdate = updates.get(route);
         if (lastUpdate == null) {
-            lastUpdate = Long.valueOf(0L);
+            lastUpdate = 0L;
         }
         return lastUpdate;
     }

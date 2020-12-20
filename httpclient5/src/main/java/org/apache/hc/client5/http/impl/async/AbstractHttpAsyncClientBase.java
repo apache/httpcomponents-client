@@ -66,13 +66,7 @@ abstract class AbstractHttpAsyncClientBase extends CloseableHttpAsyncClient {
     @Override
     public final void start() {
         if (status.compareAndSet(Status.READY, Status.RUNNING)) {
-            executorService.execute(new Runnable() {
-
-                @Override
-                public void run() {
-                    ioReactor.start();
-                }
-            });
+            executorService.execute(ioReactor::start);
         }
     }
 

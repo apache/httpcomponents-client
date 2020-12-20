@@ -147,7 +147,7 @@ public class LaxExpiresHandler extends AbstractCookieAttributeHandler implements
                     final Matcher matcher = MONTH_PATTERN.matcher(content);
                     if (matcher.matches()) {
                         foundMonth = true;
-                        month = MONTHS.get(matcher.group(1).toLowerCase(Locale.ROOT));
+                        month = MONTHS.get(matcher.group(1).toLowerCase(Locale.ROOT)).intValue();
                         continue;
                     }
                 }

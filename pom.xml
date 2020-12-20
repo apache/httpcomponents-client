@@ -60,8 +60,8 @@
   </distributionManagement>
 
   <properties>
-    <maven.compiler.source>1.7</maven.compiler.source>
-    <maven.compiler.target>1.7</maven.compiler.target>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
     <httpcore.version>5.1</httpcore.version>
     <log4j.version>2.9.1</log4j.version>
     <commons-codec.version>1.15</commons-codec.version>

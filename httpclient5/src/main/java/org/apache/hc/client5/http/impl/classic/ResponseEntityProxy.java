@@ -159,18 +159,15 @@ class ResponseEntityProxy extends HttpEntityWrapper implements EofSensorWatcher 
     public Supplier<List<? extends Header>> getTrailers() {
             try {
                 final InputStream underlyingStream = super.getContent();
-                return new Supplier<List<? extends Header>>() {
-                    @Override
-                    public List<? extends Header> get() {
-                        final Header[] footers;
-                        if (underlyingStream instanceof ChunkedInputStream) {
-                            final ChunkedInputStream chunkedInputStream = (ChunkedInputStream) underlyingStream;
-                            footers = chunkedInputStream.getFooters();
-                        } else {
-                            footers = new Header[0];
-                        }
-                        return Arrays.asList(footers);
+                return () -> {
+                    final Header[] footers;
+                    if (underlyingStream instanceof ChunkedInputStream) {
+                        final ChunkedInputStream chunkedInputStream = (ChunkedInputStream) underlyingStream;
+                        footers = chunkedInputStream.getFooters();
+                    } else {
+                        footers = new Header[0];
                     }
+                    return Arrays.asList(footers);
                 };
             } catch (final IOException e) {
                 throw new IllegalStateException("Unable to retrieve input stream", e);

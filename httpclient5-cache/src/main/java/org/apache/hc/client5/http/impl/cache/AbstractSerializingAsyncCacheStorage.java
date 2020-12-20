@@ -187,7 +187,7 @@ public abstract class AbstractSerializingAsyncCacheStorage<T, CAS> implements Ht
 
                                 @Override
                                 public void completed(final Boolean result) {
-                                    if (result) {
+                                    if (result.booleanValue()) {
                                         callback.completed(result);
                                     } else {
                                         if (!complexCancellable.isCancelled()) {

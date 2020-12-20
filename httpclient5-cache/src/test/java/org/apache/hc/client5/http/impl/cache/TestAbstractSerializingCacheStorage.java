@@ -35,7 +35,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.hc.client5.http.cache.HttpCacheCASOperation;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.HttpCacheStorageEntry;
 import org.apache.hc.client5.http.cache.HttpCacheUpdateException;
@@ -48,7 +47,6 @@ import org.mockito.Answers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 @SuppressWarnings("boxing") // test code
@@ -143,14 +141,9 @@ public class TestAbstractSerializingCacheStorage {
         when(impl.digestToStorageKey(key)).thenReturn("bar");
         when(impl.getForUpdateCAS("bar")).thenReturn(null);
 
-        impl.updateEntry(key, new HttpCacheCASOperation() {
-
-            @Override
-            public HttpCacheEntry execute(final HttpCacheEntry existing) throws ResourceIOException {
-                Assert.assertThat(existing, CoreMatchers.nullValue());
-                return updatedValue;
-            }
-
+        impl.updateEntry(key, existing -> {
+            Assert.assertThat(existing, CoreMatchers.nullValue());
+            return updatedValue;
         });
 
         verify(impl).getForUpdateCAS("bar");
@@ -168,14 +161,7 @@ public class TestAbstractSerializingCacheStorage {
         when(impl.getStorageObject("stuff")).thenReturn(serialize(key, existingValue));
         when(impl.updateCAS(ArgumentMatchers.eq("bar"), ArgumentMatchers.eq("stuff"), ArgumentMatchers.<byte[]>any())).thenReturn(true);
 
-        impl.updateEntry(key, new HttpCacheCASOperation() {
-
-            @Override
-            public HttpCacheEntry execute(final HttpCacheEntry existing) throws ResourceIOException {
-                return updatedValue;
-            }
-
-        });
+        impl.updateEntry(key, existing -> updatedValue);
 
         verify(impl).getForUpdateCAS("bar");
         verify(impl).getStorageObject("stuff");
@@ -193,14 +179,9 @@ public class TestAbstractSerializingCacheStorage {
         when(impl.getStorageObject("stuff")).thenReturn(serialize("not-foo", existingValue));
         when(impl.updateCAS(ArgumentMatchers.eq("bar"), ArgumentMatchers.eq("stuff"), ArgumentMatchers.<byte[]>any())).thenReturn(true);
 
-        impl.updateEntry(key, new HttpCacheCASOperation() {
-
-            @Override
-            public HttpCacheEntry execute(final HttpCacheEntry existing) throws ResourceIOException {
-                Assert.assertThat(existing, CoreMatchers.nullValue());
-                return updatedValue;
-            }
-
+        impl.updateEntry(key, existing -> {
+            Assert.assertThat(existing, CoreMatchers.nullValue());
+            return updatedValue;
         });
 
         verify(impl).getForUpdateCAS("bar");
@@ -219,14 +200,7 @@ public class TestAbstractSerializingCacheStorage {
         when(impl.getStorageObject("stuff")).thenReturn(serialize(key, existingValue));
         when(impl.updateCAS(ArgumentMatchers.eq("bar"), ArgumentMatchers.eq("stuff"), ArgumentMatchers.<byte[]>any())).thenReturn(false, true);
 
-        impl.updateEntry(key, new HttpCacheCASOperation() {
-
-            @Override
-            public HttpCacheEntry execute(final HttpCacheEntry existing) throws ResourceIOException {
-                return updatedValue;
-            }
-
-        });
+        impl.updateEntry(key, existing -> updatedValue);
 
         verify(impl, Mockito.times(2)).getForUpdateCAS("bar");
         verify(impl, Mockito.times(2)).getStorageObject("stuff");
@@ -245,14 +219,7 @@ public class TestAbstractSerializingCacheStorage {
         when(impl.updateCAS(ArgumentMatchers.eq("bar"), ArgumentMatchers.eq("stuff"), ArgumentMatchers.<byte[]>any())).thenReturn(false, false, false, true);
 
         try {
-            impl.updateEntry(key, new HttpCacheCASOperation() {
-
-                @Override
-                public HttpCacheEntry execute(final HttpCacheEntry existing) throws ResourceIOException {
-                    return updatedValue;
-                }
-
-            });
+            impl.updateEntry(key, existing -> updatedValue);
             Assert.fail("HttpCacheUpdateException expected");
         } catch (final HttpCacheUpdateException ignore) {
         }
@@ -274,20 +241,16 @@ public class TestAbstractSerializingCacheStorage {
         when(impl.digestToStorageKey(key1)).thenReturn(storageKey1);
         when(impl.digestToStorageKey(key2)).thenReturn(storageKey2);
 
-        when(impl.bulkRestore(ArgumentMatchers.<String>anyCollection())).thenAnswer(new Answer<Map<String, byte[]>>() {
-
-            @Override
-            public Map<String, byte[]> answer(final InvocationOnMock invocation) throws Throwable {
-                final Collection<String> keys = invocation.getArgument(0);
-                final Map<String, byte[]> resultMap = new HashMap<>();
-                if (keys.contains(storageKey1)) {
-                    resultMap.put(storageKey1, serialize(key1, value1));
-                }
-                if (keys.contains(storageKey2)) {
-                    resultMap.put(storageKey2, serialize(key2, value2));
-                }
-                return resultMap;
+        when(impl.bulkRestore(ArgumentMatchers.<String>anyCollection())).thenAnswer((Answer<Map<String, byte[]>>) invocation -> {
+            final Collection<String> keys = invocation.getArgument(0);
+            final Map<String, byte[]> resultMap = new HashMap<>();
+            if (keys.contains(storageKey1)) {
+                resultMap.put(storageKey1, serialize(key1, value1));
             }
+            if (keys.contains(storageKey2)) {
+                resultMap.put(storageKey2, serialize(key2, value2));
+            }
+            return resultMap;
         });
 
         final Map<String, HttpCacheEntry> entryMap = impl.getEntries(Arrays.asList(key1, key2));
@@ -312,20 +275,16 @@ public class TestAbstractSerializingCacheStorage {
         when(impl.digestToStorageKey(key1)).thenReturn(storageKey1);
         when(impl.digestToStorageKey(key2)).thenReturn(storageKey2);
 
-        when(impl.bulkRestore(ArgumentMatchers.<String>anyCollection())).thenAnswer(new Answer<Map<String, byte[]>>() {
-
-            @Override
-            public Map<String, byte[]> answer(final InvocationOnMock invocation) throws Throwable {
-                final Collection<String> keys = invocation.getArgument(0);
-                final Map<String, byte[]> resultMap = new HashMap<>();
-                if (keys.contains(storageKey1)) {
-                    resultMap.put(storageKey1, serialize(key1, value1));
-                }
-                if (keys.contains(storageKey2)) {
-                    resultMap.put(storageKey2, serialize("not foo", value2));
-                }
-                return resultMap;
+        when(impl.bulkRestore(ArgumentMatchers.<String>anyCollection())).thenAnswer((Answer<Map<String, byte[]>>) invocation -> {
+            final Collection<String> keys = invocation.getArgument(0);
+            final Map<String, byte[]> resultMap = new HashMap<>();
+            if (keys.contains(storageKey1)) {
+                resultMap.put(storageKey1, serialize(key1, value1));
             }
+            if (keys.contains(storageKey2)) {
+                resultMap.put(storageKey2, serialize("not foo", value2));
+            }
+            return resultMap;
         });
 
         final Map<String, HttpCacheEntry> entryMap = impl.getEntries(Arrays.asList(key1, key2));

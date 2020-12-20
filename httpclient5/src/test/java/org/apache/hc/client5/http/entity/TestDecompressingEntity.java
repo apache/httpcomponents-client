@@ -29,7 +29,6 @@ package org.apache.hc.client5.http.entity;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.zip.CRC32;
@@ -95,14 +94,7 @@ public class TestDecompressingEntity {
     static class ChecksumEntity extends DecompressingEntity {
 
         public ChecksumEntity(final HttpEntity wrapped, final Checksum checksum) {
-            super(wrapped, new InputStreamFactory() {
-
-                @Override
-                public InputStream create(final InputStream inStream) throws IOException {
-                    return new CheckedInputStream(inStream, checksum);
-                }
-
-            });
+            super(wrapped, inStream -> new CheckedInputStream(inStream, checksum));
         }
 
     }

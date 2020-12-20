@@ -66,7 +66,7 @@ class BasicIdGenerator {
         buffer.append(System.currentTimeMillis());
         buffer.append('.');
         final Formatter formatter = new Formatter(buffer, Locale.ROOT);
-        formatter.format("%1$016x-%2$08x", Long.valueOf(this.count), Integer.valueOf(rndnum));
+        formatter.format("%1$016x-%2$08x", this.count, rndnum);
         formatter.close();
         buffer.append('.');
         buffer.append(this.hostname);
