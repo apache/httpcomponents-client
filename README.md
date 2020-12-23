@@ -41,7 +41,7 @@ HttpClient main module requires Java 7 compatible runtime and
 depends on the following external libraries:
 
 * [Apache HttpComponents HttpCore](https://github.com/apache/httpcomponents-core)
-* [Apache Logging Log4j2 API](https://github.com/apache/logging-log4j2)
+* [SLF4J API](http://www.slf4j.org/)
 * [Apache Commons Codec](https://github.com/apache/commons-codec)
 
 Other dependencies are optional.
