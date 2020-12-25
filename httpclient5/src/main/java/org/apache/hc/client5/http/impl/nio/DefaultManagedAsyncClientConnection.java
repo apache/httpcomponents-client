@@ -35,6 +35,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
 
 import org.apache.hc.client5.http.nio.ManagedAsyncClientConnection;
+import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.EndpointDetails;
 import org.apache.hc.core5.http.HttpConnection;
 import org.apache.hc.core5.http.HttpVersion;
@@ -45,6 +46,7 @@ import org.apache.hc.core5.net.NamedEndpoint;
 import org.apache.hc.core5.reactor.Command;
 import org.apache.hc.core5.reactor.IOEventHandler;
 import org.apache.hc.core5.reactor.IOSession;
+import org.apache.hc.core5.reactor.ProtocolIOSession;
 import org.apache.hc.core5.reactor.ssl.SSLBufferMode;
 import org.apache.hc.core5.reactor.ssl.SSLSessionInitializer;
 import org.apache.hc.core5.reactor.ssl.SSLSessionVerifier;
@@ -144,16 +146,28 @@ final class DefaultManagedAsyncClientConnection implements ManagedAsyncClientCon
             final SSLBufferMode sslBufferMode,
             final SSLSessionInitializer initializer,
             final SSLSessionVerifier verifier,
-            final Timeout handshakeTimeout) throws UnsupportedOperationException {
+            final Timeout handshakeTimeout,
+            final FutureCallback<TransportSecurityLayer> callback) throws UnsupportedOperationException {
         if (LOG.isDebugEnabled()) {
             LOG.debug("{} start TLS", getId());
         }
         if (ioSession instanceof TransportSecurityLayer) {
             ((TransportSecurityLayer) ioSession).startTls(sslContext, endpoint, sslBufferMode, initializer, verifier,
-                handshakeTimeout);
+                handshakeTimeout, callback);
         } else {
             throw new UnsupportedOperationException("TLS upgrade not supported");
         }
+    }
+
+    @Override
+    public void startTls(
+            final SSLContext sslContext,
+            final NamedEndpoint endpoint,
+            final SSLBufferMode sslBufferMode,
+            final SSLSessionInitializer initializer,
+            final SSLSessionVerifier verifier,
+            final Timeout handshakeTimeout) throws UnsupportedOperationException {
+        startTls(sslContext, endpoint, sslBufferMode, initializer, verifier, handshakeTimeout, null);
     }
 
     @Override
@@ -183,6 +197,16 @@ final class DefaultManagedAsyncClientConnection implements ManagedAsyncClientCon
     @Override
     public void activate() {
         ioSession.setSocketTimeout(socketTimeout);
+    }
+
+    @Override
+    public void switchProtocol(final String protocolId,
+                               final FutureCallback<ProtocolIOSession> callback) throws UnsupportedOperationException {
+        if (ioSession instanceof ProtocolIOSession) {
+            ((ProtocolIOSession) ioSession).switchProtocol(protocolId, callback);
+        } else {
+            throw new UnsupportedOperationException("Protocol switch not supported");
+        }
     }
 
 }

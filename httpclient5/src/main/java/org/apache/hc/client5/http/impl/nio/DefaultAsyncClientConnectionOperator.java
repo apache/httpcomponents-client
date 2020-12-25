@@ -38,13 +38,17 @@ import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
 import org.apache.hc.client5.http.nio.AsyncClientConnectionOperator;
 import org.apache.hc.client5.http.nio.ManagedAsyncClientConnection;
 import org.apache.hc.client5.http.routing.RoutingSupport;
+import org.apache.hc.core5.concurrent.CallbackContribution;
 import org.apache.hc.core5.concurrent.ComplexFuture;
 import org.apache.hc.core5.concurrent.FutureCallback;
+import org.apache.hc.core5.concurrent.FutureContribution;
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
 import org.apache.hc.core5.reactor.ConnectionInitiator;
 import org.apache.hc.core5.reactor.IOSession;
+import org.apache.hc.core5.reactor.ssl.TransportSecurityLayer;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.Timeout;
 
@@ -89,19 +93,27 @@ final class DefaultAsyncClientConnectionOperator implements AsyncClientConnectio
                     @Override
                     public void completed(final IOSession session) {
                         final DefaultManagedAsyncClientConnection connection = new DefaultManagedAsyncClientConnection(session);
-                        if (tlsStrategy != null) {
+                        if (tlsStrategy != null && URIScheme.HTTPS.same(host.getSchemeName())) {
                             try {
                                 tlsStrategy.upgrade(
                                         connection,
                                         host,
                                         attachment,
-                                        connectTimeout, null);
+                                        null,
+                                        new FutureContribution<TransportSecurityLayer>(future) {
+
+                                            @Override
+                                            public void completed(final TransportSecurityLayer transportSecurityLayer) {
+                                                future.completed(connection);
+                                            }
+
+                                        });
                             } catch (final Exception ex) {
                                 future.failed(ex);
-                                return;
                             }
+                        } else {
+                            future.completed(connection);
                         }
-                        future.completed(connection);
                     }
 
                     @Override
@@ -120,7 +132,19 @@ final class DefaultAsyncClientConnectionOperator implements AsyncClientConnectio
     }
 
     @Override
-    public void upgrade(final ManagedAsyncClientConnection connection, final HttpHost host, final Object attachment) {
+    public void upgrade(
+            final ManagedAsyncClientConnection connection,
+            final HttpHost host,
+            final Object attachment) {
+        upgrade(connection, host, attachment, null);
+    }
+
+    @Override
+    public void upgrade(
+            final ManagedAsyncClientConnection connection,
+            final HttpHost host,
+            final Object attachment,
+            final FutureCallback<ManagedAsyncClientConnection> callback) {
         final TlsStrategy tlsStrategy = tlsStrategyLookup != null ? tlsStrategyLookup.lookup(host.getSchemeName()) : null;
         if (tlsStrategy != null) {
             tlsStrategy.upgrade(
@@ -128,8 +152,18 @@ final class DefaultAsyncClientConnectionOperator implements AsyncClientConnectio
                     host,
                     attachment,
                     null,
-                    null);
+                    new CallbackContribution<TransportSecurityLayer>(callback) {
+
+                        @Override
+                        public void completed(final TransportSecurityLayer transportSecurityLayer) {
+                            if (callback != null) {
+                                callback.completed(connection);
+                            }
+                        }
+
+                    });
         }
 
     }
+
 }

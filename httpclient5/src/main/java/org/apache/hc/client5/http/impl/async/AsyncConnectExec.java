@@ -187,137 +187,152 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
         final CancellableDependency operation = scope.cancellableDependency;
         final HttpClientContext clientContext = scope.clientContext;
 
-        int step;
-        do {
-            final HttpRoute fact = tracker.toRoute();
-            step = routeDirector.nextStep(route, fact);
-            switch (step) {
-                case HttpRouteDirector.CONNECT_TARGET:
-                    operation.setDependency(execRuntime.connectEndpoint(clientContext, new FutureCallback<AsyncExecRuntime>() {
+        final HttpRoute fact = tracker.toRoute();
+        final int step = routeDirector.nextStep(route, fact);
+
+        switch (step) {
+            case HttpRouteDirector.CONNECT_TARGET:
+                operation.setDependency(execRuntime.connectEndpoint(clientContext, new FutureCallback<AsyncExecRuntime>() {
+
+                    @Override
+                    public void completed(final AsyncExecRuntime execRuntime) {
+                        tracker.connectTarget(route.isSecure());
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("{} connected to target", exchangeId);
+                        }
+                        proceedToNextHop(state, request, entityProducer, scope, chain, asyncExecCallback);
+                    }
+
+                    @Override
+                    public void failed(final Exception ex) {
+                        asyncExecCallback.failed(ex);
+                    }
+
+                    @Override
+                    public void cancelled() {
+                        asyncExecCallback.failed(new InterruptedIOException());
+                    }
+
+                }));
+                break;
+
+            case HttpRouteDirector.CONNECT_PROXY:
+                operation.setDependency(execRuntime.connectEndpoint(clientContext, new FutureCallback<AsyncExecRuntime>() {
+
+                    @Override
+                    public void completed(final AsyncExecRuntime execRuntime) {
+                        final HttpHost proxy  = route.getProxyHost();
+                        tracker.connectProxy(proxy, route.isSecure() && !route.isTunnelled());
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("{} connected to proxy", exchangeId);
+                        }
+                        proceedToNextHop(state, request, entityProducer, scope, chain, asyncExecCallback);
+                    }
+
+                    @Override
+                    public void failed(final Exception ex) {
+                        asyncExecCallback.failed(ex);
+                    }
+
+                    @Override
+                    public void cancelled() {
+                        asyncExecCallback.failed(new InterruptedIOException());
+                    }
+
+                }));
+                break;
+
+            case HttpRouteDirector.TUNNEL_TARGET:
+                try {
+                    final HttpHost proxy = route.getProxyHost();
+                    final HttpHost target = route.getTargetHost();
+                    createTunnel(state, proxy ,target, scope, chain, new AsyncExecCallback() {
 
                         @Override
-                        public void completed(final AsyncExecRuntime execRuntime) {
-                            tracker.connectTarget(route.isSecure());
+                        public AsyncDataConsumer handleResponse(
+                                final HttpResponse response,
+                                final EntityDetails entityDetails) throws HttpException, IOException {
+                            return asyncExecCallback.handleResponse(response, entityDetails);
+                        }
+
+                        @Override
+                        public void handleInformationResponse(
+                                final HttpResponse response) throws HttpException, IOException {
+                            asyncExecCallback.handleInformationResponse(response);
+                        }
+
+                        @Override
+                        public void completed() {
                             if (LOG.isDebugEnabled()) {
-                                LOG.debug("{} connected to target", exchangeId);
+                                LOG.debug("{} tunnel to target created", exchangeId);
                             }
+                            tracker.tunnelTarget(false);
                             proceedToNextHop(state, request, entityProducer, scope, chain, asyncExecCallback);
                         }
 
                         @Override
-                        public void failed(final Exception ex) {
-                            asyncExecCallback.failed(ex);
+                        public void failed(final Exception cause) {
+                            asyncExecCallback.failed(cause);
                         }
 
-                        @Override
-                        public void cancelled() {
-                            asyncExecCallback.failed(new InterruptedIOException());
+                    });
+                } catch (final HttpException | IOException ex) {
+                    asyncExecCallback.failed(ex);
+                }
+                break;
+
+            case HttpRouteDirector.TUNNEL_PROXY:
+                // The most simple example for this case is a proxy chain
+                // of two proxies, where P1 must be tunnelled to P2.
+                // route: Source -> P1 -> P2 -> Target (3 hops)
+                // fact:  Source -> P1 -> Target       (2 hops)
+                asyncExecCallback.failed(new HttpException("Proxy chains are not supported"));
+                break;
+
+            case HttpRouteDirector.LAYER_PROTOCOL:
+                execRuntime.upgradeTls(clientContext, new FutureCallback<AsyncExecRuntime>() {
+
+                    @Override
+                    public void completed(final AsyncExecRuntime asyncExecRuntime) {
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("{} upgraded to TLS", exchangeId);
                         }
+                        tracker.layerProtocol(route.isSecure());
+                        proceedToNextHop(state, request, entityProducer, scope, chain, asyncExecCallback);
+                    }
 
-                    }));
-                    return;
-
-                case HttpRouteDirector.CONNECT_PROXY:
-                    operation.setDependency(execRuntime.connectEndpoint(clientContext, new FutureCallback<AsyncExecRuntime>() {
-
-                        @Override
-                        public void completed(final AsyncExecRuntime execRuntime) {
-                            final HttpHost proxy  = route.getProxyHost();
-                            tracker.connectProxy(proxy, route.isSecure() && !route.isTunnelled());
-                            if (LOG.isDebugEnabled()) {
-                                LOG.debug("{} connected to proxy", exchangeId);
-                            }
-                            proceedToNextHop(state, request, entityProducer, scope, chain, asyncExecCallback);
-                        }
-
-                        @Override
-                        public void failed(final Exception ex) {
-                            asyncExecCallback.failed(ex);
-                        }
-
-                        @Override
-                        public void cancelled() {
-                            asyncExecCallback.failed(new InterruptedIOException());
-                        }
-
-                    }));
-                    return;
-
-                case HttpRouteDirector.TUNNEL_TARGET:
-                    try {
-                        final HttpHost proxy = route.getProxyHost();
-                        final HttpHost target = route.getTargetHost();
-                        createTunnel(state, proxy ,target, scope, chain, new AsyncExecCallback() {
-
-                            @Override
-                            public AsyncDataConsumer handleResponse(
-                                    final HttpResponse response,
-                                    final EntityDetails entityDetails) throws HttpException, IOException {
-                                return asyncExecCallback.handleResponse(response, entityDetails);
-                            }
-
-                            @Override
-                            public void handleInformationResponse(
-                                    final HttpResponse response) throws HttpException, IOException {
-                                asyncExecCallback.handleInformationResponse(response);
-                            }
-
-                            @Override
-                            public void completed() {
-                                if (LOG.isDebugEnabled()) {
-                                    LOG.debug("{} tunnel to target created", exchangeId);
-                                }
-                                tracker.tunnelTarget(false);
-                                proceedToNextHop(state, request, entityProducer, scope, chain, asyncExecCallback);
-                            }
-
-                            @Override
-                            public void failed(final Exception cause) {
-                                asyncExecCallback.failed(cause);
-                            }
-
-                        });
-                    } catch (final HttpException | IOException ex) {
+                    @Override
+                    public void failed(final Exception ex) {
                         asyncExecCallback.failed(ex);
                     }
-                    return;
 
-                case HttpRouteDirector.TUNNEL_PROXY:
-                    // The most simple example for this case is a proxy chain
-                    // of two proxies, where P1 must be tunnelled to P2.
-                    // route: Source -> P1 -> P2 -> Target (3 hops)
-                    // fact:  Source -> P1 -> Target       (2 hops)
-                    asyncExecCallback.failed(new HttpException("Proxy chains are not supported"));
-                    return;
-
-                case HttpRouteDirector.LAYER_PROTOCOL:
-                    execRuntime.upgradeTls(clientContext);
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("{} upgraded to TLS", exchangeId);
+                    @Override
+                    public void cancelled() {
+                        asyncExecCallback.failed(new InterruptedIOException());
                     }
-                    tracker.layerProtocol(route.isSecure());
-                    break;
 
-                case HttpRouteDirector.UNREACHABLE:
-                    asyncExecCallback.failed(new HttpException("Unable to establish route: " +
-                            "planned = " + route + "; current = " + fact));
-                    return;
+                });
+                break;
 
-                case HttpRouteDirector.COMPLETE:
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("{} route fully established", exchangeId);
-                    }
-                    try {
-                        chain.proceed(request, entityProducer, scope, asyncExecCallback);
-                    } catch (final HttpException | IOException ex) {
-                        asyncExecCallback.failed(ex);
-                    }
-                    break;
+            case HttpRouteDirector.UNREACHABLE:
+                asyncExecCallback.failed(new HttpException("Unable to establish route: " +
+                        "planned = " + route + "; current = " + fact));
+                break;
 
-                default:
-                    throw new IllegalStateException("Unknown step indicator "  + step + " from RouteDirector.");
-            }
-        } while (step > HttpRouteDirector.COMPLETE);
+            case HttpRouteDirector.COMPLETE:
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("{} route fully established", exchangeId);
+                }
+                try {
+                    chain.proceed(request, entityProducer, scope, asyncExecCallback);
+                } catch (final HttpException | IOException ex) {
+                    asyncExecCallback.failed(ex);
+                }
+                break;
+
+            default:
+                throw new IllegalStateException("Unknown step indicator "  + step + " from RouteDirector.");
+        }
     }
 
     private void createTunnel(

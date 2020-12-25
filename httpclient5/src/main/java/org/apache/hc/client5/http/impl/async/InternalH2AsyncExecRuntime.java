@@ -220,6 +220,11 @@ class InternalH2AsyncExecRuntime implements AsyncExecRuntime {
     }
 
     @Override
+    public void upgradeTls(final HttpClientContext context, final FutureCallback<AsyncExecRuntime> callback) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public Cancellable execute(
             final String id,
             final AsyncClientExchangeHandler exchangeHandler, final HttpClientContext context) {

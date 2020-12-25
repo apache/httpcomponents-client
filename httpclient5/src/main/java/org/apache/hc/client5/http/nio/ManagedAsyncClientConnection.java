@@ -28,8 +28,10 @@
 package org.apache.hc.client5.http.nio;
 
 import org.apache.hc.core5.annotation.Internal;
+import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.HttpConnection;
 import org.apache.hc.core5.reactor.Command;
+import org.apache.hc.core5.reactor.ProtocolIOSession;
 import org.apache.hc.core5.reactor.ssl.TransportSecurityLayer;
 
 /**
@@ -58,5 +60,18 @@ public interface ManagedAsyncClientConnection extends HttpConnection, TransportS
      * Restores the connection from idle mode.
      */
     void activate();
+
+    /**
+     * Switches this I/O session to the application protocol with the given ID.
+     * @param protocolId the application protocol ID
+     * @param callback the result callback
+     * @throws UnsupportedOperationException if application protocol switch
+     * is not supported.
+     *
+     * @since 5.2
+     */
+    default void switchProtocol(String protocolId, FutureCallback<ProtocolIOSession> callback) throws UnsupportedOperationException {
+        throw new UnsupportedOperationException("Protocol switch not supported");
+    }
 
 }

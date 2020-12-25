@@ -38,6 +38,7 @@ import org.apache.hc.client5.http.impl.Operations;
 import org.apache.hc.client5.http.nio.AsyncClientConnectionManager;
 import org.apache.hc.client5.http.nio.AsyncConnectionEndpoint;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.core5.concurrent.CallbackContribution;
 import org.apache.hc.core5.concurrent.Cancellable;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.nio.AsyncClientExchangeHandler;
@@ -214,24 +215,16 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
                 connectTimeout,
                 versionPolicy,
                 context,
-                new FutureCallback<AsyncConnectionEndpoint>() {
+                new CallbackContribution<AsyncConnectionEndpoint>(callback) {
 
                     @Override
                     public void completed(final AsyncConnectionEndpoint endpoint) {
                         if (log.isDebugEnabled()) {
                             log.debug("{} endpoint connected", ConnPoolSupport.getId(endpoint));
                         }
-                        callback.completed(InternalHttpAsyncExecRuntime.this);
-                    }
-
-                    @Override
-                    public void failed(final Exception ex) {
-                        callback.failed(ex);
-                    }
-
-                    @Override
-                    public void cancelled() {
-                        callback.cancelled();
+                        if (callback != null) {
+                            callback.completed(InternalHttpAsyncExecRuntime.this);
+                        }
                     }
 
         }));
@@ -240,11 +233,25 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
 
     @Override
     public void upgradeTls(final HttpClientContext context) {
+        upgradeTls(context, null);
+    }
+
+    @Override
+    public void upgradeTls(final HttpClientContext context, final FutureCallback<AsyncExecRuntime> callback) {
         final AsyncConnectionEndpoint endpoint = ensureValid();
         if (log.isDebugEnabled()) {
             log.debug("{} upgrading endpoint", ConnPoolSupport.getId(endpoint));
         }
-        manager.upgrade(endpoint, versionPolicy, context);
+        manager.upgrade(endpoint, versionPolicy, context, new CallbackContribution<AsyncConnectionEndpoint>(callback) {
+
+            @Override
+            public void completed(final AsyncConnectionEndpoint endpoint) {
+                if (callback != null) {
+                    callback.completed(InternalHttpAsyncExecRuntime.this);
+                }
+            }
+
+        });
     }
 
     @Override

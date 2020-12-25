@@ -79,4 +79,26 @@ public interface AsyncClientConnectionOperator {
      */
     void upgrade(ManagedAsyncClientConnection conn, HttpHost host, Object attachment);
 
+    /**
+     * Upgrades transport security of the given managed connection
+     * by using the TLS security protocol.
+     *
+     * @param conn the managed connection.
+     * @param host the address of the opposite endpoint with TLS security.
+     * @param attachment the attachment, which can be any object representing custom parameter
+     *                    of the operation.
+     *
+     * @since 5.2
+     */
+    default void upgrade(
+            ManagedAsyncClientConnection conn,
+            HttpHost host,
+            Object attachment,
+            FutureCallback<ManagedAsyncClientConnection> callback) {
+        upgrade(conn, host, attachment);
+        if (callback != null) {
+            callback.completed(conn);
+        }
+    }
+
 }

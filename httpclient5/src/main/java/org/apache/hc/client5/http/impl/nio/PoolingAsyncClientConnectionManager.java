@@ -52,6 +52,7 @@ import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.concurrent.BasicFuture;
+import org.apache.hc.core5.concurrent.CallbackContribution;
 import org.apache.hc.core5.concurrent.ComplexFuture;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.function.Resolver;
@@ -68,6 +69,7 @@ import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http2.nio.command.PingCommand;
 import org.apache.hc.core5.http2.nio.support.BasicPingHandler;
+import org.apache.hc.core5.http2.ssl.ApplicationProtocol;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.pool.ConnPoolControl;
 import org.apache.hc.core5.pool.LaxConnPool;
@@ -79,6 +81,8 @@ import org.apache.hc.core5.pool.PoolStats;
 import org.apache.hc.core5.pool.StrictConnPool;
 import org.apache.hc.core5.reactor.Command;
 import org.apache.hc.core5.reactor.ConnectionInitiator;
+import org.apache.hc.core5.reactor.ProtocolIOSession;
+import org.apache.hc.core5.reactor.ssl.TlsDetails;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.Asserts;
 import org.apache.hc.core5.util.Identifiable;
@@ -439,16 +443,48 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
     public void upgrade(
             final AsyncConnectionEndpoint endpoint,
             final Object attachment,
-            final HttpContext context) {
+            final HttpContext context,
+            final FutureCallback<AsyncConnectionEndpoint> callback) {
         Args.notNull(endpoint, "Managed endpoint");
         final InternalConnectionEndpoint internalEndpoint = cast(endpoint);
         final PoolEntry<HttpRoute, ManagedAsyncClientConnection> poolEntry = internalEndpoint.getValidatedPoolEntry();
         final HttpRoute route = poolEntry.getRoute();
-        final ManagedAsyncClientConnection connection = poolEntry.getConnection();
-        connectionOperator.upgrade(poolEntry.getConnection(), route.getTargetHost(), attachment);
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("{} upgraded {}", ConnPoolSupport.getId(internalEndpoint), ConnPoolSupport.getId(connection));
-        }
+        connectionOperator.upgrade(
+                poolEntry.getConnection(),
+                route.getTargetHost(),
+                attachment,
+                new CallbackContribution<ManagedAsyncClientConnection>(callback) {
+
+                    @Override
+                    public void completed(final ManagedAsyncClientConnection connection) {
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("{} upgraded {}", ConnPoolSupport.getId(internalEndpoint), ConnPoolSupport.getId(connection));
+                        }
+                        final TlsDetails tlsDetails = connection.getTlsDetails();
+                        if (tlsDetails != null && ApplicationProtocol.HTTP_2.id.equals(tlsDetails.getApplicationProtocol())) {
+                            connection.switchProtocol(ApplicationProtocol.HTTP_2.id, new CallbackContribution<ProtocolIOSession>(callback) {
+
+                                @Override
+                                public void completed(final ProtocolIOSession protocolIOSession) {
+                                    if (callback != null) {
+                                        callback.completed(endpoint);
+                                    }
+                                }
+
+                            });
+                        } else {
+                            if (callback != null) {
+                                callback.completed(endpoint);
+                            }
+                        }
+                    }
+
+                });
+    }
+
+    @Override
+    public void upgrade(final AsyncConnectionEndpoint endpoint, final Object attachment, final HttpContext context) {
+        upgrade(endpoint, attachment, context, null);
     }
 
     @Override
