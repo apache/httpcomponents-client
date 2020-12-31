@@ -28,6 +28,7 @@ package org.apache.hc.client5.http.utils;
 
 import java.net.URI;
 import java.util.Arrays;
+import java.util.Collections;
 
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.net.URIBuilder;
@@ -276,7 +277,7 @@ public class TestURIUtils {
 
         final URI redirect = new URI("http://localhost/people.html");
 
-        final URI location = URIUtils.resolve(requestURI, target, Arrays.asList(redirect));
+        final URI location = URIUtils.resolve(requestURI, target, Collections.singletonList(redirect));
         final URI expectedURI = new URIBuilder()
                 .setHost(target.getHostName())
                 .setScheme(target.getSchemeName())

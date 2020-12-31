@@ -28,6 +28,7 @@
 package org.apache.hc.client5.http.impl.cookie;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.hc.client5.http.cookie.CommonCookieAttributeHandler;
@@ -264,7 +265,7 @@ public class TestRFC6265CookieSpec {
         final Cookie cookie1 = new BasicClientCookie("name1", "value");
 
         final RFC6265CookieSpec cookiespec = new RFC6265CookieSpec();
-        final List<Header> headers = cookiespec.formatCookies(Arrays.asList(cookie1));
+        final List<Header> headers = cookiespec.formatCookies(Collections.singletonList(cookie1));
         Assert.assertNotNull(headers);
         Assert.assertEquals(1, headers.size());
         final Header header = headers.get(0);

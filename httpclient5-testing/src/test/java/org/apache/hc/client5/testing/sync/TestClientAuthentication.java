@@ -30,7 +30,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
@@ -650,7 +650,7 @@ public class TestClientAuthentication extends LocalServerTestBase {
                 new UsernamePasswordCredentials("test", "test".toCharArray()));
 
         final RequestConfig config = RequestConfig.custom()
-                .setTargetPreferredAuthSchemes(Arrays.asList("MyBasic"))
+                .setTargetPreferredAuthSchemes(Collections.singletonList("MyBasic"))
                 .build();
         final Registry<AuthSchemeFactory> authSchemeRegistry = RegistryBuilder.<AuthSchemeFactory>create()
                 .register("MyBasic", myBasicAuthSchemeFactory)

@@ -87,7 +87,7 @@ public final class CookieOrigin {
         }
         buffer.append(this.host);
         buffer.append(':');
-        buffer.append(Integer.toString(this.port));
+        buffer.append(this.port);
         buffer.append(this.path);
         buffer.append(']');
         return buffer.toString();

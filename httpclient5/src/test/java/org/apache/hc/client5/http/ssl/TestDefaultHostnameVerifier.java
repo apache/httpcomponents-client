@@ -43,7 +43,6 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -376,18 +375,18 @@ public class TestDefaultHostnameVerifier {
     @Test // Check compressed IPv6 hostname matching
     public void testHTTPCLIENT_1316() throws Exception{
         final String host1 = "2001:0db8:aaaa:bbbb:cccc:0:0:0001";
-        DefaultHostnameVerifier.matchIPv6Address(host1, Arrays.asList(SubjectName.IP("2001:0db8:aaaa:bbbb:cccc:0:0:0001")));
-        DefaultHostnameVerifier.matchIPv6Address(host1, Arrays.asList(SubjectName.IP("2001:0db8:aaaa:bbbb:cccc::1")));
+        DefaultHostnameVerifier.matchIPv6Address(host1, Collections.singletonList(SubjectName.IP("2001:0db8:aaaa:bbbb:cccc:0:0:0001")));
+        DefaultHostnameVerifier.matchIPv6Address(host1, Collections.singletonList(SubjectName.IP("2001:0db8:aaaa:bbbb:cccc::1")));
         try {
-            DefaultHostnameVerifier.matchIPv6Address(host1, Arrays.asList(SubjectName.IP("2001:0db8:aaaa:bbbb:cccc::10")));
+            DefaultHostnameVerifier.matchIPv6Address(host1, Collections.singletonList(SubjectName.IP("2001:0db8:aaaa:bbbb:cccc::10")));
             Assert.fail("SSLException expected");
         } catch (final SSLException expected) {
         }
         final String host2 = "2001:0db8:aaaa:bbbb:cccc::1";
-        DefaultHostnameVerifier.matchIPv6Address(host2, Arrays.asList(SubjectName.IP("2001:0db8:aaaa:bbbb:cccc:0:0:0001")));
-        DefaultHostnameVerifier.matchIPv6Address(host2, Arrays.asList(SubjectName.IP("2001:0db8:aaaa:bbbb:cccc::1")));
+        DefaultHostnameVerifier.matchIPv6Address(host2, Collections.singletonList(SubjectName.IP("2001:0db8:aaaa:bbbb:cccc:0:0:0001")));
+        DefaultHostnameVerifier.matchIPv6Address(host2, Collections.singletonList(SubjectName.IP("2001:0db8:aaaa:bbbb:cccc::1")));
         try {
-            DefaultHostnameVerifier.matchIPv6Address(host2, Arrays.asList(SubjectName.IP("2001:0db8:aaaa:bbbb:cccc::10")));
+            DefaultHostnameVerifier.matchIPv6Address(host2, Collections.singletonList(SubjectName.IP("2001:0db8:aaaa:bbbb:cccc::10")));
             Assert.fail("SSLException expected");
         } catch (final SSLException expected) {
         }

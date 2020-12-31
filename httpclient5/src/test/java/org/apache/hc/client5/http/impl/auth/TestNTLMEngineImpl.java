@@ -88,7 +88,7 @@ public class TestNTLMEngineImpl {
         while (i < answer.length) {
             if (answer[i] != correctAnswer[i]) {
                 throw new Exception("Answer value for MD4('" + input + "') disagrees at position "
-                        + Integer.toString(i));
+                        + i);
             }
             i++;
         }

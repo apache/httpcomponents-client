@@ -75,7 +75,7 @@ public class AuthScope {
         this.host = host != null ? host.toLowerCase(Locale.ROOT) : null;
         this.port = port >= 0 ? port: -1;
         this.realm = realm;
-        this.schemeName = schemeName != null ? schemeName : null;
+        this.schemeName = schemeName;
     }
 
     /**
@@ -98,7 +98,7 @@ public class AuthScope {
         this.host = origin.getHostName().toLowerCase(Locale.ROOT);
         this.port = origin.getPort() >= 0 ? origin.getPort() : -1;
         this.realm = realm;
-        this.schemeName = schemeName != null ? schemeName : null;
+        this.schemeName = schemeName;
     }
 
     /**

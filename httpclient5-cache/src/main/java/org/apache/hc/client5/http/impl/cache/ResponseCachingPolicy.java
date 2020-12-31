@@ -27,6 +27,7 @@
 package org.apache.hc.client5.http.impl.cache;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -86,7 +87,7 @@ class ResponseCachingPolicy {
         this.sharedCache = sharedCache;
         this.neverCache1_0ResponsesWithQueryString = neverCache1_0ResponsesWithQueryString;
         if (allow303Caching) {
-            uncacheableStatusCodes = new HashSet<>(Arrays.asList(HttpStatus.SC_PARTIAL_CONTENT));
+            uncacheableStatusCodes = new HashSet<>(Collections.singletonList(HttpStatus.SC_PARTIAL_CONTENT));
         } else {
             uncacheableStatusCodes = new HashSet<>(Arrays.asList(HttpStatus.SC_PARTIAL_CONTENT, HttpStatus.SC_SEE_OTHER));
         }

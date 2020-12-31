@@ -35,7 +35,7 @@ public class TestConcurrentCountMap
 
     private static final String IDENTIFIER = "some-identifier";
 
-    private ConcurrentCountMap<String> map = new ConcurrentCountMap<>();
+    private final ConcurrentCountMap<String> map = new ConcurrentCountMap<>();
 
     @Test
     public void testBasics() {

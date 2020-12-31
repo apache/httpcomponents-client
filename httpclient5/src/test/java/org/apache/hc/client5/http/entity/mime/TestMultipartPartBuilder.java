@@ -29,6 +29,7 @@ package org.apache.hc.client5.http.entity.mime;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.hc.core5.http.ContentType;
@@ -47,8 +48,8 @@ public class TestMultipartPartBuilder {
         Assert.assertEquals(stringBody, part.getBody());
         final Header header = part.getHeader();
         Assert.assertNotNull(header);
-        assertFields(Arrays.asList(
-                        new MimeField("Content-Type", "text/plain; charset=ISO-8859-1")),
+        assertFields(Collections.singletonList(
+                new MimeField("Content-Type", "text/plain; charset=ISO-8859-1")),
                 header.getFields());
     }
 
@@ -63,8 +64,8 @@ public class TestMultipartPartBuilder {
         Assert.assertEquals(stringBody, part1.getBody());
         final Header header1 = part1.getHeader();
         Assert.assertNotNull(header1);
-        assertFields(Arrays.asList(
-                        new MimeField("Content-Type", "text/plain; charset=ISO-8859-1")),
+        assertFields(Collections.singletonList(
+                new MimeField("Content-Type", "text/plain; charset=ISO-8859-1")),
                 header1.getFields());
         final FileBody fileBody = new FileBody(new File("/path/stuff.bin"), ContentType.DEFAULT_BINARY);
         final MultipartPart part2 = builder
@@ -75,8 +76,8 @@ public class TestMultipartPartBuilder {
         Assert.assertEquals(fileBody, part2.getBody());
         final Header header2 = part2.getHeader();
         Assert.assertNotNull(header2);
-        assertFields(Arrays.asList(
-                        new MimeField("Content-Type", "application/octet-stream")),
+        assertFields(Collections.singletonList(
+                new MimeField("Content-Type", "application/octet-stream")),
                 header2.getFields());
     }
 
