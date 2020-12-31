@@ -43,7 +43,7 @@ import org.apache.hc.core5.http.Header;
 class WarningValue {
 
     private int offs;
-    private int init_offs;
+    private final int init_offs;
     private final String src;
     private int warnCode;
     private String warnAgent;

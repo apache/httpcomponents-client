@@ -798,7 +798,7 @@ final class NTLMEngineImpl implements NTLMEngine {
 
     enum Mode
     {
-        CLIENT, SERVER;
+        CLIENT, SERVER
     }
 
     static class Handle
@@ -1113,8 +1113,8 @@ final class NTLMEngineImpl implements NTLMEngine {
             // Check to be sure there's a type 2 message indicator next
             final int type = readULong(SIGNATURE.length);
             if (type != expectedType) {
-                throw new NTLMEngineException("NTLM type " + Integer.toString(expectedType)
-                        + " message expected - instead got type " + Integer.toString(type));
+                throw new NTLMEngineException("NTLM type " + expectedType
+                        + " message expected - instead got type " + type);
             }
 
             currentOutputPosition = messageContents.length;

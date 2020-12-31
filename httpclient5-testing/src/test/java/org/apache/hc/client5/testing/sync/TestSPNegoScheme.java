@@ -91,9 +91,9 @@ public class TestSPNegoScheme extends LocalServerTestBase {
      */
     private static class NegotiateSchemeWithMockGssManager extends SPNegoScheme {
 
-        GSSManager manager = Mockito.mock(GSSManager.class);
-        GSSName name = Mockito.mock(GSSName.class);
-        GSSContext context = Mockito.mock(GSSContext.class);
+        final GSSManager manager = Mockito.mock(GSSManager.class);
+        final GSSName name = Mockito.mock(GSSName.class);
+        final GSSContext context = Mockito.mock(GSSContext.class);
 
         NegotiateSchemeWithMockGssManager() throws Exception {
             super(KerberosConfig.DEFAULT, SystemDefaultDnsResolver.INSTANCE);

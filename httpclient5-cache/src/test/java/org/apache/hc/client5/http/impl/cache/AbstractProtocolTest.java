@@ -51,7 +51,7 @@ public abstract class AbstractProtocolTest {
 
     protected static final int MAX_BYTES = 1024;
     protected static final int MAX_ENTRIES = 100;
-    protected int entityLength = 128;
+    protected final int entityLength = 128;
     protected HttpHost host;
     protected HttpRoute route;
     protected HttpEntity body;

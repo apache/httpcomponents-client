@@ -53,7 +53,7 @@ public class TestPublicSuffixListParser {
         }
         Assert.assertNotNull(suffixList);
         Assert.assertEquals(Arrays.asList("xx", "jp", "ac.jp", "*.tokyo.jp", "no", "h\u00E5.no"), suffixList.getRules());
-        Assert.assertEquals(Arrays.asList("metro.tokyo.jp"), suffixList.getExceptions());
+        Assert.assertEquals(Collections.singletonList("metro.tokyo.jp"), suffixList.getExceptions());
     }
 
     @Test
@@ -74,7 +74,7 @@ public class TestPublicSuffixListParser {
         Assert.assertNotNull(publicSuffixList1);
         Assert.assertEquals(DomainType.ICANN, publicSuffixList1.getType());
         Assert.assertEquals(Arrays.asList("jp", "ac.jp", "*.tokyo.jp"), publicSuffixList1.getRules());
-        Assert.assertEquals(Arrays.asList("metro.tokyo.jp"), publicSuffixList1.getExceptions());
+        Assert.assertEquals(Collections.singletonList("metro.tokyo.jp"), publicSuffixList1.getExceptions());
 
         final PublicSuffixList publicSuffixList2 = suffixLists.get(1);
         Assert.assertNotNull(publicSuffixList2);

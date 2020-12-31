@@ -145,7 +145,7 @@ public class ManagedHttpClientConnectionFactory implements HttpConnectionFactory
             charEncoder.onMalformedInput(malformedInputAction);
             charEncoder.onUnmappableCharacter(unmappableInputAction);
         }
-        final String id = "http-outgoing-" + Long.toString(COUNTER.getAndIncrement());
+        final String id = "http-outgoing-" + COUNTER.getAndIncrement();
         final DefaultManagedHttpClientConnection conn = new DefaultManagedHttpClientConnection(
                 id,
                 charDecoder,

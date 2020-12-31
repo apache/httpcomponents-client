@@ -29,7 +29,7 @@ package org.apache.hc.client5.testing.fluent;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 import org.apache.hc.client5.http.ClientProtocolException;
 import org.apache.hc.client5.http.fluent.Content;
@@ -140,11 +140,11 @@ public class TestFluent extends LocalServerTestBase {
     public void testContentAsStringWithCharset() throws Exception {
         final HttpHost target = start();
         final String baseURL = "http://localhost:" + target.getPort();
-        final Content content = Request.post(baseURL + "/echo").bodyByteArray("Ü".getBytes("utf-8")).execute()
+        final Content content = Request.post(baseURL + "/echo").bodyByteArray("Ü".getBytes(StandardCharsets.UTF_8)).execute()
                 .returnContent();
         Assert.assertEquals((byte)-61, content.asBytes()[0]);
         Assert.assertEquals((byte)-100, content.asBytes()[1]);
-        Assert.assertEquals("Ü", content.asString(Charset.forName("utf-8")));
+        Assert.assertEquals("Ü", content.asString(StandardCharsets.UTF_8));
     }
 
     @Test

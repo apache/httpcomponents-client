@@ -32,6 +32,7 @@ import java.net.UnknownHostException;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Collections;
 
 import javax.net.ssl.SSLContext;
 
@@ -196,7 +197,7 @@ public class ClientConfiguration {
             .setCookieSpec(StandardCookieSpec.STRICT)
             .setExpectContinueEnabled(true)
             .setTargetPreferredAuthSchemes(Arrays.asList(StandardAuthScheme.NTLM, StandardAuthScheme.DIGEST))
-            .setProxyPreferredAuthSchemes(Arrays.asList(StandardAuthScheme.BASIC))
+            .setProxyPreferredAuthSchemes(Collections.singletonList(StandardAuthScheme.BASIC))
             .build();
 
         // Create an HttpClient with the given custom dependencies and configuration.

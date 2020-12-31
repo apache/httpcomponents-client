@@ -334,7 +334,7 @@ public class TestMultipartForm {
 
         final FormBodyPart p1 = FormBodyPartBuilder.create(
                 "field1",
-                new StringBody(s1, ContentType.create("text/plain", Charset.forName("ISO-8859-1")))).build();
+                new StringBody(s1, ContentType.create("text/plain", StandardCharsets.ISO_8859_1))).build();
         final FormBodyPart p2 = FormBodyPartBuilder.create(
                 "field2",
                 new StringBody(s2, ContentType.create("text/plain", Charset.forName("KOI8-R")))).build();

@@ -26,7 +26,7 @@
  */
 package org.apache.hc.client5.testing.async;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Future;
@@ -505,7 +505,7 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
                 });
 
         final RequestConfig config = RequestConfig.custom()
-                .setTargetPreferredAuthSchemes(Arrays.asList("MyBasic"))
+                .setTargetPreferredAuthSchemes(Collections.singletonList("MyBasic"))
                 .build();
         final HttpClientContext context = HttpClientContext.create();
         context.setCredentialsProvider(credsProvider);

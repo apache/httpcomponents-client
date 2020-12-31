@@ -293,7 +293,7 @@ public class TestMultipartMixed {
         final String s2 = constructString(RUSSIAN_HELLO);
 
         final MultipartPart p1 = MultipartPartBuilder.create(
-                new StringBody(s1, ContentType.create("text/plain", Charset.forName("ISO-8859-1")))).build();
+                new StringBody(s1, ContentType.create("text/plain", StandardCharsets.ISO_8859_1))).build();
         final MultipartPart p2 = MultipartPartBuilder.create(
                 new StringBody(s2, ContentType.create("text/plain", Charset.forName("KOI8-R")))).build();
         final HttpStrictMultipart multipart = new HttpStrictMultipart(null, "foo",

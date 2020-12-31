@@ -29,7 +29,7 @@ package org.apache.hc.client5.testing.sync;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -630,7 +630,7 @@ public class TestRedirects extends LocalServerTestBase {
 
     @Test
     public void testDefaultHeadersRedirect() throws Exception {
-        this.clientBuilder.setDefaultHeaders(Arrays.asList(new BasicHeader(HttpHeaders.USER_AGENT, "my-test-client")));
+        this.clientBuilder.setDefaultHeaders(Collections.singletonList(new BasicHeader(HttpHeaders.USER_AGENT, "my-test-client")));
 
         final HttpHost target = start(null, new Decorator<HttpServerRequestHandler>() {
 

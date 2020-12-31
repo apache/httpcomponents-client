@@ -29,7 +29,7 @@ package org.apache.hc.client5.http.impl.cache;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import java.util.Arrays;
+import java.util.Collections;
 
 import org.apache.hc.client5.http.impl.RequestCopier;
 import org.apache.hc.core5.http.HttpRequest;
@@ -68,7 +68,7 @@ public class TestRequestProtocolCompliance {
         final HttpRequest req = new BasicHttpRequest("PUT", "http://example.com/");
         req.setHeader("If-Match", "W/\"weak\"");
         impl = new RequestProtocolCompliance(true);
-        assertEquals(Arrays.asList(), impl.requestIsFatallyNonCompliant(req));
+        assertEquals(Collections.emptyList(), impl.requestIsFatallyNonCompliant(req));
     }
 
     @Test
