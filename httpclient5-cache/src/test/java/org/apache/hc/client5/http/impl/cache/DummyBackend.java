@@ -40,7 +40,7 @@ public class DummyBackend implements ExecChain {
 
     private ClassicHttpRequest request;
     private ClassicHttpResponse response = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
-    private int executions = 0;
+    private int executions;
 
     public void setResponse(final ClassicHttpResponse resp) {
         response = resp;

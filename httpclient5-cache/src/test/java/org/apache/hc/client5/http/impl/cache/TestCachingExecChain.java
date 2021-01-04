@@ -1207,7 +1207,7 @@ public abstract class TestCachingExecChain {
         final ClassicHttpResponse resp1 = new BasicClassicHttpResponse(HttpStatus.SC_OK,
             "OK");
         resp1.setEntity(new InputStreamEntity(new InputStream() {
-            private boolean closed = false;
+            private boolean closed;
 
             @Override
             public void close() throws IOException {

@@ -59,9 +59,9 @@ public class MultipartEntityBuilder {
 
     private ContentType contentType;
     private HttpMultipartMode mode = HttpMultipartMode.STRICT;
-    private String boundary = null;
-    private Charset charset = null;
-    private List<MultipartPart> multipartParts = null;
+    private String boundary;
+    private Charset charset;
+    private List<MultipartPart> multipartParts;
 
     public static MultipartEntityBuilder create() {
         return new MultipartEntityBuilder();

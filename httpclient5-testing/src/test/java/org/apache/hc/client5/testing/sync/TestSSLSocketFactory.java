@@ -79,7 +79,7 @@ public class TestSSLSocketFactory {
 
     static class TestX509HostnameVerifier implements HostnameVerifier {
 
-        private boolean fired = false;
+        private boolean fired;
 
         @Override
         public boolean verify(final String host, final SSLSession session) {
