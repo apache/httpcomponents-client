@@ -397,7 +397,7 @@ public class TestContentCodings extends LocalServerTestBase {
         private final CountDownLatch startGate;
         private final CountDownLatch endGate;
 
-        private boolean failed = false;
+        private boolean failed;
         private String text;
 
         WorkerTask(final CloseableHttpClient client, final HttpHost target, final boolean identity, final CountDownLatch startGate, final CountDownLatch endGate) {

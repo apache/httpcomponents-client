@@ -51,7 +51,7 @@ class RequestEntityProxy implements HttpEntity  {
     }
 
     private final HttpEntity original;
-    private boolean consumed = false;
+    private boolean consumed;
 
     RequestEntityProxy(final HttpEntity original) {
         super();

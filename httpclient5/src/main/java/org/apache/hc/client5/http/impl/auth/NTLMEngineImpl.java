@@ -332,22 +332,22 @@ final class NTLMEngineImpl implements NTLMEngine {
         byte[] timestamp;
 
         // Stuff we always generate
-        byte[] lmHash = null;
-        byte[] lmResponse = null;
-        byte[] ntlmHash = null;
-        byte[] ntlmResponse = null;
-        byte[] ntlmv2Hash = null;
-        byte[] lmv2Hash = null;
-        byte[] lmv2Response = null;
-        byte[] ntlmv2Blob = null;
-        byte[] ntlmv2Response = null;
-        byte[] ntlm2SessionResponse = null;
-        byte[] lm2SessionResponse = null;
-        byte[] lmUserSessionKey = null;
-        byte[] ntlmUserSessionKey = null;
-        byte[] ntlmv2UserSessionKey = null;
-        byte[] ntlm2SessionResponseUserSessionKey = null;
-        byte[] lanManagerSessionKey = null;
+        byte[] lmHash;
+        byte[] lmResponse;
+        byte[] ntlmHash;
+        byte[] ntlmResponse;
+        byte[] ntlmv2Hash;
+        byte[] lmv2Hash;
+        byte[] lmv2Response;
+        byte[] ntlmv2Blob;
+        byte[] ntlmv2Response;
+        byte[] ntlm2SessionResponse;
+        byte[] lm2SessionResponse;
+        byte[] lmUserSessionKey;
+        byte[] ntlmUserSessionKey;
+        byte[] ntlmv2UserSessionKey;
+        byte[] ntlm2SessionResponseUserSessionKey;
+        byte[] lanManagerSessionKey;
 
         public CipherGen(final Random random, final long currentTime,
             final String domain, final String user, final char[] password,
@@ -808,7 +808,7 @@ final class NTLMEngineImpl implements NTLMEngine {
         private final Cipher rc4;
         final Mode mode;
         final private boolean isConnection;
-        int sequenceNumber = 0;
+        int sequenceNumber;
 
 
         Handle( final byte[] exportedSessionKey, final Mode mode, final boolean isConnection ) throws NTLMEngineException
@@ -1080,10 +1080,10 @@ final class NTLMEngineImpl implements NTLMEngine {
     /** NTLM message generation, base class */
     static class NTLMMessage {
         /** The current response */
-        byte[] messageContents = null;
+        byte[] messageContents;
 
         /** The current output position */
-        int currentOutputPosition = 0;
+        int currentOutputPosition;
 
         /** Constructor to use when message contents are not yet known */
         NTLMMessage() {
@@ -1862,7 +1862,7 @@ final class NTLMEngineImpl implements NTLMEngine {
         int B = 0xefcdab89;
         int C = 0x98badcfe;
         int D = 0x10325476;
-        long count = 0L;
+        long count;
         final byte[] dataBuffer = new byte[64];
 
         MD4() {

@@ -80,8 +80,8 @@ public class PoolingHttpClientConnectionManagerBuilder {
 
     private boolean systemProperties;
 
-    private int maxConnTotal = 0;
-    private int maxConnPerRoute = 0;
+    private int maxConnTotal;
+    private int maxConnPerRoute;
 
     private TimeValue timeToLive;
     private TimeValue validateAfterInactivity;
