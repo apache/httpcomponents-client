@@ -23,7 +23,7 @@
    individuals on behalf of the Apache Software Foundation.  For more
    information on the Apache Software Foundation, please see
    <http://www.apache.org />.
- --><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+ --><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <parent>
     <groupId>org.apache.httpcomponents</groupId>
     <artifactId>httpcomponents-parent</artifactId>
@@ -327,16 +327,40 @@
         <version>${hc.javadoc.version}</version>
         <configuration>
           <quiet>true</quiet>
+          <notimestamp>true</notimestamp>
           <links>
             <link>https://hc.apache.org/httpcomponents-core-5.0.x/httpcore5/apidocs/</link>
             <link>https://hc.apache.org/httpcomponents-core-5.0.x/httpcore5-h2/apidocs/</link>
             <link>${project.url}/httpclient5/apidocs/</link>
           </links>
+          <groups>
+            <group>
+              <title>Apache HttpClient</title>
+              <packages>org.apache.hc.client5.http*</packages>
+            </group>
+            <group>
+              <title>Apache HttpClient Cache</title>
+              <packages>org.apache.hc.client5.http.cache*:org.apache.hc.client5.http.impl.cache*:org.apache.hc.client5.http.schedule:org.apache.hc.client5.http.impl.schedule*</packages>
+            </group>
+            <group>
+              <title>Apache HttpClient Fluent</title>
+              <packages>org.apache.hc.client5.http.fluent*</packages>
+            </group>
+            <group>
+              <title>Apache HttpClient Testing</title>
+              <packages>org.apache.hc.client5.testing*</packages>
+            </group>
+            <group>
+              <title>Apache HttpClient Windows features</title>
+              <packages>org.apache.hc.client5.http.impl.win*</packages>
+            </group>
+          </groups>
         </configuration>
         <reportSets>
           <reportSet>
             <reports>
               <report>javadoc</report>
+              <report>aggregate</report>
             </reports>
           </reportSet>
         </reportSets>
