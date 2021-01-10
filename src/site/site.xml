@@ -29,6 +29,11 @@ under the License.
     <artifactId>maven-site-skin</artifactId>
     <version>1.1</version>
   </skin>
+  <!--skin>
+    <groupId>org.apache.maven.skins</groupId>
+    <artifactId>maven-fluido-skin</artifactId>
+    <version>1.9</version>
+  </skin-->
 
   <bannerLeft>
     <name>Apache</name>
