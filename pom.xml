@@ -204,6 +204,7 @@
     <module>httpclient5-cache</module>
     <module>httpclient5-win</module>
     <module>httpclient5-testing</module>
+    <module>httpclient5-reports</module>
   </modules>
 
   <build>
@@ -228,6 +229,28 @@
             <link>${project.url}/httpclient5/apidocs/</link>
           </links>
         </configuration>
+        <executions>
+          <execution>
+            <id>javadoc</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>javadoc</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-jxr-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>jxr</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>jxr</goal>
+              <goal>test-jxr</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -275,6 +298,15 @@
         <configuration>
           <comparisonVersion>${api.comparison.version}</comparisonVersion>
         </configuration>
+        <executions>
+          <execution>
+            <id>clirr</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>clirr</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
       <plugin>
         <groupId>org.apache.rat</groupId>
