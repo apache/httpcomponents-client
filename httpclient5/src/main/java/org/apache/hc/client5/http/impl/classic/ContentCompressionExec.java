@@ -75,13 +75,18 @@ public final class ContentCompressionExec implements ExecChainHandler {
     private final Lookup<InputStreamFactory> decoderRegistry;
     private final boolean ignoreUnknown;
 
+    /**
+     * An empty immutable {@code String} array.
+     */
+    private static final String[] EMPTY_STRING_ARRAY = new String[0];
+
     public ContentCompressionExec(
             final List<String> acceptEncoding,
             final Lookup<InputStreamFactory> decoderRegistry,
             final boolean ignoreUnknown) {
         this.acceptEncoding = MessageSupport.format(HttpHeaders.ACCEPT_ENCODING,
             acceptEncoding != null ? acceptEncoding.toArray(
-                new String[acceptEncoding.size()]) : new String[] {"gzip", "x-gzip", "deflate"});
+                    EMPTY_STRING_ARRAY) : new String[] {"gzip", "x-gzip", "deflate"});
 
         this.decoderRegistry = decoderRegistry != null ? decoderRegistry :
                 RegistryBuilder.<InputStreamFactory>create()

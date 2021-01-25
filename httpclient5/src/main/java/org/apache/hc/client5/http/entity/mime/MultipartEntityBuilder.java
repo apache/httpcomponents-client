@@ -63,6 +63,11 @@ public class MultipartEntityBuilder {
     private Charset charset;
     private List<MultipartPart> multipartParts;
 
+    /**
+     * An empty immutable {@code NameValuePair} array.
+     */
+    private static final NameValuePair[] EMPTY_NAME_VALUE_ARRAY = new NameValuePair[0];
+
     public static MultipartEntityBuilder create() {
         return new MultipartEntityBuilder();
     }
@@ -201,7 +206,7 @@ public class MultipartEntityBuilder {
         if (charsetCopy != null) {
             paramsList.add(new BasicNameValuePair("charset", charsetCopy.name()));
         }
-        final NameValuePair[] params = paramsList.toArray(new NameValuePair[paramsList.size()]);
+        final NameValuePair[] params = paramsList.toArray(EMPTY_NAME_VALUE_ARRAY);
 
         final ContentType contentTypeCopy;
         if (contentType != null) {
