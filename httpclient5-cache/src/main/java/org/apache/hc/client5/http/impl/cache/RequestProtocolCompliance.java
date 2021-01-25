@@ -121,7 +121,7 @@ class RequestProtocolCompliance {
     }
 
     private String buildHeaderFromElements(final List<HeaderElement> outElts) {
-        final StringBuilder newHdr = new StringBuilder("");
+        final StringBuilder newHdr = new StringBuilder();
         boolean first = true;
         for(final HeaderElement elt : outElts) {
             if (!first) {

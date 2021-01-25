@@ -98,7 +98,7 @@ public class CacheKeyGenerator implements Resolver<URI, String> {
         if (headers == null) {
             return "";
         }
-        final StringBuilder buf = new StringBuilder("");
+        final StringBuilder buf = new StringBuilder();
         for (int i = 0; i < headers.length; i++) {
             final Header hdr = headers[i];
             if (i > 0) {
