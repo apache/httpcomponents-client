@@ -35,7 +35,7 @@
   <name>Apache HttpComponents Client Parent</name>
   <version>5.0.3-SNAPSHOT</version>
   <description>Apache HttpComponents Client is a library of components for building client side HTTP services</description>
-  <url>https://hc.apache.org/httpcomponents-client-5.0.x/doc/</url>
+  <url>https://hc.apache.org/httpcomponents-client-5.0.x/${project.version}/</url>
   <inceptionYear>1999</inceptionYear>
   <packaging>pom</packaging>
 
@@ -55,7 +55,7 @@
     <site>
       <id>apache.website</id>
       <name>Apache HttpComponents Website</name>
-      <url>scm:svn:https://svn.apache.org/repos/asf/httpcomponents/site/httpcomponents-client-5.0.x/doc/</url>
+      <url>scm:svn:https://svn.apache.org/repos/asf/httpcomponents/site/components/httpcomponents-client-5.0.x/LATEST/</url>
     </site>
   </distributionManagement>
 
