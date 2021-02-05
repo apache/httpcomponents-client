@@ -192,10 +192,7 @@ class ResponseCachingPolicy {
         if (status >= 400 && status <= 417) {
             return false;
         }
-        if (status >= 500 && status <= 505) {
-            return false;
-        }
-        return true;
+        return status < 500 || status > 505;
     }
 
     protected boolean isExplicitlyNonCacheable(final HttpResponse response) {

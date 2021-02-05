@@ -103,9 +103,7 @@ public class BasicDomainHandler implements CommonCookieAttributeHandler {
             if (prefix == 0) {
                 return true;
             }
-            if (prefix > 1 && host.charAt(prefix - 1) == '.') {
-                return true;
-            }
+            return prefix > 1 && host.charAt(prefix - 1) == '.';
         }
         return false;
     }

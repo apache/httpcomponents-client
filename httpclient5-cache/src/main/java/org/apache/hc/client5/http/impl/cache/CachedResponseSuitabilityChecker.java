@@ -287,10 +287,7 @@ class CachedResponseSuitabilityChecker {
             return false;
         }
 
-        if (hasLastModifiedValidator && !lastModifiedValidatorMatches) {
-            return false;
-        }
-        return true;
+        return !hasLastModifiedValidator || lastModifiedValidatorMatches;
     }
 
     private boolean hasUnsupportedConditionalHeaders(final HttpRequest request) {
