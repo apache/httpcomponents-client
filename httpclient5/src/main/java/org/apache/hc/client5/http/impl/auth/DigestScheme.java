@@ -333,12 +333,11 @@ public class DigestScheme implements AuthScheme, Serializable {
             final String checksum = formatHex(digester.digest(this.buffer.toByteArray()));
             buffer.reset();
             buffer.append(checksum).append(":").append(nonce).append(":").append(cnonce);
-            a1 = buffer.toByteArray();
         } else {
             // unq(username-value) ":" unq(realm-value) ":" passwd
             buffer.append(username).append(":").append(realm).append(":").append(password);
-            a1 = buffer.toByteArray();
         }
+        a1 = buffer.toByteArray();
 
         final String hasha1 = formatHex(digester.digest(a1));
         buffer.reset();
@@ -383,13 +382,12 @@ public class DigestScheme implements AuthScheme, Serializable {
         final byte[] digestInput;
         if (qop == QOP_MISSING) {
             buffer.append(hasha1).append(":").append(nonce).append(":").append(hasha2);
-            digestInput = buffer.toByteArray();
         } else {
             buffer.append(hasha1).append(":").append(nonce).append(":").append(nc).append(":")
                 .append(cnonce).append(":").append(qop == QOP_AUTH_INT ? "auth-int" : "auth")
                 .append(":").append(hasha2);
-            digestInput = buffer.toByteArray();
         }
+        digestInput = buffer.toByteArray();
         buffer.reset();
 
         final String digest = formatHex(digester.digest(digestInput));

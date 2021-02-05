@@ -159,11 +159,9 @@ public class NTCredentials implements Credentials, Serializable {
         }
         if (o instanceof NTCredentials) {
             final NTCredentials that = (NTCredentials) o;
-            if (LangUtils.equals(this.principal, that.principal)
+            return LangUtils.equals(this.principal, that.principal)
                     && LangUtils.equals(this.workstation, that.workstation)
-                    && LangUtils.equals(this.netbiosDomain, that.netbiosDomain)) {
-                return true;
-            }
+                    && LangUtils.equals(this.netbiosDomain, that.netbiosDomain);
         }
         return false;
     }

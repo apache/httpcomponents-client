@@ -138,8 +138,7 @@ public final class PublicSuffixMatcher {
         if (domain.startsWith(".")) {
             return null;
         }
-        final String normalized = DnsUtils.normalize(domain);
-        String segment = normalized;
+        String segment = DnsUtils.normalize(domain);
         String result = null;
         while (segment != null) {
             // An exception rule takes priority over any other matching rule.

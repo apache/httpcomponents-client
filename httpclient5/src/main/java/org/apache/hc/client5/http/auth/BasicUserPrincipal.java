@@ -71,9 +71,7 @@ public final class BasicUserPrincipal implements Principal, Serializable {
         }
         if (o instanceof BasicUserPrincipal) {
             final BasicUserPrincipal that = (BasicUserPrincipal) o;
-            if (LangUtils.equals(this.username, that.username)) {
-                return true;
-            }
+            return LangUtils.equals(this.username, that.username);
         }
         return false;
     }

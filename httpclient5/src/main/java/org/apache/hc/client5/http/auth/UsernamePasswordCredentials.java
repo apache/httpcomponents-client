@@ -87,9 +87,7 @@ public class UsernamePasswordCredentials implements Credentials, Serializable {
         }
         if (o instanceof UsernamePasswordCredentials) {
             final UsernamePasswordCredentials that = (UsernamePasswordCredentials) o;
-            if (LangUtils.equals(this.principal, that.principal)) {
-                return true;
-            }
+            return LangUtils.equals(this.principal, that.principal);
         }
         return false;
     }

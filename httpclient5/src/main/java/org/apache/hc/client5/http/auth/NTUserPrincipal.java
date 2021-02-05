@@ -99,10 +99,8 @@ public class NTUserPrincipal implements Principal, Serializable {
         }
         if (o instanceof NTUserPrincipal) {
             final NTUserPrincipal that = (NTUserPrincipal) o;
-            if (LangUtils.equals(this.username, that.username)
-                    && LangUtils.equals(this.domain, that.domain)) {
-                return true;
-            }
+            return LangUtils.equals(this.username, that.username)
+                    && LangUtils.equals(this.domain, that.domain);
         }
         return false;
     }

@@ -325,11 +325,7 @@ public class CachingExecBase {
         }
 
         final Header h = request.getFirstHeader(HeaderConstants.MAX_FORWARDS);
-        if (!"0".equals(h != null ? h.getValue() : null)) {
-            return false;
-        }
-
-        return true;
+        return "0".equals(h != null ? h.getValue() : null);
     }
 
     boolean revalidationResponseIsTooOld(final HttpResponse backendResponse, final HttpCacheEntry cacheEntry) {

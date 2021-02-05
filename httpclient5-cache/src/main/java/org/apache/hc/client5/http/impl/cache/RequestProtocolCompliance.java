@@ -159,11 +159,7 @@ class RequestProtocolCompliance {
             return false;
         }
 
-        if (requestProtocol.getMinor() > HttpVersion.HTTP_1_1.getMinor()) {
-            return true;
-        }
-
-        return false;
+        return requestProtocol.getMinor() > HttpVersion.HTTP_1_1.getMinor();
     }
 
     protected boolean requestVersionIsTooLow(final HttpRequest request) {

@@ -75,9 +75,7 @@ public class BasicPathHandler implements CommonCookieAttributeHandler {
             if (uriPath.length() == normalizedCookiePath.length()) {
                 return true;
             }
-            if (uriPath.charAt(normalizedCookiePath.length()) == '/') {
-                return true;
-            }
+            return uriPath.charAt(normalizedCookiePath.length()) == '/';
         }
         return false;
     }
