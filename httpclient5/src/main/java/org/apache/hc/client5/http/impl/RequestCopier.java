@@ -46,13 +46,13 @@ public final class RequestCopier implements MessageCopier<HttpRequest> {
         if (original == null) {
             return null;
         }
-        final BasicHttpRequest copy = new BasicHttpRequest(original.getMethod(), original.getPath());
+        final BasicHttpRequest copy = new BasicHttpRequest(original.getMethod(), null, original.getPath());
+        copy.setScheme(original.getScheme());
+        copy.setAuthority(original.getAuthority());
         copy.setVersion(original.getVersion());
         for (final Iterator<Header> it = original.headerIterator(); it.hasNext(); ) {
             copy.addHeader(it.next());
         }
-        copy.setScheme(original.getScheme());
-        copy.setAuthority(original.getAuthority());
         return copy;
     }
 

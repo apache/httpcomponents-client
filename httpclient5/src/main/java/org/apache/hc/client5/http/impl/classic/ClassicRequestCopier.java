@@ -47,13 +47,13 @@ public final class ClassicRequestCopier implements MessageCopier<ClassicHttpRequ
         if (original == null) {
             return null;
         }
-        final BasicClassicHttpRequest copy = new BasicClassicHttpRequest(original.getMethod(), original.getPath());
+        final BasicClassicHttpRequest copy = new BasicClassicHttpRequest(original.getMethod(), null, original.getPath());
+        copy.setScheme(original.getScheme());
+        copy.setAuthority(original.getAuthority());
         copy.setVersion(original.getVersion());
         for (final Iterator<Header> it = original.headerIterator(); it.hasNext(); ) {
             copy.addHeader(it.next());
         }
-        copy.setScheme(original.getScheme());
-        copy.setAuthority(original.getAuthority());
         copy.setEntity(original.getEntity());
         return copy;
     }
