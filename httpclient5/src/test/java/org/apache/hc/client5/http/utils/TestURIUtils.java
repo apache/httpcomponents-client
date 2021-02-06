@@ -44,67 +44,6 @@ public class TestURIUtils {
     private final URI baseURI = URI.create("http://a/b/c/d;p?q");
 
     @Test
-    public void testRewrite() throws Exception {
-        final HttpHost target = new HttpHost("thathost", -1);
-        Assert.assertEquals("http://thathost/stuff", URIUtils.rewriteURI(
-                URI.create("http://thishost/stuff"), target).toString());
-        Assert.assertEquals("/stuff", URIUtils.rewriteURI(
-                URI.create("http://thishost/stuff"), null).toString());
-        Assert.assertEquals("/", URIUtils.rewriteURI(
-                URI.create("http://thishost//"), null).toString());
-        Assert.assertEquals("/stuff/morestuff", URIUtils.rewriteURI(
-                URI.create("http://thishost//stuff/morestuff"), null).toString());
-        Assert.assertEquals("http://thathost/stuff", URIUtils.rewriteURI(
-                URI.create("http://thishost/stuff#crap"), target, true).toString());
-        Assert.assertEquals("http://thathost/stuff#crap", URIUtils.rewriteURI(
-                URI.create("http://thishost/stuff#crap"), target, false).toString());
-        Assert.assertEquals("http://thathost/", URIUtils.rewriteURI(
-                URI.create("http://thishost#crap"), target, true).toString());
-        Assert.assertEquals("http://thathost/#crap", URIUtils.rewriteURI(
-                URI.create("http://thishost#crap"), target, false).toString());
-        Assert.assertEquals("/stuff/", URIUtils.rewriteURI(
-                URI.create("http://thishost//////////////stuff/"), null).toString());
-        Assert.assertEquals("http://thathost/stuff", URIUtils.rewriteURI(
-                URI.create("http://thathost/stuff")).toString());
-        Assert.assertEquals("http://thathost/stuff", URIUtils.rewriteURI(
-                URI.create("http://thathost/stuff#fragment")).toString());
-        Assert.assertEquals("http://thathost/stuff", URIUtils.rewriteURI(
-                URI.create("http://userinfo@thathost/stuff#fragment")).toString());
-        Assert.assertEquals("http://thathost/", URIUtils.rewriteURI(
-                URI.create("http://thathost")).toString());
-        Assert.assertEquals("http://thathost/", URIUtils.rewriteURI(
-                URI.create("http://ThatHost")).toString());
-        Assert.assertEquals("http://that_host/", URIUtils.rewriteURI(
-                URI.create("http://That_Host")).toString());
-        Assert.assertEquals("http://thishost/Fragment_identifier%23Examples",
-                URIUtils.rewriteURI(
-                        URI.create("http://thishost/Fragment_identifier%23Examples")).toString());
-        Assert.assertEquals("http://thathost/foo%3Abar", URIUtils.rewriteURI(
-                URI.create("http://thishost/foo%3Abar"), target).toString());
-    }
-
-    @Test
-    public void testRewritePort() throws Exception {
-        HttpHost target = new HttpHost("thathost", 8080); // port should be copied
-        Assert.assertEquals("http://thathost:8080/stuff", URIUtils.rewriteURI(
-                URI.create("http://thishost:80/stuff#crap"), target, true).toString());
-        Assert.assertEquals("http://thathost:8080/stuff#crap", URIUtils.rewriteURI(
-                URI.create("http://thishost:80/stuff#crap"), target, false).toString());
-        target = new HttpHost("thathost", -1); // input port should be dropped
-        Assert.assertEquals("http://thathost/stuff", URIUtils.rewriteURI(
-                URI.create("http://thishost:80/stuff#crap"), target, true).toString());
-        Assert.assertEquals("http://thathost/stuff#crap", URIUtils.rewriteURI(
-                URI.create("http://thishost:80/stuff#crap"), target, false).toString());
-    }
-
-    @Test
-    public void testRewriteScheme() throws Exception {
-        final HttpHost target = new HttpHost("file", "thathost", -1); // scheme should be copied
-        Assert.assertEquals("file://thathost/stuff", URIUtils.rewriteURI(
-                URI.create("http://thishost:80/stuff#crap"), target, true).toString());
-    }
-
-    @Test
     public void testNormalization() {
         Assert.assertEquals("example://a/b/c/%7Bfoo%7D", URIUtils.resolve(this.baseURI, "eXAMPLE://a/./b/../b/%63/%7bfoo%7d").toString());
         Assert.assertEquals("http://www.example.com/%3C", URIUtils.resolve(this.baseURI, "http://www.example.com/%3c").toString());

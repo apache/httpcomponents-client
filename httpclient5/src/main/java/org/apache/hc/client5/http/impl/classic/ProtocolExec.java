@@ -45,7 +45,6 @@ import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.AuthSupport;
 import org.apache.hc.client5.http.impl.auth.HttpAuthenticator;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
-import org.apache.hc.client5.http.utils.URIUtils;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
@@ -63,6 +62,7 @@ import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.protocol.HttpCoreContext;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
 import org.apache.hc.core5.net.URIAuthority;
+import org.apache.hc.core5.net.URIBuilder;
 import org.apache.hc.core5.util.Args;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -127,9 +127,9 @@ public final class ProtocolExec implements ExecChainHandler {
                 try {
                     URI uri = userRequest.getUri();
                     if (!uri.isAbsolute()) {
-                        uri = URIUtils.rewriteURI(uri, target, true);
-                    } else {
-                        uri = URIUtils.rewriteURI(uri);
+                        uri = new URIBuilder(uri)
+                                .setHttpHost(target)
+                                .build();
                     }
                     request = ClassicHttpProxyRequest.rewrite(userRequest, uri);
                 } catch (final URISyntaxException ex) {

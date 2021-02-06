@@ -63,7 +63,10 @@ public class URIUtils {
      *
      * @throws URISyntaxException
      *             If the resulting URI is invalid.
+     *
+     * @deprecated Use {@link URIBuilder}.
      */
+    @Deprecated
     public static URI rewriteURI(
             final URI uri,
             final HttpHost target,
@@ -106,7 +109,10 @@ public class URIUtils {
      * A convenience method for
      * {@link URIUtils#rewriteURI(URI, HttpHost, boolean)} that always keeps the
      * fragment.
+     *
+     * @deprecated Use {@link URIBuilder}.
      */
+    @Deprecated
     public static URI rewriteURI(
             final URI uri,
             final HttpHost target) throws URISyntaxException {
@@ -123,7 +129,10 @@ public class URIUtils {
      *            original URI.
      * @throws URISyntaxException
      *             If the resulting URI is invalid.
+     *
+     * @deprecated Use {@link URIBuilder}.
      */
+    @Deprecated
     public static URI rewriteURI(final URI uri) throws URISyntaxException {
         Args.notNull(uri, "URI");
         if (uri.isOpaque()) {
@@ -287,7 +296,10 @@ public class URIUtils {
      * Convenience factory method for {@link URI} instances.
      *
      * @since 5.0
+     *
+     * @deprecated Use {@link URIBuilder}.
      */
+    @Deprecated
     public static URI create(final HttpHost host, final String path) throws URISyntaxException {
         final URIBuilder builder = new URIBuilder(path);
         if (host != null) {
@@ -300,7 +312,10 @@ public class URIUtils {
      * Convenience factory method for {@link URI} instances.
      *
      * @since 5.0
+     *
+     * @deprecated Use {@link URIBuilder}.
      */
+    @Deprecated
     public static URI create(final String scheme, final URIAuthority host, final String path) throws URISyntaxException {
         final URIBuilder builder = new URIBuilder(path);
         if (scheme != null) {
