@@ -1,4 +1,62 @@
-﻿Release 5.0.3
+﻿Release 5.1 BETA1
+------------------
+
+This is the first BETA release in the 5.1 release series that includes a number of
+new features as well performance optimizations in the classic HTTP transport.
+
+Notable changes and features included in the 5.1 series:
+
+* Conditional conformance with RFC 3986 (Uniform Resource Identifier (URI): Generic Syntax).
+
+* Improved support for out of sequence response message handing by the the classic (blocking)
+  HTTP transport.
+
+
+Changelog:
+-------------------
+
+* RFC 3986 conformance: URIUtils to re-use URIBuilder functionality.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Improved I/O session and wire logging.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Add interceptors before MAIN_TRANSPORT so they won't be ignored (#272)
+  Contributed by Rob Spoor <robtimus at users.noreply.github.com>
+
+* HTTPCLIENT-2104: ManagedHttpClientConnectionFactory to support ResponseOutOfOrderStrategy configuration.
+  Contributed by Carter Kozak <ckozak at apache.org>
+
+* Fixed NPE when H2/Async client interceptors are added using first/last (#268).
+  Contributed by Koji Lin <koji.lin at gmail.com>
+
+* HTTPCLIENT-2126: `InternalAbstractHttpAsyncClient` incorrectly handles response messages with no enclosed
+  entity.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2124: Fixed NOE  in MinimalHttpClient#doExecute (#261).
+  Contributed by Gary Gregory <ggregory at apache.org>
+
+* HTTPCLIENT-2122: async client to throw `HTTP/2 tunneling not supported` protocol exception in case of
+  `force HTTP/2` version policy used along with request proxy routing.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2123: H2AsyncClientBuilder incorrectly adds last request interceptors to the head of
+  the interceptor list.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Use decimal numbers for endpoint/execution IDs (#249).
+  Contributed by Michael Osipov <michaelo@apache.org>
+
+* HTTPCLIENT-2106: Added charset parameter for DigestScheme.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2103: ManagedHttpClientConnectionFactory provides a fluent builder
+  Contributed by Carter Kozak <ckozak at apache.org>
+
+
+
+Release 5.0.3
 -----------------
 
 This release upgrades HttpCore to the latest version, improves conformance to RFC 7235
