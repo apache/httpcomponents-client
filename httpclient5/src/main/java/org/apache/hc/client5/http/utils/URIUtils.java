@@ -32,9 +32,9 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
-import java.util.Stack;
 
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.net.URIAuthority;
 import org.apache.hc.core5.net.URIBuilder;
 import org.apache.hc.core5.util.Args;
@@ -190,8 +190,7 @@ public class URIUtils {
     }
 
     /**
-     * Removes dot segments according to RFC 3986, section 5.2.4 and
-     * Syntax-Based Normalization according to RFC 3986, section 6.2.2.
+     * Removes dot segments and performs Syntax-Based Normalization.
      *
      * @param uri the original URI
      * @return the URI without dot segments
@@ -201,38 +200,13 @@ public class URIUtils {
             // opaque and file: URIs
             return uri;
         }
-        Args.check(uri.isAbsolute(), "Base URI must be absolute");
         final URIBuilder builder = new URIBuilder(uri);
-        if (!builder.isPathEmpty()) {
-            final List<String> inputSegments = builder.getPathSegments();
-            final Stack<String> outputSegments = new Stack<>();
-            for (final String inputSegment : inputSegments) {
-                if (!inputSegment.isEmpty() && !".".equals(inputSegment)) {
-                    if ("..".equals(inputSegment)) {
-                        if (!outputSegments.isEmpty()) {
-                            outputSegments.pop();
-                        }
-                    } else {
-                        outputSegments.push(inputSegment);
-                    }
-                }
-            }
-            if (!inputSegments.isEmpty()) {
-                final String lastSegment = inputSegments.get(inputSegments.size() - 1);
-                if (lastSegment.isEmpty()) {
-                    outputSegments.push("");
-                }
-            }
-            builder.setPathSegments(outputSegments);
+        builder.normalizeSyntax();
+        if (builder.getScheme() == null) {
+            builder.setScheme(URIScheme.HTTP.id);
         }
         if (builder.isPathEmpty()) {
             builder.setPathSegments("");
-        }
-        if (builder.getScheme() != null) {
-            builder.setScheme(builder.getScheme().toLowerCase(Locale.ROOT));
-        }
-        if (builder.getHost() != null) {
-            builder.setHost(builder.getHost().toLowerCase(Locale.ROOT));
         }
         return builder.build();
     }

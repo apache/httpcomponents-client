@@ -163,13 +163,13 @@ public class TestURIUtils {
                 .toString());
         Assert.assertEquals("http://a/b/c/y", URIUtils.resolve(this.baseURI, "g;x=1/../y")
                 .toString());
-        Assert.assertEquals("http://a/b/c/g?y/./x", URIUtils.resolve(this.baseURI, "g?y/./x")
+        Assert.assertEquals("http://a/b/c/g?y%2F.%2Fx", URIUtils.resolve(this.baseURI, "g?y/./x")
                 .toString());
-        Assert.assertEquals("http://a/b/c/g?y/../x", URIUtils.resolve(this.baseURI, "g?y/../x")
+        Assert.assertEquals("http://a/b/c/g?y%2F..%2Fx", URIUtils.resolve(this.baseURI, "g?y/../x")
                 .toString());
-        Assert.assertEquals("http://a/b/c/g#s/./x", URIUtils.resolve(this.baseURI, "g#s/./x")
+        Assert.assertEquals("http://a/b/c/g#s%2F.%2Fx", URIUtils.resolve(this.baseURI, "g#s/./x")
                 .toString());
-        Assert.assertEquals("http://a/b/c/g#s/../x", URIUtils.resolve(this.baseURI, "g#s/../x")
+        Assert.assertEquals("http://a/b/c/g#s%2F..%2Fx", URIUtils.resolve(this.baseURI, "g#s/../x")
                 .toString());
         Assert.assertEquals("http:g", URIUtils.resolve(this.baseURI, "http:g").toString());
         // examples from section 5.2.4
