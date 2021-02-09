@@ -156,11 +156,11 @@ public abstract class AbstractSerializingAsyncCacheStorage<T, CAS> implements Ht
         Args.notNull(callback, "Callback");
         final ComplexCancellable complexCancellable = new ComplexCancellable();
         final AtomicInteger count = new AtomicInteger(0);
-        atemmptUpdateEntry(key, casOperation, complexCancellable, count, callback);
+        attemptUpdateEntry(key, casOperation, complexCancellable, count, callback);
         return complexCancellable;
     }
 
-    private void atemmptUpdateEntry(
+    private void attemptUpdateEntry(
             final String key,
             final HttpCacheCASOperation casOperation,
             final ComplexCancellable complexCancellable,
@@ -195,7 +195,7 @@ public abstract class AbstractSerializingAsyncCacheStorage<T, CAS> implements Ht
                                             if (numRetries >= maxUpdateRetries) {
                                                 callback.failed(new HttpCacheUpdateException("Cache update failed after " + numRetries + " retries"));
                                             } else {
-                                                atemmptUpdateEntry(key, casOperation, complexCancellable, count, callback);
+                                                attemptUpdateEntry(key, casOperation, complexCancellable, count, callback);
                                             }
                                         }
                                     }

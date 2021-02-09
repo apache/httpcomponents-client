@@ -62,7 +62,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Request execution handler in the asynchronous request execution chain
- * responsbile for handling of request redirects.
+ * responsible for handling of request redirects.
  * <p>
  * Further responsibilities such as communication with the opposite
  * endpoint is delegated to the next executor in the request execution

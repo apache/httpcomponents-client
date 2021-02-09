@@ -68,7 +68,7 @@ public class FileResource extends Resource {
     public byte[] get() throws ResourceIOException {
         final File file = this.fileRef.get();
         if (file == null) {
-            throw new ResourceIOException("Resouce already dispoased");
+            throw new ResourceIOException("Resource already disposed");
         }
         try (final InputStream in = new FileInputStream(file)) {
             final ByteArrayBuffer buf = new ByteArrayBuffer(1024);
@@ -93,7 +93,7 @@ public class FileResource extends Resource {
                 throw new ResourceIOException(ex.getMessage(), ex);
             }
         }
-        throw new ResourceIOException("Resouce already dispoased");
+        throw new ResourceIOException("Resource already disposed");
     }
 
     @Override
