@@ -48,13 +48,13 @@ public final class HttpAsyncCacheStorageAdaptor implements HttpAsyncCacheStorage
     private final HttpCacheStorage cacheStorage;
 
     public HttpAsyncCacheStorageAdaptor(final HttpCacheStorage cacheStorage) {
-        this.cacheStorage = Args.notNull(cacheStorage, "Cache strorage");
+        this.cacheStorage = Args.notNull(cacheStorage, "Cache storage");
     }
 
     @Override
     public Cancellable putEntry(final String key, final HttpCacheEntry entry, final FutureCallback<Boolean> callback) {
         Args.notEmpty(key, "Key");
-        Args.notNull(entry, "Cache ehtry");
+        Args.notNull(entry, "Cache entry");
         Args.notNull(callback, "Callback");
         try {
             cacheStorage.putEntry(key, entry);

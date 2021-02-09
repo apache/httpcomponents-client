@@ -558,7 +558,7 @@ public class H2AsyncClientBuilder {
      * One MUST explicitly close HttpClient with {@link CloseableHttpAsyncClient#close()}
      * in order to stop and release the background thread.
      * <p>
-     * Please note this method has no effect if the instance of HttpClient is configuted to
+     * Please note this method has no effect if the instance of HttpClient is configured to
      * use a shared connection manager.
      *
      * @param maxIdleTime maximum time persistent connections can stay idle while kept alive
