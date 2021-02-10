@@ -26,9 +26,6 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
-import java.io.IOException;
-import java.util.HashMap;
-
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecChainHandler;
@@ -46,6 +43,9 @@ import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 import org.easymock.EasyMock;
 import org.easymock.IExpectationSetters;
 import org.junit.Before;
+
+import java.io.IOException;
+import java.util.HashMap;
 
 public abstract class AbstractProtocolTest {
 
