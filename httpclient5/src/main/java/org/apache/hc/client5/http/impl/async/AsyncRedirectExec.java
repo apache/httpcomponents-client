@@ -26,9 +26,6 @@
  */
 package org.apache.hc.client5.http.impl.async;
 
-import java.io.IOException;
-import java.net.URI;
-
 import org.apache.hc.client5.http.CircularRedirectException;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.RedirectException;
@@ -59,6 +56,9 @@ import org.apache.hc.core5.http.support.BasicRequestBuilder;
 import org.apache.hc.core5.util.LangUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.net.URI;
 
 /**
  * Request execution handler in the asynchronous request execution chain
