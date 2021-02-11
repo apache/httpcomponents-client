@@ -35,7 +35,7 @@
   <inceptionYear>2011</inceptionYear>
   <description>Apache HttpComponents Client Fluent</description>
   <url>https://hc.apache.org/httpcomponents-client-5.0.x/</url>
-  <packaging>bundle</packaging>
+  <packaging>jar</packaging>
 
   <properties>
     <Automatic-Module-Name>org.apache.httpcomponents.client5.httpclient5.fluent</Automatic-Module-Name>
@@ -81,9 +81,30 @@
   <build>
     <plugins>
       <plugin>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <archive>
+            <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+            <manifestEntries>
+              <Automatic-Module-Name>${Automatic-Module-Name}</Automatic-Module-Name>
+              <Implementation-URL>${project.url}</Implementation-URL>
+            </manifestEntries>
+          </archive>
+        </configuration>
+      </plugin>
+      <plugin>
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-bundle-plugin</artifactId>
         <extensions>true</extensions>
+        <executions>
+          <execution>
+            <id>bundle-manifest</id>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>manifest</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>

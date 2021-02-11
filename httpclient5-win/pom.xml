@@ -34,7 +34,7 @@
   <name>Apache HttpClient Windows features</name>
   <description>Apache HttpClient Windows specific functionality</description>
   <url>https://hc.apache.org/httpcomponents-client-5.0.x/</url>
-  <packaging>bundle</packaging>
+  <packaging>jar</packaging>
 
   <properties>
     <Automatic-Module-Name>org.apache.httpcomponents.client5.httpclient5.win</Automatic-Module-Name>
@@ -84,6 +84,18 @@
   <build>
     <plugins>
       <plugin>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <archive>
+            <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+            <manifestEntries>
+              <Automatic-Module-Name>${Automatic-Module-Name}</Automatic-Module-Name>
+              <Implementation-URL>${project.url}</Implementation-URL>
+            </manifestEntries>
+          </archive>
+        </configuration>
+      </plugin>
+      <plugin>
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-bundle-plugin</artifactId>
         <extensions>true</extensions>
@@ -92,6 +104,15 @@
             <Export-Package>org.apache.hc.client5.http.impl.win</Export-Package>
           </instructions>
         </configuration>
+        <executions>
+          <execution>
+            <id>bundle-manifest</id>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>manifest</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>

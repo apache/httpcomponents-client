@@ -34,7 +34,7 @@
   <name>Apache HttpClient</name>
   <description>Apache HttpComponents Client</description>
   <url>https://hc.apache.org/httpcomponents-client-5.0.x/</url>
-  <packaging>bundle</packaging>
+  <packaging>jar</packaging>
 
   <properties>
     <Automatic-Module-Name>org.apache.httpcomponents.client5.httpclient5</Automatic-Module-Name>
@@ -127,6 +127,15 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <archive>
+            <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+            <manifestEntries>
+              <Automatic-Module-Name>${Automatic-Module-Name}</Automatic-Module-Name>
+              <Implementation-URL>${project.url}</Implementation-URL>
+            </manifestEntries>
+          </archive>
+        </configuration>
         <executions>
           <execution>
             <goals>
@@ -144,7 +153,16 @@
             <Export-Package>org.apache.hc.client5.http.*</Export-Package>
           </instructions>
         </configuration>
-        </plugin>
+        <executions>
+          <execution>
+            <id>bundle-manifest</id>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>manifest</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
 
