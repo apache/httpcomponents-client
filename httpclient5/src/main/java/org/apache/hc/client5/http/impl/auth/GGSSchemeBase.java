@@ -222,7 +222,7 @@ public abstract class GGSSchemeBase implements AuthScheme {
                 } else {
                     authServer = hostname + ":" + host.getPort();
                 }
-                final String serviceName = host.getSchemeName().toUpperCase(Locale.ROOT);
+                final String serviceName = config.getServiceName().toUpperCase(Locale.ROOT);
 
                 if (LOG.isDebugEnabled()) {
                     final HttpClientContext clientContext = HttpClientContext.adapt(context);

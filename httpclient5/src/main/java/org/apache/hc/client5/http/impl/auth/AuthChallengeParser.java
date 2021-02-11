@@ -116,6 +116,7 @@ public class AuthChallengeParser {
                     params.clear();
                 }
             }
+            if (token68 == null) token68 = "";
             challenges.add(
                     new AuthChallenge(challengeType, internal.schemeName, token68, !params.isEmpty() ? params : null));
         }

@@ -47,26 +47,30 @@ public class KerberosConfig implements Cloneable {
     }
 
     public static final KerberosConfig DEFAULT = new Builder().build();
+    private static final String DEFAULT_SERVICE_NAME = "HTTP";
 
     private final Option stripPort;
     private final Option useCanonicalHostname;
     private final Option requestDelegCreds;
+    private final String serviceName;
 
     /**
      * Intended for CDI compatibility
     */
     protected KerberosConfig() {
-        this(Option.DEFAULT, Option.DEFAULT, Option.DEFAULT);
+        this(Option.DEFAULT, Option.DEFAULT, Option.DEFAULT, DEFAULT_SERVICE_NAME);
     }
 
     KerberosConfig(
             final Option stripPort,
             final Option useCanonicalHostname,
-            final Option requestDelegCreds) {
+            final Option requestDelegCreds,
+            final String serviceName) {
         super();
         this.stripPort = stripPort;
         this.useCanonicalHostname = useCanonicalHostname;
         this.requestDelegCreds = requestDelegCreds;
+        this.serviceName = serviceName;
     }
 
     public Option getStripPort() {
@@ -81,6 +85,10 @@ public class KerberosConfig implements Cloneable {
         return requestDelegCreds;
     }
 
+    public String getServiceName() {
+        return serviceName;
+    }
+
     @Override
     protected KerberosConfig clone() throws CloneNotSupportedException {
         return (KerberosConfig) super.clone();
@@ -93,6 +101,7 @@ public class KerberosConfig implements Cloneable {
         builder.append("stripPort=").append(stripPort);
         builder.append(", useCanonicalHostname=").append(useCanonicalHostname);
         builder.append(", requestDelegCreds=").append(requestDelegCreds);
+        builder.append(", serviceName=").append(serviceName);
         builder.append("]");
         return builder.toString();
     }
@@ -105,7 +114,8 @@ public class KerberosConfig implements Cloneable {
         return new Builder()
                 .setStripPort(config.getStripPort())
                 .setUseCanonicalHostname(config.getUseCanonicalHostname())
-                .setRequestDelegCreds(config.getRequestDelegCreds());
+                .setRequestDelegCreds(config.getRequestDelegCreds())
+                .setServiceName(config.getServiceName());
     }
 
     public static class Builder {
@@ -113,12 +123,14 @@ public class KerberosConfig implements Cloneable {
         private Option stripPort;
         private Option useCanonicalHostname;
         private Option requestDelegCreds;
+        private String serviceName;
 
         Builder() {
             super();
             this.stripPort = Option.DEFAULT;
             this.useCanonicalHostname = Option.DEFAULT;
             this.requestDelegCreds = Option.DEFAULT;
+            this.serviceName = DEFAULT_SERVICE_NAME;
         }
 
         public Builder setStripPort(final Option stripPort) {
@@ -146,11 +158,17 @@ public class KerberosConfig implements Cloneable {
             return this;
         }
 
+        public Builder setServiceName(final String serviceName) {
+            this.serviceName = serviceName;
+            return this;
+        }
+
         public KerberosConfig build() {
             return new KerberosConfig(
                     stripPort,
                     useCanonicalHostname,
-                    requestDelegCreds);
+                    requestDelegCreds,
+                    serviceName);
         }
 
     }
