@@ -117,12 +117,12 @@ public class ResponseProcessCookies implements HttpResponseInterceptor {
 
                         if (LOG.isDebugEnabled()) {
                             if (LOG.isDebugEnabled()) {
-                                LOG.debug("{} Cookie accepted [{}]", exchangeId, formatCooke(cookie));
+                                LOG.debug("{} Cookie accepted [{}]", exchangeId, formatCookie(cookie));
                             }
                         }
                     } catch (final MalformedCookieException ex) {
                         if (LOG.isWarnEnabled()) {
-                            LOG.warn("{} Cookie rejected [{}] {}", exchangeId, formatCooke(cookie), ex.getMessage());
+                            LOG.warn("{} Cookie rejected [{}] {}", exchangeId, formatCookie(cookie), ex.getMessage());
                         }
                     }
                 }
@@ -134,7 +134,7 @@ public class ResponseProcessCookies implements HttpResponseInterceptor {
         }
     }
 
-    private static String formatCooke(final Cookie cookie) {
+    private static String formatCookie(final Cookie cookie) {
         final StringBuilder buf = new StringBuilder();
         buf.append(cookie.getName());
         buf.append("=\"");
