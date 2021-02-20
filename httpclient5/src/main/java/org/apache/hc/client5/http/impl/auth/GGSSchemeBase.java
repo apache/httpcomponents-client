@@ -28,7 +28,6 @@ package org.apache.hc.client5.http.impl.auth;
 
 import java.net.UnknownHostException;
 import java.security.Principal;
-import java.util.Locale;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.hc.client5.http.DnsResolver;
@@ -73,7 +72,8 @@ public abstract class GGSSchemeBase implements AuthScheme {
     }
 
     private static final Logger LOG = LoggerFactory.getLogger(GGSSchemeBase.class);
-
+    private static final String NO_TOKEN = "";
+    private static final String KERBEROS_SCHEME = "HTTP";
     private final KerberosConfig config;
     private final DnsResolver dnsResolver;
 
@@ -108,10 +108,9 @@ public abstract class GGSSchemeBase implements AuthScheme {
             final AuthChallenge authChallenge,
             final HttpContext context) throws MalformedChallengeException {
         Args.notNull(authChallenge, "AuthChallenge");
-        if (authChallenge.getValue() == null) {
-            throw new MalformedChallengeException("Missing auth challenge");
-        }
-        this.challenge = authChallenge.getValue();
+
+        this.challenge = authChallenge.getValue() != null ? authChallenge.getValue() : NO_TOKEN;
+
         if (state == State.UNINITIATED) {
             token = Base64.decodeBase64(challenge.getBytes());
             state = State.CHALLENGE_RECEIVED;
@@ -222,14 +221,13 @@ public abstract class GGSSchemeBase implements AuthScheme {
                 } else {
                     authServer = hostname + ":" + host.getPort();
                 }
-                final String serviceName = host.getSchemeName().toUpperCase(Locale.ROOT);
 
                 if (LOG.isDebugEnabled()) {
                     final HttpClientContext clientContext = HttpClientContext.adapt(context);
                     final String exchangeId = clientContext.getExchangeId();
                     LOG.debug("{} init {}", exchangeId, authServer);
                 }
-                token = generateToken(token, serviceName, authServer);
+                token = generateToken(token, KERBEROS_SCHEME, authServer);
                 state = State.TOKEN_GENERATED;
             } catch (final GSSException gsse) {
                 state = State.FAILED;
