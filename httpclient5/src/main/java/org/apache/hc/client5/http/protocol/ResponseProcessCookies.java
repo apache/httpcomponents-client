@@ -116,9 +116,7 @@ public class ResponseProcessCookies implements HttpResponseInterceptor {
                         cookieStore.addCookie(cookie);
 
                         if (LOG.isDebugEnabled()) {
-                            if (LOG.isDebugEnabled()) {
-                                LOG.debug("{} Cookie accepted [{}]", exchangeId, formatCookie(cookie));
-                            }
+                            LOG.debug("{} Cookie accepted [{}]", exchangeId, formatCookie(cookie));
                         }
                     } catch (final MalformedCookieException ex) {
                         if (LOG.isWarnEnabled()) {
