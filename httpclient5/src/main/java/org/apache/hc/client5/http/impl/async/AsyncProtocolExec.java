@@ -27,8 +27,6 @@
 package org.apache.hc.client5.http.impl.async;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -62,8 +60,8 @@ import org.apache.hc.core5.http.nio.AsyncDataConsumer;
 import org.apache.hc.core5.http.nio.AsyncEntityProducer;
 import org.apache.hc.core5.http.protocol.HttpCoreContext;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
+import org.apache.hc.core5.http.support.BasicRequestBuilder;
 import org.apache.hc.core5.net.URIAuthority;
-import org.apache.hc.core5.net.URIBuilder;
 import org.apache.hc.core5.util.Args;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -119,17 +117,12 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
 
         final HttpRequest request;
         if (proxy != null && !route.isTunnelled()) {
-            try {
-                URI uri = userRequest.getUri();
-                if (!uri.isAbsolute()) {
-                    uri = new URIBuilder(uri)
-                            .setHttpHost(target)
-                            .build();
-                }
-                request = HttpProxyRequest.rewrite(userRequest, uri);
-            } catch (final URISyntaxException ex) {
-                throw new ProtocolException("Invalid request URI: " + userRequest.getRequestUri(), ex);
+            final BasicRequestBuilder requestBuilder = BasicRequestBuilder.copy(userRequest);
+            if (requestBuilder.getAuthority() == null) {
+                requestBuilder.setAuthority(new URIAuthority(target));
             }
+            requestBuilder.setAbsoluteRequestUri(true);
+            request = requestBuilder.build();
         } else {
             request = userRequest;
         }

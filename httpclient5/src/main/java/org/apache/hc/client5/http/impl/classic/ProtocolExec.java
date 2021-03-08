@@ -28,8 +28,6 @@
 package org.apache.hc.client5.http.impl.classic;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Iterator;
 
 import org.apache.hc.client5.http.AuthenticationStrategy;
@@ -59,10 +57,10 @@ import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
 import org.apache.hc.core5.http.protocol.HttpCoreContext;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
 import org.apache.hc.core5.net.URIAuthority;
-import org.apache.hc.core5.net.URIBuilder;
 import org.apache.hc.core5.util.Args;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -124,17 +122,12 @@ public final class ProtocolExec implements ExecChainHandler {
         try {
             final ClassicHttpRequest request;
             if (proxy != null && !route.isTunnelled()) {
-                try {
-                    URI uri = userRequest.getUri();
-                    if (!uri.isAbsolute()) {
-                        uri = new URIBuilder(uri)
-                                .setHttpHost(target)
-                                .build();
-                    }
-                    request = ClassicHttpProxyRequest.rewrite(userRequest, uri);
-                } catch (final URISyntaxException ex) {
-                    throw new ProtocolException("Invalid request URI: " + userRequest.getRequestUri(), ex);
+                final ClassicRequestBuilder requestBuilder = ClassicRequestBuilder.copy(userRequest);
+                if (requestBuilder.getAuthority() == null) {
+                    requestBuilder.setAuthority(new URIAuthority(target));
                 }
+                requestBuilder.setAbsoluteRequestUri(true);
+                request = requestBuilder.build();
             } else {
                 request = userRequest;
             }
