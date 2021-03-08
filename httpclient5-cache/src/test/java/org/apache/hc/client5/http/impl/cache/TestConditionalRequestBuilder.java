@@ -33,14 +33,15 @@ import java.util.Map;
 
 import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
-import org.apache.hc.client5.http.impl.RequestCopier;
 import org.apache.hc.client5.http.utils.DateUtils;
+import org.apache.hc.core5.function.Factory;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HeaderElement;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
 import org.apache.hc.core5.http.message.MessageSupport;
+import org.apache.hc.core5.http.support.BasicRequestBuilder;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -52,7 +53,14 @@ public class TestConditionalRequestBuilder {
 
     @Before
     public void setUp() throws Exception {
-        impl = new ConditionalRequestBuilder<>(RequestCopier.INSTANCE);
+        impl = new ConditionalRequestBuilder<>(new Factory<HttpRequest, HttpRequest>() {
+
+            @Override
+            public HttpRequest create(final HttpRequest request) {
+                return BasicRequestBuilder.copy(request).build();
+            }
+
+        });
         request = new BasicHttpRequest("GET", "/");
     }
 
@@ -64,16 +72,13 @@ public class TestConditionalRequestBuilder {
 
         final HttpRequest basicRequest = new BasicHttpRequest(theMethod, theUri);
         basicRequest.addHeader("Accept-Encoding", "gzip");
-        final HttpRequest requestWrapper = RequestCopier.INSTANCE.copy(basicRequest);
 
         final Header[] headers = new Header[] {
                 new BasicHeader("Date", DateUtils.formatDate(new Date())),
                 new BasicHeader("Last-Modified", lastModified) };
 
         final HttpCacheEntry cacheEntry = HttpTestUtils.makeCacheEntry(headers);
-        final HttpRequest newRequest = impl.buildConditionalRequest(requestWrapper, cacheEntry);
-
-        Assert.assertNotSame(basicRequest, newRequest);
+        final HttpRequest newRequest = impl.buildConditionalRequest(basicRequest, cacheEntry);
 
         Assert.assertEquals(theMethod, newRequest.getMethod());
         Assert.assertEquals(theUri, newRequest.getRequestUri());
@@ -100,9 +105,8 @@ public class TestConditionalRequestBuilder {
             new BasicHeader("ETag", etag)
         };
         final HttpRequest basicRequest = new BasicHttpRequest("GET", "/");
-        final HttpRequest requestWrapper = RequestCopier.INSTANCE.copy(basicRequest);
         final HttpCacheEntry cacheEntry = HttpTestUtils.makeCacheEntry(headers);
-        final HttpRequest result = impl.buildConditionalRequest(requestWrapper, cacheEntry);
+        final HttpRequest result = impl.buildConditionalRequest(basicRequest, cacheEntry);
         Assert.assertEquals(lmDate,
                 result.getFirstHeader("If-Modified-Since").getValue());
         Assert.assertEquals(etag,
@@ -117,7 +121,6 @@ public class TestConditionalRequestBuilder {
 
         final HttpRequest basicRequest = new BasicHttpRequest(theMethod, theUri);
         basicRequest.addHeader("Accept-Encoding", "gzip");
-        final HttpRequest requestWrapper = RequestCopier.INSTANCE.copy(basicRequest);
 
         final Header[] headers = new Header[] {
                 new BasicHeader("Date", DateUtils.formatDate(new Date())),
@@ -126,9 +129,7 @@ public class TestConditionalRequestBuilder {
 
         final HttpCacheEntry cacheEntry = HttpTestUtils.makeCacheEntry(headers);
 
-        final HttpRequest newRequest = impl.buildConditionalRequest(requestWrapper, cacheEntry);
-
-        Assert.assertNotSame(basicRequest, newRequest);
+        final HttpRequest newRequest = impl.buildConditionalRequest(basicRequest, cacheEntry);
 
         Assert.assertEquals(theMethod, newRequest.getMethod());
         Assert.assertEquals(theUri, newRequest.getRequestUri());
@@ -145,7 +146,6 @@ public class TestConditionalRequestBuilder {
     @Test
     public void testCacheEntryWithMustRevalidateDoesEndToEndRevalidation() throws Exception {
         final HttpRequest basicRequest = new BasicHttpRequest("GET","/");
-        final HttpRequest requestWrapper = RequestCopier.INSTANCE.copy(basicRequest);
         final Date now = new Date();
         final Date elevenSecondsAgo = new Date(now.getTime() - 11 * 1000L);
         final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
@@ -157,7 +157,7 @@ public class TestConditionalRequestBuilder {
                 new BasicHeader("Cache-Control","max-age=5, must-revalidate") };
         final HttpCacheEntry cacheEntry = HttpTestUtils.makeCacheEntry(elevenSecondsAgo, nineSecondsAgo, cacheEntryHeaders);
 
-        final HttpRequest result = impl.buildConditionalRequest(requestWrapper, cacheEntry);
+        final HttpRequest result = impl.buildConditionalRequest(basicRequest, cacheEntry);
 
         boolean foundMaxAge0 = false;
 
@@ -174,7 +174,6 @@ public class TestConditionalRequestBuilder {
     @Test
     public void testCacheEntryWithProxyRevalidateDoesEndToEndRevalidation() throws Exception {
         final HttpRequest basicRequest = new BasicHttpRequest("GET", "/");
-        final HttpRequest requestWrapper = RequestCopier.INSTANCE.copy(basicRequest);
         final Date now = new Date();
         final Date elevenSecondsAgo = new Date(now.getTime() - 11 * 1000L);
         final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
@@ -186,7 +185,7 @@ public class TestConditionalRequestBuilder {
                 new BasicHeader("Cache-Control","max-age=5, proxy-revalidate") };
         final HttpCacheEntry cacheEntry = HttpTestUtils.makeCacheEntry(elevenSecondsAgo, nineSecondsAgo, cacheEntryHeaders);
 
-        final HttpRequest result = impl.buildConditionalRequest(requestWrapper, cacheEntry);
+        final HttpRequest result = impl.buildConditionalRequest(basicRequest, cacheEntry);
 
         boolean foundMaxAge0 = false;
         final Iterator<HeaderElement> it = MessageSupport.iterate(result, HeaderConstants.CACHE_CONTROL);

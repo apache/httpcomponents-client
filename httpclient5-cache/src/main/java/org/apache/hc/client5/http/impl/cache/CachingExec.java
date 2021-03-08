@@ -45,10 +45,10 @@ import org.apache.hc.client5.http.cache.ResourceIOException;
 import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecChainHandler;
 import org.apache.hc.client5.http.impl.ExecSupport;
-import org.apache.hc.client5.http.impl.classic.ClassicRequestCopier;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.schedule.SchedulingStrategy;
 import org.apache.hc.client5.http.utils.DateUtils;
+import org.apache.hc.core5.function.Factory;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.Header;
@@ -62,6 +62,7 @@ import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
 import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
 import org.apache.hc.core5.http.protocol.HttpCoreContext;
 import org.apache.hc.core5.net.URIAuthority;
@@ -110,7 +111,14 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
         super(config);
         this.responseCache = Args.notNull(cache, "Response cache");
         this.cacheRevalidator = cacheRevalidator;
-        this.conditionalRequestBuilder = new ConditionalRequestBuilder<>(ClassicRequestCopier.INSTANCE);
+        this.conditionalRequestBuilder = new ConditionalRequestBuilder<>(new Factory<ClassicHttpRequest, ClassicHttpRequest>() {
+
+            @Override
+            public ClassicHttpRequest create(final ClassicHttpRequest classicHttpRequest) {
+                return ClassicRequestBuilder.copy(classicHttpRequest).build();
+            }
+
+        });
     }
 
     CachingExec(

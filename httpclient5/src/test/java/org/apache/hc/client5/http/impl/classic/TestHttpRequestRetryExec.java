@@ -44,6 +44,7 @@ import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.TimeValue;
 import org.junit.Assert;
@@ -185,7 +186,7 @@ public class TestHttpRequestRetryExec {
                 Mockito.eq(1),
                 Mockito.<HttpContext>any())).thenReturn(Boolean.TRUE);
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, originalRequest, endpoint, context);
-        final ClassicHttpRequest request = ClassicRequestCopier.INSTANCE.copy(originalRequest);
+        final ClassicHttpRequest request = ClassicRequestBuilder.copy(originalRequest).build();
         try {
             retryExec.execute(request, scope, chain);
         } catch (final IOException ex) {
@@ -209,7 +210,7 @@ public class TestHttpRequestRetryExec {
         Mockito.when(endpoint.isExecutionAborted()).thenReturn(true);
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, originalRequest, endpoint, context);
-        final ClassicHttpRequest request = ClassicRequestCopier.INSTANCE.copy(originalRequest);
+        final ClassicHttpRequest request = ClassicRequestBuilder.copy(originalRequest).build();
         try {
             retryExec.execute(request, scope, chain);
         } catch (final IOException ex) {
@@ -254,7 +255,7 @@ public class TestHttpRequestRetryExec {
                 Mockito.eq(1),
                 Mockito.<HttpContext>any())).thenReturn(Boolean.TRUE);
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, originalRequest, endpoint, context);
-        final ClassicHttpRequest request = ClassicRequestCopier.INSTANCE.copy(originalRequest);
+        final ClassicHttpRequest request = ClassicRequestBuilder.copy(originalRequest).build();
         try {
             retryExec.execute(request, scope, chain);
         } catch (final IOException ex) {

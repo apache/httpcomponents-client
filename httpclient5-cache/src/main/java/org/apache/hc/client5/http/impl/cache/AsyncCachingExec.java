@@ -49,7 +49,6 @@ import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.ResourceFactory;
 import org.apache.hc.client5.http.cache.ResourceIOException;
 import org.apache.hc.client5.http.impl.ExecSupport;
-import org.apache.hc.client5.http.impl.RequestCopier;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.schedule.SchedulingStrategy;
 import org.apache.hc.client5.http.utils.DateUtils;
@@ -58,6 +57,7 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.concurrent.CancellableDependency;
 import org.apache.hc.core5.concurrent.ComplexFuture;
 import org.apache.hc.core5.concurrent.FutureCallback;
+import org.apache.hc.core5.function.Factory;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.Header;
@@ -72,6 +72,7 @@ import org.apache.hc.core5.http.nio.AsyncDataConsumer;
 import org.apache.hc.core5.http.nio.AsyncEntityProducer;
 import org.apache.hc.core5.http.nio.CapacityChannel;
 import org.apache.hc.core5.http.protocol.HttpCoreContext;
+import org.apache.hc.core5.http.support.BasicRequestBuilder;
 import org.apache.hc.core5.net.URIAuthority;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.ByteArrayBuffer;
@@ -101,7 +102,14 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
         super(config);
         this.responseCache = Args.notNull(cache, "Response cache");
         this.cacheRevalidator = cacheRevalidator;
-        this.conditionalRequestBuilder = new ConditionalRequestBuilder<>(RequestCopier.INSTANCE);
+        this.conditionalRequestBuilder = new ConditionalRequestBuilder<>(new Factory<HttpRequest, HttpRequest>() {
+
+            @Override
+            public HttpRequest create(final HttpRequest request) {
+                return BasicRequestBuilder.copy(request).build();
+            }
+
+        });
     }
 
     AsyncCachingExec(
@@ -695,7 +703,9 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
             final AsyncExecCallback asyncExecCallback,
             final HttpCacheEntry cacheEntry) {
         final Date requestDate = getCurrentDate();
-        final HttpRequest conditionalRequest = conditionalRequestBuilder.buildConditionalRequest(scope.originalRequest, cacheEntry);
+        final HttpRequest conditionalRequest = conditionalRequestBuilder.buildConditionalRequest(
+                BasicRequestBuilder.copy(scope.originalRequest).build(),
+                cacheEntry);
         chainProceed(conditionalRequest, entityProducer, scope, chain, new AsyncExecCallback() {
 
             final AtomicReference<AsyncExecCallback> callbackRef = new AtomicReference<>();
@@ -795,7 +805,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                         && (entityProducer == null || entityProducer.isRepeatable())) {
 
                     final HttpRequest unconditional = conditionalRequestBuilder.buildUnconditionalRequest(
-                            scope.originalRequest);
+                            BasicRequestBuilder.copy(scope.originalRequest).build());
 
                     callback1 = new AsyncExecCallbackWrapper(asyncExecCallback, new Runnable() {
 
@@ -940,7 +950,9 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
             final AsyncExecCallback asyncExecCallback,
             final Map<String, Variant> variants) {
         final CancellableDependency operation = scope.cancellableDependency;
-        final HttpRequest conditionalRequest = conditionalRequestBuilder.buildConditionalRequestFromVariants(request, variants);
+        final HttpRequest conditionalRequest = conditionalRequestBuilder.buildConditionalRequestFromVariants(
+                BasicRequestBuilder.copy(request).build(),
+                variants);
 
         final Date requestDate = getCurrentDate();
         chainProceed(conditionalRequest, entityProducer, scope, chain, new AsyncExecCallback() {
@@ -1045,7 +1057,8 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                             });
                         } else {
                             if (revalidationResponseIsTooOld(backendResponse, matchingVariant.getEntry())) {
-                                final HttpRequest unconditional = conditionalRequestBuilder.buildUnconditionalRequest(request);
+                                final HttpRequest unconditional = conditionalRequestBuilder.buildUnconditionalRequest(
+                                        BasicRequestBuilder.copy(request).build());
                                 scope.clientContext.setAttribute(HttpCoreContext.HTTP_REQUEST, unconditional);
                                 callback = new AsyncExecCallbackWrapper(asyncExecCallback, new Runnable() {
 

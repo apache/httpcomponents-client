@@ -37,7 +37,10 @@ import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
  * {@link ClassicHttpRequest} copier.
  *
  * @since 5.0
+ *
+ * @deprecated Use {@link org.apache.hc.core5.http.io.support.ClassicRequestBuilder}
  */
+@Deprecated
 public final class ClassicRequestCopier implements MessageCopier<ClassicHttpRequest> {
 
     public static final ClassicRequestCopier INSTANCE = new ClassicRequestCopier();

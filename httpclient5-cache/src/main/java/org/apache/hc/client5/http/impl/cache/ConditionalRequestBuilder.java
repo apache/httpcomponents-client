@@ -31,7 +31,7 @@ import java.util.Map;
 
 import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
-import org.apache.hc.client5.http.impl.MessageCopier;
+import org.apache.hc.core5.function.Factory;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HeaderElement;
 import org.apache.hc.core5.http.HttpRequest;
@@ -39,9 +39,9 @@ import org.apache.hc.core5.http.message.MessageSupport;
 
 class ConditionalRequestBuilder<T extends HttpRequest> {
 
-    private final MessageCopier<T> messageCopier;
+    private final Factory<T, T> messageCopier;
 
-    ConditionalRequestBuilder(final MessageCopier<T> messageCopier) {
+    ConditionalRequestBuilder(final Factory<T, T> messageCopier) {
         this.messageCopier = messageCopier;
     }
 
@@ -56,8 +56,8 @@ class ConditionalRequestBuilder<T extends HttpRequest> {
      * @return the wrapped request
      */
     public T buildConditionalRequest(final T request, final HttpCacheEntry cacheEntry) {
-        final T newRequest = messageCopier.copy(request);
-        newRequest.setHeaders(request.getHeaders());
+        final T newRequest = messageCopier.create(request);
+
         final Header eTag = cacheEntry.getFirstHeader(HeaderConstants.ETAG);
         if (eTag != null) {
             newRequest.setHeader(HeaderConstants.IF_NONE_MATCH, eTag.getValue());
@@ -95,8 +95,7 @@ class ConditionalRequestBuilder<T extends HttpRequest> {
      * @return the wrapped request
      */
     public T buildConditionalRequestFromVariants(final T request, final Map<String, Variant> variants) {
-        final T newRequest = messageCopier.copy(request);
-        newRequest.setHeaders(request.getHeaders());
+        final T newRequest = messageCopier.create(request);
 
         // we do not support partial content so all etags are used
         final StringBuilder etags = new StringBuilder();
@@ -124,7 +123,7 @@ class ConditionalRequestBuilder<T extends HttpRequest> {
      * @return an unconditional validation request
      */
     public T buildUnconditionalRequest(final T request) {
-        final T newRequest = messageCopier.copy(request);
+        final T newRequest = messageCopier.create(request);
         newRequest.addHeader(HeaderConstants.CACHE_CONTROL,HeaderConstants.CACHE_CONTROL_NO_CACHE);
         newRequest.addHeader(HeaderConstants.PRAGMA,HeaderConstants.CACHE_CONTROL_NO_CACHE);
         newRequest.removeHeaders(HeaderConstants.IF_RANGE);

@@ -33,7 +33,10 @@ import org.apache.hc.core5.http.HttpMessage;
  * Abstract HTTP message copier.
  *
  * @since 5.0
+ *
+ * @deprecated Use message builders.
  */
+@Deprecated
 public interface MessageCopier<T extends HttpMessage> {
 
     T copy(T object);

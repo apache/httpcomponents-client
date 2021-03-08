@@ -33,8 +33,8 @@ import org.apache.hc.client5.http.HttpRequestRetryStrategy;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecChain.Scope;
-import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.classic.ExecChainHandler;
+import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
@@ -43,6 +43,7 @@ import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.NoHttpResponseException;
+import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TimeValue;
 import org.slf4j.Logger;
@@ -110,7 +111,7 @@ public class HttpRequestRetryExec implements ExecChainHandler {
                         LOG.info("Recoverable I/O exception ({}) caught when processing request to {}",
                                 ex.getClass().getName(), route);
                     }
-                    currentRequest = ClassicRequestCopier.INSTANCE.copy(scope.originalRequest);
+                    currentRequest = ClassicRequestBuilder.copy(scope.originalRequest).build();
                     continue;
                 } else {
                     if (ex instanceof NoHttpResponseException) {
@@ -146,7 +147,7 @@ public class HttpRequestRetryExec implements ExecChainHandler {
                             throw new InterruptedIOException();
                         }
                     }
-                    currentRequest = ClassicRequestCopier.INSTANCE.copy(scope.originalRequest);
+                    currentRequest = ClassicRequestBuilder.copy(scope.originalRequest).build();
                 } else {
                     return response;
                 }

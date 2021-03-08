@@ -58,6 +58,7 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
+import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
 import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.io.CloseMode;
@@ -175,7 +176,7 @@ class InternalHttpClient extends CloseableHttpClient implements Configurable {
             final ExecRuntime execRuntime = new InternalExecRuntime(LOG, connManager, requestExecutor,
                     request instanceof CancellableDependency ? (CancellableDependency) request : null);
             final ExecChain.Scope scope = new ExecChain.Scope(exchangeId, route, request, execRuntime, localcontext);
-            final ClassicHttpResponse response = this.execChain.execute(ClassicRequestCopier.INSTANCE.copy(request), scope);
+            final ClassicHttpResponse response = this.execChain.execute(ClassicRequestBuilder.copy(request).build(), scope);
             return CloseableHttpResponse.adapt(response);
         } catch (final HttpException httpException) {
             throw new ClientProtocolException(httpException.getMessage(), httpException);

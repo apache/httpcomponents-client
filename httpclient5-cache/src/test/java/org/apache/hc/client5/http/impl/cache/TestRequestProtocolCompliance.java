@@ -31,11 +31,11 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Collections;
 
-import org.apache.hc.client5.http.impl.RequestCopier;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.ProtocolVersion;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
+import org.apache.hc.core5.http.support.BasicRequestBuilder;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -81,7 +81,7 @@ public class TestRequestProtocolCompliance {
     @Test
     public void doesNotModifyACompliantRequest() throws Exception {
         final HttpRequest req = new BasicHttpRequest("GET", "/");
-        final HttpRequest wrapper = RequestCopier.INSTANCE.copy(req);
+        final HttpRequest wrapper = BasicRequestBuilder.copy(req).build();
         impl.makeRequestCompliant(wrapper);
         assertTrue(HttpTestUtils.equivalent(req, wrapper));
     }
@@ -90,7 +90,7 @@ public class TestRequestProtocolCompliance {
     public void upgrades1_0RequestTo1_1() throws Exception {
         final HttpRequest req = new BasicHttpRequest("GET", "/");
         req.setVersion(HttpVersion.HTTP_1_0);
-        final HttpRequest wrapper = RequestCopier.INSTANCE.copy(req);
+        final HttpRequest wrapper = BasicRequestBuilder.copy(req).build();
         impl.makeRequestCompliant(wrapper);
         assertEquals(HttpVersion.HTTP_1_1, wrapper.getVersion());
     }
@@ -99,7 +99,7 @@ public class TestRequestProtocolCompliance {
     public void downgrades1_2RequestTo1_1() throws Exception {
         final HttpRequest req = new BasicHttpRequest("GET", "/");
         req.setVersion(new ProtocolVersion("HTTP", 1, 2));
-        final HttpRequest wrapper = RequestCopier.INSTANCE.copy(req);
+        final HttpRequest wrapper = BasicRequestBuilder.copy(req).build();
         impl.makeRequestCompliant(wrapper);
         assertEquals(HttpVersion.HTTP_1_1, wrapper.getVersion());
     }
@@ -109,7 +109,7 @@ public class TestRequestProtocolCompliance {
         throws Exception {
         final HttpRequest req = new BasicHttpRequest("GET", "/");
         req.setHeader("Cache-Control", "no-cache, min-fresh=10");
-        final HttpRequest wrapper = RequestCopier.INSTANCE.copy(req);
+        final HttpRequest wrapper = BasicRequestBuilder.copy(req).build();
         impl.makeRequestCompliant(wrapper);
         assertEquals("no-cache",
                 wrapper.getFirstHeader("Cache-Control").getValue());
@@ -120,7 +120,7 @@ public class TestRequestProtocolCompliance {
         throws Exception {
         final HttpRequest req = new BasicHttpRequest("GET", "/");
         req.setHeader("Cache-Control", "no-cache, max-stale=10");
-        final HttpRequest wrapper = RequestCopier.INSTANCE.copy(req);
+        final HttpRequest wrapper = BasicRequestBuilder.copy(req).build();
         impl.makeRequestCompliant(wrapper);
         assertEquals("no-cache",
                 wrapper.getFirstHeader("Cache-Control").getValue());
@@ -131,7 +131,7 @@ public class TestRequestProtocolCompliance {
         throws Exception {
         final HttpRequest req = new BasicHttpRequest("GET", "/");
         req.setHeader("Cache-Control", "no-cache, max-age=10");
-        final HttpRequest wrapper = RequestCopier.INSTANCE.copy(req);
+        final HttpRequest wrapper = BasicRequestBuilder.copy(req).build();
         impl.makeRequestCompliant(wrapper);
         assertEquals("no-cache",
                 wrapper.getFirstHeader("Cache-Control").getValue());
@@ -142,7 +142,7 @@ public class TestRequestProtocolCompliance {
         throws Exception {
         final HttpRequest req = new BasicHttpRequest("GET", "/");
         req.setHeader("Cache-Control", "min-fresh=10");
-        final HttpRequest wrapper = RequestCopier.INSTANCE.copy(req);
+        final HttpRequest wrapper = BasicRequestBuilder.copy(req).build();
         impl.makeRequestCompliant(wrapper);
         assertEquals("min-fresh=10",
                 wrapper.getFirstHeader("Cache-Control").getValue());
@@ -153,7 +153,7 @@ public class TestRequestProtocolCompliance {
         throws Exception {
         final HttpRequest req = new BasicHttpRequest("GET", "/");
         req.setHeader("Cache-Control", "no-cache,min-fresh=10,no-store");
-        final HttpRequest wrapper = RequestCopier.INSTANCE.copy(req);
+        final HttpRequest wrapper = BasicRequestBuilder.copy(req).build();
         impl.makeRequestCompliant(wrapper);
         assertEquals("no-cache,no-store",
                 wrapper.getFirstHeader("Cache-Control").getValue());
