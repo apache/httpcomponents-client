@@ -28,11 +28,9 @@
 package org.apache.hc.client5.http.classic.methods;
 
 import java.net.URI;
-import java.util.Locale;
 
 import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.util.Args;
-
 
 /**
  * Common HTTP methods using {@link HttpUriRequest} as a HTTP request message representation.
@@ -43,12 +41,6 @@ import org.apache.hc.core5.util.Args;
  * @since 5.0
  */
 public final class ClassicHttpRequests {
-
-    private static Method normalizedValueOf(final String method) {
-        // TODO Next version of HttpCore:
-        // Method.normalizedValueOf(method)
-        return Method.valueOf(Args.notNull(method, "method").toUpperCase(Locale.ROOT));
-    }
 
     /**
      * Creates a new HttpUriRequest for the given {@code Method} and {@code String} URI.
@@ -101,7 +93,7 @@ public final class ClassicHttpRequests {
      * @return A new HttpUriRequest.
      */
     public static HttpUriRequest create(final String method, final String uri) {
-        return create(normalizedValueOf(method), uri);
+        return create(Method.normalizedValueOf(method), uri);
     }
 
     /**
@@ -114,7 +106,7 @@ public final class ClassicHttpRequests {
      * @return A new HttpUriRequest.
      */
     public static HttpUriRequest create(final String method, final URI uri) {
-        return create(normalizedValueOf(method), uri);
+        return create(Method.normalizedValueOf(method), uri);
     }
 
     public static HttpUriRequest delete(final String uri) {
