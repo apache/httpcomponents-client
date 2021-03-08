@@ -36,7 +36,6 @@ import org.apache.hc.client5.http.RedirectException;
 import org.apache.hc.client5.http.auth.AuthExchange;
 import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecChainHandler;
-import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.protocol.RedirectLocations;
@@ -55,7 +54,7 @@ import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
-import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
+import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.LangUtils;
 import org.slf4j.Logger;
@@ -132,6 +131,13 @@ public final class RedirectExec implements ExecChainHandler {
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("{} redirect requested to location '{}'", exchangeId, redirectUri);
                     }
+
+                    final HttpHost newTarget = URIUtils.extractHost(redirectUri);
+                    if (newTarget == null) {
+                        throw new ProtocolException("Redirect URI does not specify a valid host name: " +
+                                redirectUri);
+                    }
+
                     if (!config.isCircularRedirectsAllowed()) {
                         if (redirectLocations.contains(redirectUri)) {
                             throw new CircularRedirectException("Circular redirect to '" + redirectUri + "'");
@@ -139,32 +145,28 @@ public final class RedirectExec implements ExecChainHandler {
                     }
                     redirectLocations.add(redirectUri);
 
-                    final ClassicHttpRequest originalRequest = scope.originalRequest;
-                    ClassicHttpRequest redirect = null;
                     final int statusCode = response.getCode();
+                    final ClassicRequestBuilder redirectBuilder;
                     switch (statusCode) {
                         case HttpStatus.SC_MOVED_PERMANENTLY:
                         case HttpStatus.SC_MOVED_TEMPORARILY:
                             if (Method.POST.isSame(request.getMethod())) {
-                                redirect = new HttpGet(redirectUri);
+                                redirectBuilder = ClassicRequestBuilder.get();
+                            } else {
+                                redirectBuilder = ClassicRequestBuilder.copy(scope.originalRequest);
                             }
                             break;
                         case HttpStatus.SC_SEE_OTHER:
                             if (!Method.GET.isSame(request.getMethod()) && !Method.HEAD.isSame(request.getMethod())) {
-                                redirect = new HttpGet(redirectUri);
+                                redirectBuilder = ClassicRequestBuilder.get();
+                            } else {
+                                redirectBuilder = ClassicRequestBuilder.copy(scope.originalRequest);
                             }
+                            break;
+                        default:
+                            redirectBuilder = ClassicRequestBuilder.copy(scope.originalRequest);
                     }
-                    if (redirect == null) {
-                        redirect = new BasicClassicHttpRequest(originalRequest.getMethod(), redirectUri);
-                        redirect.setEntity(originalRequest.getEntity());
-                    }
-                    redirect.setHeaders(originalRequest.getHeaders());
-
-                    final HttpHost newTarget = URIUtils.extractHost(redirectUri);
-                    if (newTarget == null) {
-                        throw new ProtocolException("Redirect URI does not specify a valid host name: " +
-                                redirectUri);
-                    }
+                    redirectBuilder.setUri(redirectUri);
 
                     final HttpRoute currentRoute = currentScope.route;
                     if (!LangUtils.equals(currentRoute.getTargetHost(), newTarget)) {
@@ -199,7 +201,7 @@ public final class RedirectExec implements ExecChainHandler {
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("{} redirecting to '{}' via {}", exchangeId, redirectUri, currentRoute);
                     }
-                    currentRequest = redirect;
+                    currentRequest = redirectBuilder.build();
                     RequestEntityProxy.enhance(currentRequest);
 
                     EntityUtils.consume(response.getEntity());

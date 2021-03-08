@@ -53,9 +53,9 @@ import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.ProtocolException;
-import org.apache.hc.core5.http.message.BasicHttpRequest;
 import org.apache.hc.core5.http.nio.AsyncDataConsumer;
 import org.apache.hc.core5.http.nio.AsyncEntityProducer;
+import org.apache.hc.core5.http.support.BasicRequestBuilder;
 import org.apache.hc.core5.util.LangUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -136,34 +136,38 @@ public final class AsyncRedirectExec implements AsyncExecChainHandler {
                     }
                     state.redirectLocations.add(redirectUri);
 
-                    final int statusCode = response.getCode();
-
-                    state.currentRequest = null;
-                    switch (statusCode) {
-                        case HttpStatus.SC_MOVED_PERMANENTLY:
-                        case HttpStatus.SC_MOVED_TEMPORARILY:
-                            if (Method.POST.isSame(request.getMethod())) {
-                                state.currentRequest = new BasicHttpRequest(Method.GET, redirectUri);
-                                state.currentEntityProducer = null;
-                            }
-                            break;
-                        case HttpStatus.SC_SEE_OTHER:
-                            if (!Method.GET.isSame(request.getMethod()) && !Method.HEAD.isSame(request.getMethod())) {
-                                state.currentRequest = new BasicHttpRequest(Method.GET, redirectUri);
-                                state.currentEntityProducer = null;
-                            }
-                    }
-                    if (state.currentRequest == null) {
-                        state.currentRequest = new BasicHttpRequest(request.getMethod(), redirectUri);
-                    }
-                    state.currentRequest.setHeaders(scope.originalRequest.getHeaders());
                     final HttpHost newTarget = URIUtils.extractHost(redirectUri);
                     if (newTarget == null) {
                         throw new ProtocolException("Redirect URI does not specify a valid host name: " + redirectUri);
                     }
 
+                    final int statusCode = response.getCode();
+                    final BasicRequestBuilder redirectBuilder;
+                    switch (statusCode) {
+                        case HttpStatus.SC_MOVED_PERMANENTLY:
+                        case HttpStatus.SC_MOVED_TEMPORARILY:
+                            if (Method.POST.isSame(request.getMethod())) {
+                                redirectBuilder = BasicRequestBuilder.get();
+                                state.currentEntityProducer = null;
+                            } else {
+                                redirectBuilder = BasicRequestBuilder.copy(scope.originalRequest);
+                            }
+                            break;
+                        case HttpStatus.SC_SEE_OTHER:
+                            if (!Method.GET.isSame(request.getMethod()) && !Method.HEAD.isSame(request.getMethod())) {
+                                redirectBuilder = BasicRequestBuilder.get();
+                                state.currentEntityProducer = null;
+                            } else {
+                                redirectBuilder = BasicRequestBuilder.copy(scope.originalRequest);
+                            }
+                            break;
+                        default:
+                            redirectBuilder = BasicRequestBuilder.copy(scope.originalRequest);
+                    }
+                    redirectBuilder.setUri(redirectUri);
                     state.reroute = false;
                     state.redirectURI = redirectUri;
+                    state.currentRequest = redirectBuilder.build();
 
                     if (!LangUtils.equals(currentRoute.getTargetHost(), newTarget)) {
                         final HttpRoute newRoute = routePlanner.determineRoute(newTarget, clientContext);
