@@ -502,4 +502,13 @@ public class TestBasicCookieAttribHandlers {
         Assert.assertTrue(h.match(cookie, new CookieOrigin("localhost", 80, "/stuff", false)));
     }
 
+    @Test
+    public void testBasicHttpOnlyParse() throws Exception {
+        final BasicClientCookie cookie = new BasicClientCookie("name", "value");
+        final CookieAttributeHandler h = new BasicHttpOnlyHandler();
+        h.parse(cookie, "true");
+        Assert.assertTrue(cookie.isHttpOnly());
+        h.parse(cookie, "anyone");
+        Assert.assertTrue(cookie.isHttpOnly());
+    }
 }

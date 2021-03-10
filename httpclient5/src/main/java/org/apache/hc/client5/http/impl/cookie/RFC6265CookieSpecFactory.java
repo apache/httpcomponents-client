@@ -87,6 +87,7 @@ public class RFC6265CookieSpecFactory implements CookieSpecFactory {
                                             new BasicDomainHandler(), this.publicSuffixMatcher),
                                     new BasicMaxAgeHandler(),
                                     new BasicSecureHandler(),
+                                    new BasicHttpOnlyHandler(),
                                     new BasicExpiresHandler(RFC6265StrictSpec.DATE_PATTERNS));
                             break;
                         case IE_MEDIUM_SECURITY:
@@ -103,6 +104,7 @@ public class RFC6265CookieSpecFactory implements CookieSpecFactory {
                                             new BasicDomainHandler(), this.publicSuffixMatcher),
                                     new BasicMaxAgeHandler(),
                                     new BasicSecureHandler(),
+                                    new BasicHttpOnlyHandler(),
                                     new BasicExpiresHandler(RFC6265StrictSpec.DATE_PATTERNS));
                             break;
                         default:
