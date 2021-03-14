@@ -85,5 +85,16 @@ public interface SetCookie extends Cookie {
      */
     void setSecure (boolean secure);
 
+    /**
+     * Marks or unmarks  this Cookie as {@code httpOnly}.
+     *
+     * @param httpOnly true if this cookie is to be marked as
+     * {@code httpOnly}, false otherwise
+     *
+     * @since 5.2
+     */
+    default void setHttpOnly (final boolean httpOnly){
+    }
+
 }
 

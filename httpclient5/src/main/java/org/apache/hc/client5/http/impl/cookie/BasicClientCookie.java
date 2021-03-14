@@ -216,6 +216,19 @@ public final class BasicClientCookie implements SetCookie, Cloneable, Serializab
     }
 
     /**
+     * Sets the http-only attribute of the cookie.
+     *
+     * @param httpOnly true if this cookie is to be marked as
+     * {@code httpOnly}, false otherwise
+     *
+     * @since 5.2
+     */
+    @Override
+    public void setHttpOnly(final boolean httpOnly) {
+        this.httpOnly = httpOnly;
+    }
+
+    /**
      * Returns true if this cookie has expired.
      * @param date Current time
      *
@@ -234,6 +247,16 @@ public final class BasicClientCookie implements SetCookie, Cloneable, Serializab
     @Override
     public Date getCreationDate() {
         return creationDate;
+    }
+
+    /**
+     * @return true if this Cookie has been marked as {@code httpOnly}, false otherwise
+     * @see #setHttpOnly(boolean)
+     * @since 5.2
+     */
+    @Override
+    public boolean isHttpOnly() {
+        return httpOnly;
     }
 
     /**
@@ -316,6 +339,9 @@ public final class BasicClientCookie implements SetCookie, Cloneable, Serializab
     private boolean isSecure;
 
     private Date creationDate;
+
+    /** The {@code httpOnly} flag. */
+    private boolean httpOnly;
 
 }
 

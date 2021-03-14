@@ -24,40 +24,48 @@
  * <http://www.apache.org/>.
  *
  */
-
 package org.apache.hc.client5.http.impl.cookie;
 
 import org.apache.hc.client5.http.cookie.CommonCookieAttributeHandler;
+import org.apache.hc.client5.http.cookie.Cookie;
+import org.apache.hc.client5.http.cookie.CookieOrigin;
+import org.apache.hc.client5.http.cookie.MalformedCookieException;
+import org.apache.hc.client5.http.cookie.SetCookie;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.util.Args;
 
 /**
- * Standard {@link org.apache.hc.client5.http.cookie.CookieSpec} implementation that enforces
- * a more relaxed interpretation of the HTTP state management specification (RFC 6265, section 5)
- * for interoperability with existing servers that do not conform to the well behaved profile
- * (RFC 6265, section 4).
+ * Cookie {@code HttpOnly} attribute handler.
  *
- * @since 4.4
+ * @since 5.2
  */
-@Contract(threading = ThreadingBehavior.SAFE)
-public class RFC6265LaxSpec extends RFC6265CookieSpecBase {
+@Contract(threading = ThreadingBehavior.STATELESS)
+public class BasicHttpOnlyHandler implements CommonCookieAttributeHandler {
 
-    public RFC6265LaxSpec() {
-        super(new BasicPathHandler(),
-                new BasicDomainHandler(),
-                new LaxMaxAgeHandler(),
-                new BasicSecureHandler(),
-                new BasicHttpOnlyHandler(),
-                new LaxExpiresHandler());
-    }
-
-    RFC6265LaxSpec(final CommonCookieAttributeHandler... handlers) {
-        super(handlers);
+    public BasicHttpOnlyHandler() {
+        super();
     }
 
     @Override
-    public String toString() {
-        return "rfc6265-lax";
+    public void parse(final SetCookie cookie, final String value)
+            throws MalformedCookieException {
+        Args.notNull(cookie, "Cookie");
+        cookie.setHttpOnly(true);
+    }
+
+    @Override
+    public void validate(final Cookie cookie, final CookieOrigin origin) throws MalformedCookieException {
+    }
+
+    @Override
+    public boolean match(final Cookie cookie, final CookieOrigin origin) {
+        return true;
+    }
+
+    @Override
+    public String getAttributeName() {
+        return Cookie.HTTP_ONLY_ATTR;
     }
 
 }
