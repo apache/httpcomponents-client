@@ -60,7 +60,7 @@ class WarningValue {
         consumeWarnValue();
     }
 
-    /** Returns an array of the parseable warning values contained
+    /** Returns an array of the parsable warning values contained
      * in the given header value, which is assumed to be a
      * Warning header. Improperly formatted warning values will be
      * skipped, in keeping with the philosophy of "ignore what you

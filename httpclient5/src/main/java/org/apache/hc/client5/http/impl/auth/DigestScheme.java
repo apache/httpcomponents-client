@@ -292,7 +292,7 @@ public class DigestScheme implements AuthScheme, Serializable {
         try {
             digester = createMessageDigest(digAlg);
         } catch (final UnsupportedDigestAlgorithmException ex) {
-            throw new AuthenticationException("Unsuppported digest algorithm: " + digAlg);
+            throw new AuthenticationException("Unsupported digest algorithm: " + digAlg);
         }
 
         if (nonce.equals(this.lastNonce)) {
