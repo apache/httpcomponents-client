@@ -26,45 +26,42 @@
  */
 package org.apache.hc.client5.http;
 
-import org.apache.hc.core5.http.NameValuePair;
+import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.util.LangUtils;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
 
-public class NameValuePairMatcher extends BaseMatcher<NameValuePair> {
+public class HeaderMatcher extends BaseMatcher<Header> {
 
-    private final String name;
-    private final String value;
+    private final String headerName;
+    private final Object headerValue;
 
-    public NameValuePairMatcher(final String name, final String value) {
-        this.name = name;
-        this.value = value;
+    public HeaderMatcher(final String headerName, final Object headerValue) {
+        this.headerName = headerName;
+        this.headerValue = headerValue;
     }
 
     @Override
     public boolean matches(final Object item) {
-        if (item instanceof NameValuePair) {
-            final NameValuePair nvp = (NameValuePair) item;
-            return LangUtils.equals(nvp.getName(), name) && LangUtils.equals(nvp.getValue(), value);
+        if (item instanceof Header) {
+            final Header header = (Header) item;
+            if (headerName.equalsIgnoreCase(header.getName()) && LangUtils.equals(headerValue, header.getValue())) {
+                return true;
+            }
         }
         return false;
     }
 
     @Override
     public void describeTo(final Description description) {
-        description.appendText("equals ").appendValue(name).appendText("=").appendValue(value);
+        description.appendText("same header as ").appendValue(headerValue).appendText(": ").appendValue(headerValue);
     }
 
     @Factory
-    public static Matcher<NameValuePair> equals(final String name, final String value) {
-        return new NameValuePairMatcher(name, value);
-    }
-
-    @Factory
-    public static Matcher<NameValuePair> same(final String name, final String value) {
-        return new NameValuePairMatcher(name, value);
+    public static Matcher<Header> same(final String headerName, final Object headerValue) {
+        return new HeaderMatcher(headerName, headerValue);
     }
 
 }

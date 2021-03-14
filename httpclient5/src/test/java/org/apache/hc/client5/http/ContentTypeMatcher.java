@@ -26,45 +26,39 @@
  */
 package org.apache.hc.client5.http;
 
-import org.apache.hc.core5.http.NameValuePair;
-import org.apache.hc.core5.util.LangUtils;
+import org.apache.hc.core5.http.ContentType;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
 
-public class NameValuePairMatcher extends BaseMatcher<NameValuePair> {
+public class ContentTypeMatcher extends BaseMatcher<ContentType> {
 
-    private final String name;
-    private final String value;
+    private final ContentType expectedContentType;
 
-    public NameValuePairMatcher(final String name, final String value) {
-        this.name = name;
-        this.value = value;
+    public ContentTypeMatcher(final ContentType contentType) {
+        this.expectedContentType = contentType;
     }
 
     @Override
     public boolean matches(final Object item) {
-        if (item instanceof NameValuePair) {
-            final NameValuePair nvp = (NameValuePair) item;
-            return LangUtils.equals(nvp.getName(), name) && LangUtils.equals(nvp.getValue(), value);
+        if (item instanceof ContentType) {
+            final ContentType contentType = (ContentType) item;
+            if (contentType.isSameMimeType(expectedContentType)) {
+                return true;
+            }
         }
         return false;
     }
 
     @Override
     public void describeTo(final Description description) {
-        description.appendText("equals ").appendValue(name).appendText("=").appendValue(value);
+        description.appendText("same MIME type as ").appendValue(expectedContentType);
     }
 
     @Factory
-    public static Matcher<NameValuePair> equals(final String name, final String value) {
-        return new NameValuePairMatcher(name, value);
-    }
-
-    @Factory
-    public static Matcher<NameValuePair> same(final String name, final String value) {
-        return new NameValuePairMatcher(name, value);
+    public static Matcher<ContentType> sameMimeType(final ContentType contentType) {
+        return new ContentTypeMatcher(contentType);
     }
 
 }

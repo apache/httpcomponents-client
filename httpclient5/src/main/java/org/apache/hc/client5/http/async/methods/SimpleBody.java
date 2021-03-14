@@ -99,8 +99,8 @@ public final class SimpleBody {
 
     @Override
     public String toString() {
-        return "content length=" + (bodyAsBytes != null ? bodyAsBytes.length : "chunked") +
-                ", content type=" + contentType;
+        return "SimpleBody{content length=" + (bodyAsBytes != null ? bodyAsBytes.length : "chunked") +
+                ", content type=" + contentType + "}";
     }
 
 }

@@ -31,6 +31,7 @@ import java.io.IOException;
 import org.apache.hc.client5.http.async.methods.SimpleBody;
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
+import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.HttpException;
@@ -63,11 +64,11 @@ public abstract class AbstractSimpleServerExchangeHandler extends AbstractServer
                     final HttpRequest request,
                     final byte[] body,
                     final ContentType contentType) {
-                final SimpleHttpRequest simpleRequest = SimpleHttpRequest.copy(request);
+                final SimpleRequestBuilder builder = SimpleRequestBuilder.copy(request);
                 if (body != null) {
-                    simpleRequest.setBody(body, contentType);
+                    builder.setBody(body, contentType);
                 }
-                return simpleRequest;
+                return builder.build();
             }
 
         };

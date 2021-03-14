@@ -35,6 +35,7 @@ import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.Method;
+import org.apache.hc.core5.net.URIAuthority;
 import org.apache.hc.core5.util.Args;
 
 /**
@@ -49,6 +50,45 @@ public final class SimpleHttpRequest extends ConfigurableHttpRequest {
     private static final long serialVersionUID = 1L;
     private SimpleBody body;
 
+    /**
+     * @since 5.1
+     */
+    public static SimpleHttpRequest create(final String method, final String uri) {
+        return new SimpleHttpRequest(method, uri);
+    }
+
+    /**
+     * @since 5.1
+     */
+    public static SimpleHttpRequest create(final String method, final URI uri) {
+        return new SimpleHttpRequest(method, uri);
+    }
+
+    /**
+     * @since 5.1
+     */
+    public static SimpleHttpRequest create(final Method method, final URI uri) {
+        return new SimpleHttpRequest(method, uri);
+    }
+
+    /**
+     * @since 5.1
+     */
+    public static SimpleHttpRequest create(final Method method, final HttpHost host, final String path) {
+        return new SimpleHttpRequest(method, host, path);
+    }
+
+    /**
+     * @since 5.1
+     */
+    public static SimpleHttpRequest create(final String method, final String scheme, final URIAuthority authority, final String path) {
+        return new SimpleHttpRequest(method, scheme, authority, path);
+    }
+
+    /**
+     * @deprecated Use {@link SimpleRequestBuilder}
+     */
+    @Deprecated
     public static SimpleHttpRequest copy(final HttpRequest original) {
         Args.notNull(original, "HTTP request");
         final SimpleHttpRequest copy = new SimpleHttpRequest(original.getMethod(), original.getRequestUri());
@@ -73,12 +113,25 @@ public final class SimpleHttpRequest extends ConfigurableHttpRequest {
         super(method, requestUri);
     }
 
-    SimpleHttpRequest(final Method method, final URI requestUri) {
+    /**
+     * @since 5.1
+     */
+    public SimpleHttpRequest(final Method method, final URI requestUri) {
         this(method.name(), requestUri);
     }
 
-    SimpleHttpRequest(final Method method, final HttpHost host, final String path) {
+    /**
+     * @since 5.1
+     */
+    public SimpleHttpRequest(final Method method, final HttpHost host, final String path) {
         this(method.name(), host, path);
+    }
+
+    /**
+     * @since 5.1
+     */
+    public SimpleHttpRequest(final String method, final String scheme, final URIAuthority authority, final String path) {
+        super(method, scheme, authority, path);
     }
 
     public void setBody(final SimpleBody body) {
