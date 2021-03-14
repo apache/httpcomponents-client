@@ -40,10 +40,17 @@ import org.apache.hc.core5.util.Args;
 
 /**
  * HTTP request that can enclose a body represented as a simple text string or an array of bytes.
+ * <p>
+ * IMPORTANT: {@link SimpleHttpRequest}s are intended for simple scenarios where entities inclosed
+ * in requests are known to be small. It is generally recommended to use
+ * {@link org.apache.hc.core5.http.nio.support.AsyncRequestBuilder} and streaming
+ * {@link org.apache.hc.core5.http.nio.AsyncEntityProducer}s.
  *
  * @since 5.0
  *
  * @see SimpleBody
+ * @see org.apache.hc.core5.http.nio.support.AsyncRequestBuilder
+ * @see org.apache.hc.core5.http.nio.AsyncEntityProducer
  */
 public final class SimpleHttpRequest extends ConfigurableHttpRequest {
 
