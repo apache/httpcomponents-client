@@ -39,7 +39,10 @@ import org.apache.hc.core5.util.Args;
  * with a non-null URI.
  *
  * @since 5.0
+ *
+ * @deprecated Use {@link org.apache.hc.core5.http.io.support.ClassicRequestBuilder}
  */
+@Deprecated
 public final class ClassicHttpRequests {
 
     /**

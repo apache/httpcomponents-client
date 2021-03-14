@@ -34,8 +34,8 @@ import java.util.concurrent.TimeoutException;
 import javax.net.ssl.SSLContext;
 
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
-import org.apache.hc.client5.http.async.methods.SimpleHttpRequests;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
+import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
@@ -177,7 +177,10 @@ public class HttpAsyncClientCompatibilityTest {
             final HttpClientContext context = HttpClientContext.create();
             context.setCredentialsProvider(credentialsProvider);
 
-            final SimpleHttpRequest options = SimpleHttpRequests.options(target, "*");
+            final SimpleHttpRequest options = SimpleRequestBuilder.options()
+                    .setHttpHost(target)
+                    .setPath("*")
+                    .build();
             final Future<SimpleHttpResponse> future = client.execute(options, context, null);
             try {
                 final SimpleHttpResponse response = future.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
@@ -202,7 +205,10 @@ public class HttpAsyncClientCompatibilityTest {
 
             final String[] requestUris = new String[] {"/", "/news.html", "/status.html"};
             for (final String requestUri: requestUris) {
-                final SimpleHttpRequest httpGet = SimpleHttpRequests.get(target, requestUri);
+                final SimpleHttpRequest httpGet = SimpleRequestBuilder.get()
+                        .setHttpHost(target)
+                        .setPath(requestUri)
+                        .build();
                 final Future<SimpleHttpResponse> future = client.execute(httpGet, context, null);
                 try {
                     final SimpleHttpResponse response = future.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
@@ -229,7 +235,10 @@ public class HttpAsyncClientCompatibilityTest {
             final HttpClientContext context = HttpClientContext.create();
             context.setCredentialsProvider(credentialsProvider);
 
-            final SimpleHttpRequest httpGetSecret = SimpleHttpRequests.get(target, "/private/big-secret.txt");
+            final SimpleHttpRequest httpGetSecret = SimpleRequestBuilder.get()
+                    .setHttpHost(target)
+                    .setPath("/private/big-secret.txt")
+                    .build();
             final Future<SimpleHttpResponse> future = client.execute(httpGetSecret, context, null);
             try {
                 final SimpleHttpResponse response = future.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
@@ -255,7 +264,10 @@ public class HttpAsyncClientCompatibilityTest {
             final HttpClientContext context = HttpClientContext.create();
             context.setCredentialsProvider(credentialsProvider);
 
-            final SimpleHttpRequest httpGetSecret = SimpleHttpRequests.get(target, "/private/big-secret.txt");
+            final SimpleHttpRequest httpGetSecret = SimpleRequestBuilder.get()
+                    .setHttpHost(target)
+                    .setPath("/private/big-secret.txt")
+                    .build();
             final Future<SimpleHttpResponse> future = client.execute(httpGetSecret, context, null);
             try {
                 final SimpleHttpResponse response = future.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
@@ -281,7 +293,10 @@ public class HttpAsyncClientCompatibilityTest {
             final HttpClientContext context = HttpClientContext.create();
             context.setCredentialsProvider(credentialsProvider);
 
-            final SimpleHttpRequest httpGetSecret = SimpleHttpRequests.get(target, "/private/big-secret.txt");
+            final SimpleHttpRequest httpGetSecret = SimpleRequestBuilder.get()
+                    .setHttpHost(target)
+                    .setPath("/private/big-secret.txt")
+                    .build();
             final Future<SimpleHttpResponse> future = client.execute(httpGetSecret, context, null);
             try {
                 final SimpleHttpResponse response = future.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
@@ -308,7 +323,10 @@ public class HttpAsyncClientCompatibilityTest {
             final HttpClientContext context = HttpClientContext.create();
             context.setCredentialsProvider(credentialsProvider);
 
-            final SimpleHttpRequest httpGetSecret = SimpleHttpRequests.get(target, "/private/big-secret.txt");
+            final SimpleHttpRequest httpGetSecret = SimpleRequestBuilder.get()
+                    .setHttpHost(target)
+                    .setPath("/private/big-secret.txt")
+                    .build();
             httpGetSecret.setHeader(HttpHeaders.CONNECTION, HeaderElements.CLOSE);
             final Future<SimpleHttpResponse> future = client.execute(httpGetSecret, context, null);
             try {

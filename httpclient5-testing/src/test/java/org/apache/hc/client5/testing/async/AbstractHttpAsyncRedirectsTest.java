@@ -35,8 +35,8 @@ import java.util.concurrent.Future;
 import org.apache.hc.client5.http.CircularRedirectException;
 import org.apache.hc.client5.http.RedirectException;
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
-import org.apache.hc.client5.http.async.methods.SimpleHttpRequests;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
+import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.cookie.BasicCookieStore;
 import org.apache.hc.client5.http.cookie.CookieStore;
@@ -113,7 +113,10 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
 
         final HttpClientContext context = HttpClientContext.create();
         final Future<SimpleHttpResponse> future = httpclient.execute(
-                SimpleHttpRequests.get(target, "/oldlocation/"), context, null);
+                SimpleRequestBuilder.get()
+                        .setHttpHost(target)
+                        .setPath("/oldlocation/")
+                        .build(), context, null);
         final HttpResponse response = future.get();
         Assert.assertNotNull(response);
 
@@ -137,7 +140,10 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
         });
         final HttpClientContext context = HttpClientContext.create();
         final Future<SimpleHttpResponse> future = httpclient.execute(
-                SimpleHttpRequests.get(target, "/oldlocation/100"), context, null);
+                SimpleRequestBuilder.get()
+                        .setHttpHost(target)
+                        .setPath("/oldlocation/100")
+                        .build(), context, null);
         final HttpResponse response = future.get();
         Assert.assertNotNull(response);
 
@@ -162,7 +168,10 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
         });
         final HttpClientContext context = HttpClientContext.create();
         final Future<SimpleHttpResponse> future = httpclient.execute(
-                SimpleHttpRequests.get(target, "/oldlocation/123"), context, null);
+                SimpleRequestBuilder.get()
+                        .setHttpHost(target)
+                        .setPath("/oldlocation/123")
+                        .build(), context, null);
         final HttpResponse response = future.get();
         Assert.assertNotNull(response);
 
@@ -198,7 +207,10 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
         });
         final HttpClientContext context = HttpClientContext.create();
         final Future<SimpleHttpResponse> future = httpclient.execute(
-                SimpleHttpRequests.get(target, "/oldlocation/100"), context, null);
+                SimpleRequestBuilder.get()
+                        .setHttpHost(target)
+                        .setPath("/oldlocation/100")
+                        .build(), context, null);
         final HttpResponse response = future.get();
         Assert.assertNotNull(response);
 
@@ -222,7 +234,10 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
         });
         final HttpClientContext context = HttpClientContext.create();
         final Future<SimpleHttpResponse> future = httpclient.execute(
-                SimpleHttpRequests.get(target, "/oldlocation/123"), context, null);
+                SimpleRequestBuilder.get()
+                        .setHttpHost(target)
+                        .setPath("/oldlocation/123")
+                        .build(), context, null);
         final HttpResponse response = future.get();
         Assert.assertNotNull(response);
 
@@ -254,7 +269,10 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
         final HttpHost target = start();
         final HttpClientContext context = HttpClientContext.create();
         final Future<SimpleHttpResponse> future = httpclient.execute(
-                SimpleHttpRequests.get(target, "/oldlocation/"), context, null);
+                SimpleRequestBuilder.get()
+                        .setHttpHost(target)
+                        .setPath("/oldlocation/")
+                        .build(), context, null);
         final HttpResponse response = future.get();
         Assert.assertNotNull(response);
 
@@ -285,7 +303,10 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
         final HttpHost target = start();
         final HttpClientContext context = HttpClientContext.create();
         final Future<SimpleHttpResponse> future = httpclient.execute(
-                SimpleHttpRequests.get(target, "/oldlocation/"), context, null);
+                SimpleRequestBuilder.get()
+                        .setHttpHost(target)
+                        .setPath("/oldlocation/")
+                        .build(), context, null);
         final HttpResponse response = future.get();
         Assert.assertNotNull(response);
 
@@ -309,7 +330,10 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
         });
         final HttpClientContext context = HttpClientContext.create();
         final Future<SimpleHttpResponse> future = httpclient.execute(
-                SimpleHttpRequests.get(target, "/oldlocation/123"), context, null);
+                SimpleRequestBuilder.get()
+                        .setHttpHost(target)
+                        .setPath("/oldlocation/123")
+                        .build(), context, null);
         final HttpResponse response = future.get();
         Assert.assertNotNull(response);
 
@@ -338,9 +362,11 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
                 .setCircularRedirectsAllowed(true)
                 .setMaxRedirects(5).build();
         try {
-            final SimpleHttpRequest request = SimpleHttpRequests.get(target, "/circular-oldlocation/");
-            request.setConfig(config);
-            final Future<SimpleHttpResponse> future = httpclient.execute(request, null);
+            final Future<SimpleHttpResponse> future = httpclient.execute(SimpleRequestBuilder.get()
+                    .setHttpHost(target)
+                    .setPath("/circular-oldlocation/")
+                    .setRequestConfig(config)
+                    .build(), null);
             future.get();
         } catch (final ExecutionException e) {
             Assert.assertTrue(e.getCause() instanceof RedirectException);
@@ -366,9 +392,12 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
                 .setCircularRedirectsAllowed(false)
                 .build();
         try {
-            final SimpleHttpRequest request = SimpleHttpRequests.get(target, "/circular-oldlocation/");
-            request.setConfig(config);
-            final Future<SimpleHttpResponse> future = httpclient.execute(request, null);
+            final Future<SimpleHttpResponse> future = httpclient.execute(
+                    SimpleRequestBuilder.get()
+                            .setHttpHost(target)
+                            .setPath("/circular-oldlocation/")
+                            .setRequestConfig(config)
+                            .build(), null);
             future.get();
         } catch (final ExecutionException e) {
             Assert.assertTrue(e.getCause() instanceof CircularRedirectException);
@@ -390,10 +419,12 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
         });
 
         final HttpClientContext context = HttpClientContext.create();
-
-        final SimpleHttpRequest post = SimpleHttpRequests.post(target, "/oldlocation/stuff");
-        post.setBody("stuff", ContentType.TEXT_PLAIN);
-        final Future<SimpleHttpResponse> future = httpclient.execute(post, context, null);
+        final Future<SimpleHttpResponse> future = httpclient.execute(
+                SimpleRequestBuilder.post()
+                        .setHttpHost(target)
+                        .setPath("/oldlocation/stuff")
+                        .setBody("stuff", ContentType.TEXT_PLAIN)
+                        .build(), context, null);
         final HttpResponse response = future.get();
         Assert.assertNotNull(response);
 
@@ -418,10 +449,12 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
         });
 
         final HttpClientContext context = HttpClientContext.create();
-
-        final SimpleHttpRequest post = SimpleHttpRequests.post(target, "/oldlocation/stuff");
-        post.setBody("stuff", ContentType.TEXT_PLAIN);
-        final Future<SimpleHttpResponse> future = httpclient.execute(post, context, null);
+        final Future<SimpleHttpResponse> future = httpclient.execute(
+                SimpleRequestBuilder.post()
+                        .setHttpHost(target)
+                        .setPath("/oldlocation/stuff")
+                        .setBody("stuff", ContentType.TEXT_PLAIN)
+                        .build(), context, null);
         final HttpResponse response = future.get();
         Assert.assertNotNull(response);
 
@@ -460,7 +493,10 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
         final HttpClientContext context = HttpClientContext.create();
 
         final Future<SimpleHttpResponse> future = httpclient.execute(
-                SimpleHttpRequests.get(target, "/oldlocation/stuff"), context, null);
+                SimpleRequestBuilder.get()
+                        .setHttpHost(target)
+                        .setPath("/oldlocation/stuff")
+                        .build(), context, null);
         final HttpResponse response = future.get();
         Assert.assertNotNull(response);
 
@@ -499,7 +535,10 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
         final HttpClientContext context = HttpClientContext.create();
 
         final Future<SimpleHttpResponse> future = httpclient.execute(
-                SimpleHttpRequests.get(target, "/random/oldlocation"), context, null);
+                SimpleRequestBuilder.get()
+                        .setHttpHost(target)
+                        .setPath("/random/oldlocation")
+                        .build(), context, null);
         final HttpResponse response = future.get();
         Assert.assertNotNull(response);
 
@@ -537,7 +576,10 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
 
         try {
             final Future<SimpleHttpResponse> future = httpclient.execute(
-                    SimpleHttpRequests.get(target, "/oldlocation/"), null);
+                    SimpleRequestBuilder.get()
+                            .setHttpHost(target)
+                            .setPath("/oldlocation/")
+                            .build(), null);
             future.get();
         } catch (final ExecutionException ex) {
             Assert.assertTrue(ex.getCause() instanceof HttpException);
@@ -572,7 +614,10 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
 
         try {
             final Future<SimpleHttpResponse> future = httpclient.execute(
-                    SimpleHttpRequests.get(target, "/oldlocation/"), null);
+                    SimpleRequestBuilder.get()
+                            .setHttpHost(target)
+                            .setPath("/oldlocation/")
+                            .build(), null);
             future.get();
         } catch (final ExecutionException e) {
             Assert.assertTrue(e.getCause() instanceof ProtocolException);
@@ -604,7 +649,10 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
         cookieStore.addCookie(cookie);
 
         final Future<SimpleHttpResponse> future = httpclient.execute(
-                SimpleHttpRequests.get(target, "/oldlocation/100"), context, null);
+                SimpleRequestBuilder.get()
+                        .setHttpHost(target)
+                        .setPath("/oldlocation/100")
+                        .build(), context, null);
         final HttpResponse response = future.get();
         Assert.assertNotNull(response);
 
@@ -670,7 +718,10 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
 
             final HttpClientContext context = HttpClientContext.create();
             final Future<SimpleHttpResponse> future = httpclient.execute(
-                    SimpleHttpRequests.get(target, "/oldlocation"), context, null);
+                    SimpleRequestBuilder.get()
+                            .setHttpHost(target)
+                            .setPath("/oldlocation")
+                            .build(), context, null);
             final HttpResponse response = future.get();
             Assert.assertNotNull(response);
 

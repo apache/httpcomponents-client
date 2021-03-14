@@ -30,9 +30,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.Future;
 
-import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
-import org.apache.hc.client5.http.async.methods.SimpleHttpRequests;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
+import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder;
@@ -121,9 +120,12 @@ public class TestHttp1Async extends AbstractHttpAsyncFundamentalsTest<CloseableH
     public void testSequenctialGetRequestsCloseConnection() throws Exception {
         final HttpHost target = start();
         for (int i = 0; i < 3; i++) {
-            final SimpleHttpRequest get = SimpleHttpRequests.get(target, "/random/2048");
-            get.setHeader(HttpHeaders.CONNECTION, HeaderElements.CLOSE);
-            final Future<SimpleHttpResponse> future = httpclient.execute(get, null);
+            final Future<SimpleHttpResponse> future = httpclient.execute(
+                    SimpleRequestBuilder.get()
+                            .setHttpHost(target)
+                            .setPath("/random/2048")
+                            .addHeader(HttpHeaders.CONNECTION, HeaderElements.CLOSE)
+                            .build(), null);
             final SimpleHttpResponse response = future.get();
             Assert.assertThat(response, CoreMatchers.notNullValue());
             Assert.assertThat(response.getCode(), CoreMatchers.equalTo(200));
@@ -151,7 +153,10 @@ public class TestHttp1Async extends AbstractHttpAsyncFundamentalsTest<CloseableH
     public void testSharedPool() throws Exception {
         final HttpHost target = start();
         final Future<SimpleHttpResponse> future1 = httpclient.execute(
-                SimpleHttpRequests.get(target, "/random/2048"), null);
+                SimpleRequestBuilder.get()
+                        .setHttpHost(target)
+                        .setPath("/random/2048")
+                        .build(), null);
         final SimpleHttpResponse response1 = future1.get();
         Assert.assertThat(response1, CoreMatchers.notNullValue());
         Assert.assertThat(response1.getCode(), CoreMatchers.equalTo(200));
@@ -166,7 +171,10 @@ public class TestHttp1Async extends AbstractHttpAsyncFundamentalsTest<CloseableH
                 .build()) {
             httpclient2.start();
             final Future<SimpleHttpResponse> future2 = httpclient2.execute(
-                    SimpleHttpRequests.get(target, "/random/2048"), null);
+                    SimpleRequestBuilder.get()
+                            .setHttpHost(target)
+                            .setPath("/random/2048")
+                            .build(), null);
             final SimpleHttpResponse response2 = future2.get();
             Assert.assertThat(response2, CoreMatchers.notNullValue());
             Assert.assertThat(response2.getCode(), CoreMatchers.equalTo(200));
@@ -176,7 +184,10 @@ public class TestHttp1Async extends AbstractHttpAsyncFundamentalsTest<CloseableH
         }
 
         final Future<SimpleHttpResponse> future3 = httpclient.execute(
-                SimpleHttpRequests.get(target, "/random/2048"), null);
+                SimpleRequestBuilder.get()
+                        .setHttpHost(target)
+                        .setPath("/random/2048")
+                        .build(), null);
         final SimpleHttpResponse response3 = future3.get();
         Assert.assertThat(response3, CoreMatchers.notNullValue());
         Assert.assertThat(response3.getCode(), CoreMatchers.equalTo(200));

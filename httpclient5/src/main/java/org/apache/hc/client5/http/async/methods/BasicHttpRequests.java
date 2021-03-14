@@ -37,7 +37,10 @@ import org.apache.hc.core5.http.message.BasicHttpRequest;
  * Common HTTP methods using {@link BasicHttpRequest} as a HTTP request message representation.
  *
  * @since 5.0
+ *
+ * @deprecated Use {@link org.apache.hc.core5.http.support.BasicRequestBuilder}.
  */
+@Deprecated
 public final class BasicHttpRequests {
 
     /**

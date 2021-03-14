@@ -41,7 +41,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 
-import org.apache.hc.client5.http.classic.methods.ClassicHttpRequests;
 import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
 import org.apache.hc.client5.http.config.Configurable;
 import org.apache.hc.client5.http.config.RequestConfig;
@@ -60,6 +59,7 @@ import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
 import org.apache.hc.core5.http.io.entity.FileEntity;
 import org.apache.hc.core5.http.io.entity.InputStreamEntity;
+import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 import org.apache.hc.core5.net.WWWFormCodec;
 import org.apache.hc.core5.util.Timeout;
 
@@ -95,67 +95,67 @@ public class Request {
   }
 
     public static Request get(final URI uri) {
-       return new Request(ClassicHttpRequests.get(uri));
+       return new Request(new BasicClassicHttpRequest(Method.GET, uri));
     }
 
     public static Request get(final String uri) {
-        return new Request(ClassicHttpRequests.get(uri));
+        return new Request(new BasicClassicHttpRequest(Method.GET, uri));
     }
 
     public static Request head(final URI uri) {
-        return new Request(ClassicHttpRequests.head(uri));
+        return new Request(new BasicClassicHttpRequest(Method.HEAD, uri));
     }
 
     public static Request head(final String uri) {
-        return new Request(ClassicHttpRequests.head(uri));
+        return new Request(new BasicClassicHttpRequest(Method.HEAD, uri));
     }
 
     public static Request post(final URI uri) {
-        return new Request(ClassicHttpRequests.post(uri));
+        return new Request(new BasicClassicHttpRequest(Method.POST, uri));
     }
 
     public static Request post(final String uri) {
-      return new Request(ClassicHttpRequests.post(uri));
+      return new Request(new BasicClassicHttpRequest(Method.POST, uri));
     }
 
     public static Request patch(final URI uri) {
-      return new Request(ClassicHttpRequests.patch(uri));
+      return new Request(new BasicClassicHttpRequest(Method.PATCH, uri));
     }
 
     public static Request patch(final String uri) {
-      return new Request(ClassicHttpRequests.patch(uri));
+      return new Request(new BasicClassicHttpRequest(Method.PATCH, uri));
     }
 
     public static Request put(final URI uri) {
-      return new Request(ClassicHttpRequests.put(uri));
+      return new Request(new BasicClassicHttpRequest(Method.PUT, uri));
     }
 
     public static Request put(final String uri) {
-      return new Request(ClassicHttpRequests.put(uri));
+      return new Request(new BasicClassicHttpRequest(Method.PUT, uri));
     }
 
     public static Request trace(final URI uri) {
-      return new Request(ClassicHttpRequests.trace(uri));
+      return new Request(new BasicClassicHttpRequest(Method.TRACE, uri));
     }
 
     public static Request trace(final String uri) {
-      return new Request(ClassicHttpRequests.trace(uri));
+      return new Request(new BasicClassicHttpRequest(Method.TRACE, uri));
     }
 
     public static Request delete(final URI uri) {
-      return new Request(ClassicHttpRequests.delete(uri));
+      return new Request(new BasicClassicHttpRequest(Method.DELETE, uri));
     }
 
     public static Request delete(final String uri) {
-      return new Request(ClassicHttpRequests.delete(uri));
+      return new Request(new BasicClassicHttpRequest(Method.DELETE, uri));
     }
 
     public static Request options(final URI uri) {
-      return new Request(ClassicHttpRequests.options(uri));
+      return new Request(new BasicClassicHttpRequest(Method.OPTIONS, uri));
     }
 
     public static Request options(final String uri) {
-      return new Request(ClassicHttpRequests.options(uri));
+      return new Request(new BasicClassicHttpRequest(Method.OPTIONS, uri));
     }
 
     Request(final ClassicHttpRequest request) {

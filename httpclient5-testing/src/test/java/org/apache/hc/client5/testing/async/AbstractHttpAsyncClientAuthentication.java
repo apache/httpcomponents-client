@@ -34,16 +34,16 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.hc.client5.http.AuthenticationStrategy;
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
-import org.apache.hc.client5.http.async.methods.SimpleHttpRequests;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
+import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
 import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
-import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.CredentialsStore;
+import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.DefaultAuthenticationStrategy;
@@ -164,7 +164,10 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
         final HttpClientContext context = HttpClientContext.create();
         context.setCredentialsProvider(credsProvider);
 
-        final Future<SimpleHttpResponse> future = httpclient.execute(SimpleHttpRequests.get(target, "/"), context, null);
+        final Future<SimpleHttpResponse> future = httpclient.execute(SimpleRequestBuilder.get()
+                        .setHttpHost(target)
+                        .setPath("/")
+                        .build(), context, null);
         final HttpResponse response = future.get();
 
         Assert.assertNotNull(response);
@@ -191,7 +194,10 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
         final HttpClientContext context = HttpClientContext.create();
         context.setCredentialsProvider(credsProvider);
 
-        final Future<SimpleHttpResponse> future = httpclient.execute(SimpleHttpRequests.get(target, "/"), context, null);
+        final Future<SimpleHttpResponse> future = httpclient.execute(SimpleRequestBuilder.get()
+                        .setHttpHost(target)
+                        .setPath("/")
+                        .build(), context, null);
         final HttpResponse response = future.get();
 
         Assert.assertNotNull(response);
@@ -218,7 +224,11 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
         final HttpClientContext context = HttpClientContext.create();
         context.setCredentialsProvider(credsProvider);
 
-        final Future<SimpleHttpResponse> future = httpclient.execute(SimpleHttpRequests.get(target, "/"), context, null);
+        final Future<SimpleHttpResponse> future = httpclient.execute(
+                SimpleRequestBuilder.get()
+                        .setHttpHost(target)
+                        .setPath("/")
+                        .build(), context, null);
         final HttpResponse response = future.get();
 
         Assert.assertNotNull(response);
@@ -244,10 +254,12 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
                 new UsernamePasswordCredentials("test", "test".toCharArray()));
         final HttpClientContext context = HttpClientContext.create();
         context.setCredentialsProvider(credsProvider);
-
-        final SimpleHttpRequest put = SimpleHttpRequests.put(target, "/");
-        put.setBody("Some important stuff", ContentType.TEXT_PLAIN);
-        final Future<SimpleHttpResponse> future = httpclient.execute(put, context, null);
+        final Future<SimpleHttpResponse> future = httpclient.execute(
+                SimpleRequestBuilder.put()
+                        .setHttpHost(target)
+                        .setPath("/")
+                        .setBody("Some important stuff", ContentType.TEXT_PLAIN)
+                        .build(), context, null);
         final HttpResponse response = future.get();
 
         Assert.assertNotNull(response);
@@ -274,10 +286,12 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
         final HttpClientContext context = HttpClientContext.create();
         context.setCredentialsProvider(credsProvider);
         context.setRequestConfig(RequestConfig.custom().setExpectContinueEnabled(true).build());
-
-        final SimpleHttpRequest put = SimpleHttpRequests.put(target, "/");
-        put.setBody("Some important stuff", ContentType.TEXT_PLAIN);
-        final Future<SimpleHttpResponse> future = httpclient.execute(put, context, null);
+        final Future<SimpleHttpResponse> future = httpclient.execute(
+                SimpleRequestBuilder.put()
+                        .setHttpHost(target)
+                        .setPath("/")
+                        .setBody("Some important stuff", ContentType.TEXT_PLAIN)
+                        .build(), context, null);
         final HttpResponse response = future.get();
 
         Assert.assertNotNull(response);
@@ -301,10 +315,12 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
         final HttpClientContext context = HttpClientContext.create();
         context.setCredentialsProvider(credsProvider);
         context.setRequestConfig(RequestConfig.custom().setExpectContinueEnabled(true).build());
-
-        final SimpleHttpRequest put = SimpleHttpRequests.put(target, "/");
-        put.setBody("Some important stuff", ContentType.TEXT_PLAIN);
-        final Future<SimpleHttpResponse> future = httpclient.execute(put, context, null);
+        final Future<SimpleHttpResponse> future = httpclient.execute(
+                SimpleRequestBuilder.put()
+                        .setHttpHost(target)
+                        .setPath("/")
+                        .setBody("Some important stuff", ContentType.TEXT_PLAIN)
+                        .build(), context, null);
         final HttpResponse response = future.get();
 
         Assert.assertNotNull(response);
@@ -345,12 +361,18 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
         final HttpClientContext context = HttpClientContext.create();
         context.setCredentialsProvider(credsProvider);
 
-        final Future<SimpleHttpResponse> future1 = httpclient.execute(SimpleHttpRequests.get(target, "/"), context, null);
+        final Future<SimpleHttpResponse> future1 = httpclient.execute(SimpleRequestBuilder.get()
+                        .setHttpHost(target)
+                        .setPath("/")
+                        .build(), context, null);
         final HttpResponse response1 = future1.get();
         Assert.assertNotNull(response1);
         Assert.assertEquals(HttpStatus.SC_OK, response1.getCode());
 
-        final Future<SimpleHttpResponse> future2 = httpclient.execute(SimpleHttpRequests.get(target, "/"), context, null);
+        final Future<SimpleHttpResponse> future2 = httpclient.execute(SimpleRequestBuilder.get()
+                        .setHttpHost(target)
+                        .setPath("/")
+                        .build(), context, null);
         final HttpResponse response2 = future2.get();
         Assert.assertNotNull(response2);
         Assert.assertEquals(HttpStatus.SC_OK, response2.getCode());
@@ -372,7 +394,11 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
 
         final HttpClientContext context = HttpClientContext.create();
         final Future<SimpleHttpResponse> future = httpclient.execute(
-                SimpleHttpRequests.get(target.getSchemeName() + "://test:test@" +  target.toHostString() + "/"), context, null);
+                SimpleRequestBuilder.get()
+                        .setScheme(target.getSchemeName())
+                        .setAuthority(new URIAuthority("test:test", target.getHostName(), target.getPort()))
+                        .setPath("/")
+                        .build(), context, null);
         final SimpleHttpResponse response = future.get();
 
         Assert.assertNotNull(response);
@@ -392,8 +418,11 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
         final HttpHost target = start();
 
         final HttpClientContext context = HttpClientContext.create();
-        final Future<SimpleHttpResponse> future = httpclient.execute(
-                SimpleHttpRequests.get(target.getSchemeName() + "://test:all-worng@" +  target.toHostString() + "/"), context, null);
+        final Future<SimpleHttpResponse> future = httpclient.execute(SimpleRequestBuilder.get()
+                        .setScheme(target.getSchemeName())
+                        .setAuthority(new URIAuthority("test:all-worng", target.getHostName(), target.getPort()))
+                        .setPath("/")
+                        .build(), context, null);
         final SimpleHttpResponse response = future.get();
 
         Assert.assertNotNull(response);
@@ -431,7 +460,11 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
 
         final HttpClientContext context = HttpClientContext.create();
         final Future<SimpleHttpResponse> future = httpclient.execute(
-                SimpleHttpRequests.get(target.getSchemeName() + "://test:test@" +  target.toHostString() + "/thatway"), context, null);
+                SimpleRequestBuilder.get()
+                        .setScheme(target.getSchemeName())
+                        .setAuthority(new URIAuthority("test:test", target.getHostName(), target.getPort()))
+                        .setPath("/thatway")
+                        .build(), context, null);
         final SimpleHttpResponse response = future.get();
 
         Assert.assertNotNull(response);
@@ -511,7 +544,10 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
         context.setCredentialsProvider(credsProvider);
 
         for (int i = 0; i < 10; i++) {
-            final SimpleHttpRequest request = SimpleHttpRequests.get(target, "/");
+            final SimpleHttpRequest request = SimpleRequestBuilder.get()
+                        .setHttpHost(target)
+                        .setPath("/")
+                        .build();
             request.setConfig(config);
             final Future<SimpleHttpResponse> future = httpclient.execute(request, context, null);
             final SimpleHttpResponse response = future.get();
@@ -552,7 +588,10 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
         final HttpClientContext context = HttpClientContext.create();
         context.setCredentialsProvider(credsProvider);
 
-        final Future<SimpleHttpResponse> future = httpclient.execute(SimpleHttpRequests.get(target, "/"), context, null);
+        final Future<SimpleHttpResponse> future = httpclient.execute(SimpleRequestBuilder.get()
+                        .setHttpHost(target)
+                        .setPath("/")
+                        .build(), context, null);
         final SimpleHttpResponse response = future.get();
         Assert.assertNotNull(response);
         Assert.assertEquals(HttpStatus.SC_OK, response.getCode());

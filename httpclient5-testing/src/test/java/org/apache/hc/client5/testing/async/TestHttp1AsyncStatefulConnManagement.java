@@ -31,8 +31,8 @@ import java.util.concurrent.Future;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.UserTokenHandler;
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
-import org.apache.hc.client5.http.async.methods.SimpleHttpRequests;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
+import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder;
@@ -53,6 +53,7 @@ import org.apache.hc.core5.http.nio.AsyncServerExchangeHandler;
 import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.protocol.HttpCoreContext;
+import org.apache.hc.core5.net.URIAuthority;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -216,8 +217,11 @@ public class TestHttp1AsyncStatefulConnManagement extends AbstractIntegrationTes
             try {
                 context.setAttribute("user", uid);
                 for (int r = 0; r < requestCount; r++) {
-                    final SimpleHttpRequest httpget = SimpleHttpRequests.get(target, "/");
-                    final Future<SimpleHttpResponse> future = httpclient.execute(httpget, null);
+                    final SimpleHttpRequest request = SimpleRequestBuilder.get()
+                            .setHttpHost(target)
+                            .setPath("/")
+                            .build();
+                    final Future<SimpleHttpResponse> future = httpclient.execute(request, null);
                     future.get();
 
                     count++;
@@ -277,7 +281,11 @@ public class TestHttp1AsyncStatefulConnManagement extends AbstractIntegrationTes
         final HttpContext context1 = new BasicHttpContext();
         context1.setAttribute("user", "stuff");
 
-        final Future<SimpleHttpResponse> future1 = httpclient.execute(SimpleHttpRequests.get(target, "/"), context1, null);
+        final SimpleHttpRequest request1 = SimpleRequestBuilder.get()
+                .setHttpHost(target)
+                .setPath("/")
+                .build();
+        final Future<SimpleHttpResponse> future1 = httpclient.execute(request1, context1, null);
         final HttpResponse response1 = future1.get();
         Assert.assertNotNull(response1);
         Assert.assertEquals(200, response1.getCode());
@@ -292,8 +300,12 @@ public class TestHttp1AsyncStatefulConnManagement extends AbstractIntegrationTes
         // Send it to another route. Must be a keepalive.
         final HttpContext context2 = new BasicHttpContext();
 
-        final Future<SimpleHttpResponse> future2 = httpclient.execute(SimpleHttpRequests.get(
-                new HttpHost(target.getSchemeName(), "127.0.0.1", target.getPort()),"/"), context2, null);
+        final SimpleHttpRequest request2 = SimpleRequestBuilder.get()
+                .setScheme(target.getSchemeName())
+                .setAuthority(new URIAuthority("127.0.0.1", target.getPort()))
+                .setPath("/")
+                .build();
+        final Future<SimpleHttpResponse> future2 = httpclient.execute(request2, context2, null);
         final HttpResponse response2 = future2.get();
         Assert.assertNotNull(response2);
         Assert.assertEquals(200, response2.getCode());
@@ -310,7 +322,12 @@ public class TestHttp1AsyncStatefulConnManagement extends AbstractIntegrationTes
         // The killed conn is the oldest, which means the first HTTPGet ([localhost][stuff]).
         // When this happens, the RouteSpecificPool becomes empty.
         final HttpContext context3 = new BasicHttpContext();
-        final Future<SimpleHttpResponse> future3 = httpclient.execute(SimpleHttpRequests.get(target, "/"), context3, null);
+
+        final SimpleHttpRequest request3 = SimpleRequestBuilder.get()
+                .setHttpHost(target)
+                .setPath("/")
+                .build();
+        final Future<SimpleHttpResponse> future3 = httpclient.execute(request3, context3, null);
         final HttpResponse response3 = future3.get();
         Assert.assertNotNull(response3);
         Assert.assertEquals(200, response3.getCode());

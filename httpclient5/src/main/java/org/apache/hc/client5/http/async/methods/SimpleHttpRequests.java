@@ -36,7 +36,10 @@ import org.apache.hc.core5.http.Method;
  * Common HTTP methods using {@link SimpleHttpRequest} as a HTTP request message representation.
  *
  * @since 5.0
+ *
+ * @deprecated Use {@link SimpleRequestBuilder}.
  */
+@Deprecated
 public final class SimpleHttpRequests {
 
     /**

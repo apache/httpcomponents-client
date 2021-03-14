@@ -31,8 +31,9 @@ import java.util.Collection;
 import java.util.concurrent.Future;
 
 import org.apache.hc.client5.http.AuthenticationStrategy;
-import org.apache.hc.client5.http.async.methods.SimpleHttpRequests;
+import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
+import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
@@ -166,7 +167,11 @@ public class TestHttp1ClientAuthentication extends AbstractHttpAsyncClientAuthen
         final HttpClientContext context = HttpClientContext.create();
         context.setCredentialsProvider(credsProvider);
 
-        final Future<SimpleHttpResponse> future = httpclient.execute(SimpleHttpRequests.get(target, "/"), context, null);
+        final SimpleHttpRequest request = SimpleRequestBuilder.get()
+                .setHttpHost(target)
+                .setPath("/")
+                .build();
+        final Future<SimpleHttpResponse> future = httpclient.execute(request, context, null);
         final HttpResponse response = future.get();
 
         Assert.assertNotNull(response);

@@ -27,30 +27,60 @@
 
 package org.apache.hc.client5.http.fluent;
 
+import java.lang.reflect.Method;
 import java.net.URI;
+import java.util.Arrays;
 
-import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
+@RunWith(Parameterized.class)
 public class TestRequest {
 
-  private static final String URI_STRING_FIXTURE = "http://localhost";
-  private static final URI URI_FIXTURE = URI.create(URI_STRING_FIXTURE);
+    private static final String URI_STRING_FIXTURE = "http://localhost";
+    private static final URI URI_FIXTURE = URI.create(URI_STRING_FIXTURE);
 
-  @Test
-  public void testGetFromString() {
-    final ClassicHttpRequest request = Request.get(URI_STRING_FIXTURE).getRequest();
-    Assert.assertEquals(HttpGet.class, request.getClass());
-    Assert.assertEquals("GET", request.getMethod());
-  }
+    @Parameterized.Parameters(name = "{index}: {0} => {1}")
+    public static Iterable<Object[]> data() {
+        return Arrays.asList(new Object[][]{
+                // @formatter:off
+                {"delete", "DELETE"},
+                {"get", "GET"},
+                {"head", "HEAD"},
+                {"options", "OPTIONS"},
+                {"patch", "PATCH"},
+                {"post", "POST"},
+                {"put", "PUT"},
+                {"trace", "TRACE"}
+                // @formatter:on
+        });
+    }
 
-  @Test
-  public void testGetFromURI() {
-    final ClassicHttpRequest request = Request.get(URI_FIXTURE).getRequest();
-    Assert.assertEquals(HttpGet.class, request.getClass());
-    Assert.assertEquals("GET", request.getMethod());
-  }
+    private final String methodName;
+    private final String expectedMethod;
+
+    public TestRequest(final String methodName, final String expectedMethod) {
+        this.methodName = methodName;
+        this.expectedMethod = expectedMethod;
+    }
+
+    @Test
+    public void testCreateFromString() throws Exception {
+        final Method method = Request.class.getMethod(methodName, String.class);
+        final Request request = (Request) method.invoke(null, URI_STRING_FIXTURE);
+        final ClassicHttpRequest classicHttpRequest = request.getRequest();
+        Assert.assertEquals(expectedMethod, classicHttpRequest.getMethod());
+    }
+
+    @Test
+    public void testCreateFromURI() throws Exception {
+        final Method method = Request.class.getMethod(methodName, URI.class);
+        final Request request = (Request) method.invoke(null, URI_FIXTURE);
+        final ClassicHttpRequest classicHttpRequest = request.getRequest();
+        Assert.assertEquals(expectedMethod, classicHttpRequest.getMethod());
+    }
 
 }

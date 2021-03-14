@@ -31,7 +31,7 @@ import java.util.Arrays;
 import java.util.Collection;
 
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
-import org.apache.hc.client5.http.async.methods.SimpleHttpRequests;
+import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder;
@@ -126,7 +126,10 @@ public class TestHttp1Reactive extends AbstractHttpReactiveFundamentalsTest<Clos
     public void testSequentialGetRequestsCloseConnection() throws Exception {
         final HttpHost target = start();
         for (int i = 0; i < 3; i++) {
-            final SimpleHttpRequest get = SimpleHttpRequests.get(target, "/random/2048");
+            final SimpleHttpRequest get = SimpleRequestBuilder.get()
+                    .setHttpHost(target)
+                    .setPath("/random/2048")
+                    .build();
             get.setHeader(HttpHeaders.CONNECTION, HeaderElements.CLOSE);
             final AsyncRequestProducer request = AsyncRequestBuilder.get(target + "/random/2048").build();
             final ReactiveResponseConsumer consumer = new ReactiveResponseConsumer();

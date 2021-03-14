@@ -36,8 +36,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.hc.client5.http.async.methods.SimpleHttpRequests;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
+import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.concurrent.FutureCallback;
@@ -66,7 +66,10 @@ public abstract class AbstractHttpAsyncFundamentalsTest<T extends CloseableHttpA
         final HttpHost target = start();
         for (int i = 0; i < 3; i++) {
             final Future<SimpleHttpResponse> future = httpclient.execute(
-                    SimpleHttpRequests.get(target, "/random/2048"), null);
+                    SimpleRequestBuilder.get()
+                            .setHttpHost(target)
+                            .setPath("/random/2048")
+                            .build(), null);
             final SimpleHttpResponse response = future.get();
             Assert.assertThat(response, CoreMatchers.notNullValue());
             Assert.assertThat(response.getCode(), CoreMatchers.equalTo(200));
@@ -81,7 +84,10 @@ public abstract class AbstractHttpAsyncFundamentalsTest<T extends CloseableHttpA
         final HttpHost target = start();
         for (int i = 0; i < 3; i++) {
             final Future<SimpleHttpResponse> future = httpclient.execute(
-                    SimpleHttpRequests.head(target, "/random/2048"), null);
+                    SimpleRequestBuilder.head()
+                            .setHttpHost(target)
+                            .setPath("/random/2048")
+                            .build(), null);
             final SimpleHttpResponse response = future.get();
             Assert.assertThat(response, CoreMatchers.notNullValue());
             Assert.assertThat(response.getCode(), CoreMatchers.equalTo(200));
@@ -154,7 +160,11 @@ public abstract class AbstractHttpAsyncFundamentalsTest<T extends CloseableHttpA
                 try {
                     resultQueue.add(result);
                     if (count.decrementAndGet() > 0) {
-                        httpclient.execute(SimpleHttpRequests.get(target, "/random/2048"), this);
+                        httpclient.execute(
+                                SimpleRequestBuilder.get()
+                                        .setHttpHost(target)
+                                        .setPath("/random/2048")
+                                        .build(), this);
                     }
                 } finally {
                     countDownLatch.countDown();
@@ -180,7 +190,11 @@ public abstract class AbstractHttpAsyncFundamentalsTest<T extends CloseableHttpA
                 @Override
                 public void run() {
                     if (!Thread.currentThread().isInterrupted()) {
-                        httpclient.execute(SimpleHttpRequests.get(target, "/random/2048"), callback);
+                        httpclient.execute(
+                                SimpleRequestBuilder.get()
+                                        .setHttpHost(target)
+                                        .setPath("/random/2048")
+                                        .build(), callback);
                     }
                 }
 
@@ -205,7 +219,10 @@ public abstract class AbstractHttpAsyncFundamentalsTest<T extends CloseableHttpA
     public void testBadRequest() throws Exception {
         final HttpHost target = start();
         final Future<SimpleHttpResponse> future = httpclient.execute(
-                SimpleHttpRequests.get(target, "/random/boom"), null);
+                SimpleRequestBuilder.get()
+                        .setHttpHost(target)
+                        .setPath("/random/boom")
+                        .build(), null);
         final SimpleHttpResponse response = future.get();
         Assert.assertThat(response, CoreMatchers.notNullValue());
         Assert.assertThat(response.getCode(), CoreMatchers.equalTo(400));

@@ -32,8 +32,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Future;
 
-import org.apache.hc.client5.http.async.methods.SimpleHttpRequests;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
+import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder;
@@ -137,8 +137,10 @@ public class TestHttp1AsyncRedirects extends AbstractHttpAsyncRedirectsTest<Clos
 
         });
         final HttpClientContext context = HttpClientContext.create();
-        final Future<SimpleHttpResponse> future = httpclient.execute(
-                SimpleHttpRequests.get(target, "/oldlocation/"), context, null);
+        final Future<SimpleHttpResponse> future = httpclient.execute(SimpleRequestBuilder.get()
+                        .setHttpHost(target)
+                        .setPath("/oldlocation/")
+                        .build(), context, null);
         final HttpResponse response = future.get();
         Assert.assertNotNull(response);
 
@@ -162,8 +164,10 @@ public class TestHttp1AsyncRedirects extends AbstractHttpAsyncRedirectsTest<Clos
 
         });
         final HttpClientContext context = HttpClientContext.create();
-        final Future<SimpleHttpResponse> future = httpclient.execute(
-                SimpleHttpRequests.get(target, "/oldlocation/100"), context, null);
+        final Future<SimpleHttpResponse> future = httpclient.execute(SimpleRequestBuilder.get()
+                        .setHttpHost(target)
+                        .setPath("/oldlocation/100")
+                        .build(), context, null);
         final HttpResponse response = future.get();
         Assert.assertNotNull(response);
 
@@ -194,8 +198,10 @@ public class TestHttp1AsyncRedirects extends AbstractHttpAsyncRedirectsTest<Clos
 
         final HttpClientContext context = HttpClientContext.create();
 
-        final Future<SimpleHttpResponse> future = httpclient.execute(
-                SimpleHttpRequests.get(target, "/oldlocation/123"), context, null);
+        final Future<SimpleHttpResponse> future = httpclient.execute(SimpleRequestBuilder.get()
+                .setHttpHost(target)
+                .setPath("/oldlocation/123")
+                .build(), context, null);
         final HttpResponse response = future.get();
         Assert.assertNotNull(response);
 
