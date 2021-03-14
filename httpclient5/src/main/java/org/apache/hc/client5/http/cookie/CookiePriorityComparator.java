@@ -35,7 +35,7 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
 
 /**
  * This cookie comparator ensures that cookies with longer paths take precedence over
- * cookies with shorter path. Among cookies with equal path length cookies with ealier
+ * cookies with shorter path. Among cookies with equal path length cookies with earlier
  * creation time take precedence over cookies with later creation time
  *
  * @since 4.4

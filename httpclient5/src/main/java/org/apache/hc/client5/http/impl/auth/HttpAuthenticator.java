@@ -377,8 +377,8 @@ public final class HttpAuthenticator {
     }
 
     private void updateCache(final HttpHost host, final AuthScheme authScheme, final HttpClientContext clientContext) {
-        final boolean cachable = authScheme.getClass().getAnnotation(AuthStateCacheable.class) != null;
-        if (cachable) {
+        final boolean cacheable = authScheme.getClass().getAnnotation(AuthStateCacheable.class) != null;
+        if (cacheable) {
             AuthCache authCache = clientContext.getAuthCache();
             if (authCache == null) {
                 authCache = new BasicAuthCache();

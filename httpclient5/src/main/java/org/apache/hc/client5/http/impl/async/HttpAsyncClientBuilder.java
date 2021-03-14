@@ -659,7 +659,7 @@ public class HttpAsyncClientBuilder {
      * One MUST explicitly close HttpClient with {@link CloseableHttpAsyncClient#close()} in order
      * to stop and release the background thread.
      * <p>
-     * Please note this method has no effect if the instance of HttpClient is configuted to
+     * Please note this method has no effect if the instance of HttpClient is configured to
      * use a shared connection manager.
      *
      * @see #setConnectionManagerShared(boolean)
@@ -677,7 +677,7 @@ public class HttpAsyncClientBuilder {
      * One MUST explicitly close HttpClient with {@link CloseableHttpAsyncClient#close()}
      * in order to stop and release the background thread.
      * <p>
-     * Please note this method has no effect if the instance of HttpClient is configuted to
+     * Please note this method has no effect if the instance of HttpClient is configured to
      * use a shared connection manager.
      *
      * @see #setConnectionManagerShared(boolean)
