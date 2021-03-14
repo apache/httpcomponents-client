@@ -159,45 +159,45 @@ public class HttpAsyncClientBuilder {
 
     private static class RequestInterceptorEntry {
 
-        enum Postion { FIRST, LAST }
+        enum Position { FIRST, LAST }
 
-        final RequestInterceptorEntry.Postion postion;
+        final RequestInterceptorEntry.Position position;
         final HttpRequestInterceptor interceptor;
 
-        private RequestInterceptorEntry(final RequestInterceptorEntry.Postion postion, final HttpRequestInterceptor interceptor) {
-            this.postion = postion;
+        private RequestInterceptorEntry(final RequestInterceptorEntry.Position position, final HttpRequestInterceptor interceptor) {
+            this.position = position;
             this.interceptor = interceptor;
         }
     }
 
     private static class ResponseInterceptorEntry {
 
-        enum Postion { FIRST, LAST }
+        enum Position { FIRST, LAST }
 
-        final ResponseInterceptorEntry.Postion postion;
+        final ResponseInterceptorEntry.Position position;
         final HttpResponseInterceptor interceptor;
 
-        private ResponseInterceptorEntry(final ResponseInterceptorEntry.Postion postion, final HttpResponseInterceptor interceptor) {
-            this.postion = postion;
+        private ResponseInterceptorEntry(final ResponseInterceptorEntry.Position position, final HttpResponseInterceptor interceptor) {
+            this.position = position;
             this.interceptor = interceptor;
         }
     }
 
     private static class ExecInterceptorEntry {
 
-        enum Postion { BEFORE, AFTER, REPLACE, FIRST, LAST }
+        enum Position { BEFORE, AFTER, REPLACE, FIRST, LAST }
 
-        final ExecInterceptorEntry.Postion postion;
+        final ExecInterceptorEntry.Position position;
         final String name;
         final AsyncExecChainHandler interceptor;
         final String existing;
 
         private ExecInterceptorEntry(
-                final ExecInterceptorEntry.Postion postion,
+                final ExecInterceptorEntry.Position position,
                 final String name,
                 final AsyncExecChainHandler interceptor,
                 final String existing) {
-            this.postion = postion;
+            this.position = position;
             this.name = name;
             this.interceptor = interceptor;
             this.existing = existing;
@@ -382,7 +382,7 @@ public class HttpAsyncClientBuilder {
         if (responseInterceptors == null) {
             responseInterceptors = new LinkedList<>();
         }
-        responseInterceptors.add(new ResponseInterceptorEntry(ResponseInterceptorEntry.Postion.FIRST, interceptor));
+        responseInterceptors.add(new ResponseInterceptorEntry(ResponseInterceptorEntry.Position.FIRST, interceptor));
         return this;
     }
 
@@ -394,7 +394,7 @@ public class HttpAsyncClientBuilder {
         if (responseInterceptors == null) {
             responseInterceptors = new LinkedList<>();
         }
-        responseInterceptors.add(new ResponseInterceptorEntry(ResponseInterceptorEntry.Postion.LAST, interceptor));
+        responseInterceptors.add(new ResponseInterceptorEntry(ResponseInterceptorEntry.Position.LAST, interceptor));
         return this;
     }
 
@@ -408,7 +408,7 @@ public class HttpAsyncClientBuilder {
         if (execInterceptors == null) {
             execInterceptors = new LinkedList<>();
         }
-        execInterceptors.add(new ExecInterceptorEntry(ExecInterceptorEntry.Postion.BEFORE, name, interceptor, existing));
+        execInterceptors.add(new ExecInterceptorEntry(ExecInterceptorEntry.Position.BEFORE, name, interceptor, existing));
         return this;
     }
 
@@ -422,7 +422,7 @@ public class HttpAsyncClientBuilder {
         if (execInterceptors == null) {
             execInterceptors = new LinkedList<>();
         }
-        execInterceptors.add(new ExecInterceptorEntry(ExecInterceptorEntry.Postion.AFTER, name, interceptor, existing));
+        execInterceptors.add(new ExecInterceptorEntry(ExecInterceptorEntry.Position.AFTER, name, interceptor, existing));
         return this;
     }
 
@@ -435,7 +435,7 @@ public class HttpAsyncClientBuilder {
         if (execInterceptors == null) {
             execInterceptors = new LinkedList<>();
         }
-        execInterceptors.add(new ExecInterceptorEntry(ExecInterceptorEntry.Postion.REPLACE, existing, interceptor, existing));
+        execInterceptors.add(new ExecInterceptorEntry(ExecInterceptorEntry.Position.REPLACE, existing, interceptor, existing));
         return this;
     }
 
@@ -448,7 +448,7 @@ public class HttpAsyncClientBuilder {
         if (execInterceptors == null) {
             execInterceptors = new LinkedList<>();
         }
-        execInterceptors.add(new ExecInterceptorEntry(ExecInterceptorEntry.Postion.FIRST, name, interceptor, null));
+        execInterceptors.add(new ExecInterceptorEntry(ExecInterceptorEntry.Position.FIRST, name, interceptor, null));
         return this;
     }
 
@@ -461,7 +461,7 @@ public class HttpAsyncClientBuilder {
         if (execInterceptors == null) {
             execInterceptors = new LinkedList<>();
         }
-        execInterceptors.add(new ExecInterceptorEntry(ExecInterceptorEntry.Postion.LAST, name, interceptor, null));
+        execInterceptors.add(new ExecInterceptorEntry(ExecInterceptorEntry.Position.LAST, name, interceptor, null));
         return this;
     }
 
@@ -473,7 +473,7 @@ public class HttpAsyncClientBuilder {
         if (requestInterceptors == null) {
             requestInterceptors = new LinkedList<>();
         }
-        requestInterceptors.add(new RequestInterceptorEntry(RequestInterceptorEntry.Postion.FIRST, interceptor));
+        requestInterceptors.add(new RequestInterceptorEntry(RequestInterceptorEntry.Position.FIRST, interceptor));
         return this;
     }
 
@@ -485,7 +485,7 @@ public class HttpAsyncClientBuilder {
         if (requestInterceptors == null) {
             requestInterceptors = new LinkedList<>();
         }
-        requestInterceptors.add(new RequestInterceptorEntry(RequestInterceptorEntry.Postion.LAST, interceptor));
+        requestInterceptors.add(new RequestInterceptorEntry(RequestInterceptorEntry.Position.LAST, interceptor));
         return this;
     }
 
@@ -781,14 +781,14 @@ public class HttpAsyncClientBuilder {
         final HttpProcessorBuilder b = HttpProcessorBuilder.create();
         if (requestInterceptors != null) {
             for (final RequestInterceptorEntry entry: requestInterceptors) {
-                if (entry.postion == RequestInterceptorEntry.Postion.FIRST) {
+                if (entry.position == RequestInterceptorEntry.Position.FIRST) {
                     b.addFirst(entry.interceptor);
                 }
             }
         }
         if (responseInterceptors != null) {
             for (final ResponseInterceptorEntry entry: responseInterceptors) {
-                if (entry.postion == ResponseInterceptorEntry.Postion.FIRST) {
+                if (entry.position == ResponseInterceptorEntry.Position.FIRST) {
                     b.addFirst(entry.interceptor);
                 }
             }
@@ -808,14 +808,14 @@ public class HttpAsyncClientBuilder {
         }
         if (requestInterceptors != null) {
             for (final RequestInterceptorEntry entry: requestInterceptors) {
-                if (entry.postion == RequestInterceptorEntry.Postion.LAST) {
+                if (entry.position == RequestInterceptorEntry.Position.LAST) {
                     b.addLast(entry.interceptor);
                 }
             }
         }
         if (responseInterceptors != null) {
             for (final ResponseInterceptorEntry entry: responseInterceptors) {
-                if (entry.postion == ResponseInterceptorEntry.Postion.LAST) {
+                if (entry.position == ResponseInterceptorEntry.Position.LAST) {
                     b.addLast(entry.interceptor);
                 }
             }
@@ -945,7 +945,7 @@ public class HttpAsyncClientBuilder {
 
         if (execInterceptors != null) {
             for (final ExecInterceptorEntry entry: execInterceptors) {
-                switch (entry.postion) {
+                switch (entry.position) {
                     case AFTER:
                         execChainDefinition.addAfter(entry.existing, entry.interceptor, entry.name);
                         break;
