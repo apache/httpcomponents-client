@@ -53,6 +53,7 @@ public class RFC6265StrictSpec extends RFC6265CookieSpecBase {
                 new BasicDomainHandler(),
                 new BasicMaxAgeHandler(),
                 new BasicSecureHandler(),
+                new BasicHttpOnlyHandler(),
                 new BasicExpiresHandler(DATE_PATTERNS));
     }
 
