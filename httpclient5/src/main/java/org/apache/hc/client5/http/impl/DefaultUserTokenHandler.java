@@ -66,9 +66,9 @@ public class DefaultUserTokenHandler implements UserTokenHandler {
 
         Principal userPrincipal = null;
 
-        final AuthExchange targetAuthExchnage = clientContext.getAuthExchange(route.getTargetHost());
-        if (targetAuthExchnage != null) {
-            userPrincipal = getAuthPrincipal(targetAuthExchnage);
+        final AuthExchange targetAuthExchange = clientContext.getAuthExchange(route.getTargetHost());
+        if (targetAuthExchange != null) {
+            userPrincipal = getAuthPrincipal(targetAuthExchange);
             if (userPrincipal == null && route.getProxyHost() != null) {
                 final AuthExchange proxyAuthExchange = clientContext.getAuthExchange(route.getProxyHost());
                 userPrincipal = getAuthPrincipal(proxyAuthExchange);

@@ -55,7 +55,7 @@ public interface CookieAttributeHandler {
           throws MalformedCookieException;
 
   /**
-   * Peforms cookie validation for the given attribute value.
+   * Performs cookie validation for the given attribute value.
    *
    * @param cookie {@link org.apache.hc.client5.http.cookie.Cookie} to validate
    * @param origin the cookie source to validate against

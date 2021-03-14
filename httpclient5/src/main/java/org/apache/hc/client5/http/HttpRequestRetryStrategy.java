@@ -48,7 +48,7 @@ public interface HttpRequestRetryStrategy {
 
     /**
      * Determines if a method should be retried after an I/O exception
-     * occured during execution.
+     * occurred during execution.
      *
      * @param request the request failed due to an I/O exception
      * @param exception the exception that occurred

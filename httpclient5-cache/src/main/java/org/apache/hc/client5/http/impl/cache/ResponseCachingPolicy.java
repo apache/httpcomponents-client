@@ -252,7 +252,7 @@ class ResponseCachingPolicy {
 
         final String[] uncacheableRequestDirectives = { HeaderConstants.CACHE_CONTROL_NO_STORE };
         if (hasCacheControlParameterFrom(request,uncacheableRequestDirectives)) {
-            LOG.debug("Response is explcitily non-cacheable per cache control directive");
+            LOG.debug("Response is explicitly non-cacheable per cache control directive");
             return false;
         }
 
