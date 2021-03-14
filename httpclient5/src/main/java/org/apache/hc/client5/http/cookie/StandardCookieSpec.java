@@ -39,7 +39,7 @@ public final class StandardCookieSpec {
     }
 
     /**
-     * The RFC 6265 compliant policy (interoprability profile).
+     * The RFC 6265 compliant policy (interoperability profile).
      */
     public static final String RELAXED = "relaxed";
 
