@@ -44,6 +44,7 @@ public interface Cookie {
     String MAX_AGE_ATTR    = "max-age";
     String SECURE_ATTR     = "secure";
     String EXPIRES_ATTR    = "expires";
+    String HTTP_ONLY_ATTR  = "httpOnly";
 
     /**
      * @since 5.0
@@ -125,6 +126,19 @@ public interface Cookie {
      * Returns creation time of the cookie.
      */
     Date getCreationDate();
+
+    /**
+     * Checks whether this Cookie has been marked as {@code httpOnly}.
+     * <p>The default implementation returns {@code false}.
+     *
+     * @return true if this Cookie has been marked as {@code httpOnly},
+     * false otherwise
+     *
+     * @since 5.2
+     */
+    default boolean isHttpOnly(){
+        return false;
+    }
 
 }
 
