@@ -33,7 +33,10 @@ import java.util.concurrent.Future;
 import org.apache.hc.client5.http.async.AsyncExecCallback;
 import org.apache.hc.client5.http.async.AsyncExecChain;
 import org.apache.hc.client5.http.async.AsyncExecChainHandler;
+import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
+import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
+import org.apache.hc.client5.http.async.methods.SimpleRequestProducer;
 import org.apache.hc.client5.http.async.methods.SimpleResponseConsumer;
 import org.apache.hc.client5.http.impl.ChainElement;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
@@ -42,11 +45,9 @@ import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.message.StatusLine;
 import org.apache.hc.core5.http.nio.AsyncEntityProducer;
-import org.apache.hc.core5.http.nio.AsyncRequestProducer;
 import org.apache.hc.core5.http.nio.entity.DigestingEntityProducer;
-import org.apache.hc.core5.http.nio.entity.StringAsyncEntityProducer;
-import org.apache.hc.core5.http.nio.support.AsyncRequestBuilder;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.reactor.IOReactorConfig;
 import org.apache.hc.core5.util.Timeout;
@@ -87,29 +88,30 @@ public class AsyncClientMessageTrailers {
 
         client.start();
 
-        final String requestUri = "http://httpbin.org/post";
-        final AsyncRequestProducer requestProducer = AsyncRequestBuilder.post(requestUri)
-                .setEntity(new StringAsyncEntityProducer("some stuff", ContentType.TEXT_PLAIN))
+        final SimpleHttpRequest request = SimpleRequestBuilder.post("http://httpbin.org/post")
+                .setBody("some stuff", ContentType.TEXT_PLAIN)
                 .build();
+
+        System.out.println("Executing request " + request);
         final Future<SimpleHttpResponse> future = client.execute(
-                requestProducer,
+                SimpleRequestProducer.create(request),
                 SimpleResponseConsumer.create(),
                 new FutureCallback<SimpleHttpResponse>() {
 
                     @Override
                     public void completed(final SimpleHttpResponse response) {
-                        System.out.println(requestUri + "->" + response.getCode());
+                        System.out.println(request + "->" + new StatusLine(response));
                         System.out.println(response.getBody());
                     }
 
                     @Override
                     public void failed(final Exception ex) {
-                        System.out.println(requestUri + "->" + ex);
+                        System.out.println(request + "->" + ex);
                     }
 
                     @Override
                     public void cancelled() {
-                        System.out.println(requestUri + " cancelled");
+                        System.out.println(request + " cancelled");
                     }
 
                 });

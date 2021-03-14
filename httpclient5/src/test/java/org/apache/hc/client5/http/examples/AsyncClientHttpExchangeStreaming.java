@@ -37,9 +37,10 @@ import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpResponse;
-import org.apache.hc.core5.http.Method;
+import org.apache.hc.core5.http.message.BasicHttpRequest;
 import org.apache.hc.core5.http.message.StatusLine;
 import org.apache.hc.core5.http.nio.support.BasicRequestProducer;
+import org.apache.hc.core5.http.support.BasicRequestBuilder;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.reactor.IOReactorConfig;
 import org.apache.hc.core5.util.Timeout;
@@ -65,15 +66,22 @@ public class AsyncClientHttpExchangeStreaming {
         final String[] requestUris = new String[] {"/", "/ip", "/user-agent", "/headers"};
 
         for (final String requestUri: requestUris) {
+
+            final BasicHttpRequest request = BasicRequestBuilder.get()
+                    .setHttpHost(target)
+                    .setPath(requestUri)
+                    .build();
+
+            System.out.println("Executing request " + request);
             final Future<Void> future = client.execute(
-                    new BasicRequestProducer(Method.GET, target, requestUri),
+                    new BasicRequestProducer(request, null),
                     new AbstractCharResponseConsumer<Void>() {
 
                         @Override
                         protected void start(
                                 final HttpResponse response,
                                 final ContentType contentType) throws HttpException, IOException {
-                            System.out.println(requestUri + "->" + new StatusLine(response));
+                            System.out.println(request + "->" + new StatusLine(response));
                         }
 
                         @Override
@@ -98,7 +106,7 @@ public class AsyncClientHttpExchangeStreaming {
 
                         @Override
                         public void failed(final Exception cause) {
-                            System.out.println(requestUri + "->" + cause);
+                            System.out.println(request + "->" + cause);
                         }
 
                         @Override

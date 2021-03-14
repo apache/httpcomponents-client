@@ -29,14 +29,17 @@ package org.apache.hc.client5.http.examples;
 import java.util.concurrent.Future;
 
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
-import org.apache.hc.client5.http.async.methods.SimpleHttpRequests;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
+import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
+import org.apache.hc.client5.http.async.methods.SimpleRequestProducer;
+import org.apache.hc.client5.http.async.methods.SimpleResponseConsumer;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
 import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
 import org.apache.hc.core5.concurrent.FutureCallback;
+import org.apache.hc.core5.http.message.StatusLine;
 import org.apache.hc.core5.io.CloseMode;
 
 /**
@@ -55,28 +58,29 @@ public class AsyncClientAuthentication {
                 .build();
         httpclient.start();
 
-        final String requestUri = "http://httpbin.org/basic-auth/user/passwd";
-        final SimpleHttpRequest httpget = SimpleHttpRequests.get(requestUri);
+        final SimpleHttpRequest request = SimpleRequestBuilder.get("http://httpbin.org/basic-auth/user/passwd")
+                .build();
 
-        System.out.println("Executing request " + requestUri);
+        System.out.println("Executing request " + request);
         final Future<SimpleHttpResponse> future = httpclient.execute(
-                httpget,
+                SimpleRequestProducer.create(request),
+                SimpleResponseConsumer.create(),
                 new FutureCallback<SimpleHttpResponse>() {
 
                     @Override
                     public void completed(final SimpleHttpResponse response) {
-                        System.out.println(requestUri + "->" + response.getCode());
+                        System.out.println(request + "->" + new StatusLine(response));
                         System.out.println(response.getBody());
                     }
 
                     @Override
                     public void failed(final Exception ex) {
-                        System.out.println(requestUri + "->" + ex);
+                        System.out.println(request + "->" + ex);
                     }
 
                     @Override
                     public void cancelled() {
-                        System.out.println(requestUri + " cancelled");
+                        System.out.println(request + " cancelled");
                     }
 
                 });

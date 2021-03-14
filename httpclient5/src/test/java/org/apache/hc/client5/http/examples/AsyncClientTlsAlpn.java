@@ -31,8 +31,8 @@ import java.util.concurrent.Future;
 import javax.net.ssl.SSLSession;
 
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
-import org.apache.hc.client5.http.async.methods.SimpleHttpRequests;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
+import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
 import org.apache.hc.client5.http.async.methods.SimpleRequestProducer;
 import org.apache.hc.client5.http.async.methods.SimpleResponseConsumer;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
@@ -43,6 +43,7 @@ import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.ssl.ClientTlsStrategyBuilder;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.message.StatusLine;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
 import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.apache.hc.core5.io.CloseMode;
@@ -79,11 +80,15 @@ public class AsyncClientTlsAlpn {
 
             client.start();
 
-            final HttpHost target = new HttpHost("https", "nghttp2.org", 443);
-            final String requestUri = "/httpbin/";
+            final HttpHost target = new HttpHost("https", "nghttp2.org");
             final HttpClientContext clientContext = HttpClientContext.create();
 
-            final SimpleHttpRequest request = SimpleHttpRequests.get(target, requestUri);
+            final SimpleHttpRequest request = SimpleRequestBuilder.get()
+                    .setHttpHost(target)
+                    .setPath("/httpbin/")
+                    .build();
+
+            System.out.println("Executing request " + request);
             final Future<SimpleHttpResponse> future = client.execute(
                     SimpleRequestProducer.create(request),
                     SimpleResponseConsumer.create(),
@@ -92,23 +97,23 @@ public class AsyncClientTlsAlpn {
 
                         @Override
                         public void completed(final SimpleHttpResponse response) {
-                            System.out.println(requestUri + "->" + response.getCode());
-                            System.out.println(response.getBody());
+                            System.out.println(request + "->" + new StatusLine(response));
                             final SSLSession sslSession = clientContext.getSSLSession();
                             if (sslSession != null) {
                                 System.out.println("SSL protocol " + sslSession.getProtocol());
                                 System.out.println("SSL cipher suite " + sslSession.getCipherSuite());
                             }
+                            System.out.println(response.getBody());
                         }
 
                         @Override
                         public void failed(final Exception ex) {
-                            System.out.println(requestUri + "->" + ex);
+                            System.out.println(request + "->" + ex);
                         }
 
                         @Override
                         public void cancelled() {
-                            System.out.println(requestUri + " cancelled");
+                            System.out.println(request + " cancelled");
                         }
 
                     });

@@ -38,13 +38,13 @@ import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
 import org.apache.hc.core5.function.Supplier;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpException;
-import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
-import org.apache.hc.core5.http.Method;
+import org.apache.hc.core5.http.message.BasicHttpRequest;
 import org.apache.hc.core5.http.message.StatusLine;
 import org.apache.hc.core5.http.nio.AsyncPushConsumer;
 import org.apache.hc.core5.http.nio.support.BasicRequestProducer;
+import org.apache.hc.core5.http.support.BasicRequestBuilder;
 import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.apache.hc.core5.http2.config.H2Config;
 import org.apache.hc.core5.io.CloseMode;
@@ -115,17 +115,18 @@ public class AsyncClientH2ServerPush {
 
         });
 
-        final HttpHost target = new HttpHost("nghttp2.org");
-        final String requestURI = "/httpbin/";
+        final BasicHttpRequest request = BasicRequestBuilder.get("https://nghttp2.org/httpbin/").build();
+
+        System.out.println("Executing request " + request);
         final Future<Void> future = client.execute(
-                new BasicRequestProducer(Method.GET, target, requestURI),
+                new BasicRequestProducer(request, null),
                 new AbstractCharResponseConsumer<Void>() {
 
                     @Override
                     protected void start(
                             final HttpResponse response,
                             final ContentType contentType) throws HttpException, IOException {
-                        System.out.println(requestURI + "->" + new StatusLine(response));
+                        System.out.println(request + "->" + new StatusLine(response));
                     }
 
                     @Override
@@ -144,7 +145,7 @@ public class AsyncClientH2ServerPush {
 
                     @Override
                     public void failed(final Exception cause) {
-                        System.out.println(requestURI + "->" + cause);
+                        System.out.println(request + "->" + cause);
                     }
 
                     @Override

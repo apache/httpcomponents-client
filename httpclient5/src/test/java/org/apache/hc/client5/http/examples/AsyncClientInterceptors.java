@@ -37,8 +37,8 @@ import org.apache.hc.client5.http.async.AsyncExecCallback;
 import org.apache.hc.client5.http.async.AsyncExecChain;
 import org.apache.hc.client5.http.async.AsyncExecChainHandler;
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
-import org.apache.hc.client5.http.async.methods.SimpleHttpRequests;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
+import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
 import org.apache.hc.client5.http.impl.ChainElement;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
@@ -53,6 +53,7 @@ import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.impl.BasicEntityDetails;
 import org.apache.hc.core5.http.message.BasicHttpResponse;
+import org.apache.hc.core5.http.message.StatusLine;
 import org.apache.hc.core5.http.nio.AsyncDataConsumer;
 import org.apache.hc.core5.http.nio.AsyncEntityProducer;
 import org.apache.hc.core5.http.protocol.HttpContext;
@@ -123,26 +124,26 @@ public class AsyncClientInterceptors {
 
         final String requestUri = "http://httpbin.org/get";
         for (int i = 0; i < 20; i++) {
-            final SimpleHttpRequest httpget = SimpleHttpRequests.get(requestUri);
-            System.out.println("Executing request " + httpget.getMethod() + " " + httpget.getUri());
+            final SimpleHttpRequest request = SimpleRequestBuilder.get(requestUri).build();
+            System.out.println("Executing request " + request);
             final Future<SimpleHttpResponse> future = client.execute(
-                    httpget,
+                    request,
                     new FutureCallback<SimpleHttpResponse>() {
 
                         @Override
                         public void completed(final SimpleHttpResponse response) {
-                            System.out.println(requestUri + "->" + response.getCode());
+                            System.out.println(request + "->" + new StatusLine(response));
                             System.out.println(response.getBody());
                         }
 
                         @Override
                         public void failed(final Exception ex) {
-                            System.out.println(requestUri + "->" + ex);
+                            System.out.println(request + "->" + ex);
                         }
 
                         @Override
                         public void cancelled() {
-                            System.out.println(requestUri + " cancelled");
+                            System.out.println(request + " cancelled");
                         }
 
                     });

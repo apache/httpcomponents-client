@@ -30,14 +30,15 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
-import org.apache.hc.client5.http.async.methods.SimpleHttpRequests;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
+import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
 import org.apache.hc.client5.http.async.methods.SimpleRequestProducer;
 import org.apache.hc.client5.http.async.methods.SimpleResponseConsumer;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.message.StatusLine;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.reactor.IOReactorConfig;
 import org.apache.hc.core5.util.TimeValue;
@@ -63,9 +64,12 @@ public class AsyncClientConnectionEviction {
 
         client.start();
 
-        final HttpHost target = new HttpHost("httpbin.org");
+        final SimpleHttpRequest request = SimpleRequestBuilder.get()
+                .setHttpHost(new HttpHost("httpbin.org"))
+                .setPath("/")
+                .build();
 
-        final SimpleHttpRequest request = SimpleHttpRequests.get(target, "/");
+        System.out.println("Executing request " + request);
         final Future<SimpleHttpResponse> future1 = client.execute(
                 SimpleRequestProducer.create(request),
                 SimpleResponseConsumer.create(),
@@ -73,18 +77,18 @@ public class AsyncClientConnectionEviction {
 
                     @Override
                     public void completed(final SimpleHttpResponse response) {
-                        System.out.println(request.getRequestUri() + "->" + response.getCode());
+                        System.out.println(request + "->" + new StatusLine(response));
                         System.out.println(response.getBody());
                     }
 
                     @Override
                     public void failed(final Exception ex) {
-                        System.out.println(request.getRequestUri() + "->" + ex);
+                        System.out.println(request + "->" + ex);
                     }
 
                     @Override
                     public void cancelled() {
-                        System.out.println(request.getRequestUri() + " cancelled");
+                        System.out.println(request + " cancelled");
                     }
 
                 });
@@ -96,24 +100,23 @@ public class AsyncClientConnectionEviction {
         // Previous connection should get evicted from the pool by now
 
         final Future<SimpleHttpResponse> future2 = client.execute(
-                SimpleRequestProducer.create(request),
-                SimpleResponseConsumer.create(),
+                request,
                 new FutureCallback<SimpleHttpResponse>() {
 
                     @Override
                     public void completed(final SimpleHttpResponse response) {
-                        System.out.println(request.getRequestUri() + "->" + response.getCode());
+                        System.out.println(request + "->" + new StatusLine(response));
                         System.out.println(response.getBody());
                     }
 
                     @Override
                     public void failed(final Exception ex) {
-                        System.out.println(request.getRequestUri() + "->" + ex);
+                        System.out.println(request + "->" + ex);
                     }
 
                     @Override
                     public void cancelled() {
-                        System.out.println(request.getRequestUri() + " cancelled");
+                        System.out.println(request + " cancelled");
                     }
 
                 });
