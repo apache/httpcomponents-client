@@ -201,7 +201,9 @@ public class PoolingAsyncClientConnectionManagerBuilder {
                 timeToLive,
                 schemePortResolver,
                 dnsResolver);
-        poolingmgr.setValidateAfterInactivity(this.validateAfterInactivity);
+        if (validateAfterInactivity != null) {
+            poolingmgr.setValidateAfterInactivity(validateAfterInactivity);
+        }
         if (maxConnTotal > 0) {
             poolingmgr.setMaxTotal(maxConnTotal);
         }

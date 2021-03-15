@@ -212,7 +212,9 @@ public class PoolingHttpClientConnectionManagerBuilder {
                 schemePortResolver,
                 dnsResolver,
                 connectionFactory);
-        poolingmgr.setValidateAfterInactivity(this.validateAfterInactivity);
+        if (validateAfterInactivity != null) {
+            poolingmgr.setValidateAfterInactivity(validateAfterInactivity);
+        }
         if (defaultSocketConfig != null) {
             poolingmgr.setDefaultSocketConfig(defaultSocketConfig);
         }
