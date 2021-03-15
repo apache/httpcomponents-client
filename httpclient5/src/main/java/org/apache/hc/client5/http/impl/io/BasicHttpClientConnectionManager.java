@@ -93,8 +93,11 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
 
     private static final Logger LOG = LoggerFactory.getLogger(BasicHttpClientConnectionManager.class);
 
+    private static final AtomicLong COUNT = new AtomicLong(0);
+
     private final HttpClientConnectionOperator connectionOperator;
     private final HttpConnectionFactory<ManagedHttpClientConnection> connFactory;
+    private final String id;
 
     private ManagedHttpClientConnection conn;
     private HttpRoute route;
@@ -131,6 +134,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
         super();
         this.connectionOperator = Args.notNull(httpClientConnectionOperator, "Connection operator");
         this.connFactory = connFactory != null ? connFactory : ManagedHttpClientConnectionFactory.INSTANCE;
+        this.id = String.format("ep-%010d", COUNT.getAndIncrement());
         this.expiry = Long.MAX_VALUE;
         this.socketConfig = SocketConfig.DEFAULT;
         this.closed = new AtomicBoolean(false);
@@ -207,7 +211,9 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
 
     private synchronized void closeConnection(final CloseMode closeMode) {
         if (this.conn != null) {
-            LOG.debug("Closing connection {}", closeMode);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{} Closing connection {}", id, closeMode);
+            }
             this.conn.close(closeMode);
             this.conn = null;
         }
@@ -216,7 +222,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
     private void checkExpiry() {
         if (this.conn != null && System.currentTimeMillis() >= this.expiry) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Connection expired @ {}", new Date(this.expiry));
+                LOG.debug("{} Connection expired @ {}", id, new Date(this.expiry));
             }
             closeConnection(CloseMode.GRACEFUL);
         }
@@ -225,7 +231,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
     synchronized ManagedHttpClientConnection getConnection(final HttpRoute route, final Object state) throws IOException {
         Asserts.check(!this.closed.get(), "Connection manager has been shut down");
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Get connection for route {}", route);
+            LOG.debug("{} Get connection for route {}", id, route);
         }
         Asserts.check(!this.leased, "Connection is still allocated");
         if (!LangUtils.equals(this.route, route) || !LangUtils.equals(this.state, state)) {
@@ -254,9 +260,8 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
     public synchronized void release(final ConnectionEndpoint endpoint, final Object state, final TimeValue keepAlive) {
         Args.notNull(endpoint, "Managed endpoint");
         final InternalConnectionEndpoint internalEndpoint = cast(endpoint);
-        final String id = internalEndpoint.id;
         final ManagedHttpClientConnection conn = internalEndpoint.detach();
-        if (conn != null && LOG.isDebugEnabled()) {
+        if (LOG.isDebugEnabled()) {
             LOG.debug("{} Releasing connection {}", id, conn);
         }
         if (this.closed.get()) {
@@ -360,18 +365,14 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
         }
     }
 
-    private static final AtomicLong COUNT = new AtomicLong(0);
-
     class InternalConnectionEndpoint extends ConnectionEndpoint {
 
         private final HttpRoute route;
         private final AtomicReference<ManagedHttpClientConnection> connRef;
-        private final String id;
 
         public InternalConnectionEndpoint(final HttpRoute route, final ManagedHttpClientConnection conn) {
             this.route = route;
             this.connRef = new AtomicReference<>(conn);
-            this.id = String.format("ep-%010d", COUNT.getAndIncrement());
         }
 
         HttpRoute getRoute() {
@@ -432,7 +433,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
             Args.notNull(request, "HTTP request");
             Args.notNull(requestExecutor, "Request executor");
             if (LOG.isDebugEnabled()) {
-                LOG.debug("{} executing exchange {}", id, exchangeId);
+                LOG.debug("{} Executing exchange {}", id, exchangeId);
             }
             return requestExecutor.execute(request, getValidatedConnection(), context);
         }
