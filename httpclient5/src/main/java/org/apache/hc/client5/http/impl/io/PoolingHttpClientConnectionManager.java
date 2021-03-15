@@ -95,9 +95,6 @@ import org.slf4j.LoggerFactory;
  * Total time to live (TTL) set at construction time defines maximum life span
  * of persistent connections regardless of their expiration setting. No persistent
  * connection will be re-used past its TTL value.
- * <p>
- * Please note in contrast to 4.x no stale check is employed by default.
- * @see #setValidateAfterInactivity(TimeValue)
  *
  * @since 4.3
  */
@@ -206,6 +203,7 @@ public class PoolingHttpClientConnectionManager
         }
         this.connFactory = connFactory != null ? connFactory : ManagedHttpClientConnectionFactory.INSTANCE;
         this.closed = new AtomicBoolean(false);
+        this.validateAfterInactivity = TimeValue.ofSeconds(2L);
     }
 
     @Internal

@@ -38,6 +38,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.SchemePortResolver;
+import org.apache.hc.client5.http.impl.ConnPoolSupport;
 import org.apache.hc.client5.http.impl.ConnectionShutdownException;
 import org.apache.hc.client5.http.io.ConnectionEndpoint;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
@@ -109,6 +110,8 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
 
     private final AtomicBoolean closed;
 
+    private volatile TimeValue validateAfterInactivity;
+
     private static Registry<ConnectionSocketFactory> getDefaultRegistry() {
         return RegistryBuilder.<ConnectionSocketFactory>create()
                 .register(URIScheme.HTTP.id, PlainConnectionSocketFactory.getSocketFactory())
@@ -138,6 +141,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
         this.expiry = Long.MAX_VALUE;
         this.socketConfig = SocketConfig.DEFAULT;
         this.closed = new AtomicBoolean(false);
+        this.validateAfterInactivity = TimeValue.ofSeconds(2L);
     }
 
     public BasicHttpClientConnectionManager(
@@ -228,6 +232,26 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
         }
     }
 
+    private void validate() {
+        final TimeValue validateAfterInactivitySnapshot = validateAfterInactivity;
+        if (this.conn != null
+                && TimeValue.isNonNegative(validateAfterInactivitySnapshot)
+                && updated + validateAfterInactivitySnapshot.toMilliseconds() <= System.currentTimeMillis()) {
+            boolean stale;
+            try {
+                stale = conn.isStale();
+            } catch (final IOException ignore) {
+                stale = true;
+            }
+            if (stale) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("{} connection {} is stale", id, ConnPoolSupport.getId(conn));
+                }
+                closeConnection(CloseMode.GRACEFUL);
+            }
+        }
+    }
+
     synchronized ManagedHttpClientConnection getConnection(final HttpRoute route, final Object state) throws IOException {
         Asserts.check(!this.closed.get(), "Connection manager has been shut down");
         if (LOG.isDebugEnabled()) {
@@ -240,6 +264,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
         this.route = route;
         this.state = state;
         checkExpiry();
+        validate();
         if (this.conn == null) {
             this.conn = this.connFactory.createConnection(null);
         } else {
@@ -363,6 +388,27 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
                 closeConnection(CloseMode.GRACEFUL);
             }
         }
+    }
+
+    /**
+     * @see #setValidateAfterInactivity(TimeValue)
+     *
+     * @since 5.1
+     */
+    public TimeValue getValidateAfterInactivity() {
+        return validateAfterInactivity;
+    }
+
+    /**
+     * Defines period of inactivity after which persistent connections must
+     * be re-validated prior to being {@link #lease(String, HttpRoute, Object)} leased} to the consumer.
+     * Negative values passed to this method disable connection validation. This check helps
+     * detect connections that have become stale (half-closed) while kept inactive in the pool.
+     *
+     * @since 5.1
+     */
+    public void setValidateAfterInactivity(final TimeValue validateAfterInactivity) {
+        this.validateAfterInactivity = validateAfterInactivity;
     }
 
     class InternalConnectionEndpoint extends ConnectionEndpoint {
