@@ -38,6 +38,7 @@ import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpRequestInterceptor;
+import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.Args;
 import org.slf4j.Logger;
@@ -65,7 +66,7 @@ public class RequestClientConnControl implements HttpRequestInterceptor {
         Args.notNull(request, "HTTP request");
 
         final String method = request.getMethod();
-        if (method.equalsIgnoreCase("CONNECT")) {
+        if (Method.CONNECT.isSame(method)) {
             return;
         }
 

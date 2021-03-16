@@ -37,6 +37,7 @@ import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpRequestInterceptor;
+import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.Args;
 
@@ -68,7 +69,7 @@ public class RequestDefaultHeaders implements HttpRequestInterceptor {
         Args.notNull(request, "HTTP request");
 
         final String method = request.getMethod();
-        if (method.equalsIgnoreCase("CONNECT")) {
+        if (Method.CONNECT.isSame(method)) {
             return;
         }
 
