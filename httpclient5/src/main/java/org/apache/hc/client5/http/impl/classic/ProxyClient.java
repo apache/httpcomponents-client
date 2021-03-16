@@ -61,6 +61,7 @@ import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.config.CharCodingConfig;
 import org.apache.hc.core5.http.config.Http1Config;
 import org.apache.hc.core5.http.config.Lookup;
@@ -158,7 +159,7 @@ public class ProxyClient {
         final HttpContext context = new BasicHttpContext();
         ClassicHttpResponse response;
 
-        final ClassicHttpRequest connect = new BasicClassicHttpRequest("CONNECT", host.toHostString());
+        final ClassicHttpRequest connect = new BasicClassicHttpRequest(Method.CONNECT, host.toHostString());
 
         final BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
         credsProvider.setCredentials(new AuthScope(proxy), credentials);

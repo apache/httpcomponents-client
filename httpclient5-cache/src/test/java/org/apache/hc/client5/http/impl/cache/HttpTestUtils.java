@@ -46,6 +46,7 @@ import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.ProtocolVersion;
 import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
 import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
@@ -353,11 +354,11 @@ public class HttpTestUtils {
     }
 
     public static ClassicHttpRequest makeDefaultRequest() {
-        return new BasicClassicHttpRequest("GET", "/");
+        return new BasicClassicHttpRequest(Method.GET.toString(), "/");
     }
 
     public static ClassicHttpRequest makeDefaultHEADRequest() {
-        return new BasicClassicHttpRequest("HEAD", "/");
+        return new BasicClassicHttpRequest(Method.HEAD.toString(), "/");
     }
 
     public static ClassicHttpResponse make500Response() {

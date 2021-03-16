@@ -57,6 +57,7 @@ import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
 import org.apache.hc.core5.http.message.StatusLine;
 import org.apache.hc.core5.http.nio.AsyncDataConsumer;
@@ -332,7 +333,7 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
 
         final AuthExchange proxyAuthExchange = proxy != null ? clientContext.getAuthExchange(proxy) : new AuthExchange();
 
-        final HttpRequest connect = new BasicHttpRequest("CONNECT", nextHop, nextHop.toHostString());
+        final HttpRequest connect = new BasicHttpRequest(Method.CONNECT, nextHop, nextHop.toHostString());
         connect.setVersion(HttpVersion.HTTP_1_1);
 
         proxyHttpProcessor.process(connect, null, clientContext);

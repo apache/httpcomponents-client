@@ -56,6 +56,7 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 import org.apache.hc.core5.http.message.StatusLine;
@@ -209,7 +210,7 @@ public final class ConnectExec implements ExecChainHandler {
         ClassicHttpResponse response = null;
 
         final String authority = target.toHostString();
-        final ClassicHttpRequest connect = new BasicClassicHttpRequest("CONNECT", target, authority);
+        final ClassicHttpRequest connect = new BasicClassicHttpRequest(Method.CONNECT, target, authority);
         connect.setVersion(HttpVersion.HTTP_1_1);
 
         this.proxyHttpProcessor.process(connect, null, context);
