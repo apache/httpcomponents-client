@@ -70,9 +70,11 @@ public class Response {
         }
         try {
             final HttpEntity entity = this.response.getEntity();
-            final InputStream content = entity.getContent();
-            if (content != null) {
-                content.close();
+            if (entity != null) {
+                final InputStream content = entity.getContent();
+                if (content != null) {
+                    content.close();
+                }
             }
         } catch (final Exception ignore) {
         } finally {
@@ -133,7 +135,6 @@ public class Response {
             }
         } finally {
             this.consumed = true;
-
         }
     }
 
