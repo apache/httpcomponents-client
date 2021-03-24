@@ -36,6 +36,7 @@ import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecRuntime;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.entity.EntityBuilder;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.http.ClassicHttpRequest;
@@ -47,6 +48,7 @@ import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -96,6 +98,70 @@ public class TestHttpRequestRetryExec {
                 Mockito.<HttpResponse>any(),
                 Mockito.anyInt(),
                 Mockito.<HttpContext>any())).thenReturn(TimeValue.ZERO_MILLISECONDS);
+
+        final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
+        retryExec.execute(request, scope, chain);
+
+        Mockito.verify(chain, Mockito.times(2)).proceed(
+                Mockito.<ClassicHttpRequest>any(),
+                Mockito.same(scope));
+        Mockito.verify(response, Mockito.times(1)).close();
+    }
+
+    @Test
+    public void testRetryIntervalGreaterResponseTimeout() throws Exception {
+        final HttpRoute route = new HttpRoute(target);
+        final HttpGet request = new HttpGet("/test");
+        final HttpClientContext context = HttpClientContext.create();
+        context.setRequestConfig(RequestConfig.custom()
+                .setResponseTimeout(Timeout.ofSeconds(3))
+                .build());
+
+        final ClassicHttpResponse response = Mockito.mock(ClassicHttpResponse.class);
+
+        Mockito.when(chain.proceed(
+                Mockito.same(request),
+                Mockito.<ExecChain.Scope>any())).thenReturn(response);
+        Mockito.when(retryStrategy.retryRequest(
+                Mockito.<HttpResponse>any(),
+                Mockito.anyInt(),
+                Mockito.<HttpContext>any())).thenReturn(Boolean.TRUE, Boolean.FALSE);
+        Mockito.when(retryStrategy.getRetryInterval(
+                Mockito.<HttpResponse>any(),
+                Mockito.anyInt(),
+                Mockito.<HttpContext>any())).thenReturn(TimeValue.ofSeconds(5));
+
+        final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
+        retryExec.execute(request, scope, chain);
+
+        Mockito.verify(chain, Mockito.times(1)).proceed(
+                Mockito.<ClassicHttpRequest>any(),
+                Mockito.same(scope));
+        Mockito.verify(response, Mockito.times(0)).close();
+    }
+
+    @Test
+    public void testRetryIntervalResponseTimeoutNull() throws Exception {
+        final HttpRoute route = new HttpRoute(target);
+        final HttpGet request = new HttpGet("/test");
+        final HttpClientContext context = HttpClientContext.create();
+        context.setRequestConfig(RequestConfig.custom()
+                .setResponseTimeout(null)
+                .build());
+
+        final ClassicHttpResponse response = Mockito.mock(ClassicHttpResponse.class);
+
+        Mockito.when(chain.proceed(
+                Mockito.same(request),
+                Mockito.<ExecChain.Scope>any())).thenReturn(response);
+        Mockito.when(retryStrategy.retryRequest(
+                Mockito.<HttpResponse>any(),
+                Mockito.anyInt(),
+                Mockito.<HttpContext>any())).thenReturn(Boolean.TRUE, Boolean.FALSE);
+        Mockito.when(retryStrategy.getRetryInterval(
+                Mockito.<HttpResponse>any(),
+                Mockito.anyInt(),
+                Mockito.<HttpContext>any())).thenReturn(TimeValue.ofSeconds(1));
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
         retryExec.execute(request, scope, chain);
