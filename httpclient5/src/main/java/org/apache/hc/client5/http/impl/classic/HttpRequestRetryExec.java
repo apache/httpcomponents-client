@@ -34,6 +34,7 @@ import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecChain.Scope;
 import org.apache.hc.client5.http.classic.ExecChainHandler;
+import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Internal;
@@ -46,6 +47,7 @@ import org.apache.hc.core5.http.NoHttpResponseException;
 import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -133,9 +135,16 @@ public class HttpRequestRetryExec implements ExecChainHandler {
                     return response;
                 }
                 if (retryStrategy.retryRequest(response, execCount, context)) {
+                    final TimeValue nextInterval = retryStrategy.getRetryInterval(response, execCount, context);
+                    // Make sure the retry interval does not exceed the response timeout
+                    if (TimeValue.isPositive(nextInterval)) {
+                        final RequestConfig requestConfig = context.getRequestConfig();
+                        final Timeout responseTimeout = requestConfig.getResponseTimeout();
+                        if (responseTimeout != null && nextInterval.compareTo(responseTimeout) > 0) {
+                            return response;
+                        }
+                    }
                     response.close();
-                    final TimeValue nextInterval =
-                            retryStrategy.getRetryInterval(response, execCount, context);
                     if (TimeValue.isPositive(nextInterval)) {
                         try {
                             if (LOG.isDebugEnabled()) {
