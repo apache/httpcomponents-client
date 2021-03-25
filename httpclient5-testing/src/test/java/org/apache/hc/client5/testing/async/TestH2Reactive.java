@@ -29,6 +29,7 @@ package org.apache.hc.client5.testing.async;
 import java.util.Arrays;
 import java.util.Collection;
 
+import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.H2AsyncClientBuilder;
@@ -63,7 +64,10 @@ public class TestH2Reactive extends AbstractHttpReactiveFundamentalsTest<Closeab
             clientBuilder = H2AsyncClientBuilder.create()
                     .setDefaultRequestConfig(RequestConfig.custom()
                             .setConnectionRequestTimeout(TIMEOUT)
+                            .build())
+                    .setDefaultConnectionConfig(ConnectionConfig.custom()
                             .setConnectTimeout(TIMEOUT)
+                            .setSocketTimeout(TIMEOUT)
                             .build())
                     .setTlsStrategy(new BasicClientTlsStrategy(SSLTestContexts.createClientSSLContext()));
         }

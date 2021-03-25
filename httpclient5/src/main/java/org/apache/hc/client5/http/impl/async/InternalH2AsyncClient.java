@@ -47,7 +47,6 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.nio.AsyncPushConsumer;
 import org.apache.hc.core5.http.nio.HandlerFactory;
-import org.apache.hc.core5.http2.nio.pool.H2ConnPool;
 import org.apache.hc.core5.reactor.DefaultConnectingIOReactor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,14 +67,14 @@ public final class InternalH2AsyncClient extends InternalAbstractHttpAsyncClient
 
     private static final Logger LOG = LoggerFactory.getLogger(InternalH2AsyncClient.class);
     private final HttpRoutePlanner routePlanner;
-    private final H2ConnPool connPool;
+    private final InternalH2ConnPool connPool;
 
     InternalH2AsyncClient(
             final DefaultConnectingIOReactor ioReactor,
             final AsyncExecChainElement execChain,
             final AsyncPushConsumerRegistry pushConsumerRegistry,
             final ThreadFactory threadFactory,
-            final H2ConnPool connPool,
+            final InternalH2ConnPool connPool,
             final HttpRoutePlanner routePlanner,
             final Lookup<CookieSpecFactory> cookieSpecRegistry,
             final Lookup<AuthSchemeFactory> authSchemeRegistry,

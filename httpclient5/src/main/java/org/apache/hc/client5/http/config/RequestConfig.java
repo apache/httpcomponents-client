@@ -43,7 +43,6 @@ import org.apache.hc.core5.util.Timeout;
 public class RequestConfig implements Cloneable {
 
     private static final Timeout DEFAULT_CONNECTION_REQUEST_TIMEOUT = Timeout.ofMinutes(3);
-    private static final Timeout DEFAULT_CONNECT_TIMEOUT = Timeout.ofMinutes(3);
     private static final TimeValue DEFAULT_CONN_KEEP_ALIVE = TimeValue.ofMinutes(3);
 
     public static final RequestConfig DEFAULT = new Builder().build();
@@ -69,7 +68,7 @@ public class RequestConfig implements Cloneable {
     */
     protected RequestConfig() {
         this(false, null, null, false, false, 0, false, null, null,
-                DEFAULT_CONNECTION_REQUEST_TIMEOUT, DEFAULT_CONNECT_TIMEOUT, null, DEFAULT_CONN_KEEP_ALIVE, false, false);
+                DEFAULT_CONNECTION_REQUEST_TIMEOUT, null, null, DEFAULT_CONN_KEEP_ALIVE, false, false);
     }
 
     RequestConfig(
@@ -115,7 +114,11 @@ public class RequestConfig implements Cloneable {
 
     /**
      * @see Builder#setProxy(HttpHost)
+     *
+     * @deprecated Use {@link org.apache.hc.client5.http.impl.routing.DefaultProxyRoutePlanner}
+     * or a custom {@link org.apache.hc.client5.http.routing.HttpRoutePlanner}.
      */
+    @Deprecated
     public HttpHost getProxy() {
         return proxy;
     }
@@ -178,7 +181,10 @@ public class RequestConfig implements Cloneable {
 
     /**
      * @see Builder#setConnectTimeout(Timeout)
+     *
+     * @deprecated Use {@link ConnectionConfig#getConnectTimeout()}.
      */
+    @Deprecated
     public Timeout getConnectTimeout() {
         return connectTimeout;
     }
@@ -286,7 +292,6 @@ public class RequestConfig implements Cloneable {
             this.maxRedirects = 50;
             this.authenticationEnabled = true;
             this.connectionRequestTimeout = DEFAULT_CONNECTION_REQUEST_TIMEOUT;
-            this.connectTimeout = DEFAULT_CONNECT_TIMEOUT;
             this.contentCompressionEnabled = true;
             this.hardCancellationEnabled = true;
         }
@@ -323,7 +328,11 @@ public class RequestConfig implements Cloneable {
          * <p>
          * Default: {@code null}
          * </p>
+         *
+         * @deprecated Use {@link org.apache.hc.client5.http.impl.routing.DefaultProxyRoutePlanner}
+         * or a custom {@link org.apache.hc.client5.http.routing.HttpRoutePlanner}.
          */
+        @Deprecated
         public Builder setProxy(final HttpHost proxy) {
             this.proxy = proxy;
             return this;
@@ -444,7 +453,10 @@ public class RequestConfig implements Cloneable {
          * <p>
          * Default: 3 minutes
          * </p>
+         *
+         * @deprecated Use {@link ConnectionConfig.Builder#setConnectTimeout(Timeout)}.
          */
+        @Deprecated
         public Builder setConnectTimeout(final Timeout connectTimeout) {
             this.connectTimeout = connectTimeout;
             return this;
@@ -452,7 +464,10 @@ public class RequestConfig implements Cloneable {
 
         /**
          * @see #setConnectTimeout(Timeout)
+         *
+         * @deprecated Use {@link ConnectionConfig.Builder#setConnectTimeout(long, TimeUnit)}.
          */
+        @Deprecated
         public Builder setConnectTimeout(final long connectTimeout, final TimeUnit timeUnit) {
             this.connectTimeout = Timeout.of(connectTimeout, timeUnit);
             return this;
@@ -570,7 +585,7 @@ public class RequestConfig implements Cloneable {
                     targetPreferredAuthSchemes,
                     proxyPreferredAuthSchemes,
                     connectionRequestTimeout != null ? connectionRequestTimeout : DEFAULT_CONNECTION_REQUEST_TIMEOUT,
-                    connectTimeout != null ? connectTimeout : DEFAULT_CONNECT_TIMEOUT,
+                    connectTimeout,
                     responseTimeout,
                     connectionKeepAlive != null ? connectionKeepAlive : DEFAULT_CONN_KEEP_ALIVE,
                     contentCompressionEnabled,

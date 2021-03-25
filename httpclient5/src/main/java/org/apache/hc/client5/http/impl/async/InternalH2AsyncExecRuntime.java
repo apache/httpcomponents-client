@@ -44,7 +44,6 @@ import org.apache.hc.core5.http.nio.AsyncClientExchangeHandler;
 import org.apache.hc.core5.http.nio.AsyncPushConsumer;
 import org.apache.hc.core5.http.nio.HandlerFactory;
 import org.apache.hc.core5.http.nio.command.RequestExecutionCommand;
-import org.apache.hc.core5.http2.nio.pool.H2ConnPool;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.reactor.Command;
 import org.apache.hc.core5.reactor.IOSession;
@@ -56,14 +55,14 @@ import org.slf4j.Logger;
 class InternalH2AsyncExecRuntime implements AsyncExecRuntime {
 
     private final Logger log;
-    private final H2ConnPool connPool;
+    private final InternalH2ConnPool connPool;
     private final HandlerFactory<AsyncPushConsumer> pushHandlerFactory;
     private final AtomicReference<Endpoint> sessionRef;
     private volatile boolean reusable;
 
     InternalH2AsyncExecRuntime(
             final Logger log,
-            final H2ConnPool connPool,
+            final InternalH2ConnPool connPool,
             final HandlerFactory<AsyncPushConsumer> pushHandlerFactory) {
         super();
         this.log = log;
@@ -91,9 +90,7 @@ class InternalH2AsyncExecRuntime implements AsyncExecRuntime {
             if (log.isDebugEnabled()) {
                 log.debug("{} acquiring endpoint ({})", id, connectTimeout);
             }
-            return Operations.cancellable(connPool.getSession(
-                    target,
-                    connectTimeout,
+            return Operations.cancellable(connPool.getSession(target, connectTimeout,
                     new FutureCallback<IOSession>() {
 
                         @Override

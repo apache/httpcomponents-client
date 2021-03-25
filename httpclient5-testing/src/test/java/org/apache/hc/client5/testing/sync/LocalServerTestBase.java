@@ -29,6 +29,7 @@ package org.apache.hc.client5.testing.sync;
 
 import java.io.IOException;
 
+import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
@@ -110,10 +111,13 @@ public abstract class LocalServerTestBase {
             connManager.setDefaultSocketConfig(SocketConfig.custom()
                     .setSoTimeout(TIMEOUT)
                     .build());
+            connManager.setDefaultConnectionConfig(ConnectionConfig.custom()
+                    .setConnectTimeout(TIMEOUT)
+                    .build());
+
             clientBuilder = HttpClientBuilder.create()
                     .setDefaultRequestConfig(RequestConfig.custom()
                             .setConnectionRequestTimeout(TIMEOUT)
-                            .setConnectTimeout(TIMEOUT)
                             .build())
                     .setConnectionManager(connManager);
         }

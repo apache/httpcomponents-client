@@ -35,6 +35,7 @@ import java.util.concurrent.ThreadFactory;
 
 import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.config.Configurable;
+import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.ConnPoolSupport;
 import org.apache.hc.client5.http.impl.ExecSupport;
@@ -46,6 +47,7 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.concurrent.Cancellable;
 import org.apache.hc.core5.concurrent.ComplexCancellable;
 import org.apache.hc.core5.concurrent.FutureCallback;
+import org.apache.hc.core5.function.Resolver;
 import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
@@ -61,7 +63,6 @@ import org.apache.hc.core5.http.nio.command.RequestExecutionCommand;
 import org.apache.hc.core5.http.nio.command.ShutdownCommand;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
 import org.apache.hc.core5.http.protocol.HttpContext;
-import org.apache.hc.core5.http2.nio.pool.H2ConnPool;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.reactor.Command;
 import org.apache.hc.core5.reactor.ConnectionInitiator;
@@ -90,7 +91,7 @@ import org.slf4j.LoggerFactory;
 public final class MinimalH2AsyncClient extends AbstractMinimalHttpAsyncClientBase {
 
     private static final Logger LOG = LoggerFactory.getLogger(MinimalH2AsyncClient.class);
-    private final H2ConnPool connPool;
+    private final InternalH2ConnPool connPool;
     private final ConnectionInitiator connectionInitiator;
 
     MinimalH2AsyncClient(
@@ -112,7 +113,7 @@ public final class MinimalH2AsyncClient extends AbstractMinimalHttpAsyncClientBa
                 pushConsumerRegistry,
                 threadFactory);
         this.connectionInitiator = new MultihomeConnectionInitiator(getConnectionInitiator(), dnsResolver);
-        this.connPool = new H2ConnPool(this.connectionInitiator, object -> null, tlsStrategy);
+        this.connPool = new InternalH2ConnPool(this.connectionInitiator, object -> null, tlsStrategy);
     }
 
     @Override
@@ -247,6 +248,15 @@ public final class MinimalH2AsyncClient extends AbstractMinimalHttpAsyncClientBa
             exchangeHandler.failed(ex);
         }
         return cancellable;
+    }
+
+    /**
+     * Sets {@link Resolver} for {@link ConnectionConfig} on a per host basis.
+     *
+     * @since 5.2
+     */
+    public void setConnectionConfigResolver(final Resolver<HttpHost, ConnectionConfig> connectionConfigResolver) {
+        connPool.setConnectionConfigResolver(connectionConfigResolver);
     }
 
 }
