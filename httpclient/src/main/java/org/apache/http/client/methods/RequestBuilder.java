@@ -278,6 +278,7 @@ public class RequestBuilder {
             if (contentType != null &&
                     contentType.getMimeType().equals(ContentType.APPLICATION_FORM_URLENCODED.getMimeType())) {
                 try {
+                    charset = contentType.getCharset();
                     final List<NameValuePair> formParams = URLEncodedUtils.parse(originalEntity);
                     if (!formParams.isEmpty()) {
                         parameters = formParams;

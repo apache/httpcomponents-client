@@ -27,9 +27,7 @@
 
 package org.apache.http.client.methods;
 
-import java.net.URI;
-import java.util.List;
-
+import org.apache.http.Consts;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
@@ -45,6 +43,9 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.net.URI;
+import java.util.List;
 
 public class TestRequestBuilder {
 
@@ -198,6 +199,21 @@ public class TestRequestBuilder {
         Assert.assertEquals(0, parameters.size());
         Assert.assertEquals(new URI("/stuff?p1=wtf"), builder.getUri());
         Assert.assertSame(entity, builder.getEntity());
+    }
+
+    @Test
+    public void testCopyWithStringEntityAndCharset() throws Exception {
+        final HttpPost post = new HttpPost("/stuff?p1=wtf");
+        final HttpEntity entity = new StringEntity("p1=this&p2=that",
+                ContentType.APPLICATION_FORM_URLENCODED.withCharset(Consts.ISO_8859_1));
+        post.setEntity(entity);
+        final RequestBuilder builder = RequestBuilder.copy(post);
+        final List<NameValuePair> parameters = builder.getParameters();
+        Assert.assertNotNull(parameters);
+        Assert.assertEquals(2, parameters.size());
+        Assert.assertEquals(new URI("/stuff?p1=wtf"), builder.getUri());
+        Assert.assertNull(builder.getEntity());
+        Assert.assertEquals(Consts.ISO_8859_1, builder.getCharset());
     }
 
     @Test
