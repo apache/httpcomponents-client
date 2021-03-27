@@ -38,7 +38,7 @@ import org.apache.hc.core5.http.Header;
 /** This class provides for parsing and understanding Warning headers. As
  * the Warning header can be multi-valued, but the values can contain
  * separators like commas inside quoted strings, we cannot use the regular
- * {@link Header#getElements()} call to access the values.
+ * {@link Header#getValue()} } call to access the values.
  */
 class WarningValue {
 
