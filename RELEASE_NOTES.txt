@@ -1,4 +1,51 @@
-﻿Release 5.1 BETA1
+﻿Release 5.1
+-----------
+
+This is the first GA release in the 5.1 release series.
+
+Notable changes and features included in the 5.1 series:
+
+* Conditional conformance with RFC 3986 (Uniform Resource Identifier (URI): Generic Syntax).
+
+* Improved support for out of sequence response message handing by the the classic (blocking)
+  HTTP transport.
+
+* Improved message builders.
+
+
+Please note that 5.1 is going to be the last release series compatible with Java 1.7. 
+HttpClient will require Java 1.8 as of 5.2.
+
+
+Change Log
+-------------------
+
+* HTTPCLIENT-2141: HttpClient to not retry requests if the retry interval exceeds the response
+  timeout.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Fixed NPE during dispose in Response if entity is null
+  Contributed by Sandeep Kulkarni <sandeep at snk.local>
+
+* Blocking connection managers to validate connections after inactivity of more than 2s
+  by default.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Deprecated request factory classes in favor of request builders.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2140: Upgraded Commons Codec to version 1.15.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Deprecated message copiers in favor of generic message builders.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Kerberos/SPNego fixes
+  Contributed by Carey Lin <careylin1111 at gmail.com>
+
+
+
+Release 5.1 BETA1
 ------------------
 
 This is the first BETA release in the 5.1 release series that includes a number of
