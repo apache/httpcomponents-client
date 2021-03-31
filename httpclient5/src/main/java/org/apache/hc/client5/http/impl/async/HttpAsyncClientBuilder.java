@@ -209,6 +209,7 @@ public class HttpAsyncClientBuilder {
     private AsyncClientConnectionManager connManager;
     private boolean connManagerShared;
     private IOReactorConfig ioReactorConfig;
+    private Callback<Exception> ioReactorExceptionCallback;
     private Http1Config h1Config;
     private H2Config h2Config;
     private CharCodingConfig charCodingConfig;
@@ -313,6 +314,16 @@ public class HttpAsyncClientBuilder {
      */
     public final HttpAsyncClientBuilder setIOReactorConfig(final IOReactorConfig ioReactorConfig) {
         this.ioReactorConfig = ioReactorConfig;
+        return this;
+    }
+
+    /**
+     * Sets the callback that will be invoked when the client's IOReactor encounters an uncaught exception.
+     *
+     * @since 5.1
+     */
+    public final HttpAsyncClientBuilder setIoReactorExceptionCallback(final Callback<Exception> ioReactorExceptionCallback) {
+        this.ioReactorExceptionCallback = ioReactorExceptionCallback;
         return this;
     }
 
@@ -932,7 +943,7 @@ public class HttpAsyncClientBuilder {
                 ioReactorConfig != null ? ioReactorConfig : IOReactorConfig.DEFAULT,
                 threadFactory != null ? threadFactory : new DefaultThreadFactory("httpclient-dispatch", true),
                 LoggingIOSessionDecorator.INSTANCE,
-                LoggingExceptionCallback.INSTANCE,
+                ioReactorExceptionCallback != null ? ioReactorExceptionCallback : LoggingExceptionCallback.INSTANCE,
                 null,
                 new Callback<IOSession>() {
 
