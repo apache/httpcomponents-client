@@ -36,7 +36,7 @@
   <description>
    Apache HttpComponents Client fluent API
   </description>
-  <url>http://hc.apache.org/httpcomponents-client</url>
+  <url>http://hc.apache.org/httpcomponents-client-ga</url>
   <packaging>jar</packaging>
 
   <dependencies>
