@@ -243,37 +243,38 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
                     @Override
                     public void completed(final PoolEntry<HttpRoute, ManagedAsyncClientConnection> poolEntry) {
                         final ManagedAsyncClientConnection connection = poolEntry.getConnection();
-                        final TimeValue timeValue = PoolingAsyncClientConnectionManager.this.validateAfterInactivity;
-                        if (TimeValue.isNonNegative(timeValue) && connection != null &&
-                                poolEntry.getUpdated() + timeValue.toMilliseconds() <= System.currentTimeMillis()) {
-                            final ProtocolVersion protocolVersion = connection.getProtocolVersion();
-                            if (protocolVersion != null && protocolVersion.greaterEquals(HttpVersion.HTTP_2_0)) {
-                                connection.submitCommand(new PingCommand(new BasicPingHandler(new Callback<Boolean>() {
+                        if (connection != null) {
+                            if (connection.isOpen()) {
+                                final ProtocolVersion protocolVersion = connection.getProtocolVersion();
+                                if (protocolVersion != null && protocolVersion.greaterEquals(HttpVersion.HTTP_2_0)) {
+                                    final TimeValue timeValue = PoolingAsyncClientConnectionManager.this.validateAfterInactivity;
+                                    if (TimeValue.isNonNegative(timeValue) &&
+                                            poolEntry.getUpdated() + timeValue.toMilliseconds() <= System.currentTimeMillis()) {
+                                        connection.submitCommand(new PingCommand(new BasicPingHandler(new Callback<Boolean>() {
 
-                                    @Override
-                                    public void execute(final Boolean result) {
-                                        if (result == null || !result)  {
-                                            if (LOG.isDebugEnabled()) {
-                                                LOG.debug("{}: connection {} is stale", id, ConnPoolSupport.getId(connection));
+                                            @Override
+                                            public void execute(final Boolean result) {
+                                                if (result == null || !result) {
+                                                    if (LOG.isDebugEnabled()) {
+                                                        LOG.debug("{}: connection {} is stale", id, ConnPoolSupport.getId(connection));
+                                                    }
+                                                    poolEntry.discardConnection(CloseMode.IMMEDIATE);
+                                                }
+                                                leaseCompleted(poolEntry);
                                             }
-                                            poolEntry.discardConnection(CloseMode.IMMEDIATE);
-                                        }
-                                        leaseCompleted(poolEntry);
-                                    }
 
-                                })), Command.Priority.IMMEDIATE);
-                            } else {
-                                if (!connection.isOpen()) {
-                                    if (LOG.isDebugEnabled()) {
-                                        LOG.debug("{}: connection {} is closed", id, ConnPoolSupport.getId(connection));
+                                        })), Command.Priority.IMMEDIATE);
+                                        return;
                                     }
-                                    poolEntry.discardConnection(CloseMode.IMMEDIATE);
                                 }
-                                leaseCompleted(poolEntry);
+                            } else {
+                                if (LOG.isDebugEnabled()) {
+                                    LOG.debug("{}: connection {} is closed", id, ConnPoolSupport.getId(connection));
+                                }
+                                poolEntry.discardConnection(CloseMode.IMMEDIATE);
                             }
-                        } else {
-                            leaseCompleted(poolEntry);
                         }
+                        leaseCompleted(poolEntry);
                     }
 
                     @Override
