@@ -36,7 +36,7 @@
   <description>
    Apache HttpComponents HttpClient - Cache
   </description>
-  <url>http://hc.apache.org/httpcomponents-client</url>
+  <url>http://hc.apache.org/httpcomponents-client-ga</url>
   <packaging>jar</packaging>
 
   <dependencies>
