@@ -575,4 +575,18 @@ public class CertificatesToPlayWith {
         "-----END CERTIFICATE-----"
         ).getBytes();
 
+    /**
+     * subject CN=www.foo.com, subjectAlt=IP Address:127.0.0.1
+     */
+    public final static byte[] SUBJECT_ALT_IP_ONLY = (
+        "-----BEGIN CERTIFICATE-----\n" +
+        "MIIBQjCB6qADAgECAgYBeLZWSL0wCgYIKoZIzj0EAwIwFjEUMBIGA1UEAwwLd3d3\n" +
+        "LmZvby5jb20wHhcNMjEwNDA5MTExMzI2WhcNMjEwNDA5MTE0MzMxWjAWMRQwEgYD\n" +
+        "VQQDDAt3d3cuZm9vLmNvbTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABPC+8O/v\n" +
+        "IPWSC/iPdPAgpgzpyLKZevNH8ENOb6PaJRDyNHdd1MbJvurKtJ+HP6UYV3keNHUk\n" +
+        "r657s2JjufiTmuSjJDAiMAwGA1UdEwQFMAMBAf8wEgYDVR0RAQH/BAgwBocEfwAA\n" +
+        "ATAKBggqhkjOPQQDAgNHADBEAiA2svKw50Mr5nnF4TXyFcvzhJWkC+7m46JROMiy\n" +
+        "TMt3BQIgK5IHScVH6Cbi106y+BILx4U0Ygt5IFNnMx/K+Jusuls=\n" +
+        "-----END CERTIFICATE-----"
+        ).getBytes();
 }
