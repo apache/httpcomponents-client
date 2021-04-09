@@ -114,18 +114,15 @@ public final class DefaultHostnameVerifier implements HttpClientHostnameVerifier
                     matchIPv6Address(host, subjectAlts);
                     break;
                 default:
-                    matchDNSName(host, subjectAlts, this.publicSuffixMatcher);
+                    // In case there are no SubjectName.DNS entries, fallback to CN matching
+                    if (!matchDNSName(host, subjectAlts, this.publicSuffixMatcher)) {
+                        matchCN(host, cert, this.publicSuffixMatcher);
+                    }
             }
         } else {
             // CN matching has been deprecated by rfc2818 and can be used
-            // as fallback only when no subjectAlts are available
-            final X500Principal subjectPrincipal = cert.getSubjectX500Principal();
-            final String cn = extractCN(subjectPrincipal.getName(X500Principal.RFC2253));
-            if (cn == null) {
-                throw new SSLException("Certificate subject for <" + host + "> doesn't contain " +
-                        "a common name and does not have alternative names");
-            }
-            matchCN(host, cn, this.publicSuffixMatcher);
+            // as fallback only when no subjectAlts of type SubjectName.DNS are available
+            matchCN(host, cert, this.publicSuffixMatcher);
         }
     }
 
@@ -157,24 +154,40 @@ public final class DefaultHostnameVerifier implements HttpClientHostnameVerifier
                 "of the subject alternative names: " + subjectAlts);
     }
 
-    static void matchDNSName(final String host, final List<SubjectName> subjectAlts,
-                             final PublicSuffixMatcher publicSuffixMatcher) throws SSLException {
+    static boolean matchDNSName(final String host, final List<SubjectName> subjectAlts,
+                                final PublicSuffixMatcher publicSuffixMatcher) throws SSLException {
         final String normalizedHost = DnsUtils.normalize(host);
+        boolean foundAnyDNS = false;
         for (int i = 0; i < subjectAlts.size(); i++) {
             final SubjectName subjectAlt = subjectAlts.get(i);
             if (subjectAlt.getType() == SubjectName.DNS) {
+                foundAnyDNS = true;
                 final String normalizedSubjectAlt = DnsUtils.normalize(subjectAlt.getValue());
                 if (matchIdentityStrict(normalizedHost, normalizedSubjectAlt, publicSuffixMatcher)) {
-                    return;
+                    return true;
                 }
             }
+        }
+        if (!foundAnyDNS) {
+            return false;
         }
         throw new SSLPeerUnverifiedException("Certificate for <" + host + "> doesn't match any " +
                 "of the subject alternative names: " + subjectAlts);
     }
 
+    static void matchCN(final String host, final X509Certificate cert,
+                        final PublicSuffixMatcher publicSuffixMatcher) throws SSLException {
+        final X500Principal subjectPrincipal = cert.getSubjectX500Principal();
+        final String cn = extractCN(subjectPrincipal.getName(X500Principal.RFC2253));
+        if (cn == null) {
+            throw new SSLException("Certificate subject for <" + host + "> doesn't contain " +
+                    "a common name and does not have alternative names");
+        }
+        matchCN(host, cn, publicSuffixMatcher);
+    }
+
     static void matchCN(final String host, final String cn,
-                 final PublicSuffixMatcher publicSuffixMatcher) throws SSLException {
+                        final PublicSuffixMatcher publicSuffixMatcher) throws SSLException {
         final String normalizedHost = DnsUtils.normalize(host);
         final String normalizedCn = DnsUtils.normalize(cn);
         if (!matchIdentityStrict(normalizedHost, normalizedCn, publicSuffixMatcher)) {
