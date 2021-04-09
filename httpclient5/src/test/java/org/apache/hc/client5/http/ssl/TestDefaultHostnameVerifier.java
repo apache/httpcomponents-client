@@ -176,9 +176,10 @@ public class TestDefaultHostnameVerifier {
         in = new ByteArrayInputStream(CertificatesToPlayWith.IP_1_1_1_1);
         x509 = (X509Certificate) cf.generateCertificate(in);
         impl.verify("1.1.1.1", x509);
+        impl.verify("dummy-value.com", x509);
 
         exceptionPlease(impl, "1.1.1.2", x509);
-        exceptionPlease(impl, "dummy-value.com", x509);
+        exceptionPlease(impl, "not-the-cn.com", x509);
 
         in = new ByteArrayInputStream(CertificatesToPlayWith.EMAIL_ALT_SUBJECT_NAME);
         x509 = (X509Certificate) cf.generateCertificate(in);
@@ -393,6 +394,21 @@ public class TestDefaultHostnameVerifier {
     }
 
     @Test
+    public void testHTTPCLIENT_2149() throws Exception {
+        final CertificateFactory cf = CertificateFactory.getInstance("X.509");
+        final InputStream in = new ByteArrayInputStream(CertificatesToPlayWith.SUBJECT_ALT_IP_ONLY);
+        final X509Certificate x509 = (X509Certificate) cf.generateCertificate(in);
+
+        Assert.assertEquals("CN=www.foo.com", x509.getSubjectDN().getName());
+
+        impl.verify("127.0.0.1", x509);
+        impl.verify("www.foo.com", x509);
+
+        exceptionPlease(impl, "127.0.0.2", x509);
+        exceptionPlease(impl, "www.bar.com", x509);
+    }
+
+    @Test
     public void testExtractCN() throws Exception {
         Assert.assertEquals("blah", DefaultHostnameVerifier.extractCN("cn=blah, ou=blah, o=blah"));
         Assert.assertEquals("blah", DefaultHostnameVerifier.extractCN("cn=blah, cn=yada, cn=booh"));
@@ -436,6 +452,16 @@ public class TestDefaultHostnameVerifier {
                 "hostname-workspace-1.local",
                 Collections.singletonList(SubjectName.DNS("hostname-workspace-1.local")),
                 publicSuffixMatcher);
+
+        try {
+            DefaultHostnameVerifier.matchDNSName(
+                "host.domain.com",
+                Collections.singletonList(SubjectName.DNS("some.other.com")),
+                publicSuffixMatcher);
+            Assert.fail("SSLException should have been thrown");
+        } catch (final SSLException ex) {
+            // expected
+        }
     }
 
 }
