@@ -287,29 +287,7 @@ public final class DefaultHostnameVerifier implements HttpClientHostnameVerifier
     }
 
     static List<SubjectName> getSubjectAltNames(final X509Certificate cert) {
-        try {
-            final Collection<List<?>> entries = cert.getSubjectAlternativeNames();
-            if (entries == null) {
-                return Collections.emptyList();
-            }
-            final List<SubjectName> result = new ArrayList<>();
-            for (final List<?> entry : entries) {
-                final Integer type = entry.size() >= 2 ? (Integer) entry.get(0) : null;
-                if (type != null) {
-                    if (type == SubjectName.DNS || type == SubjectName.IP) {
-                        final Object o = entry.get(1);
-                        if (o instanceof String) {
-                            result.add(new SubjectName((String) o, type));
-                        } else if (o instanceof byte[]) {
-                            // TODO ASN.1 DER encoded form
-                        }
-                    }
-                }
-            }
-            return result;
-        } catch (final CertificateParsingException ignore) {
-            return Collections.emptyList();
-        }
+        return getSubjectAltNames(cert, -1);
     }
 
     static List<SubjectName> getSubjectAltNames(final X509Certificate cert, final int subjectName) {
@@ -322,7 +300,7 @@ public final class DefaultHostnameVerifier implements HttpClientHostnameVerifier
             for (final List<?> entry : entries) {
                 final Integer type = entry.size() >= 2 ? (Integer) entry.get(0) : null;
                 if (type != null) {
-                    if (type == subjectName) {
+                    if (type == subjectName || -1 == subjectName) {
                         final Object o = entry.get(1);
                         if (o instanceof String) {
                             result.add(new SubjectName((String) o, type));
