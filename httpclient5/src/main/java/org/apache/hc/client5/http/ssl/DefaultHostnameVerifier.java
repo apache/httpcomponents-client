@@ -101,28 +101,24 @@ public final class DefaultHostnameVerifier implements HttpClientHostnameVerifier
     }
 
     @Override
-    public void verify(
-            final String host, final X509Certificate cert) throws SSLException {
+    public void verify(final String host, final X509Certificate cert) throws SSLException {
         final HostNameType hostType = determineHostFormat(host);
-        final List<SubjectName> subjectAlts = getSubjectAltNames(cert);
-        if (subjectAlts != null && !subjectAlts.isEmpty()) {
-            switch (hostType) {
-                case IPv4:
-                    matchIPAddress(host, subjectAlts);
-                    break;
-                case IPv6:
-                    matchIPv6Address(host, subjectAlts);
-                    break;
-                default:
-                    // In case there are no SubjectName.DNS entries, fallback to CN matching
-                    if (!matchDNSName(host, subjectAlts, this.publicSuffixMatcher)) {
-                        matchCN(host, cert, this.publicSuffixMatcher);
-                    }
+        switch (hostType) {
+        case IPv4:
+            matchIPAddress(host, getSubjectAltNames(cert, SubjectName.IP));
+            break;
+        case IPv6:
+            matchIPv6Address(host, getSubjectAltNames(cert, SubjectName.IP));
+            break;
+        default:
+            final List<SubjectName> subjectAlts = getSubjectAltNames(cert, SubjectName.DNS);
+            if (subjectAlts.isEmpty()) {
+                // CN matching has been deprecated by rfc2818 and can be used
+                // as fallback only when no subjectAlts of type SubjectName.DNS are available
+                matchCN(host, cert, this.publicSuffixMatcher);
+            } else {
+                matchDNSName(host, subjectAlts, this.publicSuffixMatcher);
             }
-        } else {
-            // CN matching has been deprecated by rfc2818 and can be used
-            // as fallback only when no subjectAlts of type SubjectName.DNS are available
-            matchCN(host, cert, this.publicSuffixMatcher);
         }
     }
 
@@ -154,22 +150,17 @@ public final class DefaultHostnameVerifier implements HttpClientHostnameVerifier
                 "of the subject alternative names: " + subjectAlts);
     }
 
-    static boolean matchDNSName(final String host, final List<SubjectName> subjectAlts,
-                                final PublicSuffixMatcher publicSuffixMatcher) throws SSLException {
+    static void matchDNSName(final String host, final List<SubjectName> subjectAlts,
+                             final PublicSuffixMatcher publicSuffixMatcher) throws SSLException {
         final String normalizedHost = DnsUtils.normalize(host);
-        boolean foundAnyDNS = false;
         for (int i = 0; i < subjectAlts.size(); i++) {
             final SubjectName subjectAlt = subjectAlts.get(i);
             if (subjectAlt.getType() == SubjectName.DNS) {
-                foundAnyDNS = true;
                 final String normalizedSubjectAlt = DnsUtils.normalize(subjectAlt.getValue());
                 if (matchIdentityStrict(normalizedHost, normalizedSubjectAlt, publicSuffixMatcher)) {
-                    return true;
+                    return;
                 }
             }
-        }
-        if (!foundAnyDNS) {
-            return false;
         }
         throw new SSLPeerUnverifiedException("Certificate for <" + host + "> doesn't match any " +
                 "of the subject alternative names: " + subjectAlts);
@@ -180,14 +171,9 @@ public final class DefaultHostnameVerifier implements HttpClientHostnameVerifier
         final X500Principal subjectPrincipal = cert.getSubjectX500Principal();
         final String cn = extractCN(subjectPrincipal.getName(X500Principal.RFC2253));
         if (cn == null) {
-            throw new SSLException("Certificate subject for <" + host + "> doesn't contain " +
+            throw new SSLPeerUnverifiedException("Certificate subject for <" + host + "> doesn't contain " +
                     "a common name and does not have alternative names");
         }
-        matchCN(host, cn, publicSuffixMatcher);
-    }
-
-    static void matchCN(final String host, final String cn,
-                        final PublicSuffixMatcher publicSuffixMatcher) throws SSLException {
         final String normalizedHost = DnsUtils.normalize(host);
         final String normalizedCn = DnsUtils.normalize(cn);
         if (!matchIdentityStrict(normalizedHost, normalizedCn, publicSuffixMatcher)) {
@@ -311,6 +297,32 @@ public final class DefaultHostnameVerifier implements HttpClientHostnameVerifier
                 final Integer type = entry.size() >= 2 ? (Integer) entry.get(0) : null;
                 if (type != null) {
                     if (type == SubjectName.DNS || type == SubjectName.IP) {
+                        final Object o = entry.get(1);
+                        if (o instanceof String) {
+                            result.add(new SubjectName((String) o, type));
+                        } else if (o instanceof byte[]) {
+                            // TODO ASN.1 DER encoded form
+                        }
+                    }
+                }
+            }
+            return result;
+        } catch (final CertificateParsingException ignore) {
+            return Collections.emptyList();
+        }
+    }
+
+    static List<SubjectName> getSubjectAltNames(final X509Certificate cert, final int subjectName) {
+        try {
+            final Collection<List<?>> entries = cert.getSubjectAlternativeNames();
+            if (entries == null) {
+                return Collections.emptyList();
+            }
+            final List<SubjectName> result = new ArrayList<>();
+            for (final List<?> entry : entries) {
+                final Integer type = entry.size() >= 2 ? (Integer) entry.get(0) : null;
+                if (type != null) {
+                    if (type == subjectName) {
                         final Object o = entry.get(1);
                         if (o instanceof String) {
                             result.add(new SubjectName((String) o, type));

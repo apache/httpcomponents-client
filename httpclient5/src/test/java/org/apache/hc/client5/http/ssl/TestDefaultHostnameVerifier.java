@@ -432,31 +432,26 @@ public class TestDefaultHostnameVerifier {
 
     @Test
     public void testMatchDNSName() throws Exception {
-        Assert.assertTrue(DefaultHostnameVerifier.matchDNSName(
+        DefaultHostnameVerifier.matchDNSName(
                 "host.domain.com",
                 Collections.singletonList(SubjectName.DNS("*.domain.com")),
-                publicSuffixMatcher));
-        Assert.assertTrue(DefaultHostnameVerifier.matchDNSName(
+                publicSuffixMatcher);
+        DefaultHostnameVerifier.matchDNSName(
                 "host.xx",
                 Collections.singletonList(SubjectName.DNS("*.xx")),
-                publicSuffixMatcher));
-        Assert.assertTrue(DefaultHostnameVerifier.matchDNSName(
+                publicSuffixMatcher);
+        DefaultHostnameVerifier.matchDNSName(
                 "host.appspot.com",
                 Collections.singletonList(SubjectName.DNS("*.appspot.com")),
-                publicSuffixMatcher));
-        Assert.assertTrue(DefaultHostnameVerifier.matchDNSName(
+                publicSuffixMatcher);
+        DefaultHostnameVerifier.matchDNSName(
                 "demo-s3-bucket.s3.eu-central-1.amazonaws.com",
                 Collections.singletonList(SubjectName.DNS("*.s3.eu-central-1.amazonaws.com")),
-                publicSuffixMatcher));
-        Assert.assertTrue(DefaultHostnameVerifier.matchDNSName(
+                publicSuffixMatcher);
+        DefaultHostnameVerifier.matchDNSName(
                 "hostname-workspace-1.local",
                 Collections.singletonList(SubjectName.DNS("hostname-workspace-1.local")),
-                publicSuffixMatcher));
-
-        Assert.assertFalse(DefaultHostnameVerifier.matchDNSName(
-            "host.domain.com",
-            Collections.singletonList(SubjectName.IP("1.1.1.1")),
-            publicSuffixMatcher));
+                publicSuffixMatcher);
 
         try {
             DefaultHostnameVerifier.matchDNSName(
