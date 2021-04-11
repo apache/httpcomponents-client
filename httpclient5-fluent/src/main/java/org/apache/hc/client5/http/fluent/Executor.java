@@ -100,10 +100,12 @@ public class Executor {
     }
 
     public Executor auth(final AuthScope authScope, final Credentials credentials) {
-        if (this.credentialsStore == null) {
-            this.credentialsStore = new BasicCredentialsProvider();
+        CredentialsStore credentialsStoreSnapshot = credentialsStore;
+        if (credentialsStoreSnapshot == null) {
+            credentialsStoreSnapshot = new BasicCredentialsProvider();
+            this.credentialsStore = credentialsStoreSnapshot;
         }
-        this.credentialsStore.setCredentials(authScope, credentials);
+        credentialsStoreSnapshot.setCredentials(authScope, credentials);
         return this;
     }
 
@@ -125,8 +127,9 @@ public class Executor {
     }
 
     public Executor authPreemptive(final HttpHost host) {
-        if (this.credentialsStore != null) {
-            final Credentials credentials = this.credentialsStore.getCredentials(new AuthScope(host), null);
+        final CredentialsStore credentialsStoreSnapshot = credentialsStore;
+        if (credentialsStoreSnapshot != null) {
+            final Credentials credentials = credentialsStoreSnapshot.getCredentials(new AuthScope(host), null);
             if (credentials != null) {
                 final BasicScheme basicScheme = new BasicScheme();
                 basicScheme.initPreemptive(credentials);
@@ -150,8 +153,9 @@ public class Executor {
     }
 
     public Executor authPreemptiveProxy(final HttpHost proxy) {
-        if (this.credentialsStore != null) {
-            final Credentials credentials = this.credentialsStore.getCredentials(new AuthScope(proxy), null);
+        final CredentialsStore credentialsStoreSnapshot = credentialsStore;
+        if (credentialsStoreSnapshot != null) {
+            final Credentials credentials = credentialsStoreSnapshot.getCredentials(new AuthScope(proxy), null);
             if (credentials != null) {
                 final BasicScheme basicScheme = new BasicScheme();
                 basicScheme.initPreemptive(credentials);
@@ -186,8 +190,9 @@ public class Executor {
     }
 
     public Executor clearAuth() {
-        if (this.credentialsStore != null) {
-            this.credentialsStore.clear();
+        final CredentialsStore credentialsStoreSnapshot = credentialsStore;
+        if (credentialsStoreSnapshot != null) {
+            credentialsStoreSnapshot.clear();
         }
         return this;
     }
@@ -201,8 +206,9 @@ public class Executor {
     }
 
     public Executor clearCookies() {
-        if (this.cookieStore != null) {
-            this.cookieStore.clear();
+        final CookieStore cookieStoreSnapshot = cookieStore;
+        if (cookieStoreSnapshot != null) {
+            cookieStoreSnapshot.clear();
         }
         return this;
     }
@@ -218,14 +224,16 @@ public class Executor {
     public Response execute(
             final Request request) throws IOException {
         final HttpClientContext localContext = HttpClientContext.create();
-        if (this.credentialsStore != null) {
-            localContext.setAttribute(HttpClientContext.CREDS_PROVIDER, this.credentialsStore);
+        final CredentialsStore credentialsStoreSnapshot = credentialsStore;
+        if (credentialsStoreSnapshot != null) {
+            localContext.setAttribute(HttpClientContext.CREDS_PROVIDER, credentialsStoreSnapshot);
         }
         if (this.authCache != null) {
             localContext.setAttribute(HttpClientContext.AUTH_CACHE, this.authCache);
         }
-        if (this.cookieStore != null) {
-            localContext.setAttribute(HttpClientContext.COOKIE_STORE, this.cookieStore);
+        final CookieStore cookieStoreSnapshot = cookieStore;
+        if (cookieStoreSnapshot != null) {
+            localContext.setAttribute(HttpClientContext.COOKIE_STORE, cookieStoreSnapshot);
         }
         return new Response(request.internalExecute(this.httpclient, localContext));
     }
