@@ -150,15 +150,15 @@ public final class AsyncHttpRequestRetryExec implements AsyncExecChainHandler {
                             LOG.info("Recoverable I/O exception ({}) caught when processing request to {}",
                                     cause.getClass().getName(), route);
                         }
-                        scope.execRuntime.discardEndpoint();
-                        if (entityProducer != null) {
-                            entityProducer.releaseResources();
-                        }
-                        state.retrying = true;
-                        state.execCount++;
                         try {
+                            scope.execRuntime.discardEndpoint();
+                            if (entityProducer != null) {
+                                entityProducer.releaseResources();
+                            }
+                            state.retrying = true;
+                            state.execCount++;
                             internalExecute(state, request, entityProducer, scope, chain, asyncExecCallback);
-                        } catch (final IOException | HttpException ex) {
+                        } catch (final Exception ex) {
                             asyncExecCallback.failed(ex);
                         }
                         return;
