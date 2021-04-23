@@ -145,7 +145,7 @@ class InternalHttpClient extends CloseableHttpClient implements Configurable {
     }
 
     @Override
-    protected CloseableHttpResponse doExecute(
+    public CloseableHttpResponse execute(
             final HttpHost target,
             final ClassicHttpRequest request,
             final HttpContext context) throws IOException {

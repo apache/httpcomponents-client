@@ -56,23 +56,17 @@ public abstract class CloseableHttpClient implements HttpClient, ModalCloseable 
 
     private static final Logger LOG = LoggerFactory.getLogger(CloseableHttpClient.class);
 
-    protected abstract CloseableHttpResponse doExecute(HttpHost target, ClassicHttpRequest request,
-                                                     HttpContext context) throws IOException;
-
-    @Override
-    public CloseableHttpResponse execute(
+    public abstract CloseableHttpResponse execute(
             final HttpHost target,
             final ClassicHttpRequest request,
-            final HttpContext context) throws IOException {
-        return doExecute(target, request, context);
-    }
+            final HttpContext context) throws IOException ;
 
     @Override
     public CloseableHttpResponse execute(
             final ClassicHttpRequest request,
             final HttpContext context) throws IOException {
         Args.notNull(request, "HTTP request");
-        return doExecute(determineTarget(request), request, context);
+        return execute(determineTarget(request), request, context);
     }
 
     private static HttpHost determineTarget(final ClassicHttpRequest request) throws ClientProtocolException {
@@ -93,7 +87,7 @@ public abstract class CloseableHttpClient implements HttpClient, ModalCloseable 
     public CloseableHttpResponse execute(
             final HttpHost target,
             final ClassicHttpRequest request) throws IOException {
-        return doExecute(target, request, null);
+        return execute(target, request, (HttpContext) null);
     }
 
     /**
