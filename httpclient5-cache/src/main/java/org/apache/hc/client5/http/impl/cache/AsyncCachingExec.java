@@ -669,7 +669,9 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                             scope.originalRequest,
                             new ComplexFuture<>(null),
                             HttpClientContext.create(),
-                            scope.execRuntime.fork());
+                            scope.execRuntime.fork(),
+                            scope.scheduler,
+                            scope.execCount);
                     cacheRevalidator.revalidateCacheEntry(
                             responseCache.generateKey(target, request, entry),
                             asyncExecCallback,

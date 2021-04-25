@@ -32,9 +32,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.async.AsyncExecCallback;
@@ -49,7 +52,9 @@ import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.client5.http.impl.ExecSupport;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.routing.RoutingSupport;
+import org.apache.hc.core5.concurrent.Cancellable;
 import org.apache.hc.core5.concurrent.ComplexFuture;
+import org.apache.hc.core5.concurrent.DefaultThreadFactory;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.HttpException;
@@ -71,10 +76,13 @@ import org.apache.hc.core5.http.support.BasicRequestBuilder;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.io.ModalCloseable;
 import org.apache.hc.core5.reactor.DefaultConnectingIOReactor;
+import org.apache.hc.core5.util.TimeValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBase {
+
+    private final static ThreadFactory SCHEDULER_THREAD_FACTORY = new DefaultThreadFactory("Scheduled-executor");
 
     private static final Logger LOG = LoggerFactory.getLogger(InternalAbstractHttpAsyncClient.class);
     private final AsyncExecChainElement execChain;
@@ -84,6 +92,7 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
     private final CredentialsProvider credentialsProvider;
     private final RequestConfig defaultConfig;
     private final ConcurrentLinkedQueue<Closeable> closeables;
+    private final ScheduledExecutorService scheduledExecutorService;
 
     InternalAbstractHttpAsyncClient(
             final DefaultConnectingIOReactor ioReactor,
@@ -104,6 +113,7 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
         this.credentialsProvider = credentialsProvider;
         this.defaultConfig = defaultConfig;
         this.closeables = closeables != null ? new ConcurrentLinkedQueue<>(closeables) : null;
+        this.scheduledExecutorService = Executors.newSingleThreadScheduledExecutor(SCHEDULER_THREAD_FACTORY);
     }
 
     @Override
@@ -120,6 +130,12 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
                 } catch (final IOException ex) {
                     LOG.error(ex.getMessage(), ex);
                 }
+            }
+        }
+        final List<Runnable> runnables = this.scheduledExecutorService.shutdownNow();
+        for (final Runnable runnable: runnables) {
+            if (runnable instanceof Cancellable) {
+                ((Cancellable) runnable).cancel();
             }
         }
     }
@@ -187,10 +203,23 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
                     clientContext.setExchangeId(exchangeId);
                     setupContext(clientContext);
 
+                    final AsyncExecChain.Scheduler scheduler = new AsyncExecChain.Scheduler() {
+
+                        @Override
+                        public void scheduleExecution(final HttpRequest request,
+                                                      final AsyncEntityProducer entityProducer,
+                                                      final AsyncExecChain.Scope scope,
+                                                      final AsyncExecCallback asyncExecCallback,
+                                                      final TimeValue delay) {
+                            executeScheduled(request, entityProducer, scope, asyncExecCallback, delay);
+                        }
+
+                    };
+
                     final AsyncExecChain.Scope scope = new AsyncExecChain.Scope(exchangeId, route, request, future,
-                            clientContext, execRuntime);
+                            clientContext, execRuntime, scheduler, new AtomicInteger(1));
                     final AtomicBoolean outputTerminated = new AtomicBoolean(false);
-                    execChain.execute(
+                    executeImmediate(
                             BasicRequestBuilder.copy(request).build(),
                             entityDetails != null ? new AsyncEntityProducer() {
 
@@ -327,6 +356,66 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
             future.failed(ex);
         }
         return future;
+    }
+
+    void executeImmediate(
+            final HttpRequest request,
+            final AsyncEntityProducer entityProducer,
+            final AsyncExecChain.Scope scope,
+            final AsyncExecCallback asyncExecCallback) throws HttpException, IOException {
+        execChain.execute(request, entityProducer, scope, asyncExecCallback);
+    }
+
+    void executeScheduled(
+            final HttpRequest request,
+            final AsyncEntityProducer entityProducer,
+            final AsyncExecChain.Scope scope,
+            final AsyncExecCallback asyncExecCallback,
+            final TimeValue delay) {
+        final ScheduledRequestExecution scheduledTask = new ScheduledRequestExecution(
+                request, entityProducer, scope, asyncExecCallback, delay);
+        if (TimeValue.isPositive(delay)) {
+            scheduledExecutorService.schedule(scheduledTask, delay.getDuration(), delay.getTimeUnit());
+        } else {
+            scheduledExecutorService.execute(scheduledTask);
+        }
+    }
+
+    class ScheduledRequestExecution implements Runnable, Cancellable {
+
+        final HttpRequest request;
+        final AsyncEntityProducer entityProducer;
+        final AsyncExecChain.Scope scope;
+        final AsyncExecCallback asyncExecCallback;
+        final TimeValue delay;
+
+        ScheduledRequestExecution(final HttpRequest request,
+                                  final AsyncEntityProducer entityProducer,
+                                  final AsyncExecChain.Scope scope,
+                                  final AsyncExecCallback asyncExecCallback,
+                                  final TimeValue delay) {
+            this.request = request;
+            this.entityProducer = entityProducer;
+            this.scope = scope;
+            this.asyncExecCallback = asyncExecCallback;
+            this.delay = delay;
+        }
+
+        @Override
+        public void run() {
+            try {
+                execChain.execute(request, entityProducer, scope, asyncExecCallback);
+            } catch (final Exception ex) {
+                asyncExecCallback.failed(ex);
+            }
+        }
+
+        @Override
+        public boolean cancel() {
+            asyncExecCallback.failed(new CancellationException("Request execution cancelled"));
+            return true;
+        }
+
     }
 
 }
