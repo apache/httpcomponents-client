@@ -46,6 +46,7 @@ import org.apache.hc.core5.http.nio.AsyncEntityProducer;
 import org.apache.hc.core5.http.nio.entity.NoopEntityConsumer;
 import org.apache.hc.core5.http.support.BasicRequestBuilder;
 import org.apache.hc.core5.util.Args;
+import org.apache.hc.core5.util.TimeValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -78,8 +79,8 @@ public final class AsyncHttpRequestRetryExec implements AsyncExecChainHandler {
 
     private static class State {
 
-        volatile int execCount;
         volatile boolean retrying;
+        volatile TimeValue delay;
 
     }
 
@@ -106,8 +107,12 @@ public final class AsyncHttpRequestRetryExec implements AsyncExecChainHandler {
                     }
                     return asyncExecCallback.handleResponse(response, entityDetails);
                 }
-                state.retrying = retryStrategy.retryRequest(response, state.execCount, clientContext);
+                state.retrying = retryStrategy.retryRequest(response, scope.execCount.get(), clientContext);
                 if (state.retrying) {
+                    state.delay = retryStrategy.getRetryInterval(response, scope.execCount.get(), clientContext);
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("{} retrying request in {}", exchangeId, state.delay);
+                    }
                     return new NoopEntityConsumer();
                 } else {
                     return asyncExecCallback.handleResponse(response, entityDetails);
@@ -122,12 +127,8 @@ public final class AsyncHttpRequestRetryExec implements AsyncExecChainHandler {
             @Override
             public void completed() {
                 if (state.retrying) {
-                    state.execCount++;
-                    try {
-                        internalExecute(state, request, entityProducer, scope, chain, asyncExecCallback);
-                    } catch (final IOException | HttpException ex) {
-                        asyncExecCallback.failed(ex);
-                    }
+                    scope.execCount.incrementAndGet();
+                    scope.scheduler.scheduleExecution(request, entityProducer, scope, asyncExecCallback, state.delay);
                 } else {
                     asyncExecCallback.completed();
                 }
@@ -142,7 +143,7 @@ public final class AsyncHttpRequestRetryExec implements AsyncExecChainHandler {
                         if (LOG.isDebugEnabled()) {
                             LOG.debug("{} cannot retry non-repeatable request", exchangeId);
                         }
-                    } else if (retryStrategy.retryRequest(request, (IOException) cause, state.execCount, clientContext)) {
+                    } else if (retryStrategy.retryRequest(request, (IOException) cause, scope.execCount.get(), clientContext)) {
                         if (LOG.isDebugEnabled()) {
                             LOG.debug("{} {}", exchangeId, cause.getMessage(), cause);
                         }
@@ -155,12 +156,8 @@ public final class AsyncHttpRequestRetryExec implements AsyncExecChainHandler {
                             entityProducer.releaseResources();
                         }
                         state.retrying = true;
-                        state.execCount++;
-                        try {
-                            internalExecute(state, request, entityProducer, scope, chain, asyncExecCallback);
-                        } catch (final IOException | HttpException ex) {
-                            asyncExecCallback.failed(ex);
-                        }
+                        scope.execCount.incrementAndGet();
+                        scope.scheduler.scheduleExecution(request, entityProducer, scope, asyncExecCallback, state.delay);
                         return;
                     }
                 }
@@ -179,7 +176,6 @@ public final class AsyncHttpRequestRetryExec implements AsyncExecChainHandler {
             final AsyncExecChain chain,
             final AsyncExecCallback asyncExecCallback) throws HttpException, IOException {
         final State state = new State();
-        state.execCount = 1;
         state.retrying = false;
         internalExecute(state, request, entityProducer, scope, chain, asyncExecCallback);
     }
