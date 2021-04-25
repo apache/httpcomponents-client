@@ -187,8 +187,15 @@ public final class AsyncRedirectExec implements AsyncExecChainHandler {
                                     proxyAuthExchange.reset();
                                 }
                             }
-                            state.currentScope = new AsyncExecChain.Scope(scope.exchangeId, newRoute,
-                                    scope.originalRequest, scope.cancellableDependency, clientContext, scope.execRuntime);
+                            state.currentScope = new AsyncExecChain.Scope(
+                                    scope.exchangeId,
+                                    newRoute,
+                                    scope.originalRequest,
+                                    scope.cancellableDependency,
+                                    scope.clientContext,
+                                    scope.execRuntime,
+                                    scope.scheduler,
+                                    scope.execCount);
                         }
                     }
                 }

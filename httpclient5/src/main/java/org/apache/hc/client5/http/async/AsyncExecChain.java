@@ -27,6 +27,7 @@
 package org.apache.hc.client5.http.async;
 
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
@@ -37,6 +38,7 @@ import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.nio.AsyncEntityProducer;
 import org.apache.hc.core5.util.Args;
+import org.apache.hc.core5.util.TimeValue;
 
 /**
  * Represents a single element in the client side asynchronous request execution chain.
@@ -59,7 +61,36 @@ public interface AsyncExecChain {
         public final CancellableDependency cancellableDependency;
         public final HttpClientContext clientContext;
         public final AsyncExecRuntime execRuntime;
+        public final Scheduler scheduler;
+        public final AtomicInteger execCount;
 
+        /**
+         * @since 5.1
+         */
+        public Scope(
+                final String exchangeId,
+                final HttpRoute route,
+                final HttpRequest originalRequest,
+                final CancellableDependency cancellableDependency,
+                final HttpClientContext clientContext,
+                final AsyncExecRuntime execRuntime,
+                final Scheduler scheduler,
+                final AtomicInteger execCount) {
+            this.exchangeId = Args.notBlank(exchangeId, "Exchange id");
+            this.route = Args.notNull(route, "Route");
+            this.originalRequest = Args.notNull(originalRequest, "Original request");
+            this.cancellableDependency = Args.notNull(cancellableDependency, "Dependency");
+            this.clientContext = clientContext != null ? clientContext : HttpClientContext.create();
+            this.execRuntime = Args.notNull(execRuntime, "Exec runtime");
+            this.scheduler = scheduler;
+            this.execCount = execCount != null ? execCount : new AtomicInteger(1);
+        }
+
+        /**
+         * @deprecated Use {@link Scope#Scope(String, HttpRoute, HttpRequest, CancellableDependency, HttpClientContext,
+         * AsyncExecRuntime, Scheduler, AtomicInteger)}
+         */
+        @Deprecated
         public Scope(
                 final String exchangeId,
                 final HttpRoute route,
@@ -67,13 +98,35 @@ public interface AsyncExecChain {
                 final CancellableDependency cancellableDependency,
                 final HttpClientContext clientContext,
                 final AsyncExecRuntime execRuntime) {
-            this.exchangeId = Args.notBlank(exchangeId, "Exchange id");
-            this.route = Args.notNull(route, "Route");
-            this.originalRequest = Args.notNull(originalRequest, "Original request");
-            this.cancellableDependency = Args.notNull(cancellableDependency, "Dependency");
-            this.clientContext = clientContext != null ? clientContext : HttpClientContext.create();
-            this.execRuntime = Args.notNull(execRuntime, "Exec runtime");
+            this(exchangeId, route, originalRequest, cancellableDependency, clientContext, execRuntime,
+                    null, new AtomicInteger(1));
         }
+
+    }
+
+    /**
+     * Request execution scheduler
+     *
+     * @since 5.1
+     */
+    interface Scheduler {
+
+        /**
+         * Schedules request re-execution immediately or after a delay.
+         * @param request the actual request.
+         * @param entityProducer the request entity producer or {@code null} if the request
+         *                      does not enclose an entity.
+         * @param scope the execution scope .
+         * @param asyncExecCallback the execution callback.
+         * @param delay re-execution delay. Can be {@code null} if the request is to be
+         *              re-executed immediately.
+         */
+        void scheduleExecution(
+                HttpRequest request,
+                AsyncEntityProducer entityProducer,
+                AsyncExecChain.Scope scope,
+                AsyncExecCallback asyncExecCallback,
+                TimeValue delay);
 
     }
 
