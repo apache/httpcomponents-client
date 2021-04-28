@@ -103,11 +103,11 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
             final LeaseRequest connRequest = manager.lease(id, route, connectionRequestTimeout, object);
             state = object;
             if (cancellableDependency != null) {
+                cancellableDependency.setDependency(connRequest);
                 if (cancellableDependency.isCancelled()) {
                     connRequest.cancel();
                     throw new RequestFailedException("Request aborted");
                 }
-                cancellableDependency.setDependency(connRequest);
             }
             try {
                 final ConnectionEndpoint connectionEndpoint = connRequest.get(connectionRequestTimeout);
@@ -115,6 +115,10 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
                 reusable = connectionEndpoint.isConnected();
                 if (cancellableDependency != null) {
                     cancellableDependency.setDependency(this);
+                    if (cancellableDependency.isCancelled()) {
+                        cancel();
+                        throw new RequestFailedException("Request aborted");
+                    }
                 }
                 if (log.isDebugEnabled()) {
                     log.debug("{}: acquired endpoint {}", id, ConnPoolSupport.getId(connectionEndpoint));
