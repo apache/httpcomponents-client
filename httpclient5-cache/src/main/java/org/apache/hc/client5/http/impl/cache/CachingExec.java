@@ -51,6 +51,7 @@ import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.function.Factory;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpException;
@@ -219,10 +220,13 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
         response.setVersion(cacheResponse.getVersion() != null ? cacheResponse.getVersion() : HttpVersion.DEFAULT);
         final SimpleBody body = cacheResponse.getBody();
         if (body != null) {
+            final ContentType contentType = body.getContentType();
+            final Header h = response.getFirstHeader(HttpHeaders.CONTENT_ENCODING);
+            final String contentEncoding = h != null ? h.getValue() : null;
             if (body.isText()) {
-                response.setEntity(new StringEntity(body.getBodyText(), body.getContentType()));
+                response.setEntity(new StringEntity(body.getBodyText(), contentType, contentEncoding, false));
             } else {
-                response.setEntity(new ByteArrayEntity(body.getBodyBytes(), body.getContentType()));
+                response.setEntity(new ByteArrayEntity(body.getBodyBytes(), contentType, contentEncoding, false));
             }
         }
         scope.clientContext.setAttribute(HttpCoreContext.HTTP_RESPONSE, response);
