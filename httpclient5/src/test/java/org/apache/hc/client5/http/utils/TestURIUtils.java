@@ -165,7 +165,7 @@ public class TestURIUtils {
         Assert.assertEquals(new HttpHost("local_host",8080),URIUtils.extractHost(
                 new URI("http://@local_host:8080/abcd")));
 
-        Assert.assertEquals(new HttpHost("[2a00:1450:400c:c01::69]",8080),
+        Assert.assertEquals(new HttpHost("2a00:1450:400c:c01::69",8080),
                 URIUtils.extractHost(new URI("http://[2a00:1450:400c:c01::69]:8080/")));
 
         Assert.assertEquals(new HttpHost("localhost",8080),
