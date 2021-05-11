@@ -55,7 +55,7 @@
     <site>
       <id>apache.website</id>
       <name>Apache HttpComponents Website</name>
-      <url>scm:svn:https://svn.apache.org/repos/asf/httpcomponents/site/components/httpcomponents-client-5.0.x/LATEST/</url>
+      <url>scm:svn:https://svn.apache.org/repos/asf/httpcomponents/site/components/httpcomponents-client-5.1.x/LATEST/</url>
     </site>
   </distributionManagement>
 
