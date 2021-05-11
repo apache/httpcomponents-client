@@ -39,6 +39,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.SchemePortResolver;
+import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.impl.ConnPoolSupport;
 import org.apache.hc.client5.http.impl.ConnectionShutdownException;
 import org.apache.hc.client5.http.io.ConnectionEndpoint;
@@ -52,6 +53,7 @@ import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.function.Resolver;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpException;
@@ -112,8 +114,8 @@ public class PoolingHttpClientConnectionManager
     private final HttpConnectionFactory<ManagedHttpClientConnection> connFactory;
     private final AtomicBoolean closed;
 
-    private volatile SocketConfig defaultSocketConfig;
-    private volatile TimeValue validateAfterInactivity;
+    private volatile Resolver<HttpRoute, SocketConfig> socketConfigResolver;
+    private volatile Resolver<HttpRoute, ConnectionConfig> connectionConfigResolver;
 
     public PoolingHttpClientConnectionManager() {
         this(RegistryBuilder.<ConnectionSocketFactory>create()
@@ -203,7 +205,6 @@ public class PoolingHttpClientConnectionManager
         }
         this.connFactory = connFactory != null ? connFactory : ManagedHttpClientConnectionFactory.INSTANCE;
         this.closed = new AtomicBoolean(false);
-        this.validateAfterInactivity = TimeValue.ofSeconds(2L);
     }
 
     @Internal
@@ -239,6 +240,23 @@ public class PoolingHttpClientConnectionManager
             return (InternalConnectionEndpoint) endpoint;
         }
         throw new IllegalStateException("Unexpected endpoint class: " + endpoint.getClass());
+    }
+
+    private ConnectionConfig resolveConnectionConfig(final HttpRoute route) {
+        final Resolver<HttpRoute, ConnectionConfig> resolver = this.connectionConfigResolver;
+        final ConnectionConfig connectionConfig = resolver != null ? resolver.resolve(route) : null;
+        return connectionConfig != null ? connectionConfig : ConnectionConfig.DEFAULT;
+    }
+
+    private SocketConfig resolveSocketConfig(final HttpRoute route) {
+        final Resolver<HttpRoute, SocketConfig> resolver = this.socketConfigResolver;
+        final SocketConfig socketConfig = resolver != null ? resolver.resolve(route) : null;
+        return socketConfig != null ? socketConfig : SocketConfig.DEFAULT;
+    }
+
+    private TimeValue resolveValidateAfterInactivity(final ConnectionConfig connectionConfig) {
+        final TimeValue timeValue = connectionConfig.getValidateAfterInactivity();
+        return timeValue != null ? timeValue : TimeValue.ofSeconds(2);
     }
 
     public LeaseRequest lease(final String id, final HttpRoute route, final Object state) {
@@ -280,12 +298,13 @@ public class PoolingHttpClientConnectionManager
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("{} endpoint leased {}", id, ConnPoolSupport.formatStats(route, state, pool));
                 }
+                final ConnectionConfig connectionConfig = resolveConnectionConfig(route);
+                final TimeValue timeValue = resolveValidateAfterInactivity(connectionConfig);
                 try {
-                    final TimeValue validateAfterInactivitySnapshot = validateAfterInactivity;
-                    if (TimeValue.isNonNegative(validateAfterInactivitySnapshot)) {
+                    if (TimeValue.isNonNegative(timeValue)) {
                         final ManagedHttpClientConnection conn = poolEntry.getConnection();
                         if (conn != null
-                                && poolEntry.getUpdated() + validateAfterInactivitySnapshot.toMilliseconds() <= System.currentTimeMillis()) {
+                                && poolEntry.getUpdated() + timeValue.toMilliseconds() <= System.currentTimeMillis()) {
                             boolean stale;
                             try {
                                 stale = conn.isStale();
@@ -382,7 +401,7 @@ public class PoolingHttpClientConnectionManager
     }
 
     @Override
-    public void connect(final ConnectionEndpoint endpoint, final TimeValue connectTimeout, final HttpContext context) throws IOException {
+    public void connect(final ConnectionEndpoint endpoint, final TimeValue timeout, final HttpContext context) throws IOException {
         Args.notNull(endpoint, "Managed endpoint");
         final InternalConnectionEndpoint internalEndpoint = cast(endpoint);
         if (internalEndpoint.isConnected()) {
@@ -399,20 +418,26 @@ public class PoolingHttpClientConnectionManager
         } else {
             host = route.getTargetHost();
         }
+        final SocketConfig socketConfig = resolveSocketConfig(route);
+        final ConnectionConfig connectionConfig = resolveConnectionConfig(route);
+        final TimeValue connectTimeout = timeout != null ? timeout : connectionConfig.getConnectTimeout();
         if (LOG.isDebugEnabled()) {
             LOG.debug("{} connecting endpoint to {} ({})", ConnPoolSupport.getId(endpoint), host, connectTimeout);
         }
         final ManagedHttpClientConnection conn = poolEntry.getConnection();
-        final SocketConfig defaultSocketConfigSnapshot = defaultSocketConfig;
         this.connectionOperator.connect(
                 conn,
                 host,
                 route.getLocalSocketAddress(),
-                connectTimeout,
-                defaultSocketConfigSnapshot != null ? defaultSocketConfigSnapshot : SocketConfig.DEFAULT,
+                timeout,
+                socketConfig,
                 context);
         if (LOG.isDebugEnabled()) {
             LOG.debug("{} connected {}", ConnPoolSupport.getId(endpoint), ConnPoolSupport.getId(conn));
+        }
+        final Timeout socketTimeout = connectionConfig.getSocketTimeout();
+        if (socketTimeout != null) {
+            conn.setSocketTimeout(socketTimeout);
         }
     }
 
@@ -485,21 +510,56 @@ public class PoolingHttpClientConnectionManager
         return this.pool.getStats(route);
     }
 
-    public SocketConfig getDefaultSocketConfig() {
-        return this.defaultSocketConfig;
-    }
-
-    public void setDefaultSocketConfig(final SocketConfig defaultSocketConfig) {
-        this.defaultSocketConfig = defaultSocketConfig;
+    /**
+     * Sets the same {@link SocketConfig} for all routes
+     */
+    public void setDefaultSocketConfig(final SocketConfig config) {
+        this.socketConfigResolver = (route) -> config;
     }
 
     /**
-     * @see #setValidateAfterInactivity(TimeValue)
+     * Sets {@link Resolver} of {@link SocketConfig} on a per route basis.
      *
-     * @since 4.4
+     * @since 5.2
      */
+    public void setSocketConfigResolver(final Resolver<HttpRoute, SocketConfig> socketConfigResolver) {
+        this.socketConfigResolver = socketConfigResolver;
+    }
+
+    /**
+     * Sets the same {@link ConnectionConfig} for all routes
+     *
+     * @since 5.2
+     */
+    public void setDefaultConnectionConfig(final ConnectionConfig config) {
+        this.connectionConfigResolver = (route) -> config;
+    }
+
+    /**
+     * Sets {@link Resolver} of {@link ConnectionConfig} on a per route basis.
+     *
+     * @since 5.2
+     */
+    public void setConnectionConfigResolver(final Resolver<HttpRoute, ConnectionConfig> connectionConfigResolver) {
+        this.connectionConfigResolver = connectionConfigResolver;
+    }
+
+    /**
+     * @deprecated Use custom {@link #setConnectionConfigResolver(Resolver)}
+     */
+    @Deprecated
+    public SocketConfig getDefaultSocketConfig() {
+        return SocketConfig.DEFAULT;
+    }
+
+    /**
+     * @since 4.4
+     *
+     * @deprecated Use {@link #setConnectionConfigResolver(Resolver)}.
+     */
+    @Deprecated
     public TimeValue getValidateAfterInactivity() {
-        return validateAfterInactivity;
+        return ConnectionConfig.DEFAULT.getValidateAfterInactivity();
     }
 
     /**
@@ -509,9 +569,14 @@ public class PoolingHttpClientConnectionManager
      * detect connections that have become stale (half-closed) while kept inactive in the pool.
      *
      * @since 4.4
+     *
+     * @deprecated Use {@link #setConnectionConfigResolver(Resolver)}.
      */
+    @Deprecated
     public void setValidateAfterInactivity(final TimeValue validateAfterInactivity) {
-        this.validateAfterInactivity = validateAfterInactivity;
+        setDefaultConnectionConfig(ConnectionConfig.custom()
+                .setValidateAfterInactivity(validateAfterInactivity)
+                .build());
     }
 
     private static final AtomicLong COUNT = new AtomicLong(0);

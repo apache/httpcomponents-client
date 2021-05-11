@@ -38,6 +38,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.SchemePortResolver;
+import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.impl.ConnPoolSupport;
 import org.apache.hc.client5.http.impl.ConnectionShutdownException;
 import org.apache.hc.client5.http.io.ConnectionEndpoint;
@@ -107,6 +108,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
     private long expiry;
     private boolean leased;
     private SocketConfig socketConfig;
+    private ConnectionConfig connectionConfig;
 
     private final AtomicBoolean closed;
 
@@ -185,6 +187,20 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
 
     public synchronized void setSocketConfig(final SocketConfig socketConfig) {
         this.socketConfig = socketConfig != null ? socketConfig : SocketConfig.DEFAULT;
+    }
+
+    /**
+     * @since 5.2
+     */
+    public synchronized ConnectionConfig getConnectionConfig() {
+        return connectionConfig;
+    }
+
+    /**
+     * @since 5.2
+     */
+    public synchronized void setConnectionConfig(final ConnectionConfig connectionConfig) {
+        this.connectionConfig = connectionConfig != null ? connectionConfig : ConnectionConfig.DEFAULT;
     }
 
     public LeaseRequest lease(final String id, final HttpRoute route, final Object state) {
@@ -328,7 +344,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
     }
 
     @Override
-    public void connect(final ConnectionEndpoint endpoint, final TimeValue connectTimeout, final HttpContext context) throws IOException {
+    public synchronized void connect(final ConnectionEndpoint endpoint, final TimeValue timeout, final HttpContext context) throws IOException {
         Args.notNull(endpoint, "Endpoint");
 
         final InternalConnectionEndpoint internalEndpoint = cast(endpoint);
@@ -342,17 +358,24 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
         } else {
             host = route.getTargetHost();
         }
+        final ConnectionConfig config = connectionConfig != null ? connectionConfig : ConnectionConfig.DEFAULT;
+        final TimeValue connectTimeout = timeout != null ? timeout : config.getConnectTimeout();
+        final ManagedHttpClientConnection connection = internalEndpoint.getConnection();
         this.connectionOperator.connect(
-                internalEndpoint.getConnection(),
+                connection,
                 host,
                 route.getLocalSocketAddress(),
                 connectTimeout,
                 this.socketConfig,
                 context);
+        final Timeout socketTimeout = config.getSocketTimeout();
+        if (socketTimeout != null) {
+            connection.setSocketTimeout(socketTimeout);
+        }
     }
 
     @Override
-    public void upgrade(
+    public synchronized void upgrade(
             final ConnectionEndpoint endpoint,
             final HttpContext context) throws IOException {
         Args.notNull(endpoint, "Endpoint");

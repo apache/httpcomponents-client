@@ -28,12 +28,15 @@
 package org.apache.hc.client5.http.impl.io;
 
 import org.apache.hc.client5.http.DnsResolver;
+import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.SchemePortResolver;
+import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.io.ManagedHttpClientConnection;
 import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
 import org.apache.hc.client5.http.socket.LayeredConnectionSocketFactory;
 import org.apache.hc.client5.http.socket.PlainConnectionSocketFactory;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
+import org.apache.hc.core5.function.Resolver;
 import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.io.HttpConnectionFactory;
@@ -76,7 +79,8 @@ public class PoolingHttpClientConnectionManagerBuilder {
     private DnsResolver dnsResolver;
     private PoolConcurrencyPolicy poolConcurrencyPolicy;
     private PoolReusePolicy poolReusePolicy;
-    private SocketConfig defaultSocketConfig;
+    private Resolver<HttpRoute, SocketConfig> socketConfigResolver;
+    private Resolver<HttpRoute, ConnectionConfig> connectionConfigResolver;
 
     private boolean systemProperties;
 
@@ -84,7 +88,6 @@ public class PoolingHttpClientConnectionManagerBuilder {
     private int maxConnPerRoute;
 
     private TimeValue timeToLive;
-    private TimeValue validateAfterInactivity;
 
     public static PoolingHttpClientConnectionManagerBuilder create() {
         return new PoolingHttpClientConnectionManagerBuilder();
@@ -161,10 +164,42 @@ public class PoolingHttpClientConnectionManagerBuilder {
     }
 
     /**
-     * Assigns default {@link SocketConfig}.
+     * Assigns the same {@link SocketConfig} for all routes.
      */
     public final PoolingHttpClientConnectionManagerBuilder setDefaultSocketConfig(final SocketConfig config) {
-        this.defaultSocketConfig = config;
+        this.socketConfigResolver = (route) -> config;
+        return this;
+    }
+
+    /**
+     * Assigns {@link Resolver} of {@link SocketConfig} on a per route basis.
+     *
+     * @since 5.2
+     */
+    public final PoolingHttpClientConnectionManagerBuilder setSocketConfigResolver(
+            final Resolver<HttpRoute, SocketConfig> socketConfigResolver) {
+        this.socketConfigResolver = socketConfigResolver;
+        return this;
+    }
+
+    /**
+     * Assigns the same {@link ConnectionConfig} for all routes.
+     *
+     * @since 5.2
+     */
+    public final PoolingHttpClientConnectionManagerBuilder setDefaultConnectionConfig(final ConnectionConfig config) {
+        this.connectionConfigResolver = (route) -> config;
+        return this;
+    }
+
+    /**
+     * Assigns {@link Resolver} of {@link ConnectionConfig} on a per route basis.
+     *
+     * @since 5.2
+     */
+    public final PoolingHttpClientConnectionManagerBuilder setConnectionConfigResolver(
+            final Resolver<HttpRoute, ConnectionConfig> connectionConfigResolver) {
+        this.connectionConfigResolver = connectionConfigResolver;
         return this;
     }
 
@@ -180,10 +215,13 @@ public class PoolingHttpClientConnectionManagerBuilder {
      * Sets period after inactivity after which persistent
      * connections must be checked to ensure they are still valid.
      *
-     * @see org.apache.hc.core5.http.io.HttpClientConnection#isStale()
+     * @deprecated Use {@link #setDefaultConnectionConfig(ConnectionConfig)}.
      */
+    @Deprecated
     public final PoolingHttpClientConnectionManagerBuilder setValidateAfterInactivity(final TimeValue validateAfterInactivity) {
-        this.validateAfterInactivity = validateAfterInactivity;
+        setDefaultConnectionConfig(ConnectionConfig.custom()
+                .setValidateAfterInactivity(validateAfterInactivity)
+                .build());
         return this;
     }
 
@@ -197,8 +235,7 @@ public class PoolingHttpClientConnectionManagerBuilder {
     }
 
     public PoolingHttpClientConnectionManager build() {
-        @SuppressWarnings("resource")
-        final PoolingHttpClientConnectionManager poolingmgr = new PoolingHttpClientConnectionManager(
+        @SuppressWarnings("resource") final PoolingHttpClientConnectionManager poolingmgr = new PoolingHttpClientConnectionManager(
                 RegistryBuilder.<ConnectionSocketFactory>create()
                         .register(URIScheme.HTTP.id, PlainConnectionSocketFactory.getSocketFactory())
                         .register(URIScheme.HTTPS.id, sslSocketFactory != null ? sslSocketFactory :
@@ -212,12 +249,8 @@ public class PoolingHttpClientConnectionManagerBuilder {
                 schemePortResolver,
                 dnsResolver,
                 connectionFactory);
-        if (validateAfterInactivity != null) {
-            poolingmgr.setValidateAfterInactivity(validateAfterInactivity);
-        }
-        if (defaultSocketConfig != null) {
-            poolingmgr.setDefaultSocketConfig(defaultSocketConfig);
-        }
+        poolingmgr.setSocketConfigResolver(socketConfigResolver);
+        poolingmgr.setConnectionConfigResolver(connectionConfigResolver);
         if (maxConnTotal > 0) {
             poolingmgr.setMaxTotal(maxConnTotal);
         }

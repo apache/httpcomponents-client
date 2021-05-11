@@ -28,10 +28,14 @@
 package org.apache.hc.client5.http.impl.nio;
 
 import org.apache.hc.client5.http.DnsResolver;
+import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.SchemePortResolver;
+import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.ssl.ConscryptClientTlsStrategy;
 import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
+import org.apache.hc.core5.function.Resolver;
 import org.apache.hc.core5.http.config.RegistryBuilder;
+import org.apache.hc.core5.http.io.SocketConfig;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
 import org.apache.hc.core5.pool.PoolConcurrencyPolicy;
 import org.apache.hc.core5.pool.PoolReusePolicy;
@@ -77,8 +81,9 @@ public class PoolingAsyncClientConnectionManagerBuilder {
     private int maxConnTotal;
     private int maxConnPerRoute;
 
+    private Resolver<HttpRoute, SocketConfig> socketConfigResolver;
+    private Resolver<HttpRoute, ConnectionConfig> connectionConfigResolver;
     private TimeValue timeToLive;
-    private TimeValue validateAfterInactivity;
 
     public static PoolingAsyncClientConnectionManagerBuilder create() {
         return new PoolingAsyncClientConnectionManagerBuilder();
@@ -146,6 +151,28 @@ public class PoolingAsyncClientConnectionManagerBuilder {
     }
 
     /**
+     * Assigns the same {@link ConnectionConfig} for all routes.
+     *
+     * @since 5.2
+     */
+    public final PoolingAsyncClientConnectionManagerBuilder setDefaultConnectionConfig(final ConnectionConfig config) {
+        this.connectionConfigResolver = (route) -> config;
+        return this;
+    }
+
+    /**
+     * Assigns {@link Resolver} of {@link ConnectionConfig} on a per route basis.
+     *
+     * @since 5.2
+     */
+    public final PoolingAsyncClientConnectionManagerBuilder setConnectionConfigResolver(
+            final Resolver<HttpRoute, ConnectionConfig> connectionConfigResolver) {
+        this.connectionConfigResolver = connectionConfigResolver;
+        return this;
+    }
+
+
+    /**
      * Sets maximum time to live for persistent connections
      */
     public final PoolingAsyncClientConnectionManagerBuilder setConnectionTimeToLive(final TimeValue timeToLive) {
@@ -157,10 +184,13 @@ public class PoolingAsyncClientConnectionManagerBuilder {
      * Sets period after inactivity after which persistent
      * connections must be checked to ensure they are still valid.
      *
-     * @see org.apache.hc.core5.http.io.HttpClientConnection#isStale()
+     * @deprecated Use {@link #setConnectionConfigResolver(Resolver)}.
      */
+    @Deprecated
     public final PoolingAsyncClientConnectionManagerBuilder setValidateAfterInactivity(final TimeValue validateAfterInactivity) {
-        this.validateAfterInactivity = validateAfterInactivity;
+        setDefaultConnectionConfig(ConnectionConfig.custom()
+                .setValidateAfterInactivity(validateAfterInactivity)
+                .build());
         return this;
     }
 
@@ -201,9 +231,7 @@ public class PoolingAsyncClientConnectionManagerBuilder {
                 timeToLive,
                 schemePortResolver,
                 dnsResolver);
-        if (validateAfterInactivity != null) {
-            poolingmgr.setValidateAfterInactivity(validateAfterInactivity);
-        }
+        poolingmgr.setConnectionConfigResolver(connectionConfigResolver);
         if (maxConnTotal > 0) {
             poolingmgr.setMaxTotal(maxConnTotal);
         }

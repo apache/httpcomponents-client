@@ -34,6 +34,7 @@ import java.util.concurrent.Future;
 
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
+import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder;
@@ -88,6 +89,10 @@ public class TestHttp1AsyncRedirects extends AbstractHttpAsyncRedirectsTest<Clos
         protected void before() throws Throwable {
             connManager = PoolingAsyncClientConnectionManagerBuilder.create()
                     .setTlsStrategy(new DefaultClientTlsStrategy(SSLTestContexts.createClientSSLContext()))
+                    .setDefaultConnectionConfig(ConnectionConfig.custom()
+                            .setConnectTimeout(TIMEOUT)
+                            .setSocketTimeout(TIMEOUT)
+                            .build())
                     .build();
         }
 
@@ -109,7 +114,6 @@ public class TestHttp1AsyncRedirects extends AbstractHttpAsyncRedirectsTest<Clos
             clientBuilder = HttpAsyncClientBuilder.create()
                     .setDefaultRequestConfig(RequestConfig.custom()
                             .setConnectionRequestTimeout(TIMEOUT)
-                            .setConnectTimeout(TIMEOUT)
                             .build())
                     .setConnectionManager(connManager);
         }

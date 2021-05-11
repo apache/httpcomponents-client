@@ -30,6 +30,7 @@ package org.apache.hc.client5.testing.async;
 import java.net.InetSocketAddress;
 import java.util.concurrent.Future;
 
+import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder;
@@ -69,6 +70,10 @@ public abstract class AbstractHttp1IntegrationTestBase extends AbstractServerTes
         @Override
         protected void before() throws Throwable {
             connManager = PoolingAsyncClientConnectionManagerBuilder.create()
+                    .setDefaultConnectionConfig(ConnectionConfig.custom()
+                            .setConnectTimeout(TIMEOUT)
+                            .setSocketTimeout(TIMEOUT)
+                            .build())
                     .setTlsStrategy(new DefaultClientTlsStrategy(SSLTestContexts.createClientSSLContext()))
                     .build();
         }
@@ -91,7 +96,6 @@ public abstract class AbstractHttp1IntegrationTestBase extends AbstractServerTes
             clientBuilder = HttpAsyncClientBuilder.create()
                     .setDefaultRequestConfig(RequestConfig.custom()
                             .setConnectionRequestTimeout(TIMEOUT)
-                            .setConnectTimeout(TIMEOUT)
                             .build())
                     .setConnectionManager(connManager);
         }

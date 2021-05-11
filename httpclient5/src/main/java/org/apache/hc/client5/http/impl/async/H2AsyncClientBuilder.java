@@ -45,6 +45,7 @@ import org.apache.hc.client5.http.async.AsyncExecChainHandler;
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
+import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.cookie.BasicCookieStore;
 import org.apache.hc.client5.http.cookie.CookieSpecFactory;
@@ -74,7 +75,9 @@ import org.apache.hc.client5.http.routing.HttpRoutePlanner;
 import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.concurrent.DefaultThreadFactory;
+import org.apache.hc.core5.function.Resolver;
 import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequestInterceptor;
 import org.apache.hc.core5.http.HttpResponseInterceptor;
 import org.apache.hc.core5.http.config.CharCodingConfig;
@@ -89,7 +92,6 @@ import org.apache.hc.core5.http.protocol.HttpProcessorBuilder;
 import org.apache.hc.core5.http.protocol.RequestTargetHost;
 import org.apache.hc.core5.http.protocol.RequestUserAgent;
 import org.apache.hc.core5.http2.config.H2Config;
-import org.apache.hc.core5.http2.nio.pool.H2ConnPool;
 import org.apache.hc.core5.http2.protocol.H2RequestConnControl;
 import org.apache.hc.core5.http2.protocol.H2RequestContent;
 import org.apache.hc.core5.http2.protocol.H2RequestTargetHost;
@@ -189,6 +191,7 @@ public class H2AsyncClientBuilder {
     private String userAgent;
     private Collection<? extends Header> defaultHeaders;
     private RequestConfig defaultRequestConfig;
+    private Resolver<HttpHost, ConnectionConfig> connectionConfigResolver;
     private boolean evictIdleConnections;
     private TimeValue maxIdleTime;
 
@@ -501,6 +504,26 @@ public class H2AsyncClientBuilder {
     }
 
     /**
+     * Assigns {@link Resolver} for {@link ConnectionConfig} on a per host basis.
+     *
+     * @since 5.2
+     */
+    public final H2AsyncClientBuilder setConnectionConfigResolver(final Resolver<HttpHost, ConnectionConfig> connectionConfigResolver) {
+        this.connectionConfigResolver = connectionConfigResolver;
+        return this;
+    }
+
+    /**
+     * Assigns the same {@link ConnectionConfig} for all hosts.
+     *
+     * @since 5.2
+     */
+    public final H2AsyncClientBuilder setDefaultConnectionConfig(final ConnectionConfig connectionConfig) {
+        this.connectionConfigResolver = (host) -> connectionConfig;
+        return this;
+    }
+
+    /**
      * Use system properties when creating and configuring default
      * implementations.
      */
@@ -784,7 +807,8 @@ public class H2AsyncClientBuilder {
         }
 
         final MultihomeConnectionInitiator connectionInitiator = new MultihomeConnectionInitiator(ioReactor, dnsResolver);
-        final H2ConnPool connPool = new H2ConnPool(connectionInitiator, host -> null, tlsStrategyCopy);
+        final InternalH2ConnPool connPool = new InternalH2ConnPool(connectionInitiator, host -> null, tlsStrategyCopy);
+        connPool.setConnectionConfigResolver(connectionConfigResolver);
 
         List<Closeable> closeablesCopy = closeables != null ? new ArrayList<>(closeables) : null;
         if (closeablesCopy == null) {
@@ -821,7 +845,7 @@ public class H2AsyncClientBuilder {
 
         private final Thread thread;
 
-        public IdleConnectionEvictor(final H2ConnPool connPool, final TimeValue maxIdleTime) {
+        public IdleConnectionEvictor(final InternalH2ConnPool connPool, final TimeValue maxIdleTime) {
             this.thread = new DefaultThreadFactory("idle-connection-evictor", true).newThread(() -> {
                 try {
                     while (!Thread.currentThread().isInterrupted()) {
