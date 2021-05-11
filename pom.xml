@@ -75,7 +75,7 @@
     <jna.version>5.2.0</jna.version>
     <hc.stylecheck.version>1</hc.stylecheck.version>
     <rxjava.version>2.2.7</rxjava.version>
-    <api.comparison.version>5.0</api.comparison.version>
+    <api.comparison.version>5.1</api.comparison.version>
   </properties>
 
   <dependencyManagement>
