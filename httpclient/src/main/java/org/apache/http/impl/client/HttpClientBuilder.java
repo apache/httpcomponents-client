@@ -928,6 +928,13 @@ public class HttpClientBuilder {
     /**
      * For internal use.
      */
+    protected ClientExecChain decorateRedirectExec(final ClientExecChain redirectExec) {
+        return redirectExec;
+    }
+
+    /**
+     * For internal use.
+     */
     protected void addCloseable(final Closeable closeable) {
         if (closeable == null) {
             return;
@@ -1180,6 +1187,8 @@ public class HttpClientBuilder {
             }
             execChain = new RedirectExec(execChain, routePlannerCopy, redirectStrategyCopy);
         }
+
+        execChain = decorateRedirectExec(execChain);
 
         // Optionally, add connection back-off executor
         if (this.backoffManager != null && this.connectionBackoffStrategy != null) {
