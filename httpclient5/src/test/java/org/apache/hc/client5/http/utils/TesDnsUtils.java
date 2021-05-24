@@ -28,7 +28,7 @@
 package org.apache.hc.client5.http.utils;
 
 import org.hamcrest.CoreMatchers;
-import org.junit.Assert;
+import org.hamcrest.MatcherAssert;
 import org.junit.Test;
 
 /**
@@ -38,14 +38,14 @@ public class TesDnsUtils {
 
     @Test
     public void testNormalize() {
-        Assert.assertThat(DnsUtils.normalize(null), CoreMatchers.equalTo(null));
-        Assert.assertThat(DnsUtils.normalize(""), CoreMatchers.equalTo(""));
-        Assert.assertThat(DnsUtils.normalize("blah"), CoreMatchers.equalTo("blah"));
-        Assert.assertThat(DnsUtils.normalize("BLAH"), CoreMatchers.equalTo("blah"));
-        Assert.assertThat(DnsUtils.normalize("blAh"), CoreMatchers.equalTo("blah"));
-        Assert.assertThat(DnsUtils.normalize("blaH"), CoreMatchers.equalTo("blah"));
-        Assert.assertThat(DnsUtils.normalize("blaH"), CoreMatchers.equalTo("blah"));
-        Assert.assertThat(DnsUtils.normalize("hac\u212A!!!"), CoreMatchers.equalTo("hac\u212A!!!"));
+        MatcherAssert.assertThat(DnsUtils.normalize(null), CoreMatchers.equalTo(null));
+        MatcherAssert.assertThat(DnsUtils.normalize(""), CoreMatchers.equalTo(""));
+        MatcherAssert.assertThat(DnsUtils.normalize("blah"), CoreMatchers.equalTo("blah"));
+        MatcherAssert.assertThat(DnsUtils.normalize("BLAH"), CoreMatchers.equalTo("blah"));
+        MatcherAssert.assertThat(DnsUtils.normalize("blAh"), CoreMatchers.equalTo("blah"));
+        MatcherAssert.assertThat(DnsUtils.normalize("blaH"), CoreMatchers.equalTo("blah"));
+        MatcherAssert.assertThat(DnsUtils.normalize("blaH"), CoreMatchers.equalTo("blah"));
+        MatcherAssert.assertThat(DnsUtils.normalize("hac\u212A!!!"), CoreMatchers.equalTo("hac\u212A!!!"));
     }
 
 }

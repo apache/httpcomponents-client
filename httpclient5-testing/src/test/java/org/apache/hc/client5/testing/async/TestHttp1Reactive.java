@@ -52,7 +52,7 @@ import org.apache.hc.core5.http.nio.AsyncRequestProducer;
 import org.apache.hc.core5.http.nio.support.AsyncRequestBuilder;
 import org.apache.hc.core5.reactive.ReactiveResponseConsumer;
 import org.hamcrest.CoreMatchers;
-import org.junit.Assert;
+import org.hamcrest.MatcherAssert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExternalResource;
@@ -141,11 +141,11 @@ public class TestHttp1Reactive extends AbstractHttpReactiveFundamentalsTest<Clos
             httpclient.execute(request, consumer, null);
 
             final Message<HttpResponse, Publisher<ByteBuffer>> response = consumer.getResponseFuture().get();
-            Assert.assertThat(response, CoreMatchers.notNullValue());
-            Assert.assertThat(response.getHead().getCode(), CoreMatchers.equalTo(200));
+            MatcherAssert.assertThat(response, CoreMatchers.notNullValue());
+            MatcherAssert.assertThat(response.getHead().getCode(), CoreMatchers.equalTo(200));
             final String body = publisherToString(response.getBody());
-            Assert.assertThat(body, CoreMatchers.notNullValue());
-            Assert.assertThat(body.length(), CoreMatchers.equalTo(2048));
+            MatcherAssert.assertThat(body, CoreMatchers.notNullValue());
+            MatcherAssert.assertThat(body.length(), CoreMatchers.equalTo(2048));
         }
     }
 
@@ -172,12 +172,12 @@ public class TestHttp1Reactive extends AbstractHttpReactiveFundamentalsTest<Clos
         httpclient.execute(request1, consumer1, null);
 
         final Message<HttpResponse, Publisher<ByteBuffer>> response1 = consumer1.getResponseFuture().get();
-        Assert.assertThat(response1, CoreMatchers.notNullValue());
-        Assert.assertThat(response1.getHead(), CoreMatchers.notNullValue());
-        Assert.assertThat(response1.getHead().getCode(), CoreMatchers.equalTo(200));
+        MatcherAssert.assertThat(response1, CoreMatchers.notNullValue());
+        MatcherAssert.assertThat(response1.getHead(), CoreMatchers.notNullValue());
+        MatcherAssert.assertThat(response1.getHead().getCode(), CoreMatchers.equalTo(200));
         final String body1 = publisherToString(response1.getBody());
-        Assert.assertThat(body1, CoreMatchers.notNullValue());
-        Assert.assertThat(body1.length(), CoreMatchers.equalTo(2048));
+        MatcherAssert.assertThat(body1, CoreMatchers.notNullValue());
+        MatcherAssert.assertThat(body1.length(), CoreMatchers.equalTo(2048));
 
 
         try (final CloseableHttpAsyncClient httpclient2 = HttpAsyncClients.custom()
@@ -191,11 +191,11 @@ public class TestHttp1Reactive extends AbstractHttpReactiveFundamentalsTest<Clos
             httpclient2.execute(request2, consumer2, null);
 
             final Message<HttpResponse, Publisher<ByteBuffer>> response2 = consumer2.getResponseFuture().get();
-            Assert.assertThat(response2, CoreMatchers.notNullValue());
-            Assert.assertThat(response2.getHead().getCode(), CoreMatchers.equalTo(200));
+            MatcherAssert.assertThat(response2, CoreMatchers.notNullValue());
+            MatcherAssert.assertThat(response2.getHead().getCode(), CoreMatchers.equalTo(200));
             final String body2 = publisherToString(response2.getBody());
-            Assert.assertThat(body2, CoreMatchers.notNullValue());
-            Assert.assertThat(body2.length(), CoreMatchers.equalTo(2048));
+            MatcherAssert.assertThat(body2, CoreMatchers.notNullValue());
+            MatcherAssert.assertThat(body2.length(), CoreMatchers.equalTo(2048));
         }
 
         final AsyncRequestProducer request3 = AsyncRequestBuilder.get(target + "/random/2048").build();
@@ -204,11 +204,11 @@ public class TestHttp1Reactive extends AbstractHttpReactiveFundamentalsTest<Clos
         httpclient.execute(request3, consumer3, null);
 
         final Message<HttpResponse, Publisher<ByteBuffer>> response3 = consumer3.getResponseFuture().get();
-        Assert.assertThat(response3, CoreMatchers.notNullValue());
-        Assert.assertThat(response3.getHead().getCode(), CoreMatchers.equalTo(200));
+        MatcherAssert.assertThat(response3, CoreMatchers.notNullValue());
+        MatcherAssert.assertThat(response3.getHead().getCode(), CoreMatchers.equalTo(200));
         final String body3 = publisherToString(response3.getBody());
-        Assert.assertThat(body3, CoreMatchers.notNullValue());
-        Assert.assertThat(body3.length(), CoreMatchers.equalTo(2048));
+        MatcherAssert.assertThat(body3, CoreMatchers.notNullValue());
+        MatcherAssert.assertThat(body3.length(), CoreMatchers.equalTo(2048));
     }
 
 }

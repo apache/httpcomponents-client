@@ -28,7 +28,6 @@ package org.apache.hc.client5.http.impl.cache;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayOutputStream;
@@ -47,6 +46,7 @@ import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.StatusLine;
+import org.hamcrest.MatcherAssert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -253,7 +253,7 @@ public class TestByteArrayCacheEntrySerializer {
         final HttpCacheStorageEntry readEntry = impl.deserialize(bytes);
         // compare
         assertEquals(readEntry.getKey(), writeEntry.getKey());
-        assertThat(readEntry.getContent(), HttpCacheEntryMatcher.equivalent(writeEntry.getContent()));
+        MatcherAssert. assertThat(readEntry.getContent(), HttpCacheEntryMatcher.equivalent(writeEntry.getContent()));
     }
 
     private HttpCacheStorageEntry makeCacheEntryWithVariantMap(final String key) {

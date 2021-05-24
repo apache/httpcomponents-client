@@ -109,7 +109,7 @@ public class TestHttpAuthenticator {
         response.setHeader(HttpHeaders.WWW_AUTHENTICATE, StandardAuthScheme.BASIC + " realm=test");
         Assert.assertTrue(this.httpAuthenticator.isChallenged(
                 this.defaultHost, ChallengeType.TARGET, response, this.authExchange, this.context));
-        Mockito.verifyZeroInteractions(this.authCache);
+        Mockito.verifyNoInteractions(this.authCache);
     }
 
     @Test

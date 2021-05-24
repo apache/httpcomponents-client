@@ -50,7 +50,7 @@ import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.apache.hc.core5.http2.config.H2Config;
 import org.apache.hc.core5.util.TimeValue;
 import org.hamcrest.CoreMatchers;
-import org.junit.Assert;
+import org.hamcrest.MatcherAssert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExternalResource;
@@ -150,8 +150,8 @@ public class TestHttp1RequestReExecution extends AbstractIntegrationTestBase<Clo
                         .setPath("/random/2048")
                         .build(), null);
         final SimpleHttpResponse response = future.get();
-        Assert.assertThat(response, CoreMatchers.notNullValue());
-        Assert.assertThat(response.getCode(), CoreMatchers.equalTo(HttpStatus.SC_SERVICE_UNAVAILABLE));
+        MatcherAssert.assertThat(response, CoreMatchers.notNullValue());
+        MatcherAssert.assertThat(response.getCode(), CoreMatchers.equalTo(HttpStatus.SC_SERVICE_UNAVAILABLE));
     }
 
     @Test
@@ -164,8 +164,8 @@ public class TestHttp1RequestReExecution extends AbstractIntegrationTestBase<Clo
                         .setPath("/random/2048")
                         .build(), null);
         final SimpleHttpResponse response = future.get();
-        Assert.assertThat(response, CoreMatchers.notNullValue());
-        Assert.assertThat(response.getCode(), CoreMatchers.equalTo(HttpStatus.SC_OK));
+        MatcherAssert.assertThat(response, CoreMatchers.notNullValue());
+        MatcherAssert.assertThat(response.getCode(), CoreMatchers.equalTo(HttpStatus.SC_OK));
     }
 
 }

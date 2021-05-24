@@ -58,7 +58,7 @@ import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.apache.hc.core5.http2.config.H2Config;
 import org.apache.hc.core5.reactor.IOReactorConfig;
 import org.hamcrest.CoreMatchers;
-import org.junit.Assert;
+import org.hamcrest.MatcherAssert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -132,11 +132,11 @@ public class TestHttpAsyncMinimal extends AbstractHttpAsyncFundamentalsTest<Mini
             while (!queue.isEmpty()) {
                 final Future<Message<HttpResponse, byte[]>> future = queue.remove();
                 final Message<HttpResponse, byte[]> responseMessage = future.get();
-                Assert.assertThat(responseMessage, CoreMatchers.notNullValue());
+                MatcherAssert.assertThat(responseMessage, CoreMatchers.notNullValue());
                 final HttpResponse response = responseMessage.getHead();
-                Assert.assertThat(response.getCode(), CoreMatchers.equalTo(200));
+                MatcherAssert.assertThat(response.getCode(), CoreMatchers.equalTo(200));
                 final byte[] b2 = responseMessage.getBody();
-                Assert.assertThat(b1, CoreMatchers.equalTo(b2));
+                MatcherAssert.assertThat(b1, CoreMatchers.equalTo(b2));
                 endpoint.releaseAndReuse();
             }
         } finally {

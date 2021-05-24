@@ -63,6 +63,7 @@ import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.net.URIBuilder;
 import org.hamcrest.CoreMatchers;
+import org.hamcrest.MatcherAssert;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -560,9 +561,9 @@ public class TestRedirects extends LocalServerTestBase {
             EntityUtils.consume(response.getEntity());
         }
 
-        Assert.assertThat(values.poll(), CoreMatchers.equalTo("gzip, x-gzip, deflate"));
-        Assert.assertThat(values.poll(), CoreMatchers.equalTo("gzip, x-gzip, deflate"));
-        Assert.assertThat(values.poll(), CoreMatchers.nullValue());
+        MatcherAssert.assertThat(values.poll(), CoreMatchers.equalTo("gzip, x-gzip, deflate"));
+        MatcherAssert.assertThat(values.poll(), CoreMatchers.equalTo("gzip, x-gzip, deflate"));
+        MatcherAssert.assertThat(values.poll(), CoreMatchers.nullValue());
     }
 
 }

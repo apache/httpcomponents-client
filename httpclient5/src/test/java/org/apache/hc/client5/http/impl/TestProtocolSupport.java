@@ -31,7 +31,7 @@ import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
 import org.apache.hc.core5.net.URIAuthority;
 import org.hamcrest.CoreMatchers;
-import org.junit.Assert;
+import org.hamcrest.MatcherAssert;
 import org.junit.Test;
 
 /**
@@ -42,14 +42,14 @@ public class TestProtocolSupport {
     @Test
     public void testGetRequestUri() {
         final HttpRequest request = new BasicHttpRequest(Method.GET, "");
-        Assert.assertThat(ProtocolSupport.getRequestUri(request), CoreMatchers.equalTo("/"));
+        MatcherAssert.assertThat(ProtocolSupport.getRequestUri(request), CoreMatchers.equalTo("/"));
         request.setAuthority(new URIAuthority("testUser", "localhost", 8080));
-        Assert.assertThat(ProtocolSupport.getRequestUri(request), CoreMatchers.equalTo("http://testUser@localhost:8080/"));
+        MatcherAssert.assertThat(ProtocolSupport.getRequestUri(request), CoreMatchers.equalTo("http://testUser@localhost:8080/"));
         request.setScheme("https");
-        Assert.assertThat(ProtocolSupport.getRequestUri(request), CoreMatchers.equalTo("https://testUser@localhost:8080/"));
+        MatcherAssert.assertThat(ProtocolSupport.getRequestUri(request), CoreMatchers.equalTo("https://testUser@localhost:8080/"));
         request.setPath("blah");
-        Assert.assertThat(ProtocolSupport.getRequestUri(request), CoreMatchers.equalTo("https://testUser@localhost:8080/blah"));
+        MatcherAssert.assertThat(ProtocolSupport.getRequestUri(request), CoreMatchers.equalTo("https://testUser@localhost:8080/blah"));
         request.setPath("/blah/blah");
-        Assert.assertThat(ProtocolSupport.getRequestUri(request), CoreMatchers.equalTo("https://testUser@localhost:8080/blah/blah"));
+        MatcherAssert.assertThat(ProtocolSupport.getRequestUri(request), CoreMatchers.equalTo("https://testUser@localhost:8080/blah/blah"));
     }
 }

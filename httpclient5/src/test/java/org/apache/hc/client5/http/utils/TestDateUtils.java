@@ -34,6 +34,7 @@ import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.HeaderGroup;
 import org.hamcrest.CoreMatchers;
+import org.hamcrest.MatcherAssert;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -125,35 +126,35 @@ public class TestDateUtils {
     public void testIsBefore() throws Exception {
         final HeaderGroup message1 = new HeaderGroup();
         final HeaderGroup message2 = new HeaderGroup();
-        Assert.assertThat(DateUtils.isBefore(null, null, HttpHeaders.DATE), CoreMatchers.equalTo(false));
-        Assert.assertThat(DateUtils.isBefore(message1, message2, HttpHeaders.DATE), CoreMatchers.equalTo(false));
+        MatcherAssert.assertThat(DateUtils.isBefore(null, null, HttpHeaders.DATE), CoreMatchers.equalTo(false));
+        MatcherAssert.assertThat(DateUtils.isBefore(message1, message2, HttpHeaders.DATE), CoreMatchers.equalTo(false));
         message1.setHeader(new BasicHeader(HttpHeaders.DATE, "huh?"));
         message2.setHeader(new BasicHeader(HttpHeaders.DATE, "eh?"));
-        Assert.assertThat(DateUtils.isBefore(message1, message2, HttpHeaders.DATE), CoreMatchers.equalTo(false));
+        MatcherAssert.assertThat(DateUtils.isBefore(message1, message2, HttpHeaders.DATE), CoreMatchers.equalTo(false));
         message1.setHeader(new BasicHeader(HttpHeaders.DATE, "huh?"));
         message2.setHeader(new BasicHeader(HttpHeaders.DATE, "Tuesday, 26-Dec-2017 00:00:00 GMT"));
-        Assert.assertThat(DateUtils.isBefore(message1, message2, HttpHeaders.DATE), CoreMatchers.equalTo(false));
+        MatcherAssert.assertThat(DateUtils.isBefore(message1, message2, HttpHeaders.DATE), CoreMatchers.equalTo(false));
         message1.setHeader(new BasicHeader(HttpHeaders.DATE, "Wednesday, 25-Dec-2017 00:00:00 GMT"));
-        Assert.assertThat(DateUtils.isBefore(message1, message2, HttpHeaders.DATE), CoreMatchers.equalTo(true));
+        MatcherAssert.assertThat(DateUtils.isBefore(message1, message2, HttpHeaders.DATE), CoreMatchers.equalTo(true));
         message1.setHeader(new BasicHeader(HttpHeaders.DATE, "Thursday, 27-Dec-2017 00:00:00 GMT"));
-        Assert.assertThat(DateUtils.isBefore(message1, message2, HttpHeaders.DATE), CoreMatchers.equalTo(false));
+        MatcherAssert.assertThat(DateUtils.isBefore(message1, message2, HttpHeaders.DATE), CoreMatchers.equalTo(false));
     }
 
     @Test
     public void testIsAfter() throws Exception {
         final HeaderGroup message1 = new HeaderGroup();
         final HeaderGroup message2 = new HeaderGroup();
-        Assert.assertThat(DateUtils.isAfter(null, null, HttpHeaders.DATE), CoreMatchers.equalTo(false));
-        Assert.assertThat(DateUtils.isAfter(message1, message2, HttpHeaders.DATE), CoreMatchers.equalTo(false));
+        MatcherAssert.assertThat(DateUtils.isAfter(null, null, HttpHeaders.DATE), CoreMatchers.equalTo(false));
+        MatcherAssert.assertThat(DateUtils.isAfter(message1, message2, HttpHeaders.DATE), CoreMatchers.equalTo(false));
         message1.setHeader(new BasicHeader(HttpHeaders.DATE, "huh?"));
         message2.setHeader(new BasicHeader(HttpHeaders.DATE, "eh?"));
-        Assert.assertThat(DateUtils.isAfter(message1, message2, HttpHeaders.DATE), CoreMatchers.equalTo(false));
+        MatcherAssert.assertThat(DateUtils.isAfter(message1, message2, HttpHeaders.DATE), CoreMatchers.equalTo(false));
         message1.setHeader(new BasicHeader(HttpHeaders.DATE, "huh?"));
         message2.setHeader(new BasicHeader(HttpHeaders.DATE, "Tuesday, 26-Dec-2017 00:00:00 GMT"));
-        Assert.assertThat(DateUtils.isAfter(message1, message2, HttpHeaders.DATE), CoreMatchers.equalTo(false));
+        MatcherAssert.assertThat(DateUtils.isAfter(message1, message2, HttpHeaders.DATE), CoreMatchers.equalTo(false));
         message1.setHeader(new BasicHeader(HttpHeaders.DATE, "Thursday, 27-Dec-2017 00:00:00 GMT"));
-        Assert.assertThat(DateUtils.isAfter(message1, message2, HttpHeaders.DATE), CoreMatchers.equalTo(true));
+        MatcherAssert.assertThat(DateUtils.isAfter(message1, message2, HttpHeaders.DATE), CoreMatchers.equalTo(true));
         message1.setHeader(new BasicHeader(HttpHeaders.DATE, "Wednesday, 25-Dec-2017 00:00:00 GMT"));
-        Assert.assertThat(DateUtils.isAfter(message1, message2, HttpHeaders.DATE), CoreMatchers.equalTo(false));
+        MatcherAssert.assertThat(DateUtils.isAfter(message1, message2, HttpHeaders.DATE), CoreMatchers.equalTo(false));
     }
 }
