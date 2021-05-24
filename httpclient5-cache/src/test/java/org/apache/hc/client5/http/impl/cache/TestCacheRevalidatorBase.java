@@ -87,7 +87,7 @@ public class TestCacheRevalidatorBase {
         impl.scheduleRevalidation(cacheKey, mockOperation);
 
         verify(mockSchedulingStrategy).schedule(0);
-        verify(mockScheduledExecutor).schedule(ArgumentMatchers.<Runnable>any(), ArgumentMatchers.eq(TimeValue.ofSeconds(3)));
+        verify(mockScheduledExecutor).schedule(ArgumentMatchers.any(), ArgumentMatchers.eq(TimeValue.ofSeconds(3)));
 
         Assert.assertEquals(1, impl.getScheduledIdentifiers().size());
         Assert.assertTrue(impl.getScheduledIdentifiers().contains(cacheKey));
@@ -100,13 +100,13 @@ public class TestCacheRevalidatorBase {
     @Test
     public void testRevalidateCacheEntryDoesNotPopulateIdentifierOnRejectedExecutionException() {
         when(mockSchedulingStrategy.schedule(ArgumentMatchers.anyInt())).thenReturn(TimeValue.ofSeconds(2));
-        doThrow(new RejectedExecutionException()).when(mockScheduledExecutor).schedule(ArgumentMatchers.<Runnable>any(), ArgumentMatchers.<TimeValue>any());
+        doThrow(new RejectedExecutionException()).when(mockScheduledExecutor).schedule(ArgumentMatchers.any(), ArgumentMatchers.any());
 
         final String cacheKey = "blah";
         impl.scheduleRevalidation(cacheKey, mockOperation);
 
         Assert.assertEquals(0, impl.getScheduledIdentifiers().size());
-        verify(mockScheduledExecutor).schedule(ArgumentMatchers.<Runnable>any(), ArgumentMatchers.eq(TimeValue.ofSeconds(2)));
+        verify(mockScheduledExecutor).schedule(ArgumentMatchers.any(), ArgumentMatchers.eq(TimeValue.ofSeconds(2)));
     }
 
     @Test
@@ -119,7 +119,7 @@ public class TestCacheRevalidatorBase {
         impl.scheduleRevalidation(cacheKey, mockOperation);
 
         verify(mockSchedulingStrategy).schedule(ArgumentMatchers.anyInt());
-        verify(mockScheduledExecutor).schedule(ArgumentMatchers.<Runnable>any(), ArgumentMatchers.eq(TimeValue.ofSeconds(2)));
+        verify(mockScheduledExecutor).schedule(ArgumentMatchers.any(), ArgumentMatchers.eq(TimeValue.ofSeconds(2)));
 
         Assert.assertEquals(1, impl.getScheduledIdentifiers().size());
     }

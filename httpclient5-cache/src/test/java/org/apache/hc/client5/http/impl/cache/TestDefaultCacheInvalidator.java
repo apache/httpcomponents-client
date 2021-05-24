@@ -76,7 +76,7 @@ public class TestDefaultCacheInvalidator {
         now = new Date();
         tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
 
-        when(cacheKeyResolver.resolve(ArgumentMatchers.<URI>any())).thenAnswer((Answer<String>) invocation -> {
+        when(cacheKeyResolver.resolve(ArgumentMatchers.any())).thenAnswer((Answer<String>) invocation -> {
             final URI uri = invocation.getArgument(0);
             return HttpCacheSupport.normalize(uri).toASCIIString();
         });

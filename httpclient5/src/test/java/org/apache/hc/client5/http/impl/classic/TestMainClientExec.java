@@ -93,7 +93,7 @@ public class TestMainClientExec {
         Mockito.when(endpoint.execute(
                 Mockito.anyString(),
                 Mockito.same(request),
-                Mockito.<HttpClientContext>any())).thenReturn(response);
+                Mockito.any())).thenReturn(response);
         Mockito.when(reuseStrategy.keepAlive(
                 Mockito.same(request),
                 Mockito.same(response),
@@ -121,7 +121,7 @@ public class TestMainClientExec {
         Mockito.when(endpoint.execute(
                 Mockito.anyString(),
                 Mockito.same(request),
-                Mockito.<HttpClientContext>any())).thenReturn(response);
+                Mockito.any())).thenReturn(response);
         Mockito.when(reuseStrategy.keepAlive(
                 Mockito.same(request),
                 Mockito.same(response),
@@ -153,7 +153,7 @@ public class TestMainClientExec {
         Mockito.when(endpoint.execute(
                 Mockito.anyString(),
                 Mockito.same(request),
-                Mockito.<HttpClientContext>any())).thenReturn(response);
+                Mockito.any())).thenReturn(response);
         Mockito.when(reuseStrategy.keepAlive(
                 Mockito.same(request),
                 Mockito.same(response),
@@ -183,7 +183,7 @@ public class TestMainClientExec {
         Mockito.when(endpoint.execute(
                 Mockito.anyString(),
                 Mockito.same(request),
-                Mockito.<HttpClientContext>any())).thenReturn(response);
+                Mockito.any())).thenReturn(response);
         Mockito.when(reuseStrategy.keepAlive(
                 Mockito.same(request),
                 Mockito.same(response),
@@ -217,7 +217,7 @@ public class TestMainClientExec {
         Mockito.when(endpoint.execute(
                 Mockito.anyString(),
                 Mockito.same(request),
-                Mockito.<HttpClientContext>any())).thenReturn(response);
+                Mockito.any())).thenReturn(response);
         Mockito.when(reuseStrategy.keepAlive(
                 Mockito.same(request),
                 Mockito.same(response),
@@ -246,7 +246,7 @@ public class TestMainClientExec {
         Mockito.when(endpoint.execute(
                 Mockito.anyString(),
                 Mockito.same(request),
-                Mockito.<HttpClientContext>any())).thenThrow(new ConnectionShutdownException());
+                Mockito.any())).thenThrow(new ConnectionShutdownException());
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
         try {
@@ -266,7 +266,7 @@ public class TestMainClientExec {
         Mockito.when(endpoint.execute(
                 Mockito.anyString(),
                 Mockito.same(request),
-                Mockito.<HttpClientContext>any())).thenThrow(new RuntimeException("Ka-boom"));
+                Mockito.any())).thenThrow(new RuntimeException("Ka-boom"));
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
         try {
@@ -286,7 +286,7 @@ public class TestMainClientExec {
         Mockito.when(endpoint.execute(
                 Mockito.anyString(),
                 Mockito.same(request),
-                Mockito.<HttpClientContext>any())).thenThrow(new HttpException("Ka-boom"));
+                Mockito.any())).thenThrow(new HttpException("Ka-boom"));
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
         try {
@@ -306,7 +306,7 @@ public class TestMainClientExec {
         Mockito.when(endpoint.execute(
                 Mockito.anyString(),
                 Mockito.same(request),
-                Mockito.<HttpClientContext>any())).thenThrow(new IOException("Ka-boom"));
+                Mockito.any())).thenThrow(new IOException("Ka-boom"));
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
         try {

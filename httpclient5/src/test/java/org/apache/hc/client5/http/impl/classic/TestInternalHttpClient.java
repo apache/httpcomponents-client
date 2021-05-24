@@ -34,7 +34,6 @@ import org.apache.hc.client5.http.ClientProtocolException;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
-import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecChainHandler;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.config.RequestConfig;
@@ -43,7 +42,6 @@ import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.routing.HttpRoutePlanner;
-import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.config.Lookup;
@@ -108,9 +106,9 @@ public class TestInternalHttpClient {
         client.execute(httpget);
 
         Mockito.verify(execChain).execute(
-                Mockito.<ClassicHttpRequest>any(),
-                Mockito.<ExecChain.Scope>any(),
-                Mockito.<ExecChain>any());
+                Mockito.any(),
+                Mockito.any(),
+                Mockito.any());
     }
 
     @Test(expected=ClientProtocolException.class)
@@ -122,9 +120,9 @@ public class TestInternalHttpClient {
                 Mockito.eq(new HttpHost("somehost")),
                 Mockito.<HttpClientContext>any())).thenReturn(route);
         Mockito.when(execChain.execute(
-                Mockito.<ClassicHttpRequest>any(),
-                Mockito.<ExecChain.Scope>any(),
-                Mockito.<ExecChain>any())).thenThrow(new HttpException());
+                Mockito.any(),
+                Mockito.any(),
+                Mockito.any())).thenThrow(new HttpException());
 
         client.execute(httpget);
     }

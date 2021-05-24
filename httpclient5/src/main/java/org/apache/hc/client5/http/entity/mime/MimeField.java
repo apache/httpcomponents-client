@@ -58,7 +58,7 @@ public class MimeField {
         this.name = name;
         this.value = value;
         this.parameters = parameters != null ?
-                Collections.unmodifiableList(new ArrayList<>(parameters)) : Collections.<NameValuePair>emptyList();
+                Collections.unmodifiableList(new ArrayList<>(parameters)) : Collections.emptyList();
     }
 
     public MimeField(final MimeField from) {

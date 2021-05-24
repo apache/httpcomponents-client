@@ -141,8 +141,7 @@ public final class HttpRoute implements RouteInfo, Cloneable {
      *                  {@code false} otherwise
      */
     public HttpRoute(final HttpHost target, final InetAddress local, final boolean secure) {
-        this(target, local, Collections.<HttpHost>emptyList(), secure,
-                TunnelType.PLAIN, LayerType.PLAIN);
+        this(target, local, Collections.emptyList(), secure, TunnelType.PLAIN, LayerType.PLAIN);
     }
 
     /**
@@ -151,8 +150,7 @@ public final class HttpRoute implements RouteInfo, Cloneable {
      * @param target    the host to which to route
      */
     public HttpRoute(final HttpHost target) {
-        this(target, null, Collections.<HttpHost>emptyList(), false,
-                TunnelType.PLAIN, LayerType.PLAIN);
+        this(target, null, Collections.emptyList(), false, TunnelType.PLAIN, LayerType.PLAIN);
     }
 
     /**

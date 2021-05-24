@@ -113,10 +113,10 @@ public class TestRedirectExec {
 
         Mockito.when(chain.proceed(
                 ArgumentMatchers.same(request),
-                ArgumentMatchers.<ExecChain.Scope>any())).thenReturn(response1);
+                ArgumentMatchers.any())).thenReturn(response1);
         Mockito.when(chain.proceed(
                 HttpRequestMatcher.matchesRequestUri(redirect),
-                ArgumentMatchers.<ExecChain.Scope>any())).thenReturn(response2);
+                ArgumentMatchers.any())).thenReturn(response2);
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
         redirectExec.execute(request, scope, chain);
@@ -150,7 +150,7 @@ public class TestRedirectExec {
         final URI redirect = new URI("http://localhost:80/redirect");
         response1.setHeader(HttpHeaders.LOCATION, redirect.toASCIIString());
 
-        Mockito.when(chain.proceed(ArgumentMatchers.<ClassicHttpRequest>any(), ArgumentMatchers.<ExecChain.Scope>any())).thenReturn(response1);
+        Mockito.when(chain.proceed(ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(response1);
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
         redirectExec.execute(request, scope, chain);
@@ -167,7 +167,7 @@ public class TestRedirectExec {
         response1.setHeader(HttpHeaders.LOCATION, redirect.toASCIIString());
         Mockito.when(chain.proceed(
                 ArgumentMatchers.same(request),
-                ArgumentMatchers.<ExecChain.Scope>any())).thenReturn(response1);
+                ArgumentMatchers.any())).thenReturn(response1);
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
         redirectExec.execute(request, scope, chain);
@@ -197,10 +197,10 @@ public class TestRedirectExec {
         final HttpHost otherHost = new HttpHost("otherhost", 8888);
         Mockito.when(chain.proceed(
                 ArgumentMatchers.same(request),
-                ArgumentMatchers.<ExecChain.Scope>any())).thenReturn(response1);
+                ArgumentMatchers.any())).thenReturn(response1);
         Mockito.when(chain.proceed(
                 HttpRequestMatcher.matchesRequestUri(redirect),
-                ArgumentMatchers.<ExecChain.Scope>any())).thenReturn(response2);
+                ArgumentMatchers.any())).thenReturn(response2);
         Mockito.when(httpRoutePlanner.determineRoute(
                 ArgumentMatchers.eq(otherHost),
                 ArgumentMatchers.<HttpClientContext>any())).thenReturn(new HttpRoute(otherHost));
@@ -241,13 +241,13 @@ public class TestRedirectExec {
 
         Mockito.when(chain.proceed(
                 HttpRequestMatcher.matchesRequestUri(uri),
-                ArgumentMatchers.<ExecChain.Scope>any())).thenReturn(response1);
+                ArgumentMatchers.any())).thenReturn(response1);
         Mockito.when(chain.proceed(
                 HttpRequestMatcher.matchesRequestUri(uri1),
-                ArgumentMatchers.<ExecChain.Scope>any())).thenReturn(response2, response4);
+                ArgumentMatchers.any())).thenReturn(response2, response4);
         Mockito.when(chain.proceed(
                 HttpRequestMatcher.matchesRequestUri(uri2),
-                ArgumentMatchers.<ExecChain.Scope>any())).thenReturn(response3);
+                ArgumentMatchers.any())).thenReturn(response3);
         Mockito.when(httpRoutePlanner.determineRoute(
                 ArgumentMatchers.eq(new HttpHost("localhost")),
                 ArgumentMatchers.<HttpClientContext>any())).thenReturn(route);
@@ -285,13 +285,13 @@ public class TestRedirectExec {
 
         Mockito.when(chain.proceed(
                 HttpRequestMatcher.matchesRequestUri(uri),
-                ArgumentMatchers.<ExecChain.Scope>any())).thenReturn(response1);
+                ArgumentMatchers.any())).thenReturn(response1);
         Mockito.when(chain.proceed(
                 HttpRequestMatcher.matchesRequestUri(uri1),
-                ArgumentMatchers.<ExecChain.Scope>any())).thenReturn(response2);
+                ArgumentMatchers.any())).thenReturn(response2);
         Mockito.when(chain.proceed(
                 HttpRequestMatcher.matchesRequestUri(uri2),
-                ArgumentMatchers.<ExecChain.Scope>any())).thenReturn(response3);
+                ArgumentMatchers.any())).thenReturn(response3);
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
         redirectExec.execute(request, scope, chain);
@@ -308,7 +308,7 @@ public class TestRedirectExec {
         response1.setHeader(HttpHeaders.LOCATION, redirect.toASCIIString());
         Mockito.when(chain.proceed(
                 ArgumentMatchers.same(request),
-                ArgumentMatchers.<ExecChain.Scope>any())).thenReturn(response1);
+                ArgumentMatchers.any())).thenReturn(response1);
         Mockito.doThrow(new RuntimeException("Oppsie")).when(redirectStrategy).getLocationURI(
                 ArgumentMatchers.<ClassicHttpRequest>any(),
                 ArgumentMatchers.<ClassicHttpResponse>any(),
@@ -339,7 +339,7 @@ public class TestRedirectExec {
         response1.setEntity(entity1);
         Mockito.when(chain.proceed(
                 ArgumentMatchers.same(request),
-                ArgumentMatchers.<ExecChain.Scope>any())).thenReturn(response1);
+                ArgumentMatchers.any())).thenReturn(response1);
         Mockito.doThrow(new ProtocolException("Oppsie")).when(redirectStrategy).getLocationURI(
                 ArgumentMatchers.<ClassicHttpRequest>any(),
                 ArgumentMatchers.<ClassicHttpResponse>any(),

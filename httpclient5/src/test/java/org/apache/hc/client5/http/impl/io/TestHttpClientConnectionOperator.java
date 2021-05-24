@@ -88,14 +88,14 @@ public class TestHttpClientConnectionOperator {
         Mockito.when(dnsResolver.resolve("somehost")).thenReturn(new InetAddress[] { ip1, ip2 });
         Mockito.when(socketFactoryRegistry.lookup("http")).thenReturn(plainSocketFactory);
         Mockito.when(schemePortResolver.resolve(host)).thenReturn(80);
-        Mockito.when(plainSocketFactory.createSocket(Mockito.<HttpContext>any())).thenReturn(socket);
+        Mockito.when(plainSocketFactory.createSocket(Mockito.any())).thenReturn(socket);
         Mockito.when(plainSocketFactory.connectSocket(
-                Mockito.<TimeValue>any(),
-                Mockito.<Socket>any(),
-                Mockito.<HttpHost>any(),
-                Mockito.<InetSocketAddress>any(),
-                Mockito.<InetSocketAddress>any(),
-                Mockito.<HttpContext>any())).thenReturn(socket);
+                Mockito.any(),
+                Mockito.any(),
+                Mockito.any(),
+                Mockito.any(),
+                Mockito.any(),
+                Mockito.any())).thenReturn(socket);
 
         final SocketConfig socketConfig = SocketConfig.custom()
             .setSoKeepAlive(true)
@@ -133,14 +133,14 @@ public class TestHttpClientConnectionOperator {
         Mockito.when(dnsResolver.resolve("somehost")).thenReturn(new InetAddress[] { ip1, ip2 });
         Mockito.when(socketFactoryRegistry.lookup("http")).thenReturn(plainSocketFactory);
         Mockito.when(schemePortResolver.resolve(host)).thenReturn(80);
-        Mockito.when(plainSocketFactory.createSocket(Mockito.<HttpContext>any())).thenReturn(socket);
+        Mockito.when(plainSocketFactory.createSocket(Mockito.any())).thenReturn(socket);
         Mockito.when(plainSocketFactory.connectSocket(
-                Mockito.<TimeValue>any(),
-                Mockito.<Socket>any(),
-                Mockito.<HttpHost>any(),
-                Mockito.<InetSocketAddress>any(),
-                Mockito.<InetSocketAddress>any(),
-                Mockito.<HttpContext>any())).thenThrow(new SocketTimeoutException());
+                Mockito.any(),
+                Mockito.any(),
+                Mockito.any(),
+                Mockito.any(),
+                Mockito.any(),
+                Mockito.any())).thenThrow(new SocketTimeoutException());
 
         connectionOperator.connect(conn, host, null, TimeValue.ofMilliseconds(1000), SocketConfig.DEFAULT, context);
     }
@@ -155,14 +155,14 @@ public class TestHttpClientConnectionOperator {
         Mockito.when(dnsResolver.resolve("somehost")).thenReturn(new InetAddress[] { ip1, ip2 });
         Mockito.when(socketFactoryRegistry.lookup("http")).thenReturn(plainSocketFactory);
         Mockito.when(schemePortResolver.resolve(host)).thenReturn(80);
-        Mockito.when(plainSocketFactory.createSocket(Mockito.<HttpContext>any())).thenReturn(socket);
+        Mockito.when(plainSocketFactory.createSocket(Mockito.any())).thenReturn(socket);
         Mockito.when(plainSocketFactory.connectSocket(
-                Mockito.<TimeValue>any(),
-                Mockito.<Socket>any(),
-                Mockito.<HttpHost>any(),
-                Mockito.<InetSocketAddress>any(),
-                Mockito.<InetSocketAddress>any(),
-                Mockito.<HttpContext>any())).thenThrow(new ConnectException());
+                Mockito.any(),
+                Mockito.any(),
+                Mockito.any(),
+                Mockito.any(),
+                Mockito.any(),
+                Mockito.any())).thenThrow(new ConnectException());
 
         connectionOperator.connect(conn, host, null, TimeValue.ofMilliseconds(1000), SocketConfig.DEFAULT, context);
     }
@@ -178,21 +178,21 @@ public class TestHttpClientConnectionOperator {
         Mockito.when(dnsResolver.resolve("somehost")).thenReturn(new InetAddress[] { ip1, ip2 });
         Mockito.when(socketFactoryRegistry.lookup("http")).thenReturn(plainSocketFactory);
         Mockito.when(schemePortResolver.resolve(host)).thenReturn(80);
-        Mockito.when(plainSocketFactory.createSocket(Mockito.<HttpContext>any())).thenReturn(socket);
+        Mockito.when(plainSocketFactory.createSocket(Mockito.any())).thenReturn(socket);
         Mockito.when(plainSocketFactory.connectSocket(
-                Mockito.<TimeValue>any(),
-                Mockito.<Socket>any(),
-                Mockito.<HttpHost>any(),
+                Mockito.any(),
+                Mockito.any(),
+                Mockito.any(),
                 Mockito.eq(new InetSocketAddress(ip1, 80)),
-                Mockito.<InetSocketAddress>any(),
-                Mockito.<HttpContext>any())).thenThrow(new ConnectException());
+                Mockito.any(),
+                Mockito.any())).thenThrow(new ConnectException());
         Mockito.when(plainSocketFactory.connectSocket(
-                Mockito.<TimeValue>any(),
-                Mockito.<Socket>any(),
-                Mockito.<HttpHost>any(),
+                Mockito.any(),
+                Mockito.any(),
+                Mockito.any(),
                 Mockito.eq(new InetSocketAddress(ip2, 80)),
-                Mockito.<InetSocketAddress>any(),
-                Mockito.<HttpContext>any())).thenReturn(socket);
+                Mockito.any(),
+                Mockito.any())).thenReturn(socket);
 
         final InetSocketAddress localAddress = new InetSocketAddress(local, 0);
         connectionOperator.connect(conn, host, localAddress, TimeValue.ofMilliseconds(1000), SocketConfig.DEFAULT, context);
@@ -216,14 +216,14 @@ public class TestHttpClientConnectionOperator {
 
         Mockito.when(socketFactoryRegistry.lookup("http")).thenReturn(plainSocketFactory);
         Mockito.when(schemePortResolver.resolve(host)).thenReturn(80);
-        Mockito.when(plainSocketFactory.createSocket(Mockito.<HttpContext>any())).thenReturn(socket);
+        Mockito.when(plainSocketFactory.createSocket(Mockito.any())).thenReturn(socket);
         Mockito.when(plainSocketFactory.connectSocket(
-                Mockito.<TimeValue>any(),
-                Mockito.<Socket>any(),
-                Mockito.<HttpHost>any(),
-                Mockito.<InetSocketAddress>any(),
-                Mockito.<InetSocketAddress>any(),
-                Mockito.<HttpContext>any())).thenReturn(socket);
+                Mockito.any(),
+                Mockito.any(),
+                Mockito.any(),
+                Mockito.any(),
+                Mockito.any(),
+                Mockito.any())).thenReturn(socket);
 
         final InetSocketAddress localAddress = new InetSocketAddress(local, 0);
         connectionOperator.connect(conn, host, localAddress, TimeValue.ofMilliseconds(1000), SocketConfig.DEFAULT, context);
@@ -248,12 +248,12 @@ public class TestHttpClientConnectionOperator {
         Mockito.when(conn.getSocket()).thenReturn(socket);
         Mockito.when(socketFactoryRegistry.lookup("https")).thenReturn(sslSocketFactory);
         Mockito.when(schemePortResolver.resolve(host)).thenReturn(443);
-        Mockito.when(sslSocketFactory.createSocket(Mockito.<HttpContext>any())).thenReturn(socket);
+        Mockito.when(sslSocketFactory.createSocket(Mockito.any())).thenReturn(socket);
         Mockito.when(sslSocketFactory.createLayeredSocket(
-                Mockito.<Socket>any(),
+                Mockito.any(),
                 Mockito.eq("somehost"),
                 Mockito.eq(443),
-                Mockito.<HttpContext>any())).thenReturn(socket);
+                Mockito.any())).thenReturn(socket);
 
         connectionOperator.upgrade(conn, host, context);
 

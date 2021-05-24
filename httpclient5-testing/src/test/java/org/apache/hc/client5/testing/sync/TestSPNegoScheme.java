@@ -35,8 +35,8 @@ import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.KerberosConfig;
-import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
 import org.apache.hc.client5.http.impl.auth.SPNegoScheme;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
@@ -53,10 +53,8 @@ import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.ietf.jgss.GSSContext;
-import org.ietf.jgss.GSSCredential;
 import org.ietf.jgss.GSSManager;
 import org.ietf.jgss.GSSName;
-import org.ietf.jgss.Oid;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.ArgumentMatchers;
@@ -98,14 +96,14 @@ public class TestSPNegoScheme extends LocalServerTestBase {
         NegotiateSchemeWithMockGssManager() throws Exception {
             super(KerberosConfig.DEFAULT, SystemDefaultDnsResolver.INSTANCE);
             Mockito.when(context.initSecContext(
-                    ArgumentMatchers.<byte[]>any(), ArgumentMatchers.anyInt(), ArgumentMatchers.anyInt()))
+                    ArgumentMatchers.any(), ArgumentMatchers.anyInt(), ArgumentMatchers.anyInt()))
                     .thenReturn("12345678".getBytes());
             Mockito.when(manager.createName(
-                    ArgumentMatchers.anyString(), ArgumentMatchers.<Oid>any()))
+                    ArgumentMatchers.anyString(), ArgumentMatchers.any()))
                     .thenReturn(name);
             Mockito.when(manager.createContext(
-                    ArgumentMatchers.<GSSName>any(), ArgumentMatchers.<Oid>any(),
-                    ArgumentMatchers.<GSSCredential>any(), ArgumentMatchers.anyInt()))
+                    ArgumentMatchers.any(), ArgumentMatchers.any(),
+                    ArgumentMatchers.any(), ArgumentMatchers.anyInt()))
                     .thenReturn(context);
         }
 

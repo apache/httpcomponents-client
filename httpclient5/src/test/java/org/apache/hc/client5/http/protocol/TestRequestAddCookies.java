@@ -31,13 +31,13 @@ import java.util.Date;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.RouteInfo.LayerType;
 import org.apache.hc.client5.http.RouteInfo.TunnelType;
-import org.apache.hc.client5.http.cookie.StandardCookieSpec;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.cookie.BasicCookieStore;
 import org.apache.hc.client5.http.cookie.CookieOrigin;
 import org.apache.hc.client5.http.cookie.CookieSpec;
 import org.apache.hc.client5.http.cookie.CookieSpecFactory;
 import org.apache.hc.client5.http.cookie.CookieStore;
+import org.apache.hc.client5.http.cookie.StandardCookieSpec;
 import org.apache.hc.client5.http.impl.cookie.BasicClientCookie;
 import org.apache.hc.client5.http.impl.cookie.IgnoreCookieSpecFactory;
 import org.apache.hc.client5.http.impl.cookie.RFC6265CookieSpecFactory;
@@ -344,7 +344,7 @@ public class TestRequestAddCookies {
         Assert.assertEquals(1, headers.length);
         Assert.assertEquals("name1=value1; name2=value2", headers[0].getValue());
 
-        Mockito.verify(this.cookieStore, Mockito.times(1)).clearExpired(ArgumentMatchers.<Date>any());
+        Mockito.verify(this.cookieStore, Mockito.times(1)).clearExpired(ArgumentMatchers.any());
     }
 
     @Test

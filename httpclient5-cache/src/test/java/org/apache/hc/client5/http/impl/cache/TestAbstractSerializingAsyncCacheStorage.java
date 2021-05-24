@@ -87,8 +87,8 @@ public class TestAbstractSerializingAsyncCacheStorage {
         Mockito.when(impl.digestToStorageKey(key)).thenReturn("bar");
         Mockito.when(impl.store(
                 ArgumentMatchers.eq("bar"),
-                ArgumentMatchers.<byte[]>any(),
-                ArgumentMatchers.<FutureCallback<Boolean>>any())).thenAnswer((Answer<Cancellable>) invocation -> {
+                ArgumentMatchers.any(),
+                ArgumentMatchers.any())).thenAnswer((Answer<Cancellable>) invocation -> {
                     final FutureCallback<Boolean> callback = invocation.getArgument(2);
                     callback.completed(true);
                     return cancellable;
@@ -97,7 +97,7 @@ public class TestAbstractSerializingAsyncCacheStorage {
         impl.putEntry(key, value, operationCallback);
 
         final ArgumentCaptor<byte[]> argumentCaptor = ArgumentCaptor.forClass(byte[].class);
-        Mockito.verify(impl).store(ArgumentMatchers.eq("bar"), argumentCaptor.capture(), ArgumentMatchers.<FutureCallback<Boolean>>any());
+        Mockito.verify(impl).store(ArgumentMatchers.eq("bar"), argumentCaptor.capture(), ArgumentMatchers.any());
         Assert.assertArrayEquals(serialize(key, value), argumentCaptor.getValue());
         Mockito.verify(operationCallback).completed(Boolean.TRUE);
     }
@@ -107,7 +107,7 @@ public class TestAbstractSerializingAsyncCacheStorage {
         final String key = "foo";
 
         Mockito.when(impl.digestToStorageKey(key)).thenReturn("bar");
-        Mockito.when(impl.restore(ArgumentMatchers.eq("bar"), ArgumentMatchers.<FutureCallback<byte[]>>any())).thenAnswer((Answer<Cancellable>) invocation -> {
+        Mockito.when(impl.restore(ArgumentMatchers.eq("bar"), ArgumentMatchers.any())).thenAnswer((Answer<Cancellable>) invocation -> {
             final FutureCallback<byte[]> callback = invocation.getArgument(1);
             callback.completed(null);
             return cancellable;
@@ -117,7 +117,7 @@ public class TestAbstractSerializingAsyncCacheStorage {
         final ArgumentCaptor<HttpCacheEntry> argumentCaptor = ArgumentCaptor.forClass(HttpCacheEntry.class);
         Mockito.verify(cacheEntryCallback).completed(argumentCaptor.capture());
         Assert.assertThat(argumentCaptor.getValue(), CoreMatchers.nullValue());
-        Mockito.verify(impl).restore(ArgumentMatchers.eq("bar"), ArgumentMatchers.<FutureCallback<byte[]>>any());
+        Mockito.verify(impl).restore(ArgumentMatchers.eq("bar"), ArgumentMatchers.any());
     }
 
     @Test
@@ -126,7 +126,7 @@ public class TestAbstractSerializingAsyncCacheStorage {
         final HttpCacheEntry value = HttpTestUtils.makeCacheEntry();
 
         Mockito.when(impl.digestToStorageKey(key)).thenReturn("bar");
-        Mockito.when(impl.restore(ArgumentMatchers.eq("bar"), ArgumentMatchers.<FutureCallback<byte[]>>any())).thenAnswer((Answer<Cancellable>) invocation -> {
+        Mockito.when(impl.restore(ArgumentMatchers.eq("bar"), ArgumentMatchers.any())).thenAnswer((Answer<Cancellable>) invocation -> {
             final FutureCallback<byte[]> callback = invocation.getArgument(1);
             callback.completed(serialize(key, value));
             return cancellable;
@@ -137,7 +137,7 @@ public class TestAbstractSerializingAsyncCacheStorage {
         Mockito.verify(cacheEntryCallback).completed(argumentCaptor.capture());
         final HttpCacheEntry resultingEntry = argumentCaptor.getValue();
         Assert.assertThat(resultingEntry, HttpCacheEntryMatcher.equivalent(value));
-        Mockito.verify(impl).restore(ArgumentMatchers.eq("bar"), ArgumentMatchers.<FutureCallback<byte[]>>any());
+        Mockito.verify(impl).restore(ArgumentMatchers.eq("bar"), ArgumentMatchers.any());
     }
 
     @Test
@@ -145,7 +145,7 @@ public class TestAbstractSerializingAsyncCacheStorage {
         final String key = "foo";
         final HttpCacheEntry value = HttpTestUtils.makeCacheEntry();
         Mockito.when(impl.digestToStorageKey(key)).thenReturn("bar");
-        Mockito.when(impl.restore(ArgumentMatchers.eq("bar"), ArgumentMatchers.<FutureCallback<byte[]>>any())).thenAnswer((Answer<Cancellable>) invocation -> {
+        Mockito.when(impl.restore(ArgumentMatchers.eq("bar"), ArgumentMatchers.any())).thenAnswer((Answer<Cancellable>) invocation -> {
             final FutureCallback<byte[]> callback = invocation.getArgument(1);
             callback.completed(serialize("not-foo", value));
             return cancellable;
@@ -155,7 +155,7 @@ public class TestAbstractSerializingAsyncCacheStorage {
         final ArgumentCaptor<HttpCacheEntry> argumentCaptor = ArgumentCaptor.forClass(HttpCacheEntry.class);
         Mockito.verify(cacheEntryCallback).completed(argumentCaptor.capture());
         Assert.assertThat(argumentCaptor.getValue(), CoreMatchers.nullValue());
-        Mockito.verify(impl).restore(ArgumentMatchers.eq("bar"), ArgumentMatchers.<FutureCallback<byte[]>>any());
+        Mockito.verify(impl).restore(ArgumentMatchers.eq("bar"), ArgumentMatchers.any());
     }
 
     @Test
@@ -165,7 +165,7 @@ public class TestAbstractSerializingAsyncCacheStorage {
         Mockito.when(impl.digestToStorageKey(key)).thenReturn("bar");
         Mockito.when(impl.delete(
                 ArgumentMatchers.eq("bar"),
-                ArgumentMatchers.<FutureCallback<Boolean>>any())).thenAnswer((Answer<Cancellable>) invocation -> {
+                ArgumentMatchers.any())).thenAnswer((Answer<Cancellable>) invocation -> {
                     final FutureCallback<Boolean> callback = invocation.getArgument(1);
                     callback.completed(true);
                     return cancellable;
@@ -182,15 +182,15 @@ public class TestAbstractSerializingAsyncCacheStorage {
         final HttpCacheEntry updatedValue = HttpTestUtils.makeCacheEntry();
 
         Mockito.when(impl.digestToStorageKey(key)).thenReturn("bar");
-        Mockito.when(impl.getForUpdateCAS(ArgumentMatchers.eq("bar"), ArgumentMatchers.<FutureCallback<String>>any())).thenAnswer((Answer<Cancellable>) invocation -> {
+        Mockito.when(impl.getForUpdateCAS(ArgumentMatchers.eq("bar"), ArgumentMatchers.any())).thenAnswer((Answer<Cancellable>) invocation -> {
             final FutureCallback<byte[]> callback = invocation.getArgument(1);
             callback.completed(null);
             return cancellable;
         });
         Mockito.when(impl.store(
                 ArgumentMatchers.eq("bar"),
-                ArgumentMatchers.<byte[]>any(),
-                ArgumentMatchers.<FutureCallback<Boolean>>any())).thenAnswer((Answer<Cancellable>) invocation -> {
+                ArgumentMatchers.any(),
+                ArgumentMatchers.any())).thenAnswer((Answer<Cancellable>) invocation -> {
                     final FutureCallback<Boolean> callback = invocation.getArgument(2);
                     callback.completed(true);
                     return cancellable;
@@ -201,8 +201,8 @@ public class TestAbstractSerializingAsyncCacheStorage {
             return updatedValue;
         }, operationCallback);
 
-        Mockito.verify(impl).getForUpdateCAS(ArgumentMatchers.eq("bar"), ArgumentMatchers.<FutureCallback<String>>any());
-        Mockito.verify(impl).store(ArgumentMatchers.eq("bar"), ArgumentMatchers.<byte[]>any(), ArgumentMatchers.<FutureCallback<Boolean>>any());
+        Mockito.verify(impl).getForUpdateCAS(ArgumentMatchers.eq("bar"), ArgumentMatchers.any());
+        Mockito.verify(impl).store(ArgumentMatchers.eq("bar"), ArgumentMatchers.any(), ArgumentMatchers.any());
         Mockito.verify(operationCallback).completed(Boolean.TRUE);
     }
 
@@ -213,7 +213,7 @@ public class TestAbstractSerializingAsyncCacheStorage {
         final HttpCacheEntry updatedValue = HttpTestUtils.makeCacheEntry();
 
         Mockito.when(impl.digestToStorageKey(key)).thenReturn("bar");
-        Mockito.when(impl.getForUpdateCAS(ArgumentMatchers.eq("bar"), ArgumentMatchers.<FutureCallback<String>>any())).thenAnswer((Answer<Cancellable>) invocation -> {
+        Mockito.when(impl.getForUpdateCAS(ArgumentMatchers.eq("bar"), ArgumentMatchers.any())).thenAnswer((Answer<Cancellable>) invocation -> {
             final FutureCallback<String> callback = invocation.getArgument(1);
             callback.completed("stuff");
             return cancellable;
@@ -222,8 +222,8 @@ public class TestAbstractSerializingAsyncCacheStorage {
         Mockito.when(impl.updateCAS(
                 ArgumentMatchers.eq("bar"),
                 ArgumentMatchers.eq("stuff"),
-                ArgumentMatchers.<byte[]>any(),
-                ArgumentMatchers.<FutureCallback<Boolean>>any())).thenAnswer((Answer<Cancellable>) invocation -> {
+                ArgumentMatchers.any(),
+                ArgumentMatchers.any())).thenAnswer((Answer<Cancellable>) invocation -> {
                     final FutureCallback<Boolean> callback = invocation.getArgument(3);
                     callback.completed(true);
                     return cancellable;
@@ -231,9 +231,9 @@ public class TestAbstractSerializingAsyncCacheStorage {
 
         impl.updateEntry(key, existing -> updatedValue, operationCallback);
 
-        Mockito.verify(impl).getForUpdateCAS(ArgumentMatchers.eq("bar"), ArgumentMatchers.<FutureCallback<String>>any());
+        Mockito.verify(impl).getForUpdateCAS(ArgumentMatchers.eq("bar"), ArgumentMatchers.any());
         Mockito.verify(impl).getStorageObject("stuff");
-        Mockito.verify(impl).updateCAS(ArgumentMatchers.eq("bar"), ArgumentMatchers.eq("stuff"), ArgumentMatchers.<byte[]>any(), ArgumentMatchers.<FutureCallback<Boolean>>any());
+        Mockito.verify(impl).updateCAS(ArgumentMatchers.eq("bar"), ArgumentMatchers.eq("stuff"), ArgumentMatchers.any(), ArgumentMatchers.any());
         Mockito.verify(operationCallback).completed(Boolean.TRUE);
     }
 
@@ -244,7 +244,7 @@ public class TestAbstractSerializingAsyncCacheStorage {
         final HttpCacheEntry updatedValue = HttpTestUtils.makeCacheEntry();
 
         Mockito.when(impl.digestToStorageKey(key)).thenReturn("bar");
-        Mockito.when(impl.getForUpdateCAS(ArgumentMatchers.eq("bar"), ArgumentMatchers.<FutureCallback<String>>any())).thenAnswer(
+        Mockito.when(impl.getForUpdateCAS(ArgumentMatchers.eq("bar"), ArgumentMatchers.any())).thenAnswer(
                 (Answer<Cancellable>) invocation -> {
                     final FutureCallback<String> callback = invocation.getArgument(1);
                     callback.completed("stuff");
@@ -253,8 +253,8 @@ public class TestAbstractSerializingAsyncCacheStorage {
         Mockito.when(impl.getStorageObject("stuff")).thenReturn(serialize("not-foo", existingValue));
         Mockito.when(impl.store(
                 ArgumentMatchers.eq("bar"),
-                ArgumentMatchers.<byte[]>any(),
-                ArgumentMatchers.<FutureCallback<Boolean>>any())).thenAnswer((Answer<Cancellable>) invocation -> {
+                ArgumentMatchers.any(),
+                ArgumentMatchers.any())).thenAnswer((Answer<Cancellable>) invocation -> {
                     final FutureCallback<Boolean> callback = invocation.getArgument(2);
                     callback.completed(true);
                     return cancellable;
@@ -265,11 +265,11 @@ public class TestAbstractSerializingAsyncCacheStorage {
             return updatedValue;
         }, operationCallback);
 
-        Mockito.verify(impl).getForUpdateCAS(ArgumentMatchers.eq("bar"), ArgumentMatchers.<FutureCallback<String>>any());
+        Mockito.verify(impl).getForUpdateCAS(ArgumentMatchers.eq("bar"), ArgumentMatchers.any());
         Mockito.verify(impl).getStorageObject("stuff");
         Mockito.verify(impl, Mockito.never()).updateCAS(
-                ArgumentMatchers.eq("bar"), ArgumentMatchers.eq("stuff"), ArgumentMatchers.<byte[]>any(), ArgumentMatchers.<FutureCallback<Boolean>>any());
-        Mockito.verify(impl).store(ArgumentMatchers.eq("bar"), ArgumentMatchers.<byte[]>any(), ArgumentMatchers.<FutureCallback<Boolean>>any());
+                ArgumentMatchers.eq("bar"), ArgumentMatchers.eq("stuff"), ArgumentMatchers.any(), ArgumentMatchers.any());
+        Mockito.verify(impl).store(ArgumentMatchers.eq("bar"), ArgumentMatchers.any(), ArgumentMatchers.any());
         Mockito.verify(operationCallback).completed(Boolean.TRUE);
     }
 
@@ -280,7 +280,7 @@ public class TestAbstractSerializingAsyncCacheStorage {
         final HttpCacheEntry updatedValue = HttpTestUtils.makeCacheEntry();
 
         Mockito.when(impl.digestToStorageKey(key)).thenReturn("bar");
-        Mockito.when(impl.getForUpdateCAS(ArgumentMatchers.eq("bar"), ArgumentMatchers.<FutureCallback<String>>any())).thenAnswer(
+        Mockito.when(impl.getForUpdateCAS(ArgumentMatchers.eq("bar"), ArgumentMatchers.any())).thenAnswer(
                 (Answer<Cancellable>) invocation -> {
                     final FutureCallback<String> callback = invocation.getArgument(1);
                     callback.completed("stuff");
@@ -291,8 +291,8 @@ public class TestAbstractSerializingAsyncCacheStorage {
         Mockito.when(impl.updateCAS(
                 ArgumentMatchers.eq("bar"),
                 ArgumentMatchers.eq("stuff"),
-                ArgumentMatchers.<byte[]>any(),
-                ArgumentMatchers.<FutureCallback<Boolean>>any())).thenAnswer((Answer<Cancellable>) invocation -> {
+                ArgumentMatchers.any(),
+                ArgumentMatchers.any())).thenAnswer((Answer<Cancellable>) invocation -> {
                     final FutureCallback<Boolean> callback = invocation.getArgument(3);
                     if (count.incrementAndGet() == 1) {
                         callback.completed(false);
@@ -304,10 +304,10 @@ public class TestAbstractSerializingAsyncCacheStorage {
 
         impl.updateEntry(key, existing -> updatedValue, operationCallback);
 
-        Mockito.verify(impl, Mockito.times(2)).getForUpdateCAS(ArgumentMatchers.eq("bar"), ArgumentMatchers.<FutureCallback<String>>any());
+        Mockito.verify(impl, Mockito.times(2)).getForUpdateCAS(ArgumentMatchers.eq("bar"), ArgumentMatchers.any());
         Mockito.verify(impl, Mockito.times(2)).getStorageObject("stuff");
         Mockito.verify(impl, Mockito.times(2)).updateCAS(
-                ArgumentMatchers.eq("bar"), ArgumentMatchers.eq("stuff"), ArgumentMatchers.<byte[]>any(), ArgumentMatchers.<FutureCallback<Boolean>>any());
+                ArgumentMatchers.eq("bar"), ArgumentMatchers.eq("stuff"), ArgumentMatchers.any(), ArgumentMatchers.any());
         Mockito.verify(operationCallback).completed(Boolean.TRUE);
     }
 
@@ -318,7 +318,7 @@ public class TestAbstractSerializingAsyncCacheStorage {
         final HttpCacheEntry updatedValue = HttpTestUtils.makeCacheEntry();
 
         Mockito.when(impl.digestToStorageKey(key)).thenReturn("bar");
-        Mockito.when(impl.getForUpdateCAS(ArgumentMatchers.eq("bar"), ArgumentMatchers.<FutureCallback<String>>any())).thenAnswer(
+        Mockito.when(impl.getForUpdateCAS(ArgumentMatchers.eq("bar"), ArgumentMatchers.any())).thenAnswer(
                 (Answer<Cancellable>) invocation -> {
                     final FutureCallback<String> callback = invocation.getArgument(1);
                     callback.completed("stuff");
@@ -329,8 +329,8 @@ public class TestAbstractSerializingAsyncCacheStorage {
         Mockito.when(impl.updateCAS(
                 ArgumentMatchers.eq("bar"),
                 ArgumentMatchers.eq("stuff"),
-                ArgumentMatchers.<byte[]>any(),
-                ArgumentMatchers.<FutureCallback<Boolean>>any())).thenAnswer((Answer<Cancellable>) invocation -> {
+                ArgumentMatchers.any(),
+                ArgumentMatchers.any())).thenAnswer((Answer<Cancellable>) invocation -> {
                     final FutureCallback<Boolean> callback = invocation.getArgument(3);
                     if (count.incrementAndGet() <= 3) {
                         callback.completed(false);
@@ -342,10 +342,10 @@ public class TestAbstractSerializingAsyncCacheStorage {
 
         impl.updateEntry(key, existing -> updatedValue, operationCallback);
 
-        Mockito.verify(impl, Mockito.times(3)).getForUpdateCAS(ArgumentMatchers.eq("bar"), ArgumentMatchers.<FutureCallback<String>>any());
+        Mockito.verify(impl, Mockito.times(3)).getForUpdateCAS(ArgumentMatchers.eq("bar"), ArgumentMatchers.any());
         Mockito.verify(impl, Mockito.times(3)).getStorageObject("stuff");
         Mockito.verify(impl, Mockito.times(3)).updateCAS(
-                ArgumentMatchers.eq("bar"), ArgumentMatchers.eq("stuff"), ArgumentMatchers.<byte[]>any(), ArgumentMatchers.<FutureCallback<Boolean>>any());
+                ArgumentMatchers.eq("bar"), ArgumentMatchers.eq("stuff"), ArgumentMatchers.any(), ArgumentMatchers.any());
         Mockito.verify(operationCallback).failed(ArgumentMatchers.<HttpCacheUpdateException>any());
     }
 
@@ -363,8 +363,8 @@ public class TestAbstractSerializingAsyncCacheStorage {
         when(impl.digestToStorageKey(key2)).thenReturn(storageKey2);
 
         when(impl.bulkRestore(
-                ArgumentMatchers.<String>anyCollection(),
-                ArgumentMatchers.<FutureCallback<Map<String, byte[]>>>any())).thenAnswer((Answer<Cancellable>) invocation -> {
+                ArgumentMatchers.anyCollection(),
+                ArgumentMatchers.any())).thenAnswer((Answer<Cancellable>) invocation -> {
                     final Collection<String> keys = invocation.getArgument(0);
                     final FutureCallback<Map<String, byte[]>> callback = invocation.getArgument(1);
                     final Map<String, byte[]> resultMap = new HashMap<>();
@@ -391,7 +391,7 @@ public class TestAbstractSerializingAsyncCacheStorage {
         verify(impl, Mockito.times(2)).digestToStorageKey(key2);
         verify(impl).bulkRestore(
                 ArgumentMatchers.eq(Arrays.asList(storageKey1, storageKey2)),
-                ArgumentMatchers.<FutureCallback<Map<String, byte[]>>>any());
+                ArgumentMatchers.any());
     }
 
     @Test
@@ -408,8 +408,8 @@ public class TestAbstractSerializingAsyncCacheStorage {
         when(impl.digestToStorageKey(key2)).thenReturn(storageKey2);
 
         when(impl.bulkRestore(
-                ArgumentMatchers.<String>anyCollection(),
-                ArgumentMatchers.<FutureCallback<Map<String, byte[]>>>any())).thenAnswer((Answer<Cancellable>) invocation -> {
+                ArgumentMatchers.anyCollection(),
+                ArgumentMatchers.any())).thenAnswer((Answer<Cancellable>) invocation -> {
                     final Collection<String> keys = invocation.getArgument(0);
                     final FutureCallback<Map<String, byte[]>> callback = invocation.getArgument(1);
                     final Map<String, byte[]> resultMap = new HashMap<>();
@@ -436,7 +436,7 @@ public class TestAbstractSerializingAsyncCacheStorage {
         verify(impl, Mockito.times(2)).digestToStorageKey(key2);
         verify(impl).bulkRestore(
                 ArgumentMatchers.eq(Arrays.asList(storageKey1, storageKey2)),
-                ArgumentMatchers.<FutureCallback<Map<String, byte[]>>>any());
+                ArgumentMatchers.any());
     }
 
 }

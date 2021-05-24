@@ -69,7 +69,7 @@ public class TestIdleConnectionEvictor {
         Thread.sleep(1000);
 
         Mockito.verify(cm, Mockito.atLeast(1)).closeExpired();
-        Mockito.verify(cm, Mockito.never()).closeIdle(ArgumentMatchers.<TimeValue>any());
+        Mockito.verify(cm, Mockito.never()).closeIdle(ArgumentMatchers.any());
 
         Assert.assertTrue(connectionEvictor.isRunning());
 

@@ -65,7 +65,7 @@ public class TestDefaultRoutePlanner {
         Assert.assertEquals(target, route.getTargetHost());
         Assert.assertEquals(1, route.getHopCount());
         Assert.assertFalse(route.isSecure());
-        Mockito.verify(schemePortResolver, Mockito.never()).resolve(Mockito.<HttpHost>any());
+        Mockito.verify(schemePortResolver, Mockito.never()).resolve(Mockito.any());
     }
 
     @Test
@@ -94,7 +94,7 @@ public class TestDefaultRoutePlanner {
         Assert.assertEquals(proxy, route.getProxyHost());
         Assert.assertEquals(2, route.getHopCount());
         Assert.assertFalse(route.isSecure());
-        Mockito.verify(schemePortResolver, Mockito.never()).resolve(Mockito.<HttpHost>any());
+        Mockito.verify(schemePortResolver, Mockito.never()).resolve(Mockito.any());
     }
 
     @Test(expected= ProtocolException.class)

@@ -73,7 +73,7 @@ public class TestSystemDefaultRoutePlanner {
         Assert.assertEquals(target, route.getTargetHost());
         Assert.assertEquals(1, route.getHopCount());
         Assert.assertFalse(route.isSecure());
-        Mockito.verify(schemePortResolver, Mockito.never()).resolve(ArgumentMatchers.<HttpHost>any());
+        Mockito.verify(schemePortResolver, Mockito.never()).resolve(ArgumentMatchers.any());
     }
 
     @Test

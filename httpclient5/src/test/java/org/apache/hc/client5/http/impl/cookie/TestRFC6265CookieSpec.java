@@ -35,7 +35,6 @@ import org.apache.hc.client5.http.cookie.CommonCookieAttributeHandler;
 import org.apache.hc.client5.http.cookie.Cookie;
 import org.apache.hc.client5.http.cookie.CookieOrigin;
 import org.apache.hc.client5.http.cookie.MalformedCookieException;
-import org.apache.hc.client5.http.cookie.SetCookie;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.junit.Assert;
@@ -67,8 +66,8 @@ public class TestRFC6265CookieSpec {
         Assert.assertEquals("stuff", cookie.getAttribute("this"));
         Assert.assertEquals(null, cookie.getAttribute("that"));
 
-        Mockito.verify(h1).parse(ArgumentMatchers.<SetCookie>any(), ArgumentMatchers.eq("stuff"));
-        Mockito.verify(h2, Mockito.never()).parse(ArgumentMatchers.<SetCookie>any(), ArgumentMatchers.anyString());
+        Mockito.verify(h1).parse(ArgumentMatchers.any(), ArgumentMatchers.eq("stuff"));
+        Mockito.verify(h2, Mockito.never()).parse(ArgumentMatchers.any(), ArgumentMatchers.anyString());
     }
 
     @Test
@@ -298,8 +297,8 @@ public class TestRFC6265CookieSpec {
         final CookieOrigin origin = new CookieOrigin("host", 80, "/path/", true);
         cookiespec.parse(header, origin);
 
-        Mockito.verify(h1).parse(ArgumentMatchers.<SetCookie>any(), ArgumentMatchers.eq("morestuff"));
-        Mockito.verify(h1, Mockito.times(1)).parse(ArgumentMatchers.<SetCookie>any(), ArgumentMatchers.anyString());
+        Mockito.verify(h1).parse(ArgumentMatchers.any(), ArgumentMatchers.eq("morestuff"));
+        Mockito.verify(h1, Mockito.times(1)).parse(ArgumentMatchers.any(), ArgumentMatchers.anyString());
     }
 
     @Test
@@ -315,8 +314,8 @@ public class TestRFC6265CookieSpec {
         final CookieOrigin origin = new CookieOrigin("host", 80, "/path/", true);
         cookiespec.parse(header, origin);
 
-        Mockito.verify(h1, Mockito.never()).parse(ArgumentMatchers.<SetCookie>any(), ArgumentMatchers.anyString());
-        Mockito.verify(h2).parse(ArgumentMatchers.<SetCookie>any(), ArgumentMatchers.eq("otherstuff"));
+        Mockito.verify(h1, Mockito.never()).parse(ArgumentMatchers.any(), ArgumentMatchers.anyString());
+        Mockito.verify(h2).parse(ArgumentMatchers.any(), ArgumentMatchers.eq("otherstuff"));
     }
 
 }

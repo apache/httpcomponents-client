@@ -37,8 +37,8 @@ import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.ChallengeType;
-import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
+import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
 import org.apache.hc.client5.http.impl.auth.BasicScheme;
@@ -63,7 +63,7 @@ public class TestAuthenticationStrategy {
         final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
         final HttpClientContext context = HttpClientContext.create();
         try {
-            authStrategy.select(null, Collections.<String, AuthChallenge>emptyMap(), context);
+            authStrategy.select(null, Collections.emptyMap(), context);
             Assert.fail("NullPointerException expected");
         } catch (final NullPointerException ex) {
         }
@@ -73,7 +73,7 @@ public class TestAuthenticationStrategy {
         } catch (final NullPointerException ex) {
         }
         try {
-            authStrategy.select(ChallengeType.TARGET, Collections.<String, AuthChallenge>emptyMap(), null);
+            authStrategy.select(ChallengeType.TARGET, Collections.emptyMap(), null);
             Assert.fail("NullPointerException expected");
         } catch (final NullPointerException ex) {
         }

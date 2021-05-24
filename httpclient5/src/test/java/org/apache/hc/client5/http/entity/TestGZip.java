@@ -71,7 +71,7 @@ public class TestGZip {
     @Test
     public void testCompressionIOExceptionLeavesOutputStreamOpen() throws Exception {
         final HttpEntity in = Mockito.mock(HttpEntity.class);
-        Mockito.doThrow(new IOException("Ooopsie")).when(in).writeTo(ArgumentMatchers.<OutputStream>any());
+        Mockito.doThrow(new IOException("Ooopsie")).when(in).writeTo(ArgumentMatchers.any());
         final GzipCompressingEntity gzipe = new GzipCompressingEntity(in);
         final OutputStream out = Mockito.mock(OutputStream.class);
         try {

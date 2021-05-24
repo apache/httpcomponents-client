@@ -147,7 +147,7 @@ public class TestAbstractSerializingCacheStorage {
         });
 
         verify(impl).getForUpdateCAS("bar");
-        verify(impl).store(ArgumentMatchers.eq("bar"), ArgumentMatchers.<byte[]>any());
+        verify(impl).store(ArgumentMatchers.eq("bar"), ArgumentMatchers.any());
     }
 
     @Test
@@ -159,13 +159,13 @@ public class TestAbstractSerializingCacheStorage {
         when(impl.digestToStorageKey(key)).thenReturn("bar");
         when(impl.getForUpdateCAS("bar")).thenReturn("stuff");
         when(impl.getStorageObject("stuff")).thenReturn(serialize(key, existingValue));
-        when(impl.updateCAS(ArgumentMatchers.eq("bar"), ArgumentMatchers.eq("stuff"), ArgumentMatchers.<byte[]>any())).thenReturn(true);
+        when(impl.updateCAS(ArgumentMatchers.eq("bar"), ArgumentMatchers.eq("stuff"), ArgumentMatchers.any())).thenReturn(true);
 
         impl.updateEntry(key, existing -> updatedValue);
 
         verify(impl).getForUpdateCAS("bar");
         verify(impl).getStorageObject("stuff");
-        verify(impl).updateCAS(ArgumentMatchers.eq("bar"), ArgumentMatchers.eq("stuff"), ArgumentMatchers.<byte[]>any());
+        verify(impl).updateCAS(ArgumentMatchers.eq("bar"), ArgumentMatchers.eq("stuff"), ArgumentMatchers.any());
     }
 
     @Test
@@ -177,7 +177,7 @@ public class TestAbstractSerializingCacheStorage {
         when(impl.digestToStorageKey(key)).thenReturn("bar");
         when(impl.getForUpdateCAS("bar")).thenReturn("stuff");
         when(impl.getStorageObject("stuff")).thenReturn(serialize("not-foo", existingValue));
-        when(impl.updateCAS(ArgumentMatchers.eq("bar"), ArgumentMatchers.eq("stuff"), ArgumentMatchers.<byte[]>any())).thenReturn(true);
+        when(impl.updateCAS(ArgumentMatchers.eq("bar"), ArgumentMatchers.eq("stuff"), ArgumentMatchers.any())).thenReturn(true);
 
         impl.updateEntry(key, existing -> {
             Assert.assertThat(existing, CoreMatchers.nullValue());
@@ -186,7 +186,7 @@ public class TestAbstractSerializingCacheStorage {
 
         verify(impl).getForUpdateCAS("bar");
         verify(impl).getStorageObject("stuff");
-        verify(impl).store(ArgumentMatchers.eq("bar"), ArgumentMatchers.<byte[]>any());
+        verify(impl).store(ArgumentMatchers.eq("bar"), ArgumentMatchers.any());
     }
 
     @Test
@@ -198,13 +198,13 @@ public class TestAbstractSerializingCacheStorage {
         when(impl.digestToStorageKey(key)).thenReturn("bar");
         when(impl.getForUpdateCAS("bar")).thenReturn("stuff");
         when(impl.getStorageObject("stuff")).thenReturn(serialize(key, existingValue));
-        when(impl.updateCAS(ArgumentMatchers.eq("bar"), ArgumentMatchers.eq("stuff"), ArgumentMatchers.<byte[]>any())).thenReturn(false, true);
+        when(impl.updateCAS(ArgumentMatchers.eq("bar"), ArgumentMatchers.eq("stuff"), ArgumentMatchers.any())).thenReturn(false, true);
 
         impl.updateEntry(key, existing -> updatedValue);
 
         verify(impl, Mockito.times(2)).getForUpdateCAS("bar");
         verify(impl, Mockito.times(2)).getStorageObject("stuff");
-        verify(impl, Mockito.times(2)).updateCAS(ArgumentMatchers.eq("bar"), ArgumentMatchers.eq("stuff"), ArgumentMatchers.<byte[]>any());
+        verify(impl, Mockito.times(2)).updateCAS(ArgumentMatchers.eq("bar"), ArgumentMatchers.eq("stuff"), ArgumentMatchers.any());
     }
 
     @Test
@@ -216,7 +216,7 @@ public class TestAbstractSerializingCacheStorage {
         when(impl.digestToStorageKey(key)).thenReturn("bar");
         when(impl.getForUpdateCAS("bar")).thenReturn("stuff");
         when(impl.getStorageObject("stuff")).thenReturn(serialize(key, existingValue));
-        when(impl.updateCAS(ArgumentMatchers.eq("bar"), ArgumentMatchers.eq("stuff"), ArgumentMatchers.<byte[]>any())).thenReturn(false, false, false, true);
+        when(impl.updateCAS(ArgumentMatchers.eq("bar"), ArgumentMatchers.eq("stuff"), ArgumentMatchers.any())).thenReturn(false, false, false, true);
 
         try {
             impl.updateEntry(key, existing -> updatedValue);
@@ -226,7 +226,7 @@ public class TestAbstractSerializingCacheStorage {
 
         verify(impl, Mockito.times(3)).getForUpdateCAS("bar");
         verify(impl, Mockito.times(3)).getStorageObject("stuff");
-        verify(impl, Mockito.times(3)).updateCAS(ArgumentMatchers.eq("bar"), ArgumentMatchers.eq("stuff"), ArgumentMatchers.<byte[]>any());
+        verify(impl, Mockito.times(3)).updateCAS(ArgumentMatchers.eq("bar"), ArgumentMatchers.eq("stuff"), ArgumentMatchers.any());
     }
 
     @Test
@@ -241,7 +241,7 @@ public class TestAbstractSerializingCacheStorage {
         when(impl.digestToStorageKey(key1)).thenReturn(storageKey1);
         when(impl.digestToStorageKey(key2)).thenReturn(storageKey2);
 
-        when(impl.bulkRestore(ArgumentMatchers.<String>anyCollection())).thenAnswer((Answer<Map<String, byte[]>>) invocation -> {
+        when(impl.bulkRestore(ArgumentMatchers.anyCollection())).thenAnswer((Answer<Map<String, byte[]>>) invocation -> {
             final Collection<String> keys = invocation.getArgument(0);
             final Map<String, byte[]> resultMap = new HashMap<>();
             if (keys.contains(storageKey1)) {
@@ -275,7 +275,7 @@ public class TestAbstractSerializingCacheStorage {
         when(impl.digestToStorageKey(key1)).thenReturn(storageKey1);
         when(impl.digestToStorageKey(key2)).thenReturn(storageKey2);
 
-        when(impl.bulkRestore(ArgumentMatchers.<String>anyCollection())).thenAnswer((Answer<Map<String, byte[]>>) invocation -> {
+        when(impl.bulkRestore(ArgumentMatchers.anyCollection())).thenAnswer((Answer<Map<String, byte[]>>) invocation -> {
             final Collection<String> keys = invocation.getArgument(0);
             final Map<String, byte[]> resultMap = new HashMap<>();
             if (keys.contains(storageKey1)) {

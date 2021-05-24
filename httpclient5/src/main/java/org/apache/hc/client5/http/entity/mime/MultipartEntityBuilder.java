@@ -229,7 +229,7 @@ public class MultipartEntityBuilder {
             }
         }
         final List<MultipartPart> multipartPartsCopy = multipartParts != null ? new ArrayList<>(multipartParts) :
-                Collections.<MultipartPart>emptyList();
+                Collections.emptyList();
         final HttpMultipartMode modeCopy = mode != null ? mode : HttpMultipartMode.STRICT;
         final AbstractMultipartFormat form;
         switch (modeCopy) {

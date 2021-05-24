@@ -39,8 +39,8 @@ import org.apache.hc.client5.http.auth.AuthenticationException;
 import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
-import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
+import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.impl.DefaultAuthenticationStrategy;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.http.HttpHeaders;
@@ -170,8 +170,8 @@ public class TestHttpAuthenticator {
         response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, "whatever realm=\"realm1\", stuff=\"1234\""));
 
         final Credentials credentials = new UsernamePasswordCredentials("user", "pass".toCharArray());
-        Mockito.when(this.credentialsProvider.getCredentials(Mockito.<AuthScope>any(),
-                                                             Mockito.<HttpContext>any())).thenReturn(credentials);
+        Mockito.when(this.credentialsProvider.getCredentials(Mockito.any(),
+                                                             Mockito.any())).thenReturn(credentials);
 
         final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
 
@@ -200,7 +200,7 @@ public class TestHttpAuthenticator {
 
         final Credentials credentials = new UsernamePasswordCredentials("user", "pass".toCharArray());
         Mockito.when(this.credentialsProvider.getCredentials(Mockito.eq(new AuthScope(host, "test", StandardAuthScheme.BASIC)),
-                                                             Mockito.<HttpContext>any())).thenReturn(credentials);
+                                                             Mockito.any())).thenReturn(credentials);
 
         final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
 
@@ -336,7 +336,7 @@ public class TestHttpAuthenticator {
 
         final Credentials credentials = new UsernamePasswordCredentials("user", "pass".toCharArray());
         Mockito.when(this.credentialsProvider.getCredentials(Mockito.eq(new AuthScope(host, "realm1", StandardAuthScheme.DIGEST)),
-                                                             Mockito.<HttpContext>any())).thenReturn(credentials);
+                                                             Mockito.any())).thenReturn(credentials);
 
         final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
 

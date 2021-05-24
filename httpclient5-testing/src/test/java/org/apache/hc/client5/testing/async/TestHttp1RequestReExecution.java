@@ -26,6 +26,11 @@
  */
 package org.apache.hc.client5.testing.async;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
 import org.apache.hc.client5.http.config.RequestConfig;
@@ -34,7 +39,6 @@ import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManager;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
-import org.apache.hc.core5.function.Decorator;
 import org.apache.hc.core5.function.Resolver;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
@@ -42,7 +46,6 @@ import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.config.Http1Config;
-import org.apache.hc.core5.http.nio.AsyncServerExchangeHandler;
 import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.apache.hc.core5.http2.config.H2Config;
 import org.apache.hc.core5.util.TimeValue;
@@ -53,11 +56,6 @@ import org.junit.Test;
 import org.junit.rules.ExternalResource;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.concurrent.Future;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @RunWith(Parameterized.class)
 public class TestHttp1RequestReExecution extends AbstractIntegrationTestBase<CloseableHttpAsyncClient> {
@@ -131,23 +129,9 @@ public class TestHttp1RequestReExecution extends AbstractIntegrationTestBase<Clo
         };
 
         if (version.greaterEquals(HttpVersion.HTTP_2)) {
-            return super.start(null, new Decorator<AsyncServerExchangeHandler>() {
-
-                @Override
-                public AsyncServerExchangeHandler decorate(final AsyncServerExchangeHandler handler) {
-                    return new ServiceUnavailableAsyncDecorator(handler, serviceAvailabilityResolver);
-                }
-
-            }, H2Config.DEFAULT);
+            return super.start(null, handler -> new ServiceUnavailableAsyncDecorator(handler, serviceAvailabilityResolver), H2Config.DEFAULT);
         } else {
-            return super.start(null, new Decorator<AsyncServerExchangeHandler>() {
-
-                @Override
-                public AsyncServerExchangeHandler decorate(final AsyncServerExchangeHandler handler) {
-                    return new ServiceUnavailableAsyncDecorator(handler, serviceAvailabilityResolver);
-                }
-
-            }, Http1Config.DEFAULT);
+            return super.start(null, handler -> new ServiceUnavailableAsyncDecorator(handler, serviceAvailabilityResolver), Http1Config.DEFAULT);
         }
     }
 

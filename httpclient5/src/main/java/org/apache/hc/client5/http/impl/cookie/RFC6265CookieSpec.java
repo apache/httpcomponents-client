@@ -180,7 +180,7 @@ public class RFC6265CookieSpec implements CookieSpec {
             }
         }
 
-        return Collections.<Cookie>singletonList(cookie);
+        return Collections.singletonList(cookie);
     }
 
     @Override

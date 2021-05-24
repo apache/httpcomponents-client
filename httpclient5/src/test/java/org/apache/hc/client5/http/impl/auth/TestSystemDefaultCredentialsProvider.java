@@ -32,9 +32,9 @@ import java.net.InetAddress;
 import java.net.PasswordAuthentication;
 import java.net.URL;
 
-import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.Credentials;
+import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.core5.http.protocol.HttpCoreContext;
 import org.junit.Assert;
@@ -128,10 +128,10 @@ public class TestSystemDefaultCredentialsProvider {
     private AuthenticatorDelegate installAuthenticator(final PasswordAuthentication returedAuthentication) {
         final AuthenticatorDelegate authenticatorDelegate = Mockito.mock(AuthenticatorDelegate.class);
         Mockito.when(authenticatorDelegate.getPasswordAuthentication(ArgumentMatchers.anyString(),
-                                                                     ArgumentMatchers.<InetAddress>any(), ArgumentMatchers.anyInt(),
+                                                                     ArgumentMatchers.any(), ArgumentMatchers.anyInt(),
                                                                      ArgumentMatchers.anyString(), ArgumentMatchers.anyString(),
-                                                                     ArgumentMatchers.anyString(), ArgumentMatchers.<URL>any(),
-                                                                     ArgumentMatchers.<RequestorType>any())).thenReturn(returedAuthentication);
+                                                                     ArgumentMatchers.anyString(), ArgumentMatchers.any(),
+                                                                     ArgumentMatchers.any())).thenReturn(returedAuthentication);
         Authenticator.setDefault(new DelegatedAuthenticator(authenticatorDelegate));
         return authenticatorDelegate;
     }

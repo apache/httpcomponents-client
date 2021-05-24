@@ -32,13 +32,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.Collections;
-import java.util.Map;
 
 import org.apache.hc.client5.http.AuthenticationStrategy;
 import org.apache.hc.client5.http.HttpRoute;
-import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.AuthExchange;
-import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.Credentials;
@@ -56,13 +53,11 @@ import org.apache.hc.client5.http.impl.auth.NTLMScheme;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
-import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
-import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
 import org.junit.Assert;
 import org.junit.Before;
@@ -108,8 +103,8 @@ public class TestProtocolExec {
         final ClassicHttpResponse response = Mockito.mock(ClassicHttpResponse.class);
 
         Mockito.when(chain.proceed(
-                Mockito.<ClassicHttpRequest>any(),
-                Mockito.<ExecChain.Scope>any())).thenReturn(response);
+                Mockito.any(),
+                Mockito.any())).thenReturn(response);
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
         protocolExec.execute(request, scope, chain);
@@ -132,8 +127,8 @@ public class TestProtocolExec {
 
         final ClassicHttpResponse response = Mockito.mock(ClassicHttpResponse.class);
         Mockito.when(chain.proceed(
-                Mockito.<ClassicHttpRequest>any(),
-                Mockito.<ExecChain.Scope>any())).thenReturn(response);
+                Mockito.any(),
+                Mockito.any())).thenReturn(response);
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
         protocolExec.execute(request, scope, chain);
@@ -153,10 +148,10 @@ public class TestProtocolExec {
         final ClassicHttpResponse response = Mockito.mock(ClassicHttpResponse.class);
 
         Mockito.when(chain.proceed(
-                Mockito.<ClassicHttpRequest>any(),
-                Mockito.<ExecChain.Scope>any())).thenReturn(response);
+                Mockito.any(),
+                Mockito.any())).thenReturn(response);
         Mockito.doThrow(new HttpException("Ooopsie")).when(httpProcessor).process(
-                Mockito.same(response), Mockito.<EntityDetails>isNull(), Mockito.<HttpContext>any());
+                Mockito.same(response), Mockito.isNull(), Mockito.any());
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
         try {
             protocolExec.execute(request, scope, chain);
@@ -174,10 +169,10 @@ public class TestProtocolExec {
 
         final ClassicHttpResponse response = Mockito.mock(ClassicHttpResponse.class);
         Mockito.when(chain.proceed(
-                Mockito.<ClassicHttpRequest>any(),
-                Mockito.<ExecChain.Scope>any())).thenReturn(response);
+                Mockito.any(),
+                Mockito.any())).thenReturn(response);
         Mockito.doThrow(new IOException("Ooopsie")).when(httpProcessor).process(
-                Mockito.same(response), Mockito.<EntityDetails>isNull(), Mockito.<HttpContext>any());
+                Mockito.same(response), Mockito.isNull(), Mockito.any());
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
         try {
             protocolExec.execute(request, scope, chain);
@@ -195,10 +190,10 @@ public class TestProtocolExec {
 
         final ClassicHttpResponse response = Mockito.mock(ClassicHttpResponse.class);
         Mockito.when(chain.proceed(
-                Mockito.<ClassicHttpRequest>any(),
-                Mockito.<ExecChain.Scope>any())).thenReturn(response);
+                Mockito.any(),
+                Mockito.any())).thenReturn(response);
         Mockito.doThrow(new RuntimeException("Ooopsie")).when(httpProcessor).process(
-                Mockito.same(response), Mockito.<EntityDetails>isNull(), Mockito.<HttpContext>any());
+                Mockito.same(response), Mockito.isNull(), Mockito.any());
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
         try {
             protocolExec.execute(request, scope, chain);
@@ -231,11 +226,11 @@ public class TestProtocolExec {
 
         Mockito.when(chain.proceed(
                 Mockito.same(request),
-                Mockito.<ExecChain.Scope>any())).thenReturn(response1, response2);
+                Mockito.any())).thenReturn(response1, response2);
         Mockito.when(targetAuthStrategy.select(
                 Mockito.eq(ChallengeType.TARGET),
-                Mockito.<Map<String, AuthChallenge>>any(),
-                Mockito.<HttpClientContext>any())).thenReturn(Collections.<AuthScheme>singletonList(new BasicScheme()));
+                Mockito.any(),
+                Mockito.<HttpClientContext>any())).thenReturn(Collections.singletonList(new BasicScheme()));
         Mockito.when(execRuntime.isConnectionReusable()).thenReturn(true);
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
@@ -277,12 +272,12 @@ public class TestProtocolExec {
 
         Mockito.when(chain.proceed(
                 Mockito.same(request),
-                Mockito.<ExecChain.Scope>any())).thenReturn(response1, response2);
+                Mockito.any())).thenReturn(response1, response2);
 
         Mockito.when(targetAuthStrategy.select(
                 Mockito.eq(ChallengeType.TARGET),
-                Mockito.<Map<String, AuthChallenge>>any(),
-                Mockito.<HttpClientContext>any())).thenReturn(Collections.<AuthScheme>singletonList(new BasicScheme()));
+                Mockito.any(),
+                Mockito.<HttpClientContext>any())).thenReturn(Collections.singletonList(new BasicScheme()));
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
         final ClassicHttpResponse finalResponse = protocolExec.execute(request, scope, chain);
@@ -317,7 +312,7 @@ public class TestProtocolExec {
 
         Mockito.when(chain.proceed(
                 Mockito.same(request),
-                Mockito.<ExecChain.Scope>any())).thenAnswer((Answer<HttpResponse>) invocationOnMock -> {
+                Mockito.any())).thenAnswer((Answer<HttpResponse>) invocationOnMock -> {
                     final Object[] args = invocationOnMock.getArguments();
                     final ClassicHttpRequest requestEE = (ClassicHttpRequest) args[0];
                     requestEE.getEntity().writeTo(new ByteArrayOutputStream());
