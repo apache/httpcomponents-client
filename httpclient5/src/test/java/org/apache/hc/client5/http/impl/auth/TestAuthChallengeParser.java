@@ -253,28 +253,31 @@ public class TestAuthChallengeParser {
         Assert.assertNull(challenge1.getParams());
     }
 
-    @Test(expected = ParseException.class)
+    @Test
     public void testParseMalformedAuthChallenge1() throws Exception {
         final CharArrayBuffer buffer = new CharArrayBuffer(64);
         buffer.append("This , ");
         final ParserCursor cursor = new ParserCursor(0, buffer.length());
-        parser.parse(ChallengeType.TARGET, buffer, cursor);
+        Assert.assertThrows(ParseException.class, () ->
+                parser.parse(ChallengeType.TARGET, buffer, cursor));
     }
 
-    @Test(expected = ParseException.class)
+    @Test
     public void testParseMalformedAuthChallenge2() throws Exception {
         final CharArrayBuffer buffer = new CharArrayBuffer(64);
         buffer.append("This = that");
         final ParserCursor cursor = new ParserCursor(0, buffer.length());
-        parser.parse(ChallengeType.TARGET, buffer, cursor);
+        Assert.assertThrows(ParseException.class, () ->
+                parser.parse(ChallengeType.TARGET, buffer, cursor));
     }
 
-    @Test(expected = ParseException.class)
+    @Test
     public void testParseMalformedAuthChallenge3() throws Exception {
         final CharArrayBuffer buffer = new CharArrayBuffer(64);
         buffer.append("blah blah blah");
         final ParserCursor cursor = new ParserCursor(0, buffer.length());
-        parser.parse(ChallengeType.TARGET, buffer, cursor);
+        Assert.assertThrows(ParseException.class, () ->
+                parser.parse(ChallengeType.TARGET, buffer, cursor));
     }
 
     @Test

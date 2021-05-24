@@ -53,18 +53,20 @@ public class TestBasicCookieAttribHandlers {
         Assert.assertEquals("www.somedomain.com", cookie.getDomain());
     }
 
-    @Test(expected=MalformedCookieException.class)
+    @Test
     public void testBasicDomainParseInvalid1() throws Exception {
         final BasicClientCookie cookie = new BasicClientCookie("name", "value");
         final CookieAttributeHandler h = new BasicDomainHandler();
-        h.parse(cookie, "");
+        Assert.assertThrows(MalformedCookieException.class, () ->
+                h.parse(cookie, ""));
     }
 
-    @Test(expected=MalformedCookieException.class)
+    @Test
     public void testBasicDomainParseInvalid2() throws Exception {
         final BasicClientCookie cookie = new BasicClientCookie("name", "value");
         final CookieAttributeHandler h = new BasicDomainHandler();
-        h.parse(cookie, null);
+        Assert.assertThrows(MalformedCookieException.class, () ->
+                h.parse(cookie, null));
     }
 
     @Test

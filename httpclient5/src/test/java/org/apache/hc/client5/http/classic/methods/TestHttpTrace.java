@@ -27,14 +27,16 @@
 
 package org.apache.hc.client5.http.classic.methods;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 public class TestHttpTrace {
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void testHttpTraceSetEntity() {
         final HttpTrace httpTrace = new HttpTrace("/path");
-        httpTrace.setEntity(null);
+        Assert.assertThrows(IllegalStateException.class, () ->
+            httpTrace.setEntity(null));
     }
 
 }

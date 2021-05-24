@@ -135,7 +135,7 @@ public class TestRedirectExec {
         Mockito.verify(inStream2, Mockito.never()).close();
     }
 
-    @Test(expected = RedirectException.class)
+    @Test
     public void testMaxRedirect() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpGet request = new HttpGet("/test");
@@ -153,10 +153,11 @@ public class TestRedirectExec {
         Mockito.when(chain.proceed(ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(response1);
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
-        redirectExec.execute(request, scope, chain);
+        Assert.assertThrows(RedirectException.class, () ->
+                redirectExec.execute(request, scope, chain));
     }
 
-    @Test(expected = HttpException.class)
+    @Test
     public void testRelativeRedirect() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpGet request = new HttpGet("/test");
@@ -170,7 +171,8 @@ public class TestRedirectExec {
                 ArgumentMatchers.any())).thenReturn(response1);
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
-        redirectExec.execute(request, scope, chain);
+        Assert.assertThrows(HttpException.class, () ->
+                redirectExec.execute(request, scope, chain));
     }
 
     @Test
@@ -260,7 +262,7 @@ public class TestRedirectExec {
         Assert.assertEquals(Arrays.asList(uri1, uri2, uri1), uris.getAll());
     }
 
-    @Test(expected=CircularRedirectException.class)
+    @Test
     public void testGetLocationUriDisallowCircularRedirects() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpClientContext context = HttpClientContext.create();
@@ -294,10 +296,11 @@ public class TestRedirectExec {
                 ArgumentMatchers.any())).thenReturn(response3);
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
-        redirectExec.execute(request, scope, chain);
+        Assert.assertThrows(CircularRedirectException.class, () ->
+                redirectExec.execute(request, scope, chain));
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test
     public void testRedirectRuntimeException() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpGet request = new HttpGet("/test");
@@ -315,15 +318,12 @@ public class TestRedirectExec {
                 ArgumentMatchers.<HttpClientContext>any());
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
-        try {
-            redirectExec.execute(request, scope, chain);
-        } catch (final Exception ex) {
-            Mockito.verify(response1).close();
-            throw ex;
-        }
+        Assert.assertThrows(RuntimeException.class, () ->
+                redirectExec.execute(request, scope, chain));
+        Mockito.verify(response1).close();
     }
 
-    @Test(expected = ProtocolException.class)
+    @Test
     public void testRedirectProtocolException() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpGet request = new HttpGet("/test");
@@ -346,13 +346,10 @@ public class TestRedirectExec {
                 ArgumentMatchers.<HttpClientContext>any());
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
-        try {
-            redirectExec.execute(request, scope, chain);
-        } catch (final Exception ex) {
-            Mockito.verify(inStream1, Mockito.times(2)).close();
-            Mockito.verify(response1).close();
-            throw ex;
-        }
+        Assert.assertThrows(ProtocolException.class, () ->
+                redirectExec.execute(request, scope, chain));
+        Mockito.verify(inStream1, Mockito.times(2)).close();
+        Mockito.verify(response1).close();
     }
 
     private static class HttpRequestMatcher implements ArgumentMatcher<ClassicHttpRequest> {

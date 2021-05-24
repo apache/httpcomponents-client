@@ -55,6 +55,8 @@ import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.ssl.SSLContexts;
 import org.apache.hc.core5.ssl.TrustStrategy;
 import org.apache.hc.core5.util.TimeValue;
+import org.hamcrest.CoreMatchers;
+import org.hamcrest.MatcherAssert;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
@@ -181,7 +183,7 @@ public class TestSSLSocketFactory {
         }
     }
 
-    @Test(expected = IOException.class)
+    @Test
     public void testClientAuthSSLFailure() throws Exception {
         // @formatter:off
         this.server = ServerBootstrap.bootstrap()
@@ -198,22 +200,24 @@ public class TestSSLSocketFactory {
         try (final Socket socket = socketFactory.createSocket(context)) {
             final InetSocketAddress remoteAddress = new InetSocketAddress("localhost", this.server.getLocalPort());
             final HttpHost target = new HttpHost("https", "localhost", this.server.getLocalPort());
-            try (final SSLSocket sslSocket = (SSLSocket) socketFactory.connectSocket(
-                    TimeValue.ZERO_MILLISECONDS,
-                    socket, target,
-                    remoteAddress,
-                    null,
-                    context)) {
-                final SSLSession sslsession = sslSocket.getSession();
+            Assert.assertThrows(IOException.class, () -> {
+                try (final SSLSocket sslSocket = (SSLSocket) socketFactory.connectSocket(
+                        TimeValue.ZERO_MILLISECONDS,
+                        socket, target,
+                        remoteAddress,
+                        null,
+                        context)) {
+                    final SSLSession sslsession = sslSocket.getSession();
 
-                Assert.assertNotNull(sslsession);
-                Assert.assertTrue(hostVerifier.isFired());
-                sslSocket.getInputStream().read();
-            }
+                    Assert.assertNotNull(sslsession);
+                    Assert.assertTrue(hostVerifier.isFired());
+                    sslSocket.getInputStream().read();
+                }
+            });
         }
     }
 
-    @Test(expected = SSLException.class)
+    @Test
     public void testSSLTrustVerification() throws Exception {
         // @formatter:off
         this.server = ServerBootstrap.bootstrap()
@@ -232,10 +236,12 @@ public class TestSSLSocketFactory {
         try (final Socket socket = socketFactory.createSocket(context)) {
             final InetSocketAddress remoteAddress = new InetSocketAddress("localhost", this.server.getLocalPort());
             final HttpHost target = new HttpHost("https", "localhost", this.server.getLocalPort());
-            try (final SSLSocket sslSocket = (SSLSocket) socketFactory.connectSocket(TimeValue.ZERO_MILLISECONDS, socket, target, remoteAddress,
-                    null, context)) {
-                // empty for now
-            }
+            Assert.assertThrows(SSLException.class, () -> {
+                try (final SSLSocket sslSocket = (SSLSocket) socketFactory.connectSocket(
+                        TimeValue.ZERO_MILLISECONDS, socket, target, remoteAddress, null, context)) {
+                    // empty for now
+                }
+            });
         }
     }
 
@@ -284,7 +290,7 @@ public class TestSSLSocketFactory {
         }
     }
 
-    @Test(expected = IOException.class)
+    @Test
     public void testSSLDisabledByDefault() throws Exception {
         // @formatter:off
         this.server = ServerBootstrap.bootstrap()
@@ -300,7 +306,9 @@ public class TestSSLSocketFactory {
         try (final Socket socket = socketFactory.createSocket(context)) {
             final InetSocketAddress remoteAddress = new InetSocketAddress("localhost", this.server.getLocalPort());
             final HttpHost target = new HttpHost("https", "localhost", this.server.getLocalPort());
-            socketFactory.connectSocket(TimeValue.ZERO_MILLISECONDS, socket, target, remoteAddress, null, context);
+            Assert.assertThrows(IOException.class, () ->
+                    socketFactory.connectSocket(
+                            TimeValue.ZERO_MILLISECONDS, socket, target, remoteAddress, null, context));
         }
     }
 
@@ -324,12 +332,11 @@ public class TestSSLSocketFactory {
                 "SSL_RSA_EXPORT_WITH_RC2_CBC_40_MD5"
         };
         for (final String cipherSuite : weakCiphersSuites) {
-            try {
-                testWeakCipherDisabledByDefault(cipherSuite);
-                Assert.fail("IOException expected");
-            } catch (final Exception e) {
-                Assert.assertTrue(e instanceof IOException || e instanceof IllegalArgumentException);
-            }
+            final Exception exception = Assert.assertThrows(Exception.class, () ->
+                    testWeakCipherDisabledByDefault(cipherSuite));
+            MatcherAssert.assertThat(exception, CoreMatchers.anyOf(
+                    CoreMatchers.instanceOf(IOException.class),
+                    CoreMatchers.instanceOf(IllegalArgumentException.class)));
         }
     }
 

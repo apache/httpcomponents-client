@@ -237,7 +237,7 @@ public class TestMainClientExec {
         Mockito.verify(endpoint).discardEndpoint();
     }
 
-    @Test(expected=InterruptedIOException.class)
+    @Test
     public void testExecConnectionShutDown() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpClientContext context = new HttpClientContext();
@@ -249,15 +249,12 @@ public class TestMainClientExec {
                 Mockito.any())).thenThrow(new ConnectionShutdownException());
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
-        try {
-            mainClientExec.execute(request, scope, null);
-        } catch (final Exception ex) {
-            Mockito.verify(endpoint).discardEndpoint();
-            throw ex;
-        }
+        Assert.assertThrows(InterruptedIOException.class, () ->
+                mainClientExec.execute(request, scope, null));
+        Mockito.verify(endpoint).discardEndpoint();
     }
 
-    @Test(expected=RuntimeException.class)
+    @Test
     public void testExecRuntimeException() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpClientContext context = new HttpClientContext();
@@ -269,15 +266,12 @@ public class TestMainClientExec {
                 Mockito.any())).thenThrow(new RuntimeException("Ka-boom"));
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
-        try {
-            mainClientExec.execute(request, scope, null);
-        } catch (final Exception ex) {
-            Mockito.verify(endpoint).discardEndpoint();
-            throw ex;
-        }
+        Assert.assertThrows(RuntimeException.class, () ->
+                mainClientExec.execute(request, scope, null));
+        Mockito.verify(endpoint).discardEndpoint();
     }
 
-    @Test(expected=HttpException.class)
+    @Test
     public void testExecHttpException() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpClientContext context = new HttpClientContext();
@@ -289,15 +283,12 @@ public class TestMainClientExec {
                 Mockito.any())).thenThrow(new HttpException("Ka-boom"));
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
-        try {
-            mainClientExec.execute(request, scope, null);
-        } catch (final Exception ex) {
-            Mockito.verify(endpoint).discardEndpoint();
-            throw ex;
-        }
+        Assert.assertThrows(HttpException.class, () ->
+                mainClientExec.execute(request, scope, null));
+        Mockito.verify(endpoint).discardEndpoint();
     }
 
-    @Test(expected=IOException.class)
+    @Test
     public void testExecIOException() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpClientContext context = new HttpClientContext();
@@ -309,12 +300,9 @@ public class TestMainClientExec {
                 Mockito.any())).thenThrow(new IOException("Ka-boom"));
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
-        try {
-            mainClientExec.execute(request, scope, null);
-        } catch (final Exception ex) {
-            Mockito.verify(endpoint).discardEndpoint();
-            throw ex;
-        }
+        Assert.assertThrows(IOException.class, () ->
+                mainClientExec.execute(request, scope, null));
+        Mockito.verify(endpoint).discardEndpoint();
     }
 
     static class ConnectionState {

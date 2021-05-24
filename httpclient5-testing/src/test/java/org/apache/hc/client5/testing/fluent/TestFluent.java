@@ -90,11 +90,12 @@ public class TestFluent extends LocalServerTestBase {
         Assert.assertEquals("All is well", message);
     }
 
-    @Test(expected = ClientProtocolException.class)
+    @Test
     public void testGetRequestFailure() throws Exception {
         final HttpHost target = start();
         final String baseURL = "http://localhost:" + target.getPort();
-        Request.get(baseURL + "/boom").execute().returnContent().asString();
+        Assert.assertThrows(ClientProtocolException.class, () ->
+                Request.get(baseURL + "/boom").execute().returnContent().asString());
     }
 
     @Test

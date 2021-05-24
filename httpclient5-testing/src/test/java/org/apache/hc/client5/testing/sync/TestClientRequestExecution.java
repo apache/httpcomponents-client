@@ -166,7 +166,7 @@ public class TestClientRequestExecution extends LocalServerTestBase {
         Assert.assertEquals(1, myheaders.length);
     }
 
-    @Test(expected=IOException.class)
+    @Test
     public void testNonRepeatableEntity() throws Exception {
         this.server.registerHandler("*", new SimpleService());
 
@@ -213,7 +213,8 @@ public class TestClientRequestExecution extends LocalServerTestBase {
                 new ByteArrayInputStream(
                         new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 } ),
                         -1, null));
-        this.httpclient.execute(target, httppost, context);
+        Assert.assertThrows(IOException.class, () ->
+                this.httpclient.execute(target, httppost, context));
     }
 
     @Test

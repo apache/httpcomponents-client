@@ -51,11 +51,12 @@ public class TestBasicAuthCache {
         Assert.assertNull(cache.get(new HttpHost("localhost", 80)));
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void testNullKey() throws Exception {
         final BasicAuthCache cache = new BasicAuthCache();
         final AuthScheme authScheme = new BasicScheme();
-        cache.put(null, authScheme);
+        Assert.assertThrows(NullPointerException.class, () ->
+                cache.put(null, authScheme));
     }
 
     @Test

@@ -81,11 +81,12 @@ public class TestRouteDirector {
         }
     }
 
-    @Test(expected=NullPointerException.class)
+    @Test
     public void testIllegal() {
         final HttpRouteDirector rowdy = new BasicRouteDirector();
         final HttpRoute route = new HttpRoute(TARGET1);
-        rowdy.nextStep(null, route);
+        Assert.assertThrows(NullPointerException.class, () ->
+                rowdy.nextStep(null, route));
     }
 
     @Test

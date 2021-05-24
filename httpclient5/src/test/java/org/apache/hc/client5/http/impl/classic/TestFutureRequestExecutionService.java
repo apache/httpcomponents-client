@@ -50,12 +50,11 @@ import org.apache.hc.core5.http.impl.bootstrap.HttpServer;
 import org.apache.hc.core5.http.impl.bootstrap.ServerBootstrap;
 import org.apache.hc.core5.http.io.HttpClientResponseHandler;
 import org.hamcrest.CoreMatchers;
+import org.hamcrest.MatcherAssert;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 @SuppressWarnings("boxing") // test code
 public class TestFutureRequestExecutionService {
@@ -65,9 +64,6 @@ public class TestFutureRequestExecutionService {
     private FutureRequestExecutionService httpAsyncClientWithFuture;
 
     private final AtomicBoolean blocked = new AtomicBoolean(false);
-
-    @Rule
-    public final ExpectedException thrown = ExpectedException.none();
 
     @Before
     public void before() throws Exception {
@@ -111,24 +107,22 @@ public class TestFutureRequestExecutionService {
 
     @Test
     public void shouldCancel() throws InterruptedException, ExecutionException {
-        thrown.expect(CoreMatchers.anyOf(
-                CoreMatchers.instanceOf(CancellationException.class),
-                CoreMatchers.instanceOf(ExecutionException.class)));
-
         final FutureTask<Boolean> task = httpAsyncClientWithFuture.execute(
             new HttpGet(uri), HttpClientContext.create(), new OkidokiHandler());
         task.cancel(true);
-        task.get();
+        final Exception exception = Assert.assertThrows(Exception.class, task::get);
+        MatcherAssert.assertThat(exception, CoreMatchers.anyOf(
+                CoreMatchers.instanceOf(CancellationException.class),
+                CoreMatchers.instanceOf(ExecutionException.class)));
     }
 
     @Test
     public void shouldTimeout() throws InterruptedException, ExecutionException, TimeoutException {
-        thrown.expect(TimeoutException.class);
-
         blocked.set(true);
         final FutureTask<Boolean> task = httpAsyncClientWithFuture.execute(
             new HttpGet(uri), HttpClientContext.create(), new OkidokiHandler());
-        task.get(10, TimeUnit.MILLISECONDS);
+        Assert.assertThrows(TimeoutException.class, () ->
+                task.get(10, TimeUnit.MILLISECONDS));
     }
 
     @Test

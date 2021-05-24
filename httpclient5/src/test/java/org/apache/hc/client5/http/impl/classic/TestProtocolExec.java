@@ -139,7 +139,7 @@ public class TestProtocolExec {
         Assert.assertEquals("somefella", creds.getUserPrincipal().getName());
     }
 
-    @Test(expected = HttpException.class)
+    @Test
     public void testPostProcessHttpException() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final ClassicHttpRequest request = new HttpGet("/test");
@@ -153,15 +153,12 @@ public class TestProtocolExec {
         Mockito.doThrow(new HttpException("Ooopsie")).when(httpProcessor).process(
                 Mockito.same(response), Mockito.isNull(), Mockito.any());
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
-        try {
-            protocolExec.execute(request, scope, chain);
-        } catch (final Exception ex) {
-            Mockito.verify(execRuntime).discardEndpoint();
-            throw ex;
-        }
+        Assert.assertThrows(HttpException.class, () ->
+                protocolExec.execute(request, scope, chain));
+        Mockito.verify(execRuntime).discardEndpoint();
     }
 
-    @Test(expected = IOException.class)
+    @Test
     public void testPostProcessIOException() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final ClassicHttpRequest request = new HttpGet("/test");
@@ -174,15 +171,12 @@ public class TestProtocolExec {
         Mockito.doThrow(new IOException("Ooopsie")).when(httpProcessor).process(
                 Mockito.same(response), Mockito.isNull(), Mockito.any());
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
-        try {
-            protocolExec.execute(request, scope, chain);
-        } catch (final Exception ex) {
-            Mockito.verify(execRuntime).discardEndpoint();
-            throw ex;
-        }
+        Assert.assertThrows(IOException.class, () ->
+                protocolExec.execute(request, scope, chain));
+        Mockito.verify(execRuntime).discardEndpoint();
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test
     public void testPostProcessRuntimeException() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final ClassicHttpRequest request = new HttpGet("/test");
@@ -195,12 +189,9 @@ public class TestProtocolExec {
         Mockito.doThrow(new RuntimeException("Ooopsie")).when(httpProcessor).process(
                 Mockito.same(response), Mockito.isNull(), Mockito.any());
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
-        try {
-            protocolExec.execute(request, scope, chain);
-        } catch (final Exception ex) {
-            Mockito.verify(execRuntime).discardEndpoint();
-            throw ex;
-        }
+        Assert.assertThrows(RuntimeException.class, () ->
+                protocolExec.execute(request, scope, chain));
+        Mockito.verify(execRuntime).discardEndpoint();
     }
 
     @Test

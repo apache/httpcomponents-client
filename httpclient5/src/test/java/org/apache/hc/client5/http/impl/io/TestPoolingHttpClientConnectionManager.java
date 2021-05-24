@@ -151,7 +151,7 @@ public class TestPoolingHttpClientConnectionManager {
         Mockito.verify(pool).release(entry, false);
     }
 
-    @Test(expected= ExecutionException.class)
+    @Test
     public void testLeaseFutureCancelled() throws Exception {
         final HttpHost target = new HttpHost("localhost", 80);
         final HttpRoute route = new HttpRoute(target);
@@ -169,10 +169,11 @@ public class TestPoolingHttpClientConnectionManager {
                 .thenReturn(future);
 
         final LeaseRequest connRequest1 = mgr.lease("some-id", route, null);
-        connRequest1.get(Timeout.ofSeconds(1));
+        Assert.assertThrows(ExecutionException.class, () ->
+                connRequest1.get(Timeout.ofSeconds(1)));
     }
 
-    @Test(expected=TimeoutException.class)
+    @Test
     public void testLeaseFutureTimeout() throws Exception {
         final HttpHost target = new HttpHost("localhost", 80);
         final HttpRoute route = new HttpRoute(target);
@@ -186,7 +187,8 @@ public class TestPoolingHttpClientConnectionManager {
                 .thenReturn(future);
 
         final LeaseRequest connRequest1 = mgr.lease("some-id", route, null);
-        connRequest1.get(Timeout.ofSeconds(1));
+        Assert.assertThrows(TimeoutException.class, () ->
+                connRequest1.get(Timeout.ofSeconds(1)));
     }
 
     @Test

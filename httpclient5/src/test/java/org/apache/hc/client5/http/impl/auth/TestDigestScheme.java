@@ -39,12 +39,12 @@ import java.util.Map;
 
 import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.AuthScheme;
-import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.AuthenticationException;
 import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.MalformedChallengeException;
+import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ContentType;
@@ -76,18 +76,20 @@ public class TestDigestScheme {
         return authChallenges.get(0);
     }
 
-    @Test(expected=MalformedChallengeException.class)
+    @Test
     public void testDigestAuthenticationEmptyChallenge1() throws Exception {
         final AuthChallenge authChallenge = parse(StandardAuthScheme.DIGEST);
         final AuthScheme authscheme = new DigestScheme();
-        authscheme.processChallenge(authChallenge, null);
+        Assert.assertThrows(MalformedChallengeException.class, () ->
+                authscheme.processChallenge(authChallenge, null));
     }
 
-    @Test(expected=MalformedChallengeException.class)
+    @Test
     public void testDigestAuthenticationEmptyChallenge2() throws Exception {
         final AuthChallenge authChallenge = parse(StandardAuthScheme.DIGEST + " ");
         final AuthScheme authscheme = new DigestScheme();
-        authscheme.processChallenge(authChallenge, null);
+        Assert.assertThrows(MalformedChallengeException.class, () ->
+                authscheme.processChallenge(authChallenge, null));
     }
 
     @Test
@@ -224,7 +226,7 @@ public class TestDigestScheme {
         Assert.assertEquals("a847f58f5fef0bc087bcb9c3eb30e042", table.get("response"));
     }
 
-    @Test(expected=AuthenticationException.class)
+    @Test
     public void testDigestAuthenticationNoRealm() throws Exception {
         final HttpRequest request = new BasicHttpRequest("Simple", "/");
         final HttpHost host = new HttpHost("somehost", 80);
@@ -239,10 +241,11 @@ public class TestDigestScheme {
         authscheme.processChallenge(authChallenge, null);
 
         Assert.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
-        authscheme.generateAuthResponse(host, request, null);
+        Assert.assertThrows(AuthenticationException.class, () ->
+                authscheme.generateAuthResponse(host, request, null));
     }
 
-    @Test(expected=AuthenticationException.class)
+    @Test
     public void testDigestAuthenticationNoNonce() throws Exception {
         final HttpRequest request = new BasicHttpRequest("Simple", "/");
         final HttpHost host = new HttpHost("somehost", 80);
@@ -257,7 +260,8 @@ public class TestDigestScheme {
         authscheme.processChallenge(authChallenge, null);
 
         Assert.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
-        authscheme.generateAuthResponse(host, request, null);
+        Assert.assertThrows(AuthenticationException.class, () ->
+                authscheme.generateAuthResponse(host, request, null));
     }
 
     /**
@@ -359,7 +363,7 @@ public class TestDigestScheme {
     /**
      * Test digest authentication with unknown qop value
      */
-    @Test(expected=AuthenticationException.class)
+    @Test
     public void testDigestAuthenticationMD5SessUnknownQop() throws Exception {
         // Example using Digest auth with MD5-sess
 
@@ -388,13 +392,14 @@ public class TestDigestScheme {
         authscheme.processChallenge(authChallenge, null);
 
         Assert.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
-        authscheme.generateAuthResponse(host, request, null);
+        Assert.assertThrows(AuthenticationException.class, () ->
+                authscheme.generateAuthResponse(host, request, null));
     }
 
     /**
      * Test digest authentication with unknown qop value
      */
-    @Test(expected=AuthenticationException.class)
+    @Test
     public void testDigestAuthenticationUnknownAlgo() throws Exception {
         // Example using Digest auth with MD5-sess
 
@@ -423,7 +428,8 @@ public class TestDigestScheme {
         authscheme.processChallenge(authChallenge, null);
 
         Assert.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
-        authscheme.generateAuthResponse(host, request, null);
+        Assert.assertThrows(AuthenticationException.class, () ->
+                authscheme.generateAuthResponse(host, request, null));
     }
 
     @Test
@@ -689,7 +695,7 @@ public class TestDigestScheme {
         authscheme.generateAuthResponse(host, request, null);
     }
 
-    @Test(expected=AuthenticationException.class)
+    @Test
     public void testDigestAuthenticationQopIntOnlyNonRepeatableEntity() throws Exception {
         final ClassicHttpRequest request = new BasicClassicHttpRequest("Post", "/");
         request.setEntity(new InputStreamEntity(new ByteArrayInputStream(new byte[] {'a'}), -1, ContentType.DEFAULT_TEXT));
@@ -706,7 +712,8 @@ public class TestDigestScheme {
         authscheme.processChallenge(authChallenge, null);
 
         Assert.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
-        authscheme.generateAuthResponse(host, request, null);
+        Assert.assertThrows(AuthenticationException.class, () ->
+                authscheme.generateAuthResponse(host, request, null));
     }
 
     @Test

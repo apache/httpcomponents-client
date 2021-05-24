@@ -135,23 +135,25 @@ public class TestDefaultRedirectStrategy {
         Assert.assertEquals(URI.create("http://localhost/stuff"), uri);
     }
 
-    @Test(expected=HttpException.class)
+    @Test
     public void testGetLocationUriMissingHeader() throws Exception {
         final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
         final HttpClientContext context = HttpClientContext.create();
         final HttpGet httpget = new HttpGet("http://localhost/");
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_MOVED_TEMPORARILY, "Redirect");
-        redirectStrategy.getLocationURI(httpget, response, context);
+        Assert.assertThrows(HttpException.class, () ->
+                redirectStrategy.getLocationURI(httpget, response, context));
     }
 
-    @Test(expected=ProtocolException.class)
+    @Test
     public void testGetLocationUriInvalidLocation() throws Exception {
         final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
         final HttpClientContext context = HttpClientContext.create();
         final HttpGet httpget = new HttpGet("http://localhost/");
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_MOVED_TEMPORARILY, "Redirect");
         response.addHeader("Location", "http://localhost/not valid");
-        redirectStrategy.getLocationURI(httpget, response, context);
+        Assert.assertThrows(ProtocolException.class, () ->
+                redirectStrategy.getLocationURI(httpget, response, context));
     }
 
     @Test
@@ -229,10 +231,11 @@ public class TestDefaultRedirectStrategy {
                 redirectStrategy.createLocationURI("http://BlahBlah").toASCIIString());
     }
 
-    @Test(expected=ProtocolException.class)
+    @Test
     public void testCreateLocationURIInvalid() throws Exception {
         final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
-        redirectStrategy.createLocationURI(":::::::");
+        Assert.assertThrows(ProtocolException.class, () ->
+                redirectStrategy.createLocationURI(":::::::"));
     }
 
 }

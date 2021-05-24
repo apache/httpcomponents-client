@@ -184,7 +184,7 @@ public class TestContentCompressionExec {
         Assert.assertTrue(entity instanceof StringEntity);
     }
 
-    @Test(expected=HttpException.class)
+    @Test
     public void testUnknownContentEncoding() throws Exception {
         final ClassicHttpRequest request = new BasicClassicHttpRequest(Method.GET, host, "/");
         final ClassicHttpResponse response = new BasicClassicHttpResponse(200, "OK");
@@ -195,7 +195,8 @@ public class TestContentCompressionExec {
 
         Mockito.when(execChain.proceed(request, scope)).thenReturn(response);
 
-        impl.execute(request, scope, execChain);
+        Assert.assertThrows(HttpException.class, () ->
+                impl.execute(request, scope, execChain));
     }
 
     @Test

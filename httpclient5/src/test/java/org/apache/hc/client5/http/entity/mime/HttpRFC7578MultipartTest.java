@@ -27,20 +27,22 @@
 
 package org.apache.hc.client5.http.entity.mime;
 
-import org.apache.commons.codec.DecoderException;
-import org.junit.Test;
-
 import static org.junit.Assert.assertEquals;
+
+import org.apache.commons.codec.DecoderException;
+import org.junit.Assert;
+import org.junit.Test;
 
 public class HttpRFC7578MultipartTest {
 
-    @Test(expected = DecoderException.class)
-    public void testPercentDecodingWithTooShortMessage() throws DecoderException {
-        new HttpRFC7578Multipart.PercentCodec().decode("%".getBytes());
+    @Test
+    public void testPercentDecodingWithTooShortMessage() throws Exception {
+        Assert.assertThrows(DecoderException.class, () ->
+                new HttpRFC7578Multipart.PercentCodec().decode("%".getBytes()));
     }
 
     @Test
-    public void testPercentDecodingWithValidMessages() throws DecoderException {
+    public void testPercentDecodingWithValidMessages() throws Exception {
         final HttpRFC7578Multipart.PercentCodec codec = new HttpRFC7578Multipart.PercentCodec();
         final String[][] tests = new String[][] {
                 {"test", "test"},

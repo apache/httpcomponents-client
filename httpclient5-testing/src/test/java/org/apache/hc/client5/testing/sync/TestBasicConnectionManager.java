@@ -48,7 +48,7 @@ public class TestBasicConnectionManager extends LocalServerTestBase {
         }
     }
 
-    @Test(expected=IllegalStateException.class)
+    @Test
     public void testConnectionStillInUse() throws Exception {
         this.clientBuilder.setConnectionManager(new BasicHttpClientConnectionManager());
 
@@ -56,7 +56,8 @@ public class TestBasicConnectionManager extends LocalServerTestBase {
         final HttpGet get1 = new HttpGet("/random/1024");
         this.httpclient.execute(target, get1);
         final HttpGet get2 = new HttpGet("/random/1024");
-        this.httpclient.execute(target, get2);
+        Assert.assertThrows(IllegalStateException.class, () ->
+                this.httpclient.execute(target, get2));
     }
 
 }

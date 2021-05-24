@@ -85,13 +85,14 @@ public class TestRFC6265CookieSpec {
         Assert.assertEquals("stuff", cookie.getAttribute("this"));
     }
 
-    @Test(expected = MalformedCookieException.class)
+    @Test
     public void testParseCookieWrongHeader() throws Exception {
         final RFC6265CookieSpec cookiespec = new RFC6265CookieSpec();
 
         final Header header = new BasicHeader("Set-Cookie2", "blah");
         final CookieOrigin origin = new CookieOrigin("host", 80, "/path/", true);
-        cookiespec.parse(header, origin);
+        Assert.assertThrows(MalformedCookieException.class, () ->
+                cookiespec.parse(header, origin));
     }
 
     @Test
@@ -114,13 +115,14 @@ public class TestRFC6265CookieSpec {
         Assert.assertEquals(0, cookies.size());
     }
 
-    @Test(expected = MalformedCookieException.class)
+    @Test
     public void testParseCookieMissingValue2() throws Exception {
         final RFC6265CookieSpec cookiespec = new RFC6265CookieSpec();
 
         final Header header = new BasicHeader("Set-Cookie", "blah;");
         final CookieOrigin origin = new CookieOrigin("host", 80, "/path/", true);
-        cookiespec.parse(header, origin);
+        Assert.assertThrows(MalformedCookieException.class, () ->
+                cookiespec.parse(header, origin));
     }
 
     @Test

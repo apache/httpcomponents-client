@@ -111,7 +111,7 @@ public class TestInternalHttpClient {
                 Mockito.any());
     }
 
-    @Test(expected=ClientProtocolException.class)
+    @Test
     public void testExecuteHttpException() throws Exception {
         final HttpGet httpget = new HttpGet("http://somehost/stuff");
         final HttpRoute route = new HttpRoute(new HttpHost("somehost", 80));
@@ -124,7 +124,8 @@ public class TestInternalHttpClient {
                 Mockito.any(),
                 Mockito.any())).thenThrow(new HttpException());
 
-        client.execute(httpget);
+        Assert.assertThrows(ClientProtocolException.class, () ->
+                client.execute(httpget));
     }
 
     @Test

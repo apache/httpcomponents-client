@@ -181,7 +181,7 @@ public class TestConnectExec {
         Assert.assertEquals("foo:80", connect.getRequestUri());
     }
 
-    @Test(expected = HttpException.class)
+    @Test
     public void testEstablishRouteViaProxyTunnelUnexpectedResponse() throws Exception {
         final HttpRoute route = new HttpRoute(target, null, proxy, true);
         final HttpClientContext context = new HttpClientContext();
@@ -197,10 +197,11 @@ public class TestConnectExec {
                 Mockito.any())).thenReturn(response);
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
-        exec.execute(request, scope, execChain);
+        Assert.assertThrows(HttpException.class, () ->
+                exec.execute(request, scope, execChain));
     }
 
-    @Test(expected = HttpException.class)
+    @Test
     public void testEstablishRouteViaProxyTunnelFailure() throws Exception {
         final HttpRoute route = new HttpRoute(target, null, proxy, true);
         final HttpClientContext context = new HttpClientContext();
@@ -217,14 +218,11 @@ public class TestConnectExec {
                 Mockito.any())).thenReturn(response);
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
-        try {
-            exec.execute(request, scope, execChain);
-        } catch (final TunnelRefusedException ex) {
-            Assert.assertEquals("Ka-boom", ex.getResponseMessage());
-            Mockito.verify(execRuntime).disconnectEndpoint();
-            Mockito.verify(execRuntime).discardEndpoint();
-            throw ex;
-        }
+        final TunnelRefusedException exception = Assert.assertThrows(TunnelRefusedException.class, () ->
+                exec.execute(request, scope, execChain));
+        Assert.assertEquals("Ka-boom", exception.getResponseMessage());
+        Mockito.verify(execRuntime).disconnectEndpoint();
+        Mockito.verify(execRuntime).discardEndpoint();
     }
 
     @Test
@@ -310,7 +308,7 @@ public class TestConnectExec {
         Mockito.verify(execRuntime).disconnectEndpoint();
     }
 
-    @Test(expected = HttpException.class)
+    @Test
     public void testEstablishRouteViaProxyTunnelMultipleHops() throws Exception {
         final HttpHost proxy1 = new HttpHost("this", 8888);
         final HttpHost proxy2 = new HttpHost("that", 8888);
@@ -324,7 +322,8 @@ public class TestConnectExec {
         Mockito.when(execRuntime.isEndpointConnected()).thenAnswer(connectionState.isConnectedAnswer());
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
-        exec.execute(request, scope, execChain);
+        Assert.assertThrows(HttpException.class, () ->
+                exec.execute(request, scope, execChain));
     }
 
     static class ConnectionState {

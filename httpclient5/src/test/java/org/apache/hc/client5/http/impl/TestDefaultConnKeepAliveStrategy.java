@@ -43,11 +43,12 @@ import org.junit.Test;
  */
 public class TestDefaultConnKeepAliveStrategy {
 
-    @Test(expected=NullPointerException.class)
+    @Test
     public void testIllegalResponseArg() throws Exception {
         final HttpContext context = new BasicHttpContext(null);
         final ConnectionKeepAliveStrategy keepAliveStrat = new DefaultConnectionKeepAliveStrategy();
-        keepAliveStrat.getKeepAliveDuration(null, context);
+        Assert.assertThrows(NullPointerException.class, () ->
+                keepAliveStrat.getKeepAliveDuration(null, context));
     }
 
     @Test

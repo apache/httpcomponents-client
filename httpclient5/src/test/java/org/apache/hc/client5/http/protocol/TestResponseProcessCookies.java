@@ -54,18 +54,20 @@ public class TestResponseProcessCookies {
         this.cookieStore = new BasicCookieStore();
     }
 
-    @Test(expected=NullPointerException.class)
+    @Test
     public void testResponseParameterCheck() throws Exception {
         final HttpClientContext context = HttpClientContext.create();
         final HttpResponseInterceptor interceptor = new ResponseProcessCookies();
-        interceptor.process(null, null, context);
+        Assert.assertThrows(NullPointerException.class, () ->
+                interceptor.process(null, null, context));
     }
 
-    @Test(expected=NullPointerException.class)
+    @Test
     public void testContextParameterCheck() throws Exception {
         final HttpResponse response = new BasicHttpResponse(200, "OK");
         final HttpResponseInterceptor interceptor = new ResponseProcessCookies();
-        interceptor.process(response, null, null);
+        Assert.assertThrows(NullPointerException.class, () ->
+                interceptor.process(response, null, null));
     }
 
     @Test

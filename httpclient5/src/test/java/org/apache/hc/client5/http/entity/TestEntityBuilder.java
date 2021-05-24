@@ -39,11 +39,10 @@ import org.mockito.Mockito;
 
 public class TestEntityBuilder {
 
-    @Test(expected=IllegalStateException.class)
+    @Test
     public void testBuildEmptyEntity() throws Exception {
-        final HttpEntity entity = EntityBuilder.create().build();
-        Assert.assertNotNull(entity);
-        entity.getContent();
+        Assert.assertThrows(IllegalStateException.class, () ->
+                EntityBuilder.create().build());
     }
 
     @Test

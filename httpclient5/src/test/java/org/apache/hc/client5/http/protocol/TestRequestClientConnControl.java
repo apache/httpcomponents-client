@@ -41,11 +41,12 @@ import org.junit.Test;
 
 public class TestRequestClientConnControl {
 
-    @Test(expected=NullPointerException.class)
+    @Test
     public void testRequestParameterCheck() throws Exception {
         final HttpClientContext context = HttpClientContext.create();
         final HttpRequestInterceptor interceptor = new RequestClientConnControl();
-        interceptor.process(null, null, context);
+        Assert.assertThrows(NullPointerException.class, () ->
+                interceptor.process(null, null, context));
     }
 
     @Test

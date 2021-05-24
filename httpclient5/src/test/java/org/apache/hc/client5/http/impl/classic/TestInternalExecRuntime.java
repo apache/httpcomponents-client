@@ -105,7 +105,7 @@ public class TestInternalExecRuntime {
         Mockito.verify(cancellableDependency, Mockito.times(2)).setDependency(Mockito.any());
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void testAcquireEndpointAlreadyAcquired() throws Exception {
         final HttpClientContext context = HttpClientContext.create();
 
@@ -118,10 +118,11 @@ public class TestInternalExecRuntime {
         Assert.assertTrue(execRuntime.isEndpointAcquired());
         Assert.assertSame(connectionEndpoint, execRuntime.ensureValid());
 
-        execRuntime.acquireEndpoint("some-id", route, null, context);
+        Assert.assertThrows(IllegalStateException.class, () ->
+                execRuntime.acquireEndpoint("some-id", route, null, context));
     }
 
-    @Test(expected = ConnectionRequestTimeoutException.class)
+    @Test
     public void testAcquireEndpointLeaseRequestTimeout() throws Exception {
         final HttpClientContext context = HttpClientContext.create();
 
@@ -129,10 +130,11 @@ public class TestInternalExecRuntime {
                 .thenReturn(leaseRequest);
         Mockito.when(leaseRequest.get(Mockito.any())).thenThrow(new TimeoutException("timeout"));
 
-        execRuntime.acquireEndpoint("some-id", route, null, context);
+        Assert.assertThrows(ConnectionRequestTimeoutException.class, () ->
+                execRuntime.acquireEndpoint("some-id", route, null, context));
     }
 
-    @Test(expected = RequestFailedException.class)
+    @Test
     public void testAcquireEndpointLeaseRequestFailure() throws Exception {
         final HttpClientContext context = HttpClientContext.create();
 
@@ -140,7 +142,8 @@ public class TestInternalExecRuntime {
                 .thenReturn(leaseRequest);
         Mockito.when(leaseRequest.get(Mockito.any())).thenThrow(new ExecutionException(new IllegalStateException()));
 
-        execRuntime.acquireEndpoint("some-id", route, null, context);
+        Assert.assertThrows(RequestFailedException.class, () ->
+                execRuntime.acquireEndpoint("some-id", route, null, context));
     }
 
     @Test

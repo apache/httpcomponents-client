@@ -36,6 +36,7 @@ import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.message.BasicHttpResponse;
 import org.apache.hc.core5.http.support.BasicRequestBuilder;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -61,14 +62,15 @@ public class TestResponseProtocolCompliance {
         return resp;
     }
 
-    @Test(expected=ClientProtocolException.class)
+    @Test
     public void throwsExceptionIfOriginReturnsPartialResponseWhenNotRequested() throws Exception {
         final HttpGet req = new HttpGet("http://foo.example.com/");
         final HttpRequest wrapper = BasicRequestBuilder.copy(req).build();
         final int nbytes = 128;
         final HttpResponse resp = makePartialResponse(nbytes);
 
-        impl.ensureProtocolCompliance(wrapper, req, resp);
+        Assert.assertThrows(ClientProtocolException.class, () ->
+                impl.ensureProtocolCompliance(wrapper, req, resp));
     }
 
 }

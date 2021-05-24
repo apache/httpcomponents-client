@@ -227,15 +227,17 @@ public class TestBasicHttpClientConnectionManager {
         Mockito.verify(connFactory, Mockito.times(2)).createConnection(Mockito.any());
     }
 
-    @Test(expected=NullPointerException.class)
+    @Test
     public void testReleaseInvalidArg() throws Exception {
-        mgr.release(null, null, TimeValue.NEG_ONE_MILLISECOND);
+        Assert.assertThrows(NullPointerException.class, () ->
+                mgr.release(null, null, TimeValue.NEG_ONE_MILLISECOND));
     }
 
-    @Test(expected=IllegalStateException.class)
+    @Test
     public void testReleaseAnotherConnection() throws Exception {
         final ConnectionEndpoint wrongCon = Mockito.mock(ConnectionEndpoint.class);
-        mgr.release(wrongCon, null, TimeValue.NEG_ONE_MILLISECOND);
+        Assert.assertThrows(IllegalStateException.class, () ->
+                mgr.release(wrongCon, null, TimeValue.NEG_ONE_MILLISECOND));
     }
 
     @Test
@@ -328,7 +330,7 @@ public class TestBasicHttpClientConnectionManager {
         Mockito.verify(conn).close(CloseMode.GRACEFUL);
     }
 
-    @Test(expected=IllegalStateException.class)
+    @Test
     public void testAlreadyLeased() throws Exception {
         final HttpHost target = new HttpHost("somehost", 80);
         final HttpRoute route = new HttpRoute(target);
@@ -341,7 +343,8 @@ public class TestBasicHttpClientConnectionManager {
         mgr.release(endpoint1, null, TimeValue.ofMilliseconds(100));
 
         mgr.getConnection(route, null);
-        mgr.getConnection(route, null);
+        Assert.assertThrows(IllegalStateException.class, () ->
+                mgr.getConnection(route, null));
     }
 
     @Test

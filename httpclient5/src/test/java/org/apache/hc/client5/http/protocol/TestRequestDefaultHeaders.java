@@ -41,11 +41,12 @@ import org.junit.Test;
 
 public class TestRequestDefaultHeaders {
 
-    @Test(expected=NullPointerException.class)
+    @Test
     public void testRequestParameterCheck() throws Exception {
         final HttpContext context = new BasicHttpContext();
         final HttpRequestInterceptor interceptor = new RequestDefaultHeaders();
-        interceptor.process(null, null, context);
+        Assert.assertThrows(NullPointerException.class, () ->
+                interceptor.process(null, null, context));
     }
 
     @Test

@@ -84,18 +84,20 @@ public class TestRequestAddCookies {
             .build();
     }
 
-    @Test(expected=NullPointerException.class)
+    @Test
     public void testRequestParameterCheck() throws Exception {
         final HttpClientContext context = HttpClientContext.create();
         final HttpRequestInterceptor interceptor = new RequestAddCookies();
-        interceptor.process(null, null, context);
+        Assert.assertThrows(NullPointerException.class, () ->
+                interceptor.process(null, null, context));
     }
 
-    @Test(expected=NullPointerException.class)
+    @Test
     public void testContextParameterCheck() throws Exception {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         final HttpRequestInterceptor interceptor = new RequestAddCookies();
-        interceptor.process(request, null, null);
+        Assert.assertThrows(NullPointerException.class, () ->
+                interceptor.process(request, null, null));
     }
 
     @Test

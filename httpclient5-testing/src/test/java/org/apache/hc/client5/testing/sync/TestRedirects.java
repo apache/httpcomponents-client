@@ -292,7 +292,7 @@ public class TestRedirects extends LocalServerTestBase {
         }
     }
 
-    @Test(expected = ClientProtocolException.class)
+    @Test
     public void testMaxRedirectCheck() throws Exception {
         final HttpHost target = start(null, requestHandler -> new RedirectingDecorator(
                 requestHandler,
@@ -306,15 +306,12 @@ public class TestRedirects extends LocalServerTestBase {
 
         final HttpGet httpget = new HttpGet("/circular-oldlocation/123");
         httpget.setConfig(config);
-        try {
-            this.httpclient.execute(target, httpget);
-        } catch (final ClientProtocolException e) {
-            Assert.assertTrue(e.getCause() instanceof RedirectException);
-            throw e;
-        }
+        final ClientProtocolException exception = Assert.assertThrows(ClientProtocolException.class, () ->
+                this.httpclient.execute(target, httpget));
+        Assert.assertTrue(exception.getCause() instanceof RedirectException);
     }
 
-    @Test(expected = ClientProtocolException.class)
+    @Test
     public void testCircularRedirect() throws Exception {
         final HttpHost target = start(null, requestHandler -> new RedirectingDecorator(
                 requestHandler,
@@ -327,12 +324,9 @@ public class TestRedirects extends LocalServerTestBase {
 
         final HttpGet httpget = new HttpGet("/circular-oldlocation/123");
         httpget.setConfig(config);
-        try {
-            this.httpclient.execute(target, httpget);
-        } catch (final ClientProtocolException e) {
-            Assert.assertTrue(e.getCause() instanceof CircularRedirectException);
-            throw e;
-        }
+        final ClientProtocolException exception = Assert.assertThrows(ClientProtocolException.class, () ->
+                this.httpclient.execute(target, httpget));
+        Assert.assertTrue(exception.getCause() instanceof CircularRedirectException);
     }
 
     @Test
@@ -415,7 +409,7 @@ public class TestRedirects extends LocalServerTestBase {
 
     }
 
-    @Test(expected = ClientProtocolException.class)
+    @Test
     public void testRejectBogusRedirectLocation() throws Exception {
         final HttpHost target = start(null, requestHandler -> new RedirectingDecorator(
                 requestHandler,
@@ -430,16 +424,12 @@ public class TestRedirects extends LocalServerTestBase {
 
         final HttpGet httpget = new HttpGet("/oldlocation");
 
-        try {
-            this.httpclient.execute(target, httpget);
-        } catch (final ClientProtocolException ex) {
-            final Throwable cause = ex.getCause();
-            Assert.assertTrue(cause instanceof HttpException);
-            throw ex;
-        }
+        final ClientProtocolException exception = Assert.assertThrows(ClientProtocolException.class, () ->
+                this.httpclient.execute(target, httpget));
+        MatcherAssert.assertThat(exception.getCause(), CoreMatchers.instanceOf(HttpException.class));
     }
 
-    @Test(expected = ClientProtocolException.class)
+    @Test
     public void testRejectInvalidRedirectLocation() throws Exception {
         final HttpHost target = start(null, requestHandler -> new RedirectingDecorator(
                 requestHandler,
@@ -454,12 +444,9 @@ public class TestRedirects extends LocalServerTestBase {
 
         final HttpGet httpget = new HttpGet("/oldlocation");
 
-        try {
-            this.httpclient.execute(target, httpget);
-        } catch (final ClientProtocolException e) {
-            Assert.assertTrue(e.getCause() instanceof ProtocolException);
-            throw e;
-        }
+        final ClientProtocolException exception = Assert.assertThrows(ClientProtocolException.class, () ->
+                this.httpclient.execute(target, httpget));
+        MatcherAssert.assertThat(exception.getCause(), CoreMatchers.instanceOf(ProtocolException.class));
     }
 
     @Test

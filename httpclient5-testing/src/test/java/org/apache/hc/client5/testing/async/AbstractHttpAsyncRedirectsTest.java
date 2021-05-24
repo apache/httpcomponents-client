@@ -66,6 +66,8 @@ import org.apache.hc.core5.reactor.IOReactorConfig;
 import org.apache.hc.core5.testing.nio.H2TestServer;
 import org.apache.hc.core5.testing.reactive.ReactiveRandomProcessor;
 import org.apache.hc.core5.util.TimeValue;
+import org.hamcrest.CoreMatchers;
+import org.hamcrest.MatcherAssert;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -278,7 +280,7 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
         Assert.assertEquals(target, new HttpHost(request.getScheme(), request.getAuthority()));
     }
 
-    @Test(expected=ExecutionException.class)
+    @Test
     public void testMaxRedirectCheck() throws Exception {
         final HttpHost target = start(exchangeHandler -> new RedirectingAsyncDecorator(
                 exchangeHandler,
@@ -288,20 +290,18 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
         final RequestConfig config = RequestConfig.custom()
                 .setCircularRedirectsAllowed(true)
                 .setMaxRedirects(5).build();
-        try {
+        final ExecutionException exception = Assert.assertThrows(ExecutionException.class, () -> {
             final Future<SimpleHttpResponse> future = httpclient.execute(SimpleRequestBuilder.get()
                     .setHttpHost(target)
                     .setPath("/circular-oldlocation/")
                     .setRequestConfig(config)
                     .build(), null);
             future.get();
-        } catch (final ExecutionException e) {
-            Assert.assertTrue(e.getCause() instanceof RedirectException);
-            throw e;
-        }
+        });
+        MatcherAssert.assertThat(exception.getCause(), CoreMatchers.instanceOf(RedirectException.class));
     }
 
-    @Test(expected=ExecutionException.class)
+    @Test
     public void testCircularRedirect() throws Exception {
         final HttpHost target = start(exchangeHandler -> new RedirectingAsyncDecorator(
                 exchangeHandler,
@@ -311,7 +311,7 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
         final RequestConfig config = RequestConfig.custom()
                 .setCircularRedirectsAllowed(false)
                 .build();
-        try {
+        final ExecutionException exception = Assert.assertThrows(ExecutionException.class, () -> {
             final Future<SimpleHttpResponse> future = httpclient.execute(
                     SimpleRequestBuilder.get()
                             .setHttpHost(target)
@@ -319,10 +319,8 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
                             .setRequestConfig(config)
                             .build(), null);
             future.get();
-        } catch (final ExecutionException e) {
-            Assert.assertTrue(e.getCause() instanceof CircularRedirectException);
-            throw e;
-        }
+        });
+        MatcherAssert.assertThat(exception.getCause(), CoreMatchers.instanceOf(CircularRedirectException.class));
     }
 
     @Test
@@ -431,7 +429,7 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
         Assert.assertEquals(target, new HttpHost(request.getScheme(), request.getAuthority()));
     }
 
-    @Test(expected=ExecutionException.class)
+    @Test
     public void testRejectBogusRedirectLocation() throws Exception {
         final HttpHost target = start(exchangeHandler -> new RedirectingAsyncDecorator(
                 exchangeHandler,
@@ -444,20 +442,18 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
                     return null;
                 }));
 
-        try {
+        final ExecutionException exception = Assert.assertThrows(ExecutionException.class, () -> {
             final Future<SimpleHttpResponse> future = httpclient.execute(
                     SimpleRequestBuilder.get()
                             .setHttpHost(target)
                             .setPath("/oldlocation/")
                             .build(), null);
             future.get();
-        } catch (final ExecutionException ex) {
-            Assert.assertTrue(ex.getCause() instanceof HttpException);
-            throw ex;
-        }
+        });
+        MatcherAssert.assertThat(exception.getCause(), CoreMatchers.instanceOf(HttpException.class));
     }
 
-    @Test(expected=ExecutionException.class)
+    @Test
     public void testRejectInvalidRedirectLocation() throws Exception {
         final HttpHost target = start(exchangeHandler -> new RedirectingAsyncDecorator(
                 exchangeHandler,
@@ -470,17 +466,15 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
                     return null;
                 }));
 
-        try {
+        final ExecutionException exception = Assert.assertThrows(ExecutionException.class, () -> {
             final Future<SimpleHttpResponse> future = httpclient.execute(
                     SimpleRequestBuilder.get()
                             .setHttpHost(target)
                             .setPath("/oldlocation/")
                             .build(), null);
             future.get();
-        } catch (final ExecutionException e) {
-            Assert.assertTrue(e.getCause() instanceof ProtocolException);
-            throw e;
-        }
+        });
+        MatcherAssert.assertThat(exception.getCause(), CoreMatchers.instanceOf(ProtocolException.class));
     }
 
     @Test

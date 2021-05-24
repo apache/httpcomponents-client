@@ -97,10 +97,11 @@ public class TestDefaultRoutePlanner {
         Mockito.verify(schemePortResolver, Mockito.never()).resolve(Mockito.any());
     }
 
-    @Test(expected= ProtocolException.class)
+    @Test
     public void testNullTarget() throws Exception {
         final HttpContext context = new BasicHttpContext();
-        routePlanner.determineRoute(null, context);
+        Assert.assertThrows(ProtocolException.class, () ->
+                routePlanner.determineRoute(null, context));
     }
 
 }

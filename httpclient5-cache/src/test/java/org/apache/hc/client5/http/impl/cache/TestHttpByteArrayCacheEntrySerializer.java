@@ -27,6 +27,13 @@
 
 package org.apache.hc.client5.http.impl.cache;
 
+import static org.apache.hc.client5.http.impl.cache.HttpByteArrayCacheEntrySerializerTestUtils.HttpCacheStorageEntryTestTemplate;
+import static org.apache.hc.client5.http.impl.cache.HttpByteArrayCacheEntrySerializerTestUtils.httpCacheStorageEntryFromBytes;
+import static org.apache.hc.client5.http.impl.cache.HttpByteArrayCacheEntrySerializerTestUtils.makeTestFileObject;
+import static org.apache.hc.client5.http.impl.cache.HttpByteArrayCacheEntrySerializerTestUtils.readTestFileBytes;
+import static org.apache.hc.client5.http.impl.cache.HttpByteArrayCacheEntrySerializerTestUtils.testWithCache;
+import static org.apache.hc.client5.http.impl.cache.HttpByteArrayCacheEntrySerializerTestUtils.verifyHttpCacheEntryFromTestFile;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -45,16 +52,10 @@ import org.apache.hc.core5.http.impl.io.AbstractMessageWriter;
 import org.apache.hc.core5.http.io.SessionInputBuffer;
 import org.apache.hc.core5.http.io.SessionOutputBuffer;
 import org.apache.hc.core5.http.message.BasicHeader;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-
-import static org.apache.hc.client5.http.impl.cache.HttpByteArrayCacheEntrySerializerTestUtils.makeTestFileObject;
-import static org.apache.hc.client5.http.impl.cache.HttpByteArrayCacheEntrySerializerTestUtils.httpCacheStorageEntryFromBytes;
-import static org.apache.hc.client5.http.impl.cache.HttpByteArrayCacheEntrySerializerTestUtils.readTestFileBytes;
-import static org.apache.hc.client5.http.impl.cache.HttpByteArrayCacheEntrySerializerTestUtils.testWithCache;
-import static org.apache.hc.client5.http.impl.cache.HttpByteArrayCacheEntrySerializerTestUtils.verifyHttpCacheEntryFromTestFile;
-import static org.apache.hc.client5.http.impl.cache.HttpByteArrayCacheEntrySerializerTestUtils.HttpCacheStorageEntryTestTemplate;
 
 public class TestHttpByteArrayCacheEntrySerializer {
     private static final String SERIALIAZED_EXTENSION = ".httpbytes.serialized";
@@ -195,13 +196,14 @@ public class TestHttpByteArrayCacheEntrySerializer {
      *
      * @throws Exception is expected
      */
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void testNullStorageKey() throws Exception {
         final HttpCacheStorageEntryTestTemplate cacheObjectValues = HttpCacheStorageEntryTestTemplate.makeDefault();
         cacheObjectValues.storageKey = null;
 
         final HttpCacheStorageEntry testEntry = cacheObjectValues.toEntry();
-        serializer.serialize(testEntry);
+        Assert.assertThrows(IllegalStateException.class, () ->
+                serializer.serialize(testEntry));
     }
 
     /**
@@ -294,11 +296,12 @@ public class TestHttpByteArrayCacheEntrySerializer {
      *
      * @throws Exception is expected
      */
-    @Test(expected = ResourceIOException.class)
+    @Test
     public void testInvalidCacheEntry() throws Exception {
         // This file is a JPEG not a cache entry, so should fail to deserialize
         final byte[] bytes = readTestFileBytes(TEST_CONTENT_FILE_NAME);
-        httpCacheStorageEntryFromBytes(serializer, bytes);
+        Assert.assertThrows(ResourceIOException.class, () ->
+                httpCacheStorageEntryFromBytes(serializer, bytes));
     }
 
     /**
@@ -306,11 +309,12 @@ public class TestHttpByteArrayCacheEntrySerializer {
      *
      * @throws Exception is expected
      */
-    @Test(expected = ResourceIOException.class)
+    @Test
     public void testMissingHeaderCacheEntry() throws Exception {
         // This file hand-edited to be missing a necessary header
         final byte[] bytes = readTestFileBytes(MISSING_HEADER_TEST_SERIALIZED_NAME);
-        httpCacheStorageEntryFromBytes(serializer, bytes);
+        Assert.assertThrows(ResourceIOException.class, () ->
+                httpCacheStorageEntryFromBytes(serializer, bytes));
     }
 
     /**
@@ -318,11 +322,12 @@ public class TestHttpByteArrayCacheEntrySerializer {
      *
      * @throws Exception is expected
      */
-    @Test(expected = ResourceIOException.class)
+    @Test
     public void testInvalidHeaderCacheEntry() throws Exception {
         // This file hand-edited to have an invalid header
         final byte[] bytes = readTestFileBytes(INVALID_HEADER_TEST_SERIALIZED_NAME);
-        httpCacheStorageEntryFromBytes(serializer, bytes);
+        Assert.assertThrows(ResourceIOException.class, () ->
+                httpCacheStorageEntryFromBytes(serializer, bytes));
     }
 
     /**
@@ -330,11 +335,12 @@ public class TestHttpByteArrayCacheEntrySerializer {
      *
      * @throws Exception is expected
      */
-    @Test(expected = ResourceIOException.class)
+    @Test
     public void testVariantMapMissingKeyCacheEntry() throws Exception {
         // This file hand-edited to be missing a VariantCache key
         final byte[] bytes = readTestFileBytes(VARIANTMAP_MISSING_KEY_TEST_SERIALIZED_NAME);
-        httpCacheStorageEntryFromBytes(serializer, bytes);
+        Assert.assertThrows(ResourceIOException.class, () ->
+                httpCacheStorageEntryFromBytes(serializer, bytes));
     }
 
     /**
@@ -342,11 +348,12 @@ public class TestHttpByteArrayCacheEntrySerializer {
      *
      * @throws Exception is expected
      */
-    @Test(expected = ResourceIOException.class)
+    @Test
     public void testVariantMapMissingValueCacheEntry() throws Exception {
         // This file hand-edited to be missing a VariantCache value
         final byte[] bytes = readTestFileBytes(VARIANTMAP_MISSING_VALUE_TEST_SERIALIZED_NAME);
-        httpCacheStorageEntryFromBytes(serializer, bytes);
+        Assert.assertThrows(ResourceIOException.class, () ->
+                httpCacheStorageEntryFromBytes(serializer, bytes));
     }
 
     /**
@@ -354,7 +361,7 @@ public class TestHttpByteArrayCacheEntrySerializer {
      *
      * @throws Exception is expected
      */
-    @Test(expected = ResourceIOException.class)
+    @Test
     public void testSerializeWithHTTPException() throws Exception {
         final AbstractMessageWriter<SimpleHttpResponse> throwyHttpWriter = Mockito.mock(AbstractMessageWriter.class);
         Mockito.
@@ -371,7 +378,8 @@ public class TestHttpByteArrayCacheEntrySerializer {
                 return throwyHttpWriter;
             }
         };
-        testSerializer.serialize(testEntry);
+        Assert.assertThrows(ResourceIOException.class, () ->
+                testSerializer.serialize(testEntry));
     }
 
     /**
@@ -379,7 +387,7 @@ public class TestHttpByteArrayCacheEntrySerializer {
      *
      * @throws Exception is expected
      */
-    @Test(expected = ResourceIOException.class)
+    @Test
     public void testDeserializeWithIOException() throws Exception {
         final AbstractMessageParser<ClassicHttpResponse> throwyParser = Mockito.mock(AbstractMessageParser.class);
         Mockito.
@@ -393,6 +401,7 @@ public class TestHttpByteArrayCacheEntrySerializer {
                 return throwyParser;
             }
         };
-        testSerializer.deserialize(new byte[0]);
+        Assert.assertThrows(ResourceIOException.class, () ->
+                testSerializer.deserialize(new byte[0]));
     }
 }

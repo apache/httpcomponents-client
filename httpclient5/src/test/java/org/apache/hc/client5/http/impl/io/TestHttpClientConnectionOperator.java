@@ -48,6 +48,7 @@ import org.apache.hc.core5.http.io.SocketConfig;
 import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.TimeValue;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -123,7 +124,7 @@ public class TestHttpClientConnectionOperator {
         Mockito.verify(conn, Mockito.times(2)).bind(socket);
     }
 
-    @Test(expected=ConnectTimeoutException.class)
+    @Test
     public void testConnectTimeout() throws Exception {
         final HttpContext context = new BasicHttpContext();
         final HttpHost host = new HttpHost("somehost");
@@ -142,10 +143,12 @@ public class TestHttpClientConnectionOperator {
                 Mockito.any(),
                 Mockito.any())).thenThrow(new SocketTimeoutException());
 
-        connectionOperator.connect(conn, host, null, TimeValue.ofMilliseconds(1000), SocketConfig.DEFAULT, context);
+        Assert.assertThrows(ConnectTimeoutException.class, () ->
+                connectionOperator.connect(
+                        conn, host, null, TimeValue.ofMilliseconds(1000), SocketConfig.DEFAULT, context));
     }
 
-    @Test(expected=HttpHostConnectException.class)
+    @Test
     public void testConnectFailure() throws Exception {
         final HttpContext context = new BasicHttpContext();
         final HttpHost host = new HttpHost("somehost");
@@ -164,7 +167,9 @@ public class TestHttpClientConnectionOperator {
                 Mockito.any(),
                 Mockito.any())).thenThrow(new ConnectException());
 
-        connectionOperator.connect(conn, host, null, TimeValue.ofMilliseconds(1000), SocketConfig.DEFAULT, context);
+        Assert.assertThrows(HttpHostConnectException.class, () ->
+                connectionOperator.connect(
+                        conn, host, null, TimeValue.ofMilliseconds(1000), SocketConfig.DEFAULT, context));
     }
 
     @Test
@@ -260,22 +265,24 @@ public class TestHttpClientConnectionOperator {
         Mockito.verify(conn).bind(socket);
     }
 
-    @Test(expected=UnsupportedSchemeException.class)
+    @Test
     public void testUpgradeUpsupportedScheme() throws Exception {
         final HttpContext context = new BasicHttpContext();
         final HttpHost host = new HttpHost("httpsssss", "somehost", -1);
         Mockito.when(socketFactoryRegistry.lookup("http")).thenReturn(plainSocketFactory);
 
-        connectionOperator.upgrade(conn, host, context);
+        Assert.assertThrows(UnsupportedSchemeException.class, () ->
+                connectionOperator.upgrade(conn, host, context));
     }
 
-    @Test(expected=UnsupportedSchemeException.class)
+    @Test
     public void testUpgradeNonLayeringScheme() throws Exception {
         final HttpContext context = new BasicHttpContext();
         final HttpHost host = new HttpHost("http", "somehost", -1);
         Mockito.when(socketFactoryRegistry.lookup("http")).thenReturn(plainSocketFactory);
 
-        connectionOperator.upgrade(conn, host, context);
+        Assert.assertThrows(UnsupportedSchemeException.class, () ->
+                connectionOperator.upgrade(conn, host, context));
     }
 
 }

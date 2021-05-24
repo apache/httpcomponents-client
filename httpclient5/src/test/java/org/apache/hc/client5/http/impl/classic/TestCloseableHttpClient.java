@@ -130,7 +130,7 @@ public class TestCloseableHttpClient {
         Mockito.verify(content).close();
     }
 
-    @Test(expected=IOException.class)
+    @Test
     public void testExecuteRequestHandleResponseIOException() throws Exception {
         final HttpGet httpget = new HttpGet("https://somehost:444/stuff");
 
@@ -141,19 +141,16 @@ public class TestCloseableHttpClient {
 
         Mockito.when(handler.handleResponse(response)).thenThrow(new IOException());
 
-        try {
-            client.execute(httpget, handler);
-        } catch (final IOException ex) {
-            Mockito.verify(client).doExecute(
-                    Mockito.eq(new HttpHost("https", "somehost", 444)),
-                    Mockito.same(httpget),
-                    (HttpContext) Mockito.isNull());
-            Mockito.verify(originResponse).close();
-            throw ex;
-        }
+        final IOException exception = Assert.assertThrows(IOException.class, () ->
+            client.execute(httpget, handler));
+        Mockito.verify(client).doExecute(
+                Mockito.eq(new HttpHost("https", "somehost", 444)),
+                Mockito.same(httpget),
+                (HttpContext) Mockito.isNull());
+        Mockito.verify(originResponse).close();
     }
 
-    @Test(expected=RuntimeException.class)
+    @Test
     public void testExecuteRequestHandleResponseHttpException() throws Exception {
         final HttpGet httpget = new HttpGet("https://somehost:444/stuff");
 
@@ -164,16 +161,13 @@ public class TestCloseableHttpClient {
 
         Mockito.when(handler.handleResponse(response)).thenThrow(new RuntimeException());
 
-        try {
-            client.execute(httpget, handler);
-        } catch (final RuntimeException ex) {
-            Mockito.verify(client).doExecute(
-                    Mockito.eq(new HttpHost("https", "somehost", 444)),
-                    Mockito.same(httpget),
-                    (HttpContext) Mockito.isNull());
-            Mockito.verify(response).close();
-            throw ex;
-        }
+        Assert.assertThrows(RuntimeException.class, () ->
+                client.execute(httpget, handler));
+        Mockito.verify(client).doExecute(
+                Mockito.eq(new HttpHost("https", "somehost", 444)),
+                Mockito.same(httpget),
+                (HttpContext) Mockito.isNull());
+        Mockito.verify(originResponse).close();
     }
 
 }
