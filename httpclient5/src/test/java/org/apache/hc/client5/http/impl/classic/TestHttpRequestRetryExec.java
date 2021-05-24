@@ -52,11 +52,13 @@ import org.apache.hc.core5.util.Timeout;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnitRunner;
 
 @SuppressWarnings({"boxing","static-access"}) // test code
+@RunWith(MockitoJUnitRunner.class)
 public class TestHttpRequestRetryExec {
 
     @Mock
@@ -71,7 +73,6 @@ public class TestHttpRequestRetryExec {
 
     @Before
     public void setup() throws Exception {
-        MockitoAnnotations.initMocks(this);
         retryExec = new HttpRequestRetryExec(retryStrategy);
         target = new HttpHost("localhost", 80);
     }
@@ -207,10 +208,6 @@ public class TestHttpRequestRetryExec {
         Mockito.when(chain.proceed(
                 Mockito.<ClassicHttpRequest>any(),
                 Mockito.<ExecChain.Scope>any())).thenReturn(response);
-        Mockito.when(retryStrategy.retryRequest(
-                Mockito.<HttpResponse>any(),
-                Mockito.anyInt(),
-                Mockito.<HttpContext>any())).thenReturn(Boolean.TRUE, Boolean.FALSE);
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
         final ClassicHttpResponse finalResponse = retryExec.execute(request, scope, chain);
@@ -303,11 +300,6 @@ public class TestHttpRequestRetryExec {
                     req.getEntity().writeTo(new ByteArrayOutputStream());
                     throw new IOException("Ka-boom");
                 });
-        Mockito.when(retryStrategy.retryRequest(
-                Mockito.<HttpRequest>any(),
-                Mockito.<IOException>any(),
-                Mockito.eq(1),
-                Mockito.<HttpContext>any())).thenReturn(Boolean.TRUE);
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, originalRequest, endpoint, context);
         final ClassicHttpRequest request = ClassicRequestBuilder.copy(originalRequest).build();
         try {

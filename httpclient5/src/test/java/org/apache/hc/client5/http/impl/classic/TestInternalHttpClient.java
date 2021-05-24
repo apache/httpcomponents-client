@@ -51,14 +51,16 @@ import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnitRunner;
 
 /**
  *  Simple tests for {@link InternalHttpClient}.
  */
 @SuppressWarnings({"static-access"}) // test code
+@RunWith(MockitoJUnitRunner.class)
 public class TestInternalHttpClient {
 
     @Mock
@@ -88,7 +90,6 @@ public class TestInternalHttpClient {
 
     @Before
     public void setup() throws Exception {
-        MockitoAnnotations.initMocks(this);
         client = new InternalHttpClient(connManager, requestExecutor, new ExecChainElement(execChain, null), routePlanner,
                 cookieSpecRegistry, authSchemeRegistry, cookieStore, credentialsProvider,
                 defaultConfig, Arrays.asList(closeable1, closeable2));

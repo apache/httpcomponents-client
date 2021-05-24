@@ -67,12 +67,14 @@ import org.apache.hc.core5.http.protocol.HttpProcessor;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 
 @SuppressWarnings({"static-access"}) // test code
+@RunWith(MockitoJUnitRunner.class)
 public class TestProtocolExec {
 
     @Mock
@@ -92,7 +94,6 @@ public class TestProtocolExec {
 
     @Before
     public void setup() throws Exception {
-        MockitoAnnotations.initMocks(this);
         protocolExec = new ProtocolExec(httpProcessor, targetAuthStrategy, proxyAuthStrategy);
         target = new HttpHost("foo", 80);
         proxy = new HttpHost("bar", 8888);
@@ -322,11 +323,6 @@ public class TestProtocolExec {
                     requestEE.getEntity().writeTo(new ByteArrayOutputStream());
                     return response1;
                 });
-
-        Mockito.when(targetAuthStrategy.select(
-                Mockito.eq(ChallengeType.TARGET),
-                Mockito.<Map<String, AuthChallenge>>any(),
-                Mockito.<HttpClientContext>any())).thenReturn(Collections.<AuthScheme>singletonList(new BasicScheme()));
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
         final ClassicHttpResponse response = protocolExec.execute(request, scope, chain);

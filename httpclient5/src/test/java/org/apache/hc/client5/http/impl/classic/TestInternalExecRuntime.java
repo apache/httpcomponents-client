@@ -47,12 +47,14 @@ import org.apache.hc.core5.util.Timeout;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.slf4j.Logger;
 
 @SuppressWarnings({"static-access"}) // test code
+@RunWith(MockitoJUnitRunner.class)
 public class TestInternalExecRuntime {
 
     @Mock
@@ -73,7 +75,6 @@ public class TestInternalExecRuntime {
 
     @Before
     public void setup() {
-        MockitoAnnotations.initMocks(this);
         route = new HttpRoute(new HttpHost("host", 80));
         execRuntime = new InternalExecRuntime(log, mgr, requestExecutor, cancellableDependency);
     }

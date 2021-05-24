@@ -50,12 +50,14 @@ import org.apache.hc.core5.util.TimeValue;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 
 @SuppressWarnings({"boxing","static-access"}) // test code
+@RunWith(MockitoJUnitRunner.class)
 public class TestMainClientExec {
 
     @Mock
@@ -74,7 +76,6 @@ public class TestMainClientExec {
 
     @Before
     public void setup() throws Exception {
-        MockitoAnnotations.initMocks(this);
         mainClientExec = new MainClientExec(connectionManager, reuseStrategy, keepAliveStrategy, userTokenHandler);
         target = new HttpHost("foo", 80);
     }
@@ -89,7 +90,6 @@ public class TestMainClientExec {
                 .setStream(new ByteArrayInputStream(new byte[]{}))
                 .build());
 
-        Mockito.when(endpoint.isEndpointAcquired()).thenReturn(false);
         Mockito.when(endpoint.execute(
                 Mockito.anyString(),
                 Mockito.same(request),
@@ -118,7 +118,6 @@ public class TestMainClientExec {
         final ClassicHttpResponse response = new BasicClassicHttpResponse(200, "OK");
         response.setEntity(null);
 
-        Mockito.when(endpoint.isEndpointAcquired()).thenReturn(false);
         Mockito.when(endpoint.execute(
                 Mockito.anyString(),
                 Mockito.same(request),
@@ -151,8 +150,6 @@ public class TestMainClientExec {
                 .build());
 
         final ConnectionState connectionState = new ConnectionState();
-        Mockito.doAnswer(connectionState.connectAnswer()).when(endpoint).connectEndpoint(Mockito.<HttpClientContext>any());
-        Mockito.when(endpoint.isEndpointConnected()).thenAnswer(connectionState.isConnectedAnswer());
         Mockito.when(endpoint.execute(
                 Mockito.anyString(),
                 Mockito.same(request),
@@ -183,9 +180,6 @@ public class TestMainClientExec {
         final ClassicHttpRequest request = new HttpGet("http://bar/test");
         final ClassicHttpResponse response = new BasicClassicHttpResponse(200, "OK");
 
-        final ConnectionState connectionState = new ConnectionState();
-        Mockito.doAnswer(connectionState.connectAnswer()).when(endpoint).connectEndpoint(Mockito.<HttpClientContext>any());
-        Mockito.when(endpoint.isEndpointConnected()).thenAnswer(connectionState.isConnectedAnswer());
         Mockito.when(endpoint.execute(
                 Mockito.anyString(),
                 Mockito.same(request),
@@ -220,8 +214,6 @@ public class TestMainClientExec {
                 .build());
 
         final ConnectionState connectionState = new ConnectionState();
-        Mockito.doAnswer(connectionState.connectAnswer()).when(endpoint).connectEndpoint(Mockito.<HttpClientContext>any());
-        Mockito.when(endpoint.isEndpointConnected()).thenAnswer(connectionState.isConnectedAnswer());
         Mockito.when(endpoint.execute(
                 Mockito.anyString(),
                 Mockito.same(request),

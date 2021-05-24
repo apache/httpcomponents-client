@@ -27,6 +27,10 @@
 
 package org.apache.hc.client5.http.impl.classic;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.util.List;
+
 import org.apache.hc.client5.http.classic.ExecRuntime;
 import org.apache.hc.core5.function.Supplier;
 import org.apache.hc.core5.http.ClassicHttpResponse;
@@ -38,15 +42,13 @@ import org.apache.hc.core5.http.io.SessionInputBuffer;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnitRunner;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.util.List;
-
+@RunWith(MockitoJUnitRunner.class)
 public class TestResponseEntityProxy {
 
     @Mock
@@ -58,7 +60,6 @@ public class TestResponseEntityProxy {
 
     @Before
     public void setUp() {
-        MockitoAnnotations.initMocks(this);
         Mockito.when(entity.isStreaming()).thenReturn(Boolean.TRUE);
         Mockito.when(response.getEntity()).thenReturn(entity);
     }

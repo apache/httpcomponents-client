@@ -51,11 +51,13 @@ import org.apache.hc.core5.util.Timeout;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnitRunner;
 
 @SuppressWarnings({"boxing","static-access"}) // test code
+@RunWith(MockitoJUnitRunner.class)
 public class TestBasicHttpClientConnectionManager {
 
     @Mock
@@ -79,7 +81,6 @@ public class TestBasicHttpClientConnectionManager {
 
     @Before
     public void setup() throws Exception {
-        MockitoAnnotations.initMocks(this);
         mgr = new BasicHttpClientConnectionManager(
                 socketFactoryRegistry, connFactory, schemePortResolver, dnsResolver);
     }

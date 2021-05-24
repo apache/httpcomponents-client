@@ -56,14 +56,16 @@ import org.apache.hc.core5.util.Timeout;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnitRunner;
 
 /**
  * {@link PoolingHttpClientConnectionManager} tests.
  */
 @SuppressWarnings({"boxing","static-access","resource"}) // test code
+@RunWith(MockitoJUnitRunner.class)
 public class TestPoolingHttpClientConnectionManager {
 
     @Mock
@@ -88,7 +90,6 @@ public class TestPoolingHttpClientConnectionManager {
 
     @Before
     public void setup() throws Exception {
-        MockitoAnnotations.initMocks(this);
         mgr = new PoolingHttpClientConnectionManager(
                 new DefaultHttpClientConnectionOperator(socketFactoryRegistry, schemePortResolver, dnsResolver), pool, null);
     }
@@ -102,9 +103,6 @@ public class TestPoolingHttpClientConnectionManager {
         entry.assignConnection(conn);
 
         Mockito.when(future.isCancelled()).thenReturn(Boolean.FALSE);
-        Mockito.when(socketFactoryRegistry.lookup("http")).thenReturn(plainSocketFactory);
-        Mockito.when(schemePortResolver.resolve(target)).thenReturn(80);
-        Mockito.when(plainSocketFactory.createSocket(Mockito.<HttpContext>any())).thenReturn(socket);
 
         Mockito.when(conn.isOpen()).thenReturn(true);
         Mockito.when(conn.isConsistent()).thenReturn(true);
@@ -135,11 +133,7 @@ public class TestPoolingHttpClientConnectionManager {
         final PoolEntry<HttpRoute, ManagedHttpClientConnection> entry = new PoolEntry<>(route, TimeValue.NEG_ONE_MILLISECOND);
 
         Mockito.when(future.isCancelled()).thenReturn(Boolean.FALSE);
-        Mockito.when(socketFactoryRegistry.lookup("http")).thenReturn(plainSocketFactory);
-        Mockito.when(schemePortResolver.resolve(target)).thenReturn(80);
-        Mockito.when(plainSocketFactory.createSocket(Mockito.<HttpContext>any())).thenReturn(socket);
 
-        Mockito.when(conn.isOpen()).thenReturn(true);
         Mockito.when(future.isCancelled()).thenReturn(false);
         Mockito.when(future.get(1, TimeUnit.SECONDS)).thenReturn(entry);
         Mockito.when(pool.lease(
@@ -185,7 +179,6 @@ public class TestPoolingHttpClientConnectionManager {
         final HttpHost target = new HttpHost("localhost", 80);
         final HttpRoute route = new HttpRoute(target);
 
-        Mockito.when(future.isCancelled()).thenReturn(Boolean.TRUE);
         Mockito.when(future.get(1, TimeUnit.SECONDS)).thenThrow(new TimeoutException());
         Mockito.when(pool.lease(
                 Mockito.eq(route),

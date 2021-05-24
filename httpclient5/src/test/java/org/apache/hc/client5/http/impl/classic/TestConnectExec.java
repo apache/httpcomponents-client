@@ -63,13 +63,15 @@ import org.apache.hc.core5.http.protocol.HttpProcessor;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 
 @SuppressWarnings({"boxing","static-access"}) // test code
+@RunWith(MockitoJUnitRunner.class)
 public class TestConnectExec {
 
     @Mock
@@ -89,7 +91,6 @@ public class TestConnectExec {
 
     @Before
     public void setup() throws Exception {
-        MockitoAnnotations.initMocks(this);
         exec = new ConnectExec(reuseStrategy, proxyHttpProcessor, proxyAuthStrategy);
         target = new HttpHost("foo", 80);
         proxy = new HttpHost("bar", 8888);
@@ -107,14 +108,6 @@ public class TestConnectExec {
         context.setUserToken("Blah");
 
         Mockito.when(execRuntime.isEndpointAcquired()).thenReturn(false);
-        Mockito.when(execRuntime.execute(
-                Mockito.eq("test"),
-                Mockito.same(request),
-                Mockito.<HttpClientContext>any())).thenReturn(response);
-        Mockito.when(reuseStrategy.keepAlive(
-                Mockito.same(request),
-                Mockito.same(response),
-                Mockito.<HttpClientContext>any())).thenReturn(false);
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
         exec.execute(request, scope, execChain);
         Mockito.verify(execRuntime).acquireEndpoint("test", route, "Blah", context);
