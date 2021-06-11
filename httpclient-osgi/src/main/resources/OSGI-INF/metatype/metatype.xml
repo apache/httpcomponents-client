@@ -24,7 +24,7 @@
    information on the Apache Software Foundation, please see
    <http://www.apache.org />.
  -->
-<metatype:MetaData xmlns:metatype="http://www.osgi.org/xmlns/metatype/v1.0.0" localization="metatype">
+<metatype:MetaData xmlns:metatype="http://www.osgi.org/xmlns/metatype/v1.2.0" localization="metatype">
 
   <OCD id="org.apache.http.proxyconfigurator"
      name="%proxyconfig.name"
@@ -55,7 +55,7 @@
       description="%proxy.user.description" />
 
     <AD id="proxy.password"
-      type="String"
+      type="Password"
       default=""
       name="%proxy.password.name"
       description="%proxy.password.description" />
