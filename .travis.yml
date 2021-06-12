@@ -27,14 +27,10 @@ addons:
       - maven
       
 jdk:
-  - oraclejdk8
   - openjdk12
-  - oraclejdk12
+  - oraclejdk16
   - openjdk-ea
 
 matrix:
   allow_failures:
     - jdk: openjdk-ea
-
-after_success:
-  - mvn clean cobertura:cobertura coveralls:report

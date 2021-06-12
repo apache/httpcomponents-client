@@ -251,7 +251,7 @@ public class HttpTestUtils {
     }
 
     public static HttpCacheEntry makeCacheEntry(final Date requestDate,
-            final Date responseDate, final Header[] headers) {
+            final Date responseDate, final Header... headers) {
         final byte[] bytes = getRandomBytes(128);
         return makeCacheEntry(requestDate, responseDate, headers, bytes);
     }
@@ -283,7 +283,7 @@ public class HttpTestUtils {
         return makeCacheEntry(getStockHeaders(new Date()), bytes);
     }
 
-    public static HttpCacheEntry makeCacheEntry(final Header[] headers) {
+    public static HttpCacheEntry makeCacheEntry(final Header... headers) {
         return makeCacheEntry(headers, getRandomBytes(128));
     }
 
@@ -292,27 +292,27 @@ public class HttpTestUtils {
         return makeCacheEntry(now, now);
     }
 
-    public static HttpCacheEntry makeCacheEntryWithNoRequestMethodOrEntity(final Header[] headers) {
+    public static HttpCacheEntry makeCacheEntryWithNoRequestMethodOrEntity(final Header... headers) {
         final Date now = new Date();
         return new HttpCacheEntry(now, now, HttpStatus.SC_OK, headers, null, null);
     }
 
-    public static HttpCacheEntry makeCacheEntryWithNoRequestMethod(final Header[] headers) {
+    public static HttpCacheEntry makeCacheEntryWithNoRequestMethod(final Header... headers) {
         final Date now = new Date();
         return new HttpCacheEntry(now, now, HttpStatus.SC_OK, headers, new HeapResource(getRandomBytes(128)), null);
     }
 
-    public static HttpCacheEntry make204CacheEntryWithNoRequestMethod(final Header[] headers) {
+    public static HttpCacheEntry make204CacheEntryWithNoRequestMethod(final Header... headers) {
         final Date now = new Date();
         return new HttpCacheEntry(now, now, HttpStatus.SC_NO_CONTENT, headers, null, null);
     }
 
-    public static HttpCacheEntry makeHeadCacheEntry(final Header[] headers) {
+    public static HttpCacheEntry makeHeadCacheEntry(final Header... headers) {
         final Date now = new Date();
         return new HttpCacheEntry(now, now, HttpStatus.SC_OK, headers, null, null);
     }
 
-    public static HttpCacheEntry makeHeadCacheEntryWithNoRequestMethod(final Header[] headers) {
+    public static HttpCacheEntry makeHeadCacheEntryWithNoRequestMethod(final Header... headers) {
         final Date now = new Date();
         return new HttpCacheEntry(now, now, HttpStatus.SC_OK, headers, null, null);
     }

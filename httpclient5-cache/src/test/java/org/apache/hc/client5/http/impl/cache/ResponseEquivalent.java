@@ -27,30 +27,27 @@
 package org.apache.hc.client5.http.impl.cache;
 
 import org.apache.hc.core5.http.HttpResponse;
-import org.easymock.IArgumentMatcher;
+import org.mockito.ArgumentMatcher;
+import org.mockito.ArgumentMatchers;
 
-public class ResponseEquivalent implements IArgumentMatcher {
+public class ResponseEquivalent<T extends HttpResponse> implements ArgumentMatcher<T> {
 
-    private final HttpResponse expected;
+    private final T expected;
 
-    public ResponseEquivalent(final HttpResponse expected) {
+    public ResponseEquivalent(final T expected) {
         this.expected = expected;
     }
 
     @Override
-    public boolean matches(final Object actual) {
-        if (!(actual instanceof HttpResponse)) {
+    public boolean matches(final T argument) {
+        if (argument == null) {
             return false;
         }
-        final HttpResponse other = (HttpResponse) actual;
-        return HttpTestUtils.equivalent(expected, other);
+        return HttpTestUtils.equivalent(expected, argument);
     }
 
-    @Override
-    public void appendTo(final StringBuffer buf) {
-        buf.append("eqRequest(");
-        buf.append(expected);
-        buf.append(")");
+    public static <T extends HttpResponse> T eq(final T response) {
+        return ArgumentMatchers.argThat(new ResponseEquivalent<>(response));
     }
 
 }

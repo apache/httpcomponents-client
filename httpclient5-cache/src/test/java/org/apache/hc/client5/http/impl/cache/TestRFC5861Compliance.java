@@ -31,37 +31,90 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.Date;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
+import org.apache.hc.client5.http.HttpRoute;
+import org.apache.hc.client5.http.classic.ExecChain;
+import org.apache.hc.client5.http.classic.ExecRuntime;
 import org.apache.hc.client5.http.impl.schedule.ImmediateSchedulingStrategy;
+import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.io.entity.InputStreamEntity;
+import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
 import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
-import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnitRunner;
 
 /**
  * A suite of acceptance tests for compliance with RFC5861, which
  * describes the stale-if-error and stale-while-revalidate
  * Cache-Control extensions.
  */
-public class TestRFC5861Compliance extends AbstractProtocolTest {
+@RunWith(MockitoJUnitRunner.class)
+public class TestRFC5861Compliance {
 
-    private ScheduledExecutorService executorService;
+    static final int MAX_BYTES = 1024;
+    static final int MAX_ENTRIES = 100;
+    static final int ENTITY_LENGTH = 128;
+
+    HttpHost host;
+    HttpRoute route;
+    HttpEntity body;
+    HttpClientContext context;
+    @Mock
+    ExecChain mockExecChain;
+    @Mock
+    ExecRuntime mockExecRuntime;
+    @Mock
+    HttpCache mockCache;
+    ClassicHttpRequest request;
+    ClassicHttpResponse originResponse;
+    CacheConfig config;
+    CachingExec impl;
+    HttpCache cache;
+    ScheduledExecutorService executorService;
 
     @Before
-    public void setup() {
+    public void setUp() throws Exception {
+        host = new HttpHost("foo.example.com", 80);
+
+        route = new HttpRoute(host);
+
+        body = HttpTestUtils.makeBody(ENTITY_LENGTH);
+
+        request = new BasicClassicHttpRequest("GET", "/foo");
+
+        context = HttpClientContext.create();
+
+        originResponse = HttpTestUtils.make200Response();
+
+        config = CacheConfig.custom()
+                .setMaxCacheEntries(MAX_ENTRIES)
+                .setMaxObjectSize(MAX_BYTES)
+                .build();
+
+        cache = new BasicHttpCache(config);
+        impl = new CachingExec(cache, null, config);
+
         executorService = new ScheduledThreadPoolExecutor(1);
-        EasyMock.expect(mockExecRuntime.fork(null)).andReturn(mockExecRuntime).anyTimes();
+
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(originResponse);
+        Mockito.when(mockExecRuntime.fork(null)).thenReturn(mockExecRuntime);
     }
 
     @After
@@ -69,16 +122,11 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
         executorService.shutdownNow();
     }
 
-    @Override
-    protected void replayMocks() {
-        super.replayMocks();
-        EasyMock.replay(mockExecRuntime);
-    }
-
-    @Override
-    protected void verifyMocks() {
-        super.verifyMocks();
-        EasyMock.verify(mockExecRuntime);
+    public ClassicHttpResponse execute(final ClassicHttpRequest request) throws IOException, HttpException {
+        return impl.execute(
+                ClassicRequestBuilder.copy(request).build(),
+                new ExecChain.Scope("test", route, request, mockExecRuntime, context),
+                mockExecChain);
     }
 
     /*
@@ -104,17 +152,16 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response(tenSecondsAgo,
                 "public, max-age=5, stale-if-error=60");
 
-        backendExpectsAnyRequestAndReturn(resp1);
-
         final ClassicHttpRequest req2 = HttpTestUtils.makeDefaultRequest();
         final ClassicHttpResponse resp2 = HttpTestUtils.make500Response();
 
-        backendExpectsAnyRequestAndReturn(resp2);
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
 
-        replayMocks();
         execute(req1);
+
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp2);
+
         final ClassicHttpResponse result = execute(req2);
-        verifyMocks();
 
         HttpTestUtils.assert110WarningFound(result);
     }
@@ -127,8 +174,6 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response(tenSecondsAgo,
                 "public, max-age=5, stale-if-error=60");
 
-        backendExpectsAnyRequestAndReturn(resp1);
-
         final ClassicHttpRequest req2 = HttpTestUtils.makeDefaultRequest();
         final ClassicHttpResponse resp2 = HttpTestUtils.make500Response();
         final byte[] body101 = HttpTestUtils.getRandomBytes(101);
@@ -137,12 +182,13 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
         final HttpEntity entity = new InputStreamEntity(cis, 101, null);
         resp2.setEntity(entity);
 
-        backendExpectsAnyRequestAndReturn(resp2);
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
 
-        replayMocks();
         execute(req1);
+
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp2);
+
         execute(req2);
-        verifyMocks();
 
         assertTrue(cis.wasClosed());
     }
@@ -155,17 +201,16 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response(tenSecondsAgo,
                 "public, max-age=5, stale-if-error=60, must-revalidate");
 
-        backendExpectsAnyRequestAndReturn(resp1);
-
         final ClassicHttpRequest req2 = HttpTestUtils.makeDefaultRequest();
         final ClassicHttpResponse resp2 = HttpTestUtils.make500Response();
 
-        backendExpectsAnyRequestAndReturn(resp2);
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
 
-        replayMocks();
         execute(req1);
+
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp2);
+
         final ClassicHttpResponse result = execute(req2);
-        verifyMocks();
 
         assertTrue(HttpStatus.SC_OK != result.getCode());
     }
@@ -179,17 +224,16 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response(tenSecondsAgo,
                 "public, max-age=5, stale-if-error=60, proxy-revalidate");
 
-        backendExpectsAnyRequestAndReturn(resp1);
-
         final ClassicHttpRequest req2 = HttpTestUtils.makeDefaultRequest();
         final ClassicHttpResponse resp2 = HttpTestUtils.make500Response();
 
-        backendExpectsAnyRequestAndReturn(resp2);
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
 
-        replayMocks();
         execute(req1);
+
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp2);
+
         final ClassicHttpResponse result = execute(req2);
-        verifyMocks();
 
         assertTrue(HttpStatus.SC_OK != result.getCode());
     }
@@ -206,17 +250,16 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response(tenSecondsAgo,
                 "public, max-age=5, stale-if-error=60, proxy-revalidate");
 
-        backendExpectsAnyRequestAndReturn(resp1);
-
         final ClassicHttpRequest req2 = HttpTestUtils.makeDefaultRequest();
         final ClassicHttpResponse resp2 = HttpTestUtils.make500Response();
 
-        backendExpectsAnyRequestAndReturn(resp2);
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
 
-        replayMocks();
         execute(req1);
+
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp2);
+
         final ClassicHttpResponse result = execute(req2);
-        verifyMocks();
 
         HttpTestUtils.assert110WarningFound(result);
     }
@@ -229,18 +272,17 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response(tenSecondsAgo,
                 "public, max-age=5, stale-if-error=60");
 
-        backendExpectsAnyRequestAndReturn(resp1);
-
         final ClassicHttpRequest req2 = HttpTestUtils.makeDefaultRequest();
         req2.setHeader("Cache-Control","min-fresh=2");
         final ClassicHttpResponse resp2 = HttpTestUtils.make500Response();
 
-        backendExpectsAnyRequestAndReturn(resp2);
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
 
-        replayMocks();
         execute(req1);
+
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp2);
+
         final ClassicHttpResponse result = execute(req2);
-        verifyMocks();
 
         assertTrue(HttpStatus.SC_OK != result.getCode());
     }
@@ -253,18 +295,17 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response(tenSecondsAgo,
                 "public, max-age=5");
 
-        backendExpectsAnyRequestAndReturn(resp1);
-
         final ClassicHttpRequest req2 = HttpTestUtils.makeDefaultRequest();
         req2.setHeader("Cache-Control","public, stale-if-error=60");
         final ClassicHttpResponse resp2 = HttpTestUtils.make500Response();
 
-        backendExpectsAnyRequestAndReturn(resp2);
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
 
-        replayMocks();
         execute(req1);
+
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp2);
+
         final ClassicHttpResponse result = execute(req2);
-        verifyMocks();
 
         HttpTestUtils.assert110WarningFound(result);
     }
@@ -278,18 +319,17 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
         resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
         resp1.setHeader("Cache-Control", "public, max-age=5");
 
-        backendExpectsAnyRequestAndReturn(resp1);
-
         final ClassicHttpRequest req2 = HttpTestUtils.makeDefaultRequest();
         req2.setHeader("Cache-Control", "public, stale-if-error=60");
         final ClassicHttpResponse resp2 = HttpTestUtils.make500Response();
 
-        backendExpectsAnyRequestAndReturn(resp2);
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
 
-        replayMocks();
         execute(req1);
+
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp2);
+
         final ClassicHttpResponse result = execute(req2);
-        verifyMocks();
 
         HttpTestUtils.assert110WarningFound(result);
     }
@@ -303,17 +343,16 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response(tenSecondsAgo,
                 "public, max-age=5, stale-if-error=2");
 
-        backendExpectsAnyRequestAndReturn(resp1);
-
         final ClassicHttpRequest req2 = HttpTestUtils.makeDefaultRequest();
         final ClassicHttpResponse resp2 = HttpTestUtils.make500Response();
 
-        backendExpectsAnyRequestAndReturn(resp2);
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
 
-        replayMocks();
         execute(req1);
+
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp2);
+
         final ClassicHttpResponse result = execute(req2);
-        verifyMocks();
 
         assertEquals(HttpStatus.SC_INTERNAL_SERVER_ERROR,
                 result.getCode());
@@ -328,21 +367,19 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response(tenSecondsAgo,
                 "public, max-age=5");
 
-        backendExpectsAnyRequestAndReturn(resp1);
-
         final ClassicHttpRequest req2 = HttpTestUtils.makeDefaultRequest();
         req2.setHeader("Cache-Control","stale-if-error=2");
         final ClassicHttpResponse resp2 = HttpTestUtils.make500Response();
 
-        backendExpectsAnyRequestAndReturn(resp2);
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
 
-        replayMocks();
         execute(req1);
-        final ClassicHttpResponse result = execute(req2);
-        verifyMocks();
 
-        assertEquals(HttpStatus.SC_INTERNAL_SERVER_ERROR,
-                result.getCode());
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp2);
+
+        final ClassicHttpResponse result = execute(req2);
+
+        assertEquals(HttpStatus.SC_INTERNAL_SERVER_ERROR, result.getCode());
     }
 
     /*
@@ -372,14 +409,12 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
         resp1.setHeader("ETag","\"etag\"");
         resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
 
-        backendExpectsAnyRequestAndReturn(resp1).times(1,2);
-
         final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
 
-        replayMocks();
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
+
         execute(req1);
         final ClassicHttpResponse result = execute(req2);
-        verifyMocks();
 
         assertEquals(HttpStatus.SC_OK, result.getCode());
         boolean warning110Found = false;
@@ -392,6 +427,9 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
             }
         }
         assertTrue(warning110Found);
+
+        Mockito.verify(mockExecChain, Mockito.atLeastOnce()).proceed(Mockito.any(), Mockito.any());
+        Mockito.verify(mockExecChain, Mockito.atMost(2)).proceed(Mockito.any(), Mockito.any());
     }
 
     @Test
@@ -409,14 +447,12 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
         resp1.setHeader("Cache-Control", "public, max-age=5, stale-while-revalidate=15");
         resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
 
-        backendExpectsAnyRequestAndReturn(resp1).times(1, 2);
-
         final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
 
-        replayMocks();
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
+
         execute(req1);
         final ClassicHttpResponse result = execute(req2);
-        verifyMocks();
 
         assertEquals(HttpStatus.SC_OK, result.getCode());
         boolean warning110Found = false;
@@ -429,6 +465,9 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
             }
         }
         assertTrue(warning110Found);
+
+        Mockito.verify(mockExecChain, Mockito.atLeastOnce()).proceed(Mockito.any(), Mockito.any());
+        Mockito.verify(mockExecChain, Mockito.atMost(2)).proceed(Mockito.any(), Mockito.any());
     }
 
     @Test
@@ -451,15 +490,13 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
         resp1.setHeader("ETag","\"etag\"");
         resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
 
-        backendExpectsAnyRequestAndReturn(resp1).times(1,2);
-
         final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
         req2.setHeader("If-None-Match","\"etag\"");
 
-        replayMocks();
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
+
         execute(req1);
         final ClassicHttpResponse result = execute(req2);
-        verifyMocks();
 
         assertEquals(HttpStatus.SC_NOT_MODIFIED, result.getCode());
         boolean warning110Found = false;
@@ -472,8 +509,10 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
             }
         }
         assertTrue(warning110Found);
-    }
 
+        Mockito.verify(mockExecChain, Mockito.atLeastOnce()).proceed(Mockito.any(), Mockito.any());
+        Mockito.verify(mockExecChain, Mockito.atMost(2)).proceed(Mockito.any(), Mockito.any());
+    }
 
     @Test
     public void testStaleWhileRevalidateYieldsToMustRevalidate()
@@ -495,20 +534,19 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
         resp1.setHeader("ETag","\"etag\"");
         resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
 
-        backendExpectsAnyRequestAndReturn(resp1);
-
         final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp2 = HttpTestUtils.make200Response();
         resp2.setHeader("Cache-Control", "public, max-age=5, stale-while-revalidate=15, must-revalidate");
         resp2.setHeader("ETag","\"etag\"");
         resp2.setHeader("Date", DateUtils.formatDate(now));
 
-        backendExpectsAnyRequestAndReturn(resp2);
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
 
-        replayMocks();
         execute(req1);
+
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp2);
+
         final ClassicHttpResponse result = execute(req2);
-        verifyMocks();
 
         assertEquals(HttpStatus.SC_OK, result.getCode());
         boolean warning110Found = false;
@@ -544,20 +582,19 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
         resp1.setHeader("ETag","\"etag\"");
         resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
 
-        backendExpectsAnyRequestAndReturn(resp1);
-
         final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp2 = HttpTestUtils.make200Response();
         resp2.setHeader("Cache-Control", "public, max-age=5, stale-while-revalidate=15, proxy-revalidate");
         resp2.setHeader("ETag","\"etag\"");
         resp2.setHeader("Date", DateUtils.formatDate(now));
 
-        backendExpectsAnyRequestAndReturn(resp2);
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
 
-        replayMocks();
         execute(req1);
+
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp2);
+
         final ClassicHttpResponse result = execute(req2);
-        verifyMocks();
 
         assertEquals(HttpStatus.SC_OK, result.getCode());
         boolean warning110Found = false;
@@ -593,8 +630,6 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
         resp1.setHeader("ETag","\"etag\"");
         resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
 
-        backendExpectsAnyRequestAndReturn(resp1);
-
         final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
         req2.setHeader("Cache-Control","min-fresh=2");
         final ClassicHttpResponse resp2 = HttpTestUtils.make200Response();
@@ -602,12 +637,13 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
         resp2.setHeader("ETag","\"etag\"");
         resp2.setHeader("Date", DateUtils.formatDate(now));
 
-        backendExpectsAnyRequestAndReturn(resp2);
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
 
-        replayMocks();
         execute(req1);
+
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp2);
+
         final ClassicHttpResponse result = execute(req2);
-        verifyMocks();
 
         assertEquals(HttpStatus.SC_OK, result.getCode());
         boolean warning110Found = false;
