@@ -258,9 +258,8 @@ public class HttpTestUtils {
 
     public static HttpCacheEntry makeCacheEntry(final Date requestDate,
             final Date responseDate, final Header[] headers, final byte[] bytes) {
-        final Map<String,String> variantMap = null;
         return makeCacheEntry(requestDate, responseDate, headers, bytes,
-                variantMap);
+                null);
     }
 
     public static HttpCacheEntry makeCacheEntry(final Map<String,String> variantMap) {

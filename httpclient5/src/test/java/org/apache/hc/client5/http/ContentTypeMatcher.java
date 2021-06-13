@@ -44,9 +44,7 @@ public class ContentTypeMatcher extends BaseMatcher<ContentType> {
     public boolean matches(final Object item) {
         if (item instanceof ContentType) {
             final ContentType contentType = (ContentType) item;
-            if (contentType.isSameMimeType(expectedContentType)) {
-                return true;
-            }
+            return contentType.isSameMimeType(expectedContentType);
         }
         return false;
     }

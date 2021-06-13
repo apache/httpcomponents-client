@@ -84,10 +84,7 @@ public class HttpCacheEntryMatcher extends BaseMatcher<HttpCacheEntry> {
                 final byte[] expectedContent = expectedResource != null ? expectedResource.get() : null;
                 final Resource otherResource = otherValue.getResource();
                 final byte[] otherContent = otherResource != null ? otherResource.get() : null;
-                if (!Arrays.equals(expectedContent, otherContent)) {
-                    return false;
-                }
-                return true;
+                return Arrays.equals(expectedContent, otherContent);
             } catch (final ResourceIOException ex) {
                 throw new RuntimeException(ex);
             }
