@@ -95,7 +95,7 @@ public class TestMultipartFormHttpEntity {
         Assert.assertFalse(entity.isStreaming());
 
         final long len = entity.getContentLength();
-        Assert.assertTrue(len == entity.getContentLength());
+        Assert.assertEquals(len, entity.getContentLength());
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         entity.writeTo(out);
@@ -103,9 +103,9 @@ public class TestMultipartFormHttpEntity {
 
         byte[] bytes = out.toByteArray();
         Assert.assertNotNull(bytes);
-        Assert.assertTrue(bytes.length == len);
+        Assert.assertEquals(bytes.length, len);
 
-        Assert.assertTrue(len == entity.getContentLength());
+        Assert.assertEquals(len, entity.getContentLength());
 
         out = new ByteArrayOutputStream();
         entity.writeTo(out);
@@ -113,7 +113,7 @@ public class TestMultipartFormHttpEntity {
 
         bytes = out.toByteArray();
         Assert.assertNotNull(bytes);
-        Assert.assertTrue(bytes.length == len);
+        Assert.assertEquals(bytes.length, len);
     }
 
     @Test
@@ -128,7 +128,7 @@ public class TestMultipartFormHttpEntity {
         Assert.assertTrue(entity.isChunked());
         Assert.assertTrue(entity.isStreaming());
 
-        Assert.assertTrue(entity.getContentLength() == -1);
+        Assert.assertEquals(-1, entity.getContentLength());
     }
 
 }

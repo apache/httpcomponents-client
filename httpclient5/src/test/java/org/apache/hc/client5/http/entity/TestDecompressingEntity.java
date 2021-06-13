@@ -56,7 +56,7 @@ public class TestDecompressingEntity {
         Assert.assertEquals(639479525L, crc32.getValue());
         final InputStream in1 = entity.getContent();
         final InputStream in2 = entity.getContent();
-        Assert.assertTrue(in1 != in2);
+        Assert.assertNotSame(in1, in2);
     }
 
     @Test
@@ -71,7 +71,7 @@ public class TestDecompressingEntity {
         Assert.assertEquals(639479525L, crc32.getValue());
         final InputStream in1 = entity.getContent();
         final InputStream in2 = entity.getContent();
-        Assert.assertTrue(in1 == in2);
+        Assert.assertSame(in1, in2);
         EntityUtils.consume(entity);
         EntityUtils.consume(entity);
     }

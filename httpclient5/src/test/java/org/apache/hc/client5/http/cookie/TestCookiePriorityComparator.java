@@ -63,8 +63,8 @@ public class TestCookiePriorityComparator {
         cookie1.setPath("/a");
         final BasicClientCookie cookie2 = new BasicClientCookie("name1", "value");
         cookie2.setPath("/a");
-        Assert.assertTrue(comparator.compare(cookie1, cookie2) == 0);
-        Assert.assertTrue(comparator.compare(cookie2, cookie1) == 0);
+        Assert.assertEquals(0, comparator.compare(cookie1, cookie2));
+        Assert.assertEquals(0, comparator.compare(cookie2, cookie1));
     }
 
     @Test
@@ -83,8 +83,8 @@ public class TestCookiePriorityComparator {
         cookie1.setPath(null);
         final BasicClientCookie cookie2 = new BasicClientCookie("name1", "value");
         cookie2.setPath("/");
-        Assert.assertTrue(comparator.compare(cookie1, cookie2) == 0);
-        Assert.assertTrue(comparator.compare(cookie2, cookie1) == 0);
+        Assert.assertEquals(0, comparator.compare(cookie1, cookie2));
+        Assert.assertEquals(0, comparator.compare(cookie2, cookie1));
     }
 
     @Test
@@ -93,8 +93,8 @@ public class TestCookiePriorityComparator {
         cookie1.setPath("/this");
         final BasicClientCookie cookie2 = new BasicClientCookie("name1", "value");
         cookie2.setPath("/that");
-        Assert.assertTrue(comparator.compare(cookie1, cookie2) == 0);
-        Assert.assertTrue(comparator.compare(cookie2, cookie1) == 0);
+        Assert.assertEquals(0, comparator.compare(cookie1, cookie2));
+        Assert.assertEquals(0, comparator.compare(cookie2, cookie1));
     }
 
     @Test

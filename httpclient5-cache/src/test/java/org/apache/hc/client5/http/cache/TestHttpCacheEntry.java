@@ -28,6 +28,7 @@ package org.apache.hc.client5.http.cache;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
@@ -103,7 +104,7 @@ public class TestHttpCacheEntry {
                 new BasicHeader("bar", "barValue2")
         };
         entry = makeEntry(headers);
-        assertEquals(null, entry.getFirstHeader("quux"));
+        assertNull(entry.getFirstHeader("quux"));
     }
 
     @Test
@@ -260,7 +261,7 @@ public class TestHttpCacheEntry {
         entry = new HttpCacheEntry(new Date(), new Date(), HttpStatus.SC_OK,
                 new Header[]{}, mockResource);
         assertNotNull(entry.toString());
-        assertFalse("".equals(entry.toString()));
+        assertNotEquals("", entry.toString());
     }
 
     @Test

@@ -308,11 +308,11 @@ public class TestDigestScheme {
         Assert.assertEquals("/", table.get("uri"));
         Assert.assertEquals(nonce, table.get("nonce"));
         Assert.assertEquals(1, Integer.parseInt(table.get("nc"),16));
-        Assert.assertTrue(null != table.get("cnonce"));
+        Assert.assertNotNull(table.get("cnonce"));
         Assert.assertEquals("SomeString", table.get("opaque"));
         Assert.assertEquals("auth", table.get("qop"));
         //@TODO: add better check
-        Assert.assertTrue(null != table.get("response"));
+        Assert.assertNotNull(table.get("response"));
     }
 
     /**
@@ -353,11 +353,11 @@ public class TestDigestScheme {
         Assert.assertEquals("MD5-sess", table.get("algorithm"));
         Assert.assertEquals("/", table.get("uri"));
         Assert.assertEquals(nonce, table.get("nonce"));
-        Assert.assertTrue(null == table.get("nc"));
+        Assert.assertNull(table.get("nc"));
         Assert.assertEquals("SomeString", table.get("opaque"));
-        Assert.assertTrue(null == table.get("qop"));
+        Assert.assertNull(table.get("qop"));
         //@TODO: add better check
-        Assert.assertTrue(null != table.get("response"));
+        Assert.assertNotNull(table.get("response"));
     }
 
     /**
@@ -561,8 +561,8 @@ public class TestDigestScheme {
         final String cnonce4 = authscheme.getCnonce();
         final String sessionKey4 = authscheme.getA1();
 
-        Assert.assertFalse(cnonce1.equals(cnonce4));
-        Assert.assertFalse(sessionKey1.equals(sessionKey4));
+        Assert.assertNotEquals(cnonce1, cnonce4);
+        Assert.assertNotEquals(sessionKey1, sessionKey4);
     }
 
     @Test

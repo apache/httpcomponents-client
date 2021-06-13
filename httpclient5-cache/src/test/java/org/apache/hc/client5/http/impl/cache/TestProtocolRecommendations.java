@@ -28,6 +28,7 @@ package org.apache.hc.client5.http.impl.cache;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -395,7 +396,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         verifyMocks();
 
         if (result != null) {
-            assertFalse(result.getCode() == HttpStatus.SC_OK);
+            assertNotEquals(HttpStatus.SC_OK, result.getCode());
         }
     }
 
@@ -1226,7 +1227,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         final Iterator<HeaderElement> it = MessageSupport.iterate(captured, HttpHeaders.IF_NONE_MATCH);
         while (it.hasNext()) {
             final HeaderElement elt = it.next();
-            assertFalse("\"etag2\"".equals(elt.toString()));
+            assertNotEquals("\"etag2\"", elt.toString());
         }
     }
 

@@ -40,7 +40,7 @@ public class TestAuthChallenge {
         final AuthChallenge authChallenge = new AuthChallenge(ChallengeType.TARGET, StandardAuthScheme.BASIC, "blah", null);
         Assert.assertEquals(StandardAuthScheme.BASIC, authChallenge.getSchemeName());
         Assert.assertEquals("blah", authChallenge.getValue());
-        Assert.assertEquals(null, authChallenge.getParams());
+        Assert.assertNull(authChallenge.getParams());
         Assert.assertEquals(StandardAuthScheme.BASIC + " blah", authChallenge.toString());
     }
 
@@ -49,7 +49,7 @@ public class TestAuthChallenge {
         final AuthChallenge authChallenge = new AuthChallenge(ChallengeType.TARGET, StandardAuthScheme.BASIC, null,
                 Arrays.asList(new BasicNameValuePair("blah", "this"), new BasicNameValuePair("blah", "that")));
         Assert.assertEquals(StandardAuthScheme.BASIC, authChallenge.getSchemeName());
-        Assert.assertEquals(null, authChallenge.getValue());
+        Assert.assertNull(authChallenge.getValue());
         Assert.assertNotNull(authChallenge.getParams());
         Assert.assertEquals(StandardAuthScheme.BASIC + " [blah=this, blah=that]", authChallenge.toString());
     }

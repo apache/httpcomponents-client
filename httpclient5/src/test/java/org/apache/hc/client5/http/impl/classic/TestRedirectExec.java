@@ -213,11 +213,11 @@ public class TestRedirectExec {
         final AuthExchange authExchange1 = context.getAuthExchange(target);
         Assert.assertNotNull(authExchange1);
         Assert.assertEquals(AuthExchange.State.UNCHALLENGED, authExchange1.getState());
-        Assert.assertEquals(null, authExchange1.getAuthScheme());
+        Assert.assertNull(authExchange1.getAuthScheme());
         final AuthExchange authExchange2 = context.getAuthExchange(proxy);
         Assert.assertNotNull(authExchange2);
         Assert.assertEquals(AuthExchange.State.UNCHALLENGED, authExchange2.getState());
-        Assert.assertEquals(null, authExchange2.getAuthScheme());
+        Assert.assertNull(authExchange2.getAuthScheme());
     }
 
     @Test

@@ -50,10 +50,10 @@ public class TestAuthScope {
     public void testByOrigin() {
         final HttpHost host = new HttpHost("http", "somehost", 8080);
         final AuthScope authscope = new AuthScope(host);
-        Assert.assertEquals(null, authscope.getSchemeName());
+        Assert.assertNull(authscope.getSchemeName());
         Assert.assertEquals("somehost", authscope.getHost());
         Assert.assertEquals(8080, authscope.getPort());
-        Assert.assertEquals(null, authscope.getRealm());
+        Assert.assertNull(authscope.getRealm());
         Assert.assertEquals("http", authscope.getProtocol());
         Assert.assertEquals("<any auth scheme> <any realm> http://somehost:8080", authscope.toString());
     }
@@ -61,10 +61,10 @@ public class TestAuthScope {
     @Test
     public void testMixedCaseHostname() {
         final AuthScope authscope = new AuthScope("SomeHost", 80);
-        Assert.assertEquals(null, authscope.getSchemeName());
+        Assert.assertNull(authscope.getSchemeName());
         Assert.assertEquals("somehost", authscope.getHost());
         Assert.assertEquals(80, authscope.getPort());
-        Assert.assertEquals(null, authscope.getRealm());
+        Assert.assertNull(authscope.getRealm());
         Assert.assertEquals("<any auth scheme> <any realm> <any protocol>://somehost:80", authscope.toString());
     }
 
@@ -78,10 +78,10 @@ public class TestAuthScope {
     @Test
     public void testBasicsAllOptional() {
         final AuthScope authscope = new AuthScope(null, null, -1, null, null);
-        Assert.assertEquals(null, authscope.getSchemeName());
-        Assert.assertEquals(null, authscope.getHost());
+        Assert.assertNull(authscope.getSchemeName());
+        Assert.assertNull(authscope.getHost());
         Assert.assertEquals(-1, authscope.getPort());
-        Assert.assertEquals(null, authscope.getRealm());
+        Assert.assertNull(authscope.getRealm());
         Assert.assertEquals("<any auth scheme> <any realm> <any protocol>://<any host>:<any port>", authscope.toString());
     }
 
@@ -126,14 +126,14 @@ public class TestAuthScope {
         final AuthScope authscope6 = new AuthScope("http", "somehost", 80, "somerealm", "someotherscheme");
         final AuthScope authscope7 = new AuthScope("https", "somehost", 80, "somerealm", "somescheme");
         final AuthScope authscope8 = new AuthScope("https", "somehost", 80, "somerealm", "SomeScheme");
-        Assert.assertTrue(authscope1.equals(authscope1));
-        Assert.assertFalse(authscope1.equals(authscope2));
-        Assert.assertTrue(authscope1.equals(authscope3));
-        Assert.assertFalse(authscope1.equals(authscope4));
-        Assert.assertFalse(authscope1.equals(authscope5));
-        Assert.assertFalse(authscope1.equals(authscope6));
-        Assert.assertFalse(authscope1.equals(authscope7));
-        Assert.assertTrue(authscope7.equals(authscope8));
+        Assert.assertEquals(authscope1, authscope1);
+        Assert.assertNotEquals(authscope1, authscope2);
+        Assert.assertEquals(authscope1, authscope3);
+        Assert.assertNotEquals(authscope1, authscope4);
+        Assert.assertNotEquals(authscope1, authscope5);
+        Assert.assertNotEquals(authscope1, authscope6);
+        Assert.assertNotEquals(authscope1, authscope7);
+        Assert.assertEquals(authscope7, authscope8);
     }
 
     @Test
@@ -146,14 +146,14 @@ public class TestAuthScope {
         final AuthScope authscope6 = new AuthScope("http", "somehost", 80, "somerealm", "someotherscheme");
         final AuthScope authscope7 = new AuthScope("https", "somehost", 80, "somerealm", "somescheme");
         final AuthScope authscope8 = new AuthScope("https", "somehost", 80, "somerealm", "SomeScheme");
-        Assert.assertTrue(authscope1.hashCode() == authscope1.hashCode());
-        Assert.assertFalse(authscope1.hashCode() == authscope2.hashCode());
-        Assert.assertTrue(authscope1.hashCode() == authscope3.hashCode());
-        Assert.assertFalse(authscope1.hashCode() == authscope4.hashCode());
-        Assert.assertFalse(authscope1.hashCode() == authscope5.hashCode());
-        Assert.assertFalse(authscope1.hashCode() == authscope6.hashCode());
-        Assert.assertFalse(authscope1.hashCode() == authscope7.hashCode());
-        Assert.assertTrue(authscope7.hashCode() == authscope8.hashCode());
+        Assert.assertEquals(authscope1.hashCode(), authscope1.hashCode());
+        Assert.assertNotEquals(authscope1.hashCode(), authscope2.hashCode());
+        Assert.assertEquals(authscope1.hashCode(), authscope3.hashCode());
+        Assert.assertNotEquals(authscope1.hashCode(), authscope4.hashCode());
+        Assert.assertNotEquals(authscope1.hashCode(), authscope5.hashCode());
+        Assert.assertNotEquals(authscope1.hashCode(), authscope6.hashCode());
+        Assert.assertNotEquals(authscope1.hashCode(), authscope7.hashCode());
+        Assert.assertEquals(authscope7.hashCode(), authscope8.hashCode());
     }
 
 }
