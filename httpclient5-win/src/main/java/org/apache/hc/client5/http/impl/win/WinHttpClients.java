@@ -37,8 +37,6 @@ import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.core5.http.config.Registry;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 
-import com.sun.jna.platform.win32.Sspi;
-
 /**
  * Factory methods for {@link org.apache.hc.client5.http.impl.classic.CloseableHttpClient} instances configured to use integrated
  * Windows authentication by default.
@@ -54,14 +52,7 @@ public class WinHttpClients {
     public static boolean isWinAuthAvailable() {
         String os = System.getProperty("os.name");
         os = os != null ? os.toLowerCase(Locale.ROOT) : null;
-        if (os != null && os.contains("windows")) {
-            try {
-                return Sspi.MAX_TOKEN_SIZE > 0;
-            } catch (final Exception ignore) {
-                // Likely ClassNotFound
-            }
-        }
-        return false;
+        return os != null && os.contains("windows");
     }
 
     private static HttpClientBuilder createBuilder() {

@@ -47,9 +47,7 @@ public class HeaderMatcher extends BaseMatcher<Header> {
     public boolean matches(final Object item) {
         if (item instanceof Header) {
             final Header header = (Header) item;
-            if (headerName.equalsIgnoreCase(header.getName()) && LangUtils.equals(headerValue, header.getValue())) {
-                return true;
-            }
+            return headerName.equalsIgnoreCase(header.getName()) && LangUtils.equals(headerValue, header.getValue());
         }
         return false;
     }

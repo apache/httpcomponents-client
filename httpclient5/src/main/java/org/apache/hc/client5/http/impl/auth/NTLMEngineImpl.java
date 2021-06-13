@@ -687,9 +687,6 @@ final class NTLMEngineImpl implements NTLMEngine {
      *         the NTLM Response and the NTLMv2 and LMv2 Hashes.
      */
     private static byte[] ntlmHash(final char[] password) throws NTLMEngineException {
-        if (UNICODE_LITTLE_UNMARKED == null) {
-            throw new NTLMEngineException("Unicode not supported");
-        }
         final byte[] unicodePassword = new ByteArrayBuilder()
                 .charset(UNICODE_LITTLE_UNMARKED).append(password).toByteArray();
         final MD4 md4 = new MD4();
@@ -705,9 +702,6 @@ final class NTLMEngineImpl implements NTLMEngine {
      */
     private static byte[] lmv2Hash(final String domain, final String user, final byte[] ntlmHash)
             throws NTLMEngineException {
-        if (UNICODE_LITTLE_UNMARKED == null) {
-            throw new NTLMEngineException("Unicode not supported");
-        }
         final HMACMD5 hmacMD5 = new HMACMD5(ntlmHash);
         // Upper case username, upper case domain!
         hmacMD5.update(user.toUpperCase(Locale.ROOT).getBytes(UNICODE_LITTLE_UNMARKED));
@@ -725,9 +719,6 @@ final class NTLMEngineImpl implements NTLMEngine {
      */
     private static byte[] ntlmv2Hash(final String domain, final String user, final byte[] ntlmHash)
             throws NTLMEngineException {
-        if (UNICODE_LITTLE_UNMARKED == null) {
-            throw new NTLMEngineException("Unicode not supported");
-        }
         final HMACMD5 hmacMD5 = new HMACMD5(ntlmHash);
         // Upper case username, mixed case target!!
         hmacMD5.update(user.toUpperCase(Locale.ROOT).getBytes(UNICODE_LITTLE_UNMARKED));
@@ -1070,9 +1061,6 @@ final class NTLMEngineImpl implements NTLMEngine {
     {
         if ((flags & FLAG_REQUEST_UNICODE_ENCODING) == 0) {
             return DEFAULT_CHARSET;
-        }
-        if (UNICODE_LITTLE_UNMARKED == null) {
-            throw new NTLMEngineException( "Unicode not supported" );
         }
         return UNICODE_LITTLE_UNMARKED;
     }

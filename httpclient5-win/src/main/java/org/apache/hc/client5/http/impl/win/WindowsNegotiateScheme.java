@@ -239,9 +239,6 @@ public class WindowsNegotiateScheme implements AuthScheme {
             final RouteInfo route = clientContext.getHttpRoute();
             if (route != null) {
                 spn = "HTTP/" + route.getProxyHost().getHostName();
-            } else {
-                // Should not happen
-                spn = null;
             }
         } else {
             final URIAuthority authority = request.getAuthority();
@@ -251,9 +248,6 @@ public class WindowsNegotiateScheme implements AuthScheme {
                 final RouteInfo route = clientContext.getHttpRoute();
                 if (route != null) {
                     spn = "HTTP/" + route.getTargetHost().getHostName();
-                } else {
-                    // Should not happen
-                    spn = null;
                 }
             }
         }

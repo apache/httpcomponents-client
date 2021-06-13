@@ -50,23 +50,21 @@ public class NameValuePairsMatcher extends BaseMatcher<Collection<? extends Name
     public boolean matches(final Object item) {
         if (item instanceof Collection<?>) {
             final Collection<?> collection = (Collection<?>) item;
-            if (collection.size() == collection.size()) {
-                int i = 0;
-                for (final Object obj : collection) {
-                    if (obj instanceof NameValuePair) {
-                        final NameValuePair nvp1 = (NameValuePair) obj;
-                        final NameValuePair nvp2 = expectedNameValuePairList.get(i);
-                        if (!nvp1.getName().equalsIgnoreCase(nvp2.getName())
-                                || !LangUtils.equals(nvp1.getValue(), nvp2.getValue())) {
-                            return false;
-                        }
-                    } else {
+            int i = 0;
+            for (final Object obj : collection) {
+                if (obj instanceof NameValuePair) {
+                    final NameValuePair nvp1 = (NameValuePair) obj;
+                    final NameValuePair nvp2 = expectedNameValuePairList.get(i);
+                    if (!nvp1.getName().equalsIgnoreCase(nvp2.getName())
+                            || !LangUtils.equals(nvp1.getValue(), nvp2.getValue())) {
                         return false;
                     }
-                    i++;
+                } else {
+                    return false;
                 }
-                return true;
+                i++;
             }
+            return true;
         }
         return false;
     }
