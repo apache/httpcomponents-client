@@ -247,7 +247,7 @@ public class TestPoolingHttpClientConnectionManager {
         mgr.release(endpoint1, "some state", TimeValue.NEG_ONE_MILLISECOND);
 
         Mockito.verify(pool).release(entry, false);
-        Assert.assertEquals(null, entry.getState());
+        Assert.assertNull(entry.getState());
     }
 
     @Test

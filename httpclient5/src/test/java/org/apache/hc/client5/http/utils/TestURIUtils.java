@@ -170,14 +170,10 @@ public class TestURIUtils {
 
         Assert.assertEquals(new HttpHost("localhost",8080),
                 URIUtils.extractHost(new URI("http://localhost:8080/;sessionid=stuff/abcd")));
-        Assert.assertEquals(null,
-                URIUtils.extractHost(new URI("http://localhost:8080;sessionid=stuff/abcd")));
-        Assert.assertEquals(null,
-                URIUtils.extractHost(new URI("http://localhost:;sessionid=stuff/abcd")));
-        Assert.assertEquals(null,
-                URIUtils.extractHost(new URI("http://:80/robots.txt")));
-        Assert.assertEquals(null,
-                URIUtils.extractHost(new URI("http://some%20domain:80/robots.txt")));
+        Assert.assertNull(URIUtils.extractHost(new URI("http://localhost:8080;sessionid=stuff/abcd")));
+        Assert.assertNull(URIUtils.extractHost(new URI("http://localhost:;sessionid=stuff/abcd")));
+        Assert.assertNull(URIUtils.extractHost(new URI("http://:80/robots.txt")));
+        Assert.assertNull(URIUtils.extractHost(new URI("http://some%20domain:80/robots.txt")));
     }
 
     @Test

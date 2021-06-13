@@ -92,14 +92,11 @@ public class TestRouteTracker {
         RouteTracker rt = new RouteTracker(TARGET1, null);
         Assert.assertEquals("wrong target (target,null)",
                      TARGET1, rt.getTargetHost());
-        Assert.assertEquals("wrong local address (target,null)",
-                     null, rt.getLocalAddress());
+        Assert.assertNull("wrong local address (target,null)", rt.getLocalAddress());
         Assert.assertEquals("wrong hop count (target,null)",
                      0, rt.getHopCount());
-        Assert.assertEquals("wrong proxy (target,null)",
-                     null, rt.getProxyHost());
-        Assert.assertEquals("wrong route (target,null)",
-                     null, rt.toRoute());
+        Assert.assertNull("wrong proxy (target,null)", rt.getProxyHost());
+        Assert.assertNull("wrong route (target,null)", rt.toRoute());
         checkCTLS(rt, false, false, false, false);
 
 
@@ -110,10 +107,8 @@ public class TestRouteTracker {
                      LOCAL61, rt.getLocalAddress());
         Assert.assertEquals("wrong hop count (target,local)",
                      0, rt.getHopCount());
-        Assert.assertEquals("wrong proxy (target,local)",
-                     null, rt.getProxyHost());
-        Assert.assertEquals("wrong route (target,local)",
-                     null, rt.toRoute());
+        Assert.assertNull("wrong proxy (target,local)", rt.getProxyHost());
+        Assert.assertNull("wrong route (target,local)", rt.toRoute());
         checkCTLS(rt, false, false, false, false);
 
 
@@ -134,14 +129,11 @@ public class TestRouteTracker {
         RouteTracker rt = new RouteTracker(r);
         Assert.assertEquals("wrong target (r1)",
                      TARGET1, rt.getTargetHost());
-        Assert.assertEquals("wrong local address (r1)",
-                     null, rt.getLocalAddress());
+        Assert.assertNull("wrong local address (r1)", rt.getLocalAddress());
         Assert.assertEquals("wrong hop count (r1)",
                      0, rt.getHopCount());
-        Assert.assertEquals("wrong proxy (r1)",
-                     null, rt.getProxyHost());
-        Assert.assertEquals("wrong route (r1)",
-                     null, rt.toRoute());
+        Assert.assertNull("wrong proxy (r1)", rt.getProxyHost());
+        Assert.assertNull("wrong route (r1)", rt.toRoute());
         checkCTLS(rt, false, false, false, false);
 
         r  = new HttpRoute(TARGET2, LOCAL61, true);
@@ -152,10 +144,8 @@ public class TestRouteTracker {
                      LOCAL61, rt.getLocalAddress());
         Assert.assertEquals("wrong hop count (r2)",
                      0, rt.getHopCount());
-        Assert.assertEquals("wrong proxy (r2)",
-                     null, rt.getProxyHost());
-        Assert.assertEquals("wrong route (r2)",
-                     null, rt.toRoute());
+        Assert.assertNull("wrong proxy (r2)", rt.getProxyHost());
+        Assert.assertNull("wrong route (r2)", rt.toRoute());
         checkCTLS(rt, false, false, false, false);
 
 
@@ -167,10 +157,8 @@ public class TestRouteTracker {
                      LOCAL42, rt.getLocalAddress());
         Assert.assertEquals("wrong hop count (r3)",
                      0, rt.getHopCount());
-        Assert.assertEquals("wrong proxy (r3)",
-                     null, rt.getProxyHost());
-        Assert.assertEquals("wrong route (r3)",
-                     null, rt.toRoute());
+        Assert.assertNull("wrong proxy (r3)", rt.getProxyHost());
+        Assert.assertNull("wrong route (r3)", rt.toRoute());
         checkCTLS(rt, false, false, false, false);
 
 
@@ -384,35 +372,35 @@ public class TestRouteTracker {
         final RouteTracker rt4 = new RouteTracker(TARGET1, LOCAL41);
         final RouteTracker rt6 = new RouteTracker(TARGET1, LOCAL62);
 
-        Assert.assertFalse("rt0", rt0.equals(null));
-        Assert.assertTrue("rt0", rt0.equals(rt0));
-        Assert.assertFalse("rt0", rt0.equals(rt0.toString()));
+        Assert.assertNotEquals("rt0", null, rt0);
+        Assert.assertEquals("rt0", rt0, rt0);
+        Assert.assertNotEquals("rt0", rt0, rt0.toString());
 
-        Assert.assertFalse("rt0 == rt4", rt0.equals(rt4));
-        Assert.assertFalse("rt0 == rt1", rt0.equals(rt1)); // Check host takes part in equals
+        Assert.assertNotEquals("rt0 == rt4", rt0, rt4);
+        Assert.assertNotEquals("rt0 == rt1", rt0, rt1); // Check host takes part in equals
 
         // Check that connection takes part in equals
-        Assert.assertTrue("rt0 != rt2", rt0.equals(rt2));
+        Assert.assertEquals("rt0 != rt2", rt0, rt2);
         rt2.connectTarget(false);
-        Assert.assertFalse("rt0 == rt2", rt0.equals(rt2));
+        Assert.assertNotEquals("rt0 == rt2", rt0, rt2);
 
-        Assert.assertTrue("rt0 != rt3", rt0.equals(rt3));
+        Assert.assertEquals("rt0 != rt3", rt0, rt3);
         rt3.connectTarget(true);
-        Assert.assertFalse("rt0 == rt3", rt0.equals(rt3));
-        Assert.assertFalse("rt2 == rt3", rt2.equals(rt3)); // Test secure takes part
+        Assert.assertNotEquals("rt0 == rt3", rt0, rt3);
+        Assert.assertNotEquals("rt2 == rt3", rt2, rt3); // Test secure takes part
 
         // TODO needs tests for tunnel and layered
 
-        Assert.assertFalse("rt4 == rt0", rt4.equals(rt0));
-        Assert.assertFalse("rt0 == rt6", rt0.equals(rt6));
-        Assert.assertFalse("rt6 == rt0", rt6.equals(rt0));
-        Assert.assertFalse("rt4 == rt6", rt4.equals(rt6));
-        Assert.assertFalse("rt6 == rt4", rt6.equals(rt4));
+        Assert.assertNotEquals("rt4 == rt0", rt4, rt0);
+        Assert.assertNotEquals("rt0 == rt6", rt0, rt6);
+        Assert.assertNotEquals("rt6 == rt0", rt6, rt0);
+        Assert.assertNotEquals("rt4 == rt6", rt4, rt6);
+        Assert.assertNotEquals("rt6 == rt4", rt6, rt4);
 
         // it is likely but not guaranteed that the hashcodes are different
-        Assert.assertFalse("rt0 == rt4 (hashcode)", rt0.hashCode() == rt4.hashCode());
-        Assert.assertFalse("rt0 == rt6 (hashcode)", rt0.hashCode() == rt6.hashCode());
-        Assert.assertFalse("rt6 == rt4 (hashcode)", rt6.hashCode() == rt4.hashCode());
+        Assert.assertNotEquals("rt0 == rt4 (hashcode)", rt0.hashCode(), rt4.hashCode());
+        Assert.assertNotEquals("rt0 == rt6 (hashcode)", rt0.hashCode(), rt6.hashCode());
+        Assert.assertNotEquals("rt6 == rt4 (hashcode)", rt6.hashCode(), rt4.hashCode());
 
         Assert.assertEquals("rt0 (clone)", rt0, rt0.clone());
         Assert.assertEquals("rt4 (clone)", rt4, rt4.clone());
@@ -706,14 +694,12 @@ public class TestRouteTracker {
 
         if (rt.getLocalAddress() != null) {
             final String las = rt.getLocalAddress().toString();
-            Assert.assertFalse("no local address in toString(): " + rts,
-                    !rts.contains(las));
+            Assert.assertTrue("no local address in toString(): " + rts, rts.contains(las));
         }
 
         for (int i=0; i<rt.getHopCount(); i++) {
             final String hts = rt.getHopTarget(i).toString();
-            Assert.assertFalse("hop "+i+" ("+hts+") missing in toString(): " + rts,
-                    !rts.contains(hts));
+            Assert.assertTrue("hop " + i + " (" + hts + ") missing in toString(): " + rts, rts.contains(hts));
         }
 
         return rts;

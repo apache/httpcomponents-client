@@ -127,7 +127,7 @@ public class TestBasicHttpClientConnectionManager {
         mgr.release(endpoint1, null, TimeValue.ofMilliseconds(100));
 
         Assert.assertEquals(route, mgr.getRoute());
-        Assert.assertEquals(null, mgr.getState());
+        Assert.assertNull(mgr.getState());
 
         final LeaseRequest connRequest2 = mgr.lease("some-id", route, null);
         final ConnectionEndpoint conn2 = connRequest2.get(Timeout.ZERO_MILLISECONDS);
@@ -183,7 +183,7 @@ public class TestBasicHttpClientConnectionManager {
         mgr.release(endpoint1, null, TimeValue.NEG_ONE_MILLISECOND);
 
         Assert.assertEquals(route1, mgr.getRoute());
-        Assert.assertEquals(null, mgr.getState());
+        Assert.assertNull(mgr.getState());
 
         final HttpHost target2 = new HttpHost("otherhost", 80);
         final HttpRoute route2 = new HttpRoute(target2);
@@ -214,7 +214,7 @@ public class TestBasicHttpClientConnectionManager {
         mgr.release(endpoint1, null, TimeValue.ofMilliseconds(10));
 
         Assert.assertEquals(route, mgr.getRoute());
-        Assert.assertEquals(null, mgr.getState());
+        Assert.assertNull(mgr.getState());
 
         Thread.sleep(50);
 
@@ -294,7 +294,7 @@ public class TestBasicHttpClientConnectionManager {
         mgr.release(endpoint1, null, TimeValue.ofMilliseconds(10));
 
         Assert.assertEquals(route, mgr.getRoute());
-        Assert.assertEquals(null, mgr.getState());
+        Assert.assertNull(mgr.getState());
 
         Thread.sleep(50);
 
@@ -321,7 +321,7 @@ public class TestBasicHttpClientConnectionManager {
         mgr.release(endpoint1, null, TimeValue.NEG_ONE_MILLISECOND);
 
         Assert.assertEquals(route, mgr.getRoute());
-        Assert.assertEquals(null, mgr.getState());
+        Assert.assertNull(mgr.getState());
 
         Thread.sleep(100);
 

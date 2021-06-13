@@ -133,7 +133,7 @@ public class TestAuthChallengeParser {
         Assert.assertEquals(1, challenges.size());
         final AuthChallenge challenge1 = challenges.get(0);
         Assert.assertEquals(StandardAuthScheme.BASIC, challenge1.getSchemeName());
-        Assert.assertEquals(null, challenge1.getValue());
+        Assert.assertNull(challenge1.getValue());
         final List<NameValuePair> params = challenge1.getParams();
         Assert.assertNotNull(params);
         Assert.assertEquals(1, params.size());
@@ -150,7 +150,7 @@ public class TestAuthChallengeParser {
         Assert.assertEquals(1, challenges.size());
         final AuthChallenge challenge1 = challenges.get(0);
         Assert.assertEquals(StandardAuthScheme.BASIC, challenge1.getSchemeName());
-        Assert.assertEquals(null, challenge1.getValue());
+        Assert.assertNull(challenge1.getValue());
         final List<NameValuePair> params = challenge1.getParams();
         Assert.assertNotNull(params);
         Assert.assertEquals(1, params.size());
@@ -190,7 +190,7 @@ public class TestAuthChallengeParser {
 
         final AuthChallenge challenge1 = challenges.get(0);
         Assert.assertEquals(StandardAuthScheme.BASIC, challenge1.getSchemeName());
-        Assert.assertEquals(null, challenge1.getValue());
+        Assert.assertNull(challenge1.getValue());
         final List<NameValuePair> params1 = challenge1.getParams();
         Assert.assertNotNull(params1);
         Assert.assertEquals(3, params1.size());
@@ -200,7 +200,7 @@ public class TestAuthChallengeParser {
 
         final AuthChallenge challenge2 = challenges.get(1);
         Assert.assertEquals(StandardAuthScheme.BASIC, challenge2.getSchemeName());
-        Assert.assertEquals(null, challenge2.getValue());
+        Assert.assertNull(challenge2.getValue());
         final List<NameValuePair> params2 = challenge2.getParams();
         Assert.assertNotNull(params2);
         Assert.assertEquals(4, params2.size());
@@ -222,7 +222,7 @@ public class TestAuthChallengeParser {
 
         final AuthChallenge challenge1 = challenges.get(0);
         Assert.assertEquals(StandardAuthScheme.BASIC, challenge1.getSchemeName());
-        Assert.assertEquals(null, challenge1.getValue());
+        Assert.assertNull(challenge1.getValue());
         final List<NameValuePair> params1 = challenge1.getParams();
         Assert.assertNotNull(params1);
         Assert.assertEquals(2, params1.size());
@@ -231,7 +231,7 @@ public class TestAuthChallengeParser {
 
         final AuthChallenge challenge2 = challenges.get(1);
         Assert.assertEquals(StandardAuthScheme.BASIC, challenge2.getSchemeName());
-        Assert.assertEquals(null, challenge2.getValue());
+        Assert.assertNull(challenge2.getValue());
         final List<NameValuePair> params2 = challenge2.getParams();
         Assert.assertNotNull(params2);
         Assert.assertEquals(1, params2.size());
@@ -249,7 +249,7 @@ public class TestAuthChallengeParser {
 
         final AuthChallenge challenge1 = challenges.get(0);
         Assert.assertEquals("This", challenge1.getSchemeName());
-        Assert.assertEquals(null, challenge1.getValue());
+        Assert.assertNull(challenge1.getValue());
         Assert.assertNull(challenge1.getParams());
     }
 
@@ -306,7 +306,7 @@ public class TestAuthChallengeParser {
 
         final AuthChallenge challenge1 = challenges.get(0);
         Assert.assertEquals("blah", challenge1.getSchemeName());
-        Assert.assertEquals(null, challenge1.getValue());
+        Assert.assertNull(challenge1.getValue());
         final List<NameValuePair> params1 = challenge1.getParams();
         Assert.assertNotNull(params1);
         Assert.assertEquals(2, params1.size());
@@ -324,7 +324,7 @@ public class TestAuthChallengeParser {
         Assert.assertEquals(1, challenges.size());
         final AuthChallenge challenge1 = challenges.get(0);
         Assert.assertEquals(StandardAuthScheme.NTLM, challenge1.getSchemeName());
-        Assert.assertEquals(null, challenge1.getValue());
+        Assert.assertNull(challenge1.getValue());
     }
 
     @Test

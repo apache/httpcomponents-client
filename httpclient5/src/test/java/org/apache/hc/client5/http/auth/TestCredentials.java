@@ -51,7 +51,7 @@ public class TestCredentials {
         Assert.assertEquals("name", creds2.getUserName());
         Assert.assertEquals(new BasicUserPrincipal("name"),
                 creds2.getUserPrincipal());
-        Assert.assertEquals(null, creds2.getPassword());
+        Assert.assertNull(creds2.getPassword());
         Assert.assertEquals("[principal: name]", creds2.toString());
     }
 
@@ -70,7 +70,7 @@ public class TestCredentials {
         Assert.assertEquals("name", creds2.getUserName());
         Assert.assertEquals(new NTUserPrincipal(null, "name"),
                 creds2.getUserPrincipal());
-        Assert.assertEquals(null, creds2.getPassword());
+        Assert.assertNull(creds2.getPassword());
         Assert.assertEquals("[principal: name][workstation: null][netbiosDomain: null]",
                 creds2.toString());
     }
@@ -98,9 +98,9 @@ public class TestCredentials {
         final UsernamePasswordCredentials creds3 = new UsernamePasswordCredentials(
                 "name", "otherpwd".toCharArray());
 
-        Assert.assertTrue(creds1.equals(creds1));
-        Assert.assertFalse(creds1.equals(creds2));
-        Assert.assertTrue(creds1.equals(creds3));
+        Assert.assertEquals(creds1, creds1);
+        Assert.assertNotEquals(creds1, creds2);
+        Assert.assertEquals(creds1, creds3);
     }
 
     @Test
@@ -126,13 +126,13 @@ public class TestCredentials {
 
         Assert.assertTrue(creds1.hashCode() == creds1.hashCode());
         Assert.assertTrue(creds1.hashCode() != creds2.hashCode());
-        Assert.assertTrue(creds1.hashCode() == creds3.hashCode());
-        Assert.assertFalse(creds1.hashCode() == creds4.hashCode());
-        Assert.assertFalse(creds1.hashCode() == creds5.hashCode());
-        Assert.assertFalse(creds1.hashCode() == creds6.hashCode());
-        Assert.assertFalse(creds1.hashCode() == creds7.hashCode());
-        Assert.assertTrue(creds8.hashCode() == creds5.hashCode());
-        Assert.assertTrue(creds9.hashCode() == creds7.hashCode());
+        Assert.assertEquals(creds1.hashCode(), creds3.hashCode());
+        Assert.assertNotEquals(creds1.hashCode(), creds4.hashCode());
+        Assert.assertNotEquals(creds1.hashCode(), creds5.hashCode());
+        Assert.assertNotEquals(creds1.hashCode(), creds6.hashCode());
+        Assert.assertNotEquals(creds1.hashCode(), creds7.hashCode());
+        Assert.assertEquals(creds8.hashCode(), creds5.hashCode());
+        Assert.assertEquals(creds9.hashCode(), creds7.hashCode());
     }
 
     @Test
@@ -156,15 +156,15 @@ public class TestCredentials {
         final NTCredentials creds9 = new NTCredentials(
                 "name","pwd".toCharArray(), "somehost", null);
 
-        Assert.assertTrue(creds1.equals(creds1));
-        Assert.assertFalse(creds1.equals(creds2));
-        Assert.assertTrue(creds1.equals(creds3));
-        Assert.assertFalse(creds1.equals(creds4));
-        Assert.assertFalse(creds1.equals(creds5));
-        Assert.assertFalse(creds1.equals(creds6));
-        Assert.assertFalse(creds1.equals(creds7));
-        Assert.assertTrue(creds8.equals(creds5));
-        Assert.assertTrue(creds9.equals(creds7));
+        Assert.assertEquals(creds1, creds1);
+        Assert.assertNotEquals(creds1, creds2);
+        Assert.assertEquals(creds1, creds3);
+        Assert.assertNotEquals(creds1, creds4);
+        Assert.assertNotEquals(creds1, creds5);
+        Assert.assertNotEquals(creds1, creds6);
+        Assert.assertNotEquals(creds1, creds7);
+        Assert.assertEquals(creds8, creds5);
+        Assert.assertEquals(creds9, creds7);
 
     }
 

@@ -64,7 +64,7 @@ public class TestRFC6265CookieSpec {
         Assert.assertEquals("/path", cookie.getPath());
         Assert.assertEquals("host", cookie.getDomain());
         Assert.assertEquals("stuff", cookie.getAttribute("this"));
-        Assert.assertEquals(null, cookie.getAttribute("that"));
+        Assert.assertNull(cookie.getAttribute("that"));
 
         Mockito.verify(h1).parse(ArgumentMatchers.any(), ArgumentMatchers.eq("stuff"));
         Mockito.verify(h2, Mockito.never()).parse(ArgumentMatchers.any(), ArgumentMatchers.anyString());

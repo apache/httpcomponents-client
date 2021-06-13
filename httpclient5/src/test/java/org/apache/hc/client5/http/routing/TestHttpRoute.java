@@ -323,57 +323,46 @@ public class TestHttpRoute {
         Assert.assertEquals("hashcode 2e 2f", route2e.hashCode(), route2f.hashCode());
         Assert.assertEquals("toString 2e 2f", route2e.toString(), route2f.toString());
 
-        Assert.assertFalse("1a 2a", route1a.equals(route2a));
-        Assert.assertFalse("1a 2b", route1a.equals(route2b));
-        Assert.assertFalse("1a 2c", route1a.equals(route2c));
-        Assert.assertFalse("1a 2d", route1a.equals(route2d));
-        Assert.assertFalse("1a 2e", route1a.equals(route2e));
-        Assert.assertFalse("1a 2f", route1a.equals(route2f));
-        Assert.assertFalse("1a 2g", route1a.equals(route2g));
-        Assert.assertFalse("1a 2h", route1a.equals(route2h));
-        Assert.assertFalse("1a 2i", route1a.equals(route2i));
-        Assert.assertFalse("1a 2j", route1a.equals(route2j));
-        Assert.assertFalse("1a 2k", route1a.equals(route2k));
+        Assert.assertNotEquals("1a 2a", route1a, route2a);
+        Assert.assertNotEquals("1a 2b", route1a, route2b);
+        Assert.assertNotEquals("1a 2c", route1a, route2c);
+        Assert.assertNotEquals("1a 2d", route1a, route2d);
+        Assert.assertNotEquals("1a 2e", route1a, route2e);
+        Assert.assertNotEquals("1a 2f", route1a, route2f);
+        Assert.assertNotEquals("1a 2g", route1a, route2g);
+        Assert.assertNotEquals("1a 2h", route1a, route2h);
+        Assert.assertNotEquals("1a 2i", route1a, route2i);
+        Assert.assertNotEquals("1a 2j", route1a, route2j);
+        Assert.assertNotEquals("1a 2k", route1a, route2k);
 
         // repeat the checks in the other direction
         // there could be problems with detecting null attributes
 
-        Assert.assertFalse("2a 1a", route2a.equals(route1a));
-        Assert.assertFalse("2b 1a", route2b.equals(route1a));
-        Assert.assertFalse("2c 1a", route2c.equals(route1a));
-        Assert.assertFalse("2d 1a", route2d.equals(route1a));
-        Assert.assertFalse("2e 1a", route2e.equals(route1a));
-        Assert.assertFalse("2f 1a", route2f.equals(route1a));
-        Assert.assertFalse("2g 1a", route2g.equals(route1a));
-        Assert.assertFalse("2h 1a", route2h.equals(route1a));
-        Assert.assertFalse("2i 1a", route2i.equals(route1a));
-        Assert.assertFalse("2j 1a", route2j.equals(route1a));
-        Assert.assertFalse("2k 1a", route2k.equals(route1a));
+        Assert.assertNotEquals("2a 1a", route2a, route1a);
+        Assert.assertNotEquals("2b 1a", route2b, route1a);
+        Assert.assertNotEquals("2c 1a", route2c, route1a);
+        Assert.assertNotEquals("2d 1a", route2d, route1a);
+        Assert.assertNotEquals("2e 1a", route2e, route1a);
+        Assert.assertNotEquals("2f 1a", route2f, route1a);
+        Assert.assertNotEquals("2g 1a", route2g, route1a);
+        Assert.assertNotEquals("2h 1a", route2h, route1a);
+        Assert.assertNotEquals("2i 1a", route2i, route1a);
+        Assert.assertNotEquals("2j 1a", route2j, route1a);
+        Assert.assertNotEquals("2k 1a", route2k, route1a);
 
         // don't check hashCode, it's not guaranteed to be different
 
-        Assert.assertFalse("toString 1a 2a",
-                    route1a.toString().equals(route2a.toString()));
-        Assert.assertFalse("toString 1a 2b",
-                    route1a.toString().equals(route2b.toString()));
-        Assert.assertFalse("toString 1a 2c",
-                    route1a.toString().equals(route2c.toString()));
-        Assert.assertFalse("toString 1a 2d",
-                    route1a.toString().equals(route2d.toString()));
-        Assert.assertFalse("toString 1a 2e",
-                    route1a.toString().equals(route2e.toString()));
-        Assert.assertFalse("toString 1a 2f",
-                    route1a.toString().equals(route2f.toString()));
-        Assert.assertFalse("toString 1a 2g",
-                    route1a.toString().equals(route2g.toString()));
-        Assert.assertFalse("toString 1a 2h",
-                    route1a.toString().equals(route2h.toString()));
-        Assert.assertFalse("toString 1a 2i",
-                    route1a.toString().equals(route2i.toString()));
-        Assert.assertFalse("toString 1a 2j",
-                    route1a.toString().equals(route2j.toString()));
-        Assert.assertFalse("toString 1a 2k",
-                    route1a.toString().equals(route2k.toString()));
+        Assert.assertNotEquals("toString 1a 2a", route1a.toString(), route2a.toString());
+        Assert.assertNotEquals("toString 1a 2b", route1a.toString(), route2b.toString());
+        Assert.assertNotEquals("toString 1a 2c", route1a.toString(), route2c.toString());
+        Assert.assertNotEquals("toString 1a 2d", route1a.toString(), route2d.toString());
+        Assert.assertNotEquals("toString 1a 2e", route1a.toString(), route2e.toString());
+        Assert.assertNotEquals("toString 1a 2f", route1a.toString(), route2f.toString());
+        Assert.assertNotEquals("toString 1a 2g", route1a.toString(), route2g.toString());
+        Assert.assertNotEquals("toString 1a 2h", route1a.toString(), route2h.toString());
+        Assert.assertNotEquals("toString 1a 2i", route1a.toString(), route2i.toString());
+        Assert.assertNotEquals("toString 1a 2j", route1a.toString(), route2j.toString());
+        Assert.assertNotEquals("toString 1a 2k", route1a.toString(), route2k.toString());
 
         // now check that all of the routes are different from eachother
         // except for those that aren't :-)
@@ -417,8 +406,8 @@ public class TestHttpRoute {
                      11, routestrings.size());
 
         // finally, compare with nonsense
-        Assert.assertFalse("route equals null", route1a.equals(null));
-        Assert.assertFalse("route equals string", route1a.equals("route1a"));
+        Assert.assertNotEquals("route equals null", null, route1a);
+        Assert.assertNotEquals("route equals string", "route1a", route1a);
     }
 
     @Test

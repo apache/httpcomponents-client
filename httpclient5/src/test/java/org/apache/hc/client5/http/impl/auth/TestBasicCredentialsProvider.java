@@ -61,7 +61,7 @@ public class TestBasicCredentialsProvider {
     @Test
     public void testBasicCredentialsProviderNoCredentials() {
         final BasicCredentialsProvider state = new BasicCredentialsProvider();
-        Assert.assertEquals(null, state.getCredentials(BOGUS, null));
+        Assert.assertNull(state.getCredentials(BOGUS, null));
     }
 
     @Test

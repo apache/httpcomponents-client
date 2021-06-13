@@ -1089,7 +1089,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                 Assert.assertTrue("multipart/byteranges".equalsIgnoreCase(elt.getName()));
                 Assert.assertNotNull(elt.getParameterByName("boundary"));
                 Assert.assertNotNull(elt.getParameterByName("boundary").getValue());
-                Assert.assertFalse("".equals(elt.getParameterByName("boundary").getValue().trim()));
+                Assert.assertNotEquals("", elt.getParameterByName("boundary").getValue().trim());
             }
         }
     }
@@ -2659,7 +2659,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         request.setHeader("If-Range", "W/\"etag\"");
 
         final ClassicHttpResponse response = testRequestWithWeakETagValidatorIsNotAllowed("If-Range");
-        Assert.assertTrue(response.getCode() == HttpStatus.SC_BAD_REQUEST);
+        Assert.assertEquals(HttpStatus.SC_BAD_REQUEST, response.getCode());
     }
 
     @Test
@@ -2735,7 +2735,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         final ClassicHttpResponse result = execute(req2);
         verifyMocks();
 
-        Assert.assertFalse(HttpStatus.SC_PARTIAL_CONTENT == result.getCode());
+        Assert.assertNotEquals(HttpStatus.SC_PARTIAL_CONTENT, result.getCode());
     }
 
     /*
@@ -2846,7 +2846,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         final ClassicHttpResponse result = execute(req2);
         verifyMocks();
 
-        Assert.assertFalse(HttpStatus.SC_NOT_MODIFIED == result.getCode());
+        Assert.assertNotEquals(HttpStatus.SC_NOT_MODIFIED, result.getCode());
     }
 
     @Test
@@ -5365,7 +5365,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         final Iterator<HeaderElement> it = MessageSupport.iterate(result, HttpHeaders.VARY);
         while (it.hasNext()) {
             final HeaderElement elt = it.next();
-            Assert.assertFalse("*".equals(elt.getName()));
+            Assert.assertNotEquals("*", elt.getName());
         }
     }
 
