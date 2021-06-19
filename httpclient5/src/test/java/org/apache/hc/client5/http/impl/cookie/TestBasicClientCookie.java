@@ -46,12 +46,7 @@ public class TestBasicClientCookie {
         final BasicClientCookie cookie = new BasicClientCookie("name", "value");
         Assert.assertEquals("name", cookie.getName());
         Assert.assertEquals("value", cookie.getValue());
-        try {
-            new BasicClientCookie(null, null);
-            Assert.fail("NullPointerException should have been thrown");
-        } catch (final NullPointerException ex) {
-            //expected
-        }
+        Assert.assertThrows(NullPointerException.class, () -> new BasicClientCookie(null, null));
     }
 
     @Test

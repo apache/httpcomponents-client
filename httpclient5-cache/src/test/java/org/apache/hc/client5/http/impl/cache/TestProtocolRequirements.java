@@ -658,13 +658,9 @@ public class TestProtocolRequirements {
         originResponse = new BasicClassicHttpResponse(100, "Continue");
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(originResponse);
 
-        try {
-            // if a 100 response gets up to us from the HttpClient
-            // backend, we can't really handle it at that point
-            execute(post);
-            Assert.fail("should have thrown an exception");
-        } catch (final ClientProtocolException expected) {
-        }
+        // if a 100 response gets up to us from the HttpClient
+        // backend, we can't really handle it at that point
+        Assert.assertThrows(ClientProtocolException.class, () -> execute(post));
     }
 
     /*

@@ -234,21 +234,10 @@ public class TestHttpRoute {
                                         TunnelType.TUNNELLED, LayerType.PLAIN);
         Assert.assertNotNull(route);
 
-        try {
-            new HttpRoute(null, null, chain1, false,
-                                  TunnelType.TUNNELLED, LayerType.PLAIN);
-            Assert.fail("missing target not detected");
-        } catch (final NullPointerException iax) {
-            // expected
-        }
-
-        try {
-            new HttpRoute(TARGET1, null, (HttpHost[]) null, false,
-                                  TunnelType.TUNNELLED, LayerType.PLAIN);
-            Assert.fail("missing proxy for tunnel not detected");
-        } catch (final IllegalArgumentException iax) {
-            // expected
-        }
+        Assert.assertThrows(NullPointerException.class, () ->
+                new HttpRoute(null, null, chain1, false,TunnelType.TUNNELLED, LayerType.PLAIN));
+        Assert.assertThrows(IllegalArgumentException.class, () ->
+                new HttpRoute(TARGET1, null, (HttpHost[]) null, false, TunnelType.TUNNELLED, LayerType.PLAIN));
     }
 
     @Test
@@ -413,65 +402,33 @@ public class TestHttpRoute {
     @Test
     public void testHopping() {
         // test getHopCount() and getHopTarget() with different proxy chains
-        HttpHost[] proxies = null;
-        HttpRoute  route   = new HttpRoute(TARGET1, null, proxies, true,
+        final HttpHost[] proxies = null;
+        final HttpRoute  route   = new HttpRoute(TARGET1, null, proxies, true,
                                            TunnelType.PLAIN, LayerType.PLAIN);
         Assert.assertEquals("A: hop count", 1, route.getHopCount());
         Assert.assertEquals("A: hop 0", TARGET1, route.getHopTarget(0));
-        try {
-            final HttpHost beyond = route.getHopTarget(1);
-            Assert.fail("A: hop 1 is " + beyond);
-        } catch (final IllegalArgumentException iax) {
-            // expected
-        }
-        try {
-            final HttpHost before = route.getHopTarget(-1);
-            Assert.fail("A: hop -1 is " + before);
-        } catch (final IllegalArgumentException iax) {
-            // expected
-        }
+        Assert.assertThrows(IllegalArgumentException.class, () -> route.getHopTarget(1));
+        Assert.assertThrows(IllegalArgumentException.class, () ->  route.getHopTarget(-1));
 
-
-        proxies = new HttpHost[]{ PROXY3 };
-        route   = new HttpRoute(TARGET1, LOCAL62, proxies, false,
+        final HttpHost[] proxies2 = new HttpHost[]{ PROXY3 };
+        final HttpRoute route2   = new HttpRoute(TARGET1, LOCAL62, proxies2, false,
                                 TunnelType.TUNNELLED, LayerType.PLAIN);
-        Assert.assertEquals("B: hop count", 2, route.getHopCount());
-        Assert.assertEquals("B: hop 0", PROXY3, route.getHopTarget(0));
-        Assert.assertEquals("B: hop 1", TARGET1, route.getHopTarget(1));
-        try {
-            final HttpHost beyond = route.getHopTarget(2);
-            Assert.fail("B: hop 2 is " + beyond);
-        } catch (final IllegalArgumentException iax) {
-            // expected
-        }
-        try {
-            final HttpHost before = route.getHopTarget(-2);
-            Assert.fail("B: hop -2 is " + before);
-        } catch (final IllegalArgumentException iax) {
-            // expected
-        }
+        Assert.assertEquals("B: hop count", 2, route2.getHopCount());
+        Assert.assertEquals("B: hop 0", PROXY3, route2.getHopTarget(0));
+        Assert.assertEquals("B: hop 1", TARGET1, route2.getHopTarget(1));
+        Assert.assertThrows(IllegalArgumentException.class, () -> route2.getHopTarget(2));
+        Assert.assertThrows(IllegalArgumentException.class, () -> route2.getHopTarget(-2));
 
-
-        proxies = new HttpHost[]{ PROXY3, PROXY1, PROXY2 };
-        route   = new HttpRoute(TARGET1, LOCAL42, proxies, false,
+        final HttpHost[] proxies3 = new HttpHost[]{ PROXY3, PROXY1, PROXY2 };
+        final HttpRoute route3   = new HttpRoute(TARGET1, LOCAL42, proxies3, false,
                                 TunnelType.PLAIN, LayerType.LAYERED);
-        Assert.assertEquals("C: hop count", 4, route.getHopCount());
-        Assert.assertEquals("C: hop 0", PROXY3 , route.getHopTarget(0));
-        Assert.assertEquals("C: hop 1", PROXY1 , route.getHopTarget(1));
-        Assert.assertEquals("C: hop 2", PROXY2 , route.getHopTarget(2));
-        Assert.assertEquals("C: hop 3", TARGET1, route.getHopTarget(3));
-        try {
-            final HttpHost beyond = route.getHopTarget(4);
-            Assert.fail("C: hop 4 is " + beyond);
-        } catch (final IllegalArgumentException iax) {
-            // expected
-        }
-        try {
-            final HttpHost before = route.getHopTarget(Integer.MIN_VALUE);
-            Assert.fail("C: hop -<min> is " + before);
-        } catch (final IllegalArgumentException iax) {
-            // expected
-        }
+        Assert.assertEquals("C: hop count", 4, route3.getHopCount());
+        Assert.assertEquals("C: hop 0", PROXY3 , route3.getHopTarget(0));
+        Assert.assertEquals("C: hop 1", PROXY1 , route3.getHopTarget(1));
+        Assert.assertEquals("C: hop 2", PROXY2 , route3.getHopTarget(2));
+        Assert.assertEquals("C: hop 3", TARGET1, route3.getHopTarget(3));
+        Assert.assertThrows(IllegalArgumentException.class, () -> route3.getHopTarget(4));
+        Assert.assertThrows(IllegalArgumentException.class, () -> route3.getHopTarget(Integer.MIN_VALUE));
     }
 
     @Test
@@ -515,12 +472,8 @@ public class TestHttpRoute {
         Assert.assertEquals("bad convenience route 4/secure", route, should);
 
         // this constructor REQUIRES a proxy to be specified
-        try {
-            new HttpRoute(TARGET1, LOCAL61, null, false);
-            Assert.fail("missing proxy not detected");
-        } catch (final NullPointerException iax) {
-            // expected
-        }
+        Assert.assertThrows(NullPointerException.class, () ->
+                new HttpRoute(TARGET1, LOCAL61, null, false));
     }
 
     @Test

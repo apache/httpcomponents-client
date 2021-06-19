@@ -217,13 +217,10 @@ public class TestAbstractSerializingCacheStorage {
         when(impl.digestToStorageKey(key)).thenReturn("bar");
         when(impl.getForUpdateCAS("bar")).thenReturn("stuff");
         when(impl.getStorageObject("stuff")).thenReturn(serialize(key, existingValue));
-        when(impl.updateCAS(ArgumentMatchers.eq("bar"), ArgumentMatchers.eq("stuff"), ArgumentMatchers.any())).thenReturn(false, false, false, true);
+        when(impl.updateCAS(ArgumentMatchers.eq("bar"), ArgumentMatchers.eq("stuff"), ArgumentMatchers.any()))
+                .thenReturn(false, false, false, true);
 
-        try {
-            impl.updateEntry(key, existing -> updatedValue);
-            Assert.fail("HttpCacheUpdateException expected");
-        } catch (final HttpCacheUpdateException ignore) {
-        }
+        Assert.assertThrows(HttpCacheUpdateException.class, () -> impl.updateEntry(key, existing -> updatedValue));
 
         verify(impl, Mockito.times(3)).getForUpdateCAS("bar");
         verify(impl, Mockito.times(3)).getStorageObject("stuff");

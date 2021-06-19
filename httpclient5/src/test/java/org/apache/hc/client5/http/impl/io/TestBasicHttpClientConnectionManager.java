@@ -261,12 +261,8 @@ public class TestBasicHttpClientConnectionManager {
 
         Mockito.verify(conn, Mockito.times(1)).close(CloseMode.GRACEFUL);
 
-        try {
-            final LeaseRequest connRequest2 = mgr.lease("some-id", route, null);
-            connRequest2.get(Timeout.ZERO_MILLISECONDS);
-            Assert.fail("IllegalStateException expected");
-        } catch (final IllegalStateException ex) {
-        }
+        final LeaseRequest connRequest2 = mgr.lease("some-id", route, null);
+        Assert.assertThrows(IllegalStateException.class, () -> connRequest2.get(Timeout.ZERO_MILLISECONDS));
 
         // Should have no effect
         mgr.closeExpired();

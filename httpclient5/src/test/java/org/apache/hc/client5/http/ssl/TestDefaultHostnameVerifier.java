@@ -27,15 +27,6 @@
 
 package org.apache.hc.client5.http.ssl;
 
-import org.apache.hc.client5.http.psl.DomainType;
-import org.apache.hc.client5.http.psl.PublicSuffixList;
-import org.apache.hc.client5.http.psl.PublicSuffixListParser;
-import org.apache.hc.client5.http.psl.PublicSuffixMatcher;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-
-import javax.net.ssl.SSLException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -45,6 +36,16 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Collections;
 import java.util.List;
+
+import javax.net.ssl.SSLException;
+
+import org.apache.hc.client5.http.psl.DomainType;
+import org.apache.hc.client5.http.psl.PublicSuffixList;
+import org.apache.hc.client5.http.psl.PublicSuffixListParser;
+import org.apache.hc.client5.http.psl.PublicSuffixMatcher;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * Unit tests for {@link org.apache.hc.client5.http.ssl.DefaultHostnameVerifier}.
@@ -198,35 +199,14 @@ public class TestDefaultHostnameVerifier {
         impl.verify("localhost.localdomain", x509);
         impl.verify("127.0.0.1", x509);
 
-        try {
-            impl.verify("localhost", x509);
-            Assert.fail("SSLException should have been thrown");
-        } catch (final SSLException ex) {
-            // expected
-        }
-        try {
-            impl.verify("local.host", x509);
-            Assert.fail("SSLException should have been thrown");
-        } catch (final SSLException ex) {
-            // expected
-        }
-        try {
-            impl.verify("127.0.0.2", x509);
-            Assert.fail("SSLException should have been thrown");
-        } catch (final SSLException ex) {
-            // expected
-        }
+        Assert.assertThrows(SSLException.class, () -> impl.verify("localhost", x509));
+        Assert.assertThrows(SSLException.class, () -> impl.verify("local.host", x509));
+        Assert.assertThrows(SSLException.class, () -> impl.verify("127.0.0.2", x509));
     }
 
     public void exceptionPlease(final DefaultHostnameVerifier hv, final String host,
                                 final X509Certificate x509) {
-        try {
-            hv.verify(host, x509);
-            Assert.fail("HostnameVerifier shouldn't allow [" + host + "]");
-        }
-        catch(final SSLException e) {
-            // whew!  we're okay!
-        }
+        Assert.assertThrows(SSLException.class, () -> hv.verify(host, x509));
     }
 
     @Test
@@ -378,19 +358,13 @@ public class TestDefaultHostnameVerifier {
         final String host1 = "2001:0db8:aaaa:bbbb:cccc:0:0:0001";
         DefaultHostnameVerifier.matchIPv6Address(host1, Collections.singletonList(SubjectName.IP("2001:0db8:aaaa:bbbb:cccc:0:0:0001")));
         DefaultHostnameVerifier.matchIPv6Address(host1, Collections.singletonList(SubjectName.IP("2001:0db8:aaaa:bbbb:cccc::1")));
-        try {
-            DefaultHostnameVerifier.matchIPv6Address(host1, Collections.singletonList(SubjectName.IP("2001:0db8:aaaa:bbbb:cccc::10")));
-            Assert.fail("SSLException expected");
-        } catch (final SSLException expected) {
-        }
+        Assert.assertThrows(SSLException.class, () ->
+                DefaultHostnameVerifier.matchIPv6Address(host1, Collections.singletonList(SubjectName.IP("2001:0db8:aaaa:bbbb:cccc::10"))));
         final String host2 = "2001:0db8:aaaa:bbbb:cccc::1";
         DefaultHostnameVerifier.matchIPv6Address(host2, Collections.singletonList(SubjectName.IP("2001:0db8:aaaa:bbbb:cccc:0:0:0001")));
         DefaultHostnameVerifier.matchIPv6Address(host2, Collections.singletonList(SubjectName.IP("2001:0db8:aaaa:bbbb:cccc::1")));
-        try {
-            DefaultHostnameVerifier.matchIPv6Address(host2, Collections.singletonList(SubjectName.IP("2001:0db8:aaaa:bbbb:cccc::10")));
-            Assert.fail("SSLException expected");
-        } catch (final SSLException expected) {
-        }
+        Assert.assertThrows(SSLException.class, () ->
+                DefaultHostnameVerifier.matchIPv6Address(host2, Collections.singletonList(SubjectName.IP("2001:0db8:aaaa:bbbb:cccc::10"))));
     }
 
     @Test
@@ -418,16 +392,10 @@ public class TestDefaultHostnameVerifier {
         Assert.assertEquals("blah, blah", DefaultHostnameVerifier.extractCN("cn=\"blah, blah\", ou=blah, o=blah"));
         Assert.assertEquals("blah, blah", DefaultHostnameVerifier.extractCN("cn=blah\\, blah, ou=blah, o=blah"));
         Assert.assertEquals("blah", DefaultHostnameVerifier.extractCN("c = cn=uuh, cn=blah, ou=blah, o=blah"));
-        try {
-            DefaultHostnameVerifier.extractCN("blah,blah");
-            Assert.fail("SSLException expected");
-        } catch (final SSLException expected) {
-        }
-        try {
-            DefaultHostnameVerifier.extractCN("cn,o=blah");
-            Assert.fail("SSLException expected");
-        } catch (final SSLException expected) {
-        }
+        Assert.assertThrows(SSLException.class, () ->
+                DefaultHostnameVerifier.extractCN("blah,blah"));
+        Assert.assertThrows(SSLException.class, () ->
+                DefaultHostnameVerifier.extractCN("cn,o=blah"));
     }
 
     @Test
@@ -453,15 +421,11 @@ public class TestDefaultHostnameVerifier {
                 Collections.singletonList(SubjectName.DNS("hostname-workspace-1.local")),
                 publicSuffixMatcher);
 
-        try {
-            DefaultHostnameVerifier.matchDNSName(
-                "host.domain.com",
-                Collections.singletonList(SubjectName.DNS("some.other.com")),
-                publicSuffixMatcher);
-            Assert.fail("SSLException should have been thrown");
-        } catch (final SSLException ex) {
-            // expected
-        }
+        Assert.assertThrows(SSLException.class, () ->
+                DefaultHostnameVerifier.matchDNSName(
+                        "host.domain.com",
+                        Collections.singletonList(SubjectName.DNS("some.other.com")),
+                        publicSuffixMatcher));
     }
 
 }

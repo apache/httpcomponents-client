@@ -79,24 +79,9 @@ public class TestDateUtils {
 
     @Test
     public void testInvalidInput() throws Exception {
-        try {
-            DateUtils.parseDate(null, null, null);
-            Assert.fail("NullPointerException should habe been thrown");
-        } catch (final NullPointerException ex) {
-            // expected
-        }
-        try {
-            DateUtils.formatDate(null);
-            Assert.fail("NullPointerException should habe been thrown");
-        } catch (final NullPointerException ex) {
-            // expected
-        }
-        try {
-            DateUtils.formatDate(new Date(), null);
-            Assert.fail("NullPointerException should habe been thrown");
-        } catch (final NullPointerException ex) {
-            // expected
-        }
+        Assert.assertThrows(NullPointerException.class, () -> DateUtils.parseDate(null, null, null));
+        Assert.assertThrows(NullPointerException.class, () -> DateUtils.formatDate(null));
+        Assert.assertThrows(NullPointerException.class, () -> DateUtils.formatDate(new Date(), null));
     }
 
     @Test

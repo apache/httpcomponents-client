@@ -62,21 +62,12 @@ public class TestAuthenticationStrategy {
     public void testSelectInvalidInput() throws Exception {
         final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
         final HttpClientContext context = HttpClientContext.create();
-        try {
-            authStrategy.select(null, Collections.emptyMap(), context);
-            Assert.fail("NullPointerException expected");
-        } catch (final NullPointerException ex) {
-        }
-        try {
-            authStrategy.select(ChallengeType.TARGET, null, context);
-            Assert.fail("NullPointerException expected");
-        } catch (final NullPointerException ex) {
-        }
-        try {
-            authStrategy.select(ChallengeType.TARGET, Collections.emptyMap(), null);
-            Assert.fail("NullPointerException expected");
-        } catch (final NullPointerException ex) {
-        }
+        Assert.assertThrows(NullPointerException.class, () ->
+                authStrategy.select(null, Collections.emptyMap(), context));
+        Assert.assertThrows(NullPointerException.class, () ->
+                authStrategy.select(ChallengeType.TARGET, null, context));
+        Assert.assertThrows(NullPointerException.class, () ->
+                authStrategy.select(ChallengeType.TARGET, Collections.emptyMap(), null));
     }
 
     @Test

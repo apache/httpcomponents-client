@@ -67,36 +67,11 @@ public class TestByteArrayBuilder {
         buffer.append((byte[])null, 0, 0);
 
         final byte[] tmp = new byte[] { 1, 2, 3, 4};
-        try {
-            buffer.append(tmp, -1, 0);
-            Assert.fail("IndexOutOfBoundsException should have been thrown");
-        } catch (final IndexOutOfBoundsException ex) {
-            // expected
-        }
-        try {
-            buffer.append(tmp, 0, -1);
-            Assert.fail("IndexOutOfBoundsException should have been thrown");
-        } catch (final IndexOutOfBoundsException ex) {
-            // expected
-        }
-        try {
-            buffer.append(tmp, 0, 8);
-            Assert.fail("IndexOutOfBoundsException should have been thrown");
-        } catch (final IndexOutOfBoundsException ex) {
-            // expected
-        }
-        try {
-            buffer.append(tmp, 10, Integer.MAX_VALUE);
-            Assert.fail("IndexOutOfBoundsException should have been thrown");
-        } catch (final IndexOutOfBoundsException ex) {
-            // expected
-        }
-        try {
-            buffer.append(tmp, 2, 4);
-            Assert.fail("IndexOutOfBoundsException should have been thrown");
-        } catch (final IndexOutOfBoundsException ex) {
-            // expected
-        }
+        Assert.assertThrows(IndexOutOfBoundsException.class, () -> buffer.append(tmp, -1, 0));
+        Assert.assertThrows(IndexOutOfBoundsException.class, () -> buffer.append(tmp, 0, -1));
+        Assert.assertThrows(IndexOutOfBoundsException.class, () -> buffer.append(tmp, 0, 8));
+        Assert.assertThrows(IndexOutOfBoundsException.class, () -> buffer.append(tmp, 10, Integer.MAX_VALUE));
+        Assert.assertThrows(IndexOutOfBoundsException.class, () -> buffer.append(tmp, 2, 4));
     }
 
     @Test
@@ -135,36 +110,11 @@ public class TestByteArrayBuilder {
         buffer.append((char[])null, 0, 0);
 
         final char[] tmp = new char[] { 1, 2, 3, 4};
-        try {
-            buffer.append(tmp, -1, 0);
-            Assert.fail("IndexOutOfBoundsException should have been thrown");
-        } catch (final IndexOutOfBoundsException ex) {
-            // expected
-        }
-        try {
-            buffer.append(tmp, 0, -1);
-            Assert.fail("IndexOutOfBoundsException should have been thrown");
-        } catch (final IndexOutOfBoundsException ex) {
-            // expected
-        }
-        try {
-            buffer.append(tmp, 0, 8);
-            Assert.fail("IndexOutOfBoundsException should have been thrown");
-        } catch (final IndexOutOfBoundsException ex) {
-            // expected
-        }
-        try {
-            buffer.append(tmp, 10, Integer.MAX_VALUE);
-            Assert.fail("IndexOutOfBoundsException should have been thrown");
-        } catch (final IndexOutOfBoundsException ex) {
-            // expected
-        }
-        try {
-            buffer.append(tmp, 2, 4);
-            Assert.fail("IndexOutOfBoundsException should have been thrown");
-        } catch (final IndexOutOfBoundsException ex) {
-            // expected
-        }
+        Assert.assertThrows(IndexOutOfBoundsException.class, () -> buffer.append(tmp, -1, 0));
+        Assert.assertThrows(IndexOutOfBoundsException.class, () -> buffer.append(tmp, 0, -1));
+        Assert.assertThrows(IndexOutOfBoundsException.class, () -> buffer.append(tmp, 0, 8));
+        Assert.assertThrows(IndexOutOfBoundsException.class, () -> buffer.append(tmp, 10, Integer.MAX_VALUE));
+        Assert.assertThrows(IndexOutOfBoundsException.class, () -> buffer.append(tmp, 2, 4));
     }
 
     @Test

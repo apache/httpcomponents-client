@@ -66,12 +66,9 @@ public class TestBasicResponseHandler {
         Mockito.when(response.getEntity()).thenReturn(entity);
 
         final BasicHttpClientResponseHandler handler = new BasicHttpClientResponseHandler();
-        try {
-            handler.handleResponse(response);
-            Assert.fail("HttpResponseException expected");
-        } catch (final HttpResponseException ex) {
-            Assert.assertEquals(404, ex.getStatusCode());
-        }
+        final HttpResponseException exception = Assert.assertThrows(HttpResponseException.class, () ->
+                handler.handleResponse(response));
+        Assert.assertEquals(404, exception.getStatusCode());
         Mockito.verify(entity).getContent();
         Mockito.verify(inStream).close();
     }

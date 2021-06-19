@@ -157,21 +157,12 @@ public class TestDigestScheme {
         final DigestScheme authscheme = new DigestScheme();
         authscheme.processChallenge(authChallenge, null);
 
-        try {
-            authscheme.isResponseReady(null, credentialsProvider, null);
-            Assert.fail("NullPointerException should have been thrown");
-        } catch (final NullPointerException ex) {
-        }
-        try {
-            authscheme.isResponseReady(host, null, null);
-            Assert.fail("NullPointerException should have been thrown");
-        } catch (final NullPointerException ex) {
-        }
-        try {
-            authscheme.generateAuthResponse(host, null, null);
-            Assert.fail("NullPointerException should have been thrown");
-        } catch (final NullPointerException ex) {
-        }
+        Assert.assertThrows(NullPointerException.class, () ->
+                authscheme.isResponseReady(null, credentialsProvider, null));
+        Assert.assertThrows(NullPointerException.class, () ->
+                authscheme.isResponseReady(host, null, null));
+        Assert.assertThrows(NullPointerException.class, () ->
+                authscheme.generateAuthResponse(host, null, null));
     }
 
     @Test
@@ -579,16 +570,8 @@ public class TestDigestScheme {
         Assert.assertNull(digester.getDigest());
         digester.close();
         Assert.assertEquals("acd2b59cd01c7737d8069015584c6cac", DigestScheme.formatHex(digester.getDigest()));
-        try {
-            digester.write('a');
-            Assert.fail("IOException should have been thrown");
-        } catch (final IOException ex) {
-        }
-        try {
-            digester.write(new byte[] { 'a', 'b', 'c'});
-            Assert.fail("IOException should have been thrown");
-        } catch (final IOException ex) {
-        }
+        Assert.assertThrows(IOException.class, () -> digester.write('a'));
+        Assert.assertThrows(IOException.class, () -> digester.write(new byte[] { 'a', 'b', 'c'}));
     }
 
     @Test

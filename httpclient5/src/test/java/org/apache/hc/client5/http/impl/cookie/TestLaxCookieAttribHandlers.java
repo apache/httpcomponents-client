@@ -80,12 +80,7 @@ public class TestLaxCookieAttribHandlers {
     @Test
     public void testBasicMaxAgeInvalidInput() throws Exception {
         final CookieAttributeHandler h = new LaxMaxAgeHandler();
-        try {
-            h.parse(null, "stuff");
-            Assert.fail("NullPointerException must have been thrown");
-        } catch (final NullPointerException ex) {
-            // expected
-        }
+        Assert.assertThrows(NullPointerException.class, () -> h.parse(null, "stuff"));
     }
 
     @Test

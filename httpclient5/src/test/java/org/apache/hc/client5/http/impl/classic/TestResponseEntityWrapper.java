@@ -71,11 +71,7 @@ public class TestResponseEntityWrapper {
         Mockito.when(entity.isStreaming()).thenReturn(true);
         Mockito.when(execRuntime.isConnectionReusable()).thenReturn(true);
         Mockito.doThrow(new IOException()).when(inStream).close();
-        try {
-            EntityUtils.consume(wrapper);
-            Assert.fail("IOException expected");
-        } catch (final IOException ex) {
-        }
+        Assert.assertThrows(IOException.class, () -> EntityUtils.consume(wrapper));
         Mockito.verify(execRuntime, Mockito.atLeast(1)).discardEndpoint();
     }
 
@@ -104,11 +100,7 @@ public class TestResponseEntityWrapper {
         Mockito.when(entity.isStreaming()).thenReturn(true);
         Mockito.when(execRuntime.isConnectionReusable()).thenReturn(true);
         Mockito.doThrow(new IOException()).when(entity).writeTo(outStream);
-        try {
-            wrapper.writeTo(outStream);
-            Assert.fail("IOException expected");
-        } catch (final IOException ex) {
-        }
+        Assert.assertThrows(IOException.class, () -> wrapper.writeTo(outStream));
         Mockito.verify(execRuntime, Mockito.never()).releaseEndpoint();
         Mockito.verify(execRuntime, Mockito.atLeast(1)).discardEndpoint();
     }
@@ -131,11 +123,7 @@ public class TestResponseEntityWrapper {
         Mockito.when(execRuntime.isConnectionReusable()).thenReturn(true);
         Mockito.doThrow(new IOException()).when(inStream).close();
         final InputStream content = wrapper.getContent();
-        try {
-            content.read();
-            Assert.fail("IOException expected");
-        } catch (final IOException ex) {
-        }
+        Assert.assertThrows(IOException.class, () -> content.read());
         Mockito.verify(execRuntime, Mockito.atLeast(1)).discardEndpoint();
     }
 

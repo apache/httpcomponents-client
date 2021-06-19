@@ -79,19 +79,9 @@ public class TestBasicCookieAttribHandlers {
         h.validate(cookie, origin);
 
         cookie.setDomain(".otherdomain.com");
-        try {
-            h.validate(cookie, origin);
-            Assert.fail("MalformedCookieException should have been thrown");
-        } catch (final MalformedCookieException ex) {
-            // expected
-        }
+        Assert.assertThrows(MalformedCookieException.class, () -> h.validate(cookie, origin));
         cookie.setDomain("www.otherdomain.com");
-        try {
-            h.validate(cookie, origin);
-            Assert.fail("MalformedCookieException should have been thrown");
-        } catch (final MalformedCookieException ex) {
-            // expected
-        }
+        Assert.assertThrows(MalformedCookieException.class, () -> h.validate(cookie, origin));
     }
 
     @Test
@@ -104,12 +94,7 @@ public class TestBasicCookieAttribHandlers {
         h.validate(cookie, origin);
 
         cookie.setDomain("otherhost");
-        try {
-            h.validate(cookie, origin);
-            Assert.fail("MalformedCookieException should have been thrown");
-        } catch (final MalformedCookieException ex) {
-            // expected
-        }
+        Assert.assertThrows(MalformedCookieException.class, () -> h.validate(cookie, origin));
     }
 
     @Test
@@ -129,12 +114,7 @@ public class TestBasicCookieAttribHandlers {
         final CookieAttributeHandler h = new BasicDomainHandler();
 
         cookie.setDomain(null);
-        try {
-            h.validate(cookie, origin);
-            Assert.fail("MalformedCookieException should have been thrown");
-        } catch (final MalformedCookieException ex) {
-            // expected
-        }
+        Assert.assertThrows(MalformedCookieException.class, () -> h.validate(cookie, origin));
     }
 
     @Test
@@ -193,36 +173,13 @@ public class TestBasicCookieAttribHandlers {
     @Test
     public void testBasicDomainInvalidInput() throws Exception {
         final CookieAttributeHandler h = new BasicDomainHandler();
-        try {
-            h.parse(null, null);
-            Assert.fail("NullPointerException must have been thrown");
-        } catch (final NullPointerException ex) {
-            // expected
-        }
-        try {
-            h.validate(null, null);
-            Assert.fail("NullPointerException must have been thrown");
-        } catch (final NullPointerException ex) {
-            // expected
-        }
-        try {
-            h.validate(new BasicClientCookie("name", "value"), null);
-            Assert.fail("NullPointerException must have been thrown");
-        } catch (final NullPointerException ex) {
-            // expected
-        }
-        try {
-            h.match(null, null);
-            Assert.fail("NullPointerException must have been thrown");
-        } catch (final NullPointerException ex) {
-            // expected
-        }
-        try {
-            h.match(new BasicClientCookie("name", "value"), null);
-            Assert.fail("NullPointerException must have been thrown");
-        } catch (final NullPointerException ex) {
-            // expected
-        }
+        Assert.assertThrows(NullPointerException.class, () -> h.parse(null, null));
+        Assert.assertThrows(NullPointerException.class, () -> h.validate(null, null));
+        Assert.assertThrows(NullPointerException.class, () ->
+                h.validate(new BasicClientCookie("name", "value"), null));
+        Assert.assertThrows(NullPointerException.class, () -> h.match(null, null));
+        Assert.assertThrows(NullPointerException.class, () ->
+                h.match(new BasicClientCookie("name", "value"), null));
     }
 
     @Test
@@ -302,24 +259,10 @@ public class TestBasicCookieAttribHandlers {
     @Test
     public void testBasicPathInvalidInput() throws Exception {
         final CookieAttributeHandler h = new BasicPathHandler();
-        try {
-            h.parse(null, null);
-            Assert.fail("NullPointerException must have been thrown");
-        } catch (final NullPointerException ex) {
-            // expected
-        }
-        try {
-            h.match(null, null);
-            Assert.fail("NullPointerException must have been thrown");
-        } catch (final NullPointerException ex) {
-            // expected
-        }
-        try {
-            h.match(new BasicClientCookie("name", "value"), null);
-            Assert.fail("NullPointerException must have been thrown");
-        } catch (final NullPointerException ex) {
-            // expected
-        }
+        Assert.assertThrows(NullPointerException.class, () -> h.parse(null, null));
+        Assert.assertThrows(NullPointerException.class, () -> h.match(null, null));
+        Assert.assertThrows(NullPointerException.class, () ->
+                h.match(new BasicClientCookie("name", "value"), null));
     }
 
     @Test
@@ -334,29 +277,14 @@ public class TestBasicCookieAttribHandlers {
     public void testBasicMaxAgeParseInvalid() throws Exception {
         final BasicClientCookie cookie = new BasicClientCookie("name", "value");
         final CookieAttributeHandler h = new BasicMaxAgeHandler();
-        try {
-            h.parse(cookie, "garbage");
-            Assert.fail("MalformedCookieException must have been thrown");
-        } catch (final MalformedCookieException ex) {
-            // expected
-        }
-        try {
-            h.parse(cookie, null);
-            Assert.fail("MalformedCookieException must have been thrown");
-        } catch (final MalformedCookieException ex) {
-            // expected
-        }
+        Assert.assertThrows(MalformedCookieException.class, () -> h.parse(cookie, "garbage"));
+        Assert.assertThrows(MalformedCookieException.class, () -> h.parse(cookie, null));
     }
 
     @Test
     public void testBasicMaxAgeInvalidInput() throws Exception {
         final CookieAttributeHandler h = new BasicMaxAgeHandler();
-        try {
-            h.parse(null, null);
-            Assert.fail("NullPointerException must have been thrown");
-        } catch (final NullPointerException ex) {
-            // expected
-        }
+        Assert.assertThrows(NullPointerException.class, () -> h.parse(null, null));
     }
 
     @Test
@@ -390,24 +318,10 @@ public class TestBasicCookieAttribHandlers {
     @Test
     public void testBasicSecureInvalidInput() throws Exception {
         final CookieAttributeHandler h = new BasicSecureHandler();
-        try {
-            h.parse(null, null);
-            Assert.fail("NullPointerException must have been thrown");
-        } catch (final NullPointerException ex) {
-            // expected
-        }
-        try {
-            h.match(null, null);
-            Assert.fail("NullPointerException must have been thrown");
-        } catch (final NullPointerException ex) {
-            // expected
-        }
-        try {
-            h.match(new BasicClientCookie("name", "value"), null);
-            Assert.fail("NullPointerException must have been thrown");
-        } catch (final NullPointerException ex) {
-            // expected
-        }
+        Assert.assertThrows(NullPointerException.class, () -> h.parse(null, null));
+        Assert.assertThrows(NullPointerException.class, () -> h.match(null, null));
+        Assert.assertThrows(NullPointerException.class, () ->
+                h.match(new BasicClientCookie("name", "value"), null));
     }
 
     @Test
@@ -428,36 +342,18 @@ public class TestBasicCookieAttribHandlers {
     public void testBasicExpiresParseInvalid() throws Exception {
         final BasicClientCookie cookie = new BasicClientCookie("name", "value");
         final CookieAttributeHandler h = new BasicExpiresHandler(new String[] {DateUtils.PATTERN_RFC1123});
-        try {
-            h.parse(cookie, "garbage");
-            Assert.fail("MalformedCookieException must have been thrown");
-        } catch (final MalformedCookieException ex) {
-            // expected
-        }
-        try {
-            h.parse(cookie, null);
-            Assert.fail("MalformedCookieException must have been thrown");
-        } catch (final MalformedCookieException ex) {
-            // expected
-        }
+        Assert.assertThrows(MalformedCookieException.class, () ->
+                h.parse(cookie, "garbage"));
+        Assert.assertThrows(MalformedCookieException.class, () ->
+                h.parse(cookie, null));
     }
 
     @SuppressWarnings("unused")
     @Test
     public void testBasicExpiresInvalidInput() throws Exception {
-        try {
-            new BasicExpiresHandler(null);
-            Assert.fail("NullPointerException must have been thrown");
-        } catch (final NullPointerException ex) {
-            // expected
-        }
+        Assert.assertThrows(NullPointerException.class, () -> new BasicExpiresHandler(null));
         final CookieAttributeHandler h = new BasicExpiresHandler(new String[] {DateUtils.PATTERN_RFC1123});
-        try {
-            h.parse(null, null);
-            Assert.fail("NullPointerException must have been thrown");
-        } catch (final NullPointerException ex) {
-            // expected
-        }
+        Assert.assertThrows(NullPointerException.class, () -> h.parse(null, null));
     }
 
     @Test

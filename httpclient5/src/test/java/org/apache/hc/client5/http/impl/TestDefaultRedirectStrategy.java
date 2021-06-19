@@ -112,16 +112,10 @@ public class TestDefaultRedirectStrategy {
         final HttpClientContext context = HttpClientContext.create();
         final HttpGet httpget = new HttpGet("http://localhost/");
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_SEE_OTHER, "Redirect");
-        try {
-            redirectStrategy.isRedirected(null, response, context);
-            Assert.fail("NullPointerException expected");
-        } catch (final NullPointerException expected) {
-        }
-        try {
-            redirectStrategy.isRedirected(httpget, null, context);
-            Assert.fail("NullPointerException expected");
-        } catch (final NullPointerException expected) {
-        }
+        Assert.assertThrows(NullPointerException.class, () ->
+                redirectStrategy.isRedirected(null, response, context));
+        Assert.assertThrows(NullPointerException.class, () ->
+                redirectStrategy.isRedirected(httpget, null, context));
     }
 
     @Test
@@ -207,21 +201,12 @@ public class TestDefaultRedirectStrategy {
         final HttpGet httpget = new HttpGet("http://localhost/");
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_MOVED_TEMPORARILY, "Redirect");
         response.addHeader("Location", "http://localhost/stuff");
-        try {
-            redirectStrategy.getLocationURI(null, response, context);
-            Assert.fail("NullPointerException expected");
-        } catch (final NullPointerException expected) {
-        }
-        try {
-            redirectStrategy.getLocationURI(httpget, null, context);
-            Assert.fail("NullPointerException expected");
-        } catch (final NullPointerException expected) {
-        }
-        try {
-            redirectStrategy.getLocationURI(httpget, response, null);
-            Assert.fail("NullPointerException expected");
-        } catch (final NullPointerException expected) {
-        }
+        Assert.assertThrows(NullPointerException.class, () ->
+                redirectStrategy.getLocationURI(null, response, context));
+        Assert.assertThrows(NullPointerException.class, () ->
+                redirectStrategy.getLocationURI(httpget, null, context));
+        Assert.assertThrows(NullPointerException.class, () ->
+                redirectStrategy.getLocationURI(httpget, response, null));
     }
 
     @Test

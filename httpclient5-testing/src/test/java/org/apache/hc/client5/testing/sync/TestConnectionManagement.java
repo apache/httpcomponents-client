@@ -94,19 +94,14 @@ public class TestConnectionManagement extends LocalServerTestBase {
         }
 
         // check that there is no auto-release by default
-        try {
-            // this should fail quickly, connection has not been released
-            final LeaseRequest leaseRequest2 = this.connManager.lease("id2", route,null);
-            leaseRequest2.get(Timeout.ofMilliseconds(10));
-            Assert.fail("TimeoutException expected");
-        } catch (final TimeoutException ex) {
-            // expected
-        }
+        // this should fail quickly, connection has not been released
+        final LeaseRequest leaseRequest2 = this.connManager.lease("id2", route,null);
+        Assert.assertThrows(TimeoutException.class, () -> leaseRequest2.get(Timeout.ofMilliseconds(10)));
 
         endpoint1.close();
         this.connManager.release(endpoint1, null, TimeValue.NEG_ONE_MILLISECOND);
-        final LeaseRequest leaseRequest2 = this.connManager.lease("id2", route,null);
-        final ConnectionEndpoint endpoint2 = leaseRequest2.get(Timeout.ZERO_MILLISECONDS);
+        final LeaseRequest leaseRequest3 = this.connManager.lease("id2", route,null);
+        final ConnectionEndpoint endpoint2 = leaseRequest3.get(Timeout.ZERO_MILLISECONDS);
         Assert.assertFalse(endpoint2.isConnected());
 
         this.connManager.connect(endpoint2, TimeValue.NEG_ONE_MILLISECOND, context);
@@ -119,8 +114,8 @@ public class TestConnectionManagement extends LocalServerTestBase {
         // expect the next connection obtained to be open
         this.connManager.release(endpoint2, null, TimeValue.NEG_ONE_MILLISECOND);
 
-        final LeaseRequest leaseRequest3 = this.connManager.lease("id3", route,null);
-        final ConnectionEndpoint endpoint3 = leaseRequest3.get(Timeout.ZERO_MILLISECONDS);
+        final LeaseRequest leaseRequest4 = this.connManager.lease("id3", route,null);
+        final ConnectionEndpoint endpoint3 = leaseRequest4.get(Timeout.ZERO_MILLISECONDS);
         Assert.assertTrue(endpoint3.isConnected());
 
         // repeat the communication, no need to prepare the request again
@@ -162,20 +157,15 @@ public class TestConnectionManagement extends LocalServerTestBase {
         }
 
         // check that there is no auto-release by default
-        try {
-            // this should fail quickly, connection has not been released
-            final LeaseRequest leaseRequest2 = this.connManager.lease("id2", route,null);
-            leaseRequest2.get(Timeout.ofMilliseconds(10));
-            Assert.fail("TimeoutException expected");
-        } catch (final TimeoutException ex) {
-            // expected
-        }
+        final LeaseRequest leaseRequest2 = this.connManager.lease("id2", route,null);
+        // this should fail quickly, connection has not been released
+        Assert.assertThrows(TimeoutException.class, () -> leaseRequest2.get(Timeout.ofMilliseconds(10)));
 
         endpoint1.close();
         this.connManager.release(endpoint1, null, TimeValue.ofMilliseconds(100));
 
-        final LeaseRequest leaseRequest2 = this.connManager.lease("id2", route,null);
-        final ConnectionEndpoint endpoint2 = leaseRequest2.get(Timeout.ZERO_MILLISECONDS);
+        final LeaseRequest leaseRequest3 = this.connManager.lease("id2", route,null);
+        final ConnectionEndpoint endpoint2 = leaseRequest3.get(Timeout.ZERO_MILLISECONDS);
         Assert.assertFalse(endpoint2.isConnected());
 
         this.connManager.connect(endpoint2, TimeValue.NEG_ONE_MILLISECOND, context);
@@ -186,8 +176,8 @@ public class TestConnectionManagement extends LocalServerTestBase {
 
         this.connManager.release(endpoint2, null, TimeValue.ofMilliseconds(100));
 
-        final LeaseRequest leaseRequest3 = this.connManager.lease("id3", route,null);
-        final ConnectionEndpoint endpoint3 = leaseRequest3.get(Timeout.ZERO_MILLISECONDS);
+        final LeaseRequest leaseRequest4 = this.connManager.lease("id3", route,null);
+        final ConnectionEndpoint endpoint3 = leaseRequest4.get(Timeout.ZERO_MILLISECONDS);
         Assert.assertTrue(endpoint3.isConnected());
 
         // repeat the communication, no need to prepare the request again
@@ -198,8 +188,8 @@ public class TestConnectionManagement extends LocalServerTestBase {
         this.connManager.release(endpoint3, null, TimeValue.ofMilliseconds(100));
         Thread.sleep(150);
 
-        final LeaseRequest leaseRequest4 = this.connManager.lease("id4", route,null);
-        final ConnectionEndpoint endpoint4 = leaseRequest4.get(Timeout.ZERO_MILLISECONDS);
+        final LeaseRequest leaseRequest5 = this.connManager.lease("id4", route,null);
+        final ConnectionEndpoint endpoint4 = leaseRequest5.get(Timeout.ZERO_MILLISECONDS);
         Assert.assertFalse(endpoint4.isConnected());
 
         // repeat the communication, no need to prepare the request again

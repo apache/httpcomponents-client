@@ -75,14 +75,11 @@ public class TestAbstractHttpClientResponseHandler {
         Mockito.when(response.getEntity()).thenReturn(entity);
 
         final BasicHttpClientResponseHandler handler = new BasicHttpClientResponseHandler();
-        try {
-            handler.handleResponse(response);
-            Assert.fail("HttpResponseException expected");
-        } catch (final HttpResponseException ex) {
-            Assert.assertEquals(404, ex.getStatusCode());
-            Assert.assertEquals("NOT FOUND", ex.getReasonPhrase());
-            Assert.assertEquals("status code: 404, reason phrase: NOT FOUND", ex.getMessage());
-        }
+        final HttpResponseException exception = Assert.assertThrows(HttpResponseException.class, () ->
+                handler.handleResponse(response));
+        Assert.assertEquals(404, exception.getStatusCode());
+        Assert.assertEquals("NOT FOUND", exception.getReasonPhrase());
+        Assert.assertEquals("status code: 404, reason phrase: NOT FOUND", exception.getMessage());
         Mockito.verify(entity).getContent();
         Mockito.verify(inStream).close();
     }
@@ -99,14 +96,11 @@ public class TestAbstractHttpClientResponseHandler {
         Mockito.when(response.getEntity()).thenReturn(entity);
 
         final BasicHttpClientResponseHandler handler = new BasicHttpClientResponseHandler();
-        try {
-            handler.handleResponse(response);
-            Assert.fail("HttpResponseException expected");
-        } catch (final HttpResponseException ex) {
-            Assert.assertEquals(404, ex.getStatusCode());
-            Assert.assertNull(ex.getReasonPhrase());
-            Assert.assertEquals("status code: 404", ex.getMessage());
-        }
+        final HttpResponseException exception = Assert.assertThrows(HttpResponseException.class, () ->
+                handler.handleResponse(response));
+        Assert.assertEquals(404, exception.getStatusCode());
+        Assert.assertNull(exception.getReasonPhrase());
+        Assert.assertEquals("status code: 404", exception.getMessage());
         Mockito.verify(entity).getContent();
         Mockito.verify(inStream).close();
     }

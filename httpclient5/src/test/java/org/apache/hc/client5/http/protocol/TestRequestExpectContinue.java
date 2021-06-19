@@ -109,12 +109,7 @@ public class TestRequestExpectContinue {
     @Test
     public void testRequestExpectContinueInvalidInput() throws Exception {
         final RequestExpectContinue interceptor = new RequestExpectContinue();
-        try {
-            interceptor.process(null, null, null);
-            Assert.fail("NullPointerException should have been thrown");
-        } catch (final NullPointerException ex) {
-            // expected
-        }
+        Assert.assertThrows(NullPointerException.class, () -> interceptor.process(null, null, null));
     }
 
     @Test

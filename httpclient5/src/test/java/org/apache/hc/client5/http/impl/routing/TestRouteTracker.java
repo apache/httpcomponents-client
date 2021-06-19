@@ -111,14 +111,7 @@ public class TestRouteTracker {
         Assert.assertNull("wrong route (target,local)", rt.toRoute());
         checkCTLS(rt, false, false, false, false);
 
-
-        rt = null;
-        try {
-            new RouteTracker(null, LOCAL41);
-            Assert.fail("null target not detected");
-        } catch (final NullPointerException iax) {
-            // expected
-        }
+        Assert.assertThrows(NullPointerException.class, () -> new RouteTracker(null, LOCAL41));
     }
 
     @SuppressWarnings("unused")
@@ -161,14 +154,7 @@ public class TestRouteTracker {
         Assert.assertNull("wrong route (r3)", rt.toRoute());
         checkCTLS(rt, false, false, false, false);
 
-
-        rt = null;
-        try {
-            new RouteTracker(null);
-            Assert.fail("null route not detected");
-        } catch (final NullPointerException npx) {
-            // expected
-        }
+        Assert.assertThrows(NullPointerException.class, () -> new RouteTracker(null));
     }
 
     @Test
@@ -176,49 +162,15 @@ public class TestRouteTracker {
 
         final RouteTracker rt = new RouteTracker(TARGET2, null);
 
-        try {
-            rt.connectProxy(null, true);
-            Assert.fail("missing proxy argument not detected (connect/false)");
-        } catch (final NullPointerException iax) {
-            // expected
-        }
-
-        try {
-            rt.connectProxy(null, false);
-            Assert.fail("missing proxy argument not detected (connect/true)");
-        } catch (final NullPointerException iax) {
-            // expected
-        }
+        Assert.assertThrows(NullPointerException.class, () -> rt.connectProxy(null, true));
+        Assert.assertThrows(NullPointerException.class, () -> rt.connectProxy(null, false));
 
         rt.connectProxy(PROXY1, false);
 
-        try {
-            rt.tunnelProxy(null, false);
-            Assert.fail("missing proxy argument not detected (tunnel/false)");
-        } catch (final NullPointerException iax) {
-            // expected
-        }
-
-        try {
-            rt.tunnelProxy(null, true);
-            Assert.fail("missing proxy argument not detected (tunnel/true)");
-        } catch (final NullPointerException iax) {
-            // expected
-        }
-
-        try {
-            rt.getHopTarget(-1);
-            Assert.fail("negative hop index not detected");
-        } catch (final IllegalArgumentException iax) {
-            // expected
-        }
-
-        try {
-            rt.getHopTarget(2);
-            Assert.fail("excessive hop index not detected");
-        } catch (final IllegalArgumentException iax) {
-            // expected
-        }
+        Assert.assertThrows(NullPointerException.class, () -> rt.tunnelProxy(null, false));
+        Assert.assertThrows(NullPointerException.class, () -> rt.tunnelProxy(null, true));
+        Assert.assertThrows(IllegalArgumentException.class, () -> rt.getHopTarget(-1));
+        Assert.assertThrows(IllegalArgumentException.class, () -> rt.getHopTarget(2));
     }
 
     @Test
@@ -226,58 +178,17 @@ public class TestRouteTracker {
 
         final RouteTracker rt = new RouteTracker(TARGET1, null);
 
-        try {
-            rt.tunnelTarget(false);
-            Assert.fail("unconnectedness not detected (tunnelTarget)");
-        } catch (final IllegalStateException isx) {
-            // expected
-        }
-
-        try {
-            rt.tunnelProxy(PROXY1, false);
-            Assert.fail("unconnectedness not detected (tunnelProxy)");
-        } catch (final IllegalStateException isx) {
-            // expected
-        }
-
-        try {
-            rt.layerProtocol(true);
-            Assert.fail("unconnectedness not detected (layerProtocol)");
-        } catch (final IllegalStateException isx) {
-            // expected
-        }
-
+        Assert.assertThrows(IllegalStateException.class, () -> rt.tunnelTarget(false));
+        Assert.assertThrows(IllegalStateException.class, () -> rt.tunnelProxy(PROXY1, false));
+        Assert.assertThrows(IllegalStateException.class, () -> rt.layerProtocol(true));
 
         // connect directly
         rt.connectTarget(false);
 
-        try {
-            rt.connectTarget(false);
-            Assert.fail("connectedness not detected (connectTarget)");
-        } catch (final IllegalStateException isx) {
-            // expected
-        }
-
-        try {
-            rt.connectProxy(PROXY2, false);
-            Assert.fail("connectedness not detected (connectProxy)");
-        } catch (final IllegalStateException isx) {
-            // expected
-        }
-
-        try {
-            rt.tunnelTarget(false);
-            Assert.fail("unproxiedness not detected (tunnelTarget)");
-        } catch (final IllegalStateException isx) {
-            // expected
-        }
-
-        try {
-            rt.tunnelProxy(PROXY1, false);
-            Assert.fail("unproxiedness not detected (tunnelProxy)");
-        } catch (final IllegalStateException isx) {
-            // expected
-        }
+        Assert.assertThrows(IllegalStateException.class, () -> rt.connectTarget(false));
+        Assert.assertThrows(IllegalStateException.class, () -> rt.connectProxy(PROXY2, false));
+        Assert.assertThrows(IllegalStateException.class, () -> rt.tunnelTarget(false));
+        Assert.assertThrows(IllegalStateException.class, () -> rt.tunnelProxy(PROXY1, false));
     }
 
     @Test
