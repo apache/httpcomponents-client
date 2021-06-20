@@ -30,7 +30,6 @@ package org.apache.hc.client5.http.impl.io;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -157,27 +156,6 @@ public class TestPoolingHttpClientConnectionManager {
         mgr.release(endpoint1, null, TimeValue.NEG_ONE_MILLISECOND);
 
         Mockito.verify(pool).release(entry, false);
-    }
-
-    @Test(expected= ExecutionException.class)
-    public void testLeaseFutureCancelled() throws Exception {
-        final HttpHost target = new HttpHost("localhost", 80);
-        final HttpRoute route = new HttpRoute(target);
-
-        final PoolEntry<HttpRoute, ManagedHttpClientConnection> entry = new PoolEntry<>(route, TimeValue.NEG_ONE_MILLISECOND);
-        entry.assignConnection(conn);
-
-        Mockito.when(future.isCancelled()).thenReturn(Boolean.TRUE);
-        Mockito.when(future.get(1, TimeUnit.SECONDS)).thenReturn(entry);
-        Mockito.when(pool.lease(
-                Mockito.eq(route),
-                Mockito.eq(null),
-                Mockito.<Timeout>any(),
-                Mockito.<FutureCallback<PoolEntry<HttpRoute, ManagedHttpClientConnection>>>eq(null)))
-                .thenReturn(future);
-
-        final LeaseRequest connRequest1 = mgr.lease("some-id", route, null);
-        connRequest1.get(Timeout.ofSeconds(1));
     }
 
     @Test(expected=TimeoutException.class)

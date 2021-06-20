@@ -28,7 +28,12 @@ package org.apache.hc.client5.testing.async;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Random;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
@@ -194,6 +199,79 @@ public class TestHttp1Async extends AbstractHttpAsyncFundamentalsTest<CloseableH
         final String body3 = response3.getBodyText();
         Assert.assertThat(body3, CoreMatchers.notNullValue());
         Assert.assertThat(body3.length(), CoreMatchers.equalTo(2048));
+    }
+
+    @Test
+    public void testRequestCancellation() throws Exception {
+        this.connManager.setDefaultMaxPerRoute(1);
+        this.connManager.setMaxTotal(1);
+
+        final HttpHost target = start();
+
+        final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
+        try {
+
+            for (int i = 0; i < 20; i++) {
+                final Future<SimpleHttpResponse> future = httpclient.execute(
+                        SimpleRequestBuilder.get()
+                                .setHttpHost(target)
+                                .setPath("/random/1000")
+                                .build(), null);
+
+                executorService.schedule(new Runnable() {
+
+                    @Override
+                    public void run() {
+                        future.cancel(true);
+                    }
+                }, i % 5, TimeUnit.MILLISECONDS);
+
+                try {
+                    future.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
+                } catch (final TimeoutException ex) {
+                    throw ex;
+                } catch (final Exception ignore) {
+                }
+            }
+
+            final Random rnd = new Random();
+            for (int i = 0; i < 20; i++) {
+                final Future<SimpleHttpResponse> future = httpclient.execute(
+                        SimpleRequestBuilder.get()
+                                .setHttpHost(target)
+                                .setPath("/random/1000")
+                                .build(), null);
+
+                executorService.schedule(new Runnable() {
+
+                    @Override
+                    public void run() {
+                        future.cancel(true);
+                    }
+                }, rnd.nextInt(200), TimeUnit.MILLISECONDS);
+
+                try {
+                    future.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
+                } catch (final TimeoutException ex) {
+                    throw ex;
+                } catch (final Exception ignore) {
+                }
+            }
+
+            for (int i = 0; i < 5; i++) {
+                final Future<SimpleHttpResponse> future = httpclient.execute(
+                        SimpleRequestBuilder.get()
+                                .setHttpHost(target)
+                                .setPath("/random/1000")
+                                .build(), null);
+                final SimpleHttpResponse response = future.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
+                Assert.assertThat(response, CoreMatchers.notNullValue());
+                Assert.assertThat(response.getCode(), CoreMatchers.equalTo(200));
+            }
+
+        } finally {
+            executorService.shutdownNow();
+        }
     }
 
 }
