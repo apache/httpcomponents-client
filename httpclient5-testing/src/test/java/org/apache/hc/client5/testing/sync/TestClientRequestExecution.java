@@ -29,6 +29,10 @@ package org.apache.hc.client5.testing.sync;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URI;
+import java.util.Random;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.hc.client5.http.HttpRequestRetryStrategy;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
@@ -279,6 +283,64 @@ public class TestClientRequestExecution extends LocalServerTestBase {
         final RedirectLocations redirectLocations = context.getRedirectLocations();
         final URI location = URIUtils.resolve(uri, target, redirectLocations.getAll());
         Assert.assertEquals(uri, location);
+    }
+
+    @Test
+    public void testRequestCancellation() throws Exception {
+        this.connManager.setDefaultMaxPerRoute(1);
+        this.connManager.setMaxTotal(1);
+
+        final HttpHost target = start();
+
+        final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
+        try {
+
+            for (int i = 0; i < 20; i++) {
+                final HttpGet httpget = new HttpGet("/random/1000");
+
+                executorService.schedule(new Runnable() {
+
+                    @Override
+                    public void run() {
+                        httpget.cancel();
+                    }
+                }, 1, TimeUnit.MILLISECONDS);
+
+                try (final ClassicHttpResponse response = this.httpclient.execute(target, httpget)) {
+                    EntityUtils.consume(response.getEntity());
+                } catch (final Exception ignore) {
+                }
+            }
+
+            final Random rnd = new Random();
+            for (int i = 0; i < 20; i++) {
+                final HttpGet httpget = new HttpGet("/random/1000");
+
+                executorService.schedule(new Runnable() {
+
+                    @Override
+                    public void run() {
+                        httpget.cancel();
+                    }
+                }, rnd.nextInt(200), TimeUnit.MILLISECONDS);
+
+                try (final ClassicHttpResponse response = this.httpclient.execute(target, httpget)) {
+                    EntityUtils.consume(response.getEntity());
+                } catch (final Exception ignore) {
+                }
+
+            }
+
+            for (int i = 0; i < 5; i++) {
+                final HttpGet httpget = new HttpGet("/random/1000");
+                try (final ClassicHttpResponse response = this.httpclient.execute(target, httpget)) {
+                    EntityUtils.consume(response.getEntity());
+                }
+            }
+
+        } finally {
+            executorService.shutdownNow();
+        }
     }
 
 }

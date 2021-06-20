@@ -104,10 +104,6 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
             state = object;
             if (cancellableDependency != null) {
                 cancellableDependency.setDependency(connRequest);
-                if (cancellableDependency.isCancelled()) {
-                    connRequest.cancel();
-                    throw new RequestFailedException("Request aborted");
-                }
             }
             try {
                 final ConnectionEndpoint connectionEndpoint = connRequest.get(connectionRequestTimeout);
@@ -115,10 +111,6 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
                 reusable = connectionEndpoint.isConnected();
                 if (cancellableDependency != null) {
                     cancellableDependency.setDependency(this);
-                    if (cancellableDependency.isCancelled()) {
-                        cancel();
-                        throw new RequestFailedException("Request aborted");
-                    }
                 }
                 if (log.isDebugEnabled()) {
                     log.debug("{} acquired endpoint {}", id, ConnPoolSupport.getId(connectionEndpoint));
@@ -155,10 +147,8 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
     }
 
     private void connectEndpoint(final ConnectionEndpoint endpoint, final HttpClientContext context) throws IOException {
-        if (cancellableDependency != null) {
-            if (cancellableDependency.isCancelled()) {
-                throw new RequestFailedException("Request aborted");
-            }
+        if (isExecutionAborted()) {
+            throw new RequestFailedException("Request aborted");
         }
         final RequestConfig requestConfig = context.getRequestConfig();
         final Timeout connectTimeout = requestConfig.getConnectTimeout();
@@ -207,6 +197,9 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
         final ConnectionEndpoint endpoint = ensureValid();
         if (!endpoint.isConnected()) {
             connectEndpoint(endpoint, context);
+        }
+        if (isExecutionAborted()) {
+            throw new RequestFailedException("Request aborted");
         }
         final RequestConfig requestConfig = context.getRequestConfig();
         final Timeout responseTimeout = requestConfig.getResponseTimeout();

@@ -28,7 +28,6 @@ package org.apache.hc.client5.http.impl.io;
 
 import java.io.IOException;
 import java.util.Set;
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
@@ -288,9 +287,6 @@ public class PoolingHttpClientConnectionManager
                 final PoolEntry<HttpRoute, ManagedHttpClientConnection> poolEntry;
                 try {
                     poolEntry = leaseFuture.get(timeout.getDuration(), timeout.getTimeUnit());
-                    if (poolEntry == null || leaseFuture.isCancelled()) {
-                        throw new ExecutionException(new CancellationException("Operation cancelled"));
-                    }
                 } catch (final TimeoutException ex) {
                     leaseFuture.cancel(true);
                     throw ex;
@@ -325,16 +321,9 @@ public class PoolingHttpClientConnectionManager
                     } else {
                         poolEntry.assignConnection(connFactory.createConnection(null));
                     }
-                    if (leaseFuture.isCancelled()) {
-                        if (LOG.isDebugEnabled()) {
-                            LOG.debug("{} endpoint lease cancelled", id);
-                        }
-                        pool.release(poolEntry, false);
-                    } else {
-                        this.endpoint = new InternalConnectionEndpoint(poolEntry);
-                        if (LOG.isDebugEnabled()) {
-                            LOG.debug("{} acquired {}", id, ConnPoolSupport.getId(endpoint));
-                        }
+                    this.endpoint = new InternalConnectionEndpoint(poolEntry);
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("{} acquired {}", id, ConnPoolSupport.getId(endpoint));
                     }
                     return this.endpoint;
                 } catch (final Exception ex) {
