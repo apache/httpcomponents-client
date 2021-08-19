@@ -140,6 +140,7 @@ public final class ProtocolExec implements ExecChainHandler {
                 }
             }
 
+            RequestEntityProxy.enhance(request);
 
             for (;;) {
 
@@ -207,6 +208,7 @@ public final class ProtocolExec implements ExecChainHandler {
                         request.addHeader(it.next());
                     }
                 } else {
+                    ResponseEntityProxy.enhance(response, execRuntime);
                     return response;
                 }
             }
