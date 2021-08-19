@@ -102,8 +102,6 @@ public final class MainClientExec implements ExecChainHandler {
             LOG.debug("{} executing {}", exchangeId, new RequestLine(request));
         }
         try {
-            RequestEntityProxy.enhance(request);
-
             final ClassicHttpResponse response = execRuntime.execute(exchangeId, request, context);
 
             Object userToken = context.getUserToken();
@@ -136,7 +134,6 @@ public final class MainClientExec implements ExecChainHandler {
                 execRuntime.releaseEndpoint();
                 return new CloseableHttpResponse(response, null);
             }
-            ResponseEntityProxy.enhance(response, execRuntime);
             return new CloseableHttpResponse(response, execRuntime);
         } catch (final ConnectionShutdownException ex) {
             final InterruptedIOException ioex = new InterruptedIOException(
