@@ -28,6 +28,7 @@ package org.apache.hc.client5.http.impl;
 
 import java.io.IOException;
 import java.net.ConnectException;
+import java.net.NoRouteToHostException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.Date;
@@ -124,6 +125,13 @@ public class TestDefaultHttpRequestRetryStrategy {
         final HttpGet request = new HttpGet("/");
 
         Assert.assertFalse(retryStrategy.retryRequest(request, new ConnectionClosedException(), 1, null));
+    }
+
+    @Test
+    public void noRetryForNoRouteToHostException() {
+        final HttpGet request = new HttpGet("/");
+
+        Assert.assertFalse(retryStrategy.retryRequest(request, new NoRouteToHostException(), 1, null));
     }
 
     @Test

@@ -30,6 +30,7 @@ package org.apache.hc.client5.http.impl;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.net.ConnectException;
+import java.net.NoRouteToHostException;
 import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.Collection;
@@ -106,6 +107,7 @@ public class DefaultHttpRequestRetryStrategy implements HttpRequestRetryStrategy
      * <li>UnknownHostException</li>
      * <li>ConnectException</li>
      * <li>ConnectionClosedException</li>
+     * <li>NoRouteToHostException</li>
      * <li>SSLException</li>
      * </ul>
      *
@@ -129,6 +131,7 @@ public class DefaultHttpRequestRetryStrategy implements HttpRequestRetryStrategy
                         UnknownHostException.class,
                         ConnectException.class,
                         ConnectionClosedException.class,
+                        NoRouteToHostException.class,
                         SSLException.class),
                 Arrays.asList(
                         HttpStatus.SC_TOO_MANY_REQUESTS,
