@@ -30,6 +30,7 @@ package org.apache.http.impl.client;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.net.ConnectException;
+import java.net.NoRouteToHostException;
 import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.Collection;
@@ -103,6 +104,7 @@ public class DefaultHttpRequestRetryHandler implements HttpRequestRetryHandler {
                 InterruptedIOException.class,
                 UnknownHostException.class,
                 ConnectException.class,
+                NoRouteToHostException.class,
                 SSLException.class));
     }
 

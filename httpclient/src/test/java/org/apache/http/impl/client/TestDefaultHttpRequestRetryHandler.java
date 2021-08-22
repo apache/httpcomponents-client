@@ -30,6 +30,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
+import java.net.NoRouteToHostException;
 import java.net.UnknownHostException;
 
 import org.apache.http.client.methods.HttpUriRequest;
@@ -111,4 +112,21 @@ public class TestDefaultHttpRequestRetryHandler {
         Assert.assertFalse(retryHandler.retryRequest(new ConnectTimeoutException(),3,context));
     }
 
+    /**
+     * Test that {@link DefaultHttpRequestRetryHandler} doesn't retry a request
+     * when {@link java.net.NoRouteToHostException} is thrown when establishing
+     * a connection
+     */
+    @Test
+    public void noRetryForNoRouteToHostException() {
+        final HttpContext context = mock(HttpContext.class);
+        final HttpUriRequest request = mock(HttpUriRequest.class);
+        when(request.isAborted()).thenReturn(false);
+        when(context.getAttribute(HttpCoreContext.HTTP_REQUEST)).thenReturn(request);
+
+        final DefaultHttpRequestRetryHandler retryHandler = new DefaultHttpRequestRetryHandler();
+        Assert.assertFalse("Request was unexpectedly retried for "
+                        + NoRouteToHostException.class.getName() + " exception",
+                retryHandler.retryRequest(new NoRouteToHostException(), 1, context));
+    }
 }
