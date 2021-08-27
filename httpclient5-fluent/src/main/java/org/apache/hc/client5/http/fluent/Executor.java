@@ -35,6 +35,7 @@ import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.CredentialsStore;
 import org.apache.hc.client5.http.auth.NTCredentials;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
+import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.client5.http.impl.auth.BasicAuthCache;
 import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
@@ -64,7 +65,9 @@ public class Executor {
                         .useSystemProperties()
                         .setMaxConnPerRoute(100)
                         .setMaxConnTotal(200)
-                        .setValidateAfterInactivity(TimeValue.ofSeconds(10))
+                        .setDefaultConnectionConfig(ConnectionConfig.custom()
+                                .setValidateAfterInactivity(TimeValue.ofSeconds(10))
+                                .build())
                         .build())
                 .useSystemProperties()
                 .evictExpiredConnections()
