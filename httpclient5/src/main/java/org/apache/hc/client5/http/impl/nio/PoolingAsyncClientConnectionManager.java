@@ -576,7 +576,7 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
                 return false;
             }
             if (!connection.isOpen()) {
-                poolEntry.discardConnection(CloseMode.IMMEDIATE);
+                poolEntry.discardConnection(CloseMode.GRACEFUL);
                 return false;
             }
             return true;
