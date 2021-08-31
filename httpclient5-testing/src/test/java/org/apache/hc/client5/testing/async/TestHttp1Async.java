@@ -28,6 +28,8 @@ package org.apache.hc.client5.testing.async;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.Random;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -50,6 +52,8 @@ import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.config.Http1Config;
+import org.apache.hc.core5.http.protocol.DefaultHttpProcessor;
+import org.apache.hc.core5.http.protocol.RequestValidateHost;
 import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.junit.Rule;
@@ -122,7 +126,7 @@ public class TestHttp1Async extends AbstractHttpAsyncFundamentalsTest<CloseableH
     }
 
     @Test
-    public void testSequenctialGetRequestsCloseConnection() throws Exception {
+    public void testSequentialGetRequestsCloseConnection() throws Exception {
         final HttpHost target = start();
         for (int i = 0; i < 3; i++) {
             final Future<SimpleHttpResponse> future = httpclient.execute(
@@ -131,6 +135,32 @@ public class TestHttp1Async extends AbstractHttpAsyncFundamentalsTest<CloseableH
                             .setPath("/random/2048")
                             .addHeader(HttpHeaders.CONNECTION, HeaderElements.CLOSE)
                             .build(), null);
+            final SimpleHttpResponse response = future.get();
+            Assert.assertThat(response, CoreMatchers.notNullValue());
+            Assert.assertThat(response.getCode(), CoreMatchers.equalTo(200));
+            final String body = response.getBodyText();
+            Assert.assertThat(body, CoreMatchers.notNullValue());
+            Assert.assertThat(body.length(), CoreMatchers.equalTo(2048));
+        }
+    }
+
+    @Test
+    public void testGetRequestsIdentityEncodingResponse() throws Exception {
+        final HttpHost target = start(new DefaultHttpProcessor(new RequestValidateHost()), Http1Config.DEFAULT);
+
+        final int reqCount = 20;
+
+        final Queue<Future<SimpleHttpResponse>> queue = new LinkedList<>();
+        for (int i = 0; i < reqCount; i++) {
+            final Future<SimpleHttpResponse> future = httpclient.execute(
+                    SimpleRequestBuilder.get()
+                            .setHttpHost(target)
+                            .setPath("/random/2048")
+                            .build(), null);
+            queue.add(future);
+        }
+        while (!queue.isEmpty()) {
+            final Future<SimpleHttpResponse> future = queue.remove();
             final SimpleHttpResponse response = future.get();
             Assert.assertThat(response, CoreMatchers.notNullValue());
             Assert.assertThat(response.getCode(), CoreMatchers.equalTo(200));

@@ -62,7 +62,7 @@ public abstract class AbstractHttpAsyncFundamentalsTest<T extends CloseableHttpA
     }
 
     @Test
-    public void testSequenctialGetRequests() throws Exception {
+    public void testSequentialGetRequests() throws Exception {
         final HttpHost target = start();
         for (int i = 0; i < 3; i++) {
             final Future<SimpleHttpResponse> future = httpclient.execute(
@@ -80,7 +80,7 @@ public abstract class AbstractHttpAsyncFundamentalsTest<T extends CloseableHttpA
     }
 
     @Test
-    public void testSequenctialHeadRequests() throws Exception {
+    public void testSequentialHeadRequests() throws Exception {
         final HttpHost target = start();
         for (int i = 0; i < 3; i++) {
             final Future<SimpleHttpResponse> future = httpclient.execute(
@@ -97,7 +97,7 @@ public abstract class AbstractHttpAsyncFundamentalsTest<T extends CloseableHttpA
     }
 
     @Test
-    public void testSequenctialPostRequests() throws Exception {
+    public void testSequentialPostRequests() throws Exception {
         final HttpHost target = start();
         for (int i = 0; i < 3; i++) {
             final byte[] b1 = new byte[1024];
