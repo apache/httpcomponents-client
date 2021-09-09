@@ -38,7 +38,6 @@ import javax.net.ssl.SSLParameters;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
-import org.apache.hc.core5.http2.ssl.H2TlsSupport;
 import org.apache.hc.core5.reactor.ssl.SSLBufferMode;
 import org.apache.hc.core5.reactor.ssl.TlsDetails;
 import org.apache.hc.core5.ssl.SSLContexts;
@@ -92,7 +91,7 @@ public class ConscryptClientTlsStrategy extends AbstractClientTlsStrategy {
             sslEngine.setSSLParameters(sslParameters);
             Conscrypt.setApplicationProtocols(sslEngine, appProtocols);
         } else {
-            H2TlsSupport.setApplicationProtocols(sslParameters, appProtocols);
+            sslParameters.setApplicationProtocols(appProtocols);
             sslEngine.setSSLParameters(sslParameters);
         }
     }

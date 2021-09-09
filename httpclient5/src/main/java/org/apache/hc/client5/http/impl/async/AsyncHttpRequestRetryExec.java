@@ -43,7 +43,7 @@ import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.nio.AsyncDataConsumer;
 import org.apache.hc.core5.http.nio.AsyncEntityProducer;
-import org.apache.hc.core5.http.nio.entity.NoopEntityConsumer;
+import org.apache.hc.core5.http.nio.entity.DiscardingEntityConsumer;
 import org.apache.hc.core5.http.support.BasicRequestBuilder;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TimeValue;
@@ -113,7 +113,7 @@ public final class AsyncHttpRequestRetryExec implements AsyncExecChainHandler {
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("{} retrying request in {}", exchangeId, state.delay);
                     }
-                    return new NoopEntityConsumer();
+                    return new DiscardingEntityConsumer<>();
                 } else {
                     return asyncExecCallback.handleResponse(response, entityDetails);
                 }

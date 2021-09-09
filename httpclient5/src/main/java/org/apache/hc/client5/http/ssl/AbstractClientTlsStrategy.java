@@ -40,6 +40,7 @@ import javax.net.ssl.SSLSession;
 
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
 import org.apache.hc.core5.http.ssl.TLS;
@@ -47,6 +48,7 @@ import org.apache.hc.core5.http.ssl.TlsCiphers;
 import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.apache.hc.core5.http2.ssl.ApplicationProtocol;
 import org.apache.hc.core5.http2.ssl.H2TlsSupport;
+import org.apache.hc.core5.net.NamedEndpoint;
 import org.apache.hc.core5.reactor.ssl.SSLBufferMode;
 import org.apache.hc.core5.reactor.ssl.TlsDetails;
 import org.apache.hc.core5.reactor.ssl.TransportSecurityLayer;
@@ -82,6 +84,10 @@ abstract class AbstractClientTlsStrategy implements TlsStrategy {
         this.tlsSessionValidator = new TlsSessionValidator(LOG);
     }
 
+    /**
+     * @deprecated use {@link #upgrade(TransportSecurityLayer, NamedEndpoint, Object, Timeout, FutureCallback)}
+     */
+    @Deprecated
     @Override
     public boolean upgrade(
             final TransportSecurityLayer tlsSession,
@@ -90,7 +96,18 @@ abstract class AbstractClientTlsStrategy implements TlsStrategy {
             final SocketAddress remoteAddress,
             final Object attachment,
             final Timeout handshakeTimeout) {
-        tlsSession.startTls(sslContext, host, sslBufferManagement, (endpoint, sslEngine) -> {
+        upgrade(tlsSession, host, attachment, handshakeTimeout, null);
+        return true;
+    }
+
+    @Override
+    public void upgrade(
+            final TransportSecurityLayer tlsSession,
+            final NamedEndpoint endpoint,
+            final Object attachment,
+            final Timeout handshakeTimeout,
+            final FutureCallback<TransportSecurityLayer> callback) {
+        tlsSession.startTls(sslContext, endpoint, sslBufferManagement, (e, sslEngine) -> {
 
             final HttpVersionPolicy versionPolicy = attachment instanceof HttpVersionPolicy ?
                     (HttpVersionPolicy) attachment : HttpVersionPolicy.NEGOTIATE;
@@ -119,8 +136,8 @@ abstract class AbstractClientTlsStrategy implements TlsStrategy {
                 LOG.debug("Enabled protocols: {}", Arrays.asList(sslEngine.getEnabledProtocols()));
                 LOG.debug("Enabled cipher suites:{}", Arrays.asList(sslEngine.getEnabledCipherSuites()));
             }
-        }, (endpoint, sslEngine) -> {
-            verifySession(host.getHostName(), sslEngine.getSession());
+        }, (e, sslEngine) -> {
+            verifySession(endpoint.getHostName(), sslEngine.getSession());
             final TlsDetails tlsDetails = createTlsDetails(sslEngine);
             final String negotiatedCipherSuite = sslEngine.getSession().getCipherSuite();
             if (tlsDetails != null && ApplicationProtocol.HTTP_2.id.equals(tlsDetails.getApplicationProtocol())) {
@@ -130,8 +147,7 @@ abstract class AbstractClientTlsStrategy implements TlsStrategy {
                 }
             }
             return tlsDetails;
-        }, handshakeTimeout);
-        return true;
+        }, handshakeTimeout, callback);
     }
 
     abstract void applyParameters(SSLEngine sslEngine, SSLParameters sslParameters, String[] appProtocols);

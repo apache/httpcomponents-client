@@ -36,7 +36,6 @@ import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.function.Factory;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
-import org.apache.hc.core5.http2.ssl.H2TlsSupport;
 import org.apache.hc.core5.reactor.ssl.SSLBufferMode;
 import org.apache.hc.core5.reactor.ssl.TlsDetails;
 import org.apache.hc.core5.ssl.SSLContexts;
@@ -98,7 +97,7 @@ public class DefaultClientTlsStrategy extends AbstractClientTlsStrategy {
 
     @Override
     void applyParameters(final SSLEngine sslEngine, final SSLParameters sslParameters, final String[] appProtocols) {
-        H2TlsSupport.setApplicationProtocols(sslParameters, appProtocols);
+        sslParameters.setApplicationProtocols(appProtocols);
         sslEngine.setSSLParameters(sslParameters);
     }
 

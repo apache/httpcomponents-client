@@ -62,7 +62,7 @@
   <properties>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
-    <httpcore.version>5.1.1</httpcore.version>
+    <httpcore.version>5.2-alpha1</httpcore.version>
     <log4j.version>2.9.1</log4j.version>
     <commons-codec.version>1.15</commons-codec.version>
     <conscrypt.version>2.2.1</conscrypt.version>
@@ -75,6 +75,7 @@
     <hc.stylecheck.version>1</hc.stylecheck.version>
     <rxjava.version>2.2.7</rxjava.version>
     <api.comparison.version>5.1</api.comparison.version>
+    <hc.animal-sniffer.signature.ignores>javax.net.ssl.SSLEngine,javax.net.ssl.SSLParameters</hc.animal-sniffer.signature.ignores>
   </properties>
 
   <dependencyManagement>

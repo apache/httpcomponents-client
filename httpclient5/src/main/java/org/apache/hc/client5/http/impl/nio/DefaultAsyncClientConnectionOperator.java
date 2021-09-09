@@ -94,10 +94,8 @@ final class DefaultAsyncClientConnectionOperator implements AsyncClientConnectio
                                 tlsStrategy.upgrade(
                                         connection,
                                         host,
-                                        session.getLocalAddress(),
-                                        session.getRemoteAddress(),
                                         attachment,
-                                        connectTimeout);
+                                        connectTimeout, null);
                             } catch (final Exception ex) {
                                 future.failed(ex);
                                 return;
@@ -128,9 +126,8 @@ final class DefaultAsyncClientConnectionOperator implements AsyncClientConnectio
             tlsStrategy.upgrade(
                     connection,
                     host,
-                    connection.getLocalAddress(),
-                    connection.getRemoteAddress(),
                     attachment,
+                    null,
                     null);
         }
 
