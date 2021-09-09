@@ -105,7 +105,6 @@ public class TestHttp1RequestReExecution extends AbstractIntegrationTestBase<Clo
             clientBuilder = HttpAsyncClientBuilder.create()
                     .setDefaultRequestConfig(RequestConfig.custom()
                             .setConnectionRequestTimeout(TIMEOUT)
-                            .setConnectTimeout(TIMEOUT)
                             .build())
                     .setConnectionManager(connManager)
                     .setVersionPolicy(version.greaterEquals(HttpVersion.HTTP_2) ? HttpVersionPolicy.FORCE_HTTP_2 : HttpVersionPolicy.FORCE_HTTP_1);

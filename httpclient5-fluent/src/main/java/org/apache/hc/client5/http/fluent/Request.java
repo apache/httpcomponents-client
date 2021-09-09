@@ -163,6 +163,7 @@ public class Request {
         this.request = request;
     }
 
+    @SuppressWarnings("deprecation")
     ClassicHttpResponse internalExecute(
             final CloseableHttpClient client,
             final HttpClientContext localContext) throws IOException {

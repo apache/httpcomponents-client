@@ -55,7 +55,6 @@ public class TestRequestConfig {
         Assert.assertFalse(config.isCircularRedirectsAllowed());
         Assert.assertEquals(50, config.getMaxRedirects());
         Assert.assertNull(config.getCookieSpec());
-        Assert.assertNull(config.getProxy());
         Assert.assertNull(config.getTargetPreferredAuthSchemes());
         Assert.assertNull(config.getProxyPreferredAuthSchemes());
         Assert.assertTrue(config.isContentCompressionEnabled());

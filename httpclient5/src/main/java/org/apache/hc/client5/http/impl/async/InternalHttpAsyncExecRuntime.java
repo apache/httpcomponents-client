@@ -203,6 +203,7 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
             return Operations.nonCancellable();
         }
         final RequestConfig requestConfig = context.getRequestConfig();
+        @SuppressWarnings("deprecation")
         final Timeout connectTimeout = requestConfig.getConnectTimeout();
         if (log.isDebugEnabled()) {
             log.debug("{} connecting endpoint ({})", ConnPoolSupport.getId(endpoint), connectTimeout);

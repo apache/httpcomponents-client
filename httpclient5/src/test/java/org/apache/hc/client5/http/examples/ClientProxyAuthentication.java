@@ -51,13 +51,13 @@ public class ClientProxyAuthentication {
         credsProvider.setCredentials(
                 new AuthScope("httpbin.org", 80),
                 new UsernamePasswordCredentials("user", "passwd".toCharArray()));
+        final HttpHost target = new HttpHost("http", "httpbin.org", 80);
+        final HttpHost proxy = new HttpHost("localhost", 8888);
         try (final CloseableHttpClient httpclient = HttpClients.custom()
+                .setProxy(proxy)
                 .setDefaultCredentialsProvider(credsProvider).build()) {
-            final HttpHost target = new HttpHost("http", "httpbin.org", 80);
-            final HttpHost proxy = new HttpHost("localhost", 8888);
 
             final RequestConfig config = RequestConfig.custom()
-                .setProxy(proxy)
                 .build();
             final HttpGet httpget = new HttpGet("/basic-auth/user/passwd");
             httpget.setConfig(config);

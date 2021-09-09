@@ -82,6 +82,7 @@ public class TestDefaultRoutePlanner {
     }
 
     @Test
+    @SuppressWarnings("deprecation")
     public void testViaProxy() throws Exception {
         final HttpHost target = new HttpHost("http", "somehost", 80);
         final HttpHost proxy = new HttpHost("proxy", 8080);

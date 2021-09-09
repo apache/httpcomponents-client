@@ -151,6 +151,7 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
             throw new RequestFailedException("Request aborted");
         }
         final RequestConfig requestConfig = context.getRequestConfig();
+        @SuppressWarnings("deprecation")
         final Timeout connectTimeout = requestConfig.getConnectTimeout();
         if (log.isDebugEnabled()) {
             log.debug("{} connecting endpoint ({})", ConnPoolSupport.getId(endpoint), connectTimeout);

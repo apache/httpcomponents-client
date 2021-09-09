@@ -117,9 +117,7 @@ public class HttpAsyncClientCompatibilityTest {
         this.target = target;
         this.proxy = proxy;
         this.credentialsProvider = new BasicCredentialsProvider();
-        final RequestConfig requestConfig = RequestConfig.custom()
-                .setProxy(proxy)
-                .build();
+        final RequestConfig requestConfig = RequestConfig.DEFAULT;
         if (proxy != null && proxyCreds != null) {
             this.credentialsProvider.setCredentials(new AuthScope(proxy), proxyCreds);
         }

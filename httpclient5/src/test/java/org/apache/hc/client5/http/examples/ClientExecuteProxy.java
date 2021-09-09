@@ -43,12 +43,13 @@ import org.apache.hc.core5.http.io.entity.EntityUtils;
 public class ClientExecuteProxy {
 
     public static void main(final String[] args)throws Exception {
-        try (final CloseableHttpClient httpclient = HttpClients.createDefault()) {
-            final HttpHost target = new HttpHost("https", "httpbin.org", 443);
-            final HttpHost proxy = new HttpHost("http", "127.0.0.1", 8080);
+        final HttpHost target = new HttpHost("https", "httpbin.org", 443);
+        final HttpHost proxy = new HttpHost("http", "127.0.0.1", 8080);
+        try (final CloseableHttpClient httpclient = HttpClients.custom()
+                .setProxy(proxy)
+                .build()) {
 
             final RequestConfig config = RequestConfig.custom()
-                    .setProxy(proxy)
                     .build();
             final HttpGet request = new HttpGet("/get");
             request.setConfig(config);

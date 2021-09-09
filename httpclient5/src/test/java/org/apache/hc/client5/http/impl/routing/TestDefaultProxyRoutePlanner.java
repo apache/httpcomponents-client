@@ -32,8 +32,6 @@ import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.message.BasicHttpRequest;
 import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.junit.Assert;
@@ -72,10 +70,10 @@ public class TestDefaultProxyRoutePlanner {
     }
 
     @Test
+    @SuppressWarnings("deprecation")
     public void testViaProxy() throws Exception {
         final HttpHost target = new HttpHost("http", "somehost", 80);
         final HttpHost proxy = new HttpHost("custom.proxy.host", 8080);
-        final HttpRequest request = new BasicHttpRequest("GET", "/");
 
         final HttpClientContext context = HttpClientContext.create();
         context.setRequestConfig(RequestConfig.custom().setProxy(proxy).build());

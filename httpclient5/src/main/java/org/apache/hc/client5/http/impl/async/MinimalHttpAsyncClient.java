@@ -211,6 +211,7 @@ public final class MinimalHttpAsyncClient extends AbstractMinimalHttpAsyncClient
         final HttpClientContext clientContext = HttpClientContext.adapt(context);
         final RequestConfig requestConfig = clientContext.getRequestConfig();
         final Timeout connectionRequestTimeout = requestConfig.getConnectionRequestTimeout();
+        @SuppressWarnings("deprecation")
         final Timeout connectTimeout = requestConfig.getConnectTimeout();
         leaseEndpoint(
                 host,
@@ -260,6 +261,7 @@ public final class MinimalHttpAsyncClient extends AbstractMinimalHttpAsyncClient
                     requestConfig = clientContext.getRequestConfig();
                 }
                 final Timeout connectionRequestTimeout = requestConfig.getConnectionRequestTimeout();
+                @SuppressWarnings("deprecation")
                 final Timeout connectTimeout = requestConfig.getConnectTimeout();
                 final Timeout responseTimeout = requestConfig.getResponseTimeout();
                 final HttpHost target = new HttpHost(request.getScheme(), request.getAuthority());

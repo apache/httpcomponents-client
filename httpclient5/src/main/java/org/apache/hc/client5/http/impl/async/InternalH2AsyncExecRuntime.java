@@ -86,6 +86,7 @@ class InternalH2AsyncExecRuntime implements AsyncExecRuntime {
         if (sessionRef.get() == null) {
             final HttpHost target = route.getTargetHost();
             final RequestConfig requestConfig = context.getRequestConfig();
+            @SuppressWarnings("deprecation")
             final Timeout connectTimeout = requestConfig.getConnectTimeout();
             if (log.isDebugEnabled()) {
                 log.debug("{} acquiring endpoint ({})", id, connectTimeout);
@@ -181,6 +182,7 @@ class InternalH2AsyncExecRuntime implements AsyncExecRuntime {
         }
         final HttpHost target = endpoint.target;
         final RequestConfig requestConfig = context.getRequestConfig();
+        @SuppressWarnings("deprecation")
         final Timeout connectTimeout = requestConfig.getConnectTimeout();
         if (log.isDebugEnabled()) {
             log.debug("{} connecting endpoint ({})", ConnPoolSupport.getId(endpoint), connectTimeout);
@@ -234,6 +236,7 @@ class InternalH2AsyncExecRuntime implements AsyncExecRuntime {
         } else {
             final HttpHost target = endpoint.target;
             final RequestConfig requestConfig = context.getRequestConfig();
+            @SuppressWarnings("deprecation")
             final Timeout connectTimeout = requestConfig.getConnectTimeout();
             connPool.getSession(target, connectTimeout, new FutureCallback<IOSession>() {
 

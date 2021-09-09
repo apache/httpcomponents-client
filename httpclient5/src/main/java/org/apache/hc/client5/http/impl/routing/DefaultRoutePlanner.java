@@ -66,6 +66,7 @@ public class DefaultRoutePlanner implements HttpRoutePlanner {
         }
         final HttpClientContext clientContext = HttpClientContext.adapt(context);
         final RequestConfig config = clientContext.getRequestConfig();
+        @SuppressWarnings("deprecation")
         HttpHost proxy = config.getProxy();
         if (proxy == null) {
             proxy = determineProxy(host, context);

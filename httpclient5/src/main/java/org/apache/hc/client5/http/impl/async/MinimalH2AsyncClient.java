@@ -137,6 +137,7 @@ public final class MinimalH2AsyncClient extends AbstractMinimalHttpAsyncClientBa
                 } else {
                     requestConfig = clientContext.getRequestConfig();
                 }
+                @SuppressWarnings("deprecation")
                 final Timeout connectTimeout = requestConfig.getConnectTimeout();
                 final HttpHost target = new HttpHost(request.getScheme(), request.getAuthority());
 

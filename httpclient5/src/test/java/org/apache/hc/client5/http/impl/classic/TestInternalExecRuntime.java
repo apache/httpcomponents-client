@@ -81,6 +81,7 @@ public class TestInternalExecRuntime {
     @Test
     public void testAcquireEndpoint() throws Exception {
         final HttpClientContext context = HttpClientContext.create();
+        @SuppressWarnings("deprecation")
         final RequestConfig config = RequestConfig.custom()
                 .setConnectionRequestTimeout(345, TimeUnit.MILLISECONDS)
                 .setConnectTimeout(123, TimeUnit.MILLISECONDS)
@@ -258,6 +259,7 @@ public class TestInternalExecRuntime {
     @Test
     public void testConnectEndpoint() throws Exception {
         final HttpClientContext context = HttpClientContext.create();
+        @SuppressWarnings("deprecation")
         final RequestConfig config = RequestConfig.custom()
                 .setConnectionRequestTimeout(345, TimeUnit.MILLISECONDS)
                 .setConnectTimeout(123, TimeUnit.MILLISECONDS)

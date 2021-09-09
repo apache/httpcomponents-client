@@ -28,7 +28,6 @@ package org.apache.hc.client5.http.impl.classic;
 
 import java.util.Iterator;
 
-import org.apache.hc.client5.http.impl.MessageCopier;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
@@ -41,7 +40,7 @@ import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
  * @deprecated Use {@link org.apache.hc.core5.http.io.support.ClassicRequestBuilder}
  */
 @Deprecated
-public final class ClassicRequestCopier implements MessageCopier<ClassicHttpRequest> {
+public final class ClassicRequestCopier implements org.apache.hc.client5.http.impl.MessageCopier<ClassicHttpRequest> {
 
     public static final ClassicRequestCopier INSTANCE = new ClassicRequestCopier();
 
