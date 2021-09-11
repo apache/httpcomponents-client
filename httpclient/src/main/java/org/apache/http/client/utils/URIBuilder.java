@@ -545,7 +545,7 @@ public class URIBuilder {
      * @since 4.5.8
      */
     public List<String> getPathSegments() {
-        return this.pathSegments != null ? new ArrayList<String>(this.pathSegments) : Collections.<String>emptyList();
+        return this.pathSegments != null ? new ArrayList<String>(this.pathSegments) : new ArrayList<String>();
     }
 
     public String getPath() {
@@ -567,7 +567,7 @@ public class URIBuilder {
     }
 
     public List<NameValuePair> getQueryParams() {
-        return this.queryParams != null ? new ArrayList<NameValuePair>(this.queryParams) : Collections.<NameValuePair>emptyList();
+        return this.queryParams != null ? new ArrayList<NameValuePair>(this.queryParams) : new ArrayList<NameValuePair>();
     }
 
     public String getFragment() {
