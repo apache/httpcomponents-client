@@ -34,7 +34,7 @@ import org.junit.Test;
 /**
  * Unit tests for DnsUtils.
  */
-public class TesDnsUtils {
+public class TestDnsUtils {
 
     @Test
     public void testNormalize() {
