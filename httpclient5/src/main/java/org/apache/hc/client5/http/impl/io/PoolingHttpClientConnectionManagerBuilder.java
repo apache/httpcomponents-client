@@ -31,12 +31,14 @@ import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.io.ManagedHttpClientConnection;
 import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
 import org.apache.hc.client5.http.socket.LayeredConnectionSocketFactory;
 import org.apache.hc.client5.http.socket.PlainConnectionSocketFactory;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
 import org.apache.hc.core5.function.Resolver;
+import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.io.HttpConnectionFactory;
@@ -81,6 +83,7 @@ public class PoolingHttpClientConnectionManagerBuilder {
     private PoolReusePolicy poolReusePolicy;
     private Resolver<HttpRoute, SocketConfig> socketConfigResolver;
     private Resolver<HttpRoute, ConnectionConfig> connectionConfigResolver;
+    private Resolver<HttpHost, TlsConfig> tlsConfigResolver;
 
     private boolean systemProperties;
 
@@ -204,6 +207,27 @@ public class PoolingHttpClientConnectionManagerBuilder {
     }
 
     /**
+     * Assigns the same {@link TlsConfig} for all hosts.
+     *
+     * @since 5.2
+     */
+    public final PoolingHttpClientConnectionManagerBuilder setDefaultTlsConfig(final TlsConfig config) {
+        this.tlsConfigResolver = (host) -> config;
+        return this;
+    }
+
+    /**
+     * Assigns {@link Resolver} of {@link TlsConfig} on a per host basis.
+     *
+     * @since 5.2
+     */
+    public final PoolingHttpClientConnectionManagerBuilder setTlsConfigResolver(
+            final Resolver<HttpHost, TlsConfig> tlsConfigResolver) {
+        this.tlsConfigResolver = tlsConfigResolver;
+        return this;
+    }
+
+    /**
      * Sets maximum time to live for persistent connections
      */
     public final PoolingHttpClientConnectionManagerBuilder setConnectionTimeToLive(final TimeValue timeToLive) {
@@ -251,6 +275,7 @@ public class PoolingHttpClientConnectionManagerBuilder {
                 connectionFactory);
         poolingmgr.setSocketConfigResolver(socketConfigResolver);
         poolingmgr.setConnectionConfigResolver(connectionConfigResolver);
+        poolingmgr.setTlsConfigResolver(tlsConfigResolver);
         if (maxConnTotal > 0) {
             poolingmgr.setMaxTotal(maxConnTotal);
         }

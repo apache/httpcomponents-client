@@ -34,6 +34,7 @@ import java.util.concurrent.Future;
 
 import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.SchemePortResolver;
+import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
 import org.apache.hc.client5.http.nio.AsyncClientConnectionOperator;
 import org.apache.hc.client5.http.nio.ManagedAsyncClientConnection;
@@ -81,13 +82,14 @@ final class DefaultAsyncClientConnectionOperator implements AsyncClientConnectio
         final HttpHost remoteEndpoint = RoutingSupport.normalize(host, schemePortResolver);
         final InetAddress remoteAddress = host.getAddress();
         final TlsStrategy tlsStrategy = tlsStrategyLookup != null ? tlsStrategyLookup.lookup(host.getSchemeName()) : null;
+        final TlsConfig tlsConfig = attachment instanceof TlsConfig ? (TlsConfig) attachment : TlsConfig.DEFAULT;
         final Future<IOSession> sessionFuture = sessionRequester.connect(
                 connectionInitiator,
                 remoteEndpoint,
                 remoteAddress != null ? new InetSocketAddress(remoteAddress, remoteEndpoint.getPort()) : null,
                 localAddress,
                 connectTimeout,
-                attachment,
+                tlsConfig.getHttpVersionPolicy(),
                 new FutureCallback<IOSession>() {
 
                     @Override
@@ -95,15 +97,18 @@ final class DefaultAsyncClientConnectionOperator implements AsyncClientConnectio
                         final DefaultManagedAsyncClientConnection connection = new DefaultManagedAsyncClientConnection(session);
                         if (tlsStrategy != null && URIScheme.HTTPS.same(host.getSchemeName())) {
                             try {
+                                final Timeout socketTimeout = connection.getSocketTimeout();
+                                final Timeout handshakeTimeout = tlsConfig.getHandshakeTimeout();
                                 tlsStrategy.upgrade(
                                         connection,
                                         host,
                                         attachment,
-                                        null,
+                                        handshakeTimeout != null ? handshakeTimeout : connectTimeout,
                                         new FutureContribution<TransportSecurityLayer>(future) {
 
                                             @Override
                                             public void completed(final TransportSecurityLayer transportSecurityLayer) {
+                                                connection.setSocketTimeout(socketTimeout);
                                                 future.completed(connection);
                                             }
 

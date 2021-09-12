@@ -67,7 +67,6 @@ public interface AsyncClientConnectionOperator {
             Object attachment,
             FutureCallback<ManagedAsyncClientConnection> callback);
 
-
     /**
      * Upgrades transport security of the given managed connection
      * by using the TLS security protocol.

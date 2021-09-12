@@ -35,13 +35,12 @@ import java.util.concurrent.TimeoutException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.net.ssl.SSLContext;
-
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
 import org.apache.hc.client5.http.cache.CacheResponseStatus;
 import org.apache.hc.client5.http.cache.HttpCacheContext;
+import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.cache.CacheConfig;
 import org.apache.hc.client5.http.impl.cache.CachingHttpAsyncClients;
@@ -88,17 +87,20 @@ public class CachingHttpAsyncClientCompatibilityTest {
     CachingHttpAsyncClientCompatibilityTest(final HttpVersion protocolVersion, final HttpHost target) throws Exception {
         this.protocolVersion = protocolVersion;
         this.target = target;
-        final SSLContext sslContext = SSLContexts.custom()
-                .loadTrustMaterial(getClass().getResource("/test-ca.keystore"), "nopassword".toCharArray()).build();
         this.connManager = PoolingAsyncClientConnectionManagerBuilder.create()
-                .setTlsStrategy(new DefaultClientTlsStrategy(sslContext))
+                .setTlsStrategy(new DefaultClientTlsStrategy(SSLContexts.custom()
+                        .loadTrustMaterial(getClass().getResource("/test-ca.keystore"), "nopassword".toCharArray())
+                        .build()))
+                .setDefaultTlsConfig(TlsConfig.custom()
+                        .setVersionPolicy(this.protocolVersion == HttpVersion.HTTP_2 ?
+                                HttpVersionPolicy.FORCE_HTTP_2 : HttpVersionPolicy.FORCE_HTTP_1)
+                        .build())
                 .build();
         this.client = CachingHttpAsyncClients.custom()
                 .setCacheConfig(CacheConfig.custom()
                         .setMaxObjectSize(20480)
                         .build())
                 .setResourceFactory(HeapResourceFactory.INSTANCE)
-                .setVersionPolicy(this.protocolVersion == HttpVersion.HTTP_2 ? HttpVersionPolicy.FORCE_HTTP_2 : HttpVersionPolicy.FORCE_HTTP_1)
                 .setConnectionManager(this.connManager)
                 .build();
     }

@@ -30,6 +30,7 @@ package org.apache.hc.client5.http.impl.async;
 import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.SystemDefaultDnsResolver;
+import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.impl.DefaultClientConnectionReuseStrategy;
 import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
@@ -122,26 +123,29 @@ public final class HttpAsyncClients {
     private static MinimalHttpAsyncClient createMinimalHttpAsyncClientImpl(
             final IOEventHandlerFactory eventHandlerFactory,
             final AsyncPushConsumerRegistry pushConsumerRegistry,
-            final HttpVersionPolicy versionPolicy,
             final IOReactorConfig ioReactorConfig,
             final AsyncClientConnectionManager connmgr,
-            final SchemePortResolver schemePortResolver) {
+            final SchemePortResolver schemePortResolver,
+            final TlsConfig tlsConfig) {
         return new MinimalHttpAsyncClient(
                 eventHandlerFactory,
                 pushConsumerRegistry,
-                versionPolicy,
                 ioReactorConfig,
                 new DefaultThreadFactory("httpclient-main", true),
                 new DefaultThreadFactory("httpclient-dispatch", true),
                 connmgr,
-                schemePortResolver);
+                schemePortResolver,
+                tlsConfig);
     }
 
     /**
      * Creates {@link MinimalHttpAsyncClient} instance optimized for
      * HTTP/1.1 and HTTP/2 message transport without advanced HTTP protocol
      * functionality.
+     *
+     * @deprecated Use {@link #createMinimal(H2Config, Http1Config, IOReactorConfig, AsyncClientConnectionManager)}
      */
+    @Deprecated
     public static MinimalHttpAsyncClient createMinimal(
             final HttpVersionPolicy versionPolicy,
             final H2Config h2Config,
@@ -153,16 +157,60 @@ public final class HttpAsyncClients {
                 new HttpAsyncClientEventHandlerFactory(
                         createMinimalProtocolProcessor(),
                         (request, context) -> pushConsumerRegistry.get(request),
-                        versionPolicy,
                         h2Config,
                         h1Config,
                         CharCodingConfig.DEFAULT,
                         DefaultClientConnectionReuseStrategy.INSTANCE),
                 pushConsumerRegistry,
-                versionPolicy,
                 ioReactorConfig,
                 connmgr,
-                DefaultSchemePortResolver.INSTANCE);
+                DefaultSchemePortResolver.INSTANCE,
+                versionPolicy != null ? TlsConfig.custom().setVersionPolicy(versionPolicy).build() : null);
+    }
+
+    /**
+     * Creates {@link MinimalHttpAsyncClient} instance optimized for
+     * HTTP/1.1 and HTTP/2 message transport without advanced HTTP protocol
+     * functionality.
+     *
+     * @since 5.2
+     */
+    public static MinimalHttpAsyncClient createMinimal(
+            final H2Config h2Config,
+            final Http1Config h1Config,
+            final IOReactorConfig ioReactorConfig,
+            final AsyncClientConnectionManager connmgr) {
+        final AsyncPushConsumerRegistry pushConsumerRegistry = new AsyncPushConsumerRegistry();
+        return createMinimalHttpAsyncClientImpl(
+                new HttpAsyncClientEventHandlerFactory(
+                        createMinimalProtocolProcessor(),
+                        (request, context) -> pushConsumerRegistry.get(request),
+                        h2Config,
+                        h1Config,
+                        CharCodingConfig.DEFAULT,
+                        DefaultClientConnectionReuseStrategy.INSTANCE),
+                pushConsumerRegistry,
+                ioReactorConfig,
+                connmgr,
+                DefaultSchemePortResolver.INSTANCE,
+                null);
+    }
+
+    /**
+     * Creates {@link MinimalHttpAsyncClient} instance optimized for
+     * HTTP/1.1 and HTTP/2 message transport without advanced HTTP protocol
+     * functionality.
+     *
+     * @deprecated Use {@link #createMinimal(H2Config, Http1Config, IOReactorConfig)}
+     */
+    @Deprecated
+    public static MinimalHttpAsyncClient createMinimal(
+            final HttpVersionPolicy versionPolicy,
+            final H2Config h2Config,
+            final Http1Config h1Config,
+            final IOReactorConfig ioReactorConfig) {
+        return createMinimal(versionPolicy, h2Config, h1Config, ioReactorConfig,
+                PoolingAsyncClientConnectionManagerBuilder.create().build());
     }
 
     /**
@@ -171,11 +219,10 @@ public final class HttpAsyncClients {
      * functionality.
      */
     public static MinimalHttpAsyncClient createMinimal(
-            final HttpVersionPolicy versionPolicy,
             final H2Config h2Config,
             final Http1Config h1Config,
             final IOReactorConfig ioReactorConfig) {
-        return createMinimal(versionPolicy, h2Config, h1Config, ioReactorConfig,
+        return createMinimal(h2Config, h1Config, ioReactorConfig,
                 PoolingAsyncClientConnectionManagerBuilder.create().build());
     }
 

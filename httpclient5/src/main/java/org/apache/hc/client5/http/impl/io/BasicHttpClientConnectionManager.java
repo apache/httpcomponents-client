@@ -39,6 +39,7 @@ import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.impl.ConnPoolSupport;
 import org.apache.hc.client5.http.impl.ConnectionShutdownException;
 import org.apache.hc.client5.http.io.ConnectionEndpoint;
@@ -109,6 +110,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
     private boolean leased;
     private SocketConfig socketConfig;
     private ConnectionConfig connectionConfig;
+    private TlsConfig tlsConfig;
 
     private final AtomicBoolean closed;
 
@@ -142,6 +144,8 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
         this.id = String.format("ep-%010d", COUNT.getAndIncrement());
         this.expiry = Long.MAX_VALUE;
         this.socketConfig = SocketConfig.DEFAULT;
+        this.connectionConfig = ConnectionConfig.DEFAULT;
+        this.tlsConfig = TlsConfig.DEFAULT;
         this.closed = new AtomicBoolean(false);
         this.validateAfterInactivity = TimeValue.ofSeconds(2L);
     }
@@ -201,6 +205,13 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
      */
     public synchronized void setConnectionConfig(final ConnectionConfig connectionConfig) {
         this.connectionConfig = connectionConfig != null ? connectionConfig : ConnectionConfig.DEFAULT;
+    }
+
+    /**
+     * @since 5.2
+     */
+    public synchronized void setTlsConfig(final TlsConfig tlsConfig) {
+        this.tlsConfig = tlsConfig != null ? tlsConfig : TlsConfig.DEFAULT;
     }
 
     public LeaseRequest lease(final String id, final HttpRoute route, final Object state) {
@@ -358,8 +369,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
         } else {
             host = route.getTargetHost();
         }
-        final ConnectionConfig config = connectionConfig != null ? connectionConfig : ConnectionConfig.DEFAULT;
-        final TimeValue connectTimeout = timeout != null ? timeout : config.getConnectTimeout();
+        final Timeout connectTimeout = timeout != null ? Timeout.of(timeout.getDuration(), timeout.getTimeUnit()) : connectionConfig.getConnectTimeout();
         final ManagedHttpClientConnection connection = internalEndpoint.getConnection();
         if (LOG.isDebugEnabled()) {
             LOG.debug("{} connecting endpoint to {} ({})", ConnPoolSupport.getId(endpoint), host, connectTimeout);
@@ -369,12 +379,13 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
                 host,
                 route.getLocalSocketAddress(),
                 connectTimeout,
-                this.socketConfig,
+                socketConfig,
+                tlsConfig,
                 context);
         if (LOG.isDebugEnabled()) {
             LOG.debug("{} connected {}", ConnPoolSupport.getId(endpoint), ConnPoolSupport.getId(conn));
         }
-        final Timeout socketTimeout = config.getSocketTimeout();
+        final Timeout socketTimeout = connectionConfig.getSocketTimeout();
         if (socketTimeout != null) {
             connection.setSocketTimeout(socketTimeout);
         }
@@ -387,9 +398,11 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
         Args.notNull(endpoint, "Endpoint");
         Args.notNull(route, "HTTP route");
         final InternalConnectionEndpoint internalEndpoint = cast(endpoint);
+        final ConnectionConfig config = connectionConfig != null ? connectionConfig : ConnectionConfig.DEFAULT;
         this.connectionOperator.upgrade(
                 internalEndpoint.getConnection(),
                 internalEndpoint.getRoute().getTargetHost(),
+                tlsConfig,
                 context);
     }
 

@@ -31,9 +31,11 @@ import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.ssl.ConscryptClientTlsStrategy;
 import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.core5.function.Resolver;
+import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.io.SocketConfig;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
@@ -83,6 +85,7 @@ public class PoolingAsyncClientConnectionManagerBuilder {
 
     private Resolver<HttpRoute, SocketConfig> socketConfigResolver;
     private Resolver<HttpRoute, ConnectionConfig> connectionConfigResolver;
+    private Resolver<HttpHost, TlsConfig> tlsConfigResolver;
     private TimeValue timeToLive;
 
     public static PoolingAsyncClientConnectionManagerBuilder create() {
@@ -171,6 +174,26 @@ public class PoolingAsyncClientConnectionManagerBuilder {
         return this;
     }
 
+    /**
+     * Assigns the same {@link TlsConfig} for all hosts.
+     *
+     * @since 5.2
+     */
+    public final PoolingAsyncClientConnectionManagerBuilder setDefaultTlsConfig(final TlsConfig config) {
+        this.tlsConfigResolver = (host) -> config;
+        return this;
+    }
+
+    /**
+     * Assigns {@link Resolver} of {@link TlsConfig} on a per host basis.
+     *
+     * @since 5.2
+     */
+    public final PoolingAsyncClientConnectionManagerBuilder setTlsConfigResolver(
+            final Resolver<HttpHost, TlsConfig> tlsConfigResolver) {
+        this.tlsConfigResolver = tlsConfigResolver;
+        return this;
+    }
 
     /**
      * Sets maximum time to live for persistent connections
@@ -232,6 +255,7 @@ public class PoolingAsyncClientConnectionManagerBuilder {
                 schemePortResolver,
                 dnsResolver);
         poolingmgr.setConnectionConfigResolver(connectionConfigResolver);
+        poolingmgr.setTlsConfigResolver(tlsConfigResolver);
         if (maxConnTotal > 0) {
             poolingmgr.setMaxTotal(maxConnTotal);
         }

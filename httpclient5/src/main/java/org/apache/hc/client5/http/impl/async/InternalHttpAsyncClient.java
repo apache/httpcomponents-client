@@ -35,6 +35,7 @@ import org.apache.hc.client5.http.async.AsyncExecRuntime;
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.cookie.CookieSpecFactory;
 import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.client5.http.nio.AsyncClientConnectionManager;
@@ -48,7 +49,6 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.nio.AsyncPushConsumer;
 import org.apache.hc.core5.http.nio.HandlerFactory;
-import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.apache.hc.core5.reactor.DefaultConnectingIOReactor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,7 +71,7 @@ public final class InternalHttpAsyncClient extends InternalAbstractHttpAsyncClie
     private static final Logger LOG = LoggerFactory.getLogger(InternalHttpAsyncClient.class);
     private final AsyncClientConnectionManager manager;
     private final HttpRoutePlanner routePlanner;
-    private final HttpVersionPolicy versionPolicy;
+    private final TlsConfig tlsConfig;
 
     InternalHttpAsyncClient(
             final DefaultConnectingIOReactor ioReactor,
@@ -80,7 +80,7 @@ public final class InternalHttpAsyncClient extends InternalAbstractHttpAsyncClie
             final ThreadFactory threadFactory,
             final AsyncClientConnectionManager manager,
             final HttpRoutePlanner routePlanner,
-            final HttpVersionPolicy versionPolicy,
+            final TlsConfig tlsConfig,
             final Lookup<CookieSpecFactory> cookieSpecRegistry,
             final Lookup<AuthSchemeFactory> authSchemeRegistry,
             final CookieStore cookieStore,
@@ -91,12 +91,12 @@ public final class InternalHttpAsyncClient extends InternalAbstractHttpAsyncClie
                 cookieSpecRegistry, authSchemeRegistry, cookieStore, credentialsProvider, defaultConfig, closeables);
         this.manager = manager;
         this.routePlanner = routePlanner;
-        this.versionPolicy = versionPolicy;
+        this.tlsConfig = tlsConfig;
     }
 
     @Override
     AsyncExecRuntime createAsyncExecRuntime(final HandlerFactory<AsyncPushConsumer> pushHandlerFactory) {
-        return new InternalHttpAsyncExecRuntime(LOG, manager, getConnectionInitiator(), pushHandlerFactory, versionPolicy);
+        return new InternalHttpAsyncExecRuntime(LOG, manager, getConnectionInitiator(), pushHandlerFactory, tlsConfig);
     }
 
     @Override

@@ -47,6 +47,7 @@ import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
 
+import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.socket.LayeredConnectionSocketFactory;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
@@ -60,6 +61,7 @@ import org.apache.hc.core5.ssl.SSLInitializationException;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.Asserts;
 import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -200,6 +202,19 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
             final InetSocketAddress remoteAddress,
             final InetSocketAddress localAddress,
             final HttpContext context) throws IOException {
+        final Timeout timeout = connectTimeout != null ? Timeout.of(connectTimeout.getDuration(), connectTimeout.getTimeUnit()) : null;
+        return connectSocket(socket, host, remoteAddress, localAddress, timeout, timeout, context);
+    }
+
+    @Override
+    public Socket connectSocket(
+            final Socket socket,
+            final HttpHost host,
+            final InetSocketAddress remoteAddress,
+            final InetSocketAddress localAddress,
+            final Timeout connectTimeout,
+            final Object attachment,
+            final HttpContext context) throws IOException {
         Args.notNull(host, "HTTP host");
         Args.notNull(remoteAddress, "Remote address");
         final Socket sock = socket != null ? socket : createSocket(context);
@@ -214,7 +229,7 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
             // only to this library
             try {
                 AccessController.doPrivileged((PrivilegedExceptionAction<Object>) () -> {
-                    sock.connect(remoteAddress, connectTimeout != null ? connectTimeout.toMillisecondsIntBound() : 0);
+                    sock.connect(remoteAddress, Timeout.defaultsToDisabled(connectTimeout).toMillisecondsIntBound());
                     return null;
                 });
             } catch (final PrivilegedActionException e) {
@@ -230,12 +245,10 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
         // Setup SSL layering if necessary
         if (sock instanceof SSLSocket) {
             final SSLSocket sslsock = (SSLSocket) sock;
-            LOG.debug("Starting handshake");
-            sslsock.startHandshake();
-            verifyHostname(sslsock, host.getHostName());
+            executeHandshake(sslsock, host.getHostName(), attachment);
             return sock;
         }
-        return createLayeredSocket(sock, host.getHostName(), remoteAddress.getPort(), context);
+        return createLayeredSocket(sock, host.getHostName(), remoteAddress.getPort(), attachment, context);
     }
 
     @Override
@@ -244,11 +257,27 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
             final String target,
             final int port,
             final HttpContext context) throws IOException {
+        return createLayeredSocket(socket, target, port, context);
+    }
+
+    @Override
+    public Socket createLayeredSocket(
+            final Socket socket,
+            final String target,
+            final int port,
+            final Object attachment,
+            final HttpContext context) throws IOException {
         final SSLSocket sslsock = (SSLSocket) this.socketFactory.createSocket(
                 socket,
                 target,
                 port,
                 true);
+        executeHandshake(sslsock, target, attachment);
+        return sslsock;
+    }
+
+    private void executeHandshake(final SSLSocket sslsock, final String target, final Object attachment) throws IOException {
+        final TlsConfig tlsConfig = attachment instanceof TlsConfig ? (TlsConfig) attachment : TlsConfig.DEFAULT;
         if (supportedProtocols != null) {
             sslsock.setEnabledProtocols(supportedProtocols);
         } else {
@@ -259,17 +288,20 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
         } else {
             sslsock.setEnabledCipherSuites(TlsCiphers.excludeWeak(sslsock.getEnabledCipherSuites()));
         }
+        final Timeout handshakeTimeout = tlsConfig.getHandshakeTimeout();
+        if (handshakeTimeout != null) {
+            sslsock.setSoTimeout(handshakeTimeout.toMillisecondsIntBound());
+        }
+
+        prepareSocket(sslsock);
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("Enabled protocols: {}", (Object) sslsock.getEnabledProtocols());
             LOG.debug("Enabled cipher suites: {}", (Object) sslsock.getEnabledCipherSuites());
+            LOG.debug("Starting handshake ({})", handshakeTimeout);
         }
-
-        prepareSocket(sslsock);
-        LOG.debug("Starting handshake");
         sslsock.startHandshake();
         verifyHostname(sslsock, target);
-        return sslsock;
     }
 
     private void verifyHostname(final SSLSocket sslsock, final String hostname) throws IOException {

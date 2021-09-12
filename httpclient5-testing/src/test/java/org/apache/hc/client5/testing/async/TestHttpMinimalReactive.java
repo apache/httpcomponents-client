@@ -34,9 +34,9 @@ import java.util.Random;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
 import org.apache.hc.client5.http.impl.async.MinimalHttpAsyncClient;
-import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManager;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
@@ -85,19 +85,19 @@ public class TestHttpMinimalReactive extends AbstractHttpReactiveFundamentalsTes
 
     @Override
     protected MinimalHttpAsyncClient createClient() throws Exception {
-        final PoolingAsyncClientConnectionManager connectionManager = PoolingAsyncClientConnectionManagerBuilder.create()
-                .setTlsStrategy(new DefaultClientTlsStrategy(SSLTestContexts.createClientSSLContext()))
-                .build();
-        final IOReactorConfig ioReactorConfig = IOReactorConfig.custom()
-                .setSoTimeout(TIMEOUT)
-                .build();
-        if (version.greaterEquals(HttpVersion.HTTP_2)) {
-            return HttpAsyncClients.createMinimal(
-                    HttpVersionPolicy.FORCE_HTTP_2, H2Config.DEFAULT, Http1Config.DEFAULT, ioReactorConfig, connectionManager);
-        } else {
-            return HttpAsyncClients.createMinimal(
-                    HttpVersionPolicy.FORCE_HTTP_1, H2Config.DEFAULT, Http1Config.DEFAULT, ioReactorConfig, connectionManager);
-        }
+        return HttpAsyncClients.createMinimal(
+                H2Config.DEFAULT,
+                Http1Config.DEFAULT,
+                IOReactorConfig.custom()
+                        .setSoTimeout(TIMEOUT)
+                        .build(),
+                PoolingAsyncClientConnectionManagerBuilder.create()
+                        .setTlsStrategy(new DefaultClientTlsStrategy(SSLTestContexts.createClientSSLContext()))
+                        .setDefaultTlsConfig(TlsConfig.custom()
+                                .setVersionPolicy(version.greaterEquals(HttpVersion.HTTP_2)
+                                        ? HttpVersionPolicy.FORCE_HTTP_2 : HttpVersionPolicy.FORCE_HTTP_1)
+                                .build())
+                        .build());
     }
 
     @Override

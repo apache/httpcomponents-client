@@ -33,6 +33,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.async.AsyncExecRuntime;
 import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.impl.ConnPoolSupport;
 import org.apache.hc.client5.http.impl.Operations;
 import org.apache.hc.client5.http.nio.AsyncClientConnectionManager;
@@ -44,7 +45,6 @@ import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.nio.AsyncClientExchangeHandler;
 import org.apache.hc.core5.http.nio.AsyncPushConsumer;
 import org.apache.hc.core5.http.nio.HandlerFactory;
-import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.reactor.ConnectionInitiator;
 import org.apache.hc.core5.util.TimeValue;
@@ -57,7 +57,11 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
     private final AsyncClientConnectionManager manager;
     private final ConnectionInitiator connectionInitiator;
     private final HandlerFactory<AsyncPushConsumer> pushHandlerFactory;
-    private final HttpVersionPolicy versionPolicy;
+    /**
+     * @deprecated TLS should be configured by the connection manager
+     */
+    @Deprecated
+    private final TlsConfig tlsConfig;
     private final AtomicReference<AsyncConnectionEndpoint> endpointRef;
     private volatile boolean reusable;
     private volatile Object state;
@@ -68,14 +72,14 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
             final AsyncClientConnectionManager manager,
             final ConnectionInitiator connectionInitiator,
             final HandlerFactory<AsyncPushConsumer> pushHandlerFactory,
-            final HttpVersionPolicy versionPolicy) {
+            final TlsConfig tlsConfig) {
         super();
         this.log = log;
         this.manager = manager;
         this.connectionInitiator = connectionInitiator;
         this.pushHandlerFactory = pushHandlerFactory;
-        this.versionPolicy = versionPolicy;
-        this.endpointRef = new AtomicReference<>();
+        this.tlsConfig = tlsConfig;
+        this.endpointRef = new AtomicReference<>(null);
         this.validDuration = TimeValue.NEG_ONE_MILLISECOND;
     }
 
@@ -213,7 +217,7 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
                 endpoint,
                 connectionInitiator,
                 connectTimeout,
-                versionPolicy,
+                tlsConfig,
                 context,
                 new CallbackContribution<AsyncConnectionEndpoint>(callback) {
 
@@ -242,7 +246,7 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
         if (log.isDebugEnabled()) {
             log.debug("{} upgrading endpoint", ConnPoolSupport.getId(endpoint));
         }
-        manager.upgrade(endpoint, versionPolicy, context, new CallbackContribution<AsyncConnectionEndpoint>(callback) {
+        manager.upgrade(endpoint, tlsConfig, context, new CallbackContribution<AsyncConnectionEndpoint>(callback) {
 
             @Override
             public void completed(final AsyncConnectionEndpoint endpoint) {
@@ -320,7 +324,7 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
 
     @Override
     public AsyncExecRuntime fork() {
-        return new InternalHttpAsyncExecRuntime(log, manager, connectionInitiator, pushHandlerFactory, versionPolicy);
+        return new InternalHttpAsyncExecRuntime(log, manager, connectionInitiator, pushHandlerFactory, tlsConfig);
     }
 
 }

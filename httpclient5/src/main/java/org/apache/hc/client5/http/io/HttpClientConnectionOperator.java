@@ -37,6 +37,7 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.io.SocketConfig;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 
 /**
  * Connection operator that performs connection connect and upgrade operations.
@@ -66,6 +67,30 @@ public interface HttpClientConnectionOperator {
             HttpContext context) throws IOException;
 
     /**
+     * Connect the given managed connection to the remote endpoint.
+     *
+     * @param conn the managed connection.
+     * @param host the address of the opposite endpoint.
+     * @param localAddress the address of the local endpoint.
+     * @param connectTimeout the timeout of the connect operation.
+     * @param socketConfig the socket configuration.
+     * @param attachment connect request attachment.
+     * @param context the execution context.
+     *
+     * @since 5.2
+     */
+    default void connect(
+            ManagedHttpClientConnection conn,
+            HttpHost host,
+            InetSocketAddress localAddress,
+            Timeout connectTimeout,
+            SocketConfig socketConfig,
+            Object attachment,
+            HttpContext context) throws IOException {
+        connect(conn, host, localAddress, connectTimeout, socketConfig, context);
+    }
+
+    /**
      * Upgrades transport security of the given managed connection
      * by using the TLS security protocol.
      *
@@ -77,5 +102,24 @@ public interface HttpClientConnectionOperator {
             ManagedHttpClientConnection conn,
             HttpHost host,
             HttpContext context) throws IOException;
+
+    /**
+     * Upgrades transport security of the given managed connection
+     * by using the TLS security protocol.
+     *
+     * @param conn the managed connection.
+     * @param host the address of the opposite endpoint with TLS security.
+     * @param attachment connect request attachment.
+     * @param context the execution context.
+     *
+     * @since 5.2
+     */
+    default void upgrade(
+            ManagedHttpClientConnection conn,
+            HttpHost host,
+            Object attachment,
+            HttpContext context) throws IOException {
+        upgrade(conn, host, context);
+    }
 
 }

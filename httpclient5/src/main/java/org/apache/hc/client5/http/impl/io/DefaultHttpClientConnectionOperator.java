@@ -54,6 +54,7 @@ import org.apache.hc.core5.http.io.SocketConfig;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -107,6 +108,19 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
             final TimeValue connectTimeout,
             final SocketConfig socketConfig,
             final HttpContext context) throws IOException {
+        final Timeout timeout = connectTimeout != null ? Timeout.of(connectTimeout.getDuration(), connectTimeout.getTimeUnit()) : null;
+        connect(conn, host, localAddress, timeout, socketConfig, null, context);
+    }
+
+    @Override
+    public void connect(
+            final ManagedHttpClientConnection conn,
+            final HttpHost host,
+            final InetSocketAddress localAddress,
+            final Timeout connectTimeout,
+            final SocketConfig socketConfig,
+            final Object attachment,
+            final HttpContext context) throws IOException {
         Args.notNull(conn, "Connection");
         Args.notNull(host, "Host");
         Args.notNull(socketConfig, "Socket config");
@@ -131,13 +145,17 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
             }
         }
 
+        final Timeout soTimeout = socketConfig.getSoTimeout();
+
         final int port = this.schemePortResolver.resolve(host);
         for (int i = 0; i < remoteAddresses.length; i++) {
             final InetAddress address = remoteAddresses[i];
             final boolean last = i == remoteAddresses.length - 1;
 
             Socket sock = sf.createSocket(context);
-            sock.setSoTimeout(socketConfig.getSoTimeout().toMillisecondsIntBound());
+            if (soTimeout != null) {
+                sock.setSoTimeout(soTimeout.toMillisecondsIntBound());
+            }
             sock.setReuseAddress(socketConfig.isSoReuseAddress());
             sock.setTcpNoDelay(socketConfig.isTcpNoDelay());
             sock.setKeepAlive(socketConfig.isSoKeepAlive());
@@ -160,8 +178,9 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
                         host.getHostName(), host.getPort(), localAddress, remoteAddress, connectTimeout);
             }
             try {
-                sock = sf.connectSocket(connectTimeout, sock, host, remoteAddress, localAddress, context);
+                sock = sf.connectSocket(sock, host, remoteAddress, localAddress, connectTimeout, attachment, context);
                 conn.bind(sock);
+                conn.setSocketTimeout(soTimeout);
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("{}:{} connected {}->{} as {}",
                             host.getHostName(), host.getPort(), localAddress, remoteAddress, ConnPoolSupport.getId(conn));
@@ -189,6 +208,15 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
             final ManagedHttpClientConnection conn,
             final HttpHost host,
             final HttpContext context) throws IOException {
+        upgrade(conn, host, null, context);
+    }
+
+    @Override
+    public void upgrade(
+            final ManagedHttpClientConnection conn,
+            final HttpHost host,
+            final Object attachment,
+            final HttpContext context) throws IOException {
         final HttpClientContext clientContext = HttpClientContext.adapt(context);
         final Lookup<ConnectionSocketFactory> registry = getSocketFactoryRegistry(clientContext);
         final ConnectionSocketFactory sf = registry.lookup(host.getSchemeName());
@@ -206,7 +234,7 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
             throw new ConnectionClosedException("Connection is closed");
         }
         final int port = this.schemePortResolver.resolve(host);
-        sock = lsf.createLayeredSocket(sock, host.getHostName(), port, context);
+        sock = lsf.createLayeredSocket(sock, host.getHostName(), port, attachment, context);
         conn.bind(sock);
     }
 
