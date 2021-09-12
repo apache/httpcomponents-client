@@ -82,7 +82,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
         final LeaseRequest leaseRequest1 = this.connManager.lease("id1", route,null);
         final ConnectionEndpoint endpoint1 = leaseRequest1.get(Timeout.ZERO_MILLISECONDS);
 
-        this.connManager.connect(endpoint1, TimeValue.NEG_ONE_MILLISECOND, context);
+        this.connManager.connect(endpoint1, null, context);
 
         final HttpProcessor httpProcessor = new DefaultHttpProcessor(
                 new RequestTargetHost(), new RequestContent(), new RequestConnControl());
@@ -104,7 +104,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
         final ConnectionEndpoint endpoint2 = leaseRequest3.get(Timeout.ZERO_MILLISECONDS);
         Assert.assertFalse(endpoint2.isConnected());
 
-        this.connManager.connect(endpoint2, TimeValue.NEG_ONE_MILLISECOND, context);
+        this.connManager.connect(endpoint2, null, context);
 
         try (final ClassicHttpResponse response2 = endpoint2.execute("id2", request, exec, context)) {
             Assert.assertEquals(HttpStatus.SC_OK, response2.getCode());
@@ -145,7 +145,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
 
         final LeaseRequest leaseRequest1 = this.connManager.lease("id1", route,null);
         final ConnectionEndpoint endpoint1 = leaseRequest1.get(Timeout.ZERO_MILLISECONDS);
-        this.connManager.connect(endpoint1, TimeValue.NEG_ONE_MILLISECOND, context);
+        this.connManager.connect(endpoint1, null, context);
 
         final HttpProcessor httpProcessor = new DefaultHttpProcessor(
                 new RequestTargetHost(), new RequestContent(), new RequestConnControl());
@@ -168,7 +168,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
         final ConnectionEndpoint endpoint2 = leaseRequest3.get(Timeout.ZERO_MILLISECONDS);
         Assert.assertFalse(endpoint2.isConnected());
 
-        this.connManager.connect(endpoint2, TimeValue.NEG_ONE_MILLISECOND, context);
+        this.connManager.connect(endpoint2, null, context);
 
         try (final ClassicHttpResponse response2 = endpoint2.execute("id2", request, exec, context)) {
             Assert.assertEquals(HttpStatus.SC_OK, response2.getCode());
@@ -193,7 +193,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
         Assert.assertFalse(endpoint4.isConnected());
 
         // repeat the communication, no need to prepare the request again
-        this.connManager.connect(endpoint4, TimeValue.NEG_ONE_MILLISECOND, context);
+        this.connManager.connect(endpoint4, null, context);
 
         try (final ClassicHttpResponse response4 = endpoint4.execute("id4", request, exec, context)) {
             Assert.assertEquals(HttpStatus.SC_OK, response4.getCode());
@@ -213,7 +213,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
 
         final LeaseRequest leaseRequest1 = this.connManager.lease("id1", route,null);
         final ConnectionEndpoint endpoint1 = leaseRequest1.get(Timeout.ZERO_MILLISECONDS);
-        this.connManager.connect(endpoint1, TimeValue.NEG_ONE_MILLISECOND, context);
+        this.connManager.connect(endpoint1, null, context);
 
         Assert.assertEquals(1, this.connManager.getTotalStats().getLeased());
         Assert.assertEquals(1, this.connManager.getStats(route).getLeased());
@@ -262,7 +262,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
 
         final LeaseRequest leaseRequest1 = this.connManager.lease("id1", route,null);
         final ConnectionEndpoint endpoint1 = leaseRequest1.get(Timeout.ZERO_MILLISECONDS);
-        this.connManager.connect(endpoint1, TimeValue.NEG_ONE_MILLISECOND, context);
+        this.connManager.connect(endpoint1, null, context);
 
         Assert.assertEquals(1, this.connManager.getTotalStats().getLeased());
         Assert.assertEquals(1, this.connManager.getStats(route).getLeased());

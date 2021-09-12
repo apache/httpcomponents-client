@@ -41,6 +41,7 @@ import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.impl.ConnPoolSupport;
 import org.apache.hc.client5.http.impl.ConnectionShutdownException;
 import org.apache.hc.client5.http.nio.AsyncClientConnectionManager;
@@ -123,6 +124,7 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
     private final AtomicBoolean closed;
 
     private volatile Resolver<HttpRoute, ConnectionConfig> connectionConfigResolver;
+    private volatile Resolver<HttpHost, TlsConfig> tlsConfigResolver;
 
     public PoolingAsyncClientConnectionManager() {
         this(RegistryBuilder.<TlsStrategy>create()
@@ -225,6 +227,15 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
         final Resolver<HttpRoute, ConnectionConfig> resolver = this.connectionConfigResolver;
         final ConnectionConfig connectionConfig = resolver != null ? resolver.resolve(route) : null;
         return connectionConfig != null ? connectionConfig : ConnectionConfig.DEFAULT;
+    }
+
+    private TlsConfig resolveTlsConfig(final HttpHost host, final Object attachment) {
+        if (attachment instanceof TlsConfig) {
+            return (TlsConfig) attachment;
+         }
+        final Resolver<HttpHost, TlsConfig> resolver = this.tlsConfigResolver;
+        final TlsConfig tlsConfig = resolver != null ? resolver.resolve(host) : null;
+        return tlsConfig != null ? tlsConfig : TlsConfig.DEFAULT;
     }
 
     @Override
@@ -400,6 +411,7 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
         }
         final InetSocketAddress localAddress = route.getLocalSocketAddress();
         final ConnectionConfig connectionConfig = resolveConnectionConfig(route);
+        final TlsConfig tlsConfig = resolveTlsConfig(host, attachment);
         final Timeout connectTimeout = timeout != null ? timeout : connectionConfig.getConnectTimeout();
 
         if (LOG.isDebugEnabled()) {
@@ -410,7 +422,9 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
                 host,
                 localAddress,
                 connectTimeout,
-                route.isTunnelled() ? HttpVersionPolicy.FORCE_HTTP_1 : attachment,
+                route.isTunnelled() ? TlsConfig.copy(tlsConfig)
+                        .setVersionPolicy(HttpVersionPolicy.FORCE_HTTP_1)
+                        .build() : tlsConfig,
                 new FutureCallback<ManagedAsyncClientConnection>() {
 
                     @Override
@@ -455,10 +469,12 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
         final InternalConnectionEndpoint internalEndpoint = cast(endpoint);
         final PoolEntry<HttpRoute, ManagedAsyncClientConnection> poolEntry = internalEndpoint.getValidatedPoolEntry();
         final HttpRoute route = poolEntry.getRoute();
+        final HttpHost host = route.getProxyHost() != null ? route.getProxyHost() : route.getTargetHost();
+        final TlsConfig tlsConfig = resolveTlsConfig(host, attachment);
         connectionOperator.upgrade(
                 poolEntry.getConnection(),
                 route.getTargetHost(),
-                attachment,
+                attachment != null ? attachment : tlsConfig,
                 new CallbackContribution<ManagedAsyncClientConnection>(callback) {
 
                     @Override
@@ -564,6 +580,24 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
      */
     public void setConnectionConfigResolver(final Resolver<HttpRoute, ConnectionConfig> connectionConfigResolver) {
         this.connectionConfigResolver = connectionConfigResolver;
+    }
+
+    /**
+     * Sets the same {@link ConnectionConfig} for all hosts
+     *
+     * @since 5.2
+     */
+    public void setDefaultTlsConfig(final TlsConfig config) {
+        this.tlsConfigResolver = (host) -> config;
+    }
+
+    /**
+     * Sets {@link Resolver} of {@link TlsConfig} on a per host basis.
+     *
+     * @since 5.2
+     */
+    public void setTlsConfigResolver(final Resolver<HttpHost, TlsConfig> tlsConfigResolver) {
+        this.tlsConfigResolver = tlsConfigResolver;
     }
 
     /**

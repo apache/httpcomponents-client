@@ -45,7 +45,6 @@ import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.message.StatusLine;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
-import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.apache.hc.core5.io.CloseMode;
 
 /**
@@ -74,7 +73,6 @@ public class AsyncClientTlsAlpn {
                 .setTlsStrategy(tlsStrategy)
                 .build();
         try (final CloseableHttpAsyncClient client = HttpAsyncClients.custom()
-                .setVersionPolicy(HttpVersionPolicy.NEGOTIATE)
                 .setConnectionManager(cm)
                 .build()) {
 

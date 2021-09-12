@@ -52,11 +52,9 @@ import org.apache.hc.core5.http.nio.support.BasicRequestProducer;
 import org.apache.hc.core5.http.nio.support.BasicResponseConsumer;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.support.BasicRequestBuilder;
-import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.apache.hc.core5.http2.config.H2Config;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.reactor.IOReactorConfig;
-import org.apache.hc.core5.util.Timeout;
 
 /**
  * This example demonstrates a full-duplex, streaming HTTP/1.1 message exchange.
@@ -65,15 +63,10 @@ public class AsyncClientFullDuplexExchange {
 
     public static void main(final String[] args) throws Exception {
 
-        final IOReactorConfig ioReactorConfig = IOReactorConfig.custom()
-                .setSoTimeout(Timeout.ofSeconds(5))
-                .build();
-
         final MinimalHttpAsyncClient client = HttpAsyncClients.createMinimal(
-                HttpVersionPolicy.NEGOTIATE,
                 H2Config.DEFAULT,
                 Http1Config.DEFAULT,
-                ioReactorConfig);
+                IOReactorConfig.DEFAULT);
 
         client.start();
 

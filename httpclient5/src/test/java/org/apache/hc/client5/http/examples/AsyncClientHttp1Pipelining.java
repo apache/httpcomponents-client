@@ -35,17 +35,19 @@ import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
 import org.apache.hc.client5.http.async.methods.SimpleRequestProducer;
 import org.apache.hc.client5.http.async.methods.SimpleResponseConsumer;
+import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
 import org.apache.hc.client5.http.impl.async.MinimalHttpAsyncClient;
+import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.config.Http1Config;
 import org.apache.hc.core5.http.message.StatusLine;
 import org.apache.hc.core5.http.nio.AsyncClientEndpoint;
 import org.apache.hc.core5.http2.HttpVersionPolicy;
+import org.apache.hc.core5.http2.config.H2Config;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.reactor.IOReactorConfig;
-import org.apache.hc.core5.util.Timeout;
 
 /**
  * This example demonstrates pipelined execution of multiple HTTP/1.1 message exchanges.
@@ -54,12 +56,15 @@ public class AsyncClientHttp1Pipelining {
 
     public static void main(final String[] args) throws Exception {
 
-        final IOReactorConfig ioReactorConfig = IOReactorConfig.custom()
-                .setSoTimeout(Timeout.ofSeconds(5))
-                .build();
-
         final MinimalHttpAsyncClient client = HttpAsyncClients.createMinimal(
-                HttpVersionPolicy.FORCE_HTTP_1, null, Http1Config.DEFAULT, ioReactorConfig);
+                H2Config.DEFAULT,
+                Http1Config.DEFAULT,
+                IOReactorConfig.DEFAULT,
+                PoolingAsyncClientConnectionManagerBuilder.create()
+                        .setDefaultTlsConfig(TlsConfig.custom()
+                                .setVersionPolicy(HttpVersionPolicy.FORCE_HTTP_1)
+                                .build())
+                        .build());
 
         client.start();
 

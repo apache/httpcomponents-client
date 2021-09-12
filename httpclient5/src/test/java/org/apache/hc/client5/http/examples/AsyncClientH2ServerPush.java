@@ -33,8 +33,10 @@ import java.util.concurrent.Future;
 
 import org.apache.hc.client5.http.async.methods.AbstractBinPushConsumer;
 import org.apache.hc.client5.http.async.methods.AbstractCharResponseConsumer;
+import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
+import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpRequest;
@@ -46,8 +48,6 @@ import org.apache.hc.core5.http.support.BasicRequestBuilder;
 import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.apache.hc.core5.http2.config.H2Config;
 import org.apache.hc.core5.io.CloseMode;
-import org.apache.hc.core5.reactor.IOReactorConfig;
-import org.apache.hc.core5.util.Timeout;
 
 /**
  * This example demonstrates handling of HTTP/2 message exchanges pushed by the server.
@@ -56,18 +56,15 @@ public class AsyncClientH2ServerPush {
 
     public static void main(final String[] args) throws Exception {
 
-        final IOReactorConfig ioReactorConfig = IOReactorConfig.custom()
-                .setSoTimeout(Timeout.ofSeconds(5))
-                .build();
-
-        final H2Config h2Config = H2Config.custom()
-                .setPushEnabled(true)
-                .build();
-
         final CloseableHttpAsyncClient client = HttpAsyncClients.custom()
-                .setIOReactorConfig(ioReactorConfig)
-                .setVersionPolicy(HttpVersionPolicy.FORCE_HTTP_2)
-                .setH2Config(h2Config)
+                .setH2Config(H2Config.custom()
+                        .setPushEnabled(true)
+                        .build())
+                .setConnectionManager(PoolingAsyncClientConnectionManagerBuilder.create()
+                        .setDefaultTlsConfig(TlsConfig.custom()
+                                .setVersionPolicy(HttpVersionPolicy.FORCE_HTTP_2)
+                                .build())
+                        .build())
                 .build();
 
         client.start();

@@ -40,6 +40,7 @@ import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
 import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
@@ -139,9 +140,11 @@ public class HttpAsyncClientCompatibilityTest {
                 .loadTrustMaterial(getClass().getResource("/test-ca.keystore"), "nopassword".toCharArray()).build();
         this.connManager = PoolingAsyncClientConnectionManagerBuilder.create()
                 .setTlsStrategy(new DefaultClientTlsStrategy(sslContext))
+                .setDefaultTlsConfig(TlsConfig.custom()
+                        .setVersionPolicy(versionPolicy)
+                        .build())
                 .build();
         this.client = HttpAsyncClients.custom()
-                .setVersionPolicy(this.versionPolicy)
                 .setConnectionManager(this.connManager)
                 .setProxy(this.proxy)
                 .setDefaultRequestConfig(requestConfig)

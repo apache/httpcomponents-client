@@ -38,6 +38,7 @@ import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.SSLParameters;
 import javax.net.ssl.SSLSession;
 
+import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.concurrent.FutureCallback;
@@ -109,17 +110,23 @@ abstract class AbstractClientTlsStrategy implements TlsStrategy {
             final FutureCallback<TransportSecurityLayer> callback) {
         tlsSession.startTls(sslContext, endpoint, sslBufferManagement, (e, sslEngine) -> {
 
-            final HttpVersionPolicy versionPolicy = attachment instanceof HttpVersionPolicy ?
-                    (HttpVersionPolicy) attachment : HttpVersionPolicy.NEGOTIATE;
+            final TlsConfig tlsConfig = attachment instanceof TlsConfig ? (TlsConfig) attachment : TlsConfig.DEFAULT;
+            final HttpVersionPolicy versionPolicy = tlsConfig.getHttpVersionPolicy();
 
             final SSLParameters sslParameters = sslEngine.getSSLParameters();
+            final String[] supportedProtocols = tlsConfig.getSupportedProtocols();
             if (supportedProtocols != null) {
                 sslParameters.setProtocols(supportedProtocols);
+            } else if (this.supportedProtocols != null) {
+                sslParameters.setProtocols(this.supportedProtocols);
             } else if (versionPolicy != HttpVersionPolicy.FORCE_HTTP_1) {
                 sslParameters.setProtocols(TLS.excludeWeak(sslParameters.getProtocols()));
             }
+            final String[] supportedCipherSuites = tlsConfig.getSupportedCipherSuites();
             if (supportedCipherSuites != null) {
                 sslParameters.setCipherSuites(supportedCipherSuites);
+            } else if (this.supportedCipherSuites != null) {
+                sslParameters.setCipherSuites(this.supportedCipherSuites);
             } else if (versionPolicy == HttpVersionPolicy.FORCE_HTTP_2) {
                 sslParameters.setCipherSuites(TlsCiphers.excludeH2Blacklisted(sslParameters.getCipherSuites()));
             }
@@ -135,6 +142,7 @@ abstract class AbstractClientTlsStrategy implements TlsStrategy {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Enabled protocols: {}", Arrays.asList(sslEngine.getEnabledProtocols()));
                 LOG.debug("Enabled cipher suites:{}", Arrays.asList(sslEngine.getEnabledCipherSuites()));
+                LOG.debug("Starting handshake ({})", handshakeTimeout);
             }
         }, (e, sslEngine) -> {
             verifySession(endpoint.getHostName(), sslEngine.getSession());

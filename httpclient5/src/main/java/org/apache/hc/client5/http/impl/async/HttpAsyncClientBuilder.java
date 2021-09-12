@@ -47,6 +47,7 @@ import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.cookie.BasicCookieStore;
 import org.apache.hc.client5.http.cookie.CookieSpecFactory;
 import org.apache.hc.client5.http.cookie.CookieStore;
@@ -196,7 +197,11 @@ public class HttpAsyncClientBuilder {
 
     }
 
-    private HttpVersionPolicy versionPolicy;
+    /**
+     * @deprecated TLS should be configured by the connection manager
+     */
+    @Deprecated
+    private TlsConfig tlsConfig;
     private AsyncClientConnectionManager connManager;
     private boolean connManagerShared;
     private IOReactorConfig ioReactorConfig;
@@ -254,9 +259,12 @@ public class HttpAsyncClientBuilder {
 
     /**
      * Sets HTTP protocol version policy.
+     *
+     * @deprecated Use {@link TlsConfig} and connection nanager methods
      */
+    @Deprecated
     public final HttpAsyncClientBuilder setVersionPolicy(final HttpVersionPolicy versionPolicy) {
-        this.versionPolicy = versionPolicy;
+        this.tlsConfig = versionPolicy != null ? TlsConfig.custom().setVersionPolicy(versionPolicy).build() : null;
         return this;
     }
 
@@ -903,7 +911,6 @@ public class HttpAsyncClientBuilder {
         final IOEventHandlerFactory ioEventHandlerFactory = new HttpAsyncClientEventHandlerFactory(
                 new DefaultHttpProcessor(new H2RequestContent(), new H2RequestTargetHost(), new H2RequestConnControl()),
                 (request, context) -> pushConsumerRegistry.get(request),
-                versionPolicy != null ? versionPolicy : HttpVersionPolicy.NEGOTIATE,
                 h2Config != null ? h2Config : H2Config.DEFAULT,
                 h1Config != null ? h1Config : Http1Config.DEFAULT,
                 charCodingConfig != null ? charCodingConfig : CharCodingConfig.DEFAULT,
@@ -986,7 +993,7 @@ public class HttpAsyncClientBuilder {
                 threadFactory != null ? threadFactory : new DefaultThreadFactory("httpclient-main", true),
                 connManagerCopy,
                 routePlannerCopy,
-                versionPolicy != null ? versionPolicy : HttpVersionPolicy.NEGOTIATE,
+                tlsConfig,
                 cookieSpecRegistryCopy,
                 authSchemeRegistryCopy,
                 cookieStoreCopy,

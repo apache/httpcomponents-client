@@ -32,13 +32,16 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
 import org.apache.hc.client5.http.impl.async.MinimalHttpAsyncClient;
+import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.config.Http1Config;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
 import org.apache.hc.core5.http.message.StatusLine;
 import org.apache.hc.core5.http.nio.AsyncClientExchangeHandler;
@@ -55,7 +58,6 @@ import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.apache.hc.core5.http2.config.H2Config;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.reactor.IOReactorConfig;
-import org.apache.hc.core5.util.Timeout;
 
 /**
  * This example demonstrates a full-duplex, streaming HTTP/2 message exchange.
@@ -64,12 +66,15 @@ public class AsyncClientH2FullDuplexExchange {
 
     public static void main(final String[] args) throws Exception {
 
-        final IOReactorConfig ioReactorConfig = IOReactorConfig.custom()
-                .setSoTimeout(Timeout.ofSeconds(5))
-                .build();
-
         final MinimalHttpAsyncClient client = HttpAsyncClients.createMinimal(
-                HttpVersionPolicy.FORCE_HTTP_2, H2Config.DEFAULT, null, ioReactorConfig);
+                H2Config.DEFAULT,
+                Http1Config.DEFAULT,
+                IOReactorConfig.DEFAULT,
+                PoolingAsyncClientConnectionManagerBuilder.create()
+                        .setDefaultTlsConfig(TlsConfig.custom()
+                                .setVersionPolicy(HttpVersionPolicy.FORCE_HTTP_2)
+                                .build())
+                        .build());
 
         client.start();
 

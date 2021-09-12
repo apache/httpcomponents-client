@@ -39,6 +39,7 @@ import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.config.Configurable;
 import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.impl.ConnPoolSupport;
 import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
 import org.apache.hc.client5.http.impl.ExecSupport;
@@ -69,7 +70,6 @@ import org.apache.hc.core5.http.nio.HandlerFactory;
 import org.apache.hc.core5.http.nio.RequestChannel;
 import org.apache.hc.core5.http.nio.command.ShutdownCommand;
 import org.apache.hc.core5.http.protocol.HttpContext;
-import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.io.Closer;
 import org.apache.hc.core5.reactor.Command;
@@ -101,17 +101,17 @@ public final class MinimalHttpAsyncClient extends AbstractMinimalHttpAsyncClient
     private static final Logger LOG = LoggerFactory.getLogger(MinimalHttpAsyncClient.class);
     private final AsyncClientConnectionManager manager;
     private final SchemePortResolver schemePortResolver;
-    private final HttpVersionPolicy versionPolicy;
+    private final TlsConfig tlsConfig;
 
     MinimalHttpAsyncClient(
             final IOEventHandlerFactory eventHandlerFactory,
             final AsyncPushConsumerRegistry pushConsumerRegistry,
-            final HttpVersionPolicy versionPolicy,
             final IOReactorConfig reactorConfig,
             final ThreadFactory threadFactory,
             final ThreadFactory workerThreadFactory,
             final AsyncClientConnectionManager manager,
-            final SchemePortResolver schemePortResolver) {
+            final SchemePortResolver schemePortResolver,
+            final TlsConfig tlsConfig) {
         super(new DefaultConnectingIOReactor(
                         eventHandlerFactory,
                         reactorConfig,
@@ -124,7 +124,7 @@ public final class MinimalHttpAsyncClient extends AbstractMinimalHttpAsyncClient
                 threadFactory);
         this.manager = manager;
         this.schemePortResolver = schemePortResolver != null ? schemePortResolver : DefaultSchemePortResolver.INSTANCE;
-        this.versionPolicy = versionPolicy != null ? versionPolicy : HttpVersionPolicy.NEGOTIATE;
+        this.tlsConfig = tlsConfig;
     }
 
     private Future<AsyncConnectionEndpoint> leaseEndpoint(
@@ -153,7 +153,7 @@ public final class MinimalHttpAsyncClient extends AbstractMinimalHttpAsyncClient
                                     connectionEndpoint,
                                     getConnectionInitiator(),
                                     connectTimeout,
-                                    versionPolicy,
+                                    tlsConfig,
                                     clientContext,
                                     new FutureCallback<AsyncConnectionEndpoint>() {
 
