@@ -42,13 +42,13 @@ import java.util.Map;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.AuthScheme;
-import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.AuthStateCacheable;
 import org.apache.hc.client5.http.auth.AuthenticationException;
 import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.MalformedChallengeException;
+import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.utils.ByteArrayBuilder;
 import org.apache.hc.core5.http.HttpHost;
@@ -72,7 +72,7 @@ public class BasicScheme implements AuthScheme, Serializable {
     private static final Logger LOG = LoggerFactory.getLogger(BasicScheme.class);
 
     private final Map<String, String> paramMap;
-    private transient Charset charset;
+    private transient Charset defaultCharset;
     private transient ByteArrayBuilder buffer;
     private transient Base64 base64codec;
     private boolean complete;
@@ -85,7 +85,7 @@ public class BasicScheme implements AuthScheme, Serializable {
      */
     public BasicScheme(final Charset charset) {
         this.paramMap = new HashMap<>();
-        this.charset = charset != null ? charset : StandardCharsets.US_ASCII;
+        this.defaultCharset = charset != null ? charset : StandardCharsets.US_ASCII;
         this.complete = false;
     }
 
@@ -93,13 +93,21 @@ public class BasicScheme implements AuthScheme, Serializable {
         this(StandardCharsets.US_ASCII);
     }
 
+    private void applyCredentials(final Credentials credentials) {
+        this.username = credentials.getUserPrincipal().getName();
+        this.password = credentials.getPassword();
+    }
+
+    private void clearCredentials() {
+        this.username = null;
+        this.password = null;
+    }
+
     public void initPreemptive(final Credentials credentials) {
         if (credentials != null) {
-            this.username = credentials.getUserPrincipal().getName();
-            this.password = credentials.getPassword();
+            applyCredentials(credentials);
         } else {
-            this.username = null;
-            this.password = null;
+            clearCredentials();
         }
     }
 
@@ -150,8 +158,7 @@ public class BasicScheme implements AuthScheme, Serializable {
         final Credentials credentials = credentialsProvider.getCredentials(
                 authScope, context);
         if (credentials != null) {
-            this.username = credentials.getUserPrincipal().getName();
-            this.password = credentials.getPassword();
+            applyCredentials(credentials);
             return true;
         }
 
@@ -160,8 +167,7 @@ public class BasicScheme implements AuthScheme, Serializable {
             final String exchangeId = clientContext.getExchangeId();
             LOG.debug("{} No credentials found for auth scope [{}]", exchangeId, authScope);
         }
-        this.username = null;
-        this.password = null;
+        clearCredentials();
         return false;
     }
 
@@ -170,16 +176,34 @@ public class BasicScheme implements AuthScheme, Serializable {
         return null;
     }
 
+    private void validateUsername() throws AuthenticationException {
+        if (username == null) {
+            throw new AuthenticationException("User credentials not set");
+        }
+        for (int i = 0; i < username.length(); i++) {
+            final char ch = username.charAt(i);
+            if (Character.isISOControl(ch)) {
+                throw new AuthenticationException("Username must not contain any control characters");
+            }
+            if (ch == ':') {
+                throw new AuthenticationException("Username contains a colon character and is invalid");
+            }
+        }
+    }
+
     @Override
     public String generateAuthResponse(
             final HttpHost host,
             final HttpRequest request,
             final HttpContext context) throws AuthenticationException {
+        validateUsername();
         if (this.buffer == null) {
-            this.buffer = new ByteArrayBuilder(64).charset(this.charset);
+            this.buffer = new ByteArrayBuilder(64);
         } else {
             this.buffer.reset();
         }
+        final Charset charset = AuthSchemeSupport.parseCharset(paramMap.get("charset"), defaultCharset);
+        this.buffer.charset(charset);
         this.buffer.append(this.username).append(":").append(this.password);
         if (this.base64codec == null) {
             this.base64codec = new Base64(0);
@@ -191,16 +215,16 @@ public class BasicScheme implements AuthScheme, Serializable {
 
     private void writeObject(final ObjectOutputStream out) throws IOException {
         out.defaultWriteObject();
-        out.writeUTF(this.charset.name());
+        out.writeUTF(this.defaultCharset.name());
     }
 
     @SuppressWarnings("unchecked")
     private void readObject(final ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
         try {
-            this.charset = Charset.forName(in.readUTF());
+            this.defaultCharset = Charset.forName(in.readUTF());
         } catch (final UnsupportedCharsetException ex) {
-            this.charset = StandardCharsets.US_ASCII;
+            this.defaultCharset = StandardCharsets.US_ASCII;
         }
     }
 

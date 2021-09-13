@@ -32,7 +32,6 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.nio.charset.UnsupportedCharsetException;
 import java.security.MessageDigest;
 import java.security.Principal;
 import java.security.SecureRandom;
@@ -275,14 +274,7 @@ public class DigestScheme implements AuthScheme, Serializable {
             throw new AuthenticationException("None of the qop methods is supported: " + qoplist);
         }
 
-        final String charsetName = this.paramMap.get("charset");
-        final Charset charset;
-        try {
-            charset = charsetName != null ? Charset.forName(charsetName) : defaultCharset;
-        } catch (final UnsupportedCharsetException ex) {
-            throw new AuthenticationException("Unsupported charset: " + charsetName);
-        }
-
+        final Charset charset = AuthSchemeSupport.parseCharset(paramMap.get("charset"), defaultCharset);
         String digAlg = algorithm;
         if (digAlg.equalsIgnoreCase("MD5-sess")) {
             digAlg = "MD5";
