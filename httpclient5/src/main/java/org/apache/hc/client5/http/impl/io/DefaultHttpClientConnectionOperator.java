@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.util.Arrays;
 
 import org.apache.hc.client5.http.ConnectExceptionSupport;
 import org.apache.hc.client5.http.DnsResolver;
@@ -115,12 +116,25 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
         if (sf == null) {
             throw new UnsupportedSchemeException(host.getSchemeName() + " protocol is not supported");
         }
-        final InetAddress[] addresses = host.getAddress() != null ?
-                new InetAddress[] { host.getAddress() } : this.dnsResolver.resolve(host.getHostName());
+        final InetAddress[] remoteAddresses;
+        if (host.getAddress() != null) {
+            remoteAddresses = new InetAddress[] { host.getAddress() };
+        } else {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{} resolving remote address", host.getHostName());
+            }
+
+            remoteAddresses = this.dnsResolver.resolve(host.getHostName());
+
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{} resolved to {}", host.getHostName(), Arrays.asList(remoteAddresses));
+            }
+        }
+
         final int port = this.schemePortResolver.resolve(host);
-        for (int i = 0; i < addresses.length; i++) {
-            final InetAddress address = addresses[i];
-            final boolean last = i == addresses.length - 1;
+        for (int i = 0; i < remoteAddresses.length; i++) {
+            final InetAddress address = remoteAddresses[i];
+            final boolean last = i == remoteAddresses.length - 1;
 
             Socket sock = sf.createSocket(context);
             sock.setSoTimeout(socketConfig.getSoTimeout().toMillisecondsIntBound());
@@ -142,22 +156,30 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
 
             final InetSocketAddress remoteAddress = new InetSocketAddress(address, port);
             if (LOG.isDebugEnabled()) {
-                LOG.debug("{} connecting to {}", ConnPoolSupport.getId(conn), remoteAddress);
+                LOG.debug("{}:{} connecting {}->{} ({})",
+                        host.getHostName(), host.getPort(), localAddress, remoteAddress, connectTimeout);
             }
             try {
                 sock = sf.connectSocket(connectTimeout, sock, host, remoteAddress, localAddress, context);
                 conn.bind(sock);
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("{} connection established {}", ConnPoolSupport.getId(conn), conn);
+                    LOG.debug("{}:{} connected {}->{} as {}",
+                            host.getHostName(), host.getPort(), localAddress, remoteAddress, ConnPoolSupport.getId(conn));
                 }
                 return;
             } catch (final IOException ex) {
                 if (last) {
-                    throw ConnectExceptionSupport.enhance(ex, host, addresses);
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("{}:{} connection to {} failed ({}); terminating operation",
+                                host.getHostName(), host.getPort(), remoteAddress, ex.getClass());
+                    }
+                    throw ConnectExceptionSupport.enhance(ex, host, remoteAddresses);
+                } else {
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("{}:{} connection to {} failed ({}); retrying connection to the next address",
+                                host.getHostName(), host.getPort(), remoteAddress, ex.getClass());
+                    }
                 }
-            }
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("{} connect to {} timed out. Connection will be retried using another IP address", ConnPoolSupport.getId(conn), remoteAddress);
             }
         }
     }

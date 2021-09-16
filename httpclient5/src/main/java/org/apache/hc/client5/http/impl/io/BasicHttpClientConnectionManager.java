@@ -361,6 +361,9 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
         final ConnectionConfig config = connectionConfig != null ? connectionConfig : ConnectionConfig.DEFAULT;
         final TimeValue connectTimeout = timeout != null ? timeout : config.getConnectTimeout();
         final ManagedHttpClientConnection connection = internalEndpoint.getConnection();
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("{} connecting endpoint to {} ({})", ConnPoolSupport.getId(endpoint), host, connectTimeout);
+        }
         this.connectionOperator.connect(
                 connection,
                 host,
@@ -368,6 +371,9 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
                 connectTimeout,
                 this.socketConfig,
                 context);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("{} connected {}", ConnPoolSupport.getId(endpoint), ConnPoolSupport.getId(conn));
+        }
         final Timeout socketTimeout = config.getSocketTimeout();
         if (socketTimeout != null) {
             connection.setSocketTimeout(socketTimeout);
