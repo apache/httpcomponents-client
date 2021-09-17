@@ -45,8 +45,8 @@ import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.UserTokenHandler;
 import org.apache.hc.client5.http.async.AsyncExecChainHandler;
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
-import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
+import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.cookie.BasicCookieStore;
 import org.apache.hc.client5.http.cookie.CookieSpecFactory;
@@ -54,6 +54,7 @@ import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.client5.http.impl.ChainElement;
 import org.apache.hc.client5.http.impl.CookieSpecSupport;
 import org.apache.hc.client5.http.impl.DefaultAuthenticationStrategy;
+import org.apache.hc.client5.http.impl.DefaultClientConnectionReuseStrategy;
 import org.apache.hc.client5.http.impl.DefaultConnectionKeepAliveStrategy;
 import org.apache.hc.client5.http.impl.DefaultHttpRequestRetryStrategy;
 import org.apache.hc.client5.http.impl.DefaultRedirectStrategy;
@@ -96,7 +97,6 @@ import org.apache.hc.core5.http.config.Http1Config;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.config.NamedElementChain;
 import org.apache.hc.core5.http.config.RegistryBuilder;
-import org.apache.hc.core5.http.impl.DefaultConnectionReuseStrategy;
 import org.apache.hc.core5.http.nio.AsyncPushConsumer;
 import org.apache.hc.core5.http.nio.HandlerFactory;
 import org.apache.hc.core5.http.nio.command.ShutdownCommand;
@@ -908,7 +908,7 @@ public class HttpAsyncClientBuilder {
             if (systemProperties) {
                 final String s = getProperty("http.keepAlive", "true");
                 if ("true".equalsIgnoreCase(s)) {
-                    reuseStrategyCopy = DefaultConnectionReuseStrategy.INSTANCE;
+                    reuseStrategyCopy = DefaultClientConnectionReuseStrategy.INSTANCE;
                 } else {
                     reuseStrategyCopy = new ConnectionReuseStrategy() {
                         @Override
@@ -919,7 +919,7 @@ public class HttpAsyncClientBuilder {
                     };
                 }
             } else {
-                reuseStrategyCopy = DefaultConnectionReuseStrategy.INSTANCE;
+                reuseStrategyCopy = DefaultClientConnectionReuseStrategy.INSTANCE;
             }
         }
         final AsyncPushConsumerRegistry pushConsumerRegistry = new AsyncPushConsumerRegistry();

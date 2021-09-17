@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.hc.client5.http.impl.DefaultClientConnectionReuseStrategy;
 import org.apache.hc.core5.http.ConnectionReuseStrategy;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpConnection;
@@ -38,7 +39,6 @@ import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.config.CharCodingConfig;
 import org.apache.hc.core5.http.config.Http1Config;
-import org.apache.hc.core5.http.impl.DefaultConnectionReuseStrategy;
 import org.apache.hc.core5.http.impl.Http1StreamListener;
 import org.apache.hc.core5.http.impl.nio.ClientHttp1StreamDuplexerFactory;
 import org.apache.hc.core5.http.impl.nio.DefaultHttpRequestWriterFactory;
@@ -96,7 +96,7 @@ class HttpAsyncClientEventHandlerFactory implements IOEventHandlerFactory {
         this.h2Config = h2Config != null ? h2Config : H2Config.DEFAULT;
         this.h1Config = h1Config != null ? h1Config : Http1Config.DEFAULT;
         this.charCodingConfig = charCodingConfig != null ? charCodingConfig : CharCodingConfig.DEFAULT;
-        this.http1ConnectionReuseStrategy = connectionReuseStrategy != null ? connectionReuseStrategy : DefaultConnectionReuseStrategy.INSTANCE;
+        this.http1ConnectionReuseStrategy = connectionReuseStrategy != null ? connectionReuseStrategy : DefaultClientConnectionReuseStrategy.INSTANCE;
         this.http1ResponseParserFactory = new DefaultHttpResponseParserFactory(h1Config);
         this.http1RequestWriterFactory = DefaultHttpRequestWriterFactory.INSTANCE;
     }

@@ -36,9 +36,9 @@ import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.RouteInfo;
 import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.AuthScheme;
-import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.ChallengeType;
+import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecRuntime;
@@ -233,7 +233,7 @@ public class TestConnectExec {
             exec.execute(request, scope, execChain);
         } catch (final TunnelRefusedException ex) {
             Assert.assertEquals("Ka-boom", ex.getResponseMessage());
-            Mockito.verify(execRuntime).disconnectEndpoint();
+            Mockito.verify(execRuntime, Mockito.atLeastOnce()).disconnectEndpoint();
             Mockito.verify(execRuntime).discardEndpoint();
             throw ex;
         }
@@ -260,7 +260,7 @@ public class TestConnectExec {
         Mockito.doAnswer(connectionState.connectAnswer()).when(execRuntime).connectEndpoint(Mockito.<HttpClientContext>any());
         Mockito.when(execRuntime.isEndpointConnected()).thenAnswer(connectionState.isConnectedAnswer());
         Mockito.when(reuseStrategy.keepAlive(
-                Mockito.same(request),
+                Mockito.<HttpRequest>any(),
                 Mockito.<HttpResponse>any(),
                 Mockito.<HttpClientContext>any())).thenReturn(Boolean.TRUE);
         Mockito.when(execRuntime.execute(
@@ -319,7 +319,7 @@ public class TestConnectExec {
 
         Mockito.verify(execRuntime).connectEndpoint(context);
         Mockito.verify(inStream1, Mockito.never()).close();
-        Mockito.verify(execRuntime).disconnectEndpoint();
+        Mockito.verify(execRuntime, Mockito.atLeastOnce()).disconnectEndpoint();
     }
 
     @Test(expected = HttpException.class)
