@@ -242,11 +242,14 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
                 }));
                 break;
 
-            case HttpRouteDirector.TUNNEL_TARGET:
-                try {
-                    final HttpHost proxy = route.getProxyHost();
-                    final HttpHost target = route.getTargetHost();
-                    createTunnel(state, proxy ,target, scope, chain, new AsyncExecCallback() {
+                case HttpRouteDirector.TUNNEL_TARGET:
+                    try {
+                        final HttpHost proxy = route.getProxyHost();
+                        final HttpHost target = route.getTargetHost();
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("{} create tunnel", exchangeId);
+                        }
+                        createTunnel(state, proxy, target, scope, chain, new AsyncExecCallback() {
 
                         @Override
                         public AsyncDataConsumer handleResponse(
@@ -261,14 +264,35 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
                             asyncExecCallback.handleInformationResponse(response);
                         }
 
-                        @Override
-                        public void completed() {
-                            if (LOG.isDebugEnabled()) {
-                                LOG.debug("{} tunnel to target created", exchangeId);
+                            @Override
+                            public void completed() {
+                                if (!execRuntime.isEndpointConnected()) {
+                                    // Remote endpoint disconnected. Need to start over
+                                    if (LOG.isDebugEnabled()) {
+                                        LOG.debug("{} proxy disconnected", exchangeId);
+                                    }
+                                    state.tracker.reset();
+                                }
+                                if (state.challenged) {
+                                    if (LOG.isDebugEnabled()) {
+                                        LOG.debug("{} proxy authentication required", exchangeId);
+                                    }
+                                    proceedToNextHop(state, request, entityProducer, scope, chain, asyncExecCallback);
+                                } else {
+                                    if (state.tunnelRefused) {
+                                        if (LOG.isDebugEnabled()) {
+                                            LOG.debug("{} tunnel refused", exchangeId);
+                                        }
+                                        asyncExecCallback.failed(new TunnelRefusedException("Tunnel refused", null));
+                                    } else {
+                                        if (LOG.isDebugEnabled()) {
+                                            LOG.debug("{} tunnel to target created", exchangeId);
+                                        }
+                                        tracker.tunnelTarget(false);
+                                        proceedToNextHop(state, request, entityProducer, scope, chain, asyncExecCallback);
+                                    }
+                                }
                             }
-                            tracker.tunnelTarget(false);
-                            proceedToNextHop(state, request, entityProducer, scope, chain, asyncExecCallback);
-                        }
 
                         @Override
                         public void failed(final Exception cause) {
@@ -387,22 +411,7 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
 
             @Override
             public void completed() {
-                if (!execRuntime.isEndpointConnected()) {
-                    state.tracker.reset();
-                }
-                if (state.challenged) {
-                    try {
-                        createTunnel(state, proxy, nextHop, scope, chain, asyncExecCallback);
-                    } catch (final HttpException | IOException ex) {
-                        asyncExecCallback.failed(ex);
-                    }
-                } else {
-                    if (state.tunnelRefused) {
-                        asyncExecCallback.failed(new TunnelRefusedException("Tunnel refused", null));
-                    } else {
-                        asyncExecCallback.completed();
-                    }
-                }
+                asyncExecCallback.completed();
             }
 
             @Override
