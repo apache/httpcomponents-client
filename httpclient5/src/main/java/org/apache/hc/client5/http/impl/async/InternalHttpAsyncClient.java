@@ -95,8 +95,17 @@ public final class InternalHttpAsyncClient extends InternalAbstractHttpAsyncClie
     }
 
     @Override
-    AsyncExecRuntime createAsyncExecRuntime(final HandlerFactory<AsyncPushConsumer> pushHandlerFactory) {
-        return new InternalHttpAsyncExecRuntime(LOG, manager, getConnectionInitiator(), pushHandlerFactory, versionPolicy);
+    AsyncExecRuntime createAsyncExecRuntime(final HandlerFactory<AsyncPushConsumer> pushHandlerFactory,
+                                            final HttpRoute route) {
+        // Automatically set protocol policy to force HTTP/1.1
+        // when executing requests via proxy tunnel
+        final HttpVersionPolicy actualVersionPolicy;
+        if (route.isTunnelled() && versionPolicy == HttpVersionPolicy.NEGOTIATE) {
+            actualVersionPolicy = HttpVersionPolicy.FORCE_HTTP_1;
+        } else {
+            actualVersionPolicy = versionPolicy;
+        }
+        return new InternalHttpAsyncExecRuntime(LOG, manager, getConnectionInitiator(), pushHandlerFactory, actualVersionPolicy);
     }
 
     @Override
