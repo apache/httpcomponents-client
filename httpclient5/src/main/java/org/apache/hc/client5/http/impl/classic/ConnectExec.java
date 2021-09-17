@@ -227,22 +227,23 @@ public final class ConnectExec implements ExecChainHandler {
                 throw new HttpException("Unexpected response to CONNECT request: " + new StatusLine(response));
             }
 
+            if (this.reuseStrategy.keepAlive(connect, response, context)) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("{} connection kept alive", exchangeId);
+                }
+                // Consume response content
+                final HttpEntity entity = response.getEntity();
+                EntityUtils.consume(entity);
+            } else {
+                execRuntime.disconnectEndpoint();
+            }
+
             if (config.isAuthenticationEnabled()) {
                 if (this.authenticator.isChallenged(proxy, ChallengeType.PROXY, response,
                         proxyAuthExchange, context)) {
                     if (this.authenticator.updateAuthState(proxy, ChallengeType.PROXY, response,
                             this.proxyAuthStrategy, proxyAuthExchange, context)) {
                         // Retry request
-                        if (this.reuseStrategy.keepAlive(request, response, context)) {
-                            if (LOG.isDebugEnabled()) {
-                                LOG.debug("{} connection kept alive", exchangeId);
-                            }
-                            // Consume response content
-                            final HttpEntity entity = response.getEntity();
-                            EntityUtils.consume(entity);
-                        } else {
-                            execRuntime.disconnectEndpoint();
-                        }
                         response = null;
                     }
                 }
@@ -250,7 +251,7 @@ public final class ConnectExec implements ExecChainHandler {
         }
 
         final int status = response.getCode();
-        if (status >= HttpStatus.SC_REDIRECTION) {
+        if (status != HttpStatus.SC_OK) {
 
             // Buffer response content
             final HttpEntity entity = response.getEntity();

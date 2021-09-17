@@ -36,12 +36,13 @@ import org.apache.hc.client5.http.RouteInfo.LayerType;
 import org.apache.hc.client5.http.RouteInfo.TunnelType;
 import org.apache.hc.client5.http.auth.AuthExchange;
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
-import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.Credentials;
+import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.DefaultAuthenticationStrategy;
+import org.apache.hc.client5.http.impl.DefaultClientConnectionReuseStrategy;
 import org.apache.hc.client5.http.impl.TunnelRefusedException;
 import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
 import org.apache.hc.client5.http.impl.auth.BasicSchemeFactory;
@@ -66,7 +67,6 @@ import org.apache.hc.core5.http.config.CharCodingConfig;
 import org.apache.hc.core5.http.config.Http1Config;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.config.RegistryBuilder;
-import org.apache.hc.core5.http.impl.DefaultConnectionReuseStrategy;
 import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
 import org.apache.hc.core5.http.io.HttpConnectionFactory;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
@@ -125,7 +125,7 @@ public class ProxyClient {
                 .register(StandardAuthScheme.SPNEGO, SPNegoSchemeFactory.DEFAULT)
                 .register(StandardAuthScheme.KERBEROS, KerberosSchemeFactory.DEFAULT)
                 .build();
-        this.reuseStrategy = new DefaultConnectionReuseStrategy();
+        this.reuseStrategy = DefaultClientConnectionReuseStrategy.INSTANCE;
     }
 
     /**

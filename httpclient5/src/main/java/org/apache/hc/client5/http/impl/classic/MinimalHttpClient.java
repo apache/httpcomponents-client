@@ -37,6 +37,7 @@ import org.apache.hc.client5.http.classic.ExecRuntime;
 import org.apache.hc.client5.http.config.Configurable;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.ConnectionShutdownException;
+import org.apache.hc.client5.http.impl.DefaultClientConnectionReuseStrategy;
 import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
 import org.apache.hc.client5.http.impl.ExecSupport;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
@@ -52,7 +53,6 @@ import org.apache.hc.core5.http.ConnectionReuseStrategy;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.impl.DefaultConnectionReuseStrategy;
 import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
 import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.DefaultHttpProcessor;
@@ -96,7 +96,7 @@ public class MinimalHttpClient extends CloseableHttpClient {
     MinimalHttpClient(final HttpClientConnectionManager connManager) {
         super();
         this.connManager = Args.notNull(connManager, "HTTP connection manager");
-        this.reuseStrategy = DefaultConnectionReuseStrategy.INSTANCE;
+        this.reuseStrategy = DefaultClientConnectionReuseStrategy.INSTANCE;
         this.schemePortResolver = DefaultSchemePortResolver.INSTANCE;
         this.requestExecutor = new HttpRequestExecutor(this.reuseStrategy);
         this.httpProcessor = new DefaultHttpProcessor(

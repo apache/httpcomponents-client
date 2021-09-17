@@ -221,7 +221,7 @@ public class TestConnectExec {
         final TunnelRefusedException exception = Assert.assertThrows(TunnelRefusedException.class, () ->
                 exec.execute(request, scope, execChain));
         Assert.assertEquals("Ka-boom", exception.getResponseMessage());
-        Mockito.verify(execRuntime).disconnectEndpoint();
+        Mockito.verify(execRuntime, Mockito.atLeastOnce()).disconnectEndpoint();
         Mockito.verify(execRuntime).discardEndpoint();
     }
 
@@ -246,7 +246,7 @@ public class TestConnectExec {
         Mockito.doAnswer(connectionState.connectAnswer()).when(execRuntime).connectEndpoint(Mockito.any());
         Mockito.when(execRuntime.isEndpointConnected()).thenAnswer(connectionState.isConnectedAnswer());
         Mockito.when(reuseStrategy.keepAlive(
-                Mockito.same(request),
+                Mockito.any(),
                 Mockito.any(),
                 Mockito.<HttpClientContext>any())).thenReturn(Boolean.TRUE);
         Mockito.when(execRuntime.execute(
@@ -257,7 +257,7 @@ public class TestConnectExec {
         Mockito.when(proxyAuthStrategy.select(
                 Mockito.eq(ChallengeType.PROXY),
                 Mockito.any(),
-                Mockito.<HttpClientContext>any())).thenReturn(Collections.singletonList(new BasicScheme()));
+                Mockito.any())).thenReturn(Collections.singletonList(new BasicScheme()));
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
         exec.execute(request, scope, execChain);
@@ -286,10 +286,6 @@ public class TestConnectExec {
         final ConnectionState connectionState = new ConnectionState();
         Mockito.doAnswer(connectionState.connectAnswer()).when(execRuntime).connectEndpoint(Mockito.any());
         Mockito.when(execRuntime.isEndpointConnected()).thenAnswer(connectionState.isConnectedAnswer());
-        Mockito.when(reuseStrategy.keepAlive(
-                Mockito.same(request),
-                Mockito.any(),
-                Mockito.<HttpClientContext>any())).thenReturn(Boolean.FALSE);
         Mockito.when(execRuntime.execute(
                 Mockito.anyString(),
                 Mockito.any(),
@@ -298,14 +294,14 @@ public class TestConnectExec {
         Mockito.when(proxyAuthStrategy.select(
                 Mockito.eq(ChallengeType.PROXY),
                 Mockito.any(),
-                Mockito.<HttpClientContext>any())).thenReturn(Collections.singletonList(new BasicScheme()));
+                Mockito.any())).thenReturn(Collections.singletonList(new BasicScheme()));
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
         exec.execute(request, scope, execChain);
 
         Mockito.verify(execRuntime).connectEndpoint(context);
         Mockito.verify(inStream1, Mockito.never()).close();
-        Mockito.verify(execRuntime).disconnectEndpoint();
+        Mockito.verify(execRuntime, Mockito.atLeastOnce()).disconnectEndpoint();
     }
 
     @Test

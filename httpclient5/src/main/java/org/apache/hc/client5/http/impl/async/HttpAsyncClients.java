@@ -30,6 +30,7 @@ package org.apache.hc.client5.http.impl.async;
 import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.SystemDefaultDnsResolver;
+import org.apache.hc.client5.http.impl.DefaultClientConnectionReuseStrategy;
 import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.nio.AsyncClientConnectionManager;
@@ -37,7 +38,6 @@ import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.core5.concurrent.DefaultThreadFactory;
 import org.apache.hc.core5.http.config.CharCodingConfig;
 import org.apache.hc.core5.http.config.Http1Config;
-import org.apache.hc.core5.http.impl.DefaultConnectionReuseStrategy;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
 import org.apache.hc.core5.http.protocol.DefaultHttpProcessor;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
@@ -157,7 +157,7 @@ public final class HttpAsyncClients {
                         h2Config,
                         h1Config,
                         CharCodingConfig.DEFAULT,
-                        DefaultConnectionReuseStrategy.INSTANCE),
+                        DefaultClientConnectionReuseStrategy.INSTANCE),
                 pushConsumerRegistry,
                 versionPolicy,
                 ioReactorConfig,

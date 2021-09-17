@@ -55,6 +55,7 @@ import org.apache.hc.client5.http.entity.InputStreamFactory;
 import org.apache.hc.client5.http.impl.ChainElement;
 import org.apache.hc.client5.http.impl.CookieSpecSupport;
 import org.apache.hc.client5.http.impl.DefaultAuthenticationStrategy;
+import org.apache.hc.client5.http.impl.DefaultClientConnectionReuseStrategy;
 import org.apache.hc.client5.http.impl.DefaultConnectionKeepAliveStrategy;
 import org.apache.hc.client5.http.impl.DefaultHttpRequestRetryStrategy;
 import org.apache.hc.client5.http.impl.DefaultRedirectStrategy;
@@ -92,7 +93,6 @@ import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.config.NamedElementChain;
 import org.apache.hc.core5.http.config.Registry;
 import org.apache.hc.core5.http.config.RegistryBuilder;
-import org.apache.hc.core5.http.impl.DefaultConnectionReuseStrategy;
 import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
 import org.apache.hc.core5.http.protocol.DefaultHttpProcessor;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
@@ -742,12 +742,12 @@ public class HttpClientBuilder {
             if (systemProperties) {
                 final String s = System.getProperty("http.keepAlive", "true");
                 if ("true".equalsIgnoreCase(s)) {
-                    reuseStrategyCopy = DefaultConnectionReuseStrategy.INSTANCE;
+                    reuseStrategyCopy = DefaultClientConnectionReuseStrategy.INSTANCE;
                 } else {
                     reuseStrategyCopy = (request, response, context) -> false;
                 }
             } else {
-                reuseStrategyCopy = DefaultConnectionReuseStrategy.INSTANCE;
+                reuseStrategyCopy = DefaultClientConnectionReuseStrategy.INSTANCE;
             }
         }
 
