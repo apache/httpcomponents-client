@@ -95,6 +95,13 @@ public class HttpAsyncClientCompatibilityTest {
                 new HttpAsyncClientCompatibilityTest(
                         HttpVersionPolicy.NEGOTIATE,
                         new HttpHost("https", "test-httpd", 8443), new HttpHost("localhost", 8889),
+                        new UsernamePasswordCredentials("squid", "nopassword".toCharArray())),
+                new HttpAsyncClientCompatibilityTest(
+                        HttpVersionPolicy.FORCE_HTTP_2,
+                        new HttpHost("https", "test-httpd", 8443), new HttpHost("localhost", 8888), null),
+                new HttpAsyncClientCompatibilityTest(
+                        HttpVersionPolicy.FORCE_HTTP_2,
+                        new HttpHost("https", "test-httpd", 8443), new HttpHost("localhost", 8889),
                         new UsernamePasswordCredentials("squid", "nopassword".toCharArray()))
         };
         for (final HttpAsyncClientCompatibilityTest test: tests) {

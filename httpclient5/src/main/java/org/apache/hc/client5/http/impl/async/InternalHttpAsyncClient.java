@@ -101,11 +101,7 @@ public final class InternalHttpAsyncClient extends InternalAbstractHttpAsyncClie
 
     @Override
     HttpRoute determineRoute(final HttpHost httpHost, final HttpClientContext clientContext) throws HttpException {
-        final HttpRoute route = routePlanner.determineRoute(httpHost, clientContext);
-        if (route.isTunnelled() && versionPolicy == HttpVersionPolicy.FORCE_HTTP_2) {
-            throw new HttpException("HTTP/2 tunneling not supported");
-        }
-        return route;
+        return routePlanner.determineRoute(httpHost, clientContext);
     }
 
 }
