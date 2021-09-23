@@ -39,6 +39,7 @@ import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.AuthenticationException;
 import org.apache.hc.client5.http.auth.ChallengeType;
+import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.core5.http.HttpHost;
@@ -81,10 +82,9 @@ public class TestBasicScheme {
         authscheme.processChallenge(authChallenge, null);
 
         final HttpHost host  = new HttpHost("somehost", 80);
-        final AuthScope authScope = new AuthScope(host, "test", null);
-        final UsernamePasswordCredentials creds = new UsernamePasswordCredentials("testuser", "testpass".toCharArray());
-        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        credentialsProvider.setCredentials(authScope, creds);
+        final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
+                .add(new AuthScope(host, "test", null), "testuser", "testpass".toCharArray())
+                .build();
 
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         Assert.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
@@ -142,10 +142,9 @@ public class TestBasicScheme {
         authscheme.processChallenge(authChallenge, null);
 
         final HttpHost host  = new HttpHost("somehost", 80);
-        final AuthScope authScope = new AuthScope(host, "test", null);
-        final UsernamePasswordCredentials creds = new UsernamePasswordCredentials("test", TEST_UTF8_PASSWORD.toCharArray());
-        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        credentialsProvider.setCredentials(authScope, creds);
+        final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
+                .add(new AuthScope(host, "test", null), "test", TEST_UTF8_PASSWORD.toCharArray())
+                .build();
 
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         Assert.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));

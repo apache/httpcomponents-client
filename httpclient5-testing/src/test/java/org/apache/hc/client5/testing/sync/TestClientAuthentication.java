@@ -51,9 +51,9 @@ import org.apache.hc.client5.http.classic.methods.HttpPut;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.DefaultAuthenticationStrategy;
 import org.apache.hc.client5.http.impl.auth.BasicAuthCache;
-import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
 import org.apache.hc.client5.http.impl.auth.BasicScheme;
 import org.apache.hc.client5.http.impl.auth.BasicSchemeFactory;
+import org.apache.hc.client5.http.impl.auth.CredentialsProviderBuilder;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.testing.BasicTestAuthenticator;
@@ -313,10 +313,9 @@ public class TestClientAuthentication extends LocalServerTestBase {
         final HttpHost target = start();
 
         final HttpClientContext context = HttpClientContext.create();
-        final BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
-        credsProvider.setCredentials(new AuthScope(null, null, -1, null ,null),
-                new UsernamePasswordCredentials("test", "test".toCharArray()));
-        context.setCredentialsProvider(credsProvider);
+        context.setCredentialsProvider(CredentialsProviderBuilder.create()
+                .add(target, "test", "test".toCharArray())
+                .build());
 
         final HttpGet httpget = new HttpGet("/");
 
@@ -365,11 +364,10 @@ public class TestClientAuthentication extends LocalServerTestBase {
         });
 
         final TestTargetAuthenticationStrategy authStrategy = new TestTargetAuthenticationStrategy();
-        final BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
-        credsProvider.setCredentials(new AuthScope(target, "this realm", null),
-                new UsernamePasswordCredentials("test", "this".toCharArray()));
-        credsProvider.setCredentials(new AuthScope(target, "that realm", null),
-                new UsernamePasswordCredentials("test", "that".toCharArray()));
+        final CredentialsProvider credsProvider = CredentialsProviderBuilder.create()
+                .add(new AuthScope(target, "this realm", null), "test", "this".toCharArray())
+                .add(new AuthScope(target, "that realm", null), "test", "that".toCharArray())
+                .build();
 
         this.clientBuilder.setTargetAuthenticationStrategy(authStrategy);
         this.httpclient = this.clientBuilder.build();
@@ -519,10 +517,9 @@ public class TestClientAuthentication extends LocalServerTestBase {
         final AuthCache authCache = new BasicAuthCache();
         authCache.put(target, new BasicScheme());
         context.setAuthCache(authCache);
-        final BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
-        credsProvider.setCredentials(new AuthScope(null, null, -1, null ,null),
-                new UsernamePasswordCredentials("test", "stuff".toCharArray()));
-        context.setCredentialsProvider(credsProvider);
+        context.setCredentialsProvider(CredentialsProviderBuilder.create()
+                .add(target, "test", "stuff".toCharArray())
+                .build());
 
         final HttpGet httpget = new HttpGet("/");
         final ClassicHttpResponse response1 = this.httpclient.execute(target, httpget, context);
@@ -587,9 +584,9 @@ public class TestClientAuthentication extends LocalServerTestBase {
                 });
 
         final HttpClientContext context = HttpClientContext.create();
-        final BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
-        credsProvider.setCredentials(new AuthScope(null, null, -1, null ,null),
-                new UsernamePasswordCredentials("test", "test".toCharArray()));
+        final CredentialsProvider credsProvider = CredentialsProviderBuilder.create()
+                .add(target, "test", "test".toCharArray())
+                .build();
         context.setCredentialsProvider(credsProvider);
 
         for (int i = 0; i < 2; i++) {

@@ -33,12 +33,11 @@ import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
 import org.apache.hc.client5.http.async.methods.SimpleRequestProducer;
 import org.apache.hc.client5.http.async.methods.SimpleResponseConsumer;
-import org.apache.hc.client5.http.auth.AuthScope;
-import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
-import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
+import org.apache.hc.client5.http.impl.auth.CredentialsProviderBuilder;
 import org.apache.hc.core5.concurrent.FutureCallback;
+import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.message.StatusLine;
 import org.apache.hc.core5.io.CloseMode;
 
@@ -49,12 +48,10 @@ import org.apache.hc.core5.io.CloseMode;
 public class AsyncClientAuthentication {
 
     public static void main(final String[] args) throws Exception {
-        final BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
-        credsProvider.setCredentials(
-                new AuthScope("httpbin.org", 80),
-                new UsernamePasswordCredentials("user", "passwd".toCharArray()));
         final CloseableHttpAsyncClient httpclient = HttpAsyncClients.custom()
-                .setDefaultCredentialsProvider(credsProvider)
+                .setDefaultCredentialsProvider(CredentialsProviderBuilder.create()
+                        .add(new HttpHost("httpbin.org", 80), "user", "passwd".toCharArray())
+                        .build())
                 .build();
         httpclient.start();
 

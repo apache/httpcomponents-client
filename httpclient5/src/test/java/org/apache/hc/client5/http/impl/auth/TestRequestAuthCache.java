@@ -31,6 +31,7 @@ import org.apache.hc.client5.http.auth.AuthCache;
 import org.apache.hc.client5.http.auth.AuthExchange;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.Credentials;
+import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.protocol.RequestAuthCache;
@@ -52,14 +53,13 @@ public class TestRequestAuthCache {
     private AuthScope authscope2;
     private BasicScheme authscheme1;
     private BasicScheme authscheme2;
-    private BasicCredentialsProvider credProvider;
+    private CredentialsProvider credProvider;
 
     @Before
     public void setUp() {
         this.target = new HttpHost("localhost", 80);
         this.proxy = new HttpHost("localhost", 8080);
 
-        this.credProvider = new BasicCredentialsProvider();
         this.creds1 = new UsernamePasswordCredentials("user1", "secret1".toCharArray());
         this.creds2 = new UsernamePasswordCredentials("user2", "secret2".toCharArray());
         this.authscope1 = new AuthScope(this.target);
@@ -67,8 +67,10 @@ public class TestRequestAuthCache {
         this.authscheme1 = new BasicScheme();
         this.authscheme2 = new BasicScheme();
 
-        this.credProvider.setCredentials(this.authscope1, this.creds1);
-        this.credProvider.setCredentials(this.authscope2, this.creds2);
+        this.credProvider = CredentialsProviderBuilder.create()
+                .add(this.authscope1, this.creds1)
+                .add(this.authscope2, this.creds2)
+                .build();
     }
 
     @Test

@@ -26,50 +26,27 @@
  */
 package org.apache.hc.client5.http.impl.auth;
 
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.Credentials;
-import org.apache.hc.client5.http.auth.CredentialsStore;
-import org.apache.hc.core5.annotation.Contract;
-import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.core5.http.protocol.HttpContext;
-import org.apache.hc.core5.util.Args;
 
-/**
- * Default implementation of {@link CredentialsStore}.
- *
- * @since 4.0
- */
-@Contract(threading = ThreadingBehavior.SAFE)
-public class BasicCredentialsProvider implements CredentialsStore {
+final class FixedCredentialsProvider implements CredentialsProvider {
 
-    private final ConcurrentHashMap<AuthScope, Credentials> credMap;
+    private final Map<AuthScope, Credentials> credMap;
 
-    /**
-     * Default constructor.
-     */
-    public BasicCredentialsProvider() {
+    public FixedCredentialsProvider(final Map<AuthScope, Credentials> credMap) {
         super();
-        this.credMap = new ConcurrentHashMap<>();
-    }
-
-    @Override
-    public void setCredentials(
-            final AuthScope authScope,
-            final Credentials credentials) {
-        Args.notNull(authScope, "Authentication scope");
-        credMap.put(authScope, credentials);
+        this.credMap = Collections.unmodifiableMap(new HashMap<>(credMap));
     }
 
     @Override
     public Credentials getCredentials(final AuthScope authScope, final HttpContext context) {
         return CredentialsMatcher.matchCredentials(this.credMap, authScope);
-    }
-
-    @Override
-    public void clear() {
-        this.credMap.clear();
     }
 
     @Override

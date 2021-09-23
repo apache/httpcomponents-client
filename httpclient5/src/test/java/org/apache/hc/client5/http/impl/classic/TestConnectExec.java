@@ -35,15 +35,15 @@ import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.RouteInfo;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.ChallengeType;
+import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
-import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecRuntime;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.entity.EntityBuilder;
 import org.apache.hc.client5.http.impl.TunnelRefusedException;
-import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
 import org.apache.hc.client5.http.impl.auth.BasicScheme;
+import org.apache.hc.client5.http.impl.auth.CredentialsProviderBuilder;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
@@ -238,9 +238,9 @@ public class TestConnectExec {
                 .build());
         final ClassicHttpResponse response2 = new BasicClassicHttpResponse(200, "OK");
 
-        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        credentialsProvider.setCredentials(new AuthScope(proxy), new UsernamePasswordCredentials("user", "pass".toCharArray()));
-        context.setCredentialsProvider(credentialsProvider);
+        context.setCredentialsProvider(CredentialsProviderBuilder.create()
+                .add(new AuthScope(proxy), "user", "pass".toCharArray())
+                .build());
 
         final ConnectionState connectionState = new ConnectionState();
         Mockito.doAnswer(connectionState.connectAnswer()).when(execRuntime).connectEndpoint(Mockito.any());
@@ -279,8 +279,9 @@ public class TestConnectExec {
                 .build());
         final ClassicHttpResponse response2 = new BasicClassicHttpResponse(200, "OK");
 
-        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        credentialsProvider.setCredentials(new AuthScope(proxy), new UsernamePasswordCredentials("user", "pass".toCharArray()));
+        final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
+                .add(new AuthScope(proxy), "user", "pass".toCharArray())
+                .build();
         context.setCredentialsProvider(credentialsProvider);
 
         final ConnectionState connectionState = new ConnectionState();

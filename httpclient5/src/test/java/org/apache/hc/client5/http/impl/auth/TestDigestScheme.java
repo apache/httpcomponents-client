@@ -42,10 +42,9 @@ import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.AuthenticationException;
 import org.apache.hc.client5.http.auth.ChallengeType;
-import org.apache.hc.client5.http.auth.Credentials;
+import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.MalformedChallengeException;
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
-import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HeaderElement;
@@ -96,10 +95,9 @@ public class TestDigestScheme {
     public void testDigestAuthenticationWithDefaultCreds() throws Exception {
         final HttpRequest request = new BasicHttpRequest("Simple", "/");
         final HttpHost host = new HttpHost("somehost", 80);
-        final AuthScope authScope = new AuthScope(host, "realm1", null);
-        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        final Credentials creds = new UsernamePasswordCredentials("username","password".toCharArray());
-        credentialsProvider.setCredentials(authScope, creds);
+        final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
+                .add(new AuthScope(host, "realm1", null), "username", "password".toCharArray())
+                .build();
 
         final String challenge = StandardAuthScheme.DIGEST + " realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\"";
         final AuthChallenge authChallenge = parse(challenge);
@@ -123,10 +121,9 @@ public class TestDigestScheme {
     public void testDigestAuthentication() throws Exception {
         final HttpRequest request = new BasicHttpRequest("Simple", "/");
         final HttpHost host = new HttpHost("somehost", 80);
-        final AuthScope authScope = new AuthScope(host, "realm1", null);
-        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        final Credentials creds = new UsernamePasswordCredentials("username","password".toCharArray());
-        credentialsProvider.setCredentials(authScope, creds);
+        final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
+                .add(new AuthScope(host, "realm1", null), "username", "password".toCharArray())
+                .build();
 
         final String challenge = StandardAuthScheme.DIGEST + " realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\"";
         final AuthChallenge authChallenge = parse(challenge);
@@ -147,10 +144,9 @@ public class TestDigestScheme {
     @Test
     public void testDigestAuthenticationInvalidInput() throws Exception {
         final HttpHost host = new HttpHost("somehost", 80);
-        final AuthScope authScope = new AuthScope(host, "realm1", null);
-        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        final Credentials creds = new UsernamePasswordCredentials("username","password".toCharArray());
-        credentialsProvider.setCredentials(authScope, creds);
+        final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
+                .add(new AuthScope(host, "realm1", null), "username", "password".toCharArray())
+                .build();
 
         final String challenge = StandardAuthScheme.DIGEST + " realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\"";
         final AuthChallenge authChallenge = parse(challenge);
@@ -169,10 +165,9 @@ public class TestDigestScheme {
     public void testDigestAuthenticationWithSHA() throws Exception {
         final HttpRequest request = new BasicHttpRequest("Simple", "/");
         final HttpHost host = new HttpHost("somehost", 80);
-        final AuthScope authScope = new AuthScope(host, "realm1", null);
-        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        final Credentials creds = new UsernamePasswordCredentials("username","password".toCharArray());
-        credentialsProvider.setCredentials(authScope, creds);
+        final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
+                .add(new AuthScope(host, "realm1", null), "username", "password".toCharArray())
+                .build();
 
         final String challenge = StandardAuthScheme.DIGEST + " realm=\"realm1\", " +
                 "nonce=\"f2a3f18799759d4f1a1c068b92b573cb\", " +
@@ -196,10 +191,9 @@ public class TestDigestScheme {
     public void testDigestAuthenticationWithQueryStringInDigestURI() throws Exception {
         final HttpRequest request = new BasicHttpRequest("Simple", "/?param=value");
         final HttpHost host = new HttpHost("somehost", 80);
-        final AuthScope authScope = new AuthScope(host, "realm1", null);
-        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        final Credentials creds = new UsernamePasswordCredentials("username","password".toCharArray());
-        credentialsProvider.setCredentials(authScope, creds);
+        final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
+                .add(new AuthScope(host, "realm1", null), "username", "password".toCharArray())
+                .build();
 
         final String challenge = StandardAuthScheme.DIGEST + " realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\"";
         final AuthChallenge authChallenge = parse(challenge);
@@ -221,10 +215,9 @@ public class TestDigestScheme {
     public void testDigestAuthenticationNoRealm() throws Exception {
         final HttpRequest request = new BasicHttpRequest("Simple", "/");
         final HttpHost host = new HttpHost("somehost", 80);
-        final AuthScope authScope = new AuthScope(host, "realm1", null);
-        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        final Credentials creds = new UsernamePasswordCredentials("username","password".toCharArray());
-        credentialsProvider.setCredentials(authScope, creds);
+        final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
+                .add(new AuthScope(host, "realm1", null), "username", "password".toCharArray())
+                .build();
 
         final String challenge = StandardAuthScheme.DIGEST + " no-realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\"";
         final AuthChallenge authChallenge = parse(challenge);
@@ -240,10 +233,9 @@ public class TestDigestScheme {
     public void testDigestAuthenticationNoNonce() throws Exception {
         final HttpRequest request = new BasicHttpRequest("Simple", "/");
         final HttpHost host = new HttpHost("somehost", 80);
-        final AuthScope authScope = new AuthScope(host, "realm1", null);
-        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        final Credentials creds = new UsernamePasswordCredentials("username","password".toCharArray());
-        credentialsProvider.setCredentials(authScope, creds);
+        final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
+                .add(new AuthScope(host, "realm1", null), "username", "password".toCharArray())
+                .build();
 
         final String challenge = StandardAuthScheme.DIGEST + " realm=\"realm1\", no-nonce=\"f2a3f18799759d4f1a1c068b92b573cb\"";
         final AuthChallenge authChallenge = parse(challenge);
@@ -269,10 +261,9 @@ public class TestDigestScheme {
 
         final HttpRequest request = new BasicHttpRequest("Simple", "/");
         final HttpHost host = new HttpHost("somehost", 80);
-        final AuthScope authScope = new AuthScope(host, realm, null);
-        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        final Credentials creds = new UsernamePasswordCredentials(username, password.toCharArray());
-        credentialsProvider.setCredentials(authScope, creds);
+        final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
+                .add(new AuthScope(host, realm, null), username, password.toCharArray())
+                .build();
 
         final String challenge=StandardAuthScheme.DIGEST + " realm=\"" + realm + "\", "
             + "nonce=\"" + nonce + "\", "
@@ -320,10 +311,9 @@ public class TestDigestScheme {
 
         final HttpRequest request = new BasicHttpRequest("Simple", "/");
         final HttpHost host = new HttpHost("somehost", 80);
-        final AuthScope authScope = new AuthScope(host, realm, null);
-        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        final Credentials creds = new UsernamePasswordCredentials(username, password.toCharArray());
-        credentialsProvider.setCredentials(authScope, creds);
+        final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
+                .add(new AuthScope(host, realm, null), username, password.toCharArray())
+                .build();
 
         final String challenge=StandardAuthScheme.DIGEST + " realm=\"" + realm + "\", "
             + "nonce=\"" + nonce + "\", "
@@ -365,10 +355,9 @@ public class TestDigestScheme {
 
         final HttpRequest request = new BasicHttpRequest("Simple", "/");
         final HttpHost host = new HttpHost("somehost", 80);
-        final AuthScope authScope = new AuthScope(host, realm, null);
-        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        final Credentials creds = new UsernamePasswordCredentials(username, password.toCharArray());
-        credentialsProvider.setCredentials(authScope, creds);
+        final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
+                .add(new AuthScope(host, realm, null), username, password.toCharArray())
+                .build();
 
         final String challenge=StandardAuthScheme.DIGEST + " realm=\"" + realm + "\", "
             + "nonce=\"" + nonce + "\", "
@@ -401,10 +390,9 @@ public class TestDigestScheme {
 
         final HttpRequest request = new BasicHttpRequest("Simple", "/");
         final HttpHost host = new HttpHost("somehost", 80);
-        final AuthScope authScope = new AuthScope(host, realm, null);
-        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        final Credentials creds = new UsernamePasswordCredentials(username, password.toCharArray());
-        credentialsProvider.setCredentials(authScope, creds);
+        final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
+                .add(new AuthScope(host, realm, null), username, password.toCharArray())
+                .build();
 
         final String challenge=StandardAuthScheme.DIGEST + " realm=\"" + realm + "\", "
             + "nonce=\"" + nonce + "\", "
@@ -452,10 +440,9 @@ public class TestDigestScheme {
     public void testDigestNouceCount() throws Exception {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         final HttpHost host = new HttpHost("somehost", 80);
-        final AuthScope authScope = new AuthScope(host, "realm1", null);
-        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        final Credentials creds = new UsernamePasswordCredentials("username","password".toCharArray());
-        credentialsProvider.setCredentials(authScope, creds);
+        final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
+                .add(new AuthScope(host, "realm1", null), "username", "password".toCharArray())
+                .build();
 
         final String challenge1 = StandardAuthScheme.DIGEST + " realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\", qop=auth";
         final AuthChallenge authChallenge1 = parse(challenge1);
@@ -496,11 +483,10 @@ public class TestDigestScheme {
     @Test
     public void testDigestMD5SessA1AndCnonceConsistency() throws Exception {
         final HttpHost host = new HttpHost("somehost", 80);
-        final AuthScope authScope = new AuthScope(host, "subnet.domain.com", null);
-        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
         final HttpRequest request = new BasicHttpRequest("GET", "/");
-        final Credentials creds = new UsernamePasswordCredentials("username","password".toCharArray());
-        credentialsProvider.setCredentials(authScope, creds);
+        final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
+                .add(new AuthScope(host, "subnet.domain.com", null), "username", "password".toCharArray())
+                .build();
 
         final String challenge1 = StandardAuthScheme.DIGEST + " qop=\"auth\", algorithm=MD5-sess, nonce=\"1234567890abcdef\", " +
                 "charset=utf-8, realm=\"subnet.domain.com\"";
@@ -579,10 +565,9 @@ public class TestDigestScheme {
         final ClassicHttpRequest request = new BasicClassicHttpRequest("Post", "/");
         request.setEntity(new StringEntity("abc\u00e4\u00f6\u00fcabc", StandardCharsets.ISO_8859_1));
         final HttpHost host = new HttpHost("somehost", 80);
-        final AuthScope authScope = new AuthScope(host, "realm1", null);
-        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        final Credentials creds = new UsernamePasswordCredentials("username","password".toCharArray());
-        credentialsProvider.setCredentials(authScope, creds);
+        final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
+                .add(new AuthScope(host, "realm1", null), "username", "password".toCharArray())
+                .build();
 
         final String challenge = StandardAuthScheme.DIGEST + " realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\", " +
                 "qop=\"auth,auth-int\"";
@@ -606,10 +591,9 @@ public class TestDigestScheme {
     public void testDigestAuthenticationQopAuthIntNullEntity() throws Exception {
         final HttpRequest request = new BasicHttpRequest("Post", "/");
         final HttpHost host = new HttpHost("somehost", 80);
-        final AuthScope authScope = new AuthScope(host, "realm1", null);
-        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        final Credentials creds = new UsernamePasswordCredentials("username","password".toCharArray());
-        credentialsProvider.setCredentials(authScope, creds);
+        final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
+                .add(new AuthScope(host, "realm1", null), "username", "password".toCharArray())
+                .build();
 
         final String challenge = StandardAuthScheme.DIGEST + " realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\", " +
                 "qop=\"auth-int\"";
@@ -634,10 +618,9 @@ public class TestDigestScheme {
         final ClassicHttpRequest request = new BasicClassicHttpRequest("Post", "/");
         request.setEntity(new InputStreamEntity(new ByteArrayInputStream(new byte[] {'a'}), -1, ContentType.DEFAULT_TEXT));
         final HttpHost host = new HttpHost("somehost", 80);
-        final AuthScope authScope = new AuthScope(host, "realm1", null);
-        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        final Credentials creds = new UsernamePasswordCredentials("username","password".toCharArray());
-        credentialsProvider.setCredentials(authScope, creds);
+        final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
+                .add(new AuthScope(host, "realm1", null), "username", "password".toCharArray())
+                .build();
 
         final String challenge = StandardAuthScheme.DIGEST + " realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\", " +
                 "qop=\"auth,auth-int\"";
@@ -661,10 +644,9 @@ public class TestDigestScheme {
     public void testParameterCaseSensitivity() throws Exception {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         final HttpHost host = new HttpHost("somehost", 80);
-        final AuthScope authScope = new AuthScope(host, "-", null);
-        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        final Credentials creds = new UsernamePasswordCredentials("username","password".toCharArray());
-        credentialsProvider.setCredentials(authScope, creds);
+        final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
+                .add(new AuthScope(host, "-", null), "username", "password".toCharArray())
+                .build();
 
         final String challenge = StandardAuthScheme.DIGEST + " Realm=\"-\", " +
                 "nonce=\"YjYuNGYyYmJhMzUuY2I5ZDhlZDE5M2ZlZDM 1Mjk3NGJkNTIyYjgyNTcwMjQ=\", " +
@@ -683,10 +665,9 @@ public class TestDigestScheme {
         final ClassicHttpRequest request = new BasicClassicHttpRequest("Post", "/");
         request.setEntity(new InputStreamEntity(new ByteArrayInputStream(new byte[] {'a'}), -1, ContentType.DEFAULT_TEXT));
         final HttpHost host = new HttpHost("somehost", 80);
-        final AuthScope authScope = new AuthScope(host, "realm1", null);
-        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        final Credentials creds = new UsernamePasswordCredentials("username","password".toCharArray());
-        credentialsProvider.setCredentials(authScope, creds);
+        final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
+                .add(new AuthScope(host, "realm1", null), "username", "password".toCharArray())
+                .build();
 
         final String challenge = StandardAuthScheme.DIGEST + " realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\", " +
                 "qop=\"auth-int\"";

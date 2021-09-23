@@ -38,11 +38,10 @@ import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
-import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.config.RequestConfig;
-import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
 import org.apache.hc.client5.http.impl.auth.BasicScheme;
 import org.apache.hc.client5.http.impl.auth.BasicSchemeFactory;
+import org.apache.hc.client5.http.impl.auth.CredentialsProviderBuilder;
 import org.apache.hc.client5.http.impl.auth.DigestScheme;
 import org.apache.hc.client5.http.impl.auth.DigestSchemeFactory;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
@@ -103,11 +102,9 @@ public class TestAuthenticationStrategy {
             .register(StandardAuthScheme.BASIC, BasicSchemeFactory.INSTANCE)
             .register(StandardAuthScheme.DIGEST, DigestSchemeFactory.INSTANCE).build();
         context.setAuthSchemeRegistry(authSchemeRegistry);
-
-        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        credentialsProvider.setCredentials(new AuthScope("somehost", 80),
-                new UsernamePasswordCredentials("user", "pwd".toCharArray()));
-        context.setCredentialsProvider(credentialsProvider);
+        context.setCredentialsProvider(CredentialsProviderBuilder.create()
+                .add(new AuthScope("somehost", 80), "user", "pwd".toCharArray())
+                .build());
 
         final List<AuthScheme> authSchemes = authStrategy.select(ChallengeType.TARGET, challenges, context);
         Assert.assertNotNull(authSchemes);
@@ -139,10 +136,9 @@ public class TestAuthenticationStrategy {
         context.setAuthSchemeRegistry(authSchemeRegistry);
         context.setRequestConfig(config);
 
-        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        credentialsProvider.setCredentials(new AuthScope("somehost", 80),
-                new UsernamePasswordCredentials("user", "pwd".toCharArray()));
-        context.setCredentialsProvider(credentialsProvider);
+        context.setCredentialsProvider(CredentialsProviderBuilder.create()
+                .add(new AuthScope("somehost", 80), "user", "pwd".toCharArray())
+                .build());
 
         final List<AuthScheme> authSchemes = authStrategy.select(ChallengeType.TARGET, challenges, context);
         Assert.assertNotNull(authSchemes);

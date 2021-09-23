@@ -47,7 +47,7 @@ import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.cookie.BasicCookieStore;
 import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.client5.http.cookie.StandardCookieSpec;
-import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
+import org.apache.hc.client5.http.impl.auth.CredentialsProviderBuilder;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
@@ -194,7 +194,8 @@ public class ClientConfiguration {
         // Use custom cookie store if necessary.
         final CookieStore cookieStore = new BasicCookieStore();
         // Use custom credentials provider if necessary.
-        final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+        final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
+                .build();
         // Create global request configuration
         final RequestConfig defaultRequestConfig = RequestConfig.custom()
             .setCookieSpec(StandardCookieSpec.STRICT)

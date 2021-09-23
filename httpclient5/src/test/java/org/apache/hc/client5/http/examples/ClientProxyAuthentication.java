@@ -27,10 +27,10 @@
 package org.apache.hc.client5.http.examples;
 
 import org.apache.hc.client5.http.auth.AuthScope;
-import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
+import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.config.RequestConfig;
-import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
+import org.apache.hc.client5.http.impl.auth.CredentialsProviderBuilder;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
@@ -44,18 +44,16 @@ import org.apache.hc.core5.http.io.entity.EntityUtils;
 public class ClientProxyAuthentication {
 
     public static void main(final String[] args) throws Exception {
-        final BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
-        credsProvider.setCredentials(
-                new AuthScope("localhost", 8888),
-                new UsernamePasswordCredentials("squid", "squid".toCharArray()));
-        credsProvider.setCredentials(
-                new AuthScope("httpbin.org", 80),
-                new UsernamePasswordCredentials("user", "passwd".toCharArray()));
+        final CredentialsProvider credsProvider = CredentialsProviderBuilder.create()
+                .add(new AuthScope("localhost", 8888), "squid", "squid".toCharArray())
+                .add(new AuthScope("httpbin.org", 80), "user", "passwd".toCharArray())
+                .build();
         final HttpHost target = new HttpHost("http", "httpbin.org", 80);
         final HttpHost proxy = new HttpHost("localhost", 8888);
         try (final CloseableHttpClient httpclient = HttpClients.custom()
                 .setProxy(proxy)
-                .setDefaultCredentialsProvider(credsProvider).build()) {
+                .setDefaultCredentialsProvider(credsProvider)
+                .build()) {
 
             final RequestConfig config = RequestConfig.custom()
                 .build();

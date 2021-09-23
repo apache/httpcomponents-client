@@ -26,55 +26,36 @@
  */
 package org.apache.hc.client5.http.impl.auth;
 
-import java.util.concurrent.ConcurrentHashMap;
-
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.Credentials;
-import org.apache.hc.client5.http.auth.CredentialsStore;
-import org.apache.hc.core5.annotation.Contract;
-import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.client5.http.auth.CredentialsProvider;
+import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.Args;
 
-/**
- * Default implementation of {@link CredentialsStore}.
- *
- * @since 4.0
- */
-@Contract(threading = ThreadingBehavior.SAFE)
-public class BasicCredentialsProvider implements CredentialsStore {
+final class SingleCredentialsProvider implements CredentialsProvider {
 
-    private final ConcurrentHashMap<AuthScope, Credentials> credMap;
+    private final AuthScope authScope;
+    private final Credentials credentials;
 
-    /**
-     * Default constructor.
-     */
-    public BasicCredentialsProvider() {
+    public SingleCredentialsProvider(final AuthScope authScope, final Credentials credentials) {
         super();
-        this.credMap = new ConcurrentHashMap<>();
+        this.authScope = Args.notNull(authScope, "Auth scope");
+        this.credentials = credentials;
     }
 
-    @Override
-    public void setCredentials(
-            final AuthScope authScope,
-            final Credentials credentials) {
-        Args.notNull(authScope, "Authentication scope");
-        credMap.put(authScope, credentials);
+    public SingleCredentialsProvider(final AuthScope authScope, final String username, final char[] password) {
+        this(authScope, new UsernamePasswordCredentials(username, password));
     }
 
     @Override
     public Credentials getCredentials(final AuthScope authScope, final HttpContext context) {
-        return CredentialsMatcher.matchCredentials(this.credMap, authScope);
-    }
-
-    @Override
-    public void clear() {
-        this.credMap.clear();
+        return this.authScope.match(authScope) >= 0 ? credentials : null;
     }
 
     @Override
     public String toString() {
-        return credMap.keySet().toString();
+        return authScope.toString();
     }
 
 }

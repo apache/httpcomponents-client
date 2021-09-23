@@ -41,7 +41,6 @@ import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
-import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecRuntime;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
@@ -49,6 +48,7 @@ import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.entity.EntityBuilder;
 import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
 import org.apache.hc.client5.http.impl.auth.BasicScheme;
+import org.apache.hc.client5.http.impl.auth.CredentialsProviderBuilder;
 import org.apache.hc.client5.http.impl.auth.NTLMScheme;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.http.ClassicHttpRequest;
@@ -211,9 +211,9 @@ public class TestProtocolExec {
                 .setStream(inStream2)
                 .build());
 
-        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        credentialsProvider.setCredentials(new AuthScope(target), new UsernamePasswordCredentials("user", "pass".toCharArray()));
-        context.setCredentialsProvider(credentialsProvider);
+        context.setCredentialsProvider(CredentialsProviderBuilder.create()
+                .add(new AuthScope(target), "user", "pass".toCharArray())
+                .build());
 
         Mockito.when(chain.proceed(
                 Mockito.same(request),
@@ -257,9 +257,9 @@ public class TestProtocolExec {
         authExchange.select(new NTLMScheme());
         context.setAuthExchange(target, authExchange);
 
-        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        credentialsProvider.setCredentials(new AuthScope(target), new UsernamePasswordCredentials("user", "pass".toCharArray()));
-        context.setCredentialsProvider(credentialsProvider);
+        context.setCredentialsProvider(CredentialsProviderBuilder.create()
+                .add(new AuthScope(target), "user", "pass".toCharArray())
+                .build());
 
         Mockito.when(chain.proceed(
                 Mockito.same(request),
@@ -297,9 +297,9 @@ public class TestProtocolExec {
                 .setStream(inStream1)
                 .build());
 
-        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        credentialsProvider.setCredentials(new AuthScope(target), new UsernamePasswordCredentials("user", "pass".toCharArray()));
-        context.setCredentialsProvider(credentialsProvider);
+        context.setCredentialsProvider(CredentialsProviderBuilder.create()
+                .add(new AuthScope(target), "user", "pass".toCharArray())
+                .build());
 
         Mockito.when(chain.proceed(
                 Mockito.same(request),

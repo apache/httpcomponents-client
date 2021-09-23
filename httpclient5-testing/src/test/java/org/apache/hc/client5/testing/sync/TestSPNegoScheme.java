@@ -34,10 +34,11 @@ import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.Credentials;
+import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.KerberosConfig;
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
-import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
+import org.apache.hc.client5.http.impl.auth.CredentialsProviderBuilder;
 import org.apache.hc.client5.http.impl.auth.SPNegoScheme;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.core5.http.ClassicHttpRequest;
@@ -153,9 +154,9 @@ public class TestSPNegoScheme extends LocalServerTestBase {
         final HttpHost target = start();
 
         final AuthSchemeFactory nsf = new NegotiateSchemeFactoryWithMockGssManager();
-        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        final Credentials use_jaas_creds = new UseJaasCredentials();
-        credentialsProvider.setCredentials(new AuthScope(null, null, -1, null, null), use_jaas_creds);
+        final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
+                .add(new AuthScope(null, null, -1, null, null), new UseJaasCredentials())
+                .build();
 
         final Registry<AuthSchemeFactory> authSchemeRegistry = RegistryBuilder.<AuthSchemeFactory>create()
             .register(StandardAuthScheme.SPNEGO, nsf)
@@ -184,9 +185,9 @@ public class TestSPNegoScheme extends LocalServerTestBase {
 
         final AuthSchemeFactory nsf = new NegotiateSchemeFactoryWithMockGssManager();
 
-        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        final Credentials use_jaas_creds = new UseJaasCredentials();
-        credentialsProvider.setCredentials(new AuthScope(null, null, -1, null, null), use_jaas_creds);
+        final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
+                .add(new AuthScope(null, null, -1, null, null), new UseJaasCredentials())
+                .build();
 
         final Registry<AuthSchemeFactory> authSchemeRegistry = RegistryBuilder.<AuthSchemeFactory>create()
             .register(StandardAuthScheme.SPNEGO, nsf)

@@ -48,8 +48,8 @@ import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.DefaultAuthenticationStrategy;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
-import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
 import org.apache.hc.client5.http.impl.auth.BasicScheme;
+import org.apache.hc.client5.http.impl.auth.CredentialsProviderBuilder;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.testing.BasicTestAuthenticator;
 import org.apache.hc.client5.testing.auth.Authenticator;
@@ -298,11 +298,10 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
         });
         final HttpHost target = start();
 
-        final BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
-        credsProvider.setCredentials(new AuthScope(null, null, -1, null ,null),
-                new UsernamePasswordCredentials("test", "test".toCharArray()));
         final HttpClientContext context = HttpClientContext.create();
-        context.setCredentialsProvider(credsProvider);
+        context.setCredentialsProvider(CredentialsProviderBuilder.create()
+                        .add(target, "test", "test".toCharArray())
+                .build());
 
         final Future<SimpleHttpResponse> future1 = httpclient.execute(SimpleRequestBuilder.get()
                         .setHttpHost(target)

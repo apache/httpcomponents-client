@@ -28,11 +28,11 @@ package org.apache.hc.client5.testing.sync;
 
 import java.io.IOException;
 
-import org.apache.hc.client5.http.auth.StandardAuthScheme;
-import org.apache.hc.client5.http.auth.AuthScope;
+import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.NTCredentials;
+import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
-import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
+import org.apache.hc.client5.http.impl.auth.CredentialsProviderBuilder;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.http.ClassicHttpRequest;
@@ -71,9 +71,9 @@ public class TestClientAuthenticationFakeNTLM extends LocalServerTestBase {
 
         final HttpHost target = start();
 
-        final BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
-        credsProvider.setCredentials(new AuthScope(null, null, -1, null ,null),
-                new NTCredentials("test", "test".toCharArray(), null, null));
+        final CredentialsProvider credsProvider = CredentialsProviderBuilder.create()
+                .add(target, new NTCredentials("test", "test".toCharArray(), null, null))
+                .build();
 
         this.httpclient = HttpClients.custom()
                 .setDefaultCredentialsProvider(credsProvider)
@@ -118,9 +118,9 @@ public class TestClientAuthenticationFakeNTLM extends LocalServerTestBase {
                 "AGUAcgB2AGUAcgA="));
         final HttpHost target = start();
 
-        final BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
-        credsProvider.setCredentials(new AuthScope(null, null, -1, null ,null),
-                new NTCredentials("test", "test".toCharArray(), null, null));
+        final CredentialsProvider credsProvider = CredentialsProviderBuilder.create()
+                .add(target, new NTCredentials("test", "test".toCharArray(), null, null))
+                .build();
 
         this.httpclient = HttpClients.custom()
                 .setDefaultCredentialsProvider(credsProvider)
@@ -142,9 +142,9 @@ public class TestClientAuthenticationFakeNTLM extends LocalServerTestBase {
                 "AGUAcgB2AGUAcgACAAwARABvAG0AYQBpAG4AAQAMAFMAZQByAHYAZQByAAAAAAA="));
         final HttpHost target = start();
 
-        final BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
-        credsProvider.setCredentials(new AuthScope(null, null, -1, null ,null),
-                new NTCredentials("test", "test".toCharArray(), null, null));
+        final CredentialsProvider credsProvider = CredentialsProviderBuilder.create()
+                .add(target, new NTCredentials("test", "test".toCharArray(), null, null))
+                .build();
 
         this.httpclient = HttpClients.custom()
                 .setDefaultCredentialsProvider(credsProvider)
@@ -187,10 +187,9 @@ public class TestClientAuthenticationFakeNTLM extends LocalServerTestBase {
         final HttpHost target = start();
 
         final HttpClientContext context = HttpClientContext.create();
-        final BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
-        credsProvider.setCredentials(new AuthScope(null, null, -1, null ,null),
-                new NTCredentials("test", "test".toCharArray(), null, null));
-        context.setCredentialsProvider(credsProvider);
+        context.setCredentialsProvider(CredentialsProviderBuilder.create()
+                .add(target, new NTCredentials("test", "test".toCharArray(), null, null))
+                .build());
         final HttpGet httpget = new HttpGet("/");
 
         final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context);
@@ -208,10 +207,9 @@ public class TestClientAuthenticationFakeNTLM extends LocalServerTestBase {
         final HttpHost target = start();
 
         final HttpClientContext context = HttpClientContext.create();
-        final BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
-        credsProvider.setCredentials(new AuthScope(null, null, -1, null ,null),
-                new NTCredentials("test", "test".toCharArray(), null, null));
-        context.setCredentialsProvider(credsProvider);
+        context.setCredentialsProvider(CredentialsProviderBuilder.create()
+                .add(target, new NTCredentials("test", "test".toCharArray(), null, null))
+                .build());
         final HttpGet httpget = new HttpGet("/");
 
         final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context);

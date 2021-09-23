@@ -26,18 +26,19 @@
  */
 package org.apache.hc.client5.http.impl.auth;
 
-import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.Credentials;
+import org.apache.hc.client5.http.auth.CredentialsProvider;
+import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.core5.http.HttpHost;
 import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Simple tests for {@link BasicCredentialsProvider}.
+ * Tests for {@link org.apache.hc.client5.http.auth.CredentialsProvider} implementations.
  */
-public class TestBasicCredentialsProvider {
+public class TestCredentialsProviders {
 
     public final static Credentials CREDS1 =
         new UsernamePasswordCredentials("user1", "pass1".toCharArray());
@@ -153,6 +154,23 @@ public class TestBasicCredentialsProvider {
         got = state.getCredentials(new AuthScope("http", "somehost", 80, "someotherrealm", StandardAuthScheme.BASIC), null);
         expected = creds3;
         Assert.assertEquals(expected, got);
+    }
+
+    @Test
+    public void testSingleCredentialsProvider() {
+        final Credentials creds1 = new UsernamePasswordCredentials("name1", "pass1".toCharArray());
+        final CredentialsProvider credentialsProvider1 = new SingleCredentialsProvider(new AuthScope(null, null, -1, null, null), creds1);
+
+        Assert.assertEquals(creds1, credentialsProvider1.getCredentials(new AuthScope(null, null, -1, null, null), null));
+        Assert.assertEquals(creds1, credentialsProvider1.getCredentials(new AuthScope("http", "someotherhost", 80, "somerealm", StandardAuthScheme.BASIC), null));
+
+        final CredentialsProvider credentialsProvider2 = new SingleCredentialsProvider(new AuthScope(null, "somehost", 80, null, null), creds1);
+
+        Assert.assertEquals(creds1, credentialsProvider2.getCredentials(new AuthScope(null, null, -1, null, null), null));
+        Assert.assertEquals(creds1, credentialsProvider2.getCredentials(new AuthScope(null, "somehost", 80, null, null), null));
+        Assert.assertEquals(creds1, credentialsProvider2.getCredentials(new AuthScope("http", "somehost", 80, "somerealm", StandardAuthScheme.BASIC), null));
+        Assert.assertNull(credentialsProvider2.getCredentials(new AuthScope(null, "someotherhost", 80, null, null), null));
+        Assert.assertNull(credentialsProvider2.getCredentials(new AuthScope(null, "somehost", 8080, null, null), null));
     }
 
 }

@@ -28,10 +28,9 @@ package org.apache.hc.client5.http.examples;
 
 import org.apache.hc.client5.http.auth.AuthExchange;
 import org.apache.hc.client5.http.auth.AuthScheme;
-import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
-import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
+import org.apache.hc.client5.http.impl.auth.CredentialsProviderBuilder;
 import org.apache.hc.client5.http.impl.auth.DigestScheme;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
@@ -54,11 +53,9 @@ public class ClientPreemptiveDigestAuthentication {
             final HttpHost target = new HttpHost("http", "httpbin.org", 80);
 
             final HttpClientContext localContext = HttpClientContext.create();
-            final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-            credentialsProvider.setCredentials(
-                    new AuthScope(target),
-                    new UsernamePasswordCredentials("user", "passwd".toCharArray()));
-            localContext.setCredentialsProvider(credentialsProvider);
+            localContext.setCredentialsProvider(CredentialsProviderBuilder.create()
+                    .add(target, new UsernamePasswordCredentials("user", "passwd".toCharArray()))
+                    .build());
 
             final HttpGet httpget = new HttpGet("http://httpbin.org/digest-auth/auth/user/passwd");
 
