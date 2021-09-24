@@ -55,7 +55,6 @@ import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
 import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
@@ -63,7 +62,6 @@ import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.io.ModalCloseable;
-import org.apache.hc.core5.net.URIAuthority;
 import org.apache.hc.core5.util.Args;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -118,11 +116,7 @@ class InternalHttpClient extends CloseableHttpClient implements Configurable {
         this.closeables = closeables != null ?  new ConcurrentLinkedQueue<>(closeables) : null;
     }
 
-    private HttpRoute determineRoute(
-            final HttpHost host,
-            final HttpRequest request,
-            final HttpContext context) throws HttpException {
-        final HttpHost target = host != null ? host : RoutingSupport.determineHost(request);
+    private HttpRoute determineRoute(final HttpHost target, final HttpContext context) throws HttpException {
         return this.routePlanner.determineRoute(target, context);
     }
 
@@ -151,12 +145,6 @@ class InternalHttpClient extends CloseableHttpClient implements Configurable {
             final HttpContext context) throws IOException {
         Args.notNull(request, "HTTP request");
         try {
-            if (request.getScheme() == null && target != null) {
-                request.setScheme(target.getSchemeName());
-            }
-            if (request.getAuthority() == null && target != null) {
-                request.setAuthority(new URIAuthority(target));
-            }
             final HttpClientContext localcontext = HttpClientContext.adapt(
                     context != null ? context : new BasicHttpContext());
             RequestConfig config = null;
@@ -167,7 +155,9 @@ class InternalHttpClient extends CloseableHttpClient implements Configurable {
                 localcontext.setRequestConfig(config);
             }
             setupContext(localcontext);
-            final HttpRoute route = determineRoute(target, request, localcontext);
+            final HttpRoute route = determineRoute(
+                    target != null ? target : RoutingSupport.determineHost(request),
+                    localcontext);
             final String exchangeId = ExecSupport.getNextExchangeId();
             if (LOG.isDebugEnabled()) {
                 LOG.debug("{} preparing request execution", exchangeId);
