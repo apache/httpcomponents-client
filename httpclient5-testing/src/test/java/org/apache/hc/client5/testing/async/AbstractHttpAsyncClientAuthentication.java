@@ -27,8 +27,6 @@
 package org.apache.hc.client5.testing.async;
 
 import java.util.Collections;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -36,13 +34,9 @@ import org.apache.hc.client5.http.AuthenticationStrategy;
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
-import org.apache.hc.client5.http.auth.AuthChallenge;
-import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.client5.http.auth.AuthScope;
-import org.apache.hc.client5.http.auth.ChallengeType;
-import org.apache.hc.client5.http.auth.Credentials;
-import org.apache.hc.client5.http.auth.CredentialsStore;
+import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.config.RequestConfig;
@@ -69,13 +63,13 @@ import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.impl.HttpProcessors;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.nio.AsyncServerExchangeHandler;
-import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.protocol.HttpCoreContext;
 import org.apache.hc.core5.http2.config.H2Config;
 import org.apache.hc.core5.http2.impl.H2Processors;
 import org.apache.hc.core5.net.URIAuthority;
 import org.junit.Assert;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableHttpAsyncClient> extends AbstractIntegrationTestBase<T> {
 
@@ -110,42 +104,12 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
 
     abstract void setTargetAuthenticationStrategy(AuthenticationStrategy targetAuthStrategy);
 
-    static class TestCredentialsProvider implements CredentialsStore {
-
-        private final Credentials creds;
-        private AuthScope authscope;
-
-        TestCredentialsProvider(final Credentials creds) {
-            super();
-            this.creds = creds;
-        }
-
-        @Override
-        public void clear() {
-        }
-
-        @Override
-        public Credentials getCredentials(final AuthScope authscope, final HttpContext context) {
-            this.authscope = authscope;
-            return this.creds;
-        }
-
-        @Override
-        public void setCredentials(final AuthScope authscope, final Credentials credentials) {
-        }
-
-        public AuthScope getAuthScope() {
-            return this.authscope;
-        }
-
-    }
-
     @Test
     public void testBasicAuthenticationNoCreds() throws Exception {
         server.register("*", AsyncEchoHandler::new);
         final HttpHost target = start();
 
-        final TestCredentialsProvider credsProvider = new TestCredentialsProvider(null);
+        final CredentialsProvider credsProvider = Mockito.mock(CredentialsProvider.class);
         final HttpClientContext context = HttpClientContext.create();
         context.setCredentialsProvider(credsProvider);
 
@@ -157,9 +121,8 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
 
         Assert.assertNotNull(response);
         Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
-        final AuthScope authscope = credsProvider.getAuthScope();
-        Assert.assertNotNull(authscope);
-        Assert.assertEquals("test realm", authscope.getRealm());
+        Mockito.verify(credsProvider).getCredentials(
+                Mockito.eq(new AuthScope(target, "test realm", "basic")), Mockito.any());
     }
 
     @Test
@@ -167,8 +130,9 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
         server.register("*", AsyncEchoHandler::new);
         final HttpHost target = start();
 
-        final TestCredentialsProvider credsProvider = new TestCredentialsProvider(
-                new UsernamePasswordCredentials("test", "all-wrong".toCharArray()));
+        final CredentialsProvider credsProvider = Mockito.mock(CredentialsProvider.class);
+        Mockito.when(credsProvider.getCredentials(Mockito.any(), Mockito.any()))
+                .thenReturn(new UsernamePasswordCredentials("test", "all-wrong".toCharArray()));
         final HttpClientContext context = HttpClientContext.create();
         context.setCredentialsProvider(credsProvider);
 
@@ -180,9 +144,8 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
 
         Assert.assertNotNull(response);
         Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
-        final AuthScope authscope = credsProvider.getAuthScope();
-        Assert.assertNotNull(authscope);
-        Assert.assertEquals("test realm", authscope.getRealm());
+        Mockito.verify(credsProvider).getCredentials(
+                Mockito.eq(new AuthScope(target, "test realm", "basic")), Mockito.any());
     }
 
     @Test
@@ -190,8 +153,9 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
         server.register("*", AsyncEchoHandler::new);
         final HttpHost target = start();
 
-        final TestCredentialsProvider credsProvider = new TestCredentialsProvider(
-                new UsernamePasswordCredentials("test", "test".toCharArray()));
+        final CredentialsProvider credsProvider = Mockito.mock(CredentialsProvider.class);
+        Mockito.when(credsProvider.getCredentials(Mockito.any(), Mockito.any()))
+                .thenReturn(new UsernamePasswordCredentials("test", "test".toCharArray()));
         final HttpClientContext context = HttpClientContext.create();
         context.setCredentialsProvider(credsProvider);
 
@@ -204,9 +168,8 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
 
         Assert.assertNotNull(response);
         Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
-        final AuthScope authscope = credsProvider.getAuthScope();
-        Assert.assertNotNull(authscope);
-        Assert.assertEquals("test realm", authscope.getRealm());
+        Mockito.verify(credsProvider).getCredentials(
+                Mockito.eq(new AuthScope(target, "test realm", "basic")), Mockito.any());
     }
 
     @Test
@@ -214,8 +177,9 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
         server.register("*", AsyncEchoHandler::new);
         final HttpHost target = start();
 
-        final TestCredentialsProvider credsProvider = new TestCredentialsProvider(
-                new UsernamePasswordCredentials("test", "test".toCharArray()));
+        final CredentialsProvider credsProvider = Mockito.mock(CredentialsProvider.class);
+        Mockito.when(credsProvider.getCredentials(Mockito.any(), Mockito.any()))
+                .thenReturn(new UsernamePasswordCredentials("test", "test".toCharArray()));
         final HttpClientContext context = HttpClientContext.create();
         context.setCredentialsProvider(credsProvider);
         final Future<SimpleHttpResponse> future = httpclient.execute(
@@ -228,9 +192,8 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
 
         Assert.assertNotNull(response);
         Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
-        final AuthScope authscope = credsProvider.getAuthScope();
-        Assert.assertNotNull(authscope);
-        Assert.assertEquals("test realm", authscope.getRealm());
+        Mockito.verify(credsProvider).getCredentials(
+                Mockito.eq(new AuthScope(target, "test realm", "basic")), Mockito.any());
     }
 
     @Test
@@ -238,8 +201,9 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
         server.register("*", AsyncEchoHandler::new);
         final HttpHost target = start();
 
-        final TestCredentialsProvider credsProvider = new TestCredentialsProvider(
-                new UsernamePasswordCredentials("test", "all-wrong".toCharArray()));
+        final CredentialsProvider credsProvider = Mockito.mock(CredentialsProvider.class);
+        Mockito.when(credsProvider.getCredentials(Mockito.any(), Mockito.any()))
+                .thenReturn(new UsernamePasswordCredentials("test", "all-wrong".toCharArray()));
         final HttpClientContext context = HttpClientContext.create();
         context.setCredentialsProvider(credsProvider);
         context.setRequestConfig(RequestConfig.custom().setExpectContinueEnabled(true).build());
@@ -260,8 +224,9 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
         server.register("*", AsyncEchoHandler::new);
         final HttpHost target = start();
 
-        final TestCredentialsProvider credsProvider = new TestCredentialsProvider(
-                new UsernamePasswordCredentials("test", "test".toCharArray()));
+        final CredentialsProvider credsProvider = Mockito.mock(CredentialsProvider.class);
+        Mockito.when(credsProvider.getCredentials(Mockito.any(), Mockito.any()))
+                .thenReturn(new UsernamePasswordCredentials("test", "test".toCharArray()));
         final HttpClientContext context = HttpClientContext.create();
         context.setCredentialsProvider(credsProvider);
         context.setRequestConfig(RequestConfig.custom().setExpectContinueEnabled(true).build());
@@ -275,51 +240,34 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
 
         Assert.assertNotNull(response);
         Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
-        final AuthScope authscope = credsProvider.getAuthScope();
-        Assert.assertNotNull(authscope);
-        Assert.assertEquals("test realm", authscope.getRealm());
+        Mockito.verify(credsProvider).getCredentials(
+                Mockito.eq(new AuthScope(target, "test realm", "basic")), Mockito.any());
     }
 
     @Test
     public void testBasicAuthenticationCredentialsCaching() throws Exception {
         server.register("*", AsyncEchoHandler::new);
 
-        final AtomicLong count = new AtomicLong(0);
-        setTargetAuthenticationStrategy(new DefaultAuthenticationStrategy() {
-
-            @Override
-            public List<AuthScheme> select(
-                    final ChallengeType challengeType,
-                    final Map<String, AuthChallenge> challenges,
-                    final HttpContext context) {
-                count.incrementAndGet();
-                return super.select(challengeType, challenges, context);
-            }
-        });
+        final DefaultAuthenticationStrategy authStrategy = Mockito.spy(new DefaultAuthenticationStrategy());
+        setTargetAuthenticationStrategy(authStrategy);
         final HttpHost target = start();
 
         final HttpClientContext context = HttpClientContext.create();
         context.setCredentialsProvider(CredentialsProviderBuilder.create()
-                        .add(target, "test", "test".toCharArray())
+                .add(target, "test", "test".toCharArray())
                 .build());
 
-        final Future<SimpleHttpResponse> future1 = httpclient.execute(SimpleRequestBuilder.get()
-                        .setHttpHost(target)
-                        .setPath("/")
-                        .build(), context, null);
-        final HttpResponse response1 = future1.get();
-        Assert.assertNotNull(response1);
-        Assert.assertEquals(HttpStatus.SC_OK, response1.getCode());
+        for (int i = 0; i < 5; i++) {
+            final Future<SimpleHttpResponse> future = httpclient.execute(SimpleRequestBuilder.get()
+                    .setHttpHost(target)
+                    .setPath("/")
+                    .build(), context, null);
+            final HttpResponse response = future.get();
+            Assert.assertNotNull(response);
+            Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
+        }
 
-        final Future<SimpleHttpResponse> future2 = httpclient.execute(SimpleRequestBuilder.get()
-                        .setHttpHost(target)
-                        .setPath("/")
-                        .build(), context, null);
-        final HttpResponse response2 = future2.get();
-        Assert.assertNotNull(response2);
-        Assert.assertEquals(HttpStatus.SC_OK, response2.getCode());
-
-        Assert.assertEquals(1, count.get());
+        Mockito.verify(authStrategy).select(Mockito.any(), Mockito.any(), Mockito.any());
     }
 
     @Test
@@ -388,8 +336,9 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
     @Test
     public void testReauthentication() throws Exception {
         server.register("*", AsyncEchoHandler::new);
-        final TestCredentialsProvider credsProvider = new TestCredentialsProvider(
-                new UsernamePasswordCredentials("test", "test".toCharArray()));
+        final CredentialsProvider credsProvider = Mockito.mock(CredentialsProvider.class);
+        Mockito.when(credsProvider.getCredentials(Mockito.any(), Mockito.any()))
+                .thenReturn(new UsernamePasswordCredentials("test", "test".toCharArray()));
 
         final Registry<AuthSchemeFactory> authSchemeRegistry = RegistryBuilder.<AuthSchemeFactory>create()
                 .register("MyBasic", context -> new BasicScheme() {
@@ -462,8 +411,9 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
 
                 });
 
-        final TestCredentialsProvider credsProvider = new TestCredentialsProvider(
-                new UsernamePasswordCredentials("test", "test".toCharArray()));
+        final CredentialsProvider credsProvider = Mockito.mock(CredentialsProvider.class);
+        Mockito.when(credsProvider.getCredentials(Mockito.any(), Mockito.any()))
+                .thenReturn(new UsernamePasswordCredentials("test", "test".toCharArray()));
         final HttpClientContext context = HttpClientContext.create();
         context.setCredentialsProvider(credsProvider);
 
@@ -474,9 +424,8 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
         final SimpleHttpResponse response = future.get();
         Assert.assertNotNull(response);
         Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
-        final AuthScope authscope = credsProvider.getAuthScope();
-        Assert.assertNotNull(authscope);
-        Assert.assertEquals("test realm", authscope.getRealm());
+        Mockito.verify(credsProvider).getCredentials(
+                Mockito.eq(new AuthScope(target, "test realm", "basic")), Mockito.any());
     }
 
 }

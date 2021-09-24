@@ -36,6 +36,7 @@ import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.client5.http.auth.AuthScope;
+import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.RequestConfig;
@@ -63,6 +64,7 @@ import org.junit.Test;
 import org.junit.rules.ExternalResource;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import org.mockito.Mockito;
 
 @RunWith(Parameterized.class)
 public class TestHttp1ClientAuthentication extends AbstractHttpAsyncClientAuthentication<CloseableHttpAsyncClient> {
@@ -149,8 +151,9 @@ public class TestHttp1ClientAuthentication extends AbstractHttpAsyncClientAuthen
                 },
                 Http1Config.DEFAULT);
 
-        final TestCredentialsProvider credsProvider = new TestCredentialsProvider(
-                new UsernamePasswordCredentials("test", "test".toCharArray()));
+        final CredentialsProvider credsProvider = Mockito.mock(CredentialsProvider.class);
+        Mockito.when(credsProvider.getCredentials(Mockito.any(), Mockito.any()))
+                .thenReturn(new UsernamePasswordCredentials("test", "test".toCharArray()));
         final HttpClientContext context = HttpClientContext.create();
         context.setCredentialsProvider(credsProvider);
 
@@ -163,9 +166,8 @@ public class TestHttp1ClientAuthentication extends AbstractHttpAsyncClientAuthen
 
         Assert.assertNotNull(response);
         Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
-        final AuthScope authscope = credsProvider.getAuthScope();
-        Assert.assertNotNull(authscope);
-        Assert.assertEquals("test realm", authscope.getRealm());
+        Mockito.verify(credsProvider).getCredentials(
+                Mockito.eq(new AuthScope(target, "test realm", "basic")), Mockito.any());
     }
 
 }

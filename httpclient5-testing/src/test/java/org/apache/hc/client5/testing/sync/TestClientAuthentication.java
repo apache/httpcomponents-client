@@ -31,17 +31,12 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.hc.client5.http.auth.AuthCache;
-import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.client5.http.auth.AuthScope;
-import org.apache.hc.client5.http.auth.ChallengeType;
-import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
@@ -82,6 +77,7 @@ import org.apache.hc.core5.http.protocol.HttpCoreContext;
 import org.apache.hc.core5.net.URIAuthority;
 import org.junit.Assert;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 /**
  * Unit tests for automatic client authentication.
@@ -97,46 +93,24 @@ public class TestClientAuthentication extends LocalServerTestBase {
         return start(new BasicTestAuthenticator("test:test", "test realm"));
     }
 
-    static class TestCredentialsProvider implements CredentialsProvider {
-
-        private final Credentials creds;
-        private AuthScope authscope;
-
-        TestCredentialsProvider(final Credentials creds) {
-            super();
-            this.creds = creds;
-        }
-
-        @Override
-        public Credentials getCredentials(final AuthScope authscope, final HttpContext context) {
-            this.authscope = authscope;
-            return this.creds;
-        }
-
-        public AuthScope getAuthScope() {
-            return this.authscope;
-        }
-
-    }
-
     @Test
     public void testBasicAuthenticationNoCreds() throws Exception {
         this.server.registerHandler("*", new EchoHandler());
         final HttpHost target = start();
 
         final HttpClientContext context = HttpClientContext.create();
-        final TestCredentialsProvider credsProvider = new TestCredentialsProvider(null);
+        final CredentialsProvider credsProvider = Mockito.mock(CredentialsProvider.class);
         context.setCredentialsProvider(credsProvider);
         final HttpGet httpget = new HttpGet("/");
 
-        final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context);
-        final HttpEntity entity = response.getEntity();
-        Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
-        Assert.assertNotNull(entity);
-        EntityUtils.consume(entity);
-        final AuthScope authscope = credsProvider.getAuthScope();
-        Assert.assertNotNull(authscope);
-        Assert.assertEquals("test realm", authscope.getRealm());
+        try (final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context)) {
+            final HttpEntity entity = response.getEntity();
+            Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
+            Assert.assertNotNull(entity);
+            EntityUtils.consume(entity);
+        }
+        Mockito.verify(credsProvider).getCredentials(
+                Mockito.eq(new AuthScope(target, "test realm", "basic")), Mockito.any());
     }
 
     @Test
@@ -145,19 +119,20 @@ public class TestClientAuthentication extends LocalServerTestBase {
         final HttpHost target = start();
 
         final HttpClientContext context = HttpClientContext.create();
-        final TestCredentialsProvider credsProvider = new TestCredentialsProvider(
-                new UsernamePasswordCredentials("test", "all-wrong".toCharArray()));
+        final CredentialsProvider credsProvider = Mockito.mock(CredentialsProvider.class);
+        Mockito.when(credsProvider.getCredentials(Mockito.any(), Mockito.any()))
+                .thenReturn(new UsernamePasswordCredentials("test", "all-wrong".toCharArray()));
         context.setCredentialsProvider(credsProvider);
         final HttpGet httpget = new HttpGet("/");
 
-        final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context);
-        final HttpEntity entity = response.getEntity();
-        Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
-        Assert.assertNotNull(entity);
-        EntityUtils.consume(entity);
-        final AuthScope authscope = credsProvider.getAuthScope();
-        Assert.assertNotNull(authscope);
-        Assert.assertEquals("test realm", authscope.getRealm());
+        try (final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context)) {
+            final HttpEntity entity = response.getEntity();
+            Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
+            Assert.assertNotNull(entity);
+            EntityUtils.consume(entity);
+        }
+        Mockito.verify(credsProvider).getCredentials(
+                Mockito.eq(new AuthScope(target, "test realm", "basic")), Mockito.any());
     }
 
     @Test
@@ -165,20 +140,21 @@ public class TestClientAuthentication extends LocalServerTestBase {
         this.server.registerHandler("*", new EchoHandler());
         final HttpGet httpget = new HttpGet("/");
         final HttpClientContext context = HttpClientContext.create();
-        final TestCredentialsProvider credsProvider = new TestCredentialsProvider(
-                new UsernamePasswordCredentials("test", "test".toCharArray()));
+        final CredentialsProvider credsProvider = Mockito.mock(CredentialsProvider.class);
+        Mockito.when(credsProvider.getCredentials(Mockito.any(), Mockito.any()))
+                .thenReturn(new UsernamePasswordCredentials("test", "test".toCharArray()));
         context.setCredentialsProvider(credsProvider);
 
         final HttpHost target = start();
 
-        final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context);
-        final HttpEntity entity = response.getEntity();
-        Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
-        Assert.assertNotNull(entity);
-        EntityUtils.consume(entity);
-        final AuthScope authscope = credsProvider.getAuthScope();
-        Assert.assertNotNull(authscope);
-        Assert.assertEquals("test realm", authscope.getRealm());
+        try (final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context)) {
+            final HttpEntity entity = response.getEntity();
+            Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
+            Assert.assertNotNull(entity);
+            EntityUtils.consume(entity);
+        }
+        Mockito.verify(credsProvider).getCredentials(
+                Mockito.eq(new AuthScope(target, "test realm", "basic")), Mockito.any());
     }
 
     @Test
@@ -196,14 +172,16 @@ public class TestClientAuthentication extends LocalServerTestBase {
                         new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 } ),
                         -1, null));
         final HttpClientContext context = HttpClientContext.create();
-        final TestCredentialsProvider credsProvider = new TestCredentialsProvider(
-                new UsernamePasswordCredentials("test", "test".toCharArray()));
+        final CredentialsProvider credsProvider = Mockito.mock(CredentialsProvider.class);
+        Mockito.when(credsProvider.getCredentials(Mockito.any(), Mockito.any()))
+                .thenReturn(new UsernamePasswordCredentials("test", "test".toCharArray()));
         context.setCredentialsProvider(credsProvider);
 
-        final ClassicHttpResponse response = this.httpclient.execute(target, httpput, context);
-        final HttpEntity entity = response.getEntity();
-        Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
-        Assert.assertNotNull(entity);
+        try (final ClassicHttpResponse response = this.httpclient.execute(target, httpput, context)) {
+            final HttpEntity entity = response.getEntity();
+            Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
+            Assert.assertNotNull(entity);
+        }
     }
 
     @Test
@@ -220,15 +198,17 @@ public class TestClientAuthentication extends LocalServerTestBase {
                         -1, null));
 
         final HttpClientContext context = HttpClientContext.create();
-        final TestCredentialsProvider credsProvider = new TestCredentialsProvider(
-                new UsernamePasswordCredentials("test", "boom".toCharArray()));
+        final CredentialsProvider credsProvider = Mockito.mock(CredentialsProvider.class);
+        Mockito.when(credsProvider.getCredentials(Mockito.any(), Mockito.any()))
+                .thenReturn(new UsernamePasswordCredentials("test", "boom".toCharArray()));
         context.setCredentialsProvider(credsProvider);
 
-        final CloseableHttpResponse response = this.httpclient.execute(target, httpput, context);
-        final HttpEntity entity = response.getEntity();
-        Assert.assertEquals(401, response.getCode());
-        Assert.assertNotNull(entity);
-        EntityUtils.consume(entity);
+        try (final CloseableHttpResponse response = this.httpclient.execute(target, httpput, context)) {
+            final HttpEntity entity = response.getEntity();
+            Assert.assertEquals(401, response.getCode());
+            Assert.assertNotNull(entity);
+            EntityUtils.consume(entity);
+        }
     }
 
     @Test
@@ -240,18 +220,19 @@ public class TestClientAuthentication extends LocalServerTestBase {
         httppost.setEntity(new StringEntity("some important stuff", StandardCharsets.US_ASCII));
 
         final HttpClientContext context = HttpClientContext.create();
-        final TestCredentialsProvider credsProvider = new TestCredentialsProvider(
-                new UsernamePasswordCredentials("test", "test".toCharArray()));
+        final CredentialsProvider credsProvider = Mockito.mock(CredentialsProvider.class);
+        Mockito.when(credsProvider.getCredentials(Mockito.any(), Mockito.any()))
+                .thenReturn(new UsernamePasswordCredentials("test", "test".toCharArray()));
         context.setCredentialsProvider(credsProvider);
 
-        final ClassicHttpResponse response = this.httpclient.execute(target, httppost, context);
-        final HttpEntity entity = response.getEntity();
-        Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
-        Assert.assertNotNull(entity);
-        EntityUtils.consume(entity);
-        final AuthScope authscope = credsProvider.getAuthScope();
-        Assert.assertNotNull(authscope);
-        Assert.assertEquals("test realm", authscope.getRealm());
+        try (final ClassicHttpResponse response = this.httpclient.execute(target, httppost, context)) {
+            final HttpEntity entity = response.getEntity();
+            Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
+            Assert.assertNotNull(entity);
+            EntityUtils.consume(entity);
+        }
+        Mockito.verify(credsProvider).getCredentials(
+                Mockito.eq(new AuthScope(target, "test realm", "basic")), Mockito.any());
     }
 
     @Test
@@ -268,46 +249,23 @@ public class TestClientAuthentication extends LocalServerTestBase {
         context.setRequestConfig(RequestConfig.custom()
                 .setExpectContinueEnabled(false)
                 .build());
-        final TestCredentialsProvider credsProvider = new TestCredentialsProvider(
-                new UsernamePasswordCredentials("test", "test".toCharArray()));
+        final CredentialsProvider credsProvider = Mockito.mock(CredentialsProvider.class);
+        Mockito.when(credsProvider.getCredentials(Mockito.any(), Mockito.any()))
+                .thenReturn(new UsernamePasswordCredentials("test", "test".toCharArray()));
         context.setCredentialsProvider(credsProvider);
 
-        final CloseableHttpResponse response = this.httpclient.execute(target, httppost, context);
-        final HttpEntity entity = response.getEntity();
-        Assert.assertEquals(401, response.getCode());
-        Assert.assertNotNull(entity);
-        EntityUtils.consume(entity);
-    }
-
-    static class TestTargetAuthenticationStrategy extends DefaultAuthenticationStrategy {
-
-        private final AtomicLong count;
-
-        public TestTargetAuthenticationStrategy() {
-            super();
-            this.count = new AtomicLong();
+        try (final CloseableHttpResponse response = this.httpclient.execute(target, httppost, context)) {
+            final HttpEntity entity = response.getEntity();
+            Assert.assertEquals(401, response.getCode());
+            Assert.assertNotNull(entity);
+            EntityUtils.consume(entity);
         }
-
-        @Override
-        public List<AuthScheme> select(
-                final ChallengeType challengeType,
-                final Map<String, AuthChallenge> challenges,
-                final HttpContext context) {
-            final List<AuthScheme> authSchemes = super.select(challengeType, challenges, context);
-            this.count.incrementAndGet();
-            return authSchemes;
-        }
-
-        public long getCount() {
-            return this.count.get();
-        }
-
     }
 
     @Test
     public void testBasicAuthenticationCredentialsCaching() throws Exception {
         this.server.registerHandler("*", new EchoHandler());
-        final TestTargetAuthenticationStrategy authStrategy = new TestTargetAuthenticationStrategy();
+        final DefaultAuthenticationStrategy authStrategy = Mockito.spy(new DefaultAuthenticationStrategy());
         this.clientBuilder.setTargetAuthenticationStrategy(authStrategy);
 
         final HttpHost target = start();
@@ -317,21 +275,17 @@ public class TestClientAuthentication extends LocalServerTestBase {
                 .add(target, "test", "test".toCharArray())
                 .build());
 
-        final HttpGet httpget = new HttpGet("/");
+        for (int i = 0; i < 5; i++) {
+            final HttpGet httpget = new HttpGet("/");
+            try (final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context)) {
+                final HttpEntity entity1 = response.getEntity();
+                Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
+                Assert.assertNotNull(entity1);
+                EntityUtils.consume(entity1);
+            }
+        }
 
-        final ClassicHttpResponse response1 = this.httpclient.execute(target, httpget, context);
-        final HttpEntity entity1 = response1.getEntity();
-        Assert.assertEquals(HttpStatus.SC_OK, response1.getCode());
-        Assert.assertNotNull(entity1);
-        EntityUtils.consume(entity1);
-
-        final ClassicHttpResponse response2 = this.httpclient.execute(target, httpget, context);
-        final HttpEntity entity2 = response1.getEntity();
-        Assert.assertEquals(HttpStatus.SC_OK, response2.getCode());
-        Assert.assertNotNull(entity2);
-        EntityUtils.consume(entity2);
-
-        Assert.assertEquals(1, authStrategy.getCount());
+        Mockito.verify(authStrategy).select(Mockito.any(), Mockito.any(), Mockito.any());
     }
 
     @Test
@@ -363,7 +317,7 @@ public class TestClientAuthentication extends LocalServerTestBase {
 
         });
 
-        final TestTargetAuthenticationStrategy authStrategy = new TestTargetAuthenticationStrategy();
+        final DefaultAuthenticationStrategy authStrategy = Mockito.spy(new DefaultAuthenticationStrategy());
         final CredentialsProvider credsProvider = CredentialsProviderBuilder.create()
                 .add(new AuthScope(target, "this realm", null), "test", "this".toCharArray())
                 .add(new AuthScope(target, "that realm", null), "test", "that".toCharArray())
@@ -377,29 +331,32 @@ public class TestClientAuthentication extends LocalServerTestBase {
 
         final HttpGet httpget1 = new HttpGet("/this");
 
-        final ClassicHttpResponse response1 = this.httpclient.execute(target, httpget1, context);
-        final HttpEntity entity1 = response1.getEntity();
-        Assert.assertEquals(HttpStatus.SC_OK, response1.getCode());
-        Assert.assertNotNull(entity1);
-        EntityUtils.consume(entity1);
+        try (final ClassicHttpResponse response1 = this.httpclient.execute(target, httpget1, context)) {
+            final HttpEntity entity1 = response1.getEntity();
+            Assert.assertEquals(HttpStatus.SC_OK, response1.getCode());
+            Assert.assertNotNull(entity1);
+            EntityUtils.consume(entity1);
+        }
 
         final HttpGet httpget2 = new HttpGet("/this");
 
-        final ClassicHttpResponse response2 = this.httpclient.execute(target, httpget2, context);
-        final HttpEntity entity2 = response1.getEntity();
-        Assert.assertEquals(HttpStatus.SC_OK, response2.getCode());
-        Assert.assertNotNull(entity2);
-        EntityUtils.consume(entity2);
+        try (final ClassicHttpResponse response2 = this.httpclient.execute(target, httpget2, context)) {
+            final HttpEntity entity2 = response2.getEntity();
+            Assert.assertEquals(HttpStatus.SC_OK, response2.getCode());
+            Assert.assertNotNull(entity2);
+            EntityUtils.consume(entity2);
+        }
 
         final HttpGet httpget3 = new HttpGet("/that");
 
-        final ClassicHttpResponse response3 = this.httpclient.execute(target, httpget3, context);
-        final HttpEntity entity3 = response1.getEntity();
-        Assert.assertEquals(HttpStatus.SC_OK, response3.getCode());
-        Assert.assertNotNull(entity3);
-        EntityUtils.consume(entity3);
+        try (final ClassicHttpResponse response3 = this.httpclient.execute(target, httpget3, context)) {
+            final HttpEntity entity3 = response3.getEntity();
+            Assert.assertEquals(HttpStatus.SC_OK, response3.getCode());
+            Assert.assertNotNull(entity3);
+            EntityUtils.consume(entity3);
+        }
 
-        Assert.assertEquals(2, authStrategy.getCount());
+        Mockito.verify(authStrategy, Mockito.times(2)).select(Mockito.any(), Mockito.any(), Mockito.any());
     }
 
     @Test
@@ -409,11 +366,12 @@ public class TestClientAuthentication extends LocalServerTestBase {
         final HttpGet httpget = new HttpGet("http://test:test@" +  target.toHostString() + "/");
 
         final HttpClientContext context = HttpClientContext.create();
-        final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context);
-        final HttpEntity entity = response.getEntity();
-        Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
-        Assert.assertNotNull(entity);
-        EntityUtils.consume(entity);
+        try (final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context)) {
+            final HttpEntity entity = response.getEntity();
+            Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
+            Assert.assertNotNull(entity);
+            EntityUtils.consume(entity);
+        }
     }
 
     @Test
@@ -423,11 +381,12 @@ public class TestClientAuthentication extends LocalServerTestBase {
         final HttpGet httpget = new HttpGet("http://test:all-wrong@" +  target.toHostString() + "/");
 
         final HttpClientContext context = HttpClientContext.create();
-        final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context);
-        final HttpEntity entity = response.getEntity();
-        Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
-        Assert.assertNotNull(entity);
-        EntityUtils.consume(entity);
+        try (final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context)) {
+            final HttpEntity entity = response.getEntity();
+            Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
+            Assert.assertNotNull(entity);
+            EntityUtils.consume(entity);
+        }
     }
 
     @Test
@@ -455,39 +414,19 @@ public class TestClientAuthentication extends LocalServerTestBase {
         final HttpGet httpget = new HttpGet("/thatway");
         final HttpClientContext context = HttpClientContext.create();
 
-        final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context);
-        final HttpEntity entity = response.getEntity();
-        Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
-        Assert.assertNotNull(entity);
-        EntityUtils.consume(entity);
-    }
-
-    static class CountingAuthenticator extends BasicTestAuthenticator {
-
-        private final AtomicLong count;
-
-        public CountingAuthenticator(final String userToken, final String realm) {
-            super(userToken, realm);
-            this.count = new AtomicLong();
+        try (final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context)) {
+            final HttpEntity entity = response.getEntity();
+            Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
+            Assert.assertNotNull(entity);
+            EntityUtils.consume(entity);
         }
-
-        @Override
-        public boolean authenticate(final URIAuthority authority, final String requestUri, final String credentials) {
-            this.count.incrementAndGet();
-            return super.authenticate(authority, requestUri, credentials);
-        }
-
-        public long getCount() {
-            return this.count.get();
-        }
-
     }
 
     @Test
     public void testPreemptiveAuthentication() throws Exception {
         this.server.registerHandler("*", new EchoHandler());
-        final CountingAuthenticator countingAuthenticator = new CountingAuthenticator("test:test", "test realm");
-        final HttpHost target = start(countingAuthenticator);
+        final Authenticator authenticator = Mockito.spy(new BasicTestAuthenticator("test:test", "test realm"));
+        final HttpHost target = start(authenticator);
 
         final BasicScheme basicScheme = new BasicScheme();
         basicScheme.initPreemptive(new UsernamePasswordCredentials("test", "test".toCharArray()));
@@ -497,21 +436,21 @@ public class TestClientAuthentication extends LocalServerTestBase {
         context.setAuthCache(authCache);
 
         final HttpGet httpget = new HttpGet("/");
-        final ClassicHttpResponse response1 = this.httpclient.execute(target, httpget, context);
-        final HttpEntity entity1 = response1.getEntity();
-        Assert.assertEquals(HttpStatus.SC_OK, response1.getCode());
-        Assert.assertNotNull(entity1);
-        EntityUtils.consume(entity1);
+        try (final ClassicHttpResponse response1 = this.httpclient.execute(target, httpget, context)) {
+            final HttpEntity entity1 = response1.getEntity();
+            Assert.assertEquals(HttpStatus.SC_OK, response1.getCode());
+            Assert.assertNotNull(entity1);
+            EntityUtils.consume(entity1);
+        }
 
-        Assert.assertEquals(1, countingAuthenticator.getCount());
+        Mockito.verify(authenticator).authenticate(Mockito.any(), Mockito.any(), Mockito.any());
     }
 
     @Test
     public void testPreemptiveAuthenticationFailure() throws Exception {
         this.server.registerHandler("*", new EchoHandler());
-        final CountingAuthenticator countingAuthenticator = new CountingAuthenticator("test:test", "test realm");
-
-        final HttpHost target = start(countingAuthenticator);
+        final Authenticator authenticator = Mockito.spy(new BasicTestAuthenticator("test:test", "test realm"));
+        final HttpHost target = start(authenticator);
 
         final HttpClientContext context = HttpClientContext.create();
         final AuthCache authCache = new BasicAuthCache();
@@ -522,13 +461,14 @@ public class TestClientAuthentication extends LocalServerTestBase {
                 .build());
 
         final HttpGet httpget = new HttpGet("/");
-        final ClassicHttpResponse response1 = this.httpclient.execute(target, httpget, context);
-        final HttpEntity entity1 = response1.getEntity();
-        Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response1.getCode());
-        Assert.assertNotNull(entity1);
-        EntityUtils.consume(entity1);
+        try (final ClassicHttpResponse response1 = this.httpclient.execute(target, httpget, context)) {
+            final HttpEntity entity1 = response1.getEntity();
+            Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response1.getCode());
+            Assert.assertNotNull(entity1);
+            EntityUtils.consume(entity1);
+        }
 
-        Assert.assertEquals(1, countingAuthenticator.getCount());
+        Mockito.verify(authenticator).authenticate(Mockito.any(), Mockito.any(), Mockito.any());
     }
 
     static class ProxyAuthHandler implements HttpRequestHandler {
@@ -557,15 +497,15 @@ public class TestClientAuthentication extends LocalServerTestBase {
         final HttpHost target = super.start();
 
         final HttpClientContext context = HttpClientContext.create();
-        final TestCredentialsProvider credsProvider = new TestCredentialsProvider(null);
+        final CredentialsProvider credsProvider = Mockito.mock(CredentialsProvider.class);
         context.setCredentialsProvider(credsProvider);
 
         final HttpGet httpget = new HttpGet("/");
-        final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context);
-        final HttpEntity entity = response.getEntity();
-        Assert.assertEquals(HttpStatus.SC_PROXY_AUTHENTICATION_REQUIRED,
-                response.getCode());
-        EntityUtils.consume(entity);
+        try (final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context)) {
+            final HttpEntity entity = response.getEntity();
+            Assert.assertEquals(HttpStatus.SC_PROXY_AUTHENTICATION_REQUIRED, response.getCode());
+            EntityUtils.consume(entity);
+        }
     }
 
     @Test
@@ -592,9 +532,10 @@ public class TestClientAuthentication extends LocalServerTestBase {
         for (int i = 0; i < 2; i++) {
             final HttpGet httpget = new HttpGet("/");
 
-            final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context);
-            EntityUtils.consume(response.getEntity());
-            Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
+            try (final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context)) {
+                EntityUtils.consume(response.getEntity());
+                Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
+            }
         }
     }
 
@@ -619,8 +560,9 @@ public class TestClientAuthentication extends LocalServerTestBase {
 
         };
 
-        final TestCredentialsProvider credsProvider = new TestCredentialsProvider(
-                new UsernamePasswordCredentials("test", "test".toCharArray()));
+        final CredentialsProvider credsProvider = Mockito.mock(CredentialsProvider.class);
+        Mockito.when(credsProvider.getCredentials(Mockito.any(), Mockito.any()))
+                .thenReturn(new UsernamePasswordCredentials("test", "test".toCharArray()));
 
         final RequestConfig config = RequestConfig.custom()
                 .setTargetPreferredAuthSchemes(Collections.singletonList("MyBasic"))
@@ -688,19 +630,20 @@ public class TestClientAuthentication extends LocalServerTestBase {
                 });
 
         final HttpClientContext context = HttpClientContext.create();
-        final TestCredentialsProvider credsProvider = new TestCredentialsProvider(
-                new UsernamePasswordCredentials("test", "test".toCharArray()));
+        final CredentialsProvider credsProvider = Mockito.mock(CredentialsProvider.class);
+        Mockito.when(credsProvider.getCredentials(Mockito.any(), Mockito.any()))
+                .thenReturn(new UsernamePasswordCredentials("test", "test".toCharArray()));
         context.setCredentialsProvider(credsProvider);
         final HttpGet httpget = new HttpGet("/");
 
-        final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context);
-        final HttpEntity entity = response.getEntity();
-        Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
-        Assert.assertNotNull(entity);
-        EntityUtils.consume(entity);
-        final AuthScope authscope = credsProvider.getAuthScope();
-        Assert.assertNotNull(authscope);
-        Assert.assertEquals("test realm", authscope.getRealm());
+        try (final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context)) {
+            final HttpEntity entity = response.getEntity();
+            Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
+            Assert.assertNotNull(entity);
+            EntityUtils.consume(entity);
+        }
+        Mockito.verify(credsProvider).getCredentials(
+                Mockito.eq(new AuthScope(target, "test realm", "basic")), Mockito.any());
     }
 
 }
