@@ -111,7 +111,7 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
         }
 
         final HttpRoute route = scope.route;
-        final HttpHost target = route.getTargetHost();
+        final HttpHost routeTarget = route.getTargetHost();
         final HttpHost proxy = route.getProxyHost();
         final HttpClientContext clientContext = scope.clientContext;
 
@@ -119,7 +119,7 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
         if (proxy != null && !route.isTunnelled()) {
             final BasicRequestBuilder requestBuilder = BasicRequestBuilder.copy(userRequest);
             if (requestBuilder.getAuthority() == null) {
-                requestBuilder.setAuthority(new URIAuthority(target));
+                requestBuilder.setAuthority(new URIAuthority(routeTarget));
             }
             requestBuilder.setAbsoluteRequestUri(true);
             request = requestBuilder.build();
@@ -127,12 +127,18 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
             request = userRequest;
         }
 
+        // Ensure the request has a scheme and an authority
+        if (request.getScheme() == null) {
+            request.setScheme(routeTarget.getSchemeName());
+        }
+        if (request.getAuthority() == null) {
+            request.setAuthority(new URIAuthority(routeTarget));
+        }
+
         final URIAuthority authority = request.getAuthority();
-        if (authority != null) {
-            final CredentialsProvider credsProvider = clientContext.getCredentialsProvider();
-            if (credsProvider instanceof CredentialsStore) {
-                AuthSupport.extractFromAuthority(request.getScheme(), authority, (CredentialsStore) credsProvider);
-            }
+        final CredentialsProvider credsProvider = clientContext.getCredentialsProvider();
+        if (credsProvider instanceof CredentialsStore) {
+            AuthSupport.extractFromAuthority(request.getScheme(), authority, (CredentialsStore) credsProvider);
         }
 
         final AtomicBoolean challenged = new AtomicBoolean(false);
@@ -151,8 +157,8 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
         final HttpClientContext clientContext = scope.clientContext;
         final AsyncExecRuntime execRuntime = scope.execRuntime;
 
-        final HttpHost target = route.getTargetHost();
         final HttpHost proxy = route.getProxyHost();
+        final HttpHost target = new HttpHost(request.getScheme(), request.getAuthority());
 
         final AuthExchange targetAuthExchange = clientContext.getAuthExchange(target);
         final AuthExchange proxyAuthExchange = proxy != null ? clientContext.getAuthExchange(proxy) : new AuthExchange();
@@ -251,11 +257,10 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
             @Override
             public void failed(final Exception cause) {
                 if (cause instanceof IOException || cause instanceof RuntimeException) {
-                    if (proxyAuthExchange.isConnectionBased()) {
-                        proxyAuthExchange.reset();
-                    }
-                    if (targetAuthExchange.isConnectionBased()) {
-                        targetAuthExchange.reset();
+                    for (final AuthExchange authExchange : clientContext.getAuthExchanges().values()) {
+                        if (authExchange.isConnectionBased()) {
+                            authExchange.reset();
+                        }
                     }
                 }
                 asyncExecCallback.failed(cause);

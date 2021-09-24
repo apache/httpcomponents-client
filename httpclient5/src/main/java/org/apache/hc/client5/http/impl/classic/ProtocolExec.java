@@ -114,17 +114,15 @@ public final class ProtocolExec implements ExecChainHandler {
         final HttpClientContext context = scope.clientContext;
         final ExecRuntime execRuntime = scope.execRuntime;
 
-        final HttpHost target = route.getTargetHost();
+        final HttpHost routeTarget = route.getTargetHost();
         final HttpHost proxy = route.getProxyHost();
-        final AuthExchange targetAuthExchange = context.getAuthExchange(target);
-        final AuthExchange proxyAuthExchange = proxy != null ? context.getAuthExchange(proxy) : new AuthExchange();
 
         try {
             final ClassicHttpRequest request;
             if (proxy != null && !route.isTunnelled()) {
                 final ClassicRequestBuilder requestBuilder = ClassicRequestBuilder.copy(userRequest);
                 if (requestBuilder.getAuthority() == null) {
-                    requestBuilder.setAuthority(new URIAuthority(target));
+                    requestBuilder.setAuthority(new URIAuthority(routeTarget));
                 }
                 requestBuilder.setAbsoluteRequestUri(true);
                 request = requestBuilder.build();
@@ -132,13 +130,24 @@ public final class ProtocolExec implements ExecChainHandler {
                 request = userRequest;
             }
 
-            final URIAuthority authority = request.getAuthority();
-            if (authority != null) {
-                final CredentialsProvider credsProvider = context.getCredentialsProvider();
-                if (credsProvider instanceof CredentialsStore) {
-                    AuthSupport.extractFromAuthority(request.getScheme(), authority, (CredentialsStore) credsProvider);
-                }
+            // Ensure the request has a scheme and an authority
+            if (request.getScheme() == null) {
+                request.setScheme(routeTarget.getSchemeName());
             }
+            if (request.getAuthority() == null) {
+                request.setAuthority(new URIAuthority(routeTarget));
+            }
+
+            final URIAuthority authority = request.getAuthority();
+            final CredentialsProvider credsProvider = context.getCredentialsProvider();
+            if (credsProvider instanceof CredentialsStore) {
+                AuthSupport.extractFromAuthority(request.getScheme(), authority, (CredentialsStore) credsProvider);
+            }
+
+            final HttpHost target = new HttpHost(request.getScheme(), request.getAuthority());
+
+            final AuthExchange targetAuthExchange = context.getAuthExchange(target);
+            final AuthExchange proxyAuthExchange = proxy != null ? context.getAuthExchange(proxy) : new AuthExchange();
 
             RequestEntityProxy.enhance(request);
 
@@ -217,11 +226,10 @@ public final class ProtocolExec implements ExecChainHandler {
             throw ex;
         } catch (final RuntimeException | IOException ex) {
             execRuntime.discardEndpoint();
-            if (proxyAuthExchange.isConnectionBased()) {
-                proxyAuthExchange.reset();
-            }
-            if (targetAuthExchange.isConnectionBased()) {
-                targetAuthExchange.reset();
+            for (final AuthExchange authExchange : context.getAuthExchanges().values()) {
+                if (authExchange.isConnectionBased()) {
+                    authExchange.reset();
+                }
             }
             throw ex;
         }
