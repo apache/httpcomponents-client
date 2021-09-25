@@ -72,13 +72,11 @@ import org.slf4j.LoggerFactory;
 @Contract(threading = ThreadingBehavior.STATELESS)
 public final class HttpAuthenticator {
 
-    private static final Logger DEFAULT_LOGGER = LoggerFactory.getLogger(HttpAuthenticator.class);
+    private static final Logger LOG = LoggerFactory.getLogger(HttpAuthenticator.class);
 
-    private final Logger log;
     private final AuthChallengeParser parser;
 
     public HttpAuthenticator() {
-        this.log = DEFAULT_LOGGER;
         this.parser = new AuthChallengeParser();
     }
 
@@ -115,16 +113,16 @@ public final class HttpAuthenticator {
         final String exchangeId = clientContext.getExchangeId();
 
         if (response.getCode() == challengeCode) {
-            if (log.isDebugEnabled()) {
-                log.debug("{} Authentication required", exchangeId);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{} Authentication required", exchangeId);
             }
             return true;
         }
         switch (authExchange.getState()) {
         case CHALLENGED:
         case HANDSHAKE:
-            if (log.isDebugEnabled()) {
-                log.debug("{} Authentication succeeded", exchangeId);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{} Authentication succeeded", exchangeId);
             }
             authExchange.setState(AuthExchange.State.SUCCESS);
             break;
@@ -160,8 +158,8 @@ public final class HttpAuthenticator {
         final HttpClientContext clientContext = HttpClientContext.adapt(context);
         final String exchangeId = clientContext.getExchangeId();
 
-        if (log.isDebugEnabled()) {
-            log.debug("{} {} requested authentication", exchangeId, host.toHostString());
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("{} {} requested authentication", exchangeId, host.toHostString());
         }
 
         final Header[] headers = response.getHeaders(
@@ -187,8 +185,8 @@ public final class HttpAuthenticator {
             try {
                 authChallenges = parser.parse(challengeType, buffer, cursor);
             } catch (final ParseException ex) {
-                if (log.isWarnEnabled()) {
-                    log.warn("{} Malformed challenge: {}", exchangeId, header.getValue());
+                if (LOG.isWarnEnabled()) {
+                    LOG.warn("{} Malformed challenge: {}", exchangeId, header.getValue());
                 }
                 continue;
             }
@@ -200,8 +198,8 @@ public final class HttpAuthenticator {
             }
         }
         if (challengeMap.isEmpty()) {
-            if (log.isDebugEnabled()) {
-                log.debug("{} Response contains no valid authentication challenges", exchangeId);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{} Response contains no valid authentication challenges", exchangeId);
             }
             authExchange.reset();
             return false;
@@ -222,22 +220,22 @@ public final class HttpAuthenticator {
                     final String schemeName = authScheme.getName();
                     final AuthChallenge challenge = challengeMap.get(schemeName.toLowerCase(Locale.ROOT));
                     if (challenge != null) {
-                        if (log.isDebugEnabled()) {
-                            log.debug("{} Authorization challenge processed", exchangeId);
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("{} Authorization challenge processed", exchangeId);
                         }
                         try {
                             authScheme.processChallenge(challenge, context);
                         } catch (final MalformedChallengeException ex) {
-                            if (log.isWarnEnabled()) {
-                                log.warn("{} {}", exchangeId, ex.getMessage());
+                            if (LOG.isWarnEnabled()) {
+                                LOG.warn("{} {}", exchangeId, ex.getMessage());
                             }
                             authExchange.reset();
                             authExchange.setState(AuthExchange.State.FAILURE);
                             return false;
                         }
                         if (authScheme.isChallengeComplete()) {
-                            if (log.isDebugEnabled()) {
-                                log.debug("{} Authentication failed", exchangeId);
+                            if (LOG.isDebugEnabled()) {
+                                LOG.debug("{} Authentication failed", exchangeId);
                             }
                             authExchange.reset();
                             authExchange.setState(AuthExchange.State.FAILURE);
@@ -254,15 +252,15 @@ public final class HttpAuthenticator {
         final List<AuthScheme> preferredSchemes = authStrategy.select(challengeType, challengeMap, context);
         final CredentialsProvider credsProvider = clientContext.getCredentialsProvider();
         if (credsProvider == null) {
-            if (log.isDebugEnabled()) {
-                log.debug("{} Credentials provider not set in the context", exchangeId);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{} Credentials provider not set in the context", exchangeId);
             }
             return false;
         }
 
         final Queue<AuthScheme> authOptions = new LinkedList<>();
-        if (log.isDebugEnabled()) {
-            log.debug("{} Selecting authentication options", exchangeId);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("{} Selecting authentication options", exchangeId);
         }
         for (final AuthScheme authScheme: preferredSchemes) {
             try {
@@ -273,14 +271,14 @@ public final class HttpAuthenticator {
                     authOptions.add(authScheme);
                 }
             } catch (final AuthenticationException | MalformedChallengeException ex) {
-                if (log.isWarnEnabled()) {
-                    log.warn(ex.getMessage());
+                if (LOG.isWarnEnabled()) {
+                    LOG.warn(ex.getMessage());
                 }
             }
         }
         if (!authOptions.isEmpty()) {
-            if (log.isDebugEnabled()) {
-                log.debug("{} Selected authentication options: {}", exchangeId, authOptions);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{} Selected authentication options: {}", exchangeId, authOptions);
             }
             authExchange.reset();
             authExchange.setState(AuthExchange.State.CHALLENGED);
@@ -327,8 +325,8 @@ public final class HttpAuthenticator {
                 while (!authOptions.isEmpty()) {
                     authScheme = authOptions.remove();
                     authExchange.select(authScheme);
-                    if (log.isDebugEnabled()) {
-                        log.debug("{} Generating response to an authentication challenge using {} scheme",
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("{} Generating response to an authentication challenge using {} scheme",
                                 exchangeId, authScheme.getName());
                     }
                     try {
@@ -339,8 +337,8 @@ public final class HttpAuthenticator {
                         request.addHeader(header);
                         break;
                     } catch (final AuthenticationException ex) {
-                        if (log.isWarnEnabled()) {
-                            log.warn("{} {} authentication error: {}", exchangeId, authScheme, ex.getMessage());
+                        if (LOG.isWarnEnabled()) {
+                            LOG.warn("{} {} authentication error: {}", exchangeId, authScheme, ex.getMessage());
                         }
                     }
                 }
@@ -357,8 +355,8 @@ public final class HttpAuthenticator {
                         authResponse);
                 request.addHeader(header);
             } catch (final AuthenticationException ex) {
-                if (log.isErrorEnabled()) {
-                    log.error("{} {} authentication error: {}", exchangeId, authScheme, ex.getMessage());
+                if (LOG.isErrorEnabled()) {
+                    LOG.error("{} {} authentication error: {}", exchangeId, authScheme, ex.getMessage());
                 }
             }
         }
