@@ -89,7 +89,7 @@ public class TestProtocolExec {
 
     @Before
     public void setup() throws Exception {
-        protocolExec = new ProtocolExec(httpProcessor, targetAuthStrategy, proxyAuthStrategy);
+        protocolExec = new ProtocolExec(httpProcessor, targetAuthStrategy, proxyAuthStrategy, null, true);
         target = new HttpHost("foo", 80);
         proxy = new HttpHost("bar", 8888);
     }

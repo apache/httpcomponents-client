@@ -87,7 +87,7 @@ public class TestConnectExec {
 
     @Before
     public void setup() throws Exception {
-        exec = new ConnectExec(reuseStrategy, proxyHttpProcessor, proxyAuthStrategy);
+        exec = new ConnectExec(reuseStrategy, proxyHttpProcessor, proxyAuthStrategy, null, true);
         target = new HttpHost("foo", 80);
         proxy = new HttpHost("bar", 8888);
     }

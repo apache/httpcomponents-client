@@ -33,6 +33,7 @@ import java.io.InterruptedIOException;
 import org.apache.hc.client5.http.AuthenticationStrategy;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.RouteTracker;
+import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.async.AsyncExecCallback;
 import org.apache.hc.client5.http.async.AsyncExecChain;
 import org.apache.hc.client5.http.async.AsyncExecChainHandler;
@@ -41,6 +42,7 @@ import org.apache.hc.client5.http.auth.AuthExchange;
 import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.TunnelRefusedException;
+import org.apache.hc.client5.http.impl.auth.AuthCacheKeeper;
 import org.apache.hc.client5.http.impl.auth.HttpAuthenticator;
 import org.apache.hc.client5.http.impl.routing.BasicRouteDirector;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
@@ -84,17 +86,21 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
     private final HttpProcessor proxyHttpProcessor;
     private final AuthenticationStrategy proxyAuthStrategy;
     private final HttpAuthenticator authenticator;
+    private final AuthCacheKeeper authCacheKeeper;
     private final HttpRouteDirector routeDirector;
 
     public AsyncConnectExec(
             final HttpProcessor proxyHttpProcessor,
-            final AuthenticationStrategy proxyAuthStrategy) {
+            final AuthenticationStrategy proxyAuthStrategy,
+            final SchemePortResolver schemePortResolver,
+            final boolean authCachingDisabled) {
         Args.notNull(proxyHttpProcessor, "Proxy HTTP processor");
         Args.notNull(proxyAuthStrategy, "Proxy authentication strategy");
         this.proxyHttpProcessor = proxyHttpProcessor;
         this.proxyAuthStrategy  = proxyAuthStrategy;
-        this.authenticator      = new HttpAuthenticator(LOG);
-        this.routeDirector      = new BasicRouteDirector();
+        this.authenticator = new HttpAuthenticator();
+        this.authCacheKeeper = authCachingDisabled ? null : new AuthCacheKeeper(schemePortResolver);
+        this.routeDirector = new BasicRouteDirector();
     }
 
     static class State {
@@ -372,6 +378,10 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
 
         final AuthExchange proxyAuthExchange = proxy != null ? clientContext.getAuthExchange(proxy) : new AuthExchange();
 
+        if (authCacheKeeper != null) {
+            authCacheKeeper.loadPreemptively(proxy, proxyAuthExchange, clientContext);
+        }
+
         final HttpRequest connect = new BasicHttpRequest(Method.CONNECT, nextHop, nextHop.toHostString());
         connect.setVersion(HttpVersion.HTTP_1_1);
 
@@ -431,9 +441,24 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
         final RequestConfig config = context.getRequestConfig();
         if (config.isAuthenticationEnabled()) {
             final boolean proxyAuthRequested = authenticator.isChallenged(proxy, ChallengeType.PROXY, response, proxyAuthExchange, context);
+
+            if (authCacheKeeper != null) {
+                if (proxyAuthRequested) {
+                    authCacheKeeper.updateOnChallenge(proxy, proxyAuthExchange, context);
+                } else {
+                    authCacheKeeper.updateOnNoChallenge(proxy, proxyAuthExchange, context);
+                }
+            }
+
             if (proxyAuthRequested) {
-                return authenticator.updateAuthState(proxy, ChallengeType.PROXY, response,
+                final boolean updated = authenticator.updateAuthState(proxy, ChallengeType.PROXY, response,
                         proxyAuthStrategy, proxyAuthExchange, context);
+
+                if (authCacheKeeper != null) {
+                    authCacheKeeper.updateOnResponse(proxy, proxyAuthExchange, context);
+                }
+
+                return updated;
             }
         }
         return false;

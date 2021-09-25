@@ -29,7 +29,6 @@ package org.apache.hc.client5.http.impl.auth;
 import java.util.LinkedList;
 import java.util.Queue;
 
-import org.apache.hc.client5.http.auth.AuthCache;
 import org.apache.hc.client5.http.auth.AuthExchange;
 import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
@@ -80,7 +79,6 @@ public class TestHttpAuthenticator {
     private HttpHost defaultHost;
     private CredentialsProvider credentialsProvider;
     private Lookup<AuthSchemeFactory> authSchemeRegistry;
-    private AuthCache authCache;
     private HttpAuthenticator httpAuthenticator;
 
     @Before
@@ -98,8 +96,6 @@ public class TestHttpAuthenticator {
             .register(StandardAuthScheme.DIGEST, DigestSchemeFactory.INSTANCE)
             .register(StandardAuthScheme.NTLM, NTLMSchemeFactory.INSTANCE).build();
         this.context.setAttribute(HttpClientContext.AUTHSCHEME_REGISTRY, this.authSchemeRegistry);
-        this.authCache = Mockito.mock(AuthCache.class);
-        this.context.setAttribute(HttpClientContext.AUTH_CACHE, this.authCache);
         this.httpAuthenticator = new HttpAuthenticator();
     }
 
@@ -109,7 +105,6 @@ public class TestHttpAuthenticator {
         response.setHeader(HttpHeaders.WWW_AUTHENTICATE, StandardAuthScheme.BASIC + " realm=test");
         Assert.assertTrue(this.httpAuthenticator.isChallenged(
                 this.defaultHost, ChallengeType.TARGET, response, this.authExchange, this.context));
-        Mockito.verifyNoInteractions(this.authCache);
     }
 
     @Test
@@ -122,8 +117,6 @@ public class TestHttpAuthenticator {
 
         Assert.assertTrue(this.httpAuthenticator.isChallenged(
                 this.defaultHost, ChallengeType.TARGET, response, this.authExchange, this.context));
-
-        Mockito.verify(this.authCache).remove(this.defaultHost);
     }
 
     @Test
@@ -144,8 +137,6 @@ public class TestHttpAuthenticator {
         Assert.assertFalse(this.httpAuthenticator.isChallenged(
                 this.defaultHost, ChallengeType.TARGET, response, this.authExchange, this.context));
         Assert.assertEquals(AuthExchange.State.SUCCESS, this.authExchange.getState());
-
-        Mockito.verify(this.authCache).put(this.defaultHost, this.authScheme);
     }
 
     @Test
@@ -157,8 +148,6 @@ public class TestHttpAuthenticator {
         Assert.assertFalse(this.httpAuthenticator.isChallenged(
                 this.defaultHost, ChallengeType.TARGET, response, this.authExchange, this.context));
         Assert.assertEquals(AuthExchange.State.SUCCESS, this.authExchange.getState());
-
-        Mockito.verify(this.authCache).put(this.defaultHost, this.authScheme);
     }
 
     @Test
@@ -269,8 +258,6 @@ public class TestHttpAuthenticator {
                 host, ChallengeType.TARGET, response, authStrategy, this.authExchange, this.context));
 
         Assert.assertEquals(AuthExchange.State.FAILURE, this.authExchange.getState());
-
-        Mockito.verify(this.authCache).remove(host);
     }
 
     @Test

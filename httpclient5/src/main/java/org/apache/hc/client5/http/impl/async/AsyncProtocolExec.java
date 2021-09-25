@@ -32,6 +32,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.hc.client5.http.AuthenticationStrategy;
 import org.apache.hc.client5.http.HttpRoute;
+import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.async.AsyncExecCallback;
 import org.apache.hc.client5.http.async.AsyncExecChain;
 import org.apache.hc.client5.http.async.AsyncExecChainHandler;
@@ -42,6 +43,7 @@ import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.CredentialsStore;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.AuthSupport;
+import org.apache.hc.client5.http.impl.auth.AuthCacheKeeper;
 import org.apache.hc.client5.http.impl.auth.HttpAuthenticator;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.annotation.Contract;
@@ -87,15 +89,19 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
     private final AuthenticationStrategy targetAuthStrategy;
     private final AuthenticationStrategy proxyAuthStrategy;
     private final HttpAuthenticator authenticator;
+    private final AuthCacheKeeper authCacheKeeper;
 
     AsyncProtocolExec(
             final HttpProcessor httpProcessor,
             final AuthenticationStrategy targetAuthStrategy,
-            final AuthenticationStrategy proxyAuthStrategy) {
+            final AuthenticationStrategy proxyAuthStrategy,
+            final SchemePortResolver schemePortResolver,
+            final boolean authCachingDisabled) {
         this.httpProcessor = Args.notNull(httpProcessor, "HTTP protocol processor");
         this.targetAuthStrategy = Args.notNull(targetAuthStrategy, "Target authentication strategy");
         this.proxyAuthStrategy = Args.notNull(proxyAuthStrategy, "Proxy authentication strategy");
-        this.authenticator = new HttpAuthenticator(LOG);
+        this.authenticator = new HttpAuthenticator();
+        this.authCacheKeeper = authCachingDisabled ? null : new AuthCacheKeeper(schemePortResolver);
     }
 
     @Override
@@ -141,11 +147,26 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
             AuthSupport.extractFromAuthority(request.getScheme(), authority, (CredentialsStore) credsProvider);
         }
 
+        final HttpHost target = new HttpHost(request.getScheme(), request.getAuthority());
+        final AuthExchange targetAuthExchange = clientContext.getAuthExchange(target);
+        final AuthExchange proxyAuthExchange = proxy != null ? clientContext.getAuthExchange(proxy) : new AuthExchange();
+
+        if (authCacheKeeper != null) {
+            authCacheKeeper.loadPreemptively(target, targetAuthExchange, clientContext);
+            if (proxy != null) {
+                authCacheKeeper.loadPreemptively(proxy, proxyAuthExchange, clientContext);
+            }
+        }
+
         final AtomicBoolean challenged = new AtomicBoolean(false);
-        internalExecute(challenged, request, entityProducer, scope, chain, asyncExecCallback);
+        internalExecute(target, targetAuthExchange, proxyAuthExchange,
+                challenged, request, entityProducer, scope, chain, asyncExecCallback);
     }
 
     private void internalExecute(
+            final HttpHost target,
+            final AuthExchange targetAuthExchange,
+            final AuthExchange proxyAuthExchange,
             final AtomicBoolean challenged,
             final HttpRequest request,
             final AsyncEntityProducer entityProducer,
@@ -158,10 +179,6 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
         final AsyncExecRuntime execRuntime = scope.execRuntime;
 
         final HttpHost proxy = route.getProxyHost();
-        final HttpHost target = new HttpHost(request.getScheme(), request.getAuthority());
-
-        final AuthExchange targetAuthExchange = clientContext.getAuthExchange(target);
-        final AuthExchange proxyAuthExchange = proxy != null ? clientContext.getAuthExchange(proxy) : new AuthExchange();
 
         clientContext.setAttribute(HttpClientContext.HTTP_ROUTE, route);
         clientContext.setAttribute(HttpCoreContext.HTTP_REQUEST, request);
@@ -194,7 +211,13 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
                     // Do not perform authentication for TRACE request
                     return asyncExecCallback.handleResponse(response, entityDetails);
                 }
-                if (needAuthentication(targetAuthExchange, proxyAuthExchange, route, request, response, clientContext)) {
+                if (needAuthentication(
+                        targetAuthExchange,
+                        proxyAuthExchange,
+                        proxy != null ? proxy : target,
+                        target,
+                        response,
+                        clientContext)) {
                     challenged.set(true);
                     return null;
                 }
@@ -244,7 +267,8 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
                             if (entityProducer != null) {
                                 entityProducer.releaseResources();
                             }
-                            internalExecute(challenged, request, entityProducer, scope, chain, asyncExecCallback);
+                            internalExecute(target, targetAuthExchange, proxyAuthExchange,
+                                    challenged, request, entityProducer, scope, chain, asyncExecCallback);
                         } catch (final HttpException | IOException ex) {
                             asyncExecCallback.failed(ex);
                         }
@@ -272,31 +296,53 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
     private boolean needAuthentication(
             final AuthExchange targetAuthExchange,
             final AuthExchange proxyAuthExchange,
-            final HttpRoute route,
-            final HttpRequest request,
+            final HttpHost proxy,
+            final HttpHost target,
             final HttpResponse response,
             final HttpClientContext context) {
         final RequestConfig config = context.getRequestConfig();
         if (config.isAuthenticationEnabled()) {
-            final HttpHost target = AuthSupport.resolveAuthTarget(request, route);
             final boolean targetAuthRequested = authenticator.isChallenged(
                     target, ChallengeType.TARGET, response, targetAuthExchange, context);
 
-            HttpHost proxy = route.getProxyHost();
-            // if proxy is not set use target host instead
-            if (proxy == null) {
-                proxy = route.getTargetHost();
+            if (authCacheKeeper != null) {
+                if (targetAuthRequested) {
+                    authCacheKeeper.updateOnChallenge(target, targetAuthExchange, context);
+                } else {
+                    authCacheKeeper.updateOnNoChallenge(target, targetAuthExchange, context);
+                }
             }
+
             final boolean proxyAuthRequested = authenticator.isChallenged(
                     proxy, ChallengeType.PROXY, response, proxyAuthExchange, context);
 
+            if (authCacheKeeper != null) {
+                if (proxyAuthRequested) {
+                    authCacheKeeper.updateOnChallenge(proxy, proxyAuthExchange, context);
+                } else {
+                    authCacheKeeper.updateOnNoChallenge(proxy, proxyAuthExchange, context);
+                }
+            }
+
             if (targetAuthRequested) {
-                return authenticator.updateAuthState(target, ChallengeType.TARGET, response,
+                final boolean updated = authenticator.updateAuthState(target, ChallengeType.TARGET, response,
                         targetAuthStrategy, targetAuthExchange, context);
+
+                if (authCacheKeeper != null) {
+                    authCacheKeeper.updateOnResponse(target, targetAuthExchange, context);
+                }
+
+                return updated;
             }
             if (proxyAuthRequested) {
-                return authenticator.updateAuthState(proxy, ChallengeType.PROXY, response,
+                final boolean updated = authenticator.updateAuthState(proxy, ChallengeType.PROXY, response,
                         proxyAuthStrategy, proxyAuthExchange, context);
+
+                if (authCacheKeeper != null) {
+                    authCacheKeeper.updateOnResponse(proxy, proxyAuthExchange, context);
+                }
+
+                return updated;
             }
         }
         return false;

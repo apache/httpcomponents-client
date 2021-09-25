@@ -75,7 +75,6 @@ import org.apache.hc.client5.http.impl.routing.SystemDefaultRoutePlanner;
 import org.apache.hc.client5.http.nio.AsyncClientConnectionManager;
 import org.apache.hc.client5.http.protocol.RedirectStrategy;
 import org.apache.hc.client5.http.protocol.RequestAddCookies;
-import org.apache.hc.client5.http.protocol.RequestAuthCache;
 import org.apache.hc.client5.http.protocol.RequestDefaultHeaders;
 import org.apache.hc.client5.http.protocol.RequestExpectContinue;
 import org.apache.hc.client5.http.protocol.ResponseProcessCookies;
@@ -778,7 +777,9 @@ public class HttpAsyncClientBuilder {
         execChainDefinition.addFirst(
                 new AsyncConnectExec(
                         new DefaultHttpProcessor(new RequestTargetHost(), new RequestUserAgent(userAgentCopy)),
-                        proxyAuthStrategyCopy),
+                        proxyAuthStrategyCopy,
+                        schemePortResolver != null ? schemePortResolver : DefaultSchemePortResolver.INSTANCE,
+                        authCachingDisabled),
                 ChainElement.CONNECT.name());
 
         final HttpProcessorBuilder b = HttpProcessorBuilder.create();
@@ -803,9 +804,6 @@ public class HttpAsyncClientBuilder {
         if (!cookieManagementDisabled) {
             b.add(new RequestAddCookies());
         }
-        if (!authCachingDisabled) {
-            b.add(new RequestAuthCache());
-        }
         if (!cookieManagementDisabled) {
             b.add(new ResponseProcessCookies());
         }
@@ -826,7 +824,12 @@ public class HttpAsyncClientBuilder {
 
         final HttpProcessor httpProcessor = b.build();
         execChainDefinition.addFirst(
-                new AsyncProtocolExec(httpProcessor, targetAuthStrategyCopy, proxyAuthStrategyCopy),
+                new AsyncProtocolExec(
+                        httpProcessor,
+                        targetAuthStrategyCopy,
+                        proxyAuthStrategyCopy,
+                        schemePortResolver != null ? schemePortResolver : DefaultSchemePortResolver.INSTANCE,
+                        authCachingDisabled),
                 ChainElement.PROTOCOL.name());
 
         // Add request retry executor, if not disabled

@@ -32,6 +32,7 @@ import java.util.Iterator;
 
 import org.apache.hc.client5.http.AuthenticationStrategy;
 import org.apache.hc.client5.http.HttpRoute;
+import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.auth.AuthExchange;
 import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
@@ -41,6 +42,7 @@ import org.apache.hc.client5.http.classic.ExecChainHandler;
 import org.apache.hc.client5.http.classic.ExecRuntime;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.AuthSupport;
+import org.apache.hc.client5.http.impl.auth.AuthCacheKeeper;
 import org.apache.hc.client5.http.impl.auth.HttpAuthenticator;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.annotation.Contract;
@@ -86,15 +88,19 @@ public final class ProtocolExec implements ExecChainHandler {
     private final AuthenticationStrategy targetAuthStrategy;
     private final AuthenticationStrategy proxyAuthStrategy;
     private final HttpAuthenticator authenticator;
+    private final AuthCacheKeeper authCacheKeeper;
 
     public ProtocolExec(
             final HttpProcessor httpProcessor,
             final AuthenticationStrategy targetAuthStrategy,
-            final AuthenticationStrategy proxyAuthStrategy) {
+            final AuthenticationStrategy proxyAuthStrategy,
+            final SchemePortResolver schemePortResolver,
+            final boolean authCachingDisabled) {
         this.httpProcessor = Args.notNull(httpProcessor, "HTTP protocol processor");
         this.targetAuthStrategy = Args.notNull(targetAuthStrategy, "Target authentication strategy");
         this.proxyAuthStrategy = Args.notNull(proxyAuthStrategy, "Proxy authentication strategy");
         this.authenticator = new HttpAuthenticator();
+        this.authCacheKeeper = authCachingDisabled ? null : new AuthCacheKeeper(schemePortResolver);
     }
 
     @Override
@@ -149,6 +155,13 @@ public final class ProtocolExec implements ExecChainHandler {
             final AuthExchange targetAuthExchange = context.getAuthExchange(target);
             final AuthExchange proxyAuthExchange = proxy != null ? context.getAuthExchange(proxy) : new AuthExchange();
 
+            if (authCacheKeeper != null) {
+                authCacheKeeper.loadPreemptively(target, targetAuthExchange, context);
+                if (proxy != null) {
+                    authCacheKeeper.loadPreemptively(proxy, proxyAuthExchange, context);
+                }
+            }
+
             RequestEntityProxy.enhance(request);
 
             for (;;) {
@@ -188,7 +201,13 @@ public final class ProtocolExec implements ExecChainHandler {
                     }
                     return response;
                 }
-                if (needAuthentication(targetAuthExchange, proxyAuthExchange, route, request, response, context)) {
+                if (needAuthentication(
+                        targetAuthExchange,
+                        proxyAuthExchange,
+                        proxy != null ? proxy : target,
+                        target,
+                        response,
+                        context)) {
                     // Make sure the response body is fully consumed, if present
                     final HttpEntity responseEntity = response.getEntity();
                     if (execRuntime.isConnectionReusable()) {
@@ -238,31 +257,53 @@ public final class ProtocolExec implements ExecChainHandler {
     private boolean needAuthentication(
             final AuthExchange targetAuthExchange,
             final AuthExchange proxyAuthExchange,
-            final HttpRoute route,
-            final ClassicHttpRequest request,
+            final HttpHost proxy,
+            final HttpHost target,
             final HttpResponse response,
             final HttpClientContext context) {
         final RequestConfig config = context.getRequestConfig();
         if (config.isAuthenticationEnabled()) {
-            final HttpHost target = AuthSupport.resolveAuthTarget(request, route);
             final boolean targetAuthRequested = authenticator.isChallenged(
                     target, ChallengeType.TARGET, response, targetAuthExchange, context);
 
-            HttpHost proxy = route.getProxyHost();
-            // if proxy is not set use target host instead
-            if (proxy == null) {
-                proxy = route.getTargetHost();
+            if (authCacheKeeper != null) {
+                if (targetAuthRequested) {
+                    authCacheKeeper.updateOnChallenge(target, targetAuthExchange, context);
+                } else {
+                    authCacheKeeper.updateOnNoChallenge(target, targetAuthExchange, context);
+                }
             }
+
             final boolean proxyAuthRequested = authenticator.isChallenged(
                     proxy, ChallengeType.PROXY, response, proxyAuthExchange, context);
 
+            if (authCacheKeeper != null) {
+                if (proxyAuthRequested) {
+                    authCacheKeeper.updateOnChallenge(proxy, proxyAuthExchange, context);
+                } else {
+                    authCacheKeeper.updateOnNoChallenge(proxy, proxyAuthExchange, context);
+                }
+            }
+
             if (targetAuthRequested) {
-                return authenticator.updateAuthState(target, ChallengeType.TARGET, response,
+                final boolean updated = authenticator.updateAuthState(target, ChallengeType.TARGET, response,
                         targetAuthStrategy, targetAuthExchange, context);
+
+                if (authCacheKeeper != null) {
+                    authCacheKeeper.updateOnResponse(target, targetAuthExchange, context);
+                }
+
+                return updated;
             }
             if (proxyAuthRequested) {
-                return authenticator.updateAuthState(proxy, ChallengeType.PROXY, response,
+                final boolean updated = authenticator.updateAuthState(proxy, ChallengeType.PROXY, response,
                         proxyAuthStrategy, proxyAuthExchange, context);
+
+                if (authCacheKeeper != null) {
+                    authCacheKeeper.updateOnResponse(proxy, proxyAuthExchange, context);
+                }
+
+                return updated;
             }
         }
         return false;

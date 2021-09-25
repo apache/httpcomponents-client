@@ -35,18 +35,15 @@ import java.util.Map;
 import java.util.Queue;
 
 import org.apache.hc.client5.http.AuthenticationStrategy;
-import org.apache.hc.client5.http.auth.AuthCache;
 import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.AuthExchange;
 import org.apache.hc.client5.http.auth.AuthScheme;
-import org.apache.hc.client5.http.auth.AuthStateCacheable;
 import org.apache.hc.client5.http.auth.AuthenticationException;
 import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.MalformedChallengeException;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.annotation.Contract;
-import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.FormattedHeader;
 import org.apache.hc.core5.http.Header;
@@ -66,6 +63,9 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Utility class that implements commons aspects of the client side HTTP authentication.
+ * <p>
+ * Please note that since version 5.2 this class no longer updated the authentication cache
+ * bound to the execution context.
  *
  * @since 4.3
  */
@@ -77,15 +77,9 @@ public final class HttpAuthenticator {
     private final Logger log;
     private final AuthChallengeParser parser;
 
-    @Internal
-    public HttpAuthenticator(final Logger log) {
-        super();
-        this.log = log != null ? log : DEFAULT_LOGGER;
-        this.parser = new AuthChallengeParser();
-    }
-
     public HttpAuthenticator() {
-        this(null);
+        this.log = DEFAULT_LOGGER;
+        this.parser = new AuthChallengeParser();
     }
 
     /**
@@ -124,9 +118,6 @@ public final class HttpAuthenticator {
             if (log.isDebugEnabled()) {
                 log.debug("{} Authentication required", exchangeId);
             }
-            if (authExchange.getState() == AuthExchange.State.SUCCESS) {
-                clearCache(host, clientContext);
-            }
             return true;
         }
         switch (authExchange.getState()) {
@@ -136,7 +127,6 @@ public final class HttpAuthenticator {
                 log.debug("{} Authentication succeeded", exchangeId);
             }
             authExchange.setState(AuthExchange.State.SUCCESS);
-            updateCache(host, authExchange.getAuthScheme(), clientContext);
             break;
         case SUCCESS:
             break;
@@ -213,7 +203,6 @@ public final class HttpAuthenticator {
             if (log.isDebugEnabled()) {
                 log.debug("{} Response contains no valid authentication challenges", exchangeId);
             }
-            clearCache(host, clientContext);
             authExchange.reset();
             return false;
         }
@@ -242,15 +231,14 @@ public final class HttpAuthenticator {
                             if (log.isWarnEnabled()) {
                                 log.warn("{} {}", exchangeId, ex.getMessage());
                             }
-                            clearCache(host, clientContext);
                             authExchange.reset();
+                            authExchange.setState(AuthExchange.State.FAILURE);
                             return false;
                         }
                         if (authScheme.isChallengeComplete()) {
                             if (log.isDebugEnabled()) {
                                 log.debug("{} Authentication failed", exchangeId);
                             }
-                            clearCache(host, clientContext);
                             authExchange.reset();
                             authExchange.setState(AuthExchange.State.FAILURE);
                             return false;
@@ -373,34 +361,6 @@ public final class HttpAuthenticator {
                     log.error("{} {} authentication error: {}", exchangeId, authScheme, ex.getMessage());
                 }
             }
-        }
-    }
-
-    private void updateCache(final HttpHost host, final AuthScheme authScheme, final HttpClientContext clientContext) {
-        final boolean cacheable = authScheme.getClass().getAnnotation(AuthStateCacheable.class) != null;
-        if (cacheable) {
-            AuthCache authCache = clientContext.getAuthCache();
-            if (authCache == null) {
-                authCache = new BasicAuthCache();
-                clientContext.setAuthCache(authCache);
-            }
-            if (log.isDebugEnabled()) {
-                final String exchangeId = clientContext.getExchangeId();
-                log.debug("{} Caching '{}' auth scheme for {}", exchangeId, authScheme.getName(), host);
-            }
-            authCache.put(host, authScheme);
-        }
-    }
-
-    private void clearCache(final HttpHost host, final HttpClientContext clientContext) {
-
-        final AuthCache authCache = clientContext.getAuthCache();
-        if (authCache != null) {
-            if (log.isDebugEnabled()) {
-                final String exchangeId = clientContext.getExchangeId();
-                log.debug("{} Clearing cached auth scheme for {}", exchangeId, host);
-            }
-            authCache.remove(host);
         }
     }
 
