@@ -30,7 +30,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
 import java.util.Collections;
 
 import org.apache.hc.client5.http.AuthenticationStrategy;
@@ -38,15 +37,12 @@ import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.auth.AuthExchange;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.ChallengeType;
-import org.apache.hc.client5.http.auth.Credentials;
-import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecRuntime;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.entity.EntityBuilder;
-import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
 import org.apache.hc.client5.http.impl.auth.BasicScheme;
 import org.apache.hc.client5.http.impl.auth.CredentialsProviderBuilder;
 import org.apache.hc.client5.http.impl.auth.NTLMScheme;
@@ -57,6 +53,7 @@ import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
 import org.junit.Assert;
@@ -123,20 +120,9 @@ public class TestProtocolExec {
         final HttpRoute route = new HttpRoute(new HttpHost("somehost", 8080));
         final ClassicHttpRequest request = new HttpGet("http://somefella:secret@bar/test");
         final HttpClientContext context = HttpClientContext.create();
-        context.setCredentialsProvider(new BasicCredentialsProvider());
-
-        final ClassicHttpResponse response = Mockito.mock(ClassicHttpResponse.class);
-        Mockito.when(chain.proceed(
-                Mockito.any(),
-                Mockito.any())).thenReturn(response);
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
-        protocolExec.execute(request, scope, chain);
-        Assert.assertEquals(new URI("http://bar/test"), request.getUri());
-        final CredentialsProvider credentialsProvider = context.getCredentialsProvider();
-        final Credentials creds = credentialsProvider.getCredentials(new AuthScope(null, "bar", -1, null, null), null);
-        Assert.assertNotNull(creds);
-        Assert.assertEquals("somefella", creds.getUserPrincipal().getName());
+        Assert.assertThrows(ProtocolException.class, () -> protocolExec.execute(request, scope, chain));
     }
 
     @Test

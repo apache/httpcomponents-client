@@ -30,6 +30,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
@@ -55,7 +56,6 @@ import org.apache.hc.client5.testing.BasicTestAuthenticator;
 import org.apache.hc.client5.testing.auth.Authenticator;
 import org.apache.hc.core5.function.Decorator;
 import org.apache.hc.core5.http.ContentType;
-import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequestInterceptor;
@@ -63,15 +63,14 @@ import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpResponseInterceptor;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.config.Http1Config;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.config.Registry;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.impl.HttpProcessors;
-import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.nio.AsyncServerExchangeHandler;
-import org.apache.hc.core5.http.protocol.HttpCoreContext;
 import org.apache.hc.core5.http.support.BasicResponseBuilder;
 import org.apache.hc.core5.http2.config.H2Config;
 import org.apache.hc.core5.http2.impl.H2Processors;
@@ -349,24 +348,6 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
     }
 
     @Test
-    public void testAuthenticationUserinfoInRequestSuccess() throws Exception {
-        server.register("*", AsyncEchoHandler::new);
-        final HttpHost target = start();
-
-        final HttpClientContext context = HttpClientContext.create();
-        final Future<SimpleHttpResponse> future = httpclient.execute(
-                SimpleRequestBuilder.get()
-                        .setScheme(target.getSchemeName())
-                        .setAuthority(new URIAuthority("test:test", target.getHostName(), target.getPort()))
-                        .setPath("/")
-                        .build(), context, null);
-        final SimpleHttpResponse response = future.get();
-
-        Assert.assertNotNull(response);
-        Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
-    }
-
-    @Test
     public void testAuthenticationUserinfoInRequestFailure() throws Exception {
         server.register("*", AsyncEchoHandler::new);
         final HttpHost target = start();
@@ -374,41 +355,11 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
         final HttpClientContext context = HttpClientContext.create();
         final Future<SimpleHttpResponse> future = httpclient.execute(SimpleRequestBuilder.get()
                         .setScheme(target.getSchemeName())
-                        .setAuthority(new URIAuthority("test:all-worng", target.getHostName(), target.getPort()))
+                        .setAuthority(new URIAuthority("test:test", target.getHostName(), target.getPort()))
                         .setPath("/")
                         .build(), context, null);
-        final SimpleHttpResponse response = future.get();
-
-        Assert.assertNotNull(response);
-        Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
-    }
-
-    @Test
-    public void testAuthenticationUserinfoInRedirectSuccess() throws Exception {
-        server.register("*", AsyncEchoHandler::new);
-        final HttpHost target = start();
-        server.register("/thatway", () -> new AbstractSimpleServerExchangeHandler() {
-
-            @Override
-            protected SimpleHttpResponse handle(
-                    final SimpleHttpRequest request, final HttpCoreContext context) throws HttpException {
-                final SimpleHttpResponse response = new SimpleHttpResponse(HttpStatus.SC_MOVED_PERMANENTLY);
-                response.addHeader(new BasicHeader("Location", target.getSchemeName() + "://test:test@" + target.toHostString() + "/"));
-                return response;
-            }
-        });
-
-        final HttpClientContext context = HttpClientContext.create();
-        final Future<SimpleHttpResponse> future = httpclient.execute(
-                SimpleRequestBuilder.get()
-                        .setScheme(target.getSchemeName())
-                        .setAuthority(new URIAuthority("test:test", target.getHostName(), target.getPort()))
-                        .setPath("/thatway")
-                        .build(), context, null);
-        final SimpleHttpResponse response = future.get();
-
-        Assert.assertNotNull(response);
-        Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
+        final ExecutionException exception = Assert.assertThrows(ExecutionException.class, () -> future.get());
+        MatcherAssert.assertThat(exception.getCause(), CoreMatchers.instanceOf(ProtocolException.class));
     }
 
     @Test

@@ -39,10 +39,7 @@ import org.apache.hc.client5.http.async.AsyncExecChainHandler;
 import org.apache.hc.client5.http.async.AsyncExecRuntime;
 import org.apache.hc.client5.http.auth.AuthExchange;
 import org.apache.hc.client5.http.auth.ChallengeType;
-import org.apache.hc.client5.http.auth.CredentialsProvider;
-import org.apache.hc.client5.http.auth.CredentialsStore;
 import org.apache.hc.client5.http.config.RequestConfig;
-import org.apache.hc.client5.http.impl.AuthSupport;
 import org.apache.hc.client5.http.impl.RequestSupport;
 import org.apache.hc.client5.http.impl.auth.AuthCacheKeeper;
 import org.apache.hc.client5.http.impl.auth.HttpAuthenticator;
@@ -143,9 +140,8 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
         }
 
         final URIAuthority authority = request.getAuthority();
-        final CredentialsProvider credsProvider = clientContext.getCredentialsProvider();
-        if (credsProvider instanceof CredentialsStore) {
-            AuthSupport.extractFromAuthority(request.getScheme(), authority, (CredentialsStore) credsProvider);
+        if (authority.getUserInfo() != null) {
+            throw new ProtocolException("Request URI authority contains deprecated userinfo component");
         }
 
         final HttpHost target = new HttpHost(request.getScheme(), request.getAuthority());

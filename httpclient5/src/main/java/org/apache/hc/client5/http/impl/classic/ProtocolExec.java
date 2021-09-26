@@ -35,13 +35,10 @@ import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.auth.AuthExchange;
 import org.apache.hc.client5.http.auth.ChallengeType;
-import org.apache.hc.client5.http.auth.CredentialsProvider;
-import org.apache.hc.client5.http.auth.CredentialsStore;
 import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecChainHandler;
 import org.apache.hc.client5.http.classic.ExecRuntime;
 import org.apache.hc.client5.http.config.RequestConfig;
-import org.apache.hc.client5.http.impl.AuthSupport;
 import org.apache.hc.client5.http.impl.RequestSupport;
 import org.apache.hc.client5.http.impl.auth.AuthCacheKeeper;
 import org.apache.hc.client5.http.impl.auth.HttpAuthenticator;
@@ -146,9 +143,8 @@ public final class ProtocolExec implements ExecChainHandler {
             }
 
             final URIAuthority authority = request.getAuthority();
-            final CredentialsProvider credsProvider = context.getCredentialsProvider();
-            if (credsProvider instanceof CredentialsStore) {
-                AuthSupport.extractFromAuthority(request.getScheme(), authority, (CredentialsStore) credsProvider);
+            if (authority.getUserInfo() != null) {
+                throw new ProtocolException("Request URI authority contains deprecated userinfo component");
             }
 
             final HttpHost target = new HttpHost(request.getScheme(), request.getAuthority());

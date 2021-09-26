@@ -28,7 +28,6 @@ package org.apache.hc.client5.testing.sync;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
@@ -37,6 +36,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
+import org.apache.hc.client5.http.ClientProtocolException;
 import org.apache.hc.client5.http.auth.AuthCache;
 import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
@@ -61,7 +61,6 @@ import org.apache.hc.client5.testing.classic.AuthenticatingDecorator;
 import org.apache.hc.client5.testing.classic.EchoHandler;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
-import org.apache.hc.core5.http.EndpointDetails;
 import org.apache.hc.core5.http.HeaderElements;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpException;
@@ -76,9 +75,7 @@ import org.apache.hc.core5.http.io.HttpRequestHandler;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.InputStreamEntity;
 import org.apache.hc.core5.http.io.entity.StringEntity;
-import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.protocol.HttpContext;
-import org.apache.hc.core5.http.protocol.HttpCoreContext;
 import org.apache.hc.core5.http.support.BasicResponseBuilder;
 import org.apache.hc.core5.net.URIAuthority;
 import org.hamcrest.CoreMatchers;
@@ -434,66 +431,13 @@ public class TestClientAuthentication extends LocalServerTestBase {
     }
 
     @Test
-    public void testAuthenticationUserinfoInRequestSuccess() throws Exception {
+    public void testAuthenticationUserinfoInRequest() throws Exception {
         this.server.registerHandler("*", new EchoHandler());
         final HttpHost target = start();
         final HttpGet httpget = new HttpGet("http://test:test@" +  target.toHostString() + "/");
 
         final HttpClientContext context = HttpClientContext.create();
-        try (final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context)) {
-            final HttpEntity entity = response.getEntity();
-            Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
-            Assert.assertNotNull(entity);
-            EntityUtils.consume(entity);
-        }
-    }
-
-    @Test
-    public void testAuthenticationUserinfoInRequestFailure() throws Exception {
-        this.server.registerHandler("*", new EchoHandler());
-        final HttpHost target = start();
-        final HttpGet httpget = new HttpGet("http://test:all-wrong@" +  target.toHostString() + "/");
-
-        final HttpClientContext context = HttpClientContext.create();
-        try (final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context)) {
-            final HttpEntity entity = response.getEntity();
-            Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
-            Assert.assertNotNull(entity);
-            EntityUtils.consume(entity);
-        }
-    }
-
-    @Test
-    public void testAuthenticationUserinfoInRedirectSuccess() throws Exception {
-        this.server.registerHandler("/*", new EchoHandler());
-        this.server.registerHandler("/thatway", (request, response, context) -> {
-            final EndpointDetails endpoint = (EndpointDetails) context.getAttribute(HttpCoreContext.CONNECTION_ENDPOINT);
-            final InetSocketAddress socketAddress = (InetSocketAddress) endpoint.getLocalAddress();
-            final int port = socketAddress.getPort();
-            response.setCode(HttpStatus.SC_MOVED_PERMANENTLY);
-            response.addHeader(new BasicHeader("Location", "http://test:test@localhost:" + port + "/secure"));
-        });
-
-        final HttpHost target = start(new BasicTestAuthenticator("test:test", "test realm") {
-
-            @Override
-            public boolean authenticate(final URIAuthority authority, final String requestUri, final String credentials) {
-                if (requestUri.equals("/secure") || requestUri.startsWith("/secure/")) {
-                    return super.authenticate(authority, requestUri, credentials);
-                }
-                return true;
-            }
-        });
-
-        final HttpGet httpget = new HttpGet("/thatway");
-        final HttpClientContext context = HttpClientContext.create();
-
-        try (final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context)) {
-            final HttpEntity entity = response.getEntity();
-            Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
-            Assert.assertNotNull(entity);
-            EntityUtils.consume(entity);
-        }
+        Assert.assertThrows(ClientProtocolException.class, () -> this.httpclient.execute(target, httpget, context));
     }
 
     @Test
