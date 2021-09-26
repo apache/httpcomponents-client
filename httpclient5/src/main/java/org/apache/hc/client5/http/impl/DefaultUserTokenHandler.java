@@ -37,6 +37,8 @@ import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.protocol.HttpContext;
 
 /**
@@ -64,25 +66,31 @@ public class DefaultUserTokenHandler implements UserTokenHandler {
 
         final HttpClientContext clientContext = HttpClientContext.adapt(context);
 
-        Principal userPrincipal = null;
+        final HttpRequest request = clientContext.getRequest();
+        final HttpHost target = request != null ? new HttpHost(request.getScheme(), request.getAuthority()) : route.getTargetHost();
 
-        final AuthExchange targetAuthExchange = clientContext.getAuthExchange(route.getTargetHost());
+        final AuthExchange targetAuthExchange = clientContext.getAuthExchange(target);
         if (targetAuthExchange != null) {
-            userPrincipal = getAuthPrincipal(targetAuthExchange);
-            if (userPrincipal == null && route.getProxyHost() != null) {
-                final AuthExchange proxyAuthExchange = clientContext.getAuthExchange(route.getProxyHost());
-                userPrincipal = getAuthPrincipal(proxyAuthExchange);
+            final Principal authPrincipal = getAuthPrincipal(targetAuthExchange);
+            if (authPrincipal != null) {
+                return authPrincipal;
             }
         }
-
-        if (userPrincipal == null) {
-            final SSLSession sslSession = clientContext.getSSLSession();
-            if (sslSession != null) {
-                userPrincipal = sslSession.getLocalPrincipal();
+        final HttpHost proxy = route.getProxyHost();
+        if (proxy != null) {
+            final AuthExchange proxyAuthExchange = clientContext.getAuthExchange(proxy);
+            if (proxyAuthExchange != null) {
+                final Principal authPrincipal = getAuthPrincipal(proxyAuthExchange);
+                if (authPrincipal != null) {
+                    return authPrincipal;
+                }
             }
         }
-
-        return userPrincipal;
+        final SSLSession sslSession = clientContext.getSSLSession();
+        if (sslSession != null) {
+            return sslSession.getLocalPrincipal();
+        }
+        return null;
     }
 
     private static Principal getAuthPrincipal(final AuthExchange authExchange) {
