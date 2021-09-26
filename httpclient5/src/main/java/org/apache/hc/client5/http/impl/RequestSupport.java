@@ -26,45 +26,48 @@
  */
 package org.apache.hc.client5.http.impl;
 
+import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.URIScheme;
-import org.apache.hc.core5.net.URIAuthority;
+import org.apache.hc.core5.net.PercentCodec;
+import org.apache.hc.core5.net.URIBuilder;
 
 /**
- * Protocol support methods.
+ * Protocol support methods. For internal use only.
  *
- * @since 5.1
+ * @since 5.2
  */
 @Internal
-public final class ProtocolSupport {
+public final class RequestSupport {
 
-    public static String getRequestUri(final HttpRequest request) {
-        final URIAuthority authority = request.getAuthority();
-        if (authority != null) {
-            final StringBuilder buf = new StringBuilder();
-            final String scheme = request.getScheme();
-            buf.append(scheme != null ? scheme : URIScheme.HTTP.id);
-            buf.append("://");
-            if (authority.getUserInfo() != null) {
-                buf.append(authority.getUserInfo());
-                buf.append("@");
+    public static String extractPathPrefix(final HttpRequest request) {
+        final String path = request.getPath();
+        try {
+            final URIBuilder uriBuilder = new URIBuilder(path);
+            uriBuilder.setFragment(null);
+            uriBuilder.clearParameters();
+            uriBuilder.normalizeSyntax();
+            final List<String> pathSegments = uriBuilder.getPathSegments();
+
+            if (!pathSegments.isEmpty()) {
+                pathSegments.remove(pathSegments.size() - 1);
             }
-            buf.append(authority.getHostName());
-            if (authority.getPort() != -1) {
-                buf.append(":");
-                buf.append(authority.getPort());
+            if (pathSegments.isEmpty()) {
+                return "/";
+            } else {
+                final StringBuilder buf = new StringBuilder();
+                buf.append('/');
+                for (final String pathSegment : pathSegments) {
+                    PercentCodec.encode(buf, pathSegment, StandardCharsets.US_ASCII);
+                    buf.append('/');
+                }
+                return buf.toString();
             }
-            final String path = request.getPath();
-            if (path == null || !path.startsWith("/")) {
-                buf.append("/");
-            }
-            if (path != null) {
-                buf.append(path);
-            }
-            return buf.toString();
-        } else {
-            return request.getPath();
+        } catch (final URISyntaxException ex) {
+            return path;
         }
     }
 

@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -39,11 +40,12 @@ import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.auth.AuthCache;
 import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
-import org.apache.hc.client5.http.routing.RoutingSupport;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.net.NamedEndpoint;
 import org.apache.hc.core5.util.Args;
+import org.apache.hc.core5.util.LangUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,7 +64,65 @@ public class BasicAuthCache implements AuthCache {
 
     private static final Logger LOG = LoggerFactory.getLogger(BasicAuthCache.class);
 
-    private final Map<HttpHost, byte[]> map;
+    static class Key {
+
+        final String scheme;
+        final String host;
+        final int port;
+        final String pathPrefix;
+
+        Key(final String scheme, final String host, final int port, final String pathPrefix) {
+            Args.notBlank(scheme, "Scheme");
+            Args.notBlank(host, "Scheme");
+            this.scheme = scheme.toLowerCase(Locale.ROOT);
+            this.host = host.toLowerCase(Locale.ROOT);
+            this.port = port;
+            this.pathPrefix = pathPrefix;
+        }
+
+        @Override
+        public boolean equals(final Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj instanceof Key) {
+                final Key that = (Key) obj;
+                return this.scheme.equals(that.scheme) &&
+                        this.host.equals(that.host) &&
+                        this.port == that.port &&
+                        LangUtils.equals(this.pathPrefix, that.pathPrefix);
+            }
+            return false;
+        }
+
+        @Override
+        public int hashCode() {
+            int hash = LangUtils.HASH_SEED;
+            hash = LangUtils.hashCode(hash, this.scheme);
+            hash = LangUtils.hashCode(hash, this.host);
+            hash = LangUtils.hashCode(hash, this.port);
+            hash = LangUtils.hashCode(hash, this.pathPrefix);
+            return hash;
+        }
+
+        @Override
+        public String toString() {
+            final StringBuilder buf = new StringBuilder();
+            buf.append(scheme).append("://").append(host);
+            if (port >= 0) {
+                buf.append(":").append(port);
+            }
+            if (pathPrefix != null) {
+                if (!pathPrefix.startsWith("/")) {
+                    buf.append("/");
+                }
+                buf.append(pathPrefix);
+            }
+            return buf.toString();
+        }
+    }
+
+    private final Map<Key, byte[]> map;
     private final SchemePortResolver schemePortResolver;
 
     /**
@@ -80,8 +140,27 @@ public class BasicAuthCache implements AuthCache {
         this(null);
     }
 
+    private Key key(final String scheme, final NamedEndpoint authority, final String pathPrefix) {
+        return new Key(scheme, authority.getHostName(), schemePortResolver.resolve(scheme, authority), pathPrefix);
+    }
+
     @Override
     public void put(final HttpHost host, final AuthScheme authScheme) {
+        put(host, null, authScheme);
+    }
+
+    @Override
+    public AuthScheme get(final HttpHost host) {
+        return get(host, null);
+    }
+
+    @Override
+    public void remove(final HttpHost host) {
+        remove(host, null);
+    }
+
+    @Override
+    public void put(final HttpHost host, final String pathPrefix, final AuthScheme authScheme) {
         Args.notNull(host, "HTTP host");
         if (authScheme == null) {
             return;
@@ -92,8 +171,7 @@ public class BasicAuthCache implements AuthCache {
                 try (final ObjectOutputStream out = new ObjectOutputStream(buf)) {
                     out.writeObject(authScheme);
                 }
-                final HttpHost key = RoutingSupport.normalize(host, schemePortResolver);
-                this.map.put(key, buf.toByteArray());
+                this.map.put(key(host.getSchemeName(), host, pathPrefix), buf.toByteArray());
             } catch (final IOException ex) {
                 if (LOG.isWarnEnabled()) {
                     LOG.warn("Unexpected I/O error while serializing auth scheme", ex);
@@ -107,10 +185,9 @@ public class BasicAuthCache implements AuthCache {
     }
 
     @Override
-    public AuthScheme get(final HttpHost host) {
+    public AuthScheme get(final HttpHost host, final String pathPrefix) {
         Args.notNull(host, "HTTP host");
-        final HttpHost key = RoutingSupport.normalize(host, schemePortResolver);
-        final byte[] bytes = this.map.get(key);
+        final byte[] bytes = this.map.get(key(host.getSchemeName(), host, pathPrefix));
         if (bytes != null) {
             try {
                 final ByteArrayInputStream buf = new ByteArrayInputStream(bytes);
@@ -131,10 +208,9 @@ public class BasicAuthCache implements AuthCache {
     }
 
     @Override
-    public void remove(final HttpHost host) {
+    public void remove(final HttpHost host, final String pathPrefix) {
         Args.notNull(host, "HTTP host");
-        final HttpHost key = RoutingSupport.normalize(host, schemePortResolver);
-        this.map.remove(key);
+        this.map.remove(key(host.getSchemeName(), host, pathPrefix));
     }
 
     @Override

@@ -39,8 +39,8 @@ import org.apache.hc.client5.http.AuthenticationStrategy;
 import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
-import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.auth.ChallengeType;
+import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.annotation.Contract;
@@ -117,7 +117,7 @@ public class DefaultAuthenticationStrategy implements AuthenticationStrategy {
                 options.add(authScheme);
             } else {
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("{}, Challenge for {} authentication scheme not available", exchangeId, schemeName);
+                    LOG.debug("{} Challenge for {} authentication scheme not available", exchangeId, schemeName);
                 }
             }
         }

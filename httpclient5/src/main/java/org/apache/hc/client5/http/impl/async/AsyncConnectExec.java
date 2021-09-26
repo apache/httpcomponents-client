@@ -379,7 +379,7 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
         final AuthExchange proxyAuthExchange = proxy != null ? clientContext.getAuthExchange(proxy) : new AuthExchange();
 
         if (authCacheKeeper != null) {
-            authCacheKeeper.loadPreemptively(proxy, proxyAuthExchange, clientContext);
+            authCacheKeeper.loadPreemptively(proxy, null, proxyAuthExchange, clientContext);
         }
 
         final HttpRequest connect = new BasicHttpRequest(Method.CONNECT, nextHop, nextHop.toHostString());
@@ -444,9 +444,9 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
 
             if (authCacheKeeper != null) {
                 if (proxyAuthRequested) {
-                    authCacheKeeper.updateOnChallenge(proxy, proxyAuthExchange, context);
+                    authCacheKeeper.updateOnChallenge(proxy, null, proxyAuthExchange, context);
                 } else {
-                    authCacheKeeper.updateOnNoChallenge(proxy, proxyAuthExchange, context);
+                    authCacheKeeper.updateOnNoChallenge(proxy, null, proxyAuthExchange, context);
                 }
             }
 
@@ -455,7 +455,7 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
                         proxyAuthStrategy, proxyAuthExchange, context);
 
                 if (authCacheKeeper != null) {
-                    authCacheKeeper.updateOnResponse(proxy, proxyAuthExchange, context);
+                    authCacheKeeper.updateOnResponse(proxy, null, proxyAuthExchange, context);
                 }
 
                 return updated;

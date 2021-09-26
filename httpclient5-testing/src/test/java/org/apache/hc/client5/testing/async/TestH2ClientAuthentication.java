@@ -38,6 +38,8 @@ import org.apache.hc.client5.http.impl.async.H2AsyncClientBuilder;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManager;
 import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.client5.testing.SSLTestContexts;
+import org.apache.hc.core5.http.HttpRequestInterceptor;
+import org.apache.hc.core5.http.HttpResponseInterceptor;
 import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.config.Lookup;
@@ -90,6 +92,16 @@ public class TestH2ClientAuthentication extends AbstractHttpAsyncClientAuthentic
     @Override
     void setTargetAuthenticationStrategy(final AuthenticationStrategy targetAuthStrategy) {
         clientBuilder.setTargetAuthenticationStrategy(targetAuthStrategy);
+    }
+
+    @Override
+    void addResponseInterceptor(final HttpResponseInterceptor responseInterceptor) {
+        clientBuilder.addResponseInterceptorLast(responseInterceptor);
+    }
+
+    @Override
+    void addRequestInterceptor(final HttpRequestInterceptor requestInterceptor) {
+        clientBuilder.addRequestInterceptorLast(requestInterceptor);
     }
 
     @Override

@@ -31,6 +31,7 @@ import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.URIScheme;
+import org.apache.hc.core5.net.NamedEndpoint;
 import org.apache.hc.core5.util.Args;
 
 /**
@@ -46,14 +47,19 @@ public class DefaultSchemePortResolver implements SchemePortResolver {
     @Override
     public int resolve(final HttpHost host) {
         Args.notNull(host, "HTTP host");
-        final int port = host.getPort();
+        return resolve(host.getSchemeName(), host);
+    }
+
+    @Override
+    public int resolve(final String scheme, final NamedEndpoint endpoint) {
+        Args.notNull(endpoint, "Endpoint");
+        final int port = endpoint.getPort();
         if (port > 0) {
             return port;
         }
-        final String name = host.getSchemeName();
-        if (URIScheme.HTTP.same(name)) {
+        if (URIScheme.HTTP.same(scheme)) {
             return 80;
-        } else if (URIScheme.HTTPS.same(name)) {
+        } else if (URIScheme.HTTPS.same(scheme)) {
             return 443;
         } else {
             return -1;

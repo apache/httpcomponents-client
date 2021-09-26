@@ -51,7 +51,9 @@ import org.apache.hc.client5.testing.SSLTestContexts;
 import org.apache.hc.core5.http.HeaderElements;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpRequestInterceptor;
 import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.HttpResponseInterceptor;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.URIScheme;
@@ -130,6 +132,16 @@ public class TestHttp1ClientAuthentication extends AbstractHttpAsyncClientAuthen
     @Override
     void setTargetAuthenticationStrategy(final AuthenticationStrategy targetAuthStrategy) {
         clientBuilder.setTargetAuthenticationStrategy(targetAuthStrategy);
+    }
+
+    @Override
+    void addResponseInterceptor(final HttpResponseInterceptor responseInterceptor) {
+        clientBuilder.addResponseInterceptorLast(responseInterceptor);
+    }
+
+    @Override
+    void addRequestInterceptor(final HttpRequestInterceptor requestInterceptor) {
+        clientBuilder.addRequestInterceptorLast(requestInterceptor);
     }
 
     @Override

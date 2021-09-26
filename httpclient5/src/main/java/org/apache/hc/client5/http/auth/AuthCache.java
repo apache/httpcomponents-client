@@ -36,12 +36,73 @@ import org.apache.hc.core5.http.HttpHost;
  */
 public interface AuthCache {
 
+    /**
+     * Stores the authentication state with the given authentication scope in the cache.
+     *
+     * @param host the authentication authority.
+     * @param authScheme the cacheable authentication state.
+     */
     void put(HttpHost host, AuthScheme authScheme);
 
+    /**
+     * Returns the authentication state with the given authentication scope from the cache
+     * if available.
+     *
+     * @param host the authentication authority.
+     * @return the authentication state ir {@code null} if not available in the cache.
+     */
     AuthScheme get(HttpHost host);
 
+    /**
+     * Removes the authentication state with the given authentication scope from the cache
+     * if found.
+     *
+     * @param host the authentication authority.
+     */
     void remove(HttpHost host);
 
     void clear();
+
+    /**
+     * Stores the authentication state with the given authentication scope in the cache.
+     *
+     * @param host the authentication authority.
+     * @param pathPrefix the path prefix (the path component up to the last segment separator).
+     *                   Can be {@code null}.
+     * @param authScheme the cacheable authentication state.
+     *
+     * @since 5.2
+     */
+    default void put(HttpHost host, String pathPrefix, AuthScheme authScheme) {
+        put(host, authScheme);
+    }
+
+    /**
+     * Returns the authentication state with the given authentication scope from the cache
+     * if available.
+     * @param host the authentication authority.
+     * @param pathPrefix the path prefix (the path component up to the last segment separator).
+     *                   Can be {@code null}.
+     * @return the authentication state ir {@code null} if not available in the cache.
+     *
+     * @since 5.2
+     */
+    default AuthScheme get(HttpHost host, String pathPrefix) {
+        return get(host);
+    }
+
+    /**
+     * Removes the authentication state with the given authentication scope from the cache
+     * if found.
+     *
+     * @param host the authentication authority.
+     * @param pathPrefix the path prefix (the path component up to the last segment separator).
+     *                   Can be {@code null}.
+     *
+     * @since 5.2
+     */
+    default void remove(HttpHost host, String pathPrefix) {
+        remove(host);
+    }
 
 }

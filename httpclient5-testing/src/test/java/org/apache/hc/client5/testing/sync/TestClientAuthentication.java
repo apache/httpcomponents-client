@@ -30,8 +30,12 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 import org.apache.hc.client5.http.auth.AuthCache;
 import org.apache.hc.client5.http.auth.AuthScheme;
@@ -63,6 +67,7 @@ import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.config.Registry;
 import org.apache.hc.core5.http.config.RegistryBuilder;
@@ -74,7 +79,10 @@ import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.protocol.HttpCoreContext;
+import org.apache.hc.core5.http.support.BasicResponseBuilder;
 import org.apache.hc.core5.net.URIAuthority;
+import org.hamcrest.CoreMatchers;
+import org.hamcrest.MatcherAssert;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -267,6 +275,9 @@ public class TestClientAuthentication extends LocalServerTestBase {
         this.server.registerHandler("*", new EchoHandler());
         final DefaultAuthenticationStrategy authStrategy = Mockito.spy(new DefaultAuthenticationStrategy());
         this.clientBuilder.setTargetAuthenticationStrategy(authStrategy);
+        final Queue<HttpResponse> responseQueue = new ConcurrentLinkedQueue<>();
+        this.clientBuilder.addResponseInterceptorLast((response, entity, context)
+                -> responseQueue.add(BasicResponseBuilder.copy(response).build()));
 
         final HttpHost target = start();
 
@@ -286,6 +297,69 @@ public class TestClientAuthentication extends LocalServerTestBase {
         }
 
         Mockito.verify(authStrategy).select(Mockito.any(), Mockito.any(), Mockito.any());
+
+        MatcherAssert.assertThat(
+                responseQueue.stream().map(HttpResponse::getCode).collect(Collectors.toList()),
+                CoreMatchers.equalTo(Arrays.asList(401, 200, 200, 200, 200, 200)));
+    }
+
+    @Test
+    public void testBasicAuthenticationCredentialsCachingByPathPrefix() throws Exception {
+        this.server.registerHandler("*", new EchoHandler());
+        final DefaultAuthenticationStrategy authStrategy = Mockito.spy(new DefaultAuthenticationStrategy());
+        this.clientBuilder.setTargetAuthenticationStrategy(authStrategy);
+        final Queue<HttpResponse> responseQueue = new ConcurrentLinkedQueue<>();
+        this.clientBuilder.addResponseInterceptorLast((response, entity, context)
+                -> responseQueue.add(BasicResponseBuilder.copy(response).build()));
+
+        final HttpHost target = start();
+
+        final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
+                .add(target, "test", "test".toCharArray())
+                .build();
+
+        final AuthCache authCache = new BasicAuthCache();
+        final HttpClientContext context = HttpClientContext.create();
+        context.setAuthCache(authCache);
+        context.setCredentialsProvider(credentialsProvider);
+
+        for (final String requestPath: new String[] {"/blah/a", "/blah/b?huh", "/blah/c", "/bl%61h/%61"}) {
+            final HttpGet httpget = new HttpGet(requestPath);
+            try (final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context)) {
+                final HttpEntity entity1 = response.getEntity();
+                Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
+                Assert.assertNotNull(entity1);
+                EntityUtils.consume(entity1);
+            }
+        }
+
+        // There should be only single auth strategy call for all successful message exchanges
+        Mockito.verify(authStrategy).select(Mockito.any(), Mockito.any(), Mockito.any());
+
+        MatcherAssert.assertThat(
+                responseQueue.stream().map(HttpResponse::getCode).collect(Collectors.toList()),
+                CoreMatchers.equalTo(Arrays.asList(401, 200, 200, 200, 200)));
+
+        responseQueue.clear();
+        authCache.clear();
+        Mockito.reset(authStrategy);
+
+        for (final String requestPath: new String[] {"/blah/a", "/yada/a", "/blah/blah/", "/buh/a"}) {
+            final HttpGet httpget = new HttpGet(requestPath);
+            try (final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context)) {
+                final HttpEntity entity1 = response.getEntity();
+                Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
+                Assert.assertNotNull(entity1);
+                EntityUtils.consume(entity1);
+            }
+        }
+
+        // There should be an auth strategy call for all successful message exchanges
+        Mockito.verify(authStrategy, Mockito.times(2)).select(Mockito.any(), Mockito.any(), Mockito.any());
+
+        MatcherAssert.assertThat(
+                responseQueue.stream().map(HttpResponse::getCode).collect(Collectors.toList()),
+                CoreMatchers.equalTo(Arrays.asList(200, 401, 200, 200, 401, 200)));
     }
 
     @Test

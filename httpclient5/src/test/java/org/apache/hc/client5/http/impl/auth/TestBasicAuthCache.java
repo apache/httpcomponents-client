@@ -67,7 +67,7 @@ public class TestBasicAuthCache {
     }
 
     @Test
-    public void testStoreNonserializable() throws Exception {
+    public void testStoreNonSerializable() throws Exception {
         final BasicAuthCache cache = new BasicAuthCache();
         final AuthScheme authScheme = new NTLMScheme();
         cache.put(new HttpHost("localhost", 80), authScheme);

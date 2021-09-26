@@ -215,7 +215,7 @@ public final class ConnectExec implements ExecChainHandler {
         final AuthExchange proxyAuthExchange = context.getAuthExchange(proxy);
 
         if (authCacheKeeper != null) {
-            authCacheKeeper.loadPreemptively(proxy, proxyAuthExchange, context);
+            authCacheKeeper.loadPreemptively(proxy, null, proxyAuthExchange, context);
         }
 
         ClassicHttpResponse response = null;
@@ -254,9 +254,9 @@ public final class ConnectExec implements ExecChainHandler {
 
                 if (authCacheKeeper != null) {
                     if (proxyAuthRequested) {
-                        authCacheKeeper.updateOnChallenge(proxy, proxyAuthExchange, context);
+                        authCacheKeeper.updateOnChallenge(proxy, null, proxyAuthExchange, context);
                     } else {
-                        authCacheKeeper.updateOnNoChallenge(proxy, proxyAuthExchange, context);
+                        authCacheKeeper.updateOnNoChallenge(proxy, null, proxyAuthExchange, context);
                     }
                 }
 
@@ -265,7 +265,7 @@ public final class ConnectExec implements ExecChainHandler {
                             proxyAuthStrategy, proxyAuthExchange, context);
 
                     if (authCacheKeeper != null) {
-                        authCacheKeeper.updateOnResponse(proxy, proxyAuthExchange, context);
+                        authCacheKeeper.updateOnResponse(proxy, null, proxyAuthExchange, context);
                     }
                     if (updated) {
                         // Retry request

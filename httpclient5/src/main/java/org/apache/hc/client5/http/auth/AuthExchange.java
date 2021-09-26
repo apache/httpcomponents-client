@@ -47,6 +47,7 @@ public class AuthExchange {
     private State state;
     private AuthScheme authScheme;
     private Queue<AuthScheme> authOptions;
+    private String pathPrefix;
 
     public AuthExchange() {
         super();
@@ -57,6 +58,7 @@ public class AuthExchange {
         this.state = State.UNCHALLENGED;
         this.authOptions = null;
         this.authScheme = null;
+        this.pathPrefix = null;
     }
 
     public State getState() {
@@ -79,6 +81,20 @@ public class AuthExchange {
      */
     public boolean isConnectionBased() {
         return this.authScheme != null && this.authScheme.isConnectionBased();
+    }
+
+    /**
+     * @since 5.2
+     */
+    public String getPathPrefix() {
+        return pathPrefix;
+    }
+
+    /**
+     * @since 5.2
+     */
+    public void setPathPrefix(final String pathPrefix) {
+        this.pathPrefix = pathPrefix;
     }
 
     /**

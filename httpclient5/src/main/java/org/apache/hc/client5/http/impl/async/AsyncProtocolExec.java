@@ -43,6 +43,7 @@ import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.CredentialsStore;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.AuthSupport;
+import org.apache.hc.client5.http.impl.RequestSupport;
 import org.apache.hc.client5.http.impl.auth.AuthCacheKeeper;
 import org.apache.hc.client5.http.impl.auth.HttpAuthenticator;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
@@ -148,23 +149,36 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
         }
 
         final HttpHost target = new HttpHost(request.getScheme(), request.getAuthority());
+        final String pathPrefix = RequestSupport.extractPathPrefix(request);
         final AuthExchange targetAuthExchange = clientContext.getAuthExchange(target);
         final AuthExchange proxyAuthExchange = proxy != null ? clientContext.getAuthExchange(proxy) : new AuthExchange();
 
+        if (!targetAuthExchange.isConnectionBased() &&
+                targetAuthExchange.getPathPrefix() != null &&
+                !pathPrefix.startsWith(targetAuthExchange.getPathPrefix())) {
+            // force re-authentication if the current path prefix does not match
+            // that of the previous authentication exchange.
+            targetAuthExchange.reset();
+        }
+        if (targetAuthExchange.getPathPrefix() == null) {
+            targetAuthExchange.setPathPrefix(pathPrefix);
+        }
+
         if (authCacheKeeper != null) {
-            authCacheKeeper.loadPreemptively(target, targetAuthExchange, clientContext);
+            authCacheKeeper.loadPreemptively(target, pathPrefix, targetAuthExchange, clientContext);
             if (proxy != null) {
-                authCacheKeeper.loadPreemptively(proxy, proxyAuthExchange, clientContext);
+                authCacheKeeper.loadPreemptively(proxy, null, proxyAuthExchange, clientContext);
             }
         }
 
         final AtomicBoolean challenged = new AtomicBoolean(false);
-        internalExecute(target, targetAuthExchange, proxyAuthExchange,
+        internalExecute(target, pathPrefix, targetAuthExchange, proxyAuthExchange,
                 challenged, request, entityProducer, scope, chain, asyncExecCallback);
     }
 
     private void internalExecute(
             final HttpHost target,
+            final String pathPrefix,
             final AuthExchange targetAuthExchange,
             final AuthExchange proxyAuthExchange,
             final AtomicBoolean challenged,
@@ -216,6 +230,7 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
                         proxyAuthExchange,
                         proxy != null ? proxy : target,
                         target,
+                        pathPrefix,
                         response,
                         clientContext)) {
                     challenged.set(true);
@@ -267,7 +282,7 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
                             if (entityProducer != null) {
                                 entityProducer.releaseResources();
                             }
-                            internalExecute(target, targetAuthExchange, proxyAuthExchange,
+                            internalExecute(target, pathPrefix, targetAuthExchange, proxyAuthExchange,
                                     challenged, request, entityProducer, scope, chain, asyncExecCallback);
                         } catch (final HttpException | IOException ex) {
                             asyncExecCallback.failed(ex);
@@ -298,6 +313,7 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
             final AuthExchange proxyAuthExchange,
             final HttpHost proxy,
             final HttpHost target,
+            final String pathPrefix,
             final HttpResponse response,
             final HttpClientContext context) {
         final RequestConfig config = context.getRequestConfig();
@@ -307,9 +323,9 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
 
             if (authCacheKeeper != null) {
                 if (targetAuthRequested) {
-                    authCacheKeeper.updateOnChallenge(target, targetAuthExchange, context);
+                    authCacheKeeper.updateOnChallenge(target, pathPrefix, targetAuthExchange, context);
                 } else {
-                    authCacheKeeper.updateOnNoChallenge(target, targetAuthExchange, context);
+                    authCacheKeeper.updateOnNoChallenge(target, pathPrefix, targetAuthExchange, context);
                 }
             }
 
@@ -318,9 +334,9 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
 
             if (authCacheKeeper != null) {
                 if (proxyAuthRequested) {
-                    authCacheKeeper.updateOnChallenge(proxy, proxyAuthExchange, context);
+                    authCacheKeeper.updateOnChallenge(proxy, null, proxyAuthExchange, context);
                 } else {
-                    authCacheKeeper.updateOnNoChallenge(proxy, proxyAuthExchange, context);
+                    authCacheKeeper.updateOnNoChallenge(proxy, null, proxyAuthExchange, context);
                 }
             }
 
@@ -329,7 +345,7 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
                         targetAuthStrategy, targetAuthExchange, context);
 
                 if (authCacheKeeper != null) {
-                    authCacheKeeper.updateOnResponse(target, targetAuthExchange, context);
+                    authCacheKeeper.updateOnResponse(target, pathPrefix, targetAuthExchange, context);
                 }
 
                 return updated;
@@ -339,7 +355,7 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
                         proxyAuthStrategy, proxyAuthExchange, context);
 
                 if (authCacheKeeper != null) {
-                    authCacheKeeper.updateOnResponse(proxy, proxyAuthExchange, context);
+                    authCacheKeeper.updateOnResponse(proxy, null, proxyAuthExchange, context);
                 }
 
                 return updated;

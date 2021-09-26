@@ -42,6 +42,7 @@ import org.apache.hc.client5.http.classic.ExecChainHandler;
 import org.apache.hc.client5.http.classic.ExecRuntime;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.AuthSupport;
+import org.apache.hc.client5.http.impl.RequestSupport;
 import org.apache.hc.client5.http.impl.auth.AuthCacheKeeper;
 import org.apache.hc.client5.http.impl.auth.HttpAuthenticator;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
@@ -151,14 +152,26 @@ public final class ProtocolExec implements ExecChainHandler {
             }
 
             final HttpHost target = new HttpHost(request.getScheme(), request.getAuthority());
+            final String pathPrefix = RequestSupport.extractPathPrefix(request);
 
             final AuthExchange targetAuthExchange = context.getAuthExchange(target);
             final AuthExchange proxyAuthExchange = proxy != null ? context.getAuthExchange(proxy) : new AuthExchange();
 
+            if (!targetAuthExchange.isConnectionBased() &&
+                    targetAuthExchange.getPathPrefix() != null &&
+                    !pathPrefix.startsWith(targetAuthExchange.getPathPrefix())) {
+                // force re-authentication if the current path prefix does not match
+                // that of the previous authentication exchange.
+                targetAuthExchange.reset();
+            }
+            if (targetAuthExchange.getPathPrefix() == null) {
+                targetAuthExchange.setPathPrefix(pathPrefix);
+            }
+
             if (authCacheKeeper != null) {
-                authCacheKeeper.loadPreemptively(target, targetAuthExchange, context);
+                authCacheKeeper.loadPreemptively(target, pathPrefix, targetAuthExchange, context);
                 if (proxy != null) {
-                    authCacheKeeper.loadPreemptively(proxy, proxyAuthExchange, context);
+                    authCacheKeeper.loadPreemptively(proxy, null, proxyAuthExchange, context);
                 }
             }
 
@@ -206,6 +219,7 @@ public final class ProtocolExec implements ExecChainHandler {
                         proxyAuthExchange,
                         proxy != null ? proxy : target,
                         target,
+                        pathPrefix,
                         response,
                         context)) {
                     // Make sure the response body is fully consumed, if present
@@ -259,6 +273,7 @@ public final class ProtocolExec implements ExecChainHandler {
             final AuthExchange proxyAuthExchange,
             final HttpHost proxy,
             final HttpHost target,
+            final String pathPrefix,
             final HttpResponse response,
             final HttpClientContext context) {
         final RequestConfig config = context.getRequestConfig();
@@ -268,9 +283,9 @@ public final class ProtocolExec implements ExecChainHandler {
 
             if (authCacheKeeper != null) {
                 if (targetAuthRequested) {
-                    authCacheKeeper.updateOnChallenge(target, targetAuthExchange, context);
+                    authCacheKeeper.updateOnChallenge(target, pathPrefix, targetAuthExchange, context);
                 } else {
-                    authCacheKeeper.updateOnNoChallenge(target, targetAuthExchange, context);
+                    authCacheKeeper.updateOnNoChallenge(target, pathPrefix, targetAuthExchange, context);
                 }
             }
 
@@ -279,9 +294,9 @@ public final class ProtocolExec implements ExecChainHandler {
 
             if (authCacheKeeper != null) {
                 if (proxyAuthRequested) {
-                    authCacheKeeper.updateOnChallenge(proxy, proxyAuthExchange, context);
+                    authCacheKeeper.updateOnChallenge(proxy, null, proxyAuthExchange, context);
                 } else {
-                    authCacheKeeper.updateOnNoChallenge(proxy, proxyAuthExchange, context);
+                    authCacheKeeper.updateOnNoChallenge(proxy, null, proxyAuthExchange, context);
                 }
             }
 
@@ -290,7 +305,7 @@ public final class ProtocolExec implements ExecChainHandler {
                         targetAuthStrategy, targetAuthExchange, context);
 
                 if (authCacheKeeper != null) {
-                    authCacheKeeper.updateOnResponse(target, targetAuthExchange, context);
+                    authCacheKeeper.updateOnResponse(target, pathPrefix, targetAuthExchange, context);
                 }
 
                 return updated;
@@ -300,7 +315,7 @@ public final class ProtocolExec implements ExecChainHandler {
                         proxyAuthStrategy, proxyAuthExchange, context);
 
                 if (authCacheKeeper != null) {
-                    authCacheKeeper.updateOnResponse(proxy, proxyAuthExchange, context);
+                    authCacheKeeper.updateOnResponse(proxy, null, proxyAuthExchange, context);
                 }
 
                 return updated;

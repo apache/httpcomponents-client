@@ -59,32 +59,39 @@ public final class AuthCacheKeeper {
     }
 
     public void updateOnChallenge(final HttpHost host,
+                                  final String pathPrefix,
                                   final AuthExchange authExchange,
                                   final HttpContext context) {
-        clearCache(host, HttpClientContext.adapt(context));
+        clearCache(host, pathPrefix, HttpClientContext.adapt(context));
     }
 
     public void updateOnNoChallenge(final HttpHost host,
+                                    final String pathPrefix,
                                     final AuthExchange authExchange,
                                     final HttpContext context) {
         if (authExchange.getState() == AuthExchange.State.SUCCESS) {
-            updateCache(host, authExchange.getAuthScheme(), HttpClientContext.adapt(context));
+            updateCache(host, pathPrefix, authExchange.getAuthScheme(), HttpClientContext.adapt(context));
         }
     }
 
     public void updateOnResponse(final HttpHost host,
+                                 final String pathPrefix,
                                  final AuthExchange authExchange,
                                  final HttpContext context) {
         if (authExchange.getState() == AuthExchange.State.FAILURE) {
-            clearCache(host, HttpClientContext.adapt(context));
+            clearCache(host, pathPrefix, HttpClientContext.adapt(context));
         }
     }
 
     public void loadPreemptively(final HttpHost host,
+                                 final String pathPrefix,
                                  final AuthExchange authExchange,
                                  final HttpContext context) {
         if (authExchange.getState() == AuthExchange.State.UNCHALLENGED) {
-            final AuthScheme authScheme = loadFromCache(host, HttpClientContext.adapt(context));
+            AuthScheme authScheme = loadFromCache(host, pathPrefix, HttpClientContext.adapt(context));
+            if (authScheme == null && pathPrefix != null) {
+                authScheme = loadFromCache(host, null, HttpClientContext.adapt(context));
+            }
             if (authScheme != null) {
                 authExchange.select(authScheme);
             }
@@ -92,14 +99,16 @@ public final class AuthCacheKeeper {
     }
 
     private AuthScheme loadFromCache(final HttpHost host,
+                                     final String pathPrefix,
                                      final HttpClientContext clientContext) {
         final AuthCache authCache = clientContext.getAuthCache();
         if (authCache != null) {
-            final AuthScheme authScheme = authCache.get(host);
+            final AuthScheme authScheme = authCache.get(host, pathPrefix);
             if (authScheme != null) {
                 if (LOG.isDebugEnabled()) {
                     final String exchangeId = clientContext.getExchangeId();
-                    LOG.debug("{} Re-using cached '{}' auth scheme for {}", exchangeId, authScheme.getName(), host);
+                    LOG.debug("{} Re-using cached '{}' auth scheme for {}{}", exchangeId, authScheme.getName(), host,
+                            pathPrefix != null ? pathPrefix : "");
                 }
                 return authScheme;
             }
@@ -108,6 +117,7 @@ public final class AuthCacheKeeper {
     }
 
     private void updateCache(final HttpHost host,
+                             final String pathPrefix,
                              final AuthScheme authScheme,
                              final HttpClientContext clientContext) {
         final boolean cacheable = authScheme.getClass().getAnnotation(AuthStateCacheable.class) != null;
@@ -119,21 +129,24 @@ public final class AuthCacheKeeper {
             }
             if (LOG.isDebugEnabled()) {
                 final String exchangeId = clientContext.getExchangeId();
-                LOG.debug("{} Caching '{}' auth scheme for {}", exchangeId, authScheme.getName(), host);
+                LOG.debug("{} Caching '{}' auth scheme for {}{}", exchangeId, authScheme.getName(), host,
+                        pathPrefix != null ? pathPrefix : "");
             }
-            authCache.put(host, authScheme);
+            authCache.put(host, pathPrefix, authScheme);
         }
     }
 
     private void clearCache(final HttpHost host,
+                            final String pathPrefix,
                             final HttpClientContext clientContext) {
         final AuthCache authCache = clientContext.getAuthCache();
         if (authCache != null) {
             if (LOG.isDebugEnabled()) {
                 final String exchangeId = clientContext.getExchangeId();
-                LOG.debug("{} Clearing cached auth scheme for {}", exchangeId, host);
+                LOG.debug("{} Clearing cached auth scheme for {}{}", exchangeId, host,
+                        pathPrefix != null ? pathPrefix : "");
             }
-            authCache.remove(host);
+            authCache.remove(host, pathPrefix);
         }
     }
 
