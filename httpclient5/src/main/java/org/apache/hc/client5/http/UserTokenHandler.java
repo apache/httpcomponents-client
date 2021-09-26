@@ -29,6 +29,7 @@ package org.apache.hc.client5.http;
 
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.protocol.HttpContext;
 
 /**
@@ -59,5 +60,23 @@ public interface UserTokenHandler {
      * {@code null} if the context is not user specific.
      */
     Object getUserToken(HttpRoute route, HttpContext context);
+
+    /**
+     * The token object returned by this method is expected to uniquely
+     * identify the current user if the context is user specific or to be
+     * {@code null} if it is not.
+     *
+     * @param route HTTP route
+     * @param request HTTP request
+     * @param context the execution context
+     *
+     * @return user token that uniquely identifies the user or
+     * {@code null} if the context is not user specific.
+     *
+     * @since 5.2
+     */
+    default Object getUserToken(HttpRoute route, HttpRequest request, HttpContext context) {
+        return getUserToken(route, context);
+    }
 
 }

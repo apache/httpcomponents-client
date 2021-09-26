@@ -196,7 +196,7 @@ class HttpAsyncMainClientExec implements AsyncExecChainHandler {
                 final TimeValue keepAliveDuration = keepAliveStrategy.getKeepAliveDuration(response, clientContext);
                 Object userToken = clientContext.getUserToken();
                 if (userToken == null) {
-                    userToken = userTokenHandler.getUserToken(route, clientContext);
+                    userToken = userTokenHandler.getUserToken(route, request, clientContext);
                     clientContext.setAttribute(HttpClientContext.USER_TOKEN, userToken);
                 }
                 execRuntime.markConnectionReusable(userToken, keepAliveDuration);

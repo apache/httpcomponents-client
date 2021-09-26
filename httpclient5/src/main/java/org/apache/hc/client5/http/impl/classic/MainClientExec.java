@@ -106,7 +106,7 @@ public final class MainClientExec implements ExecChainHandler {
 
             Object userToken = context.getUserToken();
             if (userToken == null) {
-                userToken = userTokenHandler.getUserToken(route, context);
+                userToken = userTokenHandler.getUserToken(route, request, context);
                 context.setAttribute(HttpClientContext.USER_TOKEN, userToken);
             }
 
