@@ -132,6 +132,7 @@ public class MinimalHttpClient extends CloseableHttpClient {
 
         final HttpRoute route = new HttpRoute(RoutingSupport.normalize(target, schemePortResolver));
         final String exchangeId = ExecSupport.getNextExchangeId();
+        clientContext.setExchangeId(exchangeId);
         final ExecRuntime execRuntime = new InternalExecRuntime(LOG, connManager, requestExecutor,
                 request instanceof CancellableDependency ? (CancellableDependency) request : null);
         try {

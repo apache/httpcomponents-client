@@ -278,6 +278,7 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
                         && validityPolicy.mayReturnStaleWhileRevalidating(entry, now)) {
                     LOG.debug("Serving stale with asynchronous revalidation");
                     final String exchangeId = ExecSupport.getNextExchangeId();
+                    context.setExchangeId(exchangeId);
                     final ExecChain.Scope fork = new ExecChain.Scope(
                             exchangeId,
                             scope.route,
