@@ -159,6 +159,7 @@ class InternalHttpClient extends CloseableHttpClient implements Configurable {
                     target != null ? target : RoutingSupport.determineHost(request),
                     localcontext);
             final String exchangeId = ExecSupport.getNextExchangeId();
+            localcontext.setExchangeId(exchangeId);
             if (LOG.isDebugEnabled()) {
                 LOG.debug("{} preparing request execution", exchangeId);
             }

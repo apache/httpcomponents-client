@@ -196,12 +196,12 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
                             httpHost != null ? httpHost : RoutingSupport.determineHost(request),
                             clientContext);
                     final String exchangeId = ExecSupport.getNextExchangeId();
+                    clientContext.setExchangeId(exchangeId);
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("{} preparing request execution", exchangeId);
                     }
                     final AsyncExecRuntime execRuntime = createAsyncExecRuntime(pushHandlerFactory, route);
 
-                    clientContext.setExchangeId(exchangeId);
                     setupContext(clientContext);
 
                     final AsyncExecChain.Scheduler scheduler = new AsyncExecChain.Scheduler() {

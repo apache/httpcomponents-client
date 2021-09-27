@@ -663,6 +663,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                 try {
                     final SimpleHttpResponse cacheResponse = generateCachedResponse(request, context, entry, now);
                     final String exchangeId = ExecSupport.getNextExchangeId();
+                    context.setExchangeId(exchangeId);
                     final AsyncExecChain.Scope fork = new AsyncExecChain.Scope(
                             exchangeId,
                             scope.route,

@@ -146,6 +146,7 @@ public final class MinimalHttpAsyncClient extends AbstractMinimalHttpAsyncClient
         final HttpRoute route = new HttpRoute(RoutingSupport.normalize(host, schemePortResolver));
         final ComplexFuture<AsyncConnectionEndpoint> resultFuture = new ComplexFuture<>(callback);
         final String exchangeId = ExecSupport.getNextExchangeId();
+        clientContext.setExchangeId(exchangeId);
         final Future<AsyncConnectionEndpoint> leaseFuture = manager.lease(
                 exchangeId,
                 route,
@@ -467,16 +468,18 @@ public final class MinimalHttpAsyncClient extends AbstractMinimalHttpAsyncClient
                 final HttpContext context) {
             Asserts.check(!released.get(), "Endpoint has already been released");
 
+            final HttpClientContext clientContext = context != null ? HttpClientContext.adapt(context) : HttpClientContext.create();
             final String exchangeId = ExecSupport.getNextExchangeId();
+            clientContext.setExchangeId(exchangeId);
             if (LOG.isDebugEnabled()) {
                 LOG.debug("{} executing message exchange {}", exchangeId, ConnPoolSupport.getId(connectionEndpoint));
                 connectionEndpoint.execute(
                         exchangeId,
                         new LoggingAsyncClientExchangeHandler(LOG, exchangeId, exchangeHandler),
                         pushHandlerFactory,
-                        context);
+                        clientContext);
             } else {
-                connectionEndpoint.execute(exchangeId, exchangeHandler, context);
+                connectionEndpoint.execute(exchangeId, exchangeHandler, clientContext);
             }
         }
 
