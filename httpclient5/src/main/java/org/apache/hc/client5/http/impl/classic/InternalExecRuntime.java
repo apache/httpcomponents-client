@@ -76,7 +76,7 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
         this.manager = manager;
         this.requestExecutor = requestExecutor;
         this.cancellableDependency = cancellableDependency;
-        this.endpointRef = new AtomicReference<>(null);
+        this.endpointRef = new AtomicReference<>();
         this.validDuration = TimeValue.NEG_ONE_MILLISECOND;
     }
 

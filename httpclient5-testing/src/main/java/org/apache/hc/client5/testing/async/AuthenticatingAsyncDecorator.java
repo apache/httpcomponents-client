@@ -65,7 +65,7 @@ public class AuthenticatingAsyncDecorator implements AsyncServerExchangeHandler 
     public AuthenticatingAsyncDecorator(final AsyncServerExchangeHandler exchangeHandler, final Authenticator authenticator) {
         this.exchangeHandler = Args.notNull(exchangeHandler, "Request handler");
         this.authenticator = Args.notNull(authenticator, "Authenticator");
-        this.responseProducerRef = new AtomicReference<>(null);
+        this.responseProducerRef = new AtomicReference<>();
         this.authTokenExtractor = new BasicAuthTokenExtractor();
     }
 

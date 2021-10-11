@@ -299,7 +299,7 @@ public abstract class AbstractHttpReactiveFundamentalsTest<T extends CloseableHt
             while (testCases.size() < numTestCases) {
                 final long seed = 198723L * testCaseNum++;
                 final int length = 1 + new Random(seed).nextInt(maxSize);
-                final AtomicReference<String> expectedHash = new AtomicReference<>(null);
+                final AtomicReference<String> expectedHash = new AtomicReference<>();
                 final Flowable<ByteBuffer> stream = ReactiveTestUtils.produceStream(length, expectedHash);
                 final StreamingTestCase streamingTestCase = new StreamingTestCase(length, expectedHash, stream);
                 testCases.put((long) length, streamingTestCase);

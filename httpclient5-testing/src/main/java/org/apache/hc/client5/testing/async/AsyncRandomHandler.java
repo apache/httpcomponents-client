@@ -63,7 +63,7 @@ public class AsyncRandomHandler implements AsyncServerExchangeHandler {
     private final AtomicReference<AsyncEntityProducer> entityProducerRef;
 
     public AsyncRandomHandler() {
-        this.entityProducerRef = new AtomicReference<>(null);
+        this.entityProducerRef = new AtomicReference<>();
     }
 
     @Override
