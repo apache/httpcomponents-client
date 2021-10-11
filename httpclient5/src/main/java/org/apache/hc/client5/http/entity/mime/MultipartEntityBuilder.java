@@ -66,7 +66,7 @@ public class MultipartEntityBuilder {
     /**
      * An empty immutable {@code NameValuePair} array.
      */
-    private static final NameValuePair[] EMPTY_NAME_VALUE_ARRAY = new NameValuePair[0];
+    private static final NameValuePair[] EMPTY_NAME_VALUE_ARRAY = {};
 
     public static MultipartEntityBuilder create() {
         return new MultipartEntityBuilder();
