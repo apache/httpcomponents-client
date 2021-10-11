@@ -63,19 +63,20 @@
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
     <httpcore.version>5.2-alpha1</httpcore.version>
-    <log4j.version>2.9.1</log4j.version>
+    <log4j.version>2.14.1</log4j.version>
     <commons-codec.version>1.15</commons-codec.version>
-    <conscrypt.version>2.2.1</conscrypt.version>
-    <ehcache.version>3.4.0</ehcache.version>
+    <conscrypt.version>2.5.2</conscrypt.version>
+    <ehcache.version>3.9.6</ehcache.version>
     <memcached.version>2.12.3</memcached.version>
     <slf4j.version>1.7.25</slf4j.version>
-    <junit.version>4.13</junit.version>
-    <mockito.version>3.10.0</mockito.version>
-    <jna.version>5.2.0</jna.version>
+    <junit.version>4.13.2</junit.version>
+    <mockito.version>4.0.0</mockito.version>
+    <jna.version>5.9.0</jna.version>
     <hc.stylecheck.version>1</hc.stylecheck.version>
-    <rxjava.version>2.2.7</rxjava.version>
+    <rxjava.version>2.2.21</rxjava.version>
     <api.comparison.version>5.1</api.comparison.version>
     <hc.animal-sniffer.signature.ignores>javax.net.ssl.SSLEngine,javax.net.ssl.SSLParameters</hc.animal-sniffer.signature.ignores>
+    <japicmp.version>0.15.4</japicmp.version>
   </properties>
 
   <dependencyManagement>
@@ -266,7 +267,7 @@
       <plugin>
         <groupId>com.github.siom79.japicmp</groupId>
         <artifactId>japicmp-maven-plugin</artifactId>
-        <version>0.15.3</version>
+        <version>${japicmp.version}</version>
         <configuration>
           <oldVersion>
             <dependency>
@@ -398,7 +399,7 @@
       <plugin>
         <groupId>com.github.siom79.japicmp</groupId>
         <artifactId>japicmp-maven-plugin</artifactId>
-        <version>0.15.3</version>
+        <version>${japicmp.version}</version>
         <reportSets>
           <reportSet>
             <reports>
