@@ -25,11 +25,12 @@ addons:
   apt:
     packages:
       - maven
-      
+
+# Use some Oracle JDKs to avoid certificate issues.
+# openjdk11 might be too old on some Travis agents.
 jdk:
   - openjdk12
-  - oraclejdk16
-  - openjdk-ea
+  - oraclejdk17
 
 matrix:
   fast_finish: true
