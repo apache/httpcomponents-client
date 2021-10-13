@@ -66,18 +66,6 @@ public class AsyncClientCustomSSL {
                 .build();
         final TlsStrategy tlsStrategy = ClientTlsStrategyBuilder.create()
                 .setSslContext(sslcontext)
-                // IMPORTANT uncomment the following method when running Java 9 or older
-                // in order for ALPN support to work and avoid the illegal reflective
-                // access operation warning
-                /*
-                .setTlsDetailsFactory(new Factory<SSLEngine, TlsDetails>() {
-
-                    @Override
-                    public TlsDetails create(final SSLEngine sslEngine) {
-                        return new TlsDetails(sslEngine.getSession(), sslEngine.getApplicationProtocol());
-                    }
-                })
-                */
                 .build();
 
         final PoolingAsyncClientConnectionManager cm = PoolingAsyncClientConnectionManagerBuilder.create()

@@ -30,7 +30,6 @@ package org.apache.hc.client5.http.ssl;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
-import javax.net.ssl.SSLSession;
 
 import org.apache.hc.core5.function.Factory;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
@@ -38,7 +37,6 @@ import org.apache.hc.core5.http.ssl.TLS;
 import org.apache.hc.core5.reactor.ssl.SSLBufferMode;
 import org.apache.hc.core5.reactor.ssl.TlsDetails;
 import org.apache.hc.core5.ssl.SSLContexts;
-import org.apache.hc.core5.util.ReflectionUtils;
 
 /**
  * Builder for client {@link TlsStrategy} instances.
@@ -77,6 +75,10 @@ public class ClientTlsStrategyBuilder {
     private String[] ciphers;
     private SSLBufferMode sslBufferMode;
     private HostnameVerifier hostnameVerifier;
+    /**
+     * @deprecated To be removed.
+     */
+    @Deprecated
     private Factory<SSLEngine, TlsDetails> tlsDetailsFactory;
     private boolean systemProperties;
 
@@ -133,7 +135,10 @@ public class ClientTlsStrategyBuilder {
 
     /**
      * Assigns {@link TlsDetails} {@link Factory} instance.
+     *
+     * @deprecated Do not use.
      */
+    @Deprecated
     public ClientTlsStrategyBuilder setTlsDetailsFactory(final Factory<SSLEngine, TlsDetails> tlsDetailsFactory) {
         this.tlsDetailsFactory = tlsDetailsFactory;
         return this;
@@ -148,6 +153,7 @@ public class ClientTlsStrategyBuilder {
         return this;
     }
 
+    @SuppressWarnings("deprecation")
     public TlsStrategy build() {
         final SSLContext sslContextCopy;
         if (sslContext != null) {
@@ -167,24 +173,13 @@ public class ClientTlsStrategyBuilder {
         } else {
             ciphersCopy = systemProperties ? HttpsSupport.getSystemCipherSuits() : null;
         }
-        final Factory<SSLEngine, TlsDetails> tlsDetailsFactoryCopy;
-        if (tlsDetailsFactory != null) {
-            tlsDetailsFactoryCopy = tlsDetailsFactory;
-        } else {
-            tlsDetailsFactoryCopy = sslEngine -> {
-                final SSLSession sslSession = sslEngine.getSession();
-                final String applicationProtocol = ReflectionUtils.callGetter(sslEngine,
-                    "ApplicationProtocol", String.class);
-                return new TlsDetails(sslSession, applicationProtocol);
-            };
-        }
         return new DefaultClientTlsStrategy(
                 sslContextCopy,
                 tlsVersionsCopy,
                 ciphersCopy,
                 sslBufferMode != null ? sslBufferMode : SSLBufferMode.STATIC,
                 hostnameVerifier != null ? hostnameVerifier : HttpsSupport.getDefaultHostnameVerifier(),
-                tlsDetailsFactoryCopy);
+                tlsDetailsFactory);
     }
 
 }
