@@ -63,8 +63,16 @@ public class DefaultClientTlsStrategy extends AbstractClientTlsStrategy {
                 HttpsSupport.getDefaultHostnameVerifier());
     }
 
-    private final Factory<SSLEngine, TlsDetails> tlsDetailsFactory;
+    /**
+     * @deprecated To be removed.
+     */
+    @Deprecated
+    private Factory<SSLEngine, TlsDetails> tlsDetailsFactory;
 
+    /**
+     * @deprecated Use {@link DefaultClientTlsStrategy#DefaultClientTlsStrategy(SSLContext, String[], String[], SSLBufferMode, HostnameVerifier)}
+     */
+    @Deprecated
     public DefaultClientTlsStrategy(
             final SSLContext sslContext,
             final String[] supportedProtocols,
@@ -82,13 +90,13 @@ public class DefaultClientTlsStrategy extends AbstractClientTlsStrategy {
             final String[] supportedCipherSuites,
             final SSLBufferMode sslBufferManagement,
             final HostnameVerifier hostnameVerifier) {
-        this(sslContext, supportedProtocols, supportedCipherSuites, sslBufferManagement, hostnameVerifier, null);
+        super(sslContext, supportedProtocols, supportedCipherSuites, sslBufferManagement, hostnameVerifier);
     }
 
     public DefaultClientTlsStrategy(
             final SSLContext sslcontext,
             final HostnameVerifier hostnameVerifier) {
-        this(sslcontext, null, null, SSLBufferMode.STATIC, hostnameVerifier, null);
+        this(sslcontext, null, null, SSLBufferMode.STATIC, hostnameVerifier);
     }
 
     public DefaultClientTlsStrategy(final SSLContext sslcontext) {
