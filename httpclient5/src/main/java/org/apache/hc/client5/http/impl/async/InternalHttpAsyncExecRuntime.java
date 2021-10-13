@@ -79,7 +79,7 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
         this.connectionInitiator = connectionInitiator;
         this.pushHandlerFactory = pushHandlerFactory;
         this.tlsConfig = tlsConfig;
-        this.endpointRef = new AtomicReference<>(null);
+        this.endpointRef = new AtomicReference<>();
         this.validDuration = TimeValue.NEG_ONE_MILLISECOND;
     }
 
