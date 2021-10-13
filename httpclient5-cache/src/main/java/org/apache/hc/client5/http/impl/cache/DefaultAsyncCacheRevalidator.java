@@ -124,7 +124,7 @@ class DefaultAsyncCacheRevalidator extends CacheRevalidatorBase {
                         public void run() {
                             call.execute(new AsyncExecCallback() {
 
-                                private final AtomicReference<HttpResponse> responseRef = new AtomicReference<>(null);
+                                private final AtomicReference<HttpResponse> responseRef = new AtomicReference<>();
 
                                 @Override
                                 public AsyncDataConsumer handleResponse(

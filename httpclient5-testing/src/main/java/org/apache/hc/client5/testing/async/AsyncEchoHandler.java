@@ -61,7 +61,7 @@ public class AsyncEchoHandler implements AsyncServerExchangeHandler {
 
     public AsyncEchoHandler() {
         this.entityConsumer = new BasicAsyncEntityConsumer();
-        this.entityProducerRef = new AtomicReference<>(null);
+        this.entityProducerRef = new AtomicReference<>();
     }
 
     @Override

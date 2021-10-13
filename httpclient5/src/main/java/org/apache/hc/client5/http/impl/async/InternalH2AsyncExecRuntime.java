@@ -69,7 +69,7 @@ class InternalH2AsyncExecRuntime implements AsyncExecRuntime {
         this.log = log;
         this.connPool = connPool;
         this.pushHandlerFactory = pushHandlerFactory;
-        this.sessionRef = new AtomicReference<>(null);
+        this.sessionRef = new AtomicReference<>();
     }
 
     @Override

@@ -88,7 +88,7 @@ public class H2AsyncMainClientExec implements AsyncExecChainHandler {
 
         final AsyncClientExchangeHandler internalExchangeHandler = new AsyncClientExchangeHandler() {
 
-            private final AtomicReference<AsyncDataConsumer> entityConsumerRef = new AtomicReference<>(null);
+            private final AtomicReference<AsyncDataConsumer> entityConsumerRef = new AtomicReference<>();
 
             @Override
             public void releaseResources() {
