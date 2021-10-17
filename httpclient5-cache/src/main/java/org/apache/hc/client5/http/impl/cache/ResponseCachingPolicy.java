@@ -302,7 +302,7 @@ class ResponseCachingPolicy {
 
     private boolean from1_0Origin(final HttpResponse response) {
         final Iterator<HeaderElement> it = MessageSupport.iterate(response, HeaderConstants.VIA);
-        while (it.hasNext()) {
+        if (it.hasNext()) {
             final HeaderElement elt = it.next();
             final String proto = elt.toString().split("\\s")[0];
             if (proto.contains("/")) {
