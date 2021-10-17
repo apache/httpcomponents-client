@@ -60,6 +60,7 @@ import org.apache.hc.core5.function.Resolver;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.ProtocolVersion;
+import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.nio.AsyncClientExchangeHandler;
@@ -128,7 +129,7 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
 
     public PoolingAsyncClientConnectionManager() {
         this(RegistryBuilder.<TlsStrategy>create()
-                .register("https", DefaultClientTlsStrategy.getDefault())
+                .register(URIScheme.HTTPS.getId(), DefaultClientTlsStrategy.getDefault())
                 .build());
     }
 

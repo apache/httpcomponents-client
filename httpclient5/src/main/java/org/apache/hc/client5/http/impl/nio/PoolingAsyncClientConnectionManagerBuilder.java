@@ -36,6 +36,7 @@ import org.apache.hc.client5.http.ssl.ConscryptClientTlsStrategy;
 import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.core5.function.Resolver;
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.io.SocketConfig;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
@@ -247,7 +248,7 @@ public class PoolingAsyncClientConnectionManagerBuilder {
         }
         final PoolingAsyncClientConnectionManager poolingmgr = new PoolingAsyncClientConnectionManager(
                 RegistryBuilder.<TlsStrategy>create()
-                        .register("https", tlsStrategyCopy)
+                        .register(URIScheme.HTTPS.getId(), tlsStrategyCopy)
                         .build(),
                 poolConcurrencyPolicy,
                 poolReusePolicy,
