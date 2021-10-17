@@ -118,9 +118,9 @@ public class SystemDefaultCredentialsProvider implements CredentialsStore {
                 // https.proxyUser/https.proxyPassword. We cannot simply use the protocol from
                 // the origin since a proxy retrieved from https.proxyHost/https.proxyPort will
                 // still use http as protocol
-                systemcreds = getProxyCredentials("http", authScope);
+                systemcreds = getProxyCredentials(URIScheme.HTTP.getId(), authScope);
                 if (systemcreds == null) {
-                    systemcreds = getProxyCredentials("https", authScope);
+                    systemcreds = getProxyCredentials(URIScheme.HTTPS.getId(), authScope);
                 }
             }
             if (systemcreds != null) {
