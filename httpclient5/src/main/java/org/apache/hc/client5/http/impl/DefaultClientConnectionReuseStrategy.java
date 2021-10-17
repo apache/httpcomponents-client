@@ -37,7 +37,7 @@ import org.apache.hc.core5.http.protocol.HttpContext;
 
 /**
  * Extension of core {@link DefaultConnectionReuseStrategy} that treats
- * CONNECT method exchnages involved in proxy tunnelling as a special case.
+ * CONNECT method exchanges involved in proxy tunnelling as a special case.
  *
  * @since 5.2
  */

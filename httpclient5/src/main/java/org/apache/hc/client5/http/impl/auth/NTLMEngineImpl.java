@@ -917,7 +917,7 @@ final class NTLMEngineImpl implements NTLMEngine {
             return sig;
         }
 
-        private boolean validateSignature( final byte[] signature, final byte message[] )
+        private boolean validateSignature( final byte[] signature, final byte[] message )
         {
             final byte[] computedSignature = computeSignature( message );
             //            log.info( "SSSSS validateSignature("+seqNumber+")\n"

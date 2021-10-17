@@ -260,7 +260,7 @@ public class HttpAsyncClientBuilder {
     /**
      * Sets HTTP protocol version policy.
      *
-     * @deprecated Use {@link TlsConfig} and connection nanager methods
+     * @deprecated Use {@link TlsConfig} and connection manager methods
      */
     @Deprecated
     public final HttpAsyncClientBuilder setVersionPolicy(final HttpVersionPolicy versionPolicy) {
