@@ -1,4 +1,47 @@
-﻿Release 5.1
+﻿Release 5.1.1
+-----------
+
+This release upgrades HttpCore to the latest 5.1 version and fixes a number of issues found
+since release 5.1.
+
+
+Change Log
+-------------------
+
+* Don't initialize AtomicReference to its default value.
+  Contributed by Gary Gregory <ggregory at apache.org>
+
+* Corrected resolution of the target host in DefaultUserTokenHandler.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2177: automatically force HTTP/1.1 protocol policy when executing requests
+  via a proxy tunnel.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2177: fixed incorrect route state tracking by the async connect executor
+  when negotiating a tunnel via a proxy.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2177: keep successful tunnel connections alive regardless of `Connection: close`.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2173: async pooling connection manager to close half-open connection gracefully.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Don't retry a request for NoRouteToHostException.
+  Contributed by Jaikiran Pai <jaikiran.pai at gmail.com>
+
+* HTTPCLIENT-2170: Classic protocol layer no longer releases the underlying connection back
+  to the pool prematurely while the NTLM handshake is still ongoing.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Fixed connection lease request cancellation race in both classic and asyc pooling connection
+  managers.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+
+
+Release 5.1
 -----------
 
 This is the first GA release in the 5.1 release series.
