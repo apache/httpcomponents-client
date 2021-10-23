@@ -49,22 +49,25 @@ public class ConnectionConfig implements Cloneable {
     private final Timeout connectTimeout;
     private final Timeout socketTimeout;
     private final TimeValue validateAfterInactivity;
+    private final TimeValue timeToLive;
 
     /**
      * Intended for CDI compatibility
      */
     protected ConnectionConfig() {
-        this(DEFAULT_CONNECT_TIMEOUT, null, null);
+        this(DEFAULT_CONNECT_TIMEOUT, null, null, null);
     }
 
     ConnectionConfig(
             final Timeout connectTimeout,
             final Timeout socketTimeout,
-            final TimeValue validateAfterInactivity) {
+            final TimeValue validateAfterInactivity,
+            final TimeValue timeToLive) {
         super();
         this.connectTimeout = connectTimeout;
         this.socketTimeout = socketTimeout;
         this.validateAfterInactivity = validateAfterInactivity;
+        this.timeToLive = timeToLive;
     }
 
     /**
@@ -88,6 +91,13 @@ public class ConnectionConfig implements Cloneable {
         return validateAfterInactivity;
     }
 
+    /**
+     * @see Builder#setTimeToLive(TimeValue) (TimeValue)
+     */
+    public TimeValue getTimeToLive() {
+        return timeToLive;
+    }
+
     @Override
     protected ConnectionConfig clone() throws CloneNotSupportedException {
         return (ConnectionConfig) super.clone();
@@ -100,6 +110,7 @@ public class ConnectionConfig implements Cloneable {
         builder.append(", connectTimeout=").append(connectTimeout);
         builder.append(", socketTimeout=").append(socketTimeout);
         builder.append(", validateAfterInactivity=").append(validateAfterInactivity);
+        builder.append(", timeToLive=").append(timeToLive);
         builder.append("]");
         return builder.toString();
     }
@@ -112,7 +123,8 @@ public class ConnectionConfig implements Cloneable {
         return new Builder()
                 .setConnectTimeout(config.getConnectTimeout())
                 .setSocketTimeout(config.getSocketTimeout())
-                .setValidateAfterInactivity(config.getValidateAfterInactivity());
+                .setValidateAfterInactivity(config.getValidateAfterInactivity())
+                .setTimeToLive(config.getTimeToLive());
     }
 
     public static class Builder {
@@ -120,6 +132,7 @@ public class ConnectionConfig implements Cloneable {
         private Timeout socketTimeout;
         private Timeout connectTimeout;
         private TimeValue validateAfterInactivity;
+        private TimeValue timeToLive;
 
         Builder() {
             super();
@@ -190,11 +203,31 @@ public class ConnectionConfig implements Cloneable {
             return this;
         }
 
+        /**
+         * Defines the total span of time connections can be kept alive or execute requests.
+         * <p>
+         * Default: {@code null} (undefined)
+         * </p>
+         */
+        public Builder setTimeToLive(final TimeValue timeToLive) {
+            this.timeToLive = timeToLive;
+            return this;
+        }
+
+        /**
+         * @see #setTimeToLive(TimeValue)
+         */
+        public Builder setTimeToLive(final long timeToLive, final TimeUnit timeUnit) {
+            this.timeToLive = TimeValue.of(timeToLive, timeUnit);
+            return this;
+        }
+
         public ConnectionConfig build() {
             return new ConnectionConfig(
                     connectTimeout != null ? connectTimeout : DEFAULT_CONNECT_TIMEOUT,
                     socketTimeout,
-                    validateAfterInactivity);
+                    validateAfterInactivity,
+                    timeToLive);
         }
 
     }

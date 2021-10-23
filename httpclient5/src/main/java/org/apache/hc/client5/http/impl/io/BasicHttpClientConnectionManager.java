@@ -67,6 +67,7 @@ import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.Asserts;
+import org.apache.hc.core5.util.Deadline;
 import org.apache.hc.core5.util.LangUtils;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
@@ -105,6 +106,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
     private ManagedHttpClientConnection conn;
     private HttpRoute route;
     private Object state;
+    private long created;
     private long updated;
     private long expiry;
     private boolean leased;
@@ -113,8 +115,6 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
     private TlsConfig tlsConfig;
 
     private final AtomicBoolean closed;
-
-    private volatile TimeValue validateAfterInactivity;
 
     private static Registry<ConnectionSocketFactory> getDefaultRegistry() {
         return RegistryBuilder.<ConnectionSocketFactory>create()
@@ -147,7 +147,6 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
         this.connectionConfig = ConnectionConfig.DEFAULT;
         this.tlsConfig = TlsConfig.DEFAULT;
         this.closed = new AtomicBoolean(false);
-        this.validateAfterInactivity = TimeValue.ofSeconds(2L);
     }
 
     public BasicHttpClientConnectionManager(
@@ -210,6 +209,13 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
     /**
      * @since 5.2
      */
+    public synchronized TlsConfig getTlsConfig() {
+        return tlsConfig;
+    }
+
+    /**
+     * @since 5.2
+     */
     public synchronized void setTlsConfig(final TlsConfig tlsConfig) {
         this.tlsConfig = tlsConfig != null ? tlsConfig : TlsConfig.DEFAULT;
     }
@@ -260,21 +266,34 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
     }
 
     private void validate() {
-        final TimeValue validateAfterInactivitySnapshot = validateAfterInactivity;
-        if (this.conn != null
-                && TimeValue.isNonNegative(validateAfterInactivitySnapshot)
-                && updated + validateAfterInactivitySnapshot.toMilliseconds() <= System.currentTimeMillis()) {
-            boolean stale;
-            try {
-                stale = conn.isStale();
-            } catch (final IOException ignore) {
-                stale = true;
-            }
-            if (stale) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("{} connection {} is stale", id, ConnPoolSupport.getId(conn));
+        if (this.conn != null) {
+            final TimeValue timeToLive = connectionConfig.getTimeToLive();
+            if (TimeValue.isNonNegative(timeToLive)) {
+                final Deadline deadline = Deadline.calculate(created, timeToLive);
+                if (deadline.isExpired()) {
+                    closeConnection(CloseMode.GRACEFUL);
                 }
-                closeConnection(CloseMode.GRACEFUL);
+            }
+        }
+        if (this.conn != null) {
+            final TimeValue timeValue = connectionConfig.getValidateAfterInactivity() != null ?
+                    connectionConfig.getValidateAfterInactivity() : TimeValue.ofSeconds(2);
+            if (TimeValue.isNonNegative(timeValue)) {
+                final Deadline deadline = Deadline.calculate(updated, timeValue);
+                if (deadline.isExpired()) {
+                    boolean stale;
+                    try {
+                        stale = conn.isStale();
+                    } catch (final IOException ignore) {
+                        stale = true;
+                    }
+                    if (stale) {
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("{} connection {} is stale", id, ConnPoolSupport.getId(conn));
+                        }
+                        closeConnection(CloseMode.GRACEFUL);
+                    }
+                }
             }
         }
     }
@@ -294,6 +313,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
         validate();
         if (this.conn == null) {
             this.conn = this.connFactory.createConnection(null);
+            this.created = System.currentTimeMillis();
         } else {
             this.conn.activate();
         }
@@ -436,9 +456,12 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
      * @see #setValidateAfterInactivity(TimeValue)
      *
      * @since 5.1
+     *
+     * @deprecated Use {@link #getConnectionConfig()}
      */
+    @Deprecated
     public TimeValue getValidateAfterInactivity() {
-        return validateAfterInactivity;
+        return connectionConfig.getValidateAfterInactivity();
     }
 
     /**
@@ -448,9 +471,14 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
      * detect connections that have become stale (half-closed) while kept inactive in the pool.
      *
      * @since 5.1
+     *
+     * @deprecated Use {@link #setConnectionConfig(ConnectionConfig)}
      */
+    @Deprecated
     public void setValidateAfterInactivity(final TimeValue validateAfterInactivity) {
-        this.validateAfterInactivity = validateAfterInactivity;
+        this.connectionConfig = ConnectionConfig.custom()
+                .setValidateAfterInactivity(validateAfterInactivity)
+                .build();
     }
 
     class InternalConnectionEndpoint extends ConnectionEndpoint {

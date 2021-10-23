@@ -76,6 +76,7 @@ import org.apache.hc.core5.pool.PoolStats;
 import org.apache.hc.core5.pool.StrictConnPool;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.Asserts;
+import org.apache.hc.core5.util.Deadline;
 import org.apache.hc.core5.util.Identifiable;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
@@ -303,23 +304,34 @@ public class PoolingHttpClientConnectionManager
                     LOG.debug("{} endpoint leased {}", id, ConnPoolSupport.formatStats(route, state, pool));
                 }
                 final ConnectionConfig connectionConfig = resolveConnectionConfig(route);
-                final TimeValue timeValue = resolveValidateAfterInactivity(connectionConfig);
                 try {
-                    if (TimeValue.isNonNegative(timeValue)) {
-                        final ManagedHttpClientConnection conn = poolEntry.getConnection();
-                        if (conn != null
-                                && poolEntry.getUpdated() + timeValue.toMilliseconds() <= System.currentTimeMillis()) {
-                            boolean stale;
-                            try {
-                                stale = conn.isStale();
-                            } catch (final IOException ignore) {
-                                stale = true;
+                    if (poolEntry.hasConnection()) {
+                        final TimeValue timeToLive = connectionConfig.getTimeToLive();
+                        if (TimeValue.isNonNegative(timeToLive)) {
+                            final Deadline deadline = Deadline.calculate(poolEntry.getCreated(), timeToLive);
+                            if (deadline.isExpired()) {
+                                poolEntry.discardConnection(CloseMode.GRACEFUL);
                             }
-                            if (stale) {
-                                if (LOG.isDebugEnabled()) {
-                                    LOG.debug("{} connection {} is stale", id, ConnPoolSupport.getId(conn));
+                        }
+                    }
+                    if (poolEntry.hasConnection()) {
+                        final TimeValue timeValue = resolveValidateAfterInactivity(connectionConfig);
+                        if (TimeValue.isNonNegative(timeValue)) {
+                            final Deadline deadline = Deadline.calculate(poolEntry.getUpdated(), timeValue);
+                            if (deadline.isExpired()) {
+                                final ManagedHttpClientConnection conn = poolEntry.getConnection();
+                                boolean stale;
+                                try {
+                                    stale = conn.isStale();
+                                } catch (final IOException ignore) {
+                                    stale = true;
                                 }
-                                poolEntry.discardConnection(CloseMode.IMMEDIATE);
+                                if (stale) {
+                                    if (LOG.isDebugEnabled()) {
+                                        LOG.debug("{} connection {} is stale", id, ConnPoolSupport.getId(conn));
+                                    }
+                                    poolEntry.discardConnection(CloseMode.IMMEDIATE);
+                                }
                             }
                         }
                     }

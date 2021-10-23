@@ -87,7 +87,6 @@ public class PoolingAsyncClientConnectionManagerBuilder {
     private Resolver<HttpRoute, SocketConfig> socketConfigResolver;
     private Resolver<HttpRoute, ConnectionConfig> connectionConfigResolver;
     private Resolver<HttpHost, TlsConfig> tlsConfigResolver;
-    private TimeValue timeToLive;
 
     public static PoolingAsyncClientConnectionManagerBuilder create() {
         return new PoolingAsyncClientConnectionManagerBuilder();
@@ -198,9 +197,14 @@ public class PoolingAsyncClientConnectionManagerBuilder {
 
     /**
      * Sets maximum time to live for persistent connections
+     *
+     * @deprecated Use {@link #setDefaultConnectionConfig(ConnectionConfig)}
      */
+    @Deprecated
     public final PoolingAsyncClientConnectionManagerBuilder setConnectionTimeToLive(final TimeValue timeToLive) {
-        this.timeToLive = timeToLive;
+        setDefaultConnectionConfig(ConnectionConfig.custom()
+                .setTimeToLive(timeToLive)
+                .build());
         return this;
     }
 
@@ -252,7 +256,7 @@ public class PoolingAsyncClientConnectionManagerBuilder {
                         .build(),
                 poolConcurrencyPolicy,
                 poolReusePolicy,
-                timeToLive,
+                null,
                 schemePortResolver,
                 dnsResolver);
         poolingmgr.setConnectionConfigResolver(connectionConfigResolver);

@@ -88,6 +88,7 @@ import org.apache.hc.core5.reactor.ProtocolIOSession;
 import org.apache.hc.core5.reactor.ssl.TlsDetails;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.Asserts;
+import org.apache.hc.core5.util.Deadline;
 import org.apache.hc.core5.util.Identifiable;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
@@ -261,25 +262,40 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
 
                         @Override
                         public void completed(final PoolEntry<HttpRoute, ManagedAsyncClientConnection> poolEntry) {
-                            final ManagedAsyncClientConnection connection = poolEntry.getConnection();
-                            final TimeValue timeValue = connectionConfig != null ? connectionConfig.getValidateAfterInactivity() : null;
-                            if (TimeValue.isNonNegative(timeValue) && connection != null &&
-                                    poolEntry.getUpdated() + timeValue.toMilliseconds() <= System.currentTimeMillis()) {
-                                final ProtocolVersion protocolVersion = connection.getProtocolVersion();
-                                if (protocolVersion != null && protocolVersion.greaterEquals(HttpVersion.HTTP_2_0)) {
-                                    connection.submitCommand(new PingCommand(new BasicPingHandler(result -> {
-                                        if (result == null || !result)  {
+                            if (poolEntry.hasConnection()) {
+                                final TimeValue timeToLive = connectionConfig.getTimeToLive();
+                                if (TimeValue.isNonNegative(timeToLive)) {
+                                    final Deadline deadline = Deadline.calculate(poolEntry.getCreated(), timeToLive);
+                                    if (deadline.isExpired()) {
+                                        poolEntry.discardConnection(CloseMode.GRACEFUL);
+                                    }
+                                }
+                            }
+                            if (poolEntry.hasConnection()) {
+                                final ManagedAsyncClientConnection connection = poolEntry.getConnection();
+                                final TimeValue timeValue = connectionConfig.getValidateAfterInactivity();
+                                if (connection.isOpen() && TimeValue.isNonNegative(timeValue)) {
+                                    final Deadline deadline = Deadline.calculate(poolEntry.getUpdated(), timeValue);
+                                    if (deadline.isExpired()) {
+                                        final ProtocolVersion protocolVersion = connection.getProtocolVersion();
+                                        if (protocolVersion != null && protocolVersion.greaterEquals(HttpVersion.HTTP_2_0)) {
+                                            connection.submitCommand(new PingCommand(new BasicPingHandler(result -> {
+                                                if (result == null || !result)  {
+                                                    if (LOG.isDebugEnabled()) {
+                                                        LOG.debug("{} connection {} is stale", id, ConnPoolSupport.getId(connection));
+                                                    }
+                                                    poolEntry.discardConnection(CloseMode.GRACEFUL);
+                                                }
+                                                leaseCompleted(poolEntry);
+                                            })), Command.Priority.IMMEDIATE);
+                                            return;
+                                        } else {
                                             if (LOG.isDebugEnabled()) {
-                                                LOG.debug("{} connection {} is stale", id, ConnPoolSupport.getId(connection));
+                                                LOG.debug("{} connection {} is closed", id, ConnPoolSupport.getId(connection));
                                             }
                                             poolEntry.discardConnection(CloseMode.IMMEDIATE);
                                         }
-                                    })), Command.Priority.IMMEDIATE);
-                                } else {
-                                    if (LOG.isDebugEnabled()) {
-                                        LOG.debug("{} connection {} is closed", id, ConnPoolSupport.getId(connection));
                                     }
-                                    poolEntry.discardConnection(CloseMode.IMMEDIATE);
                                 }
                             }
                             leaseCompleted(poolEntry);

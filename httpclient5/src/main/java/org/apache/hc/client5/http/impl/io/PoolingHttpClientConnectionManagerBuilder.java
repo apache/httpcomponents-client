@@ -90,8 +90,6 @@ public class PoolingHttpClientConnectionManagerBuilder {
     private int maxConnTotal;
     private int maxConnPerRoute;
 
-    private TimeValue timeToLive;
-
     public static PoolingHttpClientConnectionManagerBuilder create() {
         return new PoolingHttpClientConnectionManagerBuilder();
     }
@@ -229,9 +227,14 @@ public class PoolingHttpClientConnectionManagerBuilder {
 
     /**
      * Sets maximum time to live for persistent connections
+     *
+     * @deprecated Use {@link #setDefaultConnectionConfig(ConnectionConfig)}.
      */
+    @Deprecated
     public final PoolingHttpClientConnectionManagerBuilder setConnectionTimeToLive(final TimeValue timeToLive) {
-        this.timeToLive = timeToLive;
+        setDefaultConnectionConfig(ConnectionConfig.custom()
+                .setTimeToLive(timeToLive)
+                .build());
         return this;
     }
 
@@ -269,7 +272,7 @@ public class PoolingHttpClientConnectionManagerBuilder {
                         .build(),
                 poolConcurrencyPolicy,
                 poolReusePolicy,
-                timeToLive != null ? timeToLive : TimeValue.NEG_ONE_MILLISECOND,
+                null,
                 schemePortResolver,
                 dnsResolver,
                 connectionFactory);
