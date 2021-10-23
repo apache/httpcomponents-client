@@ -32,6 +32,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
 
 import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
@@ -43,6 +44,7 @@ import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.ssl.TLS;
 import org.apache.hc.core5.ssl.SSLContexts;
+import org.apache.hc.core5.util.Timeout;
 
 /**
  * This example demonstrates how to create secure connections with a custom SSL
@@ -58,13 +60,16 @@ public class ClientCustomSSL {
                     return "CN=httpbin.org".equalsIgnoreCase(cert.getSubjectDN().getName());
                 })
                 .build();
-        // Allow TLSv1.2 protocol only
         final SSLConnectionSocketFactory sslSocketFactory = SSLConnectionSocketFactoryBuilder.create()
                 .setSslContext(sslcontext)
-                .setTlsVersions(TLS.V_1_2)
                 .build();
+        // Allow TLSv1.3 protocol only
         final HttpClientConnectionManager cm = PoolingHttpClientConnectionManagerBuilder.create()
                 .setSSLSocketFactory(sslSocketFactory)
+                .setDefaultTlsConfig(TlsConfig.custom()
+                        .setHandshakeTimeout(Timeout.ofSeconds(30))
+                        .setSupportedProtocols(TLS.V_1_3)
+                        .build())
                 .build();
         try (CloseableHttpClient httpclient = HttpClients.custom()
                 .setConnectionManager(cm)

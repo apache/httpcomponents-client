@@ -44,6 +44,7 @@ import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.cookie.BasicCookieStore;
 import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.client5.http.cookie.StandardCookieSpec;
@@ -80,6 +81,7 @@ import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.BasicLineParser;
 import org.apache.hc.core5.http.message.LineParser;
+import org.apache.hc.core5.http.ssl.TLS;
 import org.apache.hc.core5.pool.PoolConcurrencyPolicy;
 import org.apache.hc.core5.pool.PoolReusePolicy;
 import org.apache.hc.core5.ssl.SSLContexts;
@@ -183,6 +185,13 @@ public class ClientConfiguration {
                 .setConnectTimeout(Timeout.ofSeconds(30))
                 .setSocketTimeout(Timeout.ofSeconds(30))
                 .setValidateAfterInactivity(TimeValue.ofSeconds(10))
+                .setTimeToLive(TimeValue.ofHours(1))
+                .build());
+
+        // Use TLS v1.3 only
+        connManager.setDefaultTlsConfig(TlsConfig.custom()
+                .setHandshakeTimeout(Timeout.ofSeconds(30))
+                .setSupportedProtocols(TLS.V_1_3)
                 .build());
 
         // Configure total max or per route limits for persistent connections

@@ -32,6 +32,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.http.ssl.TLS;
 import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.apache.hc.core5.util.Timeout;
 
@@ -163,6 +164,23 @@ public class TlsConfig implements Cloneable {
          */
         public Builder setSupportedProtocols(final String... supportedProtocols) {
             this.supportedProtocols = supportedProtocols;
+            return this;
+        }
+
+        /**
+         * Determines supported TLS protocols.
+         * <p>
+         * Default: {@code null} (undefined)
+         * </p>
+         */
+        public Builder setSupportedProtocols(final TLS... supportedProtocols) {
+            this.supportedProtocols = new String[supportedProtocols.length];
+            for (int i = 0; i < supportedProtocols.length; i++) {
+                final TLS protocol = supportedProtocols[i];
+                if (protocol != null) {
+                    this.supportedProtocols[i] = protocol.id;
+                }
+            }
             return this;
         }
 
