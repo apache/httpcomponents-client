@@ -26,11 +26,13 @@
  */
 package org.apache.hc.client5.http.impl.cookie;
 
+import java.time.Instant;
+import java.time.Month;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.BitSet;
-import java.util.Calendar;
 import java.util.Locale;
 import java.util.Map;
-import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -39,6 +41,7 @@ import org.apache.hc.client5.http.cookie.CommonCookieAttributeHandler;
 import org.apache.hc.client5.http.cookie.Cookie;
 import org.apache.hc.client5.http.cookie.MalformedCookieException;
 import org.apache.hc.client5.http.cookie.SetCookie;
+import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.util.Args;
@@ -53,8 +56,6 @@ import org.apache.hc.core5.util.Tokenizer;
  */
 @Contract(threading = ThreadingBehavior.STATELESS)
 public class LaxExpiresHandler extends AbstractCookieAttributeHandler implements CommonCookieAttributeHandler {
-
-    static final TimeZone UTC = TimeZone.getTimeZone("UTC");
 
     private static final BitSet DELIMS;
     static {
@@ -74,21 +75,21 @@ public class LaxExpiresHandler extends AbstractCookieAttributeHandler implements
         }
         DELIMS = bitSet;
     }
-    private static final Map<String, Integer> MONTHS;
+    private static final Map<String, Month> MONTHS;
     static {
-        final ConcurrentHashMap<String, Integer> map = new ConcurrentHashMap<>(12);
-        map.put("jan", Calendar.JANUARY);
-        map.put("feb", Calendar.FEBRUARY);
-        map.put("mar", Calendar.MARCH);
-        map.put("apr", Calendar.APRIL);
-        map.put("may", Calendar.MAY);
-        map.put("jun", Calendar.JUNE);
-        map.put("jul", Calendar.JULY);
-        map.put("aug", Calendar.AUGUST);
-        map.put("sep", Calendar.SEPTEMBER);
-        map.put("oct", Calendar.OCTOBER);
-        map.put("nov", Calendar.NOVEMBER);
-        map.put("dec", Calendar.DECEMBER);
+        final ConcurrentHashMap<String, Month> map = new ConcurrentHashMap<>(12);
+        map.put("jan", Month.JANUARY);
+        map.put("feb", Month.FEBRUARY);
+        map.put("mar", Month.MARCH);
+        map.put("apr", Month.APRIL);
+        map.put("may", Month.MAY);
+        map.put("jun", Month.JUNE);
+        map.put("jul", Month.JULY);
+        map.put("aug", Month.AUGUST);
+        map.put("sep", Month.SEPTEMBER);
+        map.put("oct", Month.OCTOBER);
+        map.put("nov", Month.NOVEMBER);
+        map.put("dec", Month.DECEMBER);
         MONTHS = map;
     }
 
@@ -114,7 +115,8 @@ public class LaxExpiresHandler extends AbstractCookieAttributeHandler implements
         final Tokenizer.Cursor cursor = new Tokenizer.Cursor(0, value.length());
         final StringBuilder content = new StringBuilder();
 
-        int second = 0, minute = 0, hour = 0, day = 0, month = 0, year = 0;
+        int second = 0, minute = 0, hour = 0, day = 0, year = 0;
+        Month month = Month.JANUARY;
         boolean foundTime = false, foundDayOfMonth = false, foundMonth = false, foundYear = false;
         try {
             while (!cursor.atEnd()) {
@@ -147,7 +149,7 @@ public class LaxExpiresHandler extends AbstractCookieAttributeHandler implements
                     final Matcher matcher = MONTH_PATTERN.matcher(content);
                     if (matcher.matches()) {
                         foundMonth = true;
-                        month = MONTHS.get(matcher.group(1).toLowerCase(Locale.ROOT)).intValue();
+                        month = MONTHS.get(matcher.group(1).toLowerCase(Locale.ROOT));
                         continue;
                     }
                 }
@@ -176,16 +178,9 @@ public class LaxExpiresHandler extends AbstractCookieAttributeHandler implements
             throw new MalformedCookieException("Invalid 'expires' attribute: " + value);
         }
 
-        final Calendar c = Calendar.getInstance();
-        c.setTimeZone(UTC);
-        c.setTimeInMillis(0L);
-        c.set(Calendar.SECOND, second);
-        c.set(Calendar.MINUTE, minute);
-        c.set(Calendar.HOUR_OF_DAY, hour);
-        c.set(Calendar.DAY_OF_MONTH, day);
-        c.set(Calendar.MONTH, month);
-        c.set(Calendar.YEAR, year);
-        cookie.setExpiryDate(c.getTime());
+        final Instant expiryDate = ZonedDateTime.of(year, month.getValue(), day, hour, minute, second, 0,
+                ZoneId.of("UTC")).toInstant();
+        cookie.setExpiryDate(DateUtils.toDate(expiryDate));
     }
 
     private void skipDelims(final CharSequence buf, final Tokenizer.Cursor cursor) {

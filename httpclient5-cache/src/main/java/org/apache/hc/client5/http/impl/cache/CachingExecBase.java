@@ -40,7 +40,6 @@ import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpCacheContext;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.ResourceIOException;
-import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HeaderElement;
 import org.apache.hc.core5.http.HttpHeaders;
@@ -333,7 +332,7 @@ public class CachingExecBase {
         // Date header, so we can't tell if they are out of order
         // according to the origin clock; thus we can skip the
         // unconditional retry recommended in 13.2.6 of RFC 2616.
-        return DateUtils.isBefore(backendResponse, cacheEntry, HttpHeaders.DATE);
+        return DateSupport.isBefore(backendResponse, cacheEntry, HttpHeaders.DATE);
     }
 
     boolean shouldSendNotModifiedResponse(final HttpRequest request, final HttpCacheEntry responseEntry) {

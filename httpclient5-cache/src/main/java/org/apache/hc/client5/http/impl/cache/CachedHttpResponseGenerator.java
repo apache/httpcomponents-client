@@ -26,6 +26,7 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
+import java.time.Instant;
 import java.util.Date;
 
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
@@ -105,7 +106,7 @@ class CachedHttpResponseGenerator {
         // - Date, unless its omission is required by section 14.8.1
         Header dateHeader = entry.getFirstHeader(HttpHeaders.DATE);
         if (dateHeader == null) {
-            dateHeader = new BasicHeader(HttpHeaders.DATE, DateUtils.formatDate(new Date()));
+            dateHeader = new BasicHeader(HttpHeaders.DATE, DateUtils.formatStandardDate(Instant.now()));
         }
         response.addHeader(dateHeader);
 

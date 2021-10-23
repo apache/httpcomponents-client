@@ -42,19 +42,13 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
 @Contract(threading = ThreadingBehavior.SAFE)
 public class RFC6265StrictSpec extends RFC6265CookieSpecBase {
 
-    final static String[] DATE_PATTERNS = {
-        DateUtils.PATTERN_RFC1123,
-        DateUtils.PATTERN_RFC1036,
-        DateUtils.PATTERN_ASCTIME
-    };
-
     public RFC6265StrictSpec() {
         super(new BasicPathHandler(),
                 new BasicDomainHandler(),
                 new BasicMaxAgeHandler(),
                 new BasicSecureHandler(),
                 new BasicHttpOnlyHandler(),
-                new BasicExpiresHandler(DATE_PATTERNS));
+                new BasicExpiresHandler(DateUtils.STANDARD_PATTERNS));
     }
 
     RFC6265StrictSpec(final CommonCookieAttributeHandler... handlers) {

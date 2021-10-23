@@ -26,6 +26,7 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
+import java.time.Instant;
 import java.util.Date;
 import java.util.Iterator;
 
@@ -278,7 +279,8 @@ class CachedResponseSuitabilityChecker {
         final boolean hasLastModifiedValidator = hasSupportedLastModifiedValidator(request);
 
         final boolean etagValidatorMatches = (hasEtagValidator) && etagValidatorMatches(request, entry);
-        final boolean lastModifiedValidatorMatches = (hasLastModifiedValidator) && lastModifiedValidatorMatches(request, entry, now);
+        final boolean lastModifiedValidatorMatches = (hasLastModifiedValidator) && lastModifiedValidatorMatches(request, entry,
+                DateUtils.toInstant(now));
 
         if ((hasEtagValidator && hasLastModifiedValidator)
             && !(etagValidatorMatches && lastModifiedValidatorMatches)) {
@@ -332,16 +334,16 @@ class CachedResponseSuitabilityChecker {
      * @param now right NOW in time
      * @return  boolean Does the last modified header match
      */
-    private boolean lastModifiedValidatorMatches(final HttpRequest request, final HttpCacheEntry entry, final Date now) {
-        final Date lastModified = DateUtils.parseDate(entry, HeaderConstants.LAST_MODIFIED);
+    private boolean lastModifiedValidatorMatches(final HttpRequest request, final HttpCacheEntry entry, final Instant now) {
+        final Instant lastModified = DateUtils.parseStandardDate(entry, HeaderConstants.LAST_MODIFIED);
         if (lastModified == null) {
             return false;
         }
 
         for (final Header h : request.getHeaders(HeaderConstants.IF_MODIFIED_SINCE)) {
-            final Date ifModifiedSince = DateUtils.parseDate(h.getValue());
+            final Instant ifModifiedSince = DateUtils.parseStandardDate(h.getValue());
             if (ifModifiedSince != null) {
-                if (ifModifiedSince.after(now) || lastModified.after(ifModifiedSince)) {
+                if (ifModifiedSince.isAfter(now) || lastModified.isAfter(ifModifiedSince)) {
                     return false;
                 }
             }
@@ -351,8 +353,8 @@ class CachedResponseSuitabilityChecker {
 
     private boolean hasValidDateField(final HttpRequest request, final String headerName) {
         for(final Header h : request.getHeaders(headerName)) {
-            final Date date = DateUtils.parseDate(h.getValue());
-            return date != null;
+            final Instant instant = DateUtils.parseStandardDate(h.getValue());
+            return instant != null;
         }
         return false;
     }

@@ -56,6 +56,10 @@ public class TestResponseCachingPolicy {
     private Date tenSecondsFromNow;
     private Date sixSecondsAgo;
 
+    static String formatDate(final Date date) {
+        return DateUtils.formatStandardDate(DateUtils.toInstant(date));
+    }
+
     @Before
     public void setUp() throws Exception {
         now = new Date();
@@ -65,7 +69,7 @@ public class TestResponseCachingPolicy {
         policy = new ResponseCachingPolicy(0, true, false, false);
         request = new BasicHttpRequest("GET","/");
         response = new BasicHttpResponse(HttpStatus.SC_OK, "");
-        response.setHeader("Date", DateUtils.formatDate(new Date()));
+        response.setHeader("Date", formatDate(new Date()));
         response.setHeader("Content-Length", "0");
     }
 
@@ -205,7 +209,7 @@ public class TestResponseCachingPolicy {
     public void testNon206WithExplicitExpiresIsCacheable() {
         final int status = getRandomStatus();
         response.setCode(status);
-        response.setHeader("Expires", DateUtils.formatDate(new Date()));
+        response.setHeader("Expires", formatDate(new Date()));
         Assert.assertTrue(policy.isResponseCacheable("GET", response));
     }
 
@@ -360,7 +364,7 @@ public class TestResponseCachingPolicy {
         Assert.assertTrue(policy.isResponseCacheable("GET", response));
 
         response = new BasicHttpResponse(HttpStatus.SC_OK, "");
-        response.setHeader("Date", DateUtils.formatDate(new Date()));
+        response.setHeader("Date", formatDate(new Date()));
         response.addHeader("Cache-Control", "no-transform");
         response.setHeader("Content-Length", "0");
 
@@ -375,7 +379,7 @@ public class TestResponseCachingPolicy {
         Assert.assertTrue(policy.isResponseCacheable("HEAD", response));
 
         response = new BasicHttpResponse(HttpStatus.SC_OK, "");
-        response.setHeader("Date", DateUtils.formatDate(new Date()));
+        response.setHeader("Date", formatDate(new Date()));
         response.addHeader("Cache-Control", "no-transform");
         response.setHeader("Content-Length", "0");
 
@@ -480,8 +484,8 @@ public class TestResponseCachingPolicy {
 
     @Test
     public void testResponsesWithMultipleDateHeadersAreNotCacheable() {
-        response.addHeader("Date", DateUtils.formatDate(now));
-        response.addHeader("Date", DateUtils.formatDate(sixSecondsAgo));
+        response.addHeader("Date", formatDate(now));
+        response.addHeader("Date", formatDate(sixSecondsAgo));
         Assert.assertFalse(policy.isResponseCacheable("GET", response));
     }
 
@@ -491,8 +495,8 @@ public class TestResponseCachingPolicy {
 
         request.setHeader("Authorization", StandardAuthScheme.BASIC + " QWxhZGRpbjpvcGVuIHNlc2FtZQ==");
         response.setHeader("Cache-Control", "public");
-        response.addHeader("Date", DateUtils.formatDate(now));
-        response.addHeader("Date", DateUtils.formatDate(sixSecondsAgo));
+        response.addHeader("Date", formatDate(now));
+        response.addHeader("Date", formatDate(sixSecondsAgo));
         Assert.assertFalse(policy.isResponseCacheable(request, response));
     }
 
@@ -514,8 +518,8 @@ public class TestResponseCachingPolicy {
 
     @Test
     public void testResponsesWithMultipleExpiresHeadersAreNotCacheable() {
-        response.addHeader("Expires", DateUtils.formatDate(now));
-        response.addHeader("Expires", DateUtils.formatDate(sixSecondsAgo));
+        response.addHeader("Expires", formatDate(now));
+        response.addHeader("Expires", formatDate(sixSecondsAgo));
         Assert.assertFalse(policy.isResponseCacheable("GET", response));
     }
 
@@ -525,8 +529,8 @@ public class TestResponseCachingPolicy {
 
         request.setHeader("Authorization", StandardAuthScheme.BASIC + " QWxhZGRpbjpvcGVuIHNlc2FtZQ==");
         response.setHeader("Cache-Control", "public");
-        response.addHeader("Expires", DateUtils.formatDate(now));
-        response.addHeader("Expires", DateUtils.formatDate(sixSecondsAgo));
+        response.addHeader("Expires", formatDate(now));
+        response.addHeader("Expires", formatDate(sixSecondsAgo));
         Assert.assertFalse(policy.isResponseCacheable(request, response));
     }
 
@@ -587,8 +591,8 @@ public class TestResponseCachingPolicy {
     @Test
     public void testResponsesToGETWithQueryParamsAndExplicitCachingAreCacheable() {
         request = new BasicHttpRequest("GET", "/foo?s=bar");
-        response.setHeader("Date", DateUtils.formatDate(now));
-        response.setHeader("Expires", DateUtils.formatDate(tenSecondsFromNow));
+        response.setHeader("Date", formatDate(now));
+        response.setHeader("Expires", formatDate(tenSecondsFromNow));
         Assert.assertTrue(policy.isResponseCacheable(request, response));
     }
 
@@ -596,8 +600,8 @@ public class TestResponseCachingPolicy {
     public void testResponsesToHEADWithQueryParamsAndExplicitCachingAreCacheable() {
         policy = new ResponseCachingPolicy(0, true, false, false);
         request = new BasicHttpRequest("HEAD", "/foo?s=bar");
-        response.setHeader("Date", DateUtils.formatDate(now));
-        response.setHeader("Expires", DateUtils.formatDate(tenSecondsFromNow));
+        response.setHeader("Date", formatDate(now));
+        response.setHeader("Expires", formatDate(tenSecondsFromNow));
         Assert.assertTrue(policy.isResponseCacheable(request, response));
     }
 
@@ -605,8 +609,8 @@ public class TestResponseCachingPolicy {
     public void testResponsesToGETWithQueryParamsAndExplicitCachingAreCacheableEvenWhen1_0QueryCachingDisabled() {
         policy = new ResponseCachingPolicy(0, true, true, false);
         request = new BasicHttpRequest("GET", "/foo?s=bar");
-        response.setHeader("Date", DateUtils.formatDate(now));
-        response.setHeader("Expires", DateUtils.formatDate(tenSecondsFromNow));
+        response.setHeader("Date", formatDate(now));
+        response.setHeader("Expires", formatDate(tenSecondsFromNow));
         Assert.assertTrue(policy.isResponseCacheable(request, response));
     }
 
@@ -614,8 +618,8 @@ public class TestResponseCachingPolicy {
     public void testResponsesToHEADWithQueryParamsAndExplicitCachingAreCacheableEvenWhen1_0QueryCachingDisabled() {
         policy = new ResponseCachingPolicy(0, true, true, false);
         request = new BasicHttpRequest("HEAD", "/foo?s=bar");
-        response.setHeader("Date", DateUtils.formatDate(now));
-        response.setHeader("Expires", DateUtils.formatDate(tenSecondsFromNow));
+        response.setHeader("Date", formatDate(now));
+        response.setHeader("Expires", formatDate(tenSecondsFromNow));
         Assert.assertTrue(policy.isResponseCacheable(request, response));
     }
 
@@ -658,8 +662,8 @@ public class TestResponseCachingPolicy {
         request = new BasicHttpRequest("GET", "/foo?s=bar");
         response = new BasicHttpResponse(HttpStatus.SC_OK, "OK");
         response.setVersion(HttpVersion.HTTP_1_0);
-        response.setHeader("Date", DateUtils.formatDate(now));
-        response.setHeader("Expires", DateUtils.formatDate(tenSecondsFromNow));
+        response.setHeader("Date", formatDate(now));
+        response.setHeader("Expires", formatDate(tenSecondsFromNow));
         Assert.assertTrue(policy.isResponseCacheable(request, response));
     }
 
@@ -669,8 +673,8 @@ public class TestResponseCachingPolicy {
         request = new BasicHttpRequest("HEAD", "/foo?s=bar");
         response = new BasicHttpResponse(HttpStatus.SC_OK, "OK");
         response.setVersion(HttpVersion.HTTP_1_0);
-        response.setHeader("Date", DateUtils.formatDate(now));
-        response.setHeader("Expires", DateUtils.formatDate(tenSecondsFromNow));
+        response.setHeader("Date", formatDate(now));
+        response.setHeader("Expires", formatDate(tenSecondsFromNow));
         Assert.assertTrue(policy.isResponseCacheable(request, response));
     }
 
@@ -680,8 +684,8 @@ public class TestResponseCachingPolicy {
         request = new BasicHttpRequest("GET", "/foo?s=bar");
         response = new BasicHttpResponse(HttpStatus.SC_OK, "OK");
         response.setVersion(HttpVersion.HTTP_1_0);
-        response.setHeader("Date", DateUtils.formatDate(now));
-        response.setHeader("Expires", DateUtils.formatDate(tenSecondsFromNow));
+        response.setHeader("Date", formatDate(now));
+        response.setHeader("Expires", formatDate(tenSecondsFromNow));
         Assert.assertFalse(policy.isResponseCacheable(request, response));
     }
 
@@ -691,8 +695,8 @@ public class TestResponseCachingPolicy {
         request = new BasicHttpRequest("HEAD", "/foo?s=bar");
         response = new BasicHttpResponse(HttpStatus.SC_OK, "OK");
         response.setVersion(HttpVersion.HTTP_1_0);
-        response.setHeader("Date", DateUtils.formatDate(now));
-        response.setHeader("Expires", DateUtils.formatDate(tenSecondsFromNow));
+        response.setHeader("Date", formatDate(now));
+        response.setHeader("Expires", formatDate(tenSecondsFromNow));
         Assert.assertFalse(policy.isResponseCacheable(request, response));
     }
 
@@ -713,8 +717,8 @@ public class TestResponseCachingPolicy {
     @Test
     public void getsWithQueryParametersFrom1_0OriginsViaProxiesAreCacheableWithExpires() {
         request = new BasicHttpRequest("GET", "/foo?s=bar");
-        response.setHeader("Date", DateUtils.formatDate(now));
-        response.setHeader("Expires", DateUtils.formatDate(tenSecondsFromNow));
+        response.setHeader("Date", formatDate(now));
+        response.setHeader("Expires", formatDate(tenSecondsFromNow));
         response.setHeader("Via", "1.0 someproxy");
         Assert.assertTrue(policy.isResponseCacheable(request, response));
     }
@@ -723,8 +727,8 @@ public class TestResponseCachingPolicy {
     public void headsWithQueryParametersFrom1_0OriginsViaProxiesAreCacheableWithExpires() {
         policy = new ResponseCachingPolicy(0, true, false, false);
         request = new BasicHttpRequest("HEAD", "/foo?s=bar");
-        response.setHeader("Date", DateUtils.formatDate(now));
-        response.setHeader("Expires", DateUtils.formatDate(tenSecondsFromNow));
+        response.setHeader("Date", formatDate(now));
+        response.setHeader("Expires", formatDate(tenSecondsFromNow));
         response.setHeader("Via", "1.0 someproxy");
         Assert.assertTrue(policy.isResponseCacheable(request, response));
     }
@@ -733,8 +737,8 @@ public class TestResponseCachingPolicy {
     public void getsWithQueryParametersFrom1_0OriginsViaProxiesCanNotBeCacheableEvenWithExpires() {
         policy = new ResponseCachingPolicy(0, true, true, true);
         request = new BasicHttpRequest("GET", "/foo?s=bar");
-        response.setHeader("Date", DateUtils.formatDate(now));
-        response.setHeader("Expires", DateUtils.formatDate(tenSecondsFromNow));
+        response.setHeader("Date", formatDate(now));
+        response.setHeader("Expires", formatDate(tenSecondsFromNow));
         response.setHeader("Via", "1.0 someproxy");
         Assert.assertFalse(policy.isResponseCacheable(request, response));
     }
@@ -743,8 +747,8 @@ public class TestResponseCachingPolicy {
     public void headsWithQueryParametersFrom1_0OriginsViaProxiesCanNotBeCacheableEvenWithExpires() {
         policy = new ResponseCachingPolicy(0, true, true, true);
         request = new BasicHttpRequest("HEAD", "/foo?s=bar");
-        response.setHeader("Date", DateUtils.formatDate(now));
-        response.setHeader("Expires", DateUtils.formatDate(tenSecondsFromNow));
+        response.setHeader("Date", formatDate(now));
+        response.setHeader("Expires", formatDate(tenSecondsFromNow));
         response.setHeader("Via", "1.0 someproxy");
         Assert.assertFalse(policy.isResponseCacheable(request, response));
     }
@@ -752,8 +756,8 @@ public class TestResponseCachingPolicy {
     @Test
     public void getsWithQueryParametersFrom1_0OriginsViaExplicitProxiesAreCacheableWithExpires() {
         request = new BasicHttpRequest("GET", "/foo?s=bar");
-        response.setHeader("Date", DateUtils.formatDate(now));
-        response.setHeader("Expires", DateUtils.formatDate(tenSecondsFromNow));
+        response.setHeader("Date", formatDate(now));
+        response.setHeader("Expires", formatDate(tenSecondsFromNow));
         response.setHeader("Via", "HTTP/1.0 someproxy");
         Assert.assertTrue(policy.isResponseCacheable(request, response));
     }
@@ -762,8 +766,8 @@ public class TestResponseCachingPolicy {
     public void headsWithQueryParametersFrom1_0OriginsViaExplicitProxiesAreCacheableWithExpires() {
         policy = new ResponseCachingPolicy(0, true, false, false);
         request = new BasicHttpRequest("HEAD", "/foo?s=bar");
-        response.setHeader("Date", DateUtils.formatDate(now));
-        response.setHeader("Expires", DateUtils.formatDate(tenSecondsFromNow));
+        response.setHeader("Date", formatDate(now));
+        response.setHeader("Expires", formatDate(tenSecondsFromNow));
         response.setHeader("Via", "HTTP/1.0 someproxy");
         Assert.assertTrue(policy.isResponseCacheable(request, response));
     }
@@ -772,8 +776,8 @@ public class TestResponseCachingPolicy {
     public void getsWithQueryParametersFrom1_0OriginsViaExplicitProxiesCanNotBeCacheableEvenWithExpires() {
         policy = new ResponseCachingPolicy(0, true, true, true);
         request = new BasicHttpRequest("GET", "/foo?s=bar");
-        response.setHeader("Date", DateUtils.formatDate(now));
-        response.setHeader("Expires", DateUtils.formatDate(tenSecondsFromNow));
+        response.setHeader("Date", formatDate(now));
+        response.setHeader("Expires", formatDate(tenSecondsFromNow));
         response.setHeader("Via", "HTTP/1.0 someproxy");
         Assert.assertFalse(policy.isResponseCacheable(request, response));
     }
@@ -782,8 +786,8 @@ public class TestResponseCachingPolicy {
     public void headsWithQueryParametersFrom1_0OriginsViaExplicitProxiesCanNotBeCacheableEvenWithExpires() {
         policy = new ResponseCachingPolicy(0, true, true, true);
         request = new BasicHttpRequest("HEAD", "/foo?s=bar");
-        response.setHeader("Date", DateUtils.formatDate(now));
-        response.setHeader("Expires", DateUtils.formatDate(tenSecondsFromNow));
+        response.setHeader("Date", formatDate(now));
+        response.setHeader("Expires", formatDate(tenSecondsFromNow));
         response.setHeader("Via", "HTTP/1.0 someproxy");
         Assert.assertFalse(policy.isResponseCacheable(request, response));
     }
@@ -793,8 +797,8 @@ public class TestResponseCachingPolicy {
         request = new BasicHttpRequest("GET", "/foo?s=bar");
         response = new BasicHttpResponse(HttpStatus.SC_OK, "OK");
         response.setVersion(HttpVersion.HTTP_1_0);
-        response.setHeader("Date", DateUtils.formatDate(now));
-        response.setHeader("Expires", DateUtils.formatDate(tenSecondsFromNow));
+        response.setHeader("Date", formatDate(now));
+        response.setHeader("Expires", formatDate(tenSecondsFromNow));
         response.setHeader("Via", "1.1 someproxy");
         Assert.assertTrue(policy.isResponseCacheable(request, response));
     }
@@ -805,24 +809,24 @@ public class TestResponseCachingPolicy {
         request = new BasicHttpRequest("HEAD", "/foo?s=bar");
         response = new BasicHttpResponse(HttpStatus.SC_OK, "OK");
         response.setVersion(HttpVersion.HTTP_1_0);
-        response.setHeader("Date", DateUtils.formatDate(now));
-        response.setHeader("Expires", DateUtils.formatDate(tenSecondsFromNow));
+        response.setHeader("Date", formatDate(now));
+        response.setHeader("Expires", formatDate(tenSecondsFromNow));
         response.setHeader("Via", "1.1 someproxy");
         Assert.assertTrue(policy.isResponseCacheable(request, response));
     }
 
     @Test
     public void notCacheableIfExpiresEqualsDateAndNoCacheControl() {
-        response.setHeader("Date", DateUtils.formatDate(now));
-        response.setHeader("Expires", DateUtils.formatDate(now));
+        response.setHeader("Date", formatDate(now));
+        response.setHeader("Expires", formatDate(now));
         response.removeHeaders("Cache-Control");
         Assert.assertFalse(policy.isResponseCacheable(request, response));
     }
 
     @Test
     public void notCacheableIfExpiresPrecedesDateAndNoCacheControl() {
-        response.setHeader("Date", DateUtils.formatDate(now));
-        response.setHeader("Expires", DateUtils.formatDate(sixSecondsAgo));
+        response.setHeader("Date", formatDate(now));
+        response.setHeader("Expires", formatDate(sixSecondsAgo));
         response.removeHeaders("Cache-Control");
         Assert.assertFalse(policy.isResponseCacheable(request, response));
     }
@@ -830,7 +834,7 @@ public class TestResponseCachingPolicy {
     @Test
     public void test302WithExplicitCachingHeaders() {
         response.setCode(HttpStatus.SC_MOVED_TEMPORARILY);
-        response.setHeader("Date", DateUtils.formatDate(now));
+        response.setHeader("Date", formatDate(now));
         response.setHeader("Cache-Control","max-age=300");
         Assert.assertTrue(policy.isResponseCacheable(request, response));
     }
@@ -839,7 +843,7 @@ public class TestResponseCachingPolicy {
     public void test303WithExplicitCachingHeadersUnderDefaultBehavior() {
         // RFC 2616 says: 303 should not be cached
         response.setCode(HttpStatus.SC_SEE_OTHER);
-        response.setHeader("Date", DateUtils.formatDate(now));
+        response.setHeader("Date", formatDate(now));
         response.setHeader("Cache-Control","max-age=300");
         Assert.assertFalse(policy.isResponseCacheable(request, response));
     }
@@ -850,7 +854,7 @@ public class TestResponseCachingPolicy {
         // response headers
         policy = new ResponseCachingPolicy(0, true, false, true);
         response.setCode(HttpStatus.SC_SEE_OTHER);
-        response.setHeader("Date", DateUtils.formatDate(now));
+        response.setHeader("Date", formatDate(now));
         response.setHeader("Cache-Control","max-age=300");
         Assert.assertTrue(policy.isResponseCacheable(request, response));
     }
@@ -858,7 +862,7 @@ public class TestResponseCachingPolicy {
     @Test
     public void test307WithExplicitCachingHeaders() {
         response.setCode(HttpStatus.SC_TEMPORARY_REDIRECT);
-        response.setHeader("Date", DateUtils.formatDate(now));
+        response.setHeader("Date", formatDate(now));
         response.setHeader("Cache-Control","max-age=300");
         Assert.assertTrue(policy.isResponseCacheable(request, response));
     }
@@ -866,7 +870,7 @@ public class TestResponseCachingPolicy {
     @Test
     public void otherStatusCodesAreCacheableWithExplicitCachingHeaders() {
         response.setCode(HttpStatus.SC_NOT_FOUND);
-        response.setHeader("Date", DateUtils.formatDate(now));
+        response.setHeader("Date", formatDate(now));
         response.setHeader("Cache-Control","max-age=300");
         Assert.assertTrue(policy.isResponseCacheable(request, response));
     }

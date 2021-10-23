@@ -27,6 +27,7 @@
 package org.apache.hc.client5.http.impl.cache;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -85,7 +86,7 @@ class ResponseProtocolCompliance {
 
     private void warningsWithNonMatchingWarnDatesAreRemoved(
             final HttpResponse response) {
-        final Date responseDate = DateUtils.parseDate(response, HttpHeaders.DATE);
+        final Instant responseDate = DateUtils.parseStandardDate(response, HttpHeaders.DATE);
         if (responseDate == null) {
             return;
         }
@@ -153,7 +154,7 @@ class ResponseProtocolCompliance {
 
     private void ensure206ContainsDateHeader(final HttpResponse response) {
         if (response.getFirstHeader(HttpHeaders.DATE) == null) {
-            response.addHeader(HttpHeaders.DATE, DateUtils.formatDate(new Date()));
+            response.addHeader(HttpHeaders.DATE, DateUtils.formatStandardDate(Instant.now()));
         }
 
     }

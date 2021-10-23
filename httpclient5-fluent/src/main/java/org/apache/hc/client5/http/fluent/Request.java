@@ -33,7 +33,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -46,6 +45,7 @@ import org.apache.hc.client5.http.config.Configurable;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.ContentType;
@@ -70,8 +70,20 @@ import org.apache.hc.core5.util.Timeout;
  */
 public class Request {
 
+    /**
+     * @deprecated This attribute is no longer supported as a part of the public API.
+     */
+    @Deprecated
     public static final String DATE_FORMAT = "EEE, dd MMM yyyy HH:mm:ss zzz";
+    /**
+     * @deprecated This attribute is no longer supported as a part of the public API.
+     */
+    @Deprecated
     public static final Locale DATE_LOCALE = Locale.US;
+    /**
+     * @deprecated This attribute is no longer supported as a part of the public API.
+     */
+    @Deprecated
     public static final TimeZone TIME_ZONE = TimeZone.getTimeZone("GMT");
 
     private final ClassicHttpRequest request;
@@ -79,8 +91,6 @@ public class Request {
     private Timeout connectTimeout;
     private Timeout responseTimeout;
     private HttpHost proxy;
-
-    private SimpleDateFormat dateFormatter;
 
     public static Request create(final Method method, final URI uri) {
       return new Request(new HttpUriRequestBase(method.name(), uri));
@@ -246,30 +256,22 @@ public class Request {
         return this;
     }
 
-    private SimpleDateFormat getDateFormat() {
-        if (this.dateFormatter == null) {
-            this.dateFormatter = new SimpleDateFormat(DATE_FORMAT, DATE_LOCALE);
-            this.dateFormatter.setTimeZone(TIME_ZONE);
-        }
-        return this.dateFormatter;
-    }
-
     ClassicHttpRequest getRequest() {
       return request;
     }
 
     public Request setDate(final Date date) {
-        this.request.setHeader(HttpHeader.DATE, getDateFormat().format(date));
+        this.request.setHeader(HttpHeader.DATE, DateUtils.formatStandardDate(DateUtils.toInstant(date)));
         return this;
     }
 
     public Request setIfModifiedSince(final Date date) {
-        this.request.setHeader(HttpHeader.IF_MODIFIED_SINCE, getDateFormat().format(date));
+        this.request.setHeader(HttpHeader.IF_MODIFIED_SINCE, DateUtils.formatStandardDate(DateUtils.toInstant(date)));
         return this;
     }
 
     public Request setIfUnmodifiedSince(final Date date) {
-        this.request.setHeader(HttpHeader.IF_UNMODIFIED_SINCE, getDateFormat().format(date));
+        this.request.setHeader(HttpHeader.IF_UNMODIFIED_SINCE, DateUtils.formatStandardDate(DateUtils.toInstant(date)));
         return this;
     }
 

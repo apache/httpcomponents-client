@@ -31,7 +31,8 @@ import java.net.ConnectException;
 import java.net.NoRouteToHostException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
-import java.util.Date;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
 import javax.net.ssl.SSLException;
 
@@ -85,7 +86,7 @@ public class TestDefaultHttpRequestRetryStrategy {
     public void testRetryAfterHeaderAsDate() throws Exception {
         this.retryStrategy = new DefaultHttpRequestRetryStrategy(3, TimeValue.ZERO_MILLISECONDS);
         final HttpResponse response = new BasicHttpResponse(503, "Oopsie");
-        response.setHeader(HttpHeaders.RETRY_AFTER, DateUtils.formatDate(new Date(System.currentTimeMillis() + 100000L)));
+        response.setHeader(HttpHeaders.RETRY_AFTER, DateUtils.formatStandardDate(Instant.now().plus(100, ChronoUnit.SECONDS)));
 
         Assert.assertTrue(this.retryStrategy.getRetryInterval(response, 3, null).compareTo(TimeValue.ZERO_MILLISECONDS) > 0);
     }
@@ -93,7 +94,7 @@ public class TestDefaultHttpRequestRetryStrategy {
     @Test
     public void testRetryAfterHeaderAsPastDate() throws Exception {
         final HttpResponse response = new BasicHttpResponse(503, "Oopsie");
-        response.setHeader(HttpHeaders.RETRY_AFTER, DateUtils.formatDate(new Date(System.currentTimeMillis() - 100000L)));
+        response.setHeader(HttpHeaders.RETRY_AFTER, DateUtils.formatStandardDate(Instant.now().minus(100, ChronoUnit.SECONDS)));
 
         Assert.assertEquals(TimeValue.ofMilliseconds(1234L), this.retryStrategy.getRetryInterval(response, 3, null));
     }

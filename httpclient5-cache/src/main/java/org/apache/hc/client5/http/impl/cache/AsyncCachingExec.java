@@ -51,7 +51,6 @@ import org.apache.hc.client5.http.cache.ResourceIOException;
 import org.apache.hc.client5.http.impl.ExecSupport;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.schedule.SchedulingStrategy;
-import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.concurrent.CancellableDependency;
@@ -574,7 +573,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
 
                         @Override
                         public void completed(final HttpCacheEntry existingEntry) {
-                            if (DateUtils.isAfter(existingEntry, backendResponse, HttpHeaders.DATE)) {
+                            if (DateSupport.isAfter(existingEntry, backendResponse, HttpHeaders.DATE)) {
                                 LOG.debug("Backend already contains fresher cache entry");
                                 try {
                                     final SimpleHttpResponse cacheResponse = responseGenerator.generateResponse(request, existingEntry);

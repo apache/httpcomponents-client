@@ -27,11 +27,8 @@
 
 package org.apache.hc.client5.http.impl.cookie;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.Arrays;
-import java.util.Date;
-import java.util.Locale;
 
 import org.apache.hc.client5.http.cookie.Cookie;
 import org.apache.hc.client5.http.cookie.CookieAttributeHandler;
@@ -327,21 +324,16 @@ public class TestBasicCookieAttribHandlers {
     @Test
     public void testBasicExpiresParse() throws Exception {
         final BasicClientCookie cookie = new BasicClientCookie("name", "value");
-        final CookieAttributeHandler h = new BasicExpiresHandler(new String[] {DateUtils.PATTERN_RFC1123});
+        final CookieAttributeHandler h = new BasicExpiresHandler(DateUtils.FORMATTER_RFC1123);
 
-        final DateFormat dateformat = new SimpleDateFormat(DateUtils.PATTERN_RFC1123, Locale.US);
-        dateformat.setTimeZone(DateUtils.GMT);
-
-        final Date now = new Date();
-
-        h.parse(cookie, dateformat.format(now));
+        h.parse(cookie, DateUtils.formatStandardDate(Instant.now()));
         Assert.assertNotNull(cookie.getExpiryDate());
     }
 
     @Test
     public void testBasicExpiresParseInvalid() throws Exception {
         final BasicClientCookie cookie = new BasicClientCookie("name", "value");
-        final CookieAttributeHandler h = new BasicExpiresHandler(new String[] {DateUtils.PATTERN_RFC1123});
+        final CookieAttributeHandler h = new BasicExpiresHandler(DateUtils.FORMATTER_RFC1123);
         Assert.assertThrows(MalformedCookieException.class, () ->
                 h.parse(cookie, "garbage"));
         Assert.assertThrows(MalformedCookieException.class, () ->
@@ -351,8 +343,7 @@ public class TestBasicCookieAttribHandlers {
     @SuppressWarnings("unused")
     @Test
     public void testBasicExpiresInvalidInput() throws Exception {
-        Assert.assertThrows(NullPointerException.class, () -> new BasicExpiresHandler(null));
-        final CookieAttributeHandler h = new BasicExpiresHandler(new String[] {DateUtils.PATTERN_RFC1123});
+        final CookieAttributeHandler h = new BasicExpiresHandler(DateUtils.FORMATTER_RFC1123);
         Assert.assertThrows(NullPointerException.class, () -> h.parse(null, null));
     }
 

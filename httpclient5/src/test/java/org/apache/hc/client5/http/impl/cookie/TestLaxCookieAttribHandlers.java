@@ -27,11 +27,12 @@
 
 package org.apache.hc.client5.http.impl.cookie;
 
-import java.util.Calendar;
-import java.util.Date;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoField;
 
 import org.apache.hc.client5.http.cookie.CookieAttributeHandler;
 import org.apache.hc.client5.http.cookie.MalformedCookieException;
+import org.apache.hc.client5.http.utils.DateUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -97,18 +98,16 @@ public class TestLaxCookieAttribHandlers {
         final CookieAttributeHandler h = new LaxExpiresHandler();
         h.parse(cookie, "1:0:12 8-jan-2012");
 
-        final Date expiryDate = cookie.getExpiryDate();
+        final LocalDateTime expiryDate = DateUtils.toUTC(cookie.getExpiryDate());
         Assert.assertNotNull(expiryDate);
-        final Calendar c = Calendar.getInstance();
-        c.setTimeZone(LaxExpiresHandler.UTC);
-        c.setTime(expiryDate);
-        Assert.assertEquals(2012, c.get(Calendar.YEAR));
-        Assert.assertEquals(Calendar.JANUARY, c.get(Calendar.MONTH));
-        Assert.assertEquals(8, c.get(Calendar.DAY_OF_MONTH));
-        Assert.assertEquals(1, c.get(Calendar.HOUR_OF_DAY));
-        Assert.assertEquals(0, c.get(Calendar.MINUTE));
-        Assert.assertEquals(12, c.get(Calendar.SECOND));
-        Assert.assertEquals(0, c.get(Calendar.MILLISECOND));
+
+        Assert.assertEquals(2012, expiryDate.get(ChronoField.YEAR));
+        Assert.assertEquals(1, expiryDate.get(ChronoField.MONTH_OF_YEAR));
+        Assert.assertEquals(8, expiryDate.get(ChronoField.DAY_OF_MONTH));
+        Assert.assertEquals(1, expiryDate.get(ChronoField.HOUR_OF_DAY));
+        Assert.assertEquals(0, expiryDate.get(ChronoField.MINUTE_OF_HOUR));
+        Assert.assertEquals(12, expiryDate.get(ChronoField.SECOND_OF_MINUTE));
+        Assert.assertEquals(0, expiryDate.get(ChronoField.MILLI_OF_SECOND));
     }
 
     @Test
@@ -157,18 +156,16 @@ public class TestLaxCookieAttribHandlers {
         final CookieAttributeHandler h = new LaxExpiresHandler();
         h.parse(cookie, "1:59:00blah; 8-feb-2000");
 
-        final Date expiryDate = cookie.getExpiryDate();
+        final LocalDateTime expiryDate = DateUtils.toUTC(cookie.getExpiryDate());
         Assert.assertNotNull(expiryDate);
-        final Calendar c = Calendar.getInstance();
-        c.setTimeZone(LaxExpiresHandler.UTC);
-        c.setTime(expiryDate);
-        Assert.assertEquals(2000, c.get(Calendar.YEAR));
-        Assert.assertEquals(Calendar.FEBRUARY, c.get(Calendar.MONTH));
-        Assert.assertEquals(8, c.get(Calendar.DAY_OF_MONTH));
-        Assert.assertEquals(1, c.get(Calendar.HOUR_OF_DAY));
-        Assert.assertEquals(59, c.get(Calendar.MINUTE));
-        Assert.assertEquals(0, c.get(Calendar.SECOND));
-        Assert.assertEquals(0, c.get(Calendar.MILLISECOND));
+
+        Assert.assertEquals(2000, expiryDate.get(ChronoField.YEAR_OF_ERA));
+        Assert.assertEquals(2, expiryDate.get(ChronoField.MONTH_OF_YEAR));
+        Assert.assertEquals(8, expiryDate.get(ChronoField.DAY_OF_MONTH));
+        Assert.assertEquals(1, expiryDate.get(ChronoField.HOUR_OF_DAY));
+        Assert.assertEquals(59, expiryDate.get(ChronoField.MINUTE_OF_HOUR));
+        Assert.assertEquals(0, expiryDate.get(ChronoField.SECOND_OF_MINUTE));
+        Assert.assertEquals(0, expiryDate.get(ChronoField.MILLI_OF_SECOND));
     }
 
     @Test
@@ -201,18 +198,16 @@ public class TestLaxCookieAttribHandlers {
         final CookieAttributeHandler h = new LaxExpiresHandler();
         h.parse(cookie, "12:00:00 8blah;mar;1880");
 
-        final Date expiryDate = cookie.getExpiryDate();
+        final LocalDateTime expiryDate = DateUtils.toUTC(cookie.getExpiryDate());
         Assert.assertNotNull(expiryDate);
-        final Calendar c = Calendar.getInstance();
-        c.setTimeZone(LaxExpiresHandler.UTC);
-        c.setTime(expiryDate);
-        Assert.assertEquals(1880, c.get(Calendar.YEAR));
-        Assert.assertEquals(Calendar.MARCH, c.get(Calendar.MONTH));
-        Assert.assertEquals(8, c.get(Calendar.DAY_OF_MONTH));
-        Assert.assertEquals(12, c.get(Calendar.HOUR_OF_DAY));
-        Assert.assertEquals(0, c.get(Calendar.MINUTE));
-        Assert.assertEquals(0, c.get(Calendar.SECOND));
-        Assert.assertEquals(0, c.get(Calendar.MILLISECOND));
+
+        Assert.assertEquals(1880, expiryDate.get(ChronoField.YEAR));
+        Assert.assertEquals(3, expiryDate.get(ChronoField.MONTH_OF_YEAR));
+        Assert.assertEquals(8, expiryDate.get(ChronoField.DAY_OF_MONTH));
+        Assert.assertEquals(12, expiryDate.get(ChronoField.HOUR_OF_DAY));
+        Assert.assertEquals(0, expiryDate.get(ChronoField.MINUTE_OF_HOUR));
+        Assert.assertEquals(0, expiryDate.get(ChronoField.SECOND_OF_MINUTE));
+        Assert.assertEquals(0, expiryDate.get(ChronoField.MILLI_OF_SECOND));
     }
 
     @Test
@@ -229,18 +224,16 @@ public class TestLaxCookieAttribHandlers {
         final CookieAttributeHandler h = new LaxExpiresHandler();
         h.parse(cookie, "23:59:59; 1-ApriLLLLL-2008");
 
-        final Date expiryDate = cookie.getExpiryDate();
+        final LocalDateTime expiryDate = DateUtils.toUTC(cookie.getExpiryDate());
         Assert.assertNotNull(expiryDate);
-        final Calendar c = Calendar.getInstance();
-        c.setTimeZone(LaxExpiresHandler.UTC);
-        c.setTime(expiryDate);
-        Assert.assertEquals(2008, c.get(Calendar.YEAR));
-        Assert.assertEquals(Calendar.APRIL, c.get(Calendar.MONTH));
-        Assert.assertEquals(1, c.get(Calendar.DAY_OF_MONTH));
-        Assert.assertEquals(23, c.get(Calendar.HOUR_OF_DAY));
-        Assert.assertEquals(59, c.get(Calendar.MINUTE));
-        Assert.assertEquals(59, c.get(Calendar.SECOND));
-        Assert.assertEquals(0, c.get(Calendar.MILLISECOND));
+
+        Assert.assertEquals(2008, expiryDate.get(ChronoField.YEAR));
+        Assert.assertEquals(4, expiryDate.get(ChronoField.MONTH_OF_YEAR));
+        Assert.assertEquals(1, expiryDate.get(ChronoField.DAY_OF_MONTH));
+        Assert.assertEquals(23, expiryDate.get(ChronoField.HOUR_OF_DAY));
+        Assert.assertEquals(59, expiryDate.get(ChronoField.MINUTE_OF_HOUR));
+        Assert.assertEquals(59, expiryDate.get(ChronoField.SECOND_OF_MINUTE));
+        Assert.assertEquals(0, expiryDate.get(ChronoField.MILLI_OF_SECOND));
     }
 
     @Test
@@ -273,18 +266,16 @@ public class TestLaxCookieAttribHandlers {
         final CookieAttributeHandler h = new LaxExpiresHandler();
         h.parse(cookie, "23:59:59; 1-Apr-2008blah");
 
-        final Date expiryDate = cookie.getExpiryDate();
+        final LocalDateTime expiryDate = DateUtils.toUTC(cookie.getExpiryDate());
         Assert.assertNotNull(expiryDate);
-        final Calendar c = Calendar.getInstance();
-        c.setTimeZone(LaxExpiresHandler.UTC);
-        c.setTime(expiryDate);
-        Assert.assertEquals(2008, c.get(Calendar.YEAR));
-        Assert.assertEquals(Calendar.APRIL, c.get(Calendar.MONTH));
-        Assert.assertEquals(1, c.get(Calendar.DAY_OF_MONTH));
-        Assert.assertEquals(23, c.get(Calendar.HOUR_OF_DAY));
-        Assert.assertEquals(59, c.get(Calendar.MINUTE));
-        Assert.assertEquals(59, c.get(Calendar.SECOND));
-        Assert.assertEquals(0, c.get(Calendar.MILLISECOND));
+
+        Assert.assertEquals(2008, expiryDate.get(ChronoField.YEAR));
+        Assert.assertEquals(4, expiryDate.get(ChronoField.MONTH_OF_YEAR));
+        Assert.assertEquals(1, expiryDate.get(ChronoField.DAY_OF_MONTH));
+        Assert.assertEquals(23, expiryDate.get(ChronoField.HOUR_OF_DAY));
+        Assert.assertEquals(59, expiryDate.get(ChronoField.MINUTE_OF_HOUR));
+        Assert.assertEquals(59, expiryDate.get(ChronoField.SECOND_OF_MINUTE));
+        Assert.assertEquals(0, expiryDate.get(ChronoField.MILLI_OF_SECOND));
     }
 
     @Test
@@ -293,12 +284,10 @@ public class TestLaxCookieAttribHandlers {
         final CookieAttributeHandler h = new LaxExpiresHandler();
         h.parse(cookie, "23:59:59; 1-Apr-70");
 
-        final Date expiryDate = cookie.getExpiryDate();
+        final LocalDateTime expiryDate = DateUtils.toUTC(cookie.getExpiryDate());
         Assert.assertNotNull(expiryDate);
-        final Calendar c = Calendar.getInstance();
-        c.setTimeZone(LaxExpiresHandler.UTC);
-        c.setTime(expiryDate);
-        Assert.assertEquals(1970, c.get(Calendar.YEAR));
+
+        Assert.assertEquals(1970, expiryDate.get(ChronoField.YEAR));
     }
 
     @Test
@@ -307,12 +296,10 @@ public class TestLaxCookieAttribHandlers {
         final CookieAttributeHandler h = new LaxExpiresHandler();
         h.parse(cookie, "23:59:59; 1-Apr-99");
 
-        final Date expiryDate = cookie.getExpiryDate();
+        final LocalDateTime expiryDate = DateUtils.toUTC(cookie.getExpiryDate());
         Assert.assertNotNull(expiryDate);
-        final Calendar c = Calendar.getInstance();
-        c.setTimeZone(LaxExpiresHandler.UTC);
-        c.setTime(expiryDate);
-        Assert.assertEquals(1999, c.get(Calendar.YEAR));
+
+        Assert.assertEquals(1999, expiryDate.get(ChronoField.YEAR));
     }
 
     @Test
@@ -321,12 +308,10 @@ public class TestLaxCookieAttribHandlers {
         final CookieAttributeHandler h = new LaxExpiresHandler();
         h.parse(cookie, "23:59:59; 1-Apr-00");
 
-        final Date expiryDate = cookie.getExpiryDate();
+        final LocalDateTime expiryDate = DateUtils.toUTC(cookie.getExpiryDate());
         Assert.assertNotNull(expiryDate);
-        final Calendar c = Calendar.getInstance();
-        c.setTimeZone(LaxExpiresHandler.UTC);
-        c.setTime(expiryDate);
-        Assert.assertEquals(2000, c.get(Calendar.YEAR));
+
+        Assert.assertEquals(2000, expiryDate.get(ChronoField.YEAR));
     }
 
 }

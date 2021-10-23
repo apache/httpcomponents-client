@@ -36,7 +36,6 @@ import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.Resource;
 import org.apache.hc.client5.http.cache.ResourceFactory;
 import org.apache.hc.client5.http.cache.ResourceIOException;
-import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpRequest;
@@ -132,7 +131,7 @@ class CacheUpdateHandler {
     }
 
     private Header[] mergeHeaders(final HttpCacheEntry entry, final HttpResponse response) {
-        if (DateUtils.isAfter(entry, response, HttpHeaders.DATE)) {
+        if (DateSupport.isAfter(entry, response, HttpHeaders.DATE)) {
             return entry.getHeaders();
         }
         final HeaderGroup headerGroup = new HeaderGroup();

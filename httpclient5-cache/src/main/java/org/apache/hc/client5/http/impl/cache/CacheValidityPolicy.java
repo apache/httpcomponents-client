@@ -26,6 +26,7 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
+import java.time.Instant;
 import java.util.Date;
 import java.util.Iterator;
 
@@ -64,11 +65,11 @@ class CacheValidityPolicy {
             return TimeValue.ZERO_MILLISECONDS;
         }
 
-        final Date expiry = DateUtils.parseDate(entry, HeaderConstants.EXPIRES);
+        final Instant expiry = DateUtils.parseStandardDate(entry, HeaderConstants.EXPIRES);
         if (expiry == null) {
             return TimeValue.ZERO_MILLISECONDS;
         }
-        final long diff = expiry.getTime() - dateValue.getTime();
+        final long diff = expiry.toEpochMilli() - dateValue.getTime();
         return TimeValue.ofSeconds(diff / 1000);
     }
 
@@ -98,10 +99,10 @@ class CacheValidityPolicy {
     public TimeValue getHeuristicFreshnessLifetime(final HttpCacheEntry entry,
             final float coefficient, final TimeValue defaultLifetime) {
         final Date dateValue = entry.getDate();
-        final Date lastModifiedValue = DateUtils.parseDate(entry, HeaderConstants.LAST_MODIFIED);
+        final Instant lastModifiedValue = DateUtils.parseStandardDate(entry, HeaderConstants.LAST_MODIFIED);
 
         if (dateValue != null && lastModifiedValue != null) {
-            final long diff = dateValue.getTime() - lastModifiedValue.getTime();
+            final long diff = dateValue.getTime() - lastModifiedValue.toEpochMilli();
             if (diff < 0) {
                 return TimeValue.ZERO_MILLISECONDS;
             }

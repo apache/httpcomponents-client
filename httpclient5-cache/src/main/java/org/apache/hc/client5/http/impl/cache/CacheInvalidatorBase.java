@@ -30,7 +30,6 @@ import java.net.URI;
 
 import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
-import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.client5.http.utils.URIUtils;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHeaders;
@@ -99,7 +98,7 @@ class CacheInvalidatorBase {
     }
 
     static boolean responseDateOlderThanEntryDate(final HttpResponse response, final HttpCacheEntry entry) {
-        return DateUtils.isBefore(response, entry, HttpHeaders.DATE);
+        return DateSupport.isBefore(response, entry, HttpHeaders.DATE);
     }
 
 }

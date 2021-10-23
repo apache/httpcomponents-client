@@ -26,7 +26,7 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
-import java.util.Date;
+import java.time.Instant;
 
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.Header;
@@ -203,8 +203,8 @@ public class TestWarningValue {
         Assert.assertEquals(110, impl.getWarnCode());
         Assert.assertEquals("fred", impl.getWarnAgent());
         Assert.assertEquals("\"stale\"", impl.getWarnText());
-        final Date target = DateUtils.parseDate("Sun Nov  6 08:49:37 1994");
-        Assert.assertEquals(target, impl.getWarnDate());
+        final Instant target = DateUtils.parseStandardDate("Sun Nov  6 08:49:37 1994");
+        Assert.assertEquals(target, DateUtils.toInstant(impl.getWarnDate()));
     }
 
     @Test
@@ -213,8 +213,8 @@ public class TestWarningValue {
         Assert.assertEquals(110, impl.getWarnCode());
         Assert.assertEquals("fred", impl.getWarnAgent());
         Assert.assertEquals("\"stale\"", impl.getWarnText());
-        final Date target = DateUtils.parseDate("Sunday, 06-Nov-94 08:49:37 GMT");
-        Assert.assertEquals(target, impl.getWarnDate());
+        final Instant target = DateUtils.parseStandardDate("Sunday, 06-Nov-94 08:49:37 GMT");
+        Assert.assertEquals(target, DateUtils.toInstant(impl.getWarnDate()));
     }
 
     @Test
@@ -223,8 +223,8 @@ public class TestWarningValue {
         Assert.assertEquals(110, impl.getWarnCode());
         Assert.assertEquals("fred", impl.getWarnAgent());
         Assert.assertEquals("\"stale\"", impl.getWarnText());
-        final Date target = DateUtils.parseDate("Sun, 06 Nov 1994 08:49:37 GMT");
-        Assert.assertEquals(target, impl.getWarnDate());
+        final Instant target = DateUtils.parseStandardDate("Sun, 06 Nov 1994 08:49:37 GMT");
+        Assert.assertEquals(target, DateUtils.toInstant(impl.getWarnDate()));
     }
 
 }

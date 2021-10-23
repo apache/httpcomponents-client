@@ -27,14 +27,17 @@
 
 package org.apache.hc.client5.http.utils;
 
-import java.util.Calendar;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.Month;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.HeaderGroup;
-import org.hamcrest.CoreMatchers;
-import org.hamcrest.MatcherAssert;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -43,103 +46,71 @@ import org.junit.Test;
  */
 public class TestDateUtils {
 
-    private static Date createDate(final int year, final int month, final int day) {
-        final Calendar calendar = Calendar.getInstance();
-        calendar.setTimeZone(DateUtils.GMT);
-        calendar.setTimeInMillis(0);
-        calendar.set(year, month, day);
-        return calendar.getTime();
+    private static Instant createInstant(final int year, final Month month, final int day) {
+        return LocalDate.of(year, month, day).atStartOfDay(ZoneId.of("GMT")).toInstant();
+    }
+
+    private static Date createDate(final int year, final Month month, final int day) {
+        final Instant instant = createInstant(year, month, day);
+        return new Date(instant.toEpochMilli());
     }
 
     @Test
     public void testBasicDateParse() throws Exception {
-        final Date date = createDate(2005, Calendar.OCTOBER, 14);
-        final String[] formats = new String[] { DateUtils.PATTERN_RFC1123 };
-        Assert.assertEquals(date, DateUtils.parseDate("Fri, 14 Oct 2005 00:00:00 GMT", formats, null));
-        Assert.assertEquals(date, DateUtils.parseDate("Fri, 14 Oct 2005 00:00:00 GMT", formats));
-        Assert.assertEquals(date, DateUtils.parseDate("Fri, 14 Oct 2005 00:00:00 GMT"));
+        final Instant instant = createInstant(2005, Month.OCTOBER, 14);
+        Assert.assertEquals(instant, DateUtils.parseDate("Fri, 14 Oct 2005 00:00:00 GMT", DateUtils.FORMATTER_RFC1123));
+        Assert.assertEquals(instant, DateUtils.parseDate("Friday, 14 Oct 2005 00:00:00 GMT", DateUtils.FORMATTER_RFC1123));
+        Assert.assertEquals(instant, DateUtils.parseDate("Fri, 14-Oct-2005 00:00:00 GMT", DateUtils.FORMATTER_RFC1036));
+        Assert.assertEquals(instant, DateUtils.parseDate("Friday, 14-Oct-2005 00:00:00 GMT", DateUtils.FORMATTER_RFC1036));
+        Assert.assertEquals(instant.minus(2, ChronoUnit.HOURS),
+                DateUtils.parseDate("Fri, 14 Oct 2005 00:00:00 CET", DateUtils.FORMATTER_RFC1123));
+        Assert.assertEquals(instant.minus(2, ChronoUnit.HOURS),
+                DateUtils.parseDate("Fri, 14-Oct-05 00:00:00 CET", DateUtils.FORMATTER_RFC1036));
+        Assert.assertEquals(instant, DateUtils.parseStandardDate("Fri, 14 Oct 2005 00:00:00 GMT"));
     }
 
     @Test
     public void testDateParseMessage() throws Exception {
         final HeaderGroup message1 = new HeaderGroup();
         message1.setHeader(new BasicHeader(HttpHeaders.DATE, "Fri, 14 Oct 2005 00:00:00 GMT"));
-        Assert.assertEquals(createDate(2005, Calendar.OCTOBER, 14), DateUtils.parseDate(message1, HttpHeaders.DATE));
+        Assert.assertEquals(createInstant(2005, Month.OCTOBER, 14), DateUtils.parseStandardDate(message1, HttpHeaders.DATE));
 
         final HeaderGroup message2 = new HeaderGroup();
         message2.addHeader(new BasicHeader(HttpHeaders.DATE, "Fri, 14 Oct 2005 00:00:00 GMT"));
         message2.addHeader(new BasicHeader(HttpHeaders.DATE, "Fri, 21 Oct 2005 00:00:00 GMT"));
-        Assert.assertEquals(createDate(2005, Calendar.OCTOBER, 14), DateUtils.parseDate(message2, HttpHeaders.DATE));
+        Assert.assertEquals(createInstant(2005, Month.OCTOBER, 14), DateUtils.parseStandardDate(message2, HttpHeaders.DATE));
     }
 
     @Test
     public void testMalformedDate() {
-        Assert.assertNull(DateUtils.parseDate("Fri, 14 Oct 2005 00:00:00 GMT", new String[] {}, null));
+        Assert.assertNull(DateUtils.parseDate("Fri, 14 Oct 2005 00:00:00 GMT", new DateTimeFormatter[] {}));
     }
 
     @Test
     public void testInvalidInput() throws Exception {
-        Assert.assertThrows(NullPointerException.class, () -> DateUtils.parseDate(null, null, null));
-        Assert.assertThrows(NullPointerException.class, () -> DateUtils.formatDate(null));
-        Assert.assertThrows(NullPointerException.class, () -> DateUtils.formatDate(new Date(), null));
+        Assert.assertThrows(NullPointerException.class, () -> DateUtils.parseStandardDate(null));
+        Assert.assertThrows(NullPointerException.class, () -> DateUtils.formatStandardDate(null));
     }
 
     @Test
     public void testTwoDigitYearDateParse() throws Exception {
-        final String[] formats = new String[] { DateUtils.PATTERN_RFC1036 };
-        Assert.assertEquals(createDate(2005, Calendar.OCTOBER, 14), DateUtils.parseDate("Friday, 14-Oct-05 00:00:00 GMT", formats, null));
-        Assert.assertEquals(createDate(1905, Calendar.OCTOBER, 14), DateUtils.parseDate("Friday, 14-Oct-05 00:00:00 GMT", formats,
-                createDate(1900, Calendar.JANUARY, 0)));
+        Assert.assertEquals(createInstant(2005, Month.OCTOBER, 14),
+                DateUtils.parseDate("Friday, 14-Oct-05 00:00:00 GMT", DateUtils.FORMATTER_RFC1036));
     }
 
     @Test
     public void testParseQuotedDate() throws Exception {
-        final Date date1 = createDate(2005, Calendar.OCTOBER, 14);
-        final String[] formats = new String[] { DateUtils.PATTERN_RFC1123 };
-        final Date date2 = DateUtils.parseDate("'Fri, 14 Oct 2005 00:00:00 GMT'", formats);
-        Assert.assertEquals(date1, date2);
+        Assert.assertEquals(createInstant(2005, Month.OCTOBER, 14),
+                DateUtils.parseDate("'Fri, 14 Oct 2005 00:00:00 GMT'", DateUtils.FORMATTER_RFC1123));
     }
 
     @Test
     public void testBasicDateFormat() throws Exception {
-        final Date date = createDate(2005, Calendar.OCTOBER, 14);
-        Assert.assertEquals("Fri, 14 Oct 2005 00:00:00 GMT", DateUtils.formatDate(date));
-        Assert.assertEquals("Fri, 14 Oct 2005 00:00:00 GMT", DateUtils.formatDate(date, DateUtils.PATTERN_RFC1123));
+        final Instant instant = createInstant(2005, Month.OCTOBER, 14);
+        Assert.assertEquals("Fri, 14 Oct 2005 00:00:00 GMT", DateUtils.formatStandardDate(instant));
+        Assert.assertEquals("Fri, 14 Oct 2005 00:00:00 GMT", DateUtils.formatDate(instant, DateUtils.FORMATTER_RFC1123));
+        Assert.assertEquals("Fri, 14-Oct-05 00:00:00 GMT", DateUtils.formatDate(instant, DateUtils.FORMATTER_RFC1036));
+        Assert.assertEquals("Fri Oct 14 00:00:00 2005", DateUtils.formatDate(instant, DateUtils.FORMATTER_ASCTIME));
     }
 
-    @Test
-    public void testIsBefore() throws Exception {
-        final HeaderGroup message1 = new HeaderGroup();
-        final HeaderGroup message2 = new HeaderGroup();
-        MatcherAssert.assertThat(DateUtils.isBefore(null, null, HttpHeaders.DATE), CoreMatchers.equalTo(false));
-        MatcherAssert.assertThat(DateUtils.isBefore(message1, message2, HttpHeaders.DATE), CoreMatchers.equalTo(false));
-        message1.setHeader(new BasicHeader(HttpHeaders.DATE, "huh?"));
-        message2.setHeader(new BasicHeader(HttpHeaders.DATE, "eh?"));
-        MatcherAssert.assertThat(DateUtils.isBefore(message1, message2, HttpHeaders.DATE), CoreMatchers.equalTo(false));
-        message1.setHeader(new BasicHeader(HttpHeaders.DATE, "huh?"));
-        message2.setHeader(new BasicHeader(HttpHeaders.DATE, "Tuesday, 26-Dec-2017 00:00:00 GMT"));
-        MatcherAssert.assertThat(DateUtils.isBefore(message1, message2, HttpHeaders.DATE), CoreMatchers.equalTo(false));
-        message1.setHeader(new BasicHeader(HttpHeaders.DATE, "Wednesday, 25-Dec-2017 00:00:00 GMT"));
-        MatcherAssert.assertThat(DateUtils.isBefore(message1, message2, HttpHeaders.DATE), CoreMatchers.equalTo(true));
-        message1.setHeader(new BasicHeader(HttpHeaders.DATE, "Thursday, 27-Dec-2017 00:00:00 GMT"));
-        MatcherAssert.assertThat(DateUtils.isBefore(message1, message2, HttpHeaders.DATE), CoreMatchers.equalTo(false));
-    }
-
-    @Test
-    public void testIsAfter() throws Exception {
-        final HeaderGroup message1 = new HeaderGroup();
-        final HeaderGroup message2 = new HeaderGroup();
-        MatcherAssert.assertThat(DateUtils.isAfter(null, null, HttpHeaders.DATE), CoreMatchers.equalTo(false));
-        MatcherAssert.assertThat(DateUtils.isAfter(message1, message2, HttpHeaders.DATE), CoreMatchers.equalTo(false));
-        message1.setHeader(new BasicHeader(HttpHeaders.DATE, "huh?"));
-        message2.setHeader(new BasicHeader(HttpHeaders.DATE, "eh?"));
-        MatcherAssert.assertThat(DateUtils.isAfter(message1, message2, HttpHeaders.DATE), CoreMatchers.equalTo(false));
-        message1.setHeader(new BasicHeader(HttpHeaders.DATE, "huh?"));
-        message2.setHeader(new BasicHeader(HttpHeaders.DATE, "Tuesday, 26-Dec-2017 00:00:00 GMT"));
-        MatcherAssert.assertThat(DateUtils.isAfter(message1, message2, HttpHeaders.DATE), CoreMatchers.equalTo(false));
-        message1.setHeader(new BasicHeader(HttpHeaders.DATE, "Thursday, 27-Dec-2017 00:00:00 GMT"));
-        MatcherAssert.assertThat(DateUtils.isAfter(message1, message2, HttpHeaders.DATE), CoreMatchers.equalTo(true));
-        message1.setHeader(new BasicHeader(HttpHeaders.DATE, "Wednesday, 25-Dec-2017 00:00:00 GMT"));
-        MatcherAssert.assertThat(DateUtils.isAfter(message1, message2, HttpHeaders.DATE), CoreMatchers.equalTo(false));
-    }
 }

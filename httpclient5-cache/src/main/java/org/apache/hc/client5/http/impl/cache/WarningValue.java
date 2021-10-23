@@ -265,7 +265,7 @@ class WarningValue {
             parseError();
         }
         offs += m.end();
-        warnDate = DateUtils.parseDate(src.substring(curr+1,offs-1));
+        warnDate = DateUtils.toDate(DateUtils.parseStandardDate(src.substring(curr+1,offs-1)));
     }
 
     /*
@@ -359,7 +359,7 @@ class WarningValue {
     public String toString() {
         if (warnDate != null) {
             return String.format("%d %s %s \"%s\"", warnCode,
-                    warnAgent, warnText, DateUtils.formatDate(warnDate));
+                    warnAgent, warnText, DateUtils.formatStandardDate(DateUtils.toInstant(warnDate)));
         } else {
             return String.format("%d %s %s", warnCode, warnAgent, warnText);
         }

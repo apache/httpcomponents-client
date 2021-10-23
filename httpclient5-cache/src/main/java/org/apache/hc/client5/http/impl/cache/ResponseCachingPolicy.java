@@ -26,9 +26,9 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -154,7 +154,7 @@ class ResponseCachingPolicy {
             return false;
         }
 
-        final Date date = DateUtils.parseDate(response, HttpHeaders.DATE);
+        final Instant date = DateUtils.parseStandardDate(response, HttpHeaders.DATE);
         if (date == null) {
             LOG.debug("Invalid / missing Date header");
             return false;
@@ -292,12 +292,12 @@ class ResponseCachingPolicy {
         if (expiresHdr == null || dateHdr == null) {
             return false;
         }
-        final Date expires = DateUtils.parseDate(expiresHdr.getValue());
-        final Date date = DateUtils.parseDate(dateHdr.getValue());
+        final Instant expires = DateUtils.parseStandardDate(expiresHdr.getValue());
+        final Instant date = DateUtils.parseStandardDate(dateHdr.getValue());
         if (expires == null || date == null) {
             return false;
         }
-        return expires.equals(date) || expires.before(date);
+        return expires.equals(date) || expires.isBefore(date);
     }
 
     private boolean from1_0Origin(final HttpResponse response) {

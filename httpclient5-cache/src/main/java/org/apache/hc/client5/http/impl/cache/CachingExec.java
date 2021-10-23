@@ -47,7 +47,6 @@ import org.apache.hc.client5.http.classic.ExecChainHandler;
 import org.apache.hc.client5.http.impl.ExecSupport;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.schedule.SchedulingStrategy;
-import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.ContentType;
@@ -413,7 +412,7 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
         final HttpCacheEntry cacheEntry;
         if (cacheConfig.isFreshnessCheckEnabled()) {
             final HttpCacheEntry existingEntry = responseCache.getCacheEntry(target, request);
-            if (DateUtils.isAfter(existingEntry, backendResponse, HttpHeaders.DATE)) {
+            if (DateSupport.isAfter(existingEntry, backendResponse, HttpHeaders.DATE)) {
                 LOG.debug("Backend already contains fresher cache entry");
                 cacheEntry = existingEntry;
             } else {

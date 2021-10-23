@@ -26,7 +26,9 @@
  */
 package org.apache.hc.client5.http.impl.cookie;
 
-import java.util.Date;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 
 import org.apache.hc.client5.http.cookie.CommonCookieAttributeHandler;
 import org.apache.hc.client5.http.cookie.Cookie;
@@ -46,11 +48,30 @@ import org.apache.hc.core5.util.Args;
 public class BasicExpiresHandler extends AbstractCookieAttributeHandler implements CommonCookieAttributeHandler {
 
     /** Valid date patterns */
-    private final String[] datePatterns;
+    private final DateTimeFormatter[] datePatterns;
 
+    /**
+     * @since 5.2
+     */
+    public BasicExpiresHandler(final DateTimeFormatter... datePatterns) {
+        this.datePatterns = datePatterns;
+    }
+
+    /**
+     * @deprecated Use {@link #BasicExpiresHandler(DateTimeFormatter...)}
+     */
+    @Deprecated
     public BasicExpiresHandler(final String[] datePatterns) {
         Args.notNull(datePatterns, "Array of date patterns");
-        this.datePatterns = datePatterns.clone();
+        this.datePatterns = new DateTimeFormatter[datePatterns.length];
+        for (int i = 0; i < datePatterns.length; i++) {
+            this.datePatterns[i] = new DateTimeFormatterBuilder()
+                    .parseLenient()
+                    .parseCaseInsensitive()
+                    .appendPattern(datePatterns[i])
+                    .toFormatter();
+        }
+
     }
 
     @Override
@@ -60,12 +81,12 @@ public class BasicExpiresHandler extends AbstractCookieAttributeHandler implemen
         if (value == null) {
             throw new MalformedCookieException("Missing value for 'expires' attribute");
         }
-        final Date expiry = DateUtils.parseDate(value, this.datePatterns);
+        final Instant expiry = DateUtils.parseDate(value, this.datePatterns);
         if (expiry == null) {
             throw new MalformedCookieException("Invalid 'expires' attribute: "
                     + value);
         }
-        cookie.setExpiryDate(expiry);
+        cookie.setExpiryDate(DateUtils.toDate(expiry));
     }
 
     @Override

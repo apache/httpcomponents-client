@@ -27,14 +27,14 @@
 
 package org.apache.hc.client5.http.utils;
 
-import java.lang.ref.SoftReference;
-import java.text.ParsePosition;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.format.DateTimeParseException;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
 import java.util.TimeZone;
 
 import org.apache.hc.core5.http.Header;
@@ -56,9 +56,31 @@ public final class DateUtils {
     public static final String PATTERN_RFC1123 = "EEE, dd MMM yyyy HH:mm:ss zzz";
 
     /**
+     * Date formatter used to parse HTTP date headers in RFC 1123 format.
+     *
+     * @since 5.2
+     */
+    public static final DateTimeFormatter FORMATTER_RFC1123 = new DateTimeFormatterBuilder()
+            .parseLenient()
+            .parseCaseInsensitive()
+            .appendPattern(PATTERN_RFC1123)
+            .toFormatter();
+
+    /**
      * Date format pattern used to parse HTTP date headers in RFC 1036 format.
      */
     public static final String PATTERN_RFC1036 = "EEE, dd-MMM-yy HH:mm:ss zzz";
+
+    /**
+     * Date formatter used to parse HTTP date headers in RFC 1036 format.
+     *
+     * @since 5.2
+     */
+    public static final DateTimeFormatter FORMATTER_RFC1036 = new DateTimeFormatterBuilder()
+            .parseLenient()
+            .parseCaseInsensitive()
+            .appendPattern(PATTERN_RFC1036)
+            .toFormatter();
 
     /**
      * Date format pattern used to parse HTTP date headers in ANSI C
@@ -66,23 +88,158 @@ public final class DateUtils {
      */
     public static final String PATTERN_ASCTIME = "EEE MMM d HH:mm:ss yyyy";
 
-    private static final String[] DEFAULT_PATTERNS = new String[] {
-        PATTERN_RFC1123,
-        PATTERN_RFC1036,
-        PATTERN_ASCTIME
+    /**
+     * Date formatter used to parse HTTP date headers in in ANSI C {@code asctime()} format.
+     *
+     * @since 5.2
+     */
+    public static final DateTimeFormatter FORMATTER_ASCTIME = new DateTimeFormatterBuilder()
+            .parseLenient()
+            .parseCaseInsensitive()
+            .appendPattern(PATTERN_ASCTIME)
+            .toFormatter();
+
+    /**
+     * Standard date formatters: {@link #FORMATTER_RFC1123}, {@link #FORMATTER_RFC1036}, {@link #FORMATTER_ASCTIME}.
+     *
+     * @since 5.2
+     */
+    public static final DateTimeFormatter[] STANDARD_PATTERNS = new DateTimeFormatter[] {
+            FORMATTER_RFC1123,
+            FORMATTER_RFC1036,
+            FORMATTER_ASCTIME
     };
 
-    private static final Date DEFAULT_TWO_DIGIT_YEAR_START;
+    static final ZoneId GMT_ID = ZoneId.of("GMT");
 
-    public static final TimeZone GMT = TimeZone.getTimeZone("GMT");
-
-    static {
-        final Calendar calendar = Calendar.getInstance();
-        calendar.setTimeZone(GMT);
-        calendar.set(2000, Calendar.JANUARY, 1, 0, 0, 0);
-        calendar.set(Calendar.MILLISECOND, 0);
-        DEFAULT_TWO_DIGIT_YEAR_START = calendar.getTime();
+    /**
+     * @since 5.2
+     */
+    public static Date toDate(final Instant instant) {
+        return instant != null ? new Date(instant.toEpochMilli()) : null;
     }
+
+    /**
+     * @since 5.2
+     */
+    public static Instant toInstant(final Date date) {
+        return date != null ? Instant.ofEpochMilli(date.getTime()) : null;
+    }
+
+    /**
+     * @since 5.2
+     */
+    public static LocalDateTime toUTC(final Instant instant) {
+        return instant != null ? instant.atZone(ZoneOffset.UTC).toLocalDateTime() : null;
+    }
+
+    /**
+     * @since 5.2
+     */
+    public static LocalDateTime toUTC(final Date date) {
+        return toUTC(toInstant(date));
+    }
+
+    /**
+     * Parses the date value using the given date/time formats.
+     *
+     * @param dateValue the instant value to parse
+     * @param dateFormatters the date/time formats to use
+     *
+     * @return the parsed instant or null if input could not be parsed
+     *
+     * @since 5.2
+     */
+    public static Instant parseDate(final String dateValue, final DateTimeFormatter... dateFormatters) {
+        Args.notNull(dateValue, "Date value");
+        String v = dateValue;
+        // trim single quotes around date if present
+        // see issue #5279
+        if (v.length() > 1 && v.startsWith("'") && v.endsWith("'")) {
+            v = v.substring (1, v.length() - 1);
+        }
+
+        for (final DateTimeFormatter dateFormatter : dateFormatters) {
+            try {
+                return Instant.from(dateFormatter.parse(v));
+            } catch (final DateTimeParseException ignore) {
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Parses the instant value using the standard date/time formats ({@link #PATTERN_RFC1123},
+     * {@link #PATTERN_RFC1036}, {@link #PATTERN_ASCTIME}).
+     *
+     * @param dateValue the instant value to parse
+     * @param dateFormatters the date/time formats to use
+     *
+     * @return the parsed instant or null if input could not be parsed
+     *
+     * @since 5.2
+     */
+    public static Instant parseStandardDate(final String dateValue) {
+        return parseDate(dateValue, STANDARD_PATTERNS);
+    }
+
+    /**
+     * Parses an instant value from a header with the given name.
+     *
+     * @param headers message headers
+     * @param headerName header name
+     *
+     * @return the parsed instant or null if input could not be parsed
+     *
+     * @since 5.2
+     */
+    public static Instant parseStandardDate(final MessageHeaders headers, final String headerName) {
+        if (headers == null) {
+            return null;
+        }
+        final Header header = headers.getFirstHeader(headerName);
+        if (header == null) {
+            return null;
+        }
+        return parseStandardDate(header.getValue());
+    }
+
+    /**
+     * Formats the given instant according to the RFC 1123 pattern.
+     *
+     * @param instant Instant to format.
+     * @return An RFC 1123 formatted instant string.
+     *
+     * @see #PATTERN_RFC1123
+     *
+     * @since 5.2
+     */
+    public static String formatStandardDate(final Instant instant) {
+        return formatDate(instant, FORMATTER_RFC1123);
+    }
+
+    /**
+     * Formats the given date according to the specified pattern.
+     *
+     * @param instant Instant to format.
+     * @param dateTimeFormatter The pattern to use for formatting the instant.
+     * @return A formatted instant string.
+     *
+     * @throws IllegalArgumentException If the given date pattern is invalid.
+     *
+     * @since 5.2
+     */
+    public static String formatDate(final Instant instant, final DateTimeFormatter dateTimeFormatter) {
+        Args.notNull(instant, "Instant");
+        Args.notNull(dateTimeFormatter, "DateTimeFormatter");
+        return dateTimeFormatter.format(instant.atZone(GMT_ID));
+    }
+
+    /**
+     * @deprecated This attribute is no longer supported as a part of the public API.
+     */
+    @Deprecated
+    public static final TimeZone GMT = TimeZone.getTimeZone("GMT");
 
     /**
      * Parses a date value.  The formats used for parsing the date value are retrieved from
@@ -91,7 +248,10 @@ public final class DateUtils {
      * @param dateValue the date value to parse
      *
      * @return the parsed date or null if input could not be parsed
+     *
+     * @deprecated Use {@link #parseStandardDate(String)}
      */
+    @Deprecated
     public static Date parseDate(final String dateValue) {
         return parseDate(dateValue, null, null);
     }
@@ -105,16 +265,12 @@ public final class DateUtils {
      * @return the parsed date or null if input could not be parsed
      *
      * @since 5.0
+     *
+     * @deprecated Use {@link #parseStandardDate(MessageHeaders, String)}
      */
+    @Deprecated
     public static Date parseDate(final MessageHeaders headers, final String headerName) {
-        if (headers == null) {
-            return null;
-        }
-        final Header header = headers.getFirstHeader(headerName);
-        if (header == null) {
-            return null;
-        }
-        return parseDate(header.getValue(), null, null);
+        return toDate(parseStandardDate(headers, headerName));
     }
 
     /**
@@ -130,7 +286,10 @@ public final class DateUtils {
      *  the second message.
      *
      * @since 5.0
+     *
+     * @deprecated This method is no longer supported as a part of the public API.
      */
+    @Deprecated
     public static boolean isAfter(
             final MessageHeaders message1,
             final MessageHeaders message2,
@@ -166,7 +325,10 @@ public final class DateUtils {
      *  the second message.
      *
      * @since 5.0
+     *
+     * @deprecated This method is no longer supported as a part of the public API.
      */
+    @Deprecated
     public static boolean isBefore(
             final MessageHeaders message1,
             final MessageHeaders message2,
@@ -190,53 +352,53 @@ public final class DateUtils {
     }
 
     /**
-     * Parses the date value using the given date formats.
+     * Parses the date value using the given date/time formats.
      *
      * @param dateValue the date value to parse
-     * @param dateFormats the date formats to use
+     * @param dateFormats the date/time formats to use
      *
      * @return the parsed date or null if input could not be parsed
+     *
+     * @deprecated Use {@link #parseDate(String, DateTimeFormatter...)}
      */
+    @Deprecated
     public static Date parseDate(final String dateValue, final String[] dateFormats) {
         return parseDate(dateValue, dateFormats, null);
     }
 
     /**
-     * Parses the date value using the given date formats.
+     * Parses the date value using the given date/time formats.
      *
      * @param dateValue the date value to parse
-     * @param dateFormats the date formats to use
+     * @param dateFormats the date/time formats to use
      * @param startDate During parsing, two digit years will be placed in the range
      * {@code startDate} to {@code startDate + 100 years}. This value may
      * be {@code null}. When {@code null} is given as a parameter, year
      * {@code 2000} will be used.
      *
      * @return the parsed date or null if input could not be parsed
+     *
+     * @deprecated Use {@link #parseDate(String, DateTimeFormatter...)}
      */
+    @Deprecated
     public static Date parseDate(
             final String dateValue,
             final String[] dateFormats,
             final Date startDate) {
-        Args.notNull(dateValue, "Date value");
-        final String[] localDateFormats = dateFormats != null ? dateFormats : DEFAULT_PATTERNS;
-        final Date localStartDate = startDate != null ? startDate : DEFAULT_TWO_DIGIT_YEAR_START;
-        String v = dateValue;
-        // trim single quotes around date if present
-        // see issue #5279
-        if (v.length() > 1 && v.startsWith("'") && v.endsWith("'")) {
-            v = v.substring (1, v.length() - 1);
-        }
-
-        for (final String dateFormat : localDateFormats) {
-            final SimpleDateFormat dateParser = DateFormatHolder.formatFor(dateFormat);
-            dateParser.set2DigitYearStart(localStartDate);
-            final ParsePosition pos = new ParsePosition(0);
-            final Date result = dateParser.parse(v, pos);
-            if (pos.getIndex() != 0) {
-                return result;
+        final DateTimeFormatter[] dateTimeFormatters;
+        if (dateFormats != null) {
+            dateTimeFormatters = new DateTimeFormatter[dateFormats.length];
+            for (int i = 0; i < dateFormats.length; i++) {
+                dateTimeFormatters[i] = new DateTimeFormatterBuilder()
+                        .parseLenient()
+                        .parseCaseInsensitive()
+                        .appendPattern(dateFormats[i])
+                        .toFormatter();
             }
+        } else {
+            dateTimeFormatters = STANDARD_PATTERNS;
         }
-        return null;
+        return toDate(parseDate(dateValue, dateTimeFormatters));
     }
 
     /**
@@ -246,15 +408,16 @@ public final class DateUtils {
      * @return An RFC 1123 formatted date string.
      *
      * @see #PATTERN_RFC1123
+     *
+     * @deprecated Use {@link #formatStandardDate(Instant)}
      */
+    @Deprecated
     public static String formatDate(final Date date) {
-        return formatDate(date, PATTERN_RFC1123);
+        return formatStandardDate(toInstant(date));
     }
 
     /**
-     * Formats the given date according to the specified pattern.  The pattern
-     * must conform to that used by the {@link SimpleDateFormat simple date
-     * format} class.
+     * Formats the given date according to the specified pattern.
      *
      * @param date The date to format.
      * @param pattern The pattern to use for formatting the date.
@@ -262,72 +425,28 @@ public final class DateUtils {
      *
      * @throws IllegalArgumentException If the given date pattern is invalid.
      *
-     * @see SimpleDateFormat
+     * @deprecated Use {@link #formatDate(Instant, DateTimeFormatter)}
      */
+    @Deprecated
     public static String formatDate(final Date date, final String pattern) {
         Args.notNull(date, "Date");
         Args.notNull(pattern, "Pattern");
-        final SimpleDateFormat formatter = DateFormatHolder.formatFor(pattern);
-        return formatter.format(date);
+        return DateTimeFormatter.ofPattern(pattern).format(toInstant(date).atZone(GMT_ID));
     }
 
     /**
      * Clears thread-local variable containing {@link java.text.DateFormat} cache.
      *
      * @since 4.3
+     *
+     * @deprecated Noop method. Do not use.
      */
+    @Deprecated
     public static void clearThreadLocal() {
-        DateFormatHolder.clearThreadLocal();
     }
 
     /** This class should not be instantiated. */
     private DateUtils() {
-    }
-
-    /**
-     * A factory for {@link SimpleDateFormat}s. The instances are stored in a
-     * threadlocal way because SimpleDateFormat is not threadsafe as noted in
-     * {@link SimpleDateFormat its javadoc}.
-     *
-     */
-    final static class DateFormatHolder {
-
-        private static final ThreadLocal<SoftReference<Map<String, SimpleDateFormat>>> THREADLOCAL_FORMATS = new ThreadLocal<>();
-
-        /**
-         * creates a {@link SimpleDateFormat} for the requested format string.
-         *
-         * @param pattern
-         *            a non-{@code null} format String according to
-         *            {@link SimpleDateFormat}. The format is not checked against
-         *            {@code null} since all paths go through
-         *            {@link DateUtils}.
-         * @return the requested format. This simple dateformat should not be used
-         *         to {@link SimpleDateFormat#applyPattern(String) apply} to a
-         *         different pattern.
-         */
-        public static SimpleDateFormat formatFor(final String pattern) {
-            final SoftReference<Map<String, SimpleDateFormat>> ref = THREADLOCAL_FORMATS.get();
-            Map<String, SimpleDateFormat> formats = ref == null ? null : ref.get();
-            if (formats == null) {
-                formats = new HashMap<>();
-                THREADLOCAL_FORMATS.set(new SoftReference<>(formats));
-            }
-
-            SimpleDateFormat format = formats.get(pattern);
-            if (format == null) {
-                format = new SimpleDateFormat(pattern, Locale.US);
-                format.setTimeZone(TimeZone.getTimeZone("GMT"));
-                formats.put(pattern, format);
-            }
-
-            return format;
-        }
-
-        public static void clearThreadLocal() {
-            THREADLOCAL_FORMATS.remove();
-        }
-
     }
 
 }

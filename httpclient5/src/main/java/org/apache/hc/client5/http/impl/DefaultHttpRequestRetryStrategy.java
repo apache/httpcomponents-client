@@ -32,9 +32,9 @@ import java.io.InterruptedIOException;
 import java.net.ConnectException;
 import java.net.NoRouteToHostException;
 import java.net.UnknownHostException;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -214,10 +214,10 @@ public class DefaultHttpRequestRetryStrategy implements HttpRequestRetryStrategy
             try {
                 retryAfter = TimeValue.ofSeconds(Long.parseLong(value));
             } catch (final NumberFormatException ignore) {
-                final Date retryAfterDate = DateUtils.parseDate(value);
+                final Instant retryAfterDate = DateUtils.parseStandardDate(value);
                 if (retryAfterDate != null) {
                     retryAfter =
-                            TimeValue.ofMilliseconds(retryAfterDate.getTime() - System.currentTimeMillis());
+                            TimeValue.ofMilliseconds(retryAfterDate.toEpochMilli() - System.currentTimeMillis());
                 }
             }
 
