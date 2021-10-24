@@ -74,6 +74,8 @@ import org.apache.hc.client5.http.routing.HttpRoutePlanner;
 import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.concurrent.DefaultThreadFactory;
+import org.apache.hc.core5.function.Callback;
+import org.apache.hc.core5.function.Decorator;
 import org.apache.hc.core5.function.Resolver;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHost;
@@ -99,6 +101,7 @@ import org.apache.hc.core5.reactor.Command;
 import org.apache.hc.core5.reactor.DefaultConnectingIOReactor;
 import org.apache.hc.core5.reactor.IOEventHandlerFactory;
 import org.apache.hc.core5.reactor.IOReactorConfig;
+import org.apache.hc.core5.reactor.IOSession;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.VersionInfo;
@@ -207,6 +210,11 @@ public class H2AsyncClientBuilder {
 
     private List<Closeable> closeables;
 
+
+    private Callback<Exception> ioReactorExceptionCallback;
+
+    private Decorator<IOSession> ioSessionDecorator;
+
     public static H2AsyncClientBuilder create() {
         return new H2AsyncClientBuilder();
     }
@@ -256,6 +264,27 @@ public class H2AsyncClientBuilder {
     public final H2AsyncClientBuilder setProxyAuthenticationStrategy(
             final AuthenticationStrategy proxyAuthStrategy) {
         this.proxyAuthStrategy = proxyAuthStrategy;
+        return this;
+    }
+
+    /**
+     * Sets the callback that will be invoked when the client's IOReactor encounters an uncaught exception.
+     *
+     * @since 5.2
+     */
+    public final H2AsyncClientBuilder setIoReactorExceptionCallback(final Callback<Exception> ioReactorExceptionCallback) {
+        this.ioReactorExceptionCallback = ioReactorExceptionCallback;
+        return this;
+    }
+
+
+    /**
+     * Sets the {@link IOSession} {@link Decorator} that will be use with the client's IOReactor.
+     *
+     * @since 5.2
+     */
+    public final H2AsyncClientBuilder setIoSessionDecorator(final Decorator<IOSession> ioSessionDecorator) {
+        this.ioSessionDecorator = ioSessionDecorator;
         return this;
     }
 
@@ -733,8 +762,8 @@ public class H2AsyncClientBuilder {
                 ioEventHandlerFactory,
                 ioReactorConfig != null ? ioReactorConfig : IOReactorConfig.DEFAULT,
                 threadFactory != null ? threadFactory : new DefaultThreadFactory("httpclient-dispatch", true),
-                LoggingIOSessionDecorator.INSTANCE,
-                LoggingExceptionCallback.INSTANCE,
+                ioSessionDecorator != null ? ioSessionDecorator : LoggingIOSessionDecorator.INSTANCE,
+                ioReactorExceptionCallback != null ? ioReactorExceptionCallback : LoggingExceptionCallback.INSTANCE,
                 null,
                 ioSession -> ioSession.enqueue(new ShutdownCommand(CloseMode.GRACEFUL), Command.Priority.IMMEDIATE));
 
