@@ -1,4 +1,108 @@
-﻿Release 5.1
+﻿Release 5.2 ALPHA1
+------------------
+
+This is the first ALPHA release in the 5.2 release series that upgrades minimal JRE
+level to version 1.8 (8u251 is required) and includes several protocol level and
+API improvements. It also includes all bug fixes from the 5.1 branch.
+
+Notable changes and features included in the 5.2 series:
+
+* Upgrade to Java 8.
+
+* Improved support for TLS upgrade and HTTP protocol upgrade (async).
+
+* Support for H2 tunneling via HTTP/1.1 proxy.
+
+* Conformance to RFC 7617 (The 'Basic' HTTP Authentication Scheme).
+
+
+Change Log
+-------------------
+
+* Replaced SimpleDateFormat and Calendar with Java 8 Time APIs; removed thread-local
+  from DateUtils.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Support for connection 'total time to live' setting on a per-route basis.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Configurable IOReactor IO session decorator configurable.
+  Contributed by Arturo Bernal <arturobernalg at gmail.com>
+
+* HTTPCLIENT-2182: access to SSLSession attributes via reflection disallowed as of Java 16.
+  Core TLS functions now use new Java 1.8 API introduced by 8u251 update.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2135: TLS configuration on a per-host basis.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* RFC 7230: treat presence of userinfo in authority component in request URI as an HTTP
+  protocol violation.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* AuthCache conformance to RFC 7617.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Added immutable CredentialsProvider implementations and a CredentialsProvider builder.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2045: BASIC auth scheme conformance to RFC 7617.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2120: support for H2 via HTTP/1.1 proxy.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Moved connection management related settings from RequestConfig to new class ConnectionConfig.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2139: Cookie Header HttpOnly attribute.
+  Contributed by Arturo Bernal <arturobernalg at gmail.com>
+
+
+
+Release 5.1.1
+-----------
+
+This release upgrades HttpCore to the latest 5.1 version and fixes a number of issues found
+since release 5.1.
+
+
+Change Log
+-------------------
+
+* Don't initialize AtomicReference to its default value.
+  Contributed by Gary Gregory <ggregory at apache.org>
+
+* Corrected resolution of the target host in DefaultUserTokenHandler.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2177: automatically force HTTP/1.1 protocol policy when executing requests
+  via a proxy tunnel.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2177: fixed incorrect route state tracking by the async connect executor
+  when negotiating a tunnel via a proxy.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2177: keep successful tunnel connections alive regardless of `Connection: close`.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2173: async pooling connection manager to close half-open connection gracefully.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Don't retry a request for NoRouteToHostException.
+  Contributed by Jaikiran Pai <jaikiran.pai at gmail.com>
+
+* HTTPCLIENT-2170: Classic protocol layer no longer releases the underlying connection back
+  to the pool prematurely while the NTLM handshake is still ongoing.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Fixed connection lease request cancellation race in both classic and asyc pooling connection
+  managers.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+
+Release 5.1
 -----------
 
 This is the first GA release in the 5.1 release series.
