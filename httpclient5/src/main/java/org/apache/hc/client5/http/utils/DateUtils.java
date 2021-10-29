@@ -173,7 +173,6 @@ public final class DateUtils {
      * {@link #PATTERN_RFC1036}, {@link #PATTERN_ASCTIME}).
      *
      * @param dateValue the instant value to parse
-     * @param dateFormatters the date/time formats to use
      *
      * @return the parsed instant or null if input could not be parsed
      *

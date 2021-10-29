@@ -198,7 +198,6 @@ public class TlsConfig implements Cloneable {
         /**
          * Determines the HTTP protocol policy. By default, connections are expected to use TLS ALPN
          * extension to negotiate the application protocol to be used by both endpoints.
-         * </p>
          * <p>
          * Default: {@link HttpVersionPolicy#NEGOTIATE}
          * </p>
