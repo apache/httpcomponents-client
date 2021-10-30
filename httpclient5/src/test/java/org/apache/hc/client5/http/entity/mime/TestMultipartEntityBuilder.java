@@ -70,12 +70,14 @@ public class TestMultipartEntityBuilder {
                 .addBinaryBody("p2", new File("stuff"))
                 .addBinaryBody("p3", new byte[]{})
                 .addBinaryBody("p4", new ByteArrayInputStream(new byte[]{}))
+                .addBinaryBody("p5", new ByteArrayInputStream(new byte[]{}), ContentType.DEFAULT_BINARY, "filename")
                 .buildEntity();
         Assert.assertNotNull(entity);
         final List<MultipartPart> bodyParts = entity.getMultipart().getParts();
         Assert.assertNotNull(bodyParts);
-        Assert.assertEquals(4, bodyParts.size());
+        Assert.assertEquals(5, bodyParts.size());
     }
+
 
     @Test
     public void testMultipartCustomContentType() throws Exception {

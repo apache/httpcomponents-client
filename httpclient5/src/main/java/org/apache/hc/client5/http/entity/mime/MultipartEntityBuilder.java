@@ -155,7 +155,7 @@ public class MultipartEntityBuilder {
 
     public MultipartEntityBuilder addBinaryBody(
             final String name, final byte[] b) {
-        return addBinaryBody(name, b, ContentType.DEFAULT_BINARY, null);
+        return addPart(name, new ByteArrayBody(b, ContentType.DEFAULT_BINARY));
     }
 
     public MultipartEntityBuilder addBinaryBody(
