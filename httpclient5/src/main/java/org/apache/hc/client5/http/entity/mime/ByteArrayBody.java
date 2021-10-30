@@ -56,9 +56,20 @@ public class ByteArrayBody extends AbstractContentBody {
      */
     public ByteArrayBody(final byte[] data, final ContentType contentType, final String filename) {
         super(contentType);
-        Args.notNull(data, "byte[]");
-        this.data = data;
+        this.data = Args.notNull(data, "byte[]");
         this.filename = filename;
+    }
+
+    /**
+     * Public constructor that creates a new ByteArrayBody.
+     *
+     * @param contentType  the {@link ContentType}
+     * @param data the array of byte.
+     *
+     * @since 5.2
+     */
+    public ByteArrayBody(final byte[] data, final ContentType contentType) {
+        this(data, contentType, null);
     }
 
     /**
