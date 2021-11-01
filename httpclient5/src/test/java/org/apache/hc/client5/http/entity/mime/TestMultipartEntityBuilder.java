@@ -121,6 +121,20 @@ public class TestMultipartEntityBuilder {
     }
 
     @Test
+    public void testMultipartCustomContentTypeUsingAddParameter() {
+        final MultipartEntityBuilder eb = MultipartEntityBuilder.create();
+        eb.setMimeSubtype("related");
+        eb.addParameter(new BasicNameValuePair("boundary", "yada-yada"));
+        eb.addParameter(new BasicNameValuePair("charset", "ascii"));
+        eb.addParameter(new BasicNameValuePair("my", "stuff"));
+        eb.buildEntity();
+        final MultipartFormEntity entity =  eb.buildEntity();
+        Assert.assertNotNull(entity);
+        Assert.assertEquals("multipart/related; boundary=yada-yada; charset=US-ASCII; my=stuff",
+                entity.getContentType());
+    }
+
+    @Test
     public void testMultipartWriteTo() throws Exception {
         final String helloWorld = "hello world";
         final List<NameValuePair> parameters = new ArrayList<>();

@@ -112,6 +112,17 @@ public class MultipartEntityBuilder {
         this.contentType = contentType;
         return this;
     }
+    /**
+     *  Add parameter to the current {@link ContentType}.
+     *
+     * @param parameter The name-value pair parameter to add to the {@link ContentType}.
+     * @return the {@link MultipartEntityBuilder} instance.
+     * @since 5.2
+     */
+    public MultipartEntityBuilder addParameter(final BasicNameValuePair parameter) {
+        this.contentType = contentType.withParameters(parameter);
+        return this;
+    }
 
     public MultipartEntityBuilder setCharset(final Charset charset) {
         this.charset = charset;
