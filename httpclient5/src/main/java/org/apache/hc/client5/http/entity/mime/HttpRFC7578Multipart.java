@@ -157,7 +157,7 @@ class HttpRFC7578Multipart extends AbstractMultipartFormat {
     private static final int RADIX = 16;
 
     /**
-     * Returns the numeric value of the character <code>b</code> in radix 16.
+     * Returns the numeric value of the character {@code b} in radix 16.
      *
      * @param b
      *            The byte to be converted.
