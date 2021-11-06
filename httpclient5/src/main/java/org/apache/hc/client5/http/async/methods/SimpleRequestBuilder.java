@@ -219,6 +219,7 @@ public class SimpleRequestBuilder extends AbstractRequestBuilder<SimpleHttpReque
         setBody(request.getBody());
     }
 
+    @Override
     protected void digest(final HttpRequest request) {
         super.digest(request);
     }
@@ -365,6 +366,7 @@ public class SimpleRequestBuilder extends AbstractRequestBuilder<SimpleHttpReque
         return this;
     }
 
+    @Override
     public SimpleHttpRequest build() {
         String path = getPath();
         SimpleBody bodyCopy = this.body;

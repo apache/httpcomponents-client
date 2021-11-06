@@ -55,10 +55,12 @@ class InternalH2ConnPool implements ModalCloseable {
         this.connPool = new H2ConnPool(connectionInitiator, addressResolver, tlsStrategy);
     }
 
+    @Override
     public void close(final CloseMode closeMode) {
         connPool.close(closeMode);
     }
 
+    @Override
     public void close() {
         connPool.close();
     }
