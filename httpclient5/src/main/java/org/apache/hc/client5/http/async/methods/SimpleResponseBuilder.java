@@ -132,6 +132,7 @@ public class SimpleResponseBuilder extends AbstractResponseBuilder<SimpleHttpRes
         return this;
     }
 
+    @Override
     public SimpleHttpResponse build() {
         final SimpleHttpResponse result = new SimpleHttpResponse(getStatus());
         result.setVersion(getVersion());
