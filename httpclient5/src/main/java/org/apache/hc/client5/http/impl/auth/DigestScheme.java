@@ -443,10 +443,10 @@ public class DigestScheme implements AuthScheme, Serializable {
 
     /**
      * Encodes the 128 bit (16 bytes) MD5 digest into a 32 characters long
-     * <CODE>String</CODE> according to RFC 2617.
+     * {@code String} according to RFC 2617.
      *
      * @param binaryData array containing the digest
-     * @return encoded MD5, or <CODE>null</CODE> if encoding failed
+     * @return encoded MD5, or {@code null} if encoding failed
      */
     static String formatHex(final byte[] binaryData) {
         final int n = binaryData.length;
