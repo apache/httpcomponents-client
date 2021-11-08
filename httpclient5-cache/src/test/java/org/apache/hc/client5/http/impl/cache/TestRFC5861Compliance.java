@@ -32,7 +32,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.util.Date;
+import java.time.Instant;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
@@ -80,8 +80,6 @@ public class TestRFC5861Compliance {
     ExecChain mockExecChain;
     @Mock
     ExecRuntime mockExecRuntime;
-    @Mock
-    HttpCache mockCache;
     ClassicHttpRequest request;
     ClassicHttpResponse originResponse;
     CacheConfig config;
@@ -147,7 +145,7 @@ public class TestRFC5861Compliance {
     @Test
     public void testStaleIfErrorInResponseIsTrueReturnsStaleEntryWithWarning()
             throws Exception{
-        final Date tenSecondsAgo = new Date(new Date().getTime() - 10 * 1000L);
+        final Instant tenSecondsAgo = Instant.now().minusSeconds(10);
         final ClassicHttpRequest req1 = HttpTestUtils.makeDefaultRequest();
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response(tenSecondsAgo,
                 "public, max-age=5, stale-if-error=60");
@@ -169,7 +167,7 @@ public class TestRFC5861Compliance {
     @Test
     public void testConsumesErrorResponseWhenServingStale()
             throws Exception{
-        final Date tenSecondsAgo = new Date(new Date().getTime() - 10 * 1000L);
+        final Instant tenSecondsAgo = Instant.now().minusSeconds(10);
         final ClassicHttpRequest req1 = HttpTestUtils.makeDefaultRequest();
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response(tenSecondsAgo,
                 "public, max-age=5, stale-if-error=60");
@@ -196,7 +194,7 @@ public class TestRFC5861Compliance {
     @Test
     public void testStaleIfErrorInResponseYieldsToMustRevalidate()
             throws Exception{
-        final Date tenSecondsAgo = new Date(new Date().getTime() - 10 * 1000L);
+        final Instant tenSecondsAgo = Instant.now().minusSeconds(10);
         final ClassicHttpRequest req1 = HttpTestUtils.makeDefaultRequest();
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response(tenSecondsAgo,
                 "public, max-age=5, stale-if-error=60, must-revalidate");
@@ -219,7 +217,7 @@ public class TestRFC5861Compliance {
     public void testStaleIfErrorInResponseYieldsToProxyRevalidateForSharedCache()
             throws Exception{
         assertTrue(config.isSharedCache());
-        final Date tenSecondsAgo = new Date(new Date().getTime() - 10 * 1000L);
+        final Instant tenSecondsAgo = Instant.now().minusSeconds(10);
         final ClassicHttpRequest req1 = HttpTestUtils.makeDefaultRequest();
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response(tenSecondsAgo,
                 "public, max-age=5, stale-if-error=60, proxy-revalidate");
@@ -245,7 +243,7 @@ public class TestRFC5861Compliance {
                 .setSharedCache(false).build();
         impl = new CachingExec(new BasicHttpCache(configUnshared), null, configUnshared);
 
-        final Date tenSecondsAgo = new Date(new Date().getTime() - 10 * 1000L);
+        final Instant tenSecondsAgo = Instant.now().minusSeconds(10);
         final ClassicHttpRequest req1 = HttpTestUtils.makeDefaultRequest();
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response(tenSecondsAgo,
                 "public, max-age=5, stale-if-error=60, proxy-revalidate");
@@ -267,7 +265,7 @@ public class TestRFC5861Compliance {
     @Test
     public void testStaleIfErrorInResponseYieldsToExplicitFreshnessRequest()
             throws Exception{
-        final Date tenSecondsAgo = new Date(new Date().getTime() - 10 * 1000L);
+        final Instant tenSecondsAgo = Instant.now().minusSeconds(10);
         final ClassicHttpRequest req1 = HttpTestUtils.makeDefaultRequest();
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response(tenSecondsAgo,
                 "public, max-age=5, stale-if-error=60");
@@ -290,7 +288,7 @@ public class TestRFC5861Compliance {
     @Test
     public void testStaleIfErrorInRequestIsTrueReturnsStaleEntryWithWarning()
             throws Exception{
-        final Date tenSecondsAgo = new Date(new Date().getTime() - 10 * 1000L);
+        final Instant tenSecondsAgo = Instant.now().minusSeconds(10);
         final ClassicHttpRequest req1 = HttpTestUtils.makeDefaultRequest();
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response(tenSecondsAgo,
                 "public, max-age=5");
@@ -313,10 +311,10 @@ public class TestRFC5861Compliance {
     @Test
     public void testStaleIfErrorInRequestIsTrueReturnsStaleNonRevalidatableEntryWithWarning()
         throws Exception {
-        final Date tenSecondsAgo = new Date(new Date().getTime() - 10 * 1000L);
+        final Instant tenSecondsAgo = Instant.now().minusSeconds(10);
         final ClassicHttpRequest req1 = HttpTestUtils.makeDefaultRequest();
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
-        resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+        resp1.setHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo));
         resp1.setHeader("Cache-Control", "public, max-age=5");
 
         final ClassicHttpRequest req2 = HttpTestUtils.makeDefaultRequest();
@@ -337,8 +335,8 @@ public class TestRFC5861Compliance {
     @Test
     public void testStaleIfErrorInResponseIsFalseReturnsError()
             throws Exception{
-        final Date now = new Date();
-        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        final Instant now = Instant.now();
+        final Instant tenSecondsAgo = now.minusSeconds(10);
         final ClassicHttpRequest req1 = HttpTestUtils.makeDefaultRequest();
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response(tenSecondsAgo,
                 "public, max-age=5, stale-if-error=2");
@@ -361,8 +359,8 @@ public class TestRFC5861Compliance {
     @Test
     public void testStaleIfErrorInRequestIsFalseReturnsError()
             throws Exception{
-        final Date now = new Date();
-        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        final Instant now = Instant.now();
+        final Instant tenSecondsAgo = now.minusSeconds(10);
         final ClassicHttpRequest req1 = HttpTestUtils.makeDefaultRequest();
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response(tenSecondsAgo,
                 "public, max-age=5");
@@ -403,11 +401,11 @@ public class TestRFC5861Compliance {
 
         final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
-        final Date now = new Date();
-        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        final Instant now = Instant.now();
+        final Instant tenSecondsAgo = now.minusSeconds(10);
         resp1.setHeader("Cache-Control", "public, max-age=5, stale-while-revalidate=15");
         resp1.setHeader("ETag","\"etag\"");
-        resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+        resp1.setHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo));
 
         final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
 
@@ -442,10 +440,10 @@ public class TestRFC5861Compliance {
 
         final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
-        final Date now = new Date();
-        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        final Instant now = Instant.now();
+        final Instant tenSecondsAgo = now.minusSeconds(10);
         resp1.setHeader("Cache-Control", "public, max-age=5, stale-while-revalidate=15");
-        resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+        resp1.setHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo));
 
         final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
 
@@ -484,11 +482,11 @@ public class TestRFC5861Compliance {
 
         final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
-        final Date now = new Date();
-        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        final Instant now = Instant.now();
+        final Instant tenSecondsAgo = now.minusSeconds(10);
         resp1.setHeader("Cache-Control", "private, stale-while-revalidate=15");
         resp1.setHeader("ETag","\"etag\"");
-        resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+        resp1.setHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo));
 
         final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
         req2.setHeader("If-None-Match","\"etag\"");
@@ -518,8 +516,8 @@ public class TestRFC5861Compliance {
     public void testStaleWhileRevalidateYieldsToMustRevalidate()
         throws Exception {
 
-        final Date now = new Date();
-        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        final Instant now = Instant.now();
+        final Instant tenSecondsAgo = now.minusSeconds(10);
 
         config = CacheConfig.custom()
                 .setMaxCacheEntries(MAX_ENTRIES)
@@ -532,13 +530,13 @@ public class TestRFC5861Compliance {
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Cache-Control", "public, max-age=5, stale-while-revalidate=15, must-revalidate");
         resp1.setHeader("ETag","\"etag\"");
-        resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+        resp1.setHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo));
 
         final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp2 = HttpTestUtils.make200Response();
         resp2.setHeader("Cache-Control", "public, max-age=5, stale-while-revalidate=15, must-revalidate");
         resp2.setHeader("ETag","\"etag\"");
-        resp2.setHeader("Date", DateUtils.formatDate(now));
+        resp2.setHeader("Date", DateUtils.formatStandardDate(now));
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
 
@@ -565,8 +563,8 @@ public class TestRFC5861Compliance {
     public void testStaleWhileRevalidateYieldsToProxyRevalidateForSharedCache()
         throws Exception {
 
-        final Date now = new Date();
-        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        final Instant now = Instant.now();
+        final Instant tenSecondsAgo = now.minusSeconds(10);
 
         config = CacheConfig.custom()
                 .setMaxCacheEntries(MAX_ENTRIES)
@@ -580,13 +578,13 @@ public class TestRFC5861Compliance {
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Cache-Control", "public, max-age=5, stale-while-revalidate=15, proxy-revalidate");
         resp1.setHeader("ETag","\"etag\"");
-        resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+        resp1.setHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo));
 
         final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp2 = HttpTestUtils.make200Response();
         resp2.setHeader("Cache-Control", "public, max-age=5, stale-while-revalidate=15, proxy-revalidate");
         resp2.setHeader("ETag","\"etag\"");
-        resp2.setHeader("Date", DateUtils.formatDate(now));
+        resp2.setHeader("Date", DateUtils.formatStandardDate(now));
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
 
@@ -613,8 +611,8 @@ public class TestRFC5861Compliance {
     public void testStaleWhileRevalidateYieldsToExplicitFreshnessRequest()
         throws Exception {
 
-        final Date now = new Date();
-        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        final Instant now = Instant.now();
+        final Instant tenSecondsAgo = now.minusSeconds(10);
 
         config = CacheConfig.custom()
                 .setMaxCacheEntries(MAX_ENTRIES)
@@ -628,14 +626,14 @@ public class TestRFC5861Compliance {
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Cache-Control", "public, max-age=5, stale-while-revalidate=15");
         resp1.setHeader("ETag","\"etag\"");
-        resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+        resp1.setHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo));
 
         final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
         req2.setHeader("Cache-Control","min-fresh=2");
         final ClassicHttpResponse resp2 = HttpTestUtils.make200Response();
         resp2.setHeader("Cache-Control", "public, max-age=5, stale-while-revalidate=15");
         resp2.setHeader("ETag","\"etag\"");
-        resp2.setHeader("Date", DateUtils.formatDate(now));
+        resp2.setHeader("Date", DateUtils.formatStandardDate(now));
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
 

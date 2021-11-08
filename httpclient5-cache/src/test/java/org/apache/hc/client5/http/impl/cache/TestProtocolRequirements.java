@@ -29,8 +29,9 @@ package org.apache.hc.client5.http.impl.cache;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.SocketTimeoutException;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
@@ -225,7 +226,7 @@ public class TestProtocolRequirements {
     public void testLowerOriginResponsesUpgradedToOurVersion1_1() throws Exception {
         originResponse = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
         originResponse.setVersion(new ProtocolVersion("HTTP", 1, 2));
-        originResponse.setHeader("Date", DateUtils.formatDate(new Date()));
+        originResponse.setHeader("Date", DateUtils.formatStandardDate(Instant.now()));
         originResponse.setHeader("Server", "MockOrigin/1.0");
         originResponse.setEntity(body);
 
@@ -488,7 +489,7 @@ public class TestProtocolRequirements {
     private void testUnknownResponseStatusCodeIsNotCached(final int code) throws Exception {
 
         originResponse = new BasicClassicHttpResponse(code, "Moo");
-        originResponse.setHeader("Date", DateUtils.formatDate(new Date()));
+        originResponse.setHeader("Date", DateUtils.formatStandardDate(Instant.now()));
         originResponse.setHeader("Server", "MockOrigin/1.0");
         originResponse.setHeader("Cache-Control", "max-age=3600");
         originResponse.setEntity(body);
@@ -837,11 +838,10 @@ public class TestProtocolRequirements {
 
     @Test
     public void testHEADResponseWithUpdatedLastModifiedFieldMakeACacheEntryStale() throws Exception {
-        final Date now = new Date();
-        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
-        final Date sixSecondsAgo = new Date(now.getTime() - 6 * 1000L);
-        testHEADResponseWithUpdatedEntityFieldsMakeACacheEntryStale("Last-Modified", DateUtils
-                .formatDate(tenSecondsAgo), DateUtils.formatDate(sixSecondsAgo));
+        final Instant now = Instant.now();
+        final Instant tenSecondsAgo = now.minusSeconds(10);
+        final Instant sixSecondsAgo = now.minusSeconds(6);
+        testHEADResponseWithUpdatedEntityFieldsMakeACacheEntryStale("Last-Modified", DateUtils.formatStandardDate(tenSecondsAgo), DateUtils.formatStandardDate(sixSecondsAgo));
     }
 
     /*
@@ -1028,7 +1028,7 @@ public class TestProtocolRequirements {
     public void test206ResponseReturnedToClientMustHaveDateHeader() throws Exception {
         request.addHeader("Range", "bytes=0-50");
         originResponse = new BasicClassicHttpResponse(HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
-        originResponse.setHeader("Date", DateUtils.formatDate(new Date()));
+        originResponse.setHeader("Date", DateUtils.formatStandardDate(Instant.now()));
         originResponse.setHeader("Server", "MockOrigin/1.0");
         originResponse.setEntity(HttpTestUtils.makeBody(500));
         originResponse.setHeader("Content-Range", "bytes 0-499/1234");
@@ -1090,22 +1090,22 @@ public class TestProtocolRequirements {
         final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         req1.addHeader("Accept-Encoding", "gzip");
 
-        final Date now = new Date();
-        final Date inOneHour = new Date(now.getTime() + 3600 * 1000L);
+        final Instant now = Instant.now();
+        final Instant inOneHour = Instant.now().plus(1, ChronoUnit.HOURS);
         originResponse.addHeader("Cache-Control", "max-age=3600");
-        originResponse.addHeader("Expires", DateUtils.formatDate(inOneHour));
+        originResponse.addHeader("Expires", DateUtils.formatStandardDate(inOneHour));
         originResponse.addHeader("Vary", "Accept-Encoding");
 
         final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
         req2.addHeader("Cache-Control", "no-cache");
         req2.addHeader("Accept-Encoding", "gzip");
-        final Date nextSecond = new Date(now.getTime() + 1000L);
-        final Date inTwoHoursPlusASec = new Date(now.getTime() + 2 * 3600 * 1000L + 1000L);
+        final Instant nextSecond = Instant.now().plusSeconds(1);
+        final Instant inTwoHoursPlusASec = now.plus(2, ChronoUnit.HOURS).plus(1, ChronoUnit.SECONDS);
 
         final ClassicHttpResponse originResponse2 = HttpTestUtils.make200Response();
-        originResponse2.setHeader("Date", DateUtils.formatDate(nextSecond));
+        originResponse2.setHeader("Date", DateUtils.formatStandardDate(nextSecond));
         originResponse2.setHeader("Cache-Control", "max-age=7200");
-        originResponse2.setHeader("Expires", DateUtils.formatDate(inTwoHoursPlusASec));
+        originResponse2.setHeader("Expires", DateUtils.formatStandardDate(inTwoHoursPlusASec));
         originResponse2.setHeader("Vary", "Accept-Encoding");
 
         final ClassicHttpRequest req3 = new BasicClassicHttpRequest("GET", "/");
@@ -1143,8 +1143,8 @@ public class TestProtocolRequirements {
 
         final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
 
-        final Date now = new Date();
-        final Date oneHourAgo = new Date(now.getTime() - 3600 * 1000L);
+        final Instant now = Instant.now();
+        final Instant oneHourAgo = now.minus(1, ChronoUnit.HOURS);
         originResponse = HttpTestUtils.make200Response();
         originResponse.addHeader("Allow", "GET,HEAD");
         originResponse.addHeader("Cache-Control", "max-age=3600");
@@ -1153,7 +1153,7 @@ public class TestProtocolRequirements {
         originResponse.addHeader("Content-MD5", "Q2hlY2sgSW50ZWdyaXR5IQ==");
         originResponse.addHeader("Content-Length", "128");
         originResponse.addHeader("Content-Type", "application/octet-stream");
-        originResponse.addHeader("Last-Modified", DateUtils.formatDate(oneHourAgo));
+        originResponse.addHeader("Last-Modified", DateUtils.formatStandardDate(oneHourAgo));
         originResponse.addHeader("ETag", "W/\"weak-tag\"");
 
         final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
@@ -1187,8 +1187,8 @@ public class TestProtocolRequirements {
 
         final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
 
-        final Date now = new Date();
-        final Date oneHourAgo = new Date(now.getTime() - 3600 * 1000L);
+        final Instant now = Instant.now();
+        final Instant oneHourAgo = now.minus(1, ChronoUnit.HOURS);
         originResponse.addHeader("Allow", "GET,HEAD");
         originResponse.addHeader("Cache-Control", "max-age=3600");
         originResponse.addHeader("Content-Language", "en");
@@ -1196,7 +1196,7 @@ public class TestProtocolRequirements {
         originResponse.addHeader("Content-MD5", "Q2hlY2sgSW50ZWdyaXR5IQ==");
         originResponse.addHeader("Content-Length", "128");
         originResponse.addHeader("Content-Type", "application/octet-stream");
-        originResponse.addHeader("Last-Modified", DateUtils.formatDate(oneHourAgo));
+        originResponse.addHeader("Last-Modified", DateUtils.formatStandardDate(oneHourAgo));
         originResponse.addHeader("ETag", "\"strong-tag\"");
 
         final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
@@ -1231,7 +1231,7 @@ public class TestProtocolRequirements {
     @Test
     public void test206ResponseIsNotCombinedWithPreviousContentIfETagDoesNotMatch() throws Exception {
 
-        final Date now = new Date();
+        final Instant now = Instant.now();
 
         final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
@@ -1245,10 +1245,10 @@ public class TestProtocolRequirements {
         req2.setHeader("Cache-Control", "no-cache");
         req2.setHeader("Range", "bytes=0-50");
 
-        final Date inOneSecond = new Date(now.getTime() + 1000L);
+        final Instant inOneSecond = now.plusSeconds(1);
         final ClassicHttpResponse resp2 = new BasicClassicHttpResponse(HttpStatus.SC_PARTIAL_CONTENT,
                 "Partial Content");
-        resp2.setHeader("Date", DateUtils.formatDate(inOneSecond));
+        resp2.setHeader("Date", DateUtils.formatStandardDate(inOneSecond));
         resp2.setHeader("Server", resp1.getFirstHeader("Server").getValue());
         resp2.setHeader("ETag", "\"etag2\"");
         resp2.setHeader("Content-Range", "bytes 0-50/128");
@@ -1256,7 +1256,6 @@ public class TestProtocolRequirements {
         Arrays.fill(bytes2, (byte) 2);
         resp2.setEntity(new ByteArrayEntity(bytes2, null));
 
-        final Date inTwoSeconds = new Date(now.getTime() + 2000L);
         final ClassicHttpRequest req3 = new BasicClassicHttpRequest("GET", "/");
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
@@ -1289,13 +1288,13 @@ public class TestProtocolRequirements {
     @Test
     public void test206ResponseIsNotCombinedWithPreviousContentIfLastModifiedDoesNotMatch() throws Exception {
 
-        final Date now = new Date();
+        final Instant now = Instant.now();
 
         final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
-        final Date oneHourAgo = new Date(now.getTime() - 3600L);
+        final Instant oneHourAgo = now.minus(1, ChronoUnit.HOURS);
         resp1.setHeader("Cache-Control", "max-age=3600");
-        resp1.setHeader("Last-Modified", DateUtils.formatDate(oneHourAgo));
+        resp1.setHeader("Last-Modified", DateUtils.formatStandardDate(oneHourAgo));
         final byte[] bytes1 = new byte[128];
         Arrays.fill(bytes1, (byte) 1);
         resp1.setEntity(new ByteArrayEntity(bytes1, null));
@@ -1304,18 +1303,17 @@ public class TestProtocolRequirements {
         req2.setHeader("Cache-Control", "no-cache");
         req2.setHeader("Range", "bytes=0-50");
 
-        final Date inOneSecond = new Date(now.getTime() + 1000L);
+        final Instant inOneSecond = now.plusSeconds(1);
         final ClassicHttpResponse resp2 = new BasicClassicHttpResponse(HttpStatus.SC_PARTIAL_CONTENT,
                 "Partial Content");
-        resp2.setHeader("Date", DateUtils.formatDate(inOneSecond));
+        resp2.setHeader("Date", DateUtils.formatStandardDate(inOneSecond));
         resp2.setHeader("Server", resp1.getFirstHeader("Server").getValue());
-        resp2.setHeader("Last-Modified", DateUtils.formatDate(now));
+        resp2.setHeader("Last-Modified", DateUtils.formatStandardDate(now));
         resp2.setHeader("Content-Range", "bytes 0-50/128");
         final byte[] bytes2 = new byte[51];
         Arrays.fill(bytes2, (byte) 2);
         resp2.setEntity(new ByteArrayEntity(bytes2, null));
 
-        final Date inTwoSeconds = new Date(now.getTime() + 2000L);
         final ClassicHttpRequest req3 = new BasicClassicHttpRequest("GET", "/");
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
@@ -1384,7 +1382,7 @@ public class TestProtocolRequirements {
         request = new BasicClassicHttpRequest("GET", "/");
 
         originResponse = new BasicClassicHttpResponse(HttpStatus.SC_SEE_OTHER, "See Other");
-        originResponse.setHeader("Date", DateUtils.formatDate(new Date()));
+        originResponse.setHeader("Date", DateUtils.formatStandardDate(Instant.now()));
         originResponse.setHeader("Server", "MockServer/1.0");
         originResponse.setHeader("Cache-Control", "max-age=3600");
         originResponse.setHeader("Content-Type", "application/x-cachingclient-test");
@@ -1411,7 +1409,7 @@ public class TestProtocolRequirements {
         request.setHeader("If-None-Match", "\"etag\"");
 
         originResponse = new BasicClassicHttpResponse(HttpStatus.SC_NOT_MODIFIED,"Not Modified");
-        originResponse.setHeader("Date", DateUtils.formatDate(new Date()));
+        originResponse.setHeader("Date", DateUtils.formatStandardDate(Instant.now()));
         originResponse.setHeader("Server", "MockServer/1.0");
         originResponse.setHeader("ETag", "\"etag\"");
 
@@ -1501,8 +1499,8 @@ public class TestProtocolRequirements {
     @Test
     public void test304ResponseGeneratedFromCacheIncludesExpiresCacheControlAndOrVaryIfResponseMightDiffer() throws Exception {
 
-        final Date now = new Date();
-        final Date inTwoHours = new Date(now.getTime() + 2 * 3600 * 1000L);
+        final Instant now = Instant.now();
+        final Instant inTwoHours = now.plus(2, ChronoUnit.HOURS);
 
         final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         req1.setHeader("Accept-Encoding", "gzip");
@@ -1510,7 +1508,7 @@ public class TestProtocolRequirements {
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("ETag", "\"v1\"");
         resp1.setHeader("Cache-Control", "max-age=7200");
-        resp1.setHeader("Expires", DateUtils.formatDate(inTwoHours));
+        resp1.setHeader("Expires", DateUtils.formatStandardDate(inTwoHours));
         resp1.setHeader("Vary", "Accept-Encoding");
         resp1.setEntity(HttpTestUtils.makeBody(ENTITY_LENGTH));
 
@@ -1521,7 +1519,7 @@ public class TestProtocolRequirements {
         final ClassicHttpResponse resp2 = HttpTestUtils.make200Response();
         resp2.setHeader("ETag", "\"v2\"");
         resp2.setHeader("Cache-Control", "max-age=3600");
-        resp2.setHeader("Expires", DateUtils.formatDate(inTwoHours));
+        resp2.setHeader("Expires", DateUtils.formatStandardDate(inTwoHours));
         resp2.setHeader("Vary", "Accept-Encoding");
         resp2.setEntity(HttpTestUtils.makeBody(ENTITY_LENGTH));
 
@@ -1556,8 +1554,8 @@ public class TestProtocolRequirements {
     @Test
     public void test304GeneratedFromCacheOnWeakValidatorDoesNotIncludeOtherEntityHeaders() throws Exception {
 
-        final Date now = new Date();
-        final Date oneHourAgo = new Date(now.getTime() - 3600 * 1000L);
+        final Instant now = Instant.now();
+        final Instant oneHourAgo = now.minus(1, ChronoUnit.HOURS);
 
         final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
 
@@ -1569,7 +1567,7 @@ public class TestProtocolRequirements {
         resp1.setHeader("Content-Length", "128");
         resp1.setHeader("Content-MD5", "Q2hlY2sgSW50ZWdyaXR5IQ==");
         resp1.setHeader("Content-Type", "application/octet-stream");
-        resp1.setHeader("Last-Modified", DateUtils.formatDate(oneHourAgo));
+        resp1.setHeader("Last-Modified", DateUtils.formatStandardDate(oneHourAgo));
         resp1.setHeader("Cache-Control", "max-age=7200");
 
         final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
@@ -1601,7 +1599,7 @@ public class TestProtocolRequirements {
     @Test
     public void testNotModifiedOfNonCachedEntityShouldRevalidateWithUnconditionalGET() throws Exception {
 
-        final Date now = new Date();
+        final Instant now = Instant.now();
 
         // load cache with cacheable entry
         final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
@@ -1642,8 +1640,8 @@ public class TestProtocolRequirements {
     @Test
     public void testCacheEntryIsUpdatedWithNewFieldValuesIn304Response() throws Exception {
 
-        final Date now = new Date();
-        final Date inFiveSeconds = new Date(now.getTime() + 5000L);
+        final Instant now = Instant.now();
+        final Instant inFiveSeconds = now.plusSeconds(5);
 
         final ClassicHttpRequest initialRequest = new BasicClassicHttpRequest("GET", "/");
 
@@ -1659,14 +1657,14 @@ public class TestProtocolRequirements {
 
         // to be used if the cache generates a conditional validation
         final ClassicHttpResponse conditionalResponse = HttpTestUtils.make304Response();
-        conditionalResponse.setHeader("Date", DateUtils.formatDate(inFiveSeconds));
+        conditionalResponse.setHeader("Date", DateUtils.formatStandardDate(inFiveSeconds));
         conditionalResponse.setHeader("Server", "MockUtils/1.0");
         conditionalResponse.setHeader("ETag", "\"etag\"");
         conditionalResponse.setHeader("X-Extra", "junk");
 
         // to be used if the cache generates an unconditional validation
         final ClassicHttpResponse unconditionalResponse = HttpTestUtils.make200Response();
-        unconditionalResponse.setHeader("Date", DateUtils.formatDate(inFiveSeconds));
+        unconditionalResponse.setHeader("Date", DateUtils.formatStandardDate(inFiveSeconds));
         unconditionalResponse.setHeader("ETag", "\"etag\"");
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(cachedResponse);
@@ -1677,7 +1675,7 @@ public class TestProtocolRequirements {
 
         Mockito.verify(mockExecChain, Mockito.times(2)).proceed(Mockito.any(), Mockito.any());
 
-        Assert.assertEquals(DateUtils.formatDate(inFiveSeconds), result.getFirstHeader("Date").getValue());
+        Assert.assertEquals(DateUtils.formatStandardDate(inFiveSeconds), result.getFirstHeader("Date").getValue());
         Assert.assertEquals("junk", result.getFirstHeader("X-Extra").getValue());
     }
 
@@ -1821,13 +1819,13 @@ public class TestProtocolRequirements {
     @Test
     public void testMustReturnACacheEntryIfItCanRevalidateIt() throws Exception {
 
-        final Date now = new Date();
-        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
-        final Date nineSecondsAgo = new Date(now.getTime() - 9 * 1000L);
-        final Date eightSecondsAgo = new Date(now.getTime() - 8 * 1000L);
+        final Instant now = Instant.now();
+        final Instant tenSecondsAgo = now.minusSeconds(10);
+        final Instant nineSecondsAgo = now.minusSeconds(9);
+        final Instant eightSecondsAgo = now.minusSeconds(8);
 
         final Header[] hdrs = new Header[] {
-                new BasicHeader("Date", DateUtils.formatDate(nineSecondsAgo)),
+                new BasicHeader("Date", DateUtils.formatStandardDate(nineSecondsAgo)),
                 new BasicHeader("Cache-Control", "max-age=0"),
                 new BasicHeader("ETag", "\"etag\""),
                 new BasicHeader("Content-Length", "128")
@@ -1846,7 +1844,7 @@ public class TestProtocolRequirements {
         validate.setHeader("If-None-Match", "\"etag\"");
 
         final ClassicHttpResponse notModified = new BasicClassicHttpResponse(HttpStatus.SC_NOT_MODIFIED, "Not Modified");
-        notModified.setHeader("Date", DateUtils.formatDate(now));
+        notModified.setHeader("Date", DateUtils.formatStandardDate(now));
         notModified.setHeader("ETag", "\"etag\"");
 
         Mockito.when(mockCache.getCacheEntry(Mockito.eq(host), RequestEquivalent.eq(request))).thenReturn(entry);
@@ -1874,13 +1872,13 @@ public class TestProtocolRequirements {
     @Test
     public void testMustReturnAFreshEnoughCacheEntryIfItHasIt() throws Exception {
 
-        final Date now = new Date();
-        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
-        final Date nineSecondsAgo = new Date(now.getTime() - 9 * 1000L);
-        final Date eightSecondsAgo = new Date(now.getTime() - 8 * 1000L);
+        final Instant now = Instant.now();
+        final Instant tenSecondsAgo = now.minusSeconds(10);
+        final Instant nineSecondsAgo = now.plusSeconds(9);
+        final Instant eightSecondsAgo = now.plusSeconds(8);
 
         final Header[] hdrs = new Header[] {
-                new BasicHeader("Date", DateUtils.formatDate(nineSecondsAgo)),
+                new BasicHeader("Date", DateUtils.formatStandardDate(nineSecondsAgo)),
                 new BasicHeader("Cache-Control", "max-age=3600"),
                 new BasicHeader("Content-Length", "128")
         };
@@ -1917,16 +1915,16 @@ public class TestProtocolRequirements {
     @Test
     public void testMustServeAppropriateErrorOrWarningIfNoOriginCommunicationPossible() throws Exception {
 
-        final Date now = new Date();
-        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
-        final Date nineSecondsAgo = new Date(now.getTime() - 9 * 1000L);
-        final Date eightSecondsAgo = new Date(now.getTime() - 8 * 1000L);
+        final Instant now = Instant.now();
+        final Instant tenSecondsAgo = now.minusSeconds(10);
+        final Instant nineSecondsAgo = now.plusSeconds(9);
+        final Instant eightSecondsAgo = now.plusSeconds(8);
 
         final Header[] hdrs = new Header[] {
-                new BasicHeader("Date", DateUtils.formatDate(nineSecondsAgo)),
+                new BasicHeader("Date", DateUtils.formatStandardDate(nineSecondsAgo)),
                 new BasicHeader("Cache-Control", "max-age=0"),
                 new BasicHeader("Content-Length", "128"),
-                new BasicHeader("Last-Modified", DateUtils.formatDate(tenSecondsAgo))
+                new BasicHeader("Last-Modified", DateUtils.formatStandardDate(tenSecondsAgo))
         };
 
         final byte[] bytes = new byte[128];
@@ -1975,11 +1973,11 @@ public class TestProtocolRequirements {
     @Test
     public void test1xxWarningsAreDeletedAfterSuccessfulRevalidation() throws Exception {
 
-        final Date now = new Date();
-        final Date tenSecondsAgo = new Date(now.getTime() - 25 * 1000L);
+        final Instant now = Instant.now();
+        final Instant twentyFiveSecondsAgo = now.minusSeconds(25);
         final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
-        resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+        resp1.setHeader("Date", DateUtils.formatStandardDate(twentyFiveSecondsAgo));
         resp1.setHeader("ETag", "\"etag\"");
         resp1.setHeader("Cache-Control", "max-age=5");
         resp1.setHeader("Warning", "110 squid \"stale stuff\"");
@@ -1992,7 +1990,7 @@ public class TestProtocolRequirements {
 
         final ClassicHttpResponse resp2 = new BasicClassicHttpResponse(HttpStatus.SC_NOT_MODIFIED,
                 "Not Modified");
-        resp2.setHeader("Date", DateUtils.formatDate(now));
+        resp2.setHeader("Date", DateUtils.formatStandardDate(now));
         resp2.setHeader("Server", "MockServer/1.0");
         resp2.setHeader("ETag", "\"etag\"");
         resp2.setHeader("Via", "1.1 fred");
@@ -2036,11 +2034,11 @@ public class TestProtocolRequirements {
      */
     @Test
     public void test2xxWarningsAreNotDeletedAfterSuccessfulRevalidation() throws Exception {
-        final Date now = new Date();
-        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        final Instant now = Instant.now();
+        final Instant tenSecondsAgo = now.minusSeconds(10);
         final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
-        resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+        resp1.setHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo));
         resp1.setHeader("ETag", "\"etag\"");
         resp1.setHeader("Cache-Control", "max-age=5");
         resp1.setHeader("Via", "1.1 xproxy");
@@ -2053,7 +2051,7 @@ public class TestProtocolRequirements {
 
         final ClassicHttpResponse resp2 = new BasicClassicHttpResponse(HttpStatus.SC_NOT_MODIFIED,
                 "Not Modified");
-        resp2.setHeader("Date", DateUtils.formatDate(now));
+        resp2.setHeader("Date", DateUtils.formatStandardDate(now));
         resp2.setHeader("Server", "MockServer/1.0");
         resp2.setHeader("ETag", "\"etag\"");
         resp1.setHeader("Via", "1.1 xproxy");
@@ -2102,13 +2100,13 @@ public class TestProtocolRequirements {
     @Test
     public void testAgeHeaderPopulatedFromCacheEntryCurrentAge() throws Exception {
 
-        final Date now = new Date();
-        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
-        final Date nineSecondsAgo = new Date(now.getTime() - 9 * 1000L);
-        final Date eightSecondsAgo = new Date(now.getTime() - 8 * 1000L);
+        final Instant now = Instant.now();
+        final Instant tenSecondsAgo = now.minusSeconds(10);
+        final Instant nineSecondsAgo = now.minusSeconds(9);
+        final Instant eightSecondsAgo = now.minusSeconds(8);
 
         final Header[] hdrs = new Header[] {
-                new BasicHeader("Date", DateUtils.formatDate(nineSecondsAgo)),
+                new BasicHeader("Date", DateUtils.formatStandardDate(nineSecondsAgo)),
                 new BasicHeader("Cache-Control", "max-age=3600"),
                 new BasicHeader("Content-Length", "128")
         };
@@ -2148,16 +2146,16 @@ public class TestProtocolRequirements {
     @Test
     public void testHeuristicCacheOlderThan24HoursHasWarningAttached() throws Exception {
 
-        final Date now = new Date();
-        final Date thirtySixHoursAgo = new Date(now.getTime() - 36 * 3600 * 1000L);
-        final Date oneYearAgo = new Date(now.getTime() - 365 * 24 * 3600 * 1000L);
-        final Date requestTime = new Date(thirtySixHoursAgo.getTime() - 1000L);
-        final Date responseTime = new Date(thirtySixHoursAgo.getTime() + 1000L);
+        final Instant now = Instant.now();
+        final Instant thirtySixHoursAgo = now.minus(26, ChronoUnit.HOURS);
+        final Instant oneYearAgo = now.minus(1, ChronoUnit.HOURS);
+        final Instant requestTime = thirtySixHoursAgo.minusSeconds(1);
+        final Instant responseTime = thirtySixHoursAgo.plusSeconds(1);
 
         final Header[] hdrs = new Header[] {
-                new BasicHeader("Date", DateUtils.formatDate(thirtySixHoursAgo)),
+                new BasicHeader("Date", DateUtils.formatStandardDate(thirtySixHoursAgo)),
                 new BasicHeader("Cache-Control", "public"),
-                new BasicHeader("Last-Modified", DateUtils.formatDate(oneYearAgo)),
+                new BasicHeader("Last-Modified", DateUtils.formatStandardDate(oneYearAgo)),
                 new BasicHeader("Content-Length", "128")
         };
 
@@ -2172,7 +2170,7 @@ public class TestProtocolRequirements {
 
         final ClassicHttpResponse validated = HttpTestUtils.make200Response();
         validated.setHeader("Cache-Control", "public");
-        validated.setHeader("Last-Modified", DateUtils.formatDate(oneYearAgo));
+        validated.setHeader("Last-Modified", DateUtils.formatStandardDate(oneYearAgo));
         validated.setHeader("Content-Length", "128");
         validated.setEntity(new ByteArrayEntity(bytes, null));
 
@@ -2228,14 +2226,14 @@ public class TestProtocolRequirements {
     @Test
     public void testKeepsMostRecentDateHeaderForFreshResponse() throws Exception {
 
-        final Date now = new Date();
-        final Date inFiveSecond = new Date(now.getTime() + 5 * 1000L);
+        final Instant now = Instant.now();
+        final Instant inFiveSecond = now.plusSeconds(5);
 
         // put an entry in the cache
         final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
 
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
-        resp1.setHeader("Date", DateUtils.formatDate(inFiveSecond));
+        resp1.setHeader("Date", DateUtils.formatStandardDate(inFiveSecond));
         resp1.setHeader("ETag", "\"etag1\"");
         resp1.setHeader("Cache-Control", "max-age=3600");
         resp1.setHeader("Content-Length", "128");
@@ -2245,7 +2243,7 @@ public class TestProtocolRequirements {
         req2.setHeader("Cache-Control", "no-cache");
 
         final ClassicHttpResponse resp2 = HttpTestUtils.make200Response();
-        resp2.setHeader("Date", DateUtils.formatDate(now)); // older
+        resp2.setHeader("Date", DateUtils.formatStandardDate(now)); // older
         resp2.setHeader("ETag", "\"etag2\"");
         resp2.setHeader("Cache-Control", "max-age=3600");
         resp2.setHeader("Content-Length", "128");
@@ -2353,10 +2351,10 @@ public class TestProtocolRequirements {
      */
     @Test
     public void testSubrangeGETMustUseStrongComparisonForCachedResponse() throws Exception {
-        final Date now = new Date();
+        final Instant now = Instant.now();
         final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
-        resp1.setHeader("Date", DateUtils.formatDate(now));
+        resp1.setHeader("Date", DateUtils.formatStandardDate(now));
         resp1.setHeader("Cache-Control", "max-age=3600");
         resp1.setHeader("ETag", "\"etag\"");
 
@@ -2389,14 +2387,14 @@ public class TestProtocolRequirements {
     @Test
     public void testValidationMustUseETagIfProvidedByOriginServer() throws Exception {
 
-        final Date now = new Date();
-        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        final Instant now = Instant.now();
+        final Instant tenSecondsAgo = now.minusSeconds(10);
 
         final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
-        resp1.setHeader("Date", DateUtils.formatDate(now));
+        resp1.setHeader("Date", DateUtils.formatStandardDate(now));
         resp1.setHeader("Cache-Control", "max-age=3600");
-        resp1.setHeader("Last-Modified", DateUtils.formatDate(tenSecondsAgo));
+        resp1.setHeader("Last-Modified", DateUtils.formatStandardDate(tenSecondsAgo));
         resp1.setHeader("ETag", "W/\"etag\"");
 
         final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
@@ -2455,20 +2453,20 @@ public class TestProtocolRequirements {
      */
     @Test
     public void testConditionalRequestWhereNotAllValidatorsMatchCannotBeServedFromCache() throws Exception {
-        final Date now = new Date();
-        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
-        final Date twentySecondsAgo = new Date(now.getTime() - 20 * 1000L);
+        final Instant now = Instant.now();
+        final Instant tenSecondsAgo = now.minusSeconds(10);
+        final Instant twentySecondsAgo = now.plusSeconds(20);
 
         final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
-        resp1.setHeader("Date", DateUtils.formatDate(now));
+        resp1.setHeader("Date", DateUtils.formatStandardDate(now));
         resp1.setHeader("Cache-Control", "max-age=3600");
-        resp1.setHeader("Last-Modified", DateUtils.formatDate(tenSecondsAgo));
+        resp1.setHeader("Last-Modified", DateUtils.formatStandardDate(tenSecondsAgo));
         resp1.setHeader("ETag", "W/\"etag\"");
 
         final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
         req2.setHeader("If-None-Match", "W/\"etag\"");
-        req2.setHeader("If-Modified-Since", DateUtils.formatDate(twentySecondsAgo));
+        req2.setHeader("If-Modified-Since", DateUtils.formatStandardDate(twentySecondsAgo));
 
         // must hit the origin again for the second request
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
@@ -2482,19 +2480,19 @@ public class TestProtocolRequirements {
 
     @Test
     public void testConditionalRequestWhereAllValidatorsMatchMayBeServedFromCache() throws Exception {
-        final Date now = new Date();
-        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        final Instant now = Instant.now();
+        final Instant tenSecondsAgo = now.minusSeconds(10);
 
         final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
-        resp1.setHeader("Date", DateUtils.formatDate(now));
+        resp1.setHeader("Date", DateUtils.formatStandardDate(now));
         resp1.setHeader("Cache-Control", "max-age=3600");
-        resp1.setHeader("Last-Modified", DateUtils.formatDate(tenSecondsAgo));
+        resp1.setHeader("Last-Modified", DateUtils.formatStandardDate(tenSecondsAgo));
         resp1.setHeader("ETag", "W/\"etag\"");
 
         final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
         req2.setHeader("If-None-Match", "W/\"etag\"");
-        req2.setHeader("If-Modified-Since", DateUtils.formatDate(tenSecondsAgo));
+        req2.setHeader("If-Modified-Since", DateUtils.formatStandardDate(tenSecondsAgo));
 
         // may hit the origin again for the second request
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
@@ -2594,7 +2592,7 @@ public class TestProtocolRequirements {
 
     @Test
     public void testDoesNotModifyLastModifiedHeaderFromOrigin() throws Exception {
-        final String lm = DateUtils.formatDate(new Date());
+        final String lm = DateUtils.formatStandardDate(Instant.now());
         testDoesNotModifyHeaderFromOrigin("Last-Modified", lm);
     }
 
@@ -2663,8 +2661,8 @@ public class TestProtocolRequirements {
 
     @Test
     public void testDoesNotModifyLastModifiedFromOriginOnCacheHit() throws Exception {
-        final String lm = DateUtils.formatDate(new Date(System.currentTimeMillis() - 10 * 1000L));
-        testDoesNotModifyHeaderFromOriginOnCacheHit("Last-Modified", lm);
+        final Instant tenSecondsAgo = Instant.now().minusSeconds(10);
+        testDoesNotModifyHeaderFromOriginOnCacheHit("Last-Modified", DateUtils.formatStandardDate(tenSecondsAgo));
     }
 
     private void testDoesNotAddHeaderOnCacheHit(final String header) throws Exception {
@@ -2736,9 +2734,8 @@ public class TestProtocolRequirements {
 
     @Test
     public void testDoesNotModifyLastModifiedHeaderOnRequest() throws Exception {
-        final long tenSecondsAgo = System.currentTimeMillis() - 10 * 1000L;
-        final String lm = DateUtils.formatDate(new Date(tenSecondsAgo));
-        testDoesNotModifyHeaderOnRequest("Last-Modified", lm);
+        final Instant tenSecondsAgo = Instant.now().minusSeconds(10);
+        testDoesNotModifyHeaderOnRequest("Last-Modified", DateUtils.formatStandardDate(tenSecondsAgo));
     }
 
     private void testDoesNotAddHeaderToRequestIfNotPresent(final String header) throws Exception {
@@ -2786,16 +2783,14 @@ public class TestProtocolRequirements {
      */
     @Test
     public void testDoesNotModifyExpiresHeaderFromOrigin() throws Exception {
-        final long inTenSeconds = System.currentTimeMillis() + 10 * 1000L;
-        final String expires = DateUtils.formatDate(new Date(inTenSeconds));
-        testDoesNotModifyHeaderFromOrigin("Expires", expires);
+        final Instant tenSecondsAgo = Instant.now().minusSeconds(10);
+        testDoesNotModifyHeaderFromOrigin("Expires", DateUtils.formatStandardDate(tenSecondsAgo));
     }
 
     @Test
     public void testDoesNotModifyExpiresHeaderFromOriginOnCacheHit() throws Exception {
-        final long inTenSeconds = System.currentTimeMillis() + 10 * 1000L;
-        final String expires = DateUtils.formatDate(new Date(inTenSeconds));
-        testDoesNotModifyHeaderFromOriginOnCacheHit("Expires", expires);
+        final Instant inTenSeconds = Instant.now().plusSeconds(10);
+        testDoesNotModifyHeaderFromOriginOnCacheHit("Expires", DateUtils.formatStandardDate(inTenSeconds));
     }
 
     @Test
@@ -3047,8 +3042,8 @@ public class TestProtocolRequirements {
         r.setHeader("Content-Location","http://foo.example.com/other");
         r.setHeader("Content-MD5", "Q2hlY2sgSW50ZWdyaXR5IQ==");
         r.setHeader("Content-Type", "text/html;charset=utf-8");
-        r.setHeader("Expires", DateUtils.formatDate(new Date(System.currentTimeMillis() + 10 * 1000L)));
-        r.setHeader("Last-Modified", DateUtils.formatDate(new Date(System.currentTimeMillis() - 10 * 1000L)));
+        r.setHeader("Expires", DateUtils.formatStandardDate(Instant.now().plusSeconds(10)));
+        r.setHeader("Last-Modified", DateUtils.formatStandardDate(Instant.now().minusSeconds(10)));
         r.setHeader("Location", "http://foo.example.com/other2");
         r.setHeader("Pragma", "x-pragma");
         r.setHeader("Retry-After","180");
@@ -3065,7 +3060,7 @@ public class TestProtocolRequirements {
         final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
         req2.setHeader("Cache-Control", "max-age=0, max-stale=0");
         final ClassicHttpResponse resp2 = new BasicClassicHttpResponse(HttpStatus.SC_NOT_MODIFIED, "Not Modified");
-        resp2.setHeader("Date", DateUtils.formatDate(new Date()));
+        resp2.setHeader("Date", DateUtils.formatStandardDate(Instant.now()));
         resp2.setHeader("Server", "MockServer/1.0");
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
@@ -3100,13 +3095,13 @@ public class TestProtocolRequirements {
         req2.setHeader("Cache-Control", "max-age=0, max-stale=0");
         final ClassicHttpResponse resp2 = new BasicClassicHttpResponse(HttpStatus.SC_NOT_MODIFIED, "Not Modified");
         resp2.setHeader("Cache-Control", "max-age=1800");
-        resp2.setHeader("Date", DateUtils.formatDate(new Date()));
+        resp2.setHeader("Date", DateUtils.formatStandardDate(Instant.now()));
         resp2.setHeader("Server", "MockServer/1.0");
         resp2.setHeader("Allow", "GET,HEAD");
         resp2.setHeader("Content-Language", "en,en-us");
         resp2.setHeader("Content-Location", "http://foo.example.com/new");
         resp2.setHeader("Content-Type","text/html");
-        resp2.setHeader("Expires", DateUtils.formatDate(new Date(System.currentTimeMillis() + 5 * 1000L)));
+        resp2.setHeader("Expires", DateUtils.formatStandardDate(Instant.now().plusSeconds(5)));
         resp2.setHeader("Location", "http://foo.example.com/new2");
         resp2.setHeader("Pragma","x-new-pragma");
         resp2.setHeader("Retry-After","120");
@@ -3194,14 +3189,14 @@ public class TestProtocolRequirements {
         final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         req1.setHeader("Range","bytes=0-49");
 
-        final Date now = new Date();
-        final Date oneSecondAgo = new Date(now.getTime() - 1 * 1000L);
-        final Date twoSecondsAgo = new Date(now.getTime() - 2 * 1000L);
+        final Instant now = Instant.now();
+        final Instant oneSecondAgo = now.minusSeconds(1);
+        final Instant twoSecondsAgo = Instant.now().plusSeconds(2);
 
         final ClassicHttpResponse resp1 = new BasicClassicHttpResponse(HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
         resp1.setEntity(HttpTestUtils.makeBody(50));
         resp1.setHeader("Server","MockServer/1.0");
-        resp1.setHeader("Date", DateUtils.formatDate(twoSecondsAgo));
+        resp1.setHeader("Date", DateUtils.formatStandardDate(twoSecondsAgo));
         resp1.setHeader("Cache-Control","max-age=3600");
         resp1.setHeader("Content-Range","bytes 0-49/128");
         resp1.setHeader("ETag","\"etag1\"");
@@ -3216,7 +3211,7 @@ public class TestProtocolRequirements {
         resp2.setHeader("Cache-Control","max-age=3600");
         resp2.setHeader("Content-Range","bytes 50-127/128");
         resp2.setHeader("Server","MockServer/1.0");
-        resp2.setHeader("Date", DateUtils.formatDate(oneSecondAgo));
+        resp2.setHeader("Date", DateUtils.formatStandardDate(oneSecondAgo));
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp2);
 
@@ -3225,7 +3220,7 @@ public class TestProtocolRequirements {
         final ClassicHttpResponse resp3 = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
         resp3.setEntity(HttpTestUtils.makeBody(128));
         resp3.setHeader("Server","MockServer/1.0");
-        resp3.setHeader("Date", DateUtils.formatDate(now));
+        resp3.setHeader("Date", DateUtils.formatStandardDate(now));
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp3);
 
@@ -3237,9 +3232,9 @@ public class TestProtocolRequirements {
     @Test
     public void testCannotCombinePartialResponseIfCacheEntryDoesNotHaveACacheValidator() throws Exception {
 
-        final Date now = new Date();
-        final Date oneSecondAgo = new Date(now.getTime() - 1 * 1000L);
-        final Date twoSecondsAgo = new Date(now.getTime() - 2 * 1000L);
+        final Instant now = Instant.now();
+        final Instant oneSecondAgo = now.minusSeconds(1);
+        final Instant twoSecondsAgo = Instant.now().plusSeconds(2);
 
         final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         req1.setHeader("Range","bytes=0-49");
@@ -3249,7 +3244,7 @@ public class TestProtocolRequirements {
         resp1.setHeader("Cache-Control","max-age=3600");
         resp1.setHeader("Content-Range","bytes 0-49/128");
         resp1.setHeader("Server","MockServer/1.0");
-        resp1.setHeader("Date", DateUtils.formatDate(twoSecondsAgo));
+        resp1.setHeader("Date", DateUtils.formatStandardDate(twoSecondsAgo));
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
 
@@ -3262,7 +3257,7 @@ public class TestProtocolRequirements {
         resp2.setHeader("Content-Range","bytes 50-127/128");
         resp2.setHeader("ETag","\"etag1\"");
         resp2.setHeader("Server","MockServer/1.0");
-        resp2.setHeader("Date", DateUtils.formatDate(oneSecondAgo));
+        resp2.setHeader("Date", DateUtils.formatStandardDate(oneSecondAgo));
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp2);
 
@@ -3271,7 +3266,7 @@ public class TestProtocolRequirements {
         final ClassicHttpResponse resp3 = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
         resp3.setEntity(HttpTestUtils.makeBody(128));
         resp3.setHeader("Server","MockServer/1.0");
-        resp3.setHeader("Date", DateUtils.formatDate(now));
+        resp3.setHeader("Date", DateUtils.formatStandardDate(now));
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp3);
 
@@ -3283,9 +3278,9 @@ public class TestProtocolRequirements {
     @Test
     public void testCannotCombinePartialResponseIfCacheValidatorsDoNotStronglyMatch() throws Exception {
 
-        final Date now = new Date();
-        final Date oneSecondAgo = new Date(now.getTime() - 1 * 1000L);
-        final Date twoSecondsAgo = new Date(now.getTime() - 2 * 1000L);
+        final Instant now = Instant.now();
+        final Instant oneSecondAgo = now.minusSeconds(1);
+        final Instant twoSecondsAgo = Instant.now().plusSeconds(2);
 
         final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         req1.setHeader("Range","bytes=0-49");
@@ -3296,7 +3291,7 @@ public class TestProtocolRequirements {
         resp1.setHeader("Content-Range","bytes 0-49/128");
         resp1.setHeader("ETag","\"etag1\"");
         resp1.setHeader("Server","MockServer/1.0");
-        resp1.setHeader("Date", DateUtils.formatDate(twoSecondsAgo));
+        resp1.setHeader("Date", DateUtils.formatStandardDate(twoSecondsAgo));
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
 
@@ -3309,7 +3304,7 @@ public class TestProtocolRequirements {
         resp2.setHeader("Content-Range","bytes 50-127/128");
         resp2.setHeader("ETag","\"etag2\"");
         resp2.setHeader("Server","MockServer/1.0");
-        resp2.setHeader("Date", DateUtils.formatDate(oneSecondAgo));
+        resp2.setHeader("Date", DateUtils.formatStandardDate(oneSecondAgo));
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp2);
 
@@ -3318,7 +3313,7 @@ public class TestProtocolRequirements {
         final ClassicHttpResponse resp3 = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
         resp3.setEntity(HttpTestUtils.makeBody(128));
         resp3.setHeader("Server","MockServer/1.0");
-        resp3.setHeader("Date", DateUtils.formatDate(now));
+        resp3.setHeader("Date", DateUtils.formatStandardDate(now));
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp3);
 
@@ -3330,9 +3325,9 @@ public class TestProtocolRequirements {
     @Test
     public void testMustDiscardLeastRecentPartialResponseIfIncomingRequestDoesNotHaveCacheValidator() throws Exception {
 
-        final Date now = new Date();
-        final Date oneSecondAgo = new Date(now.getTime() - 1 * 1000L);
-        final Date twoSecondsAgo = new Date(now.getTime() - 2 * 1000L);
+        final Instant now = Instant.now();
+        final Instant oneSecondAgo = now.minusSeconds(1);
+        final Instant twoSecondsAgo = Instant.now().plusSeconds(2);
 
         final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         req1.setHeader("Range","bytes=0-49");
@@ -3343,7 +3338,7 @@ public class TestProtocolRequirements {
         resp1.setHeader("Content-Range","bytes 0-49/128");
         resp1.setHeader("ETag","\"etag1\"");
         resp1.setHeader("Server","MockServer/1.0");
-        resp1.setHeader("Date", DateUtils.formatDate(twoSecondsAgo));
+        resp1.setHeader("Date", DateUtils.formatStandardDate(twoSecondsAgo));
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
 
@@ -3355,7 +3350,7 @@ public class TestProtocolRequirements {
         resp2.setHeader("Cache-Control","max-age=3600");
         resp2.setHeader("Content-Range","bytes 50-127/128");
         resp2.setHeader("Server","MockServer/1.0");
-        resp2.setHeader("Date", DateUtils.formatDate(oneSecondAgo));
+        resp2.setHeader("Date", DateUtils.formatStandardDate(oneSecondAgo));
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp2);
 
@@ -3365,7 +3360,7 @@ public class TestProtocolRequirements {
         final ClassicHttpResponse resp3 = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
         resp3.setEntity(HttpTestUtils.makeBody(128));
         resp3.setHeader("Server","MockServer/1.0");
-        resp3.setHeader("Date", DateUtils.formatDate(now));
+        resp3.setHeader("Date", DateUtils.formatStandardDate(now));
 
         // must make this request; cannot serve from cache
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp3);
@@ -3378,9 +3373,9 @@ public class TestProtocolRequirements {
     @Test
     public void testMustDiscardLeastRecentPartialResponseIfCachedResponseDoesNotHaveCacheValidator() throws Exception {
 
-        final Date now = new Date();
-        final Date oneSecondAgo = new Date(now.getTime() - 1 * 1000L);
-        final Date twoSecondsAgo = new Date(now.getTime() - 2 * 1000L);
+        final Instant now = Instant.now();
+        final Instant oneSecondAgo = now.minusSeconds(1);
+        final Instant twoSecondsAgo = Instant.now().plusSeconds(2);
 
         final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         req1.setHeader("Range","bytes=0-49");
@@ -3390,7 +3385,7 @@ public class TestProtocolRequirements {
         resp1.setHeader("Cache-Control","max-age=3600");
         resp1.setHeader("Content-Range","bytes 0-49/128");
         resp1.setHeader("Server","MockServer/1.0");
-        resp1.setHeader("Date", DateUtils.formatDate(twoSecondsAgo));
+        resp1.setHeader("Date", DateUtils.formatStandardDate(twoSecondsAgo));
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
 
@@ -3403,7 +3398,7 @@ public class TestProtocolRequirements {
         resp2.setHeader("Content-Range","bytes 50-127/128");
         resp2.setHeader("ETag","\"etag1\"");
         resp2.setHeader("Server","MockServer/1.0");
-        resp2.setHeader("Date", DateUtils.formatDate(oneSecondAgo));
+        resp2.setHeader("Date", DateUtils.formatStandardDate(oneSecondAgo));
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp2);
 
@@ -3413,7 +3408,7 @@ public class TestProtocolRequirements {
         final ClassicHttpResponse resp3 = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
         resp3.setEntity(HttpTestUtils.makeBody(128));
         resp3.setHeader("Server","MockServer/1.0");
-        resp3.setHeader("Date", DateUtils.formatDate(now));
+        resp3.setHeader("Date", DateUtils.formatStandardDate(now));
 
         // must make this request; cannot serve from cache
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp3);
@@ -3426,9 +3421,9 @@ public class TestProtocolRequirements {
     @Test
     public void testMustDiscardLeastRecentPartialResponseIfCacheValidatorsDoNotStronglyMatch() throws Exception {
 
-        final Date now = new Date();
-        final Date oneSecondAgo = new Date(now.getTime() - 1 * 1000L);
-        final Date twoSecondsAgo = new Date(now.getTime() - 2 * 1000L);
+        final Instant now = Instant.now();
+        final Instant oneSecondAgo = now.minusSeconds(1);
+        final Instant twoSecondsAgo = Instant.now().plusSeconds(2);
 
         final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         req1.setHeader("Range","bytes=0-49");
@@ -3439,7 +3434,7 @@ public class TestProtocolRequirements {
         resp1.setHeader("Content-Range","bytes 0-49/128");
         resp1.setHeader("Etag","\"etag1\"");
         resp1.setHeader("Server","MockServer/1.0");
-        resp1.setHeader("Date", DateUtils.formatDate(twoSecondsAgo));
+        resp1.setHeader("Date", DateUtils.formatStandardDate(twoSecondsAgo));
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
 
@@ -3452,7 +3447,7 @@ public class TestProtocolRequirements {
         resp2.setHeader("Content-Range","bytes 50-127/128");
         resp2.setHeader("ETag","\"etag2\"");
         resp2.setHeader("Server","MockServer/1.0");
-        resp2.setHeader("Date", DateUtils.formatDate(oneSecondAgo));
+        resp2.setHeader("Date", DateUtils.formatStandardDate(oneSecondAgo));
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp2);
 
@@ -3462,7 +3457,7 @@ public class TestProtocolRequirements {
         final ClassicHttpResponse resp3 = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
         resp3.setEntity(HttpTestUtils.makeBody(128));
         resp3.setHeader("Server","MockServer/1.0");
-        resp3.setHeader("Date", DateUtils.formatDate(now));
+        resp3.setHeader("Date", DateUtils.formatStandardDate(now));
 
         // must make this request; cannot serve from cache
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp3);
@@ -3475,9 +3470,9 @@ public class TestProtocolRequirements {
     @Test
     public void testMustDiscardLeastRecentPartialResponseIfCacheValidatorsDoNotStronglyMatchEvenIfResponsesOutOfOrder() throws Exception {
 
-        final Date now = new Date();
-        final Date oneSecondAgo = new Date(now.getTime() - 1 * 1000L);
-        final Date twoSecondsAgo = new Date(now.getTime() - 2 * 1000L);
+        final Instant now = Instant.now();
+        final Instant oneSecondAgo = now.minusSeconds(1);
+        final Instant twoSecondsAgo = Instant.now().plusSeconds(2);
 
         final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         req1.setHeader("Range","bytes=0-49");
@@ -3488,7 +3483,7 @@ public class TestProtocolRequirements {
         resp1.setHeader("Content-Range","bytes 0-49/128");
         resp1.setHeader("Etag","\"etag1\"");
         resp1.setHeader("Server","MockServer/1.0");
-        resp1.setHeader("Date", DateUtils.formatDate(oneSecondAgo));
+        resp1.setHeader("Date", DateUtils.formatStandardDate(oneSecondAgo));
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
 
@@ -3501,7 +3496,7 @@ public class TestProtocolRequirements {
         resp2.setHeader("Content-Range","bytes 50-127/128");
         resp2.setHeader("ETag","\"etag2\"");
         resp2.setHeader("Server","MockServer/1.0");
-        resp2.setHeader("Date", DateUtils.formatDate(twoSecondsAgo));
+        resp2.setHeader("Date", DateUtils.formatStandardDate(twoSecondsAgo));
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp2);
 
@@ -3511,7 +3506,7 @@ public class TestProtocolRequirements {
         final ClassicHttpResponse resp3 = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
         resp3.setEntity(HttpTestUtils.makeBody(128));
         resp3.setHeader("Server","MockServer/1.0");
-        resp3.setHeader("Date", DateUtils.formatDate(now));
+        resp3.setHeader("Date", DateUtils.formatStandardDate(now));
 
         // must make this request; cannot serve from cache
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp3);
@@ -3524,8 +3519,8 @@ public class TestProtocolRequirements {
     @Test
     public void testMustDiscardCachedPartialResponseIfCacheValidatorsDoNotStronglyMatchAndDateHeadersAreEqual() throws Exception {
 
-        final Date now = new Date();
-        final Date oneSecondAgo = new Date(now.getTime() - 1 * 1000L);
+        final Instant now = Instant.now();
+        final Instant oneSecondAgo = now.minusSeconds(1);
 
         final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         req1.setHeader("Range","bytes=0-49");
@@ -3536,7 +3531,7 @@ public class TestProtocolRequirements {
         resp1.setHeader("Content-Range","bytes 0-49/128");
         resp1.setHeader("Etag","\"etag1\"");
         resp1.setHeader("Server","MockServer/1.0");
-        resp1.setHeader("Date", DateUtils.formatDate(oneSecondAgo));
+        resp1.setHeader("Date", DateUtils.formatStandardDate(oneSecondAgo));
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
 
@@ -3549,7 +3544,7 @@ public class TestProtocolRequirements {
         resp2.setHeader("Content-Range","bytes 50-127/128");
         resp2.setHeader("ETag","\"etag2\"");
         resp2.setHeader("Server","MockServer/1.0");
-        resp2.setHeader("Date", DateUtils.formatDate(oneSecondAgo));
+        resp2.setHeader("Date", DateUtils.formatStandardDate(oneSecondAgo));
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp2);
 
@@ -3559,7 +3554,7 @@ public class TestProtocolRequirements {
         final ClassicHttpResponse resp3 = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
         resp3.setEntity(HttpTestUtils.makeBody(128));
         resp3.setHeader("Server","MockServer/1.0");
-        resp3.setHeader("Date", DateUtils.formatDate(now));
+        resp3.setHeader("Date", DateUtils.formatStandardDate(now));
 
         // must make this request; cannot serve from cache
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp3);
@@ -4147,10 +4142,10 @@ public class TestProtocolRequirements {
 
     @Test
     public void testSharedCacheMustUseNewRequestHeadersWhenRevalidatingAuthorizedResponsesWithSMaxAge() throws Exception {
-        final Date now = new Date();
-        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        final Instant now = Instant.now();
+        final Instant tenSecondsAgo = now.minusSeconds(10);
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
-        resp1.setHeader("Date",DateUtils.formatDate(tenSecondsAgo));
+        resp1.setHeader("Date",DateUtils.formatStandardDate(tenSecondsAgo));
         resp1.setHeader("ETag","\"etag\"");
         resp1.setHeader("Cache-Control","s-maxage=5");
 
@@ -4159,10 +4154,10 @@ public class TestProtocolRequirements {
 
     @Test
     public void testSharedCacheMustUseNewRequestHeadersWhenRevalidatingAuthorizedResponsesWithMustRevalidate() throws Exception {
-        final Date now = new Date();
-        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        final Instant now = Instant.now();
+        final Instant tenSecondsAgo = now.minusSeconds(10);
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
-        resp1.setHeader("Date",DateUtils.formatDate(tenSecondsAgo));
+        resp1.setHeader("Date",DateUtils.formatStandardDate(tenSecondsAgo));
         resp1.setHeader("ETag","\"etag\"");
         resp1.setHeader("Cache-Control","maxage=5, must-revalidate");
 
@@ -4184,11 +4179,11 @@ public class TestProtocolRequirements {
      */
     @Test
     public void testWarning110IsAddedToStaleResponses() throws Exception {
-        final Date now = new Date();
-        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        final Instant now = Instant.now();
+        final Instant tenSecondsAgo = now.minusSeconds(10);
         final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
-        resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+        resp1.setHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo));
         resp1.setHeader("Cache-Control","max-age=5");
         resp1.setHeader("Etag","\"etag\"");
 
@@ -4345,9 +4340,9 @@ public class TestProtocolRequirements {
     @Test
     public void testStaleEntryWithMustRevalidateIsNotUsedWithoutRevalidatingWithOrigin() throws Exception {
         final ClassicHttpResponse response = HttpTestUtils.make200Response();
-        final Date now = new Date();
-        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
-        response.setHeader("Date",DateUtils.formatDate(tenSecondsAgo));
+        final Instant now = Instant.now();
+        final Instant tenSecondsAgo = now.minusSeconds(10);
+        response.setHeader("Date",DateUtils.formatStandardDate(tenSecondsAgo));
         response.setHeader("ETag","\"etag1\"");
         response.setHeader("Cache-Control","max-age=5, must-revalidate");
 
@@ -4380,10 +4375,10 @@ public class TestProtocolRequirements {
     @Test
     public void testGenerates504IfCannotRevalidateAMustRevalidateEntry() throws Exception {
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
-        final Date now = new Date();
-        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        final Instant now = Instant.now();
+        final Instant tenSecondsAgo = now.minusSeconds(10);
         resp1.setHeader("ETag","\"etag\"");
-        resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+        resp1.setHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo));
         resp1.setHeader("Cache-Control","max-age=5,must-revalidate");
 
         testGenerates504IfCannotRevalidateStaleResponse(resp1);
@@ -4399,9 +4394,9 @@ public class TestProtocolRequirements {
     public void testStaleEntryWithProxyRevalidateOnSharedCacheIsNotUsedWithoutRevalidatingWithOrigin() throws Exception {
         if (config.isSharedCache()) {
             final ClassicHttpResponse response = HttpTestUtils.make200Response();
-            final Date now = new Date();
-            final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
-            response.setHeader("Date",DateUtils.formatDate(tenSecondsAgo));
+            final Instant now = Instant.now();
+            final Instant tenSecondsAgo = now.minusSeconds(10);
+            response.setHeader("Date",DateUtils.formatStandardDate(tenSecondsAgo));
             response.setHeader("ETag","\"etag1\"");
             response.setHeader("Cache-Control","max-age=5, proxy-revalidate");
 
@@ -4413,10 +4408,10 @@ public class TestProtocolRequirements {
     public void testGenerates504IfSharedCacheCannotRevalidateAProxyRevalidateEntry() throws Exception {
         if (config.isSharedCache()) {
             final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
-            final Date now = new Date();
-            final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+            final Instant now = Instant.now();
+            final Instant tenSecondsAgo = now.minusSeconds(10);
             resp1.setHeader("ETag","\"etag\"");
-            resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+            resp1.setHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo));
             resp1.setHeader("Cache-Control","max-age=5,proxy-revalidate");
 
             testGenerates504IfCannotRevalidateStaleResponse(resp1);
@@ -5044,18 +5039,18 @@ public class TestProtocolRequirements {
         final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
 
-        final Date now = new Date();
-        final Date twentySecondsAgo = new Date(now.getTime() - 20 * 1000L);
+        final Instant now = Instant.now();
+        final Instant twentySecondsAgo = now.plusSeconds(20);
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
-        resp1.setHeader("Date", DateUtils.formatDate(twentySecondsAgo));
+        resp1.setHeader("Date", DateUtils.formatStandardDate(twentySecondsAgo));
         resp1.setHeader("Cache-Control","public,max-age=5");
         resp1.setHeader("ETag", "\"etag1\"");
         final String oldWarning = "113 wilma \"stale\"";
         resp1.setHeader("Warning", oldWarning);
 
-        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        final Instant tenSecondsAgo = now.minusSeconds(10);
         final ClassicHttpResponse resp2 = new BasicClassicHttpResponse(HttpStatus.SC_NOT_MODIFIED, "Not Modified");
-        resp2.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+        resp2.setHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo));
         resp2.setHeader("ETag", "\"etag1\"");
         final String newWarning = "113 betty \"stale too\"";
         resp2.setHeader("Warning", newWarning);
@@ -5090,7 +5085,7 @@ public class TestProtocolRequirements {
      */
     @Test
     public void testWarnDatesAreAddedToWarningsOnLowerProtocolVersions() throws Exception {
-        final String dateHdr = DateUtils.formatDate(new Date());
+        final String dateHdr = DateUtils.formatStandardDate(Instant.now());
         final String origWarning = "110 fred \"stale\"";
         originResponse.setCode(HttpStatus.SC_OK);
         originResponse.setVersion(HttpVersion.HTTP_1_0);
@@ -5130,11 +5125,11 @@ public class TestProtocolRequirements {
      */
     @Test
     public void testStripsBadlyDatedWarningsFromForwardedResponses() throws Exception {
-        final Date now = new Date();
-        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
-        originResponse.setHeader("Date", DateUtils.formatDate(now));
+        final Instant now = Instant.now();
+        final Instant tenSecondsAgo = now.minusSeconds(10);
+        originResponse.setHeader("Date", DateUtils.formatStandardDate(now));
         originResponse.addHeader("Warning", "110 fred \"stale\", 110 wilma \"stale\" \""
-                + DateUtils.formatDate(tenSecondsAgo) + "\"");
+                + DateUtils.formatStandardDate(tenSecondsAgo) + "\"");
         originResponse.setHeader("Cache-Control","no-cache,no-store");
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(originResponse);
 
@@ -5147,11 +5142,11 @@ public class TestProtocolRequirements {
 
     @Test
     public void testStripsBadlyDatedWarningsFromStoredResponses() throws Exception {
-        final Date now = new Date();
-        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
-        originResponse.setHeader("Date", DateUtils.formatDate(now));
+        final Instant now = Instant.now();
+        final Instant tenSecondsAgo = now.minusSeconds(10);
+        originResponse.setHeader("Date", DateUtils.formatStandardDate(now));
         originResponse.addHeader("Warning", "110 fred \"stale\", 110 wilma \"stale\" \""
-                + DateUtils.formatDate(tenSecondsAgo) + "\"");
+                + DateUtils.formatStandardDate(tenSecondsAgo) + "\"");
         originResponse.setHeader("Cache-Control","public,max-age=3600");
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(originResponse);
 
@@ -5164,11 +5159,11 @@ public class TestProtocolRequirements {
 
     @Test
     public void testRemovesWarningHeaderIfAllWarnValuesAreBadlyDated() throws Exception {
-        final Date now = new Date();
-        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
-        originResponse.setHeader("Date", DateUtils.formatDate(now));
+        final Instant now = Instant.now();
+        final Instant tenSecondsAgo = now.minusSeconds(10);
+        originResponse.setHeader("Date", DateUtils.formatStandardDate(now));
         originResponse.addHeader("Warning", "110 wilma \"stale\" \""
-                + DateUtils.formatDate(tenSecondsAgo) + "\"");
+                + DateUtils.formatStandardDate(tenSecondsAgo) + "\"");
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(originResponse);
 
         final ClassicHttpResponse result = execute(request);

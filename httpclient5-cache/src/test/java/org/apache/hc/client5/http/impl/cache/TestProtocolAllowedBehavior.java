@@ -28,7 +28,7 @@ package org.apache.hc.client5.http.impl.cache;
 
 import java.io.IOException;
 import java.net.SocketTimeoutException;
-import java.util.Date;
+import java.time.Instant;
 
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.classic.ExecChain;
@@ -111,9 +111,9 @@ public class TestProtocolAllowedBehavior {
     @Test
     public void testNonSharedCacheReturnsStaleResponseWhenRevalidationFailsForProxyRevalidate() throws Exception {
         final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET","/");
-        final Date now = new Date();
-        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
-        originResponse.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+        final Instant now = Instant.now();
+        final Instant tenSecondsAgo = now.minusSeconds(10);
+        originResponse.setHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo));
         originResponse.setHeader("Cache-Control","max-age=5,proxy-revalidate");
         originResponse.setHeader("Etag","\"etag\"");
 

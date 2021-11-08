@@ -32,6 +32,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 
+import java.time.Instant;
 import java.util.Date;
 import java.util.Map;
 
@@ -134,7 +135,7 @@ public class TestBasicHttpCache {
         final String key = CacheKeyGenerator.INSTANCE.generateKey(host, new HttpGet("/bar"));
 
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(new Header[] {
-           new BasicHeader("Date", DateUtils.formatDate(new Date())),
+           new BasicHeader("Date", DateUtils.formatStandardDate(Instant.now())),
            new BasicHeader("ETag", "\"old-etag\"")
         });
 
@@ -155,7 +156,7 @@ public class TestBasicHttpCache {
         final String key = CacheKeyGenerator.INSTANCE.generateKey(host, new HttpGet("/bar"));
 
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(new Header[] {
-           new BasicHeader("Date", DateUtils.formatDate(new Date())),
+           new BasicHeader("Date", DateUtils.formatStandardDate(Instant.now())),
            new BasicHeader("ETag", "\"old-etag\"")
         });
 
@@ -224,7 +225,7 @@ public class TestBasicHttpCache {
 
         final ByteArrayBuffer buf = HttpTestUtils.getRandomBuffer(128);
         final HttpResponse origResponse = new BasicHttpResponse(HttpStatus.SC_OK, "OK");
-        origResponse.setHeader("Date", DateUtils.formatDate(new Date()));
+        origResponse.setHeader("Date", DateUtils.formatStandardDate(Instant.now()));
         origResponse.setHeader("Cache-Control", "max-age=3600, public");
         origResponse.setHeader("ETag", "\"etag\"");
         origResponse.setHeader("Vary", "Accept-Encoding");
@@ -246,7 +247,7 @@ public class TestBasicHttpCache {
 
         final ByteArrayBuffer buf = HttpTestUtils.getRandomBuffer(128);
         final HttpResponse origResponse = new BasicHttpResponse(HttpStatus.SC_OK, "OK");
-        origResponse.setHeader("Date", DateUtils.formatDate(new Date()));
+        origResponse.setHeader("Date", DateUtils.formatStandardDate(Instant.now()));
         origResponse.setHeader("Cache-Control", "max-age=3600, public");
         origResponse.setHeader("ETag", "\"etag\"");
         origResponse.setHeader("Vary", "Accept-Encoding");
@@ -278,7 +279,7 @@ public class TestBasicHttpCache {
         req1.setHeader("Accept-Encoding", "gzip");
 
         final HttpResponse resp1 = HttpTestUtils.make200Response();
-        resp1.setHeader("Date", DateUtils.formatDate(new Date()));
+        resp1.setHeader("Date", DateUtils.formatStandardDate(Instant.now()));
         resp1.setHeader("Cache-Control", "max-age=3600, public");
         resp1.setHeader("ETag", "\"etag1\"");
         resp1.setHeader("Vary", "Accept-Encoding");
@@ -289,7 +290,7 @@ public class TestBasicHttpCache {
         req2.setHeader("Accept-Encoding", "identity");
 
         final HttpResponse resp2 = HttpTestUtils.make200Response();
-        resp2.setHeader("Date", DateUtils.formatDate(new Date()));
+        resp2.setHeader("Date", DateUtils.formatStandardDate(Instant.now()));
         resp2.setHeader("Cache-Control", "max-age=3600, public");
         resp2.setHeader("ETag", "\"etag2\"");
         resp2.setHeader("Vary", "Accept-Encoding");

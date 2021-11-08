@@ -36,6 +36,8 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
+import java.time.Instant;
+import java.time.temporal.ChronoField;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -49,22 +51,23 @@ import org.junit.Test;
 
 public class TestHttpCacheEntry {
 
-    private Date now;
-    private Date elevenSecondsAgo;
-    private Date nineSecondsAgo;
+    private Instant now;
+    private Instant elevenSecondsAgo;
+    private Instant nineSecondsAgo;
     private Resource mockResource;
     private HttpCacheEntry entry;
 
     @Before
     public void setUp() {
-        now = new Date();
-        elevenSecondsAgo = new Date(now.getTime() - 11 * 1000L);
-        nineSecondsAgo = new Date(now.getTime() - 9 * 1000L);
+        now = Instant.now();
+        elevenSecondsAgo = now.minusSeconds(11);
+        nineSecondsAgo = now.minusSeconds(9);
         mockResource = mock(Resource.class);
     }
 
     private HttpCacheEntry makeEntry(final Header[] headers) {
-        return new HttpCacheEntry(elevenSecondsAgo, nineSecondsAgo, HttpStatus.SC_OK, headers, mockResource);
+        return new HttpCacheEntry(DateUtils.toDate(elevenSecondsAgo), DateUtils.toDate(nineSecondsAgo),
+                HttpStatus.SC_OK, headers, mockResource);
     }
 
     @Test
@@ -197,7 +200,7 @@ public class TestHttpCacheEntry {
     public void canGetOriginalHeaders() {
         final Header[] headers = {
                 new BasicHeader("Server", "MockServer/1.0"),
-                new BasicHeader("Date", DateUtils.formatDate(now))
+                new BasicHeader("Date", DateUtils.formatStandardDate(now))
         };
         entry = new HttpCacheEntry(new Date(), new Date(), HttpStatus.SC_OK, headers, mockResource);
         final Header[] result = entry.getHeaders();
@@ -282,15 +285,13 @@ public class TestHttpCacheEntry {
 
     @Test
     public void testValidDateHeaderIsParsed() {
-        final long nowMs = System.currentTimeMillis();
-        // round down to nearest second to make comparison easier
-        final Date date = new Date(nowMs - (nowMs % 1000L));
-        final Header[] headers = new Header[] { new BasicHeader("Date", DateUtils.formatDate(date)) };
+        final Instant date = Instant.now().with(ChronoField.MILLI_OF_SECOND, 0);
+        final Header[] headers = new Header[] { new BasicHeader("Date", DateUtils.formatStandardDate(date)) };
         entry = new HttpCacheEntry(new Date(), new Date(), HttpStatus.SC_OK,
                                    headers, mockResource);
         final Date dateHeaderValue = entry.getDate();
         assertNotNull(dateHeaderValue);
-        assertEquals(date.getTime(), dateHeaderValue.getTime());
+        assertEquals(DateUtils.toDate(date), dateHeaderValue);
     }
 
     @Test

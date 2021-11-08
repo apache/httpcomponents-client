@@ -26,7 +26,7 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -66,7 +66,7 @@ public class TestConditionalRequestBuilder {
         basicRequest.addHeader("Accept-Encoding", "gzip");
 
         final Header[] headers = new Header[] {
-                new BasicHeader("Date", DateUtils.formatDate(new Date())),
+                new BasicHeader("Date", DateUtils.formatStandardDate(Instant.now())),
                 new BasicHeader("Last-Modified", lastModified) };
 
         final HttpCacheEntry cacheEntry = HttpTestUtils.makeCacheEntry(headers);
@@ -86,13 +86,13 @@ public class TestConditionalRequestBuilder {
     @Test
     public void testConditionalRequestForEntryWithLastModifiedAndEtagIncludesBothAsValidators()
             throws Exception {
-        final Date now = new Date();
-        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
-        final Date twentySecondsAgo = new Date(now.getTime() - 20 * 1000L);
-        final String lmDate = DateUtils.formatDate(twentySecondsAgo);
+        final Instant now = Instant.now();
+        final Instant tenSecondsAgo = now.minusSeconds(10);
+        final Instant twentySecondsAgo = now.plusSeconds(20);
+        final String lmDate = DateUtils.formatStandardDate(twentySecondsAgo);
         final String etag = "\"etag\"";
         final Header[] headers = {
-            new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
+            new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
             new BasicHeader("Last-Modified", lmDate),
             new BasicHeader("ETag", etag)
         };
@@ -115,8 +115,8 @@ public class TestConditionalRequestBuilder {
         basicRequest.addHeader("Accept-Encoding", "gzip");
 
         final Header[] headers = new Header[] {
-                new BasicHeader("Date", DateUtils.formatDate(new Date())),
-                new BasicHeader("Last-Modified", DateUtils.formatDate(new Date())),
+                new BasicHeader("Date", DateUtils.formatStandardDate(Instant.now())),
+                new BasicHeader("Last-Modified", DateUtils.formatStandardDate(Instant.now())),
                 new BasicHeader("ETag", theETag) };
 
         final HttpCacheEntry cacheEntry = HttpTestUtils.makeCacheEntry(headers);
@@ -138,13 +138,13 @@ public class TestConditionalRequestBuilder {
     @Test
     public void testCacheEntryWithMustRevalidateDoesEndToEndRevalidation() throws Exception {
         final HttpRequest basicRequest = new BasicHttpRequest("GET","/");
-        final Date now = new Date();
-        final Date elevenSecondsAgo = new Date(now.getTime() - 11 * 1000L);
-        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
-        final Date nineSecondsAgo = new Date(now.getTime() - 9 * 1000L);
+        final Instant now = Instant.now();
+        final Instant elevenSecondsAgo = now.minusSeconds(11);
+        final Instant tenSecondsAgo = now.minusSeconds(10);
+        final Instant nineSecondsAgo = now.plusSeconds(9);
 
         final Header[] cacheEntryHeaders = new Header[] {
-                new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
                 new BasicHeader("ETag", "\"etag\""),
                 new BasicHeader("Cache-Control","max-age=5, must-revalidate") };
         final HttpCacheEntry cacheEntry = HttpTestUtils.makeCacheEntry(elevenSecondsAgo, nineSecondsAgo, cacheEntryHeaders);
@@ -166,13 +166,13 @@ public class TestConditionalRequestBuilder {
     @Test
     public void testCacheEntryWithProxyRevalidateDoesEndToEndRevalidation() throws Exception {
         final HttpRequest basicRequest = new BasicHttpRequest("GET", "/");
-        final Date now = new Date();
-        final Date elevenSecondsAgo = new Date(now.getTime() - 11 * 1000L);
-        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
-        final Date nineSecondsAgo = new Date(now.getTime() - 9 * 1000L);
+        final Instant now = Instant.now();
+        final Instant elevenSecondsAgo = now.minusSeconds(11);
+        final Instant tenSecondsAgo = now.minusSeconds(10);
+        final Instant nineSecondsAgo = now.plusSeconds(9);
 
         final Header[] cacheEntryHeaders = new Header[] {
-                new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
                 new BasicHeader("ETag", "\"etag\""),
                 new BasicHeader("Cache-Control","max-age=5, proxy-revalidate") };
         final HttpCacheEntry cacheEntry = HttpTestUtils.makeCacheEntry(elevenSecondsAgo, nineSecondsAgo, cacheEntryHeaders);
@@ -263,7 +263,7 @@ public class TestConditionalRequestBuilder {
     @Test
     public void testBuildUnconditionalRequestDoesNotUseIfUnmodifiedSince()
         throws Exception {
-        request.addHeader("If-Unmodified-Since", DateUtils.formatDate(new Date()));
+        request.addHeader("If-Unmodified-Since", DateUtils.formatStandardDate(Instant.now()));
         final HttpRequest result = impl.buildUnconditionalRequest(request);
         Assert.assertNull(result.getFirstHeader("If-Unmodified-Since"));
     }
@@ -271,7 +271,7 @@ public class TestConditionalRequestBuilder {
     @Test
     public void testBuildUnconditionalRequestDoesNotUseIfModifiedSince()
         throws Exception {
-        request.addHeader("If-Modified-Since", DateUtils.formatDate(new Date()));
+        request.addHeader("If-Modified-Since", DateUtils.formatStandardDate(Instant.now()));
         final HttpRequest result = impl.buildUnconditionalRequest(request);
         Assert.assertNull(result.getFirstHeader("If-Modified-Since"));
     }

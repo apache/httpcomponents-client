@@ -32,7 +32,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
-import java.util.Date;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
@@ -128,12 +129,12 @@ public class TestCachingExecChain {
 
     @Test
     public void testOlderCacheableResponsesDoNotGoIntoCache() throws Exception {
-        final Date now = new Date();
-        final Date fiveSecondsAgo = new Date(now.getTime() - 5 * 1000L);
+        final Instant now = Instant.now();
+        final Instant fiveSecondsAgo = now.minusSeconds(5);
 
         final ClassicHttpRequest req1 = HttpTestUtils.makeDefaultRequest();
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
-        resp1.setHeader("Date", DateUtils.formatDate(now));
+        resp1.setHeader("Date", DateUtils.formatStandardDate(now));
         resp1.setHeader("Cache-Control", "max-age=3600");
         resp1.setHeader("Etag", "\"new-etag\"");
 
@@ -141,7 +142,7 @@ public class TestCachingExecChain {
         req2.setHeader("Cache-Control", "no-cache");
         final ClassicHttpResponse resp2 = HttpTestUtils.make200Response();
         resp2.setHeader("ETag", "\"old-etag\"");
-        resp2.setHeader("Date", DateUtils.formatDate(fiveSecondsAgo));
+        resp2.setHeader("Date", DateUtils.formatStandardDate(fiveSecondsAgo));
         resp2.setHeader("Cache-Control", "max-age=3600");
 
         final ClassicHttpRequest req3 = HttpTestUtils.makeDefaultRequest();
@@ -160,12 +161,12 @@ public class TestCachingExecChain {
 
     @Test
     public void testNewerCacheableResponsesReplaceExistingCacheEntry() throws Exception {
-        final Date now = new Date();
-        final Date fiveSecondsAgo = new Date(now.getTime() - 5 * 1000L);
+        final Instant now = Instant.now();
+        final Instant fiveSecondsAgo = now.minusSeconds(5);
 
         final ClassicHttpRequest req1 = HttpTestUtils.makeDefaultRequest();
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
-        resp1.setHeader("Date", DateUtils.formatDate(fiveSecondsAgo));
+        resp1.setHeader("Date", DateUtils.formatStandardDate(fiveSecondsAgo));
         resp1.setHeader("Cache-Control", "max-age=3600");
         resp1.setHeader("Etag", "\"old-etag\"");
 
@@ -173,7 +174,7 @@ public class TestCachingExecChain {
         req2.setHeader("Cache-Control", "max-age=0");
         final ClassicHttpResponse resp2 = HttpTestUtils.make200Response();
         resp2.setHeader("ETag", "\"new-etag\"");
-        resp2.setHeader("Date", DateUtils.formatDate(now));
+        resp2.setHeader("Date", DateUtils.formatStandardDate(now));
         resp2.setHeader("Cache-Control", "max-age=3600");
 
         final ClassicHttpRequest req3 = HttpTestUtils.makeDefaultRequest();
@@ -280,7 +281,7 @@ public class TestCachingExecChain {
         resp1.setEntity(HttpTestUtils.makeBody(128));
         resp1.setHeader("Content-Length", "128");
         resp1.setHeader("ETag", "\"etag\"");
-        resp1.setHeader("Date", DateUtils.formatDate(new Date()));
+        resp1.setHeader("Date", DateUtils.formatStandardDate(Instant.now()));
         resp1.setHeader("Cache-Control", "public, max-age=3600");
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
@@ -297,7 +298,7 @@ public class TestCachingExecChain {
         resp1.setEntity(HttpTestUtils.makeBody(128));
         resp1.setHeader("Content-Length", "128");
         resp1.setHeader("ETag", "\"etag\"");
-        resp1.setHeader("Date", DateUtils.formatDate(new Date()));
+        resp1.setHeader("Date", DateUtils.formatStandardDate(Instant.now()));
         resp1.setHeader("Cache-Control", "public, max-age=3600");
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
@@ -315,7 +316,7 @@ public class TestCachingExecChain {
         resp1.setEntity(HttpTestUtils.makeBody(128));
         resp1.setHeader("Content-Length", "128");
         resp1.setHeader("ETag", "\"etag\"");
-        resp1.setHeader("Date", DateUtils.formatDate(new Date()));
+        resp1.setHeader("Date", DateUtils.formatStandardDate(Instant.now()));
         resp1.setHeader("Cache-Control", "public, max-age=3600");
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
@@ -327,18 +328,18 @@ public class TestCachingExecChain {
 
     @Test
     public void testReturns304ForIfModifiedSinceHeaderIfRequestServedFromCache() throws Exception {
-        final Date now = new Date();
-        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        final Instant now = Instant.now();
+        final Instant tenSecondsAgo = now.minusSeconds(10);
         final ClassicHttpRequest req1 = new HttpGet("http://foo.example.com/");
         final ClassicHttpRequest req2 = new HttpGet("http://foo.example.com/");
-        req2.addHeader("If-Modified-Since", DateUtils.formatDate(now));
+        req2.addHeader("If-Modified-Since", DateUtils.formatStandardDate(now));
         final ClassicHttpResponse resp1 = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
         resp1.setEntity(HttpTestUtils.makeBody(128));
         resp1.setHeader("Content-Length", "128");
         resp1.setHeader("ETag", "\"etag\"");
-        resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+        resp1.setHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo));
         resp1.setHeader("Cache-Control", "public, max-age=3600");
-        resp1.setHeader("Last-Modified", DateUtils.formatDate(tenSecondsAgo));
+        resp1.setHeader("Last-Modified", DateUtils.formatStandardDate(tenSecondsAgo));
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
 
@@ -349,18 +350,18 @@ public class TestCachingExecChain {
 
     @Test
     public void testReturns304ForIfModifiedSinceHeaderIf304ResponseInCache() throws Exception {
-        final Date now = new Date();
-        final Date oneHourAgo = new Date(now.getTime() - 3600 * 1000L);
-        final Date inTenMinutes = new Date(now.getTime() + 600 * 1000L);
+        final Instant now = Instant.now();
+        final Instant oneHourAgo = now.minus(1, ChronoUnit.HOURS);
+        final Instant inTenMinutes = now.plus(10, ChronoUnit.MINUTES);
         final ClassicHttpRequest req1 = new HttpGet("http://foo.example.com/");
-        req1.addHeader("If-Modified-Since", DateUtils.formatDate(oneHourAgo));
+        req1.addHeader("If-Modified-Since", DateUtils.formatStandardDate(oneHourAgo));
         final ClassicHttpRequest req2 = new HttpGet("http://foo.example.com/");
-        req2.addHeader("If-Modified-Since", DateUtils.formatDate(oneHourAgo));
+        req2.addHeader("If-Modified-Since", DateUtils.formatStandardDate(oneHourAgo));
 
         final ClassicHttpResponse resp1 = HttpTestUtils.make304Response();
-        resp1.setHeader("Date", DateUtils.formatDate(now));
+        resp1.setHeader("Date", DateUtils.formatStandardDate(now));
         resp1.setHeader("Cache-control", "max-age=600");
-        resp1.setHeader("Expires", DateUtils.formatDate(inTenMinutes));
+        resp1.setHeader("Expires", DateUtils.formatStandardDate(inTenMinutes));
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
 
@@ -375,8 +376,8 @@ public class TestCachingExecChain {
 
     @Test
     public void testReturns200ForIfModifiedSinceDateIsLess() throws Exception {
-        final Date now = new Date();
-        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        final Instant now = Instant.now();
+        final Instant tenSecondsAgo = now.minusSeconds(10);
         final ClassicHttpRequest req1 = new HttpGet("http://foo.example.com/");
         final ClassicHttpRequest req2 = new HttpGet("http://foo.example.com/");
 
@@ -384,12 +385,12 @@ public class TestCachingExecChain {
         resp1.setEntity(HttpTestUtils.makeBody(128));
         resp1.setHeader("Content-Length", "128");
         resp1.setHeader("ETag", "\"etag\"");
-        resp1.setHeader("Date", DateUtils.formatDate(new Date()));
+        resp1.setHeader("Date", DateUtils.formatStandardDate(Instant.now()));
         resp1.setHeader("Cache-Control", "public, max-age=3600");
-        resp1.setHeader("Last-Modified", DateUtils.formatDate(new Date()));
+        resp1.setHeader("Last-Modified", DateUtils.formatStandardDate(Instant.now()));
 
         // The variant has been modified since this date
-        req2.addHeader("If-Modified-Since", DateUtils.formatDate(tenSecondsAgo));
+        req2.addHeader("If-Modified-Since", DateUtils.formatStandardDate(tenSecondsAgo));
 
         final ClassicHttpResponse resp2 = HttpTestUtils.make200Response();
 
@@ -405,8 +406,8 @@ public class TestCachingExecChain {
 
     @Test
     public void testReturns200ForIfModifiedSinceDateIsInvalid() throws Exception {
-        final Date now = new Date();
-        final Date tenSecondsAfter = new Date(now.getTime() + 10 * 1000L);
+        final Instant now = Instant.now();
+        final Instant tenSecondsAfter = now.plusSeconds(10);
         final ClassicHttpRequest req1 = new HttpGet("http://foo.example.com/");
         final ClassicHttpRequest req2 = new HttpGet("http://foo.example.com/");
 
@@ -414,12 +415,12 @@ public class TestCachingExecChain {
         resp1.setEntity(HttpTestUtils.makeBody(128));
         resp1.setHeader("Content-Length", "128");
         resp1.setHeader("ETag", "\"etag\"");
-        resp1.setHeader("Date", DateUtils.formatDate(new Date()));
+        resp1.setHeader("Date", DateUtils.formatStandardDate(Instant.now()));
         resp1.setHeader("Cache-Control", "public, max-age=3600");
-        resp1.setHeader("Last-Modified", DateUtils.formatDate(new Date()));
+        resp1.setHeader("Last-Modified", DateUtils.formatStandardDate(Instant.now()));
 
         // invalid date (date in the future)
-        req2.addHeader("If-Modified-Since", DateUtils.formatDate(tenSecondsAfter));
+        req2.addHeader("If-Modified-Since", DateUtils.formatStandardDate(tenSecondsAfter));
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
 
@@ -439,7 +440,7 @@ public class TestCachingExecChain {
         resp1.setEntity(HttpTestUtils.makeBody(128));
         resp1.setHeader("Content-Length", "128");
         resp1.setHeader("ETag", "\"etag\"");
-        resp1.setHeader("Date", DateUtils.formatDate(new Date()));
+        resp1.setHeader("Date", DateUtils.formatStandardDate(Instant.now()));
         resp1.setHeader("Cache-Control", "public, max-age=3600");
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
@@ -459,7 +460,7 @@ public class TestCachingExecChain {
         resp1.setEntity(HttpTestUtils.makeBody(128));
         resp1.setHeader("Content-Length", "128");
         resp1.setHeader("ETag", "\"etag\"");
-        resp1.setHeader("Date", DateUtils.formatDate(new Date()));
+        resp1.setHeader("Date", DateUtils.formatStandardDate(Instant.now()));
         resp1.setHeader("Cache-Control", "public, max-age=3600");
 
         req2.addHeader("If-None-Match", "\"abc\"");
@@ -478,8 +479,8 @@ public class TestCachingExecChain {
 
     @Test
     public void testReturns304ForIfNoneMatchHeaderAndIfModifiedSinceIfRequestServedFromCache() throws Exception {
-        final Date now = new Date();
-        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        final Instant now = Instant.now();
+        final Instant tenSecondsAgo = now.minusSeconds(10);
         final ClassicHttpRequest req1 = new HttpGet("http://foo.example.com/");
         final ClassicHttpRequest req2 = new HttpGet("http://foo.example.com/");
 
@@ -487,12 +488,12 @@ public class TestCachingExecChain {
         resp1.setEntity(HttpTestUtils.makeBody(128));
         resp1.setHeader("Content-Length", "128");
         resp1.setHeader("ETag", "\"etag\"");
-        resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+        resp1.setHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo));
         resp1.setHeader("Cache-Control", "public, max-age=3600");
-        resp1.setHeader("Last-Modified", DateUtils.formatDate(new Date()));
+        resp1.setHeader("Last-Modified", DateUtils.formatStandardDate(Instant.now()));
 
         req2.addHeader("If-None-Match", "*");
-        req2.addHeader("If-Modified-Since", DateUtils.formatDate(now));
+        req2.addHeader("If-Modified-Since", DateUtils.formatStandardDate(now));
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
 
@@ -503,19 +504,19 @@ public class TestCachingExecChain {
 
     @Test
     public void testReturns200ForIfNoneMatchHeaderFailsIfModifiedSinceIgnored() throws Exception {
-        final Date now = new Date();
-        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        final Instant now = Instant.now();
+        final Instant tenSecondsAgo = now.minusSeconds(10);
         final ClassicHttpRequest req1 = new HttpGet("http://foo.example.com/");
         final ClassicHttpRequest req2 = new HttpGet("http://foo.example.com/");
         req2.addHeader("If-None-Match", "\"abc\"");
-        req2.addHeader("If-Modified-Since", DateUtils.formatDate(now));
+        req2.addHeader("If-Modified-Since", DateUtils.formatStandardDate(now));
         final ClassicHttpResponse resp1 = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
         resp1.setEntity(HttpTestUtils.makeBody(128));
         resp1.setHeader("Content-Length", "128");
         resp1.setHeader("ETag", "\"etag\"");
-        resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+        resp1.setHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo));
         resp1.setHeader("Cache-Control", "public, max-age=3600");
-        resp1.setHeader("Last-Modified", DateUtils.formatDate(tenSecondsAgo));
+        resp1.setHeader("Last-Modified", DateUtils.formatStandardDate(tenSecondsAgo));
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
 
@@ -527,7 +528,7 @@ public class TestCachingExecChain {
     @Test
     public void testReturns200ForOptionsFollowedByGetIfAuthorizationHeaderAndSharedCache() throws Exception {
         impl = new CachingExec(cache, null, CacheConfig.custom().setSharedCache(true).build());
-        final Date now = new Date();
+        final Instant now = Instant.now();
         final ClassicHttpRequest req1 = new HttpOptions("http://foo.example.com/");
         req1.setHeader("Authorization", StandardAuthScheme.BASIC + " QWxhZGRpbjpvcGVuIHNlc2FtZQ==");
         final ClassicHttpRequest req2 = new HttpGet("http://foo.example.com/");
@@ -535,16 +536,16 @@ public class TestCachingExecChain {
         final ClassicHttpResponse resp1 = new BasicClassicHttpResponse(HttpStatus.SC_NO_CONTENT, "No Content");
         resp1.setHeader("Content-Length", "0");
         resp1.setHeader("ETag", "\"options-etag\"");
-        resp1.setHeader("Date", DateUtils.formatDate(now));
+        resp1.setHeader("Date", DateUtils.formatStandardDate(now));
         resp1.setHeader("Cache-Control", "public, max-age=3600");
-        resp1.setHeader("Last-Modified", DateUtils.formatDate(now));
+        resp1.setHeader("Last-Modified", DateUtils.formatStandardDate(now));
         final ClassicHttpResponse resp2 = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
         resp1.setEntity(HttpTestUtils.makeBody(128));
         resp1.setHeader("Content-Length", "128");
         resp1.setHeader("ETag", "\"get-etag\"");
-        resp1.setHeader("Date", DateUtils.formatDate(now));
+        resp1.setHeader("Date", DateUtils.formatStandardDate(now));
         resp1.setHeader("Cache-Control", "public, max-age=3600");
-        resp1.setHeader("Last-Modified", DateUtils.formatDate(now));
+        resp1.setHeader("Last-Modified", DateUtils.formatStandardDate(now));
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
         execute(req1);
@@ -557,8 +558,8 @@ public class TestCachingExecChain {
 
     @Test
     public void testSetsValidatedContextIfRequestWasSuccessfullyValidated() throws Exception {
-        final Date now = new Date();
-        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        final Instant now = Instant.now();
+        final Instant tenSecondsAgo = now.minusSeconds(10);
 
         final ClassicHttpRequest req1 = new HttpGet("http://foo.example.com/");
         final ClassicHttpRequest req2 = new HttpGet("http://foo.example.com/");
@@ -567,14 +568,14 @@ public class TestCachingExecChain {
         resp1.setEntity(HttpTestUtils.makeBody(128));
         resp1.setHeader("Content-Length", "128");
         resp1.setHeader("ETag", "\"etag\"");
-        resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+        resp1.setHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo));
         resp1.setHeader("Cache-Control", "public, max-age=5");
 
         final ClassicHttpResponse resp2 = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
         resp2.setEntity(HttpTestUtils.makeBody(128));
         resp2.setHeader("Content-Length", "128");
         resp2.setHeader("ETag", "\"etag\"");
-        resp2.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+        resp2.setHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo));
         resp2.setHeader("Cache-Control", "public, max-age=5");
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
@@ -588,8 +589,8 @@ public class TestCachingExecChain {
 
     @Test
     public void testSetsViaHeaderIfRequestWasSuccessfullyValidated() throws Exception {
-        final Date now = new Date();
-        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        final Instant now = Instant.now();
+        final Instant tenSecondsAgo = now.minusSeconds(10);
 
         final ClassicHttpRequest req1 = new HttpGet("http://foo.example.com/");
         final ClassicHttpRequest req2 = new HttpGet("http://foo.example.com/");
@@ -598,14 +599,14 @@ public class TestCachingExecChain {
         resp1.setEntity(HttpTestUtils.makeBody(128));
         resp1.setHeader("Content-Length", "128");
         resp1.setHeader("ETag", "\"etag\"");
-        resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+        resp1.setHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo));
         resp1.setHeader("Cache-Control", "public, max-age=5");
 
         final ClassicHttpResponse resp2 = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
         resp2.setEntity(HttpTestUtils.makeBody(128));
         resp2.setHeader("Content-Length", "128");
         resp2.setHeader("ETag", "\"etag\"");
-        resp2.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+        resp2.setHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo));
         resp2.setHeader("Cache-Control", "public, max-age=5");
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
@@ -620,8 +621,8 @@ public class TestCachingExecChain {
 
     @Test
     public void testSetsModuleResponseContextIfValidationRequiredButFailed() throws Exception {
-        final Date now = new Date();
-        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        final Instant now = Instant.now();
+        final Instant tenSecondsAgo = now.minusSeconds(10);
 
         final ClassicHttpRequest req1 = new HttpGet("http://foo.example.com/");
         final ClassicHttpRequest req2 = new HttpGet("http://foo.example.com/");
@@ -630,7 +631,7 @@ public class TestCachingExecChain {
         resp1.setEntity(HttpTestUtils.makeBody(128));
         resp1.setHeader("Content-Length", "128");
         resp1.setHeader("ETag", "\"etag\"");
-        resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+        resp1.setHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo));
         resp1.setHeader("Cache-Control", "public, max-age=5, must-revalidate");
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
@@ -646,8 +647,8 @@ public class TestCachingExecChain {
 
     @Test
     public void testSetsModuleResponseContextIfValidationFailsButNotRequired() throws Exception {
-        final Date now = new Date();
-        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        final Instant now = Instant.now();
+        final Instant tenSecondsAgo = now.minusSeconds(10);
 
         final ClassicHttpRequest req1 = new HttpGet("http://foo.example.com/");
         final ClassicHttpRequest req2 = new HttpGet("http://foo.example.com/");
@@ -656,7 +657,7 @@ public class TestCachingExecChain {
         resp1.setEntity(HttpTestUtils.makeBody(128));
         resp1.setHeader("Content-Length", "128");
         resp1.setHeader("ETag", "\"etag\"");
-        resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+        resp1.setHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo));
         resp1.setHeader("Cache-Control", "public, max-age=5");
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
@@ -671,8 +672,8 @@ public class TestCachingExecChain {
 
     @Test
     public void testSetViaHeaderIfValidationFailsButNotRequired() throws Exception {
-        final Date now = new Date();
-        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        final Instant now = Instant.now();
+        final Instant tenSecondsAgo = now.minusSeconds(10);
 
         final ClassicHttpRequest req1 = new HttpGet("http://foo.example.com/");
         final ClassicHttpRequest req2 = new HttpGet("http://foo.example.com/");
@@ -681,7 +682,7 @@ public class TestCachingExecChain {
         resp1.setEntity(HttpTestUtils.makeBody(128));
         resp1.setHeader("Content-Length", "128");
         resp1.setHeader("ETag", "\"etag\"");
-        resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+        resp1.setHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo));
         resp1.setHeader("Cache-Control", "public, max-age=5");
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
@@ -697,8 +698,8 @@ public class TestCachingExecChain {
     @Test
     public void testReturns304ForIfNoneMatchPassesIfRequestServedFromOrigin() throws Exception {
 
-        final Date now = new Date();
-        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        final Instant now = Instant.now();
+        final Instant tenSecondsAgo = now.minusSeconds(10);
 
         final ClassicHttpRequest req1 = new HttpGet("http://foo.example.com/");
         final ClassicHttpRequest req2 = new HttpGet("http://foo.example.com/");
@@ -707,13 +708,13 @@ public class TestCachingExecChain {
         resp1.setEntity(HttpTestUtils.makeBody(128));
         resp1.setHeader("Content-Length", "128");
         resp1.setHeader("ETag", "\"etag\"");
-        resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+        resp1.setHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo));
         resp1.setHeader("Cache-Control", "public, max-age=5");
 
         req2.addHeader("If-None-Match", "\"etag\"");
         final ClassicHttpResponse resp2 = HttpTestUtils.make304Response();
         resp2.setHeader("ETag", "\"etag\"");
-        resp2.setHeader("Date", DateUtils.formatDate(now));
+        resp2.setHeader("Date", DateUtils.formatStandardDate(now));
         resp2.setHeader("Cache-Control", "public, max-age=5");
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
@@ -729,8 +730,8 @@ public class TestCachingExecChain {
     @Test
     public void testReturns200ForIfNoneMatchFailsIfRequestServedFromOrigin() throws Exception {
 
-        final Date now = new Date();
-        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        final Instant now = Instant.now();
+        final Instant tenSecondsAgo = now.minusSeconds(10);
 
         final ClassicHttpRequest req1 = new HttpGet("http://foo.example.com/");
         final ClassicHttpRequest req2 = new HttpGet("http://foo.example.com/");
@@ -739,7 +740,7 @@ public class TestCachingExecChain {
         resp1.setEntity(HttpTestUtils.makeBody(128));
         resp1.setHeader("Content-Length", "128");
         resp1.setHeader("ETag", "\"etag\"");
-        resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+        resp1.setHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo));
         resp1.setHeader("Cache-Control", "public, max-age=5");
 
         req2.addHeader("If-None-Match", "\"etag\"");
@@ -747,7 +748,7 @@ public class TestCachingExecChain {
         resp2.setEntity(HttpTestUtils.makeBody(128));
         resp2.setHeader("Content-Length", "128");
         resp2.setHeader("ETag", "\"newetag\"");
-        resp2.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+        resp2.setHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo));
         resp2.setHeader("Cache-Control", "public, max-age=5");
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
@@ -762,8 +763,8 @@ public class TestCachingExecChain {
 
     @Test
     public void testReturns304ForIfModifiedSincePassesIfRequestServedFromOrigin() throws Exception {
-        final Date now = new Date();
-        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        final Instant now = Instant.now();
+        final Instant tenSecondsAgo = now.minusSeconds(10);
 
         final ClassicHttpRequest req1 = new HttpGet("http://foo.example.com/");
         final ClassicHttpRequest req2 = new HttpGet("http://foo.example.com/");
@@ -772,15 +773,15 @@ public class TestCachingExecChain {
         resp1.setEntity(HttpTestUtils.makeBody(128));
         resp1.setHeader("Content-Length", "128");
         resp1.setHeader("ETag", "\"etag\"");
-        resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
-        resp1.setHeader("Last-Modified", DateUtils.formatDate(tenSecondsAgo));
+        resp1.setHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo));
+        resp1.setHeader("Last-Modified", DateUtils.formatStandardDate(tenSecondsAgo));
         resp1.setHeader("Cache-Control", "public, max-age=5");
 
-        req2.addHeader("If-Modified-Since", DateUtils.formatDate(tenSecondsAgo));
+        req2.addHeader("If-Modified-Since", DateUtils.formatStandardDate(tenSecondsAgo));
         final ClassicHttpResponse resp2 = HttpTestUtils.make304Response();
         resp2.setHeader("ETag", "\"etag\"");
-        resp2.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
-        resp1.setHeader("Last-Modified", DateUtils.formatDate(tenSecondsAgo));
+        resp2.setHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo));
+        resp1.setHeader("Last-Modified", DateUtils.formatStandardDate(tenSecondsAgo));
         resp2.setHeader("Cache-Control", "public, max-age=5");
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
@@ -796,8 +797,8 @@ public class TestCachingExecChain {
 
     @Test
     public void testReturns200ForIfModifiedSinceFailsIfRequestServedFromOrigin() throws Exception {
-        final Date now = new Date();
-        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        final Instant now = Instant.now();
+        final Instant tenSecondsAgo = now.minusSeconds(10);
 
         final ClassicHttpRequest req1 = new HttpGet("http://foo.example.com/");
         final ClassicHttpRequest req2 = new HttpGet("http://foo.example.com/");
@@ -806,17 +807,17 @@ public class TestCachingExecChain {
         resp1.setEntity(HttpTestUtils.makeBody(128));
         resp1.setHeader("Content-Length", "128");
         resp1.setHeader("ETag", "\"etag\"");
-        resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
-        resp1.setHeader("Last-Modified", DateUtils.formatDate(tenSecondsAgo));
+        resp1.setHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo));
+        resp1.setHeader("Last-Modified", DateUtils.formatStandardDate(tenSecondsAgo));
         resp1.setHeader("Cache-Control", "public, max-age=5");
 
-        req2.addHeader("If-Modified-Since", DateUtils.formatDate(tenSecondsAgo));
+        req2.addHeader("If-Modified-Since", DateUtils.formatStandardDate(tenSecondsAgo));
         final ClassicHttpResponse resp2 = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
         resp2.setEntity(HttpTestUtils.makeBody(128));
         resp2.setHeader("Content-Length", "128");
         resp2.setHeader("ETag", "\"newetag\"");
-        resp2.setHeader("Date", DateUtils.formatDate(now));
-        resp1.setHeader("Last-Modified", DateUtils.formatDate(now));
+        resp2.setHeader("Date", DateUtils.formatStandardDate(now));
+        resp1.setHeader("Last-Modified", DateUtils.formatStandardDate(now));
         resp2.setHeader("Cache-Control", "public, max-age=5");
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
@@ -832,7 +833,7 @@ public class TestCachingExecChain {
 
     @Test
     public void testVariantMissServerIfReturns304CacheReturns200() throws Exception {
-        final Date now = new Date();
+        final Instant now = Instant.now();
 
         final ClassicHttpRequest req1 = new HttpGet("http://foo.example.com");
         req1.addHeader("Accept-Encoding", "gzip");
@@ -841,7 +842,7 @@ public class TestCachingExecChain {
         resp1.setEntity(HttpTestUtils.makeBody(128));
         resp1.setHeader("Content-Length", "128");
         resp1.setHeader("Etag", "\"gzip_etag\"");
-        resp1.setHeader("Date", DateUtils.formatDate(now));
+        resp1.setHeader("Date", DateUtils.formatStandardDate(now));
         resp1.setHeader("Vary", "Accept-Encoding");
         resp1.setHeader("Cache-Control", "public, max-age=3600");
 
@@ -856,7 +857,7 @@ public class TestCachingExecChain {
         resp2.setEntity(HttpTestUtils.makeBody(128));
         resp2.setHeader("Content-Length", "128");
         resp2.setHeader("Etag", "\"deflate_etag\"");
-        resp2.setHeader("Date", DateUtils.formatDate(now));
+        resp2.setHeader("Date", DateUtils.formatStandardDate(now));
         resp2.setHeader("Vary", "Accept-Encoding");
         resp2.setHeader("Cache-Control", "public, max-age=3600");
 
@@ -871,7 +872,7 @@ public class TestCachingExecChain {
         resp3.setEntity(HttpTestUtils.makeBody(128));
         resp3.setHeader("Content-Length", "128");
         resp3.setHeader("Etag", "\"gzip_etag\"");
-        resp3.setHeader("Date", DateUtils.formatDate(now));
+        resp3.setHeader("Date", DateUtils.formatStandardDate(now));
         resp3.setHeader("Vary", "Accept-Encoding");
         resp3.setHeader("Cache-Control", "public, max-age=3600");
 
@@ -894,7 +895,7 @@ public class TestCachingExecChain {
 
     @Test
     public void testVariantsMissServerReturns304CacheReturns304() throws Exception {
-        final Date now = new Date();
+        final Instant now = Instant.now();
 
         final ClassicHttpRequest req1 = new HttpGet("http://foo.example.com");
         req1.addHeader("Accept-Encoding", "gzip");
@@ -903,7 +904,7 @@ public class TestCachingExecChain {
         resp1.setEntity(HttpTestUtils.makeBody(128));
         resp1.setHeader("Content-Length", "128");
         resp1.setHeader("Etag", "\"gzip_etag\"");
-        resp1.setHeader("Date", DateUtils.formatDate(now));
+        resp1.setHeader("Date", DateUtils.formatStandardDate(now));
         resp1.setHeader("Vary", "Accept-Encoding");
         resp1.setHeader("Cache-Control", "public, max-age=3600");
 
@@ -918,7 +919,7 @@ public class TestCachingExecChain {
         resp2.setEntity(HttpTestUtils.makeBody(128));
         resp2.setHeader("Content-Length", "128");
         resp2.setHeader("Etag", "\"deflate_etag\"");
-        resp2.setHeader("Date", DateUtils.formatDate(now));
+        resp2.setHeader("Date", DateUtils.formatStandardDate(now));
         resp2.setHeader("Vary", "Accept-Encoding");
         resp2.setHeader("Cache-Control", "public, max-age=3600");
 
@@ -932,7 +933,7 @@ public class TestCachingExecChain {
 
         final ClassicHttpResponse resp4 = HttpTestUtils.make304Response();
         resp4.setHeader("Etag", "\"gzip_etag\"");
-        resp4.setHeader("Date", DateUtils.formatDate(now));
+        resp4.setHeader("Date", DateUtils.formatStandardDate(now));
         resp4.setHeader("Vary", "Accept-Encoding");
         resp4.setHeader("Cache-Control", "public, max-age=3600");
 
@@ -955,7 +956,7 @@ public class TestCachingExecChain {
 
     @Test
     public void testSocketTimeoutExceptionIsNotSilentlyCatched() throws Exception {
-        final Date now = new Date();
+        final Instant now = Instant.now();
 
         final ClassicHttpRequest req1 = new HttpGet("http://foo.example.com");
 
@@ -976,7 +977,7 @@ public class TestCachingExecChain {
                 throw new SocketTimeoutException("Read timed out");
             }
         }, 128, null));
-        resp1.setHeader("Date", DateUtils.formatDate(now));
+        resp1.setHeader("Date", DateUtils.formatStandardDate(now));
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
 
@@ -996,19 +997,20 @@ public class TestCachingExecChain {
         final HttpHost host = new HttpHost("foo.example.com");
         final ClassicHttpRequest request = new HttpGet("http://foo.example.com/bar");
 
-        final Date now = new Date();
-        final Date requestSent = new Date(now.getTime() - 3 * 1000L);
-        final Date responseGenerated = new Date(now.getTime() - 2 * 1000L);
-        final Date responseReceived = new Date(now.getTime() - 1 * 1000L);
+        final Instant now = Instant.now();
+        final Instant requestSent = now.plusSeconds(3);
+        final Instant responseGenerated = now.plusSeconds(2);
+        final Instant responseReceived = now.plusSeconds(1);
 
         final ClassicHttpResponse originResponse = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
         originResponse.setEntity(HttpTestUtils.makeBody(CacheConfig.DEFAULT_MAX_OBJECT_SIZE_BYTES + 1));
         originResponse.setHeader("Cache-Control","public, max-age=3600");
-        originResponse.setHeader("Date", DateUtils.formatDate(responseGenerated));
+        originResponse.setHeader("Date", DateUtils.formatStandardDate(responseGenerated));
         originResponse.setHeader("ETag", "\"etag\"");
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, mockExecRuntime, context);
-        impl.cacheAndReturnResponse(host, request, originResponse, scope, requestSent, responseReceived);
+        impl.cacheAndReturnResponse(host, request, originResponse, scope,
+                DateUtils.toDate(requestSent), DateUtils.toDate(responseReceived));
 
         Mockito.verify(cache, Mockito.never()).createCacheEntry(
                 Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
@@ -1022,15 +1024,15 @@ public class TestCachingExecChain {
         final HttpHost host = new HttpHost("foo.example.com");
         final ClassicHttpRequest request = new HttpGet("http://foo.example.com/bar");
 
-        final Date now = new Date();
-        final Date requestSent = new Date(now.getTime() - 3 * 1000L);
-        final Date responseGenerated = new Date(now.getTime() - 2 * 1000L);
-        final Date responseReceived = new Date(now.getTime() - 1 * 1000L);
+        final Instant now = Instant.now();
+        final Instant requestSent = now.plusSeconds(3);
+        final Instant responseGenerated = now.plusSeconds(2);
+        final Instant responseReceived = now.plusSeconds(1);
 
         final ClassicHttpResponse originResponse = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
         originResponse.setEntity(HttpTestUtils.makeBody(CacheConfig.DEFAULT_MAX_OBJECT_SIZE_BYTES - 1));
         originResponse.setHeader("Cache-Control","public, max-age=3600");
-        originResponse.setHeader("Date", DateUtils.formatDate(responseGenerated));
+        originResponse.setHeader("Date", DateUtils.formatStandardDate(responseGenerated));
         originResponse.setHeader("ETag", "\"etag\"");
 
         final HttpCacheEntry httpCacheEntry = HttpTestUtils.makeCacheEntry();
@@ -1041,11 +1043,12 @@ public class TestCachingExecChain {
                 RequestEquivalent.eq(request),
                 ResponseEquivalent.eq(response),
                 Mockito.any(),
-                Mockito.eq(requestSent),
-                Mockito.eq(responseReceived))).thenReturn(httpCacheEntry);
+                Mockito.eq(DateUtils.toDate(requestSent)),
+                Mockito.eq(DateUtils.toDate(responseReceived)))).thenReturn(httpCacheEntry);
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, mockExecRuntime, context);
-        impl.cacheAndReturnResponse(host, request, originResponse, scope, requestSent, responseReceived);
+        impl.cacheAndReturnResponse(host, request, originResponse, scope,
+                DateUtils.toDate(requestSent), DateUtils.toDate(responseReceived));
 
         Mockito.verify(mockCache).createCacheEntry(
                 Mockito.any(),
@@ -1119,7 +1122,7 @@ public class TestCachingExecChain {
     @Test
     public void testCanCacheAResponseWithoutABody() throws Exception {
         final ClassicHttpResponse response = new BasicClassicHttpResponse(HttpStatus.SC_NO_CONTENT, "No Content");
-        response.setHeader("Date", DateUtils.formatDate(new Date()));
+        response.setHeader("Date", DateUtils.formatStandardDate(Instant.now()));
         response.setHeader("Cache-Control", "max-age=300");
         Mockito.when(mockExecChain.proceed(RequestEquivalent.eq(request), Mockito.any())).thenReturn(response);
 
@@ -1132,8 +1135,8 @@ public class TestCachingExecChain {
     @Test
     public void testNoEntityForIfNoneMatchRequestNotYetInCache() throws Exception {
 
-        final Date now = new Date();
-        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        final Instant now = Instant.now();
+        final Instant tenSecondsAgo = now.minusSeconds(10);
 
         final ClassicHttpRequest req1 = new HttpGet("http://foo.example.com/");
         req1.addHeader("If-None-Match", "\"etag\"");
@@ -1141,7 +1144,7 @@ public class TestCachingExecChain {
         final ClassicHttpResponse resp1 = HttpTestUtils.make304Response();
         resp1.setHeader("Content-Length", "128");
         resp1.setHeader("ETag", "\"etag\"");
-        resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+        resp1.setHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo));
         resp1.setHeader("Cache-Control", "public, max-age=5");
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
@@ -1154,7 +1157,7 @@ public class TestCachingExecChain {
     @Test
     public void testNotModifiedResponseUpdatesCacheEntryWhenNoEntity() throws Exception {
 
-        final Date now = new Date();
+        final Instant now = Instant.now();
 
         final ClassicHttpRequest req1 = new HttpGet("http://foo.example.com/");
         req1.addHeader("If-None-Match", "etag");
@@ -1163,12 +1166,12 @@ public class TestCachingExecChain {
         req2.addHeader("If-None-Match", "etag");
 
         final ClassicHttpResponse resp1 = HttpTestUtils.make304Response();
-        resp1.setHeader("Date", DateUtils.formatDate(now));
+        resp1.setHeader("Date", DateUtils.formatStandardDate(now));
         resp1.setHeader("Cache-Control", "max-age=0");
         resp1.setHeader("Etag", "etag");
 
         final ClassicHttpResponse resp2 = HttpTestUtils.make304Response();
-        resp2.setHeader("Date", DateUtils.formatDate(now));
+        resp2.setHeader("Date", DateUtils.formatStandardDate(now));
         resp2.setHeader("Cache-Control", "max-age=0");
         resp1.setHeader("Etag", "etag");
 
@@ -1188,7 +1191,7 @@ public class TestCachingExecChain {
     @Test
     public void testNotModifiedResponseWithVaryUpdatesCacheEntryWhenNoEntity() throws Exception {
 
-        final Date now = new Date();
+        final Instant now = Instant.now();
 
         final ClassicHttpRequest req1 = new HttpGet("http://foo.example.com/");
         req1.addHeader("If-None-Match", "etag");
@@ -1197,13 +1200,13 @@ public class TestCachingExecChain {
         req2.addHeader("If-None-Match", "etag");
 
         final ClassicHttpResponse resp1 = HttpTestUtils.make304Response();
-        resp1.setHeader("Date", DateUtils.formatDate(now));
+        resp1.setHeader("Date", DateUtils.formatStandardDate(now));
         resp1.setHeader("Cache-Control", "max-age=0");
         resp1.setHeader("Etag", "etag");
         resp1.setHeader("Vary", "Accept-Encoding");
 
         final ClassicHttpResponse resp2 = HttpTestUtils.make304Response();
-        resp2.setHeader("Date", DateUtils.formatDate(now));
+        resp2.setHeader("Date", DateUtils.formatStandardDate(now));
         resp2.setHeader("Cache-Control", "max-age=0");
         resp1.setHeader("Etag", "etag");
         resp1.setHeader("Vary", "Accept-Encoding");
@@ -1225,8 +1228,8 @@ public class TestCachingExecChain {
     @Test
     public void testDoesNotSend304ForNonConditionalRequest() throws Exception {
 
-        final Date now = new Date();
-        final Date inOneMinute = new Date(System.currentTimeMillis() + 60000);
+        final Instant now = Instant.now();
+        final Instant inOneMinute = now.plus(1, ChronoUnit.MINUTES);
 
         final ClassicHttpRequest req1 = new HttpGet("http://foo.example.com/");
         req1.addHeader("If-None-Match", "etag");
@@ -1234,17 +1237,17 @@ public class TestCachingExecChain {
         final ClassicHttpRequest req2 = new HttpGet("http://foo.example.com/");
 
         final ClassicHttpResponse resp1 = HttpTestUtils.make304Response();
-        resp1.setHeader("Date", DateUtils.formatDate(now));
+        resp1.setHeader("Date", DateUtils.formatStandardDate(now));
         resp1.setHeader("Cache-Control", "public, max-age=60");
-        resp1.setHeader("Expires", DateUtils.formatDate(inOneMinute));
+        resp1.setHeader("Expires", DateUtils.formatStandardDate(inOneMinute));
         resp1.setHeader("Etag", "etag");
         resp1.setHeader("Vary", "Accept-Encoding");
 
         final ClassicHttpResponse resp2 = new BasicClassicHttpResponse(HttpStatus.SC_OK,
             "Ok");
-        resp2.setHeader("Date", DateUtils.formatDate(now));
+        resp2.setHeader("Date", DateUtils.formatStandardDate(now));
         resp2.setHeader("Cache-Control", "public, max-age=60");
-        resp2.setHeader("Expires", DateUtils.formatDate(inOneMinute));
+        resp2.setHeader("Expires", DateUtils.formatStandardDate(inOneMinute));
         resp2.setHeader("Etag", "etag");
         resp2.setHeader("Vary", "Accept-Encoding");
         resp2.setEntity(HttpTestUtils.makeBody(128));

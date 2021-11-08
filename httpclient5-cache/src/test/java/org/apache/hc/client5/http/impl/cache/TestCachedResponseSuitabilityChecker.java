@@ -26,7 +26,7 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
-import java.util.Date;
+import java.time.Instant;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.utils.DateUtils;
@@ -42,10 +42,10 @@ import org.junit.Test;
 
 public class TestCachedResponseSuitabilityChecker {
 
-    private Date now;
-    private Date elevenSecondsAgo;
-    private Date tenSecondsAgo;
-    private Date nineSecondsAgo;
+    private Instant now;
+    private Instant elevenSecondsAgo;
+    private Instant tenSecondsAgo;
+    private Instant nineSecondsAgo;
 
     private HttpHost host;
     private HttpRequest request;
@@ -54,10 +54,10 @@ public class TestCachedResponseSuitabilityChecker {
 
     @Before
     public void setUp() {
-        now = new Date();
-        elevenSecondsAgo = new Date(now.getTime() - 11 * 1000L);
-        tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
-        nineSecondsAgo = new Date(now.getTime() - 9 * 1000L);
+        now = Instant.now();
+        elevenSecondsAgo = now.minusSeconds(11);
+        tenSecondsAgo = now.minusSeconds(10);
+        nineSecondsAgo = now.minusSeconds(9);
 
         host = new HttpHost("foo.example.com");
         request = new BasicHttpRequest("GET", "/foo");
@@ -73,118 +73,118 @@ public class TestCachedResponseSuitabilityChecker {
     @Test
     public void testNotSuitableIfContentLengthHeaderIsWrong() {
         final Header[] headers = {
-                new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
                 new BasicHeader("Cache-Control", "max-age=3600"),
                 new BasicHeader("Content-Length","1")
         };
         entry = getEntry(headers);
-        Assert.assertFalse(impl.canCachedResponseBeUsed(host, request, entry, now));
+        Assert.assertFalse(impl.canCachedResponseBeUsed(host, request, entry, DateUtils.toDate(now)));
     }
 
     @Test
     public void testSuitableIfCacheEntryIsFresh() {
         final Header[] headers = {
-                new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
                 new BasicHeader("Cache-Control", "max-age=3600"),
                 new BasicHeader("Content-Length","128")
         };
         entry = getEntry(headers);
-        Assert.assertTrue(impl.canCachedResponseBeUsed(host, request, entry, now));
+        Assert.assertTrue(impl.canCachedResponseBeUsed(host, request, entry, DateUtils.toDate(now)));
     }
 
     @Test
     public void testNotSuitableIfCacheEntryIsNotFresh() {
         final Header[] headers = {
-                new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
                 new BasicHeader("Cache-Control", "max-age=5"),
                 new BasicHeader("Content-Length","128")
         };
         entry = getEntry(headers);
-        Assert.assertFalse(impl.canCachedResponseBeUsed(host, request, entry, now));
+        Assert.assertFalse(impl.canCachedResponseBeUsed(host, request, entry, DateUtils.toDate(now)));
     }
 
     @Test
     public void testNotSuitableIfRequestHasNoCache() {
         request.addHeader("Cache-Control", "no-cache");
         final Header[] headers = {
-                new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
                 new BasicHeader("Cache-Control", "max-age=3600"),
                 new BasicHeader("Content-Length","128")
         };
         entry = getEntry(headers);
-        Assert.assertFalse(impl.canCachedResponseBeUsed(host, request, entry, now));
+        Assert.assertFalse(impl.canCachedResponseBeUsed(host, request, entry, DateUtils.toDate(now)));
     }
 
     @Test
     public void testNotSuitableIfAgeExceedsRequestMaxAge() {
         request.addHeader("Cache-Control", "max-age=10");
         final Header[] headers = {
-                new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
                 new BasicHeader("Cache-Control", "max-age=3600"),
                 new BasicHeader("Content-Length","128")
         };
         entry = getEntry(headers);
-        Assert.assertFalse(impl.canCachedResponseBeUsed(host, request, entry, now));
+        Assert.assertFalse(impl.canCachedResponseBeUsed(host, request, entry, DateUtils.toDate(now)));
     }
 
     @Test
     public void testSuitableIfFreshAndAgeIsUnderRequestMaxAge() {
         request.addHeader("Cache-Control", "max-age=15");
         final Header[] headers = {
-                new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
                 new BasicHeader("Cache-Control", "max-age=3600"),
                 new BasicHeader("Content-Length","128")
         };
         entry = getEntry(headers);
-        Assert.assertTrue(impl.canCachedResponseBeUsed(host, request, entry, now));
+        Assert.assertTrue(impl.canCachedResponseBeUsed(host, request, entry, DateUtils.toDate(now)));
     }
 
     @Test
     public void testSuitableIfFreshAndFreshnessLifetimeGreaterThanRequestMinFresh() {
         request.addHeader("Cache-Control", "min-fresh=10");
         final Header[] headers = {
-                new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
                 new BasicHeader("Cache-Control", "max-age=3600"),
                 new BasicHeader("Content-Length","128")
         };
         entry = getEntry(headers);
-        Assert.assertTrue(impl.canCachedResponseBeUsed(host, request, entry, now));
+        Assert.assertTrue(impl.canCachedResponseBeUsed(host, request, entry, DateUtils.toDate(now)));
     }
 
     @Test
     public void testNotSuitableIfFreshnessLifetimeLessThanRequestMinFresh() {
         request.addHeader("Cache-Control", "min-fresh=10");
         final Header[] headers = {
-                new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
                 new BasicHeader("Cache-Control", "max-age=15"),
                 new BasicHeader("Content-Length","128")
         };
         entry = getEntry(headers);
-        Assert.assertFalse(impl.canCachedResponseBeUsed(host, request, entry, now));
+        Assert.assertFalse(impl.canCachedResponseBeUsed(host, request, entry, DateUtils.toDate(now)));
     }
 
     @Test
     public void testSuitableEvenIfStaleButPermittedByRequestMaxStale() {
         request.addHeader("Cache-Control", "max-stale=10");
         final Header[] headers = {
-                new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
                 new BasicHeader("Cache-Control", "max-age=5"),
                 new BasicHeader("Content-Length","128")
         };
         entry = getEntry(headers);
-        Assert.assertTrue(impl.canCachedResponseBeUsed(host, request, entry, now));
+        Assert.assertTrue(impl.canCachedResponseBeUsed(host, request, entry, DateUtils.toDate(now)));
     }
 
     @Test
     public void testNotSuitableIfStaleButTooStaleForRequestMaxStale() {
         request.addHeader("Cache-Control", "max-stale=2");
         final Header[] headers = {
-                new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
                 new BasicHeader("Cache-Control", "max-age=5"),
                 new BasicHeader("Content-Length","128")
         };
         entry = getEntry(headers);
-        Assert.assertFalse(impl.canCachedResponseBeUsed(host, request, entry, now));
+        Assert.assertFalse(impl.canCachedResponseBeUsed(host, request, entry, DateUtils.toDate(now)));
     }
 
 
@@ -192,34 +192,34 @@ public class TestCachedResponseSuitabilityChecker {
     public void testMalformedCacheControlMaxAgeRequestHeaderCausesUnsuitableEntry() {
         request.addHeader(new BasicHeader("Cache-Control", "max-age=foo"));
         final Header[] headers = {
-                new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
                 new BasicHeader("Cache-Control", "max-age=3600"),
                 new BasicHeader("Content-Length","128")
         };
         entry = getEntry(headers);
-        Assert.assertFalse(impl.canCachedResponseBeUsed(host, request, entry, now));
+        Assert.assertFalse(impl.canCachedResponseBeUsed(host, request, entry, DateUtils.toDate(now)));
     }
 
     @Test
     public void testMalformedCacheControlMinFreshRequestHeaderCausesUnsuitableEntry() {
         request.addHeader(new BasicHeader("Cache-Control", "min-fresh=foo"));
         final Header[] headers = {
-                new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
                 new BasicHeader("Cache-Control", "max-age=3600"),
                 new BasicHeader("Content-Length","128")
         };
         entry = getEntry(headers);
-        Assert.assertFalse(impl.canCachedResponseBeUsed(host, request, entry, now));
+        Assert.assertFalse(impl.canCachedResponseBeUsed(host, request, entry, DateUtils.toDate(now)));
     }
 
     @Test
     public void testSuitableIfCacheEntryIsHeuristicallyFreshEnough() {
-        final Date oneSecondAgo = new Date(now.getTime() - 1 * 1000L);
-        final Date twentyOneSecondsAgo = new Date(now.getTime() - 21 * 1000L);
+        final Instant oneSecondAgo = now.minusSeconds(1);
+        final Instant twentyOneSecondsAgo = now.minusSeconds(21);
 
         final Header[] headers = {
-                new BasicHeader("Date", DateUtils.formatDate(oneSecondAgo)),
-                new BasicHeader("Last-Modified", DateUtils.formatDate(twentyOneSecondsAgo)),
+                new BasicHeader("Date", DateUtils.formatStandardDate(oneSecondAgo)),
+                new BasicHeader("Last-Modified", DateUtils.formatStandardDate(twentyOneSecondsAgo)),
                 new BasicHeader("Content-Length", "128")
         };
 
@@ -230,13 +230,13 @@ public class TestCachedResponseSuitabilityChecker {
             .setHeuristicCoefficient(0.1f).build();
         impl = new CachedResponseSuitabilityChecker(config);
 
-        Assert.assertTrue(impl.canCachedResponseBeUsed(host, request, entry, now));
+        Assert.assertTrue(impl.canCachedResponseBeUsed(host, request, entry, DateUtils.toDate(now)));
     }
 
     @Test
     public void testSuitableIfCacheEntryIsHeuristicallyFreshEnoughByDefault() {
         final Header[] headers = {
-                new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
                 new BasicHeader("Content-Length", "128")
         };
 
@@ -248,70 +248,70 @@ public class TestCachedResponseSuitabilityChecker {
             .build();
         impl = new CachedResponseSuitabilityChecker(config);
 
-        Assert.assertTrue(impl.canCachedResponseBeUsed(host, request, entry, now));
+        Assert.assertTrue(impl.canCachedResponseBeUsed(host, request, entry, DateUtils.toDate(now)));
     }
 
     @Test
     public void testSuitableIfRequestMethodisHEAD() {
         final HttpRequest headRequest = new BasicHttpRequest("HEAD", "/foo");
         final Header[] headers = {
-                new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
                 new BasicHeader("Cache-Control", "max-age=3600"),
                 new BasicHeader("Content-Length","128")
         };
         entry = getEntry(headers);
 
-        Assert.assertTrue(impl.canCachedResponseBeUsed(host, headRequest, entry, now));
+        Assert.assertTrue(impl.canCachedResponseBeUsed(host, headRequest, entry, DateUtils.toDate(now)));
     }
 
     @Test
     public void testNotSuitableIfRequestMethodIsGETAndEntryResourceIsNull() {
         final Header[] headers = {
-                new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
                 new BasicHeader("Cache-Control", "max-age=3600"),
                 new BasicHeader("Content-Length","128")
         };
         entry = HttpTestUtils.makeHeadCacheEntry(headers);
 
-        Assert.assertFalse(impl.canCachedResponseBeUsed(host, request, entry, now));
+        Assert.assertFalse(impl.canCachedResponseBeUsed(host, request, entry, DateUtils.toDate(now)));
     }
 
     @Test
     public void testNotSuitableForGETIfEntryDoesNotSpecifyARequestMethodOrEntity() {
         impl = new CachedResponseSuitabilityChecker(CacheConfig.custom().build());
         final Header[] headers = {
-                new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
                 new BasicHeader("Cache-Control", "max-age=3600"),
                 new BasicHeader("Content-Length","128")
         };
         entry = HttpTestUtils.makeCacheEntryWithNoRequestMethodOrEntity(headers);
 
-        Assert.assertFalse(impl.canCachedResponseBeUsed(host, request, entry, now));
+        Assert.assertFalse(impl.canCachedResponseBeUsed(host, request, entry, DateUtils.toDate(now)));
     }
 
     @Test
     public void testSuitableForGETIfEntryDoesNotSpecifyARequestMethodButContainsEntity() {
         impl = new CachedResponseSuitabilityChecker(CacheConfig.custom().build());
         final Header[] headers = {
-                new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
                 new BasicHeader("Cache-Control", "max-age=3600"),
                 new BasicHeader("Content-Length","128")
         };
         entry = HttpTestUtils.makeCacheEntryWithNoRequestMethod(headers);
 
-        Assert.assertTrue(impl.canCachedResponseBeUsed(host, request, entry, now));
+        Assert.assertTrue(impl.canCachedResponseBeUsed(host, request, entry, DateUtils.toDate(now)));
     }
 
     @Test
     public void testSuitableForGETIfHeadResponseCachingEnabledAndEntryDoesNotSpecifyARequestMethodButContains204Response() {
         impl = new CachedResponseSuitabilityChecker(CacheConfig.custom().build());
         final Header[] headers = {
-                new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
                 new BasicHeader("Cache-Control", "max-age=3600")
         };
         entry = HttpTestUtils.make204CacheEntryWithNoRequestMethod(headers);
 
-        Assert.assertTrue(impl.canCachedResponseBeUsed(host, request, entry, now));
+        Assert.assertTrue(impl.canCachedResponseBeUsed(host, request, entry, DateUtils.toDate(now)));
     }
 
     @Test
@@ -319,12 +319,12 @@ public class TestCachedResponseSuitabilityChecker {
         final HttpRequest headRequest = new BasicHttpRequest("HEAD", "/foo");
         impl = new CachedResponseSuitabilityChecker(CacheConfig.custom().build());
         final Header[] headers = {
-                new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
                 new BasicHeader("Cache-Control", "max-age=3600"),
                 new BasicHeader("Content-Length","128")
         };
         entry = HttpTestUtils.makeHeadCacheEntryWithNoRequestMethod(headers);
 
-        Assert.assertTrue(impl.canCachedResponseBeUsed(host, headRequest, entry, now));
+        Assert.assertTrue(impl.canCachedResponseBeUsed(host, headRequest, entry, DateUtils.toDate(now)));
     }
 }

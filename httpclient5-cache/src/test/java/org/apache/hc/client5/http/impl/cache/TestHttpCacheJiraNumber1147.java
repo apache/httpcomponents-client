@@ -33,7 +33,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
-import java.util.Date;
+import java.time.Instant;
 
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.cache.CacheResponseStatus;
@@ -102,15 +102,15 @@ public class TestHttpCacheJiraNumber1147 {
         final ClassicHttpRequest get = new HttpGet("http://somehost/");
         final HttpCacheContext context = HttpCacheContext.create();
 
-        final Date now = new Date();
-        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        final Instant now = Instant.now();
+        final Instant tenSecondsAgo = now.minusSeconds(10);
 
         final ClassicHttpResponse response = new BasicClassicHttpResponse(200, "OK");
         response.setEntity(HttpTestUtils.makeBody(128));
         response.setHeader("Content-Length", "128");
         response.setHeader("ETag", "\"etag\"");
         response.setHeader("Cache-Control", "public, max-age=3600");
-        response.setHeader("Last-Modified", DateUtils.formatDate(tenSecondsAgo));
+        response.setHeader("Last-Modified", DateUtils.formatStandardDate(tenSecondsAgo));
 
         when(mockExecChain.proceed(
                 isA(ClassicHttpRequest.class),

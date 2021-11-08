@@ -27,6 +27,8 @@
 package org.apache.hc.client5.http.impl.cache;
 
 import java.io.InputStream;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -237,50 +239,51 @@ public class HttpTestUtils {
         return new ByteArrayEntity(getRandomBytes(nbytes), null);
     }
 
-    public static HttpCacheEntry makeCacheEntry(final Date requestDate, final Date responseDate) {
-        final Date when = new Date((responseDate.getTime() + requestDate.getTime()) / 2);
+    public static HttpCacheEntry makeCacheEntry(final Instant requestDate, final Instant responseDate) {
+        final Duration diff = Duration.between(requestDate, responseDate);
+        final Instant when = requestDate.plusMillis(diff.toMillis() / 2);
         return makeCacheEntry(requestDate, responseDate, getStockHeaders(when));
     }
 
-    public static Header[] getStockHeaders(final Date when) {
-        final Header[] headers = {
-                new BasicHeader("Date", DateUtils.formatDate(when)),
+    public static Header[] getStockHeaders(final Instant when) {
+        return new Header[] {
+                new BasicHeader("Date", DateUtils.formatStandardDate(when)),
                 new BasicHeader("Server", "MockServer/1.0")
         };
-        return headers;
     }
 
-    public static HttpCacheEntry makeCacheEntry(final Date requestDate,
-            final Date responseDate, final Header... headers) {
+    public static HttpCacheEntry makeCacheEntry(final Instant requestDate,
+                                                final Instant responseDate, final Header... headers) {
         final byte[] bytes = getRandomBytes(128);
         return makeCacheEntry(requestDate, responseDate, headers, bytes);
     }
 
-    public static HttpCacheEntry makeCacheEntry(final Date requestDate,
-            final Date responseDate, final Header[] headers, final byte[] bytes) {
-        return makeCacheEntry(requestDate, responseDate, headers, bytes,
-                null);
+    public static HttpCacheEntry makeCacheEntry(final Instant requestDate,
+                                                final Instant responseDate, final Header[] headers, final byte[] bytes) {
+        return makeCacheEntry(requestDate, responseDate, headers, bytes, null);
     }
 
     public static HttpCacheEntry makeCacheEntry(final Map<String,String> variantMap) {
-        final Date now = new Date();
+        final Instant now = Instant.now();
         return makeCacheEntry(now, now, getStockHeaders(now),
                 getRandomBytes(128), variantMap);
     }
 
-    public static HttpCacheEntry makeCacheEntry(final Date requestDate,
-            final Date responseDate, final Header[] headers, final byte[] bytes,
+    public static HttpCacheEntry makeCacheEntry(final Instant requestDate,
+            final Instant responseDate, final Header[] headers, final byte[] bytes,
             final Map<String,String> variantMap) {
-        return new HttpCacheEntry(requestDate, responseDate, HttpStatus.SC_OK, headers, new HeapResource(bytes), variantMap);
+        return new HttpCacheEntry(DateUtils.toDate(requestDate), DateUtils.toDate(responseDate),
+                HttpStatus.SC_OK, headers, new HeapResource(bytes), variantMap);
     }
 
     public static HttpCacheEntry makeCacheEntry(final Header[] headers, final byte[] bytes) {
-        final Date now = new Date();
+        final Instant now = Instant.now();
         return makeCacheEntry(now, now, headers, bytes);
     }
 
     public static HttpCacheEntry makeCacheEntry(final byte[] bytes) {
-        return makeCacheEntry(getStockHeaders(new Date()), bytes);
+        final Instant now = Instant.now();
+        return makeCacheEntry(getStockHeaders(now), bytes);
     }
 
     public static HttpCacheEntry makeCacheEntry(final Header... headers) {
@@ -288,7 +291,7 @@ public class HttpTestUtils {
     }
 
     public static HttpCacheEntry makeCacheEntry() {
-        final Date now = new Date();
+        final Instant now = Instant.now();
         return makeCacheEntry(now, now);
     }
 
@@ -319,16 +322,16 @@ public class HttpTestUtils {
 
     public static ClassicHttpResponse make200Response() {
         final ClassicHttpResponse out = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
-        out.setHeader("Date", DateUtils.formatDate(new Date()));
+        out.setHeader("Date", DateUtils.formatStandardDate(Instant.now()));
         out.setHeader("Server", "MockOrigin/1.0");
         out.setHeader("Content-Length", "128");
         out.setEntity(makeBody(128));
         return out;
     }
 
-    public static final ClassicHttpResponse make200Response(final Date date, final String cacheControl) {
+    public static final ClassicHttpResponse make200Response(final Instant date, final String cacheControl) {
         final ClassicHttpResponse response = HttpTestUtils.make200Response();
-        response.setHeader("Date", DateUtils.formatDate(date));
+        response.setHeader("Date", DateUtils.formatStandardDate(date));
         response.setHeader("Cache-Control",cacheControl);
         response.setHeader("Etag","\"etag\"");
         return response;

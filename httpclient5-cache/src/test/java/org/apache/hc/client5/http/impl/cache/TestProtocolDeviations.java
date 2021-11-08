@@ -27,7 +27,7 @@
 package org.apache.hc.client5.http.impl.cache;
 
 import java.io.IOException;
-import java.util.Date;
+import java.time.Instant;
 import java.util.Random;
 
 import org.apache.hc.client5.http.ClientProtocolException;
@@ -79,13 +79,9 @@ public class TestProtocolDeviations {
     HttpHost host;
     HttpRoute route;
     @Mock
-    HttpEntity mockEntity;
-    @Mock
     ExecRuntime mockEndpoint;
     @Mock
     ExecChain mockExecChain;
-    @Mock
-    HttpCache mockCache;
     ClassicHttpRequest request;
     HttpCacheContext context;
     ClassicHttpResponse originResponse;
@@ -125,7 +121,7 @@ public class TestProtocolDeviations {
 
     private ClassicHttpResponse make200Response() {
         final ClassicHttpResponse out = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
-        out.setHeader("Date", DateUtils.formatDate(new Date()));
+        out.setHeader("Date", DateUtils.formatStandardDate(Instant.now()));
         out.setHeader("Server", "MockOrigin/1.0");
         out.setEntity(makeBody(128));
         return out;

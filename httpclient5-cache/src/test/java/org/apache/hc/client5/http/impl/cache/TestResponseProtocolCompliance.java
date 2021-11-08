@@ -26,7 +26,7 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
-import java.util.Date;
+import java.time.Instant;
 
 import org.apache.hc.client5.http.ClientProtocolException;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
@@ -50,7 +50,7 @@ public class TestResponseProtocolCompliance {
     }
 
     private void setMinimalResponseHeaders(final HttpResponse resp) {
-        resp.setHeader("Date", DateUtils.formatDate(new Date()));
+        resp.setHeader("Date", DateUtils.formatStandardDate(Instant.now()));
         resp.setHeader("Server", "MyServer/1.0");
     }
 

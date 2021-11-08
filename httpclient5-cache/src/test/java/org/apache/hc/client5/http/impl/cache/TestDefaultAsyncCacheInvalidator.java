@@ -31,7 +31,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import java.net.URI;
-import java.util.Date;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -74,13 +74,13 @@ public class TestDefaultAsyncCacheInvalidator {
     @Mock
     private Cancellable cancellable;
 
-    private Date now;
-    private Date tenSecondsAgo;
+    private Instant now;
+    private Instant tenSecondsAgo;
 
     @Before
     public void setUp() {
-        now = new Date();
-        tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        now = Instant.now();
+        tenSecondsAgo = now.minusSeconds(10);
 
         when(cacheKeyResolver.resolve(ArgumentMatchers.any())).thenAnswer((Answer<String>) invocation -> {
             final URI uri = invocation.getArgument(0);
@@ -352,12 +352,12 @@ public class TestDefaultAsyncCacheInvalidator {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_OK);
         response.setHeader("ETag","\"new-etag\"");
-        response.setHeader("Date", DateUtils.formatDate(now));
+        response.setHeader("Date", DateUtils.formatStandardDate(now));
         final String key = "http://foo.example.com:80/bar";
         response.setHeader("Content-Location", key);
 
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(new Header[] {
-           new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
+           new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
            new BasicHeader("ETag", "\"old-etag\"")
         });
 
@@ -374,12 +374,12 @@ public class TestDefaultAsyncCacheInvalidator {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         final HttpResponse response = new BasicHttpResponse(201);
         response.setHeader("ETag","\"new-etag\"");
-        response.setHeader("Date", DateUtils.formatDate(now));
+        response.setHeader("Date", DateUtils.formatStandardDate(now));
         final String key = "http://foo.example.com:80/bar";
         response.setHeader("Location", key);
 
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(new Header[] {
-           new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
+           new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
            new BasicHeader("ETag", "\"old-etag\"")
         });
 
@@ -396,7 +396,7 @@ public class TestDefaultAsyncCacheInvalidator {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_BAD_REQUEST, "Bad Request");
         response.setHeader("ETag","\"new-etag\"");
-        response.setHeader("Date", DateUtils.formatDate(now));
+        response.setHeader("Date", DateUtils.formatStandardDate(now));
         final String key = "http://foo.example.com:80/bar";
         response.setHeader("Content-Location", key);
 
@@ -410,12 +410,12 @@ public class TestDefaultAsyncCacheInvalidator {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_OK);
         response.setHeader("ETag","\"new-etag\"");
-        response.setHeader("Date", DateUtils.formatDate(now));
+        response.setHeader("Date", DateUtils.formatStandardDate(now));
         final String key = "http://foo.example.com:80/bar";
         response.setHeader("Content-Location", "http://foo.example.com/bar");
 
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(new Header[] {
-           new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
+           new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
            new BasicHeader("ETag", "\"old-etag\"")
         });
 
@@ -432,12 +432,12 @@ public class TestDefaultAsyncCacheInvalidator {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_OK);
         response.setHeader("ETag","\"new-etag\"");
-        response.setHeader("Date", DateUtils.formatDate(now));
+        response.setHeader("Date", DateUtils.formatStandardDate(now));
         final String key = "http://foo.example.com:80/bar";
         response.setHeader("Content-Location", "/bar");
 
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(new Header[] {
-           new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
+           new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
            new BasicHeader("ETag", "\"old-etag\"")
         });
 
@@ -454,12 +454,12 @@ public class TestDefaultAsyncCacheInvalidator {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_OK);
         response.setHeader("ETag","\"new-etag\"");
-        response.setHeader("Date", DateUtils.formatDate(now));
+        response.setHeader("Date", DateUtils.formatStandardDate(now));
         final String key = "http://baz.example.com:80/bar";
         response.setHeader("Content-Location", key);
 
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(new Header[] {
-           new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
+           new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
            new BasicHeader("ETag", "\"old-etag\"")
         });
 
@@ -475,12 +475,12 @@ public class TestDefaultAsyncCacheInvalidator {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_OK);
         response.setHeader("ETag","\"same-etag\"");
-        response.setHeader("Date", DateUtils.formatDate(now));
+        response.setHeader("Date", DateUtils.formatStandardDate(now));
         final String key = "http://foo.example.com:80/bar";
         response.setHeader("Content-Location", key);
 
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(new Header[] {
-           new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
+           new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
            new BasicHeader("ETag", "\"same-etag\"")
         });
 
@@ -496,12 +496,12 @@ public class TestDefaultAsyncCacheInvalidator {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_OK);
         response.setHeader("ETag","\"new-etag\"");
-        response.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+        response.setHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo));
         final String key = "http://foo.example.com:80/bar";
         response.setHeader("Content-Location", key);
 
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(new Header[] {
-           new BasicHeader("Date", DateUtils.formatDate(now)),
+           new BasicHeader("Date", DateUtils.formatStandardDate(now)),
            new BasicHeader("ETag", "\"old-etag\"")
         });
 
@@ -518,7 +518,7 @@ public class TestDefaultAsyncCacheInvalidator {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_OK);
         response.setHeader("ETag","\"new-etag\"");
-        response.setHeader("Date", DateUtils.formatDate(now));
+        response.setHeader("Date", DateUtils.formatStandardDate(now));
         final String key = "http://foo.example.com:80/bar";
         response.setHeader("Content-Location", key);
 
@@ -535,12 +535,12 @@ public class TestDefaultAsyncCacheInvalidator {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_OK);
         response.removeHeaders("ETag");
-        response.setHeader("Date", DateUtils.formatDate(now));
+        response.setHeader("Date", DateUtils.formatStandardDate(now));
         final String key = "http://foo.example.com:80/bar";
         response.setHeader("Content-Location", key);
 
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(new Header[] {
-           new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
+           new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
            new BasicHeader("ETag", "\"old-etag\"")
         });
 
@@ -557,12 +557,12 @@ public class TestDefaultAsyncCacheInvalidator {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_OK);
         response.setHeader("ETag", "\"some-etag\"");
-        response.setHeader("Date", DateUtils.formatDate(now));
+        response.setHeader("Date", DateUtils.formatStandardDate(now));
         final String key = "http://foo.example.com:80/bar";
         response.setHeader("Content-Location", key);
 
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(new Header[] {
-           new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
+           new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
         });
 
         cacheReturnsEntryForUri(key, entry);
@@ -584,7 +584,7 @@ public class TestDefaultAsyncCacheInvalidator {
 
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(new Header[] {
                 new BasicHeader("ETag", "\"old-etag\""),
-                new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
         });
 
         cacheReturnsEntryForUri(key, entry);
@@ -601,7 +601,7 @@ public class TestDefaultAsyncCacheInvalidator {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_OK);
         response.setHeader("ETag","\"new-etag\"");
-        response.setHeader("Date", DateUtils.formatDate(now));
+        response.setHeader("Date", DateUtils.formatStandardDate(now));
         final String key = "http://foo.example.com:80/bar";
         response.setHeader("Content-Location", key);
 
@@ -629,7 +629,7 @@ public class TestDefaultAsyncCacheInvalidator {
 
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(new Header[] {
                 new BasicHeader("ETag", "\"old-etag\""),
-                new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo))
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo))
         });
 
         cacheReturnsEntryForUri(key, entry);
@@ -646,7 +646,7 @@ public class TestDefaultAsyncCacheInvalidator {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_OK);
         response.setHeader("ETag","\"new-etag\"");
-        response.setHeader("Date", DateUtils.formatDate(now));
+        response.setHeader("Date", DateUtils.formatStandardDate(now));
         final String key = "http://foo.example.com:80/bar";
         response.setHeader("Content-Location", key);
 
