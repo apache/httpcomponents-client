@@ -32,7 +32,6 @@ import java.util.Locale;
 import java.util.Set;
 
 import org.apache.hc.client5.http.classic.methods.HttpGet;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.http.ClassicHttpRequest;
@@ -80,10 +79,11 @@ public class TestMinimalClientRequestExecution extends LocalServerTestBase {
         final HttpClientContext context = HttpClientContext.create();
         for (int i = 0; i < 10; i++) {
             final HttpGet request = new HttpGet("/");
-            try (final CloseableHttpResponse response = this.httpclient.execute(target, request, context)) {
+            this.httpclient.execute(target, request, context, response -> {
                 EntityUtils.consume(response.getEntity());
                 Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
-            }
+                return null;
+            });
 
             final HttpRequest reqWrapper = context.getRequest();
             Assert.assertNotNull(reqWrapper);
@@ -108,10 +108,11 @@ public class TestMinimalClientRequestExecution extends LocalServerTestBase {
 
         for (int i = 0; i < 10; i++) {
             final HttpGet request = new HttpGet("/");
-            try (final CloseableHttpResponse response = this.httpclient.execute(target, request)) {
+            this.httpclient.execute(target, request, response -> {
                 EntityUtils.consume(response.getEntity());
                 Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
-            }
+                return null;
+            });
         }
     }
 

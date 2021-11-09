@@ -33,7 +33,6 @@ import org.apache.hc.client5.http.ClientProtocolException;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.impl.IdleConnectionEvictor;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.util.TimeValue;
@@ -95,14 +94,19 @@ public class TestIdleConnectionEviction extends LocalServerTestBase {
             try {
                 for (int i = 0; i < this.count; i++) {
                     final HttpGet httpget = new HttpGet(this.requestUri);
-                    try (final ClassicHttpResponse response = this.httpclient.execute(this.target, httpget)) {
+                    this.httpclient.execute(this.target, httpget, response -> {
                         final int status = response.getCode();
                         if (status != 200) {
                             throw new ClientProtocolException("Unexpected status code: " + status);
                         }
                         EntityUtils.consume(response.getEntity());
-                        Thread.sleep(10);
-                    }
+                        try {
+                            Thread.sleep(10);
+                        } catch (final InterruptedException ex) {
+                            Thread.currentThread().interrupt();
+                        }
+                        return null;
+                    });
                 }
             } catch (final Exception ex) {
                 this.ex = ex;

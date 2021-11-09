@@ -27,7 +27,6 @@
 package org.apache.hc.client5.testing.sync;
 
 import org.apache.hc.client5.http.classic.methods.HttpGet;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.io.BasicHttpClientConnectionManager;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
@@ -42,10 +41,11 @@ public class TestBasicConnectionManager extends LocalServerTestBase {
 
         final HttpHost target = start();
         final HttpGet get = new HttpGet("/random/1024");
-        try (CloseableHttpResponse response = this.httpclient.execute(target, get)) {
+        this.httpclient.execute(target, get, response -> {
             Assert.assertEquals(200, response.getCode());
             EntityUtils.consume(response.getEntity());
-        }
+            return null;
+        });
     }
 
     @Test

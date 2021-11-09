@@ -168,10 +168,11 @@ public class TestSPNegoScheme extends LocalServerTestBase {
 
         final String s = "/path";
         final HttpGet httpget = new HttpGet(s);
-        final ClassicHttpResponse response = this.httpclient.execute(target, httpget);
-        EntityUtils.consume(response.getEntity());
-
-        Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
+        this.httpclient.execute(target, httpget, response -> {
+            EntityUtils.consume(response.getEntity());
+            Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
+            return null;
+        });
     }
 
     /**
@@ -199,10 +200,12 @@ public class TestSPNegoScheme extends LocalServerTestBase {
 
         final String s = "/path";
         final HttpGet httpget = new HttpGet(s);
-        final ClassicHttpResponse response = this.httpclient.execute(target, httpget);
-        EntityUtils.consume(response.getEntity());
+        this.httpclient.execute(target, httpget, response -> {
+            EntityUtils.consume(response.getEntity());
+            Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
+            return null;
+        });
 
-        Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
     }
 
 }

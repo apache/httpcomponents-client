@@ -48,7 +48,6 @@ import org.apache.hc.client5.testing.classic.RedirectingDecorator;
 import org.apache.hc.client5.testing.redirect.Redirect;
 import org.apache.hc.core5.function.Decorator;
 import org.apache.hc.core5.http.ClassicHttpRequest;
-import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHeaders;
@@ -80,19 +79,18 @@ public class TestRedirects extends LocalServerTestBase {
 
         final HttpClientContext context = HttpClientContext.create();
         final HttpGet httpget = new HttpGet("/oldlocation/100");
-        try (final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context)) {
-            final HttpRequest reqWrapper = context.getRequest();
-
+        this.httpclient.execute(target, httpget, context, response -> {
             Assert.assertEquals(HttpStatus.SC_MULTIPLE_CHOICES, response.getCode());
-            Assert.assertEquals(new URIBuilder().setHttpHost(target).setPath("/oldlocation/100").build(),
-                    reqWrapper.getUri());
-
-            final RedirectLocations redirects = context.getRedirectLocations();
-            Assert.assertNotNull(redirects);
-            Assert.assertEquals(0, redirects.size());
-
             EntityUtils.consume(response.getEntity());
-        }
+            return null;
+        });
+        final HttpRequest reqWrapper = context.getRequest();
+        Assert.assertEquals(new URIBuilder().setHttpHost(target).setPath("/oldlocation/100").build(),
+                reqWrapper.getUri());
+
+        final RedirectLocations redirects = context.getRedirectLocations();
+        Assert.assertNotNull(redirects);
+        Assert.assertEquals(0, redirects.size());
     }
 
     @Test
@@ -104,19 +102,19 @@ public class TestRedirects extends LocalServerTestBase {
 
         final HttpClientContext context = HttpClientContext.create();
         final HttpGet httpget = new HttpGet("/oldlocation/100");
-        try (final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context)) {
-            final HttpRequest reqWrapper = context.getRequest();
-
+        this.httpclient.execute(target, httpget, context, response -> {
             Assert.assertEquals(HttpStatus.SC_MULTIPLE_CHOICES, response.getCode());
-            Assert.assertEquals(new URIBuilder().setHttpHost(target).setPath("/oldlocation/100").build(),
-                    reqWrapper.getUri());
-
-            final RedirectLocations redirects = context.getRedirectLocations();
-            Assert.assertNotNull(redirects);
-            Assert.assertEquals(0, redirects.size());
-
             EntityUtils.consume(response.getEntity());
-        }
+            return null;
+        });
+        final HttpRequest reqWrapper = context.getRequest();
+
+        Assert.assertEquals(new URIBuilder().setHttpHost(target).setPath("/oldlocation/100").build(),
+                reqWrapper.getUri());
+
+        final RedirectLocations redirects = context.getRedirectLocations();
+        Assert.assertNotNull(redirects);
+        Assert.assertEquals(0, redirects.size());
     }
 
     @Test
@@ -129,22 +127,22 @@ public class TestRedirects extends LocalServerTestBase {
 
         final HttpGet httpget = new HttpGet("/oldlocation/100");
 
-        try (final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context)) {
-            final HttpRequest reqWrapper = context.getRequest();
-
+        this.httpclient.execute(target, httpget, context, response -> {
             Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
-            Assert.assertEquals(new URIBuilder().setHttpHost(target).setPath("/random/100").build(),
-                    reqWrapper.getUri());
-
-            final RedirectLocations redirects = context.getRedirectLocations();
-            Assert.assertNotNull(redirects);
-            Assert.assertEquals(1, redirects.size());
-
-            final URI redirect = new URIBuilder().setHttpHost(target).setPath("/random/100").build();
-            Assert.assertTrue(redirects.contains(redirect));
-
             EntityUtils.consume(response.getEntity());
-        }
+            return null;
+        });
+        final HttpRequest reqWrapper = context.getRequest();
+
+        Assert.assertEquals(new URIBuilder().setHttpHost(target).setPath("/random/100").build(),
+                reqWrapper.getUri());
+
+        final RedirectLocations redirects = context.getRedirectLocations();
+        Assert.assertNotNull(redirects);
+        Assert.assertEquals(1, redirects.size());
+
+        final URI redirect = new URIBuilder().setHttpHost(target).setPath("/random/100").build();
+        Assert.assertTrue(redirects.contains(redirect));
     }
 
     @Test
@@ -157,15 +155,16 @@ public class TestRedirects extends LocalServerTestBase {
 
         final HttpGet httpget = new HttpGet("/oldlocation/50");
 
-        try (final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context)) {
-            final HttpRequest reqWrapper = context.getRequest();
-
+        this.httpclient.execute(target, httpget, context, response -> {
             Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
-            Assert.assertEquals(new URIBuilder().setHttpHost(target).setPath("/random/50").build(),
-                    reqWrapper.getUri());
-
             EntityUtils.consume(response.getEntity());
-        }
+            return null;
+        });
+        final HttpRequest reqWrapper = context.getRequest();
+
+        Assert.assertEquals(new URIBuilder().setHttpHost(target).setPath("/random/50").build(),
+                reqWrapper.getUri());
+
     }
 
     @Test
@@ -184,14 +183,15 @@ public class TestRedirects extends LocalServerTestBase {
 
         final HttpGet httpget = new HttpGet("/oldlocation/100");
 
-        try (final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context)) {
+        this.httpclient.execute(target, httpget, context, response -> {
             final HttpRequest reqWrapper = context.getRequest();
 
             Assert.assertEquals(HttpStatus.SC_MOVED_TEMPORARILY, response.getCode());
             Assert.assertEquals("/oldlocation/100", reqWrapper.getRequestUri());
 
             EntityUtils.consume(response.getEntity());
-        }
+            return null;
+        });
     }
 
     @Test
@@ -204,15 +204,15 @@ public class TestRedirects extends LocalServerTestBase {
 
         final HttpGet httpget = new HttpGet("/oldlocation/123");
 
-        try (final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context)) {
-            final HttpRequest reqWrapper = context.getRequest();
-
+        this.httpclient.execute(target, httpget, context, response -> {
             Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
-            Assert.assertEquals(new URIBuilder().setHttpHost(target).setPath("/random/123").build(),
-                    reqWrapper.getUri());
-
             EntityUtils.consume(response.getEntity());
-        }
+            return null;
+        });
+        final HttpRequest reqWrapper = context.getRequest();
+
+        Assert.assertEquals(new URIBuilder().setHttpHost(target).setPath("/random/123").build(),
+                reqWrapper.getUri());
     }
 
     @Test
@@ -228,19 +228,19 @@ public class TestRedirects extends LocalServerTestBase {
 
         final HttpGet httpget = new HttpGet("/oldlocation/stuff");
 
-        try (final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context)) {
-            final HttpRequest reqWrapper = context.getRequest();
-
+        this.httpclient.execute(target, httpget, context, response -> {
             Assert.assertEquals(HttpStatus.SC_NOT_MODIFIED, response.getCode());
-            Assert.assertEquals(new URIBuilder().setHttpHost(target).setPath("/oldlocation/stuff").build(),
-                    reqWrapper.getUri());
-
-            final RedirectLocations redirects = context.getRedirectLocations();
-            Assert.assertNotNull(redirects);
-            Assert.assertEquals(0, redirects.size());
-
             EntityUtils.consume(response.getEntity());
-        }
+            return null;
+        });
+        final HttpRequest reqWrapper = context.getRequest();
+
+        Assert.assertEquals(new URIBuilder().setHttpHost(target).setPath("/oldlocation/stuff").build(),
+                reqWrapper.getUri());
+
+        final RedirectLocations redirects = context.getRedirectLocations();
+        Assert.assertNotNull(redirects);
+        Assert.assertEquals(0, redirects.size());
     }
 
     @Test
@@ -256,19 +256,19 @@ public class TestRedirects extends LocalServerTestBase {
 
         final HttpGet httpget = new HttpGet("/oldlocation/stuff");
 
-        try (final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context)) {
-            final HttpRequest reqWrapper = context.getRequest();
-
+        this.httpclient.execute(target, httpget, context, response -> {
             Assert.assertEquals(HttpStatus.SC_USE_PROXY, response.getCode());
-            Assert.assertEquals(new URIBuilder().setHttpHost(target).setPath("/oldlocation/stuff").build(),
-                    reqWrapper.getUri());
-
-            final RedirectLocations redirects = context.getRedirectLocations();
-            Assert.assertNotNull(redirects);
-            Assert.assertEquals(0, redirects.size());
-
             EntityUtils.consume(response.getEntity());
-        }
+            return null;
+        });
+        final HttpRequest reqWrapper = context.getRequest();
+
+        Assert.assertEquals(new URIBuilder().setHttpHost(target).setPath("/oldlocation/stuff").build(),
+                reqWrapper.getUri());
+
+        final RedirectLocations redirects = context.getRedirectLocations();
+        Assert.assertNotNull(redirects);
+        Assert.assertEquals(0, redirects.size());
     }
 
     @Test
@@ -281,15 +281,15 @@ public class TestRedirects extends LocalServerTestBase {
 
         final HttpGet httpget = new HttpGet("/oldlocation/123");
 
-        try (final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context)) {
-            final HttpRequest reqWrapper = context.getRequest();
-
+        this.httpclient.execute(target, httpget, context, response -> {
             Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
-            Assert.assertEquals(new URIBuilder().setHttpHost(target).setPath("/random/123").build(),
-                    reqWrapper.getUri());
-
             EntityUtils.consume(response.getEntity());
-        }
+            return null;
+        });
+        final HttpRequest reqWrapper = context.getRequest();
+
+        Assert.assertEquals(new URIBuilder().setHttpHost(target).setPath("/random/123").build(),
+                reqWrapper.getUri());
     }
 
     @Test
@@ -307,7 +307,7 @@ public class TestRedirects extends LocalServerTestBase {
         final HttpGet httpget = new HttpGet("/circular-oldlocation/123");
         httpget.setConfig(config);
         final ClientProtocolException exception = Assert.assertThrows(ClientProtocolException.class, () ->
-                this.httpclient.execute(target, httpget));
+                this.httpclient.execute(target, httpget, response -> null));
         Assert.assertTrue(exception.getCause() instanceof RedirectException);
     }
 
@@ -325,7 +325,7 @@ public class TestRedirects extends LocalServerTestBase {
         final HttpGet httpget = new HttpGet("/circular-oldlocation/123");
         httpget.setConfig(config);
         final ClientProtocolException exception = Assert.assertThrows(ClientProtocolException.class, () ->
-                this.httpclient.execute(target, httpget));
+                this.httpclient.execute(target, httpget, response -> null));
         Assert.assertTrue(exception.getCause() instanceof CircularRedirectException);
     }
 
@@ -340,17 +340,16 @@ public class TestRedirects extends LocalServerTestBase {
         final HttpPost httppost = new HttpPost("/oldlocation/stuff");
         httppost.setEntity(new StringEntity("stuff"));
 
-        try (final ClassicHttpResponse response = this.httpclient.execute(target, httppost, context)) {
-            final HttpRequest reqWrapper = context.getRequest();
-
+        this.httpclient.execute(target, httppost, context, response -> {
             Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
-            Assert.assertEquals(new URIBuilder().setHttpHost(target).setPath("/echo/stuff").build(),
-                    reqWrapper.getUri());
-            Assert.assertEquals("GET", reqWrapper.getMethod());
-
             EntityUtils.consume(response.getEntity());
-        }
+            return null;
+        });
+        final HttpRequest reqWrapper = context.getRequest();
 
+        Assert.assertEquals(new URIBuilder().setHttpHost(target).setPath("/echo/stuff").build(),
+                reqWrapper.getUri());
+        Assert.assertEquals("GET", reqWrapper.getMethod());
     }
 
     @Test
@@ -369,15 +368,15 @@ public class TestRedirects extends LocalServerTestBase {
 
         final HttpGet httpget = new HttpGet("/oldlocation/stuff");
 
-        try (final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context)) {
-            final HttpRequest reqWrapper = context.getRequest();
-
+        this.httpclient.execute(target, httpget, context, response -> {
             Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
-            Assert.assertEquals(new URIBuilder().setHttpHost(target).setPath("/random/100").build(),
-                    reqWrapper.getUri());
-
             EntityUtils.consume(response.getEntity());
-        }
+            return null;
+        });
+        final HttpRequest reqWrapper = context.getRequest();
+
+        Assert.assertEquals(new URIBuilder().setHttpHost(target).setPath("/random/100").build(),
+                reqWrapper.getUri());
     }
 
     @Test
@@ -397,16 +396,15 @@ public class TestRedirects extends LocalServerTestBase {
 
         final HttpGet httpget = new HttpGet("/random/oldlocation");
 
-        try (final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context)) {
-            final HttpRequest reqWrapper = context.getRequest();
-
+        this.httpclient.execute(target, httpget, context, response -> {
             Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
-            Assert.assertEquals(new URIBuilder().setHttpHost(target).setPath("/random/100").build(),
-                    reqWrapper.getUri());
-
             EntityUtils.consume(response.getEntity());
-        }
+            return null;
+        });
+        final HttpRequest reqWrapper = context.getRequest();
 
+        Assert.assertEquals(new URIBuilder().setHttpHost(target).setPath("/random/100").build(),
+                reqWrapper.getUri());
     }
 
     @Test
@@ -425,7 +423,7 @@ public class TestRedirects extends LocalServerTestBase {
         final HttpGet httpget = new HttpGet("/oldlocation");
 
         final ClientProtocolException exception = Assert.assertThrows(ClientProtocolException.class, () ->
-                this.httpclient.execute(target, httpget));
+                this.httpclient.execute(target, httpget, response -> null));
         MatcherAssert.assertThat(exception.getCause(), CoreMatchers.instanceOf(HttpException.class));
     }
 
@@ -445,7 +443,7 @@ public class TestRedirects extends LocalServerTestBase {
         final HttpGet httpget = new HttpGet("/oldlocation");
 
         final ClientProtocolException exception = Assert.assertThrows(ClientProtocolException.class, () ->
-                this.httpclient.execute(target, httpget));
+                this.httpclient.execute(target, httpget, response -> null));
         MatcherAssert.assertThat(exception.getCause(), CoreMatchers.instanceOf(ProtocolException.class));
     }
 
@@ -467,18 +465,18 @@ public class TestRedirects extends LocalServerTestBase {
         context.setCookieStore(cookieStore);
         final HttpGet httpget = new HttpGet("/oldlocation/100");
 
-        try (final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context)) {
-            final HttpRequest reqWrapper = context.getRequest();
-
+        this.httpclient.execute(target, httpget, context, response -> {
             Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
-            Assert.assertEquals(new URIBuilder().setHttpHost(target).setPath("/random/100").build(),
-                    reqWrapper.getUri());
-
-            final Header[] headers = reqWrapper.getHeaders("Cookie");
-            Assert.assertEquals("There can only be one (cookie)", 1, headers.length);
-
             EntityUtils.consume(response.getEntity());
-        }
+            return null;
+        });
+        final HttpRequest reqWrapper = context.getRequest();
+
+        Assert.assertEquals(new URIBuilder().setHttpHost(target).setPath("/random/100").build(),
+                reqWrapper.getUri());
+
+        final Header[] headers = reqWrapper.getHeaders("Cookie");
+        Assert.assertEquals("There can only be one (cookie)", 1, headers.length);
     }
 
     @Test
@@ -493,18 +491,18 @@ public class TestRedirects extends LocalServerTestBase {
 
         final HttpGet httpget = new HttpGet("/oldlocation/100");
 
-        try (final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context)) {
-            final HttpRequest reqWrapper = context.getRequest();
-
+        this.httpclient.execute(target, httpget, context, response -> {
             Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
-            Assert.assertEquals(new URIBuilder().setHttpHost(target).setPath("/random/100").build(),
-                    reqWrapper.getUri());
-
-            final Header header = reqWrapper.getFirstHeader(HttpHeaders.USER_AGENT);
-            Assert.assertEquals("my-test-client", header.getValue());
-
             EntityUtils.consume(response.getEntity());
-        }
+            return null;
+        });
+        final HttpRequest reqWrapper = context.getRequest();
+
+        Assert.assertEquals(new URIBuilder().setHttpHost(target).setPath("/random/100").build(),
+                reqWrapper.getUri());
+
+        final Header header = reqWrapper.getFirstHeader(HttpHeaders.USER_AGENT);
+        Assert.assertEquals("my-test-client", header.getValue());
     }
 
     @Test
@@ -538,15 +536,15 @@ public class TestRedirects extends LocalServerTestBase {
 
         final HttpGet httpget = new HttpGet("/oldlocation/100");
 
-        try (final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context)) {
-            final HttpRequest reqWrapper = context.getRequest();
-
+        this.httpclient.execute(target, httpget, context, response -> {
             Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
-            Assert.assertEquals(new URIBuilder().setHttpHost(target).setPath("/random/100").build(),
-                    reqWrapper.getUri());
-
             EntityUtils.consume(response.getEntity());
-        }
+            return null;
+        });
+        final HttpRequest reqWrapper = context.getRequest();
+
+        Assert.assertEquals(new URIBuilder().setHttpHost(target).setPath("/random/100").build(),
+                reqWrapper.getUri());
 
         MatcherAssert.assertThat(values.poll(), CoreMatchers.equalTo("gzip, x-gzip, deflate"));
         MatcherAssert.assertThat(values.poll(), CoreMatchers.equalTo("gzip, x-gzip, deflate"));

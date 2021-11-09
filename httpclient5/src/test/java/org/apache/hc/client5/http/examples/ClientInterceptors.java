@@ -33,7 +33,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.impl.ChainElement;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.ContentType;
@@ -46,6 +45,7 @@ import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
+import org.apache.hc.core5.http.message.StatusLine;
 import org.apache.hc.core5.http.protocol.HttpContext;
 
 /**
@@ -92,11 +92,12 @@ public class ClientInterceptors {
 
                 System.out.println("Executing request " + httpget.getMethod() + " " + httpget.getUri());
 
-                try (final CloseableHttpResponse response = httpclient.execute(httpget)) {
+                httpclient.execute(httpget, response -> {
                     System.out.println("----------------------------------------");
-                    System.out.println(response.getCode() + " " + response.getReasonPhrase());
-                    System.out.println(EntityUtils.toString(response.getEntity()));
-                }
+                    System.out.println(httpget + "->" + new StatusLine(response));
+                    EntityUtils.consume(response.getEntity());
+                    return null;
+                });
             }
         }
     }

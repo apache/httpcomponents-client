@@ -33,7 +33,6 @@ import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.cookie.BasicCookieStore;
 import org.apache.hc.client5.http.cookie.Cookie;
 import org.apache.hc.client5.http.cookie.CookieStore;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpStatus;
@@ -96,12 +95,12 @@ public class TestCookieVirtualHost extends LocalServerTestBase {
         context.setCookieStore(cookieStore);
 
         // First request : retrieve a domain cookie from remote server.
-        URI uri = new URI("http://app.mydomain.fr");
-        HttpGet httpRequest = new HttpGet(uri);
-        httpRequest.addHeader("X-Request", "1");
-        try (CloseableHttpResponse response1 = this.httpclient.execute(target, httpRequest, context)) {
-            EntityUtils.consume(response1.getEntity());
-        }
+        final HttpGet request1 = new HttpGet(new URI("http://app.mydomain.fr"));
+        request1.addHeader("X-Request", "1");
+        this.httpclient.execute(target, request1, context, response -> {
+            EntityUtils.consume(response.getEntity());
+            return null;
+        });
 
         // We should have one cookie set on domain.
         final List<Cookie> cookies = cookieStore.getCookies();
@@ -110,20 +109,20 @@ public class TestCookieVirtualHost extends LocalServerTestBase {
         Assert.assertEquals("name1", cookies.get(0).getName());
 
         // Second request : send the cookie back.
-        uri = new URI("http://app.mydomain.fr");
-        httpRequest = new HttpGet(uri);
-        httpRequest.addHeader("X-Request", "2");
-        try (CloseableHttpResponse response2 = this.httpclient.execute(target, httpRequest, context)) {
-            EntityUtils.consume(response2.getEntity());
-        }
+        final HttpGet request2 = new HttpGet(new URI("http://app.mydomain.fr"));
+        request2.addHeader("X-Request", "2");
+        this.httpclient.execute(target, request2, context, response -> {
+            EntityUtils.consume(response.getEntity());
+            return null;
+        });
 
         // Third request : Host header
-        uri = new URI("http://app.mydomain.fr");
-        httpRequest = new HttpGet(uri);
-        httpRequest.addHeader("X-Request", "3");
-        try (CloseableHttpResponse response3 = this.httpclient.execute(target, httpRequest, context)) {
-            EntityUtils.consume(response3.getEntity());
-        }
+        final HttpGet request3 = new HttpGet(new URI("http://app.mydomain.fr"));
+        request3.addHeader("X-Request", "3");
+        this.httpclient.execute(target, request3, context, response -> {
+            EntityUtils.consume(response.getEntity());
+            return null;
+        });
     }
 
 }

@@ -50,7 +50,6 @@ import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.client5.http.cookie.StandardCookieSpec;
 import org.apache.hc.client5.http.impl.auth.CredentialsProviderBuilder;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.ManagedHttpClientConnectionFactory;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
@@ -81,6 +80,7 @@ import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.BasicLineParser;
 import org.apache.hc.core5.http.message.LineParser;
+import org.apache.hc.core5.http.message.StatusLine;
 import org.apache.hc.core5.http.ssl.TLS;
 import org.apache.hc.core5.pool.PoolConcurrencyPolicy;
 import org.apache.hc.core5.pool.PoolReusePolicy;
@@ -238,29 +238,24 @@ public class ClientConfiguration {
             context.setCredentialsProvider(credentialsProvider);
 
             System.out.println("Executing request " + httpget.getMethod() + " " + httpget.getUri());
-            try (final CloseableHttpResponse response = httpclient.execute(httpget, context)) {
+            httpclient.execute(httpget, context, response -> {
                 System.out.println("----------------------------------------");
-                System.out.println(response.getCode() + " " + response.getReasonPhrase());
-                System.out.println(EntityUtils.toString(response.getEntity()));
-
-                // Once the request has been executed the local context can
-                // be used to examine updated state and various objects affected
-                // by the request execution.
-
-                // Last executed request
-                context.getRequest();
-                // Execution route
-                context.getHttpRoute();
-                // Auth exchanges
-                context.getAuthExchanges();
-                // Cookie origin
-                context.getCookieOrigin();
-                // Cookie spec used
-                context.getCookieSpec();
-                // User security token
-                context.getUserToken();
-
-            }
+                System.out.println(httpget + "->" + new StatusLine(response));
+                EntityUtils.consume(response.getEntity());
+                return null;
+            });
+            // Last executed request
+            context.getRequest();
+            // Execution route
+            context.getHttpRoute();
+            // Auth exchanges
+            context.getAuthExchanges();
+            // Cookie origin
+            context.getCookieOrigin();
+            // Cookie spec used
+            context.getCookieSpec();
+            // User security token
+            context.getUserToken();
         }
     }
 

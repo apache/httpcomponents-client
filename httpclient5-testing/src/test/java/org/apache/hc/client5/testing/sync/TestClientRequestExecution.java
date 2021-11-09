@@ -158,16 +158,17 @@ public class TestClientRequestExecution extends LocalServerTestBase {
 
         final HttpGet httpget = new HttpGet("/");
 
-        final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context);
-        EntityUtils.consume(response.getEntity());
+        this.httpclient.execute(target, httpget, context, response -> {
+            EntityUtils.consume(response.getEntity());
+            final HttpRequest reqWrapper = context.getRequest();
 
-        final HttpRequest reqWrapper = context.getRequest();
+            Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
 
-        Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
-
-        final Header[] myheaders = reqWrapper.getHeaders("my-header");
-        Assert.assertNotNull(myheaders);
-        Assert.assertEquals(1, myheaders.length);
+            final Header[] myheaders = reqWrapper.getHeaders("my-header");
+            Assert.assertNotNull(myheaders);
+            Assert.assertEquals(1, myheaders.length);
+            return null;
+        });
     }
 
     @Test
@@ -218,7 +219,7 @@ public class TestClientRequestExecution extends LocalServerTestBase {
                         new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 } ),
                         -1, null));
         Assert.assertThrows(IOException.class, () ->
-                this.httpclient.execute(target, httppost, context));
+                this.httpclient.execute(target, httppost, context, response -> null));
     }
 
     @Test
@@ -229,10 +230,11 @@ public class TestClientRequestExecution extends LocalServerTestBase {
 
         final HttpClientContext context = HttpClientContext.create();
         final ClassicHttpRequest request = new BasicClassicHttpRequest("GET", "{{|boom|}}");
-        final ClassicHttpResponse response = this.httpclient.execute(target, request, context);
-        EntityUtils.consume(response.getEntity());
-
-        Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
+        this.httpclient.execute(target, request, context, response -> {
+            Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
+            EntityUtils.consume(response.getEntity());
+            return null;
+        });
 
         final HttpRequest reqWrapper = context.getRequest();
 
@@ -248,9 +250,11 @@ public class TestClientRequestExecution extends LocalServerTestBase {
         final HttpGet httpget = new HttpGet("/stuff#blahblah");
         final HttpClientContext context = HttpClientContext.create();
 
-        final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context);
-        Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
-        EntityUtils.consume(response.getEntity());
+        this.httpclient.execute(target, httpget, context, response -> {
+            Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
+            EntityUtils.consume(response.getEntity());
+            return null;
+        });
 
         final HttpRequest request = context.getRequest();
         Assert.assertEquals("/stuff", request.getRequestUri());
@@ -273,9 +277,10 @@ public class TestClientRequestExecution extends LocalServerTestBase {
         final HttpGet httpget = new HttpGet(uri);
         final HttpClientContext context = HttpClientContext.create();
 
-        final ClassicHttpResponse response = this.httpclient.execute(httpget, context);
-        Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
-        EntityUtils.consume(response.getEntity());
+        this.httpclient.execute(httpget, context, response -> {
+            Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
+            return null;
+        });
 
         final HttpRequest request = context.getRequest();
         Assert.assertEquals("/stuff", request.getRequestUri());
@@ -298,16 +303,14 @@ public class TestClientRequestExecution extends LocalServerTestBase {
             for (int i = 0; i < 20; i++) {
                 final HttpGet httpget = new HttpGet("/random/1000");
 
-                executorService.schedule(new Runnable() {
+                executorService.schedule(httpget::cancel, 1, TimeUnit.MILLISECONDS);
 
-                    @Override
-                    public void run() {
-                        httpget.cancel();
-                    }
-                }, 1, TimeUnit.MILLISECONDS);
+                try {
+                    this.httpclient.execute(target, httpget, response -> {
+                        EntityUtils.consume(response.getEntity());
+                        return null;
+                    });
 
-                try (final ClassicHttpResponse response = this.httpclient.execute(target, httpget)) {
-                    EntityUtils.consume(response.getEntity());
                 } catch (final Exception ignore) {
                 }
             }
@@ -316,26 +319,20 @@ public class TestClientRequestExecution extends LocalServerTestBase {
             for (int i = 0; i < 20; i++) {
                 final HttpGet httpget = new HttpGet("/random/1000");
 
-                executorService.schedule(new Runnable() {
+                executorService.schedule(httpget::cancel, rnd.nextInt(200), TimeUnit.MILLISECONDS);
 
-                    @Override
-                    public void run() {
-                        httpget.cancel();
-                    }
-                }, rnd.nextInt(200), TimeUnit.MILLISECONDS);
-
-                try (final ClassicHttpResponse response = this.httpclient.execute(target, httpget)) {
+                this.httpclient.execute(target, httpget, response -> {
                     EntityUtils.consume(response.getEntity());
-                } catch (final Exception ignore) {
-                }
-
+                    return null;
+                });
             }
 
             for (int i = 0; i < 5; i++) {
                 final HttpGet httpget = new HttpGet("/random/1000");
-                try (final ClassicHttpResponse response = this.httpclient.execute(target, httpget)) {
+                this.httpclient.execute(target, httpget, response -> {
                     EntityUtils.consume(response.getEntity());
-                }
+                    return null;
+                });
             }
 
         } finally {

@@ -30,7 +30,6 @@ import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.win.WinHttpClients;
 import org.apache.hc.client5.http.impl.win.WindowsNegotiateSchemeGetTokenFail;
@@ -71,9 +70,10 @@ public class TestWindowsNegotiateScheme extends LocalServerTestBase {
 
         final HttpHost target = start();
         final HttpGet httpGet = new HttpGet("/");
-        try (final CloseableHttpResponse response = customClient.execute(target, httpGet)) {
+        customClient.execute(target, httpGet, response -> {
             EntityUtils.consume(response.getEntity());
-        }
+            return null;
+        });
     }
 
 }

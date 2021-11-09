@@ -32,11 +32,12 @@ import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.core5.http.ClassicHttpRequest;
-import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.impl.bootstrap.HttpServer;
 import org.apache.hc.core5.http.impl.bootstrap.ServerBootstrap;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.io.CloseMode;
 import org.junit.After;
 import org.junit.Assert;
@@ -84,7 +85,10 @@ public class TestHttpClientBuilderInterceptors {
     @Test
     public void testAddExecInterceptorLastShouldBeExecuted() throws IOException, HttpException {
         final ClassicHttpRequest request = new HttpPost(uri);
-        final ClassicHttpResponse response = httpClient.execute(request);
+        final HttpResponse response = httpClient.execute(request, httpResponse -> {
+            EntityUtils.consume(httpResponse.getEntity());
+            return httpResponse;
+        });
         Assert.assertEquals(200, response.getCode());
         final Header testFilterHeader = response.getHeader("X-Test-Interceptor");
         Assert.assertNotNull(testFilterHeader);
