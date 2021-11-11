@@ -65,7 +65,7 @@ class CacheUpdateHandler {
     /**
      * Creates a cache entry for the given request, origin response message and response content.
      */
-    public HttpCacheEntry createtCacheEntry(
+    public HttpCacheEntry createCacheEntry(
             final HttpRequest request,
             final HttpResponse originResponse,
             final ByteArrayBuffer content,

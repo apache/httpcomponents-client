@@ -100,7 +100,7 @@ public class DefaultAsyncCacheInvalidator extends CacheInvalidatorBase implement
             final HttpAsyncCacheStorage storage,
             final FutureCallback<Boolean> callback) {
         final String s = HttpCacheSupport.getRequestUri(request, host);
-        final URI uri = HttpCacheSupport.normalizeQuetly(s);
+        final URI uri = HttpCacheSupport.normalizeQuietly(s);
         final String cacheKey = uri != null ? cacheKeyResolver.resolve(uri) : s;
         return storage.getEntry(cacheKey, new FutureCallback<HttpCacheEntry>() {
 
@@ -122,7 +122,7 @@ public class DefaultAsyncCacheInvalidator extends CacheInvalidatorBase implement
                         }
                         final Header clHdr = request.getFirstHeader("Content-Location");
                         if (clHdr != null) {
-                            final URI contentLocation = HttpCacheSupport.normalizeQuetly(clHdr.getValue());
+                            final URI contentLocation = HttpCacheSupport.normalizeQuietly(clHdr.getValue());
                             if (contentLocation != null) {
                                 if (!flushAbsoluteUriFromSameHost(uri, contentLocation, cacheKeyResolver, storage)) {
                                     flushRelativeUriFromSameHost(uri, contentLocation, cacheKeyResolver, storage);
@@ -131,7 +131,7 @@ public class DefaultAsyncCacheInvalidator extends CacheInvalidatorBase implement
                         }
                         final Header lHdr = request.getFirstHeader("Location");
                         if (lHdr != null) {
-                            final URI location = HttpCacheSupport.normalizeQuetly(lHdr.getValue());
+                            final URI location = HttpCacheSupport.normalizeQuietly(lHdr.getValue());
                             if (location != null) {
                                 flushAbsoluteUriFromSameHost(uri, location, cacheKeyResolver, storage);
                             }
@@ -189,7 +189,7 @@ public class DefaultAsyncCacheInvalidator extends CacheInvalidatorBase implement
         final int status = response.getCode();
         if (status >= HttpStatus.SC_SUCCESS && status < HttpStatus.SC_REDIRECTION) {
             final String s = HttpCacheSupport.getRequestUri(request, host);
-            final URI requestUri = HttpCacheSupport.normalizeQuetly(s);
+            final URI requestUri = HttpCacheSupport.normalizeQuietly(s);
             if (requestUri != null) {
                 final List<String> cacheKeys = new ArrayList<>(2);
                 final URI contentLocation = getContentLocationURI(requestUri, response);

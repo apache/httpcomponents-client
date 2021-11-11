@@ -270,7 +270,7 @@ class BasicHttpCache implements HttpCache {
         }
         final String cacheKey = cacheKeyGenerator.generateKey(host, request);
         try {
-            final HttpCacheEntry entry = cacheUpdateHandler.createtCacheEntry(request, originResponse, content, requestSent, responseReceived);
+            final HttpCacheEntry entry = cacheUpdateHandler.createCacheEntry(request, originResponse, content, requestSent, responseReceived);
             storeInCache(cacheKey, host, request, entry);
             return entry;
         } catch (final ResourceIOException ex) {

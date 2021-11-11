@@ -412,7 +412,7 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
         }
         final String cacheKey = cacheKeyGenerator.generateKey(host, request);
         try {
-            final HttpCacheEntry entry = cacheUpdateHandler.createtCacheEntry(request, originResponse, content, requestSent, responseReceived);
+            final HttpCacheEntry entry = cacheUpdateHandler.createCacheEntry(request, originResponse, content, requestSent, responseReceived);
             return storeInCache(cacheKey, host, request, entry, new FutureCallback<Boolean>() {
 
                 @Override
