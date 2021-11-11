@@ -27,31 +27,46 @@
 package org.apache.hc.client5.http.async.methods;
 
 import org.apache.hc.core5.concurrent.FutureCallback;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * @deprecated Use {@link IgnoreCompleteExceptionFutureCallback}
  * @since 5.2
  */
-@Deprecated
-public class IgnoreCompleteExceptonFutureCallback<T> extends IgnoreCompleteExceptionFutureCallback<T> implements FutureCallback<T> {
+public class IgnoreCompleteExceptionFutureCallback<T> implements FutureCallback<T> {
 
-    public IgnoreCompleteExceptonFutureCallback(final FutureCallback<T> callback) {
-        super(callback);
+    private final FutureCallback<T> callback;
+
+    private static final Logger LOG = LoggerFactory.getLogger(IgnoreCompleteExceptionFutureCallback.class);
+
+    public IgnoreCompleteExceptionFutureCallback(final FutureCallback<T> callback) {
+        super();
+        this.callback = callback;
     }
 
     @Override
     public void completed(final T result) {
-        super.completed(result);
+        if (callback != null) {
+            try {
+                callback.completed(result);
+            } catch (final Exception ex) {
+                LOG.error(ex.getMessage(), ex);
+            }
+        }
     }
 
     @Override
     public void failed(final Exception ex) {
-        super.failed(ex);
+        if (callback != null) {
+            callback.failed(ex);
+        }
     }
 
     @Override
     public void cancelled() {
-       super.cancelled();
+        if (callback != null) {
+            callback.cancelled();
+        }
     }
 
 }

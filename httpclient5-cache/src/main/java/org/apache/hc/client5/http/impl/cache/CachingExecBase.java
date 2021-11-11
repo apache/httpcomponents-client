@@ -139,7 +139,10 @@ public class CachingExecBase {
         return cacheUpdates.get();
     }
 
-    SimpleHttpResponse getFatallyNoncompliantResponse(
+    /**
+     * @since 5.2
+     */
+    SimpleHttpResponse getFatallyNonCompliantResponse(
             final HttpRequest request,
             final HttpContext context) {
         final List<RequestProtocolError> fatalError = requestCompliance.requestIsFatallyNonCompliant(request);

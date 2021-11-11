@@ -123,8 +123,25 @@ public final class HttpCacheSupport {
 
     /**
      * Lenient URI parser that normalizes valid {@link URI}s and returns {@code null} for malformed URIs.
+     * @deprecated Use {@link #normalizeQuietly(String)}
      */
+    @Deprecated
     public static URI normalizeQuetly(final String requestUri) {
+        if (requestUri == null) {
+            return null;
+        }
+        try {
+            return normalize(new URI(requestUri));
+        } catch (final URISyntaxException ex) {
+            return null;
+        }
+    }
+
+    /**
+     * Lenient URI parser that normalizes valid {@link URI}s and returns {@code null} for malformed URIs.
+     * @since 5.2
+     */
+    public static URI normalizeQuietly(final String requestUri) {
         if (requestUri == null) {
             return null;
         }
