@@ -178,7 +178,7 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
             return new BasicClassicHttpResponse(HttpStatus.SC_NOT_IMPLEMENTED);
         }
 
-        final SimpleHttpResponse fatalErrorResponse = getFatallyNoncompliantResponse(request, context);
+        final SimpleHttpResponse fatalErrorResponse = getFatallyNonCompliantResponse(request, context);
         if (fatalErrorResponse != null) {
             return convert(fatalErrorResponse, scope);
         }

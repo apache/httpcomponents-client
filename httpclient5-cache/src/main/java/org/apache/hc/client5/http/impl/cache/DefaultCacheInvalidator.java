@@ -86,7 +86,7 @@ public class DefaultCacheInvalidator extends CacheInvalidatorBase implements Htt
             final Resolver<URI, String> cacheKeyResolver,
             final HttpCacheStorage storage) {
         final String s = HttpCacheSupport.getRequestUri(request, host);
-        final URI uri = HttpCacheSupport.normalizeQuetly(s);
+        final URI uri = HttpCacheSupport.normalizeQuietly(s);
         final String cacheKey = uri != null ? cacheKeyResolver.resolve(uri) : s;
         final HttpCacheEntry parent = getEntry(storage, cacheKey);
 
@@ -106,7 +106,7 @@ public class DefaultCacheInvalidator extends CacheInvalidatorBase implements Htt
                 }
                 final Header clHdr = request.getFirstHeader("Content-Location");
                 if (clHdr != null) {
-                    final URI contentLocation = HttpCacheSupport.normalizeQuetly(clHdr.getValue());
+                    final URI contentLocation = HttpCacheSupport.normalizeQuietly(clHdr.getValue());
                     if (contentLocation != null) {
                         if (!flushAbsoluteUriFromSameHost(uri, contentLocation, cacheKeyResolver, storage)) {
                             flushRelativeUriFromSameHost(uri, contentLocation, cacheKeyResolver, storage);
@@ -115,7 +115,7 @@ public class DefaultCacheInvalidator extends CacheInvalidatorBase implements Htt
                 }
                 final Header lHdr = request.getFirstHeader("Location");
                 if (lHdr != null) {
-                    final URI location = HttpCacheSupport.normalizeQuetly(lHdr.getValue());
+                    final URI location = HttpCacheSupport.normalizeQuietly(lHdr.getValue());
                     if (location != null) {
                         flushAbsoluteUriFromSameHost(uri, location, cacheKeyResolver, storage);
                     }
@@ -159,7 +159,7 @@ public class DefaultCacheInvalidator extends CacheInvalidatorBase implements Htt
             return;
         }
         final String s = HttpCacheSupport.getRequestUri(request, host);
-        final URI uri = HttpCacheSupport.normalizeQuetly(s);
+        final URI uri = HttpCacheSupport.normalizeQuietly(s);
         if (uri == null) {
             return;
         }

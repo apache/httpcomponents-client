@@ -231,7 +231,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
             return;
         }
 
-        final SimpleHttpResponse fatalErrorResponse = getFatallyNoncompliantResponse(request, context);
+        final SimpleHttpResponse fatalErrorResponse = getFatallyNonCompliantResponse(request, context);
         if (fatalErrorResponse != null) {
             triggerResponse(fatalErrorResponse, scope, asyncExecCallback);
             return;
