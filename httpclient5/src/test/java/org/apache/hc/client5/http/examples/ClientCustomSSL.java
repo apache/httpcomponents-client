@@ -34,7 +34,6 @@ import javax.net.ssl.SSLSession;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
@@ -42,6 +41,7 @@ import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.message.StatusLine;
 import org.apache.hc.core5.http.ssl.TLS;
 import org.apache.hc.core5.ssl.SSLContexts;
 import org.apache.hc.core5.util.Timeout;
@@ -80,17 +80,17 @@ public class ClientCustomSSL {
             System.out.println("Executing request " + httpget.getMethod() + " " + httpget.getUri());
 
             final HttpClientContext clientContext = HttpClientContext.create();
-            try (CloseableHttpResponse response = httpclient.execute(httpget, clientContext)) {
+            httpclient.execute(httpget, clientContext, response -> {
                 System.out.println("----------------------------------------");
-                System.out.println(response.getCode() + " " + response.getReasonPhrase());
-                System.out.println(EntityUtils.toString(response.getEntity()));
-
+                System.out.println(httpget + "->" + new StatusLine(response));
+                EntityUtils.consume(response.getEntity());
                 final SSLSession sslSession = clientContext.getSSLSession();
                 if (sslSession != null) {
                     System.out.println("SSL protocol " + sslSession.getProtocol());
                     System.out.println("SSL cipher suite " + sslSession.getCipherSuite());
                 }
-            }
+                return null;
+            });
         }
     }
 

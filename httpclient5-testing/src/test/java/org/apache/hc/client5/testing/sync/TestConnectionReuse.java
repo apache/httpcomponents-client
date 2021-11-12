@@ -32,7 +32,6 @@ import java.net.URI;
 
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HeaderElements;
@@ -168,28 +167,36 @@ public class TestConnectionReuse extends LocalServerTestBase {
                 .build();
         final HttpHost target = start(httpproc, null);
 
-        ClassicHttpResponse response = this.httpclient.execute(target, new HttpGet("/random/2000"));
-        EntityUtils.consume(response.getEntity());
+        this.httpclient.execute(target, new HttpGet("/random/2000"), response -> {
+            EntityUtils.consume(response.getEntity());
+            return null;
+        });
 
         Assert.assertEquals(1, this.connManager.getTotalStats().getAvailable());
 
-        response = this.httpclient.execute(target, new HttpGet("/random/2000"));
-        EntityUtils.consume(response.getEntity());
+        this.httpclient.execute(target, new HttpGet("/random/2000"), response -> {
+            EntityUtils.consume(response.getEntity());
+            return null;
+        });
 
         Assert.assertEquals(1, this.connManager.getTotalStats().getAvailable());
 
         // Now sleep for 1.1 seconds and let the timeout do its work
         Thread.sleep(1100);
-        response = this.httpclient.execute(target, new HttpGet("/random/2000"));
-        EntityUtils.consume(response.getEntity());
+        this.httpclient.execute(target, new HttpGet("/random/2000"), response -> {
+            EntityUtils.consume(response.getEntity());
+            return null;
+        });
 
         Assert.assertEquals(1, this.connManager.getTotalStats().getAvailable());
 
         // Do another request just under the 1 second limit & make
         // sure we reuse that connection.
         Thread.sleep(500);
-        response = this.httpclient.execute(target, new HttpGet("/random/2000"));
-        EntityUtils.consume(response.getEntity());
+        this.httpclient.execute(target, new HttpGet("/random/2000"), response -> {
+            EntityUtils.consume(response.getEntity());
+            return null;
+        });
 
         Assert.assertEquals(1, this.connManager.getTotalStats().getAvailable());
     }
@@ -223,14 +230,14 @@ public class TestConnectionReuse extends LocalServerTestBase {
             try {
                 for (int i = 0; i < this.repetitions; i++) {
                     final HttpGet httpget = new HttpGet(this.requestURI);
-                    final ClassicHttpResponse response = this.httpclient.execute(
-                            this.target,
-                            httpget);
-                    if (this.forceClose) {
-                        httpget.cancel();
-                    } else {
-                        EntityUtils.consume(response.getEntity());
-                    }
+                    this.httpclient.execute(this.target, httpget, response -> {
+                        if (this.forceClose) {
+                            response.close();
+                        } else {
+                            EntityUtils.consume(response.getEntity());
+                        }
+                        return null;
+                    });
                 }
             } catch (final Exception ex) {
                 this.exception = ex;

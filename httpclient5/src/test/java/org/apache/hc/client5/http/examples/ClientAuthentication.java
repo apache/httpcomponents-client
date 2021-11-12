@@ -29,10 +29,10 @@ package org.apache.hc.client5.http.examples;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.impl.auth.CredentialsProviderBuilder;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.message.StatusLine;
 
 /**
  * A simple example that uses HttpClient to execute an HTTP request against
@@ -49,11 +49,12 @@ public class ClientAuthentication {
             final HttpGet httpget = new HttpGet("http://httpbin.org/basic-auth/user/passwd");
 
             System.out.println("Executing request " + httpget.getMethod() + " " + httpget.getUri());
-            try (final CloseableHttpResponse response = httpclient.execute(httpget)) {
+            httpclient.execute(httpget, response -> {
                 System.out.println("----------------------------------------");
-                System.out.println(response.getCode() + " " + response.getReasonPhrase());
-                System.out.println(EntityUtils.toString(response.getEntity()));
-            }
+                System.out.println(httpget + "->" + new StatusLine(response));
+                EntityUtils.consume(response.getEntity());
+                return null;
+            });
         }
     }
 }

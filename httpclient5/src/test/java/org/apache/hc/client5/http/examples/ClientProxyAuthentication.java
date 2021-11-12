@@ -32,10 +32,10 @@ import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.auth.CredentialsProviderBuilder;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.message.StatusLine;
 
 /**
  * A simple example that uses HttpClient to execute an HTTP request
@@ -63,11 +63,12 @@ public class ClientProxyAuthentication {
             System.out.println("Executing request " + httpget.getMethod() + " " + httpget.getUri() +
                     " via " + proxy);
 
-            try (final CloseableHttpResponse response = httpclient.execute(target, httpget)) {
+            httpclient.execute(httpget, response -> {
                 System.out.println("----------------------------------------");
-                System.out.println(response.getCode() + " " + response.getReasonPhrase());
-                System.out.println(EntityUtils.toString(response.getEntity()));
-            }
+                System.out.println(httpget + "->" + new StatusLine(response));
+                EntityUtils.consume(response.getEntity());
+                return null;
+            });
         }
     }
 }

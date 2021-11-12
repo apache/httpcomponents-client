@@ -34,15 +34,16 @@ import java.net.Socket;
 
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
-import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.config.Registry;
 import org.apache.hc.core5.http.config.RegistryBuilder;
+import org.apache.hc.core5.http.io.SocketConfig;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.message.StatusLine;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.TimeValue;
 
@@ -57,24 +58,27 @@ public class ClientExecuteSOCKS {
         final Registry<ConnectionSocketFactory> reg = RegistryBuilder.<ConnectionSocketFactory>create()
                 .register("http", new MyConnectionSocketFactory())
                 .build();
-        final PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager(reg);
+        final InetSocketAddress socksaddr = new InetSocketAddress("mysockshost", 1234);
+        final PoolingHttpClientConnectionManager cm = PoolingHttpClientConnectionManagerBuilder.create()
+                .setDefaultSocketConfig(SocketConfig.custom()
+                        .setSocksProxyAddress(socksaddr)
+                        .build())
+                .build();
         try (final CloseableHttpClient httpclient = HttpClients.custom()
                 .setConnectionManager(cm)
                 .build()) {
-            final InetSocketAddress socksaddr = new InetSocketAddress("mysockshost", 1234);
-            final HttpClientContext context = HttpClientContext.create();
-            context.setAttribute("socks.address", socksaddr);
 
             final HttpHost target = new HttpHost("http", "httpbin.org", 80);
             final HttpGet request = new HttpGet("/get");
 
             System.out.println("Executing request " + request.getMethod() + " " + request.getUri() +
                     " via SOCKS proxy " + socksaddr);
-            try (final CloseableHttpResponse response = httpclient.execute(target, request, context)) {
+            httpclient.execute(target, request, response -> {
                 System.out.println("----------------------------------------");
-                System.out.println(response.getCode() + " " + response.getReasonPhrase());
-                System.out.println(EntityUtils.toString(response.getEntity()));
-            }
+                System.out.println(request + "->" + new StatusLine(response));
+                EntityUtils.consume(response.getEntity());
+                return null;
+            });
         }
     }
 

@@ -82,10 +82,11 @@ public class TestClientAuthenticationFakeNTLM extends LocalServerTestBase {
         final HttpContext context = HttpClientContext.create();
         final HttpGet httpget = new HttpGet("/");
 
-        final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context);
-        EntityUtils.consume(response.getEntity());
-        Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED,
-                response.getCode());
+        this.httpclient.execute(target, httpget, context, response -> {
+            EntityUtils.consume(response.getEntity());
+            Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
+            return null;
+        });
     }
 
     static class NtlmType2MessageResponseHandler implements HttpRequestHandler {
@@ -129,10 +130,11 @@ public class TestClientAuthenticationFakeNTLM extends LocalServerTestBase {
         final HttpContext context = HttpClientContext.create();
         final HttpGet httpget = new HttpGet("/");
 
-        final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context);
-        EntityUtils.consume(response.getEntity());
-        Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED,
-                response.getCode());
+        this.httpclient.execute(target, httpget, context, response -> {
+            EntityUtils.consume(response.getEntity());
+            Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
+            return null;
+        });
     }
 
     @Test
@@ -153,10 +155,11 @@ public class TestClientAuthenticationFakeNTLM extends LocalServerTestBase {
         final HttpContext context = HttpClientContext.create();
         final HttpGet httpget = new HttpGet("/");
 
-        final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context);
-        EntityUtils.consume(response.getEntity());
-        Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED,
-                response.getCode());
+        this.httpclient.execute(target, httpget, context, response -> {
+            EntityUtils.consume(response.getEntity());
+            Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
+            return null;
+        });
     }
 
     static class NtlmType2MessageOnlyResponseHandler implements HttpRequestHandler {
@@ -192,10 +195,11 @@ public class TestClientAuthenticationFakeNTLM extends LocalServerTestBase {
                 .build());
         final HttpGet httpget = new HttpGet("/");
 
-        final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context);
-        EntityUtils.consume(response.getEntity());
-        Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED,
-                response.getCode());
+        this.httpclient.execute(target, httpget, context, response -> {
+            EntityUtils.consume(response.getEntity());
+            Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
+            return null;
+        });
     }
 
     @Test
@@ -212,10 +216,11 @@ public class TestClientAuthenticationFakeNTLM extends LocalServerTestBase {
                 .build());
         final HttpGet httpget = new HttpGet("/");
 
-        final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context);
-        EntityUtils.consume(response.getEntity());
-        Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED,
-                response.getCode());
+        this.httpclient.execute(target, httpget, context, response -> {
+            EntityUtils.consume(response.getEntity());
+            Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
+            return null;
+        });
     }
 
 }

@@ -29,7 +29,6 @@ package org.apache.hc.client5.http.examples;
 import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
@@ -92,10 +91,12 @@ public class ClientConnectionConfig {
                         .setPath("/headers")
                         .build();
                 System.out.println("Executing request " + request);
-                try (CloseableHttpResponse response = httpclient.execute(request)) {
+                httpclient.execute(request, response -> {
+                    System.out.println("----------------------------------------");
                     System.out.println(request + "->" + new StatusLine(response));
                     EntityUtils.consume(response.getEntity());
-                }
+                    return null;
+                });
             }
         }
     }

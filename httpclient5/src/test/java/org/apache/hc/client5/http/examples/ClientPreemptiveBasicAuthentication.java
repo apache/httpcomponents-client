@@ -30,11 +30,11 @@ import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.impl.auth.BasicScheme;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.message.StatusLine;
 
 /**
  * An example of how HttpClient can be customized to authenticate
@@ -63,11 +63,12 @@ public class ClientPreemptiveBasicAuthentication {
 
             System.out.println("Executing request " + httpget.getMethod() + " " + httpget.getUri());
             for (int i = 0; i < 3; i++) {
-                try (final CloseableHttpResponse response = httpclient.execute(httpget, localContext)) {
+                httpclient.execute(httpget, localContext, response -> {
                     System.out.println("----------------------------------------");
-                    System.out.println(response.getCode() + " " + response.getReasonPhrase());
-                    System.out.println(EntityUtils.toString(response.getEntity()));
-                }
+                    System.out.println(httpget + "->" + new StatusLine(response));
+                    EntityUtils.consume(response.getEntity());
+                    return null;
+                });
             }
         }
     }

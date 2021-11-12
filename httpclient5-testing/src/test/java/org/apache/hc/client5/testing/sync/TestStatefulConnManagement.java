@@ -161,16 +161,15 @@ public class TestStatefulConnManagement extends LocalServerTestBase {
                 this.context.setAttribute("user", this.uid);
                 for (int r = 0; r < this.requestCount; r++) {
                     final HttpGet httpget = new HttpGet("/");
-                    final ClassicHttpResponse response = this.httpclient.execute(
-                            this.target,
-                            httpget,
-                            this.context);
+                    this.httpclient.execute(this.target, httpget, this.context, response -> {
+                        EntityUtils.consume(response.getEntity());
+                        return null;
+                    });
                     this.count++;
 
                     final EndpointDetails endpointDetails = this.context.getEndpointDetails();
                     final String connuid = Integer.toHexString(System.identityHashCode(endpointDetails));
                     this.context.setAttribute("r" + r, connuid);
-                    EntityUtils.consume(response.getEntity());
                 }
 
             } catch (final Exception ex) {
@@ -202,9 +201,10 @@ public class TestStatefulConnManagement extends LocalServerTestBase {
         // Bottom of the pool : a *keep alive* connection to Route 1.
         final HttpContext context1 = new BasicHttpContext();
         context1.setAttribute("user", "stuff");
-        final ClassicHttpResponse response1 = this.httpclient.execute(
-                target, new HttpGet("/"), context1);
-        EntityUtils.consume(response1.getEntity());
+        this.httpclient.execute(target, new HttpGet("/"), context1, response -> {
+            EntityUtils.consume(response.getEntity());
+            return null;
+        });
 
         // The ConnPoolByRoute now has 1 free connection, out of 2 max
         // The ConnPoolByRoute has one RouteSpcfcPool, that has one free connection
@@ -215,9 +215,10 @@ public class TestStatefulConnManagement extends LocalServerTestBase {
         // Send a very simple HTTP get (it MUST be simple, no auth, no proxy, no 302, no 401, ...)
         // Send it to another route. Must be a keepalive.
         final HttpContext context2 = new BasicHttpContext();
-        final ClassicHttpResponse response2 = this.httpclient.execute(
-                new HttpHost("127.0.0.1", this.server.getPort()), new HttpGet("/"), context2);
-        EntityUtils.consume(response2.getEntity());
+        this.httpclient.execute(new HttpHost("127.0.0.1", this.server.getPort()), new HttpGet("/"), context2, response -> {
+            EntityUtils.consume(response.getEntity());
+            return null;
+        });
         // ConnPoolByRoute now has 2 free connexions, out of its 2 max.
         // The [localhost][stuff] RouteSpcfcPool is the same as earlier
         // And there is a [127.0.0.1][null] pool with 1 free connection
@@ -230,13 +231,14 @@ public class TestStatefulConnManagement extends LocalServerTestBase {
         // The killed conn is the oldest, which means the first HTTPGet ([localhost][stuff]).
         // When this happens, the RouteSpecificPool becomes empty.
         final HttpContext context3 = new BasicHttpContext();
-        final ClassicHttpResponse response3 = this.httpclient.execute(
-                target, new HttpGet("/"), context3);
+        this.httpclient.execute(target, new HttpGet("/"), context3, response -> {
+            EntityUtils.consume(response.getEntity());
+            return null;
+        });
 
         // If the ConnPoolByRoute did not behave coherently with the RouteSpecificPool
         // this may fail. Ex : if the ConnPool discared the route pool because it was empty,
         // but still used it to build the request3 connection.
-        EntityUtils.consume(response3.getEntity());
 
     }
 

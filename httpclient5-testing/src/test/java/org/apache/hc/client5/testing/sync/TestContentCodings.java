@@ -92,9 +92,11 @@ public class TestContentCodings extends LocalServerTestBase {
         final HttpHost target = start();
 
         final HttpGet request = new HttpGet("/some-resource");
-        final ClassicHttpResponse response = this.httpclient.execute(target, request);
-        Assert.assertEquals(HttpStatus.SC_NO_CONTENT, response.getCode());
-        Assert.assertNull(response.getEntity());
+        this.httpclient.execute(target, request, response -> {
+            Assert.assertEquals(HttpStatus.SC_NO_CONTENT, response.getCode());
+            Assert.assertNull(response.getEntity());
+            return null;
+        });
     }
 
     /**
@@ -112,9 +114,11 @@ public class TestContentCodings extends LocalServerTestBase {
         final HttpHost target = start();
 
         final HttpGet request = new HttpGet("/some-resource");
-        final ClassicHttpResponse response = this.httpclient.execute(target, request);
-        Assert.assertEquals("The entity text is correctly transported", entityText,
-                EntityUtils.toString(response.getEntity()));
+        this.httpclient.execute(target, request, response -> {
+            Assert.assertEquals("The entity text is correctly transported", entityText,
+                    EntityUtils.toString(response.getEntity()));
+            return null;
+        });
     }
 
     /**
@@ -132,9 +136,11 @@ public class TestContentCodings extends LocalServerTestBase {
         final HttpHost target = start();
 
         final HttpGet request = new HttpGet("/some-resource");
-        final ClassicHttpResponse response = this.httpclient.execute(target, request);
-        Assert.assertEquals("The entity text is correctly transported", entityText,
-                EntityUtils.toString(response.getEntity()));
+        this.httpclient.execute(target, request, response -> {
+            Assert.assertEquals("The entity text is correctly transported", entityText,
+                    EntityUtils.toString(response.getEntity()));
+            return null;
+        });
     }
 
     /**
@@ -151,9 +157,11 @@ public class TestContentCodings extends LocalServerTestBase {
         final HttpHost target = start();
 
         final HttpGet request = new HttpGet("/some-resource");
-        final ClassicHttpResponse response = this.httpclient.execute(target, request);
-        Assert.assertEquals("The entity text is correctly transported", entityText,
-                EntityUtils.toString(response.getEntity()));
+        this.httpclient.execute(target, request, response -> {
+            Assert.assertEquals("The entity text is correctly transported", entityText,
+                    EntityUtils.toString(response.getEntity()));
+            return null;
+        });
     }
 
     /**
@@ -217,12 +225,13 @@ public class TestContentCodings extends LocalServerTestBase {
         final HttpHost target = start();
 
         final HttpGet request = new HttpGet("/some-resource");
-        final ClassicHttpResponse response = this.httpclient.execute(target, request);
-        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        this.httpclient.execute(target, request, response -> {
+            final ByteArrayOutputStream out = new ByteArrayOutputStream();
+            response.getEntity().writeTo(out);
+            Assert.assertEquals(entityText, out.toString("utf-8"));
+            return null;
+        });
 
-        response.getEntity().writeTo(out);
-
-        Assert.assertEquals(entityText, out.toString("utf-8"));
     }
 
     @Test
@@ -234,12 +243,12 @@ public class TestContentCodings extends LocalServerTestBase {
         final HttpHost target = start();
 
         final HttpGet request = new HttpGet("/some-resource");
-        final ClassicHttpResponse response = this.httpclient.execute(target, request);
-        final ByteArrayOutputStream out = new ByteArrayOutputStream();
-
-        response.getEntity().writeTo(out);
-
-        Assert.assertEquals(entityText, out.toString("utf-8"));
+        this.httpclient.execute(target, request, response -> {
+            final ByteArrayOutputStream out = new ByteArrayOutputStream();
+            response.getEntity().writeTo(out);
+            Assert.assertEquals(entityText, out.toString("utf-8"));
+            return out;
+        });
     }
 
     @Test
@@ -428,8 +437,8 @@ public class TestContentCodings extends LocalServerTestBase {
             try {
                 startGate.await();
                 try {
-                    final ClassicHttpResponse response = client.execute(target, request);
-                    text = EntityUtils.toString(response.getEntity());
+                    text = httpclient.execute(target, request, response ->
+                            EntityUtils.toString(response.getEntity()));
                 } catch (final Exception e) {
                     failed = true;
                 } finally {

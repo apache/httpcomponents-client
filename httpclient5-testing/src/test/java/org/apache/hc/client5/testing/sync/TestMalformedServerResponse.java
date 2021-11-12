@@ -31,7 +31,6 @@ import java.net.Socket;
 
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpException;
@@ -98,15 +97,17 @@ public class TestMalformedServerResponse {
             final HttpHost target = new HttpHost("localhost", server.getLocalPort());
             try (final CloseableHttpClient httpclient = HttpClientBuilder.create().build()) {
                 final HttpGet get1 = new HttpGet("/nostuff");
-                try (final CloseableHttpResponse response1 = httpclient.execute(target, get1)) {
-                    Assert.assertEquals(HttpStatus.SC_NO_CONTENT, response1.getCode());
-                    EntityUtils.consume(response1.getEntity());
-                }
+                httpclient.execute(target, get1, response -> {
+                    Assert.assertEquals(HttpStatus.SC_NO_CONTENT, response.getCode());
+                    EntityUtils.consume(response.getEntity());
+                    return null;
+                });
                 final HttpGet get2 = new HttpGet("/stuff");
-                try (final CloseableHttpResponse response2 = httpclient.execute(target, get2)) {
-                    Assert.assertEquals(HttpStatus.SC_OK, response2.getCode());
-                    EntityUtils.consume(response2.getEntity());
-                }
+                httpclient.execute(target, get2, response -> {
+                    Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
+                    EntityUtils.consume(response.getEntity());
+                    return null;
+                });
             }
         }
     }
