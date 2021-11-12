@@ -179,6 +179,7 @@ public final class ProtocolExec implements ExecChainHandler {
 
                 if (Method.TRACE.isSame(request.getMethod())) {
                     // Do not perform authentication for TRACE request
+                    ResponseEntityProxy.enhance(response, execRuntime);
                     return response;
                 }
                 final HttpEntity requestEntity = request.getEntity();
@@ -186,6 +187,7 @@ public final class ProtocolExec implements ExecChainHandler {
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("{} Cannot retry non-repeatable request", exchangeId);
                     }
+                    ResponseEntityProxy.enhance(response, execRuntime);
                     return response;
                 }
                 if (needAuthentication(targetAuthExchange, proxyAuthExchange, route, request, response, context)) {
