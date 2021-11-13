@@ -35,6 +35,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.DateTimeParseException;
 import java.util.Date;
+import java.util.Locale;
 import java.util.TimeZone;
 
 import org.apache.hc.core5.http.Header;
@@ -64,7 +65,7 @@ public final class DateUtils {
             .parseLenient()
             .parseCaseInsensitive()
             .appendPattern(PATTERN_RFC1123)
-            .toFormatter();
+            .toFormatter(Locale.ENGLISH);
 
     /**
      * Date format pattern used to parse HTTP date headers in RFC 1036 format.
@@ -80,7 +81,7 @@ public final class DateUtils {
             .parseLenient()
             .parseCaseInsensitive()
             .appendPattern(PATTERN_RFC1036)
-            .toFormatter();
+            .toFormatter(Locale.ENGLISH);
 
     /**
      * Date format pattern used to parse HTTP date headers in ANSI C
@@ -97,7 +98,7 @@ public final class DateUtils {
             .parseLenient()
             .parseCaseInsensitive()
             .appendPattern(PATTERN_ASCTIME)
-            .toFormatter();
+            .toFormatter(Locale.ENGLISH);
 
     /**
      * Standard date formatters: {@link #FORMATTER_RFC1123}, {@link #FORMATTER_RFC1036}, {@link #FORMATTER_ASCTIME}.
