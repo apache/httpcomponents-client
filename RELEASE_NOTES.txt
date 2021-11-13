@@ -1,4 +1,19 @@
-﻿Release 5.1.1
+﻿Release 5.1.2
+-----------
+
+This is an emergency release that fixes a regression introduced in the previous release
+that can lead to a connection leak when executing requests with a non-repeatable streaming
+entity with the classic (blocking) HttpClient. Async and minimal HttpClient implementations
+are not affected by the regression.
+
+Change Log
+-------------------
+
+* HTTPCLIENT-2184: Fixed regression in the connection reuse logic of the classic (blocking)
+  request execution pipeline.
+
+
+Release 5.1.1
 -----------
 
 This release upgrades HttpCore to the latest 5.1 version and fixes a number of issues found
