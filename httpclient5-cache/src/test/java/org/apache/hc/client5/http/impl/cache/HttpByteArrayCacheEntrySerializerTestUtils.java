@@ -45,6 +45,7 @@ import org.apache.hc.client5.http.cache.Resource;
 import org.apache.hc.client5.http.cache.ResourceIOException;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.message.BasicHeader;
+import org.apache.hc.core5.util.Args;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -320,9 +321,7 @@ class HttpByteArrayCacheEntrySerializerTestUtils {
      *                     number of bytes have been read
      */
     static byte[] readFullyStrict(final InputStream src, final long length) throws IOException {
-        if (length > Integer.MAX_VALUE) {
-            throw new IllegalArgumentException(String.format("Length %d is too large to fit in an array", length));
-        }
+        Args.check(length <= Integer.MAX_VALUE, String.format("Length %d is too large to fit in an array", length));
         final int intLength = (int) length;
         final byte[] dest = new byte[intLength];
         final int bytesRead = readFully(src, dest);
