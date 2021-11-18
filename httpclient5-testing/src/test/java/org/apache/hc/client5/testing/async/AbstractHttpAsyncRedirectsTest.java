@@ -26,6 +26,8 @@
  */
 package org.apache.hc.client5.testing.async;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.concurrent.ExecutionException;
@@ -67,9 +69,8 @@ import org.apache.hc.core5.testing.nio.H2TestServer;
 import org.apache.hc.core5.testing.reactive.ReactiveRandomProcessor;
 import org.apache.hc.core5.util.TimeValue;
 import org.hamcrest.CoreMatchers;
-import org.hamcrest.MatcherAssert;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 
 public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsyncClient> extends AbstractIntegrationTestBase<T> {
 
@@ -110,12 +111,12 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
                         .setPath("/oldlocation/")
                         .build(), context, null);
         final HttpResponse response = future.get();
-        Assert.assertNotNull(response);
+        Assertions.assertNotNull(response);
 
         final HttpRequest request = context.getRequest();
 
-        Assert.assertEquals(HttpStatus.SC_MULTIPLE_CHOICES, response.getCode());
-        Assert.assertEquals("/oldlocation/", request.getRequestUri());
+        Assertions.assertEquals(HttpStatus.SC_MULTIPLE_CHOICES, response.getCode());
+        Assertions.assertEquals("/oldlocation/", request.getRequestUri());
     }
 
     @Test
@@ -130,13 +131,13 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
                         .setPath("/oldlocation/100")
                         .build(), context, null);
         final HttpResponse response = future.get();
-        Assert.assertNotNull(response);
+        Assertions.assertNotNull(response);
 
         final HttpRequest request = context.getRequest();
 
-        Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
-        Assert.assertEquals("/random/100", request.getRequestUri());
-        Assert.assertEquals(target, new HttpHost(request.getScheme(), request.getAuthority()));
+        Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
+        Assertions.assertEquals("/random/100", request.getRequestUri());
+        Assertions.assertEquals(target, new HttpHost(request.getScheme(), request.getAuthority()));
     }
 
     @Test
@@ -151,13 +152,13 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
                         .setPath("/oldlocation/123")
                         .build(), context, null);
         final HttpResponse response = future.get();
-        Assert.assertNotNull(response);
+        Assertions.assertNotNull(response);
 
         final HttpRequest request = context.getRequest();
 
-        Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
-        Assert.assertEquals("/random/123", request.getRequestUri());
-        Assert.assertEquals(target, new HttpHost(request.getScheme(), request.getAuthority()));
+        Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
+        Assertions.assertEquals("/random/123", request.getRequestUri());
+        Assertions.assertEquals(target, new HttpHost(request.getScheme(), request.getAuthority()));
     }
 
     @Test
@@ -178,12 +179,12 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
                         .setPath("/oldlocation/100")
                         .build(), context, null);
         final HttpResponse response = future.get();
-        Assert.assertNotNull(response);
+        Assertions.assertNotNull(response);
 
         final HttpRequest request = context.getRequest();
-        Assert.assertEquals(HttpStatus.SC_MOVED_TEMPORARILY, response.getCode());
-        Assert.assertEquals("/oldlocation/100", request.getRequestUri());
-        Assert.assertEquals(target, new HttpHost(request.getScheme(), request.getAuthority()));
+        Assertions.assertEquals(HttpStatus.SC_MOVED_TEMPORARILY, response.getCode());
+        Assertions.assertEquals("/oldlocation/100", request.getRequestUri());
+        Assertions.assertEquals(target, new HttpHost(request.getScheme(), request.getAuthority()));
     }
 
     @Test
@@ -198,13 +199,13 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
                         .setPath("/oldlocation/123")
                         .build(), context, null);
         final HttpResponse response = future.get();
-        Assert.assertNotNull(response);
+        Assertions.assertNotNull(response);
 
         final HttpRequest request = context.getRequest();
 
-        Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
-        Assert.assertEquals("/random/123", request.getRequestUri());
-        Assert.assertEquals(target, new HttpHost(request.getScheme(), request.getAuthority()));
+        Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
+        Assertions.assertEquals("/random/123", request.getRequestUri());
+        Assertions.assertEquals(target, new HttpHost(request.getScheme(), request.getAuthority()));
     }
 
     @Test
@@ -225,12 +226,12 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
                         .setPath("/oldlocation/")
                         .build(), context, null);
         final HttpResponse response = future.get();
-        Assert.assertNotNull(response);
+        Assertions.assertNotNull(response);
 
         final HttpRequest request = context.getRequest();
 
-        Assert.assertEquals(HttpStatus.SC_NOT_MODIFIED, response.getCode());
-        Assert.assertEquals("/oldlocation/", request.getRequestUri());
+        Assertions.assertEquals(HttpStatus.SC_NOT_MODIFIED, response.getCode());
+        Assertions.assertEquals("/oldlocation/", request.getRequestUri());
     }
 
     @Test
@@ -251,12 +252,12 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
                         .setPath("/oldlocation/")
                         .build(), context, null);
         final HttpResponse response = future.get();
-        Assert.assertNotNull(response);
+        Assertions.assertNotNull(response);
 
         final HttpRequest request = context.getRequest();
 
-        Assert.assertEquals(HttpStatus.SC_USE_PROXY, response.getCode());
-        Assert.assertEquals("/oldlocation/", request.getRequestUri());
+        Assertions.assertEquals(HttpStatus.SC_USE_PROXY, response.getCode());
+        Assertions.assertEquals("/oldlocation/", request.getRequestUri());
     }
 
     @Test
@@ -271,13 +272,13 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
                         .setPath("/oldlocation/123")
                         .build(), context, null);
         final HttpResponse response = future.get();
-        Assert.assertNotNull(response);
+        Assertions.assertNotNull(response);
 
         final HttpRequest request = context.getRequest();
 
-        Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
-        Assert.assertEquals("/random/123", request.getRequestUri());
-        Assert.assertEquals(target, new HttpHost(request.getScheme(), request.getAuthority()));
+        Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
+        Assertions.assertEquals("/random/123", request.getRequestUri());
+        Assertions.assertEquals(target, new HttpHost(request.getScheme(), request.getAuthority()));
     }
 
     @Test
@@ -290,7 +291,7 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
         final RequestConfig config = RequestConfig.custom()
                 .setCircularRedirectsAllowed(true)
                 .setMaxRedirects(5).build();
-        final ExecutionException exception = Assert.assertThrows(ExecutionException.class, () -> {
+        final ExecutionException exception = Assertions.assertThrows(ExecutionException.class, () -> {
             final Future<SimpleHttpResponse> future = httpclient.execute(SimpleRequestBuilder.get()
                     .setHttpHost(target)
                     .setPath("/circular-oldlocation/")
@@ -298,7 +299,7 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
                     .build(), null);
             future.get();
         });
-        MatcherAssert.assertThat(exception.getCause(), CoreMatchers.instanceOf(RedirectException.class));
+        assertThat(exception.getCause(), CoreMatchers.instanceOf(RedirectException.class));
     }
 
     @Test
@@ -311,7 +312,7 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
         final RequestConfig config = RequestConfig.custom()
                 .setCircularRedirectsAllowed(false)
                 .build();
-        final ExecutionException exception = Assert.assertThrows(ExecutionException.class, () -> {
+        final ExecutionException exception = Assertions.assertThrows(ExecutionException.class, () -> {
             final Future<SimpleHttpResponse> future = httpclient.execute(
                     SimpleRequestBuilder.get()
                             .setHttpHost(target)
@@ -320,7 +321,7 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
                             .build(), null);
             future.get();
         });
-        MatcherAssert.assertThat(exception.getCause(), CoreMatchers.instanceOf(CircularRedirectException.class));
+        assertThat(exception.getCause(), CoreMatchers.instanceOf(CircularRedirectException.class));
     }
 
     @Test
@@ -337,13 +338,13 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
                         .setBody("stuff", ContentType.TEXT_PLAIN)
                         .build(), context, null);
         final HttpResponse response = future.get();
-        Assert.assertNotNull(response);
+        Assertions.assertNotNull(response);
 
         final HttpRequest request = context.getRequest();
 
-        Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
-        Assert.assertEquals("/echo/stuff", request.getRequestUri());
-        Assert.assertEquals("POST", request.getMethod());
+        Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
+        Assertions.assertEquals("/echo/stuff", request.getRequestUri());
+        Assertions.assertEquals("POST", request.getMethod());
     }
 
     @Test
@@ -360,13 +361,13 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
                         .setBody("stuff", ContentType.TEXT_PLAIN)
                         .build(), context, null);
         final HttpResponse response = future.get();
-        Assert.assertNotNull(response);
+        Assertions.assertNotNull(response);
 
         final HttpRequest request = context.getRequest();
 
-        Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
-        Assert.assertEquals("/echo/stuff", request.getRequestUri());
-        Assert.assertEquals("GET", request.getMethod());
+        Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
+        Assertions.assertEquals("/echo/stuff", request.getRequestUri());
+        Assertions.assertEquals("GET", request.getMethod());
     }
 
     @Test
@@ -390,13 +391,13 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
                         .setPath("/oldlocation/stuff")
                         .build(), context, null);
         final HttpResponse response = future.get();
-        Assert.assertNotNull(response);
+        Assertions.assertNotNull(response);
 
         final HttpRequest request = context.getRequest();
 
-        Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
-        Assert.assertEquals("/random/100", request.getRequestUri());
-        Assert.assertEquals(target, new HttpHost(request.getScheme(), request.getAuthority()));
+        Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
+        Assertions.assertEquals("/random/100", request.getRequestUri());
+        Assertions.assertEquals(target, new HttpHost(request.getScheme(), request.getAuthority()));
     }
 
     @Test
@@ -420,13 +421,13 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
                         .setPath("/random/oldlocation")
                         .build(), context, null);
         final HttpResponse response = future.get();
-        Assert.assertNotNull(response);
+        Assertions.assertNotNull(response);
 
         final HttpRequest request = context.getRequest();
 
-        Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
-        Assert.assertEquals("/random/100", request.getRequestUri());
-        Assert.assertEquals(target, new HttpHost(request.getScheme(), request.getAuthority()));
+        Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
+        Assertions.assertEquals("/random/100", request.getRequestUri());
+        Assertions.assertEquals(target, new HttpHost(request.getScheme(), request.getAuthority()));
     }
 
     @Test
@@ -442,7 +443,7 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
                     return null;
                 }));
 
-        final ExecutionException exception = Assert.assertThrows(ExecutionException.class, () -> {
+        final ExecutionException exception = Assertions.assertThrows(ExecutionException.class, () -> {
             final Future<SimpleHttpResponse> future = httpclient.execute(
                     SimpleRequestBuilder.get()
                             .setHttpHost(target)
@@ -450,7 +451,7 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
                             .build(), null);
             future.get();
         });
-        MatcherAssert.assertThat(exception.getCause(), CoreMatchers.instanceOf(HttpException.class));
+        assertThat(exception.getCause(), CoreMatchers.instanceOf(HttpException.class));
     }
 
     @Test
@@ -466,7 +467,7 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
                     return null;
                 }));
 
-        final ExecutionException exception = Assert.assertThrows(ExecutionException.class, () -> {
+        final ExecutionException exception = Assertions.assertThrows(ExecutionException.class, () -> {
             final Future<SimpleHttpResponse> future = httpclient.execute(
                     SimpleRequestBuilder.get()
                             .setHttpHost(target)
@@ -474,7 +475,7 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
                             .build(), null);
             future.get();
         });
-        MatcherAssert.assertThat(exception.getCause(), CoreMatchers.instanceOf(ProtocolException.class));
+        assertThat(exception.getCause(), CoreMatchers.instanceOf(ProtocolException.class));
     }
 
     @Test
@@ -499,15 +500,15 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
                         .setPath("/oldlocation/100")
                         .build(), context, null);
         final HttpResponse response = future.get();
-        Assert.assertNotNull(response);
+        Assertions.assertNotNull(response);
 
         final HttpRequest request = context.getRequest();
 
-        Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
-        Assert.assertEquals("/random/100", request.getRequestUri());
+        Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
+        Assertions.assertEquals("/random/100", request.getRequestUri());
 
         final Header[] headers = request.getHeaders("Cookie");
-        Assert.assertEquals("There can only be one (cookie)", 1, headers.length);
+        Assertions.assertEquals(1, headers.length, "There can only be one (cookie)");
     }
 
     @Test
@@ -551,13 +552,13 @@ public abstract class AbstractHttpAsyncRedirectsTest <T extends CloseableHttpAsy
                             .setPath("/oldlocation")
                             .build(), context, null);
             final HttpResponse response = future.get();
-            Assert.assertNotNull(response);
+            Assertions.assertNotNull(response);
 
             final HttpRequest request = context.getRequest();
 
-            Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
-            Assert.assertEquals("/random/100", request.getRequestUri());
-            Assert.assertEquals(redirectTarget, new HttpHost(request.getScheme(), request.getAuthority()));
+            Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
+            Assertions.assertEquals("/random/100", request.getRequestUri());
+            Assertions.assertEquals(redirectTarget, new HttpHost(request.getScheme(), request.getAuthority()));
         } finally {
             server.shutdown(TimeValue.ofSeconds(5));
         }

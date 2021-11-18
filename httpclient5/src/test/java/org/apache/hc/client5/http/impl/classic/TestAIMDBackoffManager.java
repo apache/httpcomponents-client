@@ -26,8 +26,9 @@
  */
 package org.apache.hc.client5.http.impl.classic;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Random;
 
@@ -35,8 +36,8 @@ import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.classic.BackoffManager;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.util.TimeValue;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class TestAIMDBackoffManager {
 
@@ -45,7 +46,7 @@ public class TestAIMDBackoffManager {
     private HttpRoute route;
     private MockClock clock;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         connPerRoute = new MockConnPoolControl();
         route = new HttpRoute(new HttpHost("localhost", 80));

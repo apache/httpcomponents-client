@@ -36,8 +36,8 @@ import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
 import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.HttpContext;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class TestRequestDefaultHeaders {
 
@@ -45,7 +45,7 @@ public class TestRequestDefaultHeaders {
     public void testRequestParameterCheck() throws Exception {
         final HttpContext context = new BasicHttpContext();
         final HttpRequestInterceptor interceptor = new RequestDefaultHeaders();
-        Assert.assertThrows(NullPointerException.class, () ->
+        Assertions.assertThrows(NullPointerException.class, () ->
                 interceptor.process(null, null, context));
     }
 
@@ -59,7 +59,7 @@ public class TestRequestDefaultHeaders {
         final HttpRequestInterceptor interceptor = new RequestDefaultHeaders(defheaders);
         interceptor.process(request, null, context);
         final Header header1 = request.getFirstHeader("custom");
-        Assert.assertNull(header1);
+        Assertions.assertNull(header1);
     }
 
     @Test
@@ -73,9 +73,9 @@ public class TestRequestDefaultHeaders {
         final HttpRequestInterceptor interceptor = new RequestDefaultHeaders(defheaders);
         interceptor.process(request, null, context);
         final Header[] headers = request.getHeaders("custom");
-        Assert.assertNotNull(headers);
-        Assert.assertEquals(1, headers.length);
-        Assert.assertEquals("stuff", headers[0].getValue());
+        Assertions.assertNotNull(headers);
+        Assertions.assertEquals(1, headers.length);
+        Assertions.assertEquals("stuff", headers[0].getValue());
     }
 
 }

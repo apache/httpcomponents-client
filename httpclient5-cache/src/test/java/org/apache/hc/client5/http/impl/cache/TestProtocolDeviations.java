@@ -47,13 +47,12 @@ import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
 import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.MockitoAnnotations;
 
 /**
  * We are a conditionally-compliant HTTP/1.1 client with a cache. However, a lot
@@ -70,7 +69,6 @@ import org.mockito.junit.MockitoJUnitRunner;
  * document the places where we differ from the HTTP RFC.
  */
 @SuppressWarnings("boxing") // test code
-@RunWith(MockitoJUnitRunner.class)
 public class TestProtocolDeviations {
 
     private static final int MAX_BYTES = 1024;
@@ -88,8 +86,9 @@ public class TestProtocolDeviations {
 
     ExecChainHandler impl;
 
-    @Before
+    @BeforeEach
     public void setUp() {
+        MockitoAnnotations.openMocks(this);
         host = new HttpHost("foo.example.com", 80);
 
         route = new HttpRoute(host);
@@ -156,7 +155,7 @@ public class TestProtocolDeviations {
 
         try {
             final HttpResponse result = execute(request);
-            Assert.assertTrue(HttpStatus.SC_PARTIAL_CONTENT != result.getCode());
+            Assertions.assertTrue(HttpStatus.SC_PARTIAL_CONTENT != result.getCode());
         } catch (final ClientProtocolException acceptableBehavior) {
             // this is probably ok
         }
@@ -177,7 +176,7 @@ public class TestProtocolDeviations {
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(originResponse);
 
         final HttpResponse result = execute(request);
-        Assert.assertSame(originResponse, result);
+        Assertions.assertSame(originResponse, result);
     }
 
     /*
@@ -193,7 +192,7 @@ public class TestProtocolDeviations {
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(originResponse);
 
         final HttpResponse result = execute(request);
-        Assert.assertSame(originResponse, result);
+        Assertions.assertSame(originResponse, result);
     }
 
     /*
@@ -210,7 +209,7 @@ public class TestProtocolDeviations {
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(originResponse);
 
         final HttpResponse result = execute(request);
-        Assert.assertSame(originResponse, result);
+        Assertions.assertSame(originResponse, result);
     }
 
 }

@@ -27,6 +27,8 @@
 
 package org.apache.hc.client5.http.impl.cache;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.Month;
@@ -37,8 +39,7 @@ import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.HeaderGroup;
 import org.hamcrest.CoreMatchers;
-import org.hamcrest.MatcherAssert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for {@link DateSupport}.
@@ -53,48 +54,48 @@ public class TestDateSupport {
     public void testIsBefore() throws Exception {
         final HeaderGroup message1 = new HeaderGroup();
         final HeaderGroup message2 = new HeaderGroup();
-        MatcherAssert.assertThat(DateSupport.isBefore(null, null, HttpHeaders.DATE), CoreMatchers.equalTo(false));
-        MatcherAssert.assertThat(DateSupport.isBefore(message1, message2, HttpHeaders.DATE), CoreMatchers.equalTo(false));
+        assertThat(DateSupport.isBefore(null, null, HttpHeaders.DATE), CoreMatchers.equalTo(false));
+        assertThat(DateSupport.isBefore(message1, message2, HttpHeaders.DATE), CoreMatchers.equalTo(false));
 
         message1.setHeader(new BasicHeader(HttpHeaders.DATE, "huh?"));
         message2.setHeader(new BasicHeader(HttpHeaders.DATE, "eh?"));
-        MatcherAssert.assertThat(DateSupport.isBefore(message1, message2, HttpHeaders.DATE), CoreMatchers.equalTo(false));
+        assertThat(DateSupport.isBefore(message1, message2, HttpHeaders.DATE), CoreMatchers.equalTo(false));
 
         message1.setHeader(new BasicHeader(HttpHeaders.DATE, "huh?"));
         message2.setHeader(new BasicHeader(HttpHeaders.DATE, DateUtils.formatStandardDate(createInstant(2017, Month.DECEMBER, 26))));
-        MatcherAssert.assertThat(DateSupport.isBefore(message1, message2, HttpHeaders.DATE), CoreMatchers.equalTo(false));
+        assertThat(DateSupport.isBefore(message1, message2, HttpHeaders.DATE), CoreMatchers.equalTo(false));
 
         message1.setHeader(new BasicHeader(HttpHeaders.DATE, DateUtils.formatStandardDate(createInstant(2017, Month.DECEMBER, 25))));
         message2.setHeader(new BasicHeader(HttpHeaders.DATE, DateUtils.formatStandardDate(createInstant(2017, Month.DECEMBER, 26))));
-        MatcherAssert.assertThat(DateSupport.isBefore(message1, message2, HttpHeaders.DATE), CoreMatchers.equalTo(true));
+        assertThat(DateSupport.isBefore(message1, message2, HttpHeaders.DATE), CoreMatchers.equalTo(true));
 
         message1.setHeader(new BasicHeader(HttpHeaders.DATE, DateUtils.formatStandardDate(createInstant(2017, Month.DECEMBER, 27))));
         message2.setHeader(new BasicHeader(HttpHeaders.DATE, DateUtils.formatStandardDate(createInstant(2017, Month.DECEMBER, 26))));
-        MatcherAssert.assertThat(DateSupport.isBefore(message1, message2, HttpHeaders.DATE), CoreMatchers.equalTo(false));
+        assertThat(DateSupport.isBefore(message1, message2, HttpHeaders.DATE), CoreMatchers.equalTo(false));
     }
 
     @Test
     public void testIsAfter() throws Exception {
         final HeaderGroup message1 = new HeaderGroup();
         final HeaderGroup message2 = new HeaderGroup();
-        MatcherAssert.assertThat(DateSupport.isAfter(null, null, HttpHeaders.DATE), CoreMatchers.equalTo(false));
-        MatcherAssert.assertThat(DateSupport.isAfter(message1, message2, HttpHeaders.DATE), CoreMatchers.equalTo(false));
+        assertThat(DateSupport.isAfter(null, null, HttpHeaders.DATE), CoreMatchers.equalTo(false));
+        assertThat(DateSupport.isAfter(message1, message2, HttpHeaders.DATE), CoreMatchers.equalTo(false));
 
         message1.setHeader(new BasicHeader(HttpHeaders.DATE, "huh?"));
         message2.setHeader(new BasicHeader(HttpHeaders.DATE, "eh?"));
-        MatcherAssert.assertThat(DateSupport.isAfter(message1, message2, HttpHeaders.DATE), CoreMatchers.equalTo(false));
+        assertThat(DateSupport.isAfter(message1, message2, HttpHeaders.DATE), CoreMatchers.equalTo(false));
 
         message1.setHeader(new BasicHeader(HttpHeaders.DATE, "huh?"));
         message2.setHeader(new BasicHeader(HttpHeaders.DATE, DateUtils.formatStandardDate(createInstant(2017, Month.DECEMBER, 26))));
-        MatcherAssert.assertThat(DateSupport.isAfter(message1, message2, HttpHeaders.DATE), CoreMatchers.equalTo(false));
+        assertThat(DateSupport.isAfter(message1, message2, HttpHeaders.DATE), CoreMatchers.equalTo(false));
 
         message1.setHeader(new BasicHeader(HttpHeaders.DATE, DateUtils.formatStandardDate(createInstant(2017, Month.DECEMBER, 27))));
         message2.setHeader(new BasicHeader(HttpHeaders.DATE, DateUtils.formatStandardDate(createInstant(2017, Month.DECEMBER, 26))));
-        MatcherAssert.assertThat(DateSupport.isAfter(message1, message2, HttpHeaders.DATE), CoreMatchers.equalTo(true));
+        assertThat(DateSupport.isAfter(message1, message2, HttpHeaders.DATE), CoreMatchers.equalTo(true));
 
         message1.setHeader(new BasicHeader(HttpHeaders.DATE, DateUtils.formatStandardDate(createInstant(2017, Month.DECEMBER, 25))));
         message2.setHeader(new BasicHeader(HttpHeaders.DATE, DateUtils.formatStandardDate(createInstant(2017, Month.DECEMBER, 26))));
-        MatcherAssert.assertThat(DateSupport.isAfter(message1, message2, HttpHeaders.DATE), CoreMatchers.equalTo(false));
+        assertThat(DateSupport.isAfter(message1, message2, HttpHeaders.DATE), CoreMatchers.equalTo(false));
     }
 
 }

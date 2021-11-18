@@ -33,7 +33,7 @@ import org.apache.hc.client5.http.classic.ExecChainHandler;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class TestHttpClientBuilder {
 

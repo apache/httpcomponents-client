@@ -45,11 +45,10 @@ import org.apache.hc.client5.http.cache.Resource;
 import org.apache.hc.client5.http.cache.ResourceIOException;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.message.BasicHeader;
-
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
 class HttpByteArrayCacheEntrySerializerTestUtils {
     private final static String TEST_RESOURCE_DIR = "src/test/resources/";
@@ -227,8 +226,7 @@ class HttpByteArrayCacheEntrySerializerTestUtils {
 
         assertArrayEquals(expectedContent.getVariantMap().keySet().toArray(), actualContent.getVariantMap().keySet().toArray());
         for (final String key : expectedContent.getVariantMap().keySet()) {
-            assertEquals("Expected same variantMap values for key '" + key + "'",
-                    expectedContent.getVariantMap().get(key), actualContent.getVariantMap().get(key));
+            assertEquals(expectedContent.getVariantMap().get(key), actualContent.getVariantMap().get(key), "Expected same variantMap values for key '" + key + "'");
         }
 
         // Verify that the same headers are present on the expected and actual content.
@@ -248,7 +246,7 @@ class HttpByteArrayCacheEntrySerializerTestUtils {
         }
 
         if (expectedContent.getResource() == null) {
-            assertNull("Expected null resource", actualContent.getResource());
+            assertNull(actualContent.getResource(), "Expected null resource");
         } else {
             final byte[] expectedBytes = readFullyStrict(
                     expectedContent.getResource().getInputStream(),

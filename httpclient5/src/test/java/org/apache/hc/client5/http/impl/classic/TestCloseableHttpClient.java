@@ -37,9 +37,9 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.io.HttpClientResponseHandler;
 import org.apache.hc.core5.http.protocol.HttpContext;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 /**
@@ -66,7 +66,7 @@ public class TestCloseableHttpClient {
     private ClassicHttpResponse originResponse;
     private CloseableHttpResponse response;
 
-    @Before
+    @BeforeEach
     public void setup() throws Exception {
         content = Mockito.mock(InputStream.class);
         entity = Mockito.mock(HttpEntity.class);
@@ -108,7 +108,7 @@ public class TestCloseableHttpClient {
                 new HttpHost("https", "somehost", 444), httpget, null)).thenReturn(response);
 
         final CloseableHttpResponse result = client.execute(httpget);
-        Assert.assertSame(response, result);
+        Assertions.assertSame(response, result);
     }
 
     @Test
@@ -141,7 +141,7 @@ public class TestCloseableHttpClient {
 
         Mockito.when(handler.handleResponse(response)).thenThrow(new IOException());
 
-        final IOException exception = Assert.assertThrows(IOException.class, () ->
+        final IOException exception = Assertions.assertThrows(IOException.class, () ->
             client.execute(httpget, handler));
         Mockito.verify(client).doExecute(
                 Mockito.eq(new HttpHost("https", "somehost", 444)),
@@ -161,7 +161,7 @@ public class TestCloseableHttpClient {
 
         Mockito.when(handler.handleResponse(response)).thenThrow(new RuntimeException());
 
-        Assert.assertThrows(RuntimeException.class, () ->
+        Assertions.assertThrows(RuntimeException.class, () ->
                 client.execute(httpget, handler));
         Mockito.verify(client).doExecute(
                 Mockito.eq(new HttpHost("https", "somehost", 444)),

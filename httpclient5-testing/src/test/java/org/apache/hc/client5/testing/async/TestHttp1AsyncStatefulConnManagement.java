@@ -52,7 +52,7 @@ import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.protocol.HttpCoreContext;
 import org.apache.hc.core5.net.URIAuthority;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExternalResource;
@@ -152,14 +152,14 @@ public class TestHttp1AsyncStatefulConnManagement extends AbstractIntegrationTes
             if (ex != null) {
                 throw ex;
             }
-            Assert.assertEquals(requestCount, worker.getCount());
+            Assertions.assertEquals(requestCount, worker.getCount());
         }
 
         for (final HttpContext context : contexts) {
             final String state0 = (String) context.getAttribute("r0");
-            Assert.assertNotNull(state0);
+            Assertions.assertNotNull(state0);
             for (int r = 1; r < requestCount; r++) {
-                Assert.assertEquals(state0, context.getAttribute("r" + r));
+                Assertions.assertEquals(state0, context.getAttribute("r" + r));
             }
         }
 
@@ -260,8 +260,8 @@ public class TestHttp1AsyncStatefulConnManagement extends AbstractIntegrationTes
                 .build();
         final Future<SimpleHttpResponse> future1 = httpclient.execute(request1, context1, null);
         final HttpResponse response1 = future1.get();
-        Assert.assertNotNull(response1);
-        Assert.assertEquals(200, response1.getCode());
+        Assertions.assertNotNull(response1);
+        Assertions.assertEquals(200, response1.getCode());
 
         // The ConnPoolByRoute now has 1 free connection, out of 2 max
         // The ConnPoolByRoute has one RouteSpcfcPool, that has one free connection
@@ -280,8 +280,8 @@ public class TestHttp1AsyncStatefulConnManagement extends AbstractIntegrationTes
                 .build();
         final Future<SimpleHttpResponse> future2 = httpclient.execute(request2, context2, null);
         final HttpResponse response2 = future2.get();
-        Assert.assertNotNull(response2);
-        Assert.assertEquals(200, response2.getCode());
+        Assertions.assertNotNull(response2);
+        Assertions.assertEquals(200, response2.getCode());
 
         // ConnPoolByRoute now has 2 free connexions, out of its 2 max.
         // The [localhost][stuff] RouteSpcfcPool is the same as earlier
@@ -302,8 +302,8 @@ public class TestHttp1AsyncStatefulConnManagement extends AbstractIntegrationTes
                 .build();
         final Future<SimpleHttpResponse> future3 = httpclient.execute(request3, context3, null);
         final HttpResponse response3 = future3.get();
-        Assert.assertNotNull(response3);
-        Assert.assertEquals(200, response3.getCode());
+        Assertions.assertNotNull(response3);
+        Assertions.assertEquals(200, response3.getCode());
     }
 
 }

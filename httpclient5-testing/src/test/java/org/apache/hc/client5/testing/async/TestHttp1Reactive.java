@@ -26,6 +26,9 @@
  */
 package org.apache.hc.client5.testing.async;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static org.hamcrest.MatcherAssert.assertThat;
+
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Collection;
@@ -52,9 +55,9 @@ import org.apache.hc.core5.http.nio.AsyncRequestProducer;
 import org.apache.hc.core5.http.nio.support.AsyncRequestBuilder;
 import org.apache.hc.core5.reactive.ReactiveResponseConsumer;
 import org.hamcrest.CoreMatchers;
-import org.hamcrest.MatcherAssert;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.jupiter.api.Timeout;
 import org.junit.rules.ExternalResource;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -126,7 +129,8 @@ public class TestHttp1Reactive extends AbstractHttpReactiveFundamentalsTest<Clos
         return super.start(null, Http1Config.DEFAULT);
     }
 
-    @Test(timeout = 60_000)
+    @Test
+    @Timeout(value = 60_000, unit = MILLISECONDS)
     public void testSequentialGetRequestsCloseConnection() throws Exception {
         final HttpHost target = start();
         for (int i = 0; i < 3; i++) {
@@ -141,29 +145,32 @@ public class TestHttp1Reactive extends AbstractHttpReactiveFundamentalsTest<Clos
             httpclient.execute(request, consumer, null);
 
             final Message<HttpResponse, Publisher<ByteBuffer>> response = consumer.getResponseFuture().get();
-            MatcherAssert.assertThat(response, CoreMatchers.notNullValue());
-            MatcherAssert.assertThat(response.getHead().getCode(), CoreMatchers.equalTo(200));
+            assertThat(response, CoreMatchers.notNullValue());
+            assertThat(response.getHead().getCode(), CoreMatchers.equalTo(200));
             final String body = publisherToString(response.getBody());
-            MatcherAssert.assertThat(body, CoreMatchers.notNullValue());
-            MatcherAssert.assertThat(body.length(), CoreMatchers.equalTo(2048));
+            assertThat(body, CoreMatchers.notNullValue());
+            assertThat(body.length(), CoreMatchers.equalTo(2048));
         }
     }
 
-    @Test(timeout = 60_000)
+    @Test
+    @Timeout(value = 60_000, unit = MILLISECONDS)
     public void testConcurrentPostsOverMultipleConnections() throws Exception {
         connManager.setDefaultMaxPerRoute(20);
         connManager.setMaxTotal(100);
         super.testConcurrentPostRequests();
     }
 
-    @Test(timeout = 60_000)
+    @Test
+    @Timeout(value = 60_000, unit = MILLISECONDS)
     public void testConcurrentPostsOverSingleConnection() throws Exception {
         connManager.setDefaultMaxPerRoute(1);
         connManager.setMaxTotal(100);
         super.testConcurrentPostRequests();
     }
 
-    @Test(timeout = 60_000)
+    @Test
+    @Timeout(value = 60_000, unit = MILLISECONDS)
     public void testSharedPool() throws Exception {
         final HttpHost target = start();
         final AsyncRequestProducer request1 = AsyncRequestBuilder.get(target + "/random/2048").build();
@@ -172,12 +179,12 @@ public class TestHttp1Reactive extends AbstractHttpReactiveFundamentalsTest<Clos
         httpclient.execute(request1, consumer1, null);
 
         final Message<HttpResponse, Publisher<ByteBuffer>> response1 = consumer1.getResponseFuture().get();
-        MatcherAssert.assertThat(response1, CoreMatchers.notNullValue());
-        MatcherAssert.assertThat(response1.getHead(), CoreMatchers.notNullValue());
-        MatcherAssert.assertThat(response1.getHead().getCode(), CoreMatchers.equalTo(200));
+        assertThat(response1, CoreMatchers.notNullValue());
+        assertThat(response1.getHead(), CoreMatchers.notNullValue());
+        assertThat(response1.getHead().getCode(), CoreMatchers.equalTo(200));
         final String body1 = publisherToString(response1.getBody());
-        MatcherAssert.assertThat(body1, CoreMatchers.notNullValue());
-        MatcherAssert.assertThat(body1.length(), CoreMatchers.equalTo(2048));
+        assertThat(body1, CoreMatchers.notNullValue());
+        assertThat(body1.length(), CoreMatchers.equalTo(2048));
 
 
         try (final CloseableHttpAsyncClient httpclient2 = HttpAsyncClients.custom()
@@ -191,11 +198,11 @@ public class TestHttp1Reactive extends AbstractHttpReactiveFundamentalsTest<Clos
             httpclient2.execute(request2, consumer2, null);
 
             final Message<HttpResponse, Publisher<ByteBuffer>> response2 = consumer2.getResponseFuture().get();
-            MatcherAssert.assertThat(response2, CoreMatchers.notNullValue());
-            MatcherAssert.assertThat(response2.getHead().getCode(), CoreMatchers.equalTo(200));
+            assertThat(response2, CoreMatchers.notNullValue());
+            assertThat(response2.getHead().getCode(), CoreMatchers.equalTo(200));
             final String body2 = publisherToString(response2.getBody());
-            MatcherAssert.assertThat(body2, CoreMatchers.notNullValue());
-            MatcherAssert.assertThat(body2.length(), CoreMatchers.equalTo(2048));
+            assertThat(body2, CoreMatchers.notNullValue());
+            assertThat(body2.length(), CoreMatchers.equalTo(2048));
         }
 
         final AsyncRequestProducer request3 = AsyncRequestBuilder.get(target + "/random/2048").build();
@@ -204,11 +211,11 @@ public class TestHttp1Reactive extends AbstractHttpReactiveFundamentalsTest<Clos
         httpclient.execute(request3, consumer3, null);
 
         final Message<HttpResponse, Publisher<ByteBuffer>> response3 = consumer3.getResponseFuture().get();
-        MatcherAssert.assertThat(response3, CoreMatchers.notNullValue());
-        MatcherAssert.assertThat(response3.getHead().getCode(), CoreMatchers.equalTo(200));
+        assertThat(response3, CoreMatchers.notNullValue());
+        assertThat(response3.getHead().getCode(), CoreMatchers.equalTo(200));
         final String body3 = publisherToString(response3.getBody());
-        MatcherAssert.assertThat(body3, CoreMatchers.notNullValue());
-        MatcherAssert.assertThat(body3.length(), CoreMatchers.equalTo(2048));
+        assertThat(body3, CoreMatchers.notNullValue());
+        assertThat(body3.length(), CoreMatchers.equalTo(2048));
     }
 
 }

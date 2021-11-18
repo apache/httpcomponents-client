@@ -36,7 +36,6 @@ import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.util.LangUtils;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
-import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
 
 public class HttpCacheEntryMatcher extends BaseMatcher<HttpCacheEntry> {
@@ -97,7 +96,6 @@ public class HttpCacheEntryMatcher extends BaseMatcher<HttpCacheEntry> {
         description.appendValue(expectedValue);
     }
 
-    @Factory
     public static Matcher<HttpCacheEntry> equivalent(final HttpCacheEntry target) {
         return new HttpCacheEntryMatcher(target);
     }

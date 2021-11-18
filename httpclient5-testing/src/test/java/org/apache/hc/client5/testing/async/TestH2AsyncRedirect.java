@@ -38,10 +38,12 @@ import org.apache.hc.client5.testing.SSLTestContexts;
 import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.URIScheme;
 import org.junit.Rule;
+import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
 import org.junit.rules.ExternalResource;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
+@EnableRuleMigrationSupport
 @RunWith(Parameterized.class)
 public class TestH2AsyncRedirect extends AbstractHttpAsyncRedirectsTest<CloseableHttpAsyncClient> {
 

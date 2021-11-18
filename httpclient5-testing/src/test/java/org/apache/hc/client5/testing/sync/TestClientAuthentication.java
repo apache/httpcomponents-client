@@ -26,6 +26,8 @@
  */
 package org.apache.hc.client5.testing.sync;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -78,8 +80,7 @@ import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.support.BasicResponseBuilder;
 import org.apache.hc.core5.net.URIAuthority;
 import org.hamcrest.CoreMatchers;
-import org.hamcrest.MatcherAssert;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -109,8 +110,8 @@ public class TestClientAuthentication extends LocalServerTestBase {
 
         this.httpclient.execute(target, httpget, context, response -> {
             final HttpEntity entity = response.getEntity();
-            Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
-            Assert.assertNotNull(entity);
+            Assertions.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
+            Assertions.assertNotNull(entity);
             EntityUtils.consume(entity);
             return null;
         });
@@ -132,8 +133,8 @@ public class TestClientAuthentication extends LocalServerTestBase {
 
         this.httpclient.execute(target, httpget, context, response -> {
             final HttpEntity entity = response.getEntity();
-            Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
-            Assert.assertNotNull(entity);
+            Assertions.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
+            Assertions.assertNotNull(entity);
             EntityUtils.consume(entity);
             return null;
         });
@@ -155,8 +156,8 @@ public class TestClientAuthentication extends LocalServerTestBase {
 
         this.httpclient.execute(target, httpget, context, response -> {
             final HttpEntity entity = response.getEntity();
-            Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
-            Assert.assertNotNull(entity);
+            Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
+            Assertions.assertNotNull(entity);
             EntityUtils.consume(entity);
             return null;
         });
@@ -186,8 +187,8 @@ public class TestClientAuthentication extends LocalServerTestBase {
 
         this.httpclient.execute(target, httpput, context, response -> {
             final HttpEntity entity = response.getEntity();
-            Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
-            Assert.assertNotNull(entity);
+            Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
+            Assertions.assertNotNull(entity);
             return null;
         });
     }
@@ -213,8 +214,8 @@ public class TestClientAuthentication extends LocalServerTestBase {
 
         this.httpclient.execute(target, httpput, context, response -> {
             final HttpEntity entity = response.getEntity();
-            Assert.assertEquals(401, response.getCode());
-            Assert.assertNotNull(entity);
+            Assertions.assertEquals(401, response.getCode());
+            Assertions.assertNotNull(entity);
             EntityUtils.consume(entity);
             return null;
         });
@@ -236,8 +237,8 @@ public class TestClientAuthentication extends LocalServerTestBase {
 
         this.httpclient.execute(target, httppost, context, response -> {
             final HttpEntity entity = response.getEntity();
-            Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
-            Assert.assertNotNull(entity);
+            Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
+            Assertions.assertNotNull(entity);
             EntityUtils.consume(entity);
             return null;
         });
@@ -266,8 +267,8 @@ public class TestClientAuthentication extends LocalServerTestBase {
 
         this.httpclient.execute(target, httppost, context, response -> {
             final HttpEntity entity = response.getEntity();
-            Assert.assertEquals(401, response.getCode());
-            Assert.assertNotNull(entity);
+            Assertions.assertEquals(401, response.getCode());
+            Assertions.assertNotNull(entity);
             EntityUtils.consume(entity);
             return null;
         });
@@ -293,8 +294,8 @@ public class TestClientAuthentication extends LocalServerTestBase {
             final HttpGet httpget = new HttpGet("/");
             this.httpclient.execute(target, httpget, context, response -> {
                 final HttpEntity entity1 = response.getEntity();
-                Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
-                Assert.assertNotNull(entity1);
+                Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
+                Assertions.assertNotNull(entity1);
                 EntityUtils.consume(entity1);
                 return null;
             });
@@ -302,7 +303,7 @@ public class TestClientAuthentication extends LocalServerTestBase {
 
         Mockito.verify(authStrategy).select(Mockito.any(), Mockito.any(), Mockito.any());
 
-        MatcherAssert.assertThat(
+        assertThat(
                 responseQueue.stream().map(HttpResponse::getCode).collect(Collectors.toList()),
                 CoreMatchers.equalTo(Arrays.asList(401, 200, 200, 200, 200, 200)));
     }
@@ -331,8 +332,8 @@ public class TestClientAuthentication extends LocalServerTestBase {
             final HttpGet httpget = new HttpGet(requestPath);
             this.httpclient.execute(target, httpget, context, response -> {
                 final HttpEntity entity1 = response.getEntity();
-                Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
-                Assert.assertNotNull(entity1);
+                Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
+                Assertions.assertNotNull(entity1);
                 EntityUtils.consume(entity1);
                 return null;
             });
@@ -341,7 +342,7 @@ public class TestClientAuthentication extends LocalServerTestBase {
         // There should be only single auth strategy call for all successful message exchanges
         Mockito.verify(authStrategy).select(Mockito.any(), Mockito.any(), Mockito.any());
 
-        MatcherAssert.assertThat(
+        assertThat(
                 responseQueue.stream().map(HttpResponse::getCode).collect(Collectors.toList()),
                 CoreMatchers.equalTo(Arrays.asList(401, 200, 200, 200, 200)));
 
@@ -353,8 +354,8 @@ public class TestClientAuthentication extends LocalServerTestBase {
             final HttpGet httpget = new HttpGet(requestPath);
             this.httpclient.execute(target, httpget, context, response -> {
                 final HttpEntity entity1 = response.getEntity();
-                Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
-                Assert.assertNotNull(entity1);
+                Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
+                Assertions.assertNotNull(entity1);
                 EntityUtils.consume(entity1);
                 return null;
             });
@@ -363,7 +364,7 @@ public class TestClientAuthentication extends LocalServerTestBase {
         // There should be an auth strategy call for all successful message exchanges
         Mockito.verify(authStrategy, Mockito.times(2)).select(Mockito.any(), Mockito.any(), Mockito.any());
 
-        MatcherAssert.assertThat(
+        assertThat(
                 responseQueue.stream().map(HttpResponse::getCode).collect(Collectors.toList()),
                 CoreMatchers.equalTo(Arrays.asList(200, 401, 200, 200, 401, 200)));
     }
@@ -413,8 +414,8 @@ public class TestClientAuthentication extends LocalServerTestBase {
 
         this.httpclient.execute(target, httpget1, context, response -> {
             final HttpEntity entity1 = response.getEntity();
-            Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
-            Assert.assertNotNull(entity1);
+            Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
+            Assertions.assertNotNull(entity1);
             EntityUtils.consume(entity1);
             return null;
         });
@@ -423,8 +424,8 @@ public class TestClientAuthentication extends LocalServerTestBase {
 
         this.httpclient.execute(target, httpget2, context, response -> {
             final HttpEntity entity2 = response.getEntity();
-            Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
-            Assert.assertNotNull(entity2);
+            Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
+            Assertions.assertNotNull(entity2);
             EntityUtils.consume(entity2);
             return null;
         });
@@ -433,8 +434,8 @@ public class TestClientAuthentication extends LocalServerTestBase {
 
         this.httpclient.execute(target, httpget3, context, response -> {
             final HttpEntity entity3 = response.getEntity();
-            Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
-            Assert.assertNotNull(entity3);
+            Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
+            Assertions.assertNotNull(entity3);
             EntityUtils.consume(entity3);
             return null;
         });
@@ -449,7 +450,7 @@ public class TestClientAuthentication extends LocalServerTestBase {
         final HttpGet httpget = new HttpGet("http://test:test@" +  target.toHostString() + "/");
 
         final HttpClientContext context = HttpClientContext.create();
-        Assert.assertThrows(ClientProtocolException.class, () -> this.httpclient.execute(target, httpget, context, response -> null));
+        Assertions.assertThrows(ClientProtocolException.class, () -> this.httpclient.execute(target, httpget, context, response -> null));
     }
 
     @Test
@@ -468,8 +469,8 @@ public class TestClientAuthentication extends LocalServerTestBase {
         final HttpGet httpget = new HttpGet("/");
         this.httpclient.execute(target, httpget, context, response -> {
             final HttpEntity entity1 = response.getEntity();
-            Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
-            Assert.assertNotNull(entity1);
+            Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
+            Assertions.assertNotNull(entity1);
             EntityUtils.consume(entity1);
             return null;
         });
@@ -494,8 +495,8 @@ public class TestClientAuthentication extends LocalServerTestBase {
         final HttpGet httpget = new HttpGet("/");
         this.httpclient.execute(target, httpget, context, response -> {
             final HttpEntity entity1 = response.getEntity();
-            Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
-            Assert.assertNotNull(entity1);
+            Assertions.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
+            Assertions.assertNotNull(entity1);
             EntityUtils.consume(entity1);
             return null;
         });
@@ -535,7 +536,7 @@ public class TestClientAuthentication extends LocalServerTestBase {
         final HttpGet httpget = new HttpGet("/");
         this.httpclient.execute(target, httpget, context, response -> {
             final HttpEntity entity = response.getEntity();
-            Assert.assertEquals(HttpStatus.SC_PROXY_AUTHENTICATION_REQUIRED, response.getCode());
+            Assertions.assertEquals(HttpStatus.SC_PROXY_AUTHENTICATION_REQUIRED, response.getCode());
             EntityUtils.consume(entity);
             return null;
         });
@@ -567,7 +568,7 @@ public class TestClientAuthentication extends LocalServerTestBase {
 
             this.httpclient.execute(target, httpget, context, response -> {
                 EntityUtils.consume(response.getEntity());
-                Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
+                Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
                 return null;
             });
         }
@@ -641,8 +642,8 @@ public class TestClientAuthentication extends LocalServerTestBase {
             httpget.setConfig(config);
             this.httpclient.execute(target, httpget, context, response -> {
                 final HttpEntity entity = response.getEntity();
-                Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
-                Assert.assertNotNull(entity);
+                Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
+                Assertions.assertNotNull(entity);
                 EntityUtils.consume(entity);
                 return null;
             });
@@ -673,8 +674,8 @@ public class TestClientAuthentication extends LocalServerTestBase {
 
         this.httpclient.execute(target, httpget, context, response -> {
             final HttpEntity entity = response.getEntity();
-            Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
-            Assert.assertNotNull(entity);
+            Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
+            Assertions.assertNotNull(entity);
             EntityUtils.consume(entity);
             return null;
         });

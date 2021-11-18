@@ -37,17 +37,17 @@ import java.util.List;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.http.message.BasicNameValuePair;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class TestMultipartEntityBuilder {
 
     @Test
     public void testBasics() throws Exception {
         final MultipartFormEntity entity = MultipartEntityBuilder.create().buildEntity();
-        Assert.assertNotNull(entity);
-        Assert.assertTrue(entity.getMultipart() instanceof HttpStrictMultipart);
-        Assert.assertEquals(0, entity.getMultipart().getParts().size());
+        Assertions.assertNotNull(entity);
+        Assertions.assertTrue(entity.getMultipart() instanceof HttpStrictMultipart);
+        Assertions.assertEquals(0, entity.getMultipart().getParts().size());
     }
 
     @Test
@@ -57,10 +57,10 @@ public class TestMultipartEntityBuilder {
                 .setCharset(StandardCharsets.UTF_8)
                 .setLaxMode()
                 .buildEntity();
-        Assert.assertNotNull(entity);
-        Assert.assertTrue(entity.getMultipart() instanceof LegacyMultipart);
-        Assert.assertEquals("blah-blah", entity.getMultipart().boundary);
-        Assert.assertEquals(StandardCharsets.UTF_8, entity.getMultipart().charset);
+        Assertions.assertNotNull(entity);
+        Assertions.assertTrue(entity.getMultipart() instanceof LegacyMultipart);
+        Assertions.assertEquals("blah-blah", entity.getMultipart().boundary);
+        Assertions.assertEquals(StandardCharsets.UTF_8, entity.getMultipart().charset);
     }
 
     @Test
@@ -72,10 +72,10 @@ public class TestMultipartEntityBuilder {
                 .addBinaryBody("p4", new ByteArrayInputStream(new byte[]{}))
                 .addBinaryBody("p5", new ByteArrayInputStream(new byte[]{}), ContentType.DEFAULT_BINARY, "filename")
                 .buildEntity();
-        Assert.assertNotNull(entity);
+        Assertions.assertNotNull(entity);
         final List<MultipartPart> bodyParts = entity.getMultipart().getParts();
-        Assert.assertNotNull(bodyParts);
-        Assert.assertEquals(5, bodyParts.size());
+        Assertions.assertNotNull(bodyParts);
+        Assertions.assertEquals(5, bodyParts.size());
     }
 
 
@@ -87,8 +87,8 @@ public class TestMultipartEntityBuilder {
                 .setCharset(StandardCharsets.UTF_8)
                 .setLaxMode()
                 .buildEntity();
-        Assert.assertNotNull(entity);
-        Assert.assertEquals("application/xml; boundary=blah-blah; charset=UTF-8", entity.getContentType());
+        Assertions.assertNotNull(entity);
+        Assertions.assertEquals("application/xml; boundary=blah-blah; charset=UTF-8", entity.getContentType());
     }
 
     @Test
@@ -98,10 +98,10 @@ public class TestMultipartEntityBuilder {
                         new BasicNameValuePair("boundary", "yada-yada"),
                         new BasicNameValuePair("charset", "ascii")))
                 .buildEntity();
-        Assert.assertNotNull(entity);
-        Assert.assertEquals("multipart/form-data; boundary=yada-yada; charset=US-ASCII", entity.getContentType());
-        Assert.assertEquals("yada-yada", entity.getMultipart().boundary);
-        Assert.assertEquals(StandardCharsets.US_ASCII, entity.getMultipart().charset);
+        Assertions.assertNotNull(entity);
+        Assertions.assertEquals("multipart/form-data; boundary=yada-yada; charset=US-ASCII", entity.getContentType());
+        Assertions.assertEquals("yada-yada", entity.getMultipart().boundary);
+        Assertions.assertEquals(StandardCharsets.US_ASCII, entity.getMultipart().charset);
     }
 
     @Test
@@ -115,8 +115,8 @@ public class TestMultipartEntityBuilder {
                 .setCharset(StandardCharsets.UTF_8)
                 .setLaxMode()
                 .buildEntity();
-        Assert.assertNotNull(entity);
-        Assert.assertEquals("multipart/form-data; boundary=blah-blah; charset=UTF-8; my=stuff",
+        Assertions.assertNotNull(entity);
+        Assertions.assertEquals("multipart/form-data; boundary=blah-blah; charset=UTF-8; my=stuff",
                 entity.getContentType());
     }
 
@@ -129,8 +129,8 @@ public class TestMultipartEntityBuilder {
         eb.addParameter(new BasicNameValuePair("my", "stuff"));
         eb.buildEntity();
         final MultipartFormEntity entity =  eb.buildEntity();
-        Assert.assertNotNull(entity);
-        Assert.assertEquals("multipart/related; boundary=yada-yada; charset=US-ASCII; my=stuff",
+        Assertions.assertNotNull(entity);
+        Assertions.assertEquals("multipart/related; boundary=yada-yada; charset=US-ASCII; my=stuff",
                 entity.getContentType());
     }
 
@@ -154,7 +154,7 @@ public class TestMultipartEntityBuilder {
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
         entity.writeTo(out);
         out.close();
-        Assert.assertEquals("--xxxxxxxxxxxxxxxxxxxxxxxx\r\n" +
+        Assertions.assertEquals("--xxxxxxxxxxxxxxxxxxxxxxxx\r\n" +
                 "Content-Disposition: multipart/form-data; name=\"test\"; filename=\"hello world\"\r\n" +
                 "Content-Type: text/plain; charset=ISO-8859-1\r\n" +
                 "\r\n" +
@@ -182,7 +182,7 @@ public class TestMultipartEntityBuilder {
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
         entity.writeTo(out);
         out.close();
-        Assert.assertEquals("--xxxxxxxxxxxxxxxxxxxxxxxx\r\n" +
+        Assertions.assertEquals("--xxxxxxxxxxxxxxxxxxxxxxxx\r\n" +
                 "Content-Disposition: multipart/form-data; name=\"test\"; filename=\"hello%20%CE%BA%CF%8C%CF%83%CE%BC%CE%B5!%25\"\r\n" +
                 "Content-Type: text/plain; charset=UTF-8\r\n" +
                 "\r\n" +
@@ -211,7 +211,7 @@ public class TestMultipartEntityBuilder {
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
         entity.writeTo(out);
         out.close();
-        Assert.assertEquals("--xxxxxxxxxxxxxxxxxxxxxxxx\r\n" +
+        Assertions.assertEquals("--xxxxxxxxxxxxxxxxxxxxxxxx\r\n" +
                 "Content-Disposition: multipart/form-data; name=\"test\"; " +
                 "filename=\"hello \u00ce\u00ba\u00cf\u008c\u00cf\u0083\u00ce\u00bc\u00ce\u00b5!%\"\r\n" +
                 "Content-Type: text/plain; charset=UTF-8\r\n" +

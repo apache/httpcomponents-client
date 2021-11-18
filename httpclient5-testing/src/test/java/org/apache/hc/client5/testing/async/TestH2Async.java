@@ -39,10 +39,12 @@ import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.nio.ssl.BasicClientTlsStrategy;
 import org.apache.hc.core5.http2.config.H2Config;
 import org.junit.Rule;
+import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
 import org.junit.rules.ExternalResource;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
+@EnableRuleMigrationSupport
 @RunWith(Parameterized.class)
 public class TestH2Async extends AbstractHttpAsyncFundamentalsTest<CloseableHttpAsyncClient> {
 

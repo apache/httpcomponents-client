@@ -43,15 +43,15 @@ import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.message.BasicHttpResponse;
 import org.apache.hc.core5.util.TimeValue;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class TestDefaultHttpRequestRetryStrategy {
 
     private DefaultHttpRequestRetryStrategy retryStrategy;
 
-    @Before
+    @BeforeEach
     public void setup() {
         this.retryStrategy = new DefaultHttpRequestRetryStrategy(3, TimeValue.ofMilliseconds(1234L));
     }
@@ -59,19 +59,19 @@ public class TestDefaultHttpRequestRetryStrategy {
     @Test
     public void testBasics() throws Exception {
         final HttpResponse response1 = new BasicHttpResponse(503, "Oopsie");
-        Assert.assertTrue(this.retryStrategy.retryRequest(response1, 1, null));
-        Assert.assertTrue(this.retryStrategy.retryRequest(response1, 2, null));
-        Assert.assertTrue(this.retryStrategy.retryRequest(response1, 3, null));
-        Assert.assertFalse(this.retryStrategy.retryRequest(response1, 4, null));
+        Assertions.assertTrue(this.retryStrategy.retryRequest(response1, 1, null));
+        Assertions.assertTrue(this.retryStrategy.retryRequest(response1, 2, null));
+        Assertions.assertTrue(this.retryStrategy.retryRequest(response1, 3, null));
+        Assertions.assertFalse(this.retryStrategy.retryRequest(response1, 4, null));
         final HttpResponse response2 = new BasicHttpResponse(500, "Big Time Oopsie");
-        Assert.assertFalse(this.retryStrategy.retryRequest(response2, 1, null));
+        Assertions.assertFalse(this.retryStrategy.retryRequest(response2, 1, null));
         final HttpResponse response3 = new BasicHttpResponse(429, "Oopsie");
-        Assert.assertTrue(this.retryStrategy.retryRequest(response3, 1, null));
-        Assert.assertTrue(this.retryStrategy.retryRequest(response3, 2, null));
-        Assert.assertTrue(this.retryStrategy.retryRequest(response3, 3, null));
-        Assert.assertFalse(this.retryStrategy.retryRequest(response3, 4, null));
+        Assertions.assertTrue(this.retryStrategy.retryRequest(response3, 1, null));
+        Assertions.assertTrue(this.retryStrategy.retryRequest(response3, 2, null));
+        Assertions.assertTrue(this.retryStrategy.retryRequest(response3, 3, null));
+        Assertions.assertFalse(this.retryStrategy.retryRequest(response3, 4, null));
 
-        Assert.assertEquals(TimeValue.ofMilliseconds(1234L), this.retryStrategy.getRetryInterval(response1, 1, null));
+        Assertions.assertEquals(TimeValue.ofMilliseconds(1234L), this.retryStrategy.getRetryInterval(response1, 1, null));
     }
 
     @Test
@@ -79,7 +79,7 @@ public class TestDefaultHttpRequestRetryStrategy {
         final HttpResponse response = new BasicHttpResponse(503, "Oopsie");
         response.setHeader(HttpHeaders.RETRY_AFTER, "321");
 
-        Assert.assertEquals(TimeValue.ofSeconds(321L), this.retryStrategy.getRetryInterval(response, 3, null));
+        Assertions.assertEquals(TimeValue.ofSeconds(321L), this.retryStrategy.getRetryInterval(response, 3, null));
     }
 
     @Test
@@ -88,7 +88,7 @@ public class TestDefaultHttpRequestRetryStrategy {
         final HttpResponse response = new BasicHttpResponse(503, "Oopsie");
         response.setHeader(HttpHeaders.RETRY_AFTER, DateUtils.formatStandardDate(Instant.now().plus(100, ChronoUnit.SECONDS)));
 
-        Assert.assertTrue(this.retryStrategy.getRetryInterval(response, 3, null).compareTo(TimeValue.ZERO_MILLISECONDS) > 0);
+        Assertions.assertTrue(this.retryStrategy.getRetryInterval(response, 3, null).compareTo(TimeValue.ZERO_MILLISECONDS) > 0);
     }
 
     @Test
@@ -96,7 +96,7 @@ public class TestDefaultHttpRequestRetryStrategy {
         final HttpResponse response = new BasicHttpResponse(503, "Oopsie");
         response.setHeader(HttpHeaders.RETRY_AFTER, DateUtils.formatStandardDate(Instant.now().minus(100, ChronoUnit.SECONDS)));
 
-        Assert.assertEquals(TimeValue.ofMilliseconds(1234L), this.retryStrategy.getRetryInterval(response, 3, null));
+        Assertions.assertEquals(TimeValue.ofMilliseconds(1234L), this.retryStrategy.getRetryInterval(response, 3, null));
     }
 
     @Test
@@ -104,49 +104,49 @@ public class TestDefaultHttpRequestRetryStrategy {
         final HttpResponse response = new BasicHttpResponse(503, "Oopsie");
         response.setHeader(HttpHeaders.RETRY_AFTER, "Stuff");
 
-        Assert.assertEquals(TimeValue.ofMilliseconds(1234L), retryStrategy.getRetryInterval(response, 3, null));
+        Assertions.assertEquals(TimeValue.ofMilliseconds(1234L), retryStrategy.getRetryInterval(response, 3, null));
     }
 
     @Test
     public void noRetryOnConnectTimeout() throws Exception {
         final HttpGet request = new HttpGet("/");
 
-        Assert.assertFalse(retryStrategy.retryRequest(request, new SocketTimeoutException(), 1, null));
+        Assertions.assertFalse(retryStrategy.retryRequest(request, new SocketTimeoutException(), 1, null));
     }
 
     @Test
     public void noRetryOnConnect() throws Exception {
         final HttpGet request = new HttpGet("/");
 
-        Assert.assertFalse(retryStrategy.retryRequest(request, new ConnectException(), 1, null));
+        Assertions.assertFalse(retryStrategy.retryRequest(request, new ConnectException(), 1, null));
     }
 
     @Test
     public void noRetryOnConnectionClosed() throws Exception {
         final HttpGet request = new HttpGet("/");
 
-        Assert.assertFalse(retryStrategy.retryRequest(request, new ConnectionClosedException(), 1, null));
+        Assertions.assertFalse(retryStrategy.retryRequest(request, new ConnectionClosedException(), 1, null));
     }
 
     @Test
     public void noRetryForNoRouteToHostException() {
         final HttpGet request = new HttpGet("/");
 
-        Assert.assertFalse(retryStrategy.retryRequest(request, new NoRouteToHostException(), 1, null));
+        Assertions.assertFalse(retryStrategy.retryRequest(request, new NoRouteToHostException(), 1, null));
     }
 
     @Test
     public void noRetryOnSSLFailure() throws Exception {
         final HttpGet request = new HttpGet("/");
 
-        Assert.assertFalse(retryStrategy.retryRequest(request, new SSLException("encryption failed"), 1, null));
+        Assertions.assertFalse(retryStrategy.retryRequest(request, new SSLException("encryption failed"), 1, null));
     }
 
     @Test
     public void noRetryOnUnknownHost() throws Exception {
         final HttpGet request = new HttpGet("/");
 
-        Assert.assertFalse(retryStrategy.retryRequest(request, new UnknownHostException(), 1, null));
+        Assertions.assertFalse(retryStrategy.retryRequest(request, new UnknownHostException(), 1, null));
     }
 
     @Test
@@ -154,14 +154,14 @@ public class TestDefaultHttpRequestRetryStrategy {
         final HttpGet request = new HttpGet("/");
         request.cancel();
 
-        Assert.assertFalse(retryStrategy.retryRequest(request, new IOException(), 1, null));
+        Assertions.assertFalse(retryStrategy.retryRequest(request, new IOException(), 1, null));
     }
 
     @Test
     public void retryOnNonAbortedRequests() throws Exception {
         final HttpGet request = new HttpGet("/");
 
-        Assert.assertTrue(retryStrategy.retryRequest(request, new IOException(), 1, null));
+        Assertions.assertTrue(retryStrategy.retryRequest(request, new IOException(), 1, null));
     }
 
 }

@@ -26,9 +26,11 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.fail;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -43,9 +45,8 @@ import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.BasicHttpResponse;
-import org.hamcrest.MatcherAssert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class TestCacheUpdateHandler {
 
@@ -61,7 +62,7 @@ public class TestCacheUpdateHandler {
     private Instant tenSecondsAgo;
     private HttpResponse response;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         requestDate = Instant.now().minusSeconds(1);
         responseDate = Instant.now();
@@ -97,8 +98,8 @@ public class TestCacheUpdateHandler {
         final HttpCacheEntry updatedEntry = impl.updateCacheEntry(null, entry,
                 new Date(), new Date(), response);
 
-        MatcherAssert. assertThat(updatedEntry, ContainsHeaderMatcher.contains("Date", DateUtils.formatStandardDate(responseDate)));
-        MatcherAssert. assertThat(updatedEntry, ContainsHeaderMatcher.contains("ETag", "\"etag\""));
+         assertThat(updatedEntry, ContainsHeaderMatcher.contains("Date", DateUtils.formatStandardDate(responseDate)));
+         assertThat(updatedEntry, ContainsHeaderMatcher.contains("ETag", "\"etag\""));
     }
 
     @Test
@@ -117,10 +118,10 @@ public class TestCacheUpdateHandler {
         final HttpCacheEntry updatedEntry = impl.updateCacheEntry(null, entry,
                 new Date(), new Date(), response);
 
-        MatcherAssert. assertThat(updatedEntry, ContainsHeaderMatcher.contains("Date", DateUtils.formatStandardDate(requestDate)));
-        MatcherAssert. assertThat(updatedEntry, ContainsHeaderMatcher.contains("ETag", "\"etag\""));
-        MatcherAssert. assertThat(updatedEntry, ContainsHeaderMatcher.contains("Last-Modified", DateUtils.formatStandardDate(responseDate)));
-        MatcherAssert. assertThat(updatedEntry, ContainsHeaderMatcher.contains("Cache-Control", "public"));
+         assertThat(updatedEntry, ContainsHeaderMatcher.contains("Date", DateUtils.formatStandardDate(requestDate)));
+         assertThat(updatedEntry, ContainsHeaderMatcher.contains("ETag", "\"etag\""));
+         assertThat(updatedEntry, ContainsHeaderMatcher.contains("Last-Modified", DateUtils.formatStandardDate(responseDate)));
+         assertThat(updatedEntry, ContainsHeaderMatcher.contains("Cache-Control", "public"));
     }
 
     @Test
@@ -137,10 +138,10 @@ public class TestCacheUpdateHandler {
         final HttpCacheEntry updatedEntry = impl.updateCacheEntry(null, entry,
                 new Date(), new Date(), response);
 
-        MatcherAssert. assertThat(updatedEntry, ContainsHeaderMatcher.contains("Date", DateUtils.formatStandardDate(requestDate)));
-        MatcherAssert. assertThat(updatedEntry, ContainsHeaderMatcher.contains("ETag", "\"etag\""));
-        MatcherAssert. assertThat(updatedEntry, ContainsHeaderMatcher.contains("Last-Modified", DateUtils.formatStandardDate(responseDate)));
-        MatcherAssert. assertThat(updatedEntry, ContainsHeaderMatcher.contains("Cache-Control", "public"));
+         assertThat(updatedEntry, ContainsHeaderMatcher.contains("Date", DateUtils.formatStandardDate(requestDate)));
+         assertThat(updatedEntry, ContainsHeaderMatcher.contains("ETag", "\"etag\""));
+         assertThat(updatedEntry, ContainsHeaderMatcher.contains("Last-Modified", DateUtils.formatStandardDate(responseDate)));
+         assertThat(updatedEntry, ContainsHeaderMatcher.contains("Cache-Control", "public"));
     }
 
     @Test
@@ -155,8 +156,8 @@ public class TestCacheUpdateHandler {
         response.setHeader("ETag", "\"old-etag\"");
         final HttpCacheEntry result = impl.updateCacheEntry("A", entry, new Date(),
                 new Date(), response);
-        MatcherAssert. assertThat(result, ContainsHeaderMatcher.contains("Date", DateUtils.formatStandardDate(oneSecondAgo)));
-        MatcherAssert. assertThat(result, ContainsHeaderMatcher.contains("ETag", "\"new-etag\""));
+         assertThat(result, ContainsHeaderMatcher.contains("Date", DateUtils.formatStandardDate(oneSecondAgo)));
+         assertThat(result, ContainsHeaderMatcher.contains("ETag", "\"new-etag\""));
     }
 
     @Test

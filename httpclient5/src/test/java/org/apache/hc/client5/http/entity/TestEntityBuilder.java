@@ -33,63 +33,63 @@ import java.io.InputStream;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 public class TestEntityBuilder {
 
     @Test
     public void testBuildEmptyEntity() throws Exception {
-        Assert.assertThrows(IllegalStateException.class, () ->
+        Assertions.assertThrows(IllegalStateException.class, () ->
                 EntityBuilder.create().build());
     }
 
     @Test
     public void testBuildTextEntity() throws Exception {
         final HttpEntity entity = EntityBuilder.create().setText("stuff").build();
-        Assert.assertNotNull(entity);
-        Assert.assertNotNull(entity.getContent());
-        Assert.assertNotNull(entity.getContentType());
-        Assert.assertEquals("text/plain; charset=ISO-8859-1", entity.getContentType());
+        Assertions.assertNotNull(entity);
+        Assertions.assertNotNull(entity.getContent());
+        Assertions.assertNotNull(entity.getContentType());
+        Assertions.assertEquals("text/plain; charset=ISO-8859-1", entity.getContentType());
     }
 
     @Test
     public void testBuildBinaryEntity() throws Exception {
         final HttpEntity entity = EntityBuilder.create().setBinary(new byte[] {0, 1, 2}).build();
-        Assert.assertNotNull(entity);
-        Assert.assertNotNull(entity.getContent());
-        Assert.assertNotNull(entity.getContentType());
-        Assert.assertEquals("application/octet-stream", entity.getContentType());
+        Assertions.assertNotNull(entity);
+        Assertions.assertNotNull(entity.getContent());
+        Assertions.assertNotNull(entity.getContentType());
+        Assertions.assertEquals("application/octet-stream", entity.getContentType());
     }
 
     @Test
     public void testBuildStreamEntity() throws Exception {
         final InputStream in = Mockito.mock(InputStream.class);
         final HttpEntity entity = EntityBuilder.create().setStream(in).build();
-        Assert.assertNotNull(entity);
-        Assert.assertNotNull(entity.getContent());
-        Assert.assertNotNull(entity.getContentType());
-        Assert.assertEquals(-1, entity.getContentLength());
-        Assert.assertEquals("application/octet-stream", entity.getContentType());
+        Assertions.assertNotNull(entity);
+        Assertions.assertNotNull(entity.getContent());
+        Assertions.assertNotNull(entity.getContentType());
+        Assertions.assertEquals(-1, entity.getContentLength());
+        Assertions.assertEquals("application/octet-stream", entity.getContentType());
     }
 
     @Test
     public void testBuildSerializableEntity() throws Exception {
         final HttpEntity entity = EntityBuilder.create().setSerializable(Boolean.TRUE).build();
-        Assert.assertNotNull(entity);
-        Assert.assertNotNull(entity.getContent());
-        Assert.assertNotNull(entity.getContentType());
-        Assert.assertEquals("application/octet-stream", entity.getContentType());
+        Assertions.assertNotNull(entity);
+        Assertions.assertNotNull(entity.getContent());
+        Assertions.assertNotNull(entity.getContentType());
+        Assertions.assertEquals("application/octet-stream", entity.getContentType());
     }
 
     @Test
     public void testBuildFileEntity() throws Exception {
         final File file = new File("stuff");
         final HttpEntity entity = EntityBuilder.create().setFile(file).build();
-        Assert.assertNotNull(entity);
-        Assert.assertNotNull(entity.getContentType());
-        Assert.assertEquals("application/octet-stream", entity.getContentType());
+        Assertions.assertNotNull(entity);
+        Assertions.assertNotNull(entity.getContentType());
+        Assertions.assertEquals("application/octet-stream", entity.getContentType());
     }
 
     @Test
@@ -99,29 +99,29 @@ public class TestEntityBuilder {
             .setContentEncoding("identity")
             .setBinary(new byte[] {0, 1, 2})
             .setText("{\"stuff\"}").build();
-        Assert.assertNotNull(entity);
-        Assert.assertNotNull(entity.getContentType());
-        Assert.assertEquals("application/json; charset=UTF-8", entity.getContentType());
-        Assert.assertNotNull(entity.getContentEncoding());
-        Assert.assertEquals("identity", entity.getContentEncoding());
-        Assert.assertEquals("{\"stuff\"}", EntityUtils.toString(entity));
+        Assertions.assertNotNull(entity);
+        Assertions.assertNotNull(entity.getContentType());
+        Assertions.assertEquals("application/json; charset=UTF-8", entity.getContentType());
+        Assertions.assertNotNull(entity.getContentEncoding());
+        Assertions.assertEquals("identity", entity.getContentEncoding());
+        Assertions.assertEquals("{\"stuff\"}", EntityUtils.toString(entity));
     }
 
     @Test
     public void testBuildChunked() throws Exception {
         final HttpEntity entity = EntityBuilder.create().setText("stuff").chunked().build();
-        Assert.assertNotNull(entity);
-        Assert.assertTrue(entity.isChunked());
+        Assertions.assertNotNull(entity);
+        Assertions.assertTrue(entity.isChunked());
     }
 
     @Test
     public void testBuildGZipped() throws Exception {
         final HttpEntity entity = EntityBuilder.create().setText("stuff").gzipCompressed().build();
-        Assert.assertNotNull(entity);
-        Assert.assertNotNull(entity.getContentType());
-        Assert.assertEquals("text/plain; charset=ISO-8859-1", entity.getContentType());
-        Assert.assertNotNull(entity.getContentEncoding());
-        Assert.assertEquals("gzip", entity.getContentEncoding());
+        Assertions.assertNotNull(entity);
+        Assertions.assertNotNull(entity.getContentType());
+        Assertions.assertEquals("text/plain; charset=ISO-8859-1", entity.getContentType());
+        Assertions.assertNotNull(entity.getContentEncoding());
+        Assertions.assertEquals("gzip", entity.getContentEncoding());
     }
 
 }

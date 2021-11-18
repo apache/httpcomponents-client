@@ -26,6 +26,7 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -40,16 +41,13 @@ import org.apache.hc.core5.http.message.BasicHttpResponse;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
 import org.hamcrest.CoreMatchers;
-import org.hamcrest.MatcherAssert;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.MockitoAnnotations;
 
-@RunWith(MockitoJUnitRunner.class)
 public class TestCacheRevalidatorBase {
 
     @Mock
@@ -62,8 +60,9 @@ public class TestCacheRevalidatorBase {
     private CacheRevalidatorBase impl;
 
 
-    @Before
+    @BeforeEach
     public void setUp() {
+        MockitoAnnotations.openMocks(this);
         impl = new CacheRevalidatorBase(mockScheduledExecutor, mockSchedulingStrategy);
     }
 
@@ -77,7 +76,7 @@ public class TestCacheRevalidatorBase {
         verify(mockSchedulingStrategy).schedule(0);
         verify(mockScheduledExecutor).schedule(ArgumentMatchers.same(mockOperation), ArgumentMatchers.eq(TimeValue.ofSeconds(1)));
 
-        Assert.assertEquals(1, impl.getScheduledIdentifiers().size());
+        Assertions.assertEquals(1, impl.getScheduledIdentifiers().size());
     }
 
     @Test
@@ -90,12 +89,12 @@ public class TestCacheRevalidatorBase {
         verify(mockSchedulingStrategy).schedule(0);
         verify(mockScheduledExecutor).schedule(ArgumentMatchers.any(), ArgumentMatchers.eq(TimeValue.ofSeconds(3)));
 
-        Assert.assertEquals(1, impl.getScheduledIdentifiers().size());
-        Assert.assertTrue(impl.getScheduledIdentifiers().contains(cacheKey));
+        Assertions.assertEquals(1, impl.getScheduledIdentifiers().size());
+        Assertions.assertTrue(impl.getScheduledIdentifiers().contains(cacheKey));
 
         impl.jobSuccessful(cacheKey);
 
-        Assert.assertEquals(0, impl.getScheduledIdentifiers().size());
+        Assertions.assertEquals(0, impl.getScheduledIdentifiers().size());
     }
 
     @Test
@@ -106,7 +105,7 @@ public class TestCacheRevalidatorBase {
         final String cacheKey = "blah";
         impl.scheduleRevalidation(cacheKey, mockOperation);
 
-        Assert.assertEquals(0, impl.getScheduledIdentifiers().size());
+        Assertions.assertEquals(0, impl.getScheduledIdentifiers().size());
         verify(mockScheduledExecutor).schedule(ArgumentMatchers.any(), ArgumentMatchers.eq(TimeValue.ofSeconds(2)));
     }
 
@@ -122,25 +121,25 @@ public class TestCacheRevalidatorBase {
         verify(mockSchedulingStrategy).schedule(ArgumentMatchers.anyInt());
         verify(mockScheduledExecutor).schedule(ArgumentMatchers.any(), ArgumentMatchers.eq(TimeValue.ofSeconds(2)));
 
-        Assert.assertEquals(1, impl.getScheduledIdentifiers().size());
+        Assertions.assertEquals(1, impl.getScheduledIdentifiers().size());
     }
 
     @Test
     public void testStaleResponse() {
         final HttpResponse response1 = new BasicHttpResponse(HttpStatus.SC_OK);
         response1.addHeader(HeaderConstants.WARNING, "110 localhost \"Response is stale\"");
-        MatcherAssert.assertThat(impl.isStale(response1), CoreMatchers.equalTo(true));
+        assertThat(impl.isStale(response1), CoreMatchers.equalTo(true));
 
         final HttpResponse response2 = new BasicHttpResponse(HttpStatus.SC_OK);
         response2.addHeader(HeaderConstants.WARNING, "111 localhost \"Revalidation failed\"");
-        MatcherAssert.assertThat(impl.isStale(response2), CoreMatchers.equalTo(true));
+        assertThat(impl.isStale(response2), CoreMatchers.equalTo(true));
 
         final HttpResponse response3 = new BasicHttpResponse(HttpStatus.SC_OK);
         response3.addHeader(HeaderConstants.WARNING, "xxx localhost \"Huh?\"");
-        MatcherAssert.assertThat(impl.isStale(response3), CoreMatchers.equalTo(false));
+        assertThat(impl.isStale(response3), CoreMatchers.equalTo(false));
 
         final HttpResponse response4 = new BasicHttpResponse(HttpStatus.SC_OK);
-        MatcherAssert.assertThat(impl.isStale(response4), CoreMatchers.equalTo(false));
+        assertThat(impl.isStale(response4), CoreMatchers.equalTo(false));
     }
 
     @Test

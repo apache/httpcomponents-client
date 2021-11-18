@@ -41,16 +41,16 @@ import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
 import org.apache.hc.core5.http.message.MessageSupport;
 import org.apache.hc.core5.http.support.BasicRequestBuilder;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class TestConditionalRequestBuilder {
 
     private ConditionalRequestBuilder<HttpRequest> impl;
     private HttpRequest request;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         impl = new ConditionalRequestBuilder<>(request -> BasicRequestBuilder.copy(request).build());
         request = new BasicHttpRequest("GET", "/");
@@ -72,15 +72,15 @@ public class TestConditionalRequestBuilder {
         final HttpCacheEntry cacheEntry = HttpTestUtils.makeCacheEntry(headers);
         final HttpRequest newRequest = impl.buildConditionalRequest(basicRequest, cacheEntry);
 
-        Assert.assertEquals(theMethod, newRequest.getMethod());
-        Assert.assertEquals(theUri, newRequest.getRequestUri());
-        Assert.assertEquals(2, newRequest.getHeaders().length);
+        Assertions.assertEquals(theMethod, newRequest.getMethod());
+        Assertions.assertEquals(theUri, newRequest.getRequestUri());
+        Assertions.assertEquals(2, newRequest.getHeaders().length);
 
-        Assert.assertEquals("Accept-Encoding", newRequest.getHeaders()[0].getName());
-        Assert.assertEquals("gzip", newRequest.getHeaders()[0].getValue());
+        Assertions.assertEquals("Accept-Encoding", newRequest.getHeaders()[0].getName());
+        Assertions.assertEquals("gzip", newRequest.getHeaders()[0].getValue());
 
-        Assert.assertEquals("If-Modified-Since", newRequest.getHeaders()[1].getName());
-        Assert.assertEquals(lastModified, newRequest.getHeaders()[1].getValue());
+        Assertions.assertEquals("If-Modified-Since", newRequest.getHeaders()[1].getName());
+        Assertions.assertEquals(lastModified, newRequest.getHeaders()[1].getValue());
     }
 
     @Test
@@ -99,9 +99,9 @@ public class TestConditionalRequestBuilder {
         final HttpRequest basicRequest = new BasicHttpRequest("GET", "/");
         final HttpCacheEntry cacheEntry = HttpTestUtils.makeCacheEntry(headers);
         final HttpRequest result = impl.buildConditionalRequest(basicRequest, cacheEntry);
-        Assert.assertEquals(lmDate,
+        Assertions.assertEquals(lmDate,
                 result.getFirstHeader("If-Modified-Since").getValue());
-        Assert.assertEquals(etag,
+        Assertions.assertEquals(etag,
                 result.getFirstHeader("If-None-Match").getValue());
     }
 
@@ -123,16 +123,16 @@ public class TestConditionalRequestBuilder {
 
         final HttpRequest newRequest = impl.buildConditionalRequest(basicRequest, cacheEntry);
 
-        Assert.assertEquals(theMethod, newRequest.getMethod());
-        Assert.assertEquals(theUri, newRequest.getRequestUri());
+        Assertions.assertEquals(theMethod, newRequest.getMethod());
+        Assertions.assertEquals(theUri, newRequest.getRequestUri());
 
-        Assert.assertEquals(3, newRequest.getHeaders().length);
+        Assertions.assertEquals(3, newRequest.getHeaders().length);
 
-        Assert.assertEquals("Accept-Encoding", newRequest.getHeaders()[0].getName());
-        Assert.assertEquals("gzip", newRequest.getHeaders()[0].getValue());
+        Assertions.assertEquals("Accept-Encoding", newRequest.getHeaders()[0].getName());
+        Assertions.assertEquals("gzip", newRequest.getHeaders()[0].getValue());
 
-        Assert.assertEquals("If-None-Match", newRequest.getHeaders()[1].getName());
-        Assert.assertEquals(theETag, newRequest.getHeaders()[1].getValue());
+        Assertions.assertEquals("If-None-Match", newRequest.getHeaders()[1].getName());
+        Assertions.assertEquals(theETag, newRequest.getHeaders()[1].getValue());
     }
 
     @Test
@@ -160,7 +160,7 @@ public class TestConditionalRequestBuilder {
                 foundMaxAge0 = true;
             }
         }
-        Assert.assertTrue(foundMaxAge0);
+        Assertions.assertTrue(foundMaxAge0);
     }
 
     @Test
@@ -187,14 +187,14 @@ public class TestConditionalRequestBuilder {
                 foundMaxAge0 = true;
             }
         }
-        Assert.assertTrue(foundMaxAge0);
+        Assertions.assertTrue(foundMaxAge0);
     }
 
     @Test
     public void testBuildUnconditionalRequestUsesGETMethod()
         throws Exception {
         final HttpRequest result = impl.buildUnconditionalRequest(request);
-        Assert.assertEquals("GET", result.getMethod());
+        Assertions.assertEquals("GET", result.getMethod());
     }
 
     @Test
@@ -203,7 +203,7 @@ public class TestConditionalRequestBuilder {
         final String uri = "/theURI";
         request = new BasicHttpRequest("GET", uri);
         final HttpRequest result = impl.buildUnconditionalRequest(request);
-        Assert.assertEquals(uri, result.getRequestUri());
+        Assertions.assertEquals(uri, result.getRequestUri());
     }
 
     @Test
@@ -218,7 +218,7 @@ public class TestConditionalRequestBuilder {
                 ccNoCacheFound = true;
             }
         }
-        Assert.assertTrue(ccNoCacheFound);
+        Assertions.assertTrue(ccNoCacheFound);
     }
 
     @Test
@@ -233,7 +233,7 @@ public class TestConditionalRequestBuilder {
                 ccNoCacheFound = true;
             }
         }
-        Assert.assertTrue(ccNoCacheFound);
+        Assertions.assertTrue(ccNoCacheFound);
     }
 
     @Test
@@ -241,7 +241,7 @@ public class TestConditionalRequestBuilder {
         throws Exception {
         request.addHeader("If-Range","\"etag\"");
         final HttpRequest result = impl.buildUnconditionalRequest(request);
-        Assert.assertNull(result.getFirstHeader("If-Range"));
+        Assertions.assertNull(result.getFirstHeader("If-Range"));
     }
 
     @Test
@@ -249,7 +249,7 @@ public class TestConditionalRequestBuilder {
         throws Exception {
         request.addHeader("If-Match","\"etag\"");
         final HttpRequest result = impl.buildUnconditionalRequest(request);
-        Assert.assertNull(result.getFirstHeader("If-Match"));
+        Assertions.assertNull(result.getFirstHeader("If-Match"));
     }
 
     @Test
@@ -257,7 +257,7 @@ public class TestConditionalRequestBuilder {
         throws Exception {
         request.addHeader("If-None-Match","\"etag\"");
         final HttpRequest result = impl.buildUnconditionalRequest(request);
-        Assert.assertNull(result.getFirstHeader("If-None-Match"));
+        Assertions.assertNull(result.getFirstHeader("If-None-Match"));
     }
 
     @Test
@@ -265,7 +265,7 @@ public class TestConditionalRequestBuilder {
         throws Exception {
         request.addHeader("If-Unmodified-Since", DateUtils.formatStandardDate(Instant.now()));
         final HttpRequest result = impl.buildUnconditionalRequest(request);
-        Assert.assertNull(result.getFirstHeader("If-Unmodified-Since"));
+        Assertions.assertNull(result.getFirstHeader("If-Unmodified-Since"));
     }
 
     @Test
@@ -273,7 +273,7 @@ public class TestConditionalRequestBuilder {
         throws Exception {
         request.addHeader("If-Modified-Since", DateUtils.formatStandardDate(Instant.now()));
         final HttpRequest result = impl.buildUnconditionalRequest(request);
-        Assert.assertNull(result.getFirstHeader("If-Modified-Since"));
+        Assertions.assertNull(result.getFirstHeader("If-Modified-Since"));
     }
 
     @Test
@@ -281,7 +281,7 @@ public class TestConditionalRequestBuilder {
         throws Exception {
         request.addHeader("User-Agent","MyBrowser/1.0");
         final HttpRequest result = impl.buildUnconditionalRequest(request);
-        Assert.assertEquals("MyBrowser/1.0",
+        Assertions.assertEquals("MyBrowser/1.0",
                 result.getFirstHeader("User-Agent").getValue());
     }
 
@@ -300,15 +300,15 @@ public class TestConditionalRequestBuilder {
 
         // seems like a lot of work, but necessary, check for existence and exclusiveness
         String ifNoneMatch = conditional.getFirstHeader(HeaderConstants.IF_NONE_MATCH).getValue();
-        Assert.assertTrue(ifNoneMatch.contains(etag1));
-        Assert.assertTrue(ifNoneMatch.contains(etag2));
-        Assert.assertTrue(ifNoneMatch.contains(etag3));
+        Assertions.assertTrue(ifNoneMatch.contains(etag1));
+        Assertions.assertTrue(ifNoneMatch.contains(etag2));
+        Assertions.assertTrue(ifNoneMatch.contains(etag3));
         ifNoneMatch = ifNoneMatch.replace(etag1, "");
         ifNoneMatch = ifNoneMatch.replace(etag2, "");
         ifNoneMatch = ifNoneMatch.replace(etag3, "");
         ifNoneMatch = ifNoneMatch.replace(",","");
         ifNoneMatch = ifNoneMatch.replace(" ", "");
-        Assert.assertEquals(ifNoneMatch, "");
+        Assertions.assertEquals(ifNoneMatch, "");
     }
 
 }

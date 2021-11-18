@@ -54,8 +54,8 @@ import org.apache.hc.core5.pool.PoolConcurrencyPolicy;
 import org.apache.hc.core5.pool.PoolReusePolicy;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 
 /**
  * Tests for {@code PoolingHttpClientConnectionManager} that do require a server
@@ -90,24 +90,24 @@ public class TestConnectionManagement extends LocalServerTestBase {
         final HttpRequestExecutor exec = new HttpRequestExecutor();
         exec.preProcess(request, httpProcessor, context);
         try (final ClassicHttpResponse response1 = endpoint1.execute("id1", request, exec, context)) {
-            Assert.assertEquals(HttpStatus.SC_OK, response1.getCode());
+            Assertions.assertEquals(HttpStatus.SC_OK, response1.getCode());
         }
 
         // check that there is no auto-release by default
         // this should fail quickly, connection has not been released
         final LeaseRequest leaseRequest2 = this.connManager.lease("id2", route,null);
-        Assert.assertThrows(TimeoutException.class, () -> leaseRequest2.get(Timeout.ofMilliseconds(10)));
+        Assertions.assertThrows(TimeoutException.class, () -> leaseRequest2.get(Timeout.ofMilliseconds(10)));
 
         endpoint1.close();
         this.connManager.release(endpoint1, null, TimeValue.NEG_ONE_MILLISECOND);
         final LeaseRequest leaseRequest3 = this.connManager.lease("id2", route,null);
         final ConnectionEndpoint endpoint2 = leaseRequest3.get(Timeout.ZERO_MILLISECONDS);
-        Assert.assertFalse(endpoint2.isConnected());
+        Assertions.assertFalse(endpoint2.isConnected());
 
         this.connManager.connect(endpoint2, null, context);
 
         try (final ClassicHttpResponse response2 = endpoint2.execute("id2", request, exec, context)) {
-            Assert.assertEquals(HttpStatus.SC_OK, response2.getCode());
+            Assertions.assertEquals(HttpStatus.SC_OK, response2.getCode());
         }
 
         // release connection after marking it for re-use
@@ -116,11 +116,11 @@ public class TestConnectionManagement extends LocalServerTestBase {
 
         final LeaseRequest leaseRequest4 = this.connManager.lease("id3", route,null);
         final ConnectionEndpoint endpoint3 = leaseRequest4.get(Timeout.ZERO_MILLISECONDS);
-        Assert.assertTrue(endpoint3.isConnected());
+        Assertions.assertTrue(endpoint3.isConnected());
 
         // repeat the communication, no need to prepare the request again
         try (final ClassicHttpResponse response3 = endpoint3.execute("id3", request, exec, context)) {
-            Assert.assertEquals(HttpStatus.SC_OK, response3.getCode());
+            Assertions.assertEquals(HttpStatus.SC_OK, response3.getCode());
         }
 
         this.connManager.release(endpoint3, null, TimeValue.NEG_ONE_MILLISECOND);
@@ -153,36 +153,36 @@ public class TestConnectionManagement extends LocalServerTestBase {
         final HttpRequestExecutor exec = new HttpRequestExecutor();
         exec.preProcess(request, httpProcessor, context);
         try (final ClassicHttpResponse response1 = endpoint1.execute("id1", request, exec, context)) {
-            Assert.assertEquals(HttpStatus.SC_OK, response1.getCode());
+            Assertions.assertEquals(HttpStatus.SC_OK, response1.getCode());
         }
 
         // check that there is no auto-release by default
         final LeaseRequest leaseRequest2 = this.connManager.lease("id2", route,null);
         // this should fail quickly, connection has not been released
-        Assert.assertThrows(TimeoutException.class, () -> leaseRequest2.get(Timeout.ofMilliseconds(10)));
+        Assertions.assertThrows(TimeoutException.class, () -> leaseRequest2.get(Timeout.ofMilliseconds(10)));
 
         endpoint1.close();
         this.connManager.release(endpoint1, null, TimeValue.ofMilliseconds(100));
 
         final LeaseRequest leaseRequest3 = this.connManager.lease("id2", route,null);
         final ConnectionEndpoint endpoint2 = leaseRequest3.get(Timeout.ZERO_MILLISECONDS);
-        Assert.assertFalse(endpoint2.isConnected());
+        Assertions.assertFalse(endpoint2.isConnected());
 
         this.connManager.connect(endpoint2, null, context);
 
         try (final ClassicHttpResponse response2 = endpoint2.execute("id2", request, exec, context)) {
-            Assert.assertEquals(HttpStatus.SC_OK, response2.getCode());
+            Assertions.assertEquals(HttpStatus.SC_OK, response2.getCode());
         }
 
         this.connManager.release(endpoint2, null, TimeValue.ofMilliseconds(100));
 
         final LeaseRequest leaseRequest4 = this.connManager.lease("id3", route,null);
         final ConnectionEndpoint endpoint3 = leaseRequest4.get(Timeout.ZERO_MILLISECONDS);
-        Assert.assertTrue(endpoint3.isConnected());
+        Assertions.assertTrue(endpoint3.isConnected());
 
         // repeat the communication, no need to prepare the request again
         try (final ClassicHttpResponse response3 = endpoint3.execute("id3", request, exec, context)) {
-            Assert.assertEquals(HttpStatus.SC_OK, response3.getCode());
+            Assertions.assertEquals(HttpStatus.SC_OK, response3.getCode());
         }
 
         this.connManager.release(endpoint3, null, TimeValue.ofMilliseconds(100));
@@ -190,13 +190,13 @@ public class TestConnectionManagement extends LocalServerTestBase {
 
         final LeaseRequest leaseRequest5 = this.connManager.lease("id4", route,null);
         final ConnectionEndpoint endpoint4 = leaseRequest5.get(Timeout.ZERO_MILLISECONDS);
-        Assert.assertFalse(endpoint4.isConnected());
+        Assertions.assertFalse(endpoint4.isConnected());
 
         // repeat the communication, no need to prepare the request again
         this.connManager.connect(endpoint4, null, context);
 
         try (final ClassicHttpResponse response4 = endpoint4.execute("id4", request, exec, context)) {
-            Assert.assertEquals(HttpStatus.SC_OK, response4.getCode());
+            Assertions.assertEquals(HttpStatus.SC_OK, response4.getCode());
         }
 
         this.connManager.close();
@@ -215,28 +215,28 @@ public class TestConnectionManagement extends LocalServerTestBase {
         final ConnectionEndpoint endpoint1 = leaseRequest1.get(Timeout.ZERO_MILLISECONDS);
         this.connManager.connect(endpoint1, null, context);
 
-        Assert.assertEquals(1, this.connManager.getTotalStats().getLeased());
-        Assert.assertEquals(1, this.connManager.getStats(route).getLeased());
+        Assertions.assertEquals(1, this.connManager.getTotalStats().getLeased());
+        Assertions.assertEquals(1, this.connManager.getStats(route).getLeased());
 
         this.connManager.release(endpoint1, null, TimeValue.ofMilliseconds(100));
 
         // Released, still active.
-        Assert.assertEquals(1, this.connManager.getTotalStats().getAvailable());
-        Assert.assertEquals(1, this.connManager.getStats(route).getAvailable());
+        Assertions.assertEquals(1, this.connManager.getTotalStats().getAvailable());
+        Assertions.assertEquals(1, this.connManager.getStats(route).getAvailable());
 
         this.connManager.closeExpired();
 
         // Time has not expired yet.
-        Assert.assertEquals(1, this.connManager.getTotalStats().getAvailable());
-        Assert.assertEquals(1, this.connManager.getStats(route).getAvailable());
+        Assertions.assertEquals(1, this.connManager.getTotalStats().getAvailable());
+        Assertions.assertEquals(1, this.connManager.getStats(route).getAvailable());
 
         Thread.sleep(150);
 
         this.connManager.closeExpired();
 
         // Time expired now, connections are destroyed.
-        Assert.assertEquals(0, this.connManager.getTotalStats().getAvailable());
-        Assert.assertEquals(0, this.connManager.getStats(route).getAvailable());
+        Assertions.assertEquals(0, this.connManager.getTotalStats().getAvailable());
+        Assertions.assertEquals(0, this.connManager.getStats(route).getAvailable());
 
         this.connManager.close();
     }
@@ -264,28 +264,28 @@ public class TestConnectionManagement extends LocalServerTestBase {
         final ConnectionEndpoint endpoint1 = leaseRequest1.get(Timeout.ZERO_MILLISECONDS);
         this.connManager.connect(endpoint1, null, context);
 
-        Assert.assertEquals(1, this.connManager.getTotalStats().getLeased());
-        Assert.assertEquals(1, this.connManager.getStats(route).getLeased());
+        Assertions.assertEquals(1, this.connManager.getTotalStats().getLeased());
+        Assertions.assertEquals(1, this.connManager.getStats(route).getLeased());
         // Release, let remain idle for forever
         this.connManager.release(endpoint1, null, TimeValue.NEG_ONE_MILLISECOND);
 
         // Released, still active.
-        Assert.assertEquals(1, this.connManager.getTotalStats().getAvailable());
-        Assert.assertEquals(1, this.connManager.getStats(route).getAvailable());
+        Assertions.assertEquals(1, this.connManager.getTotalStats().getAvailable());
+        Assertions.assertEquals(1, this.connManager.getStats(route).getAvailable());
 
         this.connManager.closeExpired();
 
         // Time has not expired yet.
-        Assert.assertEquals(1, this.connManager.getTotalStats().getAvailable());
-        Assert.assertEquals(1, this.connManager.getStats(route).getAvailable());
+        Assertions.assertEquals(1, this.connManager.getTotalStats().getAvailable());
+        Assertions.assertEquals(1, this.connManager.getStats(route).getAvailable());
 
         Thread.sleep(150);
 
         this.connManager.closeExpired();
 
         // TTL expired now, connections are destroyed.
-        Assert.assertEquals(0, this.connManager.getTotalStats().getAvailable());
-        Assert.assertEquals(0, this.connManager.getStats(route).getAvailable());
+        Assertions.assertEquals(0, this.connManager.getTotalStats().getAvailable());
+        Assertions.assertEquals(0, this.connManager.getStats(route).getAvailable());
 
         this.connManager.close();
     }

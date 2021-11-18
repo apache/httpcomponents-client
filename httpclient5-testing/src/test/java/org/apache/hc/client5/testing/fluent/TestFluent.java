@@ -39,8 +39,8 @@ import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
-import org.junit.Assert;
 import org.junit.Before;
+import org.junit.jupiter.api.Assertions;
 import org.junit.Test;
 
 public class TestFluent extends LocalServerTestBase {
@@ -71,7 +71,7 @@ public class TestFluent extends LocalServerTestBase {
         final HttpHost target = start();
         final String baseURL = "http://localhost:" + target.getPort();
         final String message = Request.get(baseURL + "/").execute().returnContent().asString();
-        Assert.assertEquals("All is well", message);
+        Assertions.assertEquals("All is well", message);
     }
 
     @Test
@@ -79,7 +79,7 @@ public class TestFluent extends LocalServerTestBase {
         final HttpHost target = start();
         final String baseURL = "http://localhost:" + target.getPort();
         final String message = Request.create("GET", baseURL + "/").execute().returnContent().asString();
-        Assert.assertEquals("All is well", message);
+        Assertions.assertEquals("All is well", message);
     }
 
     @Test
@@ -87,14 +87,14 @@ public class TestFluent extends LocalServerTestBase {
         final HttpHost target = start();
         final String baseURL = "http://localhost:" + target.getPort();
         final String message = Request.create("GET", new URI(baseURL + "/")).execute().returnContent().asString();
-        Assert.assertEquals("All is well", message);
+        Assertions.assertEquals("All is well", message);
     }
 
     @Test
     public void testGetRequestFailure() throws Exception {
         final HttpHost target = start();
         final String baseURL = "http://localhost:" + target.getPort();
-        Assert.assertThrows(ClientProtocolException.class, () ->
+        Assertions.assertThrows(ClientProtocolException.class, () ->
                 Request.get(baseURL + "/boom").execute().returnContent().asString());
     }
 
@@ -105,11 +105,11 @@ public class TestFluent extends LocalServerTestBase {
         final String message1 = Request.post(baseURL + "/echo")
                 .bodyString("what is up?", ContentType.TEXT_PLAIN)
                 .execute().returnContent().asString();
-        Assert.assertEquals("what is up?", message1);
+        Assertions.assertEquals("what is up?", message1);
         final String message2 = Request.post(baseURL + "/echo")
                 .bodyByteArray(new byte[]{1, 2, 3}, ContentType.APPLICATION_OCTET_STREAM)
                 .execute().returnContent().asString();
-        Assert.assertEquals("echo", message2);
+        Assertions.assertEquals("echo", message2);
     }
 
     @Test
@@ -118,9 +118,9 @@ public class TestFluent extends LocalServerTestBase {
         final String baseURL = "http://localhost:" + target.getPort();
         final Content content = Request.post(baseURL + "/echo").bodyByteArray("Ü".getBytes(StandardCharsets.UTF_8)).execute()
                 .returnContent();
-        Assert.assertEquals((byte)-61, content.asBytes()[0]);
-        Assert.assertEquals((byte)-100, content.asBytes()[1]);
-        Assert.assertEquals("Ü", content.asString(StandardCharsets.UTF_8));
+        Assertions.assertEquals((byte)-61, content.asBytes()[0]);
+        Assertions.assertEquals((byte)-100, content.asBytes()[1]);
+        Assertions.assertEquals("Ü", content.asString(StandardCharsets.UTF_8));
     }
 
     @Test

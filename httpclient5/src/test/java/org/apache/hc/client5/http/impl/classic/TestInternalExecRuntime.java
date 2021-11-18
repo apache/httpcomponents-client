@@ -43,17 +43,15 @@ import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.MockitoAnnotations;
 import org.slf4j.Logger;
 
 @SuppressWarnings({"static-access"}) // test code
-@RunWith(MockitoJUnitRunner.class)
 public class TestInternalExecRuntime {
 
     @Mock
@@ -72,8 +70,9 @@ public class TestInternalExecRuntime {
     private HttpRoute route;
     private InternalExecRuntime execRuntime;
 
-    @Before
+    @BeforeEach
     public void setup() {
+        MockitoAnnotations.openMocks(this);
         route = new HttpRoute(new HttpHost("host", 80));
         execRuntime = new InternalExecRuntime(log, mgr, requestExecutor, cancellableDependency);
     }
@@ -95,10 +94,10 @@ public class TestInternalExecRuntime {
 
         execRuntime.acquireEndpoint("some-id", route, null, context);
 
-        Assert.assertTrue(execRuntime.isEndpointAcquired());
-        Assert.assertSame(connectionEndpoint, execRuntime.ensureValid());
-        Assert.assertFalse(execRuntime.isEndpointConnected());
-        Assert.assertFalse(execRuntime.isConnectionReusable());
+        Assertions.assertTrue(execRuntime.isEndpointAcquired());
+        Assertions.assertSame(connectionEndpoint, execRuntime.ensureValid());
+        Assertions.assertFalse(execRuntime.isEndpointConnected());
+        Assertions.assertFalse(execRuntime.isConnectionReusable());
 
         Mockito.verify(leaseRequest).get(Timeout.ofMilliseconds(345));
         Mockito.verify(cancellableDependency, Mockito.times(1)).setDependency(leaseRequest);
@@ -116,10 +115,10 @@ public class TestInternalExecRuntime {
 
         execRuntime.acquireEndpoint("some-id", route, null, context);
 
-        Assert.assertTrue(execRuntime.isEndpointAcquired());
-        Assert.assertSame(connectionEndpoint, execRuntime.ensureValid());
+        Assertions.assertTrue(execRuntime.isEndpointAcquired());
+        Assertions.assertSame(connectionEndpoint, execRuntime.ensureValid());
 
-        Assert.assertThrows(IllegalStateException.class, () ->
+        Assertions.assertThrows(IllegalStateException.class, () ->
                 execRuntime.acquireEndpoint("some-id", route, null, context));
     }
 
@@ -131,7 +130,7 @@ public class TestInternalExecRuntime {
                 .thenReturn(leaseRequest);
         Mockito.when(leaseRequest.get(Mockito.any())).thenThrow(new TimeoutException("timeout"));
 
-        Assert.assertThrows(ConnectionRequestTimeoutException.class, () ->
+        Assertions.assertThrows(ConnectionRequestTimeoutException.class, () ->
                 execRuntime.acquireEndpoint("some-id", route, null, context));
     }
 
@@ -143,7 +142,7 @@ public class TestInternalExecRuntime {
                 .thenReturn(leaseRequest);
         Mockito.when(leaseRequest.get(Mockito.any())).thenThrow(new ExecutionException(new IllegalStateException()));
 
-        Assert.assertThrows(RequestFailedException.class, () ->
+        Assertions.assertThrows(RequestFailedException.class, () ->
                 execRuntime.acquireEndpoint("some-id", route, null, context));
     }
 
@@ -155,10 +154,10 @@ public class TestInternalExecRuntime {
         Mockito.when(leaseRequest.get(Mockito.any())).thenReturn(connectionEndpoint);
 
         execRuntime.acquireEndpoint("some-id", new HttpRoute(new HttpHost("host", 80)), null, context);
-        Assert.assertTrue(execRuntime.isEndpointAcquired());
+        Assertions.assertTrue(execRuntime.isEndpointAcquired());
         execRuntime.discardEndpoint();
 
-        Assert.assertFalse(execRuntime.isEndpointAcquired());
+        Assertions.assertFalse(execRuntime.isEndpointAcquired());
 
         Mockito.verify(connectionEndpoint).close(CloseMode.IMMEDIATE);
         Mockito.verify(mgr).release(connectionEndpoint, null, TimeValue.ZERO_MILLISECONDS);
@@ -181,16 +180,16 @@ public class TestInternalExecRuntime {
         Mockito.when(leaseRequest.get(Mockito.any())).thenReturn(connectionEndpoint);
 
         execRuntime.acquireEndpoint("some-id", route, null, context);
-        Assert.assertTrue(execRuntime.isEndpointAcquired());
+        Assertions.assertTrue(execRuntime.isEndpointAcquired());
 
-        Assert.assertTrue(execRuntime.cancel());
+        Assertions.assertTrue(execRuntime.cancel());
 
-        Assert.assertFalse(execRuntime.isEndpointAcquired());
+        Assertions.assertFalse(execRuntime.isEndpointAcquired());
 
         Mockito.verify(connectionEndpoint).close(CloseMode.IMMEDIATE);
         Mockito.verify(mgr).release(connectionEndpoint, null, TimeValue.ZERO_MILLISECONDS);
 
-        Assert.assertFalse(execRuntime.cancel());
+        Assertions.assertFalse(execRuntime.cancel());
 
         Mockito.verify(connectionEndpoint, Mockito.times(1)).close(CloseMode.IMMEDIATE);
         Mockito.verify(mgr, Mockito.times(1)).release(
@@ -208,13 +207,13 @@ public class TestInternalExecRuntime {
         Mockito.when(leaseRequest.get(Mockito.any())).thenReturn(connectionEndpoint);
 
         execRuntime.acquireEndpoint("some-id", route, null, context);
-        Assert.assertTrue(execRuntime.isEndpointAcquired());
+        Assertions.assertTrue(execRuntime.isEndpointAcquired());
 
         execRuntime.markConnectionReusable("some state", TimeValue.ofMilliseconds(100000));
 
         execRuntime.releaseEndpoint();
 
-        Assert.assertFalse(execRuntime.isEndpointAcquired());
+        Assertions.assertFalse(execRuntime.isEndpointAcquired());
 
         Mockito.verify(connectionEndpoint, Mockito.never()).close();
         Mockito.verify(mgr).release(connectionEndpoint, "some state", TimeValue.ofMilliseconds(100000));
@@ -236,14 +235,14 @@ public class TestInternalExecRuntime {
         Mockito.when(leaseRequest.get(Mockito.any())).thenReturn(connectionEndpoint);
 
         execRuntime.acquireEndpoint("some-id", route, null, context);
-        Assert.assertTrue(execRuntime.isEndpointAcquired());
+        Assertions.assertTrue(execRuntime.isEndpointAcquired());
 
         execRuntime.markConnectionReusable("some state", TimeValue.ofMilliseconds(100000));
         execRuntime.markConnectionNonReusable();
 
         execRuntime.releaseEndpoint();
 
-        Assert.assertFalse(execRuntime.isEndpointAcquired());
+        Assertions.assertFalse(execRuntime.isEndpointAcquired());
 
         Mockito.verify(connectionEndpoint, Mockito.times(1)).close(CloseMode.IMMEDIATE);
         Mockito.verify(mgr).release(connectionEndpoint, null, TimeValue.ZERO_MILLISECONDS);
@@ -271,10 +270,10 @@ public class TestInternalExecRuntime {
         Mockito.when(leaseRequest.get(Mockito.any())).thenReturn(connectionEndpoint);
 
         execRuntime.acquireEndpoint("some-id", route, null, context);
-        Assert.assertTrue(execRuntime.isEndpointAcquired());
+        Assertions.assertTrue(execRuntime.isEndpointAcquired());
 
         Mockito.when(connectionEndpoint.isConnected()).thenReturn(false);
-        Assert.assertFalse(execRuntime.isEndpointConnected());
+        Assertions.assertFalse(execRuntime.isEndpointConnected());
 
         execRuntime.connectEndpoint(context);
 
@@ -290,10 +289,10 @@ public class TestInternalExecRuntime {
         Mockito.when(leaseRequest.get(Mockito.any())).thenReturn(connectionEndpoint);
 
         execRuntime.acquireEndpoint("some-id", route, null, context);
-        Assert.assertTrue(execRuntime.isEndpointAcquired());
+        Assertions.assertTrue(execRuntime.isEndpointAcquired());
 
         Mockito.when(connectionEndpoint.isConnected()).thenReturn(true);
-        Assert.assertTrue(execRuntime.isEndpointConnected());
+        Assertions.assertTrue(execRuntime.isEndpointConnected());
 
         execRuntime.connectEndpoint(context);
 

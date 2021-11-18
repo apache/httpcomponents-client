@@ -56,18 +56,16 @@ import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.MockitoAnnotations;
 import org.mockito.stubbing.Answer;
 
 @SuppressWarnings({"boxing","static-access"}) // test code
-@RunWith(MockitoJUnitRunner.class)
 public class TestConnectExec {
 
     @Mock
@@ -85,8 +83,9 @@ public class TestConnectExec {
     private HttpHost target;
     private HttpHost proxy;
 
-    @Before
+    @BeforeEach
     public void setup() throws Exception {
+        MockitoAnnotations.openMocks(this);
         exec = new ConnectExec(reuseStrategy, proxyHttpProcessor, proxyAuthStrategy, null, true);
         target = new HttpHost("foo", 80);
         proxy = new HttpHost("bar", 8888);
@@ -175,10 +174,10 @@ public class TestConnectExec {
                 reqCaptor.capture(),
                 Mockito.same(context));
         final HttpRequest connect = reqCaptor.getValue();
-        Assert.assertNotNull(connect);
-        Assert.assertEquals("CONNECT", connect.getMethod());
-        Assert.assertEquals(HttpVersion.HTTP_1_1, connect.getVersion());
-        Assert.assertEquals("foo:80", connect.getRequestUri());
+        Assertions.assertNotNull(connect);
+        Assertions.assertEquals("CONNECT", connect.getMethod());
+        Assertions.assertEquals(HttpVersion.HTTP_1_1, connect.getVersion());
+        Assertions.assertEquals("foo:80", connect.getRequestUri());
     }
 
     @Test
@@ -197,7 +196,7 @@ public class TestConnectExec {
                 Mockito.any())).thenReturn(response);
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
-        Assert.assertThrows(HttpException.class, () ->
+        Assertions.assertThrows(HttpException.class, () ->
                 exec.execute(request, scope, execChain));
     }
 
@@ -218,9 +217,9 @@ public class TestConnectExec {
                 Mockito.any())).thenReturn(response);
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
-        final TunnelRefusedException exception = Assert.assertThrows(TunnelRefusedException.class, () ->
+        final TunnelRefusedException exception = Assertions.assertThrows(TunnelRefusedException.class, () ->
                 exec.execute(request, scope, execChain));
-        Assert.assertEquals("Ka-boom", exception.getResponseMessage());
+        Assertions.assertEquals("Ka-boom", exception.getResponseMessage());
         Mockito.verify(execRuntime, Mockito.atLeastOnce()).disconnectEndpoint();
         Mockito.verify(execRuntime).discardEndpoint();
     }
@@ -319,7 +318,7 @@ public class TestConnectExec {
         Mockito.when(execRuntime.isEndpointConnected()).thenAnswer(connectionState.isConnectedAnswer());
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
-        Assert.assertThrows(HttpException.class, () ->
+        Assertions.assertThrows(HttpException.class, () ->
                 exec.execute(request, scope, execChain));
     }
 

@@ -27,6 +27,8 @@
 
 package org.apache.hc.client5.testing.sync;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -56,10 +58,9 @@ import org.apache.hc.core5.ssl.SSLContexts;
 import org.apache.hc.core5.ssl.TrustStrategy;
 import org.apache.hc.core5.util.TimeValue;
 import org.hamcrest.CoreMatchers;
-import org.hamcrest.MatcherAssert;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for {@link SSLConnectionSocketFactory}.
@@ -68,7 +69,7 @@ public class TestSSLSocketFactory {
 
     private HttpServer server;
 
-    @After
+    @AfterEach
     public void shutDown() throws Exception {
         if (this.server != null) {
             this.server.close(CloseMode.GRACEFUL);
@@ -116,8 +117,8 @@ public class TestSSLSocketFactory {
                     context)) {
                 final SSLSession sslsession = sslSocket.getSession();
 
-                Assert.assertNotNull(sslsession);
-                Assert.assertTrue(hostVerifier.isFired());
+                Assertions.assertNotNull(sslsession);
+                Assertions.assertTrue(hostVerifier.isFired());
             }
         }
     }
@@ -147,7 +148,7 @@ public class TestSSLSocketFactory {
                     context)) {
                 final SSLSession sslsession = sslSocket.getSession();
 
-                Assert.assertNotNull(sslsession);
+                Assertions.assertNotNull(sslsession);
             }
         }
     }
@@ -177,8 +178,8 @@ public class TestSSLSocketFactory {
                     context)) {
                 final SSLSession sslsession = sslSocket.getSession();
 
-                Assert.assertNotNull(sslsession);
-                Assert.assertTrue(hostVerifier.isFired());
+                Assertions.assertNotNull(sslsession);
+                Assertions.assertTrue(hostVerifier.isFired());
             }
         }
     }
@@ -200,7 +201,7 @@ public class TestSSLSocketFactory {
         try (final Socket socket = socketFactory.createSocket(context)) {
             final InetSocketAddress remoteAddress = new InetSocketAddress("localhost", this.server.getLocalPort());
             final HttpHost target = new HttpHost("https", "localhost", this.server.getLocalPort());
-            Assert.assertThrows(IOException.class, () -> {
+            Assertions.assertThrows(IOException.class, () -> {
                 try (final SSLSocket sslSocket = (SSLSocket) socketFactory.connectSocket(
                         TimeValue.ZERO_MILLISECONDS,
                         socket, target,
@@ -209,8 +210,8 @@ public class TestSSLSocketFactory {
                         context)) {
                     final SSLSession sslsession = sslSocket.getSession();
 
-                    Assert.assertNotNull(sslsession);
-                    Assert.assertTrue(hostVerifier.isFired());
+                    Assertions.assertNotNull(sslsession);
+                    Assertions.assertTrue(hostVerifier.isFired());
                     sslSocket.getInputStream().read();
                 }
             });
@@ -236,7 +237,7 @@ public class TestSSLSocketFactory {
         try (final Socket socket = socketFactory.createSocket(context)) {
             final InetSocketAddress remoteAddress = new InetSocketAddress("localhost", this.server.getLocalPort());
             final HttpHost target = new HttpHost("https", "localhost", this.server.getLocalPort());
-            Assert.assertThrows(SSLException.class, () -> {
+            Assertions.assertThrows(SSLException.class, () -> {
                 try (final SSLSocket sslSocket = (SSLSocket) socketFactory.connectSocket(
                         TimeValue.ZERO_MILLISECONDS, socket, target, remoteAddress, null, context)) {
                     // empty for now
@@ -306,7 +307,7 @@ public class TestSSLSocketFactory {
         try (final Socket socket = socketFactory.createSocket(context)) {
             final InetSocketAddress remoteAddress = new InetSocketAddress("localhost", this.server.getLocalPort());
             final HttpHost target = new HttpHost("https", "localhost", this.server.getLocalPort());
-            Assert.assertThrows(IOException.class, () ->
+            Assertions.assertThrows(IOException.class, () ->
                     socketFactory.connectSocket(
                             TimeValue.ZERO_MILLISECONDS, socket, target, remoteAddress, null, context));
         }
@@ -332,9 +333,9 @@ public class TestSSLSocketFactory {
                 "SSL_RSA_EXPORT_WITH_RC2_CBC_40_MD5"
         };
         for (final String cipherSuite : weakCiphersSuites) {
-            final Exception exception = Assert.assertThrows(Exception.class, () ->
+            final Exception exception = Assertions.assertThrows(Exception.class, () ->
                     testWeakCipherDisabledByDefault(cipherSuite));
-            MatcherAssert.assertThat(exception, CoreMatchers.anyOf(
+            assertThat(exception, CoreMatchers.anyOf(
                     CoreMatchers.instanceOf(IOException.class),
                     CoreMatchers.instanceOf(IllegalArgumentException.class)));
         }

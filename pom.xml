@@ -69,7 +69,8 @@
     <ehcache.version>3.9.6</ehcache.version>
     <memcached.version>2.12.3</memcached.version>
     <slf4j.version>1.7.25</slf4j.version>
-    <junit.version>4.13.2</junit.version>
+    <junit.version>5.8.1</junit.version>
+    <hamcrest.version>2.2</hamcrest.version>
     <mockito.version>4.0.0</mockito.version>
     <jna.version>5.9.0</jna.version>
     <hc.stylecheck.version>1</hc.stylecheck.version>
@@ -179,15 +180,22 @@
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>junit</groupId>
-        <artifactId>junit</artifactId>
+        <groupId>org.junit</groupId>
+        <artifactId>junit-bom</artifactId>
         <version>${junit.version}</version>
-        <scope>test</scope>
+        <type>pom</type>
+        <scope>import</scope>
       </dependency>
       <dependency>
         <groupId>org.mockito</groupId>
         <artifactId>mockito-core</artifactId>
         <version>${mockito.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.hamcrest</groupId>
+        <artifactId>hamcrest</artifactId>
+        <version>${hamcrest.version}</version>
         <scope>test</scope>
       </dependency>
     </dependencies>

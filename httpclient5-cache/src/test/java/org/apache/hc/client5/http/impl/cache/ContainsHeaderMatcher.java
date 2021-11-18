@@ -34,7 +34,6 @@ import org.apache.hc.core5.http.MessageHeaders;
 import org.apache.hc.core5.util.LangUtils;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
-import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
 
 public class ContainsHeaderMatcher extends BaseMatcher<HttpCacheEntry> {
@@ -66,7 +65,6 @@ public class ContainsHeaderMatcher extends BaseMatcher<HttpCacheEntry> {
         description.appendText("contains header ").appendValue(headerValue).appendText(": ").appendValue(headerValue);
     }
 
-    @Factory
     public static Matcher<HttpCacheEntry> contains(final String headerName, final Object headerValue) {
         return new ContainsHeaderMatcher(headerName, headerValue);
     }

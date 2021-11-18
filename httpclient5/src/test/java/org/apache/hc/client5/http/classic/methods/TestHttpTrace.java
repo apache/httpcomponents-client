@@ -27,15 +27,15 @@
 
 package org.apache.hc.client5.http.classic.methods;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class TestHttpTrace {
 
     @Test
     public void testHttpTraceSetEntity() {
         final HttpTrace httpTrace = new HttpTrace("/path");
-        Assert.assertThrows(IllegalStateException.class, () ->
+        Assertions.assertThrows(IllegalStateException.class, () ->
             httpTrace.setEntity(null));
     }
 

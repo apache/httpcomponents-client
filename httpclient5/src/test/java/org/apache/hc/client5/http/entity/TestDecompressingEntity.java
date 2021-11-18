@@ -40,8 +40,8 @@ import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.InputStreamEntity;
 import org.apache.hc.core5.http.io.entity.StringEntity;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class TestDecompressingEntity {
 
@@ -50,13 +50,13 @@ public class TestDecompressingEntity {
         final CRC32 crc32 = new CRC32();
         final StringEntity wrapped = new StringEntity("1234567890", StandardCharsets.US_ASCII);
         final ChecksumEntity entity = new ChecksumEntity(wrapped, crc32);
-        Assert.assertFalse(entity.isStreaming());
+        Assertions.assertFalse(entity.isStreaming());
         final String s = EntityUtils.toString(entity);
-        Assert.assertEquals("1234567890", s);
-        Assert.assertEquals(639479525L, crc32.getValue());
+        Assertions.assertEquals("1234567890", s);
+        Assertions.assertEquals(639479525L, crc32.getValue());
         final InputStream in1 = entity.getContent();
         final InputStream in2 = entity.getContent();
-        Assert.assertNotSame(in1, in2);
+        Assertions.assertNotSame(in1, in2);
     }
 
     @Test
@@ -65,13 +65,13 @@ public class TestDecompressingEntity {
         final ByteArrayInputStream in = new ByteArrayInputStream("1234567890".getBytes(StandardCharsets.US_ASCII));
         final InputStreamEntity wrapped = new InputStreamEntity(in, -1, ContentType.DEFAULT_TEXT);
         final ChecksumEntity entity = new ChecksumEntity(wrapped, crc32);
-        Assert.assertTrue(entity.isStreaming());
+        Assertions.assertTrue(entity.isStreaming());
         final String s = EntityUtils.toString(entity);
-        Assert.assertEquals("1234567890", s);
-        Assert.assertEquals(639479525L, crc32.getValue());
+        Assertions.assertEquals("1234567890", s);
+        Assertions.assertEquals(639479525L, crc32.getValue());
         final InputStream in1 = entity.getContent();
         final InputStream in2 = entity.getContent();
-        Assert.assertSame(in1, in2);
+        Assertions.assertSame(in1, in2);
         EntityUtils.consume(entity);
         EntityUtils.consume(entity);
     }
@@ -81,14 +81,14 @@ public class TestDecompressingEntity {
         final CRC32 crc32 = new CRC32();
         final StringEntity wrapped = new StringEntity("1234567890", StandardCharsets.US_ASCII);
         final ChecksumEntity entity = new ChecksumEntity(wrapped, crc32);
-        Assert.assertFalse(entity.isStreaming());
+        Assertions.assertFalse(entity.isStreaming());
 
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
         entity.writeTo(out);
 
         final String s = new String(out.toByteArray(), StandardCharsets.US_ASCII);
-        Assert.assertEquals("1234567890", s);
-        Assert.assertEquals(639479525L, crc32.getValue());
+        Assertions.assertEquals("1234567890", s);
+        Assertions.assertEquals(639479525L, crc32.getValue());
     }
 
     static class ChecksumEntity extends DecompressingEntity {

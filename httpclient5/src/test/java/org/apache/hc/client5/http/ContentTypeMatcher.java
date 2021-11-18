@@ -29,7 +29,6 @@ package org.apache.hc.client5.http;
 import org.apache.hc.core5.http.ContentType;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
-import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
 
 public class ContentTypeMatcher extends BaseMatcher<ContentType> {
@@ -54,7 +53,6 @@ public class ContentTypeMatcher extends BaseMatcher<ContentType> {
         description.appendText("same MIME type as ").appendValue(expectedContentType);
     }
 
-    @Factory
     public static Matcher<ContentType> sameMimeType(final ContentType contentType) {
         return new ContentTypeMatcher(contentType);
     }

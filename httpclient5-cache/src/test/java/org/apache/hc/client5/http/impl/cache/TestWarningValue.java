@@ -31,8 +31,8 @@ import java.time.Instant;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.message.BasicHeader;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class TestWarningValue {
 
@@ -40,191 +40,191 @@ public class TestWarningValue {
     public void testParseSingleWarnValue() {
         final Header h = new BasicHeader("Warning","110 fred \"stale\"");
         final WarningValue[] result = WarningValue.getWarningValues(h);
-        Assert.assertEquals(1, result.length);
+        Assertions.assertEquals(1, result.length);
         final WarningValue wv = result[0];
-        Assert.assertEquals(110, wv.getWarnCode());
-        Assert.assertEquals("fred", wv.getWarnAgent());
-        Assert.assertEquals("\"stale\"", wv.getWarnText());
-        Assert.assertNull(wv.getWarnDate());
+        Assertions.assertEquals(110, wv.getWarnCode());
+        Assertions.assertEquals("fred", wv.getWarnAgent());
+        Assertions.assertEquals("\"stale\"", wv.getWarnText());
+        Assertions.assertNull(wv.getWarnDate());
     }
 
     @Test
     public void testParseMultipleWarnValues() {
         final Header h = new BasicHeader("Warning","110 fred \"stale\", 111 wilma \"other\"");
         final WarningValue[] result = WarningValue.getWarningValues(h);
-        Assert.assertEquals(2, result.length);
+        Assertions.assertEquals(2, result.length);
         WarningValue wv = result[0];
-        Assert.assertEquals(110, wv.getWarnCode());
-        Assert.assertEquals("fred", wv.getWarnAgent());
-        Assert.assertEquals("\"stale\"", wv.getWarnText());
-        Assert.assertNull(wv.getWarnDate());
+        Assertions.assertEquals(110, wv.getWarnCode());
+        Assertions.assertEquals("fred", wv.getWarnAgent());
+        Assertions.assertEquals("\"stale\"", wv.getWarnText());
+        Assertions.assertNull(wv.getWarnDate());
         wv = result[1];
-        Assert.assertEquals(111, wv.getWarnCode());
-        Assert.assertEquals("wilma", wv.getWarnAgent());
-        Assert.assertEquals("\"other\"", wv.getWarnText());
-        Assert.assertNull(wv.getWarnDate());
+        Assertions.assertEquals(111, wv.getWarnCode());
+        Assertions.assertEquals("wilma", wv.getWarnAgent());
+        Assertions.assertEquals("\"other\"", wv.getWarnText());
+        Assertions.assertNull(wv.getWarnDate());
     }
 
     @Test
     public void testMidHeaderParseErrorRecovery() {
         final Header h = new BasicHeader("Warning","110 fred \"stale\", bogus, 111 wilma \"other\"");
         final WarningValue[] result = WarningValue.getWarningValues(h);
-        Assert.assertEquals(2, result.length);
+        Assertions.assertEquals(2, result.length);
         WarningValue wv = result[0];
-        Assert.assertEquals(110, wv.getWarnCode());
-        Assert.assertEquals("fred", wv.getWarnAgent());
-        Assert.assertEquals("\"stale\"", wv.getWarnText());
-        Assert.assertNull(wv.getWarnDate());
+        Assertions.assertEquals(110, wv.getWarnCode());
+        Assertions.assertEquals("fred", wv.getWarnAgent());
+        Assertions.assertEquals("\"stale\"", wv.getWarnText());
+        Assertions.assertNull(wv.getWarnDate());
         wv = result[1];
-        Assert.assertEquals(111, wv.getWarnCode());
-        Assert.assertEquals("wilma", wv.getWarnAgent());
-        Assert.assertEquals("\"other\"", wv.getWarnText());
-        Assert.assertNull(wv.getWarnDate());
+        Assertions.assertEquals(111, wv.getWarnCode());
+        Assertions.assertEquals("wilma", wv.getWarnAgent());
+        Assertions.assertEquals("\"other\"", wv.getWarnText());
+        Assertions.assertNull(wv.getWarnDate());
     }
 
     @Test
     public void testTrickyCommaMidHeaderParseErrorRecovery() {
         final Header h = new BasicHeader("Warning","110 fred \"stale\", \"bogus, dude\", 111 wilma \"other\"");
         final WarningValue[] result = WarningValue.getWarningValues(h);
-        Assert.assertEquals(2, result.length);
+        Assertions.assertEquals(2, result.length);
         WarningValue wv = result[0];
-        Assert.assertEquals(110, wv.getWarnCode());
-        Assert.assertEquals("fred", wv.getWarnAgent());
-        Assert.assertEquals("\"stale\"", wv.getWarnText());
-        Assert.assertNull(wv.getWarnDate());
+        Assertions.assertEquals(110, wv.getWarnCode());
+        Assertions.assertEquals("fred", wv.getWarnAgent());
+        Assertions.assertEquals("\"stale\"", wv.getWarnText());
+        Assertions.assertNull(wv.getWarnDate());
         wv = result[1];
-        Assert.assertEquals(111, wv.getWarnCode());
-        Assert.assertEquals("wilma", wv.getWarnAgent());
-        Assert.assertEquals("\"other\"", wv.getWarnText());
-        Assert.assertNull(wv.getWarnDate());
+        Assertions.assertEquals(111, wv.getWarnCode());
+        Assertions.assertEquals("wilma", wv.getWarnAgent());
+        Assertions.assertEquals("\"other\"", wv.getWarnText());
+        Assertions.assertNull(wv.getWarnDate());
     }
 
     @Test
     public void testParseErrorRecoveryAtEndOfHeader() {
         final Header h = new BasicHeader("Warning","110 fred \"stale\", 111 wilma \"other\", \"bogus, dude\"");
         final WarningValue[] result = WarningValue.getWarningValues(h);
-        Assert.assertEquals(2, result.length);
+        Assertions.assertEquals(2, result.length);
         WarningValue wv = result[0];
-        Assert.assertEquals(110, wv.getWarnCode());
-        Assert.assertEquals("fred", wv.getWarnAgent());
-        Assert.assertEquals("\"stale\"", wv.getWarnText());
-        Assert.assertNull(wv.getWarnDate());
+        Assertions.assertEquals(110, wv.getWarnCode());
+        Assertions.assertEquals("fred", wv.getWarnAgent());
+        Assertions.assertEquals("\"stale\"", wv.getWarnText());
+        Assertions.assertNull(wv.getWarnDate());
         wv = result[1];
-        Assert.assertEquals(111, wv.getWarnCode());
-        Assert.assertEquals("wilma", wv.getWarnAgent());
-        Assert.assertEquals("\"other\"", wv.getWarnText());
-        Assert.assertNull(wv.getWarnDate());
+        Assertions.assertEquals(111, wv.getWarnCode());
+        Assertions.assertEquals("wilma", wv.getWarnAgent());
+        Assertions.assertEquals("\"other\"", wv.getWarnText());
+        Assertions.assertNull(wv.getWarnDate());
     }
 
     @Test
     public void testConstructSingleWarnValue() {
         final WarningValue impl = new WarningValue("110 fred \"stale\"");
-        Assert.assertEquals(110, impl.getWarnCode());
-        Assert.assertEquals("fred", impl.getWarnAgent());
-        Assert.assertEquals("\"stale\"", impl.getWarnText());
-        Assert.assertNull(impl.getWarnDate());
+        Assertions.assertEquals(110, impl.getWarnCode());
+        Assertions.assertEquals("fred", impl.getWarnAgent());
+        Assertions.assertEquals("\"stale\"", impl.getWarnText());
+        Assertions.assertNull(impl.getWarnDate());
     }
 
     @Test
     public void testConstructWarnValueWithIPv4Address() {
         final WarningValue impl = new WarningValue("110 192.168.1.1 \"stale\"");
-        Assert.assertEquals(110, impl.getWarnCode());
-        Assert.assertEquals("192.168.1.1", impl.getWarnAgent());
-        Assert.assertEquals("\"stale\"", impl.getWarnText());
-        Assert.assertNull(impl.getWarnDate());
+        Assertions.assertEquals(110, impl.getWarnCode());
+        Assertions.assertEquals("192.168.1.1", impl.getWarnAgent());
+        Assertions.assertEquals("\"stale\"", impl.getWarnText());
+        Assertions.assertNull(impl.getWarnDate());
     }
 
     @Test
     public void testConstructWarnValueWithHostname() {
         final WarningValue impl = new WarningValue("110 foo.example.com \"stale\"");
-        Assert.assertEquals(110, impl.getWarnCode());
-        Assert.assertEquals("foo.example.com", impl.getWarnAgent());
-        Assert.assertEquals("\"stale\"", impl.getWarnText());
-        Assert.assertNull(impl.getWarnDate());
+        Assertions.assertEquals(110, impl.getWarnCode());
+        Assertions.assertEquals("foo.example.com", impl.getWarnAgent());
+        Assertions.assertEquals("\"stale\"", impl.getWarnText());
+        Assertions.assertNull(impl.getWarnDate());
     }
 
     @Test
     public void testConstructWarnValueWithHostnameAndPort() {
         final WarningValue impl = new WarningValue("110 foo.example.com:8080 \"stale\"");
-        Assert.assertEquals(110, impl.getWarnCode());
-        Assert.assertEquals("foo.example.com:8080", impl.getWarnAgent());
-        Assert.assertEquals("\"stale\"", impl.getWarnText());
-        Assert.assertNull(impl.getWarnDate());
+        Assertions.assertEquals(110, impl.getWarnCode());
+        Assertions.assertEquals("foo.example.com:8080", impl.getWarnAgent());
+        Assertions.assertEquals("\"stale\"", impl.getWarnText());
+        Assertions.assertNull(impl.getWarnDate());
     }
 
     @Test
     public void testConstructWarnValueWithIPv4AddressAndPort() {
         final WarningValue impl = new WarningValue("110 192.168.1.1:8080 \"stale\"");
-        Assert.assertEquals(110, impl.getWarnCode());
-        Assert.assertEquals("192.168.1.1:8080", impl.getWarnAgent());
-        Assert.assertEquals("\"stale\"", impl.getWarnText());
-        Assert.assertNull(impl.getWarnDate());
+        Assertions.assertEquals(110, impl.getWarnCode());
+        Assertions.assertEquals("192.168.1.1:8080", impl.getWarnAgent());
+        Assertions.assertEquals("\"stale\"", impl.getWarnText());
+        Assertions.assertNull(impl.getWarnDate());
     }
 
     @Test
     public void testConstructWarnValueWithPseudonym() {
         final WarningValue impl = new WarningValue("110 ca$hm0ney \"stale\"");
-        Assert.assertEquals(110, impl.getWarnCode());
-        Assert.assertEquals("ca$hm0ney", impl.getWarnAgent());
-        Assert.assertEquals("\"stale\"", impl.getWarnText());
-        Assert.assertNull(impl.getWarnDate());
+        Assertions.assertEquals(110, impl.getWarnCode());
+        Assertions.assertEquals("ca$hm0ney", impl.getWarnAgent());
+        Assertions.assertEquals("\"stale\"", impl.getWarnText());
+        Assertions.assertNull(impl.getWarnDate());
     }
 
     @Test
     public void testConstructWarnValueWithTextWithSpaces() {
         final WarningValue impl = new WarningValue("110 fred \"stale stuff\"");
-        Assert.assertEquals(110, impl.getWarnCode());
-        Assert.assertEquals("fred", impl.getWarnAgent());
-        Assert.assertEquals("\"stale stuff\"", impl.getWarnText());
-        Assert.assertNull(impl.getWarnDate());
+        Assertions.assertEquals(110, impl.getWarnCode());
+        Assertions.assertEquals("fred", impl.getWarnAgent());
+        Assertions.assertEquals("\"stale stuff\"", impl.getWarnText());
+        Assertions.assertNull(impl.getWarnDate());
     }
 
     @Test
     public void testConstructWarnValueWithTextWithCommas() {
         final WarningValue impl = new WarningValue("110 fred \"stale, stuff\"");
-        Assert.assertEquals(110, impl.getWarnCode());
-        Assert.assertEquals("fred", impl.getWarnAgent());
-        Assert.assertEquals("\"stale, stuff\"", impl.getWarnText());
-        Assert.assertNull(impl.getWarnDate());
+        Assertions.assertEquals(110, impl.getWarnCode());
+        Assertions.assertEquals("fred", impl.getWarnAgent());
+        Assertions.assertEquals("\"stale, stuff\"", impl.getWarnText());
+        Assertions.assertNull(impl.getWarnDate());
     }
 
     @Test
     public void testConstructWarnValueWithTextWithEscapedQuotes() {
         final WarningValue impl = new WarningValue("110 fred \"stale\\\" stuff\"");
-        Assert.assertEquals(110, impl.getWarnCode());
-        Assert.assertEquals("fred", impl.getWarnAgent());
-        Assert.assertEquals("\"stale\\\" stuff\"", impl.getWarnText());
-        Assert.assertNull(impl.getWarnDate());
+        Assertions.assertEquals(110, impl.getWarnCode());
+        Assertions.assertEquals("fred", impl.getWarnAgent());
+        Assertions.assertEquals("\"stale\\\" stuff\"", impl.getWarnText());
+        Assertions.assertNull(impl.getWarnDate());
     }
 
     @Test
     public void testConstructWarnValueWithAscTimeWarnDate() throws Exception {
         final WarningValue impl = new WarningValue("110 fred \"stale\" \"Sun Nov  6 08:49:37 1994\"");
-        Assert.assertEquals(110, impl.getWarnCode());
-        Assert.assertEquals("fred", impl.getWarnAgent());
-        Assert.assertEquals("\"stale\"", impl.getWarnText());
+        Assertions.assertEquals(110, impl.getWarnCode());
+        Assertions.assertEquals("fred", impl.getWarnAgent());
+        Assertions.assertEquals("\"stale\"", impl.getWarnText());
         final Instant target = DateUtils.parseStandardDate("Sun Nov  6 08:49:37 1994");
-        Assert.assertEquals(target, DateUtils.toInstant(impl.getWarnDate()));
+        Assertions.assertEquals(target, DateUtils.toInstant(impl.getWarnDate()));
     }
 
     @Test
     public void testConstructWarnValueWithRFC850WarnDate() throws Exception {
         final WarningValue impl = new WarningValue("110 fred \"stale\" \"Sunday, 06-Nov-94 08:49:37 GMT\"");
-        Assert.assertEquals(110, impl.getWarnCode());
-        Assert.assertEquals("fred", impl.getWarnAgent());
-        Assert.assertEquals("\"stale\"", impl.getWarnText());
+        Assertions.assertEquals(110, impl.getWarnCode());
+        Assertions.assertEquals("fred", impl.getWarnAgent());
+        Assertions.assertEquals("\"stale\"", impl.getWarnText());
         final Instant target = DateUtils.parseStandardDate("Sunday, 06-Nov-94 08:49:37 GMT");
-        Assert.assertEquals(target, DateUtils.toInstant(impl.getWarnDate()));
+        Assertions.assertEquals(target, DateUtils.toInstant(impl.getWarnDate()));
     }
 
     @Test
     public void testConstructWarnValueWithRFC1123WarnDate() throws Exception {
         final WarningValue impl = new WarningValue("110 fred \"stale\" \"Sun, 06 Nov 1994 08:49:37 GMT\"");
-        Assert.assertEquals(110, impl.getWarnCode());
-        Assert.assertEquals("fred", impl.getWarnAgent());
-        Assert.assertEquals("\"stale\"", impl.getWarnText());
+        Assertions.assertEquals(110, impl.getWarnCode());
+        Assertions.assertEquals("fred", impl.getWarnAgent());
+        Assertions.assertEquals("\"stale\"", impl.getWarnText());
         final Instant target = DateUtils.parseStandardDate("Sun, 06 Nov 1994 08:49:37 GMT");
-        Assert.assertEquals(target, DateUtils.toInstant(impl.getWarnDate()));
+        Assertions.assertEquals(target, DateUtils.toInstant(impl.getWarnDate()));
     }
 
 }

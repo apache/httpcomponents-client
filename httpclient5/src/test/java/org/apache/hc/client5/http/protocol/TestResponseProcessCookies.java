@@ -37,9 +37,9 @@ import org.apache.hc.client5.http.impl.cookie.RFC6265LaxSpec;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpResponseInterceptor;
 import org.apache.hc.core5.http.message.BasicHttpResponse;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class TestResponseProcessCookies {
 
@@ -47,7 +47,7 @@ public class TestResponseProcessCookies {
     private CookieSpec cookieSpec;
     private CookieStore cookieStore;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         this.cookieOrigin = new CookieOrigin("localhost", 80, "/", false);
         this.cookieSpec = new RFC6265LaxSpec();
@@ -58,7 +58,7 @@ public class TestResponseProcessCookies {
     public void testResponseParameterCheck() throws Exception {
         final HttpClientContext context = HttpClientContext.create();
         final HttpResponseInterceptor interceptor = new ResponseProcessCookies();
-        Assert.assertThrows(NullPointerException.class, () ->
+        Assertions.assertThrows(NullPointerException.class, () ->
                 interceptor.process(null, null, context));
     }
 
@@ -66,7 +66,7 @@ public class TestResponseProcessCookies {
     public void testContextParameterCheck() throws Exception {
         final HttpResponse response = new BasicHttpResponse(200, "OK");
         final HttpResponseInterceptor interceptor = new ResponseProcessCookies();
-        Assert.assertThrows(NullPointerException.class, () ->
+        Assertions.assertThrows(NullPointerException.class, () ->
                 interceptor.process(response, null, null));
     }
 
@@ -84,13 +84,13 @@ public class TestResponseProcessCookies {
         interceptor.process(response, null, context);
 
         final List<Cookie> cookies = this.cookieStore.getCookies();
-        Assert.assertNotNull(cookies);
-        Assert.assertEquals(1, cookies.size());
+        Assertions.assertNotNull(cookies);
+        Assertions.assertEquals(1, cookies.size());
         final Cookie cookie = cookies.get(0);
-        Assert.assertEquals("name1", cookie.getName());
-        Assert.assertEquals("value1", cookie.getValue());
-        Assert.assertEquals("localhost", cookie.getDomain());
-        Assert.assertEquals("/", cookie.getPath());
+        Assertions.assertEquals("name1", cookie.getName());
+        Assertions.assertEquals("value1", cookie.getValue());
+        Assertions.assertEquals("localhost", cookie.getDomain());
+        Assertions.assertEquals("/", cookie.getPath());
     }
 
     @Test
@@ -107,8 +107,8 @@ public class TestResponseProcessCookies {
         interceptor.process(response, null, context);
 
         final List<Cookie> cookies = this.cookieStore.getCookies();
-        Assert.assertNotNull(cookies);
-        Assert.assertEquals(0, cookies.size());
+        Assertions.assertNotNull(cookies);
+        Assertions.assertEquals(0, cookies.size());
     }
 
     @Test
@@ -125,8 +125,8 @@ public class TestResponseProcessCookies {
         interceptor.process(response, null, context);
 
         final List<Cookie> cookies = this.cookieStore.getCookies();
-        Assert.assertNotNull(cookies);
-        Assert.assertEquals(0, cookies.size());
+        Assertions.assertNotNull(cookies);
+        Assertions.assertEquals(0, cookies.size());
     }
 
     @Test
@@ -143,8 +143,8 @@ public class TestResponseProcessCookies {
         interceptor.process(response, null, context);
 
         final List<Cookie> cookies = this.cookieStore.getCookies();
-        Assert.assertNotNull(cookies);
-        Assert.assertEquals(0, cookies.size());
+        Assertions.assertNotNull(cookies);
+        Assertions.assertEquals(0, cookies.size());
     }
 
 }

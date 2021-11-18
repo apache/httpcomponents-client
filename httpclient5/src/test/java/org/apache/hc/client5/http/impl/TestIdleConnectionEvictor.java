@@ -30,8 +30,8 @@ package org.apache.hc.client5.http.impl;
 import org.apache.hc.core5.pool.ConnPoolControl;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
@@ -52,11 +52,11 @@ public class TestIdleConnectionEvictor {
         Mockito.verify(cm, Mockito.atLeast(1)).closeExpired();
         Mockito.verify(cm, Mockito.atLeast(1)).closeIdle(TimeValue.ofSeconds(3));
 
-        Assert.assertTrue(connectionEvictor.isRunning());
+        Assertions.assertTrue(connectionEvictor.isRunning());
 
         connectionEvictor.shutdown();
         connectionEvictor.awaitTermination(Timeout.ofSeconds(1));
-        Assert.assertFalse(connectionEvictor.isRunning());
+        Assertions.assertFalse(connectionEvictor.isRunning());
     }
 
     @Test
@@ -71,11 +71,11 @@ public class TestIdleConnectionEvictor {
         Mockito.verify(cm, Mockito.atLeast(1)).closeExpired();
         Mockito.verify(cm, Mockito.never()).closeIdle(ArgumentMatchers.any());
 
-        Assert.assertTrue(connectionEvictor.isRunning());
+        Assertions.assertTrue(connectionEvictor.isRunning());
 
         connectionEvictor.shutdown();
         connectionEvictor.awaitTermination(Timeout.ofSeconds(1));
-        Assert.assertFalse(connectionEvictor.isRunning());
+        Assertions.assertFalse(connectionEvictor.isRunning());
     }
 
 }

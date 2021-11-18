@@ -59,7 +59,7 @@ import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.net.URIBuilder;
 import org.apache.hc.core5.util.TimeValue;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.Test;
 
 /**
@@ -162,11 +162,11 @@ public class TestClientRequestExecution extends LocalServerTestBase {
             EntityUtils.consume(response.getEntity());
             final HttpRequest reqWrapper = context.getRequest();
 
-            Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
+            Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
 
             final Header[] myheaders = reqWrapper.getHeaders("my-header");
-            Assert.assertNotNull(myheaders);
-            Assert.assertEquals(1, myheaders.length);
+            Assertions.assertNotNull(myheaders);
+            Assertions.assertEquals(1, myheaders.length);
             return null;
         });
     }
@@ -218,7 +218,7 @@ public class TestClientRequestExecution extends LocalServerTestBase {
                 new ByteArrayInputStream(
                         new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 } ),
                         -1, null));
-        Assert.assertThrows(IOException.class, () ->
+        Assertions.assertThrows(IOException.class, () ->
                 this.httpclient.execute(target, httppost, context, response -> null));
     }
 
@@ -231,14 +231,14 @@ public class TestClientRequestExecution extends LocalServerTestBase {
         final HttpClientContext context = HttpClientContext.create();
         final ClassicHttpRequest request = new BasicClassicHttpRequest("GET", "{{|boom|}}");
         this.httpclient.execute(target, request, context, response -> {
-            Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
+            Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
             EntityUtils.consume(response.getEntity());
             return null;
         });
 
         final HttpRequest reqWrapper = context.getRequest();
 
-        Assert.assertEquals("{{|boom|}}", reqWrapper.getRequestUri());
+        Assertions.assertEquals("{{|boom|}}", reqWrapper.getRequestUri());
     }
 
     @Test
@@ -251,13 +251,13 @@ public class TestClientRequestExecution extends LocalServerTestBase {
         final HttpClientContext context = HttpClientContext.create();
 
         this.httpclient.execute(target, httpget, context, response -> {
-            Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
+            Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
             EntityUtils.consume(response.getEntity());
             return null;
         });
 
         final HttpRequest request = context.getRequest();
-        Assert.assertEquals("/stuff", request.getRequestUri());
+        Assertions.assertEquals("/stuff", request.getRequestUri());
     }
 
     @Test
@@ -278,16 +278,16 @@ public class TestClientRequestExecution extends LocalServerTestBase {
         final HttpClientContext context = HttpClientContext.create();
 
         this.httpclient.execute(httpget, context, response -> {
-            Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
+            Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
             return null;
         });
 
         final HttpRequest request = context.getRequest();
-        Assert.assertEquals("/stuff", request.getRequestUri());
+        Assertions.assertEquals("/stuff", request.getRequestUri());
 
         final RedirectLocations redirectLocations = context.getRedirectLocations();
         final URI location = URIUtils.resolve(uri, target, redirectLocations.getAll());
-        Assert.assertEquals(uri, location);
+        Assertions.assertEquals(uri, location);
     }
 
     @Test

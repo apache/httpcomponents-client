@@ -39,10 +39,10 @@ import org.apache.hc.core5.http.impl.bootstrap.HttpServer;
 import org.apache.hc.core5.http.impl.bootstrap.ServerBootstrap;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.io.CloseMode;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 @SuppressWarnings("boxing") // test code
 public class TestHttpClientBuilderInterceptors {
@@ -51,7 +51,7 @@ public class TestHttpClientBuilderInterceptors {
     private String uri;
     private CloseableHttpClient httpClient;
 
-    @Before
+    @BeforeEach
     public void before() throws Exception {
         this.localServer = ServerBootstrap.bootstrap()
                 .register("/test", (request, response, context) -> {
@@ -76,7 +76,7 @@ public class TestHttpClientBuilderInterceptors {
                 .build();
     }
 
-    @After
+    @AfterEach
     public void after() throws Exception {
         this.httpClient.close(CloseMode.IMMEDIATE);
         this.localServer.stop();
@@ -89,9 +89,9 @@ public class TestHttpClientBuilderInterceptors {
             EntityUtils.consume(httpResponse.getEntity());
             return httpResponse;
         });
-        Assert.assertEquals(200, response.getCode());
+        Assertions.assertEquals(200, response.getCode());
         final Header testFilterHeader = response.getHeader("X-Test-Interceptor");
-        Assert.assertNotNull(testFilterHeader);
+        Assertions.assertNotNull(testFilterHeader);
     }
 
 }

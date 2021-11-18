@@ -47,17 +47,15 @@ import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
 import org.apache.hc.core5.util.TimeValue;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.MockitoAnnotations;
 import org.mockito.stubbing.Answer;
 
 @SuppressWarnings({"boxing","static-access"}) // test code
-@RunWith(MockitoJUnitRunner.class)
 public class TestMainClientExec {
 
     @Mock
@@ -74,8 +72,9 @@ public class TestMainClientExec {
     private MainClientExec mainClientExec;
     private HttpHost target;
 
-    @Before
+    @BeforeEach
     public void setup() throws Exception {
+        MockitoAnnotations.openMocks(this);
         mainClientExec = new MainClientExec(connectionManager, reuseStrategy, keepAliveStrategy, userTokenHandler);
         target = new HttpHost("foo", 80);
     }
@@ -105,9 +104,9 @@ public class TestMainClientExec {
         Mockito.verify(endpoint, Mockito.times(1)).markConnectionNonReusable();
         Mockito.verify(endpoint, Mockito.never()).releaseEndpoint();
 
-        Assert.assertNull(context.getUserToken());
-        Assert.assertNotNull(finalResponse);
-        Assert.assertTrue(finalResponse instanceof CloseableHttpResponse);
+        Assertions.assertNull(context.getUserToken());
+        Assertions.assertNotNull(finalResponse);
+        Assertions.assertTrue(finalResponse instanceof CloseableHttpResponse);
     }
 
     @Test
@@ -134,8 +133,8 @@ public class TestMainClientExec {
         Mockito.verify(endpoint).markConnectionNonReusable();
         Mockito.verify(endpoint).releaseEndpoint();
 
-        Assert.assertNotNull(finalResponse);
-        Assert.assertTrue(finalResponse instanceof CloseableHttpResponse);
+        Assertions.assertNotNull(finalResponse);
+        Assertions.assertTrue(finalResponse instanceof CloseableHttpResponse);
     }
 
     @Test
@@ -169,8 +168,8 @@ public class TestMainClientExec {
         Mockito.verify(endpoint).markConnectionReusable(null, TimeValue.ofMilliseconds(678L));
         Mockito.verify(endpoint, Mockito.never()).releaseEndpoint();
 
-        Assert.assertNotNull(finalResponse);
-        Assert.assertTrue(finalResponse instanceof CloseableHttpResponse);
+        Assertions.assertNotNull(finalResponse);
+        Assertions.assertTrue(finalResponse instanceof CloseableHttpResponse);
     }
 
     @Test
@@ -198,8 +197,8 @@ public class TestMainClientExec {
         Mockito.verify(endpoint).execute("test", request, context);
         Mockito.verify(endpoint).releaseEndpoint();
 
-        Assert.assertNotNull(finalResponse);
-        Assert.assertTrue(finalResponse instanceof CloseableHttpResponse);
+        Assertions.assertNotNull(finalResponse);
+        Assertions.assertTrue(finalResponse instanceof CloseableHttpResponse);
     }
 
     @Test
@@ -229,8 +228,8 @@ public class TestMainClientExec {
         Mockito.verify(endpoint, Mockito.never()).disconnectEndpoint();
         Mockito.verify(endpoint, Mockito.never()).releaseEndpoint();
 
-        Assert.assertNotNull(finalResponse);
-        Assert.assertTrue(finalResponse instanceof CloseableHttpResponse);
+        Assertions.assertNotNull(finalResponse);
+        Assertions.assertTrue(finalResponse instanceof CloseableHttpResponse);
         finalResponse.close();
 
         Mockito.verify(endpoint).disconnectEndpoint();
@@ -249,7 +248,7 @@ public class TestMainClientExec {
                 Mockito.any())).thenThrow(new ConnectionShutdownException());
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
-        Assert.assertThrows(InterruptedIOException.class, () ->
+        Assertions.assertThrows(InterruptedIOException.class, () ->
                 mainClientExec.execute(request, scope, null));
         Mockito.verify(endpoint).discardEndpoint();
     }
@@ -266,7 +265,7 @@ public class TestMainClientExec {
                 Mockito.any())).thenThrow(new RuntimeException("Ka-boom"));
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
-        Assert.assertThrows(RuntimeException.class, () ->
+        Assertions.assertThrows(RuntimeException.class, () ->
                 mainClientExec.execute(request, scope, null));
         Mockito.verify(endpoint).discardEndpoint();
     }
@@ -283,7 +282,7 @@ public class TestMainClientExec {
                 Mockito.any())).thenThrow(new HttpException("Ka-boom"));
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
-        Assert.assertThrows(HttpException.class, () ->
+        Assertions.assertThrows(HttpException.class, () ->
                 mainClientExec.execute(request, scope, null));
         Mockito.verify(endpoint).discardEndpoint();
     }
@@ -300,7 +299,7 @@ public class TestMainClientExec {
                 Mockito.any())).thenThrow(new IOException("Ka-boom"));
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
-        Assert.assertThrows(IOException.class, () ->
+        Assertions.assertThrows(IOException.class, () ->
                 mainClientExec.execute(request, scope, null));
         Mockito.verify(endpoint).discardEndpoint();
     }

@@ -48,8 +48,8 @@ import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.http.config.Registry;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.message.BasicNameValuePair;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * Simple tests for {@link DefaultAuthenticationStrategy}.
@@ -61,11 +61,11 @@ public class TestAuthenticationStrategy {
     public void testSelectInvalidInput() throws Exception {
         final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
         final HttpClientContext context = HttpClientContext.create();
-        Assert.assertThrows(NullPointerException.class, () ->
+        Assertions.assertThrows(NullPointerException.class, () ->
                 authStrategy.select(null, Collections.emptyMap(), context));
-        Assert.assertThrows(NullPointerException.class, () ->
+        Assertions.assertThrows(NullPointerException.class, () ->
                 authStrategy.select(ChallengeType.TARGET, null, context));
-        Assert.assertThrows(NullPointerException.class, () ->
+        Assertions.assertThrows(NullPointerException.class, () ->
                 authStrategy.select(ChallengeType.TARGET, Collections.emptyMap(), null));
     }
 
@@ -81,8 +81,8 @@ public class TestAuthenticationStrategy {
                 new BasicNameValuePair("realm", "test"), new BasicNameValuePair("nonce", "1234")));
 
         final List<AuthScheme> authSchemes = authStrategy.select(ChallengeType.TARGET, challenges, context);
-        Assert.assertNotNull(authSchemes);
-        Assert.assertEquals(0, authSchemes.size());
+        Assertions.assertNotNull(authSchemes);
+        Assertions.assertEquals(0, authSchemes.size());
     }
 
     @Test
@@ -107,12 +107,12 @@ public class TestAuthenticationStrategy {
                 .build());
 
         final List<AuthScheme> authSchemes = authStrategy.select(ChallengeType.TARGET, challenges, context);
-        Assert.assertNotNull(authSchemes);
-        Assert.assertEquals(2, authSchemes.size());
+        Assertions.assertNotNull(authSchemes);
+        Assertions.assertEquals(2, authSchemes.size());
         final AuthScheme authScheme1 = authSchemes.get(0);
-        Assert.assertTrue(authScheme1 instanceof DigestScheme);
+        Assertions.assertTrue(authScheme1 instanceof DigestScheme);
         final AuthScheme authScheme2 = authSchemes.get(1);
-        Assert.assertTrue(authScheme2 instanceof BasicScheme);
+        Assertions.assertTrue(authScheme2 instanceof BasicScheme);
     }
 
     @Test
@@ -141,10 +141,10 @@ public class TestAuthenticationStrategy {
                 .build());
 
         final List<AuthScheme> authSchemes = authStrategy.select(ChallengeType.TARGET, challenges, context);
-        Assert.assertNotNull(authSchemes);
-        Assert.assertEquals(1, authSchemes.size());
+        Assertions.assertNotNull(authSchemes);
+        Assertions.assertEquals(1, authSchemes.size());
         final AuthScheme authScheme1 = authSchemes.get(0);
-        Assert.assertTrue(authScheme1 instanceof BasicScheme);
+        Assertions.assertTrue(authScheme1 instanceof BasicScheme);
     }
 
 }

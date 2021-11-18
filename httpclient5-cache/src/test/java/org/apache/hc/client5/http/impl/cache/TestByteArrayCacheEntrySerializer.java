@@ -26,9 +26,11 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -46,15 +48,14 @@ import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.StatusLine;
-import org.hamcrest.MatcherAssert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class TestByteArrayCacheEntrySerializer {
 
     private ByteArrayCacheEntrySerializer impl;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         impl = new ByteArrayCacheEntrySerializer();
     }
@@ -253,7 +254,7 @@ public class TestByteArrayCacheEntrySerializer {
         final HttpCacheStorageEntry readEntry = impl.deserialize(bytes);
         // compare
         assertEquals(readEntry.getKey(), writeEntry.getKey());
-        MatcherAssert. assertThat(readEntry.getContent(), HttpCacheEntryMatcher.equivalent(writeEntry.getContent()));
+        assertThat(readEntry.getContent(), HttpCacheEntryMatcher.equivalent(writeEntry.getContent()));
     }
 
     private HttpCacheStorageEntry makeCacheEntryWithVariantMap(final String key) {

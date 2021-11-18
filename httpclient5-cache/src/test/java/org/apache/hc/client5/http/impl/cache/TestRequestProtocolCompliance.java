@@ -26,8 +26,9 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collections;
 
@@ -36,14 +37,14 @@ import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.ProtocolVersion;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
 import org.apache.hc.core5.http.support.BasicRequestBuilder;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class TestRequestProtocolCompliance {
 
     private RequestProtocolCompliance impl;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         impl = new RequestProtocolCompliance(false);
     }

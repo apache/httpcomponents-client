@@ -50,9 +50,9 @@ import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 @SuppressWarnings({"boxing","static-access"}) // test code
@@ -67,7 +67,7 @@ public class TestHttpClientConnectionOperator {
     private DnsResolver dnsResolver;
     private DefaultHttpClientConnectionOperator connectionOperator;
 
-    @Before
+    @BeforeEach
     public void setup() throws Exception {
         conn = Mockito.mock(ManagedHttpClientConnection.class);
         socket = Mockito.mock(Socket.class);
@@ -151,7 +151,7 @@ public class TestHttpClientConnectionOperator {
                 Mockito.any(),
                 Mockito.any())).thenThrow(new SocketTimeoutException());
 
-        Assert.assertThrows(ConnectTimeoutException.class, () ->
+        Assertions.assertThrows(ConnectTimeoutException.class, () ->
                 connectionOperator.connect(
                         conn, host, null, TimeValue.ofMilliseconds(1000), SocketConfig.DEFAULT, context));
     }
@@ -176,7 +176,7 @@ public class TestHttpClientConnectionOperator {
                 Mockito.any(),
                 Mockito.any())).thenThrow(new ConnectException());
 
-        Assert.assertThrows(HttpHostConnectException.class, () ->
+        Assertions.assertThrows(HttpHostConnectException.class, () ->
                 connectionOperator.connect(
                         conn, host, null, TimeValue.ofMilliseconds(1000), SocketConfig.DEFAULT, context));
     }
@@ -292,7 +292,7 @@ public class TestHttpClientConnectionOperator {
         final HttpHost host = new HttpHost("httpsssss", "somehost", -1);
         Mockito.when(socketFactoryRegistry.lookup("http")).thenReturn(plainSocketFactory);
 
-        Assert.assertThrows(UnsupportedSchemeException.class, () ->
+        Assertions.assertThrows(UnsupportedSchemeException.class, () ->
                 connectionOperator.upgrade(conn, host, context));
     }
 
@@ -302,7 +302,7 @@ public class TestHttpClientConnectionOperator {
         final HttpHost host = new HttpHost("http", "somehost", -1);
         Mockito.when(socketFactoryRegistry.lookup("http")).thenReturn(plainSocketFactory);
 
-        Assert.assertThrows(UnsupportedSchemeException.class, () ->
+        Assertions.assertThrows(UnsupportedSchemeException.class, () ->
                 connectionOperator.upgrade(conn, host, context));
     }
 

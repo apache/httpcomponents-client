@@ -27,15 +27,15 @@
 package org.apache.hc.client5.http.impl.schedule;
 
 import org.apache.hc.core5.util.TimeValue;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class TestExponentialBackingOffSchedulingStrategy {
 
     private ExponentialBackOffSchedulingStrategy impl;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         impl = new ExponentialBackOffSchedulingStrategy(
                 ExponentialBackOffSchedulingStrategy.DEFAULT_BACK_OFF_RATE,
@@ -46,14 +46,14 @@ public class TestExponentialBackingOffSchedulingStrategy {
 
     @Test
     public void testSchedule() {
-        Assert.assertEquals(TimeValue.ofMilliseconds(0), impl.schedule(0));
-        Assert.assertEquals(TimeValue.ofMilliseconds(6000), impl.schedule(1));
-        Assert.assertEquals(TimeValue.ofMilliseconds(60000), impl.schedule(2));
-        Assert.assertEquals(TimeValue.ofMilliseconds(600000), impl.schedule(3));
-        Assert.assertEquals(TimeValue.ofMilliseconds(6000000), impl.schedule(4));
-        Assert.assertEquals(TimeValue.ofMilliseconds(60000000), impl.schedule(5));
-        Assert.assertEquals(TimeValue.ofMilliseconds(86400000), impl.schedule(6));
-        Assert.assertEquals(TimeValue.ofMilliseconds(86400000), impl.schedule(Integer.MAX_VALUE));
+        Assertions.assertEquals(TimeValue.ofMilliseconds(0), impl.schedule(0));
+        Assertions.assertEquals(TimeValue.ofMilliseconds(6000), impl.schedule(1));
+        Assertions.assertEquals(TimeValue.ofMilliseconds(60000), impl.schedule(2));
+        Assertions.assertEquals(TimeValue.ofMilliseconds(600000), impl.schedule(3));
+        Assertions.assertEquals(TimeValue.ofMilliseconds(6000000), impl.schedule(4));
+        Assertions.assertEquals(TimeValue.ofMilliseconds(60000000), impl.schedule(5));
+        Assertions.assertEquals(TimeValue.ofMilliseconds(86400000), impl.schedule(6));
+        Assertions.assertEquals(TimeValue.ofMilliseconds(86400000), impl.schedule(Integer.MAX_VALUE));
     }
 
 }

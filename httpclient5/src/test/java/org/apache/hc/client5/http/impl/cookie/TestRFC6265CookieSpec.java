@@ -37,8 +37,8 @@ import org.apache.hc.client5.http.cookie.CookieOrigin;
 import org.apache.hc.client5.http.cookie.MalformedCookieException;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.message.BasicHeader;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
@@ -57,14 +57,14 @@ public class TestRFC6265CookieSpec {
         final CookieOrigin origin = new CookieOrigin("host", 80, "/path/", true);
         final List<Cookie> cookies = cookiespec.parse(header, origin);
 
-        Assert.assertEquals(1, cookies.size());
+        Assertions.assertEquals(1, cookies.size());
         final Cookie cookie = cookies.get(0);
-        Assert.assertEquals("name", cookie.getName());
-        Assert.assertEquals("value", cookie.getValue());
-        Assert.assertEquals("/path", cookie.getPath());
-        Assert.assertEquals("host", cookie.getDomain());
-        Assert.assertEquals("stuff", cookie.getAttribute("this"));
-        Assert.assertNull(cookie.getAttribute("that"));
+        Assertions.assertEquals("name", cookie.getName());
+        Assertions.assertEquals("value", cookie.getValue());
+        Assertions.assertEquals("/path", cookie.getPath());
+        Assertions.assertEquals("host", cookie.getDomain());
+        Assertions.assertEquals("stuff", cookie.getAttribute("this"));
+        Assertions.assertNull(cookie.getAttribute("that"));
 
         Mockito.verify(h1).parse(ArgumentMatchers.any(), ArgumentMatchers.eq("stuff"));
         Mockito.verify(h2, Mockito.never()).parse(ArgumentMatchers.any(), ArgumentMatchers.anyString());
@@ -78,11 +78,11 @@ public class TestRFC6265CookieSpec {
         final CookieOrigin origin = new CookieOrigin("host", 80, "/path/", true);
         final List<Cookie> cookies = cookiespec.parse(header, origin);
 
-        Assert.assertEquals(1, cookies.size());
+        Assertions.assertEquals(1, cookies.size());
         final Cookie cookie = cookies.get(0);
-        Assert.assertEquals("name", cookie.getName());
-        Assert.assertEquals(" one, two, three; four ", cookie.getValue());
-        Assert.assertEquals("stuff", cookie.getAttribute("this"));
+        Assertions.assertEquals("name", cookie.getName());
+        Assertions.assertEquals(" one, two, three; four ", cookie.getValue());
+        Assertions.assertEquals("stuff", cookie.getAttribute("this"));
     }
 
     @Test
@@ -91,7 +91,7 @@ public class TestRFC6265CookieSpec {
 
         final Header header = new BasicHeader("Set-Cookie2", "blah");
         final CookieOrigin origin = new CookieOrigin("host", 80, "/path/", true);
-        Assert.assertThrows(MalformedCookieException.class, () ->
+        Assertions.assertThrows(MalformedCookieException.class, () ->
                 cookiespec.parse(header, origin));
     }
 
@@ -102,7 +102,7 @@ public class TestRFC6265CookieSpec {
         final Header header = new BasicHeader("Set-Cookie", "=blah ; this = stuff;");
         final CookieOrigin origin = new CookieOrigin("host", 80, "/path/", true);
         final List<Cookie> cookies = cookiespec.parse(header, origin);
-        Assert.assertEquals(0, cookies.size());
+        Assertions.assertEquals(0, cookies.size());
     }
 
     @Test
@@ -112,7 +112,7 @@ public class TestRFC6265CookieSpec {
         final Header header = new BasicHeader("Set-Cookie", "blah");
         final CookieOrigin origin = new CookieOrigin("host", 80, "/path/", true);
         final List<Cookie> cookies = cookiespec.parse(header, origin);
-        Assert.assertEquals(0, cookies.size());
+        Assertions.assertEquals(0, cookies.size());
     }
 
     @Test
@@ -121,7 +121,7 @@ public class TestRFC6265CookieSpec {
 
         final Header header = new BasicHeader("Set-Cookie", "blah;");
         final CookieOrigin origin = new CookieOrigin("host", 80, "/path/", true);
-        Assert.assertThrows(MalformedCookieException.class, () ->
+        Assertions.assertThrows(MalformedCookieException.class, () ->
                 cookiespec.parse(header, origin));
     }
 
@@ -132,10 +132,10 @@ public class TestRFC6265CookieSpec {
         final Header header = new BasicHeader("Set-Cookie", "blah=;");
         final CookieOrigin origin = new CookieOrigin("host", 80, "/path/", true);
         final List<Cookie> cookies = cookiespec.parse(header, origin);
-        Assert.assertEquals(1, cookies.size());
+        Assertions.assertEquals(1, cookies.size());
         final Cookie cookie = cookies.get(0);
-        Assert.assertEquals("blah", cookie.getName());
-        Assert.assertEquals("", cookie.getValue());
+        Assertions.assertEquals("blah", cookie.getName());
+        Assertions.assertEquals("", cookie.getValue());
     }
 
     @Test
@@ -151,15 +151,15 @@ public class TestRFC6265CookieSpec {
         final CookieOrigin origin = new CookieOrigin("host", 80, "/path/", true);
         final List<Cookie> cookies = cookiespec.parse(header, origin);
 
-        Assert.assertEquals(1, cookies.size());
+        Assertions.assertEquals(1, cookies.size());
         final Cookie cookie = cookies.get(0);
-        Assert.assertEquals("name", cookie.getName());
-        Assert.assertEquals("value", cookie.getValue());
-        Assert.assertEquals("v", cookie.getAttribute("p1"));
-        Assert.assertEquals("v,0", cookie.getAttribute("p2"));
-        Assert.assertTrue(cookie.containsAttribute("p3"));
-        Assert.assertTrue(cookie.containsAttribute("p4"));
-        Assert.assertFalse(cookie.containsAttribute("p5"));
+        Assertions.assertEquals("name", cookie.getName());
+        Assertions.assertEquals("value", cookie.getValue());
+        Assertions.assertEquals("v", cookie.getAttribute("p1"));
+        Assertions.assertEquals("v,0", cookie.getAttribute("p2"));
+        Assertions.assertTrue(cookie.containsAttribute("p3"));
+        Assertions.assertTrue(cookie.containsAttribute("p4"));
+        Assertions.assertFalse(cookie.containsAttribute("p5"));
     }
 
     @Test
@@ -175,11 +175,11 @@ public class TestRFC6265CookieSpec {
         final CookieOrigin origin = new CookieOrigin("host", 80, "/path/", true);
         final List<Cookie> cookies = cookiespec.parse(header, origin);
 
-        Assert.assertEquals(1, cookies.size());
+        Assertions.assertEquals(1, cookies.size());
         final Cookie cookie = cookies.get(0);
-        Assert.assertEquals("name", cookie.getName());
-        Assert.assertEquals("value", cookie.getValue());
-        Assert.assertEquals("v", cookie.getAttribute("p1"));
+        Assertions.assertEquals("name", cookie.getName());
+        Assertions.assertEquals("value", cookie.getValue());
+        Assertions.assertEquals("v", cookie.getAttribute("p1"));
     }
 
     @Test
@@ -195,11 +195,11 @@ public class TestRFC6265CookieSpec {
         final CookieOrigin origin = new CookieOrigin("host", 80, "/path/", true);
         final List<Cookie> cookies = cookiespec.parse(header, origin);
 
-        Assert.assertEquals(1, cookies.size());
+        Assertions.assertEquals(1, cookies.size());
         final Cookie cookie = cookies.get(0);
-        Assert.assertEquals("name", cookie.getName());
-        Assert.assertEquals("value", cookie.getValue());
-        Assert.assertEquals("", cookie.getAttribute("p1"));
+        Assertions.assertEquals("name", cookie.getName());
+        Assertions.assertEquals("value", cookie.getValue());
+        Assertions.assertEquals("", cookie.getAttribute("p1"));
     }
 
     @Test
@@ -234,7 +234,7 @@ public class TestRFC6265CookieSpec {
         Mockito.when(h1.match(cookie, origin)).thenReturn(true);
         Mockito.when(h2.match(cookie, origin)).thenReturn(true);
 
-        Assert.assertTrue(cookiespec.match(cookie, origin));
+        Assertions.assertTrue(cookiespec.match(cookie, origin));
 
         Mockito.verify(h1).match(cookie, origin);
         Mockito.verify(h2).match(cookie, origin);
@@ -255,7 +255,7 @@ public class TestRFC6265CookieSpec {
         Mockito.when(h1.match(cookie, origin)).thenReturn(false);
         Mockito.when(h2.match(cookie, origin)).thenReturn(false);
 
-        Assert.assertFalse(cookiespec.match(cookie, origin));
+        Assertions.assertFalse(cookiespec.match(cookie, origin));
 
         Mockito.verify(h1).match(cookie, origin);
         Mockito.verify(h2, Mockito.never()).match(cookie, origin);
@@ -267,11 +267,11 @@ public class TestRFC6265CookieSpec {
 
         final RFC6265CookieSpec cookiespec = new RFC6265CookieSpec();
         final List<Header> headers = cookiespec.formatCookies(Collections.singletonList(cookie1));
-        Assert.assertNotNull(headers);
-        Assert.assertEquals(1, headers.size());
+        Assertions.assertNotNull(headers);
+        Assertions.assertEquals(1, headers.size());
         final Header header = headers.get(0);
-        Assert.assertEquals("Cookie", header.getName());
-        Assert.assertEquals("name1=value", header.getValue());
+        Assertions.assertEquals("Cookie", header.getName());
+        Assertions.assertEquals("name1=value", header.getValue());
     }
 
     @Test
@@ -281,11 +281,11 @@ public class TestRFC6265CookieSpec {
         final Cookie cookie3 = new BasicClientCookie("name3", "\"\\\"");
         final RFC6265CookieSpec cookiespec = new RFC6265CookieSpec();
         final List<Header> headers = cookiespec.formatCookies(Arrays.asList(cookie1, cookie2, cookie3));
-        Assert.assertNotNull(headers);
-        Assert.assertEquals(1, headers.size());
+        Assertions.assertNotNull(headers);
+        Assertions.assertEquals(1, headers.size());
         final Header header = headers.get(0);
-        Assert.assertEquals("Cookie", header.getName());
-        Assert.assertEquals("name1=value; name2=\"some value\"; name3=\"\\\"\\\\\\\"\"", header.getValue());
+        Assertions.assertEquals("Cookie", header.getName());
+        Assertions.assertEquals("name1=value; name2=\"some value\"; name3=\"\\\"\\\\\\\"\"", header.getValue());
     }
 
     @Test

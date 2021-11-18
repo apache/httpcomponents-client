@@ -32,8 +32,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for {@link BasicClientCookie}.
@@ -44,9 +44,9 @@ public class TestBasicClientCookie {
     @Test
     public void testConstructor() {
         final BasicClientCookie cookie = new BasicClientCookie("name", "value");
-        Assert.assertEquals("name", cookie.getName());
-        Assert.assertEquals("value", cookie.getValue());
-        Assert.assertThrows(NullPointerException.class, () -> new BasicClientCookie(null, null));
+        Assertions.assertEquals("name", cookie.getName());
+        Assertions.assertEquals("value", cookie.getValue());
+        Assertions.assertThrows(NullPointerException.class, () -> new BasicClientCookie(null, null));
     }
 
     @Test
@@ -56,11 +56,11 @@ public class TestBasicClientCookie {
         orig.setPath("/");
         orig.setAttribute("attrib", "stuff");
         final BasicClientCookie clone = (BasicClientCookie) orig.clone();
-        Assert.assertEquals(orig.getName(), clone.getName());
-        Assert.assertEquals(orig.getValue(), clone.getValue());
-        Assert.assertEquals(orig.getDomain(), clone.getDomain());
-        Assert.assertEquals(orig.getPath(), clone.getPath());
-        Assert.assertEquals(orig.getAttribute("attrib"), clone.getAttribute("attrib"));
+        Assertions.assertEquals(orig.getName(), clone.getName());
+        Assertions.assertEquals(orig.getValue(), clone.getValue());
+        Assertions.assertEquals(orig.getDomain(), clone.getDomain());
+        Assertions.assertEquals(orig.getPath(), clone.getPath());
+        Assertions.assertEquals(orig.getAttribute("attrib"), clone.getAttribute("attrib"));
     }
 
     @Test
@@ -77,11 +77,11 @@ public class TestBasicClientCookie {
         final ByteArrayInputStream inBuffer = new ByteArrayInputStream(raw);
         final ObjectInputStream inStream = new ObjectInputStream(inBuffer);
         final BasicClientCookie clone = (BasicClientCookie) inStream.readObject();
-        Assert.assertEquals(orig.getName(), clone.getName());
-        Assert.assertEquals(orig.getValue(), clone.getValue());
-        Assert.assertEquals(orig.getDomain(), clone.getDomain());
-        Assert.assertEquals(orig.getPath(), clone.getPath());
-        Assert.assertEquals(orig.getAttribute("attrib"), clone.getAttribute("attrib"));
+        Assertions.assertEquals(orig.getName(), clone.getName());
+        Assertions.assertEquals(orig.getValue(), clone.getValue());
+        Assertions.assertEquals(orig.getDomain(), clone.getDomain());
+        Assertions.assertEquals(orig.getPath(), clone.getPath());
+        Assertions.assertEquals(orig.getAttribute("attrib"), clone.getAttribute("attrib"));
     }
 
 }

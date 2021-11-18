@@ -26,10 +26,11 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Instant;
 import java.util.Date;
@@ -42,8 +43,8 @@ import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
 import org.apache.hc.core5.util.TimeValue;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class TestCacheValidityPolicy {
 
@@ -54,7 +55,7 @@ public class TestCacheValidityPolicy {
     private Instant tenSecondsAgo;
     private Instant elevenSecondsAgo;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         impl = new CacheValidityPolicy();
         now = Instant.now();

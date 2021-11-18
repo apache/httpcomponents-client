@@ -35,7 +35,6 @@ import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.util.LangUtils;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
-import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
 
 public class NameValuePairsMatcher extends BaseMatcher<Collection<? extends NameValuePair>> {
@@ -74,12 +73,10 @@ public class NameValuePairsMatcher extends BaseMatcher<Collection<? extends Name
         description.appendText("same name/value pairs as ").appendValueList("[", ", ", "]", expectedNameValuePairList);
     }
 
-    @Factory
     public static Matcher<Collection<? extends NameValuePair>> same(final Collection<? extends NameValuePair> nameValuePairs) {
         return new NameValuePairsMatcher(new ArrayList<>(nameValuePairs));
     }
 
-    @Factory
     public static Matcher<Collection<? extends NameValuePair>> same(final NameValuePair... nameValuePairs) {
         return new NameValuePairsMatcher(Arrays.asList(nameValuePairs));
     }

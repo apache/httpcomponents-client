@@ -56,7 +56,7 @@ import org.apache.hc.core5.http.protocol.HttpContext;
 import org.ietf.jgss.GSSContext;
 import org.ietf.jgss.GSSManager;
 import org.ietf.jgss.GSSName;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.Test;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
@@ -170,7 +170,7 @@ public class TestSPNegoScheme extends LocalServerTestBase {
         final HttpGet httpget = new HttpGet(s);
         this.httpclient.execute(target, httpget, response -> {
             EntityUtils.consume(response.getEntity());
-            Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
+            Assertions.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
             return null;
         });
     }
@@ -202,7 +202,7 @@ public class TestSPNegoScheme extends LocalServerTestBase {
         final HttpGet httpget = new HttpGet(s);
         this.httpclient.execute(target, httpget, response -> {
             EntityUtils.consume(response.getEntity());
-            Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
+            Assertions.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
             return null;
         });
 

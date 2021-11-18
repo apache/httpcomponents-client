@@ -33,8 +33,8 @@ import java.util.Collections;
 import java.util.List;
 
 import org.apache.hc.core5.http.ContentType;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class TestMultipartPartBuilder {
 
@@ -44,10 +44,10 @@ public class TestMultipartPartBuilder {
         final MultipartPart part = MultipartPartBuilder.create()
                 .setBody(stringBody)
                 .build();
-        Assert.assertNotNull(part);
-        Assert.assertEquals(stringBody, part.getBody());
+        Assertions.assertNotNull(part);
+        Assertions.assertEquals(stringBody, part.getBody());
         final Header header = part.getHeader();
-        Assert.assertNotNull(header);
+        Assertions.assertNotNull(header);
         assertFields(Collections.singletonList(
                 new MimeField("Content-Type", "text/plain; charset=ISO-8859-1")),
                 header.getFields());
@@ -60,10 +60,10 @@ public class TestMultipartPartBuilder {
         final MultipartPart part1 = builder
                 .setBody(stringBody)
                 .build();
-        Assert.assertNotNull(part1);
-        Assert.assertEquals(stringBody, part1.getBody());
+        Assertions.assertNotNull(part1);
+        Assertions.assertEquals(stringBody, part1.getBody());
         final Header header1 = part1.getHeader();
-        Assert.assertNotNull(header1);
+        Assertions.assertNotNull(header1);
         assertFields(Collections.singletonList(
                 new MimeField("Content-Type", "text/plain; charset=ISO-8859-1")),
                 header1.getFields());
@@ -72,10 +72,10 @@ public class TestMultipartPartBuilder {
                 .setBody(fileBody)
                 .build();
 
-        Assert.assertNotNull(part2);
-        Assert.assertEquals(fileBody, part2.getBody());
+        Assertions.assertNotNull(part2);
+        Assertions.assertEquals(fileBody, part2.getBody());
         final Header header2 = part2.getHeader();
-        Assert.assertNotNull(header2);
+        Assertions.assertNotNull(header2);
         assertFields(Collections.singletonList(
                 new MimeField("Content-Type", "application/octet-stream")),
                 header2.getFields());
@@ -94,9 +94,9 @@ public class TestMultipartPartBuilder {
                 .addHeader("header3", "blah")
                 .build();
 
-        Assert.assertNotNull(part1);
+        Assertions.assertNotNull(part1);
         final Header header1 = part1.getHeader();
-        Assert.assertNotNull(header1);
+        Assertions.assertNotNull(header1);
 
         assertFields(Arrays.asList(
                 new MimeField("header1", "blah"),
@@ -113,9 +113,9 @@ public class TestMultipartPartBuilder {
                 .removeHeaders("header3")
                 .build();
 
-        Assert.assertNotNull(part2);
+        Assertions.assertNotNull(part2);
         final Header header2 = part2.getHeader();
-        Assert.assertNotNull(header2);
+        Assertions.assertNotNull(header2);
 
         assertFields(Arrays.asList(
                         new MimeField("header1", "blah"),
@@ -129,9 +129,9 @@ public class TestMultipartPartBuilder {
                 .addHeader("Content-Transfer-Encoding", "encoding stuff")
                 .build();
 
-        Assert.assertNotNull(part3);
+        Assertions.assertNotNull(part3);
         final Header header3 = part3.getHeader();
-        Assert.assertNotNull(header3);
+        Assertions.assertNotNull(header3);
 
         assertFields(Arrays.asList(
                         new MimeField("header1", "blah"),
@@ -144,14 +144,14 @@ public class TestMultipartPartBuilder {
     }
 
     private static void assertFields(final List<MimeField> expected, final List<MimeField> result) {
-        Assert.assertNotNull(result);
-        Assert.assertEquals(expected.size(), result.size());
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals(expected.size(), result.size());
         for (int i = 0; i < expected.size(); i++) {
             final MimeField expectedField = expected.get(i);
             final MimeField resultField = result.get(i);
-            Assert.assertNotNull(resultField);
-            Assert.assertEquals(expectedField.getName(), resultField.getName());
-            Assert.assertEquals(expectedField.getBody(), resultField.getBody());
+            Assertions.assertNotNull(resultField);
+            Assertions.assertEquals(expectedField.getName(), resultField.getName());
+            Assertions.assertEquals(expectedField.getBody(), resultField.getBody());
         }
     }
 

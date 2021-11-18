@@ -37,8 +37,8 @@ import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.core5.http.protocol.HttpCoreContext;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
@@ -102,9 +102,9 @@ public class TestSystemDefaultCredentialsProvider {
         Mockito.verify(authenticatorDelegate).getPasswordAuthentication(PROXY_HOST1, null, PROXY_PORT1, PROXY_PROTOCOL1,
                                                                         PROMPT1, StandardAuthScheme.BASIC, httpRequestUrl,
                                                                         RequestorType.SERVER);
-        Assert.assertNotNull(receivedCredentials);
-        Assert.assertEquals(AUTH1.getUserName(), receivedCredentials.getUserPrincipal().getName());
-        Assert.assertEquals(AUTH1.getPassword(), receivedCredentials.getPassword());
+        Assertions.assertNotNull(receivedCredentials);
+        Assertions.assertEquals(AUTH1.getUserName(), receivedCredentials.getUserPrincipal().getName());
+        Assertions.assertEquals(AUTH1.getPassword(), receivedCredentials.getPassword());
     }
 
     @Test
@@ -120,9 +120,9 @@ public class TestSystemDefaultCredentialsProvider {
         Mockito.verify(authenticatorDelegate).getPasswordAuthentication(PROXY_HOST1, null, PROXY_PORT1, PROXY_PROTOCOL1,
                                                                         PROMPT1, StandardAuthScheme.BASIC, null,
                                                                         RequestorType.SERVER);
-        Assert.assertNotNull(receivedCredentials);
-        Assert.assertEquals(AUTH1.getUserName(), receivedCredentials.getUserPrincipal().getName());
-        Assert.assertEquals(AUTH1.getPassword(), receivedCredentials.getPassword());
+        Assertions.assertNotNull(receivedCredentials);
+        Assertions.assertEquals(AUTH1.getUserName(), receivedCredentials.getUserPrincipal().getName());
+        Assertions.assertEquals(AUTH1.getPassword(), receivedCredentials.getPassword());
     }
 
     private AuthenticatorDelegate installAuthenticator(final PasswordAuthentication returedAuthentication) {

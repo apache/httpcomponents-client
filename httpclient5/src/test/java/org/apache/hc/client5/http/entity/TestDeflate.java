@@ -34,8 +34,8 @@ import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class TestDeflate {
 
@@ -53,7 +53,7 @@ public class TestDeflate {
         final int len = compresser.deflate(compressed);
 
         final HttpEntity entity = new DeflateDecompressingEntity(new ByteArrayEntity(compressed, 0, len, ContentType.APPLICATION_OCTET_STREAM));
-        Assert.assertEquals(s, EntityUtils.toString(entity));
+        Assertions.assertEquals(s, EntityUtils.toString(entity));
     }
 
 }

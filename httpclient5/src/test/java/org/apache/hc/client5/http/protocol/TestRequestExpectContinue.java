@@ -39,8 +39,8 @@ import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.HttpContext;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class TestRequestExpectContinue {
 
@@ -56,8 +56,8 @@ public class TestRequestExpectContinue {
         final RequestExpectContinue interceptor = new RequestExpectContinue();
         interceptor.process(request, request.getEntity(), context);
         final Header header = request.getFirstHeader(HttpHeaders.EXPECT);
-        Assert.assertNotNull(header);
-        Assert.assertEquals(HeaderElements.CONTINUE, header.getValue());
+        Assertions.assertNotNull(header);
+        Assertions.assertEquals(HeaderElements.CONTINUE, header.getValue());
     }
 
     @Test
@@ -72,7 +72,7 @@ public class TestRequestExpectContinue {
         final RequestExpectContinue interceptor = new RequestExpectContinue();
         interceptor.process(request, null, context);
         final Header header = request.getFirstHeader(HeaderElements.CONTINUE);
-        Assert.assertNull(header);
+        Assertions.assertNull(header);
     }
 
     @Test
@@ -88,7 +88,7 @@ public class TestRequestExpectContinue {
         final RequestExpectContinue interceptor = new RequestExpectContinue();
         interceptor.process(request, null, context);
         final Header header = request.getFirstHeader(HeaderElements.CONTINUE);
-        Assert.assertNull(header);
+        Assertions.assertNull(header);
     }
 
     @Test
@@ -103,13 +103,13 @@ public class TestRequestExpectContinue {
         final RequestExpectContinue interceptor = new RequestExpectContinue();
         interceptor.process(request, null, context);
         final Header header = request.getFirstHeader(HeaderElements.CONTINUE);
-        Assert.assertNull(header);
+        Assertions.assertNull(header);
     }
 
     @Test
     public void testRequestExpectContinueInvalidInput() throws Exception {
         final RequestExpectContinue interceptor = new RequestExpectContinue();
-        Assert.assertThrows(NullPointerException.class, () -> interceptor.process(null, null, null));
+        Assertions.assertThrows(NullPointerException.class, () -> interceptor.process(null, null, null));
     }
 
     @Test
@@ -118,7 +118,7 @@ public class TestRequestExpectContinue {
         final ClassicHttpRequest request = new BasicClassicHttpRequest("POST", "/");
         final RequestExpectContinue interceptor = new RequestExpectContinue();
         interceptor.process(request, null, context);
-        Assert.assertEquals(0, request.getHeaders().length);
+        Assertions.assertEquals(0, request.getHeaders().length);
     }
 
 }

@@ -32,8 +32,8 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
 import java.util.Random;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class TestNTLMEngineImpl {
 
@@ -318,9 +318,9 @@ public class TestNTLMEngineImpl {
     /* Byte array check helper */
     static void checkArraysMatch(final byte[] a1, final byte[] a2)
         throws Exception {
-        Assert.assertEquals(a1.length,a2.length);
+        Assertions.assertEquals(a1.length,a2.length);
         for (int i = 0; i < a1.length; i++) {
-            Assert.assertEquals(a1[i],a2[i]);
+            Assertions.assertEquals(a1[i],a2[i]);
         }
     }
 

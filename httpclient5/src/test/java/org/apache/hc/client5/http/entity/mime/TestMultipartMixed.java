@@ -37,15 +37,15 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 import org.apache.hc.core5.http.ContentType;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class TestMultipartMixed {
 
     private File tmpfile;
 
-    @After
+    @AfterEach
     public void cleanup() {
         if (tmpfile != null) {
             tmpfile.delete();
@@ -83,8 +83,8 @@ public class TestMultipartMixed {
             "all kind of stuff\r\n" +
             "--foo--\r\n";
         final String s = out.toString("US-ASCII");
-        Assert.assertEquals(expected, s);
-        Assert.assertEquals(s.length(), multipart.getTotalLength());
+        Assertions.assertEquals(expected, s);
+        Assertions.assertEquals(s.length(), multipart.getTotalLength());
     }
 
     @Test
@@ -111,8 +111,8 @@ public class TestMultipartMixed {
                         "that stuff\r\n" +
                         "--foo--\r\n";
         final String s = out.toString("US-ASCII");
-        Assert.assertEquals(expected, s);
-        Assert.assertEquals(s.length(), multipart.getTotalLength());
+        Assertions.assertEquals(expected, s);
+        Assertions.assertEquals(s.length(), multipart.getTotalLength());
     }
 
     @Test
@@ -145,8 +145,8 @@ public class TestMultipartMixed {
             "some random whatever\r\n" +
             "--foo--\r\n";
         final String s = out.toString("US-ASCII");
-        Assert.assertEquals(expected, s);
-        Assert.assertEquals(-1, multipart.getTotalLength());
+        Assertions.assertEquals(expected, s);
+        Assertions.assertEquals(-1, multipart.getTotalLength());
     }
 
     @Test
@@ -185,8 +185,8 @@ public class TestMultipartMixed {
             "some random whatever\r\n" +
             "--foo--\r\n";
         final String s = out.toString("US-ASCII");
-        Assert.assertEquals(expected, s);
-        Assert.assertEquals(-1, multipart.getTotalLength());
+        Assertions.assertEquals(expected, s);
+        Assertions.assertEquals(-1, multipart.getTotalLength());
     }
 
     @Test
@@ -225,8 +225,8 @@ public class TestMultipartMixed {
             "some random whatever\r\n" +
             "--foo--\r\n";
         final String s = out.toString("UTF-8");
-        Assert.assertEquals(expected, s);
-        Assert.assertEquals(-1, multipart.getTotalLength());
+        Assertions.assertEquals(expected, s);
+        Assertions.assertEquals(-1, multipart.getTotalLength());
     }
 
     private static final int SWISS_GERMAN_HELLO [] = {
@@ -283,8 +283,8 @@ public class TestMultipartMixed {
             "some random whatever\r\n" +
             "--foo--\r\n";
         final String s = out.toString("UTF-8");
-        Assert.assertEquals(expected, s);
-        Assert.assertEquals(-1, multipart.getTotalLength());
+        Assertions.assertEquals(expected, s);
+        Assertions.assertEquals(-1, multipart.getTotalLength());
     }
 
     @Test
@@ -322,11 +322,11 @@ public class TestMultipartMixed {
         final byte[] actual = out1.toByteArray();
         final byte[] expected = out2.toByteArray();
 
-        Assert.assertEquals(expected.length, actual.length);
+        Assertions.assertEquals(expected.length, actual.length);
         for (int i = 0; i < actual.length; i++) {
-            Assert.assertEquals(expected[i], actual[i]);
+            Assertions.assertEquals(expected[i], actual[i]);
         }
-        Assert.assertEquals(expected.length, multipart.getTotalLength());
+        Assertions.assertEquals(expected.length, multipart.getTotalLength());
     }
 
 }

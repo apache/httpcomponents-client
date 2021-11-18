@@ -29,58 +29,48 @@ package org.apache.hc.client5.http.fluent;
 
 import java.lang.reflect.Method;
 import java.net.URI;
-import java.util.Arrays;
+import java.util.stream.Stream;
 
 import org.apache.hc.core5.http.ClassicHttpRequest;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
-@RunWith(Parameterized.class)
 public class TestRequest {
 
     private static final String URI_STRING_FIXTURE = "http://localhost";
     private static final URI URI_FIXTURE = URI.create(URI_STRING_FIXTURE);
 
-    @Parameterized.Parameters(name = "{index}: {0} => {1}")
-    public static Iterable<Object[]> data() {
-        return Arrays.asList(new Object[][]{
-                // @formatter:off
-                {"delete", "DELETE"},
-                {"get", "GET"},
-                {"head", "HEAD"},
-                {"options", "OPTIONS"},
-                {"patch", "PATCH"},
-                {"post", "POST"},
-                {"put", "PUT"},
-                {"trace", "TRACE"}
-                // @formatter:on
-        });
+    public static Stream<Arguments> data() {
+        return Stream.of(
+                Arguments.of("delete", "DELETE"),
+                Arguments.of("get", "GET"),
+                Arguments.of("head", "HEAD"),
+                Arguments.of("options", "OPTIONS"),
+                Arguments.of("patch", "PATCH"),
+                Arguments.of("post", "POST"),
+                Arguments.of("put", "PUT"),
+                Arguments.of("trace", "TRACE")
+        );
     }
 
-    private final String methodName;
-    private final String expectedMethod;
-
-    public TestRequest(final String methodName, final String expectedMethod) {
-        this.methodName = methodName;
-        this.expectedMethod = expectedMethod;
-    }
-
-    @Test
-    public void testCreateFromString() throws Exception {
+    @ParameterizedTest(name = "{index}: {0} => {1}")
+    @MethodSource("data")
+    public void testCreateFromString(final String methodName, final String expectedMethod) throws Exception {
         final Method method = Request.class.getMethod(methodName, String.class);
         final Request request = (Request) method.invoke(null, URI_STRING_FIXTURE);
         final ClassicHttpRequest classicHttpRequest = request.getRequest();
-        Assert.assertEquals(expectedMethod, classicHttpRequest.getMethod());
+        Assertions.assertEquals(expectedMethod, classicHttpRequest.getMethod());
     }
 
-    @Test
-    public void testCreateFromURI() throws Exception {
+    @ParameterizedTest(name = "{index}: {0} => {1}")
+    @MethodSource("data")
+    public void testCreateFromURI(final String methodName, final String expectedMethod) throws Exception {
         final Method method = Request.class.getMethod(methodName, URI.class);
         final Request request = (Request) method.invoke(null, URI_FIXTURE);
         final ClassicHttpRequest classicHttpRequest = request.getRequest();
-        Assert.assertEquals(expectedMethod, classicHttpRequest.getMethod());
+        Assertions.assertEquals(expectedMethod, classicHttpRequest.getMethod());
     }
 
 }

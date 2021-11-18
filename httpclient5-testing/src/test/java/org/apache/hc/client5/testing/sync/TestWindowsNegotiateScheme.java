@@ -26,6 +26,8 @@
  */
 package org.apache.hc.client5.testing.sync;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
@@ -41,13 +43,15 @@ import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.junit.Assume;
 import org.junit.Test;
+import org.junit.jupiter.api.Timeout;
 
 /**
  * Unit tests for Windows negotiate authentication.
  */
 public class TestWindowsNegotiateScheme extends LocalServerTestBase {
 
-    @Test(timeout=30000) // this timeout (in ms) needs to be extended if you're actively debugging the code
+    @Test // this timeout (in ms) needs to be extended if you're actively debugging the code
+    @Timeout(value = 30000, unit = MILLISECONDS)
     public void testNoInfiniteLoopOnSPNOutsideDomain() throws Exception {
         this.server.registerHandler("/", (request, response, context) -> {
             response.addHeader(HttpHeaders.WWW_AUTHENTICATE, StandardAuthScheme.SPNEGO);

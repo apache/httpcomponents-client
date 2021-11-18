@@ -35,8 +35,8 @@ import java.io.ByteArrayInputStream;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.util.ByteArrayBuffer;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class TestCombinedEntity {
 
@@ -50,11 +50,11 @@ public class TestCombinedEntity {
         final byte[] tmp = new byte[] { 1, 2, 3, 4, 5 };
         buf.append(tmp, 0, tmp.length);
         final CombinedEntity entity = new CombinedEntity(httpEntity, buf);
-        Assert.assertEquals(-1, entity.getContentLength());
-        Assert.assertFalse(entity.isRepeatable());
-        Assert.assertTrue(entity.isStreaming());
+        Assertions.assertEquals(-1, entity.getContentLength());
+        Assertions.assertFalse(entity.isRepeatable());
+        Assertions.assertTrue(entity.isStreaming());
 
-        Assert.assertArrayEquals(new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }, EntityUtils.toByteArray(entity));
+        Assertions.assertArrayEquals(new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }, EntityUtils.toByteArray(entity));
 
         verify(httpEntity).getContent();
 

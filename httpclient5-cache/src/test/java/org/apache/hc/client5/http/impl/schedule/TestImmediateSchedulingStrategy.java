@@ -28,24 +28,24 @@ package org.apache.hc.client5.http.impl.schedule;
 
 import org.apache.hc.client5.http.schedule.SchedulingStrategy;
 import org.apache.hc.core5.util.TimeValue;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class TestImmediateSchedulingStrategy {
 
     private SchedulingStrategy impl;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         impl = new ImmediateSchedulingStrategy();
     }
 
     @Test
     public void testSchedule() {
-        Assert.assertEquals(TimeValue.ZERO_MILLISECONDS, impl.schedule(0));
-        Assert.assertEquals(TimeValue.ZERO_MILLISECONDS, impl.schedule(1));
-        Assert.assertEquals(TimeValue.ZERO_MILLISECONDS, impl.schedule(Integer.MAX_VALUE));
+        Assertions.assertEquals(TimeValue.ZERO_MILLISECONDS, impl.schedule(0));
+        Assertions.assertEquals(TimeValue.ZERO_MILLISECONDS, impl.schedule(1));
+        Assertions.assertEquals(TimeValue.ZERO_MILLISECONDS, impl.schedule(Integer.MAX_VALUE));
     }
 
 }

@@ -37,8 +37,8 @@ import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.http.message.BasicHeaderValueParser;
 import org.apache.hc.core5.http.message.ParserCursor;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class TestMultipartFormHttpEntity {
 
@@ -50,38 +50,38 @@ public class TestMultipartFormHttpEntity {
                 .setCharset(StandardCharsets.UTF_8)
                 .build();
 
-        Assert.assertNull(entity.getContentEncoding());
+        Assertions.assertNull(entity.getContentEncoding());
         final String contentType = entity.getContentType();
         final HeaderElement elem = BasicHeaderValueParser.INSTANCE.parseHeaderElement(contentType,
                 new ParserCursor(0, contentType.length()));
-        Assert.assertEquals("multipart/mixed", elem.getName());
+        Assertions.assertEquals("multipart/mixed", elem.getName());
         final NameValuePair p1 = elem.getParameterByName("boundary");
-        Assert.assertNotNull(p1);
-        Assert.assertEquals("whatever", p1.getValue());
+        Assertions.assertNotNull(p1);
+        Assertions.assertEquals("whatever", p1.getValue());
         final NameValuePair p2 = elem.getParameterByName("charset");
-        Assert.assertNotNull(p2);
-        Assert.assertEquals("UTF-8", p2.getValue());
+        Assertions.assertNotNull(p2);
+        Assertions.assertEquals("UTF-8", p2.getValue());
     }
 
     @Test
     public void testImplictContractorParams() throws Exception {
         final HttpEntity entity = MultipartEntityBuilder.create().build();
-        Assert.assertNull(entity.getContentEncoding());
+        Assertions.assertNull(entity.getContentEncoding());
         final String contentType = entity.getContentType();
         final HeaderElement elem = BasicHeaderValueParser.INSTANCE.parseHeaderElement(contentType,
                 new ParserCursor(0, contentType.length()));
-        Assert.assertEquals("multipart/mixed", elem.getName());
+        Assertions.assertEquals("multipart/mixed", elem.getName());
         final NameValuePair p1 = elem.getParameterByName("boundary");
-        Assert.assertNotNull(p1);
+        Assertions.assertNotNull(p1);
 
         final String boundary = p1.getValue();
-        Assert.assertNotNull(boundary);
+        Assertions.assertNotNull(boundary);
 
-        Assert.assertTrue(boundary.length() >= 30);
-        Assert.assertTrue(boundary.length() <= 40);
+        Assertions.assertTrue(boundary.length() >= 30);
+        Assertions.assertTrue(boundary.length() <= 40);
 
         final NameValuePair p2 = elem.getParameterByName("charset");
-        Assert.assertNull(p2);
+        Assertions.assertNull(p2);
     }
 
     @Test
@@ -90,30 +90,30 @@ public class TestMultipartFormHttpEntity {
                 .addTextBody("p1", "blah blah", ContentType.DEFAULT_TEXT)
                 .addTextBody("p2", "yada yada", ContentType.DEFAULT_TEXT)
                 .build();
-        Assert.assertTrue(entity.isRepeatable());
-        Assert.assertFalse(entity.isChunked());
-        Assert.assertFalse(entity.isStreaming());
+        Assertions.assertTrue(entity.isRepeatable());
+        Assertions.assertFalse(entity.isChunked());
+        Assertions.assertFalse(entity.isStreaming());
 
         final long len = entity.getContentLength();
-        Assert.assertEquals(len, entity.getContentLength());
+        Assertions.assertEquals(len, entity.getContentLength());
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         entity.writeTo(out);
         out.close();
 
         byte[] bytes = out.toByteArray();
-        Assert.assertNotNull(bytes);
-        Assert.assertEquals(bytes.length, len);
+        Assertions.assertNotNull(bytes);
+        Assertions.assertEquals(bytes.length, len);
 
-        Assert.assertEquals(len, entity.getContentLength());
+        Assertions.assertEquals(len, entity.getContentLength());
 
         out = new ByteArrayOutputStream();
         entity.writeTo(out);
         out.close();
 
         bytes = out.toByteArray();
-        Assert.assertNotNull(bytes);
-        Assert.assertEquals(bytes.length, len);
+        Assertions.assertNotNull(bytes);
+        Assertions.assertEquals(bytes.length, len);
     }
 
     @Test
@@ -124,11 +124,11 @@ public class TestMultipartFormHttpEntity {
             .addPart("p2", new InputStreamBody(
                 new ByteArrayInputStream("yada yada".getBytes()), ContentType.DEFAULT_BINARY))
             .build();
-        Assert.assertFalse(entity.isRepeatable());
-        Assert.assertTrue(entity.isChunked());
-        Assert.assertTrue(entity.isStreaming());
+        Assertions.assertFalse(entity.isRepeatable());
+        Assertions.assertTrue(entity.isChunked());
+        Assertions.assertTrue(entity.isStreaming());
 
-        Assert.assertEquals(-1, entity.getContentLength());
+        Assertions.assertEquals(-1, entity.getContentLength());
     }
 
 }

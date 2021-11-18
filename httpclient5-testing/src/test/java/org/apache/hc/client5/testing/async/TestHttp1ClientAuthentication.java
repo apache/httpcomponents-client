@@ -60,14 +60,16 @@ import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.config.Http1Config;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.impl.HttpProcessors;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
 import org.junit.rules.ExternalResource;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.mockito.Mockito;
 
+@EnableRuleMigrationSupport
 @RunWith(Parameterized.class)
 public class TestHttp1ClientAuthentication extends AbstractHttpAsyncClientAuthentication<CloseableHttpAsyncClient> {
 
@@ -176,8 +178,8 @@ public class TestHttp1ClientAuthentication extends AbstractHttpAsyncClientAuthen
         final Future<SimpleHttpResponse> future = httpclient.execute(request, context, null);
         final HttpResponse response = future.get();
 
-        Assert.assertNotNull(response);
-        Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
         Mockito.verify(credsProvider).getCredentials(
                 Mockito.eq(new AuthScope(target, "test realm", "basic")), Mockito.any());
     }

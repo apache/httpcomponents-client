@@ -30,28 +30,28 @@ package org.apache.hc.client5.http.auth;
 import java.util.Arrays;
 
 import org.apache.hc.core5.http.message.BasicNameValuePair;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class TestAuthChallenge {
 
     @Test
     public void testAuthChallengeWithValue() {
         final AuthChallenge authChallenge = new AuthChallenge(ChallengeType.TARGET, StandardAuthScheme.BASIC, "blah", null);
-        Assert.assertEquals(StandardAuthScheme.BASIC, authChallenge.getSchemeName());
-        Assert.assertEquals("blah", authChallenge.getValue());
-        Assert.assertNull(authChallenge.getParams());
-        Assert.assertEquals(StandardAuthScheme.BASIC + " blah", authChallenge.toString());
+        Assertions.assertEquals(StandardAuthScheme.BASIC, authChallenge.getSchemeName());
+        Assertions.assertEquals("blah", authChallenge.getValue());
+        Assertions.assertNull(authChallenge.getParams());
+        Assertions.assertEquals(StandardAuthScheme.BASIC + " blah", authChallenge.toString());
     }
 
     @Test
     public void testAuthChallengeWithParams() {
         final AuthChallenge authChallenge = new AuthChallenge(ChallengeType.TARGET, StandardAuthScheme.BASIC, null,
                 Arrays.asList(new BasicNameValuePair("blah", "this"), new BasicNameValuePair("blah", "that")));
-        Assert.assertEquals(StandardAuthScheme.BASIC, authChallenge.getSchemeName());
-        Assert.assertNull(authChallenge.getValue());
-        Assert.assertNotNull(authChallenge.getParams());
-        Assert.assertEquals(StandardAuthScheme.BASIC + " [blah=this, blah=that]", authChallenge.toString());
+        Assertions.assertEquals(StandardAuthScheme.BASIC, authChallenge.getSchemeName());
+        Assertions.assertNull(authChallenge.getValue());
+        Assertions.assertNotNull(authChallenge.getParams());
+        Assertions.assertEquals(StandardAuthScheme.BASIC + " [blah=this, blah=that]", authChallenge.toString());
     }
 
 }

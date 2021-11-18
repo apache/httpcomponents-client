@@ -26,20 +26,20 @@
  */
 package org.apache.hc.client5.http.impl.classic;
 
-import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.message.BasicHttpResponse;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 
 public class TestNullBackoffStrategy {
 
     private NullBackoffStrategy impl;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         impl = new NullBackoffStrategy();
     }

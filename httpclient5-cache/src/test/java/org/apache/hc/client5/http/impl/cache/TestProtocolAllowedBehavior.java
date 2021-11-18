@@ -43,19 +43,17 @@ import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
 import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.MockitoAnnotations;
 
 /**
  * This class tests behavior that is allowed (MAY) by the HTTP/1.1 protocol
  * specification and for which we have implemented the behavior in HTTP cache.
  */
-@RunWith(MockitoJUnitRunner.class)
 public class TestProtocolAllowedBehavior {
 
     static final int MAX_BYTES = 1024;
@@ -77,8 +75,9 @@ public class TestProtocolAllowedBehavior {
     CachingExec impl;
     HttpCache cache;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
+        MockitoAnnotations.openMocks(this);
         host = new HttpHost("foo.example.com", 80);
 
         route = new HttpRoute(host);
@@ -126,7 +125,7 @@ public class TestProtocolAllowedBehavior {
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenThrow(new SocketTimeoutException());
 
         final HttpResponse result = execute(req2);
-        Assert.assertEquals(HttpStatus.SC_OK, result.getCode());
+        Assertions.assertEquals(HttpStatus.SC_OK, result.getCode());
 
         Mockito.verifyNoInteractions(mockCache);
     }
@@ -142,7 +141,7 @@ public class TestProtocolAllowedBehavior {
 
         execute(req1);
         final HttpResponse result = execute(req2);
-        Assert.assertEquals(HttpStatus.SC_OK, result.getCode());
+        Assertions.assertEquals(HttpStatus.SC_OK, result.getCode());
 
         Mockito.verifyNoInteractions(mockCache);
     }

@@ -38,7 +38,7 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.message.BasicHeader;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.Test;
 
 /**
@@ -54,7 +54,7 @@ public class TestCookieVirtualHost extends LocalServerTestBase {
             switch (n) {
             case 1:
                 // Assert Host is forwarded from URI
-                Assert.assertEquals("app.mydomain.fr", request
+                Assertions.assertEquals("app.mydomain.fr", request
                         .getFirstHeader("Host").getValue());
 
                 response.setCode(HttpStatus.SC_OK);
@@ -66,24 +66,23 @@ public class TestCookieVirtualHost extends LocalServerTestBase {
 
             case 2:
                 // Assert Host is still forwarded from URI
-                Assert.assertEquals("app.mydomain.fr", request
+                Assertions.assertEquals("app.mydomain.fr", request
                         .getFirstHeader("Host").getValue());
 
                 // We should get our cookie back.
-                Assert.assertNotNull("We must get a cookie header",
-                        request.getFirstHeader("Cookie"));
+                Assertions.assertNotNull(request.getFirstHeader("Cookie"), "We must get a cookie header");
                 response.setCode(HttpStatus.SC_OK);
                 break;
 
             case 3:
                 // Assert Host is forwarded from URI
-                Assert.assertEquals("app.mydomain.fr", request
+                Assertions.assertEquals("app.mydomain.fr", request
                         .getFirstHeader("Host").getValue());
 
                 response.setCode(HttpStatus.SC_OK);
                 break;
             default:
-                Assert.fail("Unexpected value: " + n);
+                Assertions.fail("Unexpected value: " + n);
                 break;
             }
         });
@@ -104,9 +103,9 @@ public class TestCookieVirtualHost extends LocalServerTestBase {
 
         // We should have one cookie set on domain.
         final List<Cookie> cookies = cookieStore.getCookies();
-        Assert.assertNotNull(cookies);
-        Assert.assertEquals(1, cookies.size());
-        Assert.assertEquals("name1", cookies.get(0).getName());
+        Assertions.assertNotNull(cookies);
+        Assertions.assertEquals(1, cookies.size());
+        Assertions.assertEquals("name1", cookies.get(0).getName());
 
         // Second request : send the cookie back.
         final HttpGet request2 = new HttpGet(new URI("http://app.mydomain.fr"));
