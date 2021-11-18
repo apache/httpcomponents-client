@@ -100,10 +100,12 @@ public class DigestScheme implements AuthScheme, Serializable {
         'e', 'f'
     };
 
-    private static final int QOP_UNKNOWN = -1;
-    private static final int QOP_MISSING = 0;
-    private static final int QOP_AUTH_INT = 1;
-    private static final int QOP_AUTH = 2;
+    /**
+     * Represent the possible values of quality of protection.
+     */
+    private enum QualityOfProtection {
+        UNKNOWN, MISSING, AUTH_INT, AUTH
+    }
 
     private transient Charset defaultCharset;
     private final Map<String, String> paramMap;
@@ -250,7 +252,7 @@ public class DigestScheme implements AuthScheme, Serializable {
         }
 
         final Set<String> qopset = new HashSet<>(8);
-        int qop = QOP_UNKNOWN;
+        QualityOfProtection qop = QualityOfProtection.UNKNOWN;
         final String qoplist = this.paramMap.get("qop");
         if (qoplist != null) {
             final StringTokenizer tok = new StringTokenizer(qoplist, ",");
@@ -260,17 +262,17 @@ public class DigestScheme implements AuthScheme, Serializable {
             }
             final HttpEntity entity = request instanceof ClassicHttpRequest ? ((ClassicHttpRequest) request).getEntity() : null;
             if (entity != null && qopset.contains("auth-int")) {
-                qop = QOP_AUTH_INT;
+                qop = QualityOfProtection.AUTH_INT;
             } else if (qopset.contains("auth")) {
-                qop = QOP_AUTH;
+                qop = QualityOfProtection.AUTH;
             } else if (qopset.contains("auth-int")) {
-                qop = QOP_AUTH_INT;
+                qop = QualityOfProtection.AUTH_INT;
             }
         } else {
-            qop = QOP_MISSING;
+            qop = QualityOfProtection.MISSING;
         }
 
-        if (qop == QOP_UNKNOWN) {
+        if (qop == QualityOfProtection.UNKNOWN) {
             throw new AuthenticationException("None of the qop methods is supported: " + qoplist);
         }
 
@@ -334,16 +336,16 @@ public class DigestScheme implements AuthScheme, Serializable {
         final String hasha1 = formatHex(digester.digest(a1));
         buffer.reset();
 
-        if (qop == QOP_AUTH) {
+        if (qop == QualityOfProtection.AUTH) {
             // Method ":" digest-uri-value
             a2 = buffer.append(method).append(":").append(uri).toByteArray();
-        } else if (qop == QOP_AUTH_INT) {
+        } else if (qop == QualityOfProtection.AUTH_INT) {
             // Method ":" digest-uri-value ":" H(entity-body)
             final HttpEntity entity = request instanceof ClassicHttpRequest ? ((ClassicHttpRequest) request).getEntity() : null;
             if (entity != null && !entity.isRepeatable()) {
                 // If the entity is not repeatable, try falling back onto QOP_AUTH
                 if (qopset.contains("auth")) {
-                    qop = QOP_AUTH;
+                    qop = QualityOfProtection.AUTH;
                     a2 = buffer.append(method).append(":").append(uri).toByteArray();
                 } else {
                     throw new AuthenticationException("Qop auth-int cannot be used with " +
@@ -372,11 +374,11 @@ public class DigestScheme implements AuthScheme, Serializable {
         // 3.2.2.1
 
         final byte[] digestInput;
-        if (qop == QOP_MISSING) {
+        if (qop == QualityOfProtection.MISSING) {
             buffer.append(hasha1).append(":").append(nonce).append(":").append(hasha2);
         } else {
             buffer.append(hasha1).append(":").append(nonce).append(":").append(nc).append(":")
-                .append(cnonce).append(":").append(qop == QOP_AUTH_INT ? "auth-int" : "auth")
+                .append(cnonce).append(":").append(qop == QualityOfProtection.AUTH_INT ? "auth-int" : "auth")
                 .append(":").append(hasha2);
         }
         digestInput = buffer.toByteArray();
@@ -394,8 +396,8 @@ public class DigestScheme implements AuthScheme, Serializable {
         params.add(new BasicNameValuePair("uri", uri));
         params.add(new BasicNameValuePair("response", digest));
 
-        if (qop != QOP_MISSING) {
-            params.add(new BasicNameValuePair("qop", qop == QOP_AUTH_INT ? "auth-int" : "auth"));
+        if (qop != QualityOfProtection.MISSING) {
+            params.add(new BasicNameValuePair("qop", qop == QualityOfProtection.AUTH_INT ? "auth-int" : "auth"));
             params.add(new BasicNameValuePair("nc", nc));
             params.add(new BasicNameValuePair("cnonce", cnonce));
         }
