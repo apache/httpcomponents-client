@@ -37,9 +37,11 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http2.config.H2Config;
 import org.apache.hc.core5.reactor.IOReactorConfig;
+import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
+@EnableRuleMigrationSupport
 @RunWith(Parameterized.class)
 public class TestH2AsyncMinimal extends AbstractHttpAsyncFundamentalsTest<MinimalH2AsyncClient> {
 

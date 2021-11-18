@@ -36,8 +36,8 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpRequestInterceptor;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class TestRequestClientConnControl {
 
@@ -45,7 +45,7 @@ public class TestRequestClientConnControl {
     public void testRequestParameterCheck() throws Exception {
         final HttpClientContext context = HttpClientContext.create();
         final HttpRequestInterceptor interceptor = new RequestClientConnControl();
-        Assert.assertThrows(NullPointerException.class, () ->
+        Assertions.assertThrows(NullPointerException.class, () ->
                 interceptor.process(null, null, context));
     }
 
@@ -57,7 +57,7 @@ public class TestRequestClientConnControl {
         final HttpRequestInterceptor interceptor = new RequestClientConnControl();
         interceptor.process(request, null, context);
         final Header header = request.getFirstHeader(HttpHeaders.CONNECTION);
-        Assert.assertNull(header);
+        Assertions.assertNull(header);
     }
 
     @Test
@@ -74,8 +74,8 @@ public class TestRequestClientConnControl {
         interceptor.process(request, null, context);
 
         final Header header = request.getFirstHeader(HttpHeaders.CONNECTION);
-        Assert.assertNotNull(header);
-        Assert.assertEquals(HeaderElements.KEEP_ALIVE, header.getValue());
+        Assertions.assertNotNull(header);
+        Assertions.assertEquals(HeaderElements.KEEP_ALIVE, header.getValue());
     }
 
     @Test
@@ -94,8 +94,8 @@ public class TestRequestClientConnControl {
         interceptor.process(request, null, context);
 
         final Header header = request.getFirstHeader(HttpHeaders.CONNECTION);
-        Assert.assertNotNull(header);
-        Assert.assertEquals(HeaderElements.KEEP_ALIVE, header.getValue());
+        Assertions.assertNotNull(header);
+        Assertions.assertEquals(HeaderElements.KEEP_ALIVE, header.getValue());
     }
 
     @Test
@@ -114,7 +114,7 @@ public class TestRequestClientConnControl {
         interceptor.process(request, null, context);
 
         final Header header = request.getFirstHeader(HttpHeaders.CONNECTION);
-        Assert.assertNull(header);
+        Assertions.assertNull(header);
     }
 
     @Test
@@ -134,8 +134,8 @@ public class TestRequestClientConnControl {
         interceptor.process(request, null, context);
 
         final Header header = request.getFirstHeader(HttpHeaders.CONNECTION);
-        Assert.assertNotNull(header);
-        Assert.assertEquals(HeaderElements.CLOSE, header.getValue());
+        Assertions.assertNotNull(header);
+        Assertions.assertEquals(HeaderElements.CLOSE, header.getValue());
     }
 
 }

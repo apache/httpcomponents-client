@@ -58,18 +58,16 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatcher;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.MockitoAnnotations;
 
-@RunWith(MockitoJUnitRunner.class)
 public class TestRedirectExec {
 
     @Mock
@@ -83,8 +81,9 @@ public class TestRedirectExec {
     private RedirectExec redirectExec;
     private HttpHost target;
 
-    @Before
+    @BeforeEach
     public void setup() throws Exception {
+        MockitoAnnotations.openMocks(this);
         target = new HttpHost("localhost", 80);
         redirectStrategy = Mockito.spy(new DefaultRedirectStrategy());
         redirectExec = new RedirectExec(httpRoutePlanner, redirectStrategy);
@@ -125,9 +124,9 @@ public class TestRedirectExec {
         Mockito.verify(chain, Mockito.times(2)).proceed(reqCaptor.capture(), ArgumentMatchers.same(scope));
 
         final List<ClassicHttpRequest> allValues = reqCaptor.getAllValues();
-        Assert.assertNotNull(allValues);
-        Assert.assertEquals(2, allValues.size());
-        Assert.assertSame(request, allValues.get(0));
+        Assertions.assertNotNull(allValues);
+        Assertions.assertEquals(2, allValues.size());
+        Assertions.assertSame(request, allValues.get(0));
 
         Mockito.verify(response1, Mockito.times(1)).close();
         Mockito.verify(inStream1, Mockito.times(2)).close();
@@ -153,7 +152,7 @@ public class TestRedirectExec {
         Mockito.when(chain.proceed(ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(response1);
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
-        Assert.assertThrows(RedirectException.class, () ->
+        Assertions.assertThrows(RedirectException.class, () ->
                 redirectExec.execute(request, scope, chain));
     }
 
@@ -171,7 +170,7 @@ public class TestRedirectExec {
                 ArgumentMatchers.any())).thenReturn(response1);
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
-        Assert.assertThrows(HttpException.class, () ->
+        Assertions.assertThrows(HttpException.class, () ->
                 redirectExec.execute(request, scope, chain));
     }
 
@@ -211,13 +210,13 @@ public class TestRedirectExec {
         redirectExec.execute(request, scope, chain);
 
         final AuthExchange authExchange1 = context.getAuthExchange(target);
-        Assert.assertNotNull(authExchange1);
-        Assert.assertEquals(AuthExchange.State.UNCHALLENGED, authExchange1.getState());
-        Assert.assertNull(authExchange1.getAuthScheme());
+        Assertions.assertNotNull(authExchange1);
+        Assertions.assertEquals(AuthExchange.State.UNCHALLENGED, authExchange1.getState());
+        Assertions.assertNull(authExchange1.getAuthScheme());
         final AuthExchange authExchange2 = context.getAuthExchange(proxy);
-        Assert.assertNotNull(authExchange2);
-        Assert.assertEquals(AuthExchange.State.UNCHALLENGED, authExchange2.getState());
-        Assert.assertNull(authExchange2.getAuthScheme());
+        Assertions.assertNotNull(authExchange2);
+        Assertions.assertEquals(AuthExchange.State.UNCHALLENGED, authExchange2.getState());
+        Assertions.assertNull(authExchange2.getAuthScheme());
     }
 
     @Test
@@ -258,8 +257,8 @@ public class TestRedirectExec {
         redirectExec.execute(request, scope, chain);
 
         final RedirectLocations uris = context.getRedirectLocations();
-        Assert.assertNotNull(uris);
-        Assert.assertEquals(Arrays.asList(uri1, uri2, uri1), uris.getAll());
+        Assertions.assertNotNull(uris);
+        Assertions.assertEquals(Arrays.asList(uri1, uri2, uri1), uris.getAll());
     }
 
     @Test
@@ -296,7 +295,7 @@ public class TestRedirectExec {
                 ArgumentMatchers.any())).thenReturn(response3);
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
-        Assert.assertThrows(CircularRedirectException.class, () ->
+        Assertions.assertThrows(CircularRedirectException.class, () ->
                 redirectExec.execute(request, scope, chain));
     }
 
@@ -318,7 +317,7 @@ public class TestRedirectExec {
                 ArgumentMatchers.<HttpClientContext>any());
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
-        Assert.assertThrows(RuntimeException.class, () ->
+        Assertions.assertThrows(RuntimeException.class, () ->
                 redirectExec.execute(request, scope, chain));
         Mockito.verify(response1).close();
     }
@@ -346,7 +345,7 @@ public class TestRedirectExec {
                 ArgumentMatchers.<HttpClientContext>any());
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
-        Assert.assertThrows(ProtocolException.class, () ->
+        Assertions.assertThrows(ProtocolException.class, () ->
                 redirectExec.execute(request, scope, chain));
         Mockito.verify(inStream1, Mockito.times(2)).close();
         Mockito.verify(response1).close();

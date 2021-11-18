@@ -39,16 +39,14 @@ import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.impl.io.ChunkedInputStream;
 import org.apache.hc.core5.http.impl.io.SessionInputBufferImpl;
 import org.apache.hc.core5.http.io.SessionInputBuffer;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.MockitoAnnotations;
 
-@RunWith(MockitoJUnitRunner.class)
 public class TestResponseEntityProxy {
 
     @Mock
@@ -58,8 +56,9 @@ public class TestResponseEntityProxy {
     @Mock
     private HttpEntity entity;
 
-    @Before
+    @BeforeEach
     public void setUp() {
+        MockitoAnnotations.openMocks(this);
         Mockito.when(entity.isStreaming()).thenReturn(Boolean.TRUE);
         Mockito.when(response.getEntity()).thenReturn(entity);
     }
@@ -79,7 +78,7 @@ public class TestResponseEntityProxy {
         while (is.read() != -1) {} // read until the end
         final Supplier<List<? extends Header>> trailers = wrappedEntity.getTrailers();
 
-        Assert.assertTrue(trailers.get().isEmpty());
+        Assertions.assertTrue(trailers.get().isEmpty());
     }
 
     @Test
@@ -101,9 +100,9 @@ public class TestResponseEntityProxy {
         final Supplier<List<? extends Header>> trailers = wrappedEntity.getTrailers();
         final List<? extends Header> headers = trailers.get();
 
-        Assert.assertEquals(1, headers.size());
+        Assertions.assertEquals(1, headers.size());
         final Header header = headers.get(0);
-        Assert.assertEquals("X-Test-Trailer-Header", header.getName());
-        Assert.assertEquals("test", header.getValue());
+        Assertions.assertEquals("X-Test-Trailer-Header", header.getName());
+        Assertions.assertEquals("test", header.getValue());
     }
 }

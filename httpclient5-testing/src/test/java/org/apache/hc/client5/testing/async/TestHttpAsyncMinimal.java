@@ -26,6 +26,8 @@
  */
 package org.apache.hc.client5.testing.async;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -58,11 +60,12 @@ import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.apache.hc.core5.http2.config.H2Config;
 import org.apache.hc.core5.reactor.IOReactorConfig;
 import org.hamcrest.CoreMatchers;
-import org.hamcrest.MatcherAssert;
 import org.junit.Test;
+import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
+@EnableRuleMigrationSupport
 @RunWith(Parameterized.class)
 public class TestHttpAsyncMinimal extends AbstractHttpAsyncFundamentalsTest<MinimalHttpAsyncClient> {
 
@@ -132,11 +135,11 @@ public class TestHttpAsyncMinimal extends AbstractHttpAsyncFundamentalsTest<Mini
             while (!queue.isEmpty()) {
                 final Future<Message<HttpResponse, byte[]>> future = queue.remove();
                 final Message<HttpResponse, byte[]> responseMessage = future.get();
-                MatcherAssert.assertThat(responseMessage, CoreMatchers.notNullValue());
+                assertThat(responseMessage, CoreMatchers.notNullValue());
                 final HttpResponse response = responseMessage.getHead();
-                MatcherAssert.assertThat(response.getCode(), CoreMatchers.equalTo(200));
+                assertThat(response.getCode(), CoreMatchers.equalTo(200));
                 final byte[] b2 = responseMessage.getBody();
-                MatcherAssert.assertThat(b1, CoreMatchers.equalTo(b2));
+                assertThat(b1, CoreMatchers.equalTo(b2));
                 endpoint.releaseAndReuse();
             }
         } finally {

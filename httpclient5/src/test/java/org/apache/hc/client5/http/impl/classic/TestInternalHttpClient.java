@@ -46,19 +46,17 @@ import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.MockitoAnnotations;
 
 /**
  *  Simple tests for {@link InternalHttpClient}.
  */
 @SuppressWarnings({"static-access"}) // test code
-@RunWith(MockitoJUnitRunner.class)
 public class TestInternalHttpClient {
 
     @Mock
@@ -86,8 +84,9 @@ public class TestInternalHttpClient {
 
     private InternalHttpClient client;
 
-    @Before
+    @BeforeEach
     public void setup() throws Exception {
+        MockitoAnnotations.openMocks(this);
         client = new InternalHttpClient(connManager, requestExecutor, new ExecChainElement(execChain, null), routePlanner,
                 cookieSpecRegistry, authSchemeRegistry, cookieStore, credentialsProvider,
                 defaultConfig, Arrays.asList(closeable1, closeable2));
@@ -124,7 +123,7 @@ public class TestInternalHttpClient {
                 Mockito.any(),
                 Mockito.any())).thenThrow(new HttpException());
 
-        Assert.assertThrows(ClientProtocolException.class, () ->
+        Assertions.assertThrows(ClientProtocolException.class, () ->
                 client.execute(httpget));
     }
 
@@ -140,11 +139,11 @@ public class TestInternalHttpClient {
         final HttpClientContext context = HttpClientContext.create();
         client.execute(httpget, context);
 
-        Assert.assertSame(cookieSpecRegistry, context.getCookieSpecRegistry());
-        Assert.assertSame(authSchemeRegistry, context.getAuthSchemeRegistry());
-        Assert.assertSame(cookieStore, context.getCookieStore());
-        Assert.assertSame(credentialsProvider, context.getCredentialsProvider());
-        Assert.assertSame(defaultConfig, context.getRequestConfig());
+        Assertions.assertSame(cookieSpecRegistry, context.getCookieSpecRegistry());
+        Assertions.assertSame(authSchemeRegistry, context.getAuthSchemeRegistry());
+        Assertions.assertSame(cookieStore, context.getCookieStore());
+        Assertions.assertSame(credentialsProvider, context.getCredentialsProvider());
+        Assertions.assertSame(defaultConfig, context.getRequestConfig());
     }
 
     @Test
@@ -161,7 +160,7 @@ public class TestInternalHttpClient {
         final HttpClientContext context = HttpClientContext.create();
         client.execute(httpget, context);
 
-        Assert.assertSame(config, context.getRequestConfig());
+        Assertions.assertSame(config, context.getRequestConfig());
     }
 
     @Test
@@ -189,11 +188,11 @@ public class TestInternalHttpClient {
 
         client.execute(httpget, context);
 
-        Assert.assertSame(localCookieSpecRegistry, context.getCookieSpecRegistry());
-        Assert.assertSame(localAuthSchemeRegistry, context.getAuthSchemeRegistry());
-        Assert.assertSame(localCookieStore, context.getCookieStore());
-        Assert.assertSame(localCredentialsProvider, context.getCredentialsProvider());
-        Assert.assertSame(localConfig, context.getRequestConfig());
+        Assertions.assertSame(localCookieSpecRegistry, context.getCookieSpecRegistry());
+        Assertions.assertSame(localAuthSchemeRegistry, context.getAuthSchemeRegistry());
+        Assertions.assertSame(localCookieStore, context.getCookieStore());
+        Assertions.assertSame(localCredentialsProvider, context.getCredentialsProvider());
+        Assertions.assertSame(localConfig, context.getRequestConfig());
     }
 
     @Test

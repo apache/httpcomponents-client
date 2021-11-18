@@ -31,8 +31,8 @@ import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for {@link NTLMScheme}.
@@ -45,11 +45,9 @@ public class TestNTLMScheme {
         final AuthScheme authScheme = new NTLMScheme();
         authScheme.processChallenge(authChallenge, null);
 
-        Assert.assertFalse(
-                "Challenge with an empty value received from NTML proxy must not interrupt authentication process.",
-                authScheme.isChallengeComplete());
-        Assert.assertTrue(
-                "Challenge with an empty value received from NTML proxy must transit status of NTLMScheme to CHALLENGE_RECEIVED.",
-                authScheme.toString().contains(NTLMScheme.State.CHALLENGE_RECEIVED.toString()));
+        Assertions.assertFalse(authScheme.isChallengeComplete(),
+                "Challenge with an empty value received from NTML proxy must not interrupt authentication process.");
+        Assertions.assertTrue(authScheme.toString().contains(NTLMScheme.State.CHALLENGE_RECEIVED.toString()),
+                "Challenge with an empty value received from NTML proxy must transit status of NTLMScheme to CHALLENGE_RECEIVED.");
     }
 }

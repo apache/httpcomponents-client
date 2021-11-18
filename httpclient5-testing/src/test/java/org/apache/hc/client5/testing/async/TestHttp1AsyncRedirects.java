@@ -54,9 +54,10 @@ import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.message.BasicHeader;
-import org.junit.Assert;
-import org.junit.Rule;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.Rule;
+import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
 import org.junit.rules.ExternalResource;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -64,6 +65,7 @@ import org.junit.runners.Parameterized;
 /**
  * Redirection test cases.
  */
+@EnableRuleMigrationSupport
 @RunWith(Parameterized.class)
 public class TestHttp1AsyncRedirects extends AbstractHttpAsyncRedirectsTest<CloseableHttpAsyncClient> {
 
@@ -137,12 +139,12 @@ public class TestHttp1AsyncRedirects extends AbstractHttpAsyncRedirectsTest<Clos
                         .setPath("/oldlocation/")
                         .build(), context, null);
         final HttpResponse response = future.get();
-        Assert.assertNotNull(response);
+        Assertions.assertNotNull(response);
 
         final HttpRequest request = context.getRequest();
 
-        Assert.assertEquals(HttpStatus.SC_MULTIPLE_CHOICES, response.getCode());
-        Assert.assertEquals("/oldlocation/", request.getRequestUri());
+        Assertions.assertEquals(HttpStatus.SC_MULTIPLE_CHOICES, response.getCode());
+        Assertions.assertEquals("/oldlocation/", request.getRequestUri());
     }
 
     @Test
@@ -157,13 +159,13 @@ public class TestHttp1AsyncRedirects extends AbstractHttpAsyncRedirectsTest<Clos
                         .setPath("/oldlocation/100")
                         .build(), context, null);
         final HttpResponse response = future.get();
-        Assert.assertNotNull(response);
+        Assertions.assertNotNull(response);
 
         final HttpRequest request = context.getRequest();
 
-        Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
-        Assert.assertEquals("/random/100", request.getRequestUri());
-        Assert.assertEquals(target, new HttpHost(request.getScheme(), request.getAuthority()));
+        Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
+        Assertions.assertEquals("/random/100", request.getRequestUri());
+        Assertions.assertEquals(target, new HttpHost(request.getScheme(), request.getAuthority()));
     }
 
     @Test
@@ -184,15 +186,15 @@ public class TestHttp1AsyncRedirects extends AbstractHttpAsyncRedirectsTest<Clos
                 .setPath("/oldlocation/123")
                 .build(), context, null);
         final HttpResponse response = future.get();
-        Assert.assertNotNull(response);
+        Assertions.assertNotNull(response);
 
         final HttpRequest request = context.getRequest();
 
-        Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
-        Assert.assertEquals("/random/123", request.getRequestUri());
+        Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
+        Assertions.assertEquals("/random/123", request.getRequestUri());
 
         final Header header = request.getFirstHeader(HttpHeaders.USER_AGENT);
-        Assert.assertEquals("my-test-client", header.getValue());
+        Assertions.assertEquals("my-test-client", header.getValue());
     }
 
 }

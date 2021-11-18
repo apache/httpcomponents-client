@@ -56,8 +56,8 @@ import org.apache.hc.core5.http.io.entity.InputStreamEntity;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.message.MessageSupport;
 import org.apache.hc.core5.http.protocol.HttpContext;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 
 /**
  * Test case for how Content Codings are processed. By default, we want to do the right thing and
@@ -93,8 +93,8 @@ public class TestContentCodings extends LocalServerTestBase {
 
         final HttpGet request = new HttpGet("/some-resource");
         this.httpclient.execute(target, request, response -> {
-            Assert.assertEquals(HttpStatus.SC_NO_CONTENT, response.getCode());
-            Assert.assertNull(response.getEntity());
+            Assertions.assertEquals(HttpStatus.SC_NO_CONTENT, response.getCode());
+            Assertions.assertNull(response.getEntity());
             return null;
         });
     }
@@ -115,8 +115,8 @@ public class TestContentCodings extends LocalServerTestBase {
 
         final HttpGet request = new HttpGet("/some-resource");
         this.httpclient.execute(target, request, response -> {
-            Assert.assertEquals("The entity text is correctly transported", entityText,
-                    EntityUtils.toString(response.getEntity()));
+            Assertions.assertEquals(entityText, EntityUtils.toString(response.getEntity()),
+                    "The entity text is correctly transported");
             return null;
         });
     }
@@ -137,8 +137,8 @@ public class TestContentCodings extends LocalServerTestBase {
 
         final HttpGet request = new HttpGet("/some-resource");
         this.httpclient.execute(target, request, response -> {
-            Assert.assertEquals("The entity text is correctly transported", entityText,
-                    EntityUtils.toString(response.getEntity()));
+            Assertions.assertEquals(entityText, EntityUtils.toString(response.getEntity()),
+                    "The entity text is correctly transported");
             return null;
         });
     }
@@ -158,8 +158,8 @@ public class TestContentCodings extends LocalServerTestBase {
 
         final HttpGet request = new HttpGet("/some-resource");
         this.httpclient.execute(target, request, response -> {
-            Assert.assertEquals("The entity text is correctly transported", entityText,
-                    EntityUtils.toString(response.getEntity()));
+            Assertions.assertEquals(entityText, EntityUtils.toString(response.getEntity()),
+                    "The entity text is correctly transported");
             return null;
         });
     }
@@ -210,9 +210,9 @@ public class TestContentCodings extends LocalServerTestBase {
 
         for (final WorkerTask workerTask : workers) {
             if (workerTask.isFailed()) {
-                Assert.fail("A worker failed");
+                Assertions.fail("A worker failed");
             }
-            Assert.assertEquals(entityText, workerTask.getText());
+            Assertions.assertEquals(entityText, workerTask.getText());
         }
     }
 
@@ -228,7 +228,7 @@ public class TestContentCodings extends LocalServerTestBase {
         this.httpclient.execute(target, request, response -> {
             final ByteArrayOutputStream out = new ByteArrayOutputStream();
             response.getEntity().writeTo(out);
-            Assert.assertEquals(entityText, out.toString("utf-8"));
+            Assertions.assertEquals(entityText, out.toString("utf-8"));
             return null;
         });
 
@@ -246,7 +246,7 @@ public class TestContentCodings extends LocalServerTestBase {
         this.httpclient.execute(target, request, response -> {
             final ByteArrayOutputStream out = new ByteArrayOutputStream();
             response.getEntity().writeTo(out);
-            Assert.assertEquals(entityText, out.toString("utf-8"));
+            Assertions.assertEquals(entityText, out.toString("utf-8"));
             return out;
         });
     }
@@ -261,7 +261,7 @@ public class TestContentCodings extends LocalServerTestBase {
 
         final HttpGet request = new HttpGet("/some-resource");
         final String response = this.httpclient.execute(target, request, new BasicHttpClientResponseHandler());
-        Assert.assertEquals("The entity text is correctly transported", entityText, response);
+        Assertions.assertEquals(entityText, response, "The entity text is correctly transported");
     }
 
     @Test
@@ -274,7 +274,7 @@ public class TestContentCodings extends LocalServerTestBase {
 
         final HttpGet request = new HttpGet("/some-resource");
         final String response = this.httpclient.execute(target, request, new BasicHttpClientResponseHandler());
-        Assert.assertEquals("The entity text is correctly transported", entityText, response);
+        Assertions.assertEquals(entityText, response, "The entity text is correctly transported");
     }
 
     /**

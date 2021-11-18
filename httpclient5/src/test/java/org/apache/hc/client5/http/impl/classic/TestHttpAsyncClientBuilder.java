@@ -35,7 +35,7 @@ import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.nio.AsyncEntityProducer;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class TestHttpAsyncClientBuilder {
 

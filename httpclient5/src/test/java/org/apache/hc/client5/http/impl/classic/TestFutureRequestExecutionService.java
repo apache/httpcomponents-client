@@ -26,6 +26,8 @@
  */
 package org.apache.hc.client5.http.impl.classic;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -50,11 +52,10 @@ import org.apache.hc.core5.http.impl.bootstrap.HttpServer;
 import org.apache.hc.core5.http.impl.bootstrap.ServerBootstrap;
 import org.apache.hc.core5.http.io.HttpClientResponseHandler;
 import org.hamcrest.CoreMatchers;
-import org.hamcrest.MatcherAssert;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 @SuppressWarnings("boxing") // test code
 public class TestFutureRequestExecutionService {
@@ -65,7 +66,7 @@ public class TestFutureRequestExecutionService {
 
     private final AtomicBoolean blocked = new AtomicBoolean(false);
 
-    @Before
+    @BeforeEach
     public void before() throws Exception {
         this.localServer = ServerBootstrap.bootstrap()
                 .register("/wait", (request, response, context) -> {
@@ -91,7 +92,7 @@ public class TestFutureRequestExecutionService {
         httpAsyncClientWithFuture = new FutureRequestExecutionService(httpClient, executorService);
     }
 
-    @After
+    @AfterEach
     public void after() throws Exception {
         blocked.set(false); // any remaining requests should unblock
         this.localServer.stop();
@@ -102,7 +103,7 @@ public class TestFutureRequestExecutionService {
     public void shouldExecuteSingleCall() throws InterruptedException, ExecutionException {
         final FutureTask<Boolean> task = httpAsyncClientWithFuture.execute(
             new HttpGet(uri), HttpClientContext.create(), new OkidokiHandler());
-        Assert.assertTrue("request should have returned OK", task.get());
+        Assertions.assertTrue(task.get(), "request should have returned OK");
     }
 
     @Test
@@ -110,8 +111,8 @@ public class TestFutureRequestExecutionService {
         final FutureTask<Boolean> task = httpAsyncClientWithFuture.execute(
             new HttpGet(uri), HttpClientContext.create(), new OkidokiHandler());
         task.cancel(true);
-        final Exception exception = Assert.assertThrows(Exception.class, task::get);
-        MatcherAssert.assertThat(exception, CoreMatchers.anyOf(
+        final Exception exception = Assertions.assertThrows(Exception.class, task::get);
+        assertThat(exception, CoreMatchers.anyOf(
                 CoreMatchers.instanceOf(CancellationException.class),
                 CoreMatchers.instanceOf(ExecutionException.class)));
     }
@@ -121,7 +122,7 @@ public class TestFutureRequestExecutionService {
         blocked.set(true);
         final FutureTask<Boolean> task = httpAsyncClientWithFuture.execute(
             new HttpGet(uri), HttpClientContext.create(), new OkidokiHandler());
-        Assert.assertThrows(TimeoutException.class, () ->
+        Assertions.assertThrows(TimeoutException.class, () ->
                 task.get(10, TimeUnit.MILLISECONDS));
     }
 
@@ -136,8 +137,8 @@ public class TestFutureRequestExecutionService {
         }
         for (final Future<Boolean> task : tasks) {
             final Boolean b = task.get();
-            Assert.assertNotNull(b);
-            Assert.assertTrue("request should have returned OK", b);
+            Assertions.assertNotNull(b);
+            Assertions.assertTrue(b, "request should have returned OK");
         }
     }
 
@@ -152,11 +153,11 @@ public class TestFutureRequestExecutionService {
                     new OkidokiHandler(), new CountingCallback(latch));
             tasks.add(task);
         }
-        Assert.assertTrue(latch.await(5, TimeUnit.SECONDS));
+        Assertions.assertTrue(latch.await(5, TimeUnit.SECONDS));
         for (final Future<Boolean> task : tasks) {
             final Boolean b = task.get();
-            Assert.assertNotNull(b);
-            Assert.assertTrue("request should have returned OK", b);
+            Assertions.assertNotNull(b);
+            Assertions.assertTrue(b, "request should have returned OK");
         }
     }
 

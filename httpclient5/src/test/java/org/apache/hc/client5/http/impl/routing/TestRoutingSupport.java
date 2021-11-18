@@ -27,6 +27,8 @@
 
 package org.apache.hc.client5.http.impl.routing;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+
 import java.net.URI;
 
 import org.apache.hc.client5.http.routing.RoutingSupport;
@@ -36,9 +38,8 @@ import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
 import org.apache.hc.core5.net.URIAuthority;
 import org.hamcrest.CoreMatchers;
-import org.hamcrest.MatcherAssert;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class TestRoutingSupport {
 
@@ -46,18 +47,18 @@ public class TestRoutingSupport {
     public void testDetermineHost() throws Exception {
         final HttpRequest request1 = new BasicHttpRequest("GET", "/");
         final HttpHost host1 = RoutingSupport.determineHost(request1);
-        MatcherAssert.assertThat(host1, CoreMatchers.nullValue());
+        assertThat(host1, CoreMatchers.nullValue());
 
         final HttpRequest request2 = new BasicHttpRequest("GET", new URI("https://somehost:8443/"));
         final HttpHost host2 = RoutingSupport.determineHost(request2);
-        MatcherAssert.assertThat(host2, CoreMatchers.equalTo(new HttpHost("https", "somehost", 8443)));
+        assertThat(host2, CoreMatchers.equalTo(new HttpHost("https", "somehost", 8443)));
     }
 
     @Test
     public void testDetermineHostMissingScheme() throws Exception {
         final HttpRequest request1 = new BasicHttpRequest("GET", "/");
         request1.setAuthority(new URIAuthority("host"));
-        Assert.assertThrows(ProtocolException.class, () ->
+        Assertions.assertThrows(ProtocolException.class, () ->
                 RoutingSupport.determineHost(request1));
     }
 

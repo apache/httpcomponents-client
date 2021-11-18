@@ -36,9 +36,9 @@ import org.apache.hc.client5.http.cookie.CookieOrigin;
 import org.apache.hc.client5.http.psl.PublicSuffixList;
 import org.apache.hc.client5.http.psl.PublicSuffixListParser;
 import org.apache.hc.client5.http.psl.PublicSuffixMatcher;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class TestPublicSuffixListParser {
 
@@ -46,11 +46,11 @@ public class TestPublicSuffixListParser {
 
     private PublicSuffixDomainFilter filter;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         final ClassLoader classLoader = getClass().getClassLoader();
         final InputStream in = classLoader.getResourceAsStream(SOURCE_FILE);
-        Assert.assertNotNull(in);
+        Assertions.assertNotNull(in);
         final PublicSuffixList suffixList;
         try {
             final PublicSuffixListParser parser = new PublicSuffixListParser();
@@ -68,17 +68,17 @@ public class TestPublicSuffixListParser {
 
         cookie.setAttribute(Cookie.DOMAIN_ATTR, ".jp");
         cookie.setDomain(".jp");
-        Assert.assertFalse(filter.match(cookie, new CookieOrigin("apache.jp", 80, "/stuff", false)));
+        Assertions.assertFalse(filter.match(cookie, new CookieOrigin("apache.jp", 80, "/stuff", false)));
 
         cookie.setDomain(".ac.jp");
-        Assert.assertFalse(filter.match(cookie, new CookieOrigin("apache.ac.jp", 80, "/stuff", false)));
+        Assertions.assertFalse(filter.match(cookie, new CookieOrigin("apache.ac.jp", 80, "/stuff", false)));
 
         cookie.setDomain(".any.tokyo.jp");
-        Assert.assertFalse(filter.match(cookie, new CookieOrigin("apache.any.tokyo.jp", 80, "/stuff", false)));
+        Assertions.assertFalse(filter.match(cookie, new CookieOrigin("apache.any.tokyo.jp", 80, "/stuff", false)));
 
         // exception
         cookie.setDomain(".metro.tokyo.jp");
-        Assert.assertTrue(filter.match(cookie, new CookieOrigin("apache.metro.tokyo.jp", 80, "/stuff", false)));
+        Assertions.assertTrue(filter.match(cookie, new CookieOrigin("apache.metro.tokyo.jp", 80, "/stuff", false)));
     }
 
     @Test
@@ -87,31 +87,31 @@ public class TestPublicSuffixListParser {
 
         cookie.setDomain("localhost");
         cookie.setAttribute(Cookie.DOMAIN_ATTR, "localhost");
-        Assert.assertTrue(filter.match(cookie, new CookieOrigin("localhost", 80, "/stuff", false)));
+        Assertions.assertTrue(filter.match(cookie, new CookieOrigin("localhost", 80, "/stuff", false)));
 
         cookie.setDomain("somehost");
         cookie.setAttribute(Cookie.DOMAIN_ATTR, "somehost");
-        Assert.assertTrue(filter.match(cookie, new CookieOrigin("somehost", 80, "/stuff", false)));
+        Assertions.assertTrue(filter.match(cookie, new CookieOrigin("somehost", 80, "/stuff", false)));
 
         cookie.setDomain(".localdomain");
         cookie.setAttribute(Cookie.DOMAIN_ATTR, ".localdomain");
-        Assert.assertTrue(filter.match(cookie, new CookieOrigin("somehost.localdomain", 80, "/stuff", false)));
+        Assertions.assertTrue(filter.match(cookie, new CookieOrigin("somehost.localdomain", 80, "/stuff", false)));
 
         cookie.setDomain(".local.");
         cookie.setAttribute(Cookie.DOMAIN_ATTR, ".local.");
-        Assert.assertTrue(filter.match(cookie, new CookieOrigin("somehost.local.", 80, "/stuff", false)));
+        Assertions.assertTrue(filter.match(cookie, new CookieOrigin("somehost.local.", 80, "/stuff", false)));
 
         cookie.setDomain(".localhost.");
         cookie.setAttribute(Cookie.DOMAIN_ATTR, ".localhost.");
-        Assert.assertTrue(filter.match(cookie, new CookieOrigin("somehost.localhost.", 80, "/stuff", false)));
+        Assertions.assertTrue(filter.match(cookie, new CookieOrigin("somehost.localhost.", 80, "/stuff", false)));
 
         cookie.setDomain(".local");
         cookie.setAttribute(Cookie.DOMAIN_ATTR, ".local");
-        Assert.assertTrue(filter.match(cookie, new CookieOrigin("somehost.local", 80, "/stuff", false)));
+        Assertions.assertTrue(filter.match(cookie, new CookieOrigin("somehost.local", 80, "/stuff", false)));
 
         cookie.setDomain(".blah");
         cookie.setAttribute(Cookie.DOMAIN_ATTR, ".blah");
-        Assert.assertTrue(filter.match(cookie, new CookieOrigin("somehost.blah", 80, "/stuff", false)));
+        Assertions.assertTrue(filter.match(cookie, new CookieOrigin("somehost.blah", 80, "/stuff", false)));
     }
 
     @Test
@@ -119,16 +119,16 @@ public class TestPublicSuffixListParser {
         final BasicClientCookie cookie = new BasicClientCookie("name", "value");
 
         cookie.setDomain(".h\u00E5.no"); // \u00E5 is <aring>
-        Assert.assertFalse(filter.match(cookie, new CookieOrigin("apache.h\u00E5.no", 80, "/stuff", false)));
+        Assertions.assertFalse(filter.match(cookie, new CookieOrigin("apache.h\u00E5.no", 80, "/stuff", false)));
 
         cookie.setDomain(".xn--h-2fa.no");
-        Assert.assertFalse(filter.match(cookie, new CookieOrigin("apache.xn--h-2fa.no", 80, "/stuff", false)));
+        Assertions.assertFalse(filter.match(cookie, new CookieOrigin("apache.xn--h-2fa.no", 80, "/stuff", false)));
 
         cookie.setDomain(".h\u00E5.no");
-        Assert.assertFalse(filter.match(cookie, new CookieOrigin("apache.xn--h-2fa.no", 80, "/stuff", false)));
+        Assertions.assertFalse(filter.match(cookie, new CookieOrigin("apache.xn--h-2fa.no", 80, "/stuff", false)));
 
         cookie.setDomain(".xn--h-2fa.no");
-        Assert.assertFalse(filter.match(cookie, new CookieOrigin("apache.h\u00E5.no", 80, "/stuff", false)));
+        Assertions.assertFalse(filter.match(cookie, new CookieOrigin("apache.h\u00E5.no", 80, "/stuff", false)));
     }
 
 }

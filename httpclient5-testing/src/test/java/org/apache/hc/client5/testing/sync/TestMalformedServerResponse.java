@@ -43,8 +43,8 @@ import org.apache.hc.core5.http.impl.io.DefaultBHttpServerConnection;
 import org.apache.hc.core5.http.io.HttpConnectionFactory;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class TestMalformedServerResponse {
 
@@ -98,13 +98,13 @@ public class TestMalformedServerResponse {
             try (final CloseableHttpClient httpclient = HttpClientBuilder.create().build()) {
                 final HttpGet get1 = new HttpGet("/nostuff");
                 httpclient.execute(target, get1, response -> {
-                    Assert.assertEquals(HttpStatus.SC_NO_CONTENT, response.getCode());
+                    Assertions.assertEquals(HttpStatus.SC_NO_CONTENT, response.getCode());
                     EntityUtils.consume(response.getEntity());
                     return null;
                 });
                 final HttpGet get2 = new HttpGet("/stuff");
                 httpclient.execute(target, get2, response -> {
-                    Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
+                    Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
                     EntityUtils.consume(response.getEntity());
                     return null;
                 });

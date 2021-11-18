@@ -26,6 +26,8 @@
  */
 package org.apache.hc.client5.testing.async;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Queue;
@@ -76,9 +78,8 @@ import org.apache.hc.core5.http2.config.H2Config;
 import org.apache.hc.core5.http2.impl.H2Processors;
 import org.apache.hc.core5.net.URIAuthority;
 import org.hamcrest.CoreMatchers;
-import org.hamcrest.MatcherAssert;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.mockito.Mockito;
 
 public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableHttpAsyncClient> extends AbstractIntegrationTestBase<T> {
@@ -133,8 +134,8 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
                         .build(), context, null);
         final HttpResponse response = future.get();
 
-        Assert.assertNotNull(response);
-        Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
         Mockito.verify(credsProvider).getCredentials(
                 Mockito.eq(new AuthScope(target, "test realm", "basic")), Mockito.any());
     }
@@ -156,8 +157,8 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
                         .build(), context, null);
         final HttpResponse response = future.get();
 
-        Assert.assertNotNull(response);
-        Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
         Mockito.verify(credsProvider).getCredentials(
                 Mockito.eq(new AuthScope(target, "test realm", "basic")), Mockito.any());
     }
@@ -180,8 +181,8 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
                         .build(), context, null);
         final HttpResponse response = future.get();
 
-        Assert.assertNotNull(response);
-        Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
         Mockito.verify(credsProvider).getCredentials(
                 Mockito.eq(new AuthScope(target, "test realm", "basic")), Mockito.any());
     }
@@ -204,8 +205,8 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
                         .build(), context, null);
         final HttpResponse response = future.get();
 
-        Assert.assertNotNull(response);
-        Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
         Mockito.verify(credsProvider).getCredentials(
                 Mockito.eq(new AuthScope(target, "test realm", "basic")), Mockito.any());
     }
@@ -229,8 +230,8 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
                         .build(), context, null);
         final HttpResponse response = future.get();
 
-        Assert.assertNotNull(response);
-        Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
     }
 
     @Test
@@ -252,8 +253,8 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
                         .build(), context, null);
         final HttpResponse response = future.get();
 
-        Assert.assertNotNull(response);
-        Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
         Mockito.verify(credsProvider).getCredentials(
                 Mockito.eq(new AuthScope(target, "test realm", "basic")), Mockito.any());
     }
@@ -277,8 +278,8 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
                     .setPath("/")
                     .build(), context, null);
             final HttpResponse response = future.get();
-            Assert.assertNotNull(response);
-            Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
+            Assertions.assertNotNull(response);
+            Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
         }
 
         Mockito.verify(authStrategy).select(Mockito.any(), Mockito.any(), Mockito.any());
@@ -311,14 +312,14 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
                     .setPath(requestPath)
                     .build(), context, null);
             final HttpResponse response = future.get();
-            Assert.assertNotNull(response);
-            Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
+            Assertions.assertNotNull(response);
+            Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
         }
 
         // There should be only single auth strategy call for all successful message exchanges
         Mockito.verify(authStrategy).select(Mockito.any(), Mockito.any(), Mockito.any());
 
-        MatcherAssert.assertThat(
+        assertThat(
                 responseQueue.stream().map(HttpResponse::getCode).collect(Collectors.toList()),
                 CoreMatchers.equalTo(Arrays.asList(401, 200, 200, 200, 200)));
 
@@ -335,14 +336,14 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
                     .setPath(requestPath)
                     .build(), context, null);
             final HttpResponse response = future.get();
-            Assert.assertNotNull(response);
-            Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
+            Assertions.assertNotNull(response);
+            Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
         }
 
         // There should be an auth strategy call for all successful message exchanges
         Mockito.verify(authStrategy, Mockito.times(3)).select(Mockito.any(), Mockito.any(), Mockito.any());
 
-        MatcherAssert.assertThat(
+        assertThat(
                 responseQueue.stream().map(HttpResponse::getCode).collect(Collectors.toList()),
                 CoreMatchers.equalTo(Arrays.asList(401, 200, 401, 200, 401, 200)));
     }
@@ -358,8 +359,8 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
                         .setAuthority(new URIAuthority("test:test", target.getHostName(), target.getPort()))
                         .setPath("/")
                         .build(), context, null);
-        final ExecutionException exception = Assert.assertThrows(ExecutionException.class, () -> future.get());
-        MatcherAssert.assertThat(exception.getCause(), CoreMatchers.instanceOf(ProtocolException.class));
+        final ExecutionException exception = Assertions.assertThrows(ExecutionException.class, () -> future.get());
+        assertThat(exception.getCause(), CoreMatchers.instanceOf(ProtocolException.class));
     }
 
     @Test
@@ -422,8 +423,8 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
             request.setConfig(config);
             final Future<SimpleHttpResponse> future = httpclient.execute(request, context, null);
             final SimpleHttpResponse response = future.get();
-            Assert.assertNotNull(response);
-            Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
+            Assertions.assertNotNull(response);
+            Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
         }
     }
 
@@ -451,8 +452,8 @@ public abstract class AbstractHttpAsyncClientAuthentication<T extends CloseableH
                         .setPath("/")
                         .build(), context, null);
         final SimpleHttpResponse response = future.get();
-        Assert.assertNotNull(response);
-        Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
         Mockito.verify(credsProvider).getCredentials(
                 Mockito.eq(new AuthScope(target, "test realm", "basic")), Mockito.any());
     }

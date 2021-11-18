@@ -34,8 +34,8 @@ import org.apache.hc.client5.http.RouteInfo.LayerType;
 import org.apache.hc.client5.http.RouteInfo.TunnelType;
 import org.apache.hc.client5.http.routing.HttpRouteDirector;
 import org.apache.hc.core5.http.HttpHost;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests for {@link BasicRouteDirector}.
@@ -85,7 +85,7 @@ public class TestRouteDirector {
     public void testIllegal() {
         final HttpRouteDirector rowdy = new BasicRouteDirector();
         final HttpRoute route = new HttpRoute(TARGET1);
-        Assert.assertThrows(NullPointerException.class, () ->
+        Assertions.assertThrows(NullPointerException.class, () ->
                 rowdy.nextStep(null, route));
     }
 
@@ -98,28 +98,22 @@ public class TestRouteDirector {
         final HttpRoute route1p1 = new HttpRoute(TARGET1, null, PROXY1, false);
 
         int step = rowdy.nextStep(route1, null);
-        Assert.assertEquals("wrong step to route1",
-                     HttpRouteDirector.CONNECT_TARGET, step);
+        Assertions.assertEquals(HttpRouteDirector.CONNECT_TARGET, step, "wrong step to route1");
 
         step = rowdy.nextStep(route2, null);
-        Assert.assertEquals("wrong step to route2",
-                     HttpRouteDirector.CONNECT_TARGET, step);
+        Assertions.assertEquals(HttpRouteDirector.CONNECT_TARGET, step, "wrong step to route2");
 
         step = rowdy.nextStep(route1, route1);
-        Assert.assertEquals("complete route1 not detected",
-                     HttpRouteDirector.COMPLETE, step);
+        Assertions.assertEquals(HttpRouteDirector.COMPLETE, step, "complete route1 not detected");
 
         step = rowdy.nextStep(route2, route2);
-        Assert.assertEquals("complete route2 not detected",
-                     HttpRouteDirector.COMPLETE, step);
+        Assertions.assertEquals(HttpRouteDirector.COMPLETE, step, "complete route2 not detected");
 
         step = rowdy.nextStep(route1, route2);
-        Assert.assertEquals("unreachable target not detected",
-                     HttpRouteDirector.UNREACHABLE, step);
+        Assertions.assertEquals(HttpRouteDirector.UNREACHABLE, step, "unreachable target not detected");
 
         step = rowdy.nextStep(route1, route1p1);
-        Assert.assertEquals("invalid proxy not detected",
-                     HttpRouteDirector.UNREACHABLE, step);
+        Assertions.assertEquals(HttpRouteDirector.UNREACHABLE, step, "invalid proxy not detected");
     }
 
     @Test
@@ -133,40 +127,31 @@ public class TestRouteDirector {
         final HttpRoute route1   = new HttpRoute(TARGET1);
 
         int step = rowdy.nextStep(route1p1, null);
-        Assert.assertEquals("wrong step to route1p1",
-                     HttpRouteDirector.CONNECT_PROXY, step);
+        Assertions.assertEquals(HttpRouteDirector.CONNECT_PROXY, step, "wrong step to route1p1");
 
         step = rowdy.nextStep(route1p2, null);
-        Assert.assertEquals("wrong step to route1p2",
-                     HttpRouteDirector.CONNECT_PROXY, step);
+        Assertions.assertEquals(HttpRouteDirector.CONNECT_PROXY, step, "wrong step to route1p2");
 
         step = rowdy.nextStep(route1p1, route1p1);
-        Assert.assertEquals("complete route1p1 not detected",
-                     HttpRouteDirector.COMPLETE, step);
+        Assertions.assertEquals(HttpRouteDirector.COMPLETE, step, "complete route1p1 not detected");
 
         step = rowdy.nextStep(route1p2, route1p2);
-        Assert.assertEquals("complete route1p2 not detected",
-                     HttpRouteDirector.COMPLETE, step);
+        Assertions.assertEquals(HttpRouteDirector.COMPLETE, step, "complete route1p2 not detected");
 
         step = rowdy.nextStep(route2p1, route2p1);
-        Assert.assertEquals("complete route2p1 not detected",
-                     HttpRouteDirector.COMPLETE, step);
+        Assertions.assertEquals(HttpRouteDirector.COMPLETE, step, "complete route2p1 not detected");
 
         step = rowdy.nextStep(route1p1, route1p2);
-        Assert.assertEquals("unreachable route1p1 via route1p2 not detected",
-                     HttpRouteDirector.UNREACHABLE, step);
+        Assertions.assertEquals(HttpRouteDirector.UNREACHABLE, step, "unreachable route1p1 via route1p2 not detected");
 
         step = rowdy.nextStep(route1p1, route2p1);
-        Assert.assertEquals("unreachable route1p1 via route2p1 not detected",
-                     HttpRouteDirector.UNREACHABLE, step);
+        Assertions.assertEquals(HttpRouteDirector.UNREACHABLE, step, "unreachable route1p1 via route2p1 not detected");
 
         step = rowdy.nextStep(route1p1, route0);
-        Assert.assertEquals("unreachable route1p1 via route0 not detected",
-                     HttpRouteDirector.UNREACHABLE, step);
+        Assertions.assertEquals(HttpRouteDirector.UNREACHABLE, step, "unreachable route1p1 via route0 not detected");
 
         step = rowdy.nextStep(route1p1, route1);
-        Assert.assertEquals("unreachable route1p1 via route1 not detected",
-                     HttpRouteDirector.UNREACHABLE, step);
+        Assertions.assertEquals(HttpRouteDirector.UNREACHABLE, step, "unreachable route1p1 via route1 not detected");
     }
 
     @Test
@@ -186,42 +171,33 @@ public class TestRouteDirector {
                                             TunnelType.PLAIN, LayerType.PLAIN);
 
         int step = rowdy.nextStep(route1cA, null);
-        Assert.assertEquals("wrong step to route1cA",
-                     HttpRouteDirector.CONNECT_PROXY, step);
+        Assertions.assertEquals(HttpRouteDirector.CONNECT_PROXY, step, "wrong step to route1cA");
 
         step = rowdy.nextStep(route1cB, null);
-        Assert.assertEquals("wrong step to route1cB",
-                     HttpRouteDirector.CONNECT_PROXY, step);
+        Assertions.assertEquals(HttpRouteDirector.CONNECT_PROXY, step, "wrong step to route1cB");
 
         step = rowdy.nextStep(route1cC, null);
-        Assert.assertEquals("wrong step to route1cC",
-                     HttpRouteDirector.CONNECT_PROXY, step);
+        Assertions.assertEquals(HttpRouteDirector.CONNECT_PROXY, step, "wrong step to route1cC");
 
         step = rowdy.nextStep(route1cD, null);
-        Assert.assertEquals("wrong step to route1cD",
-                     HttpRouteDirector.CONNECT_PROXY, step);
+        Assertions.assertEquals(HttpRouteDirector.CONNECT_PROXY, step, "wrong step to route1cD");
 
 
         step = rowdy.nextStep(route1cB, route1cA);
-        Assert.assertEquals("wrong step to route 1cB from 1cA",
-                     HttpRouteDirector.TUNNEL_PROXY, step);
+        Assertions.assertEquals(HttpRouteDirector.TUNNEL_PROXY, step, "wrong step to route 1cB from 1cA");
 
         step = rowdy.nextStep(route1cB, route1cB);
-        Assert.assertEquals("complete route 1cB not detected",
-                     HttpRouteDirector.COMPLETE, step);
+        Assertions.assertEquals(HttpRouteDirector.COMPLETE, step, "complete route 1cB not detected");
 
         step = rowdy.nextStep(route1cB, route1cC);
-        Assert.assertEquals("unreachable route 1cB from 1cC not detected",
-                     HttpRouteDirector.UNREACHABLE, step);
+        Assertions.assertEquals(HttpRouteDirector.UNREACHABLE, step, "unreachable route 1cB from 1cC not detected");
 
         step = rowdy.nextStep(route1cB, route1cD);
-        Assert.assertEquals("unreachable route 1cB from 1cD not detected",
-                     HttpRouteDirector.UNREACHABLE, step);
+        Assertions.assertEquals(HttpRouteDirector.UNREACHABLE, step, "unreachable route 1cB from 1cD not detected");
 
 
         step = rowdy.nextStep(route1cA, route1cB);
-        Assert.assertEquals("unreachable route 1cA from 1cB not detected",
-                     HttpRouteDirector.UNREACHABLE, step);
+        Assertions.assertEquals(HttpRouteDirector.UNREACHABLE, step, "unreachable route 1cA from 1cB not detected");
     }
 
     @Test
@@ -234,62 +210,48 @@ public class TestRouteDirector {
         final HttpRoute route1l00 = new HttpRoute(TARGET1, null, false);
 
         int step = rowdy.nextStep(route1l41, null);
-        Assert.assertEquals("wrong step to route1l41",
-                     HttpRouteDirector.CONNECT_TARGET, step);
+        Assertions.assertEquals(HttpRouteDirector.CONNECT_TARGET, step, "wrong step to route1l41");
 
         step = rowdy.nextStep(route1l42, null);
-        Assert.assertEquals("wrong step to route1l42",
-                     HttpRouteDirector.CONNECT_TARGET, step);
+        Assertions.assertEquals(HttpRouteDirector.CONNECT_TARGET, step, "wrong step to route1l42");
 
         step = rowdy.nextStep(route1l61, null);
-        Assert.assertEquals("wrong step to route1l61",
-                     HttpRouteDirector.CONNECT_TARGET, step);
+        Assertions.assertEquals(HttpRouteDirector.CONNECT_TARGET, step, "wrong step to route1l61");
 
         step = rowdy.nextStep(route1l00, null);
-        Assert.assertEquals("wrong step to route1l00",
-                     HttpRouteDirector.CONNECT_TARGET, step);
+        Assertions.assertEquals(HttpRouteDirector.CONNECT_TARGET, step, "wrong step to route1l00");
 
         step = rowdy.nextStep(route1l41, route1l41);
-        Assert.assertEquals("complete route1l41 not detected",
-                     HttpRouteDirector.COMPLETE, step);
+        Assertions.assertEquals(HttpRouteDirector.COMPLETE, step, "complete route1l41 not detected");
 
         step = rowdy.nextStep(route1l42, route1l42);
-        Assert.assertEquals("complete route1l42 not detected",
-                     HttpRouteDirector.COMPLETE, step);
+        Assertions.assertEquals(HttpRouteDirector.COMPLETE, step, "complete route1l42 not detected");
 
         step = rowdy.nextStep(route1l61, route1l61);
-        Assert.assertEquals("complete route1l61 not detected",
-                     HttpRouteDirector.COMPLETE, step);
+        Assertions.assertEquals(HttpRouteDirector.COMPLETE, step, "complete route1l61 not detected");
 
         step = rowdy.nextStep(route1l00, route1l00);
-        Assert.assertEquals("complete route1l00 not detected",
-                     HttpRouteDirector.COMPLETE, step);
+        Assertions.assertEquals(HttpRouteDirector.COMPLETE, step, "complete route1l00 not detected");
 
 
         step = rowdy.nextStep(route1l41, route1l42);
-        Assert.assertEquals("unreachable route1l41 via route1l42 not detected",
-                     HttpRouteDirector.UNREACHABLE, step);
+        Assertions.assertEquals(HttpRouteDirector.UNREACHABLE, step, "unreachable route1l41 via route1l42 not detected");
 
         step = rowdy.nextStep(route1l41, route1l61);
-        Assert.assertEquals("unreachable route1l41 via route1l61 not detected",
-                     HttpRouteDirector.UNREACHABLE, step);
+        Assertions.assertEquals(HttpRouteDirector.UNREACHABLE, step, "unreachable route1l41 via route1l61 not detected");
 
         step = rowdy.nextStep(route1l41, route1l00);
-        Assert.assertEquals("unreachable route1l41 via route1l00 not detected",
-                     HttpRouteDirector.UNREACHABLE, step);
+        Assertions.assertEquals(HttpRouteDirector.UNREACHABLE, step, "unreachable route1l41 via route1l00 not detected");
 
 
         step = rowdy.nextStep(route1l00, route1l41);
-        Assert.assertEquals("complete route1l00 as route1l41 not detected",
-                     HttpRouteDirector.COMPLETE, step);
+        Assertions.assertEquals(HttpRouteDirector.COMPLETE, step, "complete route1l00 as route1l41 not detected");
 
         step = rowdy.nextStep(route1l00, route1l42);
-        Assert.assertEquals("complete route1l00 as route1l42 not detected",
-                     HttpRouteDirector.COMPLETE, step);
+        Assertions.assertEquals(HttpRouteDirector.COMPLETE, step, "complete route1l00 as route1l42 not detected");
 
         step = rowdy.nextStep(route1l00, route1l61);
-        Assert.assertEquals("complete route1l00 as route1l61 not detected",
-                     HttpRouteDirector.COMPLETE, step);
+        Assertions.assertEquals(HttpRouteDirector.COMPLETE, step, "complete route1l00 as route1l61 not detected");
     }
 
     @Test
@@ -302,32 +264,26 @@ public class TestRouteDirector {
         final HttpRoute route1p1s = new HttpRoute(TARGET1, null, PROXY1, true);
 
         int step = rowdy.nextStep(route1u, null);
-        Assert.assertEquals("wrong step to route1u",
-                     HttpRouteDirector.CONNECT_TARGET, step);
+        Assertions.assertEquals(HttpRouteDirector.CONNECT_TARGET, step, "wrong step to route1u");
 
         step = rowdy.nextStep(route1s, null);
-        Assert.assertEquals("wrong step to route1s",
-                     HttpRouteDirector.CONNECT_TARGET, step);
+        Assertions.assertEquals(HttpRouteDirector.CONNECT_TARGET, step, "wrong step to route1s");
 
         // unrequested security is currently not tolerated
         step = rowdy.nextStep(route1u, route1s);
-        Assert.assertEquals("unreachable route 1u from 1s not detected",
-                     HttpRouteDirector.UNREACHABLE, step);
+        Assertions.assertEquals(HttpRouteDirector.UNREACHABLE, step, "unreachable route 1u from 1s not detected");
 
         // secure layering of direct connections is currently not supported
         step = rowdy.nextStep(route1s, route1u);
-        Assert.assertEquals("unreachable route 1s from 1u not detected",
-                     HttpRouteDirector.UNREACHABLE, step);
+        Assertions.assertEquals(HttpRouteDirector.UNREACHABLE, step, "unreachable route 1s from 1u not detected");
 
 
 
         step = rowdy.nextStep(route1s, route1p1u);
-        Assert.assertEquals("unreachable route 1s from 1p1u not detected",
-                     HttpRouteDirector.UNREACHABLE, step);
+        Assertions.assertEquals(HttpRouteDirector.UNREACHABLE, step, "unreachable route 1s from 1p1u not detected");
 
         step = rowdy.nextStep(route1s, route1p1s);
-        Assert.assertEquals("unreachable route 1s from 1p1s not detected",
-                     HttpRouteDirector.UNREACHABLE, step);
+        Assertions.assertEquals(HttpRouteDirector.UNREACHABLE, step, "unreachable route 1s from 1p1s not detected");
     }
 
     @Test
@@ -356,119 +312,93 @@ public class TestRouteDirector {
         // we don't consider a route that is layered but not tunnelled
 
         int step = rowdy.nextStep(route1, null);
-        Assert.assertEquals("wrong step to route1",
-                     HttpRouteDirector.CONNECT_PROXY, step);
+        Assertions.assertEquals(HttpRouteDirector.CONNECT_PROXY, step, "wrong step to route1");
 
         step = rowdy.nextStep(route1t, null);
-        Assert.assertEquals("wrong step to route1t",
-                     HttpRouteDirector.CONNECT_PROXY, step);
+        Assertions.assertEquals(HttpRouteDirector.CONNECT_PROXY, step, "wrong step to route1t");
 
         step = rowdy.nextStep(route1tl, null);
-        Assert.assertEquals("wrong step to route1tl",
-                     HttpRouteDirector.CONNECT_PROXY, step);
+        Assertions.assertEquals(HttpRouteDirector.CONNECT_PROXY, step, "wrong step to route1tl");
 
         step = rowdy.nextStep(route1s, null);
-        Assert.assertEquals("wrong step to route1s",
-                     HttpRouteDirector.CONNECT_PROXY, step);
+        Assertions.assertEquals(HttpRouteDirector.CONNECT_PROXY, step, "wrong step to route1s");
 
         step = rowdy.nextStep(route1ts, null);
-        Assert.assertEquals("wrong step to route1ts",
-                     HttpRouteDirector.CONNECT_PROXY, step);
+        Assertions.assertEquals(HttpRouteDirector.CONNECT_PROXY, step, "wrong step to route1ts");
 
         step = rowdy.nextStep(route1tls, null);
-        Assert.assertEquals("wrong step to route1tls",
-                     HttpRouteDirector.CONNECT_PROXY, step);
+        Assertions.assertEquals(HttpRouteDirector.CONNECT_PROXY, step, "wrong step to route1tls");
 
 
         step = rowdy.nextStep(route1, route1);
-        Assert.assertEquals("complete route1 not detected",
-                     HttpRouteDirector.COMPLETE, step);
+        Assertions.assertEquals(HttpRouteDirector.COMPLETE, step, "complete route1 not detected");
 
         step = rowdy.nextStep(route1t, route1t);
-        Assert.assertEquals("complete route1t not detected",
-                     HttpRouteDirector.COMPLETE, step);
+        Assertions.assertEquals(HttpRouteDirector.COMPLETE, step, "complete route1t not detected");
 
         step = rowdy.nextStep(route1tl, route1tl);
-        Assert.assertEquals("complete route1tl not detected",
-                     HttpRouteDirector.COMPLETE, step);
+        Assertions.assertEquals(HttpRouteDirector.COMPLETE, step, "complete route1tl not detected");
 
         step = rowdy.nextStep(route1s, route1s);
-        Assert.assertEquals("complete route1s not detected",
-                     HttpRouteDirector.COMPLETE, step);
+        Assertions.assertEquals(HttpRouteDirector.COMPLETE, step, "complete route1s not detected");
 
         step = rowdy.nextStep(route1ts, route1ts);
-        Assert.assertEquals("complete route1ts not detected",
-                     HttpRouteDirector.COMPLETE, step);
+        Assertions.assertEquals(HttpRouteDirector.COMPLETE, step, "complete route1ts not detected");
 
         step = rowdy.nextStep(route1tls, route1tls);
-        Assert.assertEquals("complete route1tls not detected",
-                     HttpRouteDirector.COMPLETE, step);
+        Assertions.assertEquals(HttpRouteDirector.COMPLETE, step, "complete route1tls not detected");
 
 
 
         step = rowdy.nextStep(route1, route1t);
-        Assert.assertEquals("unreachable route1 from 1t not detected",
-                     HttpRouteDirector.UNREACHABLE, step);
+        Assertions.assertEquals(HttpRouteDirector.UNREACHABLE, step, "unreachable route1 from 1t not detected");
 
         step = rowdy.nextStep(route1, route1tl);
-        Assert.assertEquals("unreachable route1 from 1tl not detected",
-                     HttpRouteDirector.UNREACHABLE, step);
+        Assertions.assertEquals(HttpRouteDirector.UNREACHABLE, step, "unreachable route1 from 1tl not detected");
 
         // unrequested security is currently not tolerated
         step = rowdy.nextStep(route1, route1s);
-        Assert.assertEquals("unreachable route1 from 1s not detected",
-                     HttpRouteDirector.UNREACHABLE, step);
+        Assertions.assertEquals(HttpRouteDirector.UNREACHABLE, step, "unreachable route1 from 1s not detected");
 
         step = rowdy.nextStep(route1, route1ts);
-        Assert.assertEquals("unreachable route1 from 1ts not detected",
-                     HttpRouteDirector.UNREACHABLE, step);
+        Assertions.assertEquals(HttpRouteDirector.UNREACHABLE, step, "unreachable route1 from 1ts not detected");
 
         step = rowdy.nextStep(route1, route1tls);
-        Assert.assertEquals("unreachable route1 from 1tls not detected",
-                     HttpRouteDirector.UNREACHABLE, step);
+        Assertions.assertEquals(HttpRouteDirector.UNREACHABLE, step, "unreachable route1 from 1tls not detected");
 
 
         // securing requires layering
         step = rowdy.nextStep(route1s, route1);
-        Assert.assertEquals("unreachable route1s from 1 not detected",
-                     HttpRouteDirector.UNREACHABLE, step);
+        Assertions.assertEquals(HttpRouteDirector.UNREACHABLE, step, "unreachable route1s from 1 not detected");
 
         // securing requires layering, and multiple layers are not supported
         step = rowdy.nextStep(route1tls, route1tl);
-        Assert.assertEquals("unreachable route1tls from 1tl not detected",
-                     HttpRouteDirector.UNREACHABLE, step);
+        Assertions.assertEquals(HttpRouteDirector.UNREACHABLE, step, "unreachable route1tls from 1tl not detected");
 
 
         // cases where tunnelling to the target is required
         step = rowdy.nextStep(route1t, route1);
-        Assert.assertEquals("wrong step to route1t from 1",
-                     HttpRouteDirector.TUNNEL_TARGET, step);
+        Assertions.assertEquals(HttpRouteDirector.TUNNEL_TARGET, step, "wrong step to route1t from 1");
 
         step = rowdy.nextStep(route1tl, route1);
-        Assert.assertEquals("wrong step to route1tl from 1",
-                     HttpRouteDirector.TUNNEL_TARGET, step);
+        Assertions.assertEquals(HttpRouteDirector.TUNNEL_TARGET, step, "wrong step to route1tl from 1");
 
         step = rowdy.nextStep(route1tls, route1);
-        Assert.assertEquals("wrong step to route1tls from 1",
-                     HttpRouteDirector.TUNNEL_TARGET, step);
+        Assertions.assertEquals(HttpRouteDirector.TUNNEL_TARGET, step, "wrong step to route1tls from 1");
 
 
         // cases where layering on the tunnel is required
         step = rowdy.nextStep(route1tl, route1t);
-        Assert.assertEquals("wrong step to route1tl from 1t",
-                     HttpRouteDirector.LAYER_PROTOCOL, step);
+        Assertions.assertEquals(HttpRouteDirector.LAYER_PROTOCOL, step, "wrong step to route1tl from 1t");
 
         step = rowdy.nextStep(route1tl, route1ts);
-        Assert.assertEquals("wrong step to route1tl from 1ts",
-                     HttpRouteDirector.LAYER_PROTOCOL, step);
+        Assertions.assertEquals(HttpRouteDirector.LAYER_PROTOCOL, step, "wrong step to route1tl from 1ts");
 
         step = rowdy.nextStep(route1tls, route1t);
-        Assert.assertEquals("wrong step to route1tls from 1t",
-                     HttpRouteDirector.LAYER_PROTOCOL, step);
+        Assertions.assertEquals(HttpRouteDirector.LAYER_PROTOCOL, step, "wrong step to route1tls from 1t");
 
         step = rowdy.nextStep(route1tls, route1ts);
-        Assert.assertEquals("wrong step to route1tls from 1ts",
-                     HttpRouteDirector.LAYER_PROTOCOL, step);
+        Assertions.assertEquals(HttpRouteDirector.LAYER_PROTOCOL, step, "wrong step to route1tls from 1ts");
 
         // There are some odd cases left over, like having a secure tunnel
         // that becomes unsecure by layering, or a secure connection to a

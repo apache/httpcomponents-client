@@ -37,8 +37,8 @@ import org.apache.hc.client5.http.RouteInfo.TunnelType;
 import org.apache.hc.client5.http.RouteTracker;
 import org.apache.hc.client5.http.routing.HttpRouteDirector;
 import org.apache.hc.core5.http.HttpHost;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests for {@link RouteTracker}.
@@ -90,28 +90,23 @@ public class TestRouteTracker {
     public void testCstrTargetLocal() {
 
         RouteTracker rt = new RouteTracker(TARGET1, null);
-        Assert.assertEquals("wrong target (target,null)",
-                     TARGET1, rt.getTargetHost());
-        Assert.assertNull("wrong local address (target,null)", rt.getLocalAddress());
-        Assert.assertEquals("wrong hop count (target,null)",
-                     0, rt.getHopCount());
-        Assert.assertNull("wrong proxy (target,null)", rt.getProxyHost());
-        Assert.assertNull("wrong route (target,null)", rt.toRoute());
+        Assertions.assertEquals(TARGET1, rt.getTargetHost(), "wrong target (target,null)");
+        Assertions.assertNull(rt.getLocalAddress(), "wrong local address (target,null)");
+        Assertions.assertEquals(0, rt.getHopCount(), "wrong hop count (target,null)");
+        Assertions.assertNull(rt.getProxyHost(), "wrong proxy (target,null)");
+        Assertions.assertNull(rt.toRoute(), "wrong route (target,null)");
         checkCTLS(rt, false, false, false, false);
 
 
         rt = new RouteTracker(TARGET2, LOCAL61);
-        Assert.assertEquals("wrong target (target,local)",
-                     TARGET2, rt.getTargetHost());
-        Assert.assertEquals("wrong local address (target,local)",
-                     LOCAL61, rt.getLocalAddress());
-        Assert.assertEquals("wrong hop count (target,local)",
-                     0, rt.getHopCount());
-        Assert.assertNull("wrong proxy (target,local)", rt.getProxyHost());
-        Assert.assertNull("wrong route (target,local)", rt.toRoute());
+        Assertions.assertEquals(TARGET2, rt.getTargetHost(), "wrong target (target,local)");
+        Assertions.assertEquals(LOCAL61, rt.getLocalAddress(), "wrong local address (target,local)");
+        Assertions.assertEquals(0, rt.getHopCount(), "wrong hop count (target,local)");
+        Assertions.assertNull(rt.getProxyHost(), "wrong proxy (target,local)");
+        Assertions.assertNull(rt.toRoute(), "wrong route (target,local)");
         checkCTLS(rt, false, false, false, false);
 
-        Assert.assertThrows(NullPointerException.class, () -> new RouteTracker(null, LOCAL41));
+        Assertions.assertThrows(NullPointerException.class, () -> new RouteTracker(null, LOCAL41));
     }
 
     @SuppressWarnings("unused")
@@ -120,41 +115,33 @@ public class TestRouteTracker {
 
         HttpRoute r  = new HttpRoute(TARGET1);
         RouteTracker rt = new RouteTracker(r);
-        Assert.assertEquals("wrong target (r1)",
-                     TARGET1, rt.getTargetHost());
-        Assert.assertNull("wrong local address (r1)", rt.getLocalAddress());
-        Assert.assertEquals("wrong hop count (r1)",
-                     0, rt.getHopCount());
-        Assert.assertNull("wrong proxy (r1)", rt.getProxyHost());
-        Assert.assertNull("wrong route (r1)", rt.toRoute());
+        Assertions.assertEquals(TARGET1, rt.getTargetHost(), "wrong target (r1)");
+        Assertions.assertNull(rt.getLocalAddress(), "wrong local address (r1)");
+        Assertions.assertEquals(0, rt.getHopCount(), "wrong hop count (r1)");
+        Assertions.assertNull(rt.getProxyHost(), "wrong proxy (r1)");
+        Assertions.assertNull(rt.toRoute(), "wrong route (r1)");
         checkCTLS(rt, false, false, false, false);
 
         r  = new HttpRoute(TARGET2, LOCAL61, true);
         rt = new RouteTracker(r);
-        Assert.assertEquals("wrong target (r2)",
-                     TARGET2, rt.getTargetHost());
-        Assert.assertEquals("wrong local address (r2)",
-                     LOCAL61, rt.getLocalAddress());
-        Assert.assertEquals("wrong hop count (r2)",
-                     0, rt.getHopCount());
-        Assert.assertNull("wrong proxy (r2)", rt.getProxyHost());
-        Assert.assertNull("wrong route (r2)", rt.toRoute());
+        Assertions.assertEquals(TARGET2, rt.getTargetHost(), "wrong target (r2)");
+        Assertions.assertEquals(LOCAL61, rt.getLocalAddress(), "wrong local address (r2)");
+        Assertions.assertEquals(0, rt.getHopCount(), "wrong hop count (r2)");
+        Assertions.assertNull(rt.getProxyHost(), "wrong proxy (r2)");
+        Assertions.assertNull(rt.toRoute(), "wrong route (r2)");
         checkCTLS(rt, false, false, false, false);
 
 
         r  = new HttpRoute(TARGET1, LOCAL42, PROXY3, true);
         rt = new RouteTracker(r);
-        Assert.assertEquals("wrong target (r3)",
-                     TARGET1, rt.getTargetHost());
-        Assert.assertEquals("wrong local address (r3)",
-                     LOCAL42, rt.getLocalAddress());
-        Assert.assertEquals("wrong hop count (r3)",
-                     0, rt.getHopCount());
-        Assert.assertNull("wrong proxy (r3)", rt.getProxyHost());
-        Assert.assertNull("wrong route (r3)", rt.toRoute());
+        Assertions.assertEquals(TARGET1, rt.getTargetHost(), "wrong target (r3)");
+        Assertions.assertEquals(LOCAL42, rt.getLocalAddress(), "wrong local address (r3)");
+        Assertions.assertEquals(0, rt.getHopCount(), "wrong hop count (r3)");
+        Assertions.assertNull(rt.getProxyHost(), "wrong proxy (r3)");
+        Assertions.assertNull(rt.toRoute(), "wrong route (r3)");
         checkCTLS(rt, false, false, false, false);
 
-        Assert.assertThrows(NullPointerException.class, () -> new RouteTracker(null));
+        Assertions.assertThrows(NullPointerException.class, () -> new RouteTracker(null));
     }
 
     @Test
@@ -162,15 +149,15 @@ public class TestRouteTracker {
 
         final RouteTracker rt = new RouteTracker(TARGET2, null);
 
-        Assert.assertThrows(NullPointerException.class, () -> rt.connectProxy(null, true));
-        Assert.assertThrows(NullPointerException.class, () -> rt.connectProxy(null, false));
+        Assertions.assertThrows(NullPointerException.class, () -> rt.connectProxy(null, true));
+        Assertions.assertThrows(NullPointerException.class, () -> rt.connectProxy(null, false));
 
         rt.connectProxy(PROXY1, false);
 
-        Assert.assertThrows(NullPointerException.class, () -> rt.tunnelProxy(null, false));
-        Assert.assertThrows(NullPointerException.class, () -> rt.tunnelProxy(null, true));
-        Assert.assertThrows(IllegalArgumentException.class, () -> rt.getHopTarget(-1));
-        Assert.assertThrows(IllegalArgumentException.class, () -> rt.getHopTarget(2));
+        Assertions.assertThrows(NullPointerException.class, () -> rt.tunnelProxy(null, false));
+        Assertions.assertThrows(NullPointerException.class, () -> rt.tunnelProxy(null, true));
+        Assertions.assertThrows(IllegalArgumentException.class, () -> rt.getHopTarget(-1));
+        Assertions.assertThrows(IllegalArgumentException.class, () -> rt.getHopTarget(2));
     }
 
     @Test
@@ -178,17 +165,17 @@ public class TestRouteTracker {
 
         final RouteTracker rt = new RouteTracker(TARGET1, null);
 
-        Assert.assertThrows(IllegalStateException.class, () -> rt.tunnelTarget(false));
-        Assert.assertThrows(IllegalStateException.class, () -> rt.tunnelProxy(PROXY1, false));
-        Assert.assertThrows(IllegalStateException.class, () -> rt.layerProtocol(true));
+        Assertions.assertThrows(IllegalStateException.class, () -> rt.tunnelTarget(false));
+        Assertions.assertThrows(IllegalStateException.class, () -> rt.tunnelProxy(PROXY1, false));
+        Assertions.assertThrows(IllegalStateException.class, () -> rt.layerProtocol(true));
 
         // connect directly
         rt.connectTarget(false);
 
-        Assert.assertThrows(IllegalStateException.class, () -> rt.connectTarget(false));
-        Assert.assertThrows(IllegalStateException.class, () -> rt.connectProxy(PROXY2, false));
-        Assert.assertThrows(IllegalStateException.class, () -> rt.tunnelTarget(false));
-        Assert.assertThrows(IllegalStateException.class, () -> rt.tunnelProxy(PROXY1, false));
+        Assertions.assertThrows(IllegalStateException.class, () -> rt.connectTarget(false));
+        Assertions.assertThrows(IllegalStateException.class, () -> rt.connectProxy(PROXY2, false));
+        Assertions.assertThrows(IllegalStateException.class, () -> rt.tunnelTarget(false));
+        Assertions.assertThrows(IllegalStateException.class, () -> rt.tunnelProxy(PROXY1, false));
     }
 
     @Test
@@ -198,12 +185,12 @@ public class TestRouteTracker {
         HttpRoute r = new HttpRoute(TARGET1, LOCAL41, false);
         RouteTracker rt = new RouteTracker(r);
         boolean complete = checkVia(rt, r, rd, 2);
-        Assert.assertTrue("incomplete route 1", complete);
+        Assertions.assertTrue(complete, "incomplete route 1");
 
         r = new HttpRoute(TARGET2, LOCAL62, true);
         rt = new RouteTracker(r);
         complete = checkVia(rt, r, rd, 2);
-        Assert.assertTrue("incomplete route 2", complete);
+        Assertions.assertTrue(complete, "incomplete route 2");
     }
 
     @Test
@@ -213,27 +200,27 @@ public class TestRouteTracker {
         HttpRoute r = new HttpRoute(TARGET2, null, PROXY1, false);
         RouteTracker rt = new RouteTracker(r);
         boolean complete = checkVia(rt, r, rd, 2);
-        Assert.assertTrue("incomplete route 1", complete);
+        Assertions.assertTrue(complete, "incomplete route 1");
 
         // tunnelled, but neither secure nor layered
         r = new HttpRoute(TARGET1, LOCAL61, PROXY3, false,
                           TunnelType.TUNNELLED, LayerType.PLAIN);
         rt = new RouteTracker(r);
         complete = checkVia(rt, r, rd, 3);
-        Assert.assertTrue("incomplete route 2", complete);
+        Assertions.assertTrue(complete, "incomplete route 2");
 
         // tunnelled, layered, but not secure
         r = new HttpRoute(TARGET1, LOCAL61, PROXY3, false,
                           TunnelType.TUNNELLED, LayerType.LAYERED);
         rt = new RouteTracker(r);
         complete = checkVia(rt, r, rd, 4);
-        Assert.assertTrue("incomplete route 3", complete);
+        Assertions.assertTrue(complete, "incomplete route 3");
 
         // tunnelled, layered, secure
         r = new HttpRoute(TARGET1, LOCAL61, PROXY3, true);
         rt = new RouteTracker(r);
         complete = checkVia(rt, r, rd, 4);
-        Assert.assertTrue("incomplete route 4", complete);
+        Assertions.assertTrue(complete, "incomplete route 4");
     }
 
     @Test
@@ -245,7 +232,7 @@ public class TestRouteTracker {
                                     TunnelType.PLAIN, LayerType.PLAIN);
         RouteTracker rt = new RouteTracker(r);
         boolean complete = checkVia(rt, r, rd, 3);
-        Assert.assertTrue("incomplete route 1", complete);
+        Assertions.assertTrue(complete, "incomplete route 1");
 
         // tunnelled, but neither secure nor layered
         proxies = new HttpHost[]{ PROXY3, PROXY2 };
@@ -253,7 +240,7 @@ public class TestRouteTracker {
                           TunnelType.TUNNELLED, LayerType.PLAIN);
         rt = new RouteTracker(r);
         complete = checkVia(rt, r, rd, 4);
-        Assert.assertTrue("incomplete route 2", complete);
+        Assertions.assertTrue(complete, "incomplete route 2");
 
         // tunnelled, layered, but not secure
         proxies = new HttpHost[]{ PROXY3, PROXY2, PROXY1 };
@@ -261,7 +248,7 @@ public class TestRouteTracker {
                           TunnelType.TUNNELLED, LayerType.LAYERED);
         rt = new RouteTracker(r);
         complete = checkVia(rt, r, rd, 6);
-        Assert.assertTrue("incomplete route 3", complete);
+        Assertions.assertTrue(complete, "incomplete route 3");
 
         // tunnelled, layered, secure
         proxies = new HttpHost[]{ PROXY1, PROXY3 };
@@ -269,7 +256,7 @@ public class TestRouteTracker {
                           TunnelType.TUNNELLED, LayerType.LAYERED);
         rt = new RouteTracker(r);
         complete = checkVia(rt, r, rd, 5);
-        Assert.assertTrue("incomplete route 4", complete);
+        Assertions.assertTrue(complete, "incomplete route 4");
     }
 
     @Test
@@ -283,39 +270,39 @@ public class TestRouteTracker {
         final RouteTracker rt4 = new RouteTracker(TARGET1, LOCAL41);
         final RouteTracker rt6 = new RouteTracker(TARGET1, LOCAL62);
 
-        Assert.assertNotEquals("rt0", null, rt0);
-        Assert.assertEquals("rt0", rt0, rt0);
-        Assert.assertNotEquals("rt0", rt0, rt0.toString());
+        Assertions.assertNotEquals(null, rt0, "rt0");
+        Assertions.assertEquals(rt0, rt0, "rt0");
+        Assertions.assertNotEquals("rt0", rt0, rt0.toString());
 
-        Assert.assertNotEquals("rt0 == rt4", rt0, rt4);
-        Assert.assertNotEquals("rt0 == rt1", rt0, rt1); // Check host takes part in equals
+        Assertions.assertNotEquals(rt0, rt4, "rt0 == rt4");
+        Assertions.assertNotEquals(rt0, rt1, "rt0 == rt1"); // Check host takes part in equals
 
         // Check that connection takes part in equals
-        Assert.assertEquals("rt0 != rt2", rt0, rt2);
+        Assertions.assertEquals(rt0, rt2, "rt0 != rt2");
         rt2.connectTarget(false);
-        Assert.assertNotEquals("rt0 == rt2", rt0, rt2);
+        Assertions.assertNotEquals(rt0, rt2, "rt0 == rt2");
 
-        Assert.assertEquals("rt0 != rt3", rt0, rt3);
+        Assertions.assertEquals(rt0, rt3, "rt0 != rt3");
         rt3.connectTarget(true);
-        Assert.assertNotEquals("rt0 == rt3", rt0, rt3);
-        Assert.assertNotEquals("rt2 == rt3", rt2, rt3); // Test secure takes part
+        Assertions.assertNotEquals(rt0, rt3, "rt0 == rt3");
+        Assertions.assertNotEquals(rt2, rt3, "rt2 == rt3"); // Test secure takes part
 
         // TODO needs tests for tunnel and layered
 
-        Assert.assertNotEquals("rt4 == rt0", rt4, rt0);
-        Assert.assertNotEquals("rt0 == rt6", rt0, rt6);
-        Assert.assertNotEquals("rt6 == rt0", rt6, rt0);
-        Assert.assertNotEquals("rt4 == rt6", rt4, rt6);
-        Assert.assertNotEquals("rt6 == rt4", rt6, rt4);
+        Assertions.assertNotEquals(rt4, rt0, "rt4 == rt0");
+        Assertions.assertNotEquals(rt0, rt6, "rt0 == rt6");
+        Assertions.assertNotEquals(rt6, rt0, "rt6 == rt0");
+        Assertions.assertNotEquals(rt4, rt6, "rt4 == rt6");
+        Assertions.assertNotEquals(rt6, rt4, "rt6 == rt4");
 
         // it is likely but not guaranteed that the hashcodes are different
-        Assert.assertNotEquals("rt0 == rt4 (hashcode)", rt0.hashCode(), rt4.hashCode());
-        Assert.assertNotEquals("rt0 == rt6 (hashcode)", rt0.hashCode(), rt6.hashCode());
-        Assert.assertNotEquals("rt6 == rt4 (hashcode)", rt6.hashCode(), rt4.hashCode());
+        Assertions.assertNotEquals(rt0.hashCode(), rt4.hashCode(), "rt0 == rt4 (hashcode)");
+        Assertions.assertNotEquals(rt0.hashCode(), rt6.hashCode(), "rt0 == rt6 (hashcode)");
+        Assertions.assertNotEquals(rt6.hashCode(), rt4.hashCode(), "rt6 == rt4 (hashcode)");
 
-        Assert.assertEquals("rt0 (clone)", rt0, rt0.clone());
-        Assert.assertEquals("rt4 (clone)", rt4, rt4.clone());
-        Assert.assertEquals("rt6 (clone)", rt6, rt6.clone());
+        Assertions.assertEquals(rt0, rt0.clone(), "rt0 (clone)");
+        Assertions.assertEquals(rt4, rt4.clone(), "rt4 (clone)");
+        Assertions.assertEquals(rt6, rt6.clone(), "rt6 (clone)");
 
 
         // we collect (clones of) the different tracked routes along the way
@@ -333,127 +320,127 @@ public class TestRouteTracker {
 
         RouteTracker rt = null;
 
-        Assert.assertTrue(hs.add(rt0));
-        Assert.assertTrue(hs.add(rt4));
-        Assert.assertTrue(hs.add(rt6));
+        Assertions.assertTrue(hs.add(rt0));
+        Assertions.assertTrue(hs.add(rt4));
+        Assertions.assertTrue(hs.add(rt6));
 
-        Assert.assertTrue(hc0.add(rt0.hashCode()));
-        Assert.assertTrue(hc4.add(rt4.hashCode()));
-        Assert.assertTrue(hc6.add(rt6.hashCode()));
+        Assertions.assertTrue(hc0.add(rt0.hashCode()));
+        Assertions.assertTrue(hc4.add(rt4.hashCode()));
+        Assertions.assertTrue(hc6.add(rt6.hashCode()));
 
         rt = (RouteTracker) rt0.clone();
         rt.connectTarget(false);
-        Assert.assertTrue(hs.add(rt));
-        Assert.assertTrue(hc0.add(rt.hashCode()));
+        Assertions.assertTrue(hs.add(rt));
+        Assertions.assertTrue(hc0.add(rt.hashCode()));
 
         rt = (RouteTracker) rt0.clone();
         rt.connectTarget(true);
-        Assert.assertTrue(hs.add(rt));
-        Assert.assertTrue(hc0.add(rt.hashCode()));
+        Assertions.assertTrue(hs.add(rt));
+        Assertions.assertTrue(hc0.add(rt.hashCode()));
 
 
         // proxy (insecure) -> tunnel (insecure) -> layer (secure)
         rt = (RouteTracker) rt4.clone();
         rt.connectProxy(PROXY1, false);
-        Assert.assertTrue(hs.add((RouteTracker) rt.clone()));
+        Assertions.assertTrue(hs.add((RouteTracker) rt.clone()));
         // this is not guaranteed to be unique...
-        Assert.assertTrue(hc4.add(rt.hashCode()));
+        Assertions.assertTrue(hc4.add(rt.hashCode()));
 
         rt.tunnelTarget(false);
-        Assert.assertTrue(hs.add((RouteTracker) rt.clone()));
-        Assert.assertTrue(hc4.add(rt.hashCode()));
+        Assertions.assertTrue(hs.add((RouteTracker) rt.clone()));
+        Assertions.assertTrue(hc4.add(rt.hashCode()));
 
         rt.layerProtocol(true);
-        Assert.assertTrue(hs.add((RouteTracker) rt.clone()));
-        Assert.assertTrue(hc4.add(rt.hashCode()));
+        Assertions.assertTrue(hs.add((RouteTracker) rt.clone()));
+        Assertions.assertTrue(hc4.add(rt.hashCode()));
 
 
         // proxy (secure) -> tunnel (secure) -> layer (insecure)
         rt = (RouteTracker) rt4.clone();
         rt.connectProxy(PROXY1, true);
-        Assert.assertTrue(hs.add((RouteTracker) rt.clone()));
+        Assertions.assertTrue(hs.add((RouteTracker) rt.clone()));
         // this is not guaranteed to be unique...
-        Assert.assertTrue(hc4.add(rt.hashCode()));
+        Assertions.assertTrue(hc4.add(rt.hashCode()));
 
         rt.tunnelTarget(true);
-        Assert.assertTrue(hs.add((RouteTracker) rt.clone()));
-        Assert.assertTrue(hc4.add(rt.hashCode()));
+        Assertions.assertTrue(hs.add((RouteTracker) rt.clone()));
+        Assertions.assertTrue(hc4.add(rt.hashCode()));
 
         rt.layerProtocol(false);
-        Assert.assertTrue(hs.add((RouteTracker) rt.clone()));
-        Assert.assertTrue(hc4.add(rt.hashCode()));
+        Assertions.assertTrue(hs.add((RouteTracker) rt.clone()));
+        Assertions.assertTrue(hc4.add(rt.hashCode()));
 
 
         // PROXY1/i -> PROXY2/i -> tunnel/i -> layer/s
         rt = (RouteTracker) rt6.clone();
         rt.connectProxy(PROXY1, false);
-        Assert.assertTrue(hs.add((RouteTracker) rt.clone()));
+        Assertions.assertTrue(hs.add((RouteTracker) rt.clone()));
         // this is not guaranteed to be unique...
-        Assert.assertTrue(hc6.add(rt.hashCode()));
+        Assertions.assertTrue(hc6.add(rt.hashCode()));
 
         rt.tunnelProxy(PROXY2, false);
-        Assert.assertTrue(hs.add((RouteTracker) rt.clone()));
+        Assertions.assertTrue(hs.add((RouteTracker) rt.clone()));
         // this is not guaranteed to be unique...
-        Assert.assertTrue(hc6.add(rt.hashCode()));
+        Assertions.assertTrue(hc6.add(rt.hashCode()));
 
         rt.tunnelTarget(false);
-        Assert.assertTrue(hs.add((RouteTracker) rt.clone()));
-        Assert.assertTrue(hc6.add(rt.hashCode()));
+        Assertions.assertTrue(hs.add((RouteTracker) rt.clone()));
+        Assertions.assertTrue(hc6.add(rt.hashCode()));
 
         rt.layerProtocol(true);
-        Assert.assertTrue(hs.add((RouteTracker) rt.clone()));
-        Assert.assertTrue(hc6.add(rt.hashCode()));
+        Assertions.assertTrue(hs.add((RouteTracker) rt.clone()));
+        Assertions.assertTrue(hc6.add(rt.hashCode()));
 
 
         // PROXY1/s -> PROXY2/s -> tunnel/s -> layer/i
         rt = (RouteTracker) rt6.clone();
         rt.connectProxy(PROXY1, true);
-        Assert.assertTrue(hs.add((RouteTracker) rt.clone()));
+        Assertions.assertTrue(hs.add((RouteTracker) rt.clone()));
         // this is not guaranteed to be unique...
-        Assert.assertTrue(hc6.add(rt.hashCode()));
+        Assertions.assertTrue(hc6.add(rt.hashCode()));
 
         rt.tunnelProxy(PROXY2, true);
-        Assert.assertTrue(hs.add((RouteTracker) rt.clone()));
+        Assertions.assertTrue(hs.add((RouteTracker) rt.clone()));
         // this is not guaranteed to be unique...
-        Assert.assertTrue(hc6.add(rt.hashCode()));
+        Assertions.assertTrue(hc6.add(rt.hashCode()));
 
         rt.tunnelTarget(true);
-        Assert.assertTrue(hs.add((RouteTracker) rt.clone()));
-        Assert.assertTrue(hc6.add(rt.hashCode()));
+        Assertions.assertTrue(hs.add((RouteTracker) rt.clone()));
+        Assertions.assertTrue(hc6.add(rt.hashCode()));
 
         rt.layerProtocol(false);
-        Assert.assertTrue(hs.add((RouteTracker) rt.clone()));
-        Assert.assertTrue(hc6.add(rt.hashCode()));
+        Assertions.assertTrue(hs.add((RouteTracker) rt.clone()));
+        Assertions.assertTrue(hc6.add(rt.hashCode()));
 
 
         // PROXY2/i -> PROXY1/i -> tunnel/i -> layer/s
         rt = (RouteTracker) rt6.clone();
         rt.connectProxy(PROXY2, false);
-        Assert.assertTrue(hs.add((RouteTracker) rt.clone()));
+        Assertions.assertTrue(hs.add((RouteTracker) rt.clone()));
         // this is not guaranteed to be unique...
-        Assert.assertTrue(hc6.add(rt.hashCode()));
+        Assertions.assertTrue(hc6.add(rt.hashCode()));
 
         rt.tunnelProxy(PROXY1, false);
-        Assert.assertTrue(hs.add((RouteTracker) rt.clone()));
+        Assertions.assertTrue(hs.add((RouteTracker) rt.clone()));
         // proxy chain sequence does not affect hashcode, so duplicate:
-        // Assert.assertTrue(hc6.add(Integer.valueOf(rt.hashCode())));
+        // Assertions.assertTrue(hc6.add(Integer.valueOf(rt.hashCode())));
 
         rt.tunnelTarget(false);
-        Assert.assertTrue(hs.add((RouteTracker) rt.clone()));
+        Assertions.assertTrue(hs.add((RouteTracker) rt.clone()));
         // proxy chain sequence does not affect hashcode, so duplicate:
-        // Assert.assertTrue(hc6.add(Integer.valueOf(rt.hashCode())));
+        // Assertions.assertTrue(hc6.add(Integer.valueOf(rt.hashCode())));
 
         rt.layerProtocol(true);
-        Assert.assertTrue(hs.add((RouteTracker) rt.clone()));
+        Assertions.assertTrue(hs.add((RouteTracker) rt.clone()));
         // proxy chain sequence does not affect hashcode, so duplicate:
-        // Assert.assertTrue(hc6.add(Integer.valueOf(rt.hashCode())));
+        // Assertions.assertTrue(hc6.add(Integer.valueOf(rt.hashCode())));
 
 
         // check that all toString are OK and different
         final Set<String> rtstrings = new HashSet<>();
         for (final RouteTracker current: hs) {
             final String rts = checkToString(current);
-            Assert.assertTrue("duplicate toString: " + rts, rtstrings.add(rts));
+            Assertions.assertTrue(rtstrings.add(rts), "duplicate toString: " + rts);
         }
     }
 
@@ -463,16 +450,14 @@ public class TestRouteTracker {
                                        final boolean c, final boolean t,
                                        final boolean l, final boolean s) {
         final String rts = rt.toString();
-        Assert.assertEquals("wrong flag connected: " + rts, c, rt.isConnected());
-        Assert.assertEquals("wrong flag tunnelled: " + rts, t, rt.isTunnelled());
-        Assert.assertEquals("wrong enum tunnelled: " + rts,
-                     t ? TunnelType.TUNNELLED : TunnelType.PLAIN,
-                     rt.getTunnelType());
-        Assert.assertEquals("wrong flag layered: "   + rts, l, rt.isLayered());
-        Assert.assertEquals("wrong enum layered: "   + rts,
-                     l ? LayerType.LAYERED : LayerType.PLAIN,
-                     rt.getLayerType());
-        Assert.assertEquals("wrong flag secure: "    + rts, s, rt.isSecure());
+        Assertions.assertEquals(c, rt.isConnected(), "wrong flag connected: " + rts);
+        Assertions.assertEquals(t, rt.isTunnelled(), "wrong flag tunnelled: " + rts);
+        Assertions.assertEquals(t ? TunnelType.TUNNELLED : TunnelType.PLAIN,
+                     rt.getTunnelType(), "wrong enum tunnelled: " + rts);
+        Assertions.assertEquals(l, rt.isLayered(), "wrong flag layered: "   + rts);
+        Assertions.assertEquals(l ? LayerType.LAYERED : LayerType.PLAIN,
+                     rt.getLayerType(), "wrong enum layered: "   + rts);
+        Assertions.assertEquals(s, rt.isSecure(), "wrong flag secure: " + rts);
     }
 
 
@@ -502,17 +487,15 @@ public class TestRouteTracker {
 
             case HttpRouteDirector.COMPLETE:
                 complete = true;
-                Assert.assertEquals(r, rt.toRoute());
+                Assertions.assertEquals(r, rt.toRoute());
                 break;
 
             case HttpRouteDirector.CONNECT_TARGET: {
                 final boolean sec = r.isSecure();
                 rt.connectTarget(sec);
                 checkCTLS(rt, true, false, false, sec);
-                Assert.assertEquals("wrong hop count "+msg,
-                             1, rt.getHopCount());
-                Assert.assertEquals("wrong hop0 "+msg,
-                             r.getTargetHost(), rt.getHopTarget(0));
+                Assertions.assertEquals(1, rt.getHopCount(), "wrong hop count "+msg);
+                Assertions.assertEquals(r.getTargetHost(), rt.getHopTarget(0), "wrong hop0 "+msg);
             } break;
 
             case HttpRouteDirector.CONNECT_PROXY: {
@@ -520,12 +503,9 @@ public class TestRouteTracker {
                 final boolean sec = false;
                 rt.connectProxy(r.getProxyHost(), sec);
                 checkCTLS(rt, true, false, false, sec);
-                Assert.assertEquals("wrong hop count "+msg,
-                             2, rt.getHopCount());
-                Assert.assertEquals("wrong hop0 "+msg,
-                             r.getProxyHost(), rt.getHopTarget(0));
-                Assert.assertEquals("wrong hop1 "+msg,
-                             r.getTargetHost(), rt.getHopTarget(1));
+                Assertions.assertEquals(2, rt.getHopCount(), "wrong hop count "+msg);
+                Assertions.assertEquals(r.getProxyHost(), rt.getHopTarget(0), "wrong hop0 "+msg);
+                Assertions.assertEquals(r.getTargetHost(), rt.getHopTarget(1), "wrong hop1 "+msg);
             } break;
 
             case HttpRouteDirector.TUNNEL_TARGET: {
@@ -534,12 +514,9 @@ public class TestRouteTracker {
                 final boolean sec = false;
                 rt.tunnelTarget(sec);
                 checkCTLS(rt, true, true, false, sec);
-                Assert.assertEquals("wrong hop count "+msg,
-                             hops, rt.getHopCount());
-                Assert.assertEquals("wrong hop0 "+msg,
-                             r.getProxyHost(), rt.getHopTarget(0));
-                Assert.assertEquals("wrong hopN "+msg,
-                             r.getTargetHost(), rt.getHopTarget(hops-1));
+                Assertions.assertEquals(hops, rt.getHopCount(), "wrong hop count "+msg);
+                Assertions.assertEquals(r.getProxyHost(), rt.getHopTarget(0), "wrong hop0 "+msg);
+                Assertions.assertEquals(r.getTargetHost(), rt.getHopTarget(hops-1), "wrong hopN "+msg);
             } break;
 
             case HttpRouteDirector.TUNNEL_PROXY: {
@@ -551,14 +528,10 @@ public class TestRouteTracker {
                 // Since we're tunnelling to a proxy and not the target,
                 // the 'tunelling' flag is false: no end-to-end tunnel.
                 checkCTLS(rt, true, false, false, sec);
-                Assert.assertEquals("wrong hop count "+msg,
-                             hops+1, rt.getHopCount());
-                Assert.assertEquals("wrong hop0 "+msg,
-                             r.getProxyHost(), rt.getHopTarget(0));
-                Assert.assertEquals("wrong hop"+hops+" "+msg,
-                             pxy, rt.getHopTarget(hops-1));
-                Assert.assertEquals("wrong hopN "+msg,
-                             r.getTargetHost(), rt.getHopTarget(hops));
+                Assertions.assertEquals(hops+1, rt.getHopCount(), "wrong hop count "+msg);
+                Assertions.assertEquals(r.getProxyHost(), rt.getHopTarget(0), "wrong hop0 "+msg);
+                Assertions.assertEquals(pxy, rt.getHopTarget(hops-1), "wrong hop"+hops+" "+msg);
+                Assertions.assertEquals(r.getTargetHost(), rt.getHopTarget(hops), "wrong hopN "+msg);
             } break;
 
             case HttpRouteDirector.LAYER_PROTOCOL: {
@@ -567,18 +540,15 @@ public class TestRouteTracker {
                 final boolean sec = r.isSecure();
                 rt.layerProtocol(sec);
                 checkCTLS(rt, true, tun, true, sec);
-                Assert.assertEquals("wrong hop count "+msg,
-                             hops, rt.getHopCount());
-                Assert.assertEquals("wrong proxy "+msg,
-                             r.getProxyHost(), rt.getProxyHost());
-                Assert.assertEquals("wrong target "+msg,
-                             r.getTargetHost(), rt.getTargetHost());
+                Assertions.assertEquals(hops, rt.getHopCount(), "wrong hop count "+msg);
+                Assertions.assertEquals(r.getProxyHost(), rt.getProxyHost(), "wrong proxy "+msg);
+                Assertions.assertEquals(r.getTargetHost(), rt.getTargetHost(), "wrong target "+msg);
             } break;
 
 
             // UNREACHABLE
             default:
-                Assert.fail("unexpected action " + action + " from director, "+msg);
+                Assertions.fail("unexpected action " + action + " from director, "+msg);
                 break;
 
             } // switch
@@ -605,12 +575,12 @@ public class TestRouteTracker {
 
         if (rt.getLocalAddress() != null) {
             final String las = rt.getLocalAddress().toString();
-            Assert.assertTrue("no local address in toString(): " + rts, rts.contains(las));
+            Assertions.assertTrue(rts.contains(las), "no local address in toString(): " + rts);
         }
 
         for (int i=0; i<rt.getHopCount(); i++) {
             final String hts = rt.getHopTarget(i).toString();
-            Assert.assertTrue("hop " + i + " (" + hts + ") missing in toString(): " + rts, rts.contains(hts));
+            Assertions.assertTrue(rts.contains(hts), "hop " + i + " (" + hts + ") missing in toString(): " + rts);
         }
 
         return rts;

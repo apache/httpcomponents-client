@@ -54,9 +54,9 @@ import org.apache.hc.core5.http.message.BasicHttpRequest;
 import org.apache.hc.core5.http.message.BasicHttpResponse;
 import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.HttpContext;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Answers;
 import org.mockito.Mockito;
 
@@ -81,7 +81,7 @@ public class TestHttpAuthenticator {
     private Lookup<AuthSchemeFactory> authSchemeRegistry;
     private HttpAuthenticator httpAuthenticator;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         this.authExchange = new AuthExchange();
         this.authScheme = Mockito.mock(CacheableAuthState.class, Mockito.withSettings()
@@ -103,7 +103,7 @@ public class TestHttpAuthenticator {
     public void testUpdateAuthExchange() throws Exception {
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
         response.setHeader(HttpHeaders.WWW_AUTHENTICATE, StandardAuthScheme.BASIC + " realm=test");
-        Assert.assertTrue(this.httpAuthenticator.isChallenged(
+        Assertions.assertTrue(this.httpAuthenticator.isChallenged(
                 this.defaultHost, ChallengeType.TARGET, response, this.authExchange, this.context));
     }
 
@@ -115,7 +115,7 @@ public class TestHttpAuthenticator {
         this.authExchange.select(this.authScheme);
         this.authExchange.setState(AuthExchange.State.SUCCESS);
 
-        Assert.assertTrue(this.httpAuthenticator.isChallenged(
+        Assertions.assertTrue(this.httpAuthenticator.isChallenged(
                 this.defaultHost, ChallengeType.TARGET, response, this.authExchange, this.context));
     }
 
@@ -123,9 +123,9 @@ public class TestHttpAuthenticator {
     public void testAuthenticationNotRequestedUnchallenged() throws Exception {
         final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_OK, "OK");
 
-        Assert.assertFalse(this.httpAuthenticator.isChallenged(
+        Assertions.assertFalse(this.httpAuthenticator.isChallenged(
                 this.defaultHost, ChallengeType.TARGET, response, this.authExchange, this.context));
-        Assert.assertEquals(AuthExchange.State.UNCHALLENGED, this.authExchange.getState());
+        Assertions.assertEquals(AuthExchange.State.UNCHALLENGED, this.authExchange.getState());
     }
 
     @Test
@@ -134,9 +134,9 @@ public class TestHttpAuthenticator {
         this.authExchange.select(this.authScheme);
         this.authExchange.setState(AuthExchange.State.CHALLENGED);
 
-        Assert.assertFalse(this.httpAuthenticator.isChallenged(
+        Assertions.assertFalse(this.httpAuthenticator.isChallenged(
                 this.defaultHost, ChallengeType.TARGET, response, this.authExchange, this.context));
-        Assert.assertEquals(AuthExchange.State.SUCCESS, this.authExchange.getState());
+        Assertions.assertEquals(AuthExchange.State.SUCCESS, this.authExchange.getState());
     }
 
     @Test
@@ -145,9 +145,9 @@ public class TestHttpAuthenticator {
         this.authExchange.select(this.authScheme);
         this.authExchange.setState(AuthExchange.State.HANDSHAKE);
 
-        Assert.assertFalse(this.httpAuthenticator.isChallenged(
+        Assertions.assertFalse(this.httpAuthenticator.isChallenged(
                 this.defaultHost, ChallengeType.TARGET, response, this.authExchange, this.context));
-        Assert.assertEquals(AuthExchange.State.SUCCESS, this.authExchange.getState());
+        Assertions.assertEquals(AuthExchange.State.SUCCESS, this.authExchange.getState());
     }
 
     @Test
@@ -164,19 +164,19 @@ public class TestHttpAuthenticator {
 
         final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
 
-        Assert.assertTrue(this.httpAuthenticator.updateAuthState(host, ChallengeType.TARGET, response, authStrategy,
+        Assertions.assertTrue(this.httpAuthenticator.updateAuthState(host, ChallengeType.TARGET, response, authStrategy,
                                                                      this.authExchange, this.context));
-        Assert.assertEquals(AuthExchange.State.CHALLENGED, this.authExchange.getState());
+        Assertions.assertEquals(AuthExchange.State.CHALLENGED, this.authExchange.getState());
 
         final Queue<AuthScheme> options = this.authExchange.getAuthOptions();
-        Assert.assertNotNull(options);
+        Assertions.assertNotNull(options);
         final AuthScheme authScheme1 = options.poll();
-        Assert.assertNotNull(authScheme1);
-        Assert.assertEquals(StandardAuthScheme.DIGEST, authScheme1.getName());
+        Assertions.assertNotNull(authScheme1);
+        Assertions.assertEquals(StandardAuthScheme.DIGEST, authScheme1.getName());
         final AuthScheme authScheme2 = options.poll();
-        Assert.assertNotNull(authScheme2);
-        Assert.assertEquals(StandardAuthScheme.BASIC, authScheme2.getName());
-        Assert.assertNull(options.poll());
+        Assertions.assertNotNull(authScheme2);
+        Assertions.assertEquals(StandardAuthScheme.BASIC, authScheme2.getName());
+        Assertions.assertNull(options.poll());
     }
 
     @Test
@@ -193,16 +193,16 @@ public class TestHttpAuthenticator {
 
         final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
 
-        Assert.assertTrue(this.httpAuthenticator.updateAuthState(host, ChallengeType.TARGET, response, authStrategy,
+        Assertions.assertTrue(this.httpAuthenticator.updateAuthState(host, ChallengeType.TARGET, response, authStrategy,
                                                                      this.authExchange, this.context));
-        Assert.assertEquals(AuthExchange.State.CHALLENGED, this.authExchange.getState());
+        Assertions.assertEquals(AuthExchange.State.CHALLENGED, this.authExchange.getState());
 
         final Queue<AuthScheme> options = this.authExchange.getAuthOptions();
-        Assert.assertNotNull(options);
+        Assertions.assertNotNull(options);
         final AuthScheme authScheme1 = options.poll();
-        Assert.assertNotNull(authScheme1);
-        Assert.assertEquals(StandardAuthScheme.BASIC, authScheme1.getName());
-        Assert.assertNull(options.poll());
+        Assertions.assertNotNull(authScheme1);
+        Assertions.assertEquals(StandardAuthScheme.BASIC, authScheme1.getName());
+        Assertions.assertNull(options.poll());
     }
 
     @Test
@@ -212,7 +212,7 @@ public class TestHttpAuthenticator {
 
         final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
 
-        Assert.assertFalse(this.httpAuthenticator.updateAuthState(
+        Assertions.assertFalse(this.httpAuthenticator.updateAuthState(
                 host, ChallengeType.TARGET, response, authStrategy, this.authExchange, this.context));
     }
 
@@ -225,7 +225,7 @@ public class TestHttpAuthenticator {
 
         final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
 
-        Assert.assertFalse(this.httpAuthenticator.updateAuthState(
+        Assertions.assertFalse(this.httpAuthenticator.updateAuthState(
                 host, ChallengeType.TARGET, response, authStrategy, this.authExchange, this.context));
     }
 
@@ -238,7 +238,7 @@ public class TestHttpAuthenticator {
 
         final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
 
-        Assert.assertFalse(this.httpAuthenticator.updateAuthState(
+        Assertions.assertFalse(this.httpAuthenticator.updateAuthState(
                 host, ChallengeType.TARGET, response, authStrategy, this.authExchange, this.context));
     }
 
@@ -254,10 +254,10 @@ public class TestHttpAuthenticator {
 
         final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
 
-        Assert.assertFalse(this.httpAuthenticator.updateAuthState(
+        Assertions.assertFalse(this.httpAuthenticator.updateAuthState(
                 host, ChallengeType.TARGET, response, authStrategy, this.authExchange, this.context));
 
-        Assert.assertEquals(AuthExchange.State.FAILURE, this.authExchange.getState());
+        Assertions.assertEquals(AuthExchange.State.FAILURE, this.authExchange.getState());
     }
 
     @Test
@@ -271,10 +271,10 @@ public class TestHttpAuthenticator {
 
         final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
 
-        Assert.assertFalse(this.httpAuthenticator.updateAuthState(
+        Assertions.assertFalse(this.httpAuthenticator.updateAuthState(
                 host, ChallengeType.TARGET, response, authStrategy, this.authExchange, this.context));
 
-        Assert.assertEquals(AuthExchange.State.FAILURE, this.authExchange.getState());
+        Assertions.assertEquals(AuthExchange.State.FAILURE, this.authExchange.getState());
     }
 
     @Test
@@ -290,9 +290,9 @@ public class TestHttpAuthenticator {
         this.authExchange.setState(AuthExchange.State.CHALLENGED);
         this.authExchange.select(new BasicScheme());
 
-        Assert.assertFalse(this.httpAuthenticator.updateAuthState(
+        Assertions.assertFalse(this.httpAuthenticator.updateAuthState(
                 host, ChallengeType.TARGET, response, authStrategy, this.authExchange, this.context));
-        Assert.assertEquals(AuthExchange.State.FAILURE, this.authExchange.getState());
+        Assertions.assertEquals(AuthExchange.State.FAILURE, this.authExchange.getState());
     }
 
     @Test
@@ -308,10 +308,10 @@ public class TestHttpAuthenticator {
         this.authExchange.setState(AuthExchange.State.CHALLENGED);
         this.authExchange.select(new DigestScheme());
 
-        Assert.assertTrue(this.httpAuthenticator.updateAuthState(
+        Assertions.assertTrue(this.httpAuthenticator.updateAuthState(
                 host, ChallengeType.TARGET, response, authStrategy, this.authExchange, this.context));
 
-        Assert.assertEquals(AuthExchange.State.HANDSHAKE, this.authExchange.getState());
+        Assertions.assertEquals(AuthExchange.State.HANDSHAKE, this.authExchange.getState());
     }
 
     @Test
@@ -330,16 +330,16 @@ public class TestHttpAuthenticator {
         this.authExchange.setState(AuthExchange.State.CHALLENGED);
         this.authExchange.select(new BasicScheme());
 
-        Assert.assertTrue(this.httpAuthenticator.updateAuthState(
+        Assertions.assertTrue(this.httpAuthenticator.updateAuthState(
                 host, ChallengeType.TARGET, response, authStrategy, this.authExchange, this.context));
-        Assert.assertEquals(AuthExchange.State.CHALLENGED, this.authExchange.getState());
+        Assertions.assertEquals(AuthExchange.State.CHALLENGED, this.authExchange.getState());
 
         final Queue<AuthScheme> options = this.authExchange.getAuthOptions();
-        Assert.assertNotNull(options);
+        Assertions.assertNotNull(options);
         final AuthScheme authScheme1 = options.poll();
-        Assert.assertNotNull(authScheme1);
-        Assert.assertEquals(StandardAuthScheme.DIGEST, authScheme1.getName());
-        Assert.assertNull(options.poll());
+        Assertions.assertNotNull(authScheme1);
+        Assertions.assertEquals(StandardAuthScheme.DIGEST, authScheme1.getName());
+        Assertions.assertNull(options.poll());
     }
 
     @Test
@@ -352,11 +352,11 @@ public class TestHttpAuthenticator {
 
         final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
 
-        Assert.assertFalse(this.httpAuthenticator.updateAuthState(
+        Assertions.assertFalse(this.httpAuthenticator.updateAuthState(
                 host, ChallengeType.TARGET, response, authStrategy, this.authExchange, this.context));
 
-        Assert.assertEquals(AuthExchange.State.UNCHALLENGED, this.authExchange.getState());
-        Assert.assertNull(this.authExchange.getAuthScheme());
+        Assertions.assertEquals(AuthExchange.State.UNCHALLENGED, this.authExchange.getState());
+        Assertions.assertNull(this.authExchange.getAuthScheme());
     }
 
     @Test
@@ -367,7 +367,7 @@ public class TestHttpAuthenticator {
 
         this.httpAuthenticator.addAuthResponse(defaultHost, ChallengeType.TARGET, request, authExchange, context);
 
-        Assert.assertFalse(request.containsHeader(HttpHeaders.AUTHORIZATION));
+        Assertions.assertFalse(request.containsHeader(HttpHeaders.AUTHORIZATION));
 
         Mockito.verify(this.authScheme, Mockito.never()).generateAuthResponse(
                 Mockito.eq(defaultHost),
@@ -388,7 +388,7 @@ public class TestHttpAuthenticator {
 
         this.httpAuthenticator.addAuthResponse(defaultHost, ChallengeType.TARGET, request, authExchange, context);
 
-        Assert.assertTrue(request.containsHeader(HttpHeaders.AUTHORIZATION));
+        Assertions.assertTrue(request.containsHeader(HttpHeaders.AUTHORIZATION));
     }
 
     @Test
@@ -406,10 +406,10 @@ public class TestHttpAuthenticator {
 
         this.httpAuthenticator.addAuthResponse(defaultHost, ChallengeType.TARGET, request, authExchange, context);
 
-        Assert.assertSame(this.authScheme, this.authExchange.getAuthScheme());
-        Assert.assertNull(this.authExchange.getAuthOptions());
+        Assertions.assertSame(this.authScheme, this.authExchange.getAuthScheme());
+        Assertions.assertNull(this.authExchange.getAuthOptions());
 
-        Assert.assertTrue(request.containsHeader(HttpHeaders.AUTHORIZATION));
+        Assertions.assertTrue(request.containsHeader(HttpHeaders.AUTHORIZATION));
     }
 
     @Test
@@ -434,10 +434,10 @@ public class TestHttpAuthenticator {
 
         this.httpAuthenticator.addAuthResponse(defaultHost, ChallengeType.TARGET, request, authExchange, context);
 
-        Assert.assertSame(authScheme2, this.authExchange.getAuthScheme());
-        Assert.assertNull(this.authExchange.getAuthOptions());
+        Assertions.assertSame(authScheme2, this.authExchange.getAuthScheme());
+        Assertions.assertNull(this.authExchange.getAuthOptions());
 
-        Assert.assertTrue(request.containsHeader(HttpHeaders.AUTHORIZATION));
+        Assertions.assertTrue(request.containsHeader(HttpHeaders.AUTHORIZATION));
     }
 
     @Test
@@ -454,10 +454,10 @@ public class TestHttpAuthenticator {
 
         this.httpAuthenticator.addAuthResponse(defaultHost, ChallengeType.TARGET, request, authExchange, context);
 
-        Assert.assertSame(this.authScheme, this.authExchange.getAuthScheme());
-        Assert.assertNull(this.authExchange.getAuthOptions());
+        Assertions.assertSame(this.authScheme, this.authExchange.getAuthScheme());
+        Assertions.assertNull(this.authExchange.getAuthOptions());
 
-        Assert.assertTrue(request.containsHeader(HttpHeaders.AUTHORIZATION));
+        Assertions.assertTrue(request.containsHeader(HttpHeaders.AUTHORIZATION));
     }
 
     @Test
@@ -474,7 +474,7 @@ public class TestHttpAuthenticator {
 
         this.httpAuthenticator.addAuthResponse(defaultHost, ChallengeType.TARGET, request, authExchange, context);
 
-        Assert.assertFalse(request.containsHeader(HttpHeaders.AUTHORIZATION));
+        Assertions.assertFalse(request.containsHeader(HttpHeaders.AUTHORIZATION));
 
         Mockito.verify(this.authScheme, Mockito.never()).generateAuthResponse(
                 Mockito.eq(defaultHost),

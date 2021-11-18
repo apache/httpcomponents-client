@@ -65,14 +65,13 @@ import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.MessageSupport;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.MockitoAnnotations;
 
 /**
  * We are a conditionally-compliant HTTP/1.1 client with a cache. However, a lot
@@ -83,7 +82,6 @@ import org.mockito.junit.MockitoJUnitRunner;
  * pass downstream to the backend HttpClient are are conditionally compliant
  * with the rules for an HTTP/1.1 client.
  */
-@RunWith(MockitoJUnitRunner.class)
 public class TestProtocolRequirements {
 
     static final int MAX_BYTES = 1024;
@@ -106,8 +104,9 @@ public class TestProtocolRequirements {
     CachingExec impl;
     HttpCache cache;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
+        MockitoAnnotations.openMocks(this);
         host = new HttpHost("foo.example.com", 80);
 
         route = new HttpRoute(host);
@@ -145,7 +144,7 @@ public class TestProtocolRequirements {
 
         final ClassicHttpResponse result = execute(request);
 
-        Assert.assertTrue(HttpTestUtils.semanticallyTransparent(originResponse, result));
+        Assertions.assertTrue(HttpTestUtils.semanticallyTransparent(originResponse, result));
     }
 
     /*
@@ -171,7 +170,7 @@ public class TestProtocolRequirements {
 
         final ClassicHttpResponse result = execute(request);
 
-        Assert.assertSame(originResponse, result);
+        Assertions.assertSame(originResponse, result);
     }
 
     @Test
@@ -187,7 +186,7 @@ public class TestProtocolRequirements {
 
         final ClassicHttpResponse result = execute(request);
 
-        Assert.assertTrue(HttpTestUtils.semanticallyTransparent(originResponse, result));
+        Assertions.assertTrue(HttpTestUtils.semanticallyTransparent(originResponse, result));
     }
 
     /*
@@ -211,7 +210,7 @@ public class TestProtocolRequirements {
 
         final ClassicHttpResponse result = execute(request);
 
-        Assert.assertTrue(HttpTestUtils.semanticallyTransparent(originResponse, result));
+        Assertions.assertTrue(HttpTestUtils.semanticallyTransparent(originResponse, result));
     }
 
     /*
@@ -236,7 +235,7 @@ public class TestProtocolRequirements {
 
         final ClassicHttpResponse result = execute(request);
 
-        Assert.assertEquals(HttpVersion.HTTP_1_1, result.getVersion());
+        Assertions.assertEquals(HttpVersion.HTTP_1_1, result.getVersion());
     }
 
     @Test
@@ -248,7 +247,7 @@ public class TestProtocolRequirements {
 
         final ClassicHttpResponse result = execute(request);
 
-        Assert.assertEquals(HttpVersion.HTTP_1_1, result.getVersion());
+        Assertions.assertEquals(HttpVersion.HTTP_1_1, result.getVersion());
     }
 
     /*
@@ -288,8 +287,8 @@ public class TestProtocolRequirements {
 
         final ClassicHttpResponse result = execute(originalRequest);
 
-        Assert.assertNull(result.getFirstHeader("TE"));
-        Assert.assertNull(result.getFirstHeader("Transfer-Encoding"));
+        Assertions.assertNull(result.getFirstHeader("TE"));
+        Assertions.assertNull(result.getFirstHeader("Transfer-Encoding"));
     }
 
     /*
@@ -317,7 +316,7 @@ public class TestProtocolRequirements {
         final String expected = HttpTestUtils.getCanonicalHeaderValue(request, h);
         final String actual = HttpTestUtils.getCanonicalHeaderValue(forwarded, h);
         if (!actual.contains(expected)) {
-            Assert.assertEquals(expected, actual);
+            Assertions.assertEquals(expected, actual);
         }
     }
 
@@ -422,8 +421,8 @@ public class TestProtocolRequirements {
 
         final ClassicHttpResponse result = execute(request);
 
-        Assert.assertNotNull(result);
-        Assert.assertEquals(HttpTestUtils.getCanonicalHeaderValue(originResponse, h), HttpTestUtils
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals(HttpTestUtils.getCanonicalHeaderValue(originResponse, h), HttpTestUtils
                 .getCanonicalHeaderValue(result, h));
 
     }
@@ -538,8 +537,8 @@ public class TestProtocolRequirements {
         Mockito.verify(mockExecChain).proceed(reqCapture.capture(), Mockito.any());
         final ClassicHttpRequest forwarded = reqCapture.getValue();
         final Header[] hdrs = forwarded.getHeaders("X-Unknown-Header");
-        Assert.assertEquals(1, hdrs.length);
-        Assert.assertEquals("blahblah", hdrs[0].getValue());
+        Assertions.assertEquals(1, hdrs.length);
+        Assertions.assertEquals("blahblah", hdrs[0].getValue());
     }
 
     @Test
@@ -550,8 +549,8 @@ public class TestProtocolRequirements {
         final ClassicHttpResponse result = execute(request);
 
         final Header[] hdrs = result.getHeaders("X-Unknown-Header");
-        Assert.assertEquals(1, hdrs.length);
-        Assert.assertEquals("blahblah", hdrs[0].getValue());
+        Assertions.assertEquals(1, hdrs.length);
+        Assertions.assertEquals("blahblah", hdrs[0].getValue());
     }
 
     /*
@@ -584,7 +583,7 @@ public class TestProtocolRequirements {
                 break;
             }
         }
-        Assert.assertTrue(foundExpect);
+        Assertions.assertTrue(foundExpect);
     }
 
     /*
@@ -616,7 +615,7 @@ public class TestProtocolRequirements {
                 break;
             }
         }
-        Assert.assertFalse(foundExpect);
+        Assertions.assertFalse(foundExpect);
     }
 
     /*
@@ -661,7 +660,7 @@ public class TestProtocolRequirements {
 
         // if a 100 response gets up to us from the HttpClient
         // backend, we can't really handle it at that point
-        Assert.assertThrows(ClientProtocolException.class, () -> execute(post));
+        Assertions.assertThrows(ClientProtocolException.class, () -> execute(post));
     }
 
     /*
@@ -699,8 +698,8 @@ public class TestProtocolRequirements {
         final ClassicHttpResponse result = execute(request);
 
         final Header contentLength = result.getFirstHeader("Content-Length");
-        Assert.assertNotNull(contentLength);
-        Assert.assertEquals("0", contentLength.getValue());
+        Assertions.assertNotNull(contentLength);
+        Assertions.assertEquals("0", contentLength.getValue());
     }
 
     /*
@@ -740,7 +739,7 @@ public class TestProtocolRequirements {
         Mockito.verify(mockExecChain).proceed(reqCapture.capture(), Mockito.any());
 
         final ClassicHttpRequest captured = reqCapture.getValue();
-        Assert.assertEquals("6", captured.getFirstHeader("Max-Forwards").getValue());
+        Assertions.assertEquals("6", captured.getFirstHeader("Max-Forwards").getValue());
     }
 
     /*
@@ -760,7 +759,7 @@ public class TestProtocolRequirements {
         Mockito.verify(mockExecChain).proceed(reqCapture.capture(), Mockito.any());
 
         final ClassicHttpRequest forwarded = reqCapture.getValue();
-        Assert.assertNull(forwarded.getFirstHeader("Max-Forwards"));
+        Assertions.assertNull(forwarded.getFirstHeader("Max-Forwards"));
     }
 
     /*
@@ -776,7 +775,7 @@ public class TestProtocolRequirements {
 
         final ClassicHttpResponse result = execute(request);
 
-        Assert.assertTrue(result.getEntity() == null || result.getEntity().getContentLength() == 0);
+        Assertions.assertTrue(result.getEntity() == null || result.getEntity().getContentLength() == 0);
     }
 
     /*
@@ -962,10 +961,10 @@ public class TestProtocolRequirements {
         if (HttpStatus.SC_PARTIAL_CONTENT == result.getCode()) {
             if (result.getFirstHeader("Content-Range") == null) {
                 final HeaderElement elt = MessageSupport.parse(result.getFirstHeader("Content-Type"))[0];
-                Assert.assertTrue("multipart/byteranges".equalsIgnoreCase(elt.getName()));
-                Assert.assertNotNull(elt.getParameterByName("boundary"));
-                Assert.assertNotNull(elt.getParameterByName("boundary").getValue());
-                Assert.assertNotEquals("", elt.getParameterByName("boundary").getValue().trim());
+                Assertions.assertTrue("multipart/byteranges".equalsIgnoreCase(elt.getName()));
+                Assertions.assertNotNull(elt.getParameterByName("boundary"));
+                Assertions.assertNotNull(elt.getParameterByName("boundary").getValue());
+                Assertions.assertNotEquals("", elt.getParameterByName("boundary").getValue().trim());
             }
         }
         Mockito.verify(mockExecChain, Mockito.times(1)).proceed(Mockito.any(), Mockito.any());
@@ -997,7 +996,7 @@ public class TestProtocolRequirements {
                     bytesRead++;
                 }
                 i.close();
-                Assert.assertEquals(contentLength, bytesRead);
+                Assertions.assertEquals(contentLength, bytesRead);
             }
         }
         Mockito.verify(mockExecChain, Mockito.times(1)).proceed(Mockito.any(), Mockito.any());
@@ -1019,7 +1018,7 @@ public class TestProtocolRequirements {
         final ClassicHttpResponse result = execute(req2);
 
         if (HttpStatus.SC_PARTIAL_CONTENT == result.getCode()) {
-            Assert.assertNotNull(result.getFirstHeader("Date"));
+            Assertions.assertNotNull(result.getFirstHeader("Date"));
         }
         Mockito.verify(mockExecChain, Mockito.times(1)).proceed(Mockito.any(), Mockito.any());
     }
@@ -1037,7 +1036,7 @@ public class TestProtocolRequirements {
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(originResponse);
 
         final ClassicHttpResponse result = execute(request);
-        Assert.assertTrue(result.getCode() != HttpStatus.SC_PARTIAL_CONTENT
+        Assertions.assertTrue(result.getCode() != HttpStatus.SC_PARTIAL_CONTENT
                 || result.getFirstHeader("Date") != null);
 
     }
@@ -1058,7 +1057,7 @@ public class TestProtocolRequirements {
         final ClassicHttpResponse result = execute(req2);
 
         if (result.getCode() == HttpStatus.SC_PARTIAL_CONTENT) {
-            Assert.assertNotNull(result.getFirstHeader("ETag"));
+            Assertions.assertNotNull(result.getFirstHeader("ETag"));
         }
         Mockito.verify(mockExecChain, Mockito.times(1)).proceed(Mockito.any(), Mockito.any());
     }
@@ -1079,7 +1078,7 @@ public class TestProtocolRequirements {
         final ClassicHttpResponse result = execute(req2);
 
         if (result.getCode() == HttpStatus.SC_PARTIAL_CONTENT) {
-            Assert.assertNotNull(result.getFirstHeader("Content-Location"));
+            Assertions.assertNotNull(result.getFirstHeader("Content-Location"));
         }
         Mockito.verify(mockExecChain, Mockito.times(1)).proceed(Mockito.any(), Mockito.any());
     }
@@ -1123,9 +1122,9 @@ public class TestProtocolRequirements {
 
 
         if (result.getCode() == HttpStatus.SC_PARTIAL_CONTENT) {
-            Assert.assertNotNull(result.getFirstHeader("Expires"));
-            Assert.assertNotNull(result.getFirstHeader("Cache-Control"));
-            Assert.assertNotNull(result.getFirstHeader("Vary"));
+            Assertions.assertNotNull(result.getFirstHeader("Expires"));
+            Assertions.assertNotNull(result.getFirstHeader("Cache-Control"));
+            Assertions.assertNotNull(result.getFirstHeader("Vary"));
         }
         Mockito.verify(mockExecChain, Mockito.times(2)).proceed(Mockito.any(), Mockito.any());
     }
@@ -1166,11 +1165,11 @@ public class TestProtocolRequirements {
         final ClassicHttpResponse result = execute(req2);
 
         if (result.getCode() == HttpStatus.SC_PARTIAL_CONTENT) {
-            Assert.assertNull(result.getFirstHeader("Allow"));
-            Assert.assertNull(result.getFirstHeader("Content-Encoding"));
-            Assert.assertNull(result.getFirstHeader("Content-Language"));
-            Assert.assertNull(result.getFirstHeader("Content-MD5"));
-            Assert.assertNull(result.getFirstHeader("Last-Modified"));
+            Assertions.assertNull(result.getFirstHeader("Allow"));
+            Assertions.assertNull(result.getFirstHeader("Content-Encoding"));
+            Assertions.assertNull(result.getFirstHeader("Content-Language"));
+            Assertions.assertNull(result.getFirstHeader("Content-MD5"));
+            Assertions.assertNull(result.getFirstHeader("Last-Modified"));
         }
         Mockito.verify(mockExecChain, Mockito.times(1)).proceed(Mockito.any(), Mockito.any());
     }
@@ -1209,13 +1208,13 @@ public class TestProtocolRequirements {
         final ClassicHttpResponse result = execute(req2);
 
         if (result.getCode() == HttpStatus.SC_PARTIAL_CONTENT) {
-            Assert.assertEquals("GET,HEAD", result.getFirstHeader("Allow").getValue());
-            Assert.assertEquals("max-age=3600", result.getFirstHeader("Cache-Control").getValue());
-            Assert.assertEquals("en", result.getFirstHeader("Content-Language").getValue());
-            Assert.assertEquals("x-coding", result.getFirstHeader("Content-Encoding").getValue());
-            Assert.assertEquals("Q2hlY2sgSW50ZWdyaXR5IQ==", result.getFirstHeader("Content-MD5")
+            Assertions.assertEquals("GET,HEAD", result.getFirstHeader("Allow").getValue());
+            Assertions.assertEquals("max-age=3600", result.getFirstHeader("Cache-Control").getValue());
+            Assertions.assertEquals("en", result.getFirstHeader("Content-Language").getValue());
+            Assertions.assertEquals("x-coding", result.getFirstHeader("Content-Encoding").getValue());
+            Assertions.assertEquals("Q2hlY2sgSW50ZWdyaXR5IQ==", result.getFirstHeader("Content-MD5")
                     .getValue());
-            Assert.assertEquals(originResponse.getFirstHeader("Last-Modified").getValue(), result
+            Assertions.assertEquals(originResponse.getFirstHeader("Last-Modified").getValue(), result
                     .getFirstHeader("Last-Modified").getValue());
         }
         Mockito.verify(mockExecChain, Mockito.times(2)).proceed(Mockito.any(), Mockito.any());
@@ -1281,7 +1280,7 @@ public class TestProtocolRequirements {
             }
         }
         i.close();
-        Assert.assertFalse(found1 && found2); // mixture of content
+        Assertions.assertFalse(found1 && found2); // mixture of content
         Mockito.verify(mockExecChain, Mockito.times(2)).proceed(Mockito.any(), Mockito.any());
     }
 
@@ -1339,7 +1338,7 @@ public class TestProtocolRequirements {
             }
         }
         i.close();
-        Assert.assertFalse(found1 && found2); // mixture of content
+        Assertions.assertFalse(found1 && found2); // mixture of content
         Mockito.verify(mockExecChain, Mockito.times(2)).proceed(Mockito.any(), Mockito.any());
     }
 
@@ -1417,7 +1416,7 @@ public class TestProtocolRequirements {
 
         final ClassicHttpResponse result = execute(request);
 
-        Assert.assertNotNull(result.getFirstHeader("Date"));
+        Assertions.assertNotNull(result.getFirstHeader("Date"));
     }
 
     @Test
@@ -1436,7 +1435,7 @@ public class TestProtocolRequirements {
         final ClassicHttpResponse result = execute(req2);
 
         if (result.getCode() == HttpStatus.SC_NOT_MODIFIED) {
-            Assert.assertNotNull(result.getFirstHeader("Date"));
+            Assertions.assertNotNull(result.getFirstHeader("Date"));
         }
         Mockito.verify(mockExecChain, Mockito.times(1)).proceed(Mockito.any(), Mockito.any());
     }
@@ -1463,7 +1462,7 @@ public class TestProtocolRequirements {
         final ClassicHttpResponse result = execute(req2);
 
         if (result.getCode() == HttpStatus.SC_NOT_MODIFIED) {
-            Assert.assertNotNull(result.getFirstHeader("ETag"));
+            Assertions.assertNotNull(result.getFirstHeader("ETag"));
         }
         Mockito.verify(mockExecChain, Mockito.times(1)).proceed(Mockito.any(), Mockito.any());
     }
@@ -1484,7 +1483,7 @@ public class TestProtocolRequirements {
         final ClassicHttpResponse result = execute(req2);
 
         if (result.getCode() == HttpStatus.SC_NOT_MODIFIED) {
-            Assert.assertNotNull(result.getFirstHeader("Content-Location"));
+            Assertions.assertNotNull(result.getFirstHeader("Content-Location"));
         }
         Mockito.verify(mockExecChain, Mockito.times(1)).proceed(Mockito.any(), Mockito.any());
     }
@@ -1537,9 +1536,9 @@ public class TestProtocolRequirements {
         final ClassicHttpResponse result = execute(req3);
 
         if (result.getCode() == HttpStatus.SC_NOT_MODIFIED) {
-            Assert.assertNotNull(result.getFirstHeader("Expires"));
-            Assert.assertNotNull(result.getFirstHeader("Cache-Control"));
-            Assert.assertNotNull(result.getFirstHeader("Vary"));
+            Assertions.assertNotNull(result.getFirstHeader("Expires"));
+            Assertions.assertNotNull(result.getFirstHeader("Cache-Control"));
+            Assertions.assertNotNull(result.getFirstHeader("Vary"));
         }
         Mockito.verify(mockExecChain, Mockito.times(3)).proceed(Mockito.any(), Mockito.any());
     }
@@ -1579,12 +1578,12 @@ public class TestProtocolRequirements {
         final ClassicHttpResponse result = execute(req2);
 
         if (result.getCode() == HttpStatus.SC_NOT_MODIFIED) {
-            Assert.assertNull(result.getFirstHeader("Allow"));
-            Assert.assertNull(result.getFirstHeader("Content-Encoding"));
-            Assert.assertNull(result.getFirstHeader("Content-Length"));
-            Assert.assertNull(result.getFirstHeader("Content-MD5"));
-            Assert.assertNull(result.getFirstHeader("Content-Type"));
-            Assert.assertNull(result.getFirstHeader("Last-Modified"));
+            Assertions.assertNull(result.getFirstHeader("Allow"));
+            Assertions.assertNull(result.getFirstHeader("Content-Encoding"));
+            Assertions.assertNull(result.getFirstHeader("Content-Length"));
+            Assertions.assertNull(result.getFirstHeader("Content-MD5"));
+            Assertions.assertNull(result.getFirstHeader("Content-Type"));
+            Assertions.assertNull(result.getFirstHeader("Last-Modified"));
         }
         Mockito.verify(mockExecChain, Mockito.times(1)).proceed(Mockito.any(), Mockito.any());
     }
@@ -1675,8 +1674,8 @@ public class TestProtocolRequirements {
 
         Mockito.verify(mockExecChain, Mockito.times(2)).proceed(Mockito.any(), Mockito.any());
 
-        Assert.assertEquals(DateUtils.formatStandardDate(inFiveSeconds), result.getFirstHeader("Date").getValue());
-        Assert.assertEquals("junk", result.getFirstHeader("X-Extra").getValue());
+        Assertions.assertEquals(DateUtils.formatStandardDate(inFiveSeconds), result.getFirstHeader("Date").getValue());
+        Assertions.assertEquals("junk", result.getFirstHeader("X-Extra").getValue());
     }
 
     /*
@@ -1694,8 +1693,8 @@ public class TestProtocolRequirements {
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(originResponse);
 
         final ClassicHttpResponse result = execute(request);
-        Assert.assertEquals(401, result.getCode());
-        Assert.assertNotNull(result.getFirstHeader("WWW-Authenticate"));
+        Assertions.assertEquals(401, result.getCode());
+        Assertions.assertNotNull(result.getFirstHeader("WWW-Authenticate"));
     }
 
     /*
@@ -1712,8 +1711,8 @@ public class TestProtocolRequirements {
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(originResponse);
 
         final ClassicHttpResponse result = execute(request);
-        Assert.assertEquals(405, result.getCode());
-        Assert.assertNotNull(result.getFirstHeader("Allow"));
+        Assertions.assertEquals(405, result.getCode());
+        Assertions.assertNotNull(result.getFirstHeader("Allow"));
     }
 
     /*
@@ -1731,8 +1730,8 @@ public class TestProtocolRequirements {
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(originResponse);
 
         final ClassicHttpResponse result = execute(request);
-        Assert.assertEquals(407, result.getCode());
-        Assert.assertNotNull(result.getFirstHeader("Proxy-Authenticate"));
+        Assertions.assertEquals(407, result.getCode());
+        Assertions.assertNotNull(result.getFirstHeader("Proxy-Authenticate"));
     }
 
     /*
@@ -1749,11 +1748,11 @@ public class TestProtocolRequirements {
 
         final ClassicHttpResponse result = execute(request);
 
-        Assert.assertEquals(416, result.getCode());
+        Assertions.assertEquals(416, result.getCode());
         final Iterator<HeaderElement> it = MessageSupport.iterate(result, HttpHeaders.CONTENT_TYPE);
         while (it.hasNext()) {
             final HeaderElement elt = it.next();
-            Assert.assertFalse("multipart/byteranges".equalsIgnoreCase(elt.getName()));
+            Assertions.assertFalse("multipart/byteranges".equalsIgnoreCase(elt.getName()));
         }
     }
 
@@ -1779,11 +1778,11 @@ public class TestProtocolRequirements {
         final ClassicHttpResponse result = execute(rangeReq);
 
         // might have gotten a 416 from the origin or the cache
-        Assert.assertEquals(416, result.getCode());
+        Assertions.assertEquals(416, result.getCode());
         final Iterator<HeaderElement> it = MessageSupport.iterate(result, HttpHeaders.CONTENT_TYPE);
         while (it.hasNext()) {
             final HeaderElement elt = it.next();
-            Assert.assertFalse("multipart/byteranges".equalsIgnoreCase(elt.getName()));
+            Assertions.assertFalse("multipart/byteranges".equalsIgnoreCase(elt.getName()));
         }
         Mockito.verify(mockExecChain, Mockito.times(2)).proceed(Mockito.any(), Mockito.any());
     }
@@ -1895,7 +1894,7 @@ public class TestProtocolRequirements {
 
         final ClassicHttpResponse result = execute(request);
 
-        Assert.assertEquals(200, result.getCode());
+        Assertions.assertEquals(200, result.getCode());
     }
 
     /*
@@ -1942,14 +1941,14 @@ public class TestProtocolRequirements {
         final ClassicHttpResponse result = execute(request);
 
         final int status = result.getCode();
-        Assert.assertEquals(200, result.getCode());
+        Assertions.assertEquals(200, result.getCode());
         boolean foundWarning = false;
         for (final Header h : result.getHeaders("Warning")) {
             if (h.getValue().split(" ")[0].equals("111")) {
                 foundWarning = true;
             }
         }
-        Assert.assertTrue(foundWarning);
+        Assertions.assertTrue(foundWarning);
     }
 
     /*
@@ -2002,7 +2001,7 @@ public class TestProtocolRequirements {
 
 
         final ClassicHttpResponse stale = execute(req1);
-        Assert.assertNotNull(stale.getFirstHeader("Warning"));
+        Assertions.assertNotNull(stale.getFirstHeader("Warning"));
 
         final ClassicHttpResponse result1 = execute(req2);
         final ClassicHttpResponse result2 = execute(req3);
@@ -2022,7 +2021,7 @@ public class TestProtocolRequirements {
                 found1xxWarning = true;
             }
         }
-        Assert.assertFalse(found1xxWarning);
+        Assertions.assertFalse(found1xxWarning);
     }
 
     /*
@@ -2062,7 +2061,7 @@ public class TestProtocolRequirements {
         Mockito.when(mockExecChain.proceed(RequestEquivalent.eq(validate), Mockito.any())).thenReturn(resp2);
 
         final ClassicHttpResponse stale = execute(req1);
-        Assert.assertNotNull(stale.getFirstHeader("Warning"));
+        Assertions.assertNotNull(stale.getFirstHeader("Warning"));
 
         final ClassicHttpResponse result1 = execute(req2);
         final ClassicHttpResponse result2 = execute(req3);
@@ -2076,7 +2075,7 @@ public class TestProtocolRequirements {
                 found214Warning = true;
             }
         }
-        Assert.assertTrue(found214Warning);
+        Assertions.assertTrue(found214Warning);
 
         found214Warning = false;
         final Iterator<HeaderElement> it2 = MessageSupport.iterate(result2, HttpHeaders.WARNING);
@@ -2087,7 +2086,7 @@ public class TestProtocolRequirements {
                 found214Warning = true;
             }
         }
-        Assert.assertTrue(found214Warning);
+        Assertions.assertTrue(found214Warning);
     }
 
     /*
@@ -2123,8 +2122,8 @@ public class TestProtocolRequirements {
 
         final ClassicHttpResponse result = execute(request);
 
-        Assert.assertEquals(200, result.getCode());
-        Assert.assertEquals("11", result.getFirstHeader("Age").getValue());
+        Assertions.assertEquals(200, result.getCode());
+        Assertions.assertEquals("11", result.getFirstHeader("Age").getValue());
     }
 
     /*
@@ -2188,7 +2187,7 @@ public class TestProtocolRequirements {
 
         final ClassicHttpResponse result = execute(request);
 
-        Assert.assertEquals(200, result.getCode());
+        Assertions.assertEquals(200, result.getCode());
 
         final ArgumentCaptor<ClassicHttpRequest> reqCapture = ArgumentCaptor.forClass(ClassicHttpRequest.class);
         Mockito.verify(mockExecChain, Mockito.atMostOnce()).proceed(reqCapture.capture(), Mockito.any());
@@ -2205,7 +2204,7 @@ public class TestProtocolRequirements {
                     break;
                 }
             }
-            Assert.assertTrue(found113Warning);
+            Assertions.assertTrue(found113Warning);
         }
         Mockito.verify(mockCache).createCacheEntry(
                 Mockito.any(),
@@ -2258,7 +2257,7 @@ public class TestProtocolRequirements {
 
         execute(req2);
         final ClassicHttpResponse result = execute(req3);
-        Assert.assertEquals("\"etag1\"", result.getFirstHeader("ETag").getValue());
+        Assertions.assertEquals("\"etag1\"", result.getFirstHeader("ETag").getValue());
     }
 
     /*
@@ -2287,7 +2286,7 @@ public class TestProtocolRequirements {
             if (forwarded != null) {
                 final Header h = forwarded.getFirstHeader(header);
                 if (h != null) {
-                    Assert.assertFalse(h.getValue().startsWith("W/"));
+                    Assertions.assertFalse(h.getValue().startsWith("W/"));
                 }
             }
         }
@@ -2301,7 +2300,7 @@ public class TestProtocolRequirements {
         request.setHeader("If-Range", "W/\"etag\"");
 
         final ClassicHttpResponse response = testRequestWithWeakETagValidatorIsNotAllowed("If-Range");
-        Assert.assertEquals(HttpStatus.SC_BAD_REQUEST, response.getCode());
+        Assertions.assertEquals(HttpStatus.SC_BAD_REQUEST, response.getCode());
     }
 
     @Test
@@ -2372,7 +2371,7 @@ public class TestProtocolRequirements {
         execute(req1);
         final ClassicHttpResponse result = execute(req2);
 
-        Assert.assertNotEquals(HttpStatus.SC_PARTIAL_CONTENT, result.getCode());
+        Assertions.assertNotEquals(HttpStatus.SC_PARTIAL_CONTENT, result.getCode());
 
         Mockito.verify(mockExecChain).proceed(Mockito.any(), Mockito.any());
     }
@@ -2409,7 +2408,7 @@ public class TestProtocolRequirements {
         Mockito.verify(mockExecChain, Mockito.times(2)).proceed(reqCapture.capture(), Mockito.any());
 
         final List<ClassicHttpRequest> allRequests = reqCapture.getAllValues();
-        Assert.assertEquals(2, allRequests.size());
+        Assertions.assertEquals(2, allRequests.size());
         final ClassicHttpRequest validation = allRequests.get(1);
         boolean isConditional = false;
         final String[] conditionalHeaders = { "If-Range", "If-Modified-Since", "If-Unmodified-Since",
@@ -2438,7 +2437,7 @@ public class TestProtocolRequirements {
                     foundETag = true;
                 }
             }
-            Assert.assertTrue(foundETag);
+            Assertions.assertTrue(foundETag);
         }
     }
 
@@ -2474,7 +2473,7 @@ public class TestProtocolRequirements {
         execute(req1);
         final ClassicHttpResponse result = execute(req2);
 
-        Assert.assertNotEquals(HttpStatus.SC_NOT_MODIFIED, result.getCode());
+        Assertions.assertNotEquals(HttpStatus.SC_NOT_MODIFIED, result.getCode());
         Mockito.verify(mockExecChain, Mockito.times(2)).proceed(Mockito.any(), Mockito.any());
     }
 
@@ -2570,7 +2569,7 @@ public class TestProtocolRequirements {
 
         final ClassicHttpResponse result = execute(request);
 
-        Assert.assertEquals(value, result.getFirstHeader(header).getValue());
+        Assertions.assertEquals(value, result.getFirstHeader(header).getValue());
     }
 
     @Test
@@ -2603,7 +2602,7 @@ public class TestProtocolRequirements {
 
         final ClassicHttpResponse result = execute(request);
 
-        Assert.assertNull(result.getFirstHeader(header));
+        Assertions.assertNull(result.getFirstHeader(header));
     }
 
     @Test
@@ -2640,7 +2639,7 @@ public class TestProtocolRequirements {
         execute(req1);
         final ClassicHttpResponse result = execute(req2);
 
-        Assert.assertEquals(value, result.getFirstHeader(header).getValue());
+        Assertions.assertEquals(value, result.getFirstHeader(header).getValue());
     }
 
     @Test
@@ -2678,7 +2677,7 @@ public class TestProtocolRequirements {
         execute(req1);
         final ClassicHttpResponse result = execute(req2);
 
-        Assert.assertNull(result.getFirstHeader(header));
+        Assertions.assertNull(result.getFirstHeader(header));
     }
 
     @Test
@@ -2713,7 +2712,7 @@ public class TestProtocolRequirements {
         Mockito.verify(mockExecChain).proceed(reqCapture.capture(), Mockito.any());
 
         final ClassicHttpRequest captured = reqCapture.getValue();
-        Assert.assertEquals(value, captured.getFirstHeader(header).getValue());
+        Assertions.assertEquals(value, captured.getFirstHeader(header).getValue());
     }
 
     @Test
@@ -2752,7 +2751,7 @@ public class TestProtocolRequirements {
         Mockito.verify(mockExecChain).proceed(reqCapture.capture(), Mockito.any());
 
         final ClassicHttpRequest captured = reqCapture.getValue();
-        Assert.assertNull(captured.getFirstHeader(header));
+        Assertions.assertNull(captured.getFirstHeader(header));
     }
 
     @Test
@@ -2803,7 +2802,7 @@ public class TestProtocolRequirements {
 
         final Header expHdr = result.getFirstHeader("Expires");
         if (expHdr != null) {
-            Assert.assertEquals(result.getFirstHeader("Date").getValue(),
+            Assertions.assertEquals(result.getFirstHeader("Date").getValue(),
                                 expHdr.getValue());
         }
     }
@@ -2823,7 +2822,7 @@ public class TestProtocolRequirements {
 
         final Header expHdr = result.getFirstHeader("Expires");
         if (expHdr != null) {
-            Assert.assertEquals(result.getFirstHeader("Date").getValue(),
+            Assertions.assertEquals(result.getFirstHeader("Date").getValue(),
                                 expHdr.getValue());
         }
     }
@@ -2842,7 +2841,7 @@ public class TestProtocolRequirements {
 
         final ClassicHttpResponse result = execute(request);
 
-        Assert.assertEquals(value, result.getFirstHeader(header).getValue());
+        Assertions.assertEquals(value, result.getFirstHeader(header).getValue());
     }
 
     @Test
@@ -2877,7 +2876,7 @@ public class TestProtocolRequirements {
         execute(req1);
         final ClassicHttpResponse result = execute(req2);
 
-        Assert.assertEquals(value, result.getFirstHeader(header).getValue());
+        Assertions.assertEquals(value, result.getFirstHeader(header).getValue());
     }
 
     @Test
@@ -2907,7 +2906,7 @@ public class TestProtocolRequirements {
         execute(req1);
         final ClassicHttpResponse result = execute(req2);
 
-        Assert.assertEquals("bytes 0-49/128",
+        Assertions.assertEquals("bytes 0-49/128",
                             result.getFirstHeader("Content-Range").getValue());
 
         Mockito.verify(mockExecChain, Mockito.times(2)).proceed(Mockito.any(), Mockito.any());
@@ -3015,10 +3014,10 @@ public class TestProtocolRequirements {
         int b1, b2;
         while((b1 = i1.read()) != -1) {
             b2 = i2.read();
-            Assert.assertEquals(b1, b2);
+            Assertions.assertEquals(b1, b2);
         }
         b2 = i2.read();
-        Assert.assertEquals(-1, b2);
+        Assertions.assertEquals(-1, b2);
         i1.close();
         i2.close();
     }
@@ -3077,7 +3076,7 @@ public class TestProtocolRequirements {
             "Location", "Pragma", "Retry-After"
         };
         for(final String h : endToEndHeaders) {
-            Assert.assertEquals(HttpTestUtils.getCanonicalHeaderValue(resp1, h),
+            Assertions.assertEquals(HttpTestUtils.getCanonicalHeaderValue(resp1, h),
                                 HttpTestUtils.getCanonicalHeaderValue(result, h));
         }
     }
@@ -3122,9 +3121,9 @@ public class TestProtocolRequirements {
             "Pragma", "Retry-After"
         };
         for(final String h : endToEndHeaders) {
-            Assert.assertEquals(HttpTestUtils.getCanonicalHeaderValue(resp2, h),
+            Assertions.assertEquals(HttpTestUtils.getCanonicalHeaderValue(resp2, h),
                                 HttpTestUtils.getCanonicalHeaderValue(result1, h));
-            Assert.assertEquals(HttpTestUtils.getCanonicalHeaderValue(resp2, h),
+            Assertions.assertEquals(HttpTestUtils.getCanonicalHeaderValue(resp2, h),
                                 HttpTestUtils.getCanonicalHeaderValue(result2, h));
         }
     }
@@ -3158,9 +3157,9 @@ public class TestProtocolRequirements {
         final ClassicHttpResponse result2 = execute(req3);
 
         final String h = "Cache-Control";
-        Assert.assertEquals(HttpTestUtils.getCanonicalHeaderValue(resp2, h),
+        Assertions.assertEquals(HttpTestUtils.getCanonicalHeaderValue(resp2, h),
                             HttpTestUtils.getCanonicalHeaderValue(result1, h));
-        Assert.assertEquals(HttpTestUtils.getCanonicalHeaderValue(resp2, h),
+        Assertions.assertEquals(HttpTestUtils.getCanonicalHeaderValue(resp2, h),
                             HttpTestUtils.getCanonicalHeaderValue(result2, h));
     }
 
@@ -3679,11 +3678,11 @@ public class TestProtocolRequirements {
 
         final ClassicHttpResponse result = execute(req2);
 
-        Assert.assertEquals(HttpStatus.SC_OK, result.getCode());
+        Assertions.assertEquals(HttpStatus.SC_OK, result.getCode());
 
         Mockito.verify(mockExecChain, Mockito.times(2)).proceed(Mockito.any(), Mockito.any());
 
-        Assert.assertTrue(HttpTestUtils.semanticallyTransparent(resp200, result));
+        Assertions.assertTrue(HttpTestUtils.semanticallyTransparent(resp200, result));
     }
 
     /* "Some HTTP methods MUST cause a cache to invalidate an
@@ -3998,7 +3997,7 @@ public class TestProtocolRequirements {
 
         final ClassicHttpResponse result = execute(request);
 
-        Assert.assertEquals("2147483648",
+        Assertions.assertEquals("2147483648",
                             result.getFirstHeader("Age").getValue());
     }
 
@@ -4014,7 +4013,7 @@ public class TestProtocolRequirements {
         originResponse.setHeader("Allow",allowHeaderValue);
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(originResponse);
         final ClassicHttpResponse result = execute(request);
-        Assert.assertEquals(HttpTestUtils.getCanonicalHeaderValue(originResponse,"Allow"),
+        Assertions.assertEquals(HttpTestUtils.getCanonicalHeaderValue(originResponse,"Allow"),
                             HttpTestUtils.getCanonicalHeaderValue(result, "Allow"));
     }
 
@@ -4132,10 +4131,10 @@ public class TestProtocolRequirements {
             Mockito.verify(mockExecChain, Mockito.times(2)).proceed(reqCapture.capture(), Mockito.any());
 
             final List<ClassicHttpRequest> allRequests = reqCapture.getAllValues();
-            Assert.assertEquals(2, allRequests.size());
+            Assertions.assertEquals(2, allRequests.size());
 
             final ClassicHttpRequest captured = allRequests.get(1);
-            Assert.assertEquals(HttpTestUtils.getCanonicalHeaderValue(req2, "Authorization"),
+            Assertions.assertEquals(HttpTestUtils.getCanonicalHeaderValue(req2, "Authorization"),
                     HttpTestUtils.getCanonicalHeaderValue(captured, "Authorization"));
         }
     }
@@ -4211,7 +4210,7 @@ public class TestProtocolRequirements {
                     break;
                 }
             }
-            Assert.assertTrue(found110Warning);
+            Assertions.assertTrue(found110Warning);
         }
     }
 
@@ -4240,7 +4239,7 @@ public class TestProtocolRequirements {
             while (it.hasNext()) {
                 final HeaderElement elt = it.next();
                 if ("no-cache".equals(elt.getName())) {
-                    Assert.assertNull(elt.getValue());
+                    Assertions.assertNull(elt.getValue());
                 }
             }
         }
@@ -4270,13 +4269,13 @@ public class TestProtocolRequirements {
 
         final ClassicHttpResponse result = execute(req);
 
-        Assert.assertTrue(HttpTestUtils.semanticallyTransparent(resp2, result));
+        Assertions.assertTrue(HttpTestUtils.semanticallyTransparent(resp2, result));
 
         final ArgumentCaptor<ClassicHttpRequest> reqCapture = ArgumentCaptor.forClass(ClassicHttpRequest.class);
         Mockito.verify(mockExecChain, Mockito.times(2)).proceed(reqCapture.capture(), Mockito.any());
 
         final ClassicHttpRequest captured = reqCapture.getValue();
-        Assert.assertTrue(HttpTestUtils.equivalent(req, captured));
+        Assertions.assertTrue(HttpTestUtils.equivalent(req, captured));
     }
 
     @Test
@@ -4334,7 +4333,7 @@ public class TestProtocolRequirements {
                 foundMaxAge0 = true;
             }
         }
-        Assert.assertTrue(foundMaxAge0);
+        Assertions.assertTrue(foundMaxAge0);
     }
 
     @Test
@@ -4368,7 +4367,7 @@ public class TestProtocolRequirements {
 
         final ClassicHttpResponse result = execute(req2);
 
-        Assert.assertEquals(HttpStatus.SC_GATEWAY_TIMEOUT,
+        Assertions.assertEquals(HttpStatus.SC_GATEWAY_TIMEOUT,
                             result.getCode());
     }
 
@@ -4461,7 +4460,7 @@ public class TestProtocolRequirements {
 
             execute(req1);
             final ClassicHttpResponse result = execute(req2);
-            Assert.assertNull(result.getFirstHeader("X-Personal"));
+            Assertions.assertNull(result.getFirstHeader("X-Personal"));
 
             Mockito.verify(mockExecChain, Mockito.atLeastOnce()).proceed(Mockito.any(), Mockito.any());
             Mockito.verify(mockExecChain, Mockito.atMost(2)).proceed(Mockito.any(), Mockito.any());
@@ -4547,7 +4546,7 @@ public class TestProtocolRequirements {
 
         final List<ClassicHttpRequest> allRequests = reqCapture.getAllValues();
         if (allRequests.isEmpty()) {
-            Assert.assertNull(result.getFirstHeader("X-Stuff"));
+            Assertions.assertNull(result.getFirstHeader("X-Stuff"));
         }
     }
 
@@ -4625,17 +4624,17 @@ public class TestProtocolRequirements {
             final HeaderElement elt = it.next();
             switch(total_encodings) {
                 case 0:
-                    Assert.assertEquals("gzip", elt.getName());
+                    Assertions.assertEquals("gzip", elt.getName());
                     break;
                 case 1:
-                    Assert.assertEquals("deflate", elt.getName());
+                    Assertions.assertEquals("deflate", elt.getName());
                     break;
                 default:
-                    Assert.fail("too many encodings");
+                    Assertions.fail("too many encodings");
             }
             total_encodings++;
         }
-        Assert.assertEquals(2, total_encodings);
+        Assertions.assertEquals(2, total_encodings);
     }
 
     @Test
@@ -4650,17 +4649,17 @@ public class TestProtocolRequirements {
             final HeaderElement elt = it.next();
             switch(total_encodings) {
                 case 0:
-                    Assert.assertEquals("gzip", elt.getName());
+                    Assertions.assertEquals("gzip", elt.getName());
                     break;
                 case 1:
-                    Assert.assertEquals("deflate", elt.getName());
+                    Assertions.assertEquals("deflate", elt.getName());
                     break;
                 default:
-                    Assert.fail("too many encodings");
+                    Assertions.fail("too many encodings");
             }
             total_encodings++;
         }
-        Assert.assertEquals(2, total_encodings);
+        Assertions.assertEquals(2, total_encodings);
     }
 
     /* "A cache cannot assume that an entity with a Content-Location
@@ -4704,7 +4703,7 @@ public class TestProtocolRequirements {
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(originResponse);
 
         final ClassicHttpResponse result = execute(request);
-        Assert.assertNotNull(result.getFirstHeader("Date"));
+        Assertions.assertNotNull(result.getFirstHeader("Date"));
     }
 
     /* "The Expires entity-header field gives the date/time after which the
@@ -4780,7 +4779,7 @@ public class TestProtocolRequirements {
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(originResponse);
 
         final ClassicHttpResponse result = execute(request);
-        Assert.assertEquals(server, result.getFirstHeader("Server").getValue());
+        Assertions.assertEquals(server, result.getFirstHeader("Server").getValue());
     }
 
     /* "If multiple encodings have been applied to an entity, the transfer-
@@ -4802,17 +4801,17 @@ public class TestProtocolRequirements {
             final HeaderElement elt = it.next();
             switch(transfer_encodings) {
                 case 0:
-                    Assert.assertEquals("chunked",elt.getName());
+                    Assertions.assertEquals("chunked",elt.getName());
                     break;
                 case 1:
-                    Assert.assertEquals("x-transfer",elt.getName());
+                    Assertions.assertEquals("x-transfer",elt.getName());
                     break;
                 default:
-                    Assert.fail("too many transfer encodings");
+                    Assertions.fail("too many transfer encodings");
             }
             transfer_encodings++;
         }
-        Assert.assertEquals(2, transfer_encodings);
+        Assertions.assertEquals(2, transfer_encodings);
     }
 
     @Test
@@ -4828,17 +4827,17 @@ public class TestProtocolRequirements {
             final HeaderElement elt = it.next();
             switch(transfer_encodings) {
                 case 0:
-                    Assert.assertEquals("chunked",elt.getName());
+                    Assertions.assertEquals("chunked",elt.getName());
                     break;
                 case 1:
-                    Assert.assertEquals("x-transfer",elt.getName());
+                    Assertions.assertEquals("x-transfer",elt.getName());
                     break;
                 default:
-                    Assert.fail("too many transfer encodings");
+                    Assertions.fail("too many transfer encodings");
             }
             transfer_encodings++;
         }
-        Assert.assertEquals(2, transfer_encodings);
+        Assertions.assertEquals(2, transfer_encodings);
     }
 
     /* "A Vary field value of '*' signals that unspecified parameters
@@ -4862,7 +4861,7 @@ public class TestProtocolRequirements {
         final Iterator<HeaderElement> it = MessageSupport.iterate(result, HttpHeaders.VARY);
         while (it.hasNext()) {
             final HeaderElement elt = it.next();
-            Assert.assertNotEquals("*", elt.getName());
+            Assertions.assertNotEquals("*", elt.getName());
         }
     }
 
@@ -4906,23 +4905,23 @@ public class TestProtocolRequirements {
         //        pseudonym         = token
 
         final String[] parts = via.split("\\s+");
-        Assert.assertTrue(parts.length >= 2);
+        Assertions.assertTrue(parts.length >= 2);
 
         // received protocol
         final String receivedProtocol = parts[0];
         final String[] protocolParts = receivedProtocol.split("/");
-        Assert.assertTrue(protocolParts.length >= 1);
-        Assert.assertTrue(protocolParts.length <= 2);
+        Assertions.assertTrue(protocolParts.length >= 1);
+        Assertions.assertTrue(protocolParts.length <= 2);
 
         final String tokenRegexp = "[^\\p{Cntrl}()<>@,;:\\\\\"/\\[\\]?={} \\t]+";
         for(final String protocolPart : protocolParts) {
-            Assert.assertTrue(Pattern.matches(tokenRegexp, protocolPart));
+            Assertions.assertTrue(Pattern.matches(tokenRegexp, protocolPart));
         }
 
         // received-by
         if (!Pattern.matches(tokenRegexp, parts[1])) {
             // host : port
-            new HttpHost(parts[1]); // TODO - unused - is this a test bug? else use Assert.assertNotNull
+            new HttpHost(parts[1]); // TODO - unused - is this a test bug? else use Assertions.assertNotNull
         }
 
         // comment
@@ -4931,7 +4930,7 @@ public class TestProtocolRequirements {
             for(int i=3; i<parts.length; i++) {
                 buf.append(" "); buf.append(parts[i]);
             }
-            Assert.assertTrue(isValidComment(buf.toString()));
+            Assertions.assertTrue(isValidComment(buf.toString()));
         }
     }
 
@@ -4984,9 +4983,9 @@ public class TestProtocolRequirements {
         final String protocol = via.split("\\s+")[0];
         final String[] protoParts = protocol.split("/");
         if (protoParts.length > 1) {
-            Assert.assertTrue("http".equalsIgnoreCase(protoParts[0]));
+            Assertions.assertTrue("http".equalsIgnoreCase(protoParts[0]));
         }
-        Assert.assertEquals("1.0",protoParts[protoParts.length-1]);
+        Assertions.assertEquals("1.0",protoParts[protoParts.length-1]);
     }
 
     @Test
@@ -5002,12 +5001,12 @@ public class TestProtocolRequirements {
         final String via = result.getFirstHeader("Via").getValue();
         final String protocol = via.split("\\s+")[0];
         final String[] protoParts = protocol.split("/");
-        Assert.assertTrue(protoParts.length >= 1);
-        Assert.assertTrue(protoParts.length <= 2);
+        Assertions.assertTrue(protoParts.length >= 1);
+        Assertions.assertTrue(protoParts.length <= 2);
         if (protoParts.length > 1) {
-            Assert.assertTrue("http".equalsIgnoreCase(protoParts[0]));
+            Assertions.assertTrue("http".equalsIgnoreCase(protoParts[0]));
         }
-        Assert.assertEquals("1.0", protoParts[protoParts.length - 1]);
+        Assertions.assertEquals("1.0", protoParts[protoParts.length - 1]);
     }
 
     /* "A cache MUST NOT delete any Warning header that it received with
@@ -5023,7 +5022,7 @@ public class TestProtocolRequirements {
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(originResponse);
 
         final ClassicHttpResponse result = execute(request);
-        Assert.assertEquals(warning,
+        Assertions.assertEquals(warning,
                 result.getFirstHeader("Warning").getValue());
     }
 
@@ -5072,8 +5071,8 @@ public class TestProtocolRequirements {
                 }
             }
         }
-        Assert.assertFalse(oldWarningFound);
-        Assert.assertTrue(newWarningFound);
+        Assertions.assertFalse(oldWarningFound);
+        Assertions.assertTrue(newWarningFound);
     }
 
     /* "If an implementation sends a message with one or more Warning
@@ -5098,7 +5097,7 @@ public class TestProtocolRequirements {
         // be HTTP/1.1, so we won't actually be testing anything here until
         // that changes.
         if (HttpVersion.HTTP_1_0.greaterEquals(result.getVersion())) {
-            Assert.assertEquals(dateHdr, result.getFirstHeader("Date").getValue());
+            Assertions.assertEquals(dateHdr, result.getFirstHeader("Date").getValue());
             boolean warningFound = false;
             final String targetWarning = origWarning + " \"" + dateHdr + "\"";
             for(final Header h : result.getHeaders("Warning")) {
@@ -5109,7 +5108,7 @@ public class TestProtocolRequirements {
                     }
                 }
             }
-            Assert.assertTrue(warningFound);
+            Assertions.assertTrue(warningFound);
         }
     }
 
@@ -5136,7 +5135,7 @@ public class TestProtocolRequirements {
         final ClassicHttpResponse result = execute(request);
 
         for(final Header h : result.getHeaders("Warning")) {
-            Assert.assertFalse(h.getValue().contains("wilma"));
+            Assertions.assertFalse(h.getValue().contains("wilma"));
         }
     }
 
@@ -5153,7 +5152,7 @@ public class TestProtocolRequirements {
         final ClassicHttpResponse result = execute(request);
 
         for(final Header h : result.getHeaders("Warning")) {
-            Assert.assertFalse(h.getValue().contains("wilma"));
+            Assertions.assertFalse(h.getValue().contains("wilma"));
         }
     }
 
@@ -5169,7 +5168,7 @@ public class TestProtocolRequirements {
         final ClassicHttpResponse result = execute(request);
 
         final Header[] warningHeaders = result.getHeaders("Warning");
-        Assert.assertTrue(warningHeaders == null || warningHeaders.length == 0);
+        Assertions.assertTrue(warningHeaders == null || warningHeaders.length == 0);
     }
 
 }

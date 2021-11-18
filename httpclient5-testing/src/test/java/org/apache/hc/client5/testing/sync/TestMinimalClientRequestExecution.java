@@ -45,7 +45,7 @@ import org.apache.hc.core5.http.io.HttpRequestHandler;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.protocol.HttpContext;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.Test;
 
 /**
@@ -81,22 +81,22 @@ public class TestMinimalClientRequestExecution extends LocalServerTestBase {
             final HttpGet request = new HttpGet("/");
             this.httpclient.execute(target, request, context, response -> {
                 EntityUtils.consume(response.getEntity());
-                Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
+                Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
                 return null;
             });
 
             final HttpRequest reqWrapper = context.getRequest();
-            Assert.assertNotNull(reqWrapper);
+            Assertions.assertNotNull(reqWrapper);
 
             final Header[] headers = reqWrapper.getHeaders();
             final Set<String> headerSet = new HashSet<>();
             for (final Header header: headers) {
                 headerSet.add(header.getName().toLowerCase(Locale.ROOT));
             }
-            Assert.assertEquals(3, headerSet.size());
-            Assert.assertTrue(headerSet.contains("connection"));
-            Assert.assertTrue(headerSet.contains("host"));
-            Assert.assertTrue(headerSet.contains("user-agent"));
+            Assertions.assertEquals(3, headerSet.size());
+            Assertions.assertTrue(headerSet.contains("connection"));
+            Assertions.assertTrue(headerSet.contains("host"));
+            Assertions.assertTrue(headerSet.contains("user-agent"));
         }
     }
 
@@ -110,7 +110,7 @@ public class TestMinimalClientRequestExecution extends LocalServerTestBase {
             final HttpGet request = new HttpGet("/");
             this.httpclient.execute(target, request, response -> {
                 EntityUtils.consume(response.getEntity());
-                Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
+                Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
                 return null;
             });
         }

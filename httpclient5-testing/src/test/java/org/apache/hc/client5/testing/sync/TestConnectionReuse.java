@@ -52,7 +52,7 @@ import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.InputStreamEntity;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.Test;
 
 public class TestConnectionReuse extends LocalServerTestBase {
@@ -85,7 +85,7 @@ public class TestConnectionReuse extends LocalServerTestBase {
         }
 
         // Expect some connection in the pool
-        Assert.assertTrue(this.connManager.getTotalStats().getAvailable() > 0);
+        Assertions.assertTrue(this.connManager.getTotalStats().getAvailable() > 0);
     }
 
     @Test
@@ -121,7 +121,7 @@ public class TestConnectionReuse extends LocalServerTestBase {
         }
 
         // Expect some connection in the pool
-        Assert.assertTrue(this.connManager.getTotalStats().getAvailable() > 0);
+        Assertions.assertTrue(this.connManager.getTotalStats().getAvailable() > 0);
     }
 
     private static class AlwaysCloseConn implements HttpResponseInterceptor {
@@ -167,7 +167,7 @@ public class TestConnectionReuse extends LocalServerTestBase {
         }
 
         // Expect zero connections in the pool
-        Assert.assertEquals(0, this.connManager.getTotalStats().getAvailable());
+        Assertions.assertEquals(0, this.connManager.getTotalStats().getAvailable());
     }
 
     @Test
@@ -198,7 +198,7 @@ public class TestConnectionReuse extends LocalServerTestBase {
         }
 
         // Expect zero connections in the pool
-        Assert.assertEquals(0, this.connManager.getTotalStats().getAvailable());
+        Assertions.assertEquals(0, this.connManager.getTotalStats().getAvailable());
     }
 
     @Test
@@ -216,14 +216,14 @@ public class TestConnectionReuse extends LocalServerTestBase {
             return null;
         });
 
-        Assert.assertEquals(1, this.connManager.getTotalStats().getAvailable());
+        Assertions.assertEquals(1, this.connManager.getTotalStats().getAvailable());
 
         this.httpclient.execute(target, new HttpGet("/random/2000"), response -> {
             EntityUtils.consume(response.getEntity());
             return null;
         });
 
-        Assert.assertEquals(1, this.connManager.getTotalStats().getAvailable());
+        Assertions.assertEquals(1, this.connManager.getTotalStats().getAvailable());
 
         // Now sleep for 1.1 seconds and let the timeout do its work
         Thread.sleep(1100);
@@ -232,7 +232,7 @@ public class TestConnectionReuse extends LocalServerTestBase {
             return null;
         });
 
-        Assert.assertEquals(1, this.connManager.getTotalStats().getAvailable());
+        Assertions.assertEquals(1, this.connManager.getTotalStats().getAvailable());
 
         // Do another request just under the 1 second limit & make
         // sure we reuse that connection.
@@ -242,7 +242,7 @@ public class TestConnectionReuse extends LocalServerTestBase {
             return null;
         });
 
-        Assert.assertEquals(1, this.connManager.getTotalStats().getAvailable());
+        Assertions.assertEquals(1, this.connManager.getTotalStats().getAvailable());
     }
 
     private static class WorkerThread extends Thread {

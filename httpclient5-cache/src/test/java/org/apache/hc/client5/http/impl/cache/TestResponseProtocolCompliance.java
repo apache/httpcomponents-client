@@ -36,15 +36,15 @@ import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.message.BasicHttpResponse;
 import org.apache.hc.core5.http.support.BasicRequestBuilder;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class TestResponseProtocolCompliance {
 
     private ResponseProtocolCompliance impl;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         impl = new ResponseProtocolCompliance();
     }
@@ -69,7 +69,7 @@ public class TestResponseProtocolCompliance {
         final int nbytes = 128;
         final HttpResponse resp = makePartialResponse(nbytes);
 
-        Assert.assertThrows(ClientProtocolException.class, () ->
+        Assertions.assertThrows(ClientProtocolException.class, () ->
                 impl.ensureProtocolCompliance(wrapper, req, resp));
     }
 

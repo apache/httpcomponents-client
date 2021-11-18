@@ -30,8 +30,8 @@ package org.apache.hc.client5.http.cookie;
 import java.util.Comparator;
 
 import org.apache.hc.client5.http.impl.cookie.BasicClientCookie;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test cases for {@link CookiePathComparator}.
@@ -45,8 +45,8 @@ public class TestCookiePathComparator {
         final BasicClientCookie cookie2 = new BasicClientCookie("name1", "value");
         cookie2.setPath("/a/");
         final Comparator<Cookie> comparator = new CookiePathComparator();
-        Assert.assertTrue(comparator.compare(cookie1, cookie2) < 0);
-        Assert.assertTrue(comparator.compare(cookie2, cookie1) > 0);
+        Assertions.assertTrue(comparator.compare(cookie1, cookie2) < 0);
+        Assertions.assertTrue(comparator.compare(cookie2, cookie1) > 0);
     }
 
     @Test
@@ -56,8 +56,8 @@ public class TestCookiePathComparator {
         final BasicClientCookie cookie2 = new BasicClientCookie("name1", "value");
         cookie2.setPath("/a");
         final Comparator<Cookie> comparator = new CookiePathComparator();
-        Assert.assertTrue(comparator.compare(cookie1, cookie2) < 0);
-        Assert.assertTrue(comparator.compare(cookie2, cookie1) > 0);
+        Assertions.assertTrue(comparator.compare(cookie1, cookie2) < 0);
+        Assertions.assertTrue(comparator.compare(cookie2, cookie1) > 0);
     }
 
     @Test
@@ -67,8 +67,8 @@ public class TestCookiePathComparator {
         final BasicClientCookie cookie2 = new BasicClientCookie("name1", "value");
         cookie2.setPath("/a");
         final Comparator<Cookie> comparator = new CookiePathComparator();
-        Assert.assertEquals(0, comparator.compare(cookie1, cookie2));
-        Assert.assertEquals(0, comparator.compare(cookie2, cookie1));
+        Assertions.assertEquals(0, comparator.compare(cookie1, cookie2));
+        Assertions.assertEquals(0, comparator.compare(cookie2, cookie1));
     }
 
     @Test
@@ -78,8 +78,8 @@ public class TestCookiePathComparator {
         final BasicClientCookie cookie2 = new BasicClientCookie("name1", "value");
         cookie2.setPath("/a");
         final Comparator<Cookie> comparator = new CookiePathComparator();
-        Assert.assertEquals(0, comparator.compare(cookie1, cookie2));
-        Assert.assertEquals(0, comparator.compare(cookie2, cookie1));
+        Assertions.assertEquals(0, comparator.compare(cookie1, cookie2));
+        Assertions.assertEquals(0, comparator.compare(cookie2, cookie1));
     }
 
     @Test
@@ -89,8 +89,8 @@ public class TestCookiePathComparator {
         final BasicClientCookie cookie2 = new BasicClientCookie("name1", "value");
         cookie2.setPath("/");
         final Comparator<Cookie> comparator = new CookiePathComparator();
-        Assert.assertEquals(0, comparator.compare(cookie1, cookie2));
-        Assert.assertEquals(0, comparator.compare(cookie2, cookie1));
+        Assertions.assertEquals(0, comparator.compare(cookie1, cookie2));
+        Assertions.assertEquals(0, comparator.compare(cookie2, cookie1));
     }
 
     @Test
@@ -100,8 +100,8 @@ public class TestCookiePathComparator {
         final BasicClientCookie cookie2 = new BasicClientCookie("name1", "value");
         cookie2.setPath("/that");
         final Comparator<Cookie> comparator = new CookiePathComparator();
-        Assert.assertEquals(0, comparator.compare(cookie1, cookie2));
-        Assert.assertEquals(0, comparator.compare(cookie2, cookie1));
+        Assertions.assertEquals(0, comparator.compare(cookie1, cookie2));
+        Assertions.assertEquals(0, comparator.compare(cookie2, cookie1));
     }
 
 }

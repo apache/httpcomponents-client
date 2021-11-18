@@ -56,17 +56,15 @@ import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.MockitoAnnotations;
 import org.mockito.stubbing.Answer;
 
 @SuppressWarnings({"static-access"}) // test code
-@RunWith(MockitoJUnitRunner.class)
 public class TestProtocolExec {
 
     @Mock
@@ -84,8 +82,9 @@ public class TestProtocolExec {
     private HttpHost target;
     private HttpHost proxy;
 
-    @Before
+    @BeforeEach
     public void setup() throws Exception {
+        MockitoAnnotations.openMocks(this);
         protocolExec = new ProtocolExec(httpProcessor, targetAuthStrategy, proxyAuthStrategy, null, true);
         target = new HttpHost("foo", 80);
         proxy = new HttpHost("bar", 8888);
@@ -110,9 +109,9 @@ public class TestProtocolExec {
         Mockito.verify(chain).proceed(request, scope);
         Mockito.verify(httpProcessor).process(response, null, context);
 
-        Assert.assertEquals(route, context.getHttpRoute());
-        Assert.assertSame(request, context.getRequest());
-        Assert.assertSame(response, context.getResponse());
+        Assertions.assertEquals(route, context.getHttpRoute());
+        Assertions.assertSame(request, context.getRequest());
+        Assertions.assertSame(response, context.getResponse());
     }
 
     @Test
@@ -122,7 +121,7 @@ public class TestProtocolExec {
         final HttpClientContext context = HttpClientContext.create();
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
-        Assert.assertThrows(ProtocolException.class, () -> protocolExec.execute(request, scope, chain));
+        Assertions.assertThrows(ProtocolException.class, () -> protocolExec.execute(request, scope, chain));
     }
 
     @Test
@@ -139,7 +138,7 @@ public class TestProtocolExec {
         Mockito.doThrow(new HttpException("Ooopsie")).when(httpProcessor).process(
                 Mockito.same(response), Mockito.isNull(), Mockito.any());
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
-        Assert.assertThrows(HttpException.class, () ->
+        Assertions.assertThrows(HttpException.class, () ->
                 protocolExec.execute(request, scope, chain));
         Mockito.verify(execRuntime).discardEndpoint();
     }
@@ -157,7 +156,7 @@ public class TestProtocolExec {
         Mockito.doThrow(new IOException("Ooopsie")).when(httpProcessor).process(
                 Mockito.same(response), Mockito.isNull(), Mockito.any());
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
-        Assert.assertThrows(IOException.class, () ->
+        Assertions.assertThrows(IOException.class, () ->
                 protocolExec.execute(request, scope, chain));
         Mockito.verify(execRuntime).discardEndpoint();
     }
@@ -175,7 +174,7 @@ public class TestProtocolExec {
         Mockito.doThrow(new RuntimeException("Ooopsie")).when(httpProcessor).process(
                 Mockito.same(response), Mockito.isNull(), Mockito.any());
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
-        Assert.assertThrows(RuntimeException.class, () ->
+        Assertions.assertThrows(RuntimeException.class, () ->
                 protocolExec.execute(request, scope, chain));
         Mockito.verify(execRuntime).discardEndpoint();
     }
@@ -216,8 +215,8 @@ public class TestProtocolExec {
         Mockito.verify(inStream1).close();
         Mockito.verify(inStream2, Mockito.never()).close();
 
-        Assert.assertNotNull(finalResponse);
-        Assert.assertEquals(200, finalResponse.getCode());
+        Assertions.assertNotNull(finalResponse);
+        Assertions.assertEquals(200, finalResponse.getCode());
     }
 
     @Test
@@ -262,9 +261,9 @@ public class TestProtocolExec {
         Mockito.verify(execRuntime).disconnectEndpoint();
         Mockito.verify(inStream2, Mockito.never()).close();
 
-        Assert.assertNotNull(finalResponse);
-        Assert.assertEquals(200, finalResponse.getCode());
-        Assert.assertNotNull(authExchange.getAuthScheme());
+        Assertions.assertNotNull(finalResponse);
+        Assertions.assertEquals(200, finalResponse.getCode());
+        Assertions.assertNotNull(authExchange.getAuthScheme());
     }
 
     @Test
@@ -298,7 +297,7 @@ public class TestProtocolExec {
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
         final ClassicHttpResponse response = protocolExec.execute(request, scope, chain);
-        Assert.assertEquals(401, response.getCode());
+        Assertions.assertEquals(401, response.getCode());
     }
 
 }

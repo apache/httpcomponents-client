@@ -27,8 +27,8 @@
 
 package org.apache.hc.client5.http.cookie;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test cases for {@link CookieOrigin}.
@@ -38,43 +38,43 @@ public class TestCookieOrigin {
     @Test
     public void testConstructor() {
         final CookieOrigin origin = new CookieOrigin("www.apache.org", 80, "/", false);
-        Assert.assertEquals("www.apache.org", origin.getHost());
-        Assert.assertEquals(80, origin.getPort());
-        Assert.assertEquals("/", origin.getPath());
-        Assert.assertFalse(origin.isSecure());
+        Assertions.assertEquals("www.apache.org", origin.getHost());
+        Assertions.assertEquals(80, origin.getPort());
+        Assertions.assertEquals("/", origin.getPath());
+        Assertions.assertFalse(origin.isSecure());
     }
 
     @Test
     public void testNullHost() {
-        Assert.assertThrows(NullPointerException.class, () ->
+        Assertions.assertThrows(NullPointerException.class, () ->
                 new CookieOrigin(null, 80, "/", false));
     }
 
     @Test
     public void testEmptyHost() {
-        Assert.assertThrows(IllegalArgumentException.class, () ->
+        Assertions.assertThrows(IllegalArgumentException.class, () ->
             new CookieOrigin("   ", 80, "/", false));
     }
 
     @Test
     public void testNegativePort() {
-        Assert.assertThrows(IllegalArgumentException.class, () ->
+        Assertions.assertThrows(IllegalArgumentException.class, () ->
                 new CookieOrigin("www.apache.org", -80, "/", false));
     }
 
     @Test
     public void testNullPath() {
-        Assert.assertThrows(NullPointerException.class, () ->
+        Assertions.assertThrows(NullPointerException.class, () ->
                 new CookieOrigin("www.apache.org", 80, null, false));
     }
 
     @Test
     public void testEmptyPath() {
         final CookieOrigin origin = new CookieOrigin("www.apache.org", 80, "", false);
-        Assert.assertEquals("www.apache.org", origin.getHost());
-        Assert.assertEquals(80, origin.getPort());
-        Assert.assertEquals("/", origin.getPath());
-        Assert.assertFalse(origin.isSecure());
+        Assertions.assertEquals("www.apache.org", origin.getHost());
+        Assertions.assertEquals(80, origin.getPort());
+        Assertions.assertEquals("/", origin.getPath());
+        Assertions.assertFalse(origin.isSecure());
     }
 
 }

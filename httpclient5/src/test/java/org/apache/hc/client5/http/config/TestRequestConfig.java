@@ -34,8 +34,8 @@ import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.cookie.StandardCookieSpec;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class TestRequestConfig {
 
@@ -48,16 +48,16 @@ public class TestRequestConfig {
     @Test
     public void testDefaults() {
         final RequestConfig config = RequestConfig.DEFAULT;
-        Assert.assertEquals(Timeout.ofMinutes(3), config.getConnectionRequestTimeout());
-        Assert.assertFalse(config.isExpectContinueEnabled());
-        Assert.assertTrue(config.isAuthenticationEnabled());
-        Assert.assertTrue(config.isRedirectsEnabled());
-        Assert.assertFalse(config.isCircularRedirectsAllowed());
-        Assert.assertEquals(50, config.getMaxRedirects());
-        Assert.assertNull(config.getCookieSpec());
-        Assert.assertNull(config.getTargetPreferredAuthSchemes());
-        Assert.assertNull(config.getProxyPreferredAuthSchemes());
-        Assert.assertTrue(config.isContentCompressionEnabled());
+        Assertions.assertEquals(Timeout.ofMinutes(3), config.getConnectionRequestTimeout());
+        Assertions.assertFalse(config.isExpectContinueEnabled());
+        Assertions.assertTrue(config.isAuthenticationEnabled());
+        Assertions.assertTrue(config.isRedirectsEnabled());
+        Assertions.assertFalse(config.isCircularRedirectsAllowed());
+        Assertions.assertEquals(50, config.getMaxRedirects());
+        Assertions.assertNull(config.getCookieSpec());
+        Assertions.assertNull(config.getTargetPreferredAuthSchemes());
+        Assertions.assertNull(config.getProxyPreferredAuthSchemes());
+        Assertions.assertTrue(config.isContentCompressionEnabled());
     }
 
     @Test
@@ -75,16 +75,16 @@ public class TestRequestConfig {
                 .setContentCompressionEnabled(false)
                 .build();
         final RequestConfig config = RequestConfig.copy(config0).build();
-        Assert.assertEquals(TimeValue.ofMilliseconds(44), config.getConnectionRequestTimeout());
-        Assert.assertTrue(config.isExpectContinueEnabled());
-        Assert.assertFalse(config.isAuthenticationEnabled());
-        Assert.assertFalse(config.isRedirectsEnabled());
-        Assert.assertTrue(config.isCircularRedirectsAllowed());
-        Assert.assertEquals(100, config.getMaxRedirects());
-        Assert.assertEquals(StandardCookieSpec.STRICT, config.getCookieSpec());
-        Assert.assertEquals(Collections.singletonList(StandardAuthScheme.NTLM), config.getTargetPreferredAuthSchemes());
-        Assert.assertEquals(Collections.singletonList(StandardAuthScheme.DIGEST), config.getProxyPreferredAuthSchemes());
-        Assert.assertFalse(config.isContentCompressionEnabled());
+        Assertions.assertEquals(TimeValue.ofMilliseconds(44), config.getConnectionRequestTimeout());
+        Assertions.assertTrue(config.isExpectContinueEnabled());
+        Assertions.assertFalse(config.isAuthenticationEnabled());
+        Assertions.assertFalse(config.isRedirectsEnabled());
+        Assertions.assertTrue(config.isCircularRedirectsAllowed());
+        Assertions.assertEquals(100, config.getMaxRedirects());
+        Assertions.assertEquals(StandardCookieSpec.STRICT, config.getCookieSpec());
+        Assertions.assertEquals(Collections.singletonList(StandardAuthScheme.NTLM), config.getTargetPreferredAuthSchemes());
+        Assertions.assertEquals(Collections.singletonList(StandardAuthScheme.DIGEST), config.getProxyPreferredAuthSchemes());
+        Assertions.assertFalse(config.isContentCompressionEnabled());
     }
 
 }

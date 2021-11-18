@@ -26,9 +26,10 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -52,20 +53,18 @@ import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.io.entity.InputStreamEntity;
 import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
 import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.MockitoAnnotations;
 
 /**
  * A suite of acceptance tests for compliance with RFC5861, which
  * describes the stale-if-error and stale-while-revalidate
  * Cache-Control extensions.
  */
-@RunWith(MockitoJUnitRunner.class)
 public class TestRFC5861Compliance {
 
     static final int MAX_BYTES = 1024;
@@ -87,8 +86,10 @@ public class TestRFC5861Compliance {
     HttpCache cache;
     ScheduledExecutorService executorService;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
+        MockitoAnnotations.openMocks(this);
+
         host = new HttpHost("foo.example.com", 80);
 
         route = new HttpRoute(host);
@@ -115,7 +116,7 @@ public class TestRFC5861Compliance {
         Mockito.when(mockExecRuntime.fork(null)).thenReturn(mockExecRuntime);
     }
 
-    @After
+    @AfterEach
     public void cleanup() {
         executorService.shutdownNow();
     }

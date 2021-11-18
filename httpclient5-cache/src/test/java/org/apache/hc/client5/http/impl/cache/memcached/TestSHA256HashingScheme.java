@@ -26,9 +26,10 @@
  */
 package org.apache.hc.client5.http.impl.cache.memcached;
 
-import static org.junit.Assert.assertTrue;
 
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import org.junit.jupiter.api.Test;
 
 
 public class TestSHA256HashingScheme {

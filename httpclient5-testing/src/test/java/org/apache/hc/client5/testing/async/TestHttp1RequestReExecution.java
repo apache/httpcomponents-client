@@ -26,6 +26,8 @@
  */
 package org.apache.hc.client5.testing.async;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.Future;
@@ -51,13 +53,14 @@ import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.apache.hc.core5.http2.config.H2Config;
 import org.apache.hc.core5.util.TimeValue;
 import org.hamcrest.CoreMatchers;
-import org.hamcrest.MatcherAssert;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
 import org.junit.rules.ExternalResource;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
+@EnableRuleMigrationSupport
 @RunWith(Parameterized.class)
 public class TestHttp1RequestReExecution extends AbstractIntegrationTestBase<CloseableHttpAsyncClient> {
 
@@ -152,8 +155,8 @@ public class TestHttp1RequestReExecution extends AbstractIntegrationTestBase<Clo
                         .setPath("/random/2048")
                         .build(), null);
         final SimpleHttpResponse response = future.get();
-        MatcherAssert.assertThat(response, CoreMatchers.notNullValue());
-        MatcherAssert.assertThat(response.getCode(), CoreMatchers.equalTo(HttpStatus.SC_SERVICE_UNAVAILABLE));
+        assertThat(response, CoreMatchers.notNullValue());
+        assertThat(response.getCode(), CoreMatchers.equalTo(HttpStatus.SC_SERVICE_UNAVAILABLE));
     }
 
     @Test
@@ -166,8 +169,8 @@ public class TestHttp1RequestReExecution extends AbstractIntegrationTestBase<Clo
                         .setPath("/random/2048")
                         .build(), null);
         final SimpleHttpResponse response = future.get();
-        MatcherAssert.assertThat(response, CoreMatchers.notNullValue());
-        MatcherAssert.assertThat(response.getCode(), CoreMatchers.equalTo(HttpStatus.SC_OK));
+        assertThat(response, CoreMatchers.notNullValue());
+        assertThat(response.getCode(), CoreMatchers.equalTo(HttpStatus.SC_OK));
     }
 
 }

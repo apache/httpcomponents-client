@@ -57,7 +57,7 @@ import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.MessageSupport;
 import org.apache.hc.core5.util.ByteArrayBuffer;
 import org.apache.hc.core5.util.LangUtils;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 
 public class HttpTestUtils {
 
@@ -114,7 +114,7 @@ public class HttpTestUtils {
         return false;
     }
     /*
-     * Assert.asserts that two request or response bodies are byte-equivalent.
+     * Assertions.asserts that two request or response bodies are byte-equivalent.
      */
     public static boolean equivalent(final HttpEntity e1, final HttpEntity e2) throws Exception {
         final InputStream i1 = e1.getContent();
@@ -158,7 +158,7 @@ public class HttpTestUtils {
     }
 
     /*
-     * Assert.asserts that all the headers appearing in r1 also appear in r2
+     * Assertions.asserts that all the headers appearing in r1 also appear in r2
      * with the same canonical header values.
      */
     public static boolean isEndToEndHeaderSubset(final HttpMessage r1, final HttpMessage r2) {
@@ -175,7 +175,7 @@ public class HttpTestUtils {
     }
 
     /*
-     * Assert.asserts that message {@code r2} represents exactly the same
+     * Assertions.asserts that message {@code r2} represents exactly the same
      * message as {@code r1}, except for hop-by-hop headers. "When a cache
      * is semantically transparent, the client receives exactly the same
      * response (except for hop-by-hop headers) that it would have received had
@@ -197,12 +197,12 @@ public class HttpTestUtils {
         return isEndToEndHeaderSubset(r1, r2);
     }
 
-    /* Assert.asserts that protocol versions equivalent. */
+    /* Assertions.asserts that protocol versions equivalent. */
     public static boolean equivalent(final ProtocolVersion v1, final ProtocolVersion v2) {
         return LangUtils.equals(v1 != null ? v1 : HttpVersion.DEFAULT, v2 != null ? v2 : HttpVersion.DEFAULT );
     }
 
-    /* Assert.asserts that two requests are morally equivalent. */
+    /* Assertions.asserts that two requests are morally equivalent. */
     public static boolean equivalent(final HttpRequest r1, final HttpRequest r2) {
         return equivalent(r1.getVersion(), r2.getVersion()) &&
                 LangUtils.equals(r1.getMethod(), r2.getMethod()) &&
@@ -210,7 +210,7 @@ public class HttpTestUtils {
                 isEndToEndHeaderSubset(r1, r2);
     }
 
-    /* Assert.asserts that two requests are morally equivalent. */
+    /* Assertions.asserts that two requests are morally equivalent. */
     public static boolean equivalent(final HttpResponse r1, final HttpResponse r2) {
         return equivalent(r1.getVersion(), r2.getVersion()) &&
                 r1.getCode() == r2.getCode() &&
@@ -352,7 +352,7 @@ public class HttpTestUtils {
                 break;
             }
         }
-        Assert.assertTrue(found110Warning);
+        Assertions.assertTrue(found110Warning);
     }
 
     public static ClassicHttpRequest makeDefaultRequest() {

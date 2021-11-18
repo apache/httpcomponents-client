@@ -29,22 +29,22 @@ package org.apache.hc.client5.http.classic.methods;
 
 import java.net.URI;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class TestHttpRequestBase {
 
     @Test
     public void testBasicProperties() throws Exception {
         final HttpGet httpget = new HttpGet("http://host/path");
-        Assert.assertEquals("GET", httpget.getMethod());
-        Assert.assertEquals(new URI("http://host/path"), httpget.getUri());
+        Assertions.assertEquals("GET", httpget.getMethod());
+        Assertions.assertEquals(new URI("http://host/path"), httpget.getUri());
     }
 
     @Test
     public void testEmptyURI() throws Exception {
         final HttpGet httpget = new HttpGet("");
-        Assert.assertEquals(new URI("/"), httpget.getUri());
+        Assertions.assertEquals(new URI("/"), httpget.getUri());
     }
 
 }

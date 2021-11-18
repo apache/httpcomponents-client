@@ -28,8 +28,8 @@ package org.apache.hc.client5.http.impl.classic;
 
 import org.apache.hc.client5.http.cookie.CookieIdentityComparator;
 import org.apache.hc.client5.http.impl.cookie.BasicClientCookie;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * Simple tests for {@link CookieIdentityComparator}.
@@ -41,11 +41,11 @@ public class TestCookieIdentityComparator {
         final CookieIdentityComparator comparator = new CookieIdentityComparator();
         final BasicClientCookie c1 = new BasicClientCookie("name", "value1");
         final BasicClientCookie c2 = new BasicClientCookie("name", "value2");
-        Assert.assertEquals(0, comparator.compare(c1, c2));
+        Assertions.assertEquals(0, comparator.compare(c1, c2));
 
         final BasicClientCookie c3 = new BasicClientCookie("name1", "value");
         final BasicClientCookie c4 = new BasicClientCookie("name2", "value");
-        Assert.assertNotEquals(0, comparator.compare(c3, c4));
+        Assertions.assertNotEquals(0, comparator.compare(c3, c4));
     }
 
     @Test
@@ -55,13 +55,13 @@ public class TestCookieIdentityComparator {
         c1.setDomain("www.domain.com");
         final BasicClientCookie c2 = new BasicClientCookie("name", "value2");
         c2.setDomain("www.domain.com");
-        Assert.assertEquals(0, comparator.compare(c1, c2));
+        Assertions.assertEquals(0, comparator.compare(c1, c2));
 
         final BasicClientCookie c3 = new BasicClientCookie("name", "value1");
         c3.setDomain("www.domain.com");
         final BasicClientCookie c4 = new BasicClientCookie("name", "value2");
         c4.setDomain("domain.com");
-        Assert.assertNotEquals(0, comparator.compare(c3, c4));
+        Assertions.assertNotEquals(0, comparator.compare(c3, c4));
     }
 
     @Test
@@ -71,13 +71,13 @@ public class TestCookieIdentityComparator {
         c1.setDomain(null);
         final BasicClientCookie c2 = new BasicClientCookie("name", "value2");
         c2.setDomain(null);
-        Assert.assertEquals(0, comparator.compare(c1, c2));
+        Assertions.assertEquals(0, comparator.compare(c1, c2));
 
         final BasicClientCookie c3 = new BasicClientCookie("name", "value1");
         c3.setDomain("www.domain.com");
         final BasicClientCookie c4 = new BasicClientCookie("name", "value2");
         c4.setDomain(null);
-        Assert.assertNotEquals(0, comparator.compare(c3, c4));
+        Assertions.assertNotEquals(0, comparator.compare(c3, c4));
     }
 
     @Test
@@ -89,7 +89,7 @@ public class TestCookieIdentityComparator {
         final BasicClientCookie c2 = new BasicClientCookie("name", "value2");
         c2.setDomain("www.domain.com");
         c2.setPath("/whatever");
-        Assert.assertEquals(0, comparator.compare(c1, c2));
+        Assertions.assertEquals(0, comparator.compare(c1, c2));
 
         final BasicClientCookie c3 = new BasicClientCookie("name", "value1");
         c3.setDomain("www.domain.com");
@@ -97,7 +97,7 @@ public class TestCookieIdentityComparator {
         final BasicClientCookie c4 = new BasicClientCookie("name", "value2");
         c4.setDomain("domain.com");
         c4.setPath("/whatever-not");
-        Assert.assertNotEquals(0, comparator.compare(c3, c4));
+        Assertions.assertNotEquals(0, comparator.compare(c3, c4));
     }
 
     @Test
@@ -109,7 +109,7 @@ public class TestCookieIdentityComparator {
         final BasicClientCookie c2 = new BasicClientCookie("name", "value2");
         c2.setDomain("www.domain.com");
         c2.setPath(null);
-        Assert.assertEquals(0, comparator.compare(c1, c2));
+        Assertions.assertEquals(0, comparator.compare(c1, c2));
 
         final BasicClientCookie c3 = new BasicClientCookie("name", "value1");
         c3.setDomain("www.domain.com");
@@ -117,7 +117,7 @@ public class TestCookieIdentityComparator {
         final BasicClientCookie c4 = new BasicClientCookie("name", "value2");
         c4.setDomain("domain.com");
         c4.setPath(null);
-        Assert.assertNotEquals(0, comparator.compare(c3, c4));
+        Assertions.assertNotEquals(0, comparator.compare(c3, c4));
     }
 
 }

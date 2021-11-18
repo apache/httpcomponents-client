@@ -27,14 +27,15 @@
 
 package org.apache.hc.client5.http.ssl;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+
 import java.util.Arrays;
 
 import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.http.message.BasicNameValuePair;
 import org.hamcrest.CoreMatchers;
-import org.hamcrest.MatcherAssert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for {@link DistinguishedNameParser}.
@@ -43,14 +44,14 @@ public class TestDistinguishedNameParser {
 
     private DistinguishedNameParser impl;
 
-    @Before
+    @BeforeEach
     public void setup() {
         impl = new DistinguishedNameParser();
     }
 
     @Test
     public void testParseBasic() throws Exception {
-        MatcherAssert.assertThat(impl.parse("cn=blah, ou=yada, o=booh"),
+        assertThat(impl.parse("cn=blah, ou=yada, o=booh"),
                 CoreMatchers.equalTo(Arrays.<NameValuePair>asList(
                         new BasicNameValuePair("cn", "blah"),
                         new BasicNameValuePair("ou", "yada"),
@@ -59,7 +60,7 @@ public class TestDistinguishedNameParser {
 
     @Test
     public void testParseRepeatedElements() throws Exception {
-        MatcherAssert.assertThat(impl.parse("cn=blah, cn=yada, cn=booh"),
+        assertThat(impl.parse("cn=blah, cn=yada, cn=booh"),
                 CoreMatchers.equalTo(Arrays.<NameValuePair>asList(
                         new BasicNameValuePair("cn", "blah"),
                         new BasicNameValuePair("cn", "yada"),
@@ -68,7 +69,7 @@ public class TestDistinguishedNameParser {
 
     @Test
     public void testParseBlanks() throws Exception {
-        MatcherAssert.assertThat(impl.parse("c = pampa ,  cn  =    blah    , ou = blah , o = blah"),
+        assertThat(impl.parse("c = pampa ,  cn  =    blah    , ou = blah , o = blah"),
                 CoreMatchers.equalTo(Arrays.<NameValuePair>asList(
                         new BasicNameValuePair("c", "pampa"),
                         new BasicNameValuePair("cn", "blah"),
@@ -78,7 +79,7 @@ public class TestDistinguishedNameParser {
 
     @Test
     public void testParseQuotes() throws Exception {
-        MatcherAssert.assertThat(impl.parse("cn=\"blah\", ou=yada, o=booh"),
+        assertThat(impl.parse("cn=\"blah\", ou=yada, o=booh"),
                 CoreMatchers.equalTo(Arrays.<NameValuePair>asList(
                         new BasicNameValuePair("cn", "blah"),
                         new BasicNameValuePair("ou", "yada"),
@@ -87,7 +88,7 @@ public class TestDistinguishedNameParser {
 
     @Test
     public void testParseQuotes2() throws Exception {
-        MatcherAssert.assertThat(impl.parse("cn=\"blah  blah\", ou=yada, o=booh"),
+        assertThat(impl.parse("cn=\"blah  blah\", ou=yada, o=booh"),
                 CoreMatchers.equalTo(Arrays.<NameValuePair>asList(
                         new BasicNameValuePair("cn", "blah  blah"),
                         new BasicNameValuePair("ou", "yada"),
@@ -96,7 +97,7 @@ public class TestDistinguishedNameParser {
 
     @Test
     public void testParseQuotes3() throws Exception {
-        MatcherAssert.assertThat(impl.parse("cn=\"blah, blah\", ou=yada, o=booh"),
+        assertThat(impl.parse("cn=\"blah, blah\", ou=yada, o=booh"),
                 CoreMatchers.equalTo(Arrays.<NameValuePair>asList(
                         new BasicNameValuePair("cn", "blah, blah"),
                         new BasicNameValuePair("ou", "yada"),
@@ -105,7 +106,7 @@ public class TestDistinguishedNameParser {
 
     @Test
     public void testParseEscape() throws Exception {
-        MatcherAssert.assertThat(impl.parse("cn=blah\\, blah, ou=yada, o=booh"),
+        assertThat(impl.parse("cn=blah\\, blah, ou=yada, o=booh"),
                 CoreMatchers.equalTo(Arrays.<NameValuePair>asList(
                         new BasicNameValuePair("cn", "blah, blah"),
                         new BasicNameValuePair("ou", "yada"),
@@ -114,7 +115,7 @@ public class TestDistinguishedNameParser {
 
     @Test
     public void testParseUnescapedEqual() throws Exception {
-        MatcherAssert.assertThat(impl.parse("c = cn=uuh, cn=blah, ou=yada, o=booh"),
+        assertThat(impl.parse("c = cn=uuh, cn=blah, ou=yada, o=booh"),
                 CoreMatchers.equalTo(Arrays.<NameValuePair>asList(
                         new BasicNameValuePair("c", "cn=uuh"),
                         new BasicNameValuePair("cn", "blah"),
@@ -124,7 +125,7 @@ public class TestDistinguishedNameParser {
 
     @Test
     public void testParseInvalid() throws Exception {
-        MatcherAssert.assertThat(impl.parse("blah,blah"),
+        assertThat(impl.parse("blah,blah"),
                 CoreMatchers.equalTo(Arrays.<NameValuePair>asList(
                         new BasicNameValuePair("blah", null),
                         new BasicNameValuePair("blah", null))));
@@ -132,7 +133,7 @@ public class TestDistinguishedNameParser {
 
     @Test
     public void testParseInvalid2() throws Exception {
-        MatcherAssert.assertThat(impl.parse("cn,o=blah"),
+        assertThat(impl.parse("cn,o=blah"),
                 CoreMatchers.equalTo(Arrays.<NameValuePair>asList(
                         new BasicNameValuePair("cn", null),
                         new BasicNameValuePair("o", "blah"))));

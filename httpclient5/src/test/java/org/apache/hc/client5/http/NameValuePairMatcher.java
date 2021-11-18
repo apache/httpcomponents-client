@@ -30,7 +30,6 @@ import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.util.LangUtils;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
-import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
 
 public class NameValuePairMatcher extends BaseMatcher<NameValuePair> {
@@ -57,12 +56,10 @@ public class NameValuePairMatcher extends BaseMatcher<NameValuePair> {
         description.appendText("equals ").appendValue(name).appendText("=").appendValue(value);
     }
 
-    @Factory
     public static Matcher<NameValuePair> equals(final String name, final String value) {
         return new NameValuePairMatcher(name, value);
     }
 
-    @Factory
     public static Matcher<NameValuePair> same(final String name, final String value) {
         return new NameValuePairMatcher(name, value);
     }

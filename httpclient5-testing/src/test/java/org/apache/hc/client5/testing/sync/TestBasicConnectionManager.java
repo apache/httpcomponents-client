@@ -30,7 +30,7 @@ import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.impl.io.BasicHttpClientConnectionManager;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.Test;
 
 public class TestBasicConnectionManager extends LocalServerTestBase {
@@ -42,7 +42,7 @@ public class TestBasicConnectionManager extends LocalServerTestBase {
         final HttpHost target = start();
         final HttpGet get = new HttpGet("/random/1024");
         this.httpclient.execute(target, get, response -> {
-            Assert.assertEquals(200, response.getCode());
+            Assertions.assertEquals(200, response.getCode());
             EntityUtils.consume(response.getEntity());
             return null;
         });
@@ -56,7 +56,7 @@ public class TestBasicConnectionManager extends LocalServerTestBase {
         final HttpGet get1 = new HttpGet("/random/1024");
         this.httpclient.execute(target, get1);
         final HttpGet get2 = new HttpGet("/random/1024");
-        Assert.assertThrows(IllegalStateException.class, () ->
+        Assertions.assertThrows(IllegalStateException.class, () ->
                 this.httpclient.execute(target, get2));
     }
 

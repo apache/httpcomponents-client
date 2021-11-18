@@ -35,8 +35,8 @@ import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 /**
@@ -59,7 +59,7 @@ public class TestAbstractHttpClientResponseHandler {
           }
         };
         final Integer number = handler.handleResponse(response);
-        Assert.assertEquals(42, number.intValue());
+        Assertions.assertEquals(42, number.intValue());
     }
 
     @SuppressWarnings("boxing")
@@ -75,11 +75,11 @@ public class TestAbstractHttpClientResponseHandler {
         Mockito.when(response.getEntity()).thenReturn(entity);
 
         final BasicHttpClientResponseHandler handler = new BasicHttpClientResponseHandler();
-        final HttpResponseException exception = Assert.assertThrows(HttpResponseException.class, () ->
+        final HttpResponseException exception = Assertions.assertThrows(HttpResponseException.class, () ->
                 handler.handleResponse(response));
-        Assert.assertEquals(404, exception.getStatusCode());
-        Assert.assertEquals("NOT FOUND", exception.getReasonPhrase());
-        Assert.assertEquals("status code: 404, reason phrase: NOT FOUND", exception.getMessage());
+        Assertions.assertEquals(404, exception.getStatusCode());
+        Assertions.assertEquals("NOT FOUND", exception.getReasonPhrase());
+        Assertions.assertEquals("status code: 404, reason phrase: NOT FOUND", exception.getMessage());
         Mockito.verify(entity).getContent();
         Mockito.verify(inStream).close();
     }
@@ -96,11 +96,11 @@ public class TestAbstractHttpClientResponseHandler {
         Mockito.when(response.getEntity()).thenReturn(entity);
 
         final BasicHttpClientResponseHandler handler = new BasicHttpClientResponseHandler();
-        final HttpResponseException exception = Assert.assertThrows(HttpResponseException.class, () ->
+        final HttpResponseException exception = Assertions.assertThrows(HttpResponseException.class, () ->
                 handler.handleResponse(response));
-        Assert.assertEquals(404, exception.getStatusCode());
-        Assert.assertNull(exception.getReasonPhrase());
-        Assert.assertEquals("status code: 404", exception.getMessage());
+        Assertions.assertEquals(404, exception.getStatusCode());
+        Assertions.assertNull(exception.getReasonPhrase());
+        Assertions.assertEquals("status code: 404", exception.getMessage());
         Mockito.verify(entity).getContent();
         Mockito.verify(inStream).close();
     }

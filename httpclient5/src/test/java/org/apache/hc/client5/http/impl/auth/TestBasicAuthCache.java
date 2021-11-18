@@ -29,8 +29,8 @@ package org.apache.hc.client5.http.impl.auth;
 
 import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.core5.http.HttpHost;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for {@link BasicAuthCache}.
@@ -43,19 +43,19 @@ public class TestBasicAuthCache {
         final BasicAuthCache cache = new BasicAuthCache();
         final AuthScheme authScheme = new BasicScheme();
         cache.put(new HttpHost("localhost", 80), authScheme);
-        Assert.assertNotNull(cache.get(new HttpHost("localhost", 80)));
+        Assertions.assertNotNull(cache.get(new HttpHost("localhost", 80)));
         cache.remove(new HttpHost("localhost", 80));
-        Assert.assertNull(cache.get(new HttpHost("localhost", 80)));
+        Assertions.assertNull(cache.get(new HttpHost("localhost", 80)));
         cache.put(new HttpHost("localhost", 80), authScheme);
         cache.clear();
-        Assert.assertNull(cache.get(new HttpHost("localhost", 80)));
+        Assertions.assertNull(cache.get(new HttpHost("localhost", 80)));
     }
 
     @Test
     public void testNullKey() throws Exception {
         final BasicAuthCache cache = new BasicAuthCache();
         final AuthScheme authScheme = new BasicScheme();
-        Assert.assertThrows(NullPointerException.class, () ->
+        Assertions.assertThrows(NullPointerException.class, () ->
                 cache.put(null, authScheme));
     }
 
@@ -63,7 +63,7 @@ public class TestBasicAuthCache {
     public void testNullAuthScheme() throws Exception {
         final BasicAuthCache cache = new BasicAuthCache();
         cache.put(new HttpHost("localhost", 80), null);
-        Assert.assertNull(cache.get(new HttpHost("localhost", 80)));
+        Assertions.assertNull(cache.get(new HttpHost("localhost", 80)));
     }
 
     @Test
@@ -71,7 +71,7 @@ public class TestBasicAuthCache {
         final BasicAuthCache cache = new BasicAuthCache();
         final AuthScheme authScheme = new NTLMScheme();
         cache.put(new HttpHost("localhost", 80), authScheme);
-        Assert.assertNull(cache.get(new HttpHost("localhost", 80)));
+        Assertions.assertNull(cache.get(new HttpHost("localhost", 80)));
     }
 
 }

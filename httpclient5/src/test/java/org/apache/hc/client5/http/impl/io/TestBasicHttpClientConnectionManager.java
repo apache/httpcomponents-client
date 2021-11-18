@@ -50,16 +50,14 @@ import org.apache.hc.core5.http.io.SocketConfig;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.MockitoAnnotations;
 
 @SuppressWarnings({"boxing","static-access"}) // test code
-@RunWith(MockitoJUnitRunner.class)
 public class TestBasicHttpClientConnectionManager {
 
     @Mock
@@ -81,8 +79,9 @@ public class TestBasicHttpClientConnectionManager {
 
     private BasicHttpClientConnectionManager mgr;
 
-    @Before
+    @BeforeEach
     public void setup() throws Exception {
+        MockitoAnnotations.openMocks(this);
         mgr = new BasicHttpClientConnectionManager(
                 socketFactoryRegistry, connFactory, schemePortResolver, dnsResolver);
     }
@@ -96,18 +95,18 @@ public class TestBasicHttpClientConnectionManager {
 
         final LeaseRequest connRequest1 = mgr.lease("some-id", route, null);
         final ConnectionEndpoint endpoint1 = connRequest1.get(Timeout.ZERO_MILLISECONDS);
-        Assert.assertNotNull(endpoint1);
-        Assert.assertFalse(endpoint1.isConnected());
+        Assertions.assertNotNull(endpoint1);
+        Assertions.assertFalse(endpoint1.isConnected());
 
         mgr.release(endpoint1, null, TimeValue.ofMilliseconds(100));
 
-        Assert.assertNull(mgr.getRoute());
-        Assert.assertNull(mgr.getState());
+        Assertions.assertNull(mgr.getRoute());
+        Assertions.assertNull(mgr.getState());
 
         final LeaseRequest connRequest2 = mgr.lease("some-id", route, null);
         final ConnectionEndpoint conn2 = connRequest2.get(Timeout.ZERO_MILLISECONDS);
-        Assert.assertNotNull(conn2);
-        Assert.assertFalse(conn2.isConnected());
+        Assertions.assertNotNull(conn2);
+        Assertions.assertFalse(conn2.isConnected());
 
         Mockito.verify(connFactory, Mockito.times(2)).createConnection(Mockito.any());
     }
@@ -121,7 +120,7 @@ public class TestBasicHttpClientConnectionManager {
 
         final LeaseRequest connRequest1 = mgr.lease("some-id", route, null);
         final ConnectionEndpoint endpoint1 = connRequest1.get(Timeout.ZERO_MILLISECONDS);
-        Assert.assertNotNull(endpoint1);
+        Assertions.assertNotNull(endpoint1);
 
         Mockito.verify(connFactory, Mockito.times(1)).createConnection(Mockito.any());
 
@@ -129,13 +128,13 @@ public class TestBasicHttpClientConnectionManager {
 
         mgr.release(endpoint1, null, TimeValue.ofMilliseconds(100));
 
-        Assert.assertEquals(route, mgr.getRoute());
-        Assert.assertNull(mgr.getState());
+        Assertions.assertEquals(route, mgr.getRoute());
+        Assertions.assertNull(mgr.getState());
 
         final LeaseRequest connRequest2 = mgr.lease("some-id", route, null);
         final ConnectionEndpoint conn2 = connRequest2.get(Timeout.ZERO_MILLISECONDS);
-        Assert.assertNotNull(conn2);
-        Assert.assertTrue(conn2.isConnected());
+        Assertions.assertNotNull(conn2);
+        Assertions.assertTrue(conn2.isConnected());
 
         Mockito.verify(connFactory, Mockito.times(1)).createConnection(Mockito.any());
     }
@@ -149,7 +148,7 @@ public class TestBasicHttpClientConnectionManager {
 
         final LeaseRequest connRequest1 = mgr.lease("some-id", route, "some state");
         final ConnectionEndpoint endpoint1 = connRequest1.get(Timeout.ZERO_MILLISECONDS);
-        Assert.assertNotNull(endpoint1);
+        Assertions.assertNotNull(endpoint1);
 
         Mockito.verify(connFactory, Mockito.times(1)).createConnection(Mockito.any());
 
@@ -157,13 +156,13 @@ public class TestBasicHttpClientConnectionManager {
 
         mgr.release(endpoint1, "some other state", TimeValue.ofMilliseconds(10000));
 
-        Assert.assertEquals(route, mgr.getRoute());
-        Assert.assertEquals("some other state", mgr.getState());
+        Assertions.assertEquals(route, mgr.getRoute());
+        Assertions.assertEquals("some other state", mgr.getState());
 
         final LeaseRequest connRequest2 = mgr.lease("some-id", route, "some other state");
         final ConnectionEndpoint conn2 = connRequest2.get(Timeout.ZERO_MILLISECONDS);
-        Assert.assertNotNull(conn2);
-        Assert.assertTrue(conn2.isConnected());
+        Assertions.assertNotNull(conn2);
+        Assertions.assertTrue(conn2.isConnected());
 
         Mockito.verify(connFactory, Mockito.times(1)).createConnection(Mockito.any());
     }
@@ -177,7 +176,7 @@ public class TestBasicHttpClientConnectionManager {
 
         final LeaseRequest connRequest1 = mgr.lease("some-id", route1, null);
         final ConnectionEndpoint endpoint1 = connRequest1.get(Timeout.ZERO_MILLISECONDS);
-        Assert.assertNotNull(endpoint1);
+        Assertions.assertNotNull(endpoint1);
 
         Mockito.verify(connFactory, Mockito.times(1)).createConnection(Mockito.any());
 
@@ -185,15 +184,15 @@ public class TestBasicHttpClientConnectionManager {
 
         mgr.release(endpoint1, null, TimeValue.NEG_ONE_MILLISECOND);
 
-        Assert.assertEquals(route1, mgr.getRoute());
-        Assert.assertNull(mgr.getState());
+        Assertions.assertEquals(route1, mgr.getRoute());
+        Assertions.assertNull(mgr.getState());
 
         final HttpHost target2 = new HttpHost("otherhost", 80);
         final HttpRoute route2 = new HttpRoute(target2);
         final LeaseRequest connRequest2 = mgr.lease("some-id", route2, null);
         final ConnectionEndpoint conn2 = connRequest2.get(Timeout.ZERO_MILLISECONDS);
-        Assert.assertNotNull(conn2);
-        Assert.assertFalse(conn2.isConnected());
+        Assertions.assertNotNull(conn2);
+        Assertions.assertFalse(conn2.isConnected());
 
         Mockito.verify(conn).close(CloseMode.GRACEFUL);
         Mockito.verify(connFactory, Mockito.times(2)).createConnection(Mockito.any());
@@ -208,7 +207,7 @@ public class TestBasicHttpClientConnectionManager {
 
         final LeaseRequest connRequest1 = mgr.lease("some-id", route, null);
         final ConnectionEndpoint endpoint1 = connRequest1.get(Timeout.ZERO_MILLISECONDS);
-        Assert.assertNotNull(endpoint1);
+        Assertions.assertNotNull(endpoint1);
 
         Mockito.verify(connFactory, Mockito.times(1)).createConnection(Mockito.any());
 
@@ -216,15 +215,15 @@ public class TestBasicHttpClientConnectionManager {
 
         mgr.release(endpoint1, null, TimeValue.ofMilliseconds(10));
 
-        Assert.assertEquals(route, mgr.getRoute());
-        Assert.assertNull(mgr.getState());
+        Assertions.assertEquals(route, mgr.getRoute());
+        Assertions.assertNull(mgr.getState());
 
         Thread.sleep(50);
 
         final LeaseRequest connRequest2 = mgr.lease("some-id", route, null);
         final ConnectionEndpoint conn2 = connRequest2.get(Timeout.ZERO_MILLISECONDS);
-        Assert.assertNotNull(conn2);
-        Assert.assertFalse(conn2.isConnected());
+        Assertions.assertNotNull(conn2);
+        Assertions.assertFalse(conn2.isConnected());
 
         Mockito.verify(conn).close(CloseMode.GRACEFUL);
         Mockito.verify(connFactory, Mockito.times(2)).createConnection(Mockito.any());
@@ -232,14 +231,14 @@ public class TestBasicHttpClientConnectionManager {
 
     @Test
     public void testReleaseInvalidArg() throws Exception {
-        Assert.assertThrows(NullPointerException.class, () ->
+        Assertions.assertThrows(NullPointerException.class, () ->
                 mgr.release(null, null, TimeValue.NEG_ONE_MILLISECOND));
     }
 
     @Test
     public void testReleaseAnotherConnection() throws Exception {
         final ConnectionEndpoint wrongCon = Mockito.mock(ConnectionEndpoint.class);
-        Assert.assertThrows(IllegalStateException.class, () ->
+        Assertions.assertThrows(IllegalStateException.class, () ->
                 mgr.release(wrongCon, null, TimeValue.NEG_ONE_MILLISECOND));
     }
 
@@ -252,7 +251,7 @@ public class TestBasicHttpClientConnectionManager {
 
         final LeaseRequest connRequest1 = mgr.lease("some-id", route, null);
         final ConnectionEndpoint endpoint1 = connRequest1.get(Timeout.ZERO_MILLISECONDS);
-        Assert.assertNotNull(endpoint1);
+        Assertions.assertNotNull(endpoint1);
 
         Mockito.verify(connFactory, Mockito.times(1)).createConnection(Mockito.any());
 
@@ -265,7 +264,7 @@ public class TestBasicHttpClientConnectionManager {
         Mockito.verify(conn, Mockito.times(1)).close(CloseMode.GRACEFUL);
 
         final LeaseRequest connRequest2 = mgr.lease("some-id", route, null);
-        Assert.assertThrows(IllegalStateException.class, () -> connRequest2.get(Timeout.ZERO_MILLISECONDS));
+        Assertions.assertThrows(IllegalStateException.class, () -> connRequest2.get(Timeout.ZERO_MILLISECONDS));
 
         // Should have no effect
         mgr.closeExpired();
@@ -284,7 +283,7 @@ public class TestBasicHttpClientConnectionManager {
 
         final LeaseRequest connRequest1 = mgr.lease("some-id", route, null);
         final ConnectionEndpoint endpoint1 = connRequest1.get(Timeout.ZERO_MILLISECONDS);
-        Assert.assertNotNull(endpoint1);
+        Assertions.assertNotNull(endpoint1);
 
         Mockito.verify(connFactory, Mockito.times(1)).createConnection(Mockito.any());
 
@@ -292,8 +291,8 @@ public class TestBasicHttpClientConnectionManager {
 
         mgr.release(endpoint1, null, TimeValue.ofMilliseconds(10));
 
-        Assert.assertEquals(route, mgr.getRoute());
-        Assert.assertNull(mgr.getState());
+        Assertions.assertEquals(route, mgr.getRoute());
+        Assertions.assertNull(mgr.getState());
 
         Thread.sleep(50);
 
@@ -311,7 +310,7 @@ public class TestBasicHttpClientConnectionManager {
 
         final LeaseRequest connRequest1 = mgr.lease("some-id", route, null);
         final ConnectionEndpoint endpoint1 = connRequest1.get(Timeout.ZERO_MILLISECONDS);
-        Assert.assertNotNull(endpoint1);
+        Assertions.assertNotNull(endpoint1);
 
         Mockito.verify(connFactory, Mockito.times(1)).createConnection(Mockito.any());
 
@@ -319,8 +318,8 @@ public class TestBasicHttpClientConnectionManager {
 
         mgr.release(endpoint1, null, TimeValue.NEG_ONE_MILLISECOND);
 
-        Assert.assertEquals(route, mgr.getRoute());
-        Assert.assertNull(mgr.getState());
+        Assertions.assertEquals(route, mgr.getRoute());
+        Assertions.assertNull(mgr.getState());
 
         Thread.sleep(100);
 
@@ -338,11 +337,11 @@ public class TestBasicHttpClientConnectionManager {
 
         final LeaseRequest connRequest1 = mgr.lease("some-id", route, null);
         final ConnectionEndpoint endpoint1 = connRequest1.get(Timeout.ZERO_MILLISECONDS);
-        Assert.assertNotNull(endpoint1);
+        Assertions.assertNotNull(endpoint1);
         mgr.release(endpoint1, null, TimeValue.ofMilliseconds(100));
 
         mgr.getConnection(route, null);
-        Assert.assertThrows(IllegalStateException.class, () ->
+        Assertions.assertThrows(IllegalStateException.class, () ->
                 mgr.getConnection(route, null));
     }
 
@@ -357,7 +356,7 @@ public class TestBasicHttpClientConnectionManager {
 
         final LeaseRequest connRequest1 = mgr.lease("some-id", route, null);
         final ConnectionEndpoint endpoint1 = connRequest1.get(Timeout.ZERO_MILLISECONDS);
-        Assert.assertNotNull(endpoint1);
+        Assertions.assertNotNull(endpoint1);
 
         final HttpClientContext context = HttpClientContext.create();
         final SocketConfig sconfig = SocketConfig.custom().build();
@@ -427,7 +426,7 @@ public class TestBasicHttpClientConnectionManager {
 
         final LeaseRequest connRequest1 = mgr.lease("some-id", route, null);
         final ConnectionEndpoint endpoint1 = connRequest1.get(Timeout.ZERO_MILLISECONDS);
-        Assert.assertNotNull(endpoint1);
+        Assertions.assertNotNull(endpoint1);
 
         final HttpClientContext context = HttpClientContext.create();
         final SocketConfig sconfig = SocketConfig.custom().build();

@@ -26,7 +26,8 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
-import static org.junit.Assert.assertSame;
+
+import static org.junit.jupiter.api.Assertions.assertSame;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -61,17 +62,15 @@ import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
 import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
 import org.apache.hc.core5.net.URIAuthority;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
 
-@RunWith(MockitoJUnitRunner.class)
 public class TestCachingExecChain {
 
     @Mock
@@ -91,8 +90,9 @@ public class TestCachingExecChain {
     HttpCacheEntry entry;
     CachingExec impl;
 
-    @Before
+    @BeforeEach
     public void setUp() {
+        MockitoAnnotations.openMocks(this);
         config = CacheConfig.DEFAULT;
 
         host = new HttpHost("foo.example.com", 80);
@@ -156,7 +156,7 @@ public class TestCachingExecChain {
         execute(req2);
         final ClassicHttpResponse result = execute(req3);
 
-        Assert.assertEquals("\"new-etag\"", result.getFirstHeader("ETag").getValue());
+        Assertions.assertEquals("\"new-etag\"", result.getFirstHeader("ETag").getValue());
     }
 
     @Test
@@ -188,7 +188,7 @@ public class TestCachingExecChain {
         execute(req2);
         final ClassicHttpResponse result = execute(req3);
 
-        Assert.assertEquals("\"new-etag\"", result.getFirstHeader("ETag").getValue());
+        Assertions.assertEquals("\"new-etag\"", result.getFirstHeader("ETag").getValue());
     }
 
     @Test
@@ -205,7 +205,7 @@ public class TestCachingExecChain {
 
         final ClassicHttpResponse result = execute(req1);
 
-        Assert.assertTrue(HttpTestUtils.semanticallyTransparent(resp1, result));
+        Assertions.assertTrue(HttpTestUtils.semanticallyTransparent(resp1, result));
 
         Mockito.verify(mockStorage, Mockito.never()).putEntry(Mockito.any(), Mockito.any());
     }
@@ -216,7 +216,7 @@ public class TestCachingExecChain {
         req.setHeader("Max-Forwards", "0");
 
         execute(req);
-        Assert.assertEquals(CacheResponseStatus.CACHE_MODULE_RESPONSE, context.getCacheResponseStatus());
+        Assertions.assertEquals(CacheResponseStatus.CACHE_MODULE_RESPONSE, context.getCacheResponseStatus());
     }
 
     @Test
@@ -226,7 +226,7 @@ public class TestCachingExecChain {
         req.setHeader("If-Range", "W/\"weak-etag\"");
 
         execute(req);
-        Assert.assertEquals(CacheResponseStatus.CACHE_MODULE_RESPONSE, context.getCacheResponseStatus());
+        Assertions.assertEquals(CacheResponseStatus.CACHE_MODULE_RESPONSE, context.getCacheResponseStatus());
     }
 
     @Test
@@ -247,7 +247,7 @@ public class TestCachingExecChain {
         final HttpRequest captured = reqCapture.getValue();
         final String via = captured.getFirstHeader("Via").getValue();
         final String proto = via.split("\\s+")[0];
-        Assert.assertTrue("http/1.0".equalsIgnoreCase(proto) || "1.0".equalsIgnoreCase(proto));
+        Assertions.assertTrue("http/1.0".equalsIgnoreCase(proto) || "1.0".equalsIgnoreCase(proto));
     }
 
     @Test
@@ -259,7 +259,7 @@ public class TestCachingExecChain {
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp);
 
         execute(req);
-        Assert.assertEquals(CacheResponseStatus.CACHE_MISS, context.getCacheResponseStatus());
+        Assertions.assertEquals(CacheResponseStatus.CACHE_MISS, context.getCacheResponseStatus());
     }
 
     @Test
@@ -271,7 +271,7 @@ public class TestCachingExecChain {
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp);
 
         final ClassicHttpResponse result = execute(req);
-        Assert.assertNotNull(result.getFirstHeader("Via"));
+        Assertions.assertNotNull(result.getFirstHeader("Via"));
     }
 
     @Test
@@ -287,7 +287,7 @@ public class TestCachingExecChain {
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
 
         final ClassicHttpResponse result = execute(req1);
-        Assert.assertNotNull(result.getFirstHeader("Via"));
+        Assertions.assertNotNull(result.getFirstHeader("Via"));
     }
 
     @Test
@@ -305,7 +305,7 @@ public class TestCachingExecChain {
 
         execute(req1);
         execute(req2);
-        Assert.assertEquals(CacheResponseStatus.CACHE_HIT, context.getCacheResponseStatus());
+        Assertions.assertEquals(CacheResponseStatus.CACHE_HIT, context.getCacheResponseStatus());
     }
 
     @Test
@@ -323,7 +323,7 @@ public class TestCachingExecChain {
 
         execute(req1);
         final ClassicHttpResponse result = execute(req2);
-        Assert.assertNotNull(result.getFirstHeader("Via"));
+        Assertions.assertNotNull(result.getFirstHeader("Via"));
     }
 
     @Test
@@ -345,7 +345,7 @@ public class TestCachingExecChain {
 
         execute(req1);
         final ClassicHttpResponse result = execute(req2);
-        Assert.assertEquals(HttpStatus.SC_NOT_MODIFIED, result.getCode());
+        Assertions.assertEquals(HttpStatus.SC_NOT_MODIFIED, result.getCode());
     }
 
     @Test
@@ -368,8 +368,8 @@ public class TestCachingExecChain {
         execute(req1);
 
         final ClassicHttpResponse result = execute(req2);
-        Assert.assertEquals(HttpStatus.SC_NOT_MODIFIED, result.getCode());
-        Assert.assertFalse(result.containsHeader("Last-Modified"));
+        Assertions.assertEquals(HttpStatus.SC_NOT_MODIFIED, result.getCode());
+        Assertions.assertFalse(result.containsHeader("Last-Modified"));
 
         Mockito.verify(mockExecChain).proceed(Mockito.any(), Mockito.any());
     }
@@ -401,7 +401,7 @@ public class TestCachingExecChain {
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp2);
 
         final ClassicHttpResponse result = execute(req2);
-        Assert.assertEquals(HttpStatus.SC_OK, result.getCode());
+        Assertions.assertEquals(HttpStatus.SC_OK, result.getCode());
     }
 
     @Test
@@ -426,7 +426,7 @@ public class TestCachingExecChain {
 
         execute(req1);
         final ClassicHttpResponse result = execute(req2);
-        Assert.assertEquals(HttpStatus.SC_OK, result.getCode());
+        Assertions.assertEquals(HttpStatus.SC_OK, result.getCode());
 
         Mockito.verify(mockExecChain, Mockito.times(2)).proceed(Mockito.any(), Mockito.any());
     }
@@ -447,7 +447,7 @@ public class TestCachingExecChain {
 
         execute(req1);
         final ClassicHttpResponse result = execute(req2);
-        Assert.assertEquals(HttpStatus.SC_NOT_MODIFIED, result.getCode());
+        Assertions.assertEquals(HttpStatus.SC_NOT_MODIFIED, result.getCode());
 
     }
 
@@ -474,7 +474,7 @@ public class TestCachingExecChain {
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp2);
 
         final ClassicHttpResponse result = execute(req2);
-        Assert.assertEquals(200, result.getCode());
+        Assertions.assertEquals(200, result.getCode());
     }
 
     @Test
@@ -499,7 +499,7 @@ public class TestCachingExecChain {
 
         execute(req1);
         final ClassicHttpResponse result = execute(req2);
-        Assert.assertEquals(HttpStatus.SC_NOT_MODIFIED, result.getCode());
+        Assertions.assertEquals(HttpStatus.SC_NOT_MODIFIED, result.getCode());
     }
 
     @Test
@@ -522,7 +522,7 @@ public class TestCachingExecChain {
 
         execute(req1);
         final ClassicHttpResponse result = execute(req2);
-        Assert.assertEquals(200, result.getCode());
+        Assertions.assertEquals(200, result.getCode());
     }
 
     @Test
@@ -553,7 +553,7 @@ public class TestCachingExecChain {
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp2);
 
         final ClassicHttpResponse result = execute(req2);
-        Assert.assertEquals(200, result.getCode());
+        Assertions.assertEquals(200, result.getCode());
     }
 
     @Test
@@ -584,7 +584,7 @@ public class TestCachingExecChain {
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp2);
 
         execute(req2);
-        Assert.assertEquals(CacheResponseStatus.VALIDATED, context.getCacheResponseStatus());
+        Assertions.assertEquals(CacheResponseStatus.VALIDATED, context.getCacheResponseStatus());
     }
 
     @Test
@@ -616,7 +616,7 @@ public class TestCachingExecChain {
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp2);
 
         final ClassicHttpResponse result = execute(req2);
-        Assert.assertNotNull(result.getFirstHeader("Via"));
+        Assertions.assertNotNull(result.getFirstHeader("Via"));
     }
 
     @Test
@@ -641,7 +641,7 @@ public class TestCachingExecChain {
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenThrow(new IOException());
 
         execute(req2);
-        Assert.assertEquals(CacheResponseStatus.CACHE_MODULE_RESPONSE,
+        Assertions.assertEquals(CacheResponseStatus.CACHE_MODULE_RESPONSE,
             context.getCacheResponseStatus());
     }
 
@@ -667,7 +667,7 @@ public class TestCachingExecChain {
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenThrow(new IOException());
 
         execute(req2);
-        Assert.assertEquals(CacheResponseStatus.CACHE_HIT, context.getCacheResponseStatus());
+        Assertions.assertEquals(CacheResponseStatus.CACHE_HIT, context.getCacheResponseStatus());
     }
 
     @Test
@@ -692,7 +692,7 @@ public class TestCachingExecChain {
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenThrow(new IOException());
 
         final ClassicHttpResponse result = execute(req2);
-        Assert.assertNotNull(result.getFirstHeader("Via"));
+        Assertions.assertNotNull(result.getFirstHeader("Via"));
     }
 
     @Test
@@ -724,7 +724,7 @@ public class TestCachingExecChain {
 
         final ClassicHttpResponse result = execute(req2);
 
-        Assert.assertEquals(HttpStatus.SC_NOT_MODIFIED, result.getCode());
+        Assertions.assertEquals(HttpStatus.SC_NOT_MODIFIED, result.getCode());
     }
 
     @Test
@@ -758,7 +758,7 @@ public class TestCachingExecChain {
 
         final ClassicHttpResponse result = execute(req2);
 
-        Assert.assertEquals(HttpStatus.SC_OK, result.getCode());
+        Assertions.assertEquals(HttpStatus.SC_OK, result.getCode());
     }
 
     @Test
@@ -792,7 +792,7 @@ public class TestCachingExecChain {
 
         final ClassicHttpResponse result = execute(req2);
 
-        Assert.assertEquals(HttpStatus.SC_NOT_MODIFIED, result.getCode());
+        Assertions.assertEquals(HttpStatus.SC_NOT_MODIFIED, result.getCode());
     }
 
     @Test
@@ -828,7 +828,7 @@ public class TestCachingExecChain {
 
         final ClassicHttpResponse result = execute(req2);
 
-        Assert.assertEquals(HttpStatus.SC_OK, result.getCode());
+        Assertions.assertEquals(HttpStatus.SC_OK, result.getCode());
     }
 
     @Test
@@ -888,9 +888,9 @@ public class TestCachingExecChain {
 
         final ClassicHttpResponse result3 = execute(req3);
 
-        Assert.assertEquals(HttpStatus.SC_OK, result1.getCode());
-        Assert.assertEquals(HttpStatus.SC_OK, result2.getCode());
-        Assert.assertEquals(HttpStatus.SC_OK, result3.getCode());
+        Assertions.assertEquals(HttpStatus.SC_OK, result1.getCode());
+        Assertions.assertEquals(HttpStatus.SC_OK, result2.getCode());
+        Assertions.assertEquals(HttpStatus.SC_OK, result3.getCode());
     }
 
     @Test
@@ -948,9 +948,9 @@ public class TestCachingExecChain {
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp4);
 
         final ClassicHttpResponse result4 = execute(req4);
-        Assert.assertEquals(HttpStatus.SC_OK, result1.getCode());
-        Assert.assertEquals(HttpStatus.SC_OK, result2.getCode());
-        Assert.assertEquals(HttpStatus.SC_NOT_MODIFIED, result4.getCode());
+        Assertions.assertEquals(HttpStatus.SC_OK, result1.getCode());
+        Assertions.assertEquals(HttpStatus.SC_OK, result2.getCode());
+        Assertions.assertEquals(HttpStatus.SC_NOT_MODIFIED, result4.getCode());
 
     }
 
@@ -981,7 +981,7 @@ public class TestCachingExecChain {
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
 
-        Assert.assertThrows(SocketTimeoutException.class, () -> {
+        Assertions.assertThrows(SocketTimeoutException.class, () -> {
             final ClassicHttpResponse result1 = execute(req1);
             EntityUtils.toString(result1.getEntity());
         });
@@ -989,7 +989,7 @@ public class TestCachingExecChain {
 
     @Test
     public void testIsSharedCache() {
-        Assert.assertTrue(config.isSharedCache());
+        Assertions.assertTrue(config.isSharedCache());
     }
 
     @Test
@@ -1065,7 +1065,7 @@ public class TestCachingExecChain {
 
         final ClassicHttpResponse resp = execute(request);
 
-        Assert.assertEquals(HttpStatus.SC_GATEWAY_TIMEOUT, resp.getCode());
+        Assertions.assertEquals(HttpStatus.SC_GATEWAY_TIMEOUT, resp.getCode());
     }
 
     @Test
@@ -1077,7 +1077,7 @@ public class TestCachingExecChain {
         final HttpClientContext ctx = HttpClientContext.create();
         impl.execute(request, new ExecChain.Scope("test", route, request, mockExecRuntime, context), mockExecChain);
         impl.execute(request, new ExecChain.Scope("test", route, request, mockExecRuntime, ctx), mockExecChain);
-        Assert.assertEquals(route, ctx.getHttpRoute());
+        Assertions.assertEquals(route, ctx.getHttpRoute());
     }
 
     @Test
@@ -1150,8 +1150,8 @@ public class TestCachingExecChain {
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
         final ClassicHttpResponse result = execute(req1);
 
-        Assert.assertEquals(HttpStatus.SC_NOT_MODIFIED, result.getCode());
-        Assert.assertNull("The 304 response messages MUST NOT contain a message-body", result.getEntity());
+        Assertions.assertEquals(HttpStatus.SC_NOT_MODIFIED, result.getCode());
+        Assertions.assertNull(result.getEntity(), "The 304 response messages MUST NOT contain a message-body");
     }
 
     @Test
@@ -1182,10 +1182,10 @@ public class TestCachingExecChain {
 
         final ClassicHttpResponse result2 = execute(req2);
 
-        Assert.assertEquals(HttpStatus.SC_NOT_MODIFIED, result1.getCode());
-        Assert.assertEquals("etag", result1.getFirstHeader("Etag").getValue());
-        Assert.assertEquals(HttpStatus.SC_NOT_MODIFIED, result2.getCode());
-        Assert.assertEquals("etag", result2.getFirstHeader("Etag").getValue());
+        Assertions.assertEquals(HttpStatus.SC_NOT_MODIFIED, result1.getCode());
+        Assertions.assertEquals("etag", result1.getFirstHeader("Etag").getValue());
+        Assertions.assertEquals(HttpStatus.SC_NOT_MODIFIED, result2.getCode());
+        Assertions.assertEquals("etag", result2.getFirstHeader("Etag").getValue());
     }
 
     @Test
@@ -1219,10 +1219,10 @@ public class TestCachingExecChain {
 
         final ClassicHttpResponse result2 = execute(req2);
 
-        Assert.assertEquals(HttpStatus.SC_NOT_MODIFIED, result1.getCode());
-        Assert.assertEquals("etag", result1.getFirstHeader("Etag").getValue());
-        Assert.assertEquals(HttpStatus.SC_NOT_MODIFIED, result2.getCode());
-        Assert.assertEquals("etag", result2.getFirstHeader("Etag").getValue());
+        Assertions.assertEquals(HttpStatus.SC_NOT_MODIFIED, result1.getCode());
+        Assertions.assertEquals("etag", result1.getFirstHeader("Etag").getValue());
+        Assertions.assertEquals(HttpStatus.SC_NOT_MODIFIED, result2.getCode());
+        Assertions.assertEquals("etag", result2.getFirstHeader("Etag").getValue());
     }
 
     @Test
@@ -1260,10 +1260,10 @@ public class TestCachingExecChain {
 
         final ClassicHttpResponse result2 = execute(req2);
 
-        Assert.assertEquals(HttpStatus.SC_NOT_MODIFIED, result1.getCode());
-        Assert.assertNull(result1.getEntity());
-        Assert.assertEquals(HttpStatus.SC_OK, result2.getCode());
-        Assert.assertNotNull(result2.getEntity());
+        Assertions.assertEquals(HttpStatus.SC_NOT_MODIFIED, result1.getCode());
+        Assertions.assertNull(result1.getEntity());
+        Assertions.assertEquals(HttpStatus.SC_OK, result2.getCode());
+        Assertions.assertNotNull(result2.getEntity());
     }
 
     @Test

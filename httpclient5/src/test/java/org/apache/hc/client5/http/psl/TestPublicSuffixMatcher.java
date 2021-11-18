@@ -32,9 +32,9 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class TestPublicSuffixMatcher {
 
@@ -42,11 +42,11 @@ public class TestPublicSuffixMatcher {
 
     private PublicSuffixMatcher matcher;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         final ClassLoader classLoader = getClass().getClassLoader();
         final InputStream in = classLoader.getResourceAsStream(SOURCE_FILE);
-        Assert.assertNotNull(in);
+        Assertions.assertNotNull(in);
         final List<PublicSuffixList> lists = new PublicSuffixListParser().parseByType(
                 new InputStreamReader(in, StandardCharsets.UTF_8));
         matcher = new PublicSuffixMatcher(lists);
@@ -55,87 +55,87 @@ public class TestPublicSuffixMatcher {
     @Test
     public void testGetDomainRootAnyType() {
         // Private
-        Assert.assertEquals("xx", matcher.getDomainRoot("example.XX"));
-        Assert.assertEquals("xx", matcher.getDomainRoot("www.example.XX"));
-        Assert.assertEquals("xx", matcher.getDomainRoot("www.blah.blah.example.XX"));
-        Assert.assertEquals("appspot.com", matcher.getDomainRoot("example.appspot.com"));
+        Assertions.assertEquals("xx", matcher.getDomainRoot("example.XX"));
+        Assertions.assertEquals("xx", matcher.getDomainRoot("www.example.XX"));
+        Assertions.assertEquals("xx", matcher.getDomainRoot("www.blah.blah.example.XX"));
+        Assertions.assertEquals("appspot.com", matcher.getDomainRoot("example.appspot.com"));
         // Too short
-        Assert.assertNull(matcher.getDomainRoot("jp"));
-        Assert.assertNull(matcher.getDomainRoot("ac.jp"));
-        Assert.assertNull(matcher.getDomainRoot("any.tokyo.jp"));
+        Assertions.assertNull(matcher.getDomainRoot("jp"));
+        Assertions.assertNull(matcher.getDomainRoot("ac.jp"));
+        Assertions.assertNull(matcher.getDomainRoot("any.tokyo.jp"));
         // ICANN
-        Assert.assertEquals("metro.tokyo.jp", matcher.getDomainRoot("metro.tokyo.jp"));
-        Assert.assertEquals("blah.blah.tokyo.jp", matcher.getDomainRoot("blah.blah.tokyo.jp"));
-        Assert.assertEquals("blah.ac.jp", matcher.getDomainRoot("blah.blah.ac.jp"));
+        Assertions.assertEquals("metro.tokyo.jp", matcher.getDomainRoot("metro.tokyo.jp"));
+        Assertions.assertEquals("blah.blah.tokyo.jp", matcher.getDomainRoot("blah.blah.tokyo.jp"));
+        Assertions.assertEquals("blah.ac.jp", matcher.getDomainRoot("blah.blah.ac.jp"));
         // Unknown
-        Assert.assertEquals("garbage", matcher.getDomainRoot("garbage"));
-        Assert.assertEquals("garbage", matcher.getDomainRoot("garbage.garbage"));
-        Assert.assertEquals("garbage", matcher.getDomainRoot("*.garbage.garbage"));
-        Assert.assertEquals("garbage", matcher.getDomainRoot("*.garbage.garbage.garbage"));
+        Assertions.assertEquals("garbage", matcher.getDomainRoot("garbage"));
+        Assertions.assertEquals("garbage", matcher.getDomainRoot("garbage.garbage"));
+        Assertions.assertEquals("garbage", matcher.getDomainRoot("*.garbage.garbage"));
+        Assertions.assertEquals("garbage", matcher.getDomainRoot("*.garbage.garbage.garbage"));
     }
 
     @Test
     public void testGetDomainRootOnlyPRIVATE() {
         // Private
-        Assert.assertEquals("xx", matcher.getDomainRoot("example.XX", DomainType.PRIVATE));
-        Assert.assertEquals("xx", matcher.getDomainRoot("www.example.XX", DomainType.PRIVATE));
-        Assert.assertEquals("xx", matcher.getDomainRoot("www.blah.blah.example.XX", DomainType.PRIVATE));
-        Assert.assertEquals("appspot.com", matcher.getDomainRoot("example.appspot.com"));
+        Assertions.assertEquals("xx", matcher.getDomainRoot("example.XX", DomainType.PRIVATE));
+        Assertions.assertEquals("xx", matcher.getDomainRoot("www.example.XX", DomainType.PRIVATE));
+        Assertions.assertEquals("xx", matcher.getDomainRoot("www.blah.blah.example.XX", DomainType.PRIVATE));
+        Assertions.assertEquals("appspot.com", matcher.getDomainRoot("example.appspot.com"));
         // Too short
-        Assert.assertNull(matcher.getDomainRoot("jp", DomainType.PRIVATE));
-        Assert.assertNull(matcher.getDomainRoot("ac.jp", DomainType.PRIVATE));
-        Assert.assertNull(matcher.getDomainRoot("any.tokyo.jp", DomainType.PRIVATE));
+        Assertions.assertNull(matcher.getDomainRoot("jp", DomainType.PRIVATE));
+        Assertions.assertNull(matcher.getDomainRoot("ac.jp", DomainType.PRIVATE));
+        Assertions.assertNull(matcher.getDomainRoot("any.tokyo.jp", DomainType.PRIVATE));
         // ICANN
-        Assert.assertNull(matcher.getDomainRoot("metro.tokyo.jp", DomainType.PRIVATE));
-        Assert.assertNull(matcher.getDomainRoot("blah.blah.tokyo.jp", DomainType.PRIVATE));
-        Assert.assertNull(matcher.getDomainRoot("blah.blah.ac.jp", DomainType.PRIVATE));
+        Assertions.assertNull(matcher.getDomainRoot("metro.tokyo.jp", DomainType.PRIVATE));
+        Assertions.assertNull(matcher.getDomainRoot("blah.blah.tokyo.jp", DomainType.PRIVATE));
+        Assertions.assertNull(matcher.getDomainRoot("blah.blah.ac.jp", DomainType.PRIVATE));
         // Unknown
-        Assert.assertNull(matcher.getDomainRoot("garbage", DomainType.PRIVATE));
-        Assert.assertNull(matcher.getDomainRoot("garbage.garbage", DomainType.PRIVATE));
-        Assert.assertNull(matcher.getDomainRoot("*.garbage.garbage", DomainType.PRIVATE));
-        Assert.assertNull(matcher.getDomainRoot("*.garbage.garbage.garbage", DomainType.PRIVATE));
+        Assertions.assertNull(matcher.getDomainRoot("garbage", DomainType.PRIVATE));
+        Assertions.assertNull(matcher.getDomainRoot("garbage.garbage", DomainType.PRIVATE));
+        Assertions.assertNull(matcher.getDomainRoot("*.garbage.garbage", DomainType.PRIVATE));
+        Assertions.assertNull(matcher.getDomainRoot("*.garbage.garbage.garbage", DomainType.PRIVATE));
     }
 
     @Test
     public void testGetDomainRootOnlyICANN() {
         // Private
-        Assert.assertNull(matcher.getDomainRoot("example.XX", DomainType.ICANN));
-        Assert.assertNull(matcher.getDomainRoot("www.example.XX", DomainType.ICANN));
-        Assert.assertNull(matcher.getDomainRoot("www.blah.blah.example.XX", DomainType.ICANN));
+        Assertions.assertNull(matcher.getDomainRoot("example.XX", DomainType.ICANN));
+        Assertions.assertNull(matcher.getDomainRoot("www.example.XX", DomainType.ICANN));
+        Assertions.assertNull(matcher.getDomainRoot("www.blah.blah.example.XX", DomainType.ICANN));
         // Too short
-        Assert.assertNull(matcher.getDomainRoot("xx", DomainType.ICANN));
-        Assert.assertNull(matcher.getDomainRoot("jp", DomainType.ICANN));
-        Assert.assertNull(matcher.getDomainRoot("ac.jp", DomainType.ICANN));
-        Assert.assertNull(matcher.getDomainRoot("any.tokyo.jp", DomainType.ICANN));
+        Assertions.assertNull(matcher.getDomainRoot("xx", DomainType.ICANN));
+        Assertions.assertNull(matcher.getDomainRoot("jp", DomainType.ICANN));
+        Assertions.assertNull(matcher.getDomainRoot("ac.jp", DomainType.ICANN));
+        Assertions.assertNull(matcher.getDomainRoot("any.tokyo.jp", DomainType.ICANN));
         // ICANN
-        Assert.assertEquals("metro.tokyo.jp", matcher.getDomainRoot("metro.tokyo.jp", DomainType.ICANN));
-        Assert.assertEquals("blah.blah.tokyo.jp", matcher.getDomainRoot("blah.blah.tokyo.jp", DomainType.ICANN));
-        Assert.assertEquals("blah.ac.jp", matcher.getDomainRoot("blah.blah.ac.jp", DomainType.ICANN));
+        Assertions.assertEquals("metro.tokyo.jp", matcher.getDomainRoot("metro.tokyo.jp", DomainType.ICANN));
+        Assertions.assertEquals("blah.blah.tokyo.jp", matcher.getDomainRoot("blah.blah.tokyo.jp", DomainType.ICANN));
+        Assertions.assertEquals("blah.ac.jp", matcher.getDomainRoot("blah.blah.ac.jp", DomainType.ICANN));
         // Unknown
-        Assert.assertNull(matcher.getDomainRoot("garbage", DomainType.ICANN));
-        Assert.assertNull(matcher.getDomainRoot("garbage.garbage", DomainType.ICANN));
-        Assert.assertNull(matcher.getDomainRoot("*.garbage.garbage", DomainType.ICANN));
-        Assert.assertNull(matcher.getDomainRoot("*.garbage.garbage.garbage", DomainType.ICANN));
+        Assertions.assertNull(matcher.getDomainRoot("garbage", DomainType.ICANN));
+        Assertions.assertNull(matcher.getDomainRoot("garbage.garbage", DomainType.ICANN));
+        Assertions.assertNull(matcher.getDomainRoot("*.garbage.garbage", DomainType.ICANN));
+        Assertions.assertNull(matcher.getDomainRoot("*.garbage.garbage.garbage", DomainType.ICANN));
     }
 
 
     @Test
     public void testMatch() {
-        Assert.assertTrue(matcher.matches(".jp"));
-        Assert.assertTrue(matcher.matches(".ac.jp"));
-        Assert.assertTrue(matcher.matches(".any.tokyo.jp"));
+        Assertions.assertTrue(matcher.matches(".jp"));
+        Assertions.assertTrue(matcher.matches(".ac.jp"));
+        Assertions.assertTrue(matcher.matches(".any.tokyo.jp"));
         // exception
-        Assert.assertFalse(matcher.matches(".metro.tokyo.jp"));
-        Assert.assertFalse(matcher.matches(".xx"));
-        Assert.assertFalse(matcher.matches(".appspot.com"));
+        Assertions.assertFalse(matcher.matches(".metro.tokyo.jp"));
+        Assertions.assertFalse(matcher.matches(".xx"));
+        Assertions.assertFalse(matcher.matches(".appspot.com"));
     }
 
     @Test
     public void testMatchUnicode() {
-        Assert.assertTrue(matcher.matches(".h\u00E5.no")); // \u00E5 is <aring>
-        Assert.assertTrue(matcher.matches(".xn--h-2fa.no"));
-        Assert.assertTrue(matcher.matches(".h\u00E5.no"));
-        Assert.assertTrue(matcher.matches(".xn--h-2fa.no"));
+        Assertions.assertTrue(matcher.matches(".h\u00E5.no")); // \u00E5 is <aring>
+        Assertions.assertTrue(matcher.matches(".xn--h-2fa.no"));
+        Assertions.assertTrue(matcher.matches(".h\u00E5.no"));
+        Assertions.assertTrue(matcher.matches(".xn--h-2fa.no"));
     }
 
 }

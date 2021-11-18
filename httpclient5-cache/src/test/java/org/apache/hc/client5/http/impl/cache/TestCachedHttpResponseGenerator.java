@@ -41,9 +41,9 @@ import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.util.TimeValue;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 @SuppressWarnings({"boxing","static-access"}) // test code
 public class TestCachedHttpResponseGenerator {
@@ -53,7 +53,7 @@ public class TestCachedHttpResponseGenerator {
     private CacheValidityPolicy mockValidityPolicy;
     private CachedHttpResponseGenerator impl;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         entry = HttpTestUtils.makeCacheEntry(new HashMap<>());
         request = HttpTestUtils.makeDefaultRequest();
@@ -69,10 +69,9 @@ public class TestCachedHttpResponseGenerator {
         final SimpleHttpResponse response = impl.generateResponse(request, entry1);
 
         final Header length = response.getFirstHeader("Content-Length");
-        Assert.assertNotNull("Content-Length Header is missing", length);
+        Assertions.assertNotNull(length, "Content-Length Header is missing");
 
-        Assert.assertEquals("Content-Length does not match buffer length", buf.length, Integer
-                .parseInt(length.getValue()));
+        Assertions.assertEquals(buf.length, Integer.parseInt(length.getValue()), "Content-Length does not match buffer length");
     }
 
     @Test
@@ -86,25 +85,25 @@ public class TestCachedHttpResponseGenerator {
 
         final Header length = response.getFirstHeader("Content-Length");
 
-        Assert.assertNull(length);
+        Assertions.assertNull(length);
     }
 
     @Test
     public void testResponseMatchesCacheEntry() throws Exception {
         final SimpleHttpResponse response = impl.generateResponse(request, entry);
 
-        Assert.assertTrue(response.containsHeader("Content-Length"));
+        Assertions.assertTrue(response.containsHeader("Content-Length"));
 
-        Assert.assertSame("HTTP", response.getVersion().getProtocol());
-        Assert.assertEquals(1, response.getVersion().getMajor());
-        Assert.assertEquals(1, response.getVersion().getMinor());
+        Assertions.assertSame("HTTP", response.getVersion().getProtocol());
+        Assertions.assertEquals(1, response.getVersion().getMajor());
+        Assertions.assertEquals(1, response.getVersion().getMinor());
     }
 
     @Test
     public void testResponseStatusCodeMatchesCacheEntry() throws Exception {
         final SimpleHttpResponse response = impl.generateResponse(request, entry);
 
-        Assert.assertEquals(entry.getStatus(), response.getCode());
+        Assertions.assertEquals(entry.getStatus(), response.getCode());
     }
 
     @Test
@@ -116,8 +115,8 @@ public class TestCachedHttpResponseGenerator {
         verify(mockValidityPolicy).getCurrentAge(same(entry), isA(Date.class));
 
         final Header ageHdr = response.getFirstHeader("Age");
-        Assert.assertNotNull(ageHdr);
-        Assert.assertEquals(10L, Long.parseLong(ageHdr.getValue()));
+        Assertions.assertNotNull(ageHdr);
+        Assertions.assertEquals(10L, Long.parseLong(ageHdr.getValue()));
     }
 
     @Test
@@ -129,7 +128,7 @@ public class TestCachedHttpResponseGenerator {
         verify(mockValidityPolicy).getCurrentAge(same(entry), isA(Date.class));
 
         final Header ageHdr = response.getFirstHeader("Age");
-        Assert.assertNull(ageHdr);
+        Assertions.assertNull(ageHdr);
     }
 
     @Test
@@ -141,8 +140,8 @@ public class TestCachedHttpResponseGenerator {
         verify(mockValidityPolicy).getCurrentAge(same(entry), isA(Date.class));
 
         final Header ageHdr = response.getFirstHeader("Age");
-        Assert.assertNotNull(ageHdr);
-        Assert.assertEquals(CacheValidityPolicy.MAX_AGE.toSeconds(), Long.parseLong(ageHdr.getValue()));
+        Assertions.assertNotNull(ageHdr);
+        Assertions.assertEquals(CacheValidityPolicy.MAX_AGE.toSeconds(), Long.parseLong(ageHdr.getValue()));
     }
 
     private void currentAge(final TimeValue age) {
@@ -155,7 +154,7 @@ public class TestCachedHttpResponseGenerator {
     public void testResponseContainsEntityToServeGETRequestIfEntryContainsResource() throws Exception {
         final SimpleHttpResponse response = impl.generateResponse(request, entry);
 
-        Assert.assertNotNull(response.getBody());
+        Assertions.assertNotNull(response.getBody());
     }
 
     @Test
@@ -163,7 +162,7 @@ public class TestCachedHttpResponseGenerator {
         final ClassicHttpRequest headRequest = HttpTestUtils.makeDefaultHEADRequest();
         final SimpleHttpResponse response = impl.generateResponse(headRequest, entry);
 
-        Assert.assertNull(response.getBody());
+        Assertions.assertNull(response.getBody());
     }
 
 }

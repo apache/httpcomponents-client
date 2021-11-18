@@ -26,6 +26,8 @@
  */
 package org.apache.hc.client5.testing.async;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Random;
@@ -52,7 +54,6 @@ import org.apache.hc.core5.http.nio.entity.BasicAsyncEntityConsumer;
 import org.apache.hc.core5.http.nio.support.BasicRequestProducer;
 import org.apache.hc.core5.http.nio.support.BasicResponseConsumer;
 import org.hamcrest.CoreMatchers;
-import org.hamcrest.MatcherAssert;
 import org.junit.Test;
 
 public abstract class AbstractHttpAsyncFundamentalsTest<T extends CloseableHttpAsyncClient> extends AbstractIntegrationTestBase<T> {
@@ -71,11 +72,11 @@ public abstract class AbstractHttpAsyncFundamentalsTest<T extends CloseableHttpA
                             .setPath("/random/2048")
                             .build(), null);
             final SimpleHttpResponse response = future.get();
-            MatcherAssert.assertThat(response, CoreMatchers.notNullValue());
-            MatcherAssert.assertThat(response.getCode(), CoreMatchers.equalTo(200));
+            assertThat(response, CoreMatchers.notNullValue());
+            assertThat(response.getCode(), CoreMatchers.equalTo(200));
             final String body = response.getBodyText();
-            MatcherAssert.assertThat(body, CoreMatchers.notNullValue());
-            MatcherAssert.assertThat(body.length(), CoreMatchers.equalTo(2048));
+            assertThat(body, CoreMatchers.notNullValue());
+            assertThat(body.length(), CoreMatchers.equalTo(2048));
         }
     }
 
@@ -89,10 +90,10 @@ public abstract class AbstractHttpAsyncFundamentalsTest<T extends CloseableHttpA
                             .setPath("/random/2048")
                             .build(), null);
             final SimpleHttpResponse response = future.get();
-            MatcherAssert.assertThat(response, CoreMatchers.notNullValue());
-            MatcherAssert.assertThat(response.getCode(), CoreMatchers.equalTo(200));
+            assertThat(response, CoreMatchers.notNullValue());
+            assertThat(response.getCode(), CoreMatchers.equalTo(200));
             final String body = response.getBodyText();
-            MatcherAssert.assertThat(body, CoreMatchers.nullValue());
+            assertThat(body, CoreMatchers.nullValue());
         }
     }
 
@@ -108,11 +109,11 @@ public abstract class AbstractHttpAsyncFundamentalsTest<T extends CloseableHttpA
                             AsyncEntityProducers.create(b1, ContentType.APPLICATION_OCTET_STREAM)),
                     new BasicResponseConsumer<>(new BasicAsyncEntityConsumer()), HttpClientContext.create(), null);
             final Message<HttpResponse, byte[]> responseMessage = future.get();
-            MatcherAssert.assertThat(responseMessage, CoreMatchers.notNullValue());
+            assertThat(responseMessage, CoreMatchers.notNullValue());
             final HttpResponse response = responseMessage.getHead();
-            MatcherAssert.assertThat(response.getCode(), CoreMatchers.equalTo(200));
+            assertThat(response.getCode(), CoreMatchers.equalTo(200));
             final byte[] b2 = responseMessage.getBody();
-            MatcherAssert.assertThat(b1, CoreMatchers.equalTo(b2));
+            assertThat(b1, CoreMatchers.equalTo(b2));
         }
     }
 
@@ -137,11 +138,11 @@ public abstract class AbstractHttpAsyncFundamentalsTest<T extends CloseableHttpA
         while (!queue.isEmpty()) {
             final Future<Message<HttpResponse, byte[]>> future = queue.remove();
             final Message<HttpResponse, byte[]> responseMessage = future.get();
-            MatcherAssert.assertThat(responseMessage, CoreMatchers.notNullValue());
+            assertThat(responseMessage, CoreMatchers.notNullValue());
             final HttpResponse response = responseMessage.getHead();
-            MatcherAssert.assertThat(response.getCode(), CoreMatchers.equalTo(200));
+            assertThat(response.getCode(), CoreMatchers.equalTo(200));
             final byte[] b2 = responseMessage.getBody();
-            MatcherAssert.assertThat(b1, CoreMatchers.equalTo(b2));
+            assertThat(b1, CoreMatchers.equalTo(b2));
         }
     }
 
@@ -196,7 +197,7 @@ public abstract class AbstractHttpAsyncFundamentalsTest<T extends CloseableHttpA
             });
         }
 
-        MatcherAssert.assertThat(countDownLatch.await(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit()), CoreMatchers.equalTo(true));
+        assertThat(countDownLatch.await(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit()), CoreMatchers.equalTo(true));
 
         executorService.shutdownNow();
         executorService.awaitTermination(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
@@ -206,7 +207,7 @@ public abstract class AbstractHttpAsyncFundamentalsTest<T extends CloseableHttpA
             if (response == null) {
                 break;
             }
-            MatcherAssert.assertThat(response.getCode(), CoreMatchers.equalTo(200));
+            assertThat(response.getCode(), CoreMatchers.equalTo(200));
         }
     }
 
@@ -219,8 +220,8 @@ public abstract class AbstractHttpAsyncFundamentalsTest<T extends CloseableHttpA
                         .setPath("/random/boom")
                         .build(), null);
         final SimpleHttpResponse response = future.get();
-        MatcherAssert.assertThat(response, CoreMatchers.notNullValue());
-        MatcherAssert.assertThat(response.getCode(), CoreMatchers.equalTo(400));
+        assertThat(response, CoreMatchers.notNullValue());
+        assertThat(response.getCode(), CoreMatchers.equalTo(400));
     }
 
 }

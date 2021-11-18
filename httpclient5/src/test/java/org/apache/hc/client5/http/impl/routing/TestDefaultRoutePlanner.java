@@ -35,9 +35,9 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.HttpContext;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 /**
@@ -49,7 +49,7 @@ public class TestDefaultRoutePlanner {
     private SchemePortResolver schemePortResolver;
     private DefaultRoutePlanner routePlanner;
 
-    @Before
+    @BeforeEach
     public void setup() {
         schemePortResolver = Mockito.mock(SchemePortResolver.class);
         routePlanner = new DefaultRoutePlanner(schemePortResolver);
@@ -62,9 +62,9 @@ public class TestDefaultRoutePlanner {
         final HttpContext context = new BasicHttpContext();
         final HttpRoute route = routePlanner.determineRoute(target, context);
 
-        Assert.assertEquals(target, route.getTargetHost());
-        Assert.assertEquals(1, route.getHopCount());
-        Assert.assertFalse(route.isSecure());
+        Assertions.assertEquals(target, route.getTargetHost());
+        Assertions.assertEquals(1, route.getHopCount());
+        Assertions.assertFalse(route.isSecure());
         Mockito.verify(schemePortResolver, Mockito.never()).resolve(Mockito.any());
     }
 
@@ -76,9 +76,9 @@ public class TestDefaultRoutePlanner {
         final HttpContext context = new BasicHttpContext();
         final HttpRoute route = routePlanner.determineRoute(target, context);
 
-        Assert.assertEquals(new HttpHost("https", "somehost", 443), route.getTargetHost());
-        Assert.assertEquals(1, route.getHopCount());
-        Assert.assertTrue(route.isSecure());
+        Assertions.assertEquals(new HttpHost("https", "somehost", 443), route.getTargetHost());
+        Assertions.assertEquals(1, route.getHopCount());
+        Assertions.assertTrue(route.isSecure());
     }
 
     @Test
@@ -91,17 +91,17 @@ public class TestDefaultRoutePlanner {
         context.setRequestConfig(RequestConfig.custom().setProxy(proxy).build());
         final HttpRoute route = routePlanner.determineRoute(target, context);
 
-        Assert.assertEquals(target, route.getTargetHost());
-        Assert.assertEquals(proxy, route.getProxyHost());
-        Assert.assertEquals(2, route.getHopCount());
-        Assert.assertFalse(route.isSecure());
+        Assertions.assertEquals(target, route.getTargetHost());
+        Assertions.assertEquals(proxy, route.getProxyHost());
+        Assertions.assertEquals(2, route.getHopCount());
+        Assertions.assertFalse(route.isSecure());
         Mockito.verify(schemePortResolver, Mockito.never()).resolve(Mockito.any());
     }
 
     @Test
     public void testNullTarget() throws Exception {
         final HttpContext context = new BasicHttpContext();
-        Assert.assertThrows(ProtocolException.class, () ->
+        Assertions.assertThrows(ProtocolException.class, () ->
                 routePlanner.determineRoute(null, context));
     }
 

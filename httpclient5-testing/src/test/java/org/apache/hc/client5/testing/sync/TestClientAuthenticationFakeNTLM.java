@@ -44,7 +44,7 @@ import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.io.HttpRequestHandler;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.protocol.HttpContext;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.Test;
 
 /**
@@ -84,7 +84,7 @@ public class TestClientAuthenticationFakeNTLM extends LocalServerTestBase {
 
         this.httpclient.execute(target, httpget, context, response -> {
             EntityUtils.consume(response.getEntity());
-            Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
+            Assertions.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
             return null;
         });
     }
@@ -132,7 +132,7 @@ public class TestClientAuthenticationFakeNTLM extends LocalServerTestBase {
 
         this.httpclient.execute(target, httpget, context, response -> {
             EntityUtils.consume(response.getEntity());
-            Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
+            Assertions.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
             return null;
         });
     }
@@ -157,7 +157,7 @@ public class TestClientAuthenticationFakeNTLM extends LocalServerTestBase {
 
         this.httpclient.execute(target, httpget, context, response -> {
             EntityUtils.consume(response.getEntity());
-            Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
+            Assertions.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
             return null;
         });
     }
@@ -197,7 +197,7 @@ public class TestClientAuthenticationFakeNTLM extends LocalServerTestBase {
 
         this.httpclient.execute(target, httpget, context, response -> {
             EntityUtils.consume(response.getEntity());
-            Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
+            Assertions.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
             return null;
         });
     }
@@ -218,7 +218,7 @@ public class TestClientAuthenticationFakeNTLM extends LocalServerTestBase {
 
         this.httpclient.execute(target, httpget, context, response -> {
             EntityUtils.consume(response.getEntity());
-            Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
+            Assertions.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
             return null;
         });
     }

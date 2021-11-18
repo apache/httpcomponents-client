@@ -43,7 +43,7 @@ import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.HttpContext;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.Test;
 
 /**
@@ -108,14 +108,14 @@ public class TestStatefulConnManagement extends LocalServerTestBase {
             if (ex != null) {
                 throw ex;
             }
-            Assert.assertEquals(requestCount, worker.getCount());
+            Assertions.assertEquals(requestCount, worker.getCount());
         }
 
         for (final HttpContext context : contexts) {
             final String state0 = (String) context.getAttribute("r0");
-            Assert.assertNotNull(state0);
+            Assertions.assertNotNull(state0);
             for (int r = 1; r < requestCount; r++) {
-                Assert.assertEquals(state0, context.getAttribute("r" + r));
+                Assertions.assertEquals(state0, context.getAttribute("r" + r));
             }
         }
 
