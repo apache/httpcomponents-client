@@ -26,6 +26,7 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -48,7 +49,8 @@ class WarningValue {
     private int warnCode;
     private String warnAgent;
     private String warnText;
-    private Date warnDate;
+
+    private Instant warnInstant;
 
     WarningValue(final String s) {
         this(s, 0);
@@ -255,7 +257,7 @@ class WarningValue {
     private static final String WARN_DATE = "\"(" + HTTP_DATE + ")\"";
     private static final Pattern WARN_DATE_PATTERN = Pattern.compile(WARN_DATE);
 
-    /*
+    /**
      * warn-date  = <"> HTTP-date <">
      */
     protected void consumeWarnDate() {
@@ -265,10 +267,11 @@ class WarningValue {
             parseError();
         }
         offs += m.end();
-        warnDate = DateUtils.toDate(DateUtils.parseStandardDate(src.substring(curr+1,offs-1)));
+        warnInstant = DateUtils.parseStandardDate(src.substring(curr+1,offs-1));
     }
 
-    /*
+
+    /**
      * warning-value = warn-code SP warn-agent SP warn-text [SP warn-date]
      */
     protected void consumeWarnValue() {
@@ -343,8 +346,18 @@ class WarningValue {
      * {@code null} if a warning date was not supplied in the
      * header.
      * @return {@link Date}
+     * @deprecated Use {@link #getWarnInstant()}
      */
-    public Date getWarnDate() { return warnDate; }
+    @Deprecated
+    public Date getWarnDate() { return DateUtils.toDate(warnInstant); }
+
+    /** Returns the {@link Instant} when this warning was added, or
+     * {@code null} if a warning date was not supplied in the
+     * header.
+     * @return the {@link Instant}.
+     * @since 5.2
+     */
+    public Instant getWarnInstant() { return warnInstant; }
 
     /** Formats a {@code WarningValue} as a {@link String}
      * suitable for including in a header. For example, you can:
@@ -357,9 +370,9 @@ class WarningValue {
      */
     @Override
     public String toString() {
-        if (warnDate != null) {
+        if (warnInstant != null) {
             return String.format("%d %s %s \"%s\"", warnCode,
-                    warnAgent, warnText, DateUtils.formatStandardDate(DateUtils.toInstant(warnDate)));
+                    warnAgent, warnText, DateUtils.formatStandardDate(warnInstant));
         } else {
             return String.format("%d %s %s", warnCode, warnAgent, warnText);
         }
