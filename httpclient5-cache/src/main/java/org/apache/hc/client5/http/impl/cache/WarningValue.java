@@ -342,15 +342,6 @@ class WarningValue {
      */
     public String getWarnText() { return warnText; }
 
-    /** Returns the date and time when this warning was added, or
-     * {@code null} if a warning date was not supplied in the
-     * header.
-     * @return {@link Date}
-     * @deprecated Use {@link #getWarnInstant()}
-     */
-    @Deprecated
-    public Date getWarnDate() { return DateUtils.toDate(warnInstant); }
-
     /** Returns the {@link Instant} when this warning was added, or
      * {@code null} if a warning date was not supplied in the
      * header.

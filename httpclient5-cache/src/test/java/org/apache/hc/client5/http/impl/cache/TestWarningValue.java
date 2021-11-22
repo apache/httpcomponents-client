@@ -45,7 +45,7 @@ public class TestWarningValue {
         Assert.assertEquals(110, wv.getWarnCode());
         Assert.assertEquals("fred", wv.getWarnAgent());
         Assert.assertEquals("\"stale\"", wv.getWarnText());
-        Assert.assertNull(wv.getWarnDate());
+        Assert.assertNull(wv.getWarnInstant());
     }
 
     @Test
@@ -57,12 +57,12 @@ public class TestWarningValue {
         Assert.assertEquals(110, wv.getWarnCode());
         Assert.assertEquals("fred", wv.getWarnAgent());
         Assert.assertEquals("\"stale\"", wv.getWarnText());
-        Assert.assertNull(wv.getWarnDate());
+        Assert.assertNull(wv.getWarnInstant());
         wv = result[1];
         Assert.assertEquals(111, wv.getWarnCode());
         Assert.assertEquals("wilma", wv.getWarnAgent());
         Assert.assertEquals("\"other\"", wv.getWarnText());
-        Assert.assertNull(wv.getWarnDate());
+        Assert.assertNull(wv.getWarnInstant());
     }
 
     @Test
@@ -74,12 +74,12 @@ public class TestWarningValue {
         Assert.assertEquals(110, wv.getWarnCode());
         Assert.assertEquals("fred", wv.getWarnAgent());
         Assert.assertEquals("\"stale\"", wv.getWarnText());
-        Assert.assertNull(wv.getWarnDate());
+        Assert.assertNull(wv.getWarnInstant());
         wv = result[1];
         Assert.assertEquals(111, wv.getWarnCode());
         Assert.assertEquals("wilma", wv.getWarnAgent());
         Assert.assertEquals("\"other\"", wv.getWarnText());
-        Assert.assertNull(wv.getWarnDate());
+        Assert.assertNull(wv.getWarnInstant());
     }
 
     @Test
@@ -91,12 +91,12 @@ public class TestWarningValue {
         Assert.assertEquals(110, wv.getWarnCode());
         Assert.assertEquals("fred", wv.getWarnAgent());
         Assert.assertEquals("\"stale\"", wv.getWarnText());
-        Assert.assertNull(wv.getWarnDate());
+        Assert.assertNull(wv.getWarnInstant());
         wv = result[1];
         Assert.assertEquals(111, wv.getWarnCode());
         Assert.assertEquals("wilma", wv.getWarnAgent());
         Assert.assertEquals("\"other\"", wv.getWarnText());
-        Assert.assertNull(wv.getWarnDate());
+        Assert.assertNull(wv.getWarnInstant());
     }
 
     @Test
@@ -108,12 +108,12 @@ public class TestWarningValue {
         Assert.assertEquals(110, wv.getWarnCode());
         Assert.assertEquals("fred", wv.getWarnAgent());
         Assert.assertEquals("\"stale\"", wv.getWarnText());
-        Assert.assertNull(wv.getWarnDate());
+        Assert.assertNull(wv.getWarnInstant());
         wv = result[1];
         Assert.assertEquals(111, wv.getWarnCode());
         Assert.assertEquals("wilma", wv.getWarnAgent());
         Assert.assertEquals("\"other\"", wv.getWarnText());
-        Assert.assertNull(wv.getWarnDate());
+        Assert.assertNull(wv.getWarnInstant());
     }
 
     @Test
@@ -122,7 +122,7 @@ public class TestWarningValue {
         Assert.assertEquals(110, impl.getWarnCode());
         Assert.assertEquals("fred", impl.getWarnAgent());
         Assert.assertEquals("\"stale\"", impl.getWarnText());
-        Assert.assertNull(impl.getWarnDate());
+        Assert.assertNull(impl.getWarnInstant());
     }
 
     @Test
@@ -131,7 +131,7 @@ public class TestWarningValue {
         Assert.assertEquals(110, impl.getWarnCode());
         Assert.assertEquals("192.168.1.1", impl.getWarnAgent());
         Assert.assertEquals("\"stale\"", impl.getWarnText());
-        Assert.assertNull(impl.getWarnDate());
+        Assert.assertNull(impl.getWarnInstant());
     }
 
     @Test
@@ -140,7 +140,7 @@ public class TestWarningValue {
         Assert.assertEquals(110, impl.getWarnCode());
         Assert.assertEquals("foo.example.com", impl.getWarnAgent());
         Assert.assertEquals("\"stale\"", impl.getWarnText());
-        Assert.assertNull(impl.getWarnDate());
+        Assert.assertNull(impl.getWarnInstant());
     }
 
     @Test
@@ -149,7 +149,7 @@ public class TestWarningValue {
         Assert.assertEquals(110, impl.getWarnCode());
         Assert.assertEquals("foo.example.com:8080", impl.getWarnAgent());
         Assert.assertEquals("\"stale\"", impl.getWarnText());
-        Assert.assertNull(impl.getWarnDate());
+        Assert.assertNull(impl.getWarnInstant());
     }
 
     @Test
@@ -158,7 +158,7 @@ public class TestWarningValue {
         Assert.assertEquals(110, impl.getWarnCode());
         Assert.assertEquals("192.168.1.1:8080", impl.getWarnAgent());
         Assert.assertEquals("\"stale\"", impl.getWarnText());
-        Assert.assertNull(impl.getWarnDate());
+        Assert.assertNull(impl.getWarnInstant());
     }
 
     @Test
@@ -167,7 +167,7 @@ public class TestWarningValue {
         Assert.assertEquals(110, impl.getWarnCode());
         Assert.assertEquals("ca$hm0ney", impl.getWarnAgent());
         Assert.assertEquals("\"stale\"", impl.getWarnText());
-        Assert.assertNull(impl.getWarnDate());
+        Assert.assertNull(impl.getWarnInstant());
     }
 
     @Test
@@ -176,7 +176,7 @@ public class TestWarningValue {
         Assert.assertEquals(110, impl.getWarnCode());
         Assert.assertEquals("fred", impl.getWarnAgent());
         Assert.assertEquals("\"stale stuff\"", impl.getWarnText());
-        Assert.assertNull(impl.getWarnDate());
+        Assert.assertNull(impl.getWarnInstant());
     }
 
     @Test
@@ -185,7 +185,7 @@ public class TestWarningValue {
         Assert.assertEquals(110, impl.getWarnCode());
         Assert.assertEquals("fred", impl.getWarnAgent());
         Assert.assertEquals("\"stale, stuff\"", impl.getWarnText());
-        Assert.assertNull(impl.getWarnDate());
+        Assert.assertNull(impl.getWarnInstant());
     }
 
     @Test
@@ -194,7 +194,7 @@ public class TestWarningValue {
         Assert.assertEquals(110, impl.getWarnCode());
         Assert.assertEquals("fred", impl.getWarnAgent());
         Assert.assertEquals("\"stale\\\" stuff\"", impl.getWarnText());
-        Assert.assertNull(impl.getWarnDate());
+        Assert.assertNull(impl.getWarnInstant());
     }
 
     @Test
@@ -204,7 +204,7 @@ public class TestWarningValue {
         Assert.assertEquals("fred", impl.getWarnAgent());
         Assert.assertEquals("\"stale\"", impl.getWarnText());
         final Instant target = DateUtils.parseStandardDate("Sun Nov  6 08:49:37 1994");
-        Assert.assertEquals(target, DateUtils.toInstant(impl.getWarnDate()));
+        Assert.assertEquals(target, impl.getWarnInstant());
     }
 
     @Test
@@ -214,7 +214,7 @@ public class TestWarningValue {
         Assert.assertEquals("fred", impl.getWarnAgent());
         Assert.assertEquals("\"stale\"", impl.getWarnText());
         final Instant target = DateUtils.parseStandardDate("Sunday, 06-Nov-94 08:49:37 GMT");
-        Assert.assertEquals(target, DateUtils.toInstant(impl.getWarnDate()));
+        Assert.assertEquals(target, impl.getWarnInstant());
     }
 
     @Test
@@ -224,7 +224,7 @@ public class TestWarningValue {
         Assert.assertEquals("fred", impl.getWarnAgent());
         Assert.assertEquals("\"stale\"", impl.getWarnText());
         final Instant target = DateUtils.parseStandardDate("Sun, 06 Nov 1994 08:49:37 GMT");
-        Assert.assertEquals(target, DateUtils.toInstant(impl.getWarnDate()));
+        Assert.assertEquals(target, impl.getWarnInstant());
     }
 
 }
