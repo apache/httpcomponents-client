@@ -29,6 +29,7 @@ package org.apache.hc.client5.http.cookie;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
@@ -83,7 +84,7 @@ public class BasicCookieStore implements CookieStore, Serializable {
             try {
                 // first remove any old cookie that is equivalent
                 cookies.remove(cookie);
-                if (!cookie.isExpired(new Date())) {
+                if (!cookie.isExpired(Instant.now())) {
                     cookies.add(cookie);
                 }
             } finally {
@@ -136,6 +137,7 @@ public class BasicCookieStore implements CookieStore, Serializable {
      * @see Cookie#isExpired(Date)
      */
     @Override
+    @SuppressWarnings("deprecation")
     public boolean clearExpired(final Date date) {
         if (date == null) {
             return false;
@@ -145,6 +147,34 @@ public class BasicCookieStore implements CookieStore, Serializable {
             boolean removed = false;
             for (final Iterator<Cookie> it = cookies.iterator(); it.hasNext(); ) {
                 if (it.next().isExpired(date)) {
+                    it.remove();
+                    removed = true;
+                }
+            }
+            return removed;
+        } finally {
+            lock.writeLock().unlock();
+        }
+    }
+
+    /**
+     * Removes all of {@link Cookie cookies} in this HTTP state that have expired by the specified
+     * {@link Instant date}.
+     *
+     * @return true if any cookies were purged.
+     * @see Cookie#isExpired(Instant)
+     * @since 5.2
+     */
+    @Override
+    public boolean clearExpired(final Instant instant) {
+        if (instant == null) {
+            return false;
+        }
+        lock.writeLock().lock();
+        try {
+            boolean removed = false;
+            for (final Iterator<Cookie> it = cookies.iterator(); it.hasNext(); ) {
+                if (it.next().isExpired(instant)) {
                     it.remove();
                     removed = true;
                 }

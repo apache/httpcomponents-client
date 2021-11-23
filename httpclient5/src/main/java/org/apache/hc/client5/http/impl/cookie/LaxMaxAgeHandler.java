@@ -26,7 +26,7 @@
  */
 package org.apache.hc.client5.http.impl.cookie;
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -68,8 +68,8 @@ public class LaxMaxAgeHandler extends AbstractCookieAttributeHandler implements 
             } catch (final NumberFormatException e) {
                 return;
             }
-            final Date expiryDate = age >= 0 ? new Date(System.currentTimeMillis() + age * 1000L) :
-                    new Date(Long.MIN_VALUE);
+            final Instant expiryDate = age >= 0 ? Instant.now().plusSeconds(age) :
+                    Instant.EPOCH;
             cookie.setExpiryDate(expiryDate);
         }
     }

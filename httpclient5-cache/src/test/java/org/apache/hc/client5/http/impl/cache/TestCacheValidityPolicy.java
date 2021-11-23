@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Instant;
-import java.util.Date;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.utils.DateUtils;
@@ -141,7 +140,7 @@ public class TestCacheValidityPolicy {
     @Test
     public void testResidentTimeSecondsIsTimeSinceResponseTime() {
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(now, sixSecondsAgo);
-        assertEquals(TimeValue.ofSeconds(6), impl.getResidentTime(entry, DateUtils.toDate(now)));
+        assertEquals(TimeValue.ofSeconds(6), impl.getResidentTime(entry, now));
     }
 
     @Test
@@ -153,11 +152,11 @@ public class TestCacheValidityPolicy {
                 return TimeValue.ofSeconds(11);
             }
             @Override
-            protected TimeValue getResidentTime(final HttpCacheEntry ent, final Date d) {
+            protected TimeValue getResidentTime(final HttpCacheEntry ent, final Instant d) {
                 return TimeValue.ofSeconds(17);
             }
         };
-        assertEquals(TimeValue.ofSeconds(28), impl.getCurrentAge(entry, new Date()));
+        assertEquals(TimeValue.ofSeconds(28), impl.getCurrentAge(entry, Instant.now()));
     }
 
     @Test
@@ -250,9 +249,9 @@ public class TestCacheValidityPolicy {
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
         impl = new CacheValidityPolicy() {
             @Override
-            public TimeValue getCurrentAge(final HttpCacheEntry e, final Date d) {
+            public TimeValue getCurrentAge(final HttpCacheEntry e, final Instant d) {
                 assertSame(entry, e);
-                assertEquals(DateUtils.toDate(now), d);
+                assertEquals(now, d);
                 return TimeValue.ofSeconds(6);
             }
             @Override
@@ -261,7 +260,7 @@ public class TestCacheValidityPolicy {
                 return TimeValue.ofSeconds(10);
             }
         };
-        assertTrue(impl.isResponseFresh(entry, DateUtils.toDate(now)));
+        assertTrue(impl.isResponseFresh(entry, now));
     }
 
     @Test
@@ -269,8 +268,8 @@ public class TestCacheValidityPolicy {
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
         impl = new CacheValidityPolicy() {
             @Override
-            public TimeValue getCurrentAge(final HttpCacheEntry e, final Date d) {
-                assertEquals(DateUtils.toDate(now), d);
+            public TimeValue getCurrentAge(final HttpCacheEntry e, final Instant d) {
+                assertEquals(now, d);
                 assertSame(entry, e);
                 return TimeValue.ofSeconds(6);
             }
@@ -280,7 +279,7 @@ public class TestCacheValidityPolicy {
                 return TimeValue.ofSeconds(6);
             }
         };
-        assertFalse(impl.isResponseFresh(entry, DateUtils.toDate(now)));
+        assertFalse(impl.isResponseFresh(entry, now));
     }
 
     @Test
@@ -288,8 +287,8 @@ public class TestCacheValidityPolicy {
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
         impl = new CacheValidityPolicy() {
             @Override
-            public TimeValue getCurrentAge(final HttpCacheEntry e, final Date d) {
-                assertEquals(DateUtils.toDate(now), d);
+            public TimeValue getCurrentAge(final HttpCacheEntry e, final Instant d) {
+                assertEquals(now, d);
                 assertSame(entry, e);
                 return TimeValue.ofSeconds(10);
             }
@@ -299,7 +298,7 @@ public class TestCacheValidityPolicy {
                 return TimeValue.ofSeconds(6);
             }
         };
-        assertFalse(impl.isResponseFresh(entry, DateUtils.toDate(now)));
+        assertFalse(impl.isResponseFresh(entry, now));
     }
 
     @Test
@@ -421,7 +420,7 @@ public class TestCacheValidityPolicy {
         };
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(now, now, headers);
         final HttpRequest req = new BasicHttpRequest("GET","/");
-        assertTrue(impl.mayReturnStaleIfError(req, entry, DateUtils.toDate(now)));
+        assertTrue(impl.mayReturnStaleIfError(req, entry, now));
     }
 
     @Test
@@ -433,7 +432,7 @@ public class TestCacheValidityPolicy {
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(now, now, headers);
         final HttpRequest req = new BasicHttpRequest("GET","/");
         req.setHeader("Cache-Control","stale-if-error=15");
-        assertTrue(impl.mayReturnStaleIfError(req, entry, DateUtils.toDate(now)));
+        assertTrue(impl.mayReturnStaleIfError(req, entry, now));
     }
 
     @Test
@@ -444,7 +443,7 @@ public class TestCacheValidityPolicy {
         };
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(now, now, headers);
         final HttpRequest req = new BasicHttpRequest("GET","/");
-        assertFalse(impl.mayReturnStaleIfError(req, entry, DateUtils.toDate(now)));
+        assertFalse(impl.mayReturnStaleIfError(req, entry, now));
     }
 
     @Test
@@ -456,7 +455,7 @@ public class TestCacheValidityPolicy {
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(now, now, headers);
         final HttpRequest req = new BasicHttpRequest("GET","/");
         req.setHeader("Cache-Control","stale-if-error=1");
-        assertFalse(impl.mayReturnStaleIfError(req, entry, DateUtils.toDate(now)));
+        assertFalse(impl.mayReturnStaleIfError(req, entry, now));
     }
 
     @Test
@@ -464,7 +463,7 @@ public class TestCacheValidityPolicy {
         final Header[] headers = new Header[] { new BasicHeader("Cache-control", "public") };
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers);
 
-        assertFalse(impl.mayReturnStaleWhileRevalidating(entry, DateUtils.toDate(now)));
+        assertFalse(impl.mayReturnStaleWhileRevalidating(entry, now));
     }
 
     @Test
@@ -475,7 +474,7 @@ public class TestCacheValidityPolicy {
         };
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(now, now, headers);
 
-        assertTrue(impl.mayReturnStaleWhileRevalidating(entry, DateUtils.toDate(now)));
+        assertTrue(impl.mayReturnStaleWhileRevalidating(entry, now));
     }
 
     @Test
@@ -487,7 +486,7 @@ public class TestCacheValidityPolicy {
         };
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(now, now, headers);
 
-        assertFalse(impl.mayReturnStaleWhileRevalidating(entry, DateUtils.toDate(now)));
+        assertFalse(impl.mayReturnStaleWhileRevalidating(entry, now));
     }
 
     @Test
@@ -498,6 +497,6 @@ public class TestCacheValidityPolicy {
         };
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(now, now, headers);
 
-        assertFalse(impl.mayReturnStaleWhileRevalidating(entry, DateUtils.toDate(now)));
+        assertFalse(impl.mayReturnStaleWhileRevalidating(entry, now));
     }
 }

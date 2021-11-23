@@ -26,7 +26,7 @@
  */
 package org.apache.hc.client5.http.protocol;
 
-import java.util.Date;
+import java.time.Instant;
 
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.RouteInfo.LayerType;
@@ -321,7 +321,7 @@ public class TestRequestAddCookies {
         final BasicClientCookie cookie3 = new BasicClientCookie("name3", "value3");
         cookie3.setDomain("localhost.local");
         cookie3.setPath("/");
-        cookie3.setExpiryDate(new Date(System.currentTimeMillis() + 100));
+        cookie3.setExpiryDate(Instant.now().plusMillis(100));
         this.cookieStore.addCookie(cookie3);
 
         Assertions.assertEquals(3, this.cookieStore.getCookies().size());
@@ -346,7 +346,7 @@ public class TestRequestAddCookies {
         Assertions.assertEquals(1, headers.length);
         Assertions.assertEquals("name1=value1; name2=value2", headers[0].getValue());
 
-        Mockito.verify(this.cookieStore, Mockito.times(1)).clearExpired(ArgumentMatchers.any());
+        Mockito.verify(this.cookieStore, Mockito.times(1)).clearExpired(ArgumentMatchers.any(Instant.class));
     }
 
     @Test

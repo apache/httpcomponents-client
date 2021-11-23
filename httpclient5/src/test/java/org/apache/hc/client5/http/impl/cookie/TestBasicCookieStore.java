@@ -31,7 +31,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.Calendar;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import org.apache.hc.client5.http.cookie.BasicCookieStore;
@@ -65,9 +66,8 @@ public class TestBasicCookieStore {
         final BasicCookieStore store = new BasicCookieStore();
         final BasicClientCookie cookie = new BasicClientCookie("name1", "value1");
 
-        final Calendar c = Calendar.getInstance();
-        c.add(Calendar.DAY_OF_YEAR, -10);
-        cookie.setExpiryDate(c.getTime());
+        final Instant  minus_10_days = Instant.now().minus(10, ChronoUnit.DAYS);
+        cookie.setExpiryDate(minus_10_days);
         store.addCookie(cookie);
         final List<Cookie> list = store.getCookies();
         Assertions.assertNotNull(list);

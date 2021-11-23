@@ -749,7 +749,7 @@ public class HttpAsyncClientBuilder {
         }
         closeables.add(closeable);
     }
-
+    @SuppressWarnings("deprecated")
     public CloseableHttpAsyncClient build() {
         AsyncClientConnectionManager connManagerCopy = this.connManager;
         if (connManagerCopy == null) {

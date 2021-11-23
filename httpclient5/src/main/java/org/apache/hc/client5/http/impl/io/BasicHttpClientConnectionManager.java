@@ -28,7 +28,7 @@
 package org.apache.hc.client5.http.impl.io;
 
 import java.io.IOException;
-import java.util.Date;
+import java.time.Instant;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -259,7 +259,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
     private void checkExpiry() {
         if (this.conn != null && System.currentTimeMillis() >= this.expiry) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("{} Connection expired @ {}", id, new Date(this.expiry));
+                LOG.debug("{} Connection expired @ {}", id, Instant.ofEpochMilli(this.expiry));
             }
             closeConnection(CloseMode.GRACEFUL);
         }

@@ -34,8 +34,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.Collections;
-import java.util.Date;
 import java.util.Map;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
@@ -59,8 +59,8 @@ class HttpByteArrayCacheEntrySerializerTestUtils {
      */
     static class HttpCacheStorageEntryTestTemplate {
         Resource resource;
-        Date requestDate;
-        Date responseDate;
+        Instant requestDate;
+        Instant responseDate;
         int responseCode;
         Header[] responseHeaders;
         Map<String, String> variantMap;
@@ -120,8 +120,8 @@ class HttpByteArrayCacheEntrySerializerTestUtils {
     private static final HttpCacheStorageEntryTestTemplate DEFAULT_HTTP_CACHE_STORAGE_ENTRY_TEST_TEMPLATE = new HttpCacheStorageEntryTestTemplate();
     static {
         DEFAULT_HTTP_CACHE_STORAGE_ENTRY_TEST_TEMPLATE.resource = new HeapResource("Hello World".getBytes(StandardCharsets.UTF_8));
-        DEFAULT_HTTP_CACHE_STORAGE_ENTRY_TEST_TEMPLATE.requestDate = new Date(165214800000L);
-        DEFAULT_HTTP_CACHE_STORAGE_ENTRY_TEST_TEMPLATE.responseDate = new Date(2611108800000L);
+        DEFAULT_HTTP_CACHE_STORAGE_ENTRY_TEST_TEMPLATE.requestDate = Instant.ofEpochMilli(165214800000L);
+        DEFAULT_HTTP_CACHE_STORAGE_ENTRY_TEST_TEMPLATE.responseDate = Instant.ofEpochMilli(2611108800000L);
         DEFAULT_HTTP_CACHE_STORAGE_ENTRY_TEST_TEMPLATE.responseCode = 200;
         DEFAULT_HTTP_CACHE_STORAGE_ENTRY_TEST_TEMPLATE.responseHeaders = new Header[]{
                 new BasicHeader("Content-type", "text/html"),
@@ -220,8 +220,9 @@ class HttpByteArrayCacheEntrySerializerTestUtils {
         final HttpCacheEntry expectedContent = expected.getContent();
         final HttpCacheEntry actualContent = actual.getContent();
 
-        assertEquals(expectedContent.getRequestDate(), actualContent.getRequestDate());
-        assertEquals(expectedContent.getResponseDate(), actualContent.getResponseDate());
+        assertEquals(expectedContent.getRequestInstant(), actualContent.getRequestInstant());
+        assertEquals(expectedContent.getResponseInstant(), actualContent.getResponseInstant());
+
         assertEquals(expectedContent.getStatus(), actualContent.getStatus());
 
         assertArrayEquals(expectedContent.getVariantMap().keySet().toArray(), actualContent.getVariantMap().keySet().toArray());

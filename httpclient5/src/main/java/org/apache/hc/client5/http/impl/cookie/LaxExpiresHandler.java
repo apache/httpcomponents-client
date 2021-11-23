@@ -41,7 +41,6 @@ import org.apache.hc.client5.http.cookie.CommonCookieAttributeHandler;
 import org.apache.hc.client5.http.cookie.Cookie;
 import org.apache.hc.client5.http.cookie.MalformedCookieException;
 import org.apache.hc.client5.http.cookie.SetCookie;
-import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.util.Args;
@@ -180,7 +179,7 @@ public class LaxExpiresHandler extends AbstractCookieAttributeHandler implements
 
         final Instant expiryDate = ZonedDateTime.of(year, month.getValue(), day, hour, minute, second, 0,
                 ZoneId.of("UTC")).toInstant();
-        cookie.setExpiryDate(DateUtils.toDate(expiryDate));
+        cookie.setExpiryDate(expiryDate);
     }
 
     private void skipDelims(final CharSequence buf, final Tokenizer.Cursor cursor) {

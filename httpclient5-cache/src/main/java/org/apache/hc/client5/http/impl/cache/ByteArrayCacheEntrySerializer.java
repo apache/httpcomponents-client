@@ -90,6 +90,7 @@ public final class ByteArrayCacheEntrySerializer implements HttpCacheEntrySerial
                 Pattern.compile("^(\\[L)?org\\.apache\\.hc\\.(.*)"),
                 Pattern.compile("^(?:\\[+L)?java\\.util\\..*$"),
                 Pattern.compile("^(?:\\[+L)?java\\.lang\\..*$"),
+                Pattern.compile("^(?:\\[+L)?java\\.time\\..*$"), // java 8 time
                 Pattern.compile("^\\[+Z$"), // boolean
                 Pattern.compile("^\\[+B$"), // byte
                 Pattern.compile("^\\[+C$"), // char

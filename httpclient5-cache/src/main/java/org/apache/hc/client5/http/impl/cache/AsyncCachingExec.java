@@ -29,7 +29,7 @@ package org.apache.hc.client5.http.impl.cache;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.nio.ByteBuffer;
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
@@ -309,7 +309,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
             final AsyncExecChain chain,
             final AsyncExecCallback asyncExecCallback) {
         LOG.debug("Calling the backend");
-        final Date requestDate = getCurrentDate();
+        final Instant requestDate = getCurrentDate();
         final AtomicReference<AsyncExecCallback> callbackRef = new AtomicReference<>();
         chainProceed(request, entityProducer, scope, chain, new AsyncExecCallback() {
 
@@ -317,7 +317,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
             public AsyncDataConsumer handleResponse(
                     final HttpResponse backendResponse,
                     final EntityDetails entityDetails) throws HttpException, IOException {
-                final Date responseDate = getCurrentDate();
+                final Instant responseDate = getCurrentDate();
                 backendResponse.addHeader("Via", generateViaHeader(backendResponse));
 
                 final AsyncExecCallback callback = new BackendResponseHandler(target, request, requestDate, responseDate, scope, asyncExecCallback);
@@ -446,8 +446,8 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
 
         private final HttpHost target;
         private final HttpRequest request;
-        private final Date requestDate;
-        private final Date responseDate;
+        private final Instant requestDate;
+        private final Instant responseDate;
         private final AsyncExecChain.Scope scope;
         private final AsyncExecCallback asyncExecCallback;
         private final AtomicReference<CachingAsyncDataConsumer> cachingConsumerRef;
@@ -455,8 +455,8 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
         BackendResponseHandler(
                 final HttpHost target,
                 final HttpRequest request,
-                final Date requestDate,
-                final Date responseDate,
+                final Instant requestDate,
+                final Instant responseDate,
                 final AsyncExecChain.Scope scope,
                 final AsyncExecCallback asyncExecCallback) {
             this.target = target;
@@ -525,7 +525,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
             asyncExecCallback.handleInformationResponse(response);
         }
 
-        void triggerNewCacheEntryResponse(final HttpResponse backendResponse, final Date responseDate, final ByteArrayBuffer buffer) {
+        void triggerNewCacheEntryResponse(final HttpResponse backendResponse, final Instant responseDate, final ByteArrayBuffer buffer) {
             final CancellableDependency operation = scope.cancellableDependency;
             operation.setDependency(responseCache.createCacheEntry(
                     target,
@@ -622,7 +622,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
             final HttpCacheEntry entry) {
         final HttpClientContext context  = scope.clientContext;
         recordCacheHit(target, request);
-        final Date now = getCurrentDate();
+        final Instant now = getCurrentDate();
         if (suitabilityChecker.canCachedResponseBeUsed(target, request, entry, now)) {
             LOG.debug("Cache hit");
             try {
@@ -690,7 +690,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
             final AsyncExecChain chain,
             final AsyncExecCallback asyncExecCallback,
             final HttpCacheEntry cacheEntry) {
-        final Date requestDate = getCurrentDate();
+        final Instant requestDate = getCurrentDate();
         final HttpRequest conditionalRequest = conditionalRequestBuilder.buildConditionalRequest(
                 BasicRequestBuilder.copy(scope.originalRequest).build(),
                 cacheEntry);
@@ -698,7 +698,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
 
             final AtomicReference<AsyncExecCallback> callbackRef = new AtomicReference<>();
 
-            void triggerUpdatedCacheEntryResponse(final HttpResponse backendResponse, final Date responseDate) {
+            void triggerUpdatedCacheEntryResponse(final HttpResponse backendResponse, final Instant responseDate) {
                 final CancellableDependency operation = scope.cancellableDependency;
                 recordCacheUpdate(scope.clientContext);
                 operation.setDependency(responseCache.updateCacheEntry(
@@ -713,7 +713,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                             @Override
                             public void completed(final HttpCacheEntry updatedEntry) {
                                 if (suitabilityChecker.isConditional(request)
-                                        && suitabilityChecker.allConditionalsMatch(request, updatedEntry, new Date())) {
+                                        && suitabilityChecker.allConditionalsMatch(request, updatedEntry, Instant.now())) {
                                     final SimpleHttpResponse cacheResponse = responseGenerator.generateNotModifiedResponse(updatedEntry);
                                     triggerResponse(cacheResponse, scope, asyncExecCallback);
                                 } else {
@@ -749,7 +749,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                 }
             }
 
-            AsyncExecCallback evaluateResponse(final HttpResponse backendResponse, final Date responseDate) {
+            AsyncExecCallback evaluateResponse(final HttpResponse backendResponse, final Instant responseDate) {
                 backendResponse.addHeader(HeaderConstants.VIA, generateViaHeader(backendResponse));
 
                 final int statusCode = backendResponse.getCode();
@@ -772,7 +772,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                     final HttpResponse backendResponse1,
                     final EntityDetails entityDetails) throws HttpException, IOException {
 
-                final Date responseDate1 = getCurrentDate();
+                final Instant responseDate1 = getCurrentDate();
 
                 final AsyncExecCallback callback1;
                 if (revalidationResponseIsTooOld(backendResponse1, cacheEntry)
@@ -787,7 +787,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                         public AsyncDataConsumer handleResponse(
                                 final HttpResponse backendResponse2,
                                 final EntityDetails entityDetails1) throws HttpException, IOException {
-                            final Date responseDate2 = getCurrentDate();
+                            final Instant responseDate2 = getCurrentDate();
                             final AsyncExecCallback callback2 = evaluateResponse(backendResponse2, responseDate2);
                             callbackRef.set(callback2);
                             return callback2.handleResponse(backendResponse2, entityDetails1);
@@ -920,12 +920,12 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                 BasicRequestBuilder.copy(request).build(),
                 variants);
 
-        final Date requestDate = getCurrentDate();
+        final Instant requestDate = getCurrentDate();
         chainProceed(conditionalRequest, entityProducer, scope, chain, new AsyncExecCallback() {
 
             final AtomicReference<AsyncExecCallback> callbackRef = new AtomicReference<>();
 
-            void updateVariantCacheEntry(final HttpResponse backendResponse, final Date responseDate, final Variant matchingVariant) {
+            void updateVariantCacheEntry(final HttpResponse backendResponse, final Instant responseDate, final Variant matchingVariant) {
                 recordCacheUpdate(scope.clientContext);
                 operation.setDependency(responseCache.updateVariantCacheEntry(
                         target,
@@ -989,7 +989,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
             public AsyncDataConsumer handleResponse(
                     final HttpResponse backendResponse,
                     final EntityDetails entityDetails) throws HttpException, IOException {
-                final Date responseDate = getCurrentDate();
+                final Instant responseDate = getCurrentDate();
                 backendResponse.addHeader("Via", generateViaHeader(backendResponse));
 
                 final AsyncExecCallback callback;

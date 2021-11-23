@@ -29,7 +29,6 @@ package org.apache.hc.client5.http.impl.cache;
 import java.io.InputStream;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -268,7 +267,7 @@ public class HttpTestUtils {
         return makeCacheEntry(now, now, getStockHeaders(now),
                 getRandomBytes(128), variantMap);
     }
-
+    @SuppressWarnings("deprecation")
     public static HttpCacheEntry makeCacheEntry(final Instant requestDate,
             final Instant responseDate, final Header[] headers, final byte[] bytes,
             final Map<String,String> variantMap) {
@@ -293,31 +292,6 @@ public class HttpTestUtils {
     public static HttpCacheEntry makeCacheEntry() {
         final Instant now = Instant.now();
         return makeCacheEntry(now, now);
-    }
-
-    public static HttpCacheEntry makeCacheEntryWithNoRequestMethodOrEntity(final Header... headers) {
-        final Date now = new Date();
-        return new HttpCacheEntry(now, now, HttpStatus.SC_OK, headers, null, null);
-    }
-
-    public static HttpCacheEntry makeCacheEntryWithNoRequestMethod(final Header... headers) {
-        final Date now = new Date();
-        return new HttpCacheEntry(now, now, HttpStatus.SC_OK, headers, new HeapResource(getRandomBytes(128)), null);
-    }
-
-    public static HttpCacheEntry make204CacheEntryWithNoRequestMethod(final Header... headers) {
-        final Date now = new Date();
-        return new HttpCacheEntry(now, now, HttpStatus.SC_NO_CONTENT, headers, null, null);
-    }
-
-    public static HttpCacheEntry makeHeadCacheEntry(final Header... headers) {
-        final Date now = new Date();
-        return new HttpCacheEntry(now, now, HttpStatus.SC_OK, headers, null, null);
-    }
-
-    public static HttpCacheEntry makeHeadCacheEntryWithNoRequestMethod(final Header... headers) {
-        final Date now = new Date();
-        return new HttpCacheEntry(now, now, HttpStatus.SC_OK, headers, null, null);
     }
 
     public static ClassicHttpResponse make200Response() {
@@ -372,5 +346,31 @@ public class HttpTestUtils {
         variants.put(key, value);
 
         return variants;
+    }
+
+
+    public static HttpCacheEntry makeCacheEntryWithNoRequestMethodOrEntity(final Header... headers) {
+        final Instant now = Instant.now();
+        return new HttpCacheEntry(now, now, HttpStatus.SC_OK, headers, null, null);
+    }
+
+    public static HttpCacheEntry makeCacheEntryWithNoRequestMethod(final Header... headers) {
+        final Instant now = Instant.now();
+        return new HttpCacheEntry(now, now, HttpStatus.SC_OK, headers, new HeapResource(getRandomBytes(128)), null);
+    }
+
+    public static HttpCacheEntry make204CacheEntryWithNoRequestMethod(final Header... headers) {
+        final Instant now = Instant.now();
+        return new HttpCacheEntry(now, now, HttpStatus.SC_NO_CONTENT, headers, null, null);
+    }
+
+    public static HttpCacheEntry makeHeadCacheEntry(final Header... headers) {
+        final Instant now = Instant.now();
+        return new HttpCacheEntry(now, now, HttpStatus.SC_OK, headers, null, null);
+    }
+
+    public static HttpCacheEntry makeHeadCacheEntryWithNoRequestMethod(final Header... headers) {
+        final Instant now = Instant.now();
+        return new HttpCacheEntry(now, now, HttpStatus.SC_OK, headers, null, null);
     }
 }

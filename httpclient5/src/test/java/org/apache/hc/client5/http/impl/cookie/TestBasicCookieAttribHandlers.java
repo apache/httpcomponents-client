@@ -267,7 +267,7 @@ public class TestBasicCookieAttribHandlers {
         final BasicClientCookie cookie = new BasicClientCookie("name", "value");
         final CookieAttributeHandler h = new BasicMaxAgeHandler();
         h.parse(cookie, "2000");
-        Assertions.assertNotNull(cookie.getExpiryDate());
+        Assertions.assertNotNull(cookie.getExpiryInstant());
     }
 
     @Test
@@ -327,7 +327,7 @@ public class TestBasicCookieAttribHandlers {
         final CookieAttributeHandler h = new BasicExpiresHandler(DateUtils.FORMATTER_RFC1123);
 
         h.parse(cookie, DateUtils.formatStandardDate(Instant.now()));
-        Assertions.assertNotNull(cookie.getExpiryDate());
+        Assertions.assertNotNull(cookie.getExpiryInstant());
     }
 
     @Test

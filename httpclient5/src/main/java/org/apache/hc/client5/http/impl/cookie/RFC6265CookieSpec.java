@@ -27,10 +27,10 @@
 
 package org.apache.hc.client5.http.impl.cookie;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -146,7 +146,7 @@ public class RFC6265CookieSpec implements CookieSpec {
         final BasicClientCookie cookie = new BasicClientCookie(name, value);
         cookie.setPath(getDefaultPath(origin));
         cookie.setDomain(getDefaultDomain(origin));
-        cookie.setCreationDate(new Date());
+        cookie.setCreationDate(Instant.now());
 
         final Map<String, String> attribMap = new LinkedHashMap<>();
         while (!cursor.atEnd()) {

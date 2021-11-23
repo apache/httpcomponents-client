@@ -26,7 +26,7 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -69,8 +69,8 @@ class CacheUpdateHandler {
             final HttpRequest request,
             final HttpResponse originResponse,
             final ByteArrayBuffer content,
-            final Date requestSent,
-            final Date responseReceived) throws ResourceIOException {
+            final Instant requestSent,
+            final Instant responseReceived) throws ResourceIOException {
         return new HttpCacheEntry(
                 requestSent,
                 responseReceived,
@@ -86,8 +86,8 @@ class CacheUpdateHandler {
     public HttpCacheEntry updateCacheEntry(
             final String requestId,
             final HttpCacheEntry entry,
-            final Date requestDate,
-            final Date responseDate,
+            final Instant requestDate,
+            final Instant responseDate,
             final HttpResponse response) throws ResourceIOException {
         Args.check(response.getCode() == HttpStatus.SC_NOT_MODIFIED,
                 "Response must have 304 status code");
@@ -103,7 +103,7 @@ class CacheUpdateHandler {
                 mergedHeaders,
                 resource);
     }
-
+    @SuppressWarnings("deprecation")
     public HttpCacheEntry updateParentCacheEntry(
             final String requestId,
             final HttpCacheEntry existing,
@@ -122,8 +122,8 @@ class CacheUpdateHandler {
         final Map<String,String> variantMap = new HashMap<>(src.getVariantMap());
         variantMap.put(variantKey, variantCacheKey);
         return new HttpCacheEntry(
-                src.getRequestDate(),
-                src.getResponseDate(),
+                src.getRequestInstant(),
+                src.getResponseInstant(),
                 src.getStatus(),
                 src.getHeaders(),
                 resource,

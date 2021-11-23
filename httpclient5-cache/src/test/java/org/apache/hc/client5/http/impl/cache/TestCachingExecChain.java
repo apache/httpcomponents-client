@@ -1009,8 +1009,7 @@ public class TestCachingExecChain {
         originResponse.setHeader("ETag", "\"etag\"");
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, mockExecRuntime, context);
-        impl.cacheAndReturnResponse(host, request, originResponse, scope,
-                DateUtils.toDate(requestSent), DateUtils.toDate(responseReceived));
+        impl.cacheAndReturnResponse(host, request, originResponse, scope, requestSent, responseReceived);
 
         Mockito.verify(cache, Mockito.never()).createCacheEntry(
                 Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
@@ -1043,12 +1042,11 @@ public class TestCachingExecChain {
                 RequestEquivalent.eq(request),
                 ResponseEquivalent.eq(response),
                 Mockito.any(),
-                Mockito.eq(DateUtils.toDate(requestSent)),
-                Mockito.eq(DateUtils.toDate(responseReceived)))).thenReturn(httpCacheEntry);
+                Mockito.eq(requestSent),
+                Mockito.eq(responseReceived))).thenReturn(httpCacheEntry);
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, mockExecRuntime, context);
-        impl.cacheAndReturnResponse(host, request, originResponse, scope,
-                DateUtils.toDate(requestSent), DateUtils.toDate(responseReceived));
+        impl.cacheAndReturnResponse(host, request, originResponse, scope, requestSent, responseReceived);
 
         Mockito.verify(mockCache).createCacheEntry(
                 Mockito.any(),

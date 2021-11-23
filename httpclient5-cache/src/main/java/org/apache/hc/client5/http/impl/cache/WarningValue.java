@@ -26,8 +26,8 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
+import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -48,7 +48,7 @@ class WarningValue {
     private int warnCode;
     private String warnAgent;
     private String warnText;
-    private Date warnDate;
+    private Instant warnDate;
 
     WarningValue(final String s) {
         this(s, 0);
@@ -265,7 +265,7 @@ class WarningValue {
             parseError();
         }
         offs += m.end();
-        warnDate = DateUtils.toDate(DateUtils.parseStandardDate(src.substring(curr+1,offs-1)));
+        warnDate = DateUtils.parseStandardDate(src.substring(curr+1,offs-1));
     }
 
     /*
@@ -342,9 +342,9 @@ class WarningValue {
     /** Returns the date and time when this warning was added, or
      * {@code null} if a warning date was not supplied in the
      * header.
-     * @return {@link Date}
+     * @return {@link Instant}
      */
-    public Date getWarnDate() { return warnDate; }
+    public Instant getWarnDate() { return warnDate; }
 
     /** Formats a {@code WarningValue} as a {@link String}
      * suitable for including in a header. For example, you can:
@@ -359,7 +359,7 @@ class WarningValue {
     public String toString() {
         if (warnDate != null) {
             return String.format("%d %s %s \"%s\"", warnCode,
-                    warnAgent, warnText, DateUtils.formatStandardDate(DateUtils.toInstant(warnDate)));
+                    warnAgent, warnText, DateUtils.formatStandardDate(warnDate));
         } else {
             return String.format("%d %s %s", warnCode, warnAgent, warnText);
         }
