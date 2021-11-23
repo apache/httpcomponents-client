@@ -204,7 +204,7 @@ public class TestWarningValue {
         Assertions.assertEquals("fred", impl.getWarnAgent());
         Assertions.assertEquals("\"stale\"", impl.getWarnText());
         final Instant target = DateUtils.parseStandardDate("Sun Nov  6 08:49:37 1994");
-        Assertions.assertEquals(target, DateUtils.toInstant(impl.getWarnDate()));
+        Assertions.assertEquals(target, impl.getWarnDate());
     }
 
     @Test
@@ -214,7 +214,7 @@ public class TestWarningValue {
         Assertions.assertEquals("fred", impl.getWarnAgent());
         Assertions.assertEquals("\"stale\"", impl.getWarnText());
         final Instant target = DateUtils.parseStandardDate("Sunday, 06-Nov-94 08:49:37 GMT");
-        Assertions.assertEquals(target, DateUtils.toInstant(impl.getWarnDate()));
+        Assertions.assertEquals(target, impl.getWarnDate());
     }
 
     @Test
@@ -224,7 +224,7 @@ public class TestWarningValue {
         Assertions.assertEquals("fred", impl.getWarnAgent());
         Assertions.assertEquals("\"stale\"", impl.getWarnText());
         final Instant target = DateUtils.parseStandardDate("Sun, 06 Nov 1994 08:49:37 GMT");
-        Assertions.assertEquals(target, DateUtils.toInstant(impl.getWarnDate()));
+        Assertions.assertEquals(target, impl.getWarnDate());
     }
 
 }

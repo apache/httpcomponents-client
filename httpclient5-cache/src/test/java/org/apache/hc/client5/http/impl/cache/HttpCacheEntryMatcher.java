@@ -26,8 +26,8 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
+import java.time.Instant;
 import java.util.Arrays;
-import java.util.Date;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.Resource;
@@ -57,16 +57,17 @@ public class HttpCacheEntryMatcher extends BaseMatcher<HttpCacheEntry> {
                 if (expectedStatus != otherStatus) {
                     return false;
                 }
-                final Date expectedRequestDate = expectedValue.getRequestDate();
-                final Date otherRequestDate = otherValue.getRequestDate();
-                if (!LangUtils.equals(expectedRequestDate, otherRequestDate)) {
+                final Instant expectedRequestInstant = expectedValue.getRequestInstant();
+                final Instant otherRequestInstant = otherValue.getRequestInstant();
+                if (!LangUtils.equals(expectedRequestInstant, otherRequestInstant)) {
                     return false;
                 }
-                final Date expectedResponseDate = expectedValue.getResponseDate();
-                final Date otherResponseDate = otherValue.getResponseDate();
-                if (!LangUtils.equals(expectedResponseDate, otherResponseDate)) {
+                final Instant expectedResponseInstant = expectedValue.getResponseInstant();
+                final Instant otherResponseInstant = otherValue.getResponseInstant();
+                if (!LangUtils.equals(expectedResponseInstant, otherResponseInstant)) {
                     return false;
                 }
+
                 final Header[] expectedHeaders = expectedValue.getHeaders();
                 final Header[] otherHeaders = otherValue.getHeaders();
                 if (expectedHeaders.length != otherHeaders.length) {

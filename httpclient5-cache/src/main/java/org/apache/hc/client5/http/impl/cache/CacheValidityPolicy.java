@@ -26,8 +26,8 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
+import java.time.Duration;
 import java.time.Instant;
-import java.util.Date;
 import java.util.Iterator;
 
 import org.apache.hc.client5.http.cache.HeaderConstants;
@@ -50,7 +50,8 @@ class CacheValidityPolicy {
         super();
     }
 
-    public TimeValue getCurrentAge(final HttpCacheEntry entry, final Date now) {
+
+    public TimeValue getCurrentAge(final HttpCacheEntry entry, final Instant now) {
         return TimeValue.ofSeconds(getCorrectedInitialAge(entry).toSeconds() + getResidentTime(entry, now).toSeconds());
     }
 
@@ -60,7 +61,7 @@ class CacheValidityPolicy {
             return TimeValue.ofSeconds(maxAge);
         }
 
-        final Date dateValue = entry.getDate();
+        final Instant dateValue = entry.getInstant();
         if (dateValue == null) {
             return TimeValue.ZERO_MILLISECONDS;
         }
@@ -69,11 +70,11 @@ class CacheValidityPolicy {
         if (expiry == null) {
             return TimeValue.ZERO_MILLISECONDS;
         }
-        final long diff = expiry.toEpochMilli() - dateValue.getTime();
-        return TimeValue.ofSeconds(diff / 1000);
+        final Duration diff = Duration.between(dateValue, expiry);
+        return TimeValue.ofSeconds(diff.getSeconds());
     }
 
-    public boolean isResponseFresh(final HttpCacheEntry entry, final Date now) {
+    public boolean isResponseFresh(final HttpCacheEntry entry, final Instant now) {
         return getCurrentAge(entry, now).compareTo(getFreshnessLifetime(entry)) == -1;
     }
 
@@ -92,21 +93,22 @@ class CacheValidityPolicy {
      * @return {@code true} if the response is fresh
      */
     public boolean isResponseHeuristicallyFresh(final HttpCacheEntry entry,
-            final Date now, final float coefficient, final TimeValue defaultLifetime) {
+            final Instant now, final float coefficient, final TimeValue defaultLifetime) {
         return getCurrentAge(entry, now).compareTo(getHeuristicFreshnessLifetime(entry, coefficient, defaultLifetime)) == -1;
     }
 
     public TimeValue getHeuristicFreshnessLifetime(final HttpCacheEntry entry,
             final float coefficient, final TimeValue defaultLifetime) {
-        final Date dateValue = entry.getDate();
+        final Instant dateValue = entry.getInstant();
         final Instant lastModifiedValue = DateUtils.parseStandardDate(entry, HeaderConstants.LAST_MODIFIED);
 
         if (dateValue != null && lastModifiedValue != null) {
-            final long diff = dateValue.getTime() - lastModifiedValue.toEpochMilli();
-            if (diff < 0) {
+            final Duration diff = Duration.between(lastModifiedValue, dateValue);
+
+            if (diff.isNegative()) {
                 return TimeValue.ZERO_MILLISECONDS;
             }
-            return TimeValue.ofSeconds((long) (coefficient * diff / 1000));
+            return TimeValue.ofSeconds((long) (coefficient * diff.getSeconds()));
         }
 
         return defaultLifetime;
@@ -125,7 +127,7 @@ class CacheValidityPolicy {
         return hasCacheControlDirective(entry, HeaderConstants.CACHE_CONTROL_PROXY_REVALIDATE);
     }
 
-    public boolean mayReturnStaleWhileRevalidating(final HttpCacheEntry entry, final Date now) {
+    public boolean mayReturnStaleWhileRevalidating(final HttpCacheEntry entry, final Instant now) {
         final Iterator<HeaderElement> it = MessageSupport.iterate(entry, HeaderConstants.CACHE_CONTROL);
         while (it.hasNext()) {
             final HeaderElement elt = it.next();
@@ -145,7 +147,7 @@ class CacheValidityPolicy {
         return false;
     }
 
-    public boolean mayReturnStaleIfError(final HttpRequest request, final HttpCacheEntry entry, final Date now) {
+    public boolean mayReturnStaleIfError(final HttpRequest request, final HttpCacheEntry entry, final Instant now) {
         final TimeValue staleness = getStaleness(entry, now);
         return mayReturnStaleIfError(request, HeaderConstants.CACHE_CONTROL, staleness)
                 || mayReturnStaleIfError(entry, HeaderConstants.CACHE_CONTROL, staleness);
@@ -198,15 +200,15 @@ class CacheValidityPolicy {
     }
 
     protected TimeValue getApparentAge(final HttpCacheEntry entry) {
-        final Date dateValue = entry.getDate();
+        final Instant dateValue = entry.getInstant();
         if (dateValue == null) {
             return MAX_AGE;
         }
-        final long diff = entry.getResponseDate().getTime() - dateValue.getTime();
-        if (diff < 0L) {
+        final Duration diff = Duration.between(dateValue, entry.getResponseInstant());
+        if (diff.isNegative()) {
             return TimeValue.ZERO_MILLISECONDS;
         }
-        return TimeValue.ofSeconds(diff / 1000);
+        return TimeValue.ofSeconds(diff.getSeconds());
     }
 
     protected long getAgeValue(final HttpCacheEntry entry) {
@@ -234,18 +236,19 @@ class CacheValidityPolicy {
     }
 
     protected TimeValue getResponseDelay(final HttpCacheEntry entry) {
-        final long diff = entry.getResponseDate().getTime() - entry.getRequestDate().getTime();
-        return TimeValue.ofSeconds(diff / 1000);
+        final Duration diff = Duration.between(entry.getRequestInstant(), entry.getResponseInstant());
+        return TimeValue.ofSeconds(diff.getSeconds());
     }
 
     protected TimeValue getCorrectedInitialAge(final HttpCacheEntry entry) {
         return TimeValue.ofSeconds(getCorrectedReceivedAge(entry).toSeconds() + getResponseDelay(entry).toSeconds());
     }
 
-    protected TimeValue getResidentTime(final HttpCacheEntry entry, final Date now) {
-        final long diff = now.getTime() - entry.getResponseDate().getTime();
-        return TimeValue.ofSeconds(diff / 1000);
+    protected TimeValue getResidentTime(final HttpCacheEntry entry, final Instant now) {
+        final Duration diff = Duration.between(entry.getResponseInstant(), now);
+        return TimeValue.ofSeconds(diff.getSeconds());
     }
+
 
     protected long getMaxAge(final HttpCacheEntry entry) {
         // This is a header value, we leave as-is
@@ -279,7 +282,7 @@ class CacheValidityPolicy {
         return false;
     }
 
-    public TimeValue getStaleness(final HttpCacheEntry entry, final Date now) {
+    public TimeValue getStaleness(final HttpCacheEntry entry, final Instant now) {
         final TimeValue age = getCurrentAge(entry, now);
         final TimeValue freshness = getFreshnessLifetime(entry);
         if (age.compareTo(freshness) <= 0) {

@@ -28,7 +28,7 @@ package org.apache.hc.client5.http.impl.cache;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Date;
+import java.time.Instant;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
@@ -231,7 +231,7 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
             final ExecChain.Scope scope,
             final ExecChain chain) throws IOException, HttpException  {
 
-        final Date requestDate = getCurrentDate();
+        final Instant requestDate = getCurrentDate();
 
         LOG.debug("Calling the backend");
         final ClassicHttpResponse backendResponse = chain.proceed(request, scope);
@@ -253,7 +253,7 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
         final HttpClientContext context  = scope.clientContext;
         context.setAttribute(HttpCoreContext.HTTP_REQUEST, request);
         recordCacheHit(target, request);
-        final Date now = getCurrentDate();
+        final Instant now = getCurrentDate();
         if (suitabilityChecker.canCachedResponseBeUsed(target, request, entry, now)) {
             LOG.debug("Cache hit");
             try {
@@ -306,13 +306,13 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
             final ExecChain.Scope scope,
             final ExecChain chain,
             final HttpCacheEntry cacheEntry) throws IOException, HttpException {
-        Date requestDate = getCurrentDate();
+        Instant requestDate = getCurrentDate();
         final ClassicHttpRequest conditionalRequest = conditionalRequestBuilder.buildConditionalRequest(
                 scope.originalRequest, cacheEntry);
 
         ClassicHttpResponse backendResponse = chain.proceed(conditionalRequest, scope);
         try {
-            Date responseDate = getCurrentDate();
+            Instant responseDate = getCurrentDate();
 
             if (revalidationResponseIsTooOld(backendResponse, cacheEntry)) {
                 backendResponse.close();
@@ -334,7 +334,7 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
                 final HttpCacheEntry updatedEntry = responseCache.updateCacheEntry(
                         target, request, cacheEntry, backendResponse, requestDate, responseDate);
                 if (suitabilityChecker.isConditional(request)
-                        && suitabilityChecker.allConditionalsMatch(request, updatedEntry, new Date())) {
+                        && suitabilityChecker.allConditionalsMatch(request, updatedEntry, Instant.now())) {
                     return convert(responseGenerator.generateNotModifiedResponse(updatedEntry), scope);
                 }
                 return convert(responseGenerator.generateResponse(request, updatedEntry), scope);
@@ -362,8 +362,8 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
             final HttpHost target,
             final ClassicHttpRequest request,
             final ExecChain.Scope scope,
-            final Date requestDate,
-            final Date responseDate,
+            final Instant requestDate,
+            final Instant responseDate,
             final ClassicHttpResponse backendResponse) throws IOException {
 
         responseCompliance.ensureProtocolCompliance(scope.originalRequest, request, backendResponse);
@@ -384,8 +384,8 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
             final HttpRequest request,
             final ClassicHttpResponse backendResponse,
             final ExecChain.Scope scope,
-            final Date requestSent,
-            final Date responseReceived) throws IOException {
+            final Instant requestSent,
+            final Instant responseReceived) throws IOException {
         LOG.debug("Caching backend response");
         final ByteArrayBuffer buf;
         final HttpEntity entity = backendResponse.getEntity();
@@ -453,10 +453,10 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
             final Map<String, Variant> variants) throws IOException, HttpException {
         final ClassicHttpRequest conditionalRequest = conditionalRequestBuilder.buildConditionalRequestFromVariants(request, variants);
 
-        final Date requestDate = getCurrentDate();
+        final Instant requestDate = getCurrentDate();
         final ClassicHttpResponse backendResponse = chain.proceed(conditionalRequest, scope);
         try {
-            final Date responseDate = getCurrentDate();
+            final Instant responseDate = getCurrentDate();
 
             backendResponse.addHeader("Via", generateViaHeader(backendResponse));
 

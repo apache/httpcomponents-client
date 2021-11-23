@@ -28,8 +28,8 @@
 package org.apache.hc.client5.http.protocol;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import org.apache.hc.client5.http.RouteInfo;
@@ -150,7 +150,7 @@ public class RequestAddCookies implements HttpRequestInterceptor {
         final List<Cookie> cookies = cookieStore.getCookies();
         // Find cookies matching the given origin
         final List<Cookie> matchedCookies = new ArrayList<>();
-        final Date now = new Date();
+        final Instant now = Instant.now();
         boolean expired = false;
         for (final Cookie cookie : cookies) {
             if (!cookie.isExpired(now)) {

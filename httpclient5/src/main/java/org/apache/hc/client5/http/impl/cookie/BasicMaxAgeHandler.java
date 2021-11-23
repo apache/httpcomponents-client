@@ -26,7 +26,7 @@
  */
 package org.apache.hc.client5.http.impl.cookie;
 
-import java.util.Date;
+import java.time.Instant;
 
 import org.apache.hc.client5.http.cookie.CommonCookieAttributeHandler;
 import org.apache.hc.client5.http.cookie.Cookie;
@@ -66,7 +66,7 @@ public class BasicMaxAgeHandler extends AbstractCookieAttributeHandler implement
             throw new MalformedCookieException ("Negative 'max-age' attribute: "
                     + value);
         }
-        cookie.setExpiryDate(new Date(System.currentTimeMillis() + age * 1000L));
+        cookie.setExpiryDate(Instant.now().plusSeconds(age));
     }
 
     @Override

@@ -33,6 +33,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -260,18 +261,45 @@ public class Request {
       return request;
     }
 
+    /**
+     * @deprecated Use {@link #setDate(Instant)}
+     */
+    @Deprecated
     public Request setDate(final Date date) {
         this.request.setHeader(HttpHeader.DATE, DateUtils.formatStandardDate(DateUtils.toInstant(date)));
         return this;
     }
 
+    /**
+     * @deprecated Use {@link #setIfModifiedSince(Instant)}
+     */
+    @Deprecated
     public Request setIfModifiedSince(final Date date) {
         this.request.setHeader(HttpHeader.IF_MODIFIED_SINCE, DateUtils.formatStandardDate(DateUtils.toInstant(date)));
         return this;
     }
 
+    /**
+     * @deprecated Use {@link #setIfUnmodifiedSince(Instant)}
+     */
+    @Deprecated
     public Request setIfUnmodifiedSince(final Date date) {
         this.request.setHeader(HttpHeader.IF_UNMODIFIED_SINCE, DateUtils.formatStandardDate(DateUtils.toInstant(date)));
+        return this;
+    }
+
+    public Request setDate(final Instant instant) {
+        this.request.setHeader(HttpHeader.DATE, DateUtils.formatStandardDate(instant));
+        return this;
+    }
+
+    public Request setIfModifiedSince(final Instant instant) {
+        this.request.setHeader(HttpHeader.IF_MODIFIED_SINCE, DateUtils.formatStandardDate(instant));
+        return this;
+    }
+
+    public Request setIfUnmodifiedSince(final Instant instant) {
+        this.request.setHeader(HttpHeader.IF_UNMODIFIED_SINCE, DateUtils.formatStandardDate(instant));
         return this;
     }
 

@@ -27,7 +27,7 @@
 package org.apache.hc.client5.http.impl.cache;
 
 import java.io.IOException;
-import java.util.Date;
+import java.time.Instant;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -183,7 +183,7 @@ public class CachingExecBase {
             final HttpRequest request,
             final HttpContext context,
             final HttpCacheEntry entry,
-            final Date now) throws ResourceIOException {
+            final Instant now) throws ResourceIOException {
         final SimpleHttpResponse cachedResponse;
         if (request.containsHeader(HeaderConstants.IF_NONE_MATCH)
                 || request.containsHeader(HeaderConstants.IF_MODIFIED_SINCE)) {
@@ -202,7 +202,7 @@ public class CachingExecBase {
             final HttpRequest request,
             final HttpContext context,
             final HttpCacheEntry entry,
-            final Date now) throws IOException {
+            final Instant now) throws IOException {
         if (staleResponseNotAllowed(request, entry, now)) {
             return generateGatewayTimeout(context);
         } else {
@@ -226,7 +226,7 @@ public class CachingExecBase {
         return cachedResponse;
     }
 
-    boolean staleResponseNotAllowed(final HttpRequest request, final HttpCacheEntry entry, final Date now) {
+    boolean staleResponseNotAllowed(final HttpRequest request, final HttpCacheEntry entry, final Instant now) {
         return validityPolicy.mustRevalidate(entry)
             || (cacheConfig.isSharedCache() && validityPolicy.proxyRevalidate(entry))
             || explicitFreshnessRequest(request, entry, now);
@@ -244,7 +244,7 @@ public class CachingExecBase {
         return true;
     }
 
-    boolean explicitFreshnessRequest(final HttpRequest request, final HttpCacheEntry entry, final Date now) {
+    boolean explicitFreshnessRequest(final HttpRequest request, final HttpCacheEntry entry, final Instant now) {
         final Iterator<HeaderElement> it = MessageSupport.iterate(request, HeaderConstants.CACHE_CONTROL);
         while (it.hasNext()) {
             final HeaderElement elt = it.next();
@@ -313,8 +313,8 @@ public class CachingExecBase {
         return SUPPORTS_RANGE_AND_CONTENT_RANGE_HEADERS;
     }
 
-    Date getCurrentDate() {
-        return new Date();
+    Instant getCurrentDate() {
+        return Instant.now();
     }
 
     boolean clientRequestsOurOptions(final HttpRequest request) {
@@ -340,7 +340,7 @@ public class CachingExecBase {
 
     boolean shouldSendNotModifiedResponse(final HttpRequest request, final HttpCacheEntry responseEntry) {
         return (suitabilityChecker.isConditional(request)
-                && suitabilityChecker.allConditionalsMatch(request, responseEntry, new Date()));
+                && suitabilityChecker.allConditionalsMatch(request, responseEntry, Instant.now()));
     }
 
     boolean staleIfErrorAppliesTo(final int statusCode) {

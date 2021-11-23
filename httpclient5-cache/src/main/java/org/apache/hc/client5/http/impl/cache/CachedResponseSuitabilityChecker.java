@@ -27,7 +27,6 @@
 package org.apache.hc.client5.http.impl.cache;
 
 import java.time.Instant;
-import java.util.Date;
 import java.util.Iterator;
 
 import org.apache.hc.client5.http.cache.HeaderConstants;
@@ -71,7 +70,7 @@ class CachedResponseSuitabilityChecker {
         this(new CacheValidityPolicy(), config);
     }
 
-    private boolean isFreshEnough(final HttpCacheEntry entry, final HttpRequest request, final Date now) {
+    private boolean isFreshEnough(final HttpCacheEntry entry, final HttpRequest request, final Instant now) {
         if (validityStrategy.isResponseFresh(entry, now)) {
             return true;
         }
@@ -142,7 +141,7 @@ class CachedResponseSuitabilityChecker {
      *            Right now in time
      * @return boolean yes/no answer
      */
-    public boolean canCachedResponseBeUsed(final HttpHost host, final HttpRequest request, final HttpCacheEntry entry, final Date now) {
+    public boolean canCachedResponseBeUsed(final HttpHost host, final HttpRequest request, final HttpCacheEntry entry, final Instant now) {
         if (!isFreshEnough(entry, request, now)) {
             LOG.debug("Cache entry is not fresh enough");
             return false;
@@ -274,13 +273,12 @@ class CachedResponseSuitabilityChecker {
      * @param now right NOW in time
      * @return {@code true} if the request matches all conditionals
      */
-    public boolean allConditionalsMatch(final HttpRequest request, final HttpCacheEntry entry, final Date now) {
+    public boolean allConditionalsMatch(final HttpRequest request, final HttpCacheEntry entry, final Instant now) {
         final boolean hasEtagValidator = hasSupportedEtagValidator(request);
         final boolean hasLastModifiedValidator = hasSupportedLastModifiedValidator(request);
 
         final boolean etagValidatorMatches = (hasEtagValidator) && etagValidatorMatches(request, entry);
-        final boolean lastModifiedValidatorMatches = (hasLastModifiedValidator) && lastModifiedValidatorMatches(request, entry,
-                DateUtils.toInstant(now));
+        final boolean lastModifiedValidatorMatches = (hasLastModifiedValidator) && lastModifiedValidatorMatches(request, entry, now);
 
         if ((hasEtagValidator && hasLastModifiedValidator)
             && !(etagValidatorMatches && lastModifiedValidatorMatches)) {

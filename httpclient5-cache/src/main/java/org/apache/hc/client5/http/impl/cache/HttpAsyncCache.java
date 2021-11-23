@@ -26,7 +26,7 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.Map;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
@@ -79,8 +79,8 @@ interface HttpAsyncCache {
             HttpRequest request,
             HttpResponse originResponse,
             ByteArrayBuffer content,
-            Date requestSent,
-            Date responseReceived,
+            Instant requestSent,
+            Instant responseReceived,
             FutureCallback<HttpCacheEntry> callback);
 
     /**
@@ -91,8 +91,8 @@ interface HttpAsyncCache {
             HttpRequest request,
             HttpCacheEntry stale,
             HttpResponse originResponse,
-            Date requestSent,
-            Date responseReceived,
+            Instant requestSent,
+            Instant responseReceived,
             FutureCallback<HttpCacheEntry> callback);
 
     /**
@@ -104,8 +104,8 @@ interface HttpAsyncCache {
             HttpRequest request,
             HttpResponse originResponse,
             Variant variant,
-            Date requestSent,
-            Date responseReceived,
+            Instant requestSent,
+            Instant responseReceived,
             FutureCallback<HttpCacheEntry> callback);
 
     /**

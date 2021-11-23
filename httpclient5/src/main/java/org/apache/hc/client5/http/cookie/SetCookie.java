@@ -27,7 +27,10 @@
 
 package org.apache.hc.client5.http.cookie;
 
+import java.time.Instant;
 import java.util.Date;
+
+import org.apache.hc.client5.http.utils.DateUtils;
 
 /**
  * This interface represents a {@code Set-Cookie} response header sent by the
@@ -48,9 +51,25 @@ public interface SetCookie extends Cookie {
      * @param expiryDate the {@link Date} after which this cookie is no longer valid.
      *
      * @see Cookie#getExpiryDate
-     *
+     * @deprecated Use {{@link #setExpiryDate(Instant)}}
      */
+    @Deprecated
     void setExpiryDate (Date expiryDate);
+
+    /**
+     * Sets expiration date.
+     * <p><strong>Note:</strong> the object returned by this method is considered
+     * immutable. Changing it (e.g. using setTime()) could result in undefined behaviour. Do so at
+     * your peril.</p>
+     *
+     * @param expiryDate the {@link Instant} after which this cookie is no longer valid.
+     * @see Cookie#getExpiryInstant()
+     * @since 5.2
+     */
+    @SuppressWarnings("deprecated")
+    default void setExpiryDate(Instant expiryDate) {
+        setExpiryDate(DateUtils.toDate(expiryDate));
+    }
 
     /**
      * Sets the domain attribute.

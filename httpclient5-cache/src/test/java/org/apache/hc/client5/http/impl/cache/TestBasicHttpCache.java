@@ -34,7 +34,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
 import java.time.Instant;
-import java.util.Date;
 import java.util.Map;
 
 import org.apache.hc.client5.http.cache.HeaderConstants;
@@ -231,7 +230,7 @@ public class TestBasicHttpCache {
         origResponse.setHeader("Vary", "Accept-Encoding");
         origResponse.setHeader("Content-Encoding","gzip");
 
-        impl.createCacheEntry(host, origRequest, origResponse, buf, new Date(), new Date());
+        impl.createCacheEntry(host, origRequest, origResponse, buf, Instant.now(), Instant.now());
 
         final HttpRequest request = new HttpGet("http://foo.example.com/bar");
         final HttpCacheEntry result = impl.getCacheEntry(host, request);
@@ -253,7 +252,7 @@ public class TestBasicHttpCache {
         origResponse.setHeader("Vary", "Accept-Encoding");
         origResponse.setHeader("Content-Encoding","gzip");
 
-        impl.createCacheEntry(host, origRequest, origResponse, buf, new Date(), new Date());
+        impl.createCacheEntry(host, origRequest, origResponse, buf, Instant.now(), Instant.now());
 
         final HttpRequest request = new HttpGet("http://foo.example.com/bar");
         request.setHeader("Accept-Encoding","gzip");
@@ -297,8 +296,8 @@ public class TestBasicHttpCache {
         resp2.setHeader("Content-Encoding","gzip");
         resp2.setHeader("Vary", "Accept-Encoding");
 
-        impl.createCacheEntry(host, req1, resp1, null, new Date(), new Date());
-        impl.createCacheEntry(host, req2, resp2, null, new Date(), new Date());
+        impl.createCacheEntry(host, req1, resp1, null, Instant.now(), Instant.now());
+        impl.createCacheEntry(host, req2, resp2, null, Instant.now(), Instant.now());
 
         final Map<String,Variant> variants = impl.getVariantCacheEntriesWithEtags(host, req1);
 

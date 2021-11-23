@@ -110,6 +110,7 @@ public class DefaultClientTlsStrategy extends AbstractClientTlsStrategy {
     }
 
     @Override
+    @SuppressWarnings("deprecated")
     TlsDetails createTlsDetails(final SSLEngine sslEngine) {
         return tlsDetailsFactory != null ? tlsDetailsFactory.create(sslEngine) : null;
     }

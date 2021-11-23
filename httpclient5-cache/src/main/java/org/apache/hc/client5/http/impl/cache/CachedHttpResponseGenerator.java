@@ -27,7 +27,6 @@
 package org.apache.hc.client5.http.impl.cache;
 
 import java.time.Instant;
-import java.util.Date;
 
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.cache.HeaderConstants;
@@ -65,7 +64,7 @@ class CachedHttpResponseGenerator {
      * @return {@link SimpleHttpResponse} constructed response
      */
     SimpleHttpResponse generateResponse(final HttpRequest request, final HttpCacheEntry entry) throws ResourceIOException {
-        final Date now = new Date();
+        final Instant now =Instant.now();
         final SimpleHttpResponse response = new SimpleHttpResponse(entry.getStatus());
         response.setVersion(HttpVersion.DEFAULT);
 

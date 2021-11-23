@@ -29,7 +29,6 @@ package org.apache.hc.client5.http.impl.cache;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import org.apache.hc.client5.http.ClientProtocolException;
@@ -101,8 +100,8 @@ class ResponseProtocolCompliance {
         boolean modified = false;
         for(final Header h : warningHeaders) {
             for(final WarningValue wv : WarningValue.getWarningValues(h)) {
-                final Date warnDate = wv.getWarnDate();
-                if (warnDate == null || warnDate.equals(responseDate)) {
+                final Instant warnInstant = wv.getWarnDate();
+                if (warnInstant == null || warnInstant.equals(responseDate)) {
                     newWarningHeaders.add(new BasicHeader(HeaderConstants.WARNING,wv.toString()));
                 } else {
                     modified = true;

@@ -26,6 +26,7 @@
  */
 package org.apache.hc.client5.http.cookie;
 
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 
@@ -58,8 +59,21 @@ public interface CookieStore {
      * the specified {@link java.util.Date}.
      *
      * @return true if any cookies were purged.
+     * @deprecated  Use {@link #clearExpired(Instant)}
      */
+    @Deprecated
     boolean clearExpired(Date date);
+
+    /**
+     * Removes all of {@link Cookie}s in this store that have expired by
+     * the specified {@link Instant}.
+     *
+     * @return true if any cookies were purged.
+     */
+    @SuppressWarnings("deprecation")
+    default boolean clearExpired(Instant date) {
+        return clearExpired(date != null ? new Date(date.toEpochMilli()) : null);
+    }
 
     /**
      * Clears all cookies.

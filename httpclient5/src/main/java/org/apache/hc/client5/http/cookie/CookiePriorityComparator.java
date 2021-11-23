@@ -27,8 +27,8 @@
 
 package org.apache.hc.client5.http.cookie;
 
+import java.time.Instant;
 import java.util.Comparator;
-import java.util.Date;
 
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
@@ -56,10 +56,10 @@ public class CookiePriorityComparator implements Comparator<Cookie> {
         final int l2 = getPathLength(c2);
         final int result = l2 - l1;
         if (result == 0) {
-            final Date d1 = c1.getCreationDate();
-            final Date d2 = c2.getCreationDate();
+            final Instant d1 = c1.getCreationInstant();
+            final Instant d2 = c2.getCreationInstant();
             if (d1 != null && d2 != null) {
-                return (int) (d1.getTime() - d2.getTime());
+                return (int) (d1.toEpochMilli() - d2.toEpochMilli());
             }
         }
         return result;

@@ -149,7 +149,7 @@ public class ResponseProcessCookies implements HttpResponseInterceptor {
         buf.append(", path:");
         buf.append(cookie.getPath());
         buf.append(", expiry:");
-        buf.append(cookie.getExpiryDate());
+        buf.append(cookie.getExpiryInstant());
         return buf.toString();
     }
 

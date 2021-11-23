@@ -32,7 +32,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.HashMap;
 
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
@@ -112,7 +112,7 @@ public class TestCachedHttpResponseGenerator {
 
         final SimpleHttpResponse response = impl.generateResponse(request, entry);
 
-        verify(mockValidityPolicy).getCurrentAge(same(entry), isA(Date.class));
+        verify(mockValidityPolicy).getCurrentAge(same(entry), isA(Instant.class));
 
         final Header ageHdr = response.getFirstHeader("Age");
         Assertions.assertNotNull(ageHdr);
@@ -125,7 +125,7 @@ public class TestCachedHttpResponseGenerator {
 
         final SimpleHttpResponse response = impl.generateResponse(request, entry);
 
-        verify(mockValidityPolicy).getCurrentAge(same(entry), isA(Date.class));
+        verify(mockValidityPolicy).getCurrentAge(same(entry), isA(Instant.class));
 
         final Header ageHdr = response.getFirstHeader("Age");
         Assertions.assertNull(ageHdr);
@@ -137,7 +137,7 @@ public class TestCachedHttpResponseGenerator {
 
         final SimpleHttpResponse response = impl.generateResponse(request, entry);
 
-        verify(mockValidityPolicy).getCurrentAge(same(entry), isA(Date.class));
+        verify(mockValidityPolicy).getCurrentAge(same(entry), isA(Instant.class));
 
         final Header ageHdr = response.getFirstHeader("Age");
         Assertions.assertNotNull(ageHdr);
@@ -147,7 +147,7 @@ public class TestCachedHttpResponseGenerator {
     private void currentAge(final TimeValue age) {
         when(
                 mockValidityPolicy.getCurrentAge(same(entry),
-                        isA(Date.class))).thenReturn(age);
+                        isA(Instant.class))).thenReturn(age);
     }
 
     @Test

@@ -86,7 +86,7 @@ public class BasicExpiresHandler extends AbstractCookieAttributeHandler implemen
             throw new MalformedCookieException("Invalid 'expires' attribute: "
                     + value);
         }
-        cookie.setExpiryDate(DateUtils.toDate(expiry));
+        cookie.setExpiryDate(expiry);
     }
 
     @Override

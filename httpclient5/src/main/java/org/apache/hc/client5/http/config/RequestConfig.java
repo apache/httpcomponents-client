@@ -248,7 +248,7 @@ public class RequestConfig implements Cloneable {
     public static RequestConfig.Builder custom() {
         return new Builder();
     }
-
+    @SuppressWarnings("deprecation")
     public static RequestConfig.Builder copy(final RequestConfig config) {
         return new Builder()
             .setExpectContinueEnabled(config.isExpectContinueEnabled())

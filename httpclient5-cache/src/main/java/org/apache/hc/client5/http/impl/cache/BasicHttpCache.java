@@ -26,7 +26,7 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -204,8 +204,8 @@ class BasicHttpCache implements HttpCache {
             final HttpRequest request,
             final HttpCacheEntry stale,
             final HttpResponse originResponse,
-            final Date requestSent,
-            final Date responseReceived) {
+            final Instant requestSent,
+            final Instant responseReceived) {
         if (LOG.isDebugEnabled()) {
             LOG.debug("Update cache entry: {}; {}", host, new RequestLine(request));
         }
@@ -233,8 +233,8 @@ class BasicHttpCache implements HttpCache {
             final HttpRequest request,
             final HttpResponse originResponse,
             final Variant variant,
-            final Date requestSent,
-            final Date responseReceived) {
+            final Instant requestSent,
+            final Instant responseReceived) {
         if (LOG.isDebugEnabled()) {
             LOG.debug("Update variant cache entry: {}; {} / {}", host, new RequestLine(request), variant);
         }
@@ -263,8 +263,8 @@ class BasicHttpCache implements HttpCache {
             final HttpRequest request,
             final HttpResponse originResponse,
             final ByteArrayBuffer content,
-            final Date requestSent,
-            final Date responseReceived) {
+            final Instant requestSent,
+            final Instant responseReceived) {
         if (LOG.isDebugEnabled()) {
             LOG.debug("Create cache entry: {}; {}", host, new RequestLine(request));
         }

@@ -27,8 +27,8 @@
 
 package org.apache.hc.client5.http.cookie;
 
+import java.time.Instant;
 import java.util.Comparator;
-import java.util.Date;
 
 import org.apache.hc.client5.http.impl.cookie.BasicClientCookie;
 import org.junit.jupiter.api.Assertions;
@@ -101,10 +101,10 @@ public class TestCookiePriorityComparator {
     public void testUnequalityCreationDate() {
         final BasicClientCookie cookie1 = new BasicClientCookie("name1", "value");
         cookie1.setPath("/blah");
-        cookie1.setCreationDate(new Date(System.currentTimeMillis() - 200000));
+        cookie1.setCreationDate(Instant.now().minusMillis(200000));
         final BasicClientCookie cookie2 = new BasicClientCookie("name1", "value");
         cookie2.setPath("/blah");
-        cookie2.setCreationDate(new Date(System.currentTimeMillis()));
+        cookie2.setCreationDate(Instant.now());
         Assertions.assertTrue(comparator.compare(cookie1, cookie2) < 0);
         Assertions.assertTrue(comparator.compare(cookie2, cookie1) > 0);
     }

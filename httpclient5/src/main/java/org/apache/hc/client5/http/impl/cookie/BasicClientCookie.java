@@ -28,12 +28,14 @@
 package org.apache.hc.client5.http.impl.cookie;
 
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
 import org.apache.hc.client5.http.cookie.SetCookie;
+import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.util.Args;
 
 /**
@@ -99,9 +101,19 @@ public final class BasicClientCookie implements SetCookie, Cloneable, Serializab
      *
      * @see #setExpiryDate(java.util.Date)
      *
+     * @deprecated Use {@link #getExpiryInstant()}
      */
+    @Deprecated
     @Override
     public Date getExpiryDate() {
+        return DateUtils.toDate(cookieExpiryDate);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Instant getExpiryInstant() {
         return cookieExpiryDate;
     }
 
@@ -113,12 +125,28 @@ public final class BasicClientCookie implements SetCookie, Cloneable, Serializab
      *
      * @param expiryDate the {@link Date} after which this cookie is no longer valid.
      *
-     * @see #getExpiryDate
+     * @deprecated Use {{@link #setExpiryDate(Instant)}}
      *
      */
+    @Deprecated
     @Override
     public void setExpiryDate (final Date expiryDate) {
-        cookieExpiryDate = expiryDate;
+        cookieExpiryDate = DateUtils.toInstant(expiryDate);
+    }
+
+    /**
+     * Sets expiration date.
+     * <p><strong>Note:</strong> the object returned by this method is considered
+     * immutable. Changing it (e.g. using setTime()) could result in undefined behaviour. Do so at
+     * your peril.</p>
+     *
+     * @param expiryInstant the {@link Instant} after which this cookie is no longer valid.
+     * @see #getExpiryInstant()
+     * @since 5.2
+     */
+    @Override
+    public void setExpiryDate (final Instant expiryInstant) {
+        cookieExpiryDate = expiryInstant;
     }
 
 
@@ -233,19 +261,46 @@ public final class BasicClientCookie implements SetCookie, Cloneable, Serializab
      * @param date Current time
      *
      * @return {@code true} if the cookie has expired.
+     *
+     * @deprecated Use {@link #isExpired(Instant)}
      */
+    @Deprecated
     @Override
     public boolean isExpired(final Date date) {
         Args.notNull(date, "Date");
         return (cookieExpiryDate != null
-            && cookieExpiryDate.getTime() <= date.getTime());
+            && cookieExpiryDate.toEpochMilli() <= DateUtils.toInstant(date).toEpochMilli());
+    }
+
+    /**
+     * Returns true if this cookie has expired.
+     * @param instant Current time
+     *
+     * @return {@code true} if the cookie has expired.
+     */
+    @Override
+    public boolean isExpired(final Instant instant) {
+        Args.notNull(instant, "Instant");
+        return (cookieExpiryDate != null
+                && cookieExpiryDate.toEpochMilli() <= instant.toEpochMilli());
     }
 
     /**
      * @since 4.4
+     *
+     * @deprecated Use {@link #getCreationInstant()}.
      */
+    @Deprecated
     @Override
     public Date getCreationDate() {
+        return DateUtils.toDate(creationDate);
+    }
+
+    /**
+     * @since 5.2
+     */
+    @Override
+    public Instant getCreationInstant() {
         return creationDate;
     }
 
@@ -261,8 +316,17 @@ public final class BasicClientCookie implements SetCookie, Cloneable, Serializab
 
     /**
      * @since 4.4
+     * @deprecated Use {@link #setCreationDate(Instant)}
      */
+    @Deprecated
     public void setCreationDate(final Date creationDate) {
+        this.creationDate = DateUtils.toInstant(creationDate);
+    }
+
+    /**
+     * @since 5.2
+     */
+    public void setCreationDate(final Instant creationDate) {
         this.creationDate = creationDate;
     }
 
@@ -329,8 +393,8 @@ public final class BasicClientCookie implements SetCookie, Cloneable, Serializab
     /** Domain attribute. */
     private String  cookieDomain;
 
-    /** Expiration {@link Date}. */
-    private Date cookieExpiryDate;
+    /** Expiration {@link Instant}. */
+    private Instant cookieExpiryDate;
 
     /** Path attribute. */
     private String cookiePath;
@@ -338,7 +402,7 @@ public final class BasicClientCookie implements SetCookie, Cloneable, Serializab
     /** My secure flag. */
     private boolean isSecure;
 
-    private Date creationDate;
+    private Instant creationDate;
 
     /** The {@code httpOnly} flag. */
     private boolean httpOnly;
