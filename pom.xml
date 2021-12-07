@@ -63,6 +63,14 @@
     <tag>4.5.14-SNAPSHOT</tag>
   </scm>
 
+  <distributionManagement>
+    <site>
+      <id>apache.website</id>
+      <name>Apache HttpComponents Website</name>
+      <url>scm:svn:https://svn.apache.org/repos/asf/httpcomponents/site/components/httpcomponents-client-4.5.x/LATEST/</url>
+    </site>
+  </distributionManagement>
+
   <properties>
     <maven.compiler.source>1.6</maven.compiler.source>
     <maven.compiler.target>1.6</maven.compiler.target>
