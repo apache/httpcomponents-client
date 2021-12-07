@@ -163,8 +163,8 @@
           <source>${maven.compiler.source}</source>
           <links>
             <link>http://docs.oracle.com/javase/6/docs/api/</link>
-            <link>http://hc.apache.org/httpcomponents-core-ga/httpcore/apidocs/</link>
-            <link>http://hc.apache.org/httpcomponents-client-ga/httpclient/apidocs/</link>
+            <link>https://hc.apache.org/httpcomponents-core-4.4.x/current/httpcore/apidocs/</link>
+            <link>https://hc.apache.org/httpcomponents-client-4.5.x/current/httpclient/apidocs/</link>
           </links>
         </configuration>
         <reportSets>

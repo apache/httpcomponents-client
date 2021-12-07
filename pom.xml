@@ -217,7 +217,7 @@
           <quiet>true</quiet>
           <links>
             <link>http://docs.oracle.com/javase/6/docs/api/</link>
-            <link>http://hc.apache.org/httpcomponents-core-ga/httpcore/apidocs/</link>
+            <link>https://hc.apache.org/httpcomponents-core-4.4.x/current/httpcore/apidocs/</link>
           </links>
         </configuration>
       </plugin>
@@ -298,55 +298,17 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
         <configuration>
-          <encoding>UTF-8</encoding>
+          <configLocation>hc-stylecheck/default.xml</configLocation>
+          <headerLocation>hc-stylecheck/asl2.header</headerLocation>
+          <consoleOutput>true</consoleOutput>
+          <failsOnError>true</failsOnError>
+          <linkXRef>false</linkXRef>
+          <sourceDirectories>
+            <sourceDirectory>${basedir}/src/main</sourceDirectory>
+            <sourceDirectory>${basedir}/src/test</sourceDirectory>
+          </sourceDirectories>
+          <excludes>**/java-deprecated/**</excludes>
         </configuration>
-        <executions>
-          <execution>
-            <id>validate-main</id>
-            <phase>validate</phase>
-            <configuration>
-              <configLocation>hc-stylecheck/default.xml</configLocation>
-              <headerLocation>hc-stylecheck/asl2.header</headerLocation>
-              <consoleOutput>true</consoleOutput>
-              <failsOnError>true</failsOnError>
-              <linkXRef>false</linkXRef>
-              <sourceDirectory>${basedir}/src/main</sourceDirectory>
-            </configuration>
-            <goals>
-              <goal>checkstyle</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>validate-test</id>
-            <phase>validate</phase>
-            <configuration>
-              <configLocation>hc-stylecheck/default.xml</configLocation>
-              <headerLocation>hc-stylecheck/asl2.header</headerLocation>
-              <consoleOutput>true</consoleOutput>
-              <failsOnError>true</failsOnError>
-              <linkXRef>false</linkXRef>
-              <sourceDirectory>${basedir}/src/test</sourceDirectory>
-            </configuration>
-            <goals>
-              <goal>checkstyle</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>validate-examples</id>
-            <phase>validate</phase>
-            <configuration>
-              <configLocation>hc-stylecheck/minimal.xml</configLocation>
-              <headerLocation>hc-stylecheck/asl2.header</headerLocation>
-              <consoleOutput>true</consoleOutput>
-              <failsOnError>true</failsOnError>
-              <linkXRef>false</linkXRef>
-              <sourceDirectory>${basedir}/src/examples</sourceDirectory>
-            </configuration>
-            <goals>
-              <goal>checkstyle</goal>
-            </goals>
-          </execution>
-        </executions>
       </plugin>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
