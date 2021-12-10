@@ -76,4 +76,12 @@ public class HeaderConstants {
     public static final String PROXY_AUTHENTICATE = "Proxy-Authenticate";
     public static final String AUTHORIZATION = "Authorization";
 
+    /**
+     * Private constructor so that no instances can be created. This class contains only static
+     * utility constant.
+     */
+    private HeaderConstants() {
+        throw new UnsupportedOperationException("No instance of HeaderConstants is allowed");
+    }
+
 }
