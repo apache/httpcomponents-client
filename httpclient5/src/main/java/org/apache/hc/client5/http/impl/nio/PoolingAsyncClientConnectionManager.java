@@ -727,4 +727,15 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
 
     }
 
+    /**
+     * Method that can be called to determine whether the connection manager has been shut down and
+     * is closed or not.
+     *
+     * @return {@code true} if the connection manager has been shut down and is closed, otherwise
+     * return {@code false}.
+     */
+    boolean isClosed() {
+        return this.closed.get();
+    }
+
 }

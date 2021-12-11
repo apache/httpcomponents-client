@@ -686,5 +686,4 @@ public class PoolingHttpClientConnectionManager
         }
 
     }
-
 }
