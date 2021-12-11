@@ -299,7 +299,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
     }
 
     synchronized ManagedHttpClientConnection getConnection(final HttpRoute route, final Object state) throws IOException {
-        Asserts.check(!this.closed.get(), "Connection manager has been shut down");
+        Asserts.check(!isClosed(), "Connection manager has been shut down");
         if (LOG.isDebugEnabled()) {
             LOG.debug("{} Get connection for route {}", id, route);
         }
@@ -336,7 +336,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
         if (LOG.isDebugEnabled()) {
             LOG.debug("{} Releasing connection {}", id, conn);
         }
-        if (this.closed.get()) {
+        if (isClosed()) {
             return;
         }
         try {
@@ -345,7 +345,6 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
             }
             this.updated = System.currentTimeMillis();
             if (!this.conn.isOpen() && !this.conn.isConsistent()) {
-                this.conn = null;
                 this.route = null;
                 this.conn = null;
                 this.expiry = Long.MAX_VALUE;
@@ -427,7 +426,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
     }
 
     public synchronized void closeExpired() {
-        if (this.closed.get()) {
+        if (isClosed()) {
             return;
         }
         if (!this.leased) {
@@ -437,7 +436,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
 
     public synchronized void closeIdle(final TimeValue idleTime) {
         Args.notNull(idleTime, "Idle time");
-        if (this.closed.get()) {
+        if (isClosed()) {
             return;
         }
         if (!this.leased) {
@@ -554,6 +553,17 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
             return requestExecutor.execute(request, getValidatedConnection(), context);
         }
 
+    }
+
+    /**
+     * Method that can be called to determine whether the connection manager has been shut down and
+     * is closed or not.
+     *
+     * @return {@code true} if the connection manager has been shut down and is closed, otherwise
+     * return {@code false}.
+     */
+    boolean isClosed() {
+        return this.closed.get();
     }
 
 }
