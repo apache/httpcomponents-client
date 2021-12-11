@@ -221,7 +221,7 @@ class WarningValue {
             } else if (c == '\"') {
                 foundEnd = true;
                 offs++;
-            } else if (c != '\"' && !isControl(c)) {
+            } else if (!isControl(c)) {
                 offs++;
             } else {
                 parseError();
