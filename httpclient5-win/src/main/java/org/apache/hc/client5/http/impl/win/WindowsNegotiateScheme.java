@@ -26,6 +26,7 @@
  */
 package org.apache.hc.client5.http.impl.win;
 
+import java.io.Serializable;
 import java.security.Principal;
 
 import org.apache.commons.codec.binary.Base64;
@@ -70,7 +71,9 @@ import com.sun.jna.ptr.IntByReference;
  * @since 4.4
  */
 @Experimental
-public class WindowsNegotiateScheme implements AuthScheme {
+public class WindowsNegotiateScheme implements AuthScheme, Serializable {
+
+    private static final long serialVersionUID = -1931571557597830536L;
 
     private static final Logger LOG = LoggerFactory.getLogger(WindowsNegotiateScheme.class);
 
