@@ -79,7 +79,6 @@ import org.apache.hc.core5.pool.StrictConnPool;
 import org.apache.hc.core5.reactor.Command;
 import org.apache.hc.core5.reactor.ConnectionInitiator;
 import org.apache.hc.core5.util.Args;
-import org.apache.hc.core5.util.Asserts;
 import org.apache.hc.core5.util.Identifiable;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
@@ -545,8 +544,9 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
 
         PoolEntry<HttpRoute, ManagedAsyncClientConnection> getValidatedPoolEntry() {
             final PoolEntry<HttpRoute, ManagedAsyncClientConnection> poolEntry = getPoolEntry();
-            final ManagedAsyncClientConnection connection = poolEntry.getConnection();
-            Asserts.check(connection != null && connection.isOpen(), "Endpoint is not connected");
+            if (poolEntry.getConnection() == null) {
+                throw new ConnectionShutdownException();
+            }
             return poolEntry;
         }
 
