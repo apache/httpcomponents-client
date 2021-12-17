@@ -121,7 +121,9 @@ public final class MainClientExec implements ExecChainHandler {
                     } else {
                         s = "indefinitely";
                     }
-                    LOG.debug("{} connection can be kept alive {}", exchangeId, s);
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("{} connection can be kept alive {}", exchangeId, s);
+                    }
                 }
                 execRuntime.markConnectionReusable(userToken, duration);
             } else {
