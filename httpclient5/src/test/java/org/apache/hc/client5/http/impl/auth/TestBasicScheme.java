@@ -76,7 +76,7 @@ public class TestBasicScheme {
 
     @Test
     public void testBasicAuthentication() throws Exception {
-        final AuthChallenge authChallenge = parse("Basic realm=\"test\"");
+        final AuthChallenge authChallenge = parse(StandardAuthScheme.BASIC + " realm=\"test\"");
 
         final BasicScheme authscheme = new BasicScheme();
         authscheme.processChallenge(authChallenge, null);
@@ -90,7 +90,7 @@ public class TestBasicScheme {
         Assertions.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
         final String authResponse = authscheme.generateAuthResponse(host, request, null);
 
-        final String expected = "Basic " + new String(
+        final String expected = StandardAuthScheme.BASIC + " "+ new String(
                 Base64.encodeBase64("testuser:testpass".getBytes(StandardCharsets.US_ASCII)),
                 StandardCharsets.US_ASCII);
         Assertions.assertEquals(expected, authResponse);
@@ -109,7 +109,7 @@ public class TestBasicScheme {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         authscheme.initPreemptive(creds);
         final String authResponse = authscheme.generateAuthResponse(host, request, null);
-        Assertions.assertEquals("Basic dGVzdDoxMjM/", authResponse);
+        Assertions.assertEquals(StandardAuthScheme.BASIC + " dGVzdDoxMjM/", authResponse);
     }
 
     @Test
@@ -120,7 +120,7 @@ public class TestBasicScheme {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         authscheme.initPreemptive(creds);
         final String authResponse = authscheme.generateAuthResponse(host, request, null);
-        Assertions.assertEquals("Basic dGVzdDoxMjOj", authResponse);
+        Assertions.assertEquals(StandardAuthScheme.BASIC + " dGVzdDoxMjOj", authResponse);
     }
 
     @Test
@@ -131,12 +131,12 @@ public class TestBasicScheme {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         authscheme.initPreemptive(creds);
         final String authResponse = authscheme.generateAuthResponse(host, request, null);
-        Assertions.assertEquals("Basic dGVzdDoxMjPCow==", authResponse);
+        Assertions.assertEquals(StandardAuthScheme.BASIC + " dGVzdDoxMjPCow==", authResponse);
     }
 
     @Test
     public void testBasicAuthenticationWithCharset() throws Exception {
-        final AuthChallenge authChallenge = parse("Basic realm=\"test\", charset=\"utf-8\"");
+        final AuthChallenge authChallenge = parse(StandardAuthScheme.BASIC + " realm=\"test\", charset=\"utf-8\"");
 
         final BasicScheme authscheme = new BasicScheme();
         authscheme.processChallenge(authChallenge, null);
@@ -149,7 +149,7 @@ public class TestBasicScheme {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         Assertions.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
         final String authResponse = authscheme.generateAuthResponse(host, request, null);
-        Assertions.assertEquals("Basic dGVzdDoxMjPCow==", authResponse);
+        Assertions.assertEquals(StandardAuthScheme.BASIC + " dGVzdDoxMjPCow==", authResponse);
         Assertions.assertEquals("test", authscheme.getRealm());
         Assertions.assertTrue(authscheme.isChallengeComplete());
         Assertions.assertFalse(authscheme.isConnectionBased());
@@ -157,7 +157,7 @@ public class TestBasicScheme {
 
     @Test
     public void testSerialization() throws Exception {
-        final AuthChallenge authChallenge = parse("Basic realm=\"test\"");
+        final AuthChallenge authChallenge = parse(StandardAuthScheme.BASIC + " realm=\"test\"");
 
         final BasicScheme basicScheme = new BasicScheme();
         basicScheme.processChallenge(authChallenge, null);
