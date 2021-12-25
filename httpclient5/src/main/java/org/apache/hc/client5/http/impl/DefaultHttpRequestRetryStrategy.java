@@ -52,6 +52,7 @@ import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.Method;
+import org.apache.hc.core5.http.RequestNotExecutedException;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TimeValue;
@@ -176,6 +177,9 @@ public class DefaultHttpRequestRetryStrategy implements HttpRequestRetryStrategy
         if (this.nonRetriableIOExceptionClasses.contains(exception.getClass())) {
             return false;
         } else {
+            if (exception instanceof RequestNotExecutedException) {
+                return true;
+            }
             for (final Class<? extends IOException> rejectException : this.nonRetriableIOExceptionClasses) {
                 if (rejectException.isInstance(exception)) {
                     return false;
