@@ -46,6 +46,7 @@ import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
+import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -101,8 +102,11 @@ public class TestInternalHttpClient {
         Mockito.when(routePlanner.determineRoute(
                 Mockito.eq(new HttpHost("somehost")),
                 Mockito.<HttpClientContext>any())).thenReturn(route);
+        Mockito.when(execChain.execute(
+                Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(
+                CloseableHttpResponse.adapt(new BasicClassicHttpResponse(200)));
 
-        client.execute(httpget);
+        client.execute(httpget, response -> null);
 
         Mockito.verify(execChain).execute(
                 Mockito.any(),
@@ -119,12 +123,15 @@ public class TestInternalHttpClient {
                 Mockito.eq(new HttpHost("somehost")),
                 Mockito.<HttpClientContext>any())).thenReturn(route);
         Mockito.when(execChain.execute(
+                Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(
+                CloseableHttpResponse.adapt(new BasicClassicHttpResponse(200)));
+        Mockito.when(execChain.execute(
                 Mockito.any(),
                 Mockito.any(),
                 Mockito.any())).thenThrow(new HttpException());
 
         Assertions.assertThrows(ClientProtocolException.class, () ->
-                client.execute(httpget));
+                client.execute(httpget, response -> null));
     }
 
     @Test
@@ -135,9 +142,12 @@ public class TestInternalHttpClient {
         Mockito.when(routePlanner.determineRoute(
                 Mockito.eq(new HttpHost("somehost")),
                 Mockito.<HttpClientContext>any())).thenReturn(route);
+        Mockito.when(execChain.execute(
+                Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(
+                CloseableHttpResponse.adapt(new BasicClassicHttpResponse(200)));
 
         final HttpClientContext context = HttpClientContext.create();
-        client.execute(httpget, context);
+        client.execute(httpget, context, response -> null);
 
         Assertions.assertSame(cookieSpecRegistry, context.getCookieSpecRegistry());
         Assertions.assertSame(authSchemeRegistry, context.getAuthSchemeRegistry());
@@ -154,11 +164,14 @@ public class TestInternalHttpClient {
         Mockito.when(routePlanner.determineRoute(
                 Mockito.eq(new HttpHost("somehost")),
                 Mockito.<HttpClientContext>any())).thenReturn(route);
+        Mockito.when(execChain.execute(
+                Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(
+                CloseableHttpResponse.adapt(new BasicClassicHttpResponse(200)));
 
         final RequestConfig config = RequestConfig.custom().build();
         httpget.setConfig(config);
         final HttpClientContext context = HttpClientContext.create();
-        client.execute(httpget, context);
+        client.execute(httpget, context, response -> null);
 
         Assertions.assertSame(config, context.getRequestConfig());
     }
@@ -171,6 +184,9 @@ public class TestInternalHttpClient {
         Mockito.when(routePlanner.determineRoute(
                 Mockito.eq(new HttpHost("somehost")),
                 Mockito.<HttpClientContext>any())).thenReturn(route);
+        Mockito.when(execChain.execute(
+                Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(
+                CloseableHttpResponse.adapt(new BasicClassicHttpResponse(200)));
 
         final HttpClientContext context = HttpClientContext.create();
 
@@ -186,7 +202,7 @@ public class TestInternalHttpClient {
         context.setCredentialsProvider(localCredentialsProvider);
         context.setRequestConfig(localConfig);
 
-        client.execute(httpget, context);
+        client.execute(httpget, context, response -> null);
 
         Assertions.assertSame(localCookieSpecRegistry, context.getCookieSpecRegistry());
         Assertions.assertSame(localAuthSchemeRegistry, context.getAuthSchemeRegistry());

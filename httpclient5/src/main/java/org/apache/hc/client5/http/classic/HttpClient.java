@@ -27,6 +27,7 @@
 
 package org.apache.hc.client5.http.classic;
 
+import java.io.Closeable;
 import java.io.IOException;
 
 import org.apache.hc.core5.http.ClassicHttpRequest;
@@ -57,7 +58,17 @@ public interface HttpClient {
      *          or handled automatically depends on the implementation and
      *          configuration of this client.
      * @throws IOException in case of a problem or the connection was aborted
+     *
+     * @deprecated It is strongly recommended to use execute methods with {@link HttpClientResponseHandler}
+     * such as {@link #execute(ClassicHttpRequest, HttpClientResponseHandler)} in order
+     * to ensure automatic resource deallocation by the client.
+     * For special cases one can still use {@link #executeOpen(HttpHost, ClassicHttpRequest, HttpContext)}
+     * to keep the response object open after the request execution.
+     *
+     * @see #execute(ClassicHttpRequest, HttpClientResponseHandler)
+     * @see #executeOpen(HttpHost, ClassicHttpRequest, HttpContext)
      */
+    @Deprecated
     HttpResponse execute(ClassicHttpRequest request) throws IOException;
 
     /**
@@ -73,7 +84,17 @@ public interface HttpClient {
      *          or handled automatically depends on the implementation and
      *          configuration of this client.
      * @throws IOException in case of a problem or the connection was aborted
+     *
+     * @deprecated It is strongly recommended to use execute methods with {@link HttpClientResponseHandler}
+     * such as {@link #execute(ClassicHttpRequest, HttpContext, HttpClientResponseHandler)} in order
+     * to ensure automatic resource deallocation by the client.
+     * For special cases one can still use {@link #executeOpen(HttpHost, ClassicHttpRequest, HttpContext)}
+     * to keep the response object open after the request execution.
+     *
+     * @see #execute(ClassicHttpRequest, HttpContext, HttpClientResponseHandler)
+     * @see #executeOpen(HttpHost, ClassicHttpRequest, HttpContext)
      */
+    @Deprecated
     HttpResponse execute(ClassicHttpRequest request, HttpContext context) throws IOException;
 
     /**
@@ -91,7 +112,17 @@ public interface HttpClient {
      *          or handled automatically depends on the implementation and
      *          configuration of this client.
      * @throws IOException in case of a problem or the connection was aborted
+     *
+     * @deprecated It is strongly recommended to use execute methods with {@link HttpClientResponseHandler}
+     * such as {@link #execute(HttpHost, ClassicHttpRequest, HttpClientResponseHandler)} in order
+     * to ensure automatic resource deallocation by the client.
+     * For special cases one can still use {@link #executeOpen(HttpHost, ClassicHttpRequest, HttpContext)}
+     * to keep the response object open after the request execution.
+     *
+     * @see #execute(HttpHost, ClassicHttpRequest, HttpClientResponseHandler)
+     * @see #executeOpen(HttpHost, ClassicHttpRequest, HttpContext)
      */
+     @Deprecated
      ClassicHttpResponse execute(HttpHost target, ClassicHttpRequest request) throws IOException;
 
     /**
@@ -111,8 +142,46 @@ public interface HttpClient {
      *          or handled automatically depends on the implementation and
      *          configuration of this client.
      * @throws IOException in case of a problem or the connection was aborted
+     *
+     * @deprecated It is strongly recommended to use execute methods with {@link HttpClientResponseHandler}
+     * such as {@link #execute(HttpHost, ClassicHttpRequest, HttpContext, HttpClientResponseHandler)} in order
+     * to ensure automatic resource deallocation by the client.
+     * For special cases one can still use {@link #executeOpen(HttpHost, ClassicHttpRequest, HttpContext)}
+     * to keep the response object open after the request execution.
+     *
+     * @see #execute(HttpHost, ClassicHttpRequest, HttpContext, HttpClientResponseHandler)
+     * @see #executeOpen(HttpHost, ClassicHttpRequest, HttpContext)
      */
+    @Deprecated
     HttpResponse execute(HttpHost target, ClassicHttpRequest request, HttpContext context) throws IOException;
+
+    /**
+     * Executes the request and opens the response stream using the given context.
+     *
+     * @param target    the target host for the request.
+     *                  Implementations may accept {@code null}
+     *                  if they can still determine a route, for example
+     *                  to a default target or by inspecting the request.
+     * @param request   the request to execute
+     * @param context   the context to use for the execution, or
+     *                  {@code null} to use the default context
+     *
+     * @return  the response to the request. This is always a final response,
+     *          never an intermediate response with an 1xx status code.
+     *          Whether redirects or authentication challenges will be returned
+     *          or handled automatically depends on the implementation and
+     *          configuration of this client.
+     *          The response returned by this method must be closed with
+     *          {@link Closeable#close()} in order ensure deallocation
+     *          of system resources.
+     * @throws IOException in case of a problem or the connection was aborted
+     *
+     * @since 5.2
+     */
+    @SuppressWarnings("deprecation")
+    default ClassicHttpResponse executeOpen(HttpHost target, ClassicHttpRequest request, HttpContext context) throws IOException {
+        return (ClassicHttpResponse) execute(target, request, context);
+    }
 
     /**
      * Executes HTTP request using the default context and processes the

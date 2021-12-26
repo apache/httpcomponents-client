@@ -118,7 +118,7 @@ public class CachingHttpClientCompatibilityTest {
         {
             final HttpCacheContext context = HttpCacheContext.create();
             final HttpOptions options = new HttpOptions("*");
-            try (final ClassicHttpResponse response = client.execute(target, options, context)) {
+            try (final ClassicHttpResponse response = client.executeOpen(target, options, context)) {
                 final int code = response.getCode();
                 EntityUtils.consume(response.getEntity());
                 if (code == HttpStatus.SC_OK) {
@@ -137,7 +137,7 @@ public class CachingHttpClientCompatibilityTest {
             final Pattern linkPattern = Pattern.compile("^<(.*)>;rel=preload$");
             final List<String> links = new ArrayList<>();
             final HttpGet getRoot1 = new HttpGet("/");
-            try (ClassicHttpResponse response = client.execute(target, getRoot1, context)) {
+            try (ClassicHttpResponse response = client.executeOpen(target, getRoot1, context)) {
                 final int code = response.getCode();
                 final CacheResponseStatus cacheResponseStatus = context.getCacheResponseStatus();
                 EntityUtils.consume(response.getEntity());
@@ -158,7 +158,7 @@ public class CachingHttpClientCompatibilityTest {
 
             for (final String link: links) {
                 final HttpGet getLink = new HttpGet(link);
-                try (ClassicHttpResponse response = client.execute(target, getLink, context)) {
+                try (ClassicHttpResponse response = client.executeOpen(target, getLink, context)) {
                     final int code = response.getCode();
                     final CacheResponseStatus cacheResponseStatus = context.getCacheResponseStatus();
                     EntityUtils.consume(response.getEntity());
@@ -172,7 +172,7 @@ public class CachingHttpClientCompatibilityTest {
                 }
             }
             final HttpGet getRoot2 = new HttpGet("/");
-            try (ClassicHttpResponse response = client.execute(target, getRoot2, context)) {
+            try (ClassicHttpResponse response = client.executeOpen(target, getRoot2, context)) {
                 final int code = response.getCode();
                 final CacheResponseStatus cacheResponseStatus = context.getCacheResponseStatus();
                 EntityUtils.consume(response.getEntity());
@@ -186,7 +186,7 @@ public class CachingHttpClientCompatibilityTest {
             }
             for (final String link: links) {
                 final HttpGet getLink = new HttpGet(link);
-                try (ClassicHttpResponse response = client.execute(target, getLink, context)) {
+                try (ClassicHttpResponse response = client.executeOpen(target, getLink, context)) {
                     final int code = response.getCode();
                     final CacheResponseStatus cacheResponseStatus = context.getCacheResponseStatus();
                     EntityUtils.consume(response.getEntity());

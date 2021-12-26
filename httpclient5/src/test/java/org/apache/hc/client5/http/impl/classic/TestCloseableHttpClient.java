@@ -81,7 +81,9 @@ public class TestCloseableHttpClient {
     @Test
     public void testExecuteRequestAbsoluteURI() throws Exception {
         final HttpGet httpget = new HttpGet("https://somehost:444/stuff");
-        client.execute(httpget);
+        Mockito.when(client.doExecute(
+                Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(response);
+        client.execute(httpget, response -> null);
 
         Mockito.verify(client).doExecute(
                 Mockito.eq(new HttpHost("https", "somehost", 444)),
@@ -92,23 +94,14 @@ public class TestCloseableHttpClient {
     @Test
     public void testExecuteRequestRelativeURI() throws Exception {
         final HttpGet httpget = new HttpGet("/stuff");
-        client.execute(httpget);
+        Mockito.when(client.doExecute(
+                Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(response);
+        client.execute(httpget, response -> null);
 
         Mockito.verify(client).doExecute(
                 (HttpHost) Mockito.isNull(),
                 Mockito.same(httpget),
                 (HttpContext) Mockito.isNull());
-    }
-
-    @Test
-    public void testExecuteRequest() throws Exception {
-        final HttpGet httpget = new HttpGet("https://somehost:444/stuff");
-
-        Mockito.when(client.doExecute(
-                new HttpHost("https", "somehost", 444), httpget, null)).thenReturn(response);
-
-        final CloseableHttpResponse result = client.execute(httpget);
-        Assertions.assertSame(response, result);
     }
 
     @Test

@@ -30,8 +30,8 @@ import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.impl.io.BasicHttpClientConnectionManager;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
-import org.junit.jupiter.api.Assertions;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 
 public class TestBasicConnectionManager extends LocalServerTestBase {
 
@@ -54,10 +54,10 @@ public class TestBasicConnectionManager extends LocalServerTestBase {
 
         final HttpHost target = start();
         final HttpGet get1 = new HttpGet("/random/1024");
-        this.httpclient.execute(target, get1);
+        this.httpclient.executeOpen(target, get1, null);
         final HttpGet get2 = new HttpGet("/random/1024");
         Assertions.assertThrows(IllegalStateException.class, () ->
-                this.httpclient.execute(target, get2));
+                this.httpclient.executeOpen(target, get2, null));
     }
 
 }

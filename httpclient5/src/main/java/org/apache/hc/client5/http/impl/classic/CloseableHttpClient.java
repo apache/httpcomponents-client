@@ -35,6 +35,7 @@ import org.apache.hc.client5.http.routing.RoutingSupport;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
@@ -57,23 +58,7 @@ public abstract class CloseableHttpClient implements HttpClient, ModalCloseable 
     private static final Logger LOG = LoggerFactory.getLogger(CloseableHttpClient.class);
 
     protected abstract CloseableHttpResponse doExecute(HttpHost target, ClassicHttpRequest request,
-                                                     HttpContext context) throws IOException;
-
-    @Override
-    public CloseableHttpResponse execute(
-            final HttpHost target,
-            final ClassicHttpRequest request,
-            final HttpContext context) throws IOException {
-        return doExecute(target, request, context);
-    }
-
-    @Override
-    public CloseableHttpResponse execute(
-            final ClassicHttpRequest request,
-            final HttpContext context) throws IOException {
-        Args.notNull(request, "HTTP request");
-        return doExecute(determineTarget(request), request, context);
-    }
+                                                       HttpContext context) throws IOException;
 
     private static HttpHost determineTarget(final ClassicHttpRequest request) throws ClientProtocolException {
         try {
@@ -83,12 +68,72 @@ public abstract class CloseableHttpClient implements HttpClient, ModalCloseable 
         }
     }
 
+    /**
+     * @deprecated It is strongly recommended to use execute methods with {@link HttpClientResponseHandler}
+     * such as {@link #execute(HttpHost, ClassicHttpRequest, HttpContext, HttpClientResponseHandler)} in order
+     * to ensure automatic resource deallocation by the client.
+     * For special cases one can still use {@link #executeOpen(HttpHost, ClassicHttpRequest, HttpContext)}
+     * to keep the response object open after the request execution.
+     *
+     * @see #execute(HttpHost, ClassicHttpRequest, HttpContext, HttpClientResponseHandler)
+     * @see #executeOpen(HttpHost, ClassicHttpRequest, HttpContext)
+     */
+    @Deprecated
+    @Override
+    public CloseableHttpResponse execute(
+            final HttpHost target,
+            final ClassicHttpRequest request,
+            final HttpContext context) throws IOException {
+        return doExecute(target, request, context);
+    }
+
+    /**
+     * @deprecated It is strongly recommended to use execute methods with {@link HttpClientResponseHandler}
+     * such as {@link #execute(ClassicHttpRequest, HttpContext, HttpClientResponseHandler)} in order
+     * to ensure automatic resource deallocation by the client.
+     * For special cases one can still use {@link #executeOpen(HttpHost, ClassicHttpRequest, HttpContext)}
+     * to keep the response object open after the request execution.
+     *
+     * @see #execute(ClassicHttpRequest, HttpContext, HttpClientResponseHandler)
+     * @see #executeOpen(HttpHost, ClassicHttpRequest, HttpContext)
+     */
+    @Deprecated
+    @Override
+    public CloseableHttpResponse execute(
+            final ClassicHttpRequest request,
+            final HttpContext context) throws IOException {
+        Args.notNull(request, "HTTP request");
+        return doExecute(determineTarget(request), request, context);
+    }
+
+    /**
+     * @deprecated It is strongly recommended to use execute methods with {@link HttpClientResponseHandler}
+     * such as {@link #execute(ClassicHttpRequest, HttpClientResponseHandler)} in order
+     * to ensure automatic resource deallocation by the client.
+     * For special cases one can still use {@link #executeOpen(HttpHost, ClassicHttpRequest, HttpContext)}
+     * to keep the response object open after the request execution.
+     *
+     * @see #execute(ClassicHttpRequest, HttpClientResponseHandler)
+     * @see #executeOpen(HttpHost, ClassicHttpRequest, HttpContext)
+     */
+    @Deprecated
     @Override
     public CloseableHttpResponse execute(
             final ClassicHttpRequest request) throws IOException {
-        return execute(request, (HttpContext) null);
+        return doExecute(determineTarget(request), request, null);
     }
 
+    /**
+     * @deprecated It is strongly recommended to use execute methods with {@link HttpClientResponseHandler}
+     * such as {@link #execute(HttpHost, ClassicHttpRequest, HttpClientResponseHandler)} in order
+     * to ensure automatic resource deallocation by the client.
+     * For special cases one can still use {@link #executeOpen(HttpHost, ClassicHttpRequest, HttpContext)}
+     * to keep the response object open after the request execution.
+     *
+     * @see #execute(HttpHost, ClassicHttpRequest, HttpClientResponseHandler)
+     * @see #executeOpen(HttpHost, ClassicHttpRequest, HttpContext)
+     */
+    @Deprecated
     @Override
     public CloseableHttpResponse execute(
             final HttpHost target,
@@ -197,7 +242,7 @@ public abstract class CloseableHttpClient implements HttpClient, ModalCloseable 
             final HttpClientResponseHandler<? extends T> responseHandler) throws IOException {
         Args.notNull(responseHandler, "Response handler");
 
-        try (final CloseableHttpResponse response = execute(target, request, context)) {
+        try (final ClassicHttpResponse response = doExecute(target, request, context)) {
             try {
                 final T result = responseHandler.handleResponse(response);
                 final HttpEntity entity = response.getEntity();

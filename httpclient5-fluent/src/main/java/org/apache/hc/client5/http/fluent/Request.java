@@ -198,7 +198,7 @@ public class Request {
         }
         final RequestConfig config = builder.build();
         localContext.setRequestConfig(config);
-        return client.execute(this.request, localContext);
+        return client.executeOpen(null, this.request, localContext);
     }
 
     public Response execute() throws IOException {
