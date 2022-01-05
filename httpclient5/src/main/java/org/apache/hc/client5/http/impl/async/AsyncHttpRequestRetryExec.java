@@ -128,6 +128,9 @@ public final class AsyncHttpRequestRetryExec implements AsyncExecChainHandler {
             public void completed() {
                 if (state.retrying) {
                     scope.execCount.incrementAndGet();
+                    if (entityProducer != null && entityProducer.isRepeatable()) {
+                       entityProducer.releaseResources();
+                    }
                     scope.scheduler.scheduleExecution(request, entityProducer, scope, asyncExecCallback, state.delay);
                 } else {
                     asyncExecCallback.completed();
