@@ -303,7 +303,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
         if (LOG.isDebugEnabled()) {
             LOG.debug("{} Get connection for route {}", id, route);
         }
-        Asserts.check(!this.leased, "Connection is still allocated");
+        Asserts.check(!this.leased, "Connection %s is still allocated", conn);
         if (!LangUtils.equals(this.route, route) || !LangUtils.equals(this.state, state)) {
             closeConnection(CloseMode.GRACEFUL);
         }
@@ -318,6 +318,9 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
             this.conn.activate();
         }
         this.leased = true;
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("{} Using connection {}", id, conn);
+        }
         return this.conn;
     }
 
