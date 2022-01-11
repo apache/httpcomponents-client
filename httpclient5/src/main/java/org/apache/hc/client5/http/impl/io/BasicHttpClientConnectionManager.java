@@ -420,7 +420,6 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
         Args.notNull(endpoint, "Endpoint");
         Args.notNull(route, "HTTP route");
         final InternalConnectionEndpoint internalEndpoint = cast(endpoint);
-        final ConnectionConfig config = connectionConfig != null ? connectionConfig : ConnectionConfig.DEFAULT;
         this.connectionOperator.upgrade(
                 internalEndpoint.getConnection(),
                 internalEndpoint.getRoute().getTargetHost(),
