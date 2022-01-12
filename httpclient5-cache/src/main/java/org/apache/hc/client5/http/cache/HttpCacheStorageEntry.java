@@ -45,7 +45,7 @@ public final class HttpCacheStorageEntry implements Serializable {
     private final HttpCacheEntry content;
 
     public HttpCacheStorageEntry(final String key, final HttpCacheEntry content) {
-        this.key = key;
+        this.key = Args.notNull(key, "Key");
         this.content = Args.notNull(content, "Cache entry");
     }
 

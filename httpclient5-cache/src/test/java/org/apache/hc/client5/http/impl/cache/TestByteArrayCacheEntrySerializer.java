@@ -49,6 +49,7 @@ import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.StatusLine;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -69,6 +70,11 @@ public class TestByteArrayCacheEntrySerializer {
     @Test
     public void canSerializeEntriesWithVariantMapsAndInstant() throws Exception {
         readWriteVerify(makeCacheEntryWithVariantMap("somekey"));
+    }
+
+    @Test
+    public void testHttpCacheStorageEntryNullKey() {
+        Assertions.assertThrows(NullPointerException.class, () -> makeCacheEntryWithVariantMap(null));
     }
 
     @Test

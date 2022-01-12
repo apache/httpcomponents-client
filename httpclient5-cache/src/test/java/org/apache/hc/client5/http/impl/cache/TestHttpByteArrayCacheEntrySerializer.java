@@ -291,10 +291,7 @@ public class TestHttpByteArrayCacheEntrySerializer {
     public void testNullStorageKey() {
         final HttpCacheStorageEntryTestTemplate cacheObjectValues = HttpCacheStorageEntryTestTemplate.makeDefault();
         cacheObjectValues.storageKey = null;
-
-        final HttpCacheStorageEntry testEntry = cacheObjectValues.toEntry();
-        Assertions.assertThrows(IllegalStateException.class, () ->
-                serializer.serialize(testEntry));
+        Assertions.assertThrows(NullPointerException.class, cacheObjectValues::toEntry);
     }
 
     /**
