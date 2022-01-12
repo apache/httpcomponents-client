@@ -238,17 +238,6 @@ public final class ConnectExec implements ExecChainHandler {
                 throw new HttpException("Unexpected response to CONNECT request: " + new StatusLine(response));
             }
 
-            if (this.reuseStrategy.keepAlive(connect, response, context)) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("{} connection kept alive", exchangeId);
-                }
-                // Consume response content
-                final HttpEntity entity = response.getEntity();
-                EntityUtils.consume(entity);
-            } else {
-                execRuntime.disconnectEndpoint();
-            }
-
             if (config.isAuthenticationEnabled()) {
                 final boolean proxyAuthRequested = authenticator.isChallenged(proxy, ChallengeType.PROXY, response, proxyAuthExchange, context);
 
@@ -269,6 +258,16 @@ public final class ConnectExec implements ExecChainHandler {
                     }
                     if (updated) {
                         // Retry request
+                        if (this.reuseStrategy.keepAlive(connect, response, context)) {
+                            if (LOG.isDebugEnabled()) {
+                                LOG.debug("{} connection kept alive", exchangeId);
+                            }
+                            // Consume response content
+                            final HttpEntity entity = response.getEntity();
+                            EntityUtils.consume(entity);
+                        } else {
+                            execRuntime.disconnectEndpoint();
+                        }
                         response = null;
                     }
                 }
