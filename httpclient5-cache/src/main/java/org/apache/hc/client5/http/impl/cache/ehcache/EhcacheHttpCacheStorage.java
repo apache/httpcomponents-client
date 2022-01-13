@@ -79,6 +79,16 @@ public class EhcacheHttpCacheStorage<T> extends AbstractSerializingCacheStorage<
         return new EhcacheHttpCacheStorage<>(cache, config, ByteArrayCacheEntrySerializer.INSTANCE);
     }
 
+    /**
+     * Creates cache that stores serialized {@link HttpCacheStorageEntry}s.
+     *
+     * @since 5.2
+     */
+    public static EhcacheHttpCacheStorage<byte[]> createSerializedCache(
+            final Cache<String, byte[]> cache) {
+        return new EhcacheHttpCacheStorage<>(cache, ByteArrayCacheEntrySerializer.INSTANCE);
+    }
+
     private final Cache<String, T> cache;
 
     /**
@@ -96,6 +106,21 @@ public class EhcacheHttpCacheStorage<T> extends AbstractSerializingCacheStorage<
             final CacheConfig config,
             final HttpCacheEntrySerializer<T> serializer) {
         super((config != null ? config : CacheConfig.DEFAULT).getMaxUpdateRetries(), serializer);
+        this.cache = Args.notNull(cache, "Ehcache");
+    }
+
+    /**
+     * Constructs a storage backend using the provided Ehcache
+     * with the default configuration options, but using an alternative
+     * cache entry serialization strategy.
+     * @param cache where to store cached origin responses
+     * @param serializer alternative serialization mechanism
+     * @since 5.2
+     */
+    public EhcacheHttpCacheStorage(
+            final Cache<String, T> cache,
+            final HttpCacheEntrySerializer<T> serializer) {
+        super((CacheConfig.DEFAULT).getMaxUpdateRetries(), serializer);
         this.cache = Args.notNull(cache, "Ehcache");
     }
 
