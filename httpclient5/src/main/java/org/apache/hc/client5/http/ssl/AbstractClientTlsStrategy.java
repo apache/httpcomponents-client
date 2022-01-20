@@ -135,7 +135,7 @@ abstract class AbstractClientTlsStrategy implements TlsStrategy {
                 H2TlsSupport.setEnableRetransmissions(sslParameters, false);
             }
 
-            applyParameters(sslEngine, sslParameters, H2TlsSupport.selectApplicationProtocols(attachment));
+            applyParameters(sslEngine, sslParameters, H2TlsSupport.selectApplicationProtocols(versionPolicy));
 
             initializeEngine(sslEngine);
 
