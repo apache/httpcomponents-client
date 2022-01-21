@@ -108,8 +108,8 @@ public class TlsConfig implements Cloneable {
         final StringBuilder builder = new StringBuilder();
         builder.append("[");
         builder.append("handshakeTimeout=").append(handshakeTimeout);
-        builder.append(", supportedProtocols=").append(Arrays.asList(supportedProtocols));
-        builder.append(", supportedCipherSuites=").append(Arrays.asList(supportedCipherSuites));
+        builder.append(", supportedProtocols=").append(Arrays.toString(supportedProtocols));
+        builder.append(", supportedCipherSuites=").append(Arrays.toString(supportedCipherSuites));
         builder.append(", httpVersionPolicy=").append(httpVersionPolicy);
         builder.append("]");
         return builder.toString();
