@@ -1,4 +1,38 @@
-﻿Release 5.1.2
+﻿Release 5.1.3
+-----------
+
+This release upgrades HttpCore to the latest 5.1 version and fixes a number of issues found
+since release 5.1.2.
+
+Change Log
+-------------------
+
+* Fixed incompatibility with older versions of Android shipping with Commons Codec < 1.4.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Bug fix: ByteArrayBuilder incorrectly handles empty strings.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2195, regression: classic ConnectExec incorrectly discards the proxy response body
+  even if the request cannot be executed and the response is final.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2194: async retries not including body (#343).
+  Contributed by Jason Mathison <JasonMathison at users.noreply.github.com>
+
+* Automatically retry requests that failed with RequestNotExecutedException.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Bug fix: Incorrect connection validity check in the async connection manager can cause
+  an IllegalStateException and lead to a connection leak. Treat closed connections as valid
+  due to the connection open check being inherently racy.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Bump log4j to 2.12.3
+  Contributed by mxd4 <maxime_droy at ultimatesoftware.com>
+
+
+Release 5.1.2
 -----------
 
 This is an emergency release that fixes a regression introduced in the previous release
