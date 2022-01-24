@@ -182,7 +182,7 @@ public class BasicScheme implements AuthScheme, Serializable {
         }
         this.buffer.append(this.username).append(":").append(this.password);
         if (this.base64codec == null) {
-            this.base64codec = new Base64(0);
+            this.base64codec = new Base64();
         }
         final byte[] encodedCreds = this.base64codec.encode(this.buffer.toByteArray());
         this.buffer.reset();
