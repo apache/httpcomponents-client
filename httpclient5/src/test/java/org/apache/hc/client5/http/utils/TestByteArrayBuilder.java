@@ -121,6 +121,7 @@ public class TestByteArrayBuilder {
         buffer.append("bcd");
         buffer.append("e");
         buffer.append("f");
+        buffer.append("");
         buffer.append((String) null);
         buffer.append((char[]) null);
 

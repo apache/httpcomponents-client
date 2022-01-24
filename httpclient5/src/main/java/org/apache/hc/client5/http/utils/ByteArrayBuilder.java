@@ -74,8 +74,8 @@ public final class ByteArrayBuilder {
 
         final int capacity = (int) (in.remaining() * encoder.averageBytesPerChar());
         ByteBuffer out = ensureFreeCapacity(buffer, capacity);
-        for (;;) {
-            CoderResult result = in.hasRemaining() ? encoder.encode(in, out, true) : CoderResult.UNDERFLOW;
+        while (in.hasRemaining()) {
+            CoderResult result = encoder.encode(in, out, true);
             if (result.isError()) {
                 result.throwException();
             }
