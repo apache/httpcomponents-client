@@ -55,7 +55,6 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
-import org.apache.hc.core5.http.protocol.HttpProcessor;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -67,8 +66,6 @@ import org.mockito.stubbing.Answer;
 @SuppressWarnings({"static-access"}) // test code
 public class TestProtocolExec {
 
-    @Mock
-    private HttpProcessor httpProcessor;
     @Mock
     private AuthenticationStrategy targetAuthStrategy;
     @Mock
@@ -85,33 +82,9 @@ public class TestProtocolExec {
     @BeforeEach
     public void setup() throws Exception {
         MockitoAnnotations.openMocks(this);
-        protocolExec = new ProtocolExec(httpProcessor, targetAuthStrategy, proxyAuthStrategy, null, true);
+        protocolExec = new ProtocolExec(targetAuthStrategy, proxyAuthStrategy, null, true);
         target = new HttpHost("foo", 80);
         proxy = new HttpHost("bar", 8888);
-    }
-
-    @Test
-    public void testFundamentals() throws Exception {
-        final HttpRoute route = new HttpRoute(target);
-        final ClassicHttpRequest request = new HttpGet("/test");
-        final HttpClientContext context = HttpClientContext.create();
-
-        final ClassicHttpResponse response = Mockito.mock(ClassicHttpResponse.class);
-
-        Mockito.when(chain.proceed(
-                Mockito.any(),
-                Mockito.any())).thenReturn(response);
-
-        final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
-        protocolExec.execute(request, scope, chain);
-
-        Mockito.verify(httpProcessor).process(request, null, context);
-        Mockito.verify(chain).proceed(request, scope);
-        Mockito.verify(httpProcessor).process(response, null, context);
-
-        Assertions.assertEquals(route, context.getHttpRoute());
-        Assertions.assertSame(request, context.getRequest());
-        Assertions.assertSame(response, context.getResponse());
     }
 
     @Test
@@ -135,8 +108,7 @@ public class TestProtocolExec {
         Mockito.when(chain.proceed(
                 Mockito.any(),
                 Mockito.any())).thenReturn(response);
-        Mockito.doThrow(new HttpException("Ooopsie")).when(httpProcessor).process(
-                Mockito.same(response), Mockito.isNull(), Mockito.any());
+        Mockito.doThrow(new HttpException("Ooopsie")).when(chain).proceed(Mockito.any(), Mockito.any());
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
         Assertions.assertThrows(HttpException.class, () ->
                 protocolExec.execute(request, scope, chain));
@@ -153,8 +125,7 @@ public class TestProtocolExec {
         Mockito.when(chain.proceed(
                 Mockito.any(),
                 Mockito.any())).thenReturn(response);
-        Mockito.doThrow(new IOException("Ooopsie")).when(httpProcessor).process(
-                Mockito.same(response), Mockito.isNull(), Mockito.any());
+        Mockito.doThrow(new IOException("Ooopsie")).when(chain).proceed(Mockito.any(), Mockito.any());
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
         Assertions.assertThrows(IOException.class, () ->
                 protocolExec.execute(request, scope, chain));
@@ -171,8 +142,7 @@ public class TestProtocolExec {
         Mockito.when(chain.proceed(
                 Mockito.any(),
                 Mockito.any())).thenReturn(response);
-        Mockito.doThrow(new RuntimeException("Ooopsie")).when(httpProcessor).process(
-                Mockito.same(response), Mockito.isNull(), Mockito.any());
+        Mockito.doThrow(new RuntimeException("Ooopsie")).when(chain).proceed(Mockito.any(), Mockito.any());
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, execRuntime, context);
         Assertions.assertThrows(RuntimeException.class, () ->
                 protocolExec.execute(request, scope, chain));

@@ -782,19 +782,6 @@ public class HttpClientBuilder {
             }
         }
 
-        final NamedElementChain<ExecChainHandler> execChainDefinition = new NamedElementChain<>();
-        execChainDefinition.addLast(
-                new MainClientExec(connManagerCopy, reuseStrategyCopy, keepAliveStrategyCopy, userTokenHandlerCopy),
-                ChainElement.MAIN_TRANSPORT.name());
-        execChainDefinition.addFirst(
-                new ConnectExec(
-                        reuseStrategyCopy,
-                        new DefaultHttpProcessor(new RequestTargetHost(), new RequestUserAgent(userAgentCopy)),
-                        proxyAuthStrategyCopy,
-                        schemePortResolver != null ? schemePortResolver : DefaultSchemePortResolver.INSTANCE,
-                        authCachingDisabled),
-                ChainElement.CONNECT.name());
-
         final HttpProcessorBuilder b = HttpProcessorBuilder.create();
         if (requestInterceptors != null) {
             for (final RequestInterceptorEntry entry: requestInterceptors) {
@@ -838,9 +825,22 @@ public class HttpClientBuilder {
             }
         }
         final HttpProcessor httpProcessor = b.build();
+
+        final NamedElementChain<ExecChainHandler> execChainDefinition = new NamedElementChain<>();
+        execChainDefinition.addLast(
+                new MainClientExec(connManagerCopy, httpProcessor, reuseStrategyCopy, keepAliveStrategyCopy, userTokenHandlerCopy),
+                ChainElement.MAIN_TRANSPORT.name());
+        execChainDefinition.addFirst(
+                new ConnectExec(
+                        reuseStrategyCopy,
+                        new DefaultHttpProcessor(new RequestTargetHost(), new RequestUserAgent(userAgentCopy)),
+                        proxyAuthStrategyCopy,
+                        schemePortResolver != null ? schemePortResolver : DefaultSchemePortResolver.INSTANCE,
+                        authCachingDisabled),
+                ChainElement.CONNECT.name());
+
         execChainDefinition.addFirst(
                 new ProtocolExec(
-                        httpProcessor,
                         targetAuthStrategyCopy,
                         proxyAuthStrategyCopy,
                         schemePortResolver != null ? schemePortResolver : DefaultSchemePortResolver.INSTANCE,

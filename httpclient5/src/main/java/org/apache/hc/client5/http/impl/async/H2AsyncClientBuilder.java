@@ -650,11 +650,6 @@ public class H2AsyncClientBuilder {
     }
 
     public CloseableHttpAsyncClient build() {
-        final NamedElementChain<AsyncExecChainHandler> execChainDefinition = new NamedElementChain<>();
-        execChainDefinition.addLast(
-                new H2AsyncMainClientExec(),
-                ChainElement.MAIN_TRANSPORT.name());
-
         AuthenticationStrategy targetAuthStrategyCopy = this.targetAuthStrategy;
         if (targetAuthStrategyCopy == null) {
             targetAuthStrategyCopy = DefaultAuthenticationStrategy.INSTANCE;
@@ -674,14 +669,6 @@ public class H2AsyncClientBuilder {
                         "org.apache.hc.client5", getClass());
             }
         }
-
-        execChainDefinition.addFirst(
-                new AsyncConnectExec(
-                        new DefaultHttpProcessor(new RequestTargetHost(), new RequestUserAgent(userAgentCopy)),
-                        proxyAuthStrategyCopy,
-                        schemePortResolver != null ? schemePortResolver : DefaultSchemePortResolver.INSTANCE,
-                        authCachingDisabled),
-                ChainElement.CONNECT.name());
 
         final HttpProcessorBuilder b = HttpProcessorBuilder.create();
         if (requestInterceptors != null) {
@@ -724,9 +711,22 @@ public class H2AsyncClientBuilder {
         }
 
         final HttpProcessor httpProcessor = b.build();
+
+        final NamedElementChain<AsyncExecChainHandler> execChainDefinition = new NamedElementChain<>();
+        execChainDefinition.addLast(
+                new H2AsyncMainClientExec(httpProcessor),
+                ChainElement.MAIN_TRANSPORT.name());
+
+        execChainDefinition.addFirst(
+                new AsyncConnectExec(
+                        new DefaultHttpProcessor(new RequestTargetHost(), new RequestUserAgent(userAgentCopy)),
+                        proxyAuthStrategyCopy,
+                        schemePortResolver != null ? schemePortResolver : DefaultSchemePortResolver.INSTANCE,
+                        authCachingDisabled),
+                ChainElement.CONNECT.name());
+
         execChainDefinition.addFirst(
                 new AsyncProtocolExec(
-                        httpProcessor,
                         targetAuthStrategyCopy,
                         proxyAuthStrategyCopy,
                         schemePortResolver != null ? schemePortResolver : DefaultSchemePortResolver.INSTANCE,

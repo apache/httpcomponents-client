@@ -48,6 +48,8 @@ import org.apache.hc.core5.http.ConnectionReuseStrategy;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.message.RequestLine;
+import org.apache.hc.core5.http.protocol.HttpCoreContext;
+import org.apache.hc.core5.http.protocol.HttpProcessor;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TimeValue;
@@ -68,6 +70,7 @@ public final class MainClientExec implements ExecChainHandler {
     private static final Logger LOG = LoggerFactory.getLogger(MainClientExec.class);
 
     private final HttpClientConnectionManager connectionManager;
+    private final HttpProcessor httpProcessor;
     private final ConnectionReuseStrategy reuseStrategy;
     private final ConnectionKeepAliveStrategy keepAliveStrategy;
     private final UserTokenHandler userTokenHandler;
@@ -77,10 +80,12 @@ public final class MainClientExec implements ExecChainHandler {
      */
     public MainClientExec(
             final HttpClientConnectionManager connectionManager,
+            final HttpProcessor httpProcessor,
             final ConnectionReuseStrategy reuseStrategy,
             final ConnectionKeepAliveStrategy keepAliveStrategy,
             final UserTokenHandler userTokenHandler) {
         this.connectionManager = Args.notNull(connectionManager, "Connection manager");
+        this.httpProcessor = Args.notNull(httpProcessor, "HTTP protocol processor");
         this.reuseStrategy = Args.notNull(reuseStrategy, "Connection reuse strategy");
         this.keepAliveStrategy = Args.notNull(keepAliveStrategy, "Connection keep alive strategy");
         this.userTokenHandler = Args.notNull(userTokenHandler, "User token handler");
@@ -102,7 +107,16 @@ public final class MainClientExec implements ExecChainHandler {
             LOG.debug("{} executing {}", exchangeId, new RequestLine(request));
         }
         try {
+            // Run request protocol interceptors
+            context.setAttribute(HttpClientContext.HTTP_ROUTE, route);
+            context.setAttribute(HttpCoreContext.HTTP_REQUEST, request);
+
+            httpProcessor.process(request, request.getEntity(), context);
+
             final ClassicHttpResponse response = execRuntime.execute(exchangeId, request, context);
+
+            context.setAttribute(HttpCoreContext.HTTP_RESPONSE, response);
+            httpProcessor.process(response, response.getEntity(), context);
 
             Object userToken = context.getUserToken();
             if (userToken == null) {

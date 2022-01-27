@@ -59,8 +59,6 @@ import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.nio.AsyncDataConsumer;
 import org.apache.hc.core5.http.nio.AsyncEntityProducer;
-import org.apache.hc.core5.http.protocol.HttpCoreContext;
-import org.apache.hc.core5.http.protocol.HttpProcessor;
 import org.apache.hc.core5.http.support.BasicRequestBuilder;
 import org.apache.hc.core5.net.URIAuthority;
 import org.apache.hc.core5.util.Args;
@@ -84,7 +82,6 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
 
     private static final Logger LOG = LoggerFactory.getLogger(AsyncProtocolExec.class);
 
-    private final HttpProcessor httpProcessor;
     private final AuthenticationStrategy targetAuthStrategy;
     private final AuthenticationStrategy proxyAuthStrategy;
     private final HttpAuthenticator authenticator;
@@ -92,12 +89,10 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
     private final AuthCacheKeeper authCacheKeeper;
 
     AsyncProtocolExec(
-            final HttpProcessor httpProcessor,
             final AuthenticationStrategy targetAuthStrategy,
             final AuthenticationStrategy proxyAuthStrategy,
             final SchemePortResolver schemePortResolver,
             final boolean authCachingDisabled) {
-        this.httpProcessor = Args.notNull(httpProcessor, "HTTP protocol processor");
         this.targetAuthStrategy = Args.notNull(targetAuthStrategy, "Target authentication strategy");
         this.proxyAuthStrategy = Args.notNull(proxyAuthStrategy, "Proxy authentication strategy");
         this.authenticator = new HttpAuthenticator();
@@ -196,10 +191,6 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
 
         final HttpHost proxy = route.getProxyHost();
 
-        clientContext.setAttribute(HttpClientContext.HTTP_ROUTE, route);
-        clientContext.setAttribute(HttpCoreContext.HTTP_REQUEST, request);
-        httpProcessor.process(request, entityProducer, clientContext);
-
         if (!request.containsHeader(HttpHeaders.AUTHORIZATION)) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("{} target auth state: {}", exchangeId, targetAuthExchange.getState());
@@ -219,9 +210,6 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
             public AsyncDataConsumer handleResponse(
                     final HttpResponse response,
                     final EntityDetails entityDetails) throws HttpException, IOException {
-
-                clientContext.setAttribute(HttpCoreContext.HTTP_RESPONSE, response);
-                httpProcessor.process(response, entityDetails, clientContext);
 
                 if (Method.TRACE.isSame(request.getMethod())) {
                     // Do not perform authentication for TRACE request

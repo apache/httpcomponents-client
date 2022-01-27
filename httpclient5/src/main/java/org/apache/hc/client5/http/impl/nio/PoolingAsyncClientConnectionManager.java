@@ -450,6 +450,8 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
                             if (LOG.isDebugEnabled()) {
                                 LOG.debug("{} connected {}", ConnPoolSupport.getId(endpoint), ConnPoolSupport.getId(connection));
                             }
+                            final ProtocolVersion protocolVersion = connection.getProtocolVersion();
+                            context.setProtocolVersion(protocolVersion);
                             final Timeout socketTimeout = connectionConfig.getSocketTimeout();
                             if (socketTimeout != null) {
                                 connection.setSocketTimeout(socketTimeout);

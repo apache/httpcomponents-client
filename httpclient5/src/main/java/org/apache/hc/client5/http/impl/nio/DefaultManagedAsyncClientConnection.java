@@ -134,7 +134,10 @@ final class DefaultManagedAsyncClientConnection implements ManagedAsyncClientCon
     public ProtocolVersion getProtocolVersion() {
         final IOEventHandler handler = ioSession.getHandler();
         if (handler instanceof HttpConnection) {
-            return ((HttpConnection) handler).getProtocolVersion();
+            final ProtocolVersion version = ((HttpConnection) handler).getProtocolVersion();
+            if (version != null) {
+                return version;
+            }
         }
         return HttpVersion.DEFAULT;
     }

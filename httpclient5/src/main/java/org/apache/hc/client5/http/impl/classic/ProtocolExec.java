@@ -59,8 +59,6 @@ import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
-import org.apache.hc.core5.http.protocol.HttpCoreContext;
-import org.apache.hc.core5.http.protocol.HttpProcessor;
 import org.apache.hc.core5.net.URIAuthority;
 import org.apache.hc.core5.util.Args;
 import org.slf4j.Logger;
@@ -83,7 +81,6 @@ public final class ProtocolExec implements ExecChainHandler {
 
     private static final Logger LOG = LoggerFactory.getLogger(ProtocolExec.class);
 
-    private final HttpProcessor httpProcessor;
     private final AuthenticationStrategy targetAuthStrategy;
     private final AuthenticationStrategy proxyAuthStrategy;
     private final HttpAuthenticator authenticator;
@@ -91,12 +88,10 @@ public final class ProtocolExec implements ExecChainHandler {
     private final AuthCacheKeeper authCacheKeeper;
 
     public ProtocolExec(
-            final HttpProcessor httpProcessor,
             final AuthenticationStrategy targetAuthStrategy,
             final AuthenticationStrategy proxyAuthStrategy,
             final SchemePortResolver schemePortResolver,
             final boolean authCachingDisabled) {
-        this.httpProcessor = Args.notNull(httpProcessor, "HTTP protocol processor");
         this.targetAuthStrategy = Args.notNull(targetAuthStrategy, "Target authentication strategy");
         this.proxyAuthStrategy = Args.notNull(proxyAuthStrategy, "Proxy authentication strategy");
         this.authenticator = new HttpAuthenticator();
@@ -181,12 +176,6 @@ public final class ProtocolExec implements ExecChainHandler {
 
             for (;;) {
 
-                // Run request protocol interceptors
-                context.setAttribute(HttpClientContext.HTTP_ROUTE, route);
-                context.setAttribute(HttpCoreContext.HTTP_REQUEST, request);
-
-                httpProcessor.process(request, request.getEntity(), context);
-
                 if (!request.containsHeader(HttpHeaders.AUTHORIZATION)) {
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("{} target auth state: {}", exchangeId, targetAuthExchange.getState());
@@ -201,9 +190,6 @@ public final class ProtocolExec implements ExecChainHandler {
                 }
 
                 final ClassicHttpResponse response = chain.proceed(request, scope);
-
-                context.setAttribute(HttpCoreContext.HTTP_RESPONSE, response);
-                httpProcessor.process(response, response.getEntity(), context);
 
                 if (Method.TRACE.isSame(request.getMethod())) {
                     // Do not perform authentication for TRACE request
