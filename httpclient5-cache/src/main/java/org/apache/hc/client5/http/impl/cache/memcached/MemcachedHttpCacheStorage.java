@@ -42,6 +42,7 @@ import org.apache.hc.core5.util.Args;
 import net.spy.memcached.CASResponse;
 import net.spy.memcached.CASValue;
 import net.spy.memcached.MemcachedClient;
+import net.spy.memcached.MemcachedClientIF;
 import net.spy.memcached.OperationTimeoutException;
 
 /**
@@ -84,7 +85,7 @@ import net.spy.memcached.OperationTimeoutException;
  */
 public class MemcachedHttpCacheStorage extends AbstractBinaryCacheStorage<CASValue<Object>> {
 
-    private final MemcachedClient client;
+    private final MemcachedClientIF client;
     private final KeyHashingScheme keyHashingScheme;
 
     /**
@@ -109,6 +110,18 @@ public class MemcachedHttpCacheStorage extends AbstractBinaryCacheStorage<CASVal
     }
 
     /**
+     * Create a storage backend using the pre-configured given
+     * <i>memcached</i> client.
+     *
+     * @param cache client to use for communicating with <i>memcached</i>
+     *
+     * @since 5.2
+     */
+    public MemcachedHttpCacheStorage(final MemcachedClientIF cache) {
+        this(cache, CacheConfig.DEFAULT, ByteArrayCacheEntrySerializer.INSTANCE, SHA256KeyHashingScheme.INSTANCE);
+    }
+
+    /**
      * Create a storage backend using the given <i>memcached</i> client and
      * applying the given cache configuration, serialization, and hashing
      * mechanisms.
@@ -120,6 +133,26 @@ public class MemcachedHttpCacheStorage extends AbstractBinaryCacheStorage<CASVal
      */
     public MemcachedHttpCacheStorage(
             final MemcachedClient client,
+            final CacheConfig config,
+            final HttpCacheEntrySerializer<byte[]> serializer,
+            final KeyHashingScheme keyHashingScheme) {
+        this((MemcachedClientIF) client, config, serializer, keyHashingScheme);
+    }
+
+    /**
+     * Create a storage backend using the given <i>memcached</i> client and
+     * applying the given cache configuration, serialization, and hashing
+     * mechanisms.
+     *
+     * @param client           how to talk to <i>memcached</i>
+     * @param config           apply HTTP cache-related options
+     * @param serializer       alternative serialization mechanism
+     * @param keyHashingScheme how to map higher-level logical "storage keys"
+     *                         onto "cache keys" suitable for use with memcached
+     * @since 5.2
+     */
+    public MemcachedHttpCacheStorage(
+            final MemcachedClientIF client,
             final CacheConfig config,
             final HttpCacheEntrySerializer<byte[]> serializer,
             final KeyHashingScheme keyHashingScheme) {
