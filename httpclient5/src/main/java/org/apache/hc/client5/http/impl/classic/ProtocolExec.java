@@ -39,6 +39,7 @@ import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecChainHandler;
 import org.apache.hc.client5.http.classic.ExecRuntime;
 import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
 import org.apache.hc.client5.http.impl.RequestSupport;
 import org.apache.hc.client5.http.impl.auth.AuthCacheKeeper;
 import org.apache.hc.client5.http.impl.auth.HttpAuthenticator;
@@ -86,6 +87,7 @@ public final class ProtocolExec implements ExecChainHandler {
     private final AuthenticationStrategy targetAuthStrategy;
     private final AuthenticationStrategy proxyAuthStrategy;
     private final HttpAuthenticator authenticator;
+    private final SchemePortResolver schemePortResolver;
     private final AuthCacheKeeper authCacheKeeper;
 
     public ProtocolExec(
@@ -98,7 +100,8 @@ public final class ProtocolExec implements ExecChainHandler {
         this.targetAuthStrategy = Args.notNull(targetAuthStrategy, "Target authentication strategy");
         this.proxyAuthStrategy = Args.notNull(proxyAuthStrategy, "Proxy authentication strategy");
         this.authenticator = new HttpAuthenticator();
-        this.authCacheKeeper = authCachingDisabled ? null : new AuthCacheKeeper(schemePortResolver);
+        this.schemePortResolver = schemePortResolver != null ? schemePortResolver : DefaultSchemePortResolver.INSTANCE;
+        this.authCacheKeeper = authCachingDisabled ? null : new AuthCacheKeeper(this.schemePortResolver);
     }
 
     @Override
@@ -147,7 +150,10 @@ public final class ProtocolExec implements ExecChainHandler {
                 throw new ProtocolException("Request URI authority contains deprecated userinfo component");
             }
 
-            final HttpHost target = new HttpHost(request.getScheme(), request.getAuthority());
+            final HttpHost target = new HttpHost(
+                    request.getScheme(),
+                    authority.getHostName(),
+                    schemePortResolver.resolve(request.getScheme(), authority));
             final String pathPrefix = RequestSupport.extractPathPrefix(request);
 
             final AuthExchange targetAuthExchange = context.getAuthExchange(target);

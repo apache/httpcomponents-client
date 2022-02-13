@@ -29,6 +29,7 @@ package org.apache.hc.client5.http.examples;
 
 import java.util.List;
 
+import org.apache.hc.client5.http.ContextBuilder;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.cookie.BasicCookieStore;
 import org.apache.hc.client5.http.cookie.Cookie;
@@ -51,9 +52,10 @@ public class ClientCustomContext {
             final CookieStore cookieStore = new BasicCookieStore();
 
             // Create local HTTP context
-            final HttpClientContext localContext = HttpClientContext.create();
-            // Bind custom cookie store to the local context
-            localContext.setCookieStore(cookieStore);
+            final HttpClientContext localContext = ContextBuilder.create()
+                    // Bind custom cookie store to the local context
+                    .useCookieStore(cookieStore)
+                    .build();
 
             final HttpGet httpget = new HttpGet("http://httpbin.org/cookies");
             System.out.println("Executing request " + httpget.getMethod() + " " + httpget.getUri());

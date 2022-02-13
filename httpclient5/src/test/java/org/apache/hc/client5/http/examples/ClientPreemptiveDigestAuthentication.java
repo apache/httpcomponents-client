@@ -26,6 +26,7 @@
  */
 package org.apache.hc.client5.http.examples;
 
+import org.apache.hc.client5.http.ContextBuilder;
 import org.apache.hc.client5.http.auth.AuthExchange;
 import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
@@ -52,10 +53,11 @@ public class ClientPreemptiveDigestAuthentication {
 
             final HttpHost target = new HttpHost("http", "httpbin.org", 80);
 
-            final HttpClientContext localContext = HttpClientContext.create();
-            localContext.setCredentialsProvider(CredentialsProviderBuilder.create()
-                    .add(target, new UsernamePasswordCredentials("user", "passwd".toCharArray()))
-                    .build());
+            final HttpClientContext localContext = ContextBuilder.create()
+                    .useCredentialsProvider(CredentialsProviderBuilder.create()
+                            .add(target, new UsernamePasswordCredentials("user", "passwd".toCharArray()))
+                            .build())
+                    .build();
 
             final HttpGet httpget = new HttpGet("http://httpbin.org/digest-auth/auth/user/passwd");
 

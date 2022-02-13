@@ -36,6 +36,7 @@ import java.util.Collections;
 
 import javax.net.ssl.SSLContext;
 
+import org.apache.hc.client5.http.ContextBuilder;
 import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.SystemDefaultDnsResolver;
@@ -231,11 +232,12 @@ public class ClientConfiguration {
             httpget.setConfig(requestConfig);
 
             // Execution context can be customized locally.
-            final HttpClientContext context = HttpClientContext.create();
             // Contextual attributes set the local context level will take
             // precedence over those set at the client level.
-            context.setCookieStore(cookieStore);
-            context.setCredentialsProvider(credentialsProvider);
+            final HttpClientContext context = ContextBuilder.create()
+                    .useCookieStore(cookieStore)
+                    .useCredentialsProvider(credentialsProvider)
+                    .build();
 
             System.out.println("Executing request " + httpget.getMethod() + " " + httpget.getUri());
             httpclient.execute(httpget, context, response -> {
