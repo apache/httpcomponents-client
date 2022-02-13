@@ -32,6 +32,7 @@ import java.util.Iterator;
 
 import org.apache.hc.client5.http.AuthenticationStrategy;
 import org.apache.hc.client5.http.HttpRoute;
+import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.auth.AuthExchange;
 import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
@@ -41,8 +42,10 @@ import org.apache.hc.client5.http.classic.ExecChainHandler;
 import org.apache.hc.client5.http.classic.ExecRuntime;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.AuthSupport;
+import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
 import org.apache.hc.client5.http.impl.auth.HttpAuthenticator;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.client5.http.routing.RoutingSupport;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
@@ -86,15 +89,25 @@ public final class ProtocolExec implements ExecChainHandler {
     private final AuthenticationStrategy targetAuthStrategy;
     private final AuthenticationStrategy proxyAuthStrategy;
     private final HttpAuthenticator authenticator;
+    private final SchemePortResolver schemePortResolver;
+
+    public ProtocolExec(
+            final HttpProcessor httpProcessor,
+            final AuthenticationStrategy targetAuthStrategy,
+            final AuthenticationStrategy proxyAuthStrategy,
+            final SchemePortResolver schemePortResolver) {
+        this.httpProcessor = Args.notNull(httpProcessor, "HTTP protocol processor");
+        this.targetAuthStrategy = Args.notNull(targetAuthStrategy, "Target authentication strategy");
+        this.proxyAuthStrategy = Args.notNull(proxyAuthStrategy, "Proxy authentication strategy");
+        this.schemePortResolver = schemePortResolver != null ? schemePortResolver : DefaultSchemePortResolver.INSTANCE;
+        this.authenticator = new HttpAuthenticator();
+    }
 
     public ProtocolExec(
             final HttpProcessor httpProcessor,
             final AuthenticationStrategy targetAuthStrategy,
             final AuthenticationStrategy proxyAuthStrategy) {
-        this.httpProcessor = Args.notNull(httpProcessor, "HTTP protocol processor");
-        this.targetAuthStrategy = Args.notNull(targetAuthStrategy, "Target authentication strategy");
-        this.proxyAuthStrategy = Args.notNull(proxyAuthStrategy, "Proxy authentication strategy");
-        this.authenticator = new HttpAuthenticator();
+        this(httpProcessor, targetAuthStrategy, proxyAuthStrategy, null);
     }
 
     @Override
@@ -144,7 +157,9 @@ public final class ProtocolExec implements ExecChainHandler {
                 AuthSupport.extractFromAuthority(request.getScheme(), authority, (CredentialsStore) credsProvider);
             }
 
-            final HttpHost target = new HttpHost(request.getScheme(), request.getAuthority());
+            final HttpHost target = RoutingSupport.normalize(
+                    new HttpHost(request.getScheme(), request.getAuthority()),
+                    schemePortResolver);
 
             final AuthExchange targetAuthExchange = context.getAuthExchange(target);
             final AuthExchange proxyAuthExchange = proxy != null ? context.getAuthExchange(proxy) : new AuthExchange();

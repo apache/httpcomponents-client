@@ -851,7 +851,7 @@ public class HttpClientBuilder {
         }
         final HttpProcessor httpProcessor = b.build();
         execChainDefinition.addFirst(
-                new ProtocolExec(httpProcessor, targetAuthStrategyCopy, proxyAuthStrategyCopy),
+                new ProtocolExec(httpProcessor, targetAuthStrategyCopy, proxyAuthStrategyCopy, schemePortResolver),
                 ChainElement.PROTOCOL.name());
 
         // Add request retry executor, if not disabled

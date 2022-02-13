@@ -673,7 +673,7 @@ public class H2AsyncClientBuilder {
 
         final HttpProcessor httpProcessor = b.build();
         execChainDefinition.addFirst(
-                new AsyncProtocolExec(httpProcessor, targetAuthStrategyCopy, proxyAuthStrategyCopy),
+                new AsyncProtocolExec(httpProcessor, targetAuthStrategyCopy, proxyAuthStrategyCopy, schemePortResolver),
                 ChainElement.PROTOCOL.name());
 
         // Add request retry executor, if not disabled

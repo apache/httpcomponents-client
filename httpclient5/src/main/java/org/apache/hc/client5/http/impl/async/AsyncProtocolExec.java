@@ -32,6 +32,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.hc.client5.http.AuthenticationStrategy;
 import org.apache.hc.client5.http.HttpRoute;
+import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.async.AsyncExecCallback;
 import org.apache.hc.client5.http.async.AsyncExecChain;
 import org.apache.hc.client5.http.async.AsyncExecChainHandler;
@@ -42,8 +43,10 @@ import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.CredentialsStore;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.AuthSupport;
+import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
 import org.apache.hc.client5.http.impl.auth.HttpAuthenticator;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.client5.http.routing.RoutingSupport;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
@@ -87,15 +90,25 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
     private final AuthenticationStrategy targetAuthStrategy;
     private final AuthenticationStrategy proxyAuthStrategy;
     private final HttpAuthenticator authenticator;
+    private final SchemePortResolver schemePortResolver;
+
+    AsyncProtocolExec(
+            final HttpProcessor httpProcessor,
+            final AuthenticationStrategy targetAuthStrategy,
+            final AuthenticationStrategy proxyAuthStrategy,
+            final SchemePortResolver schemePortResolver) {
+        this.httpProcessor = Args.notNull(httpProcessor, "HTTP protocol processor");
+        this.targetAuthStrategy = Args.notNull(targetAuthStrategy, "Target authentication strategy");
+        this.proxyAuthStrategy = Args.notNull(proxyAuthStrategy, "Proxy authentication strategy");
+        this.schemePortResolver = schemePortResolver != null ? schemePortResolver : DefaultSchemePortResolver.INSTANCE;
+        this.authenticator = new HttpAuthenticator(LOG);
+    }
 
     AsyncProtocolExec(
             final HttpProcessor httpProcessor,
             final AuthenticationStrategy targetAuthStrategy,
             final AuthenticationStrategy proxyAuthStrategy) {
-        this.httpProcessor = Args.notNull(httpProcessor, "HTTP protocol processor");
-        this.targetAuthStrategy = Args.notNull(targetAuthStrategy, "Target authentication strategy");
-        this.proxyAuthStrategy = Args.notNull(proxyAuthStrategy, "Proxy authentication strategy");
-        this.authenticator = new HttpAuthenticator(LOG);
+        this(httpProcessor, targetAuthStrategy, proxyAuthStrategy, null);
     }
 
     @Override
@@ -158,7 +171,9 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
         final AsyncExecRuntime execRuntime = scope.execRuntime;
 
         final HttpHost proxy = route.getProxyHost();
-        final HttpHost target = new HttpHost(request.getScheme(), request.getAuthority());
+        final HttpHost target = RoutingSupport.normalize(
+                new HttpHost(request.getScheme(), request.getAuthority()),
+                schemePortResolver);
 
         final AuthExchange targetAuthExchange = clientContext.getAuthExchange(target);
         final AuthExchange proxyAuthExchange = proxy != null ? clientContext.getAuthExchange(proxy) : new AuthExchange();
