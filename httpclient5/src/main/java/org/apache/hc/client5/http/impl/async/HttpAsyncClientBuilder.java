@@ -112,6 +112,7 @@ import org.apache.hc.core5.reactor.DefaultConnectingIOReactor;
 import org.apache.hc.core5.reactor.IOEventHandlerFactory;
 import org.apache.hc.core5.reactor.IOReactorConfig;
 import org.apache.hc.core5.reactor.IOSession;
+import org.apache.hc.core5.reactor.IOSessionListener;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.VersionInfo;
@@ -207,6 +208,7 @@ public class HttpAsyncClientBuilder {
     private AsyncClientConnectionManager connManager;
     private boolean connManagerShared;
     private IOReactorConfig ioReactorConfig;
+    private IOSessionListener ioSessionListener; 
     private Callback<Exception> ioReactorExceptionCallback;
     private Http1Config h1Config;
     private H2Config h2Config;
@@ -318,7 +320,15 @@ public class HttpAsyncClientBuilder {
         this.ioReactorConfig = ioReactorConfig;
         return this;
     }
-
+    
+    /**
+     * Sets {@link IOSessionListenerfig} listener.
+     */
+    public final HttpAsyncClientBuilder setIOSessionListener(final IOSessionListener ioSessionListener) {
+        this.ioSessionListener = ioSessionListener;
+        return this;
+    }
+    
     /**
      * Sets the callback that will be invoked when the client's IOReactor encounters an uncaught exception.
      *
@@ -934,7 +944,7 @@ public class HttpAsyncClientBuilder {
                 threadFactory != null ? threadFactory : new DefaultThreadFactory("httpclient-dispatch", true),
                 ioSessionDecorator != null ? ioSessionDecorator : LoggingIOSessionDecorator.INSTANCE,
                 ioReactorExceptionCallback != null ? ioReactorExceptionCallback : LoggingExceptionCallback.INSTANCE,
-                null,
+                ioSessionListener,
                 ioSession -> ioSession.enqueue(new ShutdownCommand(CloseMode.GRACEFUL), Command.Priority.IMMEDIATE));
 
         if (execInterceptors != null) {
