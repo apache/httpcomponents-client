@@ -322,7 +322,9 @@ public class HttpAsyncClientBuilder {
     }
     
     /**
-     * Sets {@link IOSessionListenerfig} listener.
+     * Sets {@link IOSessionListener} listener.
+     * 
+     * @since 5.2
      */
     public final HttpAsyncClientBuilder setIOSessionListener(final IOSessionListener ioSessionListener) {
         this.ioSessionListener = ioSessionListener;

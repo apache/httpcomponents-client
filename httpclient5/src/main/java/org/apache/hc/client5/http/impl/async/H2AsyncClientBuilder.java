@@ -102,6 +102,7 @@ import org.apache.hc.core5.reactor.DefaultConnectingIOReactor;
 import org.apache.hc.core5.reactor.IOEventHandlerFactory;
 import org.apache.hc.core5.reactor.IOReactorConfig;
 import org.apache.hc.core5.reactor.IOSession;
+import org.apache.hc.core5.reactor.IOSessionListener;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.VersionInfo;
@@ -171,6 +172,7 @@ public class H2AsyncClientBuilder {
     }
 
     private IOReactorConfig ioReactorConfig;
+    private IOSessionListener ioSessionListener;
     private H2Config h2Config;
     private CharCodingConfig charCodingConfig;
     private SchemePortResolver schemePortResolver;
@@ -239,6 +241,16 @@ public class H2AsyncClientBuilder {
         return this;
     }
 
+    /**
+     * Sets {@link IOSessionListener} listener.
+     * 
+     * @since 5.2
+     */
+    public final H2AsyncClientBuilder setIOSessionListener(final IOSessionListener ioSessionListener) {
+        this.ioSessionListener = ioSessionListener;
+        return this;
+    }
+    
     /**
      * Sets {@link CharCodingConfig} configuration.
      */
@@ -764,7 +776,7 @@ public class H2AsyncClientBuilder {
                 threadFactory != null ? threadFactory : new DefaultThreadFactory("httpclient-dispatch", true),
                 ioSessionDecorator != null ? ioSessionDecorator : LoggingIOSessionDecorator.INSTANCE,
                 ioReactorExceptionCallback != null ? ioReactorExceptionCallback : LoggingExceptionCallback.INSTANCE,
-                null,
+                ioSessionListener,
                 ioSession -> ioSession.enqueue(new ShutdownCommand(CloseMode.GRACEFUL), Command.Priority.IMMEDIATE));
 
         if (execInterceptors != null) {
