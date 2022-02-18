@@ -208,7 +208,7 @@ public class HttpAsyncClientBuilder {
     private AsyncClientConnectionManager connManager;
     private boolean connManagerShared;
     private IOReactorConfig ioReactorConfig;
-    private IOSessionListener ioSessionListener; 
+    private IOSessionListener ioSessionListener;
     private Callback<Exception> ioReactorExceptionCallback;
     private Http1Config h1Config;
     private H2Config h2Config;
@@ -323,7 +323,7 @@ public class HttpAsyncClientBuilder {
     
     /**
      * Sets {@link IOSessionListener} listener.
-     * 
+     *
      * @since 5.2
      */
     public final HttpAsyncClientBuilder setIOSessionListener(final IOSessionListener ioSessionListener) {

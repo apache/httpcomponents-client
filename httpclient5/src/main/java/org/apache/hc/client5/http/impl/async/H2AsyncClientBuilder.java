@@ -243,7 +243,7 @@ public class H2AsyncClientBuilder {
 
     /**
      * Sets {@link IOSessionListener} listener.
-     * 
+     *
      * @since 5.2
      */
     public final H2AsyncClientBuilder setIOSessionListener(final IOSessionListener ioSessionListener) {
