@@ -320,7 +320,7 @@ public class HttpAsyncClientBuilder {
         this.ioReactorConfig = ioReactorConfig;
         return this;
     }
-    
+
     /**
      * Sets {@link IOSessionListener} listener.
      *
@@ -330,7 +330,7 @@ public class HttpAsyncClientBuilder {
         this.ioSessionListener = ioSessionListener;
         return this;
     }
-    
+
     /**
      * Sets the callback that will be invoked when the client's IOReactor encounters an uncaught exception.
      *

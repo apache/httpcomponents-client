@@ -250,7 +250,7 @@ public class H2AsyncClientBuilder {
         this.ioSessionListener = ioSessionListener;
         return this;
     }
-    
+
     /**
      * Sets {@link CharCodingConfig} configuration.
      */
