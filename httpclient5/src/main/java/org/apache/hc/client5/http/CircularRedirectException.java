@@ -39,7 +39,7 @@ public class CircularRedirectException extends RedirectException {
      * Creates a new CircularRedirectException with a {@code null} detail message.
      */
     public CircularRedirectException() {
-        super(); 
+        super();
     }
 
     /**
