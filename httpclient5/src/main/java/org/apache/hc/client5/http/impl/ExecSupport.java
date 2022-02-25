@@ -26,8 +26,8 @@
  */
 package org.apache.hc.client5.http.impl;
 
+import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicLong;
-
 import org.apache.hc.core5.annotation.Internal;
 
 /**
@@ -45,7 +45,29 @@ public final class ExecSupport {
     }
 
     public static String getNextExchangeId() {
-        return String.format("ex-%010d", COUNT.incrementAndGet());
+        return createId(COUNT.incrementAndGet());
     }
 
+    /**
+     * Create an exchange ID.
+     *
+     * Hand rolled equivalent to `String.format("ex-%010d", value)` optimized to reduce
+     * allocation and CPU overhead.
+     */
+    static String createId(long value) {
+        String longString = Long.toString(value);
+        return "ex-" + zeroPad(10 - longString.length()) + longString;
+    }
+
+    /**
+     * Hand rolled equivalent to JDK 11 `"0".repeat(count)` due to JDK 8 dependency
+     */
+    private static String zeroPad(int leadingZeros) {
+        if (leadingZeros <= 0) {
+            return "";
+        }
+        char[] zeros = new char[leadingZeros];
+        Arrays.fill(zeros, '0');
+        return new String(zeros);
+    }
 }
