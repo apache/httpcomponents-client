@@ -26,23 +26,17 @@
  */
 package org.apache.hc.client5.http.impl;
 
-import org.apache.hc.core5.annotation.Internal;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
-/**
- * Request execution support methods.
- *
- * @since 5.0
- */
-@Internal
-public final class ExecSupport {
+public class IncrementingIdTest {
 
-    private static final IncrementingId INCREMENTING_ID = new IncrementingId("ex-", 10);
-
-    public static long getNextExecNumber() {
-        return INCREMENTING_ID.getNextNumber();
-    }
-
-    public static String getNextExchangeId() {
-        return INCREMENTING_ID.getNextId();
+    @Test
+    public void testCreateId() {
+        final IncrementingId exchangeId = new IncrementingId("ex-", 10);
+        final long base = 9_999_999_000L;
+        for (int i = 0; i <= 1_000_000; i++) {
+            Assertions.assertEquals(String.format("ex-%010d", i + base), exchangeId.createId(base + i));
+        }
     }
 }

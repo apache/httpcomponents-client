@@ -40,14 +40,4 @@ public class ExecSupportTest {
                 ExecSupport.getNextExchangeId());
         }
     }
-
-    @Test
-    public void testCreateId() {
-        final long base = 9_999_999_000L;
-        for (int i = 0; i <= 1_000_000; i++) {
-            Assertions.assertEquals(
-                String.format("ex-%010d", i + base),
-                ExecSupport.createId(base + i));
-        }
-    }
 }
