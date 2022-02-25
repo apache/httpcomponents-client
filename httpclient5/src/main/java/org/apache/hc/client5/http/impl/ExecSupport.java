@@ -54,19 +54,19 @@ public final class ExecSupport {
      * Hand rolled equivalent to `String.format("ex-%010d", value)` optimized to reduce
      * allocation and CPU overhead.
      */
-    static String createId(long value) {
-        String longString = Long.toString(value);
+    static String createId(final long value) {
+        final String longString = Long.toString(value);
         return "ex-" + zeroPad(10 - longString.length()) + longString;
     }
 
     /**
      * Hand rolled equivalent to JDK 11 `"0".repeat(count)` due to JDK 8 dependency
      */
-    private static String zeroPad(int leadingZeros) {
+    private static String zeroPad(final int leadingZeros) {
         if (leadingZeros <= 0) {
             return "";
         }
-        char[] zeros = new char[leadingZeros];
+        final char[] zeros = new char[leadingZeros];
         Arrays.fill(zeros, '0');
         return new String(zeros);
     }
