@@ -29,14 +29,24 @@ package org.apache.hc.client5.http.impl;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class IncrementingIdTest {
+public class PrefixedIncrementingIdTest {
+
+    @Test
+    void testGetNextId() {
+        final PrefixedIncrementingId testId = new PrefixedIncrementingId("test-");
+        Assertions.assertEquals(String.format("test-%010d", 1), testId.getNextId());
+        Assertions.assertEquals(String.format("test-%010d", 2), testId.getNextId());
+    }
 
     @Test
     public void testCreateId() {
-        final IncrementingId exchangeId = new IncrementingId("ex-", 10);
-        final long base = 9_999_999_000L;
-        for (int i = 0; i <= 1_000_000; i++) {
-            Assertions.assertEquals(String.format("ex-%010d", i + base), exchangeId.createId(base + i));
+        final PrefixedIncrementingId exchangeId = new PrefixedIncrementingId("ex-");
+        Assertions.assertEquals(String.format("ex-%010d", 0), exchangeId.createId(0));
+        for (long i = 1; i <= 100_000_000L; i *= 10) {
+            Assertions.assertEquals(String.format("ex-%010d", i - 1), exchangeId.createId(i - 1));
+            Assertions.assertEquals(String.format("ex-%010d", i), exchangeId.createId(i));
+            Assertions.assertEquals(String.format("ex-%010d", i + 1), exchangeId.createId(i + 1));
         }
     }
+
 }

@@ -26,7 +26,6 @@
  */
 package org.apache.hc.client5.http.impl;
 
-import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicLong;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.util.Args;
@@ -37,22 +36,18 @@ import org.apache.hc.core5.util.Args;
  * @since 5.1.4
  */
 @Internal
-public final class IncrementingId {
+public final class PrefixedIncrementingId {
 
     private final AtomicLong count = new AtomicLong(0);
     private final String prefix;
-    private final int numberWidth;
 
     /**
      * Creates an incrementing identifier.
      * @param prefix string prefix for generated IDs
-     * @param numberWidth width of ID number to be zero-padded
      */
-    public IncrementingId(final String prefix, final int numberWidth) {
+    public PrefixedIncrementingId(final String prefix) {
         Args.notNull(prefix, "prefix");
-        Args.notNegative(numberWidth, "numberWidth");
         this.prefix = prefix;
-        this.numberWidth = numberWidth;
     }
 
     public long getNextNumber() {
@@ -71,18 +66,27 @@ public final class IncrementingId {
      */
     String createId(final long value) {
         final String longString = Long.toString(value);
-        return prefix + zeroPad(numberWidth - longString.length()) + longString;
-    }
-
-    /**
-     * Hand rolled equivalent to JDK 11 `"0".repeat(count)` due to JDK 8 dependency
-     */
-    private static String zeroPad(final int leadingZeros) {
-        if (leadingZeros <= 0) {
-            return "";
+        switch (longString.length()) {
+            case 1:
+                return prefix + "000000000" + longString;
+            case 2:
+                return prefix + "00000000" + longString;
+            case 3:
+                return prefix + "0000000" + longString;
+            case 4:
+                return prefix + "000000" + longString;
+            case 5:
+                return prefix + "00000" + longString;
+            case 6:
+                return prefix + "0000" + longString;
+            case 7:
+                return prefix + "000" + longString;
+            case 8:
+                return prefix + "00" + longString;
+            case 9:
+                return prefix + "0" + longString;
+            default:
+                return prefix + longString;
         }
-        final char[] zeros = new char[leadingZeros];
-        Arrays.fill(zeros, '0');
-        return new String(zeros);
     }
 }

@@ -36,7 +36,7 @@ import org.apache.hc.core5.annotation.Internal;
 @Internal
 public final class ExecSupport {
 
-    private static final IncrementingId INCREMENTING_ID = new IncrementingId("ex-", 10);
+    private static final PrefixedIncrementingId INCREMENTING_ID = new PrefixedIncrementingId("ex-");
 
     public static long getNextExecNumber() {
         return INCREMENTING_ID.getNextNumber();

@@ -41,7 +41,7 @@ import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.impl.ConnPoolSupport;
 import org.apache.hc.client5.http.impl.ConnectionShutdownException;
-import org.apache.hc.client5.http.impl.IncrementingId;
+import org.apache.hc.client5.http.impl.PrefixedIncrementingId;
 import org.apache.hc.client5.http.io.ConnectionEndpoint;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.io.HttpClientConnectionOperator;
@@ -605,7 +605,7 @@ public class PoolingHttpClientConnectionManager
                 .build());
     }
 
-    private static final IncrementingId INCREMENTING_ID = new IncrementingId("ep-", 10);
+    private static final PrefixedIncrementingId INCREMENTING_ID = new PrefixedIncrementingId("ep-");
 
     class InternalConnectionEndpoint extends ConnectionEndpoint implements Identifiable {
 
