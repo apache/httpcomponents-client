@@ -39,15 +39,32 @@ import org.apache.hc.core5.util.Args;
 public final class PrefixedIncrementingId {
 
     private final AtomicLong count = new AtomicLong(0);
-    private final String prefix;
+    private final String prefix0;
+    private final String prefix1;
+    private final String prefix2;
+    private final String prefix3;
+    private final String prefix4;
+    private final String prefix5;
+    private final String prefix6;
+    private final String prefix7;
+    private final String prefix8;
+    private final String prefix9;
 
     /**
      * Creates an incrementing identifier.
      * @param prefix string prefix for generated IDs
      */
     public PrefixedIncrementingId(final String prefix) {
-        Args.notNull(prefix, "prefix");
-        this.prefix = prefix;
+        this.prefix0 = Args.notNull(prefix, "prefix");
+        this.prefix1 = prefix0 + '0';
+        this.prefix2 = prefix1 + '0';
+        this.prefix3 = prefix2 + '0';
+        this.prefix4 = prefix3 + '0';
+        this.prefix5 = prefix4 + '0';
+        this.prefix6 = prefix5 + '0';
+        this.prefix7 = prefix6 + '0';
+        this.prefix8 = prefix7 + '0';
+        this.prefix9 = prefix8 + '0';
     }
 
     public long getNextNumber() {
@@ -68,25 +85,25 @@ public final class PrefixedIncrementingId {
         final String longString = Long.toString(value);
         switch (longString.length()) {
             case 1:
-                return prefix + "000000000" + longString;
+                return prefix9 + longString;
             case 2:
-                return prefix + "00000000" + longString;
+                return prefix8 + longString;
             case 3:
-                return prefix + "0000000" + longString;
+                return prefix7 + longString;
             case 4:
-                return prefix + "000000" + longString;
+                return prefix6 + longString;
             case 5:
-                return prefix + "00000" + longString;
+                return prefix5 + longString;
             case 6:
-                return prefix + "0000" + longString;
+                return prefix4 + longString;
             case 7:
-                return prefix + "000" + longString;
+                return prefix3 + longString;
             case 8:
-                return prefix + "00" + longString;
+                return prefix2 + longString;
             case 9:
-                return prefix + "0" + longString;
+                return prefix1 + longString;
             default:
-                return prefix + longString;
+                return prefix0 + longString;
         }
     }
 }
