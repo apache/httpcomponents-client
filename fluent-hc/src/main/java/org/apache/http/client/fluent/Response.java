@@ -26,6 +26,7 @@
  */
 package org.apache.http.client.fluent;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -116,20 +117,26 @@ public class Response {
 
     public void saveContent(final File file) throws IOException {
         assertNotConsumed();
-        final StatusLine statusLine = response.getStatusLine();
-        if (statusLine.getStatusCode() >= 300) {
-            throw new HttpResponseException(statusLine.getStatusCode(),
-                    statusLine.getReasonPhrase());
-        }
-        final FileOutputStream out = new FileOutputStream(file);
         try {
-            final HttpEntity entity = this.response.getEntity();
-            if (entity != null) {
-                entity.writeTo(out);
+            final StatusLine statusLine = response.getStatusLine();
+            if (statusLine.getStatusCode() >= 300) {
+                throw new HttpResponseException(statusLine.getStatusCode(),
+                        statusLine.getReasonPhrase());
+            }
+            final FileOutputStream out = new FileOutputStream(file);
+            try {
+                final HttpEntity entity = this.response.getEntity();
+                if (entity != null) {
+                    entity.writeTo(out);
+                }
+            } finally {
+                out.close();
             }
         } finally {
             this.consumed = true;
-            out.close();
+            if (this.response instanceof Closeable) {
+                ((Closeable) this.response).close();
+            }
         }
     }
 
