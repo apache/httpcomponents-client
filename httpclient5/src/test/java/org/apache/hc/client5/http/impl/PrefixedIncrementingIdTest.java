@@ -26,23 +26,27 @@
  */
 package org.apache.hc.client5.http.impl;
 
-import org.apache.hc.core5.annotation.Internal;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
-/**
- * Request execution support methods.
- *
- * @since 5.0
- */
-@Internal
-public final class ExecSupport {
+public class PrefixedIncrementingIdTest {
 
-    private static final PrefixedIncrementingId INCREMENTING_ID = new PrefixedIncrementingId("ex-");
-
-    public static long getNextExecNumber() {
-        return INCREMENTING_ID.getNextNumber();
+    @Test
+    void testGetNextId() {
+        final PrefixedIncrementingId testId = new PrefixedIncrementingId("test-");
+        Assertions.assertEquals(String.format("test-%010d", 1), testId.getNextId());
+        Assertions.assertEquals(String.format("test-%010d", 2), testId.getNextId());
     }
 
-    public static String getNextExchangeId() {
-        return INCREMENTING_ID.getNextId();
+    @Test
+    public void testCreateId() {
+        final PrefixedIncrementingId exchangeId = new PrefixedIncrementingId("ex-");
+        Assertions.assertEquals(String.format("ex-%010d", 0), exchangeId.createId(0));
+        for (long i = 1; i <= 100_000_000L; i *= 10) {
+            Assertions.assertEquals(String.format("ex-%010d", i - 1), exchangeId.createId(i - 1));
+            Assertions.assertEquals(String.format("ex-%010d", i), exchangeId.createId(i));
+            Assertions.assertEquals(String.format("ex-%010d", i + 1), exchangeId.createId(i + 1));
+        }
     }
+
 }
