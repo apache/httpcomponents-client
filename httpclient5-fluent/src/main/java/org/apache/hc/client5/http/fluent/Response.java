@@ -42,6 +42,7 @@ import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.io.HttpClientResponseHandler;
 import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.io.support.ClassicResponseBuilder;
 
 /**
  * HTTP response used by the fluent facade.
@@ -64,7 +65,7 @@ public class Response {
         }
     }
 
-    private void dispose() {
+    private void dispose() throws IOException {
         if (this.consumed) {
             return;
         }
@@ -76,9 +77,9 @@ public class Response {
                     content.close();
                 }
             }
-        } catch (final Exception ignore) {
         } finally {
             this.consumed = true;
+            this.response.close();
         }
     }
 
@@ -86,7 +87,10 @@ public class Response {
      * Discards response content and deallocates all resources associated with it.
      */
     public void discardContent() {
-        dispose();
+        try {
+            dispose();
+        } catch (final Exception ignore) {
+        }
     }
 
     /**
@@ -111,30 +115,35 @@ public class Response {
         assertNotConsumed();
         try {
             final HttpEntity entity = this.response.getEntity();
-            if (entity != null) {
-                final ByteArrayEntity byteArrayEntity = new ByteArrayEntity(
-                        EntityUtils.toByteArray(entity), ContentType.parse(entity.getContentType()));
-                this.response.setEntity(byteArrayEntity);
-            }
-            return this.response;
+            return ClassicResponseBuilder.copy(response)
+                    .setEntity(entity != null ?
+                            new ByteArrayEntity(
+                                    EntityUtils.toByteArray(entity),
+                                    ContentType.parse(entity.getContentType()))
+                            : null)
+                    .build();
         } finally {
             this.consumed = true;
+            this.response.close();
         }
     }
 
     public void saveContent(final File file) throws IOException {
         assertNotConsumed();
-        final int status = response.getCode();
-        if (status >= HttpStatus.SC_REDIRECTION) {
-            throw new HttpResponseException(status, response.getReasonPhrase());
-        }
-        try (FileOutputStream out = new FileOutputStream(file)) {
-            final HttpEntity entity = this.response.getEntity();
-            if (entity != null) {
-                entity.writeTo(out);
+        try {
+            final int status = response.getCode();
+            if (status >= HttpStatus.SC_REDIRECTION) {
+                throw new HttpResponseException(status, response.getReasonPhrase());
+            }
+            try (FileOutputStream out = new FileOutputStream(file)) {
+                final HttpEntity entity = this.response.getEntity();
+                if (entity != null) {
+                    entity.writeTo(out);
+                }
             }
         } finally {
             this.consumed = true;
+            this.response.close();
         }
     }
 
