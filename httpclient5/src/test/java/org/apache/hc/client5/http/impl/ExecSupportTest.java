@@ -26,23 +26,18 @@
  */
 package org.apache.hc.client5.http.impl;
 
-import org.apache.hc.core5.annotation.Internal;
+import org.junit.Assert;
+import org.junit.Test;
 
-/**
- * Request execution support methods.
- *
- * @since 5.0
- */
-@Internal
-public final class ExecSupport {
+public class ExecSupportTest {
 
-    private static final PrefixedIncrementingId INCREMENTING_ID = new PrefixedIncrementingId("ex-");
-
-    public static long getNextExecNumber() {
-        return INCREMENTING_ID.getNextNumber();
-    }
-
-    public static String getNextExchangeId() {
-        return INCREMENTING_ID.getNextId();
+    @Test
+    public void testGetNextExchangeId() {
+        final long base = ExecSupport.getNextExecNumber();
+        for (int i = 1; i <= 1_000_000; i++) {
+            Assert.assertEquals(
+                String.format("ex-%010d", i + base),
+                ExecSupport.getNextExchangeId());
+        }
     }
 }

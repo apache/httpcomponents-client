@@ -32,7 +32,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.hc.client5.http.DnsResolver;
@@ -40,6 +39,7 @@ import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.impl.ConnPoolSupport;
 import org.apache.hc.client5.http.impl.ConnectionShutdownException;
+import org.apache.hc.client5.http.impl.PrefixedIncrementingId;
 import org.apache.hc.client5.http.io.ConnectionEndpoint;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.io.HttpClientConnectionOperator;
@@ -503,7 +503,7 @@ public class PoolingHttpClientConnectionManager
         this.validateAfterInactivity = validateAfterInactivity;
     }
 
-    private static final AtomicLong COUNT = new AtomicLong(0);
+    private static final PrefixedIncrementingId INCREMENTING_ID = new PrefixedIncrementingId("ep-");
 
     class InternalConnectionEndpoint extends ConnectionEndpoint implements Identifiable {
 
@@ -513,7 +513,7 @@ public class PoolingHttpClientConnectionManager
         InternalConnectionEndpoint(
                 final PoolEntry<HttpRoute, ManagedHttpClientConnection> poolEntry) {
             this.poolEntryRef = new AtomicReference<>(poolEntry);
-            this.id = String.format("ep-%010d", COUNT.getAndIncrement());
+            this.id = INCREMENTING_ID.getNextId();
         }
 
         @Override
