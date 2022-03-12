@@ -47,6 +47,7 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
+import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.reactor.ConnectionInitiator;
 import org.apache.hc.core5.reactor.IOSession;
 import org.apache.hc.core5.reactor.ssl.TransportSecurityLayer;
@@ -75,6 +76,19 @@ final class DefaultAsyncClientConnectionOperator implements AsyncClientConnectio
             final SocketAddress localAddress,
             final Timeout connectTimeout,
             final Object attachment,
+            final FutureCallback<ManagedAsyncClientConnection> callback) {
+        return connect(connectionInitiator, host, localAddress, connectTimeout,
+            attachment, null, callback);
+    }
+
+    @Override
+    public Future<ManagedAsyncClientConnection> connect(
+            final ConnectionInitiator connectionInitiator,
+            final HttpHost host,
+            final SocketAddress localAddress,
+            final Timeout connectTimeout,
+            final Object attachment,
+            final HttpContext context,
             final FutureCallback<ManagedAsyncClientConnection> callback) {
         Args.notNull(connectionInitiator, "Connection initiator");
         Args.notNull(host, "Host");
@@ -141,7 +155,7 @@ final class DefaultAsyncClientConnectionOperator implements AsyncClientConnectio
             final ManagedAsyncClientConnection connection,
             final HttpHost host,
             final Object attachment) {
-        upgrade(connection, host, attachment, null);
+        upgrade(connection, host, attachment, null, null);
     }
 
     @Override
@@ -149,6 +163,16 @@ final class DefaultAsyncClientConnectionOperator implements AsyncClientConnectio
             final ManagedAsyncClientConnection connection,
             final HttpHost host,
             final Object attachment,
+            final HttpContext context) {
+        upgrade(connection, host, attachment, context, null);
+    }
+
+    @Override
+    public void upgrade(
+            final ManagedAsyncClientConnection connection,
+            final HttpHost host,
+            final Object attachment,
+            final HttpContext context,
             final FutureCallback<ManagedAsyncClientConnection> callback) {
         final TlsStrategy tlsStrategy = tlsStrategyLookup != null ? tlsStrategyLookup.lookup(host.getSchemeName()) : null;
         if (tlsStrategy != null) {
