@@ -78,7 +78,7 @@ final class DefaultAsyncClientConnectionOperator implements AsyncClientConnectio
             final Object attachment,
             final FutureCallback<ManagedAsyncClientConnection> callback) {
         return connect(connectionInitiator, host, localAddress, connectTimeout,
-            attachment, callback, null);
+            attachment, null, callback);
     }
 
     @Override
@@ -88,8 +88,8 @@ final class DefaultAsyncClientConnectionOperator implements AsyncClientConnectio
             final SocketAddress localAddress,
             final Timeout connectTimeout,
             final Object attachment,
-            final FutureCallback<ManagedAsyncClientConnection> callback,
-            final HttpContext context) {
+            final HttpContext context,
+            final FutureCallback<ManagedAsyncClientConnection> callback) {
         Args.notNull(connectionInitiator, "Connection initiator");
         Args.notNull(host, "Host");
         final ComplexFuture<ManagedAsyncClientConnection> future = new ComplexFuture<>(callback);
@@ -164,7 +164,7 @@ final class DefaultAsyncClientConnectionOperator implements AsyncClientConnectio
             final HttpHost host,
             final Object attachment,
             final HttpContext context) {
-        upgrade(connection, host, attachment, null, context);
+        upgrade(connection, host, attachment, context, null);
     }
 
     @Override
@@ -172,8 +172,8 @@ final class DefaultAsyncClientConnectionOperator implements AsyncClientConnectio
             final ManagedAsyncClientConnection connection,
             final HttpHost host,
             final Object attachment,
-            final FutureCallback<ManagedAsyncClientConnection> callback,
-            final HttpContext context) {
+            final HttpContext context,
+            final FutureCallback<ManagedAsyncClientConnection> callback) {
         final TlsStrategy tlsStrategy = tlsStrategyLookup != null ? tlsStrategyLookup.lookup(host.getSchemeName()) : null;
         if (tlsStrategy != null) {
             tlsStrategy.upgrade(

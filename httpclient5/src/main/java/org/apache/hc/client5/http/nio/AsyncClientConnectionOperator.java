@@ -78,8 +78,8 @@ public interface AsyncClientConnectionOperator {
      * @param connectTimeout the timeout of the connect operation.
      * @param attachment the attachment, which can be any object representing custom parameter
      *                    of the operation.
-     * @param callback the future result callback.
      * @param context the execution context.
+     * @param callback the future result callback.
      * @since 5.2
      */
     default Future<ManagedAsyncClientConnection> connect(
@@ -88,8 +88,8 @@ public interface AsyncClientConnectionOperator {
             SocketAddress localAddress,
             Timeout connectTimeout,
             Object attachment,
-            FutureCallback<ManagedAsyncClientConnection> callback,
-            HttpContext context) {
+            HttpContext context,
+            FutureCallback<ManagedAsyncClientConnection> callback) {
         return connect(connectionInitiator, host, localAddress, connectTimeout,
             attachment, callback);
     }
@@ -113,16 +113,16 @@ public interface AsyncClientConnectionOperator {
      * @param host the address of the opposite endpoint with TLS security.
      * @param attachment the attachment, which can be any object representing custom parameter
      *                    of the operation.
-     * @param callback the future result callback.
      * @param context the execution context.
+     * @param callback the future result callback.
      * @since 5.2
      */
     default void upgrade(
             ManagedAsyncClientConnection conn,
             HttpHost host,
             Object attachment,
-            FutureCallback<ManagedAsyncClientConnection> callback,
-            HttpContext context) {
+            HttpContext context,
+            FutureCallback<ManagedAsyncClientConnection> callback) {
         upgrade(conn, host, attachment, context);
         if (callback != null) {
             callback.completed(conn);

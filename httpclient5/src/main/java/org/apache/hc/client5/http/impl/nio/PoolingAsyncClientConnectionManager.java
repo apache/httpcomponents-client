@@ -441,6 +441,7 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
                 route.isTunnelled() ? TlsConfig.copy(tlsConfig)
                         .setVersionPolicy(HttpVersionPolicy.FORCE_HTTP_1)
                         .build() : tlsConfig,
+                context,
                 new FutureCallback<ManagedAsyncClientConnection>() {
 
                     @Override
@@ -469,8 +470,7 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
                     public void cancelled() {
                         resultFuture.cancel();
                     }
-                },
-                context);
+                });
         resultFuture.setDependency(connectFuture);
         return resultFuture;
     }
@@ -491,6 +491,7 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
                 poolEntry.getConnection(),
                 route.getTargetHost(),
                 attachment != null ? attachment : tlsConfig,
+                context,
                 new CallbackContribution<ManagedAsyncClientConnection>(callback) {
 
                     @Override
@@ -516,8 +517,7 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
                             }
                         }
                     }
-                },
-                context);
+                });
     }
 
     @Override
