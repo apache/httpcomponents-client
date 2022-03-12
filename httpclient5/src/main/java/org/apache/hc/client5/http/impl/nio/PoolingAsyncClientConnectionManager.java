@@ -469,8 +469,8 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
                     public void cancelled() {
                         resultFuture.cancel();
                     }
-
-                });
+                },
+                context);
         resultFuture.setDependency(connectFuture);
         return resultFuture;
     }
@@ -516,8 +516,8 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
                             }
                         }
                     }
-
-                });
+                },
+                context);
     }
 
     @Override

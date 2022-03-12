@@ -35,6 +35,7 @@ import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.reactor.ConnectionInitiator;
 import org.apache.hc.core5.util.Timeout;
 
@@ -68,6 +69,32 @@ public interface AsyncClientConnectionOperator {
             FutureCallback<ManagedAsyncClientConnection> callback);
 
     /**
+     * Initiates operation to create a connection to the remote endpoint using
+     * the provided {@link ConnectionInitiator}.
+     *
+     * @param connectionInitiator the connection initiator.
+     * @param host the address of the opposite endpoint.
+     * @param localAddress the address of the local endpoint.
+     * @param connectTimeout the timeout of the connect operation.
+     * @param attachment the attachment, which can be any object representing custom parameter
+     *                    of the operation.
+     * @param callback the future result callback.
+     * @param context the execution context.
+     * @since 5.2
+     */
+    default Future<ManagedAsyncClientConnection> connect(
+            ConnectionInitiator connectionInitiator,
+            HttpHost host,
+            SocketAddress localAddress,
+            Timeout connectTimeout,
+            Object attachment,
+            FutureCallback<ManagedAsyncClientConnection> callback,
+            HttpContext context) {
+        return connect(connectionInitiator, host, localAddress, connectTimeout,
+            attachment, callback);
+    }
+
+    /**
      * Upgrades transport security of the given managed connection
      * by using the TLS security protocol.
      *
@@ -86,18 +113,35 @@ public interface AsyncClientConnectionOperator {
      * @param host the address of the opposite endpoint with TLS security.
      * @param attachment the attachment, which can be any object representing custom parameter
      *                    of the operation.
-     *
+     * @param callback the future result callback.
+     * @param context the execution context.
      * @since 5.2
      */
     default void upgrade(
             ManagedAsyncClientConnection conn,
             HttpHost host,
             Object attachment,
-            FutureCallback<ManagedAsyncClientConnection> callback) {
-        upgrade(conn, host, attachment);
+            FutureCallback<ManagedAsyncClientConnection> callback,
+            HttpContext context) {
+        upgrade(conn, host, attachment, context);
         if (callback != null) {
             callback.completed(conn);
         }
+    }
+
+    /**
+     * Upgrades transport security of the given managed connection
+     * by using the TLS security protocol.
+     *
+     * @param conn the managed connection.
+     * @param host the address of the opposite endpoint with TLS security.
+     * @param attachment the attachment, which can be any object representing custom parameter
+     *                    of the operation.
+     * @param context the execution context.
+     * @since 5.2
+     */
+    default void upgrade(ManagedAsyncClientConnection conn, HttpHost host, Object attachment, HttpContext context) {
+        upgrade(conn, host, attachment);
     }
 
 }
