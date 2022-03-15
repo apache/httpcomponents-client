@@ -29,7 +29,6 @@ package org.apache.hc.client5.http.entity.mime;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Reader;
@@ -70,13 +69,7 @@ public class StringBody extends AbstractContentBody {
     @Override
     public void writeTo(final OutputStream out) throws IOException {
         Args.notNull(out, "Output stream");
-        final InputStream in = new ByteArrayInputStream(this.content);
-        final byte[] tmp = new byte[4096];
-        int l;
-        while ((l = in.read(tmp)) != -1) {
-            out.write(tmp, 0, l);
-        }
-        out.flush();
+        out.write(this.content);
     }
 
     @Override
