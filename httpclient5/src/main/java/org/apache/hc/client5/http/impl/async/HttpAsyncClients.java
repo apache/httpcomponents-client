@@ -154,7 +154,7 @@ public final class HttpAsyncClients {
             final AsyncClientConnectionManager connmgr) {
         final AsyncPushConsumerRegistry pushConsumerRegistry = new AsyncPushConsumerRegistry();
         return createMinimalHttpAsyncClientImpl(
-                new HttpAsyncClientEventHandlerFactory(
+                new HttpAsyncClientProtocolNegotiationStarter(
                         createMinimalProtocolProcessor(),
                         (request, context) -> pushConsumerRegistry.get(request),
                         h2Config,
@@ -182,7 +182,7 @@ public final class HttpAsyncClients {
             final AsyncClientConnectionManager connmgr) {
         final AsyncPushConsumerRegistry pushConsumerRegistry = new AsyncPushConsumerRegistry();
         return createMinimalHttpAsyncClientImpl(
-                new HttpAsyncClientEventHandlerFactory(
+                new HttpAsyncClientProtocolNegotiationStarter(
                         createMinimalProtocolProcessor(),
                         (request, context) -> pushConsumerRegistry.get(request),
                         h2Config,
@@ -285,7 +285,7 @@ public final class HttpAsyncClients {
             final TlsStrategy tlsStrategy) {
         final AsyncPushConsumerRegistry pushConsumerRegistry = new AsyncPushConsumerRegistry();
         return createMinimalHttp2AsyncClientImpl(
-                new H2AsyncClientEventHandlerFactory(
+                new H2AsyncClientProtocolStarter(
                         createMinimalProtocolProcessor(),
                         (request, context) -> pushConsumerRegistry.get(request),
                         h2Config,
