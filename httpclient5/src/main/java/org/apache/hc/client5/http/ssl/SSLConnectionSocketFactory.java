@@ -257,7 +257,7 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
             final String target,
             final int port,
             final HttpContext context) throws IOException {
-        return createLayeredSocket(socket, target, port, context);
+        return createLayeredSocket(socket, target, port, null, context);
     }
 
     @Override
