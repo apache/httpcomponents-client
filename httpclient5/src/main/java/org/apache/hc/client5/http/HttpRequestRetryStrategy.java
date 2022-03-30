@@ -75,6 +75,22 @@ public interface HttpRequestRetryStrategy {
      */
     boolean retryRequest(HttpResponse response, int execCount, HttpContext context);
 
+
+    /**
+     * Determines the retry interval between subsequent retries.
+     *
+     * @param request the request failed due to an I/O exception
+     * @param exception the exception that occurred
+     * @param execCount the number of times this method has been
+     *                  unsuccessfully executed
+     * @param context the context for the request execution
+     *
+     * @return the retry interval between subsequent retries
+     */
+    default TimeValue getRetryInterval(HttpRequest request, IOException exception, int execCount, HttpContext context) {
+        return TimeValue.ZERO_MILLISECONDS;
+    }
+
     /**
      * Determines the retry interval between subsequent retries.
      *

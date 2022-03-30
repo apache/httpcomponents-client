@@ -113,6 +113,24 @@ public class HttpRequestRetryExec implements ExecChainHandler {
                         LOG.info("Recoverable I/O exception ({}) caught when processing request to {}",
                                 ex.getClass().getName(), route);
                     }
+                    final TimeValue nextInterval = retryStrategy.getRetryInterval(request, ex, execCount, context);
+                    // Make sure the retry interval does not exceed the response timeout
+                    if (TimeValue.isPositive(nextInterval)) {
+                        final RequestConfig requestConfig = context.getRequestConfig();
+                        final Timeout responseTimeout = requestConfig.getResponseTimeout();
+                        if (responseTimeout != null && nextInterval.compareTo(responseTimeout) > 0) {
+                            throw ex;
+                        }
+                        try {
+                            if (LOG.isDebugEnabled()) {
+                                LOG.debug("{} wait for {}", exchangeId, nextInterval);
+                            }
+                            nextInterval.sleep();
+                        } catch (final InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                            throw new InterruptedIOException();
+                        }
+                    }
                     currentRequest = ClassicRequestBuilder.copy(scope.originalRequest).build();
                     continue;
                 } else {
