@@ -55,7 +55,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.mockito.stubbing.Answer;
 
 @SuppressWarnings({"boxing","static-access"}) // test code
 public class TestMainClientExec {
@@ -181,7 +180,7 @@ public class TestMainClientExec {
                 .setStream(new ByteArrayInputStream(new byte[]{}))
                 .build());
 
-        final ConnectionState connectionState = new ConnectionState();
+
         Mockito.when(execRuntime.execute(
                 Mockito.anyString(),
                 Mockito.same(request),
@@ -245,7 +244,6 @@ public class TestMainClientExec {
                 .setStream(new ByteArrayInputStream(new byte[]{}))
                 .build());
 
-        final ConnectionState connectionState = new ConnectionState();
         Mockito.when(execRuntime.execute(
                 Mockito.anyString(),
                 Mockito.same(request),
@@ -335,25 +333,6 @@ public class TestMainClientExec {
         Assertions.assertThrows(IOException.class, () ->
                 mainClientExec.execute(request, scope, null));
         Mockito.verify(execRuntime).discardEndpoint();
-    }
-
-    static class ConnectionState {
-
-        private boolean connected;
-
-        public Answer<?> connectAnswer() {
-
-            return invocationOnMock -> {
-                connected = true;
-                return null;
-            };
-        }
-
-        public Answer<Boolean> isConnectedAnswer() {
-
-            return invocationOnMock -> connected;
-
-        }
     }
 
 }
