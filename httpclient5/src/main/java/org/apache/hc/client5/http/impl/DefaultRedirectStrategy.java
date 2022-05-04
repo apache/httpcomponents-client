@@ -60,7 +60,7 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
     public boolean isRedirected(
             final HttpRequest request,
             final HttpResponse response,
-            final HttpContext context) throws ProtocolException {
+            final HttpContext context) {
         Args.notNull(request, "HTTP request");
         Args.notNull(response, "HTTP response");
 
