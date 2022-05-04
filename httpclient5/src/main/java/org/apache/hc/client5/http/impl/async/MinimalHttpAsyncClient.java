@@ -164,12 +164,22 @@ public final class MinimalHttpAsyncClient extends AbstractMinimalHttpAsyncClient
 
                                         @Override
                                         public void failed(final Exception ex) {
-                                            resultFuture.failed(ex);
+                                            try {
+                                                Closer.closeQuietly(connectionEndpoint);
+                                                manager.release(connectionEndpoint, null, TimeValue.ZERO_MILLISECONDS);
+                                            } finally {
+                                                resultFuture.failed(ex);
+                                            }
                                         }
 
                                         @Override
                                         public void cancelled() {
-                                            resultFuture.cancel(true);
+                                            try {
+                                                Closer.closeQuietly(connectionEndpoint);
+                                                manager.release(connectionEndpoint, null, TimeValue.ZERO_MILLISECONDS);
+                                            } finally {
+                                                resultFuture.cancel(true);
+                                            }
                                         }
 
                                     });
