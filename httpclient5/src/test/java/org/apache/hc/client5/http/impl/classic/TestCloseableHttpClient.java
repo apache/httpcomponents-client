@@ -134,7 +134,7 @@ public class TestCloseableHttpClient {
 
         Mockito.when(handler.handleResponse(response)).thenThrow(new IOException());
 
-        final IOException exception = Assertions.assertThrows(IOException.class, () ->
+        Assertions.assertThrows(IOException.class, () ->
             client.execute(httpget, handler));
         Mockito.verify(client).doExecute(
                 Mockito.eq(new HttpHost("https", "somehost", 444)),
