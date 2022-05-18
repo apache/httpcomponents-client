@@ -27,11 +27,9 @@
 
 package org.apache.hc.client5.http.entity;
 
-import org.apache.hc.client5.http.classic.HttpClient;
-import org.apache.hc.client5.http.classic.methods.HttpGet;
-import org.apache.hc.client5.http.impl.classic.BasicHttpClientResponseHandler;
-import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
-import org.apache.hc.core5.http.message.BasicHeader;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -44,16 +42,11 @@ public class TestBrotli {
      */
     @Test
     public void testDecompressionWithBrotli() throws Exception {
-        final HttpClient client = HttpClientBuilder.create().build();
-        final HttpGet get = new HttpGet("https://www.baidu.com");
-        get.addHeader(new BasicHeader("Accept", "*/*"));
-        get.addHeader(new BasicHeader("Accept-Encoding", "br"));
-        get.addHeader(new BasicHeader("User-Agent",
-                                      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, "
-                                          + "like Gecko) Chrome/101.0.4951.54 Safari/537.36"));
-        final BasicHttpClientResponseHandler responseHandler = new BasicHttpClientResponseHandler();
-        final String content = client.execute(get, responseHandler);
-        Assertions.assertEquals(content.contains("<!DOCTYPE html"), true);
+
+        final byte[] bytes = new byte[] {33, 44, 0, 4, 116, 101, 115, 116, 32, 98, 114, 111, 116, 108, 105, 10, 3};
+
+        final HttpEntity entity = new BrotliDecompressingEntity(new ByteArrayEntity(bytes, null));
+        Assertions.assertEquals("test brotli\n", EntityUtils.toString(entity));
     }
 
 }
