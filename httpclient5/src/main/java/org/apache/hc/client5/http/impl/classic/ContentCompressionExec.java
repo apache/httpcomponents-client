@@ -34,6 +34,8 @@ import java.util.Locale;
 import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecChainHandler;
 import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.entity.BrotliDecompressingEntity;
+import org.apache.hc.client5.http.entity.BrotliInputStreamFactory;
 import org.apache.hc.client5.http.entity.DecompressingEntity;
 import org.apache.hc.client5.http.entity.DeflateInputStreamFactory;
 import org.apache.hc.client5.http.entity.GZIPInputStreamFactory;
@@ -84,16 +86,32 @@ public final class ContentCompressionExec implements ExecChainHandler {
             final List<String> acceptEncoding,
             final Lookup<InputStreamFactory> decoderRegistry,
             final boolean ignoreUnknown) {
-        this.acceptEncoding = MessageSupport.format(HttpHeaders.ACCEPT_ENCODING,
-            acceptEncoding != null ? acceptEncoding.toArray(
-                    EMPTY_STRING_ARRAY) : new String[] {"gzip", "x-gzip", "deflate"});
 
-        this.decoderRegistry = decoderRegistry != null ? decoderRegistry :
-                RegistryBuilder.<InputStreamFactory>create()
-                        .register("gzip", GZIPInputStreamFactory.getInstance())
-                        .register("x-gzip", GZIPInputStreamFactory.getInstance())
-                        .register("deflate", DeflateInputStreamFactory.getInstance())
-                        .build();
+        final boolean brotliSupported = BrotliDecompressingEntity.isAvailable();
+        final String[] encoding;
+        if (brotliSupported) {
+            encoding = new String[] {"gzip", "x-gzip", "deflate", "br"};
+        } else {
+            encoding = new String[] {"gzip", "x-gzip", "deflate"};
+        }
+        this.acceptEncoding = MessageSupport.format(HttpHeaders.ACCEPT_ENCODING,
+                                                    acceptEncoding != null ? acceptEncoding.toArray(
+                                                        EMPTY_STRING_ARRAY) : encoding);
+
+        if (decoderRegistry != null) {
+            this.decoderRegistry = decoderRegistry;
+        } else {
+            final RegistryBuilder<InputStreamFactory> builder = RegistryBuilder.<InputStreamFactory>create()
+                .register("gzip", GZIPInputStreamFactory.getInstance())
+                .register("x-gzip", GZIPInputStreamFactory.getInstance())
+                .register("deflate", DeflateInputStreamFactory.getInstance());
+            if (brotliSupported) {
+                builder.register("br", BrotliInputStreamFactory.getInstance());
+            }
+            this.decoderRegistry = builder.build();
+        }
+
+
         this.ignoreUnknown = ignoreUnknown;
     }
 
@@ -107,6 +125,7 @@ public final class ContentCompressionExec implements ExecChainHandler {
      * <ul>
      * <li>gzip - see {@link java.util.zip.GZIPInputStream}</li>
      * <li>deflate - see {@link org.apache.hc.client5.http.entity.DeflateInputStream}</li>
+     * <li>brotli - see {@link org.brotli.dec.BrotliInputStream}</li>
      * </ul>
      */
     public ContentCompressionExec() {

@@ -184,6 +184,22 @@ public class TestContentCompressionExec {
     }
 
     @Test
+    public void testBrotliContentEncoding() throws Exception {
+        final ClassicHttpRequest request = new BasicClassicHttpRequest(Method.GET, host, "/");
+        final ClassicHttpResponse response = new BasicClassicHttpResponse(200, "OK");
+        final HttpEntity original = EntityBuilder.create().setText("encoded stuff").setContentEncoding("br").build();
+        response.setEntity(original);
+
+        Mockito.when(execChain.proceed(request, scope)).thenReturn(response);
+
+        impl.execute(request, scope, execChain);
+
+        final HttpEntity entity = response.getEntity();
+        Assertions.assertNotNull(entity);
+        Assertions.assertTrue(entity instanceof DecompressingEntity);
+    }
+
+    @Test
     public void testUnknownContentEncoding() throws Exception {
         final ClassicHttpRequest request = new BasicClassicHttpRequest(Method.GET, host, "/");
         final ClassicHttpResponse response = new BasicClassicHttpResponse(200, "OK");
