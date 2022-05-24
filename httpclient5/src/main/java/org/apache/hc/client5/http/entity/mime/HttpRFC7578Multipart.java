@@ -36,7 +36,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.BitSet;
 import java.util.List;
 
-import org.apache.commons.codec.DecoderException;
 import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.util.ByteArrayBuffer;
 
@@ -129,7 +128,7 @@ class HttpRFC7578Multipart extends AbstractMultipartFormat {
             return buffer.toByteArray();
         }
 
-        public byte[] decode(final byte[] bytes) throws DecoderException {
+        public byte[] decode(final byte[] bytes) throws IllegalArgumentException {
             if (bytes == null) {
                 return null;
             }
@@ -138,7 +137,7 @@ class HttpRFC7578Multipart extends AbstractMultipartFormat {
                 final int b = bytes[i];
                 if (b == ESCAPE_CHAR) {
                     if (i >= bytes.length - 2) {
-                        throw new DecoderException("Invalid URL encoding: too short");
+                        throw new IllegalArgumentException("Invalid URL encoding: too short");
                     }
                     final int u = digit16(bytes[++i]);
                     final int l = digit16(bytes[++i]);
@@ -163,13 +162,13 @@ class HttpRFC7578Multipart extends AbstractMultipartFormat {
      *            The byte to be converted.
      * @return The numeric value represented by the character in radix 16.
      *
-     * @throws DecoderException
+     * @throws IllegalArgumentException
      *             Thrown when the byte is not valid per {@link Character#digit(char,int)}
      */
-    static int digit16(final byte b) throws DecoderException {
+    static int digit16(final byte b) throws IllegalArgumentException {
         final int i = Character.digit((char) b, RADIX);
         if (i == -1) {
-            throw new DecoderException("Invalid URL encoding: not a valid digit (radix " + RADIX + "): " + b);
+            throw new IllegalArgumentException("Invalid URL encoding: not a valid digit (radix " + RADIX + "): " + b);
         }
         return i;
     }

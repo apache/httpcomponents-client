@@ -29,7 +29,6 @@ package org.apache.hc.client5.http.entity.mime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.apache.commons.codec.DecoderException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -37,7 +36,7 @@ public class HttpRFC7578MultipartTest {
 
     @Test
     public void testPercentDecodingWithTooShortMessage() throws Exception {
-        Assertions.assertThrows(DecoderException.class, () ->
+        Assertions.assertThrows(java.lang.IllegalArgumentException.class, () ->
                 new HttpRFC7578Multipart.PercentCodec().decode("%".getBytes()));
     }
 
