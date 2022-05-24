@@ -28,6 +28,8 @@
 package org.apache.hc.client5.http.utils;
 
 
+import org.apache.hc.core5.annotation.Internal;
+
 import java.nio.charset.StandardCharsets;
 
 import static java.util.Base64.getEncoder;
@@ -47,7 +49,7 @@ import static java.util.Base64.getMimeDecoder;
  * </ul>
  * <ul>Only the features currently used by http-client are implemented here rather than all the features of commons-coded</ul>
  */
-
+@Internal
 public class Base64 {
     private static final byte[] EMPTY_BYTES = new byte[0];
 

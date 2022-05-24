@@ -28,6 +28,9 @@
 
 package org.apache.hc.client5.http.utils;
 
+import org.apache.hc.core5.annotation.Internal;
+
+@Internal
 public class Hex {
 
     private Hex() {
