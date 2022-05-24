@@ -137,7 +137,7 @@ class HttpRFC7578Multipart extends AbstractMultipartFormat {
                 final int b = bytes[i];
                 if (b == ESCAPE_CHAR) {
                     if (i >= bytes.length - 2) {
-                        throw new IllegalArgumentException("Invalid URL encoding: too short");
+                        throw new IllegalArgumentException("Invalid encoding: too short");
                     }
                     final int u = digit16(bytes[++i]);
                     final int l = digit16(bytes[++i]);
@@ -165,10 +165,10 @@ class HttpRFC7578Multipart extends AbstractMultipartFormat {
      * @throws IllegalArgumentException
      *             Thrown when the byte is not valid per {@link Character#digit(char,int)}
      */
-    static int digit16(final byte b) throws IllegalArgumentException {
+    static int digit16(final byte b) {
         final int i = Character.digit((char) b, RADIX);
         if (i == -1) {
-            throw new IllegalArgumentException("Invalid URL encoding: not a valid digit (radix " + RADIX + "): " + b);
+            throw new IllegalArgumentException("Invalid encoding: not a valid digit (radix " + RADIX + "): " + b);
         }
         return i;
     }
