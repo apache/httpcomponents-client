@@ -108,21 +108,6 @@ public class TestBase64 {
         checkDecode("BBBBAAA");
     }
 
-    @Test
-    void decodeUrlSafe() {
-        final char underscore = '_';
-        final char minus = '-';
-
-        checkDecode(fourOf(minus));
-        checkDecode(fourOf(underscore));
-    }
-
-    @Test
-    void mixedUrlAndRegularEncoded() {
-        checkDecode("++__");
-        checkDecode("--//");
-    }
-
     String checkEncode(final byte[] toEncode) {
         final String expected = encodeWithCommonsCodec(toEncode);
         final String actual = Base64.encodeBase64String(toEncode);
