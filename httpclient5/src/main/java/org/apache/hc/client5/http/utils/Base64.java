@@ -34,19 +34,19 @@ import static java.util.Base64.getEncoder;
 import static java.util.Base64.getMimeDecoder;
 
 /**
- * Provide implementations of the Base64 conversion methods from commons-codec, delegating to  the Java Base64
+ * Provide implementations of the Base64 conversion methods from Commons Codec, delegating to the Java Base64
  * implementation.
  * <p>
- * * <ul>Only the features currently used by http-client are implemented here rather than all the features of commons-coded</ul>
+ * * <ul>Only the features currently used by HttpClient are implemented here rather than all the features of Commons Codec</ul>
  * Notes:
  * <p>
- * <ul>commons-codec accepts null inputs, so this is also accepted here. This is not done in the Java 8 implementation</ul>
- * <ul>Decoding invalid inputs returns an empty value. The Java 8 implementation throws an exception, which is caught here</ul>
- * <ul>commons-codec decoders accept both standard and url-safe variants of input. As this is not a requirement for
- * httpcommons-client, this is NOT implemented here.
+ * <ul>Commons Codec accepts null inputs, so this is also accepted here. This is not done in the Java 8 implementation</ul>
+ * <ul>Decoding invalid input returns an empty value. The Java 8 implementation throws an exception, which is caught here</ul>
+ * <ul>Commons Codec decoders accept both standard and url-safe variants of input. As this is not a requirement for
+ * HttpClient, this is NOT implemented here.
  * </ul>
  * <p>
- * This class is intended as in interim convenience. Any new code should just use `java.util.Base64` directly.
+ * This class is intended as in interim convenience. Any new code should use `java.util.Base64` directly.
  */
 @Internal
 public class Base64 {
@@ -55,7 +55,7 @@ public class Base64 {
 
     /**
      * Return an instance of the Base64 codec that use the regular Base64 alphabet
-     * (as opposed to the URL-safe alphabet). Note that unlike the commons-codec version,
+     * (as opposed to the URL-safe alphabet). Note that unlike the Commons Codec version,
      * thus class will NOT decode characters from URL-safe alphabet.
      */
     public Base64() {
@@ -64,7 +64,7 @@ public class Base64 {
     /**
      * Creates a Base64 codec used for decoding and encoding in URL-unsafe mode.
      * <p>
-     * As httpcommons-client never uses a non-zero length, this feature is not implemented here.
+     * As HttpClient never uses a non-zero length, this feature is not implemented here.
      */
 
     public Base64(final int lineLength) {
