@@ -128,7 +128,7 @@ class HttpRFC7578Multipart extends AbstractMultipartFormat {
             return buffer.toByteArray();
         }
 
-        public byte[] decode(final byte[] bytes) throws IllegalArgumentException {
+        public byte[] decode(final byte[] bytes) {
             if (bytes == null) {
                 return null;
             }

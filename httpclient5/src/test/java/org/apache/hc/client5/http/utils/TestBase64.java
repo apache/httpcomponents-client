@@ -73,9 +73,9 @@ public class TestBase64 {
 
     @Test
     void validValues() {
-        final byte[] unencodedByes = "Hello World!".getBytes(US_ASCII);
-        checkDecode(unencodedByes, "SGVsbG8gV29ybGQh");
-        checkEncode("SGVsbG8gV29ybGQh", unencodedByes);
+        final byte[] unencodedBytes = "Hello World!".getBytes(US_ASCII);
+        checkDecode(unencodedBytes, "SGVsbG8gV29ybGQh");
+        checkEncode("SGVsbG8gV29ybGQh", unencodedBytes);
     }
 
     @Test
