@@ -138,6 +138,13 @@ public class Base64 {
         }
 
         try {
+
+            // getMimeDecoder is used instead of getDecoder as it better matches the
+            // functionality of the default Commons Codec implementation (primarily more forgiving of strictly
+            // invalid inputs to decode)
+            // Code using java.util.Base64 directly should make a choice based on whether this forgiving nature is
+            // appropriate.
+
             return getMimeDecoder().decode(base64);
         } catch (final IllegalArgumentException e) {
             return EMPTY_BYTES;
