@@ -78,11 +78,6 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>commons-codec</groupId>
-      <artifactId>commons-codec</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>org.brotli</groupId>
       <artifactId>dec</artifactId>
       <optional>true</optional>

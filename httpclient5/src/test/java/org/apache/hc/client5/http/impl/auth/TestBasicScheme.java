@@ -31,9 +31,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.List;
 
-import org.apache.commons.codec.binary.Base64;
 import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.AuthScope;
@@ -55,6 +55,7 @@ import org.junit.jupiter.api.Test;
  * Basic authentication test cases.
  */
 public class TestBasicScheme {
+    private static final Base64.Encoder BASE64_ENC = Base64.getEncoder();
 
     private static AuthChallenge parse(final String s) throws ParseException {
         final CharArrayBuffer buffer = new CharArrayBuffer(s.length());
@@ -90,9 +91,10 @@ public class TestBasicScheme {
         Assertions.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
         final String authResponse = authscheme.generateAuthResponse(host, request, null);
 
-        final String expected = "Basic " + new String(
-                Base64.encodeBase64("testuser:testpass".getBytes(StandardCharsets.US_ASCII)),
-                StandardCharsets.US_ASCII);
+        final byte[] testCreds =  "testuser:testpass".getBytes(StandardCharsets.US_ASCII);
+
+        final String expected = "Basic " + BASE64_ENC.encodeToString(testCreds);
+
         Assertions.assertEquals(expected, authResponse);
         Assertions.assertEquals("test", authscheme.getRealm());
         Assertions.assertTrue(authscheme.isChallengeComplete());

@@ -30,102 +30,91 @@ package org.apache.hc.client5.http.utils;
 
 import org.junit.jupiter.api.Test;
 
+import static java.nio.charset.StandardCharsets.US_ASCII;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class TestBase64 {
 
+    public static final char CHAR_ZERO = 0;
+    public static final String EMPTY_STR = "";
+    public static final byte[] EMPTY_BYTES = new byte[0];
+    public static final String NULL_STR = null;
+    public static final byte[] NULL_BYTE_ARRAY = null;
     public static final String EMOJI = "\uD83D\uDE15";
-    public static final String ACCENT = "\u00E9";
+    public static final char SPACE = ' ';
+
+    private final Base64 target = new Base64();
 
     @Test
     void nullHandling() {
-        checkDecode(null);
-        checkEncode(null);
+        assertNull(target.decode(NULL_STR));
+        assertNull(target.decode(NULL_BYTE_ARRAY));
+        assertNull(Base64.decodeBase64(NULL_STR));
+        assertNull(Base64.decodeBase64(NULL_BYTE_ARRAY));
+
+        assertNull(target.encode(NULL_BYTE_ARRAY));
+        assertNull(Base64.encodeBase64(NULL_BYTE_ARRAY));
+        assertNull(Base64.encodeBase64String(NULL_BYTE_ARRAY));
     }
 
     @Test
     void zeroLength() {
-        checkDecode("");
-        checkEncode(new byte[0]);
+        assertArrayEquals(EMPTY_BYTES, target.decode(EMPTY_STR));
+        assertArrayEquals(EMPTY_BYTES, target.decode(EMPTY_BYTES));
+        assertArrayEquals(EMPTY_BYTES, Base64.decodeBase64(EMPTY_STR));
+        assertArrayEquals(EMPTY_BYTES, Base64.decodeBase64(EMPTY_BYTES));
+
+        assertArrayEquals(EMPTY_BYTES, target.encode(EMPTY_BYTES));
+        assertArrayEquals(EMPTY_BYTES, Base64.encodeBase64(EMPTY_BYTES));
+        assertEquals(EMPTY_STR, Base64.encodeBase64String(EMPTY_BYTES));
     }
 
     @Test
-    void encodeByteValues() {
-        for (int i = 0; i < 256; i++) {
-            final byte[] value = new byte[10];
-            for (int j = 0; j < value.length; j++) {
-                value[j] = (byte) (i + j);
-            }
-            checkEncodeThenDecode(value);
-        }
+    void validValues() {
+        final byte[] unencodedByes = "Hello World!".getBytes(US_ASCII);
+        checkDecode(unencodedByes, "SGVsbG8gV29ybGQh");
+        checkEncode("SGVsbG8gV29ybGQh", unencodedByes);
     }
-
-    @Test
-    void largeValue() {
-        final byte[] longArray = new byte[8000];
-        checkEncodeThenDecode(longArray);
-    }
-
-
-    @Test
-    void varyingLengths() {
-        for (int i = 0; i < 10; i++) {
-            final byte[] value = new byte[i];
-            checkEncodeThenDecode(value);
-        }
-    }
-
 
     @Test
     void decodeIgnoresEmbeddedInvalidChars() {
-        checkDecode("This is\n\nA test\ttest 123\n!\r\ndone");
-        checkDecode("AA AA");
-        checkDecode("AA" + EMOJI + "AA");
-        checkDecode("AA" + ACCENT + "AA");
-        checkDecode(" A A A A ");
+        checkEquivalentDecode(fourOf("A"), " A A A A ");
+        checkEquivalentDecode(fourOf("A"), "AA" + EMOJI + "AA");
     }
 
     @Test
     void decodeInvalid() {
-        final char space = ' ';
-
-        checkDecode(fourOf(EMOJI));
-        checkDecode(fourOf(ACCENT));
-        checkDecode("A");
-        checkDecode("A===");
-        checkDecode(fourOf(space));
-        checkDecode(fourOf('='));
-        checkDecode(fourOf('@'));
-        checkDecode(fourOf((char) 0));
+        checkDecode(EMPTY_BYTES, fourOf(EMOJI));
+        checkDecode(EMPTY_BYTES, "A");
+        checkDecode(EMPTY_BYTES, "A===");
+        checkDecode(EMPTY_BYTES, fourOf(SPACE));
+        checkDecode(EMPTY_BYTES, fourOf('='));
+        checkDecode(EMPTY_BYTES, fourOf('@'));
+        checkDecode(EMPTY_BYTES, fourOf(CHAR_ZERO));
     }
 
     @Test
     void decodeUnpadded() {
-        checkDecode("AA");
-        checkDecode("AAA");
-        checkDecode("BBBBAA");
-        checkDecode("BBBBAAA");
+        checkEquivalentDecode("AA==", "AA");
     }
 
-    String checkEncode(final byte[] toEncode) {
-        final String expected = encodeWithCommonsCodec(toEncode);
-        final String actual = Base64.encodeBase64String(toEncode);
-
-        assertEquals(expected, actual);
-        return actual;
+    private void checkDecode(final byte[] expectedDecoded, final String testInput) {
+        final byte[] decoded = target.decode(testInput);
+        assertArrayEquals(expectedDecoded, decoded);
     }
 
-    void checkDecode(final String encoded) {
-        final byte[] expected = decodeWithCommonsCodec(encoded);
-        final byte[] actual = Base64.decodeBase64(encoded);
-
-        assertArrayEquals(expected, actual);
+    private void checkEncode(final String expectedEncoded, final byte[] testInput) {
+        final byte[] encoded = target.encode(testInput);
+        assertEquals(expectedEncoded, new String(encoded, US_ASCII));
     }
 
-    private void checkEncodeThenDecode(final byte[] longArray) {
-        final String encoded = checkEncode(longArray);
-        checkDecode(encoded);
+    private void checkEquivalentDecode(final String expectedEquivalentTo, final String testInput) {
+        final byte[] decoded = target.decode(testInput);
+
+        final byte[] expectedDecoded = java.util.Base64.getDecoder().decode(expectedEquivalentTo);
+        assertArrayEquals(expectedDecoded, decoded);
     }
 
     private static String fourOf(final char c) {
@@ -135,15 +124,6 @@ public class TestBase64 {
 
     private static String fourOf(final String str) {
         return str + str + str + str;
-    }
-    // baseline methods
-
-    String encodeWithCommonsCodec(final byte[] value) {
-        return org.apache.commons.codec.binary.Base64.encodeBase64String(value);
-    }
-
-    byte[] decodeWithCommonsCodec(final String value) {
-        return org.apache.commons.codec.binary.Base64.decodeBase64(value);
     }
 
 }
