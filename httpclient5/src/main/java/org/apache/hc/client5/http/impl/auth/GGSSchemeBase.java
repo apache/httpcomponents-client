@@ -29,7 +29,7 @@ package org.apache.hc.client5.http.impl.auth;
 import java.net.UnknownHostException;
 import java.security.Principal;
 
-import org.apache.commons.codec.binary.Base64;
+import org.apache.hc.client5.http.utils.Base64;
 import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.SystemDefaultDnsResolver;
 import org.apache.hc.client5.http.auth.AuthChallenge;

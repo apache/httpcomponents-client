@@ -29,7 +29,7 @@ package org.apache.hc.client5.http.impl.cache.memcached;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-import org.apache.commons.codec.binary.Hex;
+import org.apache.hc.client5.http.utils.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

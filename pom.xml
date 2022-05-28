@@ -64,7 +64,6 @@
     <maven.compiler.target>1.8</maven.compiler.target>
     <httpcore.version>5.2-beta1</httpcore.version>
     <log4j.version>2.17.0</log4j.version>
-    <commons-codec.version>1.15</commons-codec.version>
     <brotli.version>0.1.2</brotli.version>
     <conscrypt.version>2.5.2</conscrypt.version>
     <ehcache.version>3.9.6</ehcache.version>
@@ -143,11 +142,6 @@
         <groupId>org.apache.logging.log4j</groupId>
         <artifactId>log4j-core</artifactId>
         <version>${log4j.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>commons-codec</groupId>
-        <artifactId>commons-codec</artifactId>
-        <version>${commons-codec.version}</version>
       </dependency>
       <dependency>
         <groupId>org.brotli</groupId>
@@ -309,6 +303,7 @@
             <excludes>
               <exclude>@org.apache.hc.core5.annotation.Internal</exclude>
             </excludes>
+            <ignoreMissingClasses>true</ignoreMissingClasses>
           </parameter>
         </configuration>
         <executions>
