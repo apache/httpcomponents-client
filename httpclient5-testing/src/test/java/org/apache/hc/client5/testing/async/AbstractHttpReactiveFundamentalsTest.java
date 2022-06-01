@@ -49,6 +49,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
+import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.concurrent.FutureCallback;
@@ -61,17 +63,14 @@ import org.apache.hc.core5.http.nio.AsyncRequestProducer;
 import org.apache.hc.core5.http.nio.support.AsyncRequestBuilder;
 import org.apache.hc.core5.reactive.ReactiveEntityProducer;
 import org.apache.hc.core5.reactive.ReactiveResponseConsumer;
-import org.apache.hc.core5.testing.reactive.ReactiveTestUtils;
-import org.apache.hc.core5.testing.reactive.ReactiveTestUtils.StreamDescription;
+import org.apache.hc.core5.testing.reactive.Reactive3TestUtils;
+import org.apache.hc.core5.testing.reactive.Reactive3TestUtils.StreamDescription;
 import org.apache.hc.core5.util.TextUtils;
 import org.hamcrest.CoreMatchers;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Timeout;
 import org.reactivestreams.Publisher;
-
-import io.reactivex.Flowable;
-import io.reactivex.schedulers.Schedulers;
 
 public abstract class AbstractHttpReactiveFundamentalsTest<T extends CloseableHttpAsyncClient> extends AbstractIntegrationTestBase<T> {
 
@@ -169,8 +168,7 @@ public abstract class AbstractHttpReactiveFundamentalsTest<T extends CloseableHt
                 public void completed(final Message<HttpResponse, Publisher<ByteBuffer>> result) {
                     final Flowable<ByteBuffer> flowable = Flowable.fromPublisher(result.getBody())
                             .observeOn(Schedulers.io()); // Stream the data on an RxJava scheduler, not a client thread
-                    ReactiveTestUtils.consumeStream(flowable)
-                            .subscribe(responses::add);
+                    Reactive3TestUtils.consumeStream(flowable).subscribe(responses::add);
                 }
                 @Override
                 public void failed(final Exception ex) { }
@@ -308,7 +306,7 @@ public abstract class AbstractHttpReactiveFundamentalsTest<T extends CloseableHt
                 final long seed = 198723L * testCaseNum++;
                 final int length = 1 + new Random(seed).nextInt(maxSize);
                 final AtomicReference<String> expectedHash = new AtomicReference<>();
-                final Flowable<ByteBuffer> stream = ReactiveTestUtils.produceStream(length, expectedHash);
+                final Flowable<ByteBuffer> stream = Reactive3TestUtils.produceStream(length, expectedHash);
                 final StreamingTestCase streamingTestCase = new StreamingTestCase(length, expectedHash, stream);
                 testCases.put((long) length, streamingTestCase);
             }
