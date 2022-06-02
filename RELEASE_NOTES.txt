@@ -1,4 +1,109 @@
-﻿Release 5.2 ALPHA1
+﻿Release 5.2 BETA1
+------------------
+
+This is the first BETA release in the 5.2 release series that upgrades minimal JRE
+level to version 8 (8u251 is required) and includes several protocol level and
+API improvements. It also includes all bug fixes from the 5.1 branch.
+
+Notable changes and features included in the 5.2 series:
+
+* Upgrade to Java 8.
+
+* Improved support for TLS upgrade and HTTP protocol upgrade (async).
+
+* Support for H2 tunneling via HTTP/1.1 proxy.
+
+* Conformance to RFC 7617 (The 'Basic' HTTP Authentication Scheme).
+
+* Migration to Java 8 Time primitives in State Management and Cache APIs.
+
+* Base64 codec based on Commons Codec replaced with JRE Base64 codec.
+  Dependency on Commons Codec dropped.
+
+* Optional support for BR (Brotli) decompression.
+
+
+Change Log
+-------------------
+
+* Upgraded HttpCore to version 5.2-beta2.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2218: Use Java 8 Base64 utility (#370).
+  Contributed by j3graham <j3graham@gmail.com>
+
+* Added support for BR (Brotli) decompression (#363).
+  Contributed by 殷成涛 <yinwoods@163.com>
+
+* HTTPCLIENT-2212: MinimalHttpAsyncClient fails to release client endpoints in case of
+  a connect error (such as TLS handshake failure).
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* InternalAbstractHttpAsyncClient to create daemin threads.
+  Contributed by Richard Hernandez <riher at amazon.com>
+
+* HTTPCLIENT-2080: Added #getRetryInterval method to HttpRequestRetryStrategy for use
+  on retriable IOExceptions (#356).
+  Contributed by Anthony Baldocchi <489445+ajbaldocchi at users.noreply.github.com>
+
+* Fixed infinite recursion in SSLConnectionSocketFactory.
+  Contributed by Ryan Schmitt <rschmitt at apache.org>
+
+* HTTPCLIENT-2200: Protocol interceptors are executed before the connection route has
+  been fully established.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2209: Pass HttpContext to AsyncClientConnectionOperator (#353).
+  Contributed by Andriy Redko <drreta at gmail.com>
+
+* HTTPCLIENT-2206: Corrected resource de-allocation by fluent response objects.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* ExecSupport#getNextExchangeId() optimization (#352)
+  Contributed by David Schlosnagle <schlosna at gmail.com>
+
+* HTTPCLIENT-2203: Corrected target host normalization by the request execution interceptors;
+  added ContextBuilder with support for preemptive authentication initialization.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2202: MemcachedHttpCacheStorage to support MemcachedClientIF interface.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Bug fix: ByteArrayBuilder incorrectly handles empty strings.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2198: Fixed AbstractClientTlsStrategy to respect HttpVersionPolicy.
+  Contributed by Andrei Vasilev <59628447+AndreiSVasilev at users.noreply.github.com>
+
+* Updated AbstractClientTlsStrategy to pass only the HttpVersionPolicy set by TlsConfig
+  instead of the entire TlsConfig to H2TlsSupport#selectApplicationProtocols() method.
+  Contributed by Andrei Vasilev <59628447+AndreiSVasilev at users.noreply.github.com>
+
+* HTTPCLIENT-2195, regression: Classic ConnectExec incorrectly discards the proxy response
+  body even if the request cannot be executed and the response is final.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2194: Async retry request interceptor fails to correct include request body
+  on retry (#343).
+  Contributed by JasonMathison <JasonMathison at users.noreply.github.com>
+
+* Deprecated execute methods that return an open response object in favor of execute
+  methods with a response handler and automatic resource deallocation.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2189: Cookie and Cache APIs to use Java time primitives.
+  Contributed by Arturo Bernal <arturobernalg at gmail.com>
+
+* Apply English locale to all date header formatters.
+  Contributed by Michael Osipov <michaelo at apache.org>
+
+* HTTPCLIENT-2184: Fixed an issue in which connections were not returned to the pool
+  when requests contained non-repeatable bodies AND responses were streamed.
+  Contributed by Carter Kozak <ckozak at apache.org>
+
+
+
+Release 5.2 ALPHA1
 ------------------
 
 This is the first ALPHA release in the 5.2 release series that upgrades minimal JRE
