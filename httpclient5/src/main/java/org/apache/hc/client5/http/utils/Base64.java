@@ -28,24 +28,25 @@
 package org.apache.hc.client5.http.utils;
 
 
-import org.apache.hc.core5.annotation.Internal;
-
 import static java.util.Base64.getEncoder;
 import static java.util.Base64.getMimeDecoder;
+
+import org.apache.hc.core5.annotation.Internal;
 
 /**
  * Provide implementations of the Base64 conversion methods from Commons Codec, delegating to the Java Base64
  * implementation.
  * <p>
- * * <ul>Only the features currently used by HttpClient are implemented here rather than all the features of Commons Codec</ul>
+ * Only the features currently used by HttpClient are implemented here rather than all the features of Commons Codec.
+ * <p>
  * Notes:
- * <p>
- * <ul>Commons Codec accepts null inputs, so this is also accepted here. This is not done in the Java 8 implementation</ul>
- * <ul>Decoding invalid input returns an empty value. The Java 8 implementation throws an exception, which is caught here</ul>
- * <ul>Commons Codec decoders accept both standard and url-safe variants of input. As this is not a requirement for
+ * <ul>
+ * <li>Commons Codec accepts null inputs, so this is also accepted here. This is not done in the Java 8 implementation</li>
+ * <li>Decoding invalid input returns an empty value. The Java 8 implementation throws an exception, which is caught here</li>
+ * <li>Commons Codec decoders accept both standard and url-safe variants of input. As this is not a requirement for
  * HttpClient, this is NOT implemented here.
+ * </li>
  * </ul>
- * <p>
  * This class is intended as in interim convenience. Any new code should use `java.util.Base64` directly.
  */
 @Internal
