@@ -84,6 +84,8 @@ public class TestConnectionReuse extends LocalServerTestBase {
             }
         }
 
+        // Expect leased connections to be returned
+        Assertions.assertEquals(0, this.connManager.getTotalStats().getLeased());
         // Expect some connection in the pool
         Assertions.assertTrue(this.connManager.getTotalStats().getAvailable() > 0);
     }
@@ -120,6 +122,8 @@ public class TestConnectionReuse extends LocalServerTestBase {
             }
         }
 
+        // Expect leased connections to be returned
+        Assertions.assertEquals(0, this.connManager.getTotalStats().getLeased());
         // Expect some connection in the pool
         Assertions.assertTrue(this.connManager.getTotalStats().getAvailable() > 0);
     }
@@ -166,6 +170,8 @@ public class TestConnectionReuse extends LocalServerTestBase {
             }
         }
 
+        // Expect leased connections to be returned
+        Assertions.assertEquals(0, this.connManager.getTotalStats().getLeased());
         // Expect zero connections in the pool
         Assertions.assertEquals(0, this.connManager.getTotalStats().getAvailable());
     }
@@ -197,8 +203,10 @@ public class TestConnectionReuse extends LocalServerTestBase {
             }
         }
 
-        // Expect zero connections in the pool
-        Assertions.assertEquals(0, this.connManager.getTotalStats().getAvailable());
+        // Expect leased connections to be returned
+        Assertions.assertEquals(0, this.connManager.getTotalStats().getLeased());
+        // Expect some connections in the pool
+        Assertions.assertTrue(this.connManager.getTotalStats().getAvailable() > 0);
     }
 
     @Test
@@ -242,6 +250,8 @@ public class TestConnectionReuse extends LocalServerTestBase {
             return null;
         });
 
+        // Expect leased connections to be returned
+        Assertions.assertEquals(0, this.connManager.getTotalStats().getLeased());
         Assertions.assertEquals(1, this.connManager.getTotalStats().getAvailable());
     }
 
