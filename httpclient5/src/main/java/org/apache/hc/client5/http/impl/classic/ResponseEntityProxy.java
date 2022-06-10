@@ -177,4 +177,18 @@ class ResponseEntityProxy extends HttpEntityWrapper implements EofSensorWatcher 
             }
     }
 
+    @Override
+    public void close() throws IOException {
+        try {
+            // HttpEntity.close will close the underlying resource. Closing a reusable request stream results in
+            // draining remaining data, allowing for connection reuse.
+            super.close();
+            releaseConnection();
+        } catch (final IOException | RuntimeException ex) {
+            discardConnection();
+            throw ex;
+        } finally {
+            cleanup();
+        }
+    }
 }

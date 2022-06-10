@@ -85,6 +85,8 @@ public class TestConnectionReuse extends LocalServerTestBase {
             }
         }
 
+        // Expect leased connections to be returned
+        Assert.assertEquals(0, this.connManager.getTotalStats().getLeased());
         // Expect some connection in the pool
         Assert.assertTrue(this.connManager.getTotalStats().getAvailable() > 0);
     }
@@ -121,6 +123,8 @@ public class TestConnectionReuse extends LocalServerTestBase {
             }
         }
 
+        // Expect leased connections to be returned
+        Assert.assertEquals(0, this.connManager.getTotalStats().getLeased());
         // Expect some connection in the pool
         Assert.assertTrue(this.connManager.getTotalStats().getAvailable() > 0);
     }
@@ -167,6 +171,8 @@ public class TestConnectionReuse extends LocalServerTestBase {
             }
         }
 
+        // Expect leased connections to be returned
+        Assert.assertEquals(0, this.connManager.getTotalStats().getLeased());
         // Expect zero connections in the pool
         Assert.assertEquals(0, this.connManager.getTotalStats().getAvailable());
     }
@@ -235,6 +241,8 @@ public class TestConnectionReuse extends LocalServerTestBase {
         response = this.httpclient.execute(target, new HttpGet("/random/2000"));
         EntityUtils.consume(response.getEntity());
 
+        // Expect leased connections to be returned
+        Assert.assertEquals(0, this.connManager.getTotalStats().getLeased());
         Assert.assertEquals(1, this.connManager.getTotalStats().getAvailable());
     }
 
