@@ -39,6 +39,8 @@ import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.impl.io.ChunkedInputStream;
 import org.apache.hc.core5.http.impl.io.SessionInputBufferImpl;
 import org.apache.hc.core5.http.io.SessionInputBuffer;
+import org.apache.hc.core5.http.io.entity.BasicHttpEntity;
+import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -104,5 +106,33 @@ public class TestResponseEntityProxy {
         final Header header = headers.get(0);
         Assertions.assertEquals("X-Test-Trailer-Header", header.getName());
         Assertions.assertEquals("test", header.getValue());
+    }
+
+    @Test
+    public void testWriteToNullDrainsAndReleasesStream() throws Exception {
+        final SessionInputBuffer sessionInputBuffer = new SessionInputBufferImpl(100);
+        final ByteArrayInputStream inputStream = new ByteArrayInputStream("0\r\nX-Test-Trailer-Header: test\r\n".getBytes());
+        final ChunkedInputStream chunkedInputStream = new ChunkedInputStream(sessionInputBuffer, inputStream);
+        final CloseableHttpResponse resp = new CloseableHttpResponse(new BasicClassicHttpResponse(200), execRuntime);
+        final HttpEntity entity = new BasicHttpEntity(chunkedInputStream, null, true);
+        Assertions.assertTrue(entity.isStreaming());
+        resp.setEntity(entity);
+
+        ResponseEntityProxy.enhance(resp, execRuntime);
+
+        final HttpEntity wrappedEntity = resp.getEntity();
+
+        wrappedEntity.writeTo(null);
+        Mockito.verify(execRuntime).releaseEndpoint();
+
+        final Supplier<List<? extends Header>> trailers = wrappedEntity.getTrailers();
+        final List<? extends Header> headers = trailers.get();
+
+        Assertions.assertEquals(1, headers.size());
+        final Header header = headers.get(0);
+        Assertions.assertEquals("X-Test-Trailer-Header", header.getName());
+        Assertions.assertEquals("test", header.getValue());
+
+
     }
 }

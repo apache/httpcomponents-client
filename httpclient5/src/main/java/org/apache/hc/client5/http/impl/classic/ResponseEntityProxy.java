@@ -94,9 +94,7 @@ class ResponseEntityProxy extends HttpEntityWrapper implements EofSensorWatcher 
     @Override
     public void writeTo(final OutputStream outStream) throws IOException {
         try {
-            if (outStream != null) {
-                super.writeTo(outStream);
-            }
+            super.writeTo(outStream != null ? outStream : NullOutputStream.INSTANCE);
             releaseConnection();
         } catch (final IOException | RuntimeException ex) {
             discardConnection();
@@ -186,6 +184,45 @@ class ResponseEntityProxy extends HttpEntityWrapper implements EofSensorWatcher 
             throw ex;
         } finally {
             cleanup();
+        }
+    }
+
+    private static final class NullOutputStream extends OutputStream {
+        private static final NullOutputStream INSTANCE = new NullOutputStream();
+
+        private NullOutputStream() {}
+
+        @Override
+        public void write(@SuppressWarnings("unused") final int byteValue) {
+            // no-op
+        }
+
+        @Override
+        public void write(@SuppressWarnings("unused") final byte[] buffer) {
+            // no-op
+        }
+
+        @Override
+        public void write(
+                @SuppressWarnings("unused") final byte[] buffer,
+                @SuppressWarnings("unused") final int off,
+                @SuppressWarnings("unused") final int len) {
+            // no-op
+        }
+
+        @Override
+        public void flush() {
+            // no-op
+        }
+
+        @Override
+        public void close() {
+            // no-op
+        }
+
+        @Override
+        public String toString() {
+            return "NullOutputStream{}";
         }
     }
 }
