@@ -41,6 +41,7 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpResponseInterceptor;
 import org.apache.hc.core5.http.protocol.HttpContext;
@@ -96,7 +97,7 @@ public class ResponseProcessCookies implements HttpResponseInterceptor {
             }
             return;
         }
-        final Iterator<Header> it = response.headerIterator("Set-Cookie");
+        final Iterator<Header> it = response.headerIterator(HttpHeaders.SET_COOKIE);
         processCookies(exchangeId, it, cookieSpec, cookieOrigin, cookieStore);
     }
 

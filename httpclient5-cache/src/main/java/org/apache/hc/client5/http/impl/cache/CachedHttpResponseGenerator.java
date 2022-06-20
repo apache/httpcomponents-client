@@ -116,7 +116,7 @@ class CachedHttpResponseGenerator {
             response.addHeader(etagHeader);
         }
 
-        final Header contentLocationHeader = entry.getFirstHeader("Content-Location");
+        final Header contentLocationHeader = entry.getFirstHeader(HttpHeaders.CONTENT_LOCATION);
         if (contentLocationHeader != null) {
             response.addHeader(contentLocationHeader);
         }

@@ -43,6 +43,7 @@ import org.apache.hc.core5.concurrent.Cancellable;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.function.Resolver;
 import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
@@ -120,7 +121,7 @@ public class DefaultAsyncCacheInvalidator extends CacheInvalidatorBase implement
                         if (LOG.isWarnEnabled()) {
                             LOG.warn("{} is not a valid URI", s);
                         }
-                        final Header clHdr = request.getFirstHeader("Content-Location");
+                        final Header clHdr = request.getFirstHeader(HttpHeaders.CONTENT_LOCATION);
                         if (clHdr != null) {
                             final URI contentLocation = HttpCacheSupport.normalizeQuietly(clHdr.getValue());
                             if (contentLocation != null) {
@@ -129,7 +130,7 @@ public class DefaultAsyncCacheInvalidator extends CacheInvalidatorBase implement
                                 }
                             }
                         }
-                        final Header lHdr = request.getFirstHeader("Location");
+                        final Header lHdr = request.getFirstHeader(HttpHeaders.LOCATION);
                         if (lHdr != null) {
                             final URI location = HttpCacheSupport.normalizeQuietly(lHdr.getValue());
                             if (location != null) {

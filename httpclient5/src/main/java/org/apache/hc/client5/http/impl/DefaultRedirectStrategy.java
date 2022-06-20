@@ -90,7 +90,7 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
         Args.notNull(context, "HTTP context");
 
         //get the location header to find out where to redirect to
-        final Header locationHeader = response.getFirstHeader("location");
+        final Header locationHeader = response.getFirstHeader(HttpHeaders.LOCATION);
         if (locationHeader == null) {
             throw new HttpException("Redirect location is missing");
         }
