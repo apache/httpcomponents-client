@@ -360,9 +360,9 @@ public class CachingExecBase {
      */
     void storeRequestIfModifiedSinceFor304Response(final HttpRequest request, final HttpResponse backendResponse) {
         if (backendResponse.getCode() == HttpStatus.SC_NOT_MODIFIED) {
-            final Header h = request.getFirstHeader("If-Modified-Since");
+            final Header h = request.getFirstHeader(HttpHeaders.IF_MODIFIED_SINCE);
             if (h != null) {
-                backendResponse.addHeader("Last-Modified", h.getValue());
+                backendResponse.addHeader(HttpHeaders.LAST_MODIFIED, h.getValue());
             }
         }
     }
