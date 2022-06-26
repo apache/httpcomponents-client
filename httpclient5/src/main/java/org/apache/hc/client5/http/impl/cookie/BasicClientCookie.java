@@ -269,7 +269,7 @@ public final class BasicClientCookie implements SetCookie, Cloneable, Serializab
     public boolean isExpired(final Date date) {
         Args.notNull(date, "Date");
         return (cookieExpiryDate != null
-            && cookieExpiryDate.toEpochMilli() <= DateUtils.toInstant(date).toEpochMilli());
+            && cookieExpiryDate.compareTo(DateUtils.toInstant(date)) <= 0);
     }
 
     /**
@@ -282,7 +282,7 @@ public final class BasicClientCookie implements SetCookie, Cloneable, Serializab
     public boolean isExpired(final Instant instant) {
         Args.notNull(instant, "Instant");
         return (cookieExpiryDate != null
-                && cookieExpiryDate.toEpochMilli() <= instant.toEpochMilli());
+                && cookieExpiryDate.compareTo(instant) <= 0);
     }
 
     /**
