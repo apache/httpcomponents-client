@@ -59,7 +59,7 @@ public class CookiePriorityComparator implements Comparator<Cookie> {
             final Instant d1 = c1.getCreationInstant();
             final Instant d2 = c2.getCreationInstant();
             if (d1 != null && d2 != null) {
-                return (int) (d1.toEpochMilli() - d2.toEpochMilli());
+                return d1.compareTo(d2);
             }
         }
         return result;
