@@ -192,6 +192,9 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
                     if (requestConfig != null) {
                         clientContext.setRequestConfig(requestConfig);
                     }
+
+                    setupContext(clientContext);
+
                     final HttpRoute route = determineRoute(
                             httpHost != null ? httpHost : RoutingSupport.determineHost(request),
                             clientContext);
@@ -201,8 +204,6 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
                         LOG.debug("{} preparing request execution", exchangeId);
                     }
                     final AsyncExecRuntime execRuntime = createAsyncExecRuntime(pushHandlerFactory, route);
-
-                    setupContext(clientContext);
 
                     final AsyncExecChain.Scheduler scheduler = new AsyncExecChain.Scheduler() {
 
