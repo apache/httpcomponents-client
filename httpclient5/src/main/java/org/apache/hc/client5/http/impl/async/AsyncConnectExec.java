@@ -373,7 +373,6 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
             final AsyncExecChain chain,
             final AsyncExecCallback asyncExecCallback) throws HttpException, IOException {
 
-        final AsyncExecRuntime execRuntime = scope.execRuntime;
         final HttpClientContext clientContext = scope.clientContext;
 
         final AuthExchange proxyAuthExchange = proxy != null ? clientContext.getAuthExchange(proxy) : new AuthExchange();
