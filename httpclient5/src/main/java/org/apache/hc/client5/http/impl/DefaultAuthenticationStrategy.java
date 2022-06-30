@@ -97,9 +97,7 @@ public class DefaultAuthenticationStrategy implements AuthenticationStrategy {
             authPrefs = DEFAULT_SCHEME_PRIORITY;
         }
         if (LOG.isDebugEnabled()) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("{} Authentication schemes in the order of preference: {}", exchangeId, authPrefs);
-            }
+            LOG.debug("{} Authentication schemes in the order of preference: {}", exchangeId, authPrefs);
         }
 
         for (final String schemeName: authPrefs) {
