@@ -48,6 +48,13 @@ import org.apache.hc.core5.util.TextUtils;
 @Contract(threading = ThreadingBehavior.STATELESS)
 public class LaxMaxAgeHandler extends AbstractCookieAttributeHandler implements CommonCookieAttributeHandler {
 
+    /**
+     * Singleton instance.
+     *
+     * @since 5.2
+     */
+    public static final LaxMaxAgeHandler INSTANCE = new LaxMaxAgeHandler();
+
     private final static Pattern MAX_AGE_PATTERN = Pattern.compile("^\\-?[0-9]+$");
 
     public LaxMaxAgeHandler() {

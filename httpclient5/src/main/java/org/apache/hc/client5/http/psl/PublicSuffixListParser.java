@@ -44,6 +44,13 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
 @Contract(threading = ThreadingBehavior.STATELESS)
 public final class PublicSuffixListParser {
 
+    /**
+     * Singleton instance.
+     *
+     * @since 5.2
+     */
+    public static final PublicSuffixListParser INSTANCE = new PublicSuffixListParser();
+
     public PublicSuffixListParser() {
     }
 

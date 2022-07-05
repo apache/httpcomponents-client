@@ -45,6 +45,13 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
 @Contract(threading = ThreadingBehavior.STATELESS)
 public class CookieIdentityComparator implements Serializable, Comparator<Cookie> {
 
+    /**
+     * Singleton instance.
+     *
+     * @since 5.2
+     */
+    public static final CookieIdentityComparator INSTANCE = new CookieIdentityComparator();
+
     private static final long serialVersionUID = 4466565437490631532L;
 
     @Override

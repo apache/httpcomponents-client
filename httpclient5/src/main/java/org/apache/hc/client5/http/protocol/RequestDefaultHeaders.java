@@ -49,6 +49,13 @@ import org.apache.hc.core5.util.Args;
 @Contract(threading = ThreadingBehavior.STATELESS)
 public class RequestDefaultHeaders implements HttpRequestInterceptor {
 
+    /**
+     * Singleton instance.
+     *
+     * @since 5.2
+     */
+    public static final RequestDefaultHeaders INSTANCE = new RequestDefaultHeaders();
+
     private final Collection<? extends Header> defaultHeaders;
 
     /**

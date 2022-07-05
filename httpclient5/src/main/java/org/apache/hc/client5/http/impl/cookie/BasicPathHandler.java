@@ -44,6 +44,13 @@ import org.apache.hc.core5.util.TextUtils;
 @Contract(threading = ThreadingBehavior.STATELESS)
 public class BasicPathHandler implements CommonCookieAttributeHandler {
 
+    /**
+     * Singleton instance.
+     *
+     * @since 5.2
+     */
+    public static final BasicPathHandler INSTANCE = new BasicPathHandler();
+
     public BasicPathHandler() {
         super();
     }

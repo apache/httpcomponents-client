@@ -83,12 +83,12 @@ public class RFC6265CookieSpecFactory implements CookieSpecFactory {
                     switch (this.compatibilityLevel) {
                         case STRICT:
                             this.cookieSpec = new RFC6265StrictSpec(
-                                    new BasicPathHandler(),
+                                    BasicPathHandler.INSTANCE,
                                     PublicSuffixDomainFilter.decorate(
-                                            new BasicDomainHandler(), this.publicSuffixMatcher),
-                                    new BasicMaxAgeHandler(),
-                                    new BasicSecureHandler(),
-                                    new BasicHttpOnlyHandler(),
+                                            BasicDomainHandler.INSTANCE, this.publicSuffixMatcher),
+                                    BasicMaxAgeHandler.INSTANCE,
+                                    BasicSecureHandler.INSTANCE,
+                                    BasicHttpOnlyHandler.INSTANCE,
                                     new BasicExpiresHandler(DateUtils.STANDARD_PATTERNS));
                             break;
                         case IE_MEDIUM_SECURITY:
@@ -102,20 +102,20 @@ public class RFC6265CookieSpecFactory implements CookieSpecFactory {
                                         }
                                     },
                                     PublicSuffixDomainFilter.decorate(
-                                            new BasicDomainHandler(), this.publicSuffixMatcher),
-                                    new BasicMaxAgeHandler(),
-                                    new BasicSecureHandler(),
-                                    new BasicHttpOnlyHandler(),
+                                            BasicDomainHandler.INSTANCE, this.publicSuffixMatcher),
+                                    BasicMaxAgeHandler.INSTANCE,
+                                    BasicSecureHandler.INSTANCE,
+                                    BasicHttpOnlyHandler.INSTANCE,
                                     new BasicExpiresHandler(DateUtils.STANDARD_PATTERNS));
                             break;
                         default:
                             this.cookieSpec = new RFC6265LaxSpec(
-                                    new BasicPathHandler(),
+                                    BasicPathHandler.INSTANCE,
                                     PublicSuffixDomainFilter.decorate(
-                                            new BasicDomainHandler(), this.publicSuffixMatcher),
-                                    new LaxMaxAgeHandler(),
-                                    new BasicSecureHandler(),
-                                    new LaxExpiresHandler());
+                                            BasicDomainHandler.INSTANCE, this.publicSuffixMatcher),
+                                    LaxMaxAgeHandler.INSTANCE,
+                                    BasicSecureHandler.INSTANCE,
+                                    LaxExpiresHandler.INSTANCE);
                     }
                 }
             }

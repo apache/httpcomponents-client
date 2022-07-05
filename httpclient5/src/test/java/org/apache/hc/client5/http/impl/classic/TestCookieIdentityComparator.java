@@ -38,7 +38,7 @@ public class TestCookieIdentityComparator {
 
     @Test
     public void testCookieIdentityComparasionByName() {
-        final CookieIdentityComparator comparator = new CookieIdentityComparator();
+        final CookieIdentityComparator comparator = CookieIdentityComparator.INSTANCE;
         final BasicClientCookie c1 = new BasicClientCookie("name", "value1");
         final BasicClientCookie c2 = new BasicClientCookie("name", "value2");
         Assertions.assertEquals(0, comparator.compare(c1, c2));
@@ -50,7 +50,7 @@ public class TestCookieIdentityComparator {
 
     @Test
     public void testCookieIdentityComparasionByNameAndDomain() {
-        final CookieIdentityComparator comparator = new CookieIdentityComparator();
+        final CookieIdentityComparator comparator = CookieIdentityComparator.INSTANCE;
         final BasicClientCookie c1 = new BasicClientCookie("name", "value1");
         c1.setDomain("www.domain.com");
         final BasicClientCookie c2 = new BasicClientCookie("name", "value2");
@@ -66,7 +66,7 @@ public class TestCookieIdentityComparator {
 
     @Test
     public void testCookieIdentityComparasionByNameAndNullDomain() {
-        final CookieIdentityComparator comparator = new CookieIdentityComparator();
+        final CookieIdentityComparator comparator = CookieIdentityComparator.INSTANCE;
         final BasicClientCookie c1 = new BasicClientCookie("name", "value1");
         c1.setDomain(null);
         final BasicClientCookie c2 = new BasicClientCookie("name", "value2");
@@ -82,7 +82,7 @@ public class TestCookieIdentityComparator {
 
     @Test
     public void testCookieIdentityComparasionByNameDomainAndPath() {
-        final CookieIdentityComparator comparator = new CookieIdentityComparator();
+        final CookieIdentityComparator comparator = CookieIdentityComparator.INSTANCE;
         final BasicClientCookie c1 = new BasicClientCookie("name", "value1");
         c1.setDomain("www.domain.com");
         c1.setPath("/whatever");
@@ -102,7 +102,7 @@ public class TestCookieIdentityComparator {
 
     @Test
     public void testCookieIdentityComparasionByNameDomainAndNullPath() {
-        final CookieIdentityComparator comparator = new CookieIdentityComparator();
+        final CookieIdentityComparator comparator = CookieIdentityComparator.INSTANCE;
         final BasicClientCookie c1 = new BasicClientCookie("name", "value1");
         c1.setDomain("www.domain.com");
         c1.setPath("/");

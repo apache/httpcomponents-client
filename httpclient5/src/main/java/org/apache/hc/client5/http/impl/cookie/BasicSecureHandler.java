@@ -43,6 +43,13 @@ import org.apache.hc.core5.util.Args;
 @Contract(threading = ThreadingBehavior.STATELESS)
 public class BasicSecureHandler extends AbstractCookieAttributeHandler implements CommonCookieAttributeHandler {
 
+    /**
+     * Singleton instance.
+     *
+     * @since 5.2
+     */
+    public static final BasicSecureHandler INSTANCE = new BasicSecureHandler();
+
     public BasicSecureHandler() {
         super();
     }

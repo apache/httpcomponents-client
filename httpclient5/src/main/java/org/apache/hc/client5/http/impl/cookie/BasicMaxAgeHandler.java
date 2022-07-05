@@ -44,6 +44,13 @@ import org.apache.hc.core5.util.Args;
 @Contract(threading = ThreadingBehavior.STATELESS)
 public class BasicMaxAgeHandler extends AbstractCookieAttributeHandler implements CommonCookieAttributeHandler {
 
+    /**
+     * Singleton instance.
+     *
+     * @since 5.2
+     */
+    public static final BasicMaxAgeHandler INSTANCE = new BasicMaxAgeHandler();
+
     public BasicMaxAgeHandler() {
         super();
     }

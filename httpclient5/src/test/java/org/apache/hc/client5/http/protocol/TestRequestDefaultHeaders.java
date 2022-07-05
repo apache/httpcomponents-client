@@ -44,7 +44,7 @@ public class TestRequestDefaultHeaders {
     @Test
     public void testRequestParameterCheck() throws Exception {
         final HttpContext context = new BasicHttpContext();
-        final HttpRequestInterceptor interceptor = new RequestDefaultHeaders();
+        final HttpRequestInterceptor interceptor = RequestDefaultHeaders.INSTANCE;
         Assertions.assertThrows(NullPointerException.class, () ->
                 interceptor.process(null, null, context));
     }

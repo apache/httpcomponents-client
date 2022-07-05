@@ -42,6 +42,13 @@ import org.apache.hc.core5.util.Args;
 public class BasicRouteDirector implements HttpRouteDirector {
 
     /**
+     * Singleton instance.
+     *
+     * @since 5.2
+     */
+    public static final BasicRouteDirector INSTANCE = new BasicRouteDirector();
+
+    /**
      * Provides the next step.
      *
      * @param plan      the planned route
