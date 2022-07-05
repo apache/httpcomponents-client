@@ -805,10 +805,10 @@ public class HttpClientBuilder {
                 new RequestUserAgent(userAgentCopy),
                 new RequestExpectContinue());
         if (!cookieManagementDisabled) {
-            b.add(new RequestAddCookies());
+            b.add(RequestAddCookies.INSTANCE);
         }
         if (!cookieManagementDisabled) {
-            b.add(new ResponseProcessCookies());
+            b.add(ResponseProcessCookies.INSTANCE);
         }
         if (requestInterceptors != null) {
             for (final RequestInterceptorEntry entry: requestInterceptors) {

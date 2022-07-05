@@ -66,7 +66,7 @@ public class TestDefaultHostnameVerifier {
         final ClassLoader classLoader = getClass().getClassLoader();
         final InputStream in = classLoader.getResourceAsStream(PUBLIC_SUFFIX_MATCHER_SOURCE_FILE);
         Assertions.assertNotNull(in);
-        final List<PublicSuffixList> lists = new PublicSuffixListParser().parseByType(
+        final List<PublicSuffixList> lists = PublicSuffixListParser.INSTANCE.parseByType(
                 new InputStreamReader(in, StandardCharsets.UTF_8));
         publicSuffixMatcher = new PublicSuffixMatcher(lists);
 

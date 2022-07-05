@@ -100,7 +100,7 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
         this.proxyAuthStrategy  = proxyAuthStrategy;
         this.authenticator = new HttpAuthenticator();
         this.authCacheKeeper = authCachingDisabled ? null : new AuthCacheKeeper(schemePortResolver);
-        this.routeDirector = new BasicRouteDirector();
+        this.routeDirector = BasicRouteDirector.INSTANCE;
     }
 
     static class State {

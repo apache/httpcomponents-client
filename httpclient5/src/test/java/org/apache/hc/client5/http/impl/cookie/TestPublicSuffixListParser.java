@@ -53,13 +53,13 @@ public class TestPublicSuffixListParser {
         Assertions.assertNotNull(in);
         final PublicSuffixList suffixList;
         try {
-            final PublicSuffixListParser parser = new PublicSuffixListParser();
+            final PublicSuffixListParser parser = PublicSuffixListParser.INSTANCE;
             suffixList = parser.parse(new InputStreamReader(in, StandardCharsets.UTF_8));
         } finally {
             in.close();
         }
         final PublicSuffixMatcher matcher = new PublicSuffixMatcher(suffixList.getRules(), suffixList.getExceptions());
-        this.filter = new PublicSuffixDomainFilter(new BasicDomainHandler(), matcher);
+        this.filter = new PublicSuffixDomainFilter(BasicDomainHandler.INSTANCE, matcher);
     }
 
     @Test

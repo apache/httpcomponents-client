@@ -56,6 +56,13 @@ import org.apache.hc.core5.util.Tokenizer;
 @Contract(threading = ThreadingBehavior.STATELESS)
 public class LaxExpiresHandler extends AbstractCookieAttributeHandler implements CommonCookieAttributeHandler {
 
+    /**
+     * Singleton instance.
+     *
+     * @since 5.2
+     */
+    public static final LaxExpiresHandler INSTANCE = new LaxExpiresHandler();
+
     private static final BitSet DELIMS;
     static {
         final BitSet bitSet = new BitSet();

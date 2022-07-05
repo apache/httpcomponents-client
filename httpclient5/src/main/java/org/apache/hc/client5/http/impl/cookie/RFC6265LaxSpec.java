@@ -43,12 +43,12 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
 public class RFC6265LaxSpec extends RFC6265CookieSpecBase {
 
     public RFC6265LaxSpec() {
-        super(new BasicPathHandler(),
-                new BasicDomainHandler(),
-                new LaxMaxAgeHandler(),
-                new BasicSecureHandler(),
-                new BasicHttpOnlyHandler(),
-                new LaxExpiresHandler());
+        super(BasicPathHandler.INSTANCE,
+                BasicDomainHandler.INSTANCE,
+                LaxMaxAgeHandler.INSTANCE,
+                BasicSecureHandler.INSTANCE,
+                BasicHttpOnlyHandler.INSTANCE,
+                LaxExpiresHandler.INSTANCE);
     }
 
     RFC6265LaxSpec(final CommonCookieAttributeHandler... handlers) {

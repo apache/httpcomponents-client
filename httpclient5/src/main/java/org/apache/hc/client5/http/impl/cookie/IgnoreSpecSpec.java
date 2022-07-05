@@ -45,6 +45,13 @@ import org.apache.hc.core5.http.Header;
 @Contract(threading = ThreadingBehavior.STATELESS)
 public class IgnoreSpecSpec extends CookieSpecBase {
 
+    /**
+     * Singleton instance.
+     *
+     * @since 5.2
+     */
+    public static final IgnoreSpecSpec INSTANCE = new IgnoreSpecSpec();
+
     @Override
     public List<Cookie> parse(final Header header, final CookieOrigin origin)
             throws MalformedCookieException {

@@ -101,7 +101,7 @@ public final class ConnectExec implements ExecChainHandler {
         this.proxyAuthStrategy = proxyAuthStrategy;
         this.authenticator = new HttpAuthenticator();
         this.authCacheKeeper = authCachingDisabled ? null : new AuthCacheKeeper(schemePortResolver);
-        this.routeDirector = new BasicRouteDirector();
+        this.routeDirector = BasicRouteDirector.INSTANCE;
     }
 
     @Override

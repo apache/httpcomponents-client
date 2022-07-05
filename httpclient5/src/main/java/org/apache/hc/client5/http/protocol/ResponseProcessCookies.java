@@ -58,6 +58,13 @@ import org.slf4j.LoggerFactory;
 @Contract(threading = ThreadingBehavior.STATELESS)
 public class ResponseProcessCookies implements HttpResponseInterceptor {
 
+    /**
+     * Singleton instance.
+     *
+     * @since 5.2
+     */
+    public static final ResponseProcessCookies INSTANCE = new ResponseProcessCookies();
+
     private static final Logger LOG = LoggerFactory.getLogger(ResponseProcessCookies.class);
 
     public ResponseProcessCookies() {

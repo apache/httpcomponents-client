@@ -48,6 +48,14 @@ import org.apache.hc.core5.util.TextUtils;
 @Contract(threading = ThreadingBehavior.STATELESS)
 public class BasicDomainHandler implements CommonCookieAttributeHandler {
 
+
+    /**
+     * Singleton instance.
+     *
+     * @since 5.2
+     */
+    public static final BasicDomainHandler INSTANCE = new BasicDomainHandler();
+
     public BasicDomainHandler() {
         super();
     }

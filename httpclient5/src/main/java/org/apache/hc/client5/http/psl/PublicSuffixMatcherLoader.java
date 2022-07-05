@@ -53,7 +53,7 @@ public final class PublicSuffixMatcherLoader {
     private static final Logger LOG = LoggerFactory.getLogger(PublicSuffixMatcherLoader.class);
 
     private static PublicSuffixMatcher load(final InputStream in) throws IOException {
-        final List<PublicSuffixList> lists = new PublicSuffixListParser().parseByType(
+        final List<PublicSuffixList> lists = PublicSuffixListParser.INSTANCE.parseByType(
                 new InputStreamReader(in, StandardCharsets.UTF_8));
         return new PublicSuffixMatcher(lists);
     }

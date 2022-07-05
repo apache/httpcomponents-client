@@ -43,6 +43,13 @@ import org.apache.hc.core5.util.Args;
 @Contract(threading = ThreadingBehavior.STATELESS)
 public class BasicHttpOnlyHandler implements CommonCookieAttributeHandler {
 
+    /**
+     * Singleton instance.
+     *
+     * @since 5.2
+     */
+    public static final BasicHttpOnlyHandler INSTANCE = new BasicHttpOnlyHandler();
+
     public BasicHttpOnlyHandler() {
         super();
     }

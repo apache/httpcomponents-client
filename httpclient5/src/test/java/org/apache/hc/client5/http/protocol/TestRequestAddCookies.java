@@ -87,7 +87,7 @@ public class TestRequestAddCookies {
     @Test
     public void testRequestParameterCheck() throws Exception {
         final HttpClientContext context = HttpClientContext.create();
-        final HttpRequestInterceptor interceptor = new RequestAddCookies();
+        final HttpRequestInterceptor interceptor = RequestAddCookies.INSTANCE;
         Assertions.assertThrows(NullPointerException.class, () ->
                 interceptor.process(null, null, context));
     }
@@ -95,7 +95,7 @@ public class TestRequestAddCookies {
     @Test
     public void testContextParameterCheck() throws Exception {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
-        final HttpRequestInterceptor interceptor = new RequestAddCookies();
+        final HttpRequestInterceptor interceptor = RequestAddCookies.INSTANCE;
         Assertions.assertThrows(NullPointerException.class, () ->
                 interceptor.process(request, null, null));
     }
@@ -111,7 +111,7 @@ public class TestRequestAddCookies {
         context.setAttribute(HttpClientContext.COOKIE_STORE, this.cookieStore);
         context.setAttribute(HttpClientContext.COOKIESPEC_REGISTRY, this.cookieSpecRegistry);
 
-        final HttpRequestInterceptor interceptor = new RequestAddCookies();
+        final HttpRequestInterceptor interceptor = RequestAddCookies.INSTANCE;
         interceptor.process(request, null, context);
 
         final Header[] headers = request.getHeaders("Cookie");
@@ -138,7 +138,7 @@ public class TestRequestAddCookies {
         context.setAttribute(HttpClientContext.COOKIE_STORE, this.cookieStore);
         context.setAttribute(HttpClientContext.COOKIESPEC_REGISTRY, this.cookieSpecRegistry);
 
-        final HttpRequestInterceptor interceptor = new RequestAddCookies();
+        final HttpRequestInterceptor interceptor = RequestAddCookies.INSTANCE;
         interceptor.process(request, null, context);
 
         final Header[] headers = request.getHeaders("Cookie");
@@ -157,7 +157,7 @@ public class TestRequestAddCookies {
         context.setAttribute(HttpClientContext.COOKIE_STORE, null);
         context.setAttribute(HttpClientContext.COOKIESPEC_REGISTRY, this.cookieSpecRegistry);
 
-        final HttpRequestInterceptor interceptor = new RequestAddCookies();
+        final HttpRequestInterceptor interceptor = RequestAddCookies.INSTANCE;
         interceptor.process(request, null, context);
 
         final Header[] headers = request.getHeaders("Cookie");
@@ -176,7 +176,7 @@ public class TestRequestAddCookies {
         context.setAttribute(HttpClientContext.COOKIE_STORE, this.cookieStore);
         context.setAttribute(HttpClientContext.COOKIESPEC_REGISTRY, null);
 
-        final HttpRequestInterceptor interceptor = new RequestAddCookies();
+        final HttpRequestInterceptor interceptor = RequestAddCookies.INSTANCE;
         interceptor.process(request, null, context);
 
         final Header[] headers = request.getHeaders("Cookie");
@@ -193,7 +193,7 @@ public class TestRequestAddCookies {
         context.setAttribute(HttpClientContext.COOKIE_STORE, this.cookieStore);
         context.setAttribute(HttpClientContext.COOKIESPEC_REGISTRY, this.cookieSpecRegistry);
 
-        final HttpRequestInterceptor interceptor = new RequestAddCookies();
+        final HttpRequestInterceptor interceptor = RequestAddCookies.INSTANCE;
         interceptor.process(request, null, context);
 
         final Header[] headers = request.getHeaders("Cookie");
@@ -215,7 +215,7 @@ public class TestRequestAddCookies {
         context.setAttribute(HttpClientContext.COOKIE_STORE, this.cookieStore);
         context.setAttribute(HttpClientContext.COOKIESPEC_REGISTRY, this.cookieSpecRegistry);
 
-        final HttpRequestInterceptor interceptor = new RequestAddCookies();
+        final HttpRequestInterceptor interceptor = RequestAddCookies.INSTANCE;
         interceptor.process(request, null, context);
 
         final CookieSpec cookieSpec = context.getCookieSpec();
@@ -238,7 +238,7 @@ public class TestRequestAddCookies {
         context.setAttribute(HttpClientContext.COOKIE_STORE, this.cookieStore);
         context.setAttribute(HttpClientContext.COOKIESPEC_REGISTRY, this.cookieSpecRegistry);
 
-        final HttpRequestInterceptor interceptor = new RequestAddCookies();
+        final HttpRequestInterceptor interceptor = RequestAddCookies.INSTANCE;
         interceptor.process(request, null, context);
     }
 
@@ -254,7 +254,7 @@ public class TestRequestAddCookies {
         context.setAttribute(HttpClientContext.COOKIE_STORE, this.cookieStore);
         context.setAttribute(HttpClientContext.COOKIESPEC_REGISTRY, this.cookieSpecRegistry);
 
-        final HttpRequestInterceptor interceptor = new RequestAddCookies();
+        final HttpRequestInterceptor interceptor = RequestAddCookies.INSTANCE;
         interceptor.process(request, null, context);
 
         final CookieOrigin cookieOrigin = context.getCookieOrigin();
@@ -278,7 +278,7 @@ public class TestRequestAddCookies {
         context.setAttribute(HttpClientContext.COOKIE_STORE, this.cookieStore);
         context.setAttribute(HttpClientContext.COOKIESPEC_REGISTRY, this.cookieSpecRegistry);
 
-        final HttpRequestInterceptor interceptor = new RequestAddCookies();
+        final HttpRequestInterceptor interceptor = RequestAddCookies.INSTANCE;
         interceptor.process(request, null, context);
 
         final CookieOrigin cookieOrigin = context.getCookieOrigin();
@@ -303,7 +303,7 @@ public class TestRequestAddCookies {
         context.setAttribute(HttpClientContext.COOKIE_STORE, this.cookieStore);
         context.setAttribute(HttpClientContext.COOKIESPEC_REGISTRY, this.cookieSpecRegistry);
 
-        final HttpRequestInterceptor interceptor = new RequestAddCookies();
+        final HttpRequestInterceptor interceptor = RequestAddCookies.INSTANCE;
         interceptor.process(request, null, context);
 
         final CookieOrigin cookieOrigin = context.getCookieOrigin();
@@ -338,7 +338,7 @@ public class TestRequestAddCookies {
         // Make sure the third cookie expires
         Thread.sleep(200);
 
-        final HttpRequestInterceptor interceptor = new RequestAddCookies();
+        final HttpRequestInterceptor interceptor = RequestAddCookies.INSTANCE;
         interceptor.process(request, null, context);
 
         final Header[] headers = request.getHeaders("Cookie");
@@ -366,7 +366,7 @@ public class TestRequestAddCookies {
         context.setAttribute(HttpClientContext.COOKIE_STORE, this.cookieStore);
         context.setAttribute(HttpClientContext.COOKIESPEC_REGISTRY, this.cookieSpecRegistry);
 
-        final HttpRequestInterceptor interceptor = new RequestAddCookies();
+        final HttpRequestInterceptor interceptor = RequestAddCookies.INSTANCE;
         interceptor.process(request, null, context);
 
         final Header[] headers = request.getHeaders("Cookie");
@@ -401,7 +401,7 @@ public class TestRequestAddCookies {
         context.setAttribute(HttpClientContext.COOKIE_STORE, this.cookieStore);
         context.setAttribute(HttpClientContext.COOKIESPEC_REGISTRY, this.cookieSpecRegistry);
 
-        final HttpRequestInterceptor interceptor = new RequestAddCookies();
+        final HttpRequestInterceptor interceptor = RequestAddCookies.INSTANCE;
         interceptor.process(request, null, context);
 
         final Header[] headers1 = request.getHeaders("Cookie");

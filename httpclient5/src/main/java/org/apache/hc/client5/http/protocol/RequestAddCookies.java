@@ -66,6 +66,13 @@ import org.slf4j.LoggerFactory;
 @Contract(threading = ThreadingBehavior.STATELESS)
 public class RequestAddCookies implements HttpRequestInterceptor {
 
+    /**
+     * Singleton instance.
+     *
+     * @since 5.2
+     */
+    public static final RequestAddCookies INSTANCE = new RequestAddCookies();
+
     private static final Logger LOG = LoggerFactory.getLogger(RequestAddCookies.class);
 
     public RequestAddCookies() {
