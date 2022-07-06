@@ -33,25 +33,10 @@ import org.apache.hc.core5.concurrent.FutureCallback;
  * @since 5.2
  */
 @Deprecated
-public class IgnoreCompleteExceptonFutureCallback<T> extends IgnoreCompleteExceptionFutureCallback<T> implements FutureCallback<T> {
+public class IgnoreCompleteExceptonFutureCallback<T> extends IgnoreCompleteExceptionFutureCallback<T> {
 
     public IgnoreCompleteExceptonFutureCallback(final FutureCallback<T> callback) {
         super(callback);
-    }
-
-    @Override
-    public void completed(final T result) {
-        super.completed(result);
-    }
-
-    @Override
-    public void failed(final Exception ex) {
-        super.failed(ex);
-    }
-
-    @Override
-    public void cancelled() {
-       super.cancelled();
     }
 
 }

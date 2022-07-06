@@ -163,7 +163,7 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
         final HttpRoute route = scope.route;
         final HttpClientContext context = scope.clientContext;
         context.setAttribute(HttpClientContext.HTTP_ROUTE, scope.route);
-        context.setAttribute(HttpClientContext.HTTP_REQUEST, request);
+        context.setAttribute(HttpCoreContext.HTTP_REQUEST, request);
 
         final URIAuthority authority = request.getAuthority();
         final String scheme = request.getScheme();

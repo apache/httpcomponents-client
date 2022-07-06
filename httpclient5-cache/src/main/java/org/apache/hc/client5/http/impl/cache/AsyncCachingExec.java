@@ -215,7 +215,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
         final CancellableDependency operation = scope.cancellableDependency;
         final HttpClientContext context = scope.clientContext;
         context.setAttribute(HttpClientContext.HTTP_ROUTE, route);
-        context.setAttribute(HttpClientContext.HTTP_REQUEST, request);
+        context.setAttribute(HttpCoreContext.HTTP_REQUEST, request);
 
         final URIAuthority authority = request.getAuthority();
         final String scheme = request.getScheme();
