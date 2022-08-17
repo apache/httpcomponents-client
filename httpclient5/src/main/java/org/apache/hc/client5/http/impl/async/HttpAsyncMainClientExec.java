@@ -126,7 +126,9 @@ class HttpAsyncMainClientExec implements AsyncExecChainHandler {
 
             @Override
             public void cancel() {
-                failed(new InterruptedIOException());
+                if (messageCountDown.get() > 0) {
+                    failed(new InterruptedIOException());
+                }
             }
 
             @Override
