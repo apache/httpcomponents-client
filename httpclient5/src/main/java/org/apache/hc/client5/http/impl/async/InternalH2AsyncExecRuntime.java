@@ -40,6 +40,7 @@ import org.apache.hc.core5.concurrent.Cancellable;
 import org.apache.hc.core5.concurrent.ComplexCancellable;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.nio.AsyncClientExchangeHandler;
 import org.apache.hc.core5.http.nio.AsyncPushConsumer;
 import org.apache.hc.core5.http.nio.HandlerFactory;
@@ -101,6 +102,7 @@ class InternalH2AsyncExecRuntime implements AsyncExecRuntime {
                             if (log.isDebugEnabled()) {
                                 log.debug("{} acquired endpoint", id);
                             }
+                            context.setProtocolVersion(HttpVersion.HTTP_2);
                             callback.completed(InternalH2AsyncExecRuntime.this);
                         }
 
