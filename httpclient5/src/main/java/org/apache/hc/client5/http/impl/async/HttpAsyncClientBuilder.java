@@ -102,7 +102,6 @@ import org.apache.hc.core5.http.nio.HandlerFactory;
 import org.apache.hc.core5.http.nio.command.ShutdownCommand;
 import org.apache.hc.core5.http.protocol.DefaultHttpProcessor;
 import org.apache.hc.core5.http.protocol.HttpContext;
-import org.apache.hc.core5.http.protocol.HttpProcessor;
 import org.apache.hc.core5.http.protocol.HttpProcessorBuilder;
 import org.apache.hc.core5.http.protocol.RequestTargetHost;
 import org.apache.hc.core5.http.protocol.RequestUserAgent;
@@ -817,24 +816,9 @@ public class HttpAsyncClientBuilder {
         if (!cookieManagementDisabled) {
             b.add(new ResponseProcessCookies());
         }
-        if (requestInterceptors != null) {
-            for (final RequestInterceptorEntry entry: requestInterceptors) {
-                if (entry.position == RequestInterceptorEntry.Position.LAST) {
-                    b.addLast(entry.interceptor);
-                }
-            }
-        }
-        if (responseInterceptors != null) {
-            for (final ResponseInterceptorEntry entry: responseInterceptors) {
-                if (entry.position == ResponseInterceptorEntry.Position.LAST) {
-                    b.addLast(entry.interceptor);
-                }
-            }
-        }
 
-        final HttpProcessor httpProcessor = b.build();
         execChainDefinition.addFirst(
-                new AsyncProtocolExec(httpProcessor, targetAuthStrategyCopy, proxyAuthStrategyCopy, schemePortResolver),
+                new AsyncProtocolExec(b.build(), targetAuthStrategyCopy, proxyAuthStrategyCopy, schemePortResolver),
                 ChainElement.PROTOCOL.name());
 
         // Add request retry executor, if not disabled
@@ -922,9 +906,27 @@ public class HttpAsyncClientBuilder {
                 reuseStrategyCopy = DefaultClientConnectionReuseStrategy.INSTANCE;
             }
         }
+
+        final HttpProcessorBuilder b2 = HttpProcessorBuilder.create();
+        b2.addAll(new H2RequestContent(), new H2RequestTargetHost(), new H2RequestConnControl());
+        if (requestInterceptors != null) {
+            for (final RequestInterceptorEntry entry: requestInterceptors) {
+                if (entry.position == RequestInterceptorEntry.Position.LAST) {
+                    b2.addLast(entry.interceptor);
+                }
+            }
+        }
+        if (responseInterceptors != null) {
+            for (final ResponseInterceptorEntry entry: responseInterceptors) {
+                if (entry.position == ResponseInterceptorEntry.Position.LAST) {
+                    b2.addLast(entry.interceptor);
+                }
+            }
+        }
+
         final AsyncPushConsumerRegistry pushConsumerRegistry = new AsyncPushConsumerRegistry();
         final IOEventHandlerFactory ioEventHandlerFactory = new HttpAsyncClientEventHandlerFactory(
-                new DefaultHttpProcessor(new H2RequestContent(), new H2RequestTargetHost(), new H2RequestConnControl()),
+                b2.build(),
                 new HandlerFactory<AsyncPushConsumer>() {
 
                     @Override

@@ -44,8 +44,8 @@ import org.apache.hc.client5.http.HttpRequestRetryStrategy;
 import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.async.AsyncExecChainHandler;
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
-import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
+import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.cookie.BasicCookieStore;
 import org.apache.hc.client5.http.cookie.CookieSpecFactory;
@@ -93,7 +93,6 @@ import org.apache.hc.core5.http.nio.command.ShutdownCommand;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
 import org.apache.hc.core5.http.protocol.DefaultHttpProcessor;
 import org.apache.hc.core5.http.protocol.HttpContext;
-import org.apache.hc.core5.http.protocol.HttpProcessor;
 import org.apache.hc.core5.http.protocol.HttpProcessorBuilder;
 import org.apache.hc.core5.http.protocol.RequestTargetHost;
 import org.apache.hc.core5.http.protocol.RequestUserAgent;
@@ -656,24 +655,9 @@ public class H2AsyncClientBuilder {
         if (!cookieManagementDisabled) {
             b.add(new ResponseProcessCookies());
         }
-        if (requestInterceptors != null) {
-            for (final RequestInterceptorEntry entry: requestInterceptors) {
-                if (entry.position == RequestInterceptorEntry.Position.LAST) {
-                    b.addLast(entry.interceptor);
-                }
-            }
-        }
-        if (responseInterceptors != null) {
-            for (final ResponseInterceptorEntry entry: responseInterceptors) {
-                if (entry.position == ResponseInterceptorEntry.Position.LAST) {
-                    b.addLast(entry.interceptor);
-                }
-            }
-        }
 
-        final HttpProcessor httpProcessor = b.build();
         execChainDefinition.addFirst(
-                new AsyncProtocolExec(httpProcessor, targetAuthStrategyCopy, proxyAuthStrategyCopy, schemePortResolver),
+                new AsyncProtocolExec(b.build(), targetAuthStrategyCopy, proxyAuthStrategyCopy, schemePortResolver),
                 ChainElement.PROTOCOL.name());
 
         // Add request retry executor, if not disabled
@@ -707,9 +691,26 @@ public class H2AsyncClientBuilder {
                     ChainElement.REDIRECT.name());
         }
 
+        final HttpProcessorBuilder b2 = HttpProcessorBuilder.create();
+        b2.addAll(new H2RequestContent(), new H2RequestTargetHost(), new H2RequestConnControl());
+        if (requestInterceptors != null) {
+            for (final RequestInterceptorEntry entry: requestInterceptors) {
+                if (entry.position == RequestInterceptorEntry.Position.LAST) {
+                    b2.addLast(entry.interceptor);
+                }
+            }
+        }
+        if (responseInterceptors != null) {
+            for (final ResponseInterceptorEntry entry: responseInterceptors) {
+                if (entry.position == ResponseInterceptorEntry.Position.LAST) {
+                    b2.addLast(entry.interceptor);
+                }
+            }
+        }
+
         final AsyncPushConsumerRegistry pushConsumerRegistry = new AsyncPushConsumerRegistry();
         final IOEventHandlerFactory ioEventHandlerFactory = new H2AsyncClientEventHandlerFactory(
-                new DefaultHttpProcessor(new H2RequestContent(), new H2RequestTargetHost(), new H2RequestConnControl()),
+                b2.build(),
                 new HandlerFactory<AsyncPushConsumer>() {
 
                     @Override
