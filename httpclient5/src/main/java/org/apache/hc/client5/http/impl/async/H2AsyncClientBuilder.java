@@ -688,7 +688,10 @@ public class H2AsyncClientBuilder {
         b.addAll(
                 new RequestDefaultHeaders(defaultHeaders),
                 new RequestUserAgent(userAgentCopy),
-                new RequestExpectContinue());
+                new RequestExpectContinue(),
+                new H2RequestContent(),
+                new H2RequestTargetHost(),
+                new H2RequestConnControl());
         if (!cookieManagementDisabled) {
             b.add(RequestAddCookies.INSTANCE);
         }
@@ -766,7 +769,7 @@ public class H2AsyncClientBuilder {
 
         final AsyncPushConsumerRegistry pushConsumerRegistry = new AsyncPushConsumerRegistry();
         final IOEventHandlerFactory ioEventHandlerFactory = new H2AsyncClientProtocolStarter(
-                new DefaultHttpProcessor(new H2RequestContent(), new H2RequestTargetHost(), new H2RequestConnControl()),
+                HttpProcessorBuilder.create().build(),
                 (request, context) -> pushConsumerRegistry.get(request),
                 h2Config != null ? h2Config : H2Config.DEFAULT,
                 charCodingConfig != null ? charCodingConfig : CharCodingConfig.DEFAULT);
