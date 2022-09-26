@@ -207,6 +207,7 @@
   </modules>
 
   <build>
+    <defaultGoal>clean verify</defaultGoal>
     <plugins>
       <plugin>
         <artifactId>maven-jar-plugin</artifactId>
