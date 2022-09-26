@@ -225,13 +225,7 @@ public class TestHttp1Async extends AbstractHttpAsyncFundamentalsTest<CloseableH
                                 .setPath("/random/1000")
                                 .build(), null);
 
-                executorService.schedule(new Runnable() {
-
-                    @Override
-                    public void run() {
-                        future.cancel(true);
-                    }
-                }, i % 5, TimeUnit.MILLISECONDS);
+                executorService.schedule(() -> future.cancel(true), i % 5, TimeUnit.MILLISECONDS);
 
                 try {
                     future.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
@@ -249,13 +243,7 @@ public class TestHttp1Async extends AbstractHttpAsyncFundamentalsTest<CloseableH
                                 .setPath("/random/1000")
                                 .build(), null);
 
-                executorService.schedule(new Runnable() {
-
-                    @Override
-                    public void run() {
-                        future.cancel(true);
-                    }
-                }, rnd.nextInt(200), TimeUnit.MILLISECONDS);
+                executorService.schedule(() -> future.cancel(true), rnd.nextInt(200), TimeUnit.MILLISECONDS);
 
                 try {
                     future.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());

@@ -113,18 +113,14 @@ class H2AsyncClientProtocolStarter implements IOEventHandlerFactory {
                         @Override
                         public void onHeaderInput(final HttpConnection connection, final int streamId, final List<? extends Header> headers) {
                             if (HEADER_LOG.isDebugEnabled()) {
-                                for (int i = 0; i < headers.size(); i++) {
-                                    HEADER_LOG.debug("{} << {}", id, headers.get(i));
-                                }
+                                headers.forEach(header -> HEADER_LOG.debug("{} << {}", id, header));
                             }
                         }
 
                         @Override
                         public void onHeaderOutput(final HttpConnection connection, final int streamId, final List<? extends Header> headers) {
                             if (HEADER_LOG.isDebugEnabled()) {
-                                for (int i = 0; i < headers.size(); i++) {
-                                    HEADER_LOG.debug("{} >> {}", id, headers.get(i));
-                                }
+                                headers.forEach(header -> HEADER_LOG.debug("{} >> {}", id, header));
                             }
                         }
 

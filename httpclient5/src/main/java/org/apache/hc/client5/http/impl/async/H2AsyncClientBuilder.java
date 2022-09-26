@@ -559,7 +559,7 @@ public class H2AsyncClientBuilder {
      * @since 5.2
      */
     public final H2AsyncClientBuilder setDefaultConnectionConfig(final ConnectionConfig connectionConfig) {
-        this.connectionConfigResolver = (host) -> connectionConfig;
+        this.connectionConfigResolver = host -> connectionConfig;
         return this;
     }
 

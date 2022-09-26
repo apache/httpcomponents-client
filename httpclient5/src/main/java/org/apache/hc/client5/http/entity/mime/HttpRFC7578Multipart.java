@@ -66,8 +66,7 @@ class HttpRFC7578Multipart extends AbstractMultipartFormat {
                 writeBytes(FIELD_SEP, out);
                 writeBytes(field.getValue(), out);
                 final List<NameValuePair> parameters = field.getParameters();
-                for (int i = 0; i < parameters.size(); i++) {
-                    final NameValuePair parameter = parameters.get(i);
+                for (final NameValuePair parameter : parameters) {
                     final String name = parameter.getName();
                     final String value = parameter.getValue();
                     writeBytes("; ", out);

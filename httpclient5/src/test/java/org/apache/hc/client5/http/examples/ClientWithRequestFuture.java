@@ -58,10 +58,8 @@ public class ClientWithRequestFuture {
         try (final FutureRequestExecutionService requestExecService = new FutureRequestExecutionService(
                 httpclient, execService)) {
             // Because things are asynchronous, you must provide a HttpClientResponseHandler
-            final HttpClientResponseHandler<Boolean> handler = response -> {
-                // simply return true if the status was OK
-                return response.getCode() == HttpStatus.SC_OK;
-            };
+            // simply return true if the status was OK
+            final HttpClientResponseHandler<Boolean> handler = response -> response.getCode() == HttpStatus.SC_OK;
 
             // Simple request ...
             final HttpGet request1 = new HttpGet("http://httpbin.org/get");

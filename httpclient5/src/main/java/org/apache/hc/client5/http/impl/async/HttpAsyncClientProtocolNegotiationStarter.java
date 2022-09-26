@@ -28,7 +28,6 @@
 package org.apache.hc.client5.http.impl.async;
 
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.List;
 
 import org.apache.hc.client5.http.impl.DefaultClientConnectionReuseStrategy;
@@ -127,9 +126,7 @@ class HttpAsyncClientProtocolNegotiationStarter implements IOEventHandlerFactory
                         public void onRequestHead(final HttpConnection connection, final HttpRequest request) {
                             if (HEADER_LOG.isDebugEnabled()) {
                                 HEADER_LOG.debug("{} >> {}", id, new RequestLine(request));
-                                for (final Iterator<Header> it = request.headerIterator(); it.hasNext(); ) {
-                                    HEADER_LOG.debug("{} >> {}", id, it.next());
-                                }
+                                request.headerIterator().forEachRemaining(header -> HEADER_LOG.debug("{} >> {}", id, header));
                             }
                         }
 
@@ -137,9 +134,7 @@ class HttpAsyncClientProtocolNegotiationStarter implements IOEventHandlerFactory
                         public void onResponseHead(final HttpConnection connection, final HttpResponse response) {
                             if (HEADER_LOG.isDebugEnabled()) {
                                 HEADER_LOG.debug("{} << {}", id, new StatusLine(response));
-                                for (final Iterator<Header> it = response.headerIterator(); it.hasNext(); ) {
-                                    HEADER_LOG.debug("{} << {}", id, it.next());
-                                }
+                                response.headerIterator().forEachRemaining(header -> HEADER_LOG.debug("{} << {}", id, header));
                             }
                         }
 
@@ -189,18 +184,14 @@ class HttpAsyncClientProtocolNegotiationStarter implements IOEventHandlerFactory
                         @Override
                         public void onHeaderInput(final HttpConnection connection, final int streamId, final List<? extends Header> headers) {
                             if (HEADER_LOG.isDebugEnabled()) {
-                                for (int i = 0; i < headers.size(); i++) {
-                                    HEADER_LOG.debug("{} << {}", id, headers.get(i));
-                                }
+                                headers.forEach(header -> HEADER_LOG.debug("{} << {}", id, header));
                             }
                         }
 
                         @Override
                         public void onHeaderOutput(final HttpConnection connection, final int streamId, final List<? extends Header> headers) {
                             if (HEADER_LOG.isDebugEnabled()) {
-                                for (int i = 0; i < headers.size(); i++) {
-                                    HEADER_LOG.debug("{} >> {}", id, headers.get(i));
-                                }
+                                headers.forEach(header -> HEADER_LOG.debug("{} >> {}", id, header));
                             }
                         }
 
