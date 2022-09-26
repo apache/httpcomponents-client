@@ -25,7 +25,7 @@ Apache HttpComponents Client
 
 Welcome to the HttpClient component of the Apache HttpComponents project.
 
-[![Build Status](https://travis-ci.com/apache/httpcomponents-client.svg?branch=master)](https://travis-ci.com/apache/httpcomponents-client)
+[![GitHub Actions Status](https://github.com/apache/httpcomponents-client/workflows/Java%20CI/badge.svg)](https://github.com/apache/httpcomponents-client/actions)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.apache.httpcomponents.client5/httpclient5/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.apache.httpcomponents.client5/httpclient5)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
@@ -37,7 +37,7 @@ For building from source instructions please refer to [BUILDING.txt](./BUILDING.
 Dependencies
 ------------
 
-HttpClient main module requires Java 7 compatible runtime and
+HttpClient main module requires Java 8 compatible runtime and
 depends on the following external libraries:
 
 * [Apache HttpComponents HttpCore](https://github.com/apache/httpcomponents-core)
