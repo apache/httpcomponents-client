@@ -28,10 +28,8 @@
 package org.apache.hc.client5.http.async.methods;
 
 import java.net.URI;
-import java.util.Iterator;
 
 import org.apache.hc.core5.http.ContentType;
-import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.Method;
@@ -100,9 +98,7 @@ public final class SimpleHttpRequest extends ConfigurableHttpRequest {
         Args.notNull(original, "HTTP request");
         final SimpleHttpRequest copy = new SimpleHttpRequest(original.getMethod(), original.getRequestUri());
         copy.setVersion(original.getVersion());
-        for (final Iterator<Header> it = original.headerIterator(); it.hasNext(); ) {
-            copy.addHeader(it.next());
-        }
+        original.headerIterator().forEachRemaining(copy::addHeader);
         copy.setScheme(original.getScheme());
         copy.setAuthority(original.getAuthority());
         return copy;

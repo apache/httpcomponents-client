@@ -155,7 +155,7 @@ public class BasicRouteDirector implements HttpRouteDirector {
             return UNREACHABLE;
         }
 
-        for (int i=0; i<fhc-1; i++) {
+        for (int i = 0; i < fhc - 1; i++) {
             if (!plan.getHopTarget(i).equals(fact.getHopTarget(i))) {
                 return UNREACHABLE;
             }

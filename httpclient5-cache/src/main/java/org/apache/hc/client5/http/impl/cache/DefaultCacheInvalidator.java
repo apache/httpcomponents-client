@@ -96,9 +96,7 @@ public class DefaultCacheInvalidator extends CacheInvalidatorBase implements Htt
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Invalidating parent cache entry with key {}", cacheKey);
                 }
-                for (final String variantURI : parent.getVariantMap().values()) {
-                    removeEntry(storage, variantURI);
-                }
+                parent.getVariantMap().values().forEach(variantURI -> removeEntry(storage, variantURI));
                 removeEntry(storage, cacheKey);
             }
             if (uri != null) {

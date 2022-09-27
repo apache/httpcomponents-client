@@ -27,8 +27,9 @@
 package org.apache.hc.client5.http.impl.cache.ehcache;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntrySerializer;
 import org.apache.hc.client5.http.cache.HttpCacheStorageEntry;
@@ -137,14 +138,8 @@ public class EhcacheHttpCacheStorage<T> extends AbstractSerializingCacheStorage<
 
     @Override
     protected Map<String, T> bulkRestore(final Collection<String> storageKeys) throws ResourceIOException {
-        final Map<String, T> resultMap = new HashMap<>();
-        for (final String storageKey: storageKeys) {
-            final T storageObject = cache.get(storageKey);
-            if (storageObject != null) {
-                resultMap.put(storageKey, storageObject);
-            }
-        }
-        return resultMap;
+        return storageKeys.stream().filter(cache::containsKey)
+                .collect(Collectors.toMap(Function.identity(), cache::get));
     }
 
 }

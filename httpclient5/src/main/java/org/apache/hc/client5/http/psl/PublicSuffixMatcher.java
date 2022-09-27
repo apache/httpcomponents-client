@@ -30,7 +30,11 @@ import java.net.IDN;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.apache.hc.client5.http.utils.DnsUtils;
 import org.apache.hc.core5.annotation.Contract;
@@ -51,8 +55,8 @@ import org.apache.hc.core5.util.Args;
 @Contract(threading = ThreadingBehavior.SAFE)
 public final class PublicSuffixMatcher {
 
-    private final Map<String, DomainType> rules;
-    private final Map<String, DomainType> exceptions;
+    private final ConcurrentMap<String, DomainType> rules;
+    private final ConcurrentMap<String, DomainType> exceptions;
 
     public PublicSuffixMatcher(final Collection<String> rules, final Collection<String> exceptions) {
         this(DomainType.UNKNOWN, rules, exceptions);
@@ -63,40 +67,30 @@ public final class PublicSuffixMatcher {
      */
     public PublicSuffixMatcher(
             final DomainType domainType, final Collection<String> rules, final Collection<String> exceptions) {
-        Args.notNull(domainType,  "Domain type");
-        Args.notNull(rules,  "Domain suffix rules");
-        this.rules = new ConcurrentHashMap<>(rules.size());
-        for (final String rule: rules) {
-            this.rules.put(rule, domainType);
-        }
-        this.exceptions = new ConcurrentHashMap<>();
-        if (exceptions != null) {
-            for (final String exception: exceptions) {
-                this.exceptions.put(exception, domainType);
-            }
-        }
+        Args.notNull(domainType, "Domain type");
+        Args.notNull(rules, "Domain suffix rules");
+        this.rules = rules.stream().filter(Objects::nonNull)
+                .collect(Collectors.toConcurrentMap(Function.identity(), k -> domainType));
+        this.exceptions = exceptions == null ? new ConcurrentHashMap<>()
+                : exceptions.stream().filter(Objects::nonNull)
+                        .collect(Collectors.toConcurrentMap(Function.identity(), k -> domainType));
     }
 
     /**
      * @since 4.5
      */
     public PublicSuffixMatcher(final Collection<PublicSuffixList> lists) {
-        Args.notNull(lists,  "Domain suffix lists");
+        Args.notNull(lists, "Domain suffix lists");
         this.rules = new ConcurrentHashMap<>();
         this.exceptions = new ConcurrentHashMap<>();
-        for (final PublicSuffixList list: lists) {
+        lists.forEach(list -> {
             final DomainType domainType = list.getType();
-            final List<String> rules = list.getRules();
-            for (final String rule: rules) {
-                this.rules.put(rule, domainType);
-            }
+            list.getRules().forEach(rule -> this.rules.put(rule, domainType));
             final List<String> exceptions = list.getExceptions();
             if (exceptions != null) {
-                for (final String exception: exceptions) {
-                    this.exceptions.put(exception, domainType);
-                }
+                exceptions.forEach(exception -> this.exceptions.put(exception, domainType));
             }
-        }
+        });
     }
 
     private static DomainType findEntry(final Map<String, DomainType> map, final String rule) {

@@ -26,9 +26,6 @@
  */
 package org.apache.hc.client5.http.impl;
 
-import java.util.Iterator;
-
-import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
 
@@ -53,9 +50,7 @@ public final class RequestCopier implements MessageCopier<HttpRequest> {
         copy.setScheme(original.getScheme());
         copy.setAuthority(original.getAuthority());
         copy.setVersion(original.getVersion());
-        for (final Iterator<Header> it = original.headerIterator(); it.hasNext(); ) {
-            copy.addHeader(it.next());
-        }
+        original.headerIterator().forEachRemaining(copy::addHeader);
         return copy;
     }
 

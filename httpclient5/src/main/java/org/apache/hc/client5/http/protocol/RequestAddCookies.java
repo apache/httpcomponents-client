@@ -33,17 +33,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.hc.client5.http.RouteInfo;
-import org.apache.hc.client5.http.cookie.StandardCookieSpec;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.cookie.Cookie;
 import org.apache.hc.client5.http.cookie.CookieOrigin;
 import org.apache.hc.client5.http.cookie.CookieSpec;
 import org.apache.hc.client5.http.cookie.CookieSpecFactory;
 import org.apache.hc.client5.http.cookie.CookieStore;
+import org.apache.hc.client5.http.cookie.StandardCookieSpec;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.EntityDetails;
-import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpRequestInterceptor;
@@ -154,12 +153,11 @@ public class RequestAddCookies implements HttpRequestInterceptor {
         }
         final CookieSpec cookieSpec = factory.create(clientContext);
         // Get all cookies available in the HTTP state
-        final List<Cookie> cookies = cookieStore.getCookies();
         // Find cookies matching the given origin
         final List<Cookie> matchedCookies = new ArrayList<>();
         final Instant now = Instant.now();
         boolean expired = false;
-        for (final Cookie cookie : cookies) {
+        for (final Cookie cookie : cookieStore) {
             if (!cookie.isExpired(now)) {
                 if (cookieSpec.match(cookie, cookieOrigin)) {
                     if (LOG.isDebugEnabled()) {
@@ -182,10 +180,7 @@ public class RequestAddCookies implements HttpRequestInterceptor {
         }
         // Generate Cookie request headers
         if (!matchedCookies.isEmpty()) {
-            final List<Header> headers = cookieSpec.formatCookies(matchedCookies);
-            for (final Header header : headers) {
-                request.addHeader(header);
-            }
+            cookieSpec.formatCookies(matchedCookies).forEach(request::addHeader);
         }
 
         // Stick the CookieSpec and CookieOrigin instances to the HTTP context

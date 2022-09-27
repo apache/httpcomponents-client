@@ -132,12 +132,7 @@ public abstract class CookieSpecBase extends AbstractCookieSpec {
     public boolean match(final Cookie cookie, final CookieOrigin origin) {
         Args.notNull(cookie, "Cookie");
         Args.notNull(origin, "Cookie origin");
-        for (final CookieAttributeHandler handler: getAttribHandlers()) {
-            if (!handler.match(cookie, origin)) {
-                return false;
-            }
-        }
-        return true;
+        return getAttribHandlers().stream().allMatch(handler -> handler.match(cookie, origin));
     }
 
 }

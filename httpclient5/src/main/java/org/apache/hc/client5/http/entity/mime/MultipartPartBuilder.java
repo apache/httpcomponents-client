@@ -94,9 +94,7 @@ public class MultipartPartBuilder {
         Asserts.notNull(this.body, "Content body");
         final Header headerCopy = new Header();
         final List<MimeField> fields = this.header.getFields();
-        for (final MimeField field: fields) {
-            headerCopy.addField(field);
-        }
+        fields.forEach(headerCopy::addField);
         if (headerCopy.getField(MimeConsts.CONTENT_TYPE) == null) {
             final ContentType contentType;
             if (body instanceof AbstractContentBody) {

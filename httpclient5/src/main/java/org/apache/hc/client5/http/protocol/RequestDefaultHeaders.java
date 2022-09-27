@@ -81,11 +81,11 @@ public class RequestDefaultHeaders implements HttpRequestInterceptor {
         }
 
         if (this.defaultHeaders != null) {
-            for (final Header defHeader : this.defaultHeaders) {
-                if(!request.containsHeader(defHeader.getName())) {
+            this.defaultHeaders.forEach(defHeader -> {
+                if (!request.containsHeader(defHeader.getName())) {
                     request.addHeader(defHeader);
                 }
-            }
+            });
         }
     }
 

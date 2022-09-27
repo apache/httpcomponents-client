@@ -26,11 +26,11 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.apache.hc.client5.http.cache.HttpCacheCASOperation;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
@@ -135,10 +135,7 @@ public abstract class AbstractSerializingCacheStorage<T, CAS> implements HttpCac
     @Override
     public final Map<String, HttpCacheEntry> getEntries(final Collection<String> keys) throws ResourceIOException {
         Args.notNull(keys, "Storage keys");
-        final List<String> storageKeys = new ArrayList<>(keys.size());
-        for (final String key: keys) {
-            storageKeys.add(digestToStorageKey(key));
-        }
+        final List<String> storageKeys = keys.stream().map(this::digestToStorageKey).collect(Collectors.toList());
         final Map<String, T> storageObjectMap = bulkRestore(storageKeys);
         final Map<String, HttpCacheEntry> resultMap = new HashMap<>();
         for (final String key: keys) {

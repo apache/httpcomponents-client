@@ -70,8 +70,7 @@ public final class HttpAsyncCacheStorageAdaptor implements HttpAsyncCacheStorage
         Args.notEmpty(key, "Key");
         Args.notNull(callback, "Callback");
         try {
-            final HttpCacheEntry entry = cacheStorage.getEntry(key);
-            callback.completed(entry);
+            callback.completed(cacheStorage.getEntry(key));
         } catch (final Exception ex) {
             callback.failed(ex);
         }

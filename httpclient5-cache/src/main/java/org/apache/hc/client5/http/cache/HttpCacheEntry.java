@@ -243,12 +243,11 @@ public class HttpCacheEntry implements MessageHeaders, Serializable {
     @Override
     public Header[] getHeaders() {
         final HeaderGroup filteredHeaders = new HeaderGroup();
-        for (final Iterator<Header> iterator = responseHeaders.headerIterator(); iterator.hasNext();) {
-            final Header header = iterator.next();
+        responseHeaders.headerIterator().forEachRemaining(header -> {
             if (!REQUEST_METHOD_HEADER_NAME.equals(header.getName())) {
                 filteredHeaders.addHeader(header);
             }
-        }
+        });
         return filteredHeaders.getHeaders();
     }
 

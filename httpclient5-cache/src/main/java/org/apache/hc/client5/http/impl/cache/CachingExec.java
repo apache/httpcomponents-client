@@ -29,7 +29,6 @@ package org.apache.hc.client5.http.impl.cache;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Instant;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -206,9 +205,7 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
             return null;
         }
         final ClassicHttpResponse response = new BasicClassicHttpResponse(cacheResponse.getCode(), cacheResponse.getReasonPhrase());
-        for (final Iterator<Header> it = cacheResponse.headerIterator(); it.hasNext(); ) {
-            response.addHeader(it.next());
-        }
+        cacheResponse.headerIterator().forEachRemaining(response::addHeader);
         response.setVersion(cacheResponse.getVersion() != null ? cacheResponse.getVersion() : HttpVersion.DEFAULT);
         final SimpleBody body = cacheResponse.getBody();
         if (body != null) {

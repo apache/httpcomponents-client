@@ -162,9 +162,7 @@ public class DigestScheme implements AuthScheme, Serializable {
         this.paramMap.clear();
         final List<NameValuePair> params = authChallenge.getParams();
         if (params != null) {
-            for (final NameValuePair param: params) {
-                this.paramMap.put(param.getName().toLowerCase(Locale.ROOT), param.getValue());
-            }
+            params.forEach(param -> this.paramMap.put(param.getName().toLowerCase(Locale.ROOT), param.getValue()));
         }
         if (this.paramMap.isEmpty()) {
             throw new MalformedChallengeException("Missing digest auth parameters");

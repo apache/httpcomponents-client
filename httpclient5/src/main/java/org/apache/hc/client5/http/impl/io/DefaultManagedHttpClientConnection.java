@@ -33,6 +33,7 @@ import java.net.Socket;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CharsetEncoder;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Stream;
 
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
@@ -41,7 +42,6 @@ import org.apache.hc.client5.http.io.ManagedHttpClientConnection;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.ContentLengthStrategy;
-import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.config.Http1Config;
 import org.apache.hc.core5.http.impl.io.DefaultBHttpClientConnection;
 import org.apache.hc.core5.http.impl.io.SocketHolder;
@@ -187,10 +187,7 @@ final class DefaultManagedHttpClientConnection
     protected void onResponseReceived(final ClassicHttpResponse response) {
         if (response != null && HEADER_LOG.isDebugEnabled()) {
             HEADER_LOG.debug("{} << {}", this.id, new StatusLine(response));
-            final Header[] headers = response.getHeaders();
-            for (final Header header : headers) {
-                HEADER_LOG.debug("{} << {}", this.id, header);
-            }
+            Stream.of(response.getHeaders()).forEach(header -> HEADER_LOG.debug("{} << {}", this.id, header));
         }
     }
 
@@ -198,10 +195,7 @@ final class DefaultManagedHttpClientConnection
     protected void onRequestSubmitted(final ClassicHttpRequest request) {
         if (request != null && HEADER_LOG.isDebugEnabled()) {
             HEADER_LOG.debug("{} >> {}", this.id, new RequestLine(request));
-            final Header[] headers = request.getHeaders();
-            for (final Header header : headers) {
-                HEADER_LOG.debug("{} >> {}", this.id, header);
-            }
+            Stream.of(request.getHeaders()).forEach(header -> HEADER_LOG.debug("{} >> {}", this.id, header));
         }
     }
 

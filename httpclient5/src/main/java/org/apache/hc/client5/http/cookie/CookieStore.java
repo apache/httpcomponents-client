@@ -28,6 +28,7 @@ package org.apache.hc.client5.http.cookie;
 
 import java.time.Instant;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -36,7 +37,7 @@ import java.util.List;
  *
  * @since 4.0
  */
-public interface CookieStore {
+public interface CookieStore extends Iterable<Cookie> {
 
     /**
      * Adds an {@link Cookie}, replacing any existing equivalent cookies.
@@ -48,11 +49,9 @@ public interface CookieStore {
     void addCookie(Cookie cookie);
 
     /**
-     * Returns all cookies contained in this store.
-     *
-     * @return all cookies
+     * Clears all cookies.
      */
-    List<Cookie> getCookies();
+    void clear();
 
     /**
      * Removes all of {@link Cookie}s in this store that have expired by
@@ -76,8 +75,21 @@ public interface CookieStore {
     }
 
     /**
-     * Clears all cookies.
+     * Returns all cookies contained in this store.
+     *
+     * @return all cookies
      */
-    void clear();
+    List<Cookie> getCookies();
+
+    /**
+     * Iterates all cookies in this store.
+     *
+     * @since 5.2
+     */
+    @Override
+    default Iterator<Cookie> iterator() {
+        return getCookies().iterator();
+    }
+
 
 }

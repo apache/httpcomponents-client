@@ -537,14 +537,12 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
 
                                 @Override
                                 public void completed(final Map<String, HttpCacheEntry> resultMap) {
-                                    for (final Map.Entry<String, HttpCacheEntry> resultMapEntry : resultMap.entrySet()) {
-                                        final String cacheKey = resultMapEntry.getKey();
-                                        final HttpCacheEntry cacheEntry = resultMapEntry.getValue();
+                                    resultMap.forEach((cacheKey, cacheEntry) -> {
                                         final Header etagHeader = cacheEntry.getFirstHeader(HeaderConstants.ETAG);
                                         if (etagHeader != null) {
                                             variants.put(etagHeader.getValue(), new Variant(cacheKey, cacheEntry));
                                         }
-                                    }
+                                    });
                                     callback.completed(variants);
                                 }
 

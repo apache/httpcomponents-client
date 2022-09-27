@@ -27,7 +27,6 @@
 package org.apache.hc.client5.http.impl.async;
 
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.hc.client5.http.AuthenticationStrategy;
@@ -49,7 +48,6 @@ import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.EntityDetails;
-import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
@@ -265,9 +263,7 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
                         // Reset request headers
                         final HttpRequest original = scope.originalRequest;
                         request.setHeaders();
-                        for (final Iterator<Header> it = original.headerIterator(); it.hasNext(); ) {
-                            request.addHeader(it.next());
-                        }
+                        original.headerIterator().forEachRemaining(request::addHeader);
                         try {
                             if (entityProducer != null) {
                                 entityProducer.releaseResources();
@@ -286,11 +282,8 @@ public final class AsyncProtocolExec implements AsyncExecChainHandler {
             @Override
             public void failed(final Exception cause) {
                 if (cause instanceof IOException || cause instanceof RuntimeException) {
-                    for (final AuthExchange authExchange : clientContext.getAuthExchanges().values()) {
-                        if (authExchange.isConnectionBased()) {
-                            authExchange.reset();
-                        }
-                    }
+                    clientContext.getAuthExchanges().values().stream().filter(AuthExchange::isConnectionBased)
+                            .forEach(AuthExchange::reset);
                 }
                 asyncExecCallback.failed(cause);
             }

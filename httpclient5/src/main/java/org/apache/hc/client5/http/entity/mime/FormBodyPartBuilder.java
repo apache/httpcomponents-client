@@ -107,9 +107,7 @@ public class FormBodyPartBuilder {
         Asserts.notNull(this.body, "Content body");
         final Header headerCopy = new Header();
         final List<MimeField> fields = this.header.getFields();
-        for (final MimeField field: fields) {
-            headerCopy.addField(field);
-        }
+        fields.forEach(headerCopy::addField);
         if (headerCopy.getField(MimeConsts.CONTENT_DISPOSITION) == null) {
             final List<NameValuePair> fieldParameters = new ArrayList<>();
             fieldParameters.add(new BasicNameValuePair(MimeConsts.FIELD_PARAM_NAME, this.name));

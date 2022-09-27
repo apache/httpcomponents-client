@@ -34,7 +34,6 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.hc.client5.http.AuthenticationStrategy;
 import org.apache.hc.client5.http.ConnectionKeepAliveStrategy;
@@ -878,9 +877,7 @@ public class HttpClientBuilder {
             if (contentDecoderMap != null) {
                 final List<String> encodings = new ArrayList<>(contentDecoderMap.keySet());
                 final RegistryBuilder<InputStreamFactory> b2 = RegistryBuilder.create();
-                for (final Map.Entry<String, InputStreamFactory> entry: contentDecoderMap.entrySet()) {
-                    b2.register(entry.getKey(), entry.getValue());
-                }
+                contentDecoderMap.entrySet().forEach(entry -> b2.register(entry.getKey(), entry.getValue()));
                 final Registry<InputStreamFactory> decoderRegistry = b2.build();
                 execChainDefinition.addFirst(
                         new ContentCompressionExec(encodings, decoderRegistry, true),

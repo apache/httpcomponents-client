@@ -117,12 +117,7 @@ public final class ByteArrayCacheEntrySerializer implements HttpCacheEntrySerial
 
         // visible for testing
         static boolean isAllowedClassName(final String className) {
-            for (final Pattern allowedClassPattern : ALLOWED_CLASS_PATTERNS) {
-                if (allowedClassPattern.matcher(className).matches()) {
-                    return true;
-                }
-            }
-            return false;
+            return ALLOWED_CLASS_PATTERNS.stream().anyMatch(pattern -> pattern.matcher(className).matches());
         }
 
     }

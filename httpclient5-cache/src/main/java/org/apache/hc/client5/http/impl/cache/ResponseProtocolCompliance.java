@@ -146,9 +146,7 @@ class ResponseProtocolCompliance {
             return;
         }
         response.removeHeaders(HttpHeaders.CONTENT_ENCODING);
-        for (final Header h : newHeaders) {
-            response.addHeader(h);
-        }
+        newHeaders.forEach(response::addHeader);
     }
 
     private void ensure206ContainsDateHeader(final HttpResponse response) {

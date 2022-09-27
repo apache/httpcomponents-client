@@ -26,12 +26,12 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import org.apache.hc.client5.http.cache.HttpAsyncCacheStorage;
 import org.apache.hc.client5.http.cache.HttpCacheCASOperation;
@@ -239,10 +239,7 @@ public abstract class AbstractSerializingAsyncCacheStorage<T, CAS> implements Ht
         Args.notNull(keys, "Storage keys");
         Args.notNull(callback, "Callback");
         try {
-            final List<String> storageKeys = new ArrayList<>(keys.size());
-            for (final String key: keys) {
-                storageKeys.add(digestToStorageKey(key));
-            }
+            final List<String> storageKeys = keys.stream().map(this::digestToStorageKey).collect(Collectors.toList());
             return bulkRestore(storageKeys, new FutureCallback<Map<String, T>>() {
 
                 @Override

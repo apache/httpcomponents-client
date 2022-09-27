@@ -115,12 +115,7 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
     }
 
     static boolean isWeakCipherSuite(final String cipherSuite) {
-        for (final Pattern pattern : WEAK_CIPHER_SUITE_PATTERNS) {
-            if (pattern.matcher(cipherSuite).matches()) {
-                return true;
-            }
-        }
-        return false;
+        return WEAK_CIPHER_SUITE_PATTERNS.stream().anyMatch(pattern -> pattern.matcher(cipherSuite).matches());
     }
 
     private final javax.net.ssl.SSLSocketFactory socketFactory;

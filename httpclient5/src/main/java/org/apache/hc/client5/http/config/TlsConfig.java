@@ -28,7 +28,9 @@
 package org.apache.hc.client5.http.config;
 
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
@@ -174,13 +176,15 @@ public class TlsConfig implements Cloneable {
          * </p>
          */
         public Builder setSupportedProtocols(final TLS... supportedProtocols) {
-            this.supportedProtocols = new String[supportedProtocols.length];
-            for (int i = 0; i < supportedProtocols.length; i++) {
-                final TLS protocol = supportedProtocols[i];
-                if (protocol != null) {
-                    this.supportedProtocols[i] = protocol.id;
-                }
-            }
+//            this.supportedProtocols = new String[supportedProtocols.length];
+//            for (int i = 0; i < supportedProtocols.length; i++) {
+//                final TLS protocol = supportedProtocols[i];
+//                if (protocol != null) {
+//                    this.supportedProtocols[i] = protocol.id;
+//                }
+//            }
+            this.supportedProtocols = Stream.of(supportedProtocols).filter(Objects::nonNull).map(p -> p.id)
+                    .toArray(String[]::new);
             return this;
         }
 

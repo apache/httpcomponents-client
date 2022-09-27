@@ -106,7 +106,7 @@ public class SystemDefaultRoutePlanner extends DefaultRoutePlanner {
     private Proxy chooseProxy(final List<Proxy> proxies) {
         Proxy result = null;
         // check the list for one we can use
-        for (int i=0; (result == null) && (i < proxies.size()); i++) {
+        for (int i = 0; (result == null) && (i < proxies.size()); i++) {
             final Proxy p = proxies.get(i);
             switch (p.type()) {
 
@@ -122,7 +122,7 @@ public class SystemDefaultRoutePlanner extends DefaultRoutePlanner {
             }
         }
         if (result == null) {
-            //@@@ log as warning or info that only a socks proxy is available?
+            // @@@ log as warning or info that only a socks proxy is available?
             // result can only be null if all proxies are socks proxies
             // socks proxies are not handled on the route planning level
             result = Proxy.NO_PROXY;

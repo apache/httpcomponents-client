@@ -74,7 +74,7 @@ final class TlsSessionValidator {
                         final List<String> altNames = new ArrayList<>();
                         for (final List<?> aC : altNames1) {
                             if (!aC.isEmpty()) {
-                                altNames.add(Objects.toString(aC.get(1), null));
+                                altNames.add(Objects.toString(aC.get(1)));
                             }
                         }
                         log.debug(" peer alternative names: {}", altNames);
@@ -87,7 +87,7 @@ final class TlsSessionValidator {
                         final List<String> altNames = new ArrayList<>();
                         for (final List<?> aC : altNames2) {
                             if (!aC.isEmpty()) {
-                                altNames.add(Objects.toString(aC.get(1), null));
+                                altNames.add(Objects.toString(aC.get(1)));
                             }
                         }
                         log.debug(" issuer alternative names: {}", altNames);

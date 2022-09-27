@@ -112,9 +112,7 @@ public class DefaultAsyncCacheInvalidator extends CacheInvalidatorBase implement
                         if (LOG.isDebugEnabled()) {
                             LOG.debug("Invalidating parentEntry cache entry with key {}", cacheKey);
                         }
-                        for (final String variantURI : parentEntry.getVariantMap().values()) {
-                            removeEntry(storage, variantURI);
-                        }
+                        parentEntry.getVariantMap().values().forEach(variantURI -> removeEntry(storage, variantURI));
                         removeEntry(storage, cacheKey);
                     }
                     if (uri != null) {
@@ -233,15 +231,13 @@ public class DefaultAsyncCacheInvalidator extends CacheInvalidatorBase implement
 
                         @Override
                         public void completed(final Map<String, HttpCacheEntry> resultMap) {
-                            for (final Map.Entry<String, HttpCacheEntry> resultEntry: resultMap.entrySet()) {
+                            resultMap.forEach((key, entry) -> {
                                 // do not invalidate if response is strictly older than entry
                                 // or if the etags match
-                                final String key = resultEntry.getKey();
-                                final HttpCacheEntry entry = resultEntry.getValue();
                                 if (!responseDateOlderThanEntryDate(response, entry) && responseAndEntryEtagsDiffer(response, entry)) {
                                     removeEntry(storage, key);
                                 }
-                            }
+                            });
                             callback.completed(Boolean.TRUE);
                         }
 

@@ -27,10 +27,7 @@
 
 package org.apache.hc.client5.http.async.methods;
 
-import java.util.Iterator;
-
 import org.apache.hc.core5.http.ContentType;
-import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.message.BasicHttpResponse;
 import org.apache.hc.core5.util.Args;
@@ -66,9 +63,7 @@ public final class SimpleHttpResponse extends BasicHttpResponse {
         Args.notNull(original, "HTTP response");
         final SimpleHttpResponse copy = new SimpleHttpResponse(original.getCode());
         copy.setVersion(original.getVersion());
-        for (final Iterator<Header> it = original.headerIterator(); it.hasNext(); ) {
-            copy.addHeader(it.next());
-        }
+        original.headerIterator().forEachRemaining(copy::addHeader);
         return copy;
     }
 

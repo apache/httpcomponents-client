@@ -32,11 +32,11 @@ import java.io.Serializable;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 import java.util.TreeSet;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.stream.Stream;
 
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
@@ -57,13 +57,6 @@ public class BasicCookieStore implements CookieStore, Serializable {
     public BasicCookieStore() {
         super();
         this.cookies = new TreeSet<>(CookieIdentityComparator.INSTANCE);
-        this.lock = new ReentrantReadWriteLock();
-    }
-
-    private void readObject(final ObjectInputStream stream) throws IOException, ClassNotFoundException {
-        stream.defaultReadObject();
-
-        /* Reinstantiate transient fields. */
         this.lock = new ReentrantReadWriteLock();
     }
 
@@ -105,26 +98,20 @@ public class BasicCookieStore implements CookieStore, Serializable {
      */
     public void addCookies(final Cookie[] cookies) {
         if (cookies != null) {
-            for (final Cookie cookie : cookies) {
-                this.addCookie(cookie);
-            }
+            Stream.of(cookies).forEach(this::addCookie);
         }
     }
 
     /**
-     * Returns an immutable array of {@link Cookie cookies} that this HTTP
-     * state currently contains.
-     *
-     * @return an array of {@link Cookie cookies}.
+     * Clears all cookies.
      */
     @Override
-    public List<Cookie> getCookies() {
-        lock.readLock().lock();
+    public void clear() {
+        lock.writeLock().lock();
         try {
-            //create defensive copy so it won't be concurrently modified
-            return new ArrayList<>(cookies);
+            cookies.clear();
         } finally {
-            lock.readLock().unlock();
+            lock.writeLock().unlock();
         }
     }
 
@@ -144,14 +131,7 @@ public class BasicCookieStore implements CookieStore, Serializable {
         }
         lock.writeLock().lock();
         try {
-            boolean removed = false;
-            for (final Iterator<Cookie> it = cookies.iterator(); it.hasNext(); ) {
-                if (it.next().isExpired(date)) {
-                    it.remove();
-                    removed = true;
-                }
-            }
-            return removed;
+            return cookies.removeIf(c -> c.isExpired(date));
         } finally {
             lock.writeLock().unlock();
         }
@@ -172,30 +152,34 @@ public class BasicCookieStore implements CookieStore, Serializable {
         }
         lock.writeLock().lock();
         try {
-            boolean removed = false;
-            for (final Iterator<Cookie> it = cookies.iterator(); it.hasNext(); ) {
-                if (it.next().isExpired(instant)) {
-                    it.remove();
-                    removed = true;
-                }
-            }
-            return removed;
+            return cookies.removeIf(c -> c.isExpired(instant));
         } finally {
             lock.writeLock().unlock();
         }
     }
 
     /**
-     * Clears all cookies.
+     * Returns an immutable array of {@link Cookie cookies} that this HTTP
+     * state currently contains.
+     *
+     * @return an array of {@link Cookie cookies}.
      */
     @Override
-    public void clear() {
-        lock.writeLock().lock();
+    public List<Cookie> getCookies() {
+        lock.readLock().lock();
         try {
-            cookies.clear();
+            //create defensive copy so it won't be concurrently modified
+            return new ArrayList<>(cookies);
         } finally {
-            lock.writeLock().unlock();
+            lock.readLock().unlock();
         }
+    }
+
+    private void readObject(final ObjectInputStream stream) throws IOException, ClassNotFoundException {
+        stream.defaultReadObject();
+
+        /* Reinstantiate transient fields. */
+        this.lock = new ReentrantReadWriteLock();
     }
 
     @Override

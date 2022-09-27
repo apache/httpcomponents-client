@@ -124,9 +124,7 @@ public class ContextBuilder {
         context.setCredentialsProvider(credentialsProvider);
         context.setAuthCache(authCache);
         if (authSchemeMap != null) {
-            for (final Map.Entry<HttpHost, AuthScheme> entry : authSchemeMap.entrySet()) {
-                context.resetAuthExchange(entry.getKey(), entry.getValue());
-            }
+            authSchemeMap.forEach(context::resetAuthExchange);
         }
         return context;
     }

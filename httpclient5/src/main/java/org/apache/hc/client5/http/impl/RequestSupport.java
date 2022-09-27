@@ -60,10 +60,10 @@ public final class RequestSupport {
             } else {
                 final StringBuilder buf = new StringBuilder();
                 buf.append('/');
-                for (final String pathSegment : pathSegments) {
+                pathSegments.forEach(pathSegment -> {
                     PercentCodec.encode(buf, pathSegment, StandardCharsets.US_ASCII);
                     buf.append('/');
-                }
+                });
                 return buf.toString();
             }
         } catch (final URISyntaxException ex) {

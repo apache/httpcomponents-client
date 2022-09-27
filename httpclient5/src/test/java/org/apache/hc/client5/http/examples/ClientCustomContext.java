@@ -27,12 +27,9 @@
 
 package org.apache.hc.client5.http.examples;
 
-import java.util.List;
-
 import org.apache.hc.client5.http.ContextBuilder;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.cookie.BasicCookieStore;
-import org.apache.hc.client5.http.cookie.Cookie;
 import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
@@ -64,8 +61,7 @@ public class ClientCustomContext {
             httpclient.execute(httpget, localContext, response -> {
                 System.out.println("----------------------------------------");
                 System.out.println(httpget + "->" + new StatusLine(response));
-                final List<Cookie> cookies = cookieStore.getCookies();
-                cookies.forEach(element -> System.out.println("Local cookie: " + element));
+                cookieStore.forEach(element -> System.out.println("Local cookie: " + element));
                 EntityUtils.consume(response.getEntity());
                 return null;
             });

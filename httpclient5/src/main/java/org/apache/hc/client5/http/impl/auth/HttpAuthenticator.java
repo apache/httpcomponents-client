@@ -190,12 +190,8 @@ public final class HttpAuthenticator {
                 }
                 continue;
             }
-            for (final AuthChallenge authChallenge: authChallenges) {
-                final String schemeName = authChallenge.getSchemeName().toLowerCase(Locale.ROOT);
-                if (!challengeMap.containsKey(schemeName)) {
-                    challengeMap.put(schemeName, authChallenge);
-                }
-            }
+            authChallenges.forEach(authChallenge -> challengeMap
+                    .putIfAbsent(authChallenge.getSchemeName().toLowerCase(Locale.ROOT), authChallenge));
         }
         if (challengeMap.isEmpty()) {
             if (LOG.isDebugEnabled()) {

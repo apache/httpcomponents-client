@@ -28,7 +28,6 @@
 package org.apache.hc.client5.http.impl.classic;
 
 import java.io.IOException;
-import java.util.Iterator;
 
 import org.apache.hc.client5.http.AuthenticationStrategy;
 import org.apache.hc.client5.http.HttpRoute;
@@ -49,7 +48,6 @@ import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
-import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHeaders;
@@ -236,9 +234,7 @@ public final class ProtocolExec implements ExecChainHandler {
                     // Reset request headers
                     final ClassicHttpRequest original = scope.originalRequest;
                     request.setHeaders();
-                    for (final Iterator<Header> it = original.headerIterator(); it.hasNext(); ) {
-                        request.addHeader(it.next());
-                    }
+                    original.headerIterator().forEachRemaining(request::addHeader);
                 } else {
                     ResponseEntityProxy.enhance(response, execRuntime);
                     return response;

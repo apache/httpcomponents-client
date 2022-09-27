@@ -182,9 +182,7 @@ public class ManagedHttpCacheStorage implements HttpCacheStorage, Closeable {
         if (compareAndSet()) {
             synchronized (this) {
                 this.entries.clear();
-                for (final ResourceReference ref: this.resources) {
-                    ref.getResource().dispose();
-                }
+                this.resources.forEach(ref -> ref.getResource().dispose());
                 this.resources.clear();
                 while (this.morque.poll() != null) {
                 }

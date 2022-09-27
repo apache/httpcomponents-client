@@ -26,10 +26,7 @@
  */
 package org.apache.hc.client5.http.impl.classic;
 
-import java.util.Iterator;
-
 import org.apache.hc.core5.http.ClassicHttpRequest;
-import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 
 /**
@@ -53,9 +50,7 @@ public final class ClassicRequestCopier implements org.apache.hc.client5.http.im
         copy.setScheme(original.getScheme());
         copy.setAuthority(original.getAuthority());
         copy.setVersion(original.getVersion());
-        for (final Iterator<Header> it = original.headerIterator(); it.hasNext(); ) {
-            copy.addHeader(it.next());
-        }
+        original.headerIterator().forEachRemaining(copy::addHeader);
         copy.setEntity(original.getEntity());
         return copy;
     }

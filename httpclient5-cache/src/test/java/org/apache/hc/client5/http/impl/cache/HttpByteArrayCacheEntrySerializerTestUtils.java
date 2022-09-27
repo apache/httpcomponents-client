@@ -226,9 +226,8 @@ class HttpByteArrayCacheEntrySerializerTestUtils {
         assertEquals(expectedContent.getStatus(), actualContent.getStatus());
 
         assertArrayEquals(expectedContent.getVariantMap().keySet().toArray(), actualContent.getVariantMap().keySet().toArray());
-        for (final String key : expectedContent.getVariantMap().keySet()) {
-            assertEquals(expectedContent.getVariantMap().get(key), actualContent.getVariantMap().get(key), "Expected same variantMap values for key '" + key + "'");
-        }
+        expectedContent.getVariantMap().keySet().forEach(key -> assertEquals(expectedContent.getVariantMap().get(key),
+                actualContent.getVariantMap().get(key), "Expected same variantMap values for key '" + key + "'"));
 
         // Verify that the same headers are present on the expected and actual content.
         for(final Header expectedHeader: expectedContent.getHeaders()) {

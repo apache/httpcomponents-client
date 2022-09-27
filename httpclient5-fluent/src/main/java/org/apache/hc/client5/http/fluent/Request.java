@@ -358,11 +358,9 @@ public class Request {
         return this;
     }
 
-    public Request bodyForm(final Iterable <? extends NameValuePair> formParams, final Charset charset) {
+    public Request bodyForm(final Iterable<? extends NameValuePair> formParams, final Charset charset) {
         final List<NameValuePair> paramList = new ArrayList<>();
-        for (final NameValuePair param : formParams) {
-            paramList.add(param);
-        }
+        formParams.forEach(paramList::add);
         final ContentType contentType = charset != null ?
                 ContentType.APPLICATION_FORM_URLENCODED.withCharset(charset) : ContentType.APPLICATION_FORM_URLENCODED;
         final String s = WWWFormCodec.format(paramList, contentType.getCharset());

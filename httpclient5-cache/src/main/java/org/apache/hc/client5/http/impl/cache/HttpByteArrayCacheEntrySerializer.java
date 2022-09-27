@@ -261,11 +261,11 @@ public class HttpByteArrayCacheEntrySerializer implements HttpCacheEntrySerializ
         // Encode these so map entries are stored in a pair of headers, one for key and one for value.
         // Header keys look like: {Accept-Encoding=gzip}
         // And header values like: {Accept-Encoding=gzip}https://example.com:1234/foo
-        for (final Map.Entry<String, String> entry : httpCacheEntry.getContent().getVariantMap().entrySet()) {
+        httpCacheEntry.getContent().getVariantMap().forEach((k, v) -> {
             // Headers are ordered
-            httpResponse.addHeader(SC_HEADER_NAME_VARIANT_MAP_KEY, entry.getKey());
-            httpResponse.addHeader(SC_HEADER_NAME_VARIANT_MAP_VALUE, entry.getValue());
-        }
+            httpResponse.addHeader(SC_HEADER_NAME_VARIANT_MAP_KEY, k);
+            httpResponse.addHeader(SC_HEADER_NAME_VARIANT_MAP_VALUE, v);
+        });
     }
 
     /**
