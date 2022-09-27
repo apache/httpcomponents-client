@@ -32,6 +32,7 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLException;
@@ -73,7 +74,7 @@ final class TlsSessionValidator {
                         final List<String> altNames = new ArrayList<>();
                         for (final List<?> aC : altNames1) {
                             if (!aC.isEmpty()) {
-                                altNames.add((String) aC.get(1));
+                                altNames.add(Objects.toString(aC.get(1), null));
                             }
                         }
                         log.debug(" peer alternative names: {}", altNames);
@@ -86,7 +87,7 @@ final class TlsSessionValidator {
                         final List<String> altNames = new ArrayList<>();
                         for (final List<?> aC : altNames2) {
                             if (!aC.isEmpty()) {
-                                altNames.add((String) aC.get(1));
+                                altNames.add(Objects.toString(aC.get(1), null));
                             }
                         }
                         log.debug(" issuer alternative names: {}", altNames);
