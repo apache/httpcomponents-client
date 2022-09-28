@@ -41,8 +41,8 @@ import org.junit.rules.ExternalResource;
 
 public abstract class AbstractServerTestBase {
 
-    public static final Timeout TIMEOUT = Timeout.ofSeconds(30);
-    public static final Timeout LONG_TIMEOUT = Timeout.ofSeconds(60);
+    public static final Timeout TIMEOUT = Timeout.ofMinutes(1);
+    public static final Timeout LONG_TIMEOUT = Timeout.ofMinutes(3);
 
     protected final URIScheme scheme;
 
