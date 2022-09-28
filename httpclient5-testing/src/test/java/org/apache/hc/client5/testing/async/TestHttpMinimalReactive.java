@@ -92,7 +92,7 @@ public class TestHttpMinimalReactive extends AbstractHttpReactiveFundamentalsTes
                 H2Config.DEFAULT,
                 Http1Config.DEFAULT,
                 IOReactorConfig.custom()
-                        .setSoTimeout(TIMEOUT)
+                        .setSoTimeout(LONG_TIMEOUT)
                         .build(),
                 PoolingAsyncClientConnectionManagerBuilder.create()
                         .setTlsStrategy(new DefaultClientTlsStrategy(SSLTestContexts.createClientSSLContext()))
