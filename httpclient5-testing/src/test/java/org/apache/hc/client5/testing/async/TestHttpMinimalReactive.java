@@ -89,7 +89,7 @@ public class TestHttpMinimalReactive extends AbstractHttpReactiveFundamentalsTes
                 .setTlsStrategy(new DefaultClientTlsStrategy(SSLTestContexts.createClientSSLContext()))
                 .build();
         final IOReactorConfig ioReactorConfig = IOReactorConfig.custom()
-                .setSoTimeout(TIMEOUT)
+                .setSoTimeout(LONG_TIMEOUT)
                 .build();
         if (version.greaterEquals(HttpVersion.HTTP_2)) {
             return HttpAsyncClients.createMinimal(
