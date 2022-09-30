@@ -66,19 +66,48 @@ final class MultihomeIOSessionRequester {
             final Object attachment,
             final FutureCallback<IOSession> callback) {
 
+        final ComplexFuture<IOSession> future = new ComplexFuture<>(callback);
         if (remoteAddress != null) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("{}:{} connecting {} to {} ({})",
                         remoteEndpoint.getHostName(), remoteEndpoint.getPort(), localAddress, remoteAddress, connectTimeout);
             }
-            return connectionInitiator.connect(remoteEndpoint, remoteAddress, localAddress, connectTimeout, attachment, callback);
+            final Future<IOSession> sessionFuture = connectionInitiator.connect(remoteEndpoint, remoteAddress, localAddress, connectTimeout, attachment, new FutureCallback<IOSession>() {
+                @Override
+                public void completed(final IOSession session) {
+                    future.completed(session);
+                }
+
+                @Override
+                public void failed(final Exception cause) {
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("{}:{} connection to {} failed ({}); terminating operation",
+                                remoteEndpoint.getHostName(), remoteEndpoint.getPort(), remoteAddress, cause.getClass());
+                    }
+                    if (cause instanceof IOException) {
+                        future.failed(ConnectExceptionSupport.enhance((IOException) cause, remoteEndpoint,
+                                (remoteAddress instanceof InetSocketAddress) ?
+                                        new InetAddress[] { ((InetSocketAddress) remoteAddress).getAddress() } :
+                                        new InetAddress[] {}));
+                    } else {
+                        future.failed(cause);
+                    }
+                }
+
+                @Override
+                public void cancelled() {
+                    future.cancel();
+                }
+
+            });
+            future.setDependency(sessionFuture);
+            return future;
         }
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("{} resolving remote address", remoteEndpoint.getHostName());
         }
 
-        final ComplexFuture<IOSession> future = new ComplexFuture<>(callback);
         final InetAddress[] remoteAddresses;
         try {
             remoteAddresses = dnsResolver.resolve(remoteEndpoint.getHostName());
