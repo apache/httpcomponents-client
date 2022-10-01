@@ -27,7 +27,8 @@ jobs:
     continue-on-error: ${{ matrix.experimental }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        # windows-latest is not used due to intermittent network failures
+        os: [ubuntu-latest, macos-latest]
         # All LTS versions plus the current version. Java 17 cannot be tested with due to
         # EasyMock incompatibility (removed in 5.2)
         java: [ 8, 11 ]
