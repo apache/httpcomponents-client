@@ -27,7 +27,8 @@ jobs:
     continue-on-error: ${{ matrix.experimental }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        # windows-latest is not used due to intermittent network failures
+        os: [ubuntu-latest, macos-latest]
         # All LTS versions plus the current version
         java: [ 8, 11, 17 ]
         experimental: [false]
