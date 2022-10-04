@@ -33,6 +33,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.time.Instant;
 
 import org.apache.hc.client5.http.HttpRoute;
@@ -73,11 +74,9 @@ public class TestHttpCacheJiraNumber1147 {
 
     @BeforeEach
     public void setUp() throws Exception {
-        cacheDir = File.createTempFile("cachedir", "");
+        cacheDir = Files.createTempDirectory("cachedir").toFile();
         if (cacheDir.exists()) {
-            cacheDir.delete();
         }
-        cacheDir.mkdir();
     }
 
     @AfterEach
