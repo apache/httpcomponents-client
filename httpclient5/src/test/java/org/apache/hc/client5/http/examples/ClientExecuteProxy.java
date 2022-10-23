@@ -57,7 +57,7 @@ public class ClientExecuteProxy {
             System.out.println("Executing request " + request.getMethod() + " " + request.getUri() +
                     " via " + proxy);
 
-            httpclient.execute(request, response -> {
+            httpclient.execute(target, request, response -> {
                 System.out.println("----------------------------------------");
                 System.out.println(request + "->" + new StatusLine(response));
                 EntityUtils.consume(response.getEntity());
