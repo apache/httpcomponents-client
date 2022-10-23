@@ -159,7 +159,7 @@ public class ProxyClient {
         final HttpContext context = new BasicHttpContext();
         ClassicHttpResponse response;
 
-        final ClassicHttpRequest connect = new BasicClassicHttpRequest(Method.CONNECT, host.toHostString());
+        final ClassicHttpRequest connect = new BasicClassicHttpRequest(Method.CONNECT, proxy, host.toHostString());
 
         final BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
         credsProvider.setCredentials(new AuthScope(proxy), credentials);
