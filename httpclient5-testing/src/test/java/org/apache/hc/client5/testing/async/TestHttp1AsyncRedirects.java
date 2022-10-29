@@ -27,24 +27,16 @@
 package org.apache.hc.client5.testing.async;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Future;
 
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
-import org.apache.hc.client5.http.config.ConnectionConfig;
-import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
-import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder;
-import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManager;
-import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
-import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.client5.testing.OldPathRedirectResolver;
-import org.apache.hc.client5.testing.SSLTestContexts;
 import org.apache.hc.client5.testing.redirect.Redirect;
+import org.apache.hc.core5.function.Decorator;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
@@ -53,88 +45,45 @@ import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.URIScheme;
+import org.apache.hc.core5.http.config.Http1Config;
 import org.apache.hc.core5.http.message.BasicHeader;
-import org.junit.Test;
+import org.apache.hc.core5.http.nio.AsyncServerExchangeHandler;
+import org.apache.hc.core5.testing.nio.H2TestServer;
 import org.junit.jupiter.api.Assertions;
-import org.junit.Rule;
-import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
-import org.junit.rules.ExternalResource;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.Test;
 
 /**
  * Redirection test cases.
  */
-@EnableRuleMigrationSupport
-@RunWith(Parameterized.class)
-public class TestHttp1AsyncRedirects extends AbstractHttpAsyncRedirectsTest<CloseableHttpAsyncClient> {
-
-    @Parameterized.Parameters(name = "HTTP/1.1 {0}")
-    public static Collection<Object[]> protocols() {
-        return Arrays.asList(new Object[][]{
-                {URIScheme.HTTP},
-                {URIScheme.HTTPS},
-        });
-    }
-
-    protected HttpAsyncClientBuilder clientBuilder;
-    protected PoolingAsyncClientConnectionManager connManager;
+public abstract class TestHttp1AsyncRedirects extends AbstractHttpAsyncRedirectsTest<CloseableHttpAsyncClient> {
 
     public TestHttp1AsyncRedirects(final URIScheme scheme) {
-        super(HttpVersion.HTTP_1_1, scheme);
+        super(scheme, HttpVersion.HTTP_1_1);
     }
 
-    @Rule
-    public ExternalResource connManagerResource = new ExternalResource() {
-
-        @Override
-        protected void before() throws Throwable {
-            connManager = PoolingAsyncClientConnectionManagerBuilder.create()
-                    .setTlsStrategy(new DefaultClientTlsStrategy(SSLTestContexts.createClientSSLContext()))
-                    .setDefaultConnectionConfig(ConnectionConfig.custom()
-                            .setConnectTimeout(TIMEOUT)
-                            .setSocketTimeout(TIMEOUT)
-                            .build())
-                    .build();
-        }
-
-        @Override
-        protected void after() {
-            if (connManager != null) {
-                connManager.close();
-                connManager = null;
-            }
-        }
-
-    };
-
-    @Rule
-    public ExternalResource clientBuilderResource = new ExternalResource() {
-
-        @Override
-        protected void before() throws Throwable {
-            clientBuilder = HttpAsyncClientBuilder.create()
-                    .setDefaultRequestConfig(RequestConfig.custom()
-                            .setConnectionRequestTimeout(TIMEOUT)
-                            .build())
-                    .setConnectionManager(connManager);
-        }
-
-    };
+    @Override
+    protected H2TestServer startServer(final Decorator<AsyncServerExchangeHandler> exchangeHandlerDecorator) throws Exception {
+        return startServer(Http1Config.DEFAULT, null, exchangeHandlerDecorator);
+    }
 
     @Override
-    protected CloseableHttpAsyncClient createClient() throws Exception {
-        return clientBuilder.build();
+    protected CloseableHttpAsyncClient startClient() throws Exception {
+        return startClient(b -> {});
     }
 
     @Test
     public void testBasicRedirect300NoKeepAlive() throws Exception {
-        final HttpHost target = start(exchangeHandler -> new RedirectingAsyncDecorator(
+        final H2TestServer server = startServer(exchangeHandler -> new RedirectingAsyncDecorator(
                 exchangeHandler,
                 new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MULTIPLE_CHOICES,
                         Redirect.ConnControl.CLOSE)));
+        server.register("/random/*", AsyncRandomHandler::new);
+        final HttpHost target = targetHost();
+
+        final CloseableHttpAsyncClient client = startClient();
+
         final HttpClientContext context = HttpClientContext.create();
-        final Future<SimpleHttpResponse> future = httpclient.execute(SimpleRequestBuilder.get()
+        final Future<SimpleHttpResponse> future = client.execute(SimpleRequestBuilder.get()
                         .setHttpHost(target)
                         .setPath("/oldlocation/")
                         .build(), context, null);
@@ -149,12 +98,17 @@ public class TestHttp1AsyncRedirects extends AbstractHttpAsyncRedirectsTest<Clos
 
     @Test
     public void testBasicRedirect301NoKeepAlive() throws Exception {
-        final HttpHost target = start(exchangeHandler -> new RedirectingAsyncDecorator(
+        final H2TestServer server = startServer(exchangeHandler -> new RedirectingAsyncDecorator(
                 exchangeHandler,
                 new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MOVED_PERMANENTLY,
                         Redirect.ConnControl.CLOSE)));
+        server.register("/random/*", AsyncRandomHandler::new);
+        final HttpHost target = targetHost();
+
+        final CloseableHttpAsyncClient client = startClient();
+
         final HttpClientContext context = HttpClientContext.create();
-        final Future<SimpleHttpResponse> future = httpclient.execute(SimpleRequestBuilder.get()
+        final Future<SimpleHttpResponse> future = client.execute(SimpleRequestBuilder.get()
                         .setHttpHost(target)
                         .setPath("/oldlocation/100")
                         .build(), context, null);
@@ -170,18 +124,21 @@ public class TestHttp1AsyncRedirects extends AbstractHttpAsyncRedirectsTest<Clos
 
     @Test
     public void testDefaultHeadersRedirect() throws Exception {
-        final List<Header> defaultHeaders = new ArrayList<>(1);
-        defaultHeaders.add(new BasicHeader(HttpHeaders.USER_AGENT, "my-test-client"));
-        clientBuilder.setDefaultHeaders(defaultHeaders);
-
-        final HttpHost target = start(exchangeHandler -> new RedirectingAsyncDecorator(
+        final H2TestServer server = startServer(exchangeHandler -> new RedirectingAsyncDecorator(
                 exchangeHandler,
                 new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MOVED_PERMANENTLY,
                         Redirect.ConnControl.CLOSE)));
+        server.register("/random/*", AsyncRandomHandler::new);
+        final HttpHost target = targetHost();
+
+        final List<Header> defaultHeaders = new ArrayList<>(1);
+        defaultHeaders.add(new BasicHeader(HttpHeaders.USER_AGENT, "my-test-client"));
+        final CloseableHttpAsyncClient client = startClient(builder -> builder
+                .setDefaultHeaders(defaultHeaders)
+        );
 
         final HttpClientContext context = HttpClientContext.create();
-
-        final Future<SimpleHttpResponse> future = httpclient.execute(SimpleRequestBuilder.get()
+        final Future<SimpleHttpResponse> future = client.execute(SimpleRequestBuilder.get()
                 .setHttpHost(target)
                 .setPath("/oldlocation/123")
                 .build(), context, null);

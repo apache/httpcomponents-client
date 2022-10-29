@@ -53,20 +53,28 @@ import org.apache.hc.core5.http.nio.entity.AsyncEntityProducers;
 import org.apache.hc.core5.http.nio.entity.BasicAsyncEntityConsumer;
 import org.apache.hc.core5.http.nio.support.BasicRequestProducer;
 import org.apache.hc.core5.http.nio.support.BasicResponseConsumer;
+import org.apache.hc.core5.testing.nio.H2TestServer;
 import org.hamcrest.CoreMatchers;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public abstract class AbstractHttpAsyncFundamentalsTest<T extends CloseableHttpAsyncClient> extends AbstractIntegrationTestBase<T> {
+public abstract class AbstractHttpAsyncFundamentalsTest<T extends CloseableHttpAsyncClient> extends AbstractIntegrationTestBase {
 
-    public AbstractHttpAsyncFundamentalsTest(final URIScheme scheme) {
+    protected AbstractHttpAsyncFundamentalsTest(final URIScheme scheme) {
         super(scheme);
     }
 
+    abstract protected H2TestServer startServer() throws Exception;
+
+    abstract protected T startClient() throws Exception;
+
     @Test
-    public void testSequenctialGetRequests() throws Exception {
-        final HttpHost target = start();
+    public void testSequentialGetRequests() throws Exception {
+        final H2TestServer server = startServer();
+        server.register("/random/*", AsyncRandomHandler::new);
+        final HttpHost target = targetHost();
+        final T client = startClient();
         for (int i = 0; i < 3; i++) {
-            final Future<SimpleHttpResponse> future = httpclient.execute(
+            final Future<SimpleHttpResponse> future = client.execute(
                     SimpleRequestBuilder.get()
                             .setHttpHost(target)
                             .setPath("/random/2048")
@@ -81,10 +89,13 @@ public abstract class AbstractHttpAsyncFundamentalsTest<T extends CloseableHttpA
     }
 
     @Test
-    public void testSequenctialHeadRequests() throws Exception {
-        final HttpHost target = start();
+    public void testSequentialHeadRequests() throws Exception {
+        final H2TestServer server = startServer();
+        server.register("/random/*", AsyncRandomHandler::new);
+        final HttpHost target = targetHost();
+        final T client = startClient();
         for (int i = 0; i < 3; i++) {
-            final Future<SimpleHttpResponse> future = httpclient.execute(
+            final Future<SimpleHttpResponse> future = client.execute(
                     SimpleRequestBuilder.head()
                             .setHttpHost(target)
                             .setPath("/random/2048")
@@ -98,13 +109,16 @@ public abstract class AbstractHttpAsyncFundamentalsTest<T extends CloseableHttpA
     }
 
     @Test
-    public void testSequenctialPostRequests() throws Exception {
-        final HttpHost target = start();
+    public void testSequentialPostRequests() throws Exception {
+        final H2TestServer server = startServer();
+        server.register("/echo/*", AsyncEchoHandler::new);
+        final HttpHost target = targetHost();
+        final T client = startClient();
         for (int i = 0; i < 3; i++) {
             final byte[] b1 = new byte[1024];
             final Random rnd = new Random(System.currentTimeMillis());
             rnd.nextBytes(b1);
-            final Future<Message<HttpResponse, byte[]>> future = httpclient.execute(
+            final Future<Message<HttpResponse, byte[]>> future = client.execute(
                     new BasicRequestProducer(Method.GET, target, "/echo/",
                             AsyncEntityProducers.create(b1, ContentType.APPLICATION_OCTET_STREAM)),
                     new BasicResponseConsumer<>(new BasicAsyncEntityConsumer()), HttpClientContext.create(), null);
@@ -119,7 +133,10 @@ public abstract class AbstractHttpAsyncFundamentalsTest<T extends CloseableHttpA
 
     @Test
     public void testConcurrentPostRequests() throws Exception {
-        final HttpHost target = start();
+        final H2TestServer server = startServer();
+        server.register("/echo/*", AsyncEchoHandler::new);
+        final HttpHost target = targetHost();
+        final T client = startClient();
         final byte[] b1 = new byte[1024];
         final Random rnd = new Random(System.currentTimeMillis());
         rnd.nextBytes(b1);
@@ -128,7 +145,7 @@ public abstract class AbstractHttpAsyncFundamentalsTest<T extends CloseableHttpA
 
         final Queue<Future<Message<HttpResponse, byte[]>>> queue = new LinkedList<>();
         for (int i = 0; i < reqCount; i++) {
-            final Future<Message<HttpResponse, byte[]>> future = httpclient.execute(
+            final Future<Message<HttpResponse, byte[]>> future = client.execute(
                     new BasicRequestProducer(Method.POST, target, "/echo/",
                             AsyncEntityProducers.create(b1, ContentType.APPLICATION_OCTET_STREAM)),
                     new BasicResponseConsumer<>(new BasicAsyncEntityConsumer()), HttpClientContext.create(), null);
@@ -148,7 +165,10 @@ public abstract class AbstractHttpAsyncFundamentalsTest<T extends CloseableHttpA
 
     @Test
     public void testRequestExecutionFromCallback() throws Exception {
-        final HttpHost target = start();
+        final H2TestServer server = startServer();
+        server.register("/random/*", AsyncRandomHandler::new);
+        final HttpHost target = targetHost();
+        final T client = startClient();
         final int requestNum = 50;
         final AtomicInteger count = new AtomicInteger(requestNum);
         final Queue<SimpleHttpResponse> resultQueue = new ConcurrentLinkedQueue<>();
@@ -161,7 +181,7 @@ public abstract class AbstractHttpAsyncFundamentalsTest<T extends CloseableHttpA
                 try {
                     resultQueue.add(result);
                     if (count.decrementAndGet() > 0) {
-                        httpclient.execute(
+                        client.execute(
                                 SimpleRequestBuilder.get()
                                         .setHttpHost(target)
                                         .setPath("/random/2048")
@@ -188,7 +208,7 @@ public abstract class AbstractHttpAsyncFundamentalsTest<T extends CloseableHttpA
         for (int i = 0; i < threadNum; i++) {
             executorService.execute(() -> {
                 if (!Thread.currentThread().isInterrupted()) {
-                    httpclient.execute(
+                    client.execute(
                             SimpleRequestBuilder.get()
                                     .setHttpHost(target)
                                     .setPath("/random/2048")
@@ -213,8 +233,11 @@ public abstract class AbstractHttpAsyncFundamentalsTest<T extends CloseableHttpA
 
     @Test
     public void testBadRequest() throws Exception {
-        final HttpHost target = start();
-        final Future<SimpleHttpResponse> future = httpclient.execute(
+        final H2TestServer server = startServer();
+        server.register("/random/*", AsyncRandomHandler::new);
+        final HttpHost target = targetHost();
+        final T client = startClient();
+        final Future<SimpleHttpResponse> future = client.execute(
                 SimpleRequestBuilder.get()
                         .setHttpHost(target)
                         .setPath("/random/boom")

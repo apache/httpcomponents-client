@@ -33,22 +33,34 @@ import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.cookie.BasicCookieStore;
 import org.apache.hc.client5.http.cookie.Cookie;
 import org.apache.hc.client5.http.cookie.CookieStore;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.client5.testing.sync.extension.TestClientResources;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.message.BasicHeader;
+import org.apache.hc.core5.testing.classic.ClassicTestServer;
+import org.apache.hc.core5.util.Timeout;
 import org.junit.jupiter.api.Assertions;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 /**
  * This class tests cookie matching when using Virtual Host.
  */
-public class TestCookieVirtualHost extends LocalServerTestBase {
+public class TestCookieVirtualHost {
+
+    public static final Timeout TIMEOUT = Timeout.ofMinutes(1);
+
+    @RegisterExtension
+    private TestClientResources testResources = new TestClientResources(URIScheme.HTTP, TIMEOUT);
 
     @Test
     public void testCookieMatchingWithVirtualHosts() throws Exception {
-        this.server.registerHandlerVirtual("app.mydomain.fr", "*", (request, response, context) -> {
+        final ClassicTestServer server = testResources.startServer(null, null, null);
+        server.registerHandlerVirtual("app.mydomain.fr", "*", (request, response, context) -> {
 
             final int n = Integer.parseInt(request.getFirstHeader("X-Request").getValue());
             switch (n) {
@@ -87,7 +99,9 @@ public class TestCookieVirtualHost extends LocalServerTestBase {
             }
         });
 
-        final HttpHost target = start();
+        final HttpHost target = testResources.targetHost();
+
+        final CloseableHttpClient client = testResources.startClient(b -> {});
 
         final CookieStore cookieStore = new BasicCookieStore();
         final HttpClientContext context = HttpClientContext.create();
@@ -96,7 +110,7 @@ public class TestCookieVirtualHost extends LocalServerTestBase {
         // First request : retrieve a domain cookie from remote server.
         final HttpGet request1 = new HttpGet(new URI("http://app.mydomain.fr"));
         request1.addHeader("X-Request", "1");
-        this.httpclient.execute(target, request1, context, response -> {
+        client.execute(target, request1, context, response -> {
             EntityUtils.consume(response.getEntity());
             return null;
         });
@@ -110,7 +124,7 @@ public class TestCookieVirtualHost extends LocalServerTestBase {
         // Second request : send the cookie back.
         final HttpGet request2 = new HttpGet(new URI("http://app.mydomain.fr"));
         request2.addHeader("X-Request", "2");
-        this.httpclient.execute(target, request2, context, response -> {
+        client.execute(target, request2, context, response -> {
             EntityUtils.consume(response.getEntity());
             return null;
         });
@@ -118,7 +132,7 @@ public class TestCookieVirtualHost extends LocalServerTestBase {
         // Third request : Host header
         final HttpGet request3 = new HttpGet(new URI("http://app.mydomain.fr"));
         request3.addHeader("X-Request", "3");
-        this.httpclient.execute(target, request3, context, response -> {
+        client.execute(target, request3, context, response -> {
             EntityUtils.consume(response.getEntity());
             return null;
         });

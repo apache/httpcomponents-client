@@ -32,8 +32,9 @@ import java.util.Locale;
 import java.util.Set;
 
 import org.apache.hc.client5.http.classic.methods.HttpGet;
-import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.classic.MinimalHttpClient;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.client5.testing.sync.extension.TestClientResources;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.Header;
@@ -41,17 +42,26 @@ import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.io.HttpRequestHandler;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.testing.classic.ClassicTestServer;
+import org.apache.hc.core5.util.Timeout;
 import org.junit.jupiter.api.Assertions;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 /**
  * Client protocol handling tests.
  */
-public class TestMinimalClientRequestExecution extends LocalServerTestBase {
+public class TestMinimalClientRequestExecution {
+
+    public static final Timeout TIMEOUT = Timeout.ofMinutes(1);
+
+    @RegisterExtension
+    private TestClientResources testResources = new TestClientResources(URIScheme.HTTP, TIMEOUT);
 
     private static class SimpleService implements HttpRequestHandler {
 
@@ -72,14 +82,16 @@ public class TestMinimalClientRequestExecution extends LocalServerTestBase {
 
     @Test
     public void testNonCompliantURIWithContext() throws Exception {
-        this.server.registerHandler("*", new SimpleService());
-        this.httpclient = HttpClients.createMinimal();
-        final HttpHost target = start();
+        final ClassicTestServer server = testResources.startServer(null, null, null);
+        server.registerHandler("*", new SimpleService());
+        final HttpHost target = testResources.targetHost();
+
+        final MinimalHttpClient client = testResources.startMinimalClient();
 
         final HttpClientContext context = HttpClientContext.create();
         for (int i = 0; i < 10; i++) {
             final HttpGet request = new HttpGet("/");
-            this.httpclient.execute(target, request, context, response -> {
+            client.execute(target, request, context, response -> {
                 EntityUtils.consume(response.getEntity());
                 Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
                 return null;
@@ -102,13 +114,15 @@ public class TestMinimalClientRequestExecution extends LocalServerTestBase {
 
     @Test
     public void testNonCompliantURIWithoutContext() throws Exception {
-        this.server.registerHandler("*", new SimpleService());
-        this.httpclient = HttpClients.createMinimal();
-        final HttpHost target = start();
+        final ClassicTestServer server = testResources.startServer(null, null, null);
+        server.registerHandler("*", new SimpleService());
+        final HttpHost target = testResources.targetHost();
+
+        final MinimalHttpClient client = testResources.startMinimalClient();
 
         for (int i = 0; i < 10; i++) {
             final HttpGet request = new HttpGet("/");
-            this.httpclient.execute(target, request, response -> {
+            client.execute(target, request, response -> {
                 EntityUtils.consume(response.getEntity());
                 Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
                 return null;

@@ -28,99 +28,31 @@ package org.apache.hc.client5.testing.async;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
-import org.apache.hc.client5.http.config.RequestConfig;
-import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.impl.DefaultHttpRequestRetryStrategy;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
-import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder;
-import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManager;
-import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
 import org.apache.hc.core5.function.Resolver;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpStatus;
-import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.config.Http1Config;
-import org.apache.hc.core5.http2.HttpVersionPolicy;
-import org.apache.hc.core5.http2.config.H2Config;
+import org.apache.hc.core5.testing.nio.H2TestServer;
 import org.apache.hc.core5.util.TimeValue;
 import org.hamcrest.CoreMatchers;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
-import org.junit.rules.ExternalResource;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.Test;
 
-@EnableRuleMigrationSupport
-@RunWith(Parameterized.class)
-public class TestHttp1RequestReExecution extends AbstractIntegrationTestBase<CloseableHttpAsyncClient> {
+public abstract class TestHttp1RequestReExecution extends AbstractIntegrationTestBase {
 
-    @Parameterized.Parameters(name = "{0}")
-    public static Collection<Object[]> protocolVersions() {
-        return Arrays.asList(new Object[][]{
-                { HttpVersion.HTTP_1_1 },
-                { HttpVersion.HTTP_2 }
-        });
+    public TestHttp1RequestReExecution(final URIScheme scheme) {
+        super(scheme);
     }
 
-    private final HttpVersion version;
-
-    public TestHttp1RequestReExecution(final HttpVersion version) {
-        super(URIScheme.HTTP);
-        this.version = version;
-    }
-
-    HttpAsyncClientBuilder clientBuilder;
-    PoolingAsyncClientConnectionManager connManager;
-
-    @Rule
-    public ExternalResource connManagerResource = new ExternalResource() {
-
-        @Override
-        protected void before() throws Throwable {
-            connManager = PoolingAsyncClientConnectionManagerBuilder.create()
-                    .build();
-        }
-
-        @Override
-        protected void after() {
-            if (connManager != null) {
-                connManager.close();
-                connManager = null;
-            }
-        }
-
-    };
-
-    @Rule
-    public ExternalResource clientBuilderResource = new ExternalResource() {
-
-        @Override
-        protected void before() throws Throwable {
-            connManager.setDefaultTlsConfig(TlsConfig.custom()
-                            .setVersionPolicy(version.greaterEquals(HttpVersion.HTTP_2) ? HttpVersionPolicy.FORCE_HTTP_2 : HttpVersionPolicy.FORCE_HTTP_1)
-                    .build());
-            clientBuilder = HttpAsyncClientBuilder.create()
-                    .setDefaultRequestConfig(RequestConfig.custom()
-                            .setConnectionRequestTimeout(TIMEOUT)
-                            .build())
-                    .setConnectionManager(connManager);
-        }
-
-    };
-
-    @Override
-    public final HttpHost start() throws Exception {
-
+    protected H2TestServer startServer() throws Exception {
         final Resolver<HttpRequest, TimeValue> serviceAvailabilityResolver = new Resolver<HttpRequest, TimeValue>() {
 
             private final AtomicInteger count = new AtomicInteger(0);
@@ -133,23 +65,20 @@ public class TestHttp1RequestReExecution extends AbstractIntegrationTestBase<Clo
 
         };
 
-        if (version.greaterEquals(HttpVersion.HTTP_2)) {
-            return super.start(null, handler -> new ServiceUnavailableAsyncDecorator(handler, serviceAvailabilityResolver), H2Config.DEFAULT);
-        } else {
-            return super.start(null, handler -> new ServiceUnavailableAsyncDecorator(handler, serviceAvailabilityResolver), Http1Config.DEFAULT);
-        }
-    }
-
-    @Override
-    protected CloseableHttpAsyncClient createClient() throws Exception {
-        return clientBuilder.build();
+        return startServer(Http1Config.DEFAULT, null, handler ->
+                new ServiceUnavailableAsyncDecorator(handler, serviceAvailabilityResolver));
     }
 
     @Test
     public void testGiveUpAfterOneRetry() throws Exception {
-        clientBuilder.setRetryStrategy(new DefaultHttpRequestRetryStrategy(1, TimeValue.ofSeconds(1)));
-        final HttpHost target = start();
-        final Future<SimpleHttpResponse> future = httpclient.execute(
+        final H2TestServer server = startServer();
+        server.register("/random/*", AsyncRandomHandler::new);
+        final HttpHost target = targetHost();
+
+        final CloseableHttpAsyncClient client = startClient(builder -> builder
+                .setRetryStrategy(new DefaultHttpRequestRetryStrategy(1, TimeValue.ofSeconds(1))));
+
+        final Future<SimpleHttpResponse> future = client.execute(
                 SimpleRequestBuilder.get()
                         .setHttpHost(target)
                         .setPath("/random/2048")
@@ -161,9 +90,14 @@ public class TestHttp1RequestReExecution extends AbstractIntegrationTestBase<Clo
 
     @Test
     public void testDoNotGiveUpEasily() throws Exception {
-        clientBuilder.setRetryStrategy(new DefaultHttpRequestRetryStrategy(5, TimeValue.ofSeconds(1)));
-        final HttpHost target = start();
-        final Future<SimpleHttpResponse> future = httpclient.execute(
+        final H2TestServer server = startServer();
+        server.register("/random/*", AsyncRandomHandler::new);
+        final HttpHost target = targetHost();
+
+        final CloseableHttpAsyncClient client = startClient(builder -> builder
+                .setRetryStrategy(new DefaultHttpRequestRetryStrategy(5, TimeValue.ofSeconds(1))));
+
+        final Future<SimpleHttpResponse> future = client.execute(
                 SimpleRequestBuilder.get()
                         .setHttpHost(target)
                         .setPath("/random/2048")

@@ -26,25 +26,50 @@
  */
 package org.apache.hc.client5.testing.async;
 
-import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.core5.http.URIScheme;
-import org.apache.hc.core5.http2.config.H2Config;
-import org.apache.hc.core5.testing.nio.H2TestServer;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 
-public abstract class TestH2Reactive extends AbstractHttpReactiveFundamentalsTest<CloseableHttpAsyncClient> {
+public class ReactiveIntegrationTests {
 
-    public TestH2Reactive(final URIScheme scheme) {
-        super(scheme);
+    @Nested
+    @DisplayName("Fundamentals (HTTP/1.1)")
+    public class Http1 extends TestHttp1Reactive {
+
+        public Http1() throws Exception {
+            super(URIScheme.HTTP);
+        }
+
     }
 
-    @Override
-    protected H2TestServer startServer() throws Exception {
-        return startServer(H2Config.DEFAULT, null, null);
+    @Nested
+    @DisplayName("Fundamentals (HTTP/1.1, TLS)")
+    public class Http1Tls extends TestHttp1Reactive {
+
+        public Http1Tls() throws Exception {
+            super(URIScheme.HTTPS);
+        }
+
     }
 
-    @Override
-    protected CloseableHttpAsyncClient startClient() throws Exception {
-        return startH2Client(b -> {});
+    @Nested
+    @DisplayName("Fundamentals (HTTP/2)")
+    public class H2 extends TestH2Reactive {
+
+        public H2() throws Exception {
+            super(URIScheme.HTTP);
+        }
+
+    }
+
+    @Nested
+    @DisplayName("Fundamentals (HTTP/2, TLS)")
+    public class H2Tls extends TestH2Reactive {
+
+        public H2Tls() throws Exception {
+            super(URIScheme.HTTPS);
+        }
+
     }
 
 }

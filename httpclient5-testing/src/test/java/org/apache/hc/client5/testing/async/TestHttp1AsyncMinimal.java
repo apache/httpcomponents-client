@@ -28,25 +28,17 @@ package org.apache.hc.client5.testing.async;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Random;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.hc.client5.http.config.TlsConfig;
-import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
 import org.apache.hc.client5.http.impl.async.MinimalHttpAsyncClient;
-import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
-import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
-import org.apache.hc.client5.testing.SSLTestContexts;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpResponse;
-import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.Message;
 import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.URIScheme;
@@ -56,72 +48,45 @@ import org.apache.hc.core5.http.nio.entity.AsyncEntityProducers;
 import org.apache.hc.core5.http.nio.entity.BasicAsyncEntityConsumer;
 import org.apache.hc.core5.http.nio.support.BasicRequestProducer;
 import org.apache.hc.core5.http.nio.support.BasicResponseConsumer;
-import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.apache.hc.core5.http2.config.H2Config;
-import org.apache.hc.core5.reactor.IOReactorConfig;
+import org.apache.hc.core5.testing.nio.H2TestServer;
 import org.hamcrest.CoreMatchers;
-import org.junit.Test;
-import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.Test;
 
-@EnableRuleMigrationSupport
-@RunWith(Parameterized.class)
-public class TestHttpMinimalReactive extends AbstractHttpReactiveFundamentalsTest<MinimalHttpAsyncClient> {
+public abstract class TestHttp1AsyncMinimal extends AbstractHttpAsyncFundamentalsTest<MinimalHttpAsyncClient> {
 
-    @Parameterized.Parameters(name = "Minimal {0} {1}")
-    public static Collection<Object[]> protocols() {
-        return Arrays.asList(new Object[][]{
-                { HttpVersion.HTTP_1_1, URIScheme.HTTP },
-                { HttpVersion.HTTP_1_1, URIScheme.HTTPS },
-                { HttpVersion.HTTP_2, URIScheme.HTTP },
-                { HttpVersion.HTTP_2, URIScheme.HTTPS }
-        });
-    }
-
-    protected final HttpVersion version;
-
-    public TestHttpMinimalReactive(final HttpVersion version, final URIScheme scheme) {
+    public TestHttp1AsyncMinimal(final URIScheme scheme) {
         super(scheme);
-        this.version = version;
     }
 
     @Override
-    protected MinimalHttpAsyncClient createClient() throws Exception {
-        return HttpAsyncClients.createMinimal(
-                H2Config.DEFAULT,
+    protected H2TestServer startServer() throws Exception {
+        return startServer(Http1Config.DEFAULT, null, null);
+    }
+
+    @Override
+    protected MinimalHttpAsyncClient startClient() throws Exception {
+        return startMinimalClient(
                 Http1Config.DEFAULT,
-                IOReactorConfig.custom()
-                        .setSoTimeout(LONG_TIMEOUT)
-                        .build(),
-                PoolingAsyncClientConnectionManagerBuilder.create()
-                        .setTlsStrategy(new DefaultClientTlsStrategy(SSLTestContexts.createClientSSLContext()))
-                        .setDefaultTlsConfig(TlsConfig.custom()
-                                .setVersionPolicy(version.greaterEquals(HttpVersion.HTTP_2)
-                                        ? HttpVersionPolicy.FORCE_HTTP_2 : HttpVersionPolicy.FORCE_HTTP_1)
-                                .build())
-                        .build());
-    }
-
-    @Override
-    public HttpHost start() throws Exception {
-        if (version.greaterEquals(HttpVersion.HTTP_2)) {
-            return super.start(null, H2Config.DEFAULT);
-        } else {
-            return super.start(null, Http1Config.DEFAULT);
-        }
+                H2Config.DEFAULT,
+                b -> {});
     }
 
     @Test
     public void testConcurrentPostRequestsSameEndpoint() throws Exception {
-        final HttpHost target = start();
+        final H2TestServer server = startServer();
+        server.register("/echo/*", AsyncEchoHandler::new);
+        final HttpHost target = targetHost();
+
+        final MinimalHttpAsyncClient client = startClient();
+
         final byte[] b1 = new byte[1024];
         final Random rnd = new Random(System.currentTimeMillis());
         rnd.nextBytes(b1);
 
         final int reqCount = 20;
 
-        final Future<AsyncClientEndpoint> endpointLease = httpclient.lease(target, null);
+        final Future<AsyncClientEndpoint> endpointLease = client.lease(target, null);
         final AsyncClientEndpoint endpoint = endpointLease.get(5, TimeUnit.SECONDS);
         try {
             final Queue<Future<Message<HttpResponse, byte[]>>> queue = new LinkedList<>();

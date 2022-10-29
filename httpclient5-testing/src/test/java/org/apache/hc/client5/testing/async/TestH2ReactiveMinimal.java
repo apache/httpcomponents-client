@@ -26,47 +26,26 @@
  */
 package org.apache.hc.client5.testing.async;
 
-import java.util.Arrays;
-import java.util.Collection;
-
-import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
 import org.apache.hc.client5.http.impl.async.MinimalH2AsyncClient;
-import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
-import org.apache.hc.client5.testing.SSLTestContexts;
-import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http2.config.H2Config;
-import org.apache.hc.core5.reactor.IOReactorConfig;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.apache.hc.core5.testing.nio.H2TestServer;
 
-@RunWith(Parameterized.class)
-public class TestH2MinimalReactive extends AbstractHttpReactiveFundamentalsTest<MinimalH2AsyncClient> {
+public abstract class TestH2ReactiveMinimal extends AbstractHttpReactiveFundamentalsTest<MinimalH2AsyncClient> {
 
-    @Parameterized.Parameters(name = "{0}")
-    public static Collection<Object[]> protocols() {
-        return Arrays.asList(new Object[][]{
-                { URIScheme.HTTP },
-                { URIScheme.HTTPS },
-        });
-    }
-
-    public TestH2MinimalReactive(final URIScheme scheme) {
+    public TestH2ReactiveMinimal(final URIScheme scheme) {
         super(scheme);
     }
 
     @Override
-    protected MinimalH2AsyncClient createClient() throws Exception {
-        final IOReactorConfig ioReactorConfig = IOReactorConfig.custom()
-                .setSoTimeout(TIMEOUT)
-                .build();
-        return HttpAsyncClients.createHttp2Minimal(
-                H2Config.DEFAULT, ioReactorConfig, new DefaultClientTlsStrategy(SSLTestContexts.createClientSSLContext()));
+    protected H2TestServer startServer() throws Exception {
+        return startServer(H2Config.DEFAULT, null, null);
     }
 
     @Override
-    public HttpHost start() throws Exception {
-        return super.start(null, H2Config.DEFAULT);
+    protected MinimalH2AsyncClient startClient() throws Exception {
+        return startMinimalH2Client(H2Config.DEFAULT);
     }
+
 
 }

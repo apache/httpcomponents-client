@@ -37,6 +37,9 @@ import java.util.List;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.testing.classic.RandomHandler;
+import org.apache.hc.client5.testing.sync.extension.TestClientResources;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.EntityDetails;
@@ -47,27 +50,49 @@ import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpResponseInterceptor;
+import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.impl.HttpProcessors;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.InputStreamEntity;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
+import org.apache.hc.core5.testing.classic.ClassicTestServer;
+import org.apache.hc.core5.util.Timeout;
 import org.junit.jupiter.api.Assertions;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
-public class TestConnectionReuse extends LocalServerTestBase {
+public class TestConnectionReuse {
+
+    public static final Timeout TIMEOUT = Timeout.ofMinutes(1);
+
+    @RegisterExtension
+    private TestClientResources testResources = new TestClientResources(URIScheme.HTTP, TIMEOUT);
+
+    public HttpHost targetHost() {
+        return testResources.targetHost();
+    }
 
     @Test
     public void testReuseOfPersistentConnections() throws Exception {
-        this.connManager.setMaxTotal(5);
-        this.connManager.setDefaultMaxPerRoute(5);
+        final ClassicTestServer server =  testResources.startServer(  null, null, null);
+        server.registerHandler("/random/*", new RandomHandler());
+        final HttpHost target = targetHost();
 
-        final HttpHost target = start();
+        final CloseableHttpClient client = testResources.startClient(
+                builder -> builder
+                        .setMaxConnTotal(5)
+                        .setMaxConnPerRoute(5),
+                builder -> {
+                }
+        );
+
+        final PoolingHttpClientConnectionManager connManager = testResources.connManager();
 
         final WorkerThread[] workers = new WorkerThread[10];
         for (int i = 0; i < workers.length; i++) {
             workers[i] = new WorkerThread(
-                    this.httpclient,
+                    client,
                     target,
                     new URI("/random/2000"),
                     10, false);
@@ -85,17 +110,26 @@ public class TestConnectionReuse extends LocalServerTestBase {
         }
 
         // Expect leased connections to be returned
-        Assertions.assertEquals(0, this.connManager.getTotalStats().getLeased());
+        Assertions.assertEquals(0, connManager.getTotalStats().getLeased());
         // Expect some connection in the pool
-        Assertions.assertTrue(this.connManager.getTotalStats().getAvailable() > 0);
+        Assertions.assertTrue(connManager.getTotalStats().getAvailable() > 0);
     }
 
     @Test
     public void testReuseOfPersistentConnectionsWithStreamedRequestAndResponse() throws Exception {
-        this.connManager.setMaxTotal(5);
-        this.connManager.setDefaultMaxPerRoute(5);
+        final ClassicTestServer server =  testResources.startServer(  null, null, null);
+        server.registerHandler("/random/*", new RandomHandler());
+        final HttpHost target = targetHost();
 
-        final HttpHost target = start();
+        final CloseableHttpClient client = testResources.startClient(
+                builder -> builder
+                        .setMaxConnTotal(5)
+                        .setMaxConnPerRoute(5),
+                builder -> {
+                }
+        );
+
+        final PoolingHttpClientConnectionManager connManager = testResources.connManager();
 
         final WorkerThread[] workers = new WorkerThread[10];
         for (int i = 0; i < workers.length; i++) {
@@ -108,7 +142,7 @@ public class TestConnectionReuse extends LocalServerTestBase {
                         ContentType.APPLICATION_OCTET_STREAM));
                 requests.add(post);
             }
-            workers[i] = new WorkerThread(this.httpclient, target, false, requests);
+            workers[i] = new WorkerThread(client, target, false, requests);
         }
 
         for (final WorkerThread worker : workers) {
@@ -123,9 +157,9 @@ public class TestConnectionReuse extends LocalServerTestBase {
         }
 
         // Expect leased connections to be returned
-        Assertions.assertEquals(0, this.connManager.getTotalStats().getLeased());
+        Assertions.assertEquals(0, connManager.getTotalStats().getLeased());
         // Expect some connection in the pool
-        Assertions.assertTrue(this.connManager.getTotalStats().getAvailable() > 0);
+        Assertions.assertTrue(connManager.getTotalStats().getAvailable() > 0);
     }
 
     private static class AlwaysCloseConn implements HttpResponseInterceptor {
@@ -142,18 +176,26 @@ public class TestConnectionReuse extends LocalServerTestBase {
 
     @Test
     public void testReuseOfClosedConnections() throws Exception {
-        this.connManager.setMaxTotal(5);
-        this.connManager.setDefaultMaxPerRoute(5);
-
         final HttpProcessor httpproc = HttpProcessors.customServer(null)
                 .add(new AlwaysCloseConn())
                 .build();
-        final HttpHost target = start(httpproc, null);
+        final ClassicTestServer server =  testResources.startServer(  null, httpproc, null);
+        final HttpHost target = targetHost();
+
+        final CloseableHttpClient client = testResources.startClient(
+                builder -> builder
+                        .setMaxConnTotal(5)
+                        .setMaxConnPerRoute(5),
+                builder -> {
+                }
+        );
+
+        final PoolingHttpClientConnectionManager connManager = testResources.connManager();
 
         final WorkerThread[] workers = new WorkerThread[10];
         for (int i = 0; i < workers.length; i++) {
             workers[i] = new WorkerThread(
-                    this.httpclient,
+                    client,
                     target,
                     new URI("/random/2000"),
                     10, false);
@@ -171,22 +213,31 @@ public class TestConnectionReuse extends LocalServerTestBase {
         }
 
         // Expect leased connections to be returned
-        Assertions.assertEquals(0, this.connManager.getTotalStats().getLeased());
+        Assertions.assertEquals(0, connManager.getTotalStats().getLeased());
         // Expect zero connections in the pool
-        Assertions.assertEquals(0, this.connManager.getTotalStats().getAvailable());
+        Assertions.assertEquals(0, connManager.getTotalStats().getAvailable());
     }
 
     @Test
     public void testReuseOfAbortedConnections() throws Exception {
-        this.connManager.setMaxTotal(5);
-        this.connManager.setDefaultMaxPerRoute(5);
+        final ClassicTestServer server =  testResources.startServer(  null, null, null);
+        server.registerHandler("/random/*", new RandomHandler());
+        final HttpHost target = targetHost();
 
-        final HttpHost target = start();
+        final CloseableHttpClient client = testResources.startClient(
+                builder -> builder
+                        .setMaxConnTotal(5)
+                        .setMaxConnPerRoute(5),
+                builder -> {
+                }
+        );
+
+        final PoolingHttpClientConnectionManager connManager = testResources.connManager();
 
         final WorkerThread[] workers = new WorkerThread[10];
         for (int i = 0; i < workers.length; i++) {
             workers[i] = new WorkerThread(
-                    this.httpclient,
+                    client,
                     target,
                     new URI("/random/2000"),
                     10, true);
@@ -204,55 +255,65 @@ public class TestConnectionReuse extends LocalServerTestBase {
         }
 
         // Expect leased connections to be returned
-        Assertions.assertEquals(0, this.connManager.getTotalStats().getLeased());
+        Assertions.assertEquals(0, connManager.getTotalStats().getLeased());
         // Expect some connections in the pool
-        Assertions.assertTrue(this.connManager.getTotalStats().getAvailable() > 0);
+        Assertions.assertTrue(connManager.getTotalStats().getAvailable() > 0);
     }
 
     @Test
     public void testKeepAliveHeaderRespected() throws Exception {
-        this.connManager.setMaxTotal(1);
-        this.connManager.setDefaultMaxPerRoute(1);
-
         final HttpProcessor httpproc = HttpProcessors.customServer(null)
                 .add(new ResponseKeepAlive())
                 .build();
-        final HttpHost target = start(httpproc, null);
+        final ClassicTestServer server =  testResources.startServer(  null, httpproc, null);
+        server.registerHandler("/random/*", new RandomHandler());
+        final HttpHost target = targetHost();
 
-        this.httpclient.execute(target, new HttpGet("/random/2000"), response -> {
+        final CloseableHttpClient client = testResources.startClient(
+                builder -> builder
+                        .setMaxConnTotal(1)
+                        .setMaxConnPerRoute(1),
+                builder -> {
+                }
+        );
+
+        final PoolingHttpClientConnectionManager connManager = testResources.connManager();
+
+
+        client.execute(target, new HttpGet("/random/2000"), response -> {
             EntityUtils.consume(response.getEntity());
             return null;
         });
 
-        Assertions.assertEquals(1, this.connManager.getTotalStats().getAvailable());
+        Assertions.assertEquals(1, connManager.getTotalStats().getAvailable());
 
-        this.httpclient.execute(target, new HttpGet("/random/2000"), response -> {
+        client.execute(target, new HttpGet("/random/2000"), response -> {
             EntityUtils.consume(response.getEntity());
             return null;
         });
 
-        Assertions.assertEquals(1, this.connManager.getTotalStats().getAvailable());
+        Assertions.assertEquals(1, connManager.getTotalStats().getAvailable());
 
         // Now sleep for 1.1 seconds and let the timeout do its work
         Thread.sleep(1100);
-        this.httpclient.execute(target, new HttpGet("/random/2000"), response -> {
+        client.execute(target, new HttpGet("/random/2000"), response -> {
             EntityUtils.consume(response.getEntity());
             return null;
         });
 
-        Assertions.assertEquals(1, this.connManager.getTotalStats().getAvailable());
+        Assertions.assertEquals(1, connManager.getTotalStats().getAvailable());
 
         // Do another request just under the 1 second limit & make
         // sure we reuse that connection.
         Thread.sleep(500);
-        this.httpclient.execute(target, new HttpGet("/random/2000"), response -> {
+        client.execute(target, new HttpGet("/random/2000"), response -> {
             EntityUtils.consume(response.getEntity());
             return null;
         });
 
         // Expect leased connections to be returned
-        Assertions.assertEquals(0, this.connManager.getTotalStats().getLeased());
-        Assertions.assertEquals(1, this.connManager.getTotalStats().getAvailable());
+        Assertions.assertEquals(0, connManager.getTotalStats().getLeased());
+        Assertions.assertEquals(1, connManager.getTotalStats().getAvailable());
     }
 
     private static class WorkerThread extends Thread {

@@ -33,6 +33,7 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.function.Consumer;
 
 import org.apache.hc.client5.http.CircularRedirectException;
 import org.apache.hc.client5.http.ClientProtocolException;
@@ -42,12 +43,17 @@ import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.cookie.BasicCookieStore;
 import org.apache.hc.client5.http.cookie.CookieStore;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.cookie.BasicClientCookie;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.protocol.RedirectLocations;
 import org.apache.hc.client5.testing.OldPathRedirectResolver;
+import org.apache.hc.client5.testing.classic.EchoHandler;
+import org.apache.hc.client5.testing.classic.RandomHandler;
 import org.apache.hc.client5.testing.classic.RedirectingDecorator;
 import org.apache.hc.client5.testing.redirect.Redirect;
+import org.apache.hc.client5.testing.sync.extension.TestClientResources;
 import org.apache.hc.core5.function.Decorator;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.Header;
@@ -57,30 +63,61 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.ProtocolException;
+import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.io.HttpServerRequestHandler;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.http.protocol.HttpProcessor;
 import org.apache.hc.core5.net.URIBuilder;
+import org.apache.hc.core5.testing.classic.ClassicTestServer;
+import org.apache.hc.core5.util.Timeout;
 import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.Assertions;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 /**
  * Redirection test cases.
  */
-public class TestRedirects extends LocalServerTestBase {
+public class TestRedirects {
+
+    public static final Timeout TIMEOUT = Timeout.ofMinutes(1);
+
+    @RegisterExtension
+    private TestClientResources testResources = new TestClientResources(URIScheme.HTTP, TIMEOUT);
+
+    public ClassicTestServer startServer(final HttpProcessor httpProcessor,
+                                         final Decorator<HttpServerRequestHandler> handlerDecorator) throws IOException {
+        return testResources.startServer(null, httpProcessor, handlerDecorator);
+    }
+
+    public CloseableHttpClient startClient(final Consumer<HttpClientBuilder> clientCustomizer) {
+        return testResources.startClient(clientCustomizer);
+    }
+
+    public CloseableHttpClient startClient() {
+        return testResources.startClient(builder -> {});
+    }
+
+    public HttpHost targetHost() {
+        return testResources.targetHost();
+    }
 
     @Test
     public void testBasicRedirect300() throws Exception {
-        final HttpHost target = start(null, requestHandler -> new RedirectingDecorator(
+        final ClassicTestServer server = startServer(null, requestHandler -> new RedirectingDecorator(
                 requestHandler,
                 new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MULTIPLE_CHOICES)));
+        server.registerHandler("/random/*", new RandomHandler());
+        final HttpHost target = targetHost();
 
+        final CloseableHttpClient client = startClient();
         final HttpClientContext context = HttpClientContext.create();
+
         final HttpGet httpget = new HttpGet("/oldlocation/100");
-        this.httpclient.execute(target, httpget, context, response -> {
+        client.execute(target, httpget, context, response -> {
             Assertions.assertEquals(HttpStatus.SC_MULTIPLE_CHOICES, response.getCode());
             EntityUtils.consume(response.getEntity());
             return null;
@@ -96,14 +133,18 @@ public class TestRedirects extends LocalServerTestBase {
 
     @Test
     public void testBasicRedirect300NoKeepAlive() throws Exception {
-        final HttpHost target = start(null, requestHandler -> new RedirectingDecorator(
+         final ClassicTestServer server = startServer(null, requestHandler -> new RedirectingDecorator(
                 requestHandler,
                 new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MULTIPLE_CHOICES,
                         Redirect.ConnControl.CLOSE)));
+        server.registerHandler("/random/*", new RandomHandler());
+        final HttpHost target = targetHost();
 
+        final CloseableHttpClient client = startClient();
         final HttpClientContext context = HttpClientContext.create();
+
         final HttpGet httpget = new HttpGet("/oldlocation/100");
-        this.httpclient.execute(target, httpget, context, response -> {
+        client.execute(target, httpget, context, response -> {
             Assertions.assertEquals(HttpStatus.SC_MULTIPLE_CHOICES, response.getCode());
             EntityUtils.consume(response.getEntity());
             return null;
@@ -120,15 +161,18 @@ public class TestRedirects extends LocalServerTestBase {
 
     @Test
     public void testBasicRedirect301() throws Exception {
-        final HttpHost target = start(null, requestHandler -> new RedirectingDecorator(
+         final ClassicTestServer server = startServer(null, requestHandler -> new RedirectingDecorator(
                 requestHandler,
                 new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MOVED_PERMANENTLY)));
+        server.registerHandler("/random/*", new RandomHandler());
+        final HttpHost target = targetHost();
 
+        final CloseableHttpClient client = startClient();
         final HttpClientContext context = HttpClientContext.create();
 
         final HttpGet httpget = new HttpGet("/oldlocation/100");
 
-        this.httpclient.execute(target, httpget, context, response -> {
+        client.execute(target, httpget, context, response -> {
             Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
             EntityUtils.consume(response.getEntity());
             return null;
@@ -148,15 +192,18 @@ public class TestRedirects extends LocalServerTestBase {
 
     @Test
     public void testBasicRedirect302() throws Exception {
-        final HttpHost target = start(null, requestHandler -> new RedirectingDecorator(
+         final ClassicTestServer server = startServer(null, requestHandler -> new RedirectingDecorator(
                 requestHandler,
                 new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MOVED_TEMPORARILY)));
+        server.registerHandler("/random/*", new RandomHandler());
+        final HttpHost target = targetHost();
 
+        final CloseableHttpClient client = startClient();
         final HttpClientContext context = HttpClientContext.create();
 
         final HttpGet httpget = new HttpGet("/oldlocation/50");
 
-        this.httpclient.execute(target, httpget, context, response -> {
+        client.execute(target, httpget, context, response -> {
             Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
             EntityUtils.consume(response.getEntity());
             return null;
@@ -170,7 +217,7 @@ public class TestRedirects extends LocalServerTestBase {
 
     @Test
     public void testBasicRedirect302NoLocation() throws Exception {
-        final HttpHost target = start(null, requestHandler -> new RedirectingDecorator(
+         final ClassicTestServer server = startServer(null, requestHandler -> new RedirectingDecorator(
                 requestHandler,
                 requestUri -> {
                     final String path = requestUri.getPath();
@@ -179,12 +226,15 @@ public class TestRedirects extends LocalServerTestBase {
                     }
                     return null;
                 }));
+        server.registerHandler("/random/*", new RandomHandler());
+        final HttpHost target = targetHost();
 
+        final CloseableHttpClient client = startClient();
         final HttpClientContext context = HttpClientContext.create();
 
         final HttpGet httpget = new HttpGet("/oldlocation/100");
 
-        this.httpclient.execute(target, httpget, context, response -> {
+        client.execute(target, httpget, context, response -> {
             final HttpRequest reqWrapper = context.getRequest();
 
             Assertions.assertEquals(HttpStatus.SC_MOVED_TEMPORARILY, response.getCode());
@@ -197,15 +247,18 @@ public class TestRedirects extends LocalServerTestBase {
 
     @Test
     public void testBasicRedirect303() throws Exception {
-        final HttpHost target = start(null, requestHandler -> new RedirectingDecorator(
+         final ClassicTestServer server = startServer(null, requestHandler -> new RedirectingDecorator(
                 requestHandler,
                 new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_SEE_OTHER)));
+        server.registerHandler("/random/*", new RandomHandler());
+        final HttpHost target = targetHost();
 
+        final CloseableHttpClient client = startClient();
         final HttpClientContext context = HttpClientContext.create();
 
         final HttpGet httpget = new HttpGet("/oldlocation/123");
 
-        this.httpclient.execute(target, httpget, context, response -> {
+        client.execute(target, httpget, context, response -> {
             Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
             EntityUtils.consume(response.getEntity());
             return null;
@@ -218,18 +271,21 @@ public class TestRedirects extends LocalServerTestBase {
 
     @Test
     public void testBasicRedirect304() throws Exception {
-        this.server.registerHandler("/oldlocation/*", (request, response, context) -> {
+        final ClassicTestServer server = startServer(null ,null);
+        server.registerHandler("/oldlocation/*", (request, response, context) -> {
             response.setCode(HttpStatus.SC_NOT_MODIFIED);
             response.addHeader(HttpHeaders.LOCATION, "/random/100");
         });
 
-        final HttpHost target = start();
+        server.registerHandler("/random/*", new RandomHandler());
+        final HttpHost target = targetHost();
 
+        final CloseableHttpClient client = startClient();
         final HttpClientContext context = HttpClientContext.create();
 
         final HttpGet httpget = new HttpGet("/oldlocation/stuff");
 
-        this.httpclient.execute(target, httpget, context, response -> {
+        client.execute(target, httpget, context, response -> {
             Assertions.assertEquals(HttpStatus.SC_NOT_MODIFIED, response.getCode());
             EntityUtils.consume(response.getEntity());
             return null;
@@ -246,18 +302,21 @@ public class TestRedirects extends LocalServerTestBase {
 
     @Test
     public void testBasicRedirect305() throws Exception {
-        this.server.registerHandler("/oldlocation/*", (request, response, context) -> {
+        final ClassicTestServer server =  startServer(null ,null);
+        server.registerHandler("/oldlocation/*", (request, response, context) -> {
             response.setCode(HttpStatus.SC_USE_PROXY);
             response.addHeader(HttpHeaders.LOCATION, "/random/100");
         });
 
-        final HttpHost target = start();
+        server.registerHandler("/random/*", new RandomHandler());
+        final HttpHost target = targetHost();
 
+        final CloseableHttpClient client = startClient();
         final HttpClientContext context = HttpClientContext.create();
 
         final HttpGet httpget = new HttpGet("/oldlocation/stuff");
 
-        this.httpclient.execute(target, httpget, context, response -> {
+        client.execute(target, httpget, context, response -> {
             Assertions.assertEquals(HttpStatus.SC_USE_PROXY, response.getCode());
             EntityUtils.consume(response.getEntity());
             return null;
@@ -274,15 +333,18 @@ public class TestRedirects extends LocalServerTestBase {
 
     @Test
     public void testBasicRedirect307() throws Exception {
-        final HttpHost target = start(null, requestHandler -> new RedirectingDecorator(
+         final ClassicTestServer server = startServer(null, requestHandler -> new RedirectingDecorator(
                 requestHandler,
                 new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_TEMPORARY_REDIRECT)));
+        server.registerHandler("/random/*", new RandomHandler());
+        final HttpHost target = targetHost();
 
+        final CloseableHttpClient client = startClient();
         final HttpClientContext context = HttpClientContext.create();
 
         final HttpGet httpget = new HttpGet("/oldlocation/123");
 
-        this.httpclient.execute(target, httpget, context, response -> {
+        client.execute(target, httpget, context, response -> {
             Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
             EntityUtils.consume(response.getEntity());
             return null;
@@ -295,11 +357,14 @@ public class TestRedirects extends LocalServerTestBase {
 
     @Test
     public void testMaxRedirectCheck() throws Exception {
-        final HttpHost target = start(null, requestHandler -> new RedirectingDecorator(
+         final ClassicTestServer server = startServer(null, requestHandler -> new RedirectingDecorator(
                 requestHandler,
                 new OldPathRedirectResolver("/circular-oldlocation/", "/circular-oldlocation/",
                         HttpStatus.SC_MOVED_TEMPORARILY)));
+        server.registerHandler("/random/*", new RandomHandler());
+        final HttpHost target = targetHost();
 
+        final CloseableHttpClient client = startClient();
         final RequestConfig config = RequestConfig.custom()
                 .setCircularRedirectsAllowed(true)
                 .setMaxRedirects(5)
@@ -308,17 +373,20 @@ public class TestRedirects extends LocalServerTestBase {
         final HttpGet httpget = new HttpGet("/circular-oldlocation/123");
         httpget.setConfig(config);
         final ClientProtocolException exception = Assertions.assertThrows(ClientProtocolException.class, () ->
-                this.httpclient.execute(target, httpget, response -> null));
+                client.execute(target, httpget, response -> null));
         Assertions.assertTrue(exception.getCause() instanceof RedirectException);
     }
 
     @Test
     public void testCircularRedirect() throws Exception {
-        final HttpHost target = start(null, requestHandler -> new RedirectingDecorator(
+         final ClassicTestServer server = startServer(null, requestHandler -> new RedirectingDecorator(
                 requestHandler,
                 new OldPathRedirectResolver("/circular-oldlocation/", "/circular-oldlocation/",
                         HttpStatus.SC_MOVED_TEMPORARILY)));
+        server.registerHandler("/random/*", new RandomHandler());
+        final HttpHost target = targetHost();
 
+        final CloseableHttpClient client = startClient();
         final RequestConfig config = RequestConfig.custom()
                 .setCircularRedirectsAllowed(false)
                 .build();
@@ -326,22 +394,25 @@ public class TestRedirects extends LocalServerTestBase {
         final HttpGet httpget = new HttpGet("/circular-oldlocation/123");
         httpget.setConfig(config);
         final ClientProtocolException exception = Assertions.assertThrows(ClientProtocolException.class, () ->
-                this.httpclient.execute(target, httpget, response -> null));
+                client.execute(target, httpget, response -> null));
         Assertions.assertTrue(exception.getCause() instanceof CircularRedirectException);
     }
 
     @Test
     public void testPostRedirectSeeOther() throws Exception {
-        final HttpHost target = start(null, requestHandler -> new RedirectingDecorator(
+         final ClassicTestServer server = startServer(null, requestHandler -> new RedirectingDecorator(
                 requestHandler,
                 new OldPathRedirectResolver("/oldlocation", "/echo", HttpStatus.SC_SEE_OTHER)));
+        server.registerHandler("/echo/*", new EchoHandler());
+        final HttpHost target = targetHost();
 
+        final CloseableHttpClient client = startClient();
         final HttpClientContext context = HttpClientContext.create();
 
         final HttpPost httppost = new HttpPost("/oldlocation/stuff");
         httppost.setEntity(new StringEntity("stuff"));
 
-        this.httpclient.execute(target, httppost, context, response -> {
+        client.execute(target, httppost, context, response -> {
             Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
             EntityUtils.consume(response.getEntity());
             return null;
@@ -355,7 +426,7 @@ public class TestRedirects extends LocalServerTestBase {
 
     @Test
     public void testRelativeRedirect() throws Exception {
-        final HttpHost target = start(null, requestHandler -> new RedirectingDecorator(
+         final ClassicTestServer server = startServer(null, requestHandler -> new RedirectingDecorator(
                 requestHandler,
                 requestUri -> {
                     final String path = requestUri.getPath();
@@ -364,12 +435,15 @@ public class TestRedirects extends LocalServerTestBase {
 
                     }
                     return null;
-                }));
+                }));        server.registerHandler("/random/*", new RandomHandler());
+        final HttpHost target = targetHost();
+
+        final CloseableHttpClient client = startClient();
         final HttpClientContext context = HttpClientContext.create();
 
         final HttpGet httpget = new HttpGet("/oldlocation/stuff");
 
-        this.httpclient.execute(target, httpget, context, response -> {
+        client.execute(target, httpget, context, response -> {
             Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
             EntityUtils.consume(response.getEntity());
             return null;
@@ -382,7 +456,7 @@ public class TestRedirects extends LocalServerTestBase {
 
     @Test
     public void testRelativeRedirect2() throws Exception {
-        final HttpHost target = start(null, requestHandler -> new RedirectingDecorator(
+         final ClassicTestServer server = startServer(null, requestHandler -> new RedirectingDecorator(
                 requestHandler,
                 requestUri -> {
                     final String path = requestUri.getPath();
@@ -392,12 +466,15 @@ public class TestRedirects extends LocalServerTestBase {
                     }
                     return null;
                 }));
+        server.registerHandler("/random/*", new RandomHandler());
+        final HttpHost target = targetHost();
 
+        final CloseableHttpClient client = startClient();
         final HttpClientContext context = HttpClientContext.create();
 
         final HttpGet httpget = new HttpGet("/random/oldlocation");
 
-        this.httpclient.execute(target, httpget, context, response -> {
+        client.execute(target, httpget, context, response -> {
             Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
             EntityUtils.consume(response.getEntity());
             return null;
@@ -410,7 +487,7 @@ public class TestRedirects extends LocalServerTestBase {
 
     @Test
     public void testRejectBogusRedirectLocation() throws Exception {
-        final HttpHost target = start(null, requestHandler -> new RedirectingDecorator(
+         final ClassicTestServer server = startServer(null, requestHandler -> new RedirectingDecorator(
                 requestHandler,
                 requestUri -> {
                     final String path = requestUri.getPath();
@@ -420,17 +497,20 @@ public class TestRedirects extends LocalServerTestBase {
                     }
                     return null;
                 }));
+        server.registerHandler("/random/*", new RandomHandler());
+        final HttpHost target = targetHost();
 
+        final CloseableHttpClient client = startClient();
         final HttpGet httpget = new HttpGet("/oldlocation");
 
         final ClientProtocolException exception = Assertions.assertThrows(ClientProtocolException.class, () ->
-                this.httpclient.execute(target, httpget, response -> null));
+                client.execute(target, httpget, response -> null));
         assertThat(exception.getCause(), CoreMatchers.instanceOf(HttpException.class));
     }
 
     @Test
     public void testRejectInvalidRedirectLocation() throws Exception {
-        final HttpHost target = start(null, requestHandler -> new RedirectingDecorator(
+         final ClassicTestServer server = startServer(null, requestHandler -> new RedirectingDecorator(
                 requestHandler,
                 requestUri -> {
                     final String path = requestUri.getPath();
@@ -440,20 +520,26 @@ public class TestRedirects extends LocalServerTestBase {
                     }
                     return null;
                 }));
+        server.registerHandler("/random/*", new RandomHandler());
+        final HttpHost target = targetHost();
 
+        final CloseableHttpClient client = startClient();
         final HttpGet httpget = new HttpGet("/oldlocation");
 
         final ClientProtocolException exception = Assertions.assertThrows(ClientProtocolException.class, () ->
-                this.httpclient.execute(target, httpget, response -> null));
+                client.execute(target, httpget, response -> null));
         assertThat(exception.getCause(), CoreMatchers.instanceOf(ProtocolException.class));
     }
 
     @Test
     public void testRedirectWithCookie() throws Exception {
-        final HttpHost target = start(null, requestHandler -> new RedirectingDecorator(
+         final ClassicTestServer server = startServer(null, requestHandler -> new RedirectingDecorator(
                 requestHandler,
                 new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MOVED_TEMPORARILY)));
+        server.registerHandler("/random/*", new RandomHandler());
+        final HttpHost target = targetHost();
 
+        final CloseableHttpClient client = startClient();
         final CookieStore cookieStore = new BasicCookieStore();
 
         final BasicClientCookie cookie = new BasicClientCookie("name", "value");
@@ -463,10 +549,11 @@ public class TestRedirects extends LocalServerTestBase {
         cookieStore.addCookie(cookie);
 
         final HttpClientContext context = HttpClientContext.create();
+
         context.setCookieStore(cookieStore);
         final HttpGet httpget = new HttpGet("/oldlocation/100");
 
-        this.httpclient.execute(target, httpget, context, response -> {
+        client.execute(target, httpget, context, response -> {
             Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
             EntityUtils.consume(response.getEntity());
             return null;
@@ -482,17 +569,21 @@ public class TestRedirects extends LocalServerTestBase {
 
     @Test
     public void testDefaultHeadersRedirect() throws Exception {
-        this.clientBuilder.setDefaultHeaders(Collections.singletonList(new BasicHeader(HttpHeaders.USER_AGENT, "my-test-client")));
+        final CloseableHttpClient client = startClient(builder -> builder
+                .setDefaultHeaders(Collections.singletonList(new BasicHeader(HttpHeaders.USER_AGENT, "my-test-client")))
+        );
 
-        final HttpHost target = start(null, requestHandler -> new RedirectingDecorator(
+         final ClassicTestServer server = startServer(null, requestHandler -> new RedirectingDecorator(
                 requestHandler,
                 new OldPathRedirectResolver("/oldlocation", "/random", HttpStatus.SC_MOVED_TEMPORARILY)));
+        server.registerHandler("/random/*", new RandomHandler());
+        final HttpHost target = targetHost();
 
         final HttpClientContext context = HttpClientContext.create();
 
         final HttpGet httpget = new HttpGet("/oldlocation/100");
 
-        this.httpclient.execute(target, httpget, context, response -> {
+        client.execute(target, httpget, context, response -> {
             Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
             EntityUtils.consume(response.getEntity());
             return null;
@@ -509,7 +600,7 @@ public class TestRedirects extends LocalServerTestBase {
     @Test
     public void testCompressionHeaderRedirect() throws Exception {
         final Queue<String> values = new ConcurrentLinkedQueue<>();
-        final HttpHost target = start(null, new Decorator<HttpServerRequestHandler>() {
+         final ClassicTestServer server = startServer(null, new Decorator<HttpServerRequestHandler>() {
 
             @Override
             public HttpServerRequestHandler decorate(final HttpServerRequestHandler requestHandler) {
@@ -532,12 +623,15 @@ public class TestRedirects extends LocalServerTestBase {
             }
 
         });
+        server.registerHandler("/random/*", new RandomHandler());
+        final HttpHost target = targetHost();
 
+        final CloseableHttpClient client = startClient();
         final HttpClientContext context = HttpClientContext.create();
 
         final HttpGet httpget = new HttpGet("/oldlocation/100");
 
-        this.httpclient.execute(target, httpget, context, response -> {
+        client.execute(target, httpget, context, response -> {
             Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
             EntityUtils.consume(response.getEntity());
             return null;

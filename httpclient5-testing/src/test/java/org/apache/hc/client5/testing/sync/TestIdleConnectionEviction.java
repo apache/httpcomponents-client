@@ -33,27 +33,45 @@ import org.apache.hc.client5.http.ClientProtocolException;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.impl.IdleConnectionEvictor;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.testing.classic.RandomHandler;
+import org.apache.hc.client5.testing.sync.extension.TestClientResources;
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.testing.classic.ClassicTestServer;
 import org.apache.hc.core5.util.TimeValue;
-import org.junit.Test;
+import org.apache.hc.core5.util.Timeout;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
-public class TestIdleConnectionEviction extends LocalServerTestBase {
+public class TestIdleConnectionEviction {
+
+    public static final Timeout TIMEOUT = Timeout.ofMinutes(1);
+
+    @RegisterExtension
+    private TestClientResources testResources = new TestClientResources(URIScheme.HTTP, TIMEOUT);
 
     @Test
     public void testIdleConnectionEviction() throws Exception {
-        this.connManager.setDefaultMaxPerRoute(10);
-        this.connManager.setMaxTotal(50);
+        final ClassicTestServer server = testResources.startServer(null, null, null);
+        server.registerHandler("/random/*", new RandomHandler());
+        final HttpHost target = testResources.targetHost();
 
-        final HttpHost target = start();
+        final CloseableHttpClient client = testResources.startClient(b -> {});
 
-        final IdleConnectionEvictor idleConnectionMonitor = new IdleConnectionEvictor(this.connManager, TimeValue.ofMilliseconds(50));
+        final PoolingHttpClientConnectionManager connManager = testResources.connManager();
+
+        connManager.setDefaultMaxPerRoute(10);
+        connManager.setMaxTotal(50);
+
+        final IdleConnectionEvictor idleConnectionMonitor = new IdleConnectionEvictor(connManager, TimeValue.ofMilliseconds(50));
         idleConnectionMonitor.start();
 
         final URI requestUri = new URI("/random/1024");
         final WorkerThread[] workers = new WorkerThread[5];
         for (int i = 0; i < workers.length; i++) {
-            workers[i] = new WorkerThread(httpclient, target, requestUri, 200);
+            workers[i] = new WorkerThread(client, target, requestUri, 200);
         }
         for (final WorkerThread worker : workers) {
             worker.start();

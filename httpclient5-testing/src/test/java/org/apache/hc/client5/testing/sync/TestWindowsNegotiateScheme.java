@@ -32,32 +32,42 @@ import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.win.WinHttpClients;
 import org.apache.hc.client5.http.impl.win.WindowsNegotiateSchemeGetTokenFail;
+import org.apache.hc.client5.testing.sync.extension.TestClientResources;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.config.Registry;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
-import org.junit.Assume;
-import org.junit.Test;
-import org.junit.jupiter.api.Timeout;
+import org.apache.hc.core5.testing.classic.ClassicTestServer;
+import org.apache.hc.core5.util.Timeout;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 /**
  * Unit tests for Windows negotiate authentication.
  */
-public class TestWindowsNegotiateScheme extends LocalServerTestBase {
+public class TestWindowsNegotiateScheme {
+
+    public static final Timeout TIMEOUT = Timeout.ofMinutes(1);
+
+    @RegisterExtension
+    private TestClientResources testResources = new TestClientResources(URIScheme.HTTP, TIMEOUT);
 
     @Test // this timeout (in ms) needs to be extended if you're actively debugging the code
-    @Timeout(value = 30000, unit = MILLISECONDS)
+    @org.junit.jupiter.api.Timeout(value = 30000, unit = MILLISECONDS)
     public void testNoInfiniteLoopOnSPNOutsideDomain() throws Exception {
-        this.server.registerHandler("/", (request, response, context) -> {
+        final ClassicTestServer server = testResources.startServer(null, null, null);
+        server.registerHandler("/", (request, response, context) -> {
             response.addHeader(HttpHeaders.WWW_AUTHENTICATE, StandardAuthScheme.SPNEGO);
             response.setCode(HttpStatus.SC_UNAUTHORIZED);
         });
-        Assume.assumeTrue("Test can only be run on Windows", WinHttpClients.isWinAuthAvailable());
+        final HttpHost target = testResources.targetHost();
+        Assumptions.assumeTrue(WinHttpClients.isWinAuthAvailable(), "Test can only be run on Windows");
 
         // HTTPCLIENT-1545
         // If a service principal name (SPN) from outside your Windows domain tree (e.g., HTTP/example.com) is used,
@@ -69,12 +79,13 @@ public class TestWindowsNegotiateScheme extends LocalServerTestBase {
 
         final Registry<AuthSchemeFactory> authSchemeRegistry = RegistryBuilder.<AuthSchemeFactory>create()
             .register(StandardAuthScheme.SPNEGO, context -> new WindowsNegotiateSchemeGetTokenFail(StandardAuthScheme.SPNEGO, "HTTP/example.com")).build();
-        final CloseableHttpClient customClient = HttpClientBuilder.create()
-                .setDefaultAuthSchemeRegistry(authSchemeRegistry).build();
 
-        final HttpHost target = start();
+        final CloseableHttpClient client = testResources.startClient(builder -> builder
+                .setDefaultAuthSchemeRegistry(authSchemeRegistry)
+        );
+
         final HttpGet httpGet = new HttpGet("/");
-        customClient.execute(target, httpGet, response -> {
+        client.execute(target, httpGet, response -> {
             EntityUtils.consume(response.getEntity());
             return null;
         });

@@ -40,12 +40,14 @@ import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.impl.auth.CredentialsProviderBuilder;
 import org.apache.hc.client5.http.impl.auth.SPNegoScheme;
-import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.testing.sync.extension.TestClientResources;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.config.Registry;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.io.HttpRequestHandler;
@@ -53,18 +55,26 @@ import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.testing.classic.ClassicTestServer;
+import org.apache.hc.core5.util.Timeout;
 import org.ietf.jgss.GSSContext;
 import org.ietf.jgss.GSSManager;
 import org.ietf.jgss.GSSName;
 import org.junit.jupiter.api.Assertions;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
 /**
  * Tests for {@link SPNegoScheme}.
  */
-public class TestSPNegoScheme extends LocalServerTestBase {
+public class TestSPNegoScheme {
+
+    public static final Timeout TIMEOUT = Timeout.ofMinutes(1);
+
+    @RegisterExtension
+    private TestClientResources testResources = new TestClientResources(URIScheme.HTTP, TIMEOUT);
 
     /**
      * This service will continue to ask for authentication.
@@ -150,8 +160,9 @@ public class TestSPNegoScheme extends LocalServerTestBase {
      */
     @Test
     public void testDontTryToAuthenticateEndlessly() throws Exception {
-        this.server.registerHandler("*", new PleaseNegotiateService());
-        final HttpHost target = start();
+        final ClassicTestServer server = testResources.startServer(null, null, null);
+        server.registerHandler("*", new PleaseNegotiateService());
+        final HttpHost target = testResources.targetHost();
 
         final AuthSchemeFactory nsf = new NegotiateSchemeFactoryWithMockGssManager();
         final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
@@ -161,14 +172,15 @@ public class TestSPNegoScheme extends LocalServerTestBase {
         final Registry<AuthSchemeFactory> authSchemeRegistry = RegistryBuilder.<AuthSchemeFactory>create()
             .register(StandardAuthScheme.SPNEGO, nsf)
             .build();
-        this.httpclient = HttpClients.custom()
-            .setDefaultAuthSchemeRegistry(authSchemeRegistry)
-            .setDefaultCredentialsProvider(credentialsProvider)
-            .build();
+
+        final CloseableHttpClient client = testResources.startClient(builder -> builder
+                .setDefaultAuthSchemeRegistry(authSchemeRegistry)
+                .setDefaultCredentialsProvider(credentialsProvider)
+        );
 
         final String s = "/path";
         final HttpGet httpget = new HttpGet(s);
-        this.httpclient.execute(target, httpget, response -> {
+        client.execute(target, httpget, response -> {
             EntityUtils.consume(response.getEntity());
             Assertions.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
             return null;
@@ -181,8 +193,9 @@ public class TestSPNegoScheme extends LocalServerTestBase {
      */
     @Test
     public void testNoTokenGeneratedError() throws Exception {
-        this.server.registerHandler("*", new PleaseNegotiateService());
-        final HttpHost target = start();
+        final ClassicTestServer server = testResources.startServer(null, null, null);
+        server.registerHandler("*", new PleaseNegotiateService());
+        final HttpHost target = testResources.targetHost();
 
         final AuthSchemeFactory nsf = new NegotiateSchemeFactoryWithMockGssManager();
 
@@ -193,14 +206,15 @@ public class TestSPNegoScheme extends LocalServerTestBase {
         final Registry<AuthSchemeFactory> authSchemeRegistry = RegistryBuilder.<AuthSchemeFactory>create()
             .register(StandardAuthScheme.SPNEGO, nsf)
             .build();
-        this.httpclient = HttpClients.custom()
-            .setDefaultAuthSchemeRegistry(authSchemeRegistry)
-            .setDefaultCredentialsProvider(credentialsProvider)
-            .build();
+
+        final CloseableHttpClient client = testResources.startClient(builder -> builder
+                .setDefaultAuthSchemeRegistry(authSchemeRegistry)
+                .setDefaultCredentialsProvider(credentialsProvider)
+        );
 
         final String s = "/path";
         final HttpGet httpget = new HttpGet(s);
-        this.httpclient.execute(target, httpget, response -> {
+        client.execute(target, httpget, response -> {
             EntityUtils.consume(response.getEntity());
             Assertions.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
             return null;

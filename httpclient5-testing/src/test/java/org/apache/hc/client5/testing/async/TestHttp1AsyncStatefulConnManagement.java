@@ -28,90 +28,41 @@ package org.apache.hc.client5.testing.async;
 
 import java.util.concurrent.Future;
 
-import org.apache.hc.client5.http.UserTokenHandler;
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
-import org.apache.hc.client5.http.config.ConnectionConfig;
-import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
-import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManager;
-import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
-import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
-import org.apache.hc.client5.testing.SSLTestContexts;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.EndpointDetails;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.config.Http1Config;
 import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.protocol.HttpCoreContext;
 import org.apache.hc.core5.net.URIAuthority;
+import org.apache.hc.core5.testing.nio.H2TestServer;
 import org.junit.jupiter.api.Assertions;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExternalResource;
+import org.junit.jupiter.api.Test;
 
-public class TestHttp1AsyncStatefulConnManagement extends AbstractIntegrationTestBase<CloseableHttpAsyncClient> {
+public class TestHttp1AsyncStatefulConnManagement extends AbstractIntegrationTestBase {
 
-    protected HttpAsyncClientBuilder clientBuilder;
-    protected PoolingAsyncClientConnectionManager connManager;
-
-    @Rule
-    public ExternalResource connManagerResource = new ExternalResource() {
-
-        @Override
-        protected void before() throws Throwable {
-            connManager = PoolingAsyncClientConnectionManagerBuilder.create()
-                    .setTlsStrategy(new DefaultClientTlsStrategy(SSLTestContexts.createClientSSLContext()))
-                    .setDefaultConnectionConfig(ConnectionConfig.custom()
-                            .setConnectTimeout(TIMEOUT)
-                            .setSocketTimeout(TIMEOUT)
-                            .build())
-                    .build();
-        }
-
-        @Override
-        protected void after() {
-            if (connManager != null) {
-                connManager.close();
-                connManager = null;
-            }
-        }
-
-    };
-
-    @Rule
-    public ExternalResource clientBuilderResource = new ExternalResource() {
-
-        @Override
-        protected void before() throws Throwable {
-            clientBuilder = HttpAsyncClientBuilder.create()
-                    .setDefaultRequestConfig(RequestConfig.custom()
-                            .setConnectionRequestTimeout(TIMEOUT)
-                            .build())
-                    .setConnectionManager(connManager);
-        }
-
-    };
-
-    @Override
-    protected CloseableHttpAsyncClient createClient() throws Exception {
-        return clientBuilder.build();
+    public TestHttp1AsyncStatefulConnManagement() {
+        super(URIScheme.HTTP);
     }
 
-    @Override
-    public HttpHost start() throws Exception {
-        return super.start(null, Http1Config.DEFAULT);
+    protected H2TestServer startServer() throws Exception {
+        return startServer(Http1Config.DEFAULT, null, null);
     }
 
     @Test
     public void testStatefulConnections() throws Exception {
+        final H2TestServer server = startServer();
         server.register("*", () -> new AbstractSimpleServerExchangeHandler() {
 
             @Override
@@ -124,9 +75,10 @@ public class TestHttp1AsyncStatefulConnManagement extends AbstractIntegrationTes
             }
         });
 
-        final UserTokenHandler userTokenHandler = (route, context) -> context.getAttribute("user");
-        clientBuilder.setUserTokenHandler(userTokenHandler);
-        final HttpHost target = start();
+        final HttpHost target = targetHost();
+
+        final CloseableHttpAsyncClient client = startClient(builer -> builer
+                .setUserTokenHandler((route, context) -> context.getAttribute("user")));
 
         final int workerCount = 2;
         final int requestCount = 5;
@@ -138,14 +90,14 @@ public class TestHttp1AsyncStatefulConnManagement extends AbstractIntegrationTes
             contexts[i] = context;
             workers[i] = new HttpWorker(
                     "user" + i,
-                    context, requestCount, target, httpclient);
+                    context, requestCount, target, client);
         }
 
         for (final HttpWorker worker : workers) {
             worker.start();
         }
         for (final HttpWorker worker : workers) {
-            worker.join(LONG_TIMEOUT.toMilliseconds());
+            worker.join(TIMEOUT.toMilliseconds());
         }
         for (final HttpWorker worker : workers) {
             final Exception ex = worker.getException();
@@ -226,6 +178,7 @@ public class TestHttp1AsyncStatefulConnManagement extends AbstractIntegrationTes
 
     @Test
     public void testRouteSpecificPoolRecylcing() throws Exception {
+        final H2TestServer server = startServer();
         server.register("*", () -> new AbstractSimpleServerExchangeHandler() {
 
             @Override
@@ -241,10 +194,13 @@ public class TestHttp1AsyncStatefulConnManagement extends AbstractIntegrationTes
         // This tests what happens when a maxed connection pool needs
         // to kill the last idle connection to a route to build a new
         // one to the same route.
-        final UserTokenHandler userTokenHandler = (route, context) -> context.getAttribute("user");
-        clientBuilder.setUserTokenHandler(userTokenHandler);
 
-        final HttpHost target = start();
+        final HttpHost target = targetHost();
+
+        final CloseableHttpAsyncClient client = startClient(builer -> builer
+                .setUserTokenHandler((route, context) -> context.getAttribute("user")));
+        final PoolingAsyncClientConnectionManager connManager = connManager();
+
         final int maxConn = 2;
         // We build a client with 2 max active // connections, and 2 max per route.
         connManager.setMaxTotal(maxConn);
@@ -258,7 +214,7 @@ public class TestHttp1AsyncStatefulConnManagement extends AbstractIntegrationTes
                 .setHttpHost(target)
                 .setPath("/")
                 .build();
-        final Future<SimpleHttpResponse> future1 = httpclient.execute(request1, context1, null);
+        final Future<SimpleHttpResponse> future1 = client.execute(request1, context1, null);
         final HttpResponse response1 = future1.get();
         Assertions.assertNotNull(response1);
         Assertions.assertEquals(200, response1.getCode());
@@ -278,7 +234,7 @@ public class TestHttp1AsyncStatefulConnManagement extends AbstractIntegrationTes
                 .setAuthority(new URIAuthority("127.0.0.1", target.getPort()))
                 .setPath("/")
                 .build();
-        final Future<SimpleHttpResponse> future2 = httpclient.execute(request2, context2, null);
+        final Future<SimpleHttpResponse> future2 = client.execute(request2, context2, null);
         final HttpResponse response2 = future2.get();
         Assertions.assertNotNull(response2);
         Assertions.assertEquals(200, response2.getCode());
@@ -300,7 +256,7 @@ public class TestHttp1AsyncStatefulConnManagement extends AbstractIntegrationTes
                 .setHttpHost(target)
                 .setPath("/")
                 .build();
-        final Future<SimpleHttpResponse> future3 = httpclient.execute(request3, context3, null);
+        final Future<SimpleHttpResponse> future3 = client.execute(request3, context3, null);
         final HttpResponse response3 = future3.get();
         Assertions.assertNotNull(response3);
         Assertions.assertEquals(200, response3.getCode());

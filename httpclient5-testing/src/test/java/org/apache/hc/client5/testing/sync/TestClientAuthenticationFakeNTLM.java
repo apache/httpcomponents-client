@@ -27,30 +27,58 @@
 package org.apache.hc.client5.testing.sync;
 
 import java.io.IOException;
+import java.util.function.Consumer;
 
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.NTCredentials;
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.impl.auth.CredentialsProviderBuilder;
-import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.client5.testing.sync.extension.TestClientResources;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.io.HttpRequestHandler;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.testing.classic.ClassicTestServer;
+import org.apache.hc.core5.util.Timeout;
 import org.junit.jupiter.api.Assertions;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 /**
  * Unit tests for some of the NTLM auth functionality..
  */
-public class TestClientAuthenticationFakeNTLM extends LocalServerTestBase {
+public class TestClientAuthenticationFakeNTLM {
+
+    public static final Timeout TIMEOUT = Timeout.ofMinutes(1);
+
+    @RegisterExtension
+    private TestClientResources testResources = new TestClientResources(URIScheme.HTTP, TIMEOUT);
+
+    public ClassicTestServer startServer() throws IOException {
+        return testResources.startServer(null, null, null);
+    }
+
+    public CloseableHttpClient startClient(final Consumer<HttpClientBuilder> clientCustomizer) {
+        return testResources.startClient(clientCustomizer);
+    }
+
+    public CloseableHttpClient startClient() {
+        return testResources.startClient(builder -> {});
+    }
+
+    public HttpHost targetHost() {
+        return testResources.targetHost();
+    }
 
     static class NtlmResponseHandler implements HttpRequestHandler {
 
@@ -67,22 +95,22 @@ public class TestClientAuthenticationFakeNTLM extends LocalServerTestBase {
 
     @Test
     public void testNTLMAuthenticationFailure() throws Exception {
-        this.server.registerHandler("*", new NtlmResponseHandler());
-
-        final HttpHost target = start();
+        final ClassicTestServer server = startServer();
+        server.registerHandler("*", new NtlmResponseHandler());
+        final HttpHost target = targetHost();
 
         final CredentialsProvider credsProvider = CredentialsProviderBuilder.create()
                 .add(target, new NTCredentials("test", "test".toCharArray(), null, null))
                 .build();
 
-        this.httpclient = HttpClients.custom()
+        final CloseableHttpClient client = startClient(builder -> builder
                 .setDefaultCredentialsProvider(credsProvider)
-                .build();
+        );
 
         final HttpContext context = HttpClientContext.create();
         final HttpGet httpget = new HttpGet("/");
 
-        this.httpclient.execute(target, httpget, context, response -> {
+        client.execute(target, httpget, context, response -> {
             EntityUtils.consume(response.getEntity());
             Assertions.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
             return null;
@@ -114,23 +142,24 @@ public class TestClientAuthenticationFakeNTLM extends LocalServerTestBase {
 
     @Test
     public void testNTLMv1Type2Message() throws Exception {
-        this.server.registerHandler("*", new NtlmType2MessageResponseHandler("TlRMTVNTUAACAA" +
+        final ClassicTestServer server = startServer();
+        server.registerHandler("*", new NtlmType2MessageResponseHandler("TlRMTVNTUAACAA" +
                 "AADAAMADgAAAAzggLiASNFZ4mrze8AAAAAAAAAAAAAAAAAAAAABgBwFwAAAA9T" +
                 "AGUAcgB2AGUAcgA="));
-        final HttpHost target = start();
+        final HttpHost target = targetHost();
 
         final CredentialsProvider credsProvider = CredentialsProviderBuilder.create()
                 .add(target, new NTCredentials("test", "test".toCharArray(), null, null))
                 .build();
 
-        this.httpclient = HttpClients.custom()
+        final CloseableHttpClient client = startClient(builder -> builder
                 .setDefaultCredentialsProvider(credsProvider)
-                .build();
+        );
 
         final HttpContext context = HttpClientContext.create();
         final HttpGet httpget = new HttpGet("/");
 
-        this.httpclient.execute(target, httpget, context, response -> {
+        client.execute(target, httpget, context, response -> {
             EntityUtils.consume(response.getEntity());
             Assertions.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
             return null;
@@ -139,23 +168,24 @@ public class TestClientAuthenticationFakeNTLM extends LocalServerTestBase {
 
     @Test
     public void testNTLMv2Type2Message() throws Exception {
-        this.server.registerHandler("*", new NtlmType2MessageResponseHandler("TlRMTVNTUAACAA" +
+        final ClassicTestServer server = startServer();
+        server.registerHandler("*", new NtlmType2MessageResponseHandler("TlRMTVNTUAACAA" +
                 "AADAAMADgAAAAzgoriASNFZ4mrze8AAAAAAAAAACQAJABEAAAABgBwFwAAAA9T" +
                 "AGUAcgB2AGUAcgACAAwARABvAG0AYQBpAG4AAQAMAFMAZQByAHYAZQByAAAAAAA="));
-        final HttpHost target = start();
+        final HttpHost target = targetHost();
 
         final CredentialsProvider credsProvider = CredentialsProviderBuilder.create()
                 .add(target, new NTCredentials("test", "test".toCharArray(), null, null))
                 .build();
 
-        this.httpclient = HttpClients.custom()
+        final CloseableHttpClient client = startClient(builder -> builder
                 .setDefaultCredentialsProvider(credsProvider)
-                .build();
+        );
 
         final HttpContext context = HttpClientContext.create();
         final HttpGet httpget = new HttpGet("/");
 
-        this.httpclient.execute(target, httpget, context, response -> {
+        client.execute(target, httpget, context, response -> {
             EntityUtils.consume(response.getEntity());
             Assertions.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
             return null;
@@ -183,11 +213,13 @@ public class TestClientAuthenticationFakeNTLM extends LocalServerTestBase {
 
     @Test
     public void testNTLMType2MessageOnlyAuthenticationFailure() throws Exception {
-        this.server.registerHandler("*", new NtlmType2MessageOnlyResponseHandler("TlRMTVNTUAACAA" +
+        final ClassicTestServer server = startServer();
+        server.registerHandler("*", new NtlmType2MessageOnlyResponseHandler("TlRMTVNTUAACAA" +
                 "AADAAMADgAAAAzggLiASNFZ4mrze8AAAAAAAAAAAAAAAAAAAAABgBwFwAAAA9T" +
                 "AGUAcgB2AGUAcgA="));
+        final HttpHost target = targetHost();
 
-        final HttpHost target = start();
+        final CloseableHttpClient client = startClient();
 
         final HttpClientContext context = HttpClientContext.create();
         context.setCredentialsProvider(CredentialsProviderBuilder.create()
@@ -195,7 +227,7 @@ public class TestClientAuthenticationFakeNTLM extends LocalServerTestBase {
                 .build());
         final HttpGet httpget = new HttpGet("/");
 
-        this.httpclient.execute(target, httpget, context, response -> {
+        client.execute(target, httpget, context, response -> {
             EntityUtils.consume(response.getEntity());
             Assertions.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
             return null;
@@ -204,11 +236,14 @@ public class TestClientAuthenticationFakeNTLM extends LocalServerTestBase {
 
     @Test
     public void testNTLMType2NonUnicodeMessageOnlyAuthenticationFailure() throws Exception {
-        this.server.registerHandler("*", new NtlmType2MessageOnlyResponseHandler("TlRMTVNTUAACAA" +
+        final ClassicTestServer server = startServer();
+        server.registerHandler("*", new NtlmType2MessageOnlyResponseHandler("TlRMTVNTUAACAA" +
                 "AABgAGADgAAAAyggLiASNFZ4mrze8AAAAAAAAAAAAAAAAAAAAABgBwFwAAAA9T" +
                 "ZXJ2ZXI="));
+        final HttpHost target = targetHost();
 
-        final HttpHost target = start();
+
+        final CloseableHttpClient client = startClient();
 
         final HttpClientContext context = HttpClientContext.create();
         context.setCredentialsProvider(CredentialsProviderBuilder.create()
@@ -216,7 +251,7 @@ public class TestClientAuthenticationFakeNTLM extends LocalServerTestBase {
                 .build());
         final HttpGet httpget = new HttpGet("/");
 
-        this.httpclient.execute(target, httpget, context, response -> {
+        client.execute(target, httpget, context, response -> {
             EntityUtils.consume(response.getEntity());
             Assertions.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
             return null;
