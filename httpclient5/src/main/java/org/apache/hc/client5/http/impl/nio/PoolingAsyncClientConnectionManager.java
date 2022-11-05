@@ -507,6 +507,7 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
 
                                 @Override
                                 public void completed(final ProtocolIOSession protocolIOSession) {
+                                    context.setProtocolVersion(HttpVersion.HTTP_2);
                                     if (callback != null) {
                                         callback.completed(endpoint);
                                     }
