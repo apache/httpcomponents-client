@@ -27,7 +27,7 @@
   <parent>
     <groupId>org.apache.httpcomponents</groupId>
     <artifactId>httpcomponents-parent</artifactId>
-    <version>12</version>
+    <version>13</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.apache.httpcomponents.client5</groupId>
@@ -76,7 +76,7 @@
     <hc.stylecheck.version>1</hc.stylecheck.version>
     <rxjava.version>2.2.21</rxjava.version>
     <api.comparison.version>5.1</api.comparison.version>
-    <hc.animal-sniffer.signature.ignores>javax.net.ssl.SSLEngine,javax.net.ssl.SSLParameters</hc.animal-sniffer.signature.ignores>
+    <hc.animal-sniffer.signature.ignores>javax.net.ssl.SSLEngine,javax.net.ssl.SSLParameters,java.nio.ByteBuffer,java.nio.CharBuffer</hc.animal-sniffer.signature.ignores>
     <japicmp.version>0.15.4</japicmp.version>
   </properties>
 
@@ -276,7 +276,6 @@
       <plugin>
         <groupId>com.github.siom79.japicmp</groupId>
         <artifactId>japicmp-maven-plugin</artifactId>
-        <version>${japicmp.version}</version>
         <configuration>
           <oldVersion>
             <dependency>
@@ -365,7 +364,6 @@
       </plugin>
       <plugin>
         <artifactId>maven-javadoc-plugin</artifactId>
-        <version>${hc.javadoc.version}</version>
         <configuration>
           <quiet>true</quiet>
           <notimestamp>true</notimestamp>
@@ -409,7 +407,6 @@
       <plugin>
         <groupId>com.github.siom79.japicmp</groupId>
         <artifactId>japicmp-maven-plugin</artifactId>
-        <version>${japicmp.version}</version>
         <reportSets>
           <reportSet>
             <reports>
@@ -435,16 +432,15 @@
             <excludes>
               <exclude>@org.apache.hc.core5.annotation.Internal</exclude>
             </excludes>
+            <ignoreMissingClasses>true</ignoreMissingClasses>
           </parameter>
         </configuration>
       </plugin>
       <plugin>
         <artifactId>maven-jxr-plugin</artifactId>
-        <version>${hc.jxr.version}</version>
       </plugin>
       <plugin>
         <artifactId>maven-surefire-report-plugin</artifactId>
-        <version>${hc.surefire.version}</version>
       </plugin>
     </plugins>
   </reporting>
