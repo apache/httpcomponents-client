@@ -1,22 +1,24 @@
 Building Docker containers for compatibility tests
 ========================================================
 
-= Apache HTTPD 2.4 container
+= Apache HTTPD 2.4 image
 
 Remark: omit sudo command if executing as root
 ---
-cd apache-httpd
-sudo docker build -t httpclient-tests-httpd .
-sudo docker run --name my-httpclient-tests-httpd -p 0.0.0.0:8080:8080 -p 0.0.0.0:8443:8443 -d httpclient-tests-httpd:latest
+sudo docker build -t httpclient-tests-httpd apache-httpd
 ---
 
-= Squid 3.3 container
+= Squid 3.3 image
 
 Remark: omit sudo command if executing as root
 ---
-cd squid
-sudo docker build -t httpclient-tests-squid .
-sudo docker run --name my-httpclient-tests-squid --link my-httpclient-tests-httpd:test-httpd -p 0.0.0.0:8888:8888 -p 0.0.0.0:8889:8889 -d httpclient-tests-squid:latest
+sudo docker build -t httpclient-tests-squid squid
+---
+
+= Start containers
+
+---
+sudo docker-compose up
 ---
 
 = SSL key / cert material (optional)
