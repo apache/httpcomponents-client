@@ -188,19 +188,33 @@ public class PoolingHttpClientConnectionManager
         this.connectionOperator = Args.notNull(httpClientConnectionOperator, "Connection operator");
         switch (poolConcurrencyPolicy != null ? poolConcurrencyPolicy : PoolConcurrencyPolicy.STRICT) {
             case STRICT:
-                this.pool = new StrictConnPool<>(
+                this.pool = new StrictConnPool<HttpRoute, ManagedHttpClientConnection>(
                         DEFAULT_MAX_CONNECTIONS_PER_ROUTE,
                         DEFAULT_MAX_TOTAL_CONNECTIONS,
                         timeToLive,
                         poolReusePolicy,
-                        null);
+                        null) {
+
+                    @Override
+                    public void closeExpired() {
+                        enumAvailable(e -> closeIfExpired(e));
+                    }
+
+                };
                 break;
             case LAX:
-                this.pool = new LaxConnPool<>(
+                this.pool = new LaxConnPool<HttpRoute, ManagedHttpClientConnection>(
                         DEFAULT_MAX_CONNECTIONS_PER_ROUTE,
                         timeToLive,
                         poolReusePolicy,
-                        null);
+                        null) {
+
+                    @Override
+                    public void closeExpired() {
+                        enumAvailable(e -> closeIfExpired(e));
+                    }
+
+                };
                 break;
             default:
                 throw new IllegalArgumentException("Unexpected PoolConcurrencyPolicy value: " + poolConcurrencyPolicy);
@@ -568,6 +582,19 @@ public class PoolingHttpClientConnectionManager
      */
     public void setTlsConfigResolver(final Resolver<HttpHost, TlsConfig> tlsConfigResolver) {
         this.tlsConfigResolver = tlsConfigResolver;
+    }
+
+    void closeIfExpired(final PoolEntry<HttpRoute, ManagedHttpClientConnection> entry) {
+        final long now = System.currentTimeMillis();
+        if (entry.getExpiryDeadline().isBefore(now)) {
+            entry.discardConnection(CloseMode.GRACEFUL);
+        } else {
+            final ConnectionConfig connectionConfig = resolveConnectionConfig(entry.getRoute());
+            final TimeValue timeToLive = connectionConfig.getTimeToLive();
+            if (timeToLive != null && Deadline.calculate(entry.getCreated(), timeToLive).isBefore(now)) {
+                entry.discardConnection(CloseMode.GRACEFUL);
+            }
+        }
     }
 
     /**

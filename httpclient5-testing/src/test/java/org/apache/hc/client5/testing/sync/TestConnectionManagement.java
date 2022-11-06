@@ -58,7 +58,6 @@ import org.apache.hc.core5.testing.classic.ClassicTestServer;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -276,7 +275,7 @@ public class TestConnectionManagement {
         connManager.close();
     }
 
-    @Test @Disabled
+    @Test
     public void testCloseExpiredTTLConnections() throws Exception {
         final ClassicTestServer server = startServer();
         server.registerHandler("/random/*", new RandomHandler());
@@ -294,6 +293,7 @@ public class TestConnectionManagement {
         );
 
         final PoolingHttpClientConnectionManager connManager = testResources.connManager();
+        connManager.setMaxTotal(1);
 
         final HttpRoute route = new HttpRoute(target, null, false);
         final HttpContext context = new BasicHttpContext();

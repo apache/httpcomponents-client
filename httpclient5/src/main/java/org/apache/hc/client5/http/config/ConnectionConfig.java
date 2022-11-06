@@ -107,7 +107,7 @@ public class ConnectionConfig implements Cloneable {
     public String toString() {
         final StringBuilder builder = new StringBuilder();
         builder.append("[");
-        builder.append(", connectTimeout=").append(connectTimeout);
+        builder.append("connectTimeout=").append(connectTimeout);
         builder.append(", socketTimeout=").append(socketTimeout);
         builder.append(", validateAfterInactivity=").append(validateAfterInactivity);
         builder.append(", timeToLive=").append(timeToLive);
