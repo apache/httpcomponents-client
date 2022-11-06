@@ -1,24 +1,15 @@
-Release 5.2 BETA2
+﻿Release 5.2
 ------------------
 
-This is the second BETA release in the 5.2 release series that upgrades minimal JRE
-level to version 8 (8u251 is required) and includes several protocol level and
-API improvements. It also includes all bug fixes from the 5.1 branch.
+This is the first GA release in the 5.2 release series. This release finalizes the 5.2 APIs
+and corrects a number of defects discovered since the previous release.
 
-Notable changes and features included in the 5.2 series:
+Please note that 5.2 upgrades the minimal JRE level to version 8 (8u251 is required).
 
-* Bump junit-bom from 5.8.1 to 5.9.1 #379
-* Bump log4j.version from 2.17.2 to 2.19.0 #380
-* Bump ehcache-api from 3.9.6 to 3.10.1 #381
-* Bump jna.version from 5.9.0 to 5.12.1 #382
-* Bump mockito-core from 4.0.0 to 4.8.0 #383
+Please note this is likely to be the last release series with support for SPNEGO and NTLM
+authentication. As of version 5.3 GSS-API-based authentication schemes (Kerberos, SPNEGO)
+and NTLM authentication schemes are going to be deprecated and disabled by default.
 
-Release 5.2 BETA1
-------------------
-
-This is the first BETA release in the 5.2 release series that upgrades minimal JRE
-level to version 8 (8u251 is required) and includes several protocol level and
-API improvements. It also includes all bug fixes from the 5.1 branch.
 
 Notable changes and features included in the 5.2 series:
 
@@ -32,11 +23,63 @@ Notable changes and features included in the 5.2 series:
 
 * Migration to Java 8 Time primitives in State Management and Cache APIs.
 
+* Connection and TLS configuration on a per route basis.
+
 * Base64 codec based on Commons Codec replaced with JRE Base64 codec.
   Dependency on Commons Codec dropped.
 
 * Optional support for BR (Brotli) decompression.
 
+
+Change Log
+-------------------
+
+* HTTPCLIENT-2242: RoutingSupport fails to copy InetAddress when normalizing HttpHost.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2240: Fixed incorrect CONNECT method initialization in ProxyClient.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2236: MultihomeIOSessionRequester fails to enhance the cause exception in case
+  of connect failure if the remoteAddress argument has been given.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Use Objects.toString() instead of String type cast
+  Contributed by Gary Gregory <garydgregory at gmail.com>
+
+* HTTPCLIENT-2232: Last protocol interceptors moved at the end of the H2 protocol processing
+  pipeline.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* H2 async runtime to proactively set HTTP/2 protocol version in the execution context.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2231: Fixed a race condition in the main async executor when the request execution
+  on an I/O thread is faster than execution pipeline management on the client thread.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Avoid duplicate redundant objects and use Singleton instead.
+  Contributed by Arturo Bernal <arturobernalg at gmail.com>
+
+* HTTPCLIENT-2225: Connection route calculation does not take the default RequestConfig into
+  account.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Avoid unnecessary use of Instant.toEpochMilli by using Instant#compareTo to compare
+  Instants directly.
+  Contributed by jkmcl
+
+* HTTPCLIENT-2221 Closing a classic response/entity allows connection reuse.
+  Contributed by Carter Kozak <ckozak at apache.org>
+
+
+
+Release 5.2 BETA1
+------------------
+
+This is the first BETA release in the 5.2 release series that upgrades minimal JRE
+level to version 8 (8u251 is required) and includes several protocol level and
+API improvements. It also includes all bug fixes from the 5.1 branch.
 
 Change Log
 -------------------
