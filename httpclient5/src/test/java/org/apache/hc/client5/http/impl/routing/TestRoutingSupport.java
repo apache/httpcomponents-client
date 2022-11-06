@@ -27,8 +27,10 @@
 
 package org.apache.hc.client5.http.impl.routing;
 
+import java.net.InetAddress;
 import java.net.URI;
 
+import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
 import org.apache.hc.client5.http.routing.RoutingSupport;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
@@ -57,6 +59,26 @@ public class TestRoutingSupport {
         final HttpRequest request1 = new BasicHttpRequest("GET", "/");
         request1.setAuthority(new URIAuthority("host"));
         RoutingSupport.determineHost(request1);
+    }
+
+    @Test
+    public void testNormalizeHost() throws Exception {
+        Assert.assertEquals(new HttpHost("http", "somehost", 80),
+                RoutingSupport.normalize(
+                        new HttpHost("http", "somehost", -1),
+                        DefaultSchemePortResolver.INSTANCE));
+        Assert.assertEquals(new HttpHost("https", "somehost", 443),
+                RoutingSupport.normalize(
+                        new HttpHost("https", "somehost", -1),
+                        DefaultSchemePortResolver.INSTANCE));
+        Assert.assertEquals(new HttpHost("http", InetAddress.getLocalHost(), "localhost", 80),
+                RoutingSupport.normalize(
+                        new HttpHost("http", InetAddress.getLocalHost(), "localhost", -1),
+                        DefaultSchemePortResolver.INSTANCE));
+        Assert.assertEquals(new HttpHost("http", "somehost", 8080),
+                RoutingSupport.normalize(
+                        new HttpHost("http", "somehost", 8080),
+                        DefaultSchemePortResolver.INSTANCE));
     }
 
 }
