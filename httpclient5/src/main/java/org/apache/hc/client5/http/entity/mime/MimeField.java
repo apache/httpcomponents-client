@@ -84,7 +84,14 @@ public class MimeField {
             sb.append("; ");
             sb.append(parameter.getName());
             sb.append("=\"");
-            sb.append(parameter.getValue());
+            final String v = parameter.getValue();
+            for (int n = 0; n < v.length(); n++) {
+                final char ch = v.charAt(n);
+                if (ch == '"' || ch == '\\' ) {
+                    sb.append("\\");
+                }
+                sb.append(ch);
+            }
             sb.append("\"");
         }
         return sb.toString();
