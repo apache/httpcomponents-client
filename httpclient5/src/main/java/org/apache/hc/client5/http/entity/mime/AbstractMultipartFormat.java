@@ -47,7 +47,7 @@ import org.apache.hc.core5.util.ByteArrayBuffer;
 abstract class AbstractMultipartFormat {
 
     static ByteArrayBuffer encode(
-            final Charset charset, final String string) {
+            final Charset charset, final CharSequence string) {
         final ByteBuffer encoded = charset.encode(CharBuffer.wrap(string));
         final ByteArrayBuffer bab = new ByteArrayBuffer(encoded.remaining());
         bab.append(encoded.array(), encoded.arrayOffset() + encoded.position(), encoded.remaining());
@@ -60,30 +60,63 @@ abstract class AbstractMultipartFormat {
     }
 
     static void writeBytes(
-            final String s, final Charset charset, final OutputStream out) throws IOException {
+            final CharSequence s, final Charset charset, final OutputStream out) throws IOException {
         final ByteArrayBuffer b = encode(charset, s);
         writeBytes(b, out);
     }
 
     static void writeBytes(
-            final String s, final OutputStream out) throws IOException {
+            final CharSequence s, final OutputStream out) throws IOException {
         final ByteArrayBuffer b = encode(StandardCharsets.ISO_8859_1, s);
         writeBytes(b, out);
     }
 
+    static boolean isLineBreak(final char ch) {
+        return ch == '\r' || ch == '\n' || ch == '\f' || ch == 11;
+    }
+
+    static CharSequence stripLineBreaks(final CharSequence s) {
+        if (s == null) {
+            return null;
+        }
+        boolean requiresRewrite = false;
+        int n = 0;
+        for (; n < s.length(); n++) {
+            final char ch = s.charAt(n);
+            if (isLineBreak(ch)) {
+                requiresRewrite = true;
+                break;
+            }
+        }
+        if (!requiresRewrite) {
+            return s;
+        }
+        final StringBuilder buf = new StringBuilder();
+        buf.append(s, 0, n);
+        for (; n < s.length(); n++) {
+            final char ch = s.charAt(n);
+            if (isLineBreak(ch)) {
+                buf.append(' ');
+            } else {
+                buf.append(ch);
+            }
+        }
+        return buf.toString();
+    }
+
     static void writeField(
             final MimeField field, final OutputStream out) throws IOException {
-        writeBytes(field.getName(), out);
+        writeBytes(stripLineBreaks(field.getName()), out);
         writeBytes(FIELD_SEP, out);
-        writeBytes(field.getBody(), out);
+        writeBytes(stripLineBreaks(field.getBody()), out);
         writeBytes(CR_LF, out);
     }
 
     static void writeField(
             final MimeField field, final Charset charset, final OutputStream out) throws IOException {
-        writeBytes(field.getName(), charset, out);
+        writeBytes(stripLineBreaks(field.getName()), charset, out);
         writeBytes(FIELD_SEP, out);
-        writeBytes(field.getBody(), charset, out);
+        writeBytes(stripLineBreaks(field.getBody()), charset, out);
         writeBytes(CR_LF, out);
     }
 
