@@ -72,6 +72,8 @@ public class TestPublicSuffixMatcher {
         Assertions.assertEquals("garbage", matcher.getDomainRoot("garbage.garbage"));
         Assertions.assertEquals("garbage", matcher.getDomainRoot("*.garbage.garbage"));
         Assertions.assertEquals("garbage", matcher.getDomainRoot("*.garbage.garbage.garbage"));
+
+        Assertions.assertEquals("*.compute-1.amazonaws.com", matcher.getDomainRoot("*.compute-1.amazonaws.com"));
     }
 
     @Test

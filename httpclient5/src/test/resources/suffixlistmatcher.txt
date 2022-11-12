@@ -28,6 +28,12 @@ xx
 lan
 appspot.com
 s3.eu-central-1.amazonaws.com
+*.compute.amazonaws.com
+*.compute-1.amazonaws.com
+*.compute.amazonaws.com.cn
+us-east-1.amazonaws.com
+*.xxx.uk
+
 // ===END PRIVATE DOMAINS===
 
 // ===BEGIN ICANN DOMAINS===

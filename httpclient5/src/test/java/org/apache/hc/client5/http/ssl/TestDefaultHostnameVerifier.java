@@ -254,6 +254,18 @@ public class TestDefaultHostnameVerifier {
 
         Assertions.assertFalse(DefaultHostnameVerifier.matchIdentity("a.b.c", "*.*.c"));
         Assertions.assertFalse(DefaultHostnameVerifier.matchIdentityStrict("a.b.c", "*.*.c"));
+
+        Assertions.assertTrue(DefaultHostnameVerifier.matchIdentity("a.b.xxx.uk", "a.b.xxx.uk", publicSuffixMatcher));
+        Assertions.assertTrue(DefaultHostnameVerifier.matchIdentityStrict("a.b.xxx.uk", "a.b.xxx.uk", publicSuffixMatcher));
+
+        Assertions.assertTrue(DefaultHostnameVerifier.matchIdentity("a.b.xxx.uk", "*.b.xxx.uk", publicSuffixMatcher));
+        Assertions.assertTrue(DefaultHostnameVerifier.matchIdentityStrict("a.b.xxx.uk", "*.b.xxx.uk", publicSuffixMatcher));
+
+        Assertions.assertTrue(DefaultHostnameVerifier.matchIdentity("b.xxx.uk", "b.xxx.uk", publicSuffixMatcher));
+        Assertions.assertTrue(DefaultHostnameVerifier.matchIdentityStrict("b.xxx.uk", "b.xxx.uk", publicSuffixMatcher));
+
+        Assertions.assertFalse(DefaultHostnameVerifier.matchIdentity("b.xxx.uk", "*.xxx.uk", publicSuffixMatcher));
+        Assertions.assertFalse(DefaultHostnameVerifier.matchIdentityStrict("b.xxx.uk", "*.xxx.uk", publicSuffixMatcher));
     }
 
     @Test
@@ -425,6 +437,24 @@ public class TestDefaultHostnameVerifier {
                 DefaultHostnameVerifier.matchDNSName(
                         "host.domain.com",
                         Collections.singletonList(SubjectName.DNS("some.other.com")),
+                        publicSuffixMatcher));
+
+        DefaultHostnameVerifier.matchDNSName(
+                "host.ec2.compute-1.amazonaws.com",
+                Collections.singletonList(SubjectName.DNS("host.ec2.compute-1.amazonaws.com")),
+                publicSuffixMatcher);
+        DefaultHostnameVerifier.matchDNSName(
+                "host.ec2.compute-1.amazonaws.com",
+                Collections.singletonList(SubjectName.DNS("*.ec2.compute-1.amazonaws.com")),
+                publicSuffixMatcher);
+        DefaultHostnameVerifier.matchDNSName(
+                "ec2.compute-1.amazonaws.com",
+                Collections.singletonList(SubjectName.DNS("ec2.compute-1.amazonaws.com")),
+                publicSuffixMatcher);
+        Assertions.assertThrows(SSLException.class, () ->
+                DefaultHostnameVerifier.matchDNSName(
+                        "ec2.compute-1.amazonaws.com",
+                        Collections.singletonList(SubjectName.DNS("*.compute-1.amazonaws.com")),
                         publicSuffixMatcher));
     }
 
