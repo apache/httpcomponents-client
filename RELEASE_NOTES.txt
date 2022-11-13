@@ -1,4 +1,64 @@
-﻿Release 5.1.3
+Release 5.1.4
+-----------
+
+This release upgrades HttpCore to the latest 5.1 version and fixes several of issues found since
+release 5.1.3.
+
+This is likely to be the last release in the 5.1 release series. Users of HttpClient 5.1 are
+advised to upgrade to the latest version of 5.2.
+
+
+Change Log
+-------------------
+
+* Regression: Multipart body builder and multipart formatters fail to escape special characters such
+  as backslash and quote mark.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2242: RoutingSupport fails to copy InetAddress when normalizing HttpHost.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2240: Fixed incorrect CONNECT method initialization in ProxyClient
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2236: MultihomeIOSessionRequester fails to enhance the cause exception in case of connect
+  failure if the remoteAddress argument has been given.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2232: Last protocol interceptors moved at the end of the H2 protocol processing pipeline.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2231: A race condition in the main async exec when the request execution on an I/O thread
+  is faster than execution pipeline management on the client thread.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2225: Connection route calculation does not take the default RequestConfig into account.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2221: Closing a classic response/entity allows connection reuse.
+  Contributed by Carter Kozak <ckozak at apache.org>
+
+* HTTPCLIENT-2212: MinimalHttpAsyncClient fails to release client endpoints in case of a connect error
+  (such as TLS handshake failure).
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Create daemon threads in InternalAbstractHttpAsyncClient.
+  Contributed by Richard Hernandez <riher at amazon.com>
+
+* StringBody: Just write the bytes to the output stream.
+  Contributed by John Gallagher <jgallagher@slack-corp.com>
+
+* HTTPCLIENT-2206: Corrected resource de-allocation by fluent response objects.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Optimize ExecSupport.getNextExchangeId() (#352).
+  Contributed by David Schlosnagle <schlosna at gmail.com>
+
+* HTTPCLIENT-2203: Corrected target host normalization by the request execution interceptors.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+
+Release 5.1.3
 -----------
 
 This release upgrades HttpCore to the latest 5.1 version and fixes a number of issues found
