@@ -34,7 +34,6 @@ import java.util.Objects;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.util.Args;
-import org.apache.hc.core5.util.LangUtils;
 
 /**
  * Microsoft Windows specific {@link Credentials} representation that includes
@@ -146,11 +145,7 @@ public class NTCredentials implements Credentials, Serializable {
 
     @Override
     public int hashCode() {
-        int hash = LangUtils.HASH_SEED;
-        hash = LangUtils.hashCode(hash, this.principal);
-        hash = LangUtils.hashCode(hash, this.workstation);
-        hash = LangUtils.hashCode(hash, this.netbiosDomain);
-        return hash;
+        return Objects.hash(principal, workstation, netbiosDomain);
     }
 
     @Override

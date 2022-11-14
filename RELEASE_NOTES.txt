@@ -12,6 +12,9 @@ Change Log
 * Replace deprecated use of LangUtils#equals() with Objects.equals().
   Contributed by Gary Gregory <ggregory at apache.org>
 
+* Deprecated LangUtils#hashCode() in favor of Objects.hash() and Objects.hashCode().
+  Contributed by Gary Gregory <ggregory at apache.org>
+
 
 Release 5.2
 ------------------

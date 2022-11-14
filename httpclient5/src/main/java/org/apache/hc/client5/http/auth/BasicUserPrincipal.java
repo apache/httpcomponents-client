@@ -33,7 +33,6 @@ import java.util.Objects;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.util.Args;
-import org.apache.hc.core5.util.LangUtils;
 
 /**
  * Basic username based principal representation.
@@ -60,9 +59,7 @@ public final class BasicUserPrincipal implements Principal, Serializable {
 
     @Override
     public int hashCode() {
-        int hash = LangUtils.HASH_SEED;
-        hash = LangUtils.hashCode(hash, this.username);
-        return hash;
+        return Objects.hashCode(username);
     }
 
     @Override

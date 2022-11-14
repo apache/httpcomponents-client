@@ -33,7 +33,6 @@ import java.util.Objects;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.Asserts;
-import org.apache.hc.core5.util.LangUtils;
 
 /**
  * Helps tracking the steps in establishing a route.
@@ -310,19 +309,7 @@ public final class RouteTracker implements RouteInfo, Cloneable {
      */
     @Override
     public int hashCode() {
-        int hash = LangUtils.HASH_SEED;
-        hash = LangUtils.hashCode(hash, this.targetHost);
-        hash = LangUtils.hashCode(hash, this.localAddress);
-        if (this.proxyChain != null) {
-            for (final HttpHost element : this.proxyChain) {
-                hash = LangUtils.hashCode(hash, element);
-            }
-        }
-        hash = LangUtils.hashCode(hash, this.connected);
-        hash = LangUtils.hashCode(hash, this.secure);
-        hash = LangUtils.hashCode(hash, this.tunnelled);
-        hash = LangUtils.hashCode(hash, this.layered);
-        return hash;
+        return Objects.hash(targetHost, localAddress, connected, proxyChain, secure, tunnelled, layered);
     }
 
     /**

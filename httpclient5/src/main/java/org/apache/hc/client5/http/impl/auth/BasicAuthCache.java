@@ -46,7 +46,6 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.net.NamedEndpoint;
 import org.apache.hc.core5.util.Args;
-import org.apache.hc.core5.util.LangUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -98,12 +97,7 @@ public class BasicAuthCache implements AuthCache {
 
         @Override
         public int hashCode() {
-            int hash = LangUtils.HASH_SEED;
-            hash = LangUtils.hashCode(hash, this.scheme);
-            hash = LangUtils.hashCode(hash, this.host);
-            hash = LangUtils.hashCode(hash, this.port);
-            hash = LangUtils.hashCode(hash, this.pathPrefix);
-            return hash;
+            return Objects.hash(scheme, host, port, pathPrefix);
         }
 
         @Override

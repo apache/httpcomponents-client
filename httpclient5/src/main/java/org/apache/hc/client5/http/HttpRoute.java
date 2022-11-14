@@ -39,7 +39,6 @@ import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.util.Args;
-import org.apache.hc.core5.util.LangUtils;
 
 /**
  * Connection route definition for HTTP requests.
@@ -281,18 +280,7 @@ public final class HttpRoute implements RouteInfo, Cloneable {
      */
     @Override
     public int hashCode() {
-        int hash = LangUtils.HASH_SEED;
-        hash = LangUtils.hashCode(hash, this.targetHost);
-        hash = LangUtils.hashCode(hash, this.localAddress);
-        if (this.proxyChain != null) {
-            for (final HttpHost element : this.proxyChain) {
-                hash = LangUtils.hashCode(hash, element);
-            }
-        }
-        hash = LangUtils.hashCode(hash, this.secure);
-        hash = LangUtils.hashCode(hash, this.tunnelled);
-        hash = LangUtils.hashCode(hash, this.layered);
-        return hash;
+        return Objects.hash(targetHost, localAddress, proxyChain, secure, tunnelled, layered);
     }
 
     /**

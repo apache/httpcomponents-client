@@ -33,7 +33,6 @@ import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.util.Args;
-import org.apache.hc.core5.util.LangUtils;
 
 /**
  * {@code AuthScope} represents an authentication scope consisting of
@@ -225,13 +224,7 @@ public class AuthScope {
 
     @Override
     public int hashCode() {
-        int hash = LangUtils.HASH_SEED;
-        hash = LangUtils.hashCode(hash, this.protocol);
-        hash = LangUtils.hashCode(hash, this.host);
-        hash = LangUtils.hashCode(hash, this.port);
-        hash = LangUtils.hashCode(hash, this.realm);
-        hash = LangUtils.hashCode(hash, toNullSafeLowerCase(this.schemeName));
-        return hash;
+        return Objects.hash(protocol, host, port, realm, toNullSafeLowerCase(this.schemeName));
     }
 
     private String toNullSafeLowerCase(final String str) {
