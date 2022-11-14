@@ -96,10 +96,11 @@ public class TestConnectExec {
         final HttpRoute route = new HttpRoute(target);
         final HttpClientContext context = new HttpClientContext();
         final ClassicHttpRequest request = new HttpGet("http://bar/test");
-        final ClassicHttpResponse response = new BasicClassicHttpResponse(200, "OK");
-        response.setEntity(EntityBuilder.create()
-                .setStream(new ByteArrayInputStream(new byte[]{}))
-                .build());
+        try (final ClassicHttpResponse response = new BasicClassicHttpResponse(200, "OK")) {
+            response.setEntity(EntityBuilder.create()
+                    .setStream(new ByteArrayInputStream(new byte[]{}))
+                    .build());
+        }
         context.setUserToken("Blah");
 
         Mockito.when(execRuntime.isEndpointAcquired()).thenReturn(false);

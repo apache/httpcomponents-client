@@ -80,15 +80,16 @@ public class TestDecompressingEntity {
     public void testWriteToStream() throws Exception {
         final CRC32 crc32 = new CRC32();
         final StringEntity wrapped = new StringEntity("1234567890", StandardCharsets.US_ASCII);
-        final ChecksumEntity entity = new ChecksumEntity(wrapped, crc32);
-        Assertions.assertFalse(entity.isStreaming());
+        try (final ChecksumEntity entity = new ChecksumEntity(wrapped, crc32)) {
+            Assertions.assertFalse(entity.isStreaming());
 
-        final ByteArrayOutputStream out = new ByteArrayOutputStream();
-        entity.writeTo(out);
+            final ByteArrayOutputStream out = new ByteArrayOutputStream();
+            entity.writeTo(out);
 
-        final String s = new String(out.toByteArray(), StandardCharsets.US_ASCII);
-        Assertions.assertEquals("1234567890", s);
-        Assertions.assertEquals(639479525L, crc32.getValue());
+            final String s = new String(out.toByteArray(), StandardCharsets.US_ASCII);
+            Assertions.assertEquals("1234567890", s);
+            Assertions.assertEquals(639479525L, crc32.getValue());
+        }
     }
 
     static class ChecksumEntity extends DecompressingEntity {

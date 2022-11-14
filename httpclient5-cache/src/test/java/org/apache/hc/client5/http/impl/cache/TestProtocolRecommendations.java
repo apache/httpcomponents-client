@@ -279,9 +279,10 @@ public class TestProtocolRecommendations {
         req2.setHeader("Range","bytes=0-127");
         req2.setHeader(conditionalHeader, validator);
 
-        final ClassicHttpResponse resp2 = new BasicClassicHttpResponse(HttpStatus.SC_NOT_MODIFIED, "Not Modified");
-        resp2.setHeader("Date", DateUtils.formatStandardDate(now));
-        resp2.setHeader(validatorHeader, validator);
+        try (final ClassicHttpResponse resp2 = new BasicClassicHttpResponse(HttpStatus.SC_NOT_MODIFIED, "Not Modified")) {
+            resp2.setHeader("Date", DateUtils.formatStandardDate(now));
+            resp2.setHeader(validatorHeader, validator);
+        }
 
         // cache module does not currently deal with byte ranges, but we want
         // this test to work even if it does some day

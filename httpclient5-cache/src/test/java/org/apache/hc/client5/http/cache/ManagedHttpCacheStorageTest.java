@@ -44,11 +44,12 @@ class ManagedHttpCacheStorageTest {
     void putEntry() throws ResourceIOException {
 
         final CacheConfig cacheConfig = getCacheConfig();
-        final ManagedHttpCacheStorage cacheStorage = new ManagedHttpCacheStorage(cacheConfig);
-        final String key = "foo";
-        final HttpCacheEntry value = HttpTestUtils.makeCacheEntry();
-        cacheStorage.putEntry(key, value);
-        assertEquals(HttpStatus.SC_OK, cacheStorage.getEntry(key).getStatus());
+        try (final ManagedHttpCacheStorage cacheStorage = new ManagedHttpCacheStorage(cacheConfig)) {
+            final String key = "foo";
+            final HttpCacheEntry value = HttpTestUtils.makeCacheEntry();
+            cacheStorage.putEntry(key, value);
+            assertEquals(HttpStatus.SC_OK, cacheStorage.getEntry(key).getStatus());
+        }
     }
 
     @Test
