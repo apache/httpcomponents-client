@@ -28,6 +28,7 @@ package org.apache.hc.client5.http.impl.async;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.Objects;
 
 import org.apache.hc.client5.http.CircularRedirectException;
 import org.apache.hc.client5.http.HttpRoute;
@@ -56,7 +57,6 @@ import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.nio.AsyncDataConsumer;
 import org.apache.hc.core5.http.nio.AsyncEntityProducer;
 import org.apache.hc.core5.http.support.BasicRequestBuilder;
-import org.apache.hc.core5.util.LangUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -169,9 +169,9 @@ public final class AsyncRedirectExec implements AsyncExecChainHandler {
                     state.redirectURI = redirectUri;
                     state.currentRequest = redirectBuilder.build();
 
-                    if (!LangUtils.equals(currentRoute.getTargetHost(), newTarget)) {
+                    if (!Objects.equals(currentRoute.getTargetHost(), newTarget)) {
                         final HttpRoute newRoute = routePlanner.determineRoute(newTarget, clientContext);
-                        if (!LangUtils.equals(currentRoute, newRoute)) {
+                        if (!Objects.equals(currentRoute, newRoute)) {
                             state.reroute = true;
                             final AuthExchange targetAuthExchange = clientContext.getAuthExchange(currentRoute.getTargetHost());
                             if (LOG.isDebugEnabled()) {

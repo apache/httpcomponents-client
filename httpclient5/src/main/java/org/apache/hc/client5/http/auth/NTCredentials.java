@@ -29,6 +29,7 @@ package org.apache.hc.client5.http.auth;
 import java.io.Serializable;
 import java.security.Principal;
 import java.util.Locale;
+import java.util.Objects;
 
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
@@ -159,9 +160,9 @@ public class NTCredentials implements Credentials, Serializable {
         }
         if (o instanceof NTCredentials) {
             final NTCredentials that = (NTCredentials) o;
-            return LangUtils.equals(this.principal, that.principal)
-                    && LangUtils.equals(this.workstation, that.workstation)
-                    && LangUtils.equals(this.netbiosDomain, that.netbiosDomain);
+            return Objects.equals(this.principal, that.principal)
+                    && Objects.equals(this.workstation, that.workstation)
+                    && Objects.equals(this.netbiosDomain, that.netbiosDomain);
         }
         return false;
     }

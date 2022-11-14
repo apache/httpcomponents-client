@@ -30,9 +30,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 import org.apache.hc.core5.http.NameValuePair;
-import org.apache.hc.core5.util.LangUtils;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -55,7 +55,7 @@ public class NameValuePairsMatcher extends BaseMatcher<Collection<? extends Name
                     final NameValuePair nvp1 = (NameValuePair) obj;
                     final NameValuePair nvp2 = expectedNameValuePairList.get(i);
                     if (!nvp1.getName().equalsIgnoreCase(nvp2.getName())
-                            || !LangUtils.equals(nvp1.getValue(), nvp2.getValue())) {
+                            || !Objects.equals(nvp1.getValue(), nvp2.getValue())) {
                         return false;
                     }
                 } else {

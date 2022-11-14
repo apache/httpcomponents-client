@@ -1,4 +1,19 @@
-﻿Release 5.2
+﻿Release 5.2.1
+------------------
+
+This is the second GA release in the 5.2 release series.
+
+Please note that 5.2 upgrades the minimal JRE level to version 8 (8u251 is required).
+
+
+Change Log
+-------------------
+
+* Replace deprecated use of LangUtils#equals() with Objects.equals().
+  Contributed by Gary Gregory <ggregory at apache.org>
+
+
+Release 5.2
 ------------------
 
 This is the first GA release in the 5.2 release series. This release finalizes the 5.2 APIs

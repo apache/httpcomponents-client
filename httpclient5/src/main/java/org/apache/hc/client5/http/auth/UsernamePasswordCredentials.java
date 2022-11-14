@@ -28,11 +28,11 @@ package org.apache.hc.client5.http.auth;
 
 import java.io.Serializable;
 import java.security.Principal;
+import java.util.Objects;
 
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.util.Args;
-import org.apache.hc.core5.util.LangUtils;
 
 /**
  * Simple {@link Credentials} representation based on a user name / password
@@ -87,7 +87,7 @@ public class UsernamePasswordCredentials implements Credentials, Serializable {
         }
         if (o instanceof UsernamePasswordCredentials) {
             final UsernamePasswordCredentials that = (UsernamePasswordCredentials) o;
-            return LangUtils.equals(this.principal, that.principal);
+            return Objects.equals(this.principal, that.principal);
         }
         return false;
     }

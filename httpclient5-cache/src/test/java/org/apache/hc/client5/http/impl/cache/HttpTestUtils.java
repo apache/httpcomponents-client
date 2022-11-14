@@ -32,6 +32,7 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Random;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
@@ -55,7 +56,6 @@ import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.MessageSupport;
 import org.apache.hc.core5.util.ByteArrayBuffer;
-import org.apache.hc.core5.util.LangUtils;
 import org.junit.jupiter.api.Assertions;
 
 public class HttpTestUtils {
@@ -188,7 +188,7 @@ public class HttpTestUtils {
         if (!entitiesEquivalent) {
             return false;
         }
-        final boolean statusLinesEquivalent = LangUtils.equals(r1.getReasonPhrase(), r2.getReasonPhrase())
+        final boolean statusLinesEquivalent = Objects.equals(r1.getReasonPhrase(), r2.getReasonPhrase())
                 && r1.getCode() == r2.getCode();
         if (!statusLinesEquivalent) {
             return false;
@@ -198,14 +198,14 @@ public class HttpTestUtils {
 
     /* Assertions.asserts that protocol versions equivalent. */
     public static boolean equivalent(final ProtocolVersion v1, final ProtocolVersion v2) {
-        return LangUtils.equals(v1 != null ? v1 : HttpVersion.DEFAULT, v2 != null ? v2 : HttpVersion.DEFAULT );
+        return Objects.equals(v1 != null ? v1 : HttpVersion.DEFAULT, v2 != null ? v2 : HttpVersion.DEFAULT );
     }
 
     /* Assertions.asserts that two requests are morally equivalent. */
     public static boolean equivalent(final HttpRequest r1, final HttpRequest r2) {
         return equivalent(r1.getVersion(), r2.getVersion()) &&
-                LangUtils.equals(r1.getMethod(), r2.getMethod()) &&
-                LangUtils.equals(r1.getRequestUri(), r2.getRequestUri()) &&
+                Objects.equals(r1.getMethod(), r2.getMethod()) &&
+                Objects.equals(r1.getRequestUri(), r2.getRequestUri()) &&
                 isEndToEndHeaderSubset(r1, r2);
     }
 
@@ -213,7 +213,7 @@ public class HttpTestUtils {
     public static boolean equivalent(final HttpResponse r1, final HttpResponse r2) {
         return equivalent(r1.getVersion(), r2.getVersion()) &&
                 r1.getCode() == r2.getCode() &&
-                LangUtils.equals(r1.getReasonPhrase(), r2.getReasonPhrase()) &&
+                Objects.equals(r1.getReasonPhrase(), r2.getReasonPhrase()) &&
                 isEndToEndHeaderSubset(r1, r2);
     }
 

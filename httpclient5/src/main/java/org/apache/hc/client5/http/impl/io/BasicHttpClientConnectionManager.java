@@ -29,6 +29,7 @@ package org.apache.hc.client5.http.impl.io;
 
 import java.io.IOException;
 import java.time.Instant;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -68,7 +69,6 @@ import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.Asserts;
 import org.apache.hc.core5.util.Deadline;
-import org.apache.hc.core5.util.LangUtils;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
 import org.slf4j.Logger;
@@ -304,7 +304,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
             LOG.debug("{} Get connection for route {}", id, route);
         }
         Asserts.check(!this.leased, "Connection %s is still allocated", conn);
-        if (!LangUtils.equals(this.route, route) || !LangUtils.equals(this.state, state)) {
+        if (!Objects.equals(this.route, route) || !Objects.equals(this.state, state)) {
             closeConnection(CloseMode.GRACEFUL);
         }
         this.route = route;

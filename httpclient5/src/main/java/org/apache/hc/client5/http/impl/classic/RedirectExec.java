@@ -29,6 +29,7 @@ package org.apache.hc.client5.http.impl.classic;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.Objects;
 
 import org.apache.hc.client5.http.CircularRedirectException;
 import org.apache.hc.client5.http.HttpRoute;
@@ -56,7 +57,6 @@ import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
 import org.apache.hc.core5.util.Args;
-import org.apache.hc.core5.util.LangUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -169,9 +169,9 @@ public final class RedirectExec implements ExecChainHandler {
                     redirectBuilder.setUri(redirectUri);
 
                     final HttpRoute currentRoute = currentScope.route;
-                    if (!LangUtils.equals(currentRoute.getTargetHost(), newTarget)) {
+                    if (!Objects.equals(currentRoute.getTargetHost(), newTarget)) {
                         final HttpRoute newRoute = this.routePlanner.determineRoute(newTarget, context);
-                        if (!LangUtils.equals(currentRoute, newRoute)) {
+                        if (!Objects.equals(currentRoute, newRoute)) {
                             if (LOG.isDebugEnabled()) {
                                 LOG.debug("{} new route required", exchangeId);
                             }

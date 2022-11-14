@@ -34,6 +34,7 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.hc.client5.http.SchemePortResolver;
@@ -90,7 +91,7 @@ public class BasicAuthCache implements AuthCache {
                 return this.scheme.equals(that.scheme) &&
                         this.host.equals(that.host) &&
                         this.port == that.port &&
-                        LangUtils.equals(this.pathPrefix, that.pathPrefix);
+                        Objects.equals(this.pathPrefix, that.pathPrefix);
             }
             return false;
         }

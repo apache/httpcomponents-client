@@ -28,6 +28,7 @@
 package org.apache.hc.client5.http;
 
 import java.net.InetAddress;
+import java.util.Objects;
 
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.util.Args;
@@ -294,9 +295,9 @@ public final class RouteTracker implements RouteInfo, Cloneable {
             (this.secure    == that.secure) &&
             (this.tunnelled == that.tunnelled) &&
             (this.layered   == that.layered) &&
-            LangUtils.equals(this.targetHost, that.targetHost) &&
-            LangUtils.equals(this.localAddress, that.localAddress) &&
-            LangUtils.equals(this.proxyChain, that.proxyChain);
+            Objects.equals(this.targetHost, that.targetHost) &&
+            Objects.equals(this.localAddress, that.localAddress) &&
+            Objects.equals(this.proxyChain, that.proxyChain);
     }
 
     /**

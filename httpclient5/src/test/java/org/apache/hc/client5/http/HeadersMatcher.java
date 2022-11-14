@@ -26,8 +26,9 @@
  */
 package org.apache.hc.client5.http;
 
+import java.util.Objects;
+
 import org.apache.hc.core5.http.Header;
-import org.apache.hc.core5.util.LangUtils;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -49,7 +50,7 @@ public class HeadersMatcher extends BaseMatcher<Header[]> {
                     final Header h1 = headers[i];
                     final Header h2 = expectedHeaders[i];
                     if (!h1.getName().equalsIgnoreCase(h2.getName())
-                            || !LangUtils.equals(h1.getValue(), h2.getValue())) {
+                            || !Objects.equals(h1.getValue(), h2.getValue())) {
                         return false;
                     }
                 }

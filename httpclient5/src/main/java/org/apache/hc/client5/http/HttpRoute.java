@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
@@ -265,9 +266,9 @@ public final class HttpRoute implements RouteInfo, Cloneable {
                 (this.secure    == that.secure) &&
                 (this.tunnelled == that.tunnelled) &&
                 (this.layered   == that.layered) &&
-                LangUtils.equals(this.targetHost, that.targetHost) &&
-                LangUtils.equals(this.localAddress, that.localAddress) &&
-                LangUtils.equals(this.proxyChain, that.proxyChain);
+                Objects.equals(this.targetHost, that.targetHost) &&
+                Objects.equals(this.localAddress, that.localAddress) &&
+                Objects.equals(this.proxyChain, that.proxyChain);
         }
         return false;
     }

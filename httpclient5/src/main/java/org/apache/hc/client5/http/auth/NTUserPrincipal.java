@@ -29,6 +29,7 @@ package org.apache.hc.client5.http.auth;
 import java.io.Serializable;
 import java.security.Principal;
 import java.util.Locale;
+import java.util.Objects;
 
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
@@ -99,8 +100,8 @@ public class NTUserPrincipal implements Principal, Serializable {
         }
         if (o instanceof NTUserPrincipal) {
             final NTUserPrincipal that = (NTUserPrincipal) o;
-            return LangUtils.equals(this.username, that.username)
-                    && LangUtils.equals(this.domain, that.domain);
+            return Objects.equals(this.username, that.username)
+                    && Objects.equals(this.domain, that.domain);
         }
         return false;
     }

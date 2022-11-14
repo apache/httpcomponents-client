@@ -26,8 +26,9 @@
  */
 package org.apache.hc.client5.http;
 
+import java.util.Objects;
+
 import org.apache.hc.core5.http.NameValuePair;
-import org.apache.hc.core5.util.LangUtils;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -46,7 +47,7 @@ public class NameValuePairMatcher extends BaseMatcher<NameValuePair> {
     public boolean matches(final Object item) {
         if (item instanceof NameValuePair) {
             final NameValuePair nvp = (NameValuePair) item;
-            return LangUtils.equals(nvp.getName(), name) && LangUtils.equals(nvp.getValue(), value);
+            return Objects.equals(nvp.getName(), name) && Objects.equals(nvp.getValue(), value);
         }
         return false;
     }

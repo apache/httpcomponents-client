@@ -27,6 +27,7 @@
 package org.apache.hc.client5.http.auth;
 
 import java.util.Locale;
+import java.util.Objects;
 
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
@@ -166,7 +167,7 @@ public class AuthScope {
      */
     public int match(final AuthScope that) {
         int factor = 0;
-        if (LangUtils.equals(toNullSafeLowerCase(this.schemeName),
+        if (Objects.equals(toNullSafeLowerCase(this.schemeName),
                              toNullSafeLowerCase(that.schemeName))) {
             factor += 1;
         } else {
@@ -174,7 +175,7 @@ public class AuthScope {
                 return -1;
             }
         }
-        if (LangUtils.equals(this.realm, that.realm)) {
+        if (Objects.equals(this.realm, that.realm)) {
             factor += 2;
         } else {
             if (this.realm != null && that.realm != null) {
@@ -188,14 +189,14 @@ public class AuthScope {
                 return -1;
             }
         }
-        if (LangUtils.equals(this.protocol, that.protocol)) {
+        if (Objects.equals(this.protocol, that.protocol)) {
             factor += 8;
         } else {
             if (this.protocol != null && that.protocol != null) {
                 return -1;
             }
         }
-        if (LangUtils.equals(this.host, that.host)) {
+        if (Objects.equals(this.host, that.host)) {
             factor += 16;
         } else {
             if (this.host != null && that.host != null) {
@@ -212,11 +213,11 @@ public class AuthScope {
         }
         if (obj instanceof AuthScope) {
             final AuthScope that = (AuthScope) obj;
-            return LangUtils.equals(this.protocol, that.protocol)
-                    && LangUtils.equals(this.host, that.host)
+            return Objects.equals(this.protocol, that.protocol)
+                    && Objects.equals(this.host, that.host)
                     && this.port == that.port
-                    && LangUtils.equals(this.realm, that.realm)
-                    && LangUtils.equals(toNullSafeLowerCase(this.schemeName),
+                    && Objects.equals(this.realm, that.realm)
+                    && Objects.equals(toNullSafeLowerCase(this.schemeName),
                                         toNullSafeLowerCase(that.schemeName));
         }
         return false;

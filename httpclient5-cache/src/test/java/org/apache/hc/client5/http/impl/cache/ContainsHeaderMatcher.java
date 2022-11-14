@@ -27,11 +27,11 @@
 package org.apache.hc.client5.http.impl.cache;
 
 import java.util.Iterator;
+import java.util.Objects;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.MessageHeaders;
-import org.apache.hc.core5.util.LangUtils;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -52,7 +52,7 @@ public class ContainsHeaderMatcher extends BaseMatcher<HttpCacheEntry> {
             final MessageHeaders messageHeaders = (MessageHeaders) item;
             for (final Iterator<Header> it = messageHeaders.headerIterator(); it.hasNext(); ) {
                 final Header header = it.next();
-                if (headerName.equalsIgnoreCase(header.getName()) && LangUtils.equals(headerValue, header.getValue())) {
+                if (headerName.equalsIgnoreCase(header.getName()) && Objects.equals(headerValue, header.getValue())) {
                     return true;
                 }
             }
