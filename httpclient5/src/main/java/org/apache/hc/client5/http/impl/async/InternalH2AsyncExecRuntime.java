@@ -102,7 +102,6 @@ class InternalH2AsyncExecRuntime implements AsyncExecRuntime {
                             if (log.isDebugEnabled()) {
                                 log.debug("{} acquired endpoint", id);
                             }
-                            context.setProtocolVersion(HttpVersion.HTTP_2);
                             callback.completed(InternalH2AsyncExecRuntime.this);
                         }
 
@@ -237,6 +236,7 @@ class InternalH2AsyncExecRuntime implements AsyncExecRuntime {
             if (log.isDebugEnabled()) {
                 log.debug("{} start execution {}", ConnPoolSupport.getId(endpoint), id);
             }
+            context.setProtocolVersion(HttpVersion.HTTP_2);
             session.enqueue(
                     new RequestExecutionCommand(exchangeHandler, pushHandlerFactory, complexCancellable, context),
                     Command.Priority.NORMAL);
@@ -254,6 +254,7 @@ class InternalH2AsyncExecRuntime implements AsyncExecRuntime {
                     if (log.isDebugEnabled()) {
                         log.debug("{} start execution {}", ConnPoolSupport.getId(endpoint), id);
                     }
+                    context.setProtocolVersion(HttpVersion.HTTP_2);
                     session.enqueue(
                             new RequestExecutionCommand(exchangeHandler, pushHandlerFactory, complexCancellable, context),
                             Command.Priority.NORMAL);

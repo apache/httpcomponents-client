@@ -465,7 +465,6 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
                                 LOG.debug("{} connected {}", ConnPoolSupport.getId(endpoint), ConnPoolSupport.getId(connection));
                             }
                             final ProtocolVersion protocolVersion = connection.getProtocolVersion();
-                            context.setProtocolVersion(protocolVersion);
                             final Timeout socketTimeout = connectionConfig.getSocketTimeout();
                             if (socketTimeout != null) {
                                 connection.setSocketTimeout(socketTimeout);
@@ -521,7 +520,6 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
 
                                 @Override
                                 public void completed(final ProtocolIOSession protocolIOSession) {
-                                    context.setProtocolVersion(HttpVersion.HTTP_2);
                                     if (callback != null) {
                                         callback.completed(endpoint);
                                     }
@@ -750,6 +748,7 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
             if (LOG.isDebugEnabled()) {
                 LOG.debug("{} executing exchange {} over {}", id, exchangeId, ConnPoolSupport.getId(connection));
             }
+            context.setProtocolVersion(connection.getProtocolVersion());
             connection.submitCommand(
                     new RequestExecutionCommand(exchangeHandler, pushHandlerFactory, context),
                     Command.Priority.NORMAL);
