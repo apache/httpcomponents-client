@@ -38,12 +38,12 @@ public class TestAuthScope {
     @Test
     public void testBasics() {
         final AuthScope authscope = new AuthScope("http", "somehost", 80, "somerealm", "SomeScheme");
-        Assertions.assertEquals("SomeScheme", authscope.getSchemeName());
+        Assertions.assertEquals("SOMESCHEME", authscope.getSchemeName());
         Assertions.assertEquals("http", authscope.getProtocol());
         Assertions.assertEquals("somehost", authscope.getHost());
         Assertions.assertEquals(80, authscope.getPort());
         Assertions.assertEquals("somerealm", authscope.getRealm());
-        Assertions.assertEquals("SomeScheme 'somerealm' http://somehost:80", authscope.toString());
+        Assertions.assertEquals("SOMESCHEME 'somerealm' http://somehost:80", authscope.toString());
     }
 
     @Test
