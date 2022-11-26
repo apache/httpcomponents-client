@@ -76,7 +76,7 @@ public class AuthScope {
         this.host = host != null ? host.toLowerCase(Locale.ROOT) : null;
         this.port = port >= 0 ? port: -1;
         this.realm = realm;
-        this.schemeName = schemeName;
+        this.schemeName = schemeName != null ? schemeName.toUpperCase(Locale.ROOT) : null;
     }
 
     /**
@@ -99,7 +99,7 @@ public class AuthScope {
         this.host = origin.getHostName().toLowerCase(Locale.ROOT);
         this.port = origin.getPort() >= 0 ? origin.getPort() : -1;
         this.realm = realm;
-        this.schemeName = schemeName;
+        this.schemeName = schemeName != null ? schemeName.toUpperCase(Locale.ROOT) : null;
     }
 
     /**
@@ -167,8 +167,7 @@ public class AuthScope {
      */
     public int match(final AuthScope that) {
         int factor = 0;
-        if (Objects.equals(toNullSafeLowerCase(this.schemeName),
-                             toNullSafeLowerCase(that.schemeName))) {
+        if (Objects.equals(this.schemeName, that.schemeName)) {
             factor += 1;
         } else {
             if (this.schemeName != null && that.schemeName != null) {
@@ -217,8 +216,7 @@ public class AuthScope {
                     && Objects.equals(this.host, that.host)
                     && this.port == that.port
                     && Objects.equals(this.realm, that.realm)
-                    && Objects.equals(toNullSafeLowerCase(this.schemeName),
-                                        toNullSafeLowerCase(that.schemeName));
+                    && Objects.equals(this.schemeName, that.schemeName);
         }
         return false;
     }
@@ -230,12 +228,8 @@ public class AuthScope {
         hash = LangUtils.hashCode(hash, this.host);
         hash = LangUtils.hashCode(hash, this.port);
         hash = LangUtils.hashCode(hash, this.realm);
-        hash = LangUtils.hashCode(hash, toNullSafeLowerCase(this.schemeName));
+        hash = LangUtils.hashCode(hash, this.schemeName);
         return hash;
-    }
-
-    private String toNullSafeLowerCase(final String str) {
-        return str != null ? str.toLowerCase(Locale.ROOT) : null;
     }
 
     @Override
