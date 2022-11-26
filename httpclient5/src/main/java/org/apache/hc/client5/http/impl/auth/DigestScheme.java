@@ -71,7 +71,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Digest authentication scheme as defined in RFC 2617.
+ * Digest authentication scheme.
  * Both MD5 (default) and MD5-sess are supported.
  * Currently only qop=auth or no qop is supported. qop=auth-int
  * is unsupported. If auth and auth-int are provided, auth is
@@ -443,8 +443,7 @@ public class DigestScheme implements AuthScheme, Serializable {
     }
 
     /**
-     * Encodes the 128 bit (16 bytes) MD5 digest into a 32 characters long
-     * {@code String} according to RFC 2617.
+     * Encodes the 128 bit (16 bytes) MD5 digest into a 32 characters long string.
      *
      * @param binaryData array containing the digest
      * @return encoded MD5, or {@code null} if encoding failed
