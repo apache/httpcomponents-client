@@ -61,7 +61,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Basic authentication scheme as defined in RFC 2617.
+ * Basic authentication scheme.
  *
  * @since 4.0
  */
