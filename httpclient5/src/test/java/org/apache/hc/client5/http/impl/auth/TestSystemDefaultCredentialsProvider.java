@@ -104,7 +104,6 @@ public class TestSystemDefaultCredentialsProvider {
                                                                         RequestorType.SERVER);
         Assertions.assertNotNull(receivedCredentials);
         Assertions.assertEquals(AUTH1.getUserName(), receivedCredentials.getUserPrincipal().getName());
-        Assertions.assertEquals(AUTH1.getPassword(), receivedCredentials.getPassword());
     }
 
     @Test
@@ -122,7 +121,6 @@ public class TestSystemDefaultCredentialsProvider {
                                                                         RequestorType.SERVER);
         Assertions.assertNotNull(receivedCredentials);
         Assertions.assertEquals(AUTH1.getUserName(), receivedCredentials.getUserPrincipal().getName());
-        Assertions.assertEquals(AUTH1.getPassword(), receivedCredentials.getPassword());
     }
 
     private AuthenticatorDelegate installAuthenticator(final PasswordAuthentication returedAuthentication) {
