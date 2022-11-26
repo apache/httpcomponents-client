@@ -53,6 +53,7 @@ import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.MalformedChallengeException;
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
+import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.utils.ByteArrayBuilder;
 import org.apache.hc.core5.annotation.Internal;
@@ -118,8 +119,7 @@ public class DigestScheme implements AuthScheme, Serializable {
     private byte[] a1;
     private byte[] a2;
 
-    private String username;
-    private char[] password;
+    private UsernamePasswordCredentials credentials;
 
     public DigestScheme() {
         this(StandardCharsets.ISO_8859_1);
@@ -133,8 +133,9 @@ public class DigestScheme implements AuthScheme, Serializable {
 
     public void initPreemptive(final Credentials credentials, final String cnonce, final String realm) {
         Args.notNull(credentials, "Credentials");
-        this.username = credentials.getUserPrincipal().getName();
-        this.password = credentials.getPassword();
+        Args.check(credentials instanceof UsernamePasswordCredentials,
+                "Unsupported credential type: " + credentials.getClass());
+        this.credentials = (UsernamePasswordCredentials) credentials;
         this.paramMap.put("cnonce", cnonce);
         this.paramMap.put("realm", realm);
     }
@@ -190,9 +191,8 @@ public class DigestScheme implements AuthScheme, Serializable {
         final AuthScope authScope = new AuthScope(host, getRealm(), getName());
         final Credentials credentials = credentialsProvider.getCredentials(
                 authScope, context);
-        if (credentials != null) {
-            this.username = credentials.getUserPrincipal().getName();
-            this.password = credentials.getPassword();
+        if (credentials instanceof UsernamePasswordCredentials) {
+            this.credentials = (UsernamePasswordCredentials) credentials;
             return true;
         }
 
@@ -201,8 +201,7 @@ public class DigestScheme implements AuthScheme, Serializable {
             final String exchangeId = clientContext.getExchangeId();
             LOG.debug("{} No credentials found for auth scope [{}]", exchangeId, authScope);
         }
-        this.username = null;
-        this.password = null;
+        this.credentials = null;
         return false;
     }
 
@@ -323,13 +322,13 @@ public class DigestScheme implements AuthScheme, Serializable {
             //      ":" unq(cnonce-value)
 
             // calculated one per session
-            buffer.append(username).append(":").append(realm).append(":").append(password);
+            buffer.append(credentials.getUserName()).append(":").append(realm).append(":").append(credentials.getUserPassword());
             final String checksum = formatHex(digester.digest(this.buffer.toByteArray()));
             buffer.reset();
             buffer.append(checksum).append(":").append(nonce).append(":").append(cnonce);
         } else {
             // unq(username-value) ":" unq(realm-value) ":" passwd
-            buffer.append(username).append(":").append(realm).append(":").append(password);
+            buffer.append(credentials.getUserName()).append(":").append(realm).append(":").append(credentials.getUserPassword());
         }
         a1 = buffer.toByteArray();
 
@@ -390,7 +389,7 @@ public class DigestScheme implements AuthScheme, Serializable {
         buffer.append(StandardAuthScheme.DIGEST + " ");
 
         final List<BasicNameValuePair> params = new ArrayList<>(20);
-        params.add(new BasicNameValuePair("username", username));
+        params.add(new BasicNameValuePair("username", credentials.getUserName()));
         params.add(new BasicNameValuePair("realm", realm));
         params.add(new BasicNameValuePair("nonce", nonce));
         params.add(new BasicNameValuePair("uri", uri));
