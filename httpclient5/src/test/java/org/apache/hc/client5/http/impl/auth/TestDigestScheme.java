@@ -260,6 +260,7 @@ public class TestDigestScheme {
         final DigestScheme authscheme = new DigestScheme();
         authscheme.processChallenge(authChallenge, null);
 
+        Assertions.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
         final String authResponse = authscheme.generateAuthResponse(host, request, null);
 
         final Map<String, String> table = parseAuthResponse(authResponse);
@@ -281,6 +282,7 @@ public class TestDigestScheme {
         final DigestScheme authscheme = new DigestScheme();
         authscheme.processChallenge(authChallenge, null);
 
+        Assertions.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
         final String authResponse = authscheme.generateAuthResponse(host, request, null);
 
         final Map<String, String> table = parseAuthResponse(authResponse);

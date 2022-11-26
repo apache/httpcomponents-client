@@ -45,20 +45,34 @@ public class UsernamePasswordCredentials implements Credentials, Serializable {
 
     private static final long serialVersionUID = 243343858802739403L;
 
-    private final BasicUserPrincipal principal;
+    private final Principal principal;
     private final char[] password;
 
     /**
      * The constructor with the username and password arguments.
      *
-     * @param userName the user name
+     * @param principal the user principal
+     * @param password the password
+     *
+     * @since 5.3
+     *
+     * @see BasicUserPrincipal
+     * @see NTUserPrincipal
+     */
+    public UsernamePasswordCredentials(final Principal principal, final char[] password) {
+        super();
+        this.principal = Args.notNull(principal, "User principal");
+        this.password = password;
+    }
+
+    /**
+     * The constructor with the username and password arguments.
+     *
+     * @param username the user name
      * @param password the password
      */
-    public UsernamePasswordCredentials(final String userName, final char[] password) {
-        super();
-        Args.notNull(userName, "Username");
-        this.principal = new BasicUserPrincipal(userName);
-        this.password = password;
+    public UsernamePasswordCredentials(final String username, final char[] password) {
+        this(new BasicUserPrincipal(username), password);
     }
 
     @Override
@@ -70,6 +84,17 @@ public class UsernamePasswordCredentials implements Credentials, Serializable {
         return this.principal.getName();
     }
 
+    /**
+     * @since 5.3
+     */
+    public char[] getUserPassword() {
+        return password;
+    }
+
+    /**
+     * @deprecated Use {@link #getUserPassword()}.
+     */
+    @Deprecated
     @Override
     public char[] getPassword() {
         return password;

@@ -39,6 +39,11 @@ public interface Credentials {
 
     Principal getUserPrincipal();
 
+    /**
+     * @deprecated Use specific credentials class that represent a username / password
+     * set of a security token.
+     */
+    @Deprecated
     char[] getPassword();
 
 }

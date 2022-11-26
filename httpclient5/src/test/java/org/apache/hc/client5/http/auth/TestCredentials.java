@@ -44,14 +44,14 @@ public class TestCredentials {
         Assertions.assertEquals("name", creds1.getUserName());
         Assertions.assertEquals(new BasicUserPrincipal("name"),
                 creds1.getUserPrincipal());
-        Assertions.assertArrayEquals("pwd".toCharArray(), creds1.getPassword());
+        Assertions.assertArrayEquals("pwd".toCharArray(), creds1.getUserPassword());
         Assertions.assertEquals("[principal: name]", creds1.toString());
         final UsernamePasswordCredentials creds2 = new UsernamePasswordCredentials(
             "name", null);
         Assertions.assertEquals("name", creds2.getUserName());
         Assertions.assertEquals(new BasicUserPrincipal("name"),
                 creds2.getUserPrincipal());
-        Assertions.assertNull(creds2.getPassword());
+        Assertions.assertNull(creds2.getUserPassword());
         Assertions.assertEquals("[principal: name]", creds2.toString());
     }
 
