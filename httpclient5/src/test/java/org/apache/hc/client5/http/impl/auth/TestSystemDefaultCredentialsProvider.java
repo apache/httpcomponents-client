@@ -31,6 +31,7 @@ import java.net.Authenticator.RequestorType;
 import java.net.InetAddress;
 import java.net.PasswordAuthentication;
 import java.net.URL;
+import java.util.Locale;
 
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.Credentials;
@@ -99,9 +100,11 @@ public class TestSystemDefaultCredentialsProvider {
         final Credentials receivedCredentials =
             new SystemDefaultCredentialsProvider().getCredentials(authScope, coreContext);
 
-        Mockito.verify(authenticatorDelegate).getPasswordAuthentication(PROXY_HOST1, null, PROXY_PORT1, PROXY_PROTOCOL1,
-                                                                        PROMPT1, StandardAuthScheme.BASIC, httpRequestUrl,
-                                                                        RequestorType.SERVER);
+        Mockito.verify(authenticatorDelegate).getPasswordAuthentication(
+                PROXY_HOST1, null, PROXY_PORT1, PROXY_PROTOCOL1,
+                PROMPT1, StandardAuthScheme.BASIC.toUpperCase(Locale.ROOT),
+                httpRequestUrl,
+                RequestorType.SERVER);
         Assertions.assertNotNull(receivedCredentials);
         Assertions.assertEquals(AUTH1.getUserName(), receivedCredentials.getUserPrincipal().getName());
     }
@@ -116,9 +119,10 @@ public class TestSystemDefaultCredentialsProvider {
         final Credentials receivedCredentials =
             new SystemDefaultCredentialsProvider().getCredentials(authScope, null);
 
-        Mockito.verify(authenticatorDelegate).getPasswordAuthentication(PROXY_HOST1, null, PROXY_PORT1, PROXY_PROTOCOL1,
-                                                                        PROMPT1, StandardAuthScheme.BASIC, null,
-                                                                        RequestorType.SERVER);
+        Mockito.verify(authenticatorDelegate).getPasswordAuthentication(
+                PROXY_HOST1, null, PROXY_PORT1, PROXY_PROTOCOL1,
+                PROMPT1, StandardAuthScheme.BASIC.toUpperCase(Locale.ROOT), null,
+                RequestorType.SERVER);
         Assertions.assertNotNull(receivedCredentials);
         Assertions.assertEquals(AUTH1.getUserName(), receivedCredentials.getUserPrincipal().getName());
     }
