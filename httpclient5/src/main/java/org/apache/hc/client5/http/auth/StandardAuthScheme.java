@@ -39,13 +39,13 @@ public final class StandardAuthScheme {
     }
 
     /**
-     * Basic authentication scheme as defined in RFC 2617 (considered inherently
-     * insecure without transport encryption, but most widely supported).
+     * Basic authentication scheme (considered inherently insecure without transport encryption,
+     * but most widely supported).
      */
     public static final String BASIC = "Basic";
 
     /**
-     * Digest authentication scheme as defined in RFC 2617.
+     * Digest authentication scheme.
      */
     public static final String DIGEST = "Digest";
 
