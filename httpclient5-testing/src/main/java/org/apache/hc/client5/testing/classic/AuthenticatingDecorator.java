@@ -28,10 +28,11 @@
 package org.apache.hc.client5.testing.classic;
 
 import java.io.IOException;
+import java.util.Collections;
 
-import org.apache.hc.client5.http.auth.StandardAuthScheme;
+import org.apache.hc.client5.testing.auth.AuthenticationHandler;
 import org.apache.hc.client5.testing.auth.Authenticator;
-import org.apache.hc.client5.testing.auth.BasicAuthTokenExtractor;
+import org.apache.hc.client5.testing.auth.BasicAuthenticationHandler;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.Header;
@@ -42,6 +43,7 @@ import org.apache.hc.core5.http.io.HttpServerRequestHandler;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
+import org.apache.hc.core5.http.message.BasicNameValuePair;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.net.URIAuthority;
 import org.apache.hc.core5.util.Args;
@@ -49,13 +51,23 @@ import org.apache.hc.core5.util.Args;
 public class AuthenticatingDecorator implements HttpServerRequestHandler {
 
     private final HttpServerRequestHandler requestHandler;
+    private final AuthenticationHandler<String> authenticationHandler;
     private final Authenticator authenticator;
-    private final BasicAuthTokenExtractor authTokenExtractor;
 
-    public AuthenticatingDecorator(final HttpServerRequestHandler requestHandler, final Authenticator authenticator) {
+    /**
+     * @since 5.3
+     */
+    public AuthenticatingDecorator(final HttpServerRequestHandler requestHandler,
+                                   final AuthenticationHandler<String> authenticationHandler,
+                                   final Authenticator authenticator) {
         this.requestHandler = Args.notNull(requestHandler, "Request handler");
+        this.authenticationHandler = Args.notNull(authenticationHandler, "Authentication handler");
         this.authenticator = Args.notNull(authenticator, "Authenticator");
-        this.authTokenExtractor = new BasicAuthTokenExtractor();
+    }
+
+    public AuthenticatingDecorator(final HttpServerRequestHandler requestHandler,
+                                   final Authenticator authenticator) {
+        this(requestHandler, new BasicAuthenticationHandler(), authenticator);
     }
 
     protected void customizeUnauthorizedResponse(final ClassicHttpResponse unauthorized) {
@@ -67,7 +79,7 @@ public class AuthenticatingDecorator implements HttpServerRequestHandler {
             final ResponseTrigger responseTrigger,
             final HttpContext context) throws HttpException, IOException {
         final Header h = request.getFirstHeader(HttpHeaders.AUTHORIZATION);
-        final String challengeResponse = h != null ? authTokenExtractor.extract(h.getValue()) : null;
+        final String challengeResponse = h != null ? authenticationHandler.extractAuthToken(h.getValue()) : null;
 
         final URIAuthority authority = request.getAuthority();
         final String requestUri = request.getRequestUri();
@@ -84,7 +96,9 @@ public class AuthenticatingDecorator implements HttpServerRequestHandler {
         } else {
             final ClassicHttpResponse unauthorized = new BasicClassicHttpResponse(HttpStatus.SC_UNAUTHORIZED);
             final String realm = authenticator.getRealm(authority, requestUri);
-            unauthorized.addHeader(HttpHeaders.WWW_AUTHENTICATE, StandardAuthScheme.BASIC + " realm=\"" + realm + "\"");
+            final String challenge = authenticationHandler.challenge(
+                    realm != null ? Collections.singletonList(new BasicNameValuePair("realm", realm)) : null);
+            unauthorized.addHeader(HttpHeaders.WWW_AUTHENTICATE, challenge);
             customizeUnauthorizedResponse(unauthorized);
             if (unauthorized.getEntity() == null) {
                 unauthorized.setEntity(new StringEntity("Unauthorized"));
