@@ -28,12 +28,13 @@ package org.apache.hc.client5.testing.async;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.apache.hc.client5.http.auth.StandardAuthScheme;
+import org.apache.hc.client5.testing.auth.AuthenticationHandler;
 import org.apache.hc.client5.testing.auth.Authenticator;
-import org.apache.hc.client5.testing.auth.BasicAuthTokenExtractor;
+import org.apache.hc.client5.testing.auth.BasicAuthenticationHandler;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.Header;
@@ -44,6 +45,7 @@ import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
 import org.apache.hc.core5.http.message.BasicHttpResponse;
+import org.apache.hc.core5.http.message.BasicNameValuePair;
 import org.apache.hc.core5.http.nio.AsyncResponseProducer;
 import org.apache.hc.core5.http.nio.AsyncServerExchangeHandler;
 import org.apache.hc.core5.http.nio.CapacityChannel;
@@ -58,15 +60,24 @@ import org.apache.hc.core5.util.Args;
 public class AuthenticatingAsyncDecorator implements AsyncServerExchangeHandler {
 
     private final AsyncServerExchangeHandler exchangeHandler;
+    private final AuthenticationHandler<String> authenticationHandler;
     private final Authenticator authenticator;
     private final AtomicReference<AsyncResponseProducer> responseProducerRef;
-    private final BasicAuthTokenExtractor authTokenExtractor;
 
-    public AuthenticatingAsyncDecorator(final AsyncServerExchangeHandler exchangeHandler, final Authenticator authenticator) {
+    /**
+     * @since 5.3
+     */
+    public AuthenticatingAsyncDecorator(final AsyncServerExchangeHandler exchangeHandler,
+                                        final AuthenticationHandler<String> authenticationHandler,
+                                        final Authenticator authenticator) {
         this.exchangeHandler = Args.notNull(exchangeHandler, "Request handler");
+        this.authenticationHandler = Args.notNull(authenticationHandler, "Authentication handler");
         this.authenticator = Args.notNull(authenticator, "Authenticator");
         this.responseProducerRef = new AtomicReference<>();
-        this.authTokenExtractor = new BasicAuthTokenExtractor();
+    }
+
+    public AuthenticatingAsyncDecorator(final AsyncServerExchangeHandler exchangeHandler, final Authenticator authenticator) {
+        this(exchangeHandler, new BasicAuthenticationHandler(), authenticator);
     }
 
     protected void customizeUnauthorizedResponse(final HttpResponse unauthorized) {
@@ -79,7 +90,7 @@ public class AuthenticatingAsyncDecorator implements AsyncServerExchangeHandler 
             final ResponseChannel responseChannel,
             final HttpContext context) throws HttpException, IOException {
         final Header h = request.getFirstHeader(HttpHeaders.AUTHORIZATION);
-        final String challengeResponse = h != null ? authTokenExtractor.extract(h.getValue()) : null;
+        final String challengeResponse = h != null ? authenticationHandler.extractAuthToken(h.getValue()) : null;
 
         final URIAuthority authority = request.getAuthority();
         final String requestUri = request.getRequestUri();
@@ -96,8 +107,9 @@ public class AuthenticatingAsyncDecorator implements AsyncServerExchangeHandler 
         } else {
             final HttpResponse unauthorized = new BasicHttpResponse(HttpStatus.SC_UNAUTHORIZED);
             final String realm = authenticator.getRealm(authority, requestUri);
-            unauthorized.addHeader(HttpHeaders.WWW_AUTHENTICATE, StandardAuthScheme.BASIC + " realm=\"" + realm + "\"");
-
+            final String challenge = authenticationHandler.challenge(
+                    realm != null ? Collections.singletonList(new BasicNameValuePair("realm", realm)) : null);
+            unauthorized.addHeader(HttpHeaders.WWW_AUTHENTICATE, challenge);
             customizeUnauthorizedResponse(unauthorized);
 
             final AsyncResponseProducer responseProducer = new BasicResponseProducer(
