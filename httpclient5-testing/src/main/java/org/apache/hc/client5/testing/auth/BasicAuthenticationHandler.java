@@ -31,34 +31,19 @@ import java.nio.charset.StandardCharsets;
 
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.utils.Base64;
-import org.apache.hc.core5.http.HttpException;
-import org.apache.hc.core5.http.ProtocolException;
 
-/**
- * @deprecated Use {@link BasicAuthenticationHandler}.
- */
-@Deprecated
-public class BasicAuthTokenExtractor {
+public class BasicAuthenticationHandler extends AbstractAuthenticationHandler {
 
-    public String extract(final String challengeResponse) throws HttpException {
-        if (challengeResponse != null) {
-            final int i = challengeResponse.indexOf(' ');
-            if (i == -1) {
-                throw new ProtocolException("Invalid challenge response: " + challengeResponse);
-            }
-            final String schemeName = challengeResponse.substring(0, i);
-            if (schemeName.equalsIgnoreCase(StandardAuthScheme.BASIC)) {
-                final String s = challengeResponse.substring(i + 1).trim();
-                try {
-                    final byte[] credsRaw = s.getBytes(StandardCharsets.US_ASCII);
-                    final Base64 codec = new Base64();
-                    return new String(codec.decode(credsRaw), StandardCharsets.US_ASCII);
-                } catch (final IllegalArgumentException ex) {
-                    throw new ProtocolException("Malformed Basic credentials");
-                }
-            }
-        }
-        return null;
+    @Override
+    String getSchemeName() {
+        return StandardAuthScheme.BASIC;
+    }
+
+    @Override
+    String decodeChallenge(final String challenge) throws IllegalArgumentException {
+        final byte[] bytes = challenge.getBytes(StandardCharsets.US_ASCII);
+        final Base64 codec = new Base64();
+        return new String(codec.decode(bytes), StandardCharsets.US_ASCII);
     }
 
 }
