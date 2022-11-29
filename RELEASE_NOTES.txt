@@ -1,11 +1,26 @@
 Release 4.5.14
 -------------------
 
-This is a maintenance release.
+This is a maintenance release that fixes several minor bugs reported discovered since
+the 4.5.13 release.
 
 
 Changelog:
 -------------------
+
+* HTTPCLIENT-2206: Corrected resource de-allocation by fluent response objects.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2174: URIBuilder to return a new empty list instead of unmodifiable
+  Collections#emptyList.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Don't retry requests in case of NoRouteToHostException.
+  Contributed by Jaikiran Pai <jaikiran.pai at gmail.com>
+
+* HTTPCLIENT-2144: RequestBuilder fails to correctly copy charset of requests with
+  form url-encoded body.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
 
 * PR #269: 4.5.x use array fill and more.
   - Use Arrays.fill().
@@ -17,8 +32,11 @@ Changelog:
   - Use a 'L' instead of 'l' to make long literals more readable.
   Contributed by Gary Gregory <ggregory at apache.org>
 
-* PublicSuffixListParser.parseByType(Reader) allocates but does not use a 256 char StringBuilder.
+* PublicSuffixListParser.parseByType(Reader) allocates but does not use a 256 char
+  StringBuilder.
   Contributed by Gary Gregory <ggregory at apache.org>
+
+
 
 Release 4.5.13
 -------------------
