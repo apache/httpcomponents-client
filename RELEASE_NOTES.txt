@@ -1,16 +1,24 @@
 ﻿Release 5.2.1
 ------------------
 
-This is the second GA release in the 5.2 release series.
-
-Please note that 5.2 upgrades the minimal JRE level to version 8 (8u251 is required).
-
+This is a maintenance release that fixes several regressions found in release 5.2.
 
 Change Log
 -------------------
 
+* Regression: Async execution runtimes set the negotiated protocol version in the execution
+  context at the wrong point of request execution.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Cancel connection request on exception.
+  Contributed by Bryan Keller <bryanck at gmail.com>
+
 * Replace deprecated use of LangUtils#equals() with Objects.equals().
   Contributed by Gary Gregory <ggregory at apache.org>
+
+* Regression: Multipart body builder and multipart formatters fail to escape special characters
+  such as backslash and quote mark.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
 
 
 Release 5.2
