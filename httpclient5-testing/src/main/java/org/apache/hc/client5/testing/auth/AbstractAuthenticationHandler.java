@@ -54,7 +54,7 @@ abstract class AbstractAuthenticationHandler implements AuthenticationHandler<St
         return buf.toString();
     }
 
-    abstract String decodeChallenge(String challenge) throws IllegalArgumentException;
+    abstract String decodeChallenge(String challenge);
 
     public final String extractAuthToken(final String challengeResponse) throws HttpException {
         final int i = challengeResponse.indexOf(' ');
