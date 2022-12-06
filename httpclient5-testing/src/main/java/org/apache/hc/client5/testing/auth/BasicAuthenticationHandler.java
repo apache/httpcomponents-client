@@ -27,12 +27,31 @@
 
 package org.apache.hc.client5.testing.auth;
 
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.utils.Base64;
+import org.apache.hc.core5.util.Args;
 
 public class BasicAuthenticationHandler extends AbstractAuthenticationHandler {
+
+    private final Charset charset;
+
+    /**
+     * @since 5.3
+     */
+    public BasicAuthenticationHandler(final Charset charset) {
+        this.charset = Args.notNull(charset, "Charset");
+    }
+
+    /**
+     * @deprecated Use {@link #BasicAuthenticationHandler(Charset)}
+     */
+    @Deprecated
+    public BasicAuthenticationHandler() {
+        this(StandardCharsets.US_ASCII);
+    }
 
     @Override
     String getSchemeName() {
@@ -43,7 +62,7 @@ public class BasicAuthenticationHandler extends AbstractAuthenticationHandler {
     String decodeChallenge(final String challenge) throws IllegalArgumentException {
         final byte[] bytes = challenge.getBytes(StandardCharsets.US_ASCII);
         final Base64 codec = new Base64();
-        return new String(codec.decode(bytes), StandardCharsets.US_ASCII);
+        return new String(codec.decode(bytes), charset);
     }
 
 }
