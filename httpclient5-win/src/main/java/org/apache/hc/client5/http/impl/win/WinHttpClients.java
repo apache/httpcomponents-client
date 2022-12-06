@@ -31,6 +31,7 @@ import java.util.Locale;
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.impl.auth.BasicSchemeFactory;
+import org.apache.hc.client5.http.impl.auth.BearerSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.DigestSchemeFactory;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
@@ -60,6 +61,7 @@ public class WinHttpClients {
             final Registry<AuthSchemeFactory> authSchemeRegistry = RegistryBuilder.<AuthSchemeFactory>create()
                     .register(StandardAuthScheme.BASIC, BasicSchemeFactory.INSTANCE)
                     .register(StandardAuthScheme.DIGEST, DigestSchemeFactory.INSTANCE)
+                    .register(StandardAuthScheme.BEARER, BearerSchemeFactory.INSTANCE)
                     .register(StandardAuthScheme.NTLM, WindowsNTLMSchemeFactory.DEFAULT)
                     .register(StandardAuthScheme.SPNEGO, WindowsNegotiateSchemeFactory.DEFAULT)
                     .build();

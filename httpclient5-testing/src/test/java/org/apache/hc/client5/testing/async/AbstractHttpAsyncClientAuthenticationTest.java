@@ -28,6 +28,7 @@ package org.apache.hc.client5.testing.async;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 
+import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Queue;
@@ -45,6 +46,7 @@ import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
 import org.apache.hc.client5.http.auth.AuthCache;
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.client5.http.auth.AuthScope;
+import org.apache.hc.client5.http.auth.BearerToken;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
@@ -57,6 +59,7 @@ import org.apache.hc.client5.http.impl.auth.CredentialsProviderBuilder;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.testing.BasicTestAuthenticator;
 import org.apache.hc.client5.testing.auth.Authenticator;
+import org.apache.hc.client5.testing.auth.BearerAuthenticationHandler;
 import org.apache.hc.core5.function.Decorator;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpHeaders;
@@ -473,6 +476,68 @@ public abstract class AbstractHttpAsyncClientAuthenticationTest<T extends Closea
         Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
         Mockito.verify(credsProvider).getCredentials(
                 Mockito.eq(new AuthScope(target, "test realm", "basic")), Mockito.any());
+    }
+
+    private final static String CHARS = "0123456789abcdef";
+
+    @Test
+    public void testBearerTokenAuthentication() throws Exception {
+        final SecureRandom secureRandom = SecureRandom.getInstanceStrong();
+        secureRandom.setSeed(System.currentTimeMillis());
+        final StringBuilder buf = new StringBuilder();
+        for (int i = 0; i < 16; i++) {
+            buf.append(CHARS.charAt(secureRandom.nextInt(CHARS.length() - 1)));
+        }
+        final String token = buf.toString();
+        final H2TestServer server = startServer(requestHandler ->
+                new AuthenticatingAsyncDecorator(
+                        requestHandler,
+                        new BearerAuthenticationHandler(),
+                        new BasicTestAuthenticator(token, "test realm")));
+        server.register("*", AsyncEchoHandler::new);
+        final HttpHost target = targetHost();
+
+        final T client = startClient();
+
+        final CredentialsProvider credsProvider = Mockito.mock(CredentialsProvider.class);
+        final HttpClientContext context1 = HttpClientContext.create();
+        context1.setCredentialsProvider(credsProvider);
+
+        final Future<SimpleHttpResponse> future1 = client.execute(SimpleRequestBuilder.get()
+                .setHttpHost(target)
+                .setPath("/")
+                .build(), context1, null);
+        final SimpleHttpResponse response1 = future1.get();
+        Assertions.assertNotNull(response1);
+        Assertions.assertEquals(HttpStatus.SC_UNAUTHORIZED, response1.getCode());
+        Mockito.verify(credsProvider).getCredentials(
+                Mockito.eq(new AuthScope(target, "test realm", "bearer")), Mockito.any());
+
+        final HttpClientContext context2 = HttpClientContext.create();
+        Mockito.when(credsProvider.getCredentials(Mockito.any(), Mockito.any()))
+                .thenReturn(new BearerToken(token));
+        context2.setCredentialsProvider(credsProvider);
+
+        final Future<SimpleHttpResponse> future2 = client.execute(SimpleRequestBuilder.get()
+                .setHttpHost(target)
+                .setPath("/")
+                .build(), context2, null);
+        final SimpleHttpResponse response2 = future2.get();
+        Assertions.assertNotNull(response2);
+        Assertions.assertEquals(HttpStatus.SC_OK, response2.getCode());
+
+        final HttpClientContext context3 = HttpClientContext.create();
+        Mockito.when(credsProvider.getCredentials(Mockito.any(), Mockito.any()))
+                .thenReturn(new BearerToken(token + "-expired"));
+        context3.setCredentialsProvider(credsProvider);
+
+        final Future<SimpleHttpResponse> future3 = client.execute(SimpleRequestBuilder.get()
+                .setHttpHost(target)
+                .setPath("/")
+                .build(), context3, null);
+        final SimpleHttpResponse response3 = future3.get();
+        Assertions.assertNotNull(response3);
+        Assertions.assertEquals(HttpStatus.SC_UNAUTHORIZED, response3.getCode());
     }
 
 }
