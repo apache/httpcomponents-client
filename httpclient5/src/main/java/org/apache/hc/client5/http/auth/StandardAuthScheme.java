@@ -39,7 +39,7 @@ public final class StandardAuthScheme {
     }
 
     /**
-     * Basic authentication scheme (considered inherently insecure without transport encryption,
+     * Basic authentication scheme (considered inherently insecure without TLS,
      * but most widely supported).
      */
     public static final String BASIC = "Basic";
@@ -48,6 +48,11 @@ public final class StandardAuthScheme {
      * Digest authentication scheme.
      */
     public static final String DIGEST = "Digest";
+
+    /**
+     * Bearer authentication scheme (should be used with TLS).
+     */
+    public static final String BEARER = "Bearer";
 
     /**
      * The NTLM authentication scheme is a proprietary Microsoft Windows

@@ -104,6 +104,34 @@ public class TestCredentials {
     }
 
     @Test
+    public void tesBearerTokenBasics() {
+        final BearerToken creds1 = new BearerToken("token of some sort");
+        Assertions.assertEquals("token of some sort", creds1.getToken());
+    }
+
+    @Test
+    public void testBearerTokenHashCode() {
+        final BearerToken creds1 = new BearerToken("token of some sort");
+        final BearerToken creds2 = new BearerToken("another token of some sort");
+        final BearerToken creds3 = new BearerToken("token of some sort");
+
+        Assertions.assertTrue(creds1.hashCode() == creds1.hashCode());
+        Assertions.assertTrue(creds1.hashCode() != creds2.hashCode());
+        Assertions.assertTrue(creds1.hashCode() == creds3.hashCode());
+    }
+
+    @Test
+    public void testBearerTokenEquals() {
+        final BearerToken creds1 = new BearerToken("token of some sort");
+        final BearerToken creds2 = new BearerToken("another token of some sort");
+        final BearerToken creds3 = new BearerToken("token of some sort");
+
+        Assertions.assertEquals(creds1, creds1);
+        Assertions.assertNotEquals(creds1, creds2);
+        Assertions.assertEquals(creds1, creds3);
+    }
+
+    @Test
     public void testNTCredentialsHashCode() {
         final NTCredentials creds1 = new NTCredentials(
                 "name","pwd".toCharArray(), "somehost", "domain");
