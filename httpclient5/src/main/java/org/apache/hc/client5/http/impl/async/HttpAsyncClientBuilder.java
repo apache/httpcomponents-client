@@ -64,6 +64,7 @@ import org.apache.hc.client5.http.impl.IdleConnectionEvictor;
 import org.apache.hc.client5.http.impl.NoopUserTokenHandler;
 import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
 import org.apache.hc.client5.http.impl.auth.BasicSchemeFactory;
+import org.apache.hc.client5.http.impl.auth.BearerSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.DigestSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.KerberosSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.NTLMSchemeFactory;
@@ -990,6 +991,7 @@ public class HttpAsyncClientBuilder {
             authSchemeRegistryCopy = RegistryBuilder.<AuthSchemeFactory>create()
                     .register(StandardAuthScheme.BASIC, BasicSchemeFactory.INSTANCE)
                     .register(StandardAuthScheme.DIGEST, DigestSchemeFactory.INSTANCE)
+                    .register(StandardAuthScheme.BEARER, BearerSchemeFactory.INSTANCE)
                     .register(StandardAuthScheme.NTLM, NTLMSchemeFactory.INSTANCE)
                     .register(StandardAuthScheme.SPNEGO, SPNegoSchemeFactory.DEFAULT)
                     .register(StandardAuthScheme.KERBEROS, KerberosSchemeFactory.DEFAULT)

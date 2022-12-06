@@ -68,6 +68,7 @@ public class DefaultAuthenticationStrategy implements AuthenticationStrategy {
                 StandardAuthScheme.SPNEGO,
                 StandardAuthScheme.KERBEROS,
                 StandardAuthScheme.NTLM,
+                StandardAuthScheme.BEARER,
                 StandardAuthScheme.DIGEST,
                 StandardAuthScheme.BASIC));
 

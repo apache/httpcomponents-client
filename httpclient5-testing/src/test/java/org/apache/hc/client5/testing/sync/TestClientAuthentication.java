@@ -31,6 +31,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Queue;
@@ -44,6 +45,7 @@ import org.apache.hc.client5.http.auth.AuthCache;
 import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.client5.http.auth.AuthScope;
+import org.apache.hc.client5.http.auth.BearerToken;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
@@ -61,6 +63,7 @@ import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.testing.BasicTestAuthenticator;
 import org.apache.hc.client5.testing.auth.Authenticator;
+import org.apache.hc.client5.testing.auth.BearerAuthenticationHandler;
 import org.apache.hc.client5.testing.classic.AuthenticatingDecorator;
 import org.apache.hc.client5.testing.classic.EchoHandler;
 import org.apache.hc.client5.testing.sync.extension.TestClientResources;
@@ -424,7 +427,7 @@ public class TestClientAuthentication {
     }
 
     @Test
-    public void testAuthenticationCredentialsCachingReauthenticationOnDifferentRealm() throws Exception {
+    public void testAuthenticationCredentialsCachingReAuthenticationOnDifferentRealm() throws Exception {
         final ClassicTestServer server = startServer(new Authenticator() {
 
             @Override
@@ -760,6 +763,71 @@ public class TestClientAuthentication {
         });
         Mockito.verify(credsProvider).getCredentials(
                 Mockito.eq(new AuthScope(target, "test realm", "basic")), Mockito.any());
+    }
+
+    private final static String CHARS = "0123456789abcdef";
+
+    @Test
+    public void testBearerTokenAuthentication() throws Exception {
+        final SecureRandom secureRandom = SecureRandom.getInstanceStrong();
+        secureRandom.setSeed(System.currentTimeMillis());
+        final StringBuilder buf = new StringBuilder();
+        for (int i = 0; i < 16; i++) {
+            buf.append(CHARS.charAt(secureRandom.nextInt(CHARS.length() - 1)));
+        }
+        final String token = buf.toString();
+        final ClassicTestServer server = testResources.startServer(
+                Http1Config.DEFAULT,
+                HttpProcessors.server(),
+                requestHandler -> new AuthenticatingDecorator(
+                        requestHandler,
+                        new BearerAuthenticationHandler(),
+                        new BasicTestAuthenticator(token, "test realm")));
+        server.registerHandler("*", new EchoHandler());
+        final HttpHost target = targetHost();
+
+        final CloseableHttpClient client = startClient();
+
+        final CredentialsProvider credsProvider = Mockito.mock(CredentialsProvider.class);
+
+        final HttpClientContext context1 = HttpClientContext.create();
+        context1.setCredentialsProvider(credsProvider);
+        final HttpGet httpget1 = new HttpGet("/");
+        client.execute(target, httpget1, context1, response -> {
+            final HttpEntity entity = response.getEntity();
+            Assertions.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
+            Assertions.assertNotNull(entity);
+            EntityUtils.consume(entity);
+            return null;
+        });
+        Mockito.verify(credsProvider).getCredentials(
+                Mockito.eq(new AuthScope(target, "test realm", "bearer")), Mockito.any());
+
+        final HttpClientContext context2 = HttpClientContext.create();
+        Mockito.when(credsProvider.getCredentials(Mockito.any(), Mockito.any()))
+                .thenReturn(new BearerToken(token));
+        context2.setCredentialsProvider(credsProvider);
+        final HttpGet httpget2 = new HttpGet("/");
+        client.execute(target, httpget2, context2, response -> {
+            final HttpEntity entity = response.getEntity();
+            Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
+            Assertions.assertNotNull(entity);
+            EntityUtils.consume(entity);
+            return null;
+        });
+
+        final HttpClientContext context3 = HttpClientContext.create();
+        Mockito.when(credsProvider.getCredentials(Mockito.any(), Mockito.any()))
+                .thenReturn(new BearerToken(token + "-expired"));
+        context3.setCredentialsProvider(credsProvider);
+        final HttpGet httpget3 = new HttpGet("/");
+        client.execute(target, httpget3, context3, response -> {
+            final HttpEntity entity = response.getEntity();
+            Assertions.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
+            Assertions.assertNotNull(entity);
+            EntityUtils.consume(entity);
+            return null;
+        });
     }
 
 }
