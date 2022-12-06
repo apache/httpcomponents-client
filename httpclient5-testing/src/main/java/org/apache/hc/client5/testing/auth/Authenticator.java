@@ -31,6 +31,13 @@ import org.apache.hc.core5.net.URIAuthority;
 
 public interface Authenticator {
 
+    /**
+     * @since 5.3
+     */
+    default AuthResult perform(URIAuthority authority, String requestUri, String credentials) {
+        return new AuthResult(authenticate(authority, requestUri, credentials));
+    }
+
     boolean authenticate(URIAuthority authority, String requestUri, String credentials);
 
     String getRealm(URIAuthority authority, String requestUri);
