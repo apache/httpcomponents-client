@@ -55,7 +55,7 @@ import org.apache.hc.core5.util.CharArrayBuffer;
 import org.apache.hc.core5.util.Tokenizer;
 
 /**
- * Cookie management functions shared by RFC C6265 compliant specification.
+ * Cookie management functions shared by RFC 6265 compliant specification.
  *
  * @since 4.5
  */
