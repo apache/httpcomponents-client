@@ -37,7 +37,9 @@ import org.apache.http.conn.ManagedHttpClientConnection;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.pool.AbstractConnPool;
 import org.apache.http.pool.ConnFactory;
+import org.apache.http.pool.PoolEntry;
 import org.apache.http.pool.PoolEntryCallback;
+import org.apache.http.util.Args;
 
 /**
  * @since 4.3
@@ -79,6 +81,44 @@ class CPool extends AbstractConnPool<HttpRoute, ManagedHttpClientConnection, CPo
     @Override
     protected void enumLeased(final PoolEntryCallback<HttpRoute, ManagedHttpClientConnection> callback) {
         super.enumLeased(callback);
+    }
+
+    @Override
+    public void closeIdle(final long idletime, final TimeUnit timeUnit) {
+        Args.notNull(timeUnit, "Time unit");
+        long time = timeUnit.toMillis(idletime);
+        if (time < 0) {
+            time = 0;
+        }
+        final long deadline = System.currentTimeMillis() - time;
+        enumAvailable(new PoolEntryCallback<HttpRoute, ManagedHttpClientConnection>() {
+
+            @Override
+            public void process(final PoolEntry<HttpRoute, ManagedHttpClientConnection> entry) {
+                boolean isIdle;
+                if (entry instanceof CPoolEntry) {
+                    isIdle = ((CPoolEntry) entry).isIdle(deadline);
+                } else {
+                    isIdle = entry.getUpdated() <= deadline;
+                }
+                if (isIdle) {
+                    entry.close();
+                }
+            }
+
+        });
+    }
+
+    @Override
+    protected void onLease(final CPoolEntry entry) {
+        entry.markLease();
+        super.onLease(entry);
+    }
+
+    @Override
+    protected void onRelease(final CPoolEntry entry) {
+        entry.unmarkLease();
+        super.onLease(entry);
     }
 
 }

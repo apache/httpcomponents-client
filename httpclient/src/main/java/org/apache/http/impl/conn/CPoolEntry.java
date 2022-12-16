@@ -47,6 +47,10 @@ class CPoolEntry extends PoolEntry<HttpRoute, ManagedHttpClientConnection> {
     private final Log log;
     private volatile boolean routeComplete;
 
+    // solve the problem of closing the connection while using
+    private boolean leasing;
+    private long lastLeased;
+
     public CPoolEntry(
             final Log log,
             final String id,
@@ -65,6 +69,24 @@ class CPoolEntry extends PoolEntry<HttpRoute, ManagedHttpClientConnection> {
         return this.routeComplete;
     }
 
+    public synchronized void markLease() {
+        this.leasing = true;
+        this.lastLeased = System.currentTimeMillis();
+    }
+
+    public synchronized void unmarkLease() {
+        this.leasing = false;
+    }
+
+    public synchronized boolean isIdle(final long deadline) {
+        // In case of lease, the last lease time is preferred for comparison, avoid some unexpected escapes.
+        // It is recommended that maxIdleTime be slightly greater than connectTimeout+socketTimeout
+        if (this.leasing && deadline > this.lastLeased) {
+            return false;
+        }
+        return this.getUpdated() <= deadline;
+    }
+
     public void closeConnection() throws IOException {
         final HttpClientConnection conn = getConnection();
         conn.close();
@@ -76,7 +98,11 @@ class CPoolEntry extends PoolEntry<HttpRoute, ManagedHttpClientConnection> {
     }
 
     @Override
-    public boolean isExpired(final long now) {
+    public synchronized boolean isExpired(final long now) {
+        // If it is in lease, the expired field will become invalid. After the request is issued, the server will renew it and wait for the return
+        if (this.leasing) {
+            return false;
+        }
         final boolean expired = super.isExpired(now);
         if (expired && this.log.isDebugEnabled()) {
             this.log.debug("Connection " + this + " expired @ " + new Date(getExpiry()));
