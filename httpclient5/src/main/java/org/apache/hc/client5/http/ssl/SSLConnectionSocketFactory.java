@@ -183,7 +183,6 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
      * @deprecated Use {@link #prepareSocket(SSLSocket, HttpContext)}
      */
     @Deprecated
-    @SuppressWarnings("deprecation")
     protected void prepareSocket(final SSLSocket socket) throws IOException {
     }
 
@@ -195,6 +194,7 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
      * call {@link javax.net.ssl.SSLSocket#setEnabledCipherSuites(String[])}.
      * @throws IOException may be thrown if overridden
      */
+    @SuppressWarnings("deprecation")
     protected void prepareSocket(final SSLSocket socket, final HttpContext context) throws IOException {
         prepareSocket(socket);
     }
