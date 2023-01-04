@@ -186,7 +186,7 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
      * call {@link javax.net.ssl.SSLSocket#setEnabledCipherSuites(String[])}.
      * @throws IOException may be thrown if overridden
      */
-    protected void prepareSocket(final SSLSocket socket) throws IOException {
+    protected void prepareSocket(final SSLSocket socket, final HttpContext context) throws IOException {
     }
 
     @Override
@@ -245,7 +245,7 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
         // Setup SSL layering if necessary
         if (sock instanceof SSLSocket) {
             final SSLSocket sslsock = (SSLSocket) sock;
-            executeHandshake(sslsock, host.getHostName(), attachment);
+            executeHandshake(sslsock, host.getHostName(), attachment, context);
             return sock;
         }
         return createLayeredSocket(sock, host.getHostName(), remoteAddress.getPort(), attachment, context);
@@ -272,11 +272,15 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
                 target,
                 port,
                 true);
-        executeHandshake(sslsock, target, attachment);
+        executeHandshake(sslsock, target, attachment, context);
         return sslsock;
     }
 
-    private void executeHandshake(final SSLSocket sslsock, final String target, final Object attachment) throws IOException {
+    private void executeHandshake(
+            final SSLSocket sslsock,
+            final String target,
+            final Object attachment,
+            final HttpContext context) throws IOException {
         final TlsConfig tlsConfig = attachment instanceof TlsConfig ? (TlsConfig) attachment : TlsConfig.DEFAULT;
         if (supportedProtocols != null) {
             sslsock.setEnabledProtocols(supportedProtocols);
@@ -293,7 +297,7 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
             sslsock.setSoTimeout(handshakeTimeout.toMillisecondsIntBound());
         }
 
-        prepareSocket(sslsock);
+        prepareSocket(sslsock, context);
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("Enabled protocols: {}", (Object) sslsock.getEnabledProtocols());
