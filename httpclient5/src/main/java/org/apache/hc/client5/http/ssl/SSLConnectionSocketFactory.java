@@ -56,6 +56,7 @@ import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.ssl.TLS;
 import org.apache.hc.core5.http.ssl.TlsCiphers;
 import org.apache.hc.core5.io.Closer;
+import org.apache.hc.core5.reactor.ssl.SSLBufferMode;
 import org.apache.hc.core5.ssl.SSLContexts;
 import org.apache.hc.core5.ssl.SSLInitializationException;
 import org.apache.hc.core5.util.Args;
@@ -178,6 +179,10 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
         this.tlsSessionValidator = new TlsSessionValidator(LOG);
     }
 
+    /**
+     * @deprecated Use {@link #prepareSocket(SSLSocket, HttpContext)}
+     */
+    @Deprecated
     protected void prepareSocket(final SSLSocket socket) throws IOException {
     }
 
