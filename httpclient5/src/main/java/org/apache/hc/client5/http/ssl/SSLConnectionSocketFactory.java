@@ -183,6 +183,7 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
      * @deprecated Use {@link #prepareSocket(SSLSocket, HttpContext)}
      */
     @Deprecated
+    @SuppressWarnings("deprecation")
     protected void prepareSocket(final SSLSocket socket) throws IOException {
     }
 
