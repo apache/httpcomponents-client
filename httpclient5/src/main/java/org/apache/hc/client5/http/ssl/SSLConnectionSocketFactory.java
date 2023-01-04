@@ -178,6 +178,9 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
         this.tlsSessionValidator = new TlsSessionValidator(LOG);
     }
 
+    protected void prepareSocket(final SSLSocket socket) throws IOException {
+    }
+
     /**
      * Performs any custom initialization for a newly created SSLSocket
      * (before the SSL handshake happens).
@@ -187,6 +190,7 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
      * @throws IOException may be thrown if overridden
      */
     protected void prepareSocket(final SSLSocket socket, final HttpContext context) throws IOException {
+        prepareSocket(socket);
     }
 
     @Override
