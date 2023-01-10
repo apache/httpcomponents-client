@@ -634,7 +634,7 @@ public class PoolingHttpClientConnectionManager
 
     private static final PrefixedIncrementingId INCREMENTING_ID = new PrefixedIncrementingId("ep-");
 
-    staticclass InternalConnectionEndpoint extends ConnectionEndpoint implements Identifiable {
+    static class InternalConnectionEndpoint extends ConnectionEndpoint implements Identifiable {
 
         private final AtomicReference<PoolEntry<HttpRoute, ManagedHttpClientConnection>> poolEntryRef;
         private final String id;
