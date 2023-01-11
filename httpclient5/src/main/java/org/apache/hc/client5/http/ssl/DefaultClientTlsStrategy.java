@@ -94,13 +94,13 @@ public class DefaultClientTlsStrategy extends AbstractClientTlsStrategy {
     }
 
     public DefaultClientTlsStrategy(
-            final SSLContext sslcontext,
+            final SSLContext sslContext,
             final HostnameVerifier hostnameVerifier) {
-        this(sslcontext, null, null, SSLBufferMode.STATIC, hostnameVerifier);
+        this(sslContext, null, null, SSLBufferMode.STATIC, hostnameVerifier);
     }
 
-    public DefaultClientTlsStrategy(final SSLContext sslcontext) {
-        this(sslcontext, HttpsSupport.getDefaultHostnameVerifier());
+    public DefaultClientTlsStrategy(final SSLContext sslContext) {
+        this(sslContext, HttpsSupport.getDefaultHostnameVerifier());
     }
 
     @Override

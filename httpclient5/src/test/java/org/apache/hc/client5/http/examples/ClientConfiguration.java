@@ -148,13 +148,13 @@ public class ClientConfiguration {
 
         // SSL context for secure connections can be created either based on
         // system or application specific properties.
-        final SSLContext sslcontext = SSLContexts.createSystemDefault();
+        final SSLContext sslContext = SSLContexts.createSystemDefault();
 
         // Create a registry of custom connection socket factories for supported
         // protocol schemes.
         final Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create()
             .register("http", PlainConnectionSocketFactory.INSTANCE)
-            .register("https", new SSLConnectionSocketFactory(sslcontext))
+            .register("https", new SSLConnectionSocketFactory(sslContext))
             .build();
 
         // Use custom DNS resolver to override the system DNS resolution.

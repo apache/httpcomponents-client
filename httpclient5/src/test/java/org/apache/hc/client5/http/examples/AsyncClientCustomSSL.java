@@ -58,14 +58,14 @@ public class AsyncClientCustomSSL {
 
     public static void main(final String[] args) throws Exception {
         // Trust standard CA and those trusted by our custom strategy
-        final SSLContext sslcontext = SSLContexts.custom()
+        final SSLContext sslContext = SSLContexts.custom()
                 .loadTrustMaterial((chain, authType) -> {
                     final X509Certificate cert = chain[0];
                     return "CN=httpbin.org".equalsIgnoreCase(cert.getSubjectDN().getName());
                 })
                 .build();
         final TlsStrategy tlsStrategy = ClientTlsStrategyBuilder.create()
-                .setSslContext(sslcontext)
+                .setSslContext(sslContext)
                 .build();
 
         final PoolingAsyncClientConnectionManager cm = PoolingAsyncClientConnectionManagerBuilder.create()
