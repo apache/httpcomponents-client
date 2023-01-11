@@ -229,9 +229,9 @@ public class TestSSLSocketFactory {
 
         final HttpContext context = new BasicHttpContext();
         // Use default SSL context
-        final SSLContext defaultsslcontext = SSLContexts.createDefault();
+        final SSLContext defaultSslContext = SSLContexts.createDefault();
 
-        final SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(defaultsslcontext,
+        final SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(defaultSslContext,
                 NoopHostnameVerifier.INSTANCE);
 
         try (final Socket socket = socketFactory.createSocket(context)) {
@@ -274,11 +274,11 @@ public class TestSSLSocketFactory {
         final HttpContext context = new BasicHttpContext();
 
         // @formatter:off
-        final SSLContext sslcontext = SSLContexts.custom()
+        final SSLContext sslContext = SSLContexts.custom()
             .loadTrustMaterial(null, trustStrategy)
             .build();
         // @formatter:on
-        final SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(sslcontext,
+        final SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(sslContext,
                 NoopHostnameVerifier.INSTANCE);
 
         try (final Socket socket = socketFactory.createSocket(context)) {
