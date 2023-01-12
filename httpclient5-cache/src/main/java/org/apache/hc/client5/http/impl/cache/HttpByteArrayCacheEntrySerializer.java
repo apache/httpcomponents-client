@@ -385,7 +385,7 @@ public class HttpByteArrayCacheEntrySerializer implements HttpCacheEntrySerializ
      * Copied from DefaultHttpResponseWriter, but wrapping a SimpleHttpResponse instead of a ClassicHttpResponse
      */
     // Seems like the DefaultHttpResponseWriter should be able to do this, but it doesn't seem to be able to
-    private class SimpleHttpResponseWriter extends AbstractMessageWriter<SimpleHttpResponse> {
+    private static class SimpleHttpResponseWriter extends AbstractMessageWriter<SimpleHttpResponse> {
 
         public SimpleHttpResponseWriter() {
             super(BasicLineFormatter.INSTANCE);
