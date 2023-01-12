@@ -670,7 +670,7 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
 
     private static final PrefixedIncrementingId INCREMENTING_ID = new PrefixedIncrementingId("ep-");
 
-    class InternalConnectionEndpoint extends AsyncConnectionEndpoint implements Identifiable {
+    static class InternalConnectionEndpoint extends AsyncConnectionEndpoint implements Identifiable {
 
         private final AtomicReference<PoolEntry<HttpRoute, ManagedAsyncClientConnection>> poolEntryRef;
         private final String id;
