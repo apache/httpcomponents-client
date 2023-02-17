@@ -60,10 +60,10 @@ public class ClientProxyAuthentication {
             final HttpGet httpget = new HttpGet("/basic-auth/user/passwd");
             httpget.setConfig(config);
 
-            System.out.println("Executing request " + httpget.getMethod() + " " + httpget.getUri() +
+            System.out.println("Executing request " + httpget.getMethod() + " " + httpget.getUri() + " to " + target +
                     " via " + proxy);
 
-            httpclient.execute(httpget, response -> {
+            httpclient.execute(target, httpget, response -> {
                 System.out.println("----------------------------------------");
                 System.out.println(httpget + "->" + new StatusLine(response));
                 EntityUtils.consume(response.getEntity());
