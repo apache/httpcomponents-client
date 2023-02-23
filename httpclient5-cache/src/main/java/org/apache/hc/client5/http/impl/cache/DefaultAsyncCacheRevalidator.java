@@ -87,8 +87,6 @@ class DefaultAsyncCacheRevalidator extends CacheRevalidatorBase {
 
     }
 
-    private final CacheKeyGenerator cacheKeyGenerator;
-
     /**
      * Create DefaultCacheRevalidator which will make ache revalidation requests
      * using the supplied {@link SchedulingStrategy} and {@link ScheduledExecutor}.
@@ -97,8 +95,6 @@ class DefaultAsyncCacheRevalidator extends CacheRevalidatorBase {
             final ScheduledExecutor scheduledExecutor,
             final SchedulingStrategy schedulingStrategy) {
         super(new InternalScheduledExecutor(scheduledExecutor), schedulingStrategy);
-        this.cacheKeyGenerator = CacheKeyGenerator.INSTANCE;
-
     }
 
     /**
