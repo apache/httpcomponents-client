@@ -61,9 +61,6 @@ public class ExponentialBackOffSchedulingStrategy implements SchedulingStrategy 
     public static final TimeValue DEFAULT_INITIAL_EXPIRY = TimeValue.ofSeconds(6);
     public static final TimeValue DEFAULT_MAX_EXPIRY = TimeValue.ofSeconds(86400);
 
-    private static final ExponentialBackOffSchedulingStrategy INSTANCE = new ExponentialBackOffSchedulingStrategy(
-            DEFAULT_BACK_OFF_RATE, DEFAULT_INITIAL_EXPIRY, DEFAULT_MAX_EXPIRY);
-
     private final long backOffRate;
     private final TimeValue initialExpiry;
     private final TimeValue maxExpiry;
