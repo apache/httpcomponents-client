@@ -42,7 +42,6 @@ depends on the following external libraries:
 
 * [Apache HttpComponents HttpCore](https://github.com/apache/httpcomponents-core)
 * [SLF4J API](http://www.slf4j.org/)
-* [Apache Commons Codec](https://github.com/apache/commons-codec)
 
 Other dependencies are optional.
 
