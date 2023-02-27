@@ -108,8 +108,11 @@ public class CachingExecBase {
         this.responseCompliance = new ResponseProtocolCompliance();
         this.requestCompliance = new RequestProtocolCompliance(this.cacheConfig.isWeakETagOnPutDeleteAllowed());
         this.responseCachingPolicy = new ResponseCachingPolicy(
-                this.cacheConfig.getMaxObjectSize(), this.cacheConfig.isSharedCache(),
-                this.cacheConfig.isNeverCacheHTTP10ResponsesWithQuery(), this.cacheConfig.is303CachingEnabled());
+                this.cacheConfig.getMaxObjectSize(),
+                this.cacheConfig.isSharedCache(),
+                this.cacheConfig.isNeverCacheHTTP10ResponsesWithQuery(),
+                this.cacheConfig.is303CachingEnabled(),
+                this.cacheConfig.isNeverCacheHTTP11ResponsesWithQuery());
     }
 
     /**
