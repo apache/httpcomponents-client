@@ -155,6 +155,12 @@ public class CacheConfig implements Cloneable {
     private final int asynchronousWorkers;
     private final boolean neverCacheHTTP10ResponsesWithQuery;
 
+    /**
+     * A constant indicating whether HTTP/1.1 responses with a query string should never be cached.
+     *
+     */
+    private final boolean neverCacheHTTP11ResponsesWithQuery;
+
     CacheConfig(
             final long maxObjectSize,
             final int maxCacheEntries,
@@ -167,7 +173,8 @@ public class CacheConfig implements Cloneable {
             final boolean sharedCache,
             final boolean freshnessCheckEnabled,
             final int asynchronousWorkers,
-            final boolean neverCacheHTTP10ResponsesWithQuery) {
+            final boolean neverCacheHTTP10ResponsesWithQuery,
+            final boolean neverCacheHTTP11ResponsesWithQuery) {
         super();
         this.maxObjectSize = maxObjectSize;
         this.maxCacheEntries = maxCacheEntries;
@@ -181,6 +188,7 @@ public class CacheConfig implements Cloneable {
         this.freshnessCheckEnabled = freshnessCheckEnabled;
         this.asynchronousWorkers = asynchronousWorkers;
         this.neverCacheHTTP10ResponsesWithQuery = neverCacheHTTP10ResponsesWithQuery;
+        this.neverCacheHTTP11ResponsesWithQuery = neverCacheHTTP11ResponsesWithQuery;
     }
 
     /**
@@ -200,6 +208,22 @@ public class CacheConfig implements Cloneable {
      */
     public boolean isNeverCacheHTTP10ResponsesWithQuery() {
         return neverCacheHTTP10ResponsesWithQuery;
+    }
+
+    /**
+     * Determines whether HTTP/1.1 responses with query strings should never be cached by the
+     * client. By default, caching of such responses is allowed. Enabling this option may improve
+     * security by preventing responses with sensitive information from being cached.
+     * <p>
+     * Note that this option only applies to HTTP/1.1.
+     * </p>
+     *
+     * @return {@code true} if HTTP/1.1 responses with query strings should never be cached;
+     * {@code false} otherwise.
+     * @since 5.3
+     */
+    public boolean isNeverCacheHTTP11ResponsesWithQuery() {
+        return neverCacheHTTP11ResponsesWithQuery;
     }
 
     /**
@@ -303,7 +327,8 @@ public class CacheConfig implements Cloneable {
             .setHeuristicDefaultLifetime(config.getHeuristicDefaultLifetime())
             .setSharedCache(config.isSharedCache())
             .setAsynchronousWorkers(config.getAsynchronousWorkers())
-            .setNeverCacheHTTP10ResponsesWithQueryString(config.isNeverCacheHTTP10ResponsesWithQuery());
+            .setNeverCacheHTTP10ResponsesWithQueryString(config.isNeverCacheHTTP10ResponsesWithQuery())
+            .setNeverCacheHTTP11ResponsesWithQueryString(config.isNeverCacheHTTP11ResponsesWithQuery());
     }
 
 
@@ -321,6 +346,7 @@ public class CacheConfig implements Cloneable {
         private boolean freshnessCheckEnabled;
         private int asynchronousWorkers;
         private boolean neverCacheHTTP10ResponsesWithQuery;
+        private boolean neverCacheHTTP11ResponsesWithQuery;
 
         Builder() {
             this.maxObjectSize = DEFAULT_MAX_OBJECT_SIZE_BYTES;
@@ -459,6 +485,18 @@ public class CacheConfig implements Cloneable {
             return this;
         }
 
+        /**
+         * Sets the flag indicating whether HTTP/1.1 responses with a query string should never be cached.
+         *
+         * @param neverCacheHTTP11ResponsesWithQuery whether to never cache HTTP/1.1 responses with a query string
+         * @return the builder object
+         */
+        public Builder setNeverCacheHTTP11ResponsesWithQueryString(
+                final boolean neverCacheHTTP11ResponsesWithQuery) {
+            this.neverCacheHTTP11ResponsesWithQuery = neverCacheHTTP11ResponsesWithQuery;
+            return this;
+        }
+
         public CacheConfig build() {
             return new CacheConfig(
                     maxObjectSize,
@@ -472,7 +510,8 @@ public class CacheConfig implements Cloneable {
                     sharedCache,
                     freshnessCheckEnabled,
                     asynchronousWorkers,
-                    neverCacheHTTP10ResponsesWithQuery);
+                    neverCacheHTTP10ResponsesWithQuery,
+                    neverCacheHTTP11ResponsesWithQuery);
         }
 
     }
@@ -492,6 +531,7 @@ public class CacheConfig implements Cloneable {
                 .append(", freshnessCheckEnabled=").append(this.freshnessCheckEnabled)
                 .append(", asynchronousWorkers=").append(this.asynchronousWorkers)
                 .append(", neverCacheHTTP10ResponsesWithQuery=").append(this.neverCacheHTTP10ResponsesWithQuery)
+                .append(", neverCacheHTTP11ResponsesWithQuery=").append(this.neverCacheHTTP11ResponsesWithQuery)
                 .append("]");
         return builder.toString();
     }
