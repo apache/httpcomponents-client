@@ -66,6 +66,7 @@ class ResponseCachingPolicy {
     private final long maxObjectSizeBytes;
     private final boolean sharedCache;
     private final boolean neverCache1_0ResponsesWithQueryString;
+    private final boolean neverCache1_1ResponsesWithQueryString;
     private final Set<Integer> uncacheableStatusCodes;
 
     /**
@@ -78,14 +79,18 @@ class ResponseCachingPolicy {
      * @param neverCache1_0ResponsesWithQueryString true to never cache HTTP 1.0 responses with a query string, false
      * to cache if explicit cache headers are found.
      * @param allow303Caching if this policy is permitted to cache 303 response
+     * @param neverCache1_1ResponsesWithQueryString {@code true} to never cache HTTP 1.1 responses with a query string,
+     * {@code false} to cache if explicit cache headers are found.
      */
     public ResponseCachingPolicy(final long maxObjectSizeBytes,
             final boolean sharedCache,
             final boolean neverCache1_0ResponsesWithQueryString,
-            final boolean allow303Caching) {
+            final boolean allow303Caching,
+            final boolean neverCache1_1ResponsesWithQueryString) {
         this.maxObjectSizeBytes = maxObjectSizeBytes;
         this.sharedCache = sharedCache;
         this.neverCache1_0ResponsesWithQueryString = neverCache1_0ResponsesWithQueryString;
+        this.neverCache1_1ResponsesWithQueryString = neverCache1_1ResponsesWithQueryString;
         if (allow303Caching) {
             uncacheableStatusCodes = new HashSet<>(Collections.singletonList(HttpStatus.SC_PARTIAL_CONTENT));
         } else {
@@ -260,7 +265,7 @@ class ResponseCachingPolicy {
             if (neverCache1_0ResponsesWithQueryString && from1_0Origin(response)) {
                 LOG.debug("Response is not cacheable as it had a query string");
                 return false;
-            } else if (!isExplicitlyCacheable(response)) {
+            } else if (!neverCache1_1ResponsesWithQueryString && !isExplicitlyCacheable(response)) {
                 LOG.debug("Response is not cacheable as it is missing explicit caching headers");
                 return false;
             }
