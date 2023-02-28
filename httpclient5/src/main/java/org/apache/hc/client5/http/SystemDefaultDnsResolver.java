@@ -40,7 +40,23 @@ public class SystemDefaultDnsResolver implements DnsResolver {
 
     @Override
     public InetAddress[] resolve(final String host) throws UnknownHostException {
-        return InetAddress.getAllByName(host);
+        try {
+            // Try resolving using the default resolver
+            return InetAddress.getAllByName(host);
+        } catch (final UnknownHostException e) {
+            // If default resolver fails, try stripping the IPv6 zone ID and resolving again
+            String strippedHost = null;
+            if (host.charAt(0) == '[') {
+                final int i = host.lastIndexOf('%');
+                if (i != -1) {
+                    strippedHost = host.substring(0, i) + "]";
+                }
+            }
+            if (strippedHost != null) {
+                return InetAddress.getAllByName(strippedHost);
+            }
+            throw e;
+        }
     }
 
     @Override
