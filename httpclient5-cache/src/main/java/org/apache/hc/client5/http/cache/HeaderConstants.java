@@ -39,6 +39,7 @@ public class HeaderConstants {
     public static final String PUT_METHOD = "PUT";
     public static final String DELETE_METHOD = "DELETE";
     public static final String TRACE_METHOD = "TRACE";
+    public static final String POST_METHOD = "POST";
 
     public static final String LAST_MODIFIED = "Last-Modified";
     public static final String IF_MATCH = "If-Match";

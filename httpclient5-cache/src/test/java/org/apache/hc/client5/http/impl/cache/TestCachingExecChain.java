@@ -1165,12 +1165,12 @@ public class TestCachingExecChain {
 
         final ClassicHttpResponse resp1 = HttpTestUtils.make304Response();
         resp1.setHeader("Date", DateUtils.formatStandardDate(now));
-        resp1.setHeader("Cache-Control", "max-age=0");
+        resp1.setHeader("Cache-Control", "max-age=1");
         resp1.setHeader("Etag", "etag");
 
         final ClassicHttpResponse resp2 = HttpTestUtils.make304Response();
         resp2.setHeader("Date", DateUtils.formatStandardDate(now));
-        resp2.setHeader("Cache-Control", "max-age=0");
+        resp2.setHeader("Cache-Control", "max-age=1");
         resp1.setHeader("Etag", "etag");
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
@@ -1199,13 +1199,13 @@ public class TestCachingExecChain {
 
         final ClassicHttpResponse resp1 = HttpTestUtils.make304Response();
         resp1.setHeader("Date", DateUtils.formatStandardDate(now));
-        resp1.setHeader("Cache-Control", "max-age=0");
+        resp1.setHeader("Cache-Control", "max-age=1");
         resp1.setHeader("Etag", "etag");
         resp1.setHeader("Vary", "Accept-Encoding");
 
         final ClassicHttpResponse resp2 = HttpTestUtils.make304Response();
         resp2.setHeader("Date", DateUtils.formatStandardDate(now));
-        resp2.setHeader("Cache-Control", "max-age=0");
+        resp2.setHeader("Cache-Control", "max-age=1");
         resp1.setHeader("Etag", "etag");
         resp1.setHeader("Vary", "Accept-Encoding");
 

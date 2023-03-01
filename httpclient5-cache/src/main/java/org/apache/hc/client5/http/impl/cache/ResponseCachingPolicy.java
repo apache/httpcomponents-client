@@ -27,6 +27,7 @@
 package org.apache.hc.client5.http.impl.cache;
 
 import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -45,10 +46,34 @@ import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.ProtocolVersion;
 import org.apache.hc.core5.http.message.MessageSupport;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 class ResponseCachingPolicy {
+
+    /**
+     * The default freshness duration for a cached object, in seconds.
+     *
+     * <p>This constant is used to set the default value for the freshness lifetime of a cached object.
+     * When a new object is added to the cache, it will be assigned this duration if no other duration
+     * is specified.</p>
+     *
+     * <p>By default, this value is set to 300 seconds (5 minutes). Applications can customize this
+     * value as needed.</p>
+     */
+    private static final long DEFAULT_FRESHNESS_DURATION = 300L;
+
+    /**
+     * A {@link DateTimeFormatter} that formats and parses date-time objects in compliance with the RFC 1123 format.
+     * <p>
+     * The RFC 1123 format is used in HTTP protocol messages and is specified by the RFC 2616 HTTP/1.1 specification.
+     * This format uses a fixed format that includes the day of the week, day of the month, month, year, and time
+     * of day, all represented in GMT time. An example of a date-time string in this format is:
+     * "Tue, 15 Nov 1994 08:12:31 GMT".
+     * </p>
+     */
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.RFC_1123_DATE_TIME;
 
     private static final String[] AUTH_CACHEABLE_PARAMS = {
             "s-maxage", HeaderConstants.CACHE_CONTROL_MUST_REVALIDATE, HeaderConstants.PUBLIC
@@ -103,7 +128,8 @@ class ResponseCachingPolicy {
     public boolean isResponseCacheable(final String httpMethod, final HttpResponse response) {
         boolean cacheable = false;
 
-        if (!HeaderConstants.GET_METHOD.equals(httpMethod) && !HeaderConstants.HEAD_METHOD.equals(httpMethod)) {
+        if (!HeaderConstants.GET_METHOD.equals(httpMethod) && !HeaderConstants.HEAD_METHOD.equals(httpMethod)
+         && !HeaderConstants.POST_METHOD.equals(httpMethod)) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("{} method response is not cacheable", httpMethod);
             }
@@ -173,6 +199,15 @@ class ResponseCachingPolicy {
 
         if (isExplicitlyNonCacheable(response)) {
             LOG.debug("Response is explicitly non-cacheable");
+            return false;
+        }
+
+        // calculate freshness lifetime
+        final long freshnessLifetime = calculateFreshnessLifetime(response);
+        if (freshnessLifetime <= 0) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Freshness lifetime is invalid");
+            }
             return false;
         }
 
@@ -313,6 +348,89 @@ class ResponseCachingPolicy {
         }
         final ProtocolVersion version = response.getVersion() != null ? response.getVersion() : HttpVersion.DEFAULT;
         return HttpVersion.HTTP_1_0.equals(version);
+    }
+
+    /**
+     * Calculates the freshness lifetime of a response, based on the headers in the response.
+     * <p>
+     * This method follows the algorithm for calculating the freshness lifetime described in RFC 7234, section 4.2.1.
+     * The freshness lifetime represents the time interval in seconds during which the response can be served without
+     * being considered stale. The freshness lifetime calculation takes into account the s-maxage, max-age, Expires, and
+     * Date headers as follows:
+     * <ul>
+     * <li>If the s-maxage directive is present in the Cache-Control header of the response, its value is used as the
+     * freshness lifetime for shared caches, which typically serve multiple users or clients.</li>
+     * <li>If the max-age directive is present in the Cache-Control header of the response, its value is used as the
+     * freshness lifetime for private caches, which serve a single user or client.</li>
+     * <li>If the Expires header is present in the response, its value is used as the expiration time of the response.
+     * The freshness lifetime is calculated as the difference between the expiration time and the time specified in the
+     * Date header of the response.</li>
+     * <li>If none of the above headers are present or if the calculated freshness lifetime is invalid, a default value of
+     * 5 minutes is returned.</li>
+     * </ul>
+     *
+     * <p>
+     * Note that caching is a complex topic and cache control directives may interact with each other in non-trivial ways.
+     * This method provides a basic implementation of the freshness lifetime calculation algorithm and may not be suitable
+     * for all use cases. Developers should consult the HTTP caching specifications for more information and consider
+     * implementing additional caching mechanisms as needed.
+     * </p>
+     *
+     * @param response the HTTP response for which to calculate the freshness lifetime
+     * @return the freshness lifetime of the response, in seconds
+     * @see <a href="https://tools.ietf.org/html/rfc7234#section-4.2.1">RFC 7234 Section 4.2.1</a> for the freshness
+     * lifetime calculation algorithm.
+     * @see <a href="https://tools.ietf.org/html/rfc7234#section-5.2">RFC 7234 Section 5.2</a> for a discussion of shared
+     * and private caches.
+     * @see <a href="https://tools.ietf.org/html/rfc2616#section-14.9.3">RFC 2616 Section 14.9.3</a> for the Expires header
+     * specification.
+     * @see <a href="https://tools.ietf.org/html/rfc822#section-5">RFC 822 Section 5</a> for the Date header specification.
+     */
+    private long calculateFreshnessLifetime(final HttpResponse response) {
+        // Check if s-maxage is present and use its value if it is
+        final Header cacheControl = response.getFirstHeader(HttpHeaders.CACHE_CONTROL);
+        if (cacheControl == null) {
+            // If no cache-control header is present, assume no caching directives and return a default value
+            return DEFAULT_FRESHNESS_DURATION; // 5 minutes
+        }
+
+        final String cacheControlValue = cacheControl.getValue();
+        final String[] headerValues = cacheControlValue.split(",");
+
+        long maxAge = -1;
+        long sharedMaxAge = -1;
+
+        for (final String headerValue : headerValues) {
+            if (headerValue.trim().startsWith("max-age=")) {
+                maxAge = Integer.parseInt(headerValue.trim().substring("max-age=".length()));
+            } else if (headerValue.trim().startsWith("s-maxage=")) {
+                sharedMaxAge = Integer.parseInt(headerValue.trim().substring("s-maxage=".length()));
+            }
+        }
+
+        if (sharedMaxAge != -1) {
+            return sharedMaxAge;
+        } else if (maxAge != -1) {
+            return maxAge;
+        }
+
+        // Check if Expires is present and use its value minus the value of the Date header
+        Instant expiresInstant = null;
+        Instant dateInstant = null;
+        if (response.containsHeader(HttpHeaders.EXPIRES)) {
+            final String expiresHeaderValue = response.getFirstHeader(HttpHeaders.EXPIRES).getValue();
+            expiresInstant = FORMATTER.parse(expiresHeaderValue, Instant::from);
+        }
+        if (response.containsHeader(HttpHeaders.DATE)) {
+            final String dateHeaderValue = response.getFirstHeader(HttpHeaders.DATE).getValue();
+            dateInstant = FORMATTER.parse(dateHeaderValue, Instant::from);
+        }
+        if (expiresInstant != null && dateInstant != null) {
+            return expiresInstant.getEpochSecond() - dateInstant.getEpochSecond();
+        }
+
+        // If none of the above conditions are met, a heuristic freshness lifetime might be applicable
+        return DEFAULT_FRESHNESS_DURATION; // 5 minutes
     }
 
 }
