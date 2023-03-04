@@ -27,11 +27,13 @@
 package org.apache.hc.client5.http.impl.cache;
 
 import java.time.Instant;
+import java.util.Date;
 import java.util.Random;
 
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.classic.methods.HttpOptions;
 import org.apache.hc.client5.http.utils.DateUtils;
+import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
@@ -216,7 +218,41 @@ public class TestResponseCachingPolicy {
         final int status = getRandomStatus();
         response.setCode(status);
         response.setHeader("Cache-Control", "max-age=0");
+        Assertions.assertFalse(policy.isResponseCacheable("GET", response));
+    }
+
+    @Test
+    public void testMalformedHeaderValue() {
+        final int status = getRandomStatus();
+         response.setCode(status);
+        response.setHeader("Cache-Control", "max-age=boom");
         Assertions.assertTrue(policy.isResponseCacheable("GET", response));
+    }
+
+
+    @Test
+    public void testNullHeaderValue() {
+        final int status = getRandomStatus();
+        response.setCode(status);
+        response.setHeader("Cache-Control", null);
+        Assertions.assertTrue(policy.isResponseCacheable("GET", response));
+    }
+
+    @Test
+    public void testMultipleHeaderValue() {
+        final int status = getRandomStatus();
+        response.setCode(status);
+        response.setHeader("Cache-Control", "s-maxage=12,must-revalidate=true,max-age=23");
+        Assertions.assertTrue(policy.isResponseCacheable("GET", response));
+    }
+
+    @Test
+    public void testMissingCacheControlHeader() {
+        final int status = getRandomStatus();
+        response.setCode(status);
+        response.removeHeaders(HttpHeaders.CACHE_CONTROL);
+        final boolean isCacheable = policy.isResponseCacheable("GET", response);
+        Assertions.assertTrue(isCacheable);
     }
 
     @Test
@@ -224,7 +260,7 @@ public class TestResponseCachingPolicy {
         final int status = getRandomStatus();
         response.setCode(status);
         response.setHeader("Cache-Control", "s-maxage=0");
-        Assertions.assertTrue(policy.isResponseCacheable("GET", response));
+        Assertions.assertFalse(policy.isResponseCacheable("GET", response));
     }
 
     @Test
@@ -870,8 +906,98 @@ public class TestResponseCachingPolicy {
         response.setCode(HttpStatus.SC_NOT_FOUND);
         response.setHeader("Date", DateUtils.formatStandardDate(now));
         response.setHeader("Cache-Control","max-age=300");
-        Assertions.assertTrue(policy.isResponseCacheable(request, response));
+        assertTrue(policy.isResponseCacheable(request, response));
     }
+
+    @Test
+    void testIsResponseCacheableNullCacheControl() {
+
+        // Set up test data
+        final long now = System.currentTimeMillis();
+        final long tenSecondsFromNow = now + 10000;
+
+        response = new BasicHttpResponse(HttpStatus.SC_OK, "");
+        response.setHeader(HttpHeaders.DATE, DateUtils.formatDate(new Date(now), DateUtils.PATTERN_RFC1123));
+        response.setHeader(HttpHeaders.EXPIRES, DateUtils.formatDate(new Date(tenSecondsFromNow), DateUtils.PATTERN_RFC1123));
+
+
+        // Create ResponseCachingPolicy instance and test the method
+        policy = new ResponseCachingPolicy(0, true, false, false, false);
+        request = new BasicHttpRequest("POST", "/foo");
+        final boolean isCacheable = policy.isResponseCacheable(request, response);
+
+        // Verify the result
+        assertTrue(isCacheable);
+    }
+
+
+    @Test
+    void testIsResponseCacheableNotNullCacheControlSmaxAge60() {
+
+        // Set up test data
+        final long now = System.currentTimeMillis();
+        final long tenSecondsFromNow = now + 10000;
+
+        response = new BasicHttpResponse(HttpStatus.SC_OK, "");
+        response.setHeader(HttpHeaders.DATE, DateUtils.formatDate(new Date(now), DateUtils.PATTERN_RFC1123));
+        response.setHeader(HttpHeaders.EXPIRES, DateUtils.formatDate(new Date(tenSecondsFromNow), DateUtils.PATTERN_RFC1123));
+
+
+        // Create ResponseCachingPolicy instance and test the method
+        policy = new ResponseCachingPolicy(0, true, false, false, false);
+        request = new BasicHttpRequest("POST", "/foo");
+        response.addHeader(HttpHeaders.CACHE_CONTROL, "s-maxage=60");
+        final boolean isCacheable = policy.isResponseCacheable(request, response);
+
+        // Verify the result
+        assertTrue(isCacheable);
+    }
+
+    @Test
+    void testIsResponseCacheableNotNullCacheControlMaxAge60() {
+
+        // Set up test data
+        final long now = System.currentTimeMillis();
+        final long tenSecondsFromNow = now + 10000;
+
+        response = new BasicHttpResponse(HttpStatus.SC_OK, "");
+        response.setHeader(HttpHeaders.DATE, DateUtils.formatDate(new Date(now), DateUtils.PATTERN_RFC1123));
+        response.setHeader(HttpHeaders.EXPIRES, DateUtils.formatDate(new Date(tenSecondsFromNow), DateUtils.PATTERN_RFC1123));
+
+
+        // Create ResponseCachingPolicy instance and test the method
+        policy = new ResponseCachingPolicy(0, true, false, false,false);
+        request = new BasicHttpRequest("POST", "/foo");
+        response.addHeader(HttpHeaders.CACHE_CONTROL, "max-age=60");
+        final boolean isCacheable = policy.isResponseCacheable(request, response);
+
+        // Verify the result
+        assertTrue(isCacheable);
+    }
+
+    @Test
+    void testIsResponseCacheableNotExsiresAndDate() {
+
+        // Set up test data
+        final long now = System.currentTimeMillis();
+        final long tenSecondsFromNow = now + 10000;
+
+        response = new BasicHttpResponse(HttpStatus.SC_OK, "");
+        response.setHeader(HttpHeaders.DATE, DateUtils.formatDate(new Date(now), DateUtils.PATTERN_RFC1123));
+        response.setHeader(HttpHeaders.EXPIRES, DateUtils.formatDate(new Date(tenSecondsFromNow), DateUtils.PATTERN_RFC1123));
+
+
+        // Create ResponseCachingPolicy instance and test the method
+        policy = new ResponseCachingPolicy(0, true, false, false,false);
+        request = new BasicHttpRequest("POST", "/foo");
+        response.addHeader(HttpHeaders.CACHE_CONTROL, "something");
+        final boolean isCacheable = policy.isResponseCacheable(request, response);
+
+        // Verify the result
+        assertTrue(isCacheable);
+    }
+
+
 
     private int getRandomStatus() {
         final int rnd = new Random().nextInt(acceptableCodes.length);

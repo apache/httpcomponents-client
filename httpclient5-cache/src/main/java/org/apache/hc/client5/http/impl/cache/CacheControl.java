@@ -1,0 +1,111 @@
+/*
+ * ====================================================================
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ * ====================================================================
+ *
+ * This software consists of voluntary contributions made by many
+ * individuals on behalf of the Apache Software Foundation.  For more
+ * information on the Apache Software Foundation, please see
+ * <http://www.apache.org/>.
+ *
+ */
+
+package org.apache.hc.client5.http.impl.cache;
+
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.Internal;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
+
+/**
+ * Represents the values of the Cache-Control header in an HTTP response, which indicate whether and for how long
+ * the response can be cached by the client and intermediary proxies.
+ * <p>
+ * The class provides methods to retrieve the maximum age of the response and the maximum age that applies to shared
+ * caches. The values are expressed in seconds, with -1 indicating that the value was not specified in the header.
+ * <p>
+ * Instances of this class are immutable, meaning that their values cannot be changed once they are set. To create an
+ * instance, use one of the constructors that take the desired values as arguments. Alternatively, use the default
+ * constructor to create an instance with both values set to -1, indicating that the header was not present in the
+ * response.
+ * <p>
+ * Example usage:
+ * <pre>
+ * HttpResponse response = httpClient.execute(httpGet);
+ * CacheControlHeader cacheControlHeader = CacheControlHeaderParser.INSTANCE.parse(response.getHeaders("Cache-Control"));
+ * long maxAge = cacheControlHeader.getMaxAge();
+ * long sharedMaxAge = cacheControlHeader.getSharedMaxAge();
+ * </pre>
+ * @since 5.3
+ */
+@Internal
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
+final class CacheControl {
+
+    /**
+     * The max-age directive value.
+     */
+    private final long maxAge;
+    /**
+     * The shared-max-age directive value.
+     */
+    private final long sharedMaxAge;
+
+
+    /**
+     * Creates a new instance of {@code CacheControlHeader} with the specified max-age and shared-max-age values.
+     *
+     * @param maxAge       The max-age value from the Cache-Control header.
+     * @param sharedMaxAge The shared-max-age value from the Cache-Control header.
+     */
+    public CacheControl(final long maxAge, final long sharedMaxAge) {
+        this.maxAge = maxAge;
+        this.sharedMaxAge = sharedMaxAge;
+    }
+
+    /**
+     * Returns the max-age value from the Cache-Control header.
+     *
+     * @return The max-age value.
+     */
+    public long getMaxAge() {
+        return maxAge;
+    }
+
+    /**
+     * Returns the shared-max-age value from the Cache-Control header.
+     *
+     * @return The shared-max-age value.
+     */
+    public long getSharedMaxAge() {
+        return sharedMaxAge;
+    }
+
+
+    /**
+     * Returns a string representation of the {@code CacheControlHeader} object, including the max-age and shared-max-age values.
+     *
+     * @return A string representation of the object.
+     */
+    @Override
+    public String toString() {
+        return "CacheControlHeader{" +
+                "maxAge=" + maxAge +
+                ", sharedMaxAge=" + sharedMaxAge +
+                '}';
+    }
+}
