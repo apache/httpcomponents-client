@@ -28,6 +28,7 @@ package org.apache.hc.client5.http.impl.cache;
 
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import org.apache.hc.client5.http.cache.HeaderConstants;
@@ -38,10 +39,13 @@ import org.apache.hc.client5.http.cache.HttpCacheUpdateException;
 import org.apache.hc.client5.http.cache.ResourceFactory;
 import org.apache.hc.client5.http.cache.ResourceIOException;
 import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HeaderElement;
+import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.Method;
+import org.apache.hc.core5.http.message.MessageSupport;
 import org.apache.hc.core5.http.message.RequestLine;
 import org.apache.hc.core5.http.message.StatusLine;
 import org.apache.hc.core5.util.ByteArrayBuffer;
@@ -307,19 +311,31 @@ class BasicHttpCache implements HttpCache {
         if (!root.hasVariants()) {
             return root;
         }
-        final String variantKey = cacheKeyGenerator.generateVariantKey(request, root);
-        final String variantCacheKey = root.getVariantMap().get(variantKey);
-        if (variantCacheKey == null) {
-            return null;
-        }
-        try {
-            return storage.getEntry(variantCacheKey);
-        } catch (final ResourceIOException ex) {
-            if (LOG.isWarnEnabled()) {
-                LOG.warn("I/O error retrieving cache entry with key {}", variantCacheKey);
+        HttpCacheEntry mostRecentVariant = null;
+        for (final String variantCacheKey : root.getVariantMap().values()) {
+            final HttpCacheEntry variant;
+            try {
+                variant = storage.getEntry(variantCacheKey);
+            } catch (final ResourceIOException ex) {
+                if (LOG.isWarnEnabled()) {
+                    LOG.warn("I/O error retrieving cache entry with key {}", variantCacheKey);
+                }
+                continue;
             }
-            return null;
+            if (variant == null) {
+                continue;
+            }
+
+            final Iterator<HeaderElement> it = MessageSupport.iterate(variant, HttpHeaders.DATE);
+            if (!it.hasNext()) {
+                continue;
+            }
+
+            if (mostRecentVariant == null || mostRecentVariant.getDate().before(variant.getDate())) {
+                mostRecentVariant = variant;
+            }
         }
+        return mostRecentVariant != null ? mostRecentVariant : root;
     }
 
     @Override
