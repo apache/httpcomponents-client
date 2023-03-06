@@ -46,6 +46,7 @@ import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.classic.methods.HttpTrace;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
@@ -234,7 +235,7 @@ public class TestBasicHttpCache {
 
         final HttpRequest request = new HttpGet("http://foo.example.com/bar");
         final HttpCacheEntry result = impl.getCacheEntry(host, request);
-        assertNull(result);
+        assertNotNull(result);
     }
 
     @Test
@@ -258,6 +259,45 @@ public class TestBasicHttpCache {
         request.setHeader("Accept-Encoding","gzip");
         final HttpCacheEntry result = impl.getCacheEntry(host, request);
         assertNotNull(result);
+    }
+
+    @Test
+    public void testGetCacheEntryReturnsVariantWithMostRecentDateHeader() throws Exception {
+        final HttpHost host = new HttpHost("foo.example.com");
+
+        final HttpRequest origRequest = new HttpGet("http://foo.example.com/bar");
+        origRequest.setHeader("Accept-Encoding", "gzip");
+
+        final ByteArrayBuffer buf = HttpTestUtils.getRandomBuffer(128);
+
+        // Create two response variants with different Date headers
+        final HttpResponse origResponse1 = new BasicHttpResponse(HttpStatus.SC_OK, "OK");
+        origResponse1.setHeader(HttpHeaders.DATE, DateUtils.formatStandardDate(Instant.now().minusSeconds(3600)));
+        origResponse1.setHeader(HttpHeaders.CACHE_CONTROL, "max-age=3600, public");
+        origResponse1.setHeader(HttpHeaders.ETAG, "\"etag1\"");
+        origResponse1.setHeader(HttpHeaders.VARY, "Accept-Encoding");
+
+        final HttpResponse origResponse2 = new BasicHttpResponse(HttpStatus.SC_OK, "OK");
+        origResponse2.setHeader(HttpHeaders.DATE, DateUtils.formatStandardDate(Instant.now()));
+        origResponse2.setHeader(HttpHeaders.CACHE_CONTROL, "max-age=3600, public");
+        origResponse2.setHeader(HttpHeaders.ETAG, "\"etag2\"");
+        origResponse2.setHeader(HttpHeaders.VARY, "Accept-Encoding");
+
+        // Store the two variants in cache
+        impl.createCacheEntry(host, origRequest, origResponse1, buf, Instant.now(), Instant.now());
+        impl.createCacheEntry(host, origRequest, origResponse2, buf, Instant.now(), Instant.now());
+
+        final HttpRequest request = new HttpGet("http://foo.example.com/bar");
+        request.setHeader("Accept-Encoding", "gzip");
+        final HttpCacheEntry result = impl.getCacheEntry(host, request);
+        assertNotNull(result);
+
+        // Retrieve the ETag header value from the original response and assert that
+        // the returned cache entry has the same ETag value
+        final String expectedEtag = origResponse2.getFirstHeader(HttpHeaders.ETAG).getValue();
+        final String actualEtag = result.getFirstHeader(HeaderConstants.ETAG).getValue();
+
+        assertEquals(expectedEtag, actualEtag);
     }
 
     @Test
