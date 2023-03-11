@@ -36,6 +36,7 @@ import java.util.Iterator;
 import java.util.Set;
 
 import org.apache.hc.client5.http.cache.HeaderConstants;
+import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HeaderElement;
@@ -45,8 +46,10 @@ import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.core5.http.MessageHeaders;
 import org.apache.hc.core5.http.ProtocolVersion;
 import org.apache.hc.core5.http.message.MessageSupport;
+import org.apache.hc.core5.util.Args;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -87,6 +90,14 @@ class ResponseCachingPolicy {
     private final Set<Integer> uncacheableStatusCodes;
 
     /**
+     * A flag indicating whether serving stale cache entries is allowed when an error occurs
+     * while fetching a fresh response from the origin server.
+     * If {@code true}, stale cache entries may be served in case of errors.
+     * If {@code false}, stale cache entries will not be served in case of errors.
+     */
+    private final boolean staleIfErrorEnabled;
+
+    /**
      * Define a cache policy that limits the size of things that should be stored
      * in the cache to a maximum of {@link HttpResponse} bytes in size.
      *
@@ -104,6 +115,38 @@ class ResponseCachingPolicy {
             final boolean neverCache1_0ResponsesWithQueryString,
             final boolean allow303Caching,
             final boolean neverCache1_1ResponsesWithQueryString) {
+        this(maxObjectSizeBytes,
+                sharedCache,
+                neverCache1_0ResponsesWithQueryString,
+                allow303Caching,
+                neverCache1_1ResponsesWithQueryString,
+                false);
+    }
+
+    /**
+     * Constructs a new ResponseCachingPolicy with the specified cache policy settings and stale-if-error support.
+     *
+     * @param maxObjectSizeBytes                    the maximum size of objects, in bytes, that should be stored
+     *                                              in the cache
+     * @param sharedCache                           whether to behave as a shared cache (true) or a
+     *                                              non-shared/private cache (false)
+     * @param neverCache1_0ResponsesWithQueryString {@code true} to never cache HTTP 1.0 responses with a query string,
+     *                                              {@code false} to cache if explicit cache headers are found.
+     * @param allow303Caching                       {@code true} if this policy is permitted to cache 303 responses,
+     *                                              {@code false} otherwise
+     * @param neverCache1_1ResponsesWithQueryString {@code true} to never cache HTTP 1.1 responses with a query string,
+     *                                              {@code false} to cache if explicit cache headers are found.
+     * @param staleIfErrorEnabled                   {@code true} to enable the stale-if-error cache directive, which
+     *                                              allows clients to receive a stale cache entry when a request
+     *                                              results in an error, {@code false} to disable this feature.
+     * @since 5.3
+     */
+    public ResponseCachingPolicy(final long maxObjectSizeBytes,
+             final boolean sharedCache,
+             final boolean neverCache1_0ResponsesWithQueryString,
+             final boolean allow303Caching,
+             final boolean neverCache1_1ResponsesWithQueryString,
+             final boolean staleIfErrorEnabled) {
         this.maxObjectSizeBytes = maxObjectSizeBytes;
         this.sharedCache = sharedCache;
         this.neverCache1_0ResponsesWithQueryString = neverCache1_0ResponsesWithQueryString;
@@ -113,6 +156,7 @@ class ResponseCachingPolicy {
         } else {
             uncacheableStatusCodes = new HashSet<>(Arrays.asList(HttpStatus.SC_PARTIAL_CONTENT, HttpStatus.SC_SEE_OTHER));
         }
+        this.staleIfErrorEnabled = staleIfErrorEnabled;
     }
 
     /**
@@ -122,7 +166,7 @@ class ResponseCachingPolicy {
      * @param response The origin response
      * @return {@code true} if response is cacheable
      */
-    public boolean isResponseCacheable(final String httpMethod, final HttpResponse response) {
+    public boolean isResponseCacheable(final String httpMethod, final HttpResponse response, final CacheControl cacheControl) {
         boolean cacheable = false;
 
         if (!HeaderConstants.GET_METHOD.equals(httpMethod) && !HeaderConstants.HEAD_METHOD.equals(httpMethod)
@@ -193,7 +237,6 @@ class ResponseCachingPolicy {
                 return false;
             }
         }
-        final CacheControl cacheControl = parseCacheControlHeader(response);
         if (isExplicitlyNonCacheable(cacheControl)) {
             LOG.debug("Response is explicitly non-cacheable");
             return false;
@@ -236,7 +279,7 @@ class ResponseCachingPolicy {
     }
 
     /**
-     * @deprecated As of version 5.0, use {@link ResponseCachingPolicy#parseCacheControlHeader(HttpResponse)} instead.
+     * @deprecated As of version 5.0, use {@link ResponseCachingPolicy#parseCacheControlHeader(MessageHeaders)} instead.
      */
     @Deprecated
     protected boolean hasCacheControlParameterFrom(final HttpMessage msg, final String[] params) {
@@ -268,11 +311,41 @@ class ResponseCachingPolicy {
      * Determine if the {@link HttpResponse} gotten from the origin is a
      * cacheable response.
      *
+     * @param request  the {@link HttpRequest} that generated an origin hit. Can't be {@code null}.
+     * @param response the {@link HttpResponse} from the origin. Can't be {@code null}.
+     * @return {@code true} if response is cacheable
+     * @since 5.3
+     */
+    public boolean isResponseCacheable(final HttpRequest request, final HttpResponse response) {
+        Args.notNull(request, "Request");
+        Args.notNull(response, "Response");
+        return isResponseCacheable(request, response, parseCacheControlHeader(response));
+    }
+
+    /**
+     * Determines if an HttpResponse can be cached.
+     *
+     * @param httpMethod What type of request was this, a GET, PUT, other?. Can't be {@code null}.
+     * @param response   The origin response. Can't be {@code null}.
+     * @return {@code true} if response is cacheable
+     * @since 5.3
+     */
+    public boolean isResponseCacheable(final String httpMethod, final HttpResponse response) {
+        Args.notEmpty(httpMethod, "httpMethod");
+        Args.notNull(response, "Response");
+        return isResponseCacheable(httpMethod, response, parseCacheControlHeader(response));
+    }
+
+
+    /**
+     * Determine if the {@link HttpResponse} gotten from the origin is a
+     * cacheable response.
+     *
      * @param request the {@link HttpRequest} that generated an origin hit
      * @param response the {@link HttpResponse} from the origin
      * @return {@code true} if response is cacheable
      */
-    public boolean isResponseCacheable(final HttpRequest request, final HttpResponse response) {
+    public boolean isResponseCacheable(final HttpRequest request, final HttpResponse response, final CacheControl cacheControl) {
         final ProtocolVersion version = request.getVersion() != null ? request.getVersion() : HttpVersion.DEFAULT;
         if (version.compareToVersion(HttpVersion.HTTP_1_1) > 0) {
             if (LOG.isDebugEnabled()) {
@@ -280,7 +353,6 @@ class ResponseCachingPolicy {
             }
             return false;
         }
-        final CacheControl cacheControl = parseCacheControlHeader(response);
         if (cacheControl != null && cacheControl.isNoStore()) {
             LOG.debug("Response is explicitly non-cacheable per cache control directive");
             return false;
@@ -310,7 +382,7 @@ class ResponseCachingPolicy {
         }
 
         final String method = request.getMethod();
-        return isResponseCacheable(method, response);
+        return isResponseCacheable(method, response, cacheControl);
     }
 
     private boolean expiresHeaderLessOrEqualToDateHeaderAndNoCacheControl(final HttpResponse response, final CacheControl cacheControl) {
@@ -410,14 +482,42 @@ class ResponseCachingPolicy {
     }
 
     /**
-     * Parses the Cache-Control header from the given HTTP response and returns the corresponding CacheControl instance.
+     * Determines whether a stale response should be served in case of an error status code in the cached response.
+     * This method first checks if the {@code stale-if-error} extension is enabled in the cache configuration. If it is, it
+     * then checks if the cached response has an error status code (500-504). If it does, it checks if the response has a
+     * {@code stale-while-revalidate} directive in its Cache-Control header. If it does, this method returns {@code true},
+     * indicating that a stale response can be served. If not, it returns {@code false}.
+     *
+     * @param entry the cached HTTP message entry to check
+     * @return {@code true} if a stale response can be served in case of an error status code, {@code false} otherwise
+     */
+    boolean isStaleIfErrorEnabled(final HttpCacheEntry entry) {
+        // Check if the stale-while-revalidate extension is enabled
+        if (staleIfErrorEnabled) {
+            // Check if the cached response has an error status code
+            final int statusCode = entry.getStatus();
+            if (statusCode >= HttpStatus.SC_INTERNAL_SERVER_ERROR && statusCode <= HttpStatus.SC_GATEWAY_TIMEOUT) {
+                // Check if the cached response has a stale-while-revalidate directive
+                final CacheControl cacheControl = parseCacheControlHeader(entry);
+                if (cacheControl == null) {
+                    return false;
+                } else {
+                    return cacheControl.getStaleWhileRevalidate() > 0;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Parses the Cache-Control header from the given HTTP messageHeaders and returns the corresponding CacheControl instance.
      * If the header is not present, returns a CacheControl instance with default values for all directives.
      *
-     * @param response the HTTP response to parse the header from
+     * @param messageHeaders the HTTP message to parse the header from
      * @return a CacheControl instance with the parsed directives or default values if the header is not present
      */
-    private CacheControl parseCacheControlHeader(final HttpResponse response) {
-        final Header cacheControlHeader = response.getFirstHeader(HttpHeaders.CACHE_CONTROL);
+    private CacheControl parseCacheControlHeader(final MessageHeaders messageHeaders) {
+        final Header cacheControlHeader = messageHeaders.getFirstHeader(HttpHeaders.CACHE_CONTROL);
         if (cacheControlHeader == null) {
             return null;
         } else {
