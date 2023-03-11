@@ -67,7 +67,6 @@ public class CachingExecBase {
     final AtomicLong cacheUpdates = new AtomicLong();
 
     final Map<ProtocolVersion, String> viaHeaders = new ConcurrentHashMap<>(4);
-
     final ResponseCachingPolicy responseCachingPolicy;
     final CacheValidityPolicy validityPolicy;
     final CachedHttpResponseGenerator responseGenerator;
@@ -112,7 +111,8 @@ public class CachingExecBase {
                 this.cacheConfig.isSharedCache(),
                 this.cacheConfig.isNeverCacheHTTP10ResponsesWithQuery(),
                 this.cacheConfig.is303CachingEnabled(),
-                this.cacheConfig.isNeverCacheHTTP11ResponsesWithQuery());
+                this.cacheConfig.isNeverCacheHTTP11ResponsesWithQuery(),
+                this.cacheConfig.isStaleIfErrorEnabled());
     }
 
     /**
@@ -369,5 +369,4 @@ public class CachingExecBase {
             }
         }
     }
-
 }
