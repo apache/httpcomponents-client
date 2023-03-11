@@ -159,4 +159,11 @@ public class CacheControlParserTest {
         assertTrue(cacheControl.isNoStore());
     }
 
+    @Test
+    public void testParseStaleWhileRevalidate() {
+        final Header header = new BasicHeader("Cache-Control", "max-age=3600, stale-while-revalidate=120");
+        final CacheControl cacheControl = parser.parse(header);
+
+        assertEquals(120, cacheControl.getStaleWhileRevalidate());
+    }
 }

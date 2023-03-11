@@ -154,6 +154,8 @@ public class CacheConfig implements Cloneable {
     private final boolean freshnessCheckEnabled;
     private final int asynchronousWorkers;
     private final boolean neverCacheHTTP10ResponsesWithQuery;
+    private final boolean staleIfErrorEnabled;
+
 
     /**
      * A constant indicating whether HTTP/1.1 responses with a query string should never be cached.
@@ -174,7 +176,8 @@ public class CacheConfig implements Cloneable {
             final boolean freshnessCheckEnabled,
             final int asynchronousWorkers,
             final boolean neverCacheHTTP10ResponsesWithQuery,
-            final boolean neverCacheHTTP11ResponsesWithQuery) {
+            final boolean neverCacheHTTP11ResponsesWithQuery,
+            final boolean staleIfErrorEnabled) {
         super();
         this.maxObjectSize = maxObjectSize;
         this.maxCacheEntries = maxCacheEntries;
@@ -189,6 +192,7 @@ public class CacheConfig implements Cloneable {
         this.asynchronousWorkers = asynchronousWorkers;
         this.neverCacheHTTP10ResponsesWithQuery = neverCacheHTTP10ResponsesWithQuery;
         this.neverCacheHTTP11ResponsesWithQuery = neverCacheHTTP11ResponsesWithQuery;
+        this.staleIfErrorEnabled = staleIfErrorEnabled;
     }
 
     /**
@@ -224,6 +228,19 @@ public class CacheConfig implements Cloneable {
      */
     public boolean isNeverCacheHTTP11ResponsesWithQuery() {
         return neverCacheHTTP11ResponsesWithQuery;
+    }
+
+    /**
+     * Returns a boolean value indicating whether the stale-if-error cache
+     * directive is enabled. If this option is enabled, cached responses that
+     * have become stale due to an error (such as a server error or a network
+     * failure) will be returned instead of generating a new request. This can
+     * help to reduce the load on the origin server and improve performance.
+     * @return {@code true} if the stale-if-error directive is enabled, or
+     * {@code false} otherwise.
+     */
+    public boolean isStaleIfErrorEnabled() {
+        return this.staleIfErrorEnabled;
     }
 
     /**
@@ -328,7 +345,8 @@ public class CacheConfig implements Cloneable {
             .setSharedCache(config.isSharedCache())
             .setAsynchronousWorkers(config.getAsynchronousWorkers())
             .setNeverCacheHTTP10ResponsesWithQueryString(config.isNeverCacheHTTP10ResponsesWithQuery())
-            .setNeverCacheHTTP11ResponsesWithQueryString(config.isNeverCacheHTTP11ResponsesWithQuery());
+            .setNeverCacheHTTP11ResponsesWithQueryString(config.isNeverCacheHTTP11ResponsesWithQuery())
+            .setStaleIfErrorEnabled(config.isStaleIfErrorEnabled());
     }
 
 
@@ -347,6 +365,7 @@ public class CacheConfig implements Cloneable {
         private int asynchronousWorkers;
         private boolean neverCacheHTTP10ResponsesWithQuery;
         private boolean neverCacheHTTP11ResponsesWithQuery;
+        private boolean staleIfErrorEnabled;
 
         Builder() {
             this.maxObjectSize = DEFAULT_MAX_OBJECT_SIZE_BYTES;
@@ -360,6 +379,7 @@ public class CacheConfig implements Cloneable {
             this.sharedCache = true;
             this.freshnessCheckEnabled = true;
             this.asynchronousWorkers = DEFAULT_ASYNCHRONOUS_WORKERS;
+            this.staleIfErrorEnabled = false;
         }
 
         /**
@@ -480,6 +500,24 @@ public class CacheConfig implements Cloneable {
             return this;
         }
 
+        /**
+         * Enables or disables the stale-if-error cache directive. If this option
+         * is enabled, cached responses that have become stale due to an error (such
+         * as a server error or a network failure) will be returned instead of
+         * generating a new request. This can help to reduce the load on the origin
+         * server and improve performance.
+         * <p>
+         * By default, the stale-if-error directive is disabled.
+         *
+         * @param enabled a boolean value indicating whether the stale-if-error
+         *                directive should be enabled.
+         * @return the builder object
+         */
+        public Builder setStaleIfErrorEnabled(final boolean enabled) {
+            this.staleIfErrorEnabled = enabled;
+            return this;
+        }
+
         public Builder setFreshnessCheckEnabled(final boolean freshnessCheckEnabled) {
             this.freshnessCheckEnabled = freshnessCheckEnabled;
             return this;
@@ -511,7 +549,8 @@ public class CacheConfig implements Cloneable {
                     freshnessCheckEnabled,
                     asynchronousWorkers,
                     neverCacheHTTP10ResponsesWithQuery,
-                    neverCacheHTTP11ResponsesWithQuery);
+                    neverCacheHTTP11ResponsesWithQuery,
+                    staleIfErrorEnabled);
         }
 
     }
@@ -532,6 +571,7 @@ public class CacheConfig implements Cloneable {
                 .append(", asynchronousWorkers=").append(this.asynchronousWorkers)
                 .append(", neverCacheHTTP10ResponsesWithQuery=").append(this.neverCacheHTTP10ResponsesWithQuery)
                 .append(", neverCacheHTTP11ResponsesWithQuery=").append(this.neverCacheHTTP11ResponsesWithQuery)
+                .append(", staleIfErrorEnabled=").append(this.staleIfErrorEnabled)
                 .append("]");
         return builder.toString();
     }

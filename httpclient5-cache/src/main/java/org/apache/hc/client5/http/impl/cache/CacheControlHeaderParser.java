@@ -73,7 +73,6 @@ class CacheControlHeaderParser {
 
 
     private final static char EQUAL_CHAR = '=';
-    private final static char SEMICOLON_CHAR = ';';
 
     /**
      * The set of characters that can delimit a token in the header.
@@ -140,6 +139,7 @@ class CacheControlHeaderParser {
         boolean mustRevalidate = false;
         boolean proxyRevalidate = false;
         boolean cachePublic = false;
+        long staleWhileRevalidate = -1;
 
         while (!cursor.atEnd()) {
             final String name = tokenParser.parseToken(buffer, cursor, TOKEN_DELIMS);
@@ -170,9 +170,11 @@ class CacheControlHeaderParser {
                 proxyRevalidate = true;
             } else if (name.equalsIgnoreCase(HeaderConstants.PUBLIC)) {
                 cachePublic = true;
+            } else if (name.equalsIgnoreCase(HeaderConstants.STALE_WHILE_REVALIDATE)) {
+                staleWhileRevalidate = parseSeconds(name, value);
             }
         }
-        return new CacheControl(maxAge, sharedMaxAge, mustRevalidate, noCache, noStore, cachePrivate, proxyRevalidate, cachePublic);
+        return new CacheControl(maxAge, sharedMaxAge, mustRevalidate, noCache, noStore, cachePrivate, proxyRevalidate, cachePublic, staleWhileRevalidate);
     }
 
     private static long parseSeconds(final String name, final String value) {
