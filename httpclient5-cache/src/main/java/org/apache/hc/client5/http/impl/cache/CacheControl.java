@@ -88,15 +88,20 @@ final class CacheControl {
      * Indicates whether the Cache-Control header includes the "public" directive.
      */
     private final boolean cachePublic;
+    /**
+     * The number of seconds that a stale response is considered fresh for the purpose
+     * of serving a response while a revalidation request is made to the origin server.
+     */
+    private final long stale_while_revalidate;
 
 
     /**
      * Creates a new instance of {@code CacheControl} with default values.
      * The default values are: max-age=-1, shared-max-age=-1, must-revalidate=false, no-cache=false,
-     * no-store=false, private=false, proxy-revalidate=false, and public=false.
+     * no-store=false, private=false, proxy-revalidate=false, public=false and stale_while_revalidate=-1.
      */
     public CacheControl() {
-        this(-1, -1, false, false, false, false, false, false);
+        this(-1, -1, false, false, false, false, false, false,-1);
     }
 
     /**
@@ -113,7 +118,8 @@ final class CacheControl {
      * @param cachePublic     The public value from the Cache-Control header.
      */
     public CacheControl(final long maxAge, final long sharedMaxAge, final boolean mustRevalidate, final boolean noCache, final boolean noStore,
-                        final boolean cachePrivate, final boolean proxyRevalidate, final boolean cachePublic) {
+                        final boolean cachePrivate, final boolean proxyRevalidate, final boolean cachePublic,
+                        final long stale_while_revalidate) {
         this.maxAge = maxAge;
         this.sharedMaxAge = sharedMaxAge;
         this.noCache = noCache;
@@ -122,6 +128,7 @@ final class CacheControl {
         this.mustRevalidate = mustRevalidate;
         this.proxyRevalidate = proxyRevalidate;
         this.cachePublic = cachePublic;
+        this.stale_while_revalidate = stale_while_revalidate;
     }
 
 
@@ -199,6 +206,15 @@ final class CacheControl {
     }
 
     /**
+     * Returns the stale-while-revalidate value from the Cache-Control header.
+     *
+     * @return The stale-while-revalidate value.
+     */
+    public long getStaleWhileRevalidate() {
+        return stale_while_revalidate;
+    }
+
+    /**
      * Returns a string representation of the {@code CacheControl} object, including the max-age, shared-max-age, no-cache,
      * no-store, private, must-revalidate, proxy-revalidate, and public values.
      *
@@ -209,12 +225,13 @@ final class CacheControl {
         return "CacheControl{" +
                 "maxAge=" + maxAge +
                 ", sharedMaxAge=" + sharedMaxAge +
-                ", isNoCache=" + noCache +
-                ", isNoStore=" + noStore +
-                ", isPrivate=" + cachePrivate +
+                ", noCache=" + noCache +
+                ", noStore=" + noStore +
+                ", cachePrivate=" + cachePrivate +
                 ", mustRevalidate=" + mustRevalidate +
                 ", proxyRevalidate=" + proxyRevalidate +
-                ", isPublic=" + cachePublic +
+                ", cachePublic=" + cachePublic +
+                ", stale_while_revalidate=" + stale_while_revalidate +
                 '}';
     }
 }

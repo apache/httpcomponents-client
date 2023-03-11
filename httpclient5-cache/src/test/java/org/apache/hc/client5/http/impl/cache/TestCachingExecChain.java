@@ -28,11 +28,13 @@ package org.apache.hc.client5.http.impl.cache;
 
 
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
@@ -79,9 +81,9 @@ public class TestCachingExecChain {
     ExecRuntime mockExecRuntime;
     @Mock
     HttpCacheStorage mockStorage;
+    private DefaultCacheRevalidator cacheRevalidator;
     @Spy
     HttpCache cache = new BasicHttpCache();
-
     CacheConfig config;
     HttpRoute route;
     HttpHost host;
@@ -94,12 +96,12 @@ public class TestCachingExecChain {
     public void setUp() {
         MockitoAnnotations.openMocks(this);
         config = CacheConfig.DEFAULT;
-
         host = new HttpHost("foo.example.com", 80);
         route = new HttpRoute(host);
         request = new BasicClassicHttpRequest("GET", "/stuff");
         context = HttpCacheContext.create();
         entry = HttpTestUtils.makeCacheEntry();
+        cacheRevalidator = mock(DefaultCacheRevalidator.class);
 
         impl = new CachingExec(cache, null, CacheConfig.DEFAULT);
     }
@@ -1017,7 +1019,7 @@ public class TestCachingExecChain {
 
     @Test
     public void testSmallEnoughResponsesAreCached() throws Exception {
-        final HttpCache mockCache = Mockito.mock(HttpCache.class);
+        final HttpCache mockCache = mock(HttpCache.class);
         impl = new CachingExec(mockCache, null, CacheConfig.DEFAULT);
 
         final HttpHost host = new HttpHost("foo.example.com");
@@ -1282,6 +1284,79 @@ public class TestCachingExecChain {
         impl.execute(request, new ExecChain.Scope("test", route, request, mockExecRuntime, context), mockExecChain);
 
         Mockito.verify(mockExecChain, Mockito.times(2)).proceed(Mockito.any(), Mockito.any());
+    }
+
+    @Test
+    public void testReturnssetStaleIfErrorNotEnabled() throws Exception {
+
+        // Create the first request and response
+        final ClassicHttpRequest req1 = new HttpGet("http://foo.example.com/");
+        final ClassicHttpRequest req2 = new HttpGet("http://foo.example.com/");
+
+        final ClassicHttpResponse resp1 = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
+        resp1.setEntity(HttpTestUtils.makeBody(128));
+        resp1.setHeader("Content-Length", "128");
+        resp1.setHeader("ETag", "\"etag\"");
+        resp1.setHeader("Date", DateUtils.formatStandardDate(Instant.now()));
+        resp1.setHeader("Cache-Control", "public");
+
+        req2.addHeader("If-None-Match", "\"abc\"");
+
+        final ClassicHttpResponse resp2 = HttpTestUtils.make200Response();
+
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
+
+        execute(req1);
+
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp2);
+        Mockito.when(mockExecRuntime.fork(Mockito.any())).thenReturn(mockExecRuntime);
+        final ClassicHttpResponse result = execute(req2);
+        Assertions.assertEquals(HttpStatus.SC_OK, result.getCode());
+
+        Mockito.verify(cacheRevalidator, Mockito.never()).revalidateCacheEntry(Mockito.any(), Mockito.any());
+    }
+
+
+    @Test
+    public void testReturnssetStaleIfErrorEnabled() throws Exception {
+        final CacheConfig customConfig = CacheConfig.custom()
+                .setMaxCacheEntries(100)
+                .setMaxObjectSize(1024)
+                .setSharedCache(false)
+                .setStaleIfErrorEnabled(true)
+                .build();
+
+        impl = new CachingExec(cache, cacheRevalidator, customConfig);
+
+        // Create the first request and response
+        final BasicClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "http://foo.example.com/");
+        final BasicClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "http://foo.example.com/");
+        final ClassicHttpResponse resp1 = new BasicClassicHttpResponse(HttpStatus.SC_GATEWAY_TIMEOUT, "OK");
+        resp1.setEntity(HttpTestUtils.makeBody(128));
+        resp1.setHeader("Content-Length", "128");
+        resp1.setHeader("ETag", "\"etag\"");
+        resp1.setHeader("Date", DateUtils.formatStandardDate(Instant.now().minus(Duration.ofHours(10))));
+        resp1.setHeader("Cache-Control", "public, max-age=-1, stale-while-revalidate=1");
+        req2.addHeader("If-None-Match", "\"abc\"");
+        final ClassicHttpResponse resp2 = HttpTestUtils.make200Response();
+
+        // Set up the mock response chain
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
+
+
+        // Execute the first request and assert the response
+        final ClassicHttpResponse response1 = execute(req1);
+        Assertions.assertEquals(HttpStatus.SC_GATEWAY_TIMEOUT, response1.getCode());
+
+
+        // Execute the second request and assert the response
+        Mockito.when(mockExecRuntime.fork(Mockito.any())).thenReturn(mockExecRuntime);
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp2);
+        final ClassicHttpResponse response2 = execute(req2);
+        Assertions.assertEquals(HttpStatus.SC_NOT_MODIFIED, response2.getCode());
+
+        // Assert that the cache revalidator was called
+        Mockito.verify(cacheRevalidator, Mockito.times(1)).revalidateCacheEntry(Mockito.any(), Mockito.any());
     }
 
 }
