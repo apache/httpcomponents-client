@@ -71,10 +71,6 @@ class ResponseCachingPolicy {
      */
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.RFC_1123_DATE_TIME;
 
-    private static final String[] AUTH_CACHEABLE_PARAMS = {
-            "s-maxage", HeaderConstants.CACHE_CONTROL_MUST_REVALIDATE, HeaderConstants.PUBLIC
-    };
-
     private final static Set<Integer> CACHEABLE_STATUS_CODES =
             new HashSet<>(Arrays.asList(HttpStatus.SC_OK,
                     HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION,
@@ -197,14 +193,14 @@ class ResponseCachingPolicy {
                 return false;
             }
         }
-
-        if (isExplicitlyNonCacheable(response)) {
+        final CacheControl cacheControl = parseCacheControlHeader(response);
+        if (isExplicitlyNonCacheable(cacheControl)) {
             LOG.debug("Response is explicitly non-cacheable");
             return false;
         }
 
         // calculate freshness lifetime
-        final Duration freshnessLifetime = calculateFreshnessLifetime(response);
+        final Duration freshnessLifetime = calculateFreshnessLifetime(response, cacheControl);
         if (freshnessLifetime.isNegative() || freshnessLifetime.isZero()) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Freshness lifetime is invalid");
@@ -212,7 +208,7 @@ class ResponseCachingPolicy {
             return false;
         }
 
-        return cacheable || isExplicitlyCacheable(response);
+        return cacheable || isExplicitlyCacheable(response, cacheControl);
     }
 
     private boolean unknownStatusCode(final int status) {
@@ -231,19 +227,18 @@ class ResponseCachingPolicy {
         return status < 500 || status > 505;
     }
 
-    protected boolean isExplicitlyNonCacheable(final HttpResponse response) {
-        final Iterator<HeaderElement> it = MessageSupport.iterate(response, HeaderConstants.CACHE_CONTROL);
-        while (it.hasNext()) {
-            final HeaderElement elem = it.next();
-            if (HeaderConstants.CACHE_CONTROL_NO_STORE.equals(elem.getName())
-                    || HeaderConstants.CACHE_CONTROL_NO_CACHE.equals(elem.getName())
-                    || (sharedCache && HeaderConstants.PRIVATE.equals(elem.getName()))) {
-                return true;
-            }
+    protected boolean isExplicitlyNonCacheable(final CacheControl cacheControl) {
+        if (cacheControl == null) {
+            return false;
+        }else {
+            return cacheControl.isNoStore() || cacheControl.isNoCache() || (sharedCache && cacheControl.isCachePrivate());
         }
-        return false;
     }
 
+    /**
+     * @deprecated As of version 5.0, use {@link ResponseCachingPolicy#parseCacheControlHeader(HttpResponse)} instead.
+     */
+    @Deprecated
     protected boolean hasCacheControlParameterFrom(final HttpMessage msg, final String[] params) {
         final Iterator<HeaderElement> it = MessageSupport.iterate(msg, HeaderConstants.CACHE_CONTROL);
         while (it.hasNext()) {
@@ -257,16 +252,16 @@ class ResponseCachingPolicy {
         return false;
     }
 
-    protected boolean isExplicitlyCacheable(final HttpResponse response) {
+    protected boolean isExplicitlyCacheable(final HttpResponse response, final CacheControl cacheControl ) {
         if (response.getFirstHeader(HeaderConstants.EXPIRES) != null) {
             return true;
         }
-        final String[] cacheableParams = { HeaderConstants.CACHE_CONTROL_MAX_AGE, "s-maxage",
-                HeaderConstants.CACHE_CONTROL_MUST_REVALIDATE,
-                HeaderConstants.CACHE_CONTROL_PROXY_REVALIDATE,
-                HeaderConstants.PUBLIC
-        };
-        return hasCacheControlParameterFrom(response, cacheableParams);
+        if (cacheControl == null) {
+            return false;
+        }else {
+            return cacheControl.getMaxAge() > 0 || cacheControl.getSharedMaxAge()>0 ||
+                    cacheControl.isMustRevalidate() || cacheControl.isProxyRevalidate() || (cacheControl.isPublic());
+        }
     }
 
     /**
@@ -285,9 +280,8 @@ class ResponseCachingPolicy {
             }
             return false;
         }
-
-        final String[] uncacheableRequestDirectives = { HeaderConstants.CACHE_CONTROL_NO_STORE };
-        if (hasCacheControlParameterFrom(request,uncacheableRequestDirectives)) {
+        final CacheControl cacheControl = parseCacheControlHeader(response);
+        if (cacheControl != null && cacheControl.isNoStore()) {
             LOG.debug("Response is explicitly non-cacheable per cache control directive");
             return false;
         }
@@ -296,20 +290,20 @@ class ResponseCachingPolicy {
             if (neverCache1_0ResponsesWithQueryString && from1_0Origin(response)) {
                 LOG.debug("Response is not cacheable as it had a query string");
                 return false;
-            } else if (!neverCache1_1ResponsesWithQueryString && !isExplicitlyCacheable(response)) {
+            } else if (!neverCache1_1ResponsesWithQueryString && !isExplicitlyCacheable(response, cacheControl)) {
                 LOG.debug("Response is not cacheable as it is missing explicit caching headers");
                 return false;
             }
         }
 
-        if (expiresHeaderLessOrEqualToDateHeaderAndNoCacheControl(response)) {
+        if (expiresHeaderLessOrEqualToDateHeaderAndNoCacheControl(response, cacheControl)) {
             LOG.debug("Expires header less or equal to Date header and no cache control directives");
             return false;
         }
 
         if (sharedCache) {
             if (request.countHeaders(HeaderConstants.AUTHORIZATION) > 0
-                    && !hasCacheControlParameterFrom(response, AUTH_CACHEABLE_PARAMS)) {
+                    && cacheControl != null && !(cacheControl.getSharedMaxAge() > -1 || cacheControl.isMustRevalidate() || cacheControl.isPublic())) {
                 LOG.debug("Request contains private credentials");
                 return false;
             }
@@ -319,8 +313,8 @@ class ResponseCachingPolicy {
         return isResponseCacheable(method, response);
     }
 
-    private boolean expiresHeaderLessOrEqualToDateHeaderAndNoCacheControl(final HttpResponse response) {
-        if (response.getFirstHeader(HeaderConstants.CACHE_CONTROL) != null) {
+    private boolean expiresHeaderLessOrEqualToDateHeaderAndNoCacheControl(final HttpResponse response, final CacheControl cacheControl) {
+        if (cacheControl != null) {
             return false;
         }
         final Header expiresHdr = response.getFirstHeader(HeaderConstants.EXPIRES);
@@ -380,24 +374,18 @@ class ResponseCachingPolicy {
      * @param response the HTTP response for which to calculate the freshness lifetime
      * @return the freshness lifetime of the response, in seconds
      */
-    private Duration calculateFreshnessLifetime(final HttpResponse response) {
-        // Check if s-maxage is present and use its value if it is
-        final Header cacheControl = response.getFirstHeader(HttpHeaders.CACHE_CONTROL);
+    private Duration calculateFreshnessLifetime(final HttpResponse response, final CacheControl cacheControl) {
+
         if (cacheControl == null) {
             // If no cache-control header is present, assume no caching directives and return a default value
             return DEFAULT_FRESHNESS_DURATION; // 5 minutes
         }
 
-        final String cacheControlValue = cacheControl.getValue();
-        if (cacheControlValue == null) {
-            // If cache-control header has no value, assume no caching directives and return a default value
-            return DEFAULT_FRESHNESS_DURATION; // 5 minutes
-        }
-        final CacheControl cacheControlHeader = CacheControlHeaderParser.INSTANCE.parse(cacheControl);
-        if (cacheControlHeader.getSharedMaxAge() != -1) {
-            return Duration.ofSeconds(cacheControlHeader.getSharedMaxAge());
-        } else if (cacheControlHeader.getMaxAge() != -1) {
-            return Duration.ofSeconds(cacheControlHeader.getMaxAge());
+        // Check if s-maxage is present and use its value if it is
+        if (cacheControl.getSharedMaxAge() != -1) {
+            return Duration.ofSeconds(cacheControl.getSharedMaxAge());
+        } else if (cacheControl.getMaxAge() != -1) {
+            return Duration.ofSeconds(cacheControl.getMaxAge());
         }
 
         // Check if Expires is present and use its value minus the value of the Date header
@@ -419,6 +407,22 @@ class ResponseCachingPolicy {
 
         // If none of the above conditions are met, a heuristic freshness lifetime might be applicable
         return DEFAULT_FRESHNESS_DURATION; // 5 minutes
+    }
+
+    /**
+     * Parses the Cache-Control header from the given HTTP response and returns the corresponding CacheControl instance.
+     * If the header is not present, returns a CacheControl instance with default values for all directives.
+     *
+     * @param response the HTTP response to parse the header from
+     * @return a CacheControl instance with the parsed directives or default values if the header is not present
+     */
+    private CacheControl parseCacheControlHeader(final HttpResponse response) {
+        final Header cacheControlHeader = response.getFirstHeader(HttpHeaders.CACHE_CONTROL);
+        if (cacheControlHeader == null) {
+            return null;
+        } else {
+            return CacheControlHeaderParser.INSTANCE.parse(cacheControlHeader);
+        }
     }
 
 }

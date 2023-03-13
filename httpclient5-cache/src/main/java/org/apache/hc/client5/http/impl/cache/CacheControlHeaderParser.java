@@ -28,6 +28,7 @@ package org.apache.hc.client5.http.impl.cache;
 
 import java.util.BitSet;
 
+import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
@@ -38,7 +39,6 @@ import org.apache.hc.core5.util.CharArrayBuffer;
 import org.apache.hc.core5.util.Tokenizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 
 /**
  * A parser for the HTTP Cache-Control header that can be used to extract information about caching directives.
@@ -72,10 +72,8 @@ class CacheControlHeaderParser {
     private static final Logger LOG = LoggerFactory.getLogger(CacheControlHeaderParser.class);
 
 
-    /**
-     * The character used to indicate a parameter's value in the Cache-Control header.
-     */
     private final static char EQUAL_CHAR = '=';
+    private final static char SEMICOLON_CHAR = ';';
 
     /**
      * The set of characters that can delimit a token in the header.
@@ -119,9 +117,6 @@ class CacheControlHeaderParser {
     public final CacheControl parse(final Header header) {
         Args.notNull(header, "Header");
 
-        long maxAge = -1;
-        long sharedMaxAge = -1;
-
         final CharArrayBuffer buffer;
         final Tokenizer.Cursor cursor;
         if (header instanceof FormattedHeader) {
@@ -130,44 +125,67 @@ class CacheControlHeaderParser {
         } else {
             final String s = header.getValue();
             if (s == null) {
-                return new CacheControl(maxAge, sharedMaxAge);
+                return new CacheControl();
             }
             buffer = new CharArrayBuffer(s.length());
             buffer.append(s);
             cursor = new Tokenizer.Cursor(0, buffer.length());
         }
 
+        long maxAge = -1;
+        long sharedMaxAge = -1;
+        boolean noCache = false;
+        boolean noStore = false;
+        boolean cachePrivate = false;
+        boolean mustRevalidate = false;
+        boolean proxyRevalidate = false;
+        boolean cachePublic = false;
+
         while (!cursor.atEnd()) {
             final String name = tokenParser.parseToken(buffer, cursor, TOKEN_DELIMS);
-            if (cursor.atEnd()) {
-                return new CacheControl(maxAge, sharedMaxAge);
-            }
-            final int valueDelim = buffer.charAt(cursor.getPos());
-            cursor.updatePos(cursor.getPos() + 1);
-            if (valueDelim != EQUAL_CHAR) {
-                continue;
-            }
-            final String value = tokenParser.parseValue(buffer, cursor, VALUE_DELIMS);
-
+            String value = null;
             if (!cursor.atEnd()) {
+                final int valueDelim = buffer.charAt(cursor.getPos());
                 cursor.updatePos(cursor.getPos() + 1);
+                if (valueDelim == EQUAL_CHAR) {
+                    value = tokenParser.parseValue(buffer, cursor, VALUE_DELIMS);
+                    if (!cursor.atEnd()) {
+                        cursor.updatePos(cursor.getPos() + 1);
+                    }
+                }
             }
-
-            try {
-                if (name.equalsIgnoreCase("s-maxage")) {
-                    sharedMaxAge = Long.parseLong(value);
-                } else if (name.equalsIgnoreCase("max-age")) {
-                    maxAge = Long.parseLong(value);
-                }
-            } catch (final NumberFormatException e) {
-                // skip malformed directive
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Header {} was malformed: {}", name, value);
-                }
+            if (name.equalsIgnoreCase(HeaderConstants.CACHE_CONTROL_S_MAX_AGE)) {
+                sharedMaxAge = parseSeconds(name, value);
+            } else if (name.equalsIgnoreCase(HeaderConstants.CACHE_CONTROL_MAX_AGE)) {
+                maxAge = parseSeconds(name, value);
+            } else if (name.equalsIgnoreCase(HeaderConstants.CACHE_CONTROL_MUST_REVALIDATE)) {
+                mustRevalidate = true;
+            } else if (name.equalsIgnoreCase(HeaderConstants.CACHE_CONTROL_NO_CACHE)) {
+                noCache = true;
+            } else if (name.equalsIgnoreCase(HeaderConstants.CACHE_CONTROL_NO_STORE)) {
+                noStore = true;
+            } else if (name.equalsIgnoreCase(HeaderConstants.PRIVATE)) {
+                cachePrivate = true;
+            } else if (name.equalsIgnoreCase(HeaderConstants.CACHE_CONTROL_PROXY_REVALIDATE)) {
+                proxyRevalidate = true;
+            } else if (name.equalsIgnoreCase(HeaderConstants.PUBLIC)) {
+                cachePublic = true;
             }
         }
-        return new CacheControl(maxAge, sharedMaxAge);
+        return new CacheControl(maxAge, sharedMaxAge, mustRevalidate, noCache, noStore, cachePrivate, proxyRevalidate, cachePublic);
     }
+
+    private static long parseSeconds(final String name, final String value) {
+        try {
+            return value != null ? Long.parseLong(value) : -1;
+        } catch (final NumberFormatException e) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Directive {} was malformed: {}", name, value);
+            }
+            return -1;
+        }
+    }
+
 }
 
 

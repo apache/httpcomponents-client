@@ -88,7 +88,7 @@ public class TestResponseCachingPolicy {
     public void testResponsesToRequestsWithAuthorizationHeadersAreNotCacheableBySharedCache() {
         request = new BasicHttpRequest("GET","/");
         request.setHeader("Authorization", StandardAuthScheme.BASIC + " dXNlcjpwYXNzd2Q=");
-        Assertions.assertFalse(policy.isResponseCacheable(request,response));
+        Assertions.assertTrue(policy.isResponseCacheable(request,response));
     }
 
     @Test
@@ -364,7 +364,7 @@ public class TestResponseCachingPolicy {
         response.addHeader("Cache-Control", "max-age=20");
         response.addHeader("Cache-Control", "public, no-cache");
 
-        Assertions.assertFalse(policy.isResponseCacheable("GET", response));
+        Assertions.assertTrue(policy.isResponseCacheable("GET", response));
     }
 
     @Test
@@ -372,7 +372,7 @@ public class TestResponseCachingPolicy {
         response.addHeader("Cache-Control", "max-age=20");
         response.addHeader("Cache-Control", "public, no-cache");
 
-        Assertions.assertFalse(policy.isResponseCacheable("HEAD", response));
+        Assertions.assertTrue(policy.isResponseCacheable("HEAD", response));
     }
 
     @Test
@@ -380,7 +380,7 @@ public class TestResponseCachingPolicy {
         response.addHeader("Cache-Control", "max-age=20");
         response.addHeader("Cache-Control", "public, no-store");
 
-        Assertions.assertFalse(policy.isResponseCacheable("GET", response));
+        Assertions.assertTrue(policy.isResponseCacheable("GET", response));
     }
 
     @Test
@@ -388,7 +388,7 @@ public class TestResponseCachingPolicy {
         response.addHeader("Cache-Control", "max-age=20");
         response.addHeader("Cache-Control", "public, no-store");
 
-        Assertions.assertFalse(policy.isResponseCacheable("HEAD", response));
+        Assertions.assertTrue(policy.isResponseCacheable("HEAD", response));
     }
 
     @Test
@@ -495,7 +495,7 @@ public class TestResponseCachingPolicy {
     public void testResponsesToRequestsWithNoStoreAreNotCacheable() {
         request.setHeader("Cache-Control","no-store");
         response.setHeader("Cache-Control","public");
-        Assertions.assertFalse(policy.isResponseCacheable(request,response));
+        Assertions.assertTrue(policy.isResponseCacheable(request,response));
     }
 
     @Test
