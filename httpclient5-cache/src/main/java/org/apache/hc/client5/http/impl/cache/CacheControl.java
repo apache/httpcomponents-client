@@ -64,18 +64,66 @@ final class CacheControl {
      * The shared-max-age directive value.
      */
     private final long sharedMaxAge;
+    /**
+     * The isNoCache flag indicates whether the Cache-Control header includes the no-cache directive.
+     */
+    private final boolean noCache;
+    /**
+     * The isNoStore flag indicates whether the Cache-Control header includes the no-store directive.
+     */
+    private final boolean noStore;
+    /**
+     * The isPrivate flag indicates whether the Cache-Control header includes the private directive.
+     */
+    private final boolean cachePrivate;
+    /**
+     * Indicates whether the Cache-Control header includes the "must-revalidate" directive.
+     */
+    private final boolean mustRevalidate;
+    /**
+     * Indicates whether the Cache-Control header includes the "proxy-revalidate" directive.
+     */
+    private final boolean proxyRevalidate;
+    /**
+     * Indicates whether the Cache-Control header includes the "public" directive.
+     */
+    private final boolean cachePublic;
 
 
     /**
-     * Creates a new instance of {@code CacheControlHeader} with the specified max-age and shared-max-age values.
-     *
-     * @param maxAge       The max-age value from the Cache-Control header.
-     * @param sharedMaxAge The shared-max-age value from the Cache-Control header.
+     * Creates a new instance of {@code CacheControl} with default values.
+     * The default values are: max-age=-1, shared-max-age=-1, must-revalidate=false, no-cache=false,
+     * no-store=false, private=false, proxy-revalidate=false, and public=false.
      */
-    public CacheControl(final long maxAge, final long sharedMaxAge) {
+    public CacheControl() {
+        this(-1, -1, false, false, false, false, false, false);
+    }
+
+    /**
+     * Creates a new instance of {@code CacheControl} with the specified max-age, shared-max-age, no-cache, no-store,
+     * private, must-revalidate, proxy-revalidate, and public values.
+     *
+     * @param maxAge          The max-age value from the Cache-Control header.
+     * @param sharedMaxAge    The shared-max-age value from the Cache-Control header.
+     * @param mustRevalidate  The must-revalidate value from the Cache-Control header.
+     * @param noCache         The no-cache value from the Cache-Control header.
+     * @param noStore         The no-store value from the Cache-Control header.
+     * @param cachePrivate    The private value from the Cache-Control header.
+     * @param proxyRevalidate The proxy-revalidate value from the Cache-Control header.
+     * @param cachePublic     The public value from the Cache-Control header.
+     */
+    public CacheControl(final long maxAge, final long sharedMaxAge, final boolean mustRevalidate, final boolean noCache, final boolean noStore,
+                        final boolean cachePrivate, final boolean proxyRevalidate, final boolean cachePublic) {
         this.maxAge = maxAge;
         this.sharedMaxAge = sharedMaxAge;
+        this.noCache = noCache;
+        this.noStore = noStore;
+        this.cachePrivate = cachePrivate;
+        this.mustRevalidate = mustRevalidate;
+        this.proxyRevalidate = proxyRevalidate;
+        this.cachePublic = cachePublic;
     }
+
 
     /**
      * Returns the max-age value from the Cache-Control header.
@@ -95,9 +143,64 @@ final class CacheControl {
         return sharedMaxAge;
     }
 
+    /**
+     * Returns the no-cache flag from the Cache-Control header.
+     *
+     * @return The no-cache flag.
+     */
+    public boolean isNoCache() {
+        return noCache;
+    }
 
     /**
-     * Returns a string representation of the {@code CacheControlHeader} object, including the max-age and shared-max-age values.
+     * Returns the no-store flag from the Cache-Control header.
+     *
+     * @return The no-store flag.
+     */
+    public boolean isNoStore() {
+        return noStore;
+    }
+
+    /**
+     * Returns the private flag from the Cache-Control header.
+     *
+     * @return The private flag.
+     */
+    public boolean isCachePrivate() {
+        return cachePrivate;
+    }
+
+    /**
+     * Returns whether the must-revalidate directive is present in the Cache-Control header.
+     *
+     * @return {@code true} if the must-revalidate directive is present, otherwise {@code false}
+     */
+    public boolean isMustRevalidate() {
+        return mustRevalidate;
+    }
+
+
+    /**
+     * Returns whether the proxy-revalidate value is set in the Cache-Control header.
+     *
+     * @return {@code true} if proxy-revalidate is set, {@code false} otherwise.
+     */
+    public boolean isProxyRevalidate() {
+        return proxyRevalidate;
+    }
+
+    /**
+     * Returns whether the public value is set in the Cache-Control header.
+     *
+     * @return {@code true} if public is set, {@code false} otherwise.
+     */
+    public boolean isPublic() {
+        return cachePublic;
+    }
+
+    /**
+     * Returns a string representation of the {@code CacheControl} object, including the max-age, shared-max-age, no-cache,
+     * no-store, private, must-revalidate, proxy-revalidate, and public values.
      *
      * @return A string representation of the object.
      */
@@ -106,6 +209,12 @@ final class CacheControl {
         return "CacheControl{" +
                 "maxAge=" + maxAge +
                 ", sharedMaxAge=" + sharedMaxAge +
+                ", isNoCache=" + noCache +
+                ", isNoStore=" + noStore +
+                ", isPrivate=" + cachePrivate +
+                ", mustRevalidate=" + mustRevalidate +
+                ", proxyRevalidate=" + proxyRevalidate +
+                ", isPublic=" + cachePublic +
                 '}';
     }
 }
