@@ -28,6 +28,7 @@ package org.apache.hc.client5.http.impl.cache;
 
 import java.util.BitSet;
 
+import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
@@ -38,7 +39,6 @@ import org.apache.hc.core5.util.CharArrayBuffer;
 import org.apache.hc.core5.util.Tokenizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 
 /**
  * A parser for the HTTP Cache-Control header that can be used to extract information about caching directives.
@@ -72,10 +72,8 @@ class CacheControlHeaderParser {
     private static final Logger LOG = LoggerFactory.getLogger(CacheControlHeaderParser.class);
 
 
-    /**
-     * The character used to indicate a parameter's value in the Cache-Control header.
-     */
     private final static char EQUAL_CHAR = '=';
+    private final static char SEMICOLON_CHAR = ';';
 
     /**
      * The set of characters that can delimit a token in the header.
@@ -121,6 +119,7 @@ class CacheControlHeaderParser {
 
         long maxAge = -1;
         long sharedMaxAge = -1;
+        final boolean[] booleans = new boolean[6];
 
         final CharArrayBuffer buffer;
         final Tokenizer.Cursor cursor;
@@ -130,7 +129,7 @@ class CacheControlHeaderParser {
         } else {
             final String s = header.getValue();
             if (s == null) {
-                return new CacheControl(maxAge, sharedMaxAge);
+                return new CacheControl();
             }
             buffer = new CharArrayBuffer(s.length());
             buffer.append(s);
@@ -138,13 +137,22 @@ class CacheControlHeaderParser {
         }
 
         while (!cursor.atEnd()) {
+            final int nameStartPos = cursor.getPos();
             final String name = tokenParser.parseToken(buffer, cursor, TOKEN_DELIMS);
+
+            if (cursor.atEnd() && cursor.getPos() > nameStartPos) {
+                updateBooleans(name, booleans);
+                break;
+            }
+
+
             if (cursor.atEnd()) {
-                return new CacheControl(maxAge, sharedMaxAge);
+                break;
             }
             final int valueDelim = buffer.charAt(cursor.getPos());
             cursor.updatePos(cursor.getPos() + 1);
             if (valueDelim != EQUAL_CHAR) {
+                updateBooleans(name, booleans);
                 continue;
             }
             final String value = tokenParser.parseValue(buffer, cursor, VALUE_DELIMS);
@@ -154,9 +162,9 @@ class CacheControlHeaderParser {
             }
 
             try {
-                if (name.equalsIgnoreCase("s-maxage")) {
+                if (name.equalsIgnoreCase(HeaderConstants.CACHE_CONTROL_S_MAX_AGE)) {
                     sharedMaxAge = Long.parseLong(value);
-                } else if (name.equalsIgnoreCase("max-age")) {
+                } else if (name.equalsIgnoreCase(HeaderConstants.CACHE_CONTROL_MAX_AGE)) {
                     maxAge = Long.parseLong(value);
                 }
             } catch (final NumberFormatException e) {
@@ -166,8 +174,31 @@ class CacheControlHeaderParser {
                 }
             }
         }
-        return new CacheControl(maxAge, sharedMaxAge);
+        return new CacheControl(maxAge, sharedMaxAge,  booleans[0], booleans[1], booleans[2], booleans[3], booleans[4], booleans[5]);
     }
+
+    /**
+     * Updates the boolean values for the corresponding cache control headers.
+     *
+     * @param name      The name of the cache control header.
+     * @param booleans  The boolean values to update.
+     */
+    private void updateBooleans(final String name, final boolean[] booleans) {
+        if (name.equalsIgnoreCase(HeaderConstants.CACHE_CONTROL_MUST_REVALIDATE)) {
+            booleans[0] = true;
+        } else if (name.equalsIgnoreCase(HeaderConstants.CACHE_CONTROL_NO_CACHE)) {
+            booleans[1] = true;
+        } else if (name.equalsIgnoreCase(HeaderConstants.CACHE_CONTROL_NO_STORE)) {
+            booleans[2] = true;
+        } else if (name.equalsIgnoreCase(HeaderConstants.PRIVATE)) {
+            booleans[3] = true;
+        } else if (name.equalsIgnoreCase(HeaderConstants.CACHE_CONTROL_PROXY_REVALIDATE)) {
+            booleans[4] = true;
+        } else if (name.equalsIgnoreCase(HeaderConstants.PUBLIC)) {
+            booleans[5] = true;
+        }
+    }
+
 }
 
 

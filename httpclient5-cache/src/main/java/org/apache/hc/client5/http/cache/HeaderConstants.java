@@ -63,6 +63,7 @@ public class HeaderConstants {
     public static final String CACHE_CONTROL_NO_STORE = "no-store";
     public static final String CACHE_CONTROL_NO_CACHE = "no-cache";
     public static final String CACHE_CONTROL_MAX_AGE = "max-age";
+    public static final String CACHE_CONTROL_S_MAX_AGE = "s-maxage";
     public static final String CACHE_CONTROL_MAX_STALE = "max-stale";
     public static final String CACHE_CONTROL_MIN_FRESH = "min-fresh";
     public static final String CACHE_CONTROL_MUST_REVALIDATE = "must-revalidate";
