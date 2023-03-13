@@ -30,8 +30,10 @@ import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class CacheControlParserTest {
 
@@ -104,6 +106,57 @@ public class CacheControlParserTest {
         final Header header = new BasicHeader("Cache-Control", ",,= blah,");
         final CacheControl cacheControl = parser.parse(header);
         assertEquals(-1L, cacheControl.getMaxAge());
+    }
+
+
+    @Test
+    public void testParseMultipleDirectives() {
+        final Header header = new BasicHeader("Cache-Control", "max-age=604800, stale-while-revalidate=86400, s-maxage=3600, must-revalidate, private");
+        final CacheControl cacheControl = parser.parse(header);
+
+        assertAll("Must all pass",
+                () -> assertEquals(604800L, cacheControl.getMaxAge()),
+                () -> assertEquals(3600L, cacheControl.getSharedMaxAge()),
+                () -> assertTrue(cacheControl.isMustRevalidate()),
+                () -> assertTrue(cacheControl.isCachePrivate())
+        );
+    }
+
+    @Test
+    public void testParseMultipleDirectives2() {
+        final Header header = new BasicHeader("Cache-Control", "max-age=604800, stale-while-revalidate=86400, must-revalidate, private, s-maxage=3600");
+        final CacheControl cacheControl = parser.parse(header);
+
+        assertAll("Must all pass",
+                () -> assertEquals(604800L, cacheControl.getMaxAge()),
+                () -> assertEquals(3600L, cacheControl.getSharedMaxAge()),
+                () -> assertTrue(cacheControl.isMustRevalidate()),
+                () -> assertTrue(cacheControl.isCachePrivate())
+        );
+    }
+
+    @Test
+    public void testParsePublic() {
+        final Header header = new BasicHeader("Cache-Control", "public");
+        final CacheControl cacheControl = parser.parse(header);
+
+        assertTrue(cacheControl.isPublic());
+    }
+
+    @Test
+    public void testParsePrivate() {
+        final Header header = new BasicHeader("Cache-Control", "private");
+        final CacheControl cacheControl = parser.parse(header);
+
+        assertTrue(cacheControl.isCachePrivate());
+    }
+
+    @Test
+    public void testParseNoStore() {
+        final Header header = new BasicHeader("Cache-Control", "no-store");
+        final CacheControl cacheControl = parser.parse(header);
+
+        assertTrue(cacheControl.isNoStore());
     }
 
 }
