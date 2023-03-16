@@ -31,12 +31,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.SocketException;
+import java.util.Arrays;
+import java.util.List;
 
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.conn.EofSensorInputStream;
 import org.apache.http.conn.EofSensorWatcher;
 import org.apache.http.entity.HttpEntityWrapper;
+import org.apache.http.impl.io.ChunkedInputStream;
 
 /**
  * A wrapper class for {@link HttpEntity} enclosed in a response message.
@@ -171,6 +175,22 @@ class ResponseEntityProxy extends HttpEntityWrapper implements EofSensorWatcher 
         sb.append(wrappedEntity);
         sb.append('}');
         return sb.toString();
+    }
+
+    public List<Header> getTrailers() {
+            try {
+                final InputStream underlyingStream = super.getContent();
+                final Header[] footers;
+                if (underlyingStream instanceof ChunkedInputStream) {
+                    final ChunkedInputStream chunkedInputStream = (ChunkedInputStream) underlyingStream;
+                    footers = chunkedInputStream.getFooters();
+                } else {
+                    footers = new Header[0];
+                }
+                return Arrays.asList(footers);
+            } catch (final IOException e) {
+                throw new IllegalStateException("Unable to retrieve input stream", e);
+            }
     }
 
 }
