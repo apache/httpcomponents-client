@@ -26,8 +26,8 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
+import java.time.Duration;
 import java.time.Instant;
-import java.util.Date;
 import java.util.Random;
 
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
@@ -913,12 +913,11 @@ public class TestResponseCachingPolicy {
     void testIsResponseCacheableNullCacheControl() {
 
         // Set up test data
-        final long now = System.currentTimeMillis();
-        final long tenSecondsFromNow = now + 10000;
+        final Duration tenSecondsFromNow = Duration.ofSeconds(10);
 
         response = new BasicHttpResponse(HttpStatus.SC_OK, "");
-        response.setHeader(HttpHeaders.DATE, DateUtils.formatDate(new Date(now), DateUtils.PATTERN_RFC1123));
-        response.setHeader(HttpHeaders.EXPIRES, DateUtils.formatDate(new Date(tenSecondsFromNow), DateUtils.PATTERN_RFC1123));
+        response.setHeader(HttpHeaders.DATE, DateUtils.formatStandardDate(Instant.now()));
+       response.setHeader(HttpHeaders.EXPIRES, DateUtils.formatStandardDate(Instant.now().plus(tenSecondsFromNow)));
 
 
         // Create ResponseCachingPolicy instance and test the method
@@ -935,12 +934,11 @@ public class TestResponseCachingPolicy {
     void testIsResponseCacheableNotNullCacheControlSmaxAge60() {
 
         // Set up test data
-        final long now = System.currentTimeMillis();
-        final long tenSecondsFromNow = now + 10000;
+        final Duration tenSecondsFromNow = Duration.ofSeconds(10);
 
         response = new BasicHttpResponse(HttpStatus.SC_OK, "");
-        response.setHeader(HttpHeaders.DATE, DateUtils.formatDate(new Date(now), DateUtils.PATTERN_RFC1123));
-        response.setHeader(HttpHeaders.EXPIRES, DateUtils.formatDate(new Date(tenSecondsFromNow), DateUtils.PATTERN_RFC1123));
+        response.setHeader(HttpHeaders.DATE, DateUtils.formatStandardDate(Instant.now()));
+       response.setHeader(HttpHeaders.EXPIRES, DateUtils.formatStandardDate(Instant.now().plus(tenSecondsFromNow)));
 
 
         // Create ResponseCachingPolicy instance and test the method
@@ -957,12 +955,11 @@ public class TestResponseCachingPolicy {
     void testIsResponseCacheableNotNullCacheControlMaxAge60() {
 
         // Set up test data
-        final long now = System.currentTimeMillis();
-        final long tenSecondsFromNow = now + 10000;
+        final Duration tenSecondsFromNow = Duration.ofSeconds(10);
 
         response = new BasicHttpResponse(HttpStatus.SC_OK, "");
-        response.setHeader(HttpHeaders.DATE, DateUtils.formatDate(new Date(now), DateUtils.PATTERN_RFC1123));
-        response.setHeader(HttpHeaders.EXPIRES, DateUtils.formatDate(new Date(tenSecondsFromNow), DateUtils.PATTERN_RFC1123));
+        response.setHeader(HttpHeaders.DATE, DateUtils.formatStandardDate(Instant.now()));
+        response.setHeader(HttpHeaders.EXPIRES, DateUtils.formatStandardDate(Instant.now().plus(tenSecondsFromNow)));
 
 
         // Create ResponseCachingPolicy instance and test the method
@@ -979,12 +976,11 @@ public class TestResponseCachingPolicy {
     void testIsResponseCacheableNotExsiresAndDate() {
 
         // Set up test data
-        final long now = System.currentTimeMillis();
-        final long tenSecondsFromNow = now + 10000;
+        final Duration tenSecondsFromNow = Duration.ofSeconds(10);
 
         response = new BasicHttpResponse(HttpStatus.SC_OK, "");
-        response.setHeader(HttpHeaders.DATE, DateUtils.formatDate(new Date(now), DateUtils.PATTERN_RFC1123));
-        response.setHeader(HttpHeaders.EXPIRES, DateUtils.formatDate(new Date(tenSecondsFromNow), DateUtils.PATTERN_RFC1123));
+        response.setHeader(HttpHeaders.DATE, DateUtils.formatStandardDate(Instant.now()));
+        response.setHeader(HttpHeaders.EXPIRES, DateUtils.formatStandardDate(Instant.now().plus(tenSecondsFromNow)));
 
 
         // Create ResponseCachingPolicy instance and test the method
