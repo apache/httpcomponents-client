@@ -45,12 +45,37 @@ class HttpRFC7578Multipart extends AbstractMultipartFormat {
 
     private final List<MultipartPart> parts;
 
+    /**
+     * Constructs a new instance of {@code HttpRFC7578Multipart} with the given charset, boundary, parts, preamble, and epilogue.
+     *
+     * @param charset  the charset to use.
+     * @param boundary the boundary string to use.
+     * @param parts    the list of parts to include in the multipart message.
+     * @param preamble the optional preamble string to include before the first part. May be {@code null}.
+     * @param epilogue the optional epilogue string to include after the last part. May be {@code null}.
+     */
     public HttpRFC7578Multipart(
         final Charset charset,
         final String boundary,
-        final List<MultipartPart> parts) {
-        super(charset, boundary);
+        final List<MultipartPart> parts,
+        final String preamble,
+        final String epilogue) {
+        super(charset, boundary, preamble, epilogue);
         this.parts = parts;
+    }
+
+    /**
+     * Constructs a new instance of {@code HttpRFC7578Multipart} with the given charset, boundary, and parts.
+     *
+     * @param charset  the charset to use.
+     * @param boundary the boundary string to use.
+     * @param parts    the list of parts to include in the multipart message.
+     */
+    public HttpRFC7578Multipart(
+            final Charset charset,
+            final String boundary,
+            final List<MultipartPart> parts) {
+        this(charset,boundary,parts,null, null);
     }
 
     @Override
