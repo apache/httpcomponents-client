@@ -424,9 +424,6 @@ public class RequestConfig implements Cloneable {
          * Returns the connection lease request timeout used when requesting
          * a connection from the connection manager.
          * <p>
-         * A timeout value of zero is interpreted as an infinite timeout.
-         * </p>
-         * <p>
          * Default: 3 minutes.
          * </p>
          */
