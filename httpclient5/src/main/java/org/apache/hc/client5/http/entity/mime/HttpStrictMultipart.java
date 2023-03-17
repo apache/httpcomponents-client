@@ -36,11 +36,37 @@ class HttpStrictMultipart extends AbstractMultipartFormat {
 
     private final List<MultipartPart> parts;
 
+    /**
+     * Constructs a new instance of {@code HttpStrictMultipart} with the given charset, boundary, and parts.
+     *
+     * @param charset the charset to use.
+     * @param boundary the boundary string to use.
+     * @param parts the list of parts to include in the multipart message.
+     */
     public HttpStrictMultipart(
             final Charset charset,
             final String boundary,
             final List<MultipartPart> parts) {
-        super(charset, boundary);
+       this(charset,boundary,parts,null, null);
+    }
+
+
+    /**
+     * Constructs a new instance of {@code HttpStrictMultipart} with the given charset, boundary, parts, preamble, and epilogue.
+     *
+     * @param charset the charset to use.
+     * @param boundary the boundary string to use.
+     * @param parts the list of parts to include in the multipart message.
+     * @param preamble the preamble string to use.
+     * @param epilogue the epilogue string to use.
+     */
+    public HttpStrictMultipart(
+            final Charset charset,
+            final String boundary,
+            final List<MultipartPart> parts,
+            final String preamble,
+            final String epilogue) {
+        super(charset, boundary, preamble, epilogue);
         this.parts = parts;
     }
 

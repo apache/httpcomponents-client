@@ -373,4 +373,45 @@ public class TestMultipartForm {
         Assertions.assertEquals(expected.length, multipart.getTotalLength());
     }
 
+    @Test
+    public void testMultipartFormBinaryPartsPreamblEpilogue() throws Exception {
+        tmpfile = File.createTempFile("tmp", ".bin");
+        try (Writer writer = new FileWriter(tmpfile)) {
+            writer.append("some random whatever");
+        }
+
+        final FormBodyPart p1 = FormBodyPartBuilder.create(
+                "field1",
+                new FileBody(tmpfile)).build();
+        @SuppressWarnings("resource")
+        final FormBodyPart p2 = FormBodyPartBuilder.create(
+                "field2",
+                new InputStreamBody(new FileInputStream(tmpfile), "file.tmp")).build();
+        final HttpStrictMultipart multipart = new HttpStrictMultipart(null, "foo",
+                Arrays.asList(p1, p2), "This is the preamble", "This is the epilogue");
+
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        multipart.writeTo(out);
+        out.close();
+
+        final String expected =
+                "This is the preamble\r\n" +
+                        "--foo\r\n" +
+                        "Content-Disposition: form-data; name=\"field1\"; " +
+                        "filename=\"" + tmpfile.getName() + "\"\r\n" +
+                        "Content-Type: application/octet-stream\r\n" +
+                        "\r\n" +
+                        "some random whatever\r\n" +
+                        "--foo\r\n" +
+                        "Content-Disposition: form-data; name=\"field2\"; " +
+                        "filename=\"file.tmp\"\r\n" +
+                        "Content-Type: application/octet-stream\r\n" +
+                        "\r\n" +
+                        "some random whatever\r\n" +
+                        "--foo--\r\n" +
+                        "This is the epilogue\r\n";
+        final String s = out.toString("US-ASCII");
+        Assertions.assertEquals(expected, s);
+        Assertions.assertEquals(-1, multipart.getTotalLength());
+    }
 }

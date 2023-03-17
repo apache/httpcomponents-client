@@ -220,4 +220,38 @@ public class TestMultipartEntityBuilder {
                 "--xxxxxxxxxxxxxxxxxxxxxxxx--\r\n", out.toString(StandardCharsets.ISO_8859_1.name()));
     }
 
+    @Test
+    public void testMultipartWriteToWithPreambleAndEpilogue() throws Exception {
+        final String helloWorld = "hello \u03BA\u03CC\u03C3\u03BC\u03B5!%";
+        final List<NameValuePair> parameters = new ArrayList<>();
+        parameters.add(new BasicNameValuePair(MimeConsts.FIELD_PARAM_NAME, "test"));
+        parameters.add(new BasicNameValuePair(MimeConsts.FIELD_PARAM_FILENAME, helloWorld));
+
+        final MultipartFormEntity entity = MultipartEntityBuilder.create()
+                .setMode(HttpMultipartMode.EXTENDED)
+                .setContentType(ContentType.create("multipart/other"))
+                .setBoundary("xxxxxxxxxxxxxxxxxxxxxxxx")
+                .addPart(new FormBodyPartBuilder()
+                        .setName("test")
+                        .setBody(new StringBody(helloWorld, ContentType.TEXT_PLAIN.withCharset(StandardCharsets.UTF_8)))
+                        .addField("Content-Disposition", "multipart/form-data", parameters)
+                        .build())
+                .addPreamble("This is the preamble.")
+                .addEpilogue("This is the epilogue.")
+                .buildEntity();
+
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        entity.writeTo(out);
+        out.close();
+        Assertions.assertEquals("This is the preamble.\r\n" +
+                "--xxxxxxxxxxxxxxxxxxxxxxxx\r\n" +
+                "Content-Disposition: multipart/form-data; name=\"test\"; " +
+                "filename=\"hello \u00ce\u00ba\u00cf\u008c\u00cf\u0083\u00ce\u00bc\u00ce\u00b5!%\"\r\n" +
+                "Content-Type: text/plain; charset=UTF-8\r\n" +
+                "\r\n" +
+                "hello \u00ce\u00ba\u00cf\u008c\u00cf\u0083\u00ce\u00bc\u00ce\u00b5!%\r\n" +
+                "--xxxxxxxxxxxxxxxxxxxxxxxx--\r\n" +
+                "This is the epilogue.\r\n", out.toString(StandardCharsets.ISO_8859_1.name()));
+    }
+
 }

@@ -48,7 +48,7 @@ import org.apache.hc.core5.util.Args;
  *
  * @since 5.0
  */
-public class MultipartEntityBuilder {
+    public class MultipartEntityBuilder {
 
     /**
      * The pool of ASCII chars to be used for generating a multipart boundary.
@@ -62,6 +62,20 @@ public class MultipartEntityBuilder {
     private String boundary;
     private Charset charset;
     private List<MultipartPart> multipartParts;
+
+    /**
+     * The preamble of the multipart message.
+     * This field stores the optional preamble that should be added at the beginning of the multipart message.
+     * It can be {@code null} if no preamble is needed.
+     */
+    private String preamble;
+
+    /**
+     * The epilogue of the multipart message.
+     * This field stores the optional epilogue that should be added at the end of the multipart message.
+     * It can be {@code null} if no epilogue is needed.
+     */
+    private String epilogue;
 
     /**
      * An empty immutable {@code NameValuePair} array.
@@ -189,6 +203,33 @@ public class MultipartEntityBuilder {
         return addBinaryBody(name, stream, ContentType.DEFAULT_BINARY, null);
     }
 
+    /**
+     * Adds a preamble to the multipart entity being constructed. The preamble is the text that appears before the first
+     * boundary delimiter. The preamble is optional and may be null.
+     *
+     * @param preamble The preamble text to add to the multipart entity
+     * @return This MultipartEntityBuilder instance, to allow for method chaining
+     *
+     * @since 5.3
+     */
+    public MultipartEntityBuilder addPreamble(final String preamble) {
+        this.preamble = preamble;
+        return this;
+    }
+
+    /**
+     * Adds an epilogue to the multipart entity being constructed. The epilogue is the text that appears after the last
+     * boundary delimiter. The epilogue is optional and may be null.
+     *
+     * @param epilogue The epilogue text to add to the multipart entity
+     * @return This MultipartEntityBuilder instance, to allow for method chaining
+     * @since 5.3
+     */
+    public MultipartEntityBuilder addEpilogue(final String epilogue) {
+        this.epilogue = epilogue;
+        return this;
+    }
+
     private String generateBoundary() {
         final ThreadLocalRandom rand = ThreadLocalRandom.current();
         final int count = rand.nextInt(30, 41); // a random size from 30 to 40
@@ -252,13 +293,13 @@ public class MultipartEntityBuilder {
                     if (charsetCopy == null) {
                         charsetCopy = StandardCharsets.UTF_8;
                     }
-                    form = new HttpRFC7578Multipart(charsetCopy, boundaryCopy, multipartPartsCopy);
+                    form = new HttpRFC7578Multipart(charsetCopy, boundaryCopy, multipartPartsCopy, preamble, epilogue);
                 } else {
-                    form = new HttpRFC6532Multipart(charsetCopy, boundaryCopy, multipartPartsCopy);
+                    form = new HttpRFC6532Multipart(charsetCopy, boundaryCopy, multipartPartsCopy, preamble, epilogue);
                 }
                 break;
             default:
-                form = new HttpStrictMultipart(StandardCharsets.US_ASCII, boundaryCopy, multipartPartsCopy);
+                form = new HttpStrictMultipart(StandardCharsets.US_ASCII, boundaryCopy, multipartPartsCopy, preamble, epilogue);
         }
         return new MultipartFormEntity(form, contentTypeCopy, form.getTotalLength());
     }
