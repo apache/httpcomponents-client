@@ -163,6 +163,15 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
                 poolConcurrencyPolicy, poolReusePolicy, timeToLive);
     }
 
+    PoolingAsyncClientConnectionManager(
+            final PoolConcurrencyPolicy poolConcurrencyPolicy,
+            final PoolReusePolicy poolReusePolicy,
+            final TimeValue timeToLive,
+            final AsyncClientConnectionOperator connectionOperator) {
+        this(connectionOperator,
+                poolConcurrencyPolicy, poolReusePolicy, timeToLive);
+    }
+
     @Internal
     protected PoolingAsyncClientConnectionManager(
             final AsyncClientConnectionOperator connectionOperator,
