@@ -34,8 +34,8 @@ import org.apache.hc.client5.http.cache.HttpCacheEntrySerializer;
 import org.apache.hc.client5.http.cache.HttpCacheStorageEntry;
 import org.apache.hc.client5.http.cache.ResourceIOException;
 import org.apache.hc.client5.http.impl.cache.AbstractSerializingCacheStorage;
-import org.apache.hc.client5.http.impl.cache.ByteArrayCacheEntrySerializer;
 import org.apache.hc.client5.http.impl.cache.CacheConfig;
+import org.apache.hc.client5.http.impl.cache.HttpByteArrayCacheEntrySerializer;
 import org.apache.hc.client5.http.impl.cache.NoopCacheEntrySerializer;
 import org.apache.hc.core5.util.Args;
 import org.ehcache.Cache;
@@ -76,7 +76,7 @@ public class EhcacheHttpCacheStorage<T> extends AbstractSerializingCacheStorage<
      */
     public static EhcacheHttpCacheStorage<byte[]> createSerializedCache(
             final Cache<String, byte[]> cache, final CacheConfig config) {
-        return new EhcacheHttpCacheStorage<>(cache, config, ByteArrayCacheEntrySerializer.INSTANCE);
+        return new EhcacheHttpCacheStorage<>(cache, config, HttpByteArrayCacheEntrySerializer.INSTANCE);
     }
 
     private final Cache<String, T> cache;

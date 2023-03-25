@@ -32,8 +32,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
@@ -42,14 +44,16 @@ import org.apache.hc.client5.http.cache.HttpCacheEntrySerializer;
 import org.apache.hc.client5.http.cache.HttpCacheStorageEntry;
 import org.apache.hc.client5.http.cache.Resource;
 import org.apache.hc.client5.http.cache.ResourceIOException;
-import org.apache.hc.core5.annotation.Experimental;
-import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.ProtocolVersion;
+import org.apache.hc.core5.http.config.Http1Config;
 import org.apache.hc.core5.http.impl.io.AbstractMessageParser;
 import org.apache.hc.core5.http.impl.io.AbstractMessageWriter;
 import org.apache.hc.core5.http.impl.io.DefaultHttpResponseParser;
@@ -57,21 +61,51 @@ import org.apache.hc.core5.http.impl.io.SessionInputBufferImpl;
 import org.apache.hc.core5.http.impl.io.SessionOutputBufferImpl;
 import org.apache.hc.core5.http.io.SessionInputBuffer;
 import org.apache.hc.core5.http.io.SessionOutputBuffer;
+import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
 import org.apache.hc.core5.http.message.BasicLineFormatter;
+import org.apache.hc.core5.http.message.HeaderGroup;
+import org.apache.hc.core5.http.message.LazyLineParser;
 import org.apache.hc.core5.http.message.StatusLine;
 import org.apache.hc.core5.util.CharArrayBuffer;
 import org.apache.hc.core5.util.TimeValue;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * Cache serializer and deserializer that uses an HTTP-like format.
+ * Serializes and deserializes byte arrays into HTTP cache entries using a default buffer size of 8192 bytes.
+ * The cache entries contain an HTTP response generated from the byte array data, which can be used to generate
+ * HTTP responses for cache hits.
+ * <p>
+ * This implementation uses the Apache HttpComponents library to perform the serialization and deserialization.
+ * <p>
+ * To serialize a byte array into an HTTP cache entry, use the {@link #serialize(HttpCacheStorageEntry)} method. To deserialize an HTTP cache
+ * entry into a byte array, use the {@link #deserialize(byte[])} method.
+ * <p>
+ * This class implements the {@link HttpCacheEntrySerializer} interface, which defines the contract for HTTP cache
+ * entry serialization and deserialization. It also includes a default buffer size of 8192 bytes, which can be
+ * overridden by specifying a different buffer size in the constructor.
+ * <p>
+ * Note that this implementation only supports HTTP responses and does not support HTTP requests or any other types of
+ * HTTP messages.
  *
- * Existing libraries for reading and writing HTTP are used, and metadata is encoded into HTTP
- * pseudo-headers for storage.
+ * @since 5.3
  */
-@Experimental
+@Contract(threading = ThreadingBehavior.STATELESS)
 public class HttpByteArrayCacheEntrySerializer implements HttpCacheEntrySerializer<byte[]> {
-    public static final HttpByteArrayCacheEntrySerializer INSTANCE = new HttpByteArrayCacheEntrySerializer();
+
+    private static final Logger LOG = LoggerFactory.getLogger(HttpByteArrayCacheEntrySerializer.class);
+
+    /**
+     * The default buffer size used for I/O operations, set to 8192 bytes.
+     */
+    private static final int DEFAULT_BUFFER_SIZE = 8192;
+
+    /**
+     * Singleton instance of this class.
+     */
+    public static final HttpByteArrayCacheEntrySerializer INSTANCE = new HttpByteArrayCacheEntrySerializer(DEFAULT_BUFFER_SIZE);
+
 
     private static final String SC_CACHE_ENTRY_PREFIX = "hc-";
 
@@ -81,14 +115,58 @@ public class HttpByteArrayCacheEntrySerializer implements HttpCacheEntrySerializ
     private static final String SC_HEADER_NAME_NO_CONTENT = SC_CACHE_ENTRY_PREFIX + "no-content";
     private static final String SC_HEADER_NAME_VARIANT_MAP_KEY = SC_CACHE_ENTRY_PREFIX + "varmap-key";
     private static final String SC_HEADER_NAME_VARIANT_MAP_VALUE = SC_CACHE_ENTRY_PREFIX + "varmap-val";
-
     private static final String SC_CACHE_ENTRY_PRESERVE_PREFIX = SC_CACHE_ENTRY_PREFIX + "esc-";
 
-    private static final int BUFFER_SIZE = 8192;
 
-    public HttpByteArrayCacheEntrySerializer() {
+    /**
+     * The generator used to generate cached HTTP responses.
+     */
+    private final CachedHttpResponseGenerator cachedHttpResponseGenerator;
+
+    /**
+     * The size of the buffer used for reading/writing data.
+     */
+    private final int bufferSize;
+
+    /**
+     * The parser used for reading SimpleHttpResponse instances from the network.
+     */
+    private final AbstractMessageParser<SimpleHttpResponse> responseParser = new SimpleHttpResponseParser();
+
+    /**
+     * The writer used for writing SimpleHttpResponse instances to the network.
+     */
+    private final AbstractMessageWriter<SimpleHttpResponse> responseWriter = new SimpleHttpResponseWriter();
+
+    /**
+     * Constructs a HttpByteArrayCacheEntrySerializer with the specified buffer size.
+     *
+     * @param bufferSize the buffer size to use for serialization and deserialization.
+     */
+    public HttpByteArrayCacheEntrySerializer(
+            final int bufferSize) {
+        this.bufferSize = bufferSize > 0 ? bufferSize : DEFAULT_BUFFER_SIZE;
+        this.cachedHttpResponseGenerator = new CachedHttpResponseGenerator(NoAgeCacheValidityPolicy.INSTANCE);
     }
 
+    /**
+     * Constructs a new instance of {@code HttpByteArrayCacheEntrySerializer} with a default buffer size.
+     *
+     * @see #DEFAULT_BUFFER_SIZE
+     */
+    public HttpByteArrayCacheEntrySerializer() {
+        this(DEFAULT_BUFFER_SIZE);
+    }
+
+    /**
+     * Serializes an HttpCacheStorageEntry object into a byte array using an HTTP-like format.
+     * <p>
+     * The metadata is encoded into HTTP pseudo-headers for storage.
+     *
+     * @param httpCacheEntry the HttpCacheStorageEntry to serialize.
+     * @return the byte array containing the serialized HttpCacheStorageEntry.
+     * @throws ResourceIOException if there is an error during serialization.
+     */
     @Override
     public byte[] serialize(final HttpCacheStorageEntry httpCacheEntry) throws ResourceIOException {
         if (httpCacheEntry.getKey() == null) {
@@ -100,67 +178,138 @@ public class HttpByteArrayCacheEntrySerializer implements HttpCacheEntrySerializ
         // Use request method from httpCacheEntry, but as far as I can tell it will only ever return "GET".
         final HttpRequest httpRequest = new BasicHttpRequest(httpCacheEntry.getContent().getRequestMethod(), "/");
 
-        final CacheValidityPolicy cacheValidityPolicy = new NoAgeCacheValidityPolicy();
-        final CachedHttpResponseGenerator cachedHttpResponseGenerator = new CachedHttpResponseGenerator(cacheValidityPolicy);
-
         final SimpleHttpResponse httpResponse = cachedHttpResponseGenerator.generateResponse(httpRequest, httpCacheEntry.getContent());
-
-        try(final ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+        final int size = httpResponse.getHeaders().length + (httpResponse.getBodyBytes() != null ? httpResponse.getBodyBytes().length : 0);
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream(size)) {
             escapeHeaders(httpResponse);
             addMetadataPseudoHeaders(httpResponse, httpCacheEntry);
 
             final byte[] bodyBytes = httpResponse.getBodyBytes();
-            final int resourceLength;
+            int resourceLength = 0;
 
             if (bodyBytes == null) {
                 // This means no content, for example a 204 response
                 httpResponse.addHeader(SC_HEADER_NAME_NO_CONTENT, Boolean.TRUE.toString());
-                resourceLength = 0;
             } else {
                 resourceLength = bodyBytes.length;
             }
 
-            // Use the default, ASCII-only encoder for HTTP protocol and header values.
-            // It's the only thing that's widely used, and it's not worth it to support anything else.
-            final SessionOutputBufferImpl outputBuffer = new SessionOutputBufferImpl(BUFFER_SIZE);
-            final AbstractMessageWriter<SimpleHttpResponse> httpResponseWriter = makeHttpResponseWriter(outputBuffer);
-            httpResponseWriter.write(httpResponse, outputBuffer, out);
+            final SessionOutputBuffer outputBuffer = new SessionOutputBufferImpl(bufferSize);
+
+            responseWriter.write(httpResponse, outputBuffer, out);
             outputBuffer.flush(out);
             final byte[] headerBytes = out.toByteArray();
 
-            final byte[] bytes = new byte[headerBytes.length + resourceLength];
-            System.arraycopy(headerBytes, 0, bytes, 0, headerBytes.length);
+            final ByteBuffer buffer = ByteBuffer.allocate(headerBytes.length + resourceLength);
+            buffer.put(headerBytes, 0, headerBytes.length);
             if (resourceLength > 0) {
-                System.arraycopy(bodyBytes, 0, bytes, headerBytes.length, resourceLength);
+                buffer.put(bodyBytes, 0, resourceLength);
             }
-            return bytes;
-        } catch(final IOException|HttpException e) {
+
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Serialized cache entry with key {} and {} bytes", httpCacheEntry.getKey(), size);
+            }
+
+            return buffer.array();
+
+        } catch (final IOException | HttpException e) {
             throw new ResourceIOException("Exception while serializing cache entry", e);
         }
     }
 
+    /**
+     * Deserializes a byte array representation of an HTTP cache storage entry into an instance of
+     * {@link HttpCacheStorageEntry}.
+     *
+     * @param serializedObject the byte array representation of the HTTP cache storage entry
+     * @return the deserialized HTTP cache storage entry
+     * @throws ResourceIOException if an error occurs during deserialization
+     */
     @Override
     public HttpCacheStorageEntry deserialize(final byte[] serializedObject) throws ResourceIOException {
-        try (final InputStream in = makeByteArrayInputStream(serializedObject);
+        if (serializedObject == null || serializedObject.length == 0) {
+            throw new ResourceIOException("Serialized object is null or empty");
+        }
+        try (final InputStream in = new ByteArrayInputStream(serializedObject);
              final ByteArrayOutputStream bytesOut = new ByteArrayOutputStream(serializedObject.length) // this is bigger than necessary but will save us from reallocating
         ) {
-            final SessionInputBufferImpl inputBuffer = new SessionInputBufferImpl(BUFFER_SIZE);
-            final AbstractMessageParser<ClassicHttpResponse> responseParser = makeHttpResponseParser();
-            final ClassicHttpResponse response = responseParser.parse(inputBuffer, in);
+            final SessionInputBufferImpl inputBuffer = new SessionInputBufferImpl(bufferSize);
+            final SimpleHttpResponse response = responseParser.parse(inputBuffer, in);
 
-            // Extract metadata pseudo-headers
-            final String storageKey = getCachePseudoHeaderAndRemove(response, SC_HEADER_NAME_STORAGE_KEY);
-            final Instant requestDate = getCachePseudoHeaderDateAndRemove(response, SC_HEADER_NAME_REQUEST_DATE);
-            final Instant responseDate = getCachePseudoHeaderDateAndRemove(response, SC_HEADER_NAME_RESPONSE_DATE);
-            final boolean noBody = getCachePseudoHeaderBooleanAndRemove(response, SC_HEADER_NAME_NO_CONTENT);
-            final Map<String, String> variantMap = getVariantMapPseudoHeadersAndRemove(response);
-            unescapeHeaders(response);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Deserializing cache entry with headers: {}", response.getHeaders());
+            }
 
-            final Resource resource;
-            if (noBody) {
-                // This means no content, for example a 204 response
-                resource = null;
-            } else {
+            final Map<String, String> variantMap = new HashMap<>();
+
+            String lastKey = null;
+            String storageKey = null;
+            Instant requestDate = null;
+            Instant responseDate= null;
+            boolean noBody = false;
+
+            final HeaderGroup headerGroup = new HeaderGroup();
+
+            for (final Iterator<Header> it = response.headerIterator(); it.hasNext(); ) {
+                final Header header = it.next();
+
+                if (header != null) {
+                    final String headerName = header.getName();
+                    final String value = header.getValue();
+
+                    if (headerName.equals(SC_HEADER_NAME_VARIANT_MAP_KEY)) {
+                        lastKey = header.getValue();
+                        continue;
+                    } else if (headerName.equals(SC_HEADER_NAME_VARIANT_MAP_VALUE)) {
+                        if (lastKey == null) {
+                            throw new ResourceIOException("Found mismatched variant map key/value headers");
+                        }
+                        variantMap.put(lastKey, value);
+                        lastKey = null;
+                    }
+
+                    if (headerName.equalsIgnoreCase(SC_HEADER_NAME_STORAGE_KEY)) {
+                        storageKey = value;
+                        continue;
+                    }
+
+                    if (headerName.equalsIgnoreCase(SC_HEADER_NAME_REQUEST_DATE)) {
+                        requestDate = parseCachePseudoHeaderDate(value);
+                        continue;
+                    }
+
+                    if (headerName.equalsIgnoreCase(SC_HEADER_NAME_RESPONSE_DATE)) {
+                        responseDate = parseCachePseudoHeaderDate(value);
+                        continue;
+                    }
+
+                    if (headerName.equalsIgnoreCase(SC_HEADER_NAME_NO_CONTENT)) {
+                        noBody = Boolean.parseBoolean(value);
+                        continue;
+                    }
+
+                    if (headerName.startsWith(SC_CACHE_ENTRY_PRESERVE_PREFIX)) {
+                        headerGroup.addHeader(new BasicHeader(header.getName().substring(SC_CACHE_ENTRY_PRESERVE_PREFIX.length()), header.getValue()));
+                        continue;
+                    }
+                    headerGroup.addHeader(header);
+                }
+            }
+
+            headerNotNull(storageKey,SC_HEADER_NAME_STORAGE_KEY);
+            headerNotNull(requestDate, SC_HEADER_NAME_REQUEST_DATE);
+            headerNotNull(responseDate, SC_HEADER_NAME_RESPONSE_DATE);
+
+
+            if (lastKey != null) {
+                throw new ResourceIOException("Found mismatched variant map key/value headers");
+            }
+
+            response.setHeaders(headerGroup.getHeaders());
+
+            Resource resource = null;
+            if (!noBody) {
+
                 copyBytes(inputBuffer, in, bytesOut);
                 resource = new HeapResource(bytesOut.toByteArray());
             }
@@ -174,45 +323,16 @@ public class HttpByteArrayCacheEntrySerializer implements HttpCacheEntrySerializ
                     variantMap
             );
 
+
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Returning deserialized cache entry with storage key '{}'" , httpCacheEntry);
+            }
+
+
             return new HttpCacheStorageEntry(storageKey, httpCacheEntry);
-        } catch (final IOException|HttpException e) {
+        } catch (final IOException | HttpException e) {
             throw new ResourceIOException("Error deserializing cache entry", e);
         }
-    }
-
-    /**
-     * Helper method to make a new HTTP response writer.
-     * <p>
-     * Useful to override for testing.
-     *
-     * @param outputBuffer Output buffer to write to
-     * @return HTTP response writer to write to
-     */
-    protected AbstractMessageWriter<SimpleHttpResponse> makeHttpResponseWriter(final SessionOutputBuffer outputBuffer) {
-        return new SimpleHttpResponseWriter();
-    }
-
-    /**
-     * Helper method to make a new ByteArrayInputStream.
-     * <p>
-     * Useful to override for testing.
-     *
-     * @param bytes Bytes to read from the stream
-     * @return Stream to read the bytes from
-     */
-    protected InputStream makeByteArrayInputStream(final byte[] bytes) {
-        return new ByteArrayInputStream(bytes);
-    }
-
-    /**
-     * Helper method to make a new HTTP Response parser.
-     * <p>
-     * Useful to override for testing.
-     *
-     * @return HTTP response parser
-     */
-    protected AbstractMessageParser<ClassicHttpResponse> makeHttpResponseParser() {
-        return new DefaultHttpResponseParser();
     }
 
     /**
@@ -220,33 +340,20 @@ public class HttpByteArrayCacheEntrySerializer implements HttpCacheEntrySerializ
      * prefixing them with an escape sequence we can use to recover them later.
      *
      * @param httpResponse HTTP response object to escape headers in
-     * @see #unescapeHeaders(HttpResponse) for the corresponding un-escaper.
      */
-    private static void escapeHeaders(final HttpResponse httpResponse) {
-        final Header[] headers = httpResponse.getHeaders();
-        for (final Header header : headers) {
-            if (header.getName().startsWith(SC_CACHE_ENTRY_PREFIX)) {
-                httpResponse.removeHeader(header);
-                httpResponse.addHeader(SC_CACHE_ENTRY_PRESERVE_PREFIX + header.getName(), header.getValue());
+    private void escapeHeaders(final HttpResponse httpResponse) {
+        final HeaderGroup headerGroup = new HeaderGroup();
+        for (final Iterator<Header> it = httpResponse.headerIterator(); it.hasNext(); ) {
+            final Header header = it.next();
+            if (header != null && header.getName().startsWith(SC_CACHE_ENTRY_PREFIX)) {
+                headerGroup.addHeader(new BasicHeader(SC_CACHE_ENTRY_PRESERVE_PREFIX + header.getName(), header.getValue()));
+            } else if (header != null) {
+                headerGroup.addHeader(header);
             }
         }
+        httpResponse.setHeaders(headerGroup.getHeaders());
     }
 
-    /**
-     * Modify the given response to remove escaping from any header names we escaped before saving.
-     *
-     * @param httpResponse HTTP response object to un-escape headers in
-     * @see #unescapeHeaders(HttpResponse) for the corresponding escaper
-     */
-    private void unescapeHeaders(final HttpResponse httpResponse) {
-        final Header[] headers = httpResponse.getHeaders();
-        for (final Header header : headers) {
-            if (header.getName().startsWith(SC_CACHE_ENTRY_PRESERVE_PREFIX)) {
-                httpResponse.removeHeader(header);
-                httpResponse.addHeader(header.getName().substring(SC_CACHE_ENTRY_PRESERVE_PREFIX.length()), header.getValue());
-            }
-        }
-    }
 
     /**
      * Modify the given response to add our own cache metadata as pseudo-headers.
@@ -254,125 +361,51 @@ public class HttpByteArrayCacheEntrySerializer implements HttpCacheEntrySerializ
      * @param httpResponse HTTP response object to add pseudo-headers to
      */
     private void addMetadataPseudoHeaders(final HttpResponse httpResponse, final HttpCacheStorageEntry httpCacheEntry) {
-        httpResponse.addHeader(SC_HEADER_NAME_STORAGE_KEY, httpCacheEntry.getKey());
-        httpResponse.addHeader(SC_HEADER_NAME_RESPONSE_DATE, Long.toString(httpCacheEntry.getContent().getResponseInstant().toEpochMilli()));
-        httpResponse.addHeader(SC_HEADER_NAME_REQUEST_DATE, Long.toString(httpCacheEntry.getContent().getRequestInstant().toEpochMilli()));
+        final HeaderGroup headerGroup = new HeaderGroup();
+        headerGroup.setHeaders(httpResponse.getHeaders());
+        headerGroup.addHeader(new BasicHeader(SC_HEADER_NAME_STORAGE_KEY, httpCacheEntry.getKey()));
+        headerGroup.addHeader(new BasicHeader(SC_HEADER_NAME_RESPONSE_DATE, Long.toString(httpCacheEntry.getContent().getResponseInstant().toEpochMilli())));
+        headerGroup.addHeader(new BasicHeader(SC_HEADER_NAME_REQUEST_DATE, Long.toString(httpCacheEntry.getContent().getRequestInstant().toEpochMilli())));
 
         // Encode these so map entries are stored in a pair of headers, one for key and one for value.
         // Header keys look like: {Accept-Encoding=gzip}
         // And header values like: {Accept-Encoding=gzip}https://example.com:1234/foo
         for (final Map.Entry<String, String> entry : httpCacheEntry.getContent().getVariantMap().entrySet()) {
             // Headers are ordered
-            httpResponse.addHeader(SC_HEADER_NAME_VARIANT_MAP_KEY, entry.getKey());
-            httpResponse.addHeader(SC_HEADER_NAME_VARIANT_MAP_VALUE, entry.getValue());
+            headerGroup.addHeader(new BasicHeader(SC_HEADER_NAME_VARIANT_MAP_KEY, entry.getKey()));
+            headerGroup.addHeader(new BasicHeader(SC_HEADER_NAME_VARIANT_MAP_VALUE, entry.getValue()));
         }
+
+        httpResponse.setHeaders(headerGroup.getHeaders());
     }
 
-    /**
-     * Get the string value for a single metadata pseudo-header, and remove it from the response object.
-     *
-     * @param response Response object to get and remove the pseudo-header from
-     * @param name     Name of metadata pseudo-header
-     * @return Value for metadata pseudo-header
-     * @throws ResourceIOException if the given pseudo-header is not found
-     */
-    private static String getCachePseudoHeaderAndRemove(final HttpResponse response, final String name) throws ResourceIOException {
-        final String headerValue = getOptionalCachePseudoHeaderAndRemove(response, name);
-        if (headerValue == null) {
-            throw new ResourceIOException("Expected cache header '" + name + "' not found");
-        }
-        return headerValue;
-    }
 
     /**
-     * Get the string value for a single metadata pseudo-header if it exists, and remove it from the response object.
+     * Parses the date value for a single metadata pseudo-header based on the given header name, and returns it as an Instant.
      *
-     * @param response Response object to get and remove the pseudo-header from
-     * @param name     Name of metadata pseudo-header
-     * @return Value for metadata pseudo-header, or null if it does not exist
-     */
-    private static String getOptionalCachePseudoHeaderAndRemove(final HttpResponse response, final String name) {
-        final Header header = response.getFirstHeader(name);
-        if (header == null) {
-            return null;
-        }
-        response.removeHeader(header);
-        return header.getValue();
-    }
-
-    /**
-     * Get the date value for a single metadata pseudo-header, and remove it from the response object.
-     *
-     * @param response Response object to get and remove the pseudo-header from
-     * @param name     Name of metadata pseudo-header
-     * @return Value for metadata pseudo-header
+     * @param name Name of the metadata pseudo-header to parse
+     * @return Instant value for the metadata pseudo-header
      * @throws ResourceIOException if the given pseudo-header is not found, or contains invalid data
      */
-    private static Instant getCachePseudoHeaderDateAndRemove(final HttpResponse response, final String name) throws ResourceIOException{
-        final String value = getCachePseudoHeaderAndRemove(response, name);
-        response.removeHeaders(name);
+    private Instant parseCachePseudoHeaderDate(final String name) throws ResourceIOException {
         try {
-            final long timestamp = Long.parseLong(value);
-            return Instant.ofEpochMilli(timestamp);
+            return Instant.ofEpochMilli(Long.parseLong(name));
         } catch (final NumberFormatException e) {
             throw new ResourceIOException("Invalid value for header '" + name + "'", e);
         }
     }
 
-    /**
-     * Get the boolean value for a single metadata pseudo-header, and remove it from the response object.
-     *
-     * @param response Response object to get and remove the pseudo-header from
-     * @param name     Name of metadata pseudo-header
-     * @return Value for metadata pseudo-header
-     */
-    private static boolean getCachePseudoHeaderBooleanAndRemove(final ClassicHttpResponse response, final String name) {
-        // parseBoolean does not throw any exceptions, so no try/catch required.
-        return Boolean.parseBoolean(getOptionalCachePseudoHeaderAndRemove(response, name));
-    }
-
-    /**
-     * Get the variant map metadata pseudo-header, and remove it from the response object.
-     *
-     * @param response Response object to get and remove the pseudo-header from
-     * @return Extracted variant map
-     * @throws ResourceIOException if the given pseudo-header is not found, or contains invalid data
-     */
-    private static Map<String, String> getVariantMapPseudoHeadersAndRemove(final HttpResponse response) throws ResourceIOException {
-        final Header[] headers = response.getHeaders();
-        final Map<String, String> variantMap = new HashMap<>(0);
-        String lastKey = null;
-        for (final Header header : headers) {
-            if (header.getName().equals(SC_HEADER_NAME_VARIANT_MAP_KEY)) {
-                lastKey = header.getValue();
-                response.removeHeader(header);
-            } else if (header.getName().equals(SC_HEADER_NAME_VARIANT_MAP_VALUE)) {
-                if (lastKey == null) {
-                    throw new ResourceIOException("Found mismatched variant map key/value headers");
-                }
-                variantMap.put(lastKey, header.getValue());
-                lastKey = null;
-                response.removeHeader(header);
-            }
-        }
-
-        if (lastKey != null) {
-            throw new ResourceIOException("Found mismatched variant map key/value headers");
-        }
-
-        return variantMap;
-    }
 
     /**
      * Copy bytes from the given source buffer and input stream to the given output stream until end-of-file is reached.
      *
      * @param srcBuf Buffered input source
-     * @param src Unbuffered input source
-     * @param dest Output destination
+     * @param src    Unbuffered input source
+     * @param dest   Output destination
      * @throws IOException if an I/O error occurs
      */
-    private static void copyBytes(final SessionInputBuffer srcBuf, final InputStream src, final OutputStream dest) throws IOException {
-        final byte[] buf = new byte[BUFFER_SIZE];
+    private void copyBytes(final SessionInputBuffer srcBuf, final InputStream src, final OutputStream dest) throws IOException {
+        final byte[] buf = new byte[bufferSize];
         int lastBytesRead;
         while ((lastBytesRead = srcBuf.read(buf, src)) != -1) {
             dest.write(buf, 0, lastBytesRead);
@@ -380,17 +413,38 @@ public class HttpByteArrayCacheEntrySerializer implements HttpCacheEntrySerializ
     }
 
     /**
-     * Writer for SimpleHttpResponse.
+     * Validates that a given cache header is not null, throwing a {@link ResourceIOException} if it is.
      *
-     * Copied from DefaultHttpResponseWriter, but wrapping a SimpleHttpResponse instead of a ClassicHttpResponse
+     * @param obj        the cache header object to validate
+     * @param headerName the name of the cache header being validated, used in the exception message if it is null
+     * @return the validated cache header object
+     * @throws ResourceIOException if the cache header object is null
      */
-    // Seems like the DefaultHttpResponseWriter should be able to do this, but it doesn't seem to be able to
+    private <T> T headerNotNull(final T obj, final String headerName) throws ResourceIOException {
+        if (obj == null) {
+            throw new ResourceIOException("Expected cache header '" + headerName + "' not found");
+        }
+        return obj;
+    }
+
+    /**
+     * This class extends AbstractMessageWriter and provides the ability to write a SimpleHttpResponse message.
+     */
     private static class SimpleHttpResponseWriter extends AbstractMessageWriter<SimpleHttpResponse> {
 
+        /**
+         * Constructs a SimpleHttpResponseWriter object with the BasicLineFormatter instance.
+         */
         public SimpleHttpResponseWriter() {
             super(BasicLineFormatter.INSTANCE);
         }
 
+        /**
+         * Writes the head line of the given SimpleHttpResponse message to the given CharArrayBuffer.
+         *
+         * @param message the SimpleHttpResponse message to write
+         * @param lineBuf the CharArrayBuffer to write the head line to
+         */
         @Override
         protected void writeHeadLine(
                 final SimpleHttpResponse message, final CharArrayBuffer lineBuf) {
@@ -403,15 +457,89 @@ public class HttpByteArrayCacheEntrySerializer implements HttpCacheEntrySerializ
     }
 
     /**
+     * This class extends AbstractMessageParser and provides the ability to parse a SimpleHttpResponse message.
+     */
+    private static class SimpleHttpResponseParser extends AbstractMessageParser<SimpleHttpResponse> {
+
+        /**
+         * Constructs a SimpleHttpResponseParser object with the LazyLineParser instance and Http1Config.DEFAULT.
+         */
+        public SimpleHttpResponseParser() {
+            super(LazyLineParser.INSTANCE, Http1Config.DEFAULT);
+        }
+
+        /**
+         * Creates a SimpleHttpResponse object from the given CharArrayBuffer.
+         *
+         * @param buffer the CharArrayBuffer to parse the SimpleHttpResponse from
+         * @return the SimpleHttpResponse object created from the buffer
+         * @throws HttpException if the buffer cannot be parsed
+         */
+        @Override
+        protected SimpleHttpResponse createMessage(final CharArrayBuffer buffer) throws HttpException {
+            final StatusLine statusline = LazyLineParser.INSTANCE.parseStatusLine(buffer);
+            final SimpleHttpResponse response = new SimpleHttpResponse(statusline.getStatusCode(), statusline.getReasonPhrase());
+            response.setVersion(statusline.getProtocolVersion());
+            return response;
+        }
+    }
+
+    /**
      * Cache validity policy that always returns an age of {@link TimeValue#ZERO_MILLISECONDS}.
-     *
+     * <p>
      * This prevents the Age header from being written to the cache (it does not make sense to cache it),
      * and is the only thing the policy is used for in this case.
      */
     private static class NoAgeCacheValidityPolicy extends CacheValidityPolicy {
+
+        public static final NoAgeCacheValidityPolicy INSTANCE = new NoAgeCacheValidityPolicy();
+
         @Override
         public TimeValue getCurrentAge(final HttpCacheEntry entry, final Instant now) {
             return TimeValue.ZERO_MILLISECONDS;
         }
     }
+
+
+    /**
+     * Helper method to make a new ByteArrayInputStream.
+     * <p>
+     * Useful to override for testing.
+     *
+     * @param bytes Bytes to read from the stream
+     * @return Stream to read the bytes from
+     * @deprecated not need it anymore.
+     */
+    @Deprecated
+    protected InputStream makeByteArrayInputStream(final byte[] bytes) {
+        return new ByteArrayInputStream(bytes);
+    }
+
+    /**
+     * Helper method to make a new HTTP Response parser.
+     * <p>
+     * Useful to override for testing.
+     *
+     * @return HTTP response parser
+     * @deprecated not need it anymore.
+     */
+    @Deprecated
+    protected AbstractMessageParser<ClassicHttpResponse> makeHttpResponseParser() {
+        return new DefaultHttpResponseParser();
+    }
+
+    /**
+     * Helper method to make a new HTTP response writer.
+     * <p>
+     * Useful to override for testing.
+     *
+     * @param outputBuffer Output buffer to write to
+     * @return HTTP response writer to write to
+     * @deprecated not need it anymore.
+     */
+    @Deprecated
+    protected AbstractMessageWriter<SimpleHttpResponse> makeHttpResponseWriter(final SessionOutputBuffer outputBuffer) {
+        return new SimpleHttpResponseWriter();
+    }
+
 }
