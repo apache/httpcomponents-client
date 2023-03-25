@@ -68,7 +68,7 @@ public class TestAbstractSerializingAsyncCacheStorage {
     private AbstractBinaryAsyncCacheStorage<String> impl;
 
     public static byte[] serialize(final String key, final HttpCacheEntry value) throws ResourceIOException {
-        return ByteArrayCacheEntrySerializer.INSTANCE.serialize(new HttpCacheStorageEntry(key, value));
+        return HttpByteArrayCacheEntrySerializer.INSTANCE.serialize(new HttpCacheStorageEntry(key, value));
     }
 
     @BeforeEach
