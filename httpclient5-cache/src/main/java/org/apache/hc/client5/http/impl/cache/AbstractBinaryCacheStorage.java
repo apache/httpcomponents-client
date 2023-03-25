@@ -40,7 +40,7 @@ public abstract class AbstractBinaryCacheStorage<CAS> extends AbstractSerializin
     }
 
     public AbstractBinaryCacheStorage(final int maxUpdateRetries) {
-        super(maxUpdateRetries, ByteArrayCacheEntrySerializer.INSTANCE);
+        super(maxUpdateRetries, HttpByteArrayCacheEntrySerializer.INSTANCE);
     }
 
 }

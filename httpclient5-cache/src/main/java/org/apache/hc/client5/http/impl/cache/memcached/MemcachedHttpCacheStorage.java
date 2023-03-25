@@ -35,8 +35,8 @@ import java.util.Map;
 import org.apache.hc.client5.http.cache.HttpCacheEntrySerializer;
 import org.apache.hc.client5.http.cache.ResourceIOException;
 import org.apache.hc.client5.http.impl.cache.AbstractBinaryCacheStorage;
-import org.apache.hc.client5.http.impl.cache.ByteArrayCacheEntrySerializer;
 import org.apache.hc.client5.http.impl.cache.CacheConfig;
+import org.apache.hc.client5.http.impl.cache.HttpByteArrayCacheEntrySerializer;
 import org.apache.hc.core5.util.Args;
 
 import net.spy.memcached.CASResponse;
@@ -106,7 +106,7 @@ public class MemcachedHttpCacheStorage extends AbstractBinaryCacheStorage<CASVal
      * @param cache client to use for communicating with <i>memcached</i>
      */
     public MemcachedHttpCacheStorage(final MemcachedClient cache) {
-        this(cache, CacheConfig.DEFAULT, ByteArrayCacheEntrySerializer.INSTANCE, SHA256KeyHashingScheme.INSTANCE);
+        this(cache, CacheConfig.DEFAULT, HttpByteArrayCacheEntrySerializer.INSTANCE, SHA256KeyHashingScheme.INSTANCE);
     }
 
     /**
@@ -118,7 +118,7 @@ public class MemcachedHttpCacheStorage extends AbstractBinaryCacheStorage<CASVal
      * @since 5.2
      */
     public MemcachedHttpCacheStorage(final MemcachedClientIF cache) {
-        this(cache, CacheConfig.DEFAULT, ByteArrayCacheEntrySerializer.INSTANCE, SHA256KeyHashingScheme.INSTANCE);
+        this(cache, CacheConfig.DEFAULT, HttpByteArrayCacheEntrySerializer.INSTANCE, SHA256KeyHashingScheme.INSTANCE);
     }
 
     /**
@@ -157,7 +157,7 @@ public class MemcachedHttpCacheStorage extends AbstractBinaryCacheStorage<CASVal
             final HttpCacheEntrySerializer<byte[]> serializer,
             final KeyHashingScheme keyHashingScheme) {
         super((config != null ? config : CacheConfig.DEFAULT).getMaxUpdateRetries(),
-                serializer != null ? serializer : ByteArrayCacheEntrySerializer.INSTANCE);
+                serializer != null ? serializer : HttpByteArrayCacheEntrySerializer.INSTANCE);
         this.client = Args.notNull(client, "Memcached client");
         this.keyHashingScheme = keyHashingScheme;
     }

@@ -365,7 +365,7 @@ public class HttpCacheEntry implements MessageHeaders, Serializable {
      * the "parent" entry to hold this index of the other variants.
      */
     public Map<String, String> getVariantMap() {
-        return Collections.unmodifiableMap(variantMap);
+        return variantMap != null ? Collections.unmodifiableMap(variantMap) : Collections.emptyMap();
     }
 
     /**
@@ -388,8 +388,14 @@ public class HttpCacheEntry implements MessageHeaders, Serializable {
      */
     @Override
     public String toString() {
-        return "[request date=" + this.requestDate + "; response date=" + this.responseDate
-                + "; status=" + this.status + "]";
+        return "HttpCacheEntry{" +
+                "requestDate=" + requestDate +
+                ", responseDate=" + responseDate +
+                ", status=" + status +
+                ", responseHeaders=" + responseHeaders +
+                ", resource=" + resource +
+                ", variantMap=" + variantMap +
+                ", date=" + date +
+                '}';
     }
-
 }
