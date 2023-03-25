@@ -51,7 +51,10 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
  * @see java.io.Serializable
  *
  * @since 4.1
+ * @deprecated This class is deprecated and will be removed in a future release. Please use {@link HttpByteArrayCacheEntrySerializer} for improved performance.
+ * @see HttpByteArrayCacheEntrySerializer
  */
+@Deprecated
 @Contract(threading = ThreadingBehavior.STATELESS)
 public final class ByteArrayCacheEntrySerializer implements HttpCacheEntrySerializer<byte[]> {
 

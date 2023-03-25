@@ -54,7 +54,7 @@ import org.mockito.stubbing.Answer;
 public class TestAbstractSerializingCacheStorage {
 
     public static byte[] serialize(final String key, final HttpCacheEntry value) throws ResourceIOException {
-        return ByteArrayCacheEntrySerializer.INSTANCE.serialize(new HttpCacheStorageEntry(key, value));
+        return HttpByteArrayCacheEntrySerializer.INSTANCE.serialize(new HttpCacheStorageEntry(key, value));
     }
 
     private AbstractBinaryCacheStorage<String> impl;

@@ -37,8 +37,8 @@ import org.apache.hc.client5.http.cache.HttpCacheEntrySerializer;
 import org.apache.hc.client5.http.cache.ResourceIOException;
 import org.apache.hc.client5.http.impl.Operations;
 import org.apache.hc.client5.http.impl.cache.AbstractBinaryAsyncCacheStorage;
-import org.apache.hc.client5.http.impl.cache.ByteArrayCacheEntrySerializer;
 import org.apache.hc.client5.http.impl.cache.CacheConfig;
+import org.apache.hc.client5.http.impl.cache.HttpByteArrayCacheEntrySerializer;
 import org.apache.hc.core5.concurrent.Cancellable;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.util.Args;
@@ -111,7 +111,7 @@ public class MemcachedHttpAsyncCacheStorage extends AbstractBinaryAsyncCacheStor
      * @param cache client to use for communicating with <i>memcached</i>
      */
     public MemcachedHttpAsyncCacheStorage(final MemcachedClient cache) {
-        this(cache, CacheConfig.DEFAULT, ByteArrayCacheEntrySerializer.INSTANCE, SHA256KeyHashingScheme.INSTANCE);
+        this(cache, CacheConfig.DEFAULT, HttpByteArrayCacheEntrySerializer.INSTANCE, SHA256KeyHashingScheme.INSTANCE);
     }
 
     /**
@@ -130,7 +130,7 @@ public class MemcachedHttpAsyncCacheStorage extends AbstractBinaryAsyncCacheStor
             final HttpCacheEntrySerializer<byte[]> serializer,
             final KeyHashingScheme keyHashingScheme) {
         super((config != null ? config : CacheConfig.DEFAULT).getMaxUpdateRetries(),
-                serializer != null ? serializer : ByteArrayCacheEntrySerializer.INSTANCE);
+                serializer != null ? serializer : HttpByteArrayCacheEntrySerializer.INSTANCE);
         this.client = Args.notNull(client, "Memcached client");
         this.keyHashingScheme = keyHashingScheme;
     }

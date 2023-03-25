@@ -247,7 +247,8 @@ public class HttpTestUtils {
     public static Header[] getStockHeaders(final Instant when) {
         return new Header[] {
                 new BasicHeader("Date", DateUtils.formatStandardDate(when)),
-                new BasicHeader("Server", "MockServer/1.0")
+                new BasicHeader("Server", "MockServer/1.0"),
+                new BasicHeader("Content-Length", "128")
         };
     }
 
