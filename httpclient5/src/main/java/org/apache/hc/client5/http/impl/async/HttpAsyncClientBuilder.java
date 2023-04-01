@@ -255,6 +255,8 @@ public class HttpAsyncClientBuilder {
 
     private List<Closeable> closeables;
 
+    private ProxySelector proxySelector;
+
     public static HttpAsyncClientBuilder create() {
         return new HttpAsyncClientBuilder();
     }
@@ -581,6 +583,20 @@ public class HttpAsyncClientBuilder {
     }
 
     /**
+     * Sets the {@link java.net.ProxySelector} that will be used to select the proxies
+     * to be used for establishing HTTP connections. If a non-null proxy selector is set,
+     * it will take precedence over the proxy settings configured in the client.
+     *
+     * @param proxySelector the {@link java.net.ProxySelector} to be used, or null to use
+     *                      the default system proxy selector.
+     * @return this {@link HttpAsyncClientBuilder} instance, to allow for method chaining.
+     */
+    public final HttpAsyncClientBuilder setProxySelector(final ProxySelector proxySelector) {
+        this.proxySelector = proxySelector;
+        return this;
+    }
+
+    /**
      * Assigns default proxy value.
      * <p>
      * Please note this value can be overridden by the {@link #setRoutePlanner(
@@ -888,10 +904,11 @@ public class HttpAsyncClientBuilder {
             }
             if (proxy != null) {
                 routePlannerCopy = new DefaultProxyRoutePlanner(proxy, schemePortResolverCopy);
+            } else if (this.proxySelector != null) {
+                routePlannerCopy = new SystemDefaultRoutePlanner(schemePortResolverCopy, this.proxySelector);
             } else if (systemProperties) {
                 final ProxySelector defaultProxySelector = AccessController.doPrivileged((PrivilegedAction<ProxySelector>) ProxySelector::getDefault);
-                routePlannerCopy = new SystemDefaultRoutePlanner(
-                        schemePortResolverCopy, defaultProxySelector);
+                routePlannerCopy = new SystemDefaultRoutePlanner(schemePortResolverCopy, defaultProxySelector);
             } else {
                 routePlannerCopy = new DefaultRoutePlanner(schemePortResolverCopy);
             }
