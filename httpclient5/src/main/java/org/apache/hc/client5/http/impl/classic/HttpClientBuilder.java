@@ -28,6 +28,7 @@
 package org.apache.hc.client5.http.impl.classic;
 
 import java.io.Closeable;
+import java.net.IDN;
 import java.net.ProxySelector;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -82,6 +83,8 @@ import org.apache.hc.client5.http.protocol.RequestClientConnControl;
 import org.apache.hc.client5.http.protocol.RequestDefaultHeaders;
 import org.apache.hc.client5.http.protocol.RequestExpectContinue;
 import org.apache.hc.client5.http.protocol.ResponseProcessCookies;
+import org.apache.hc.client5.http.psl.PublicSuffixMatcher;
+import org.apache.hc.client5.http.psl.PublicSuffixMatcherLoader;
 import org.apache.hc.client5.http.routing.HttpRoutePlanner;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.http.ConnectionReuseStrategy;
@@ -217,7 +220,6 @@ public class HttpClientBuilder {
     private boolean evictExpiredConnections;
     private boolean evictIdleConnections;
     private TimeValue maxIdleTime;
-
     private boolean systemProperties;
     private boolean redirectHandlingDisabled;
     private boolean automaticRetriesDisabled;
@@ -226,6 +228,7 @@ public class HttpClientBuilder {
     private boolean authCachingDisabled;
     private boolean connectionStateDisabled;
     private boolean defaultUserAgentDisabled;
+    private boolean enableIDNConversion;
 
     private List<Closeable> closeables;
 
@@ -726,6 +729,18 @@ public class HttpClientBuilder {
         closeables.add(closeable);
     }
 
+    /**
+     * Sets whether to use IDNA 2008 encoding for domain names in URLs. Default is {@code false}.
+     *
+     * @param enable {@code true} to use IDNA 2008 encoding, {@code false} otherwise
+     * @return this builder instance
+     * @since 5.3
+     */
+    public HttpClientBuilder setIDNConversion(final boolean enable) {
+        this.enableIDNConversion = enable;
+        return this;
+    }
+
     public CloseableHttpClient build() {
         // Create main request executor
         // We copy the instance fields to avoid changing them, and rename to avoid accidental use of the wrong version
@@ -749,6 +764,26 @@ public class HttpClientBuilder {
             } else {
                 reuseStrategyCopy = DefaultClientConnectionReuseStrategy.INSTANCE;
             }
+        }
+
+        if (enableIDNConversion && schemePortResolver == null) {
+            // Load the public suffix list
+            final PublicSuffixMatcher publicSuffixMatcher = PublicSuffixMatcherLoader.getDefault();
+
+            schemePortResolver = new DefaultSchemePortResolver() {
+                @Override
+                public int resolve(final HttpHost host) {
+                    final String hostname = IDN.toASCII(host.getHostName());
+
+                    // Use the public suffix matcher to get the effective top-level domain
+                    final String effectiveTld = publicSuffixMatcher.getDomainRoot(hostname);
+
+                    // Construct a new HttpHost with the IDN converted hostname and the effective top-level domain
+                    final HttpHost newHost = new HttpHost(host.getSchemeName(), IDN.toASCII(effectiveTld), host.getPort());
+
+                    return super.resolve(newHost);
+                }
+            };
         }
 
         ConnectionKeepAliveStrategy keepAliveStrategyCopy = this.keepAliveStrategy;

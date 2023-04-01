@@ -26,6 +26,7 @@
  */
 package org.apache.hc.client5.http.utils;
 
+import java.net.IDN;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -39,6 +40,8 @@ import org.apache.hc.core5.net.URIAuthority;
 import org.apache.hc.core5.net.URIBuilder;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TextUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A collection of utilities for {@link URI URIs}, to workaround
@@ -47,6 +50,9 @@ import org.apache.hc.core5.util.TextUtils;
  * @since 4.0
  */
 public class URIUtils {
+
+    private static final Logger LOG = LoggerFactory.getLogger(URIUtils.class);
+
 
     /**
      * A convenience method for creating a new {@link URI} whose scheme, host
@@ -230,22 +236,8 @@ public class URIUtils {
      * @since 4.1
      */
     public static HttpHost extractHost(final URI uri) {
-        if (uri == null) {
-            return null;
-        }
-        final URIBuilder uriBuilder = new URIBuilder(uri);
-        final String scheme = uriBuilder.getScheme();
-        final String host = uriBuilder.getHost();
-        final int port = uriBuilder.getPort();
-        if (!TextUtils.isBlank(host)) {
-            try {
-                return new HttpHost(scheme, host, port);
-            } catch (final IllegalArgumentException ignore) {
-            }
-        }
-        return null;
+      return extractHost(uri, false);
     }
-
     /**
      * Derives the interpreted (absolute) URI that was used to generate the last
      * request. This is done by extracting the request-uri and target origin for
@@ -266,6 +258,25 @@ public class URIUtils {
             final URI originalURI,
             final HttpHost target,
             final List<URI> redirects) throws URISyntaxException {
+       return resolve(originalURI, target, redirects, false);
+    }
+
+    /**
+     * Resolves the URI by applying any necessary changes based on the given target host and list of redirects.
+     *
+     * @param originalURI         the original URI to resolve
+     * @param target              the target host to apply to the URI, if not already present
+     * @param redirects           a list of URI redirects that should be considered when resolving the URI
+     * @param enableIDNConversion whether to perform Punycode encoding on the host, if applicable
+     * @return the resolved URI
+     * @throws URISyntaxException if the resulting URI is invalid
+     * @since 5.3
+     */
+    public static URI resolve(
+            final URI originalURI,
+            final HttpHost target,
+            final List<URI> redirects,
+            final boolean enableIDNConversion) throws URISyntaxException {
         Args.notNull(originalURI, "Request URI");
         final URIBuilder uribuilder;
         if (redirects == null || redirects.isEmpty()) {
@@ -286,10 +297,54 @@ public class URIUtils {
         // last target origin
         if (target != null && !uribuilder.isAbsolute()) {
             uribuilder.setScheme(target.getSchemeName());
-            uribuilder.setHost(target.getHostName());
+            String host = target.getHostName();
+            if (enableIDNConversion) {
+                try {
+                    host = IDN.toASCII(host);
+                } catch (final IllegalArgumentException ex) {
+                    throw new URISyntaxException(originalURI.toString(), "Invalid hostname: " + host);
+                }
+            }
+            uribuilder.setHost(host);
             uribuilder.setPort(target.getPort());
         }
         return uribuilder.build();
+    }
+
+    /**
+     * Extracts the host from the given URI, performs Punycode encoding if IDN conversion is enabled,
+     * and returns a new HttpHost instance with the extracted host, scheme, and port.
+     *
+     * @param uri the URI to extract the host from
+     * @param enableIDNConversion true to enable IDN conversion, false otherwise
+     * @return a new HttpHost instance with the extracted host, scheme, and port, or null if the host
+     *         is blank or an IllegalArgumentException occurs when creating the HttpHost
+     */
+    public static HttpHost extractHost(final URI uri, final boolean enableIDNConversion) {
+        if (uri == null) {
+            return null;
+        }
+        final URIBuilder uriBuilder = new URIBuilder(uri);
+        final String scheme = uriBuilder.getScheme();
+        String host = uriBuilder.getHost();
+        final int port = uriBuilder.getPort();
+        if (!TextUtils.isBlank(host)) {
+            if (enableIDNConversion) {
+                try {
+                    // Perform Punycode encoding
+                    host = IDN.toASCII(host);
+                } catch (final IllegalArgumentException ex) {
+                    if (LOG.isDebugEnabled()){
+                        LOG.debug("Unable to convert host to ASCII: " + host);
+                    }
+                }
+            }
+            try {
+                return new HttpHost(scheme, host, port);
+            } catch (final IllegalArgumentException ignore) {
+            }
+        }
+        return null;
     }
 
     /**

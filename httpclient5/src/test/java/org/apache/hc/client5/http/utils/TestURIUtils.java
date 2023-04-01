@@ -27,13 +27,21 @@
 package org.apache.hc.client5.http.utils;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Collections;
 
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.net.URIBuilder;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * This TestCase contains test methods for URI resolving according to RFC 3986.
@@ -42,6 +50,18 @@ import org.junit.jupiter.api.Test;
 public class TestURIUtils {
 
     private final URI baseURI = URI.create("http://a/b/c/d;p?q");
+
+    private static final String TEST_SCHEME = "https";
+    private static final String TEST_HOST = "www.example.com";
+    private static final int TEST_PORT = 8080;
+
+    private static HttpHost testHost;
+
+
+    @BeforeAll
+    public static void setUp() {
+        testHost = new HttpHost(TEST_SCHEME, TEST_HOST, TEST_PORT);
+    }
 
     @Test
     public void testNormalization() {
@@ -239,5 +259,58 @@ public class TestURIUtils {
                 .build();
         Assertions.assertEquals(expectedURI, location);
     }
+
+    @ParameterizedTest
+    @CsvSource({
+            "https://www.example.com:8080/test/path, true, https, www.example.com, 8080",
+            "https://www.example.com:8080/test/path, false, https, www.example.com, 8080",
+            "ftp://www.example.com:8080/test/path, true, ftp, www.example.com, 8080",
+            "ftp://user:password@www.example.com/test/path, true, ftp, www.example.com, -1"
+    })
+    void testExtractHost(final String uriStr, final boolean enableIDNConversion, final String expectedScheme, final String expectedHost, final int expectedPort) throws URISyntaxException {
+        final URI uri = new URI(uriStr);
+        final HttpHost extractedHost = URIUtils.extractHost(uri, enableIDNConversion);
+
+        assertEquals(expectedScheme, extractedHost.getSchemeName());
+        assertEquals(expectedHost, extractedHost.getHostName());
+        assertEquals(expectedPort, extractedHost.getPort());
+    }
+
+    @Test
+    void testExtractHost_NullURI() throws URISyntaxException {
+        assertNull(URIUtils.extractHost(null, true));
+    }
+
+    @Test
+    void testResolveWithIDN() throws URISyntaxException {
+        final HttpHost target = new HttpHost("http", "localhost", -1);
+        final URI requestURI = new URI("/stuff#blahblah");
+        final URI expectedURI = new URI("http://localhost/stuff#blahblah");
+        final URI resolvedURI = URIUtils.resolve(requestURI, target, null, true);
+        assertEquals(expectedURI, resolvedURI);
+    }
+
+    @Test
+    void testResolveNPEURI() {
+        assertThrows(NullPointerException.class, () -> URIUtils.resolve(null, null, null, true));
+    }
+
+    @Test
+    void testExtractHost_RelativeURI() throws URISyntaxException {
+        assertNull(URIUtils.extractHost(new URI("test/path"), true));
+    }
+
+    @Test
+    void testResolve_NullOriginalURI() {
+        assertThrows(NullPointerException.class, () -> URIUtils.resolve(null, testHost, null, true));
+    }
+
+    @Test
+    void testResolve_NullHost() throws URISyntaxException {
+        final URI originalURI = new URI("https://www.example.com/test/path");
+        final URI resolvedURI = URIUtils.resolve(originalURI, null, null, true);
+        assertEquals(originalURI, resolvedURI);
+    }
+
 
 }
