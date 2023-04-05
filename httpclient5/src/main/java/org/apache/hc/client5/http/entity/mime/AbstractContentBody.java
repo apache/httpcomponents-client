@@ -74,9 +74,9 @@ public abstract class AbstractContentBody implements ContentBody {
     @Override
     public String getSubType() {
         final String mimeType = this.contentType.getMimeType();
-        final int i = mimeType.indexOf('/');
-        if (i != -1) {
-            return mimeType.substring(i + 1);
+        final int separatorIndex  = mimeType.indexOf('/');
+        if (separatorIndex != -1) {
+            return mimeType.substring(separatorIndex + 1);
         }
         return null;
     }
