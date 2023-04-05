@@ -73,6 +73,16 @@ class CacheValidityPolicy {
         final Duration diff = Duration.between(dateValue, expiry);
         return TimeValue.ofSeconds(diff.getSeconds());
     }
+    public boolean originInsistsOnFreshness(final HttpCacheEntry entry,final boolean sharedCache) {
+        if (mustRevalidate(entry)) {
+            return true;
+        }
+        if (!sharedCache) {
+            return false;
+        }
+        return proxyRevalidate(entry) ||
+                hasCacheControlDirective(entry, "s-maxage");
+    }
 
     public boolean isResponseFresh(final HttpCacheEntry entry, final Instant now) {
         return getCurrentAge(entry, now).compareTo(getFreshnessLifetime(entry)) == -1;

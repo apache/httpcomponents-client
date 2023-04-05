@@ -78,7 +78,7 @@ class CachedResponseSuitabilityChecker {
                 validityStrategy.isResponseHeuristicallyFresh(entry, now, heuristicCoefficient, heuristicDefaultLifetime)) {
             return true;
         }
-        if (originInsistsOnFreshness(entry)) {
+        if (validityStrategy.originInsistsOnFreshness(entry,sharedCache)) {
             return false;
         }
         final long maxStale = getMaxStale(request);
@@ -86,17 +86,6 @@ class CachedResponseSuitabilityChecker {
             return false;
         }
         return (maxStale > validityStrategy.getStaleness(entry, now).toSeconds());
-    }
-
-    private boolean originInsistsOnFreshness(final HttpCacheEntry entry) {
-        if (validityStrategy.mustRevalidate(entry)) {
-            return true;
-        }
-        if (!sharedCache) {
-            return false;
-        }
-        return validityStrategy.proxyRevalidate(entry) ||
-            validityStrategy.hasCacheControlDirective(entry, "s-maxage");
     }
 
     private long getMaxStale(final HttpRequest request) {
