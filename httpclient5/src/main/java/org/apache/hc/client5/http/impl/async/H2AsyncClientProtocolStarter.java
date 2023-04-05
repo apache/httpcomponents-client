@@ -71,13 +71,17 @@ class H2AsyncClientProtocolStarter implements IOEventHandlerFactory {
         this.h2Config = h2Config != null ? h2Config : H2Config.DEFAULT;
         this.charCodingConfig = charCodingConfig != null ? charCodingConfig : CharCodingConfig.DEFAULT;
     }
+    public boolean isDebugLogsEnabled() {
+        final boolean enabled = HEADER_LOG.isDebugEnabled()
+                || FRAME_LOG.isDebugEnabled()
+                || FRAME_PAYLOAD_LOG.isDebugEnabled()
+                || FLOW_CTRL_LOG.isDebugEnabled();
+        return enabled;
+    }
 
     @Override
     public IOEventHandler createHandler(final ProtocolIOSession ioSession, final Object attachment) {
-        if (HEADER_LOG.isDebugEnabled()
-                || FRAME_LOG.isDebugEnabled()
-                || FRAME_PAYLOAD_LOG.isDebugEnabled()
-                || FLOW_CTRL_LOG.isDebugEnabled()) {
+        if (isDebugLogsEnabled()) {
             final String id = ioSession.getId();
             final ClientH2StreamMultiplexerFactory http2StreamHandlerFactory = new ClientH2StreamMultiplexerFactory(
                     httpProcessor,
