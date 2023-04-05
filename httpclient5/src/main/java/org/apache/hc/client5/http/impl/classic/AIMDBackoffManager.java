@@ -100,10 +100,11 @@ public class AIMDBackoffManager implements BackoffManager {
     }
 
     private int getBackedOffPoolSize(final int curr) {
+        final int roundedPoolSize = (int)(Math.floor(backoffFactor * curr));
         if (curr <= 1) {
             return 1;
         }
-        return (int)(Math.floor(backoffFactor * curr));
+        return roundedPoolSize;
     }
 
     @Override
