@@ -64,26 +64,36 @@ public final class ClassicHttpRequests {
      * @return a new HttpUriRequest.
      */
     public static HttpUriRequest create(final Method method, final URI uri) {
+        final HttpUriRequestExecutor executor;
         switch (Args.notNull(method, "method")) {
         case DELETE:
-            return delete(uri);
+            executor = new DeleteHttpUriRequest();
+            break;
         case GET:
-            return get(uri);
+            executor = new GetHttpUriRequest();
+            break;
         case HEAD:
-            return head(uri);
+            executor = new HeadHttpUriRequest();
+            break;
         case OPTIONS:
-            return options(uri);
+            executor = new OptionsHttpUriRequest();
+            break;
         case PATCH:
-            return patch(uri);
+            executor = new PatchHttpUriRequest();
+            break;
         case POST:
-            return post(uri);
+            executor = new PostHttpUriRequest();
+            break;
         case PUT:
-            return put(uri);
+            executor = new PutHttpUriRequest();
+            break;
         case TRACE:
-            return trace(uri);
+            executor = new TraceHttpUriRequest();
+            break;
         default:
             throw new IllegalArgumentException(method.toString());
         }
+        return executor.uriRequest(uri);
     }
 
     /**
@@ -110,70 +120,6 @@ public final class ClassicHttpRequests {
      */
     public static HttpUriRequest create(final String method, final URI uri) {
         return create(Method.normalizedValueOf(method), uri);
-    }
-
-    public static HttpUriRequest delete(final String uri) {
-        return delete(URI.create(uri));
-    }
-
-    public static HttpUriRequest delete(final URI uri) {
-        return new HttpDelete(uri);
-    }
-
-    public static HttpUriRequest get(final String uri) {
-        return get(URI.create(uri));
-    }
-
-    public static HttpUriRequest get(final URI uri) {
-        return new HttpGet(uri);
-    }
-
-    public static HttpUriRequest head(final String uri) {
-        return head(URI.create(uri));
-    }
-
-    public static HttpUriRequest head(final URI uri) {
-        return new HttpHead(uri);
-    }
-
-    public static HttpUriRequest options(final String uri) {
-        return options(URI.create(uri));
-    }
-
-    public static HttpUriRequest options(final URI uri) {
-        return new HttpOptions(uri);
-    }
-
-    public static HttpUriRequest patch(final String uri) {
-        return patch(URI.create(uri));
-    }
-
-    public static HttpUriRequest patch(final URI uri) {
-        return new HttpPatch(uri);
-    }
-
-    public static HttpUriRequest post(final String uri) {
-        return post(URI.create(uri));
-    }
-
-    public static HttpUriRequest post(final URI uri) {
-        return new HttpPost(uri);
-    }
-
-    public static HttpUriRequest put(final String uri) {
-        return put(URI.create(uri));
-    }
-
-    public static HttpUriRequest put(final URI uri) {
-        return new HttpPut(uri);
-    }
-
-    public static HttpUriRequest trace(final String uri) {
-        return trace(URI.create(uri));
-    }
-
-    public static HttpUriRequest trace(final URI uri) {
-        return new HttpTrace(uri);
     }
 
 }
