@@ -33,8 +33,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.ByteChannel;
 import java.nio.channels.SelectionKey;
 import java.util.concurrent.locks.Lock;
-
-import org.apache.hc.core5.http.Chars;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.reactor.Command;
 import org.apache.hc.core5.reactor.IOEventHandler;
@@ -48,6 +46,7 @@ class LoggingIOSession implements IOSession {
     private final Logger log;
     private final Logger wireLog;
     private final IOSession session;
+    private DataLogger dataLogger;
 
     public LoggingIOSession(final IOSession session, final Logger log, final Logger wireLog) {
         super();
@@ -233,7 +232,7 @@ class LoggingIOSession implements IOSession {
             public void inputReady(final IOSession protocolSession, final ByteBuffer src) throws IOException {
                 if (src != null && wireLog.isDebugEnabled()) {
                     final ByteBuffer b = src.duplicate();
-                    logData(b, "<< ");
+                    dataLogger.logData(b, "<< ",wireLog,session);
                 }
                 handler.inputReady(protocolSession, src);
             }
@@ -262,41 +261,41 @@ class LoggingIOSession implements IOSession {
 
     }
 
-    private void logData(final ByteBuffer data, final String prefix) throws IOException {
-        final byte[] line = new byte[16];
-        final StringBuilder buf = new StringBuilder();
-        while (data.hasRemaining()) {
-            buf.setLength(0);
-            buf.append(session).append(" ").append(prefix);
-            final int chunk = Math.min(data.remaining(), line.length);
-            data.get(line, 0, chunk);
-
-            for (int i = 0; i < chunk; i++) {
-                final char ch = (char) line[i];
-                if (ch > Chars.SP && ch <= Chars.DEL) {
-                    buf.append(ch);
-                } else if (Character.isWhitespace(ch)) {
-                    buf.append(' ');
-                } else {
-                    buf.append('.');
-                }
-            }
-            for (int i = chunk; i < 17; i++) {
-                buf.append(' ');
-            }
-
-            for (int i = 0; i < chunk; i++) {
-                buf.append(' ');
-                final int b = line[i] & 0xff;
-                final String s = Integer.toHexString(b);
-                if (s.length() == 1) {
-                    buf.append("0");
-                }
-                buf.append(s);
-            }
-            wireLog.debug(buf.toString());
-        }
-    }
+//    private void logData(final ByteBuffer data, final String prefix) throws IOException {
+//        final byte[] line = new byte[16];
+//        final StringBuilder buf = new StringBuilder();
+//        while (data.hasRemaining()) {
+//            buf.setLength(0);
+//            buf.append(session).append(" ").append(prefix);
+//            final int chunk = Math.min(data.remaining(), line.length);
+//            data.get(line, 0, chunk);
+//
+//            for (int i = 0; i < chunk; i++) {
+//                final char ch = (char) line[i];
+//                if (ch > Chars.SP && ch <= Chars.DEL) {
+//                    buf.append(ch);
+//                } else if (Character.isWhitespace(ch)) {
+//                    buf.append(' ');
+//                } else {
+//                    buf.append('.');
+//                }
+//            }
+//            for (int i = chunk; i < 17; i++) {
+//                buf.append(' ');
+//            }
+//
+//            for (int i = 0; i < chunk; i++) {
+//                buf.append(' ');
+//                final int b = line[i] & 0xff;
+//                final String s = Integer.toHexString(b);
+//                if (s.length() == 1) {
+//                    buf.append("0");
+//                }
+//                buf.append(s);
+//            }
+//            wireLog.debug(buf.toString());
+//        }
+//    }
 
     @Override
     public int read(final ByteBuffer dst) throws IOException {
@@ -309,7 +308,7 @@ class LoggingIOSession implements IOSession {
             final int p = b.position();
             b.limit(p);
             b.position(p - bytesRead);
-            logData(b, "<< ");
+            dataLogger.logData(b, "<< ",wireLog,session);
         }
         return bytesRead;
     }
@@ -325,7 +324,7 @@ class LoggingIOSession implements IOSession {
             final int p = b.position();
             b.limit(p);
             b.position(p - byteWritten);
-            logData(b, ">> ");
+            dataLogger.logData(b, ">> ",wireLog,session);
         }
         return byteWritten;
     }
