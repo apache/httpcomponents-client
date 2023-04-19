@@ -103,16 +103,45 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
     private final HttpCache responseCache;
     private final DefaultCacheRevalidator cacheRevalidator;
     private final ConditionalRequestBuilder<ClassicHttpRequest> conditionalRequestBuilder;
+    private final CacheUpdateHandler cacheUpdateHandler;
 
     private static final Logger LOG = LoggerFactory.getLogger(CachingExec.class);
 
-    CachingExec(final HttpCache cache, final DefaultCacheRevalidator cacheRevalidator, final CacheConfig config) {
+    CachingExec(final HttpCache cache, final DefaultCacheRevalidator cacheRevalidator, final CacheConfig config, final CacheUpdateHandler cacheUpdateHandler) {
         super(config);
         this.responseCache = Args.notNull(cache, "Response cache");
         this.cacheRevalidator = cacheRevalidator;
         this.conditionalRequestBuilder = new ConditionalRequestBuilder<>(classicHttpRequest ->
-                    ClassicRequestBuilder.copy(classicHttpRequest).build());
+                ClassicRequestBuilder.copy(classicHttpRequest).build());
+        this.cacheUpdateHandler = cacheUpdateHandler != null ? cacheUpdateHandler: new CacheUpdateHandler();
     }
+
+    CachingExec(final HttpCache cache, final DefaultCacheRevalidator cacheRevalidator, final CacheConfig config) {
+        this(cache, cacheRevalidator, config, null);
+    }
+
+
+    CachingExec(
+            final HttpCache responseCache,
+            final CacheValidityPolicy validityPolicy,
+            final ResponseCachingPolicy responseCachingPolicy,
+            final CachedHttpResponseGenerator responseGenerator,
+            final CacheableRequestPolicy cacheableRequestPolicy,
+            final CachedResponseSuitabilityChecker suitabilityChecker,
+            final ResponseProtocolCompliance responseCompliance,
+            final RequestProtocolCompliance requestCompliance,
+            final DefaultCacheRevalidator cacheRevalidator,
+            final ConditionalRequestBuilder<ClassicHttpRequest> conditionalRequestBuilder,
+            final CacheConfig config,
+            final CacheUpdateHandler cacheUpdateHandler) {
+        super(validityPolicy, responseCachingPolicy, responseGenerator, cacheableRequestPolicy,
+                suitabilityChecker, responseCompliance, requestCompliance, config);
+        this.responseCache = responseCache;
+        this.cacheRevalidator = cacheRevalidator;
+        this.conditionalRequestBuilder = conditionalRequestBuilder;
+        this.cacheUpdateHandler = cacheUpdateHandler;
+    }
+
 
     CachingExec(
             final HttpCache responseCache,
@@ -126,11 +155,14 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
             final DefaultCacheRevalidator cacheRevalidator,
             final ConditionalRequestBuilder<ClassicHttpRequest> conditionalRequestBuilder,
             final CacheConfig config) {
-        super(validityPolicy, responseCachingPolicy, responseGenerator, cacheableRequestPolicy,
-                suitabilityChecker, responseCompliance, requestCompliance, config);
-        this.responseCache = responseCache;
-        this.cacheRevalidator = cacheRevalidator;
-        this.conditionalRequestBuilder = conditionalRequestBuilder;
+       this(responseCache,validityPolicy,responseCachingPolicy,responseGenerator,cacheableRequestPolicy,
+               suitabilityChecker,
+               responseCompliance,
+               requestCompliance,
+               cacheRevalidator,
+               conditionalRequestBuilder,
+               config,
+               null);
     }
 
     CachingExec(
@@ -140,7 +172,7 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
             final CacheConfig config) {
         this(cache,
                 executorService != null ? new DefaultCacheRevalidator(executorService, schedulingStrategy) : null,
-                config);
+                config, null);
     }
 
     CachingExec(
@@ -395,6 +427,22 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
             final Instant requestSent,
             final Instant responseReceived) throws IOException {
         LOG.debug("Caching backend response");
+
+        // handle 304 Not Modified responses
+        if (backendResponse.getCode() == HttpStatus.SC_NOT_MODIFIED) {
+            final HttpCacheEntry existingEntry = responseCache.getCacheEntry(target, request);
+            if (existingEntry != null) {
+                final HttpCacheEntry updatedEntry = cacheUpdateHandler.updateCacheEntry(
+                        request.getMethod(),
+                        existingEntry,
+                        requestSent,
+                        responseReceived,
+                        backendResponse);
+
+                return convert(responseGenerator.generateResponse(request, updatedEntry), scope);
+            }
+        }
+
         final ByteArrayBuffer buf;
         final HttpEntity entity = backendResponse.getEntity();
         if (entity != null) {
