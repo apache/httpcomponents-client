@@ -1010,6 +1010,67 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                 backendResponse.addHeader("Via", generateViaHeader(backendResponse));
 
                 final AsyncExecCallback callback;
+                // Handle 304 Not Modified responses
+                if (backendResponse.getCode() == HttpStatus.SC_NOT_MODIFIED) {
+                    responseCache.getCacheEntry(target, request, new FutureCallback<HttpCacheEntry>() {
+                        @Override
+                        public void completed(final HttpCacheEntry existingEntry) {
+                            if (existingEntry != null) {
+                                if (LOG.isDebugEnabled()) {
+                                    LOG.debug("Existing cache entry found, updating cache entry");
+                                }
+                                responseCache.updateCacheEntry(
+                                        target,
+                                        request,
+                                        existingEntry,
+                                        backendResponse,
+                                        requestDate,
+                                        responseDate,
+                                        new FutureCallback<HttpCacheEntry>() {
+
+                                            @Override
+                                            public void completed(final HttpCacheEntry updatedEntry) {
+                                                try {
+                                                    if (LOG.isDebugEnabled()) {
+                                                        LOG.debug("Cache entry updated, generating response from updated entry");
+                                                    }
+                                                    final SimpleHttpResponse cacheResponse = responseGenerator.generateResponse(request, updatedEntry);
+                                                    triggerResponse(cacheResponse, scope, asyncExecCallback);
+                                                } catch (final ResourceIOException ex) {
+                                                    asyncExecCallback.failed(ex);
+                                                }
+                                            }
+                                            @Override
+                                            public void failed(final Exception cause) {
+                                                if (LOG.isDebugEnabled()) {
+                                                    LOG.debug("Request failed: {}", cause.getMessage());
+                                                }
+                                                asyncExecCallback.failed(cause);
+                                            }
+
+                                            @Override
+                                            public void cancelled() {
+                                                if (LOG.isDebugEnabled()) {
+                                                    LOG.debug("Cache entry updated aborted");
+                                                }
+                                                asyncExecCallback.failed(new InterruptedIOException());
+                                            }
+
+                                        });
+                            }
+                        }
+
+                        @Override
+                        public void failed(final Exception cause) {
+                            asyncExecCallback.failed(cause);
+                        }
+
+                        @Override
+                        public void cancelled() {
+                            asyncExecCallback.failed(new InterruptedIOException());
+                        }
+                    });
+                }
 
                 if (backendResponse.getCode() != HttpStatus.SC_NOT_MODIFIED) {
                     callback = new BackendResponseHandler(target, request, requestDate, responseDate, scope, asyncExecCallback);
