@@ -648,10 +648,11 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
             triggerResponse(cacheResponse, scope, asyncExecCallback);
         } else if (!(entry.getStatus() == HttpStatus.SC_NOT_MODIFIED && !suitabilityChecker.isConditional(request))) {
             LOG.debug("Revalidating cache entry");
+            final boolean staleIfErrorEnabled = responseCachingPolicy.isStaleIfErrorEnabled(entry);
             if (cacheRevalidator != null
                     && !staleResponseNotAllowed(request, entry, now)
                     && validityPolicy.mayReturnStaleWhileRevalidating(entry, now)
-                    || responseCachingPolicy.isStaleIfErrorEnabled(entry)) {
+                    || staleIfErrorEnabled) {
                 LOG.debug("Serving stale with asynchronous revalidation");
                 try {
                     final SimpleHttpResponse cacheResponse = generateCachedResponse(request, context, entry, now);
@@ -672,7 +673,22 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                             asyncExecCallback1 -> revalidateCacheEntry(target, request, entityProducer, fork, chain, asyncExecCallback1, entry));
                     triggerResponse(cacheResponse, scope, asyncExecCallback);
                 } catch (final ResourceIOException ex) {
-                    asyncExecCallback.failed(ex);
+                    if (staleIfErrorEnabled) {
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("Serving stale response due to IOException and stale-if-error enabled");
+                        }
+                        try {
+                            final SimpleHttpResponse cacheResponse = generateCachedResponse(request, context, entry, now);
+                            triggerResponse(cacheResponse, scope, asyncExecCallback);
+                        } catch (final ResourceIOException ex2) {
+                            if (LOG.isDebugEnabled()) {
+                                LOG.debug("Failed to generate cached response, falling back to backend", ex2);
+                            }
+                            callBackend(target, request, entityProducer, scope, chain, asyncExecCallback);
+                        }
+                    } else {
+                        asyncExecCallback.failed(ex);
+                    }
                 }
             } else {
                 revalidateCacheEntry(target, request, entityProducer, scope, chain, asyncExecCallback, entry);
