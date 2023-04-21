@@ -271,11 +271,12 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
             return convert(generateGatewayTimeout(context), scope);
         } else if (!(entry.getStatus() == HttpStatus.SC_NOT_MODIFIED && !suitabilityChecker.isConditional(request))) {
             LOG.debug("Revalidating cache entry");
+            final boolean staleIfErrorEnabled = responseCachingPolicy.isStaleIfErrorEnabled(entry);
             try {
                 if (cacheRevalidator != null
                         && !staleResponseNotAllowed(request, entry, now)
                         && validityPolicy.mayReturnStaleWhileRevalidating(entry, now)
-                        || responseCachingPolicy.isStaleIfErrorEnabled(entry)) {
+                        || staleIfErrorEnabled) {
                     LOG.debug("Serving stale with asynchronous revalidation");
                     final String exchangeId = ExecSupport.getNextExchangeId();
                     context.setExchangeId(exchangeId);
@@ -293,6 +294,12 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
                 }
                 return revalidateCacheEntry(target, request, scope, chain, entry);
             } catch (final IOException ioex) {
+                if (staleIfErrorEnabled) {
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Serving stale response due to IOException and stale-if-error enabled");
+                    }
+                    return convert(generateCachedResponse(request, context, entry, now), scope);
+                }
                 return convert(handleRevalidationFailure(request, context, entry, now), scope);
             }
         } else {
