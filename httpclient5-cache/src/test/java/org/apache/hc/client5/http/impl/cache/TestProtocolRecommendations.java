@@ -175,6 +175,7 @@ public class TestProtocolRecommendations {
         resp1.setHeader("Cache-Control","max-age=3600");
         resp1.setHeader(validatorHeader, validator);
         resp1.setHeader(headerName, headerValue);
+        resp1.setHeader("ETag", "\"etag\"");
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
 

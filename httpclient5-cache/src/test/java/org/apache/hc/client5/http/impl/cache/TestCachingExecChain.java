@@ -391,6 +391,7 @@ public class TestCachingExecChain {
         resp1.setHeader("Date", DateUtils.formatStandardDate(now));
         resp1.setHeader("Cache-control", "max-age=600");
         resp1.setHeader("Expires", DateUtils.formatStandardDate(inTenMinutes));
+        resp1.setHeader("ETag", "\"etag\"");
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
 
@@ -399,6 +400,32 @@ public class TestCachingExecChain {
         final ClassicHttpResponse result = execute(req2);
         Assertions.assertEquals(HttpStatus.SC_NOT_MODIFIED, result.getCode());
         Assertions.assertFalse(result.containsHeader("Last-Modified"));
+
+        Mockito.verify(mockExecChain).proceed(Mockito.any(), Mockito.any());
+    }
+
+    @Test
+    public void testReturns304ForIfModifiedSinceHeaderIf304ResponseInCacheWithLastModified() throws Exception {
+        final Instant now = Instant.now();
+        final Instant oneHourAgo = now.minus(1, ChronoUnit.HOURS);
+        final Instant inTenMinutes = now.plus(10, ChronoUnit.MINUTES);
+        final ClassicHttpRequest req1 = new HttpGet("http://foo.example.com/");
+        req1.addHeader("If-Modified-Since", DateUtils.formatStandardDate(oneHourAgo));
+        final ClassicHttpRequest req2 = new HttpGet("http://foo.example.com/");
+        req2.addHeader("If-Modified-Since", DateUtils.formatStandardDate(oneHourAgo));
+
+        final ClassicHttpResponse resp1 = HttpTestUtils.make304Response();
+        resp1.setHeader("Date", DateUtils.formatStandardDate(now));
+        resp1.setHeader("Cache-control", "max-age=600");
+        resp1.setHeader("Expires", DateUtils.formatStandardDate(inTenMinutes));
+
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
+
+        execute(req1);
+
+        final ClassicHttpResponse result = execute(req2);
+        Assertions.assertEquals(HttpStatus.SC_NOT_MODIFIED, result.getCode());
+        Assertions.assertTrue(result.containsHeader("Last-Modified"));
 
         Mockito.verify(mockExecChain).proceed(Mockito.any(), Mockito.any());
     }
