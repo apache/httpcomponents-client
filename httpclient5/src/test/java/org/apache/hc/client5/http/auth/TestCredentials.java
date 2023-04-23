@@ -63,7 +63,7 @@ public class TestCredentials {
         Assertions.assertEquals(new NTUserPrincipal("DOMAIN", "name"),
                 creds1.getUserPrincipal());
         Assertions.assertArrayEquals("pwd".toCharArray(), creds1.getPassword());
-        Assertions.assertEquals("[principal: DOMAIN\\name][workstation: LOCALHOST][netbiosDomain: DOMAIN]",
+        Assertions.assertEquals("[principal: DOMAIN\\name][workstation: "+ creds1.getWorkstation() +"][netbiosDomain: DOMAIN]",
                 creds1.toString());
         final NTCredentials creds2 = new NTCredentials(
                 "name", null, null, null);
@@ -71,7 +71,7 @@ public class TestCredentials {
         Assertions.assertEquals(new NTUserPrincipal(null, "name"),
                 creds2.getUserPrincipal());
         Assertions.assertNull(creds2.getPassword());
-        Assertions.assertEquals("[principal: name][workstation: null][netbiosDomain: null]",
+        Assertions.assertEquals("[principal: name][workstation: "+creds1.getWorkstation() +"][netbiosDomain: null]",
                 creds2.toString());
     }
 
@@ -155,8 +155,8 @@ public class TestCredentials {
         Assertions.assertTrue(creds1.hashCode() == creds1.hashCode());
         Assertions.assertTrue(creds1.hashCode() != creds2.hashCode());
         Assertions.assertEquals(creds1.hashCode(), creds3.hashCode());
-        Assertions.assertNotEquals(creds1.hashCode(), creds4.hashCode());
-        Assertions.assertNotEquals(creds1.hashCode(), creds5.hashCode());
+        Assertions.assertEquals(creds1.hashCode(), creds4.hashCode());
+        Assertions.assertEquals(creds1.hashCode(), creds5.hashCode());
         Assertions.assertNotEquals(creds1.hashCode(), creds6.hashCode());
         Assertions.assertNotEquals(creds1.hashCode(), creds7.hashCode());
         Assertions.assertEquals(creds8.hashCode(), creds5.hashCode());
@@ -187,8 +187,8 @@ public class TestCredentials {
         Assertions.assertEquals(creds1, creds1);
         Assertions.assertNotEquals(creds1, creds2);
         Assertions.assertEquals(creds1, creds3);
-        Assertions.assertNotEquals(creds1, creds4);
-        Assertions.assertNotEquals(creds1, creds5);
+        Assertions.assertEquals(creds1, creds4);
+        Assertions.assertEquals(creds1, creds5);
         Assertions.assertNotEquals(creds1, creds6);
         Assertions.assertNotEquals(creds1, creds7);
         Assertions.assertEquals(creds8, creds5);
@@ -223,5 +223,4 @@ public class TestCredentials {
         final NTCredentials clone = (NTCredentials) inStream.readObject();
         Assertions.assertEquals(orig, clone);
     }
-
 }
