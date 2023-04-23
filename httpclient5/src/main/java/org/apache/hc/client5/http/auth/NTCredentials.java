@@ -27,6 +27,8 @@
 package org.apache.hc.client5.http.auth;
 
 import java.io.Serializable;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.security.Principal;
 import java.util.Locale;
 import java.util.Objects;
@@ -67,13 +69,15 @@ public class NTCredentials implements Credentials, Serializable {
      * @param workstation The workstation the authentication request is originating from.
      * Essentially, the computer name for this machine.
      * @param domain The domain to authenticate within.
+     * @deprecated (5.3) Use {@link #NTCredentials(char[], String, String, String)}
      */
+    @Deprecated
     public NTCredentials(
             final String userName,
             final char[] password,
             final String workstation,
             final String domain) {
-        this(userName, password, convertHost(workstation), domain, convertDomain(domain));
+        this(password, userName, domain, convertDomain(domain));
     }
 
     /**
@@ -85,24 +89,46 @@ public class NTCredentials implements Credentials, Serializable {
      * Essentially, the computer name for this machine.
      * @param domain The domain to authenticate within.
      * @param netbiosDomain The netbios version of the domain name.
+     @deprecated (5.3) Use {@link #NTCredentials(char[], String, String, String)}
      */
+    @Deprecated
     public NTCredentials(
             final String userName,
             final char[] password,
             final String workstation,
             final String domain,
             final String netbiosDomain) {
+        this(password, userName,  domain, netbiosDomain);
+    }
+
+    /**
+     * Constructor to create an instance of NTCredentials.
+     *
+     * @param password      The password to use for authentication. Must not be null.
+     * @param userName      The user name for authentication. This should not include the domain to authenticate with.
+     *                      For example: "user" is correct whereas "DOMAIN&#x5c;user" is not. Must not be null.
+     * @param domain        The domain to authenticate within. Can be null.
+     * @param netbiosDomain An alternative representation of the domain name in NetBIOS format. Can be null.
+     *                      This parameter is provided to accommodate specific scenarios that require the NetBIOS version of the domain name.
+     *                      <p>
+     *                      This constructor creates a new instance of NTCredentials, determining the workstation name at runtime
+     *                      using the {@link #getWorkstationName()} method. The workstation name will be converted to uppercase
+     *                      using the {@link java.util.Locale#ROOT} locale.
+     * @since 5.3
+     */
+    public NTCredentials(
+            final char[] password,
+            final String userName,
+            final String domain,
+            final String netbiosDomain) {
         super();
         Args.notNull(userName, "User name");
         this.principal = new NTUserPrincipal(domain, userName);
         this.password = password;
-        if (workstation != null) {
-            this.workstation = workstation.toUpperCase(Locale.ROOT);
-        } else {
-            this.workstation = null;
-        }
+        this.workstation = getWorkstationName().toUpperCase(Locale.ROOT);
         this.netbiosDomain = netbiosDomain;
     }
+
 
     @Override
     public Principal getUserPrincipal() {
@@ -192,15 +218,29 @@ public class NTCredentials implements Credentials, Serializable {
         return value;
     }
 
-    /** Convert host to standard form */
-    private static String convertHost(final String host) {
-        return stripDotSuffix(host);
-    }
-
     /** Convert domain to standard form */
     private static String convertDomain(final String domain) {
         final String returnString = stripDotSuffix(domain);
         return returnString == null ? returnString : returnString.toUpperCase(Locale.ROOT);
+    }
+
+
+    /**
+     * Retrieves the workstation name of the computer originating the request.
+     * This method attempts to get the local host name using the InetAddress class.
+     * If it fails to retrieve the host name due to an UnknownHostException, it returns "localhost" as a fallback.
+     *
+     * @return The unqualified workstation name as a String.
+     */
+    private static String getWorkstationName() {
+        try {
+            final InetAddress addr = InetAddress.getLocalHost();
+            final String hostName = addr.getHostName();
+            // Ensure the hostname is unqualified by removing any domain part
+            return stripDotSuffix(hostName);
+        } catch (final UnknownHostException e) {
+            return "localhost";
+        }
     }
 
 }
