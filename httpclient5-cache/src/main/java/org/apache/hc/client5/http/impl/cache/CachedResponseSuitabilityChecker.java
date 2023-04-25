@@ -34,7 +34,6 @@ import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HeaderElement;
-import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.message.MessageSupport;
@@ -57,7 +56,7 @@ class CachedResponseSuitabilityChecker {
     private final CacheValidityPolicy validityStrategy;
 
     CachedResponseSuitabilityChecker(final CacheValidityPolicy validityStrategy,
-            final CacheConfig config) {
+                                     final CacheConfig config) {
         super();
         this.validityStrategy = validityStrategy;
         this.sharedCache = config.isSharedCache();
@@ -96,7 +95,7 @@ class CachedResponseSuitabilityChecker {
             return false;
         }
         return validityStrategy.proxyRevalidate(entry) ||
-            validityStrategy.hasCacheControlDirective(entry, "s-maxage");
+                validityStrategy.hasCacheControlDirective(entry, "s-maxage");
     }
 
     private long getMaxStale(final HttpRequest request) {
@@ -131,8 +130,6 @@ class CachedResponseSuitabilityChecker {
      * Determine if I can utilize a {@link HttpCacheEntry} to respond to the given
      * {@link HttpRequest}
      *
-     * @param host
-     *            {@link HttpHost}
      * @param request
      *            {@link HttpRequest}
      * @param entry
@@ -140,8 +137,15 @@ class CachedResponseSuitabilityChecker {
      * @param now
      *            Right now in time
      * @return boolean yes/no answer
+     * @since 5.3
      */
-    public boolean canCachedResponseBeUsed(final HttpHost host, final HttpRequest request, final HttpCacheEntry entry, final Instant now) {
+    public boolean canCachedResponseBeUsed(final HttpRequest request, final HttpCacheEntry entry, final Instant now) {
+
+        if (isGetRequestWithHeadCacheEntry(request, entry)) {
+            LOG.debug("Cache entry created by HEAD request cannot be used to serve GET request");
+            return false;
+        }
+
         if (!isFreshEnough(entry, request, now)) {
             LOG.debug("Cache entry is not fresh enough");
             return false;
@@ -169,7 +173,7 @@ class CachedResponseSuitabilityChecker {
 
         if (hasUnsupportedCacheEntryForGet(request, entry)) {
             LOG.debug("HEAD response caching enabled but the cache entry does not contain a " +
-                      "request method, entity or a 204 response");
+                    "request method, entity or a 204 response");
             return false;
         }
         final Iterator<HeaderElement> it = MessageSupport.iterate(request, HeaderConstants.CACHE_CONTROL);
@@ -267,6 +271,21 @@ class CachedResponseSuitabilityChecker {
     }
 
     /**
+     * Determines whether the given request is a {@link HeaderConstants#GET_METHOD} request and the associated cache entry was created by a
+     * {@link HeaderConstants#HEAD_METHOD} request.
+     *
+     * @param request The {@link HttpRequest} to check if it is a {@link HeaderConstants#GET_METHOD} request.
+     * @param entry   The {@link HttpCacheEntry} to check if it was created by a {@link HeaderConstants#HEAD_METHOD} request.
+     * @return true if the request is a {@link HeaderConstants#GET_METHOD} request and the cache entry was created by a
+     * {@link HeaderConstants#HEAD_METHOD} request, otherwise {@code false}.
+     * @since 5.3
+     */
+    public boolean isGetRequestWithHeadCacheEntry(final HttpRequest request, final HttpCacheEntry entry) {
+        return isGet(request) && HeaderConstants.HEAD_METHOD.equalsIgnoreCase(entry.getRequestMethod());
+    }
+
+
+    /**
      * Check that conditionals that are part of this request match
      * @param request The current httpRequest being made
      * @param entry the cache entry
@@ -281,7 +300,7 @@ class CachedResponseSuitabilityChecker {
         final boolean lastModifiedValidatorMatches = (hasLastModifiedValidator) && lastModifiedValidatorMatches(request, entry, now);
 
         if ((hasEtagValidator && hasLastModifiedValidator)
-            && !(etagValidatorMatches && lastModifiedValidatorMatches)) {
+                && !(etagValidatorMatches && lastModifiedValidatorMatches)) {
             return false;
         } else if (hasEtagValidator && !etagValidatorMatches) {
             return false;
