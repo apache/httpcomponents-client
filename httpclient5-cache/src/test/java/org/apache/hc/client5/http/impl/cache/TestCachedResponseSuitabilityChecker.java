@@ -28,6 +28,7 @@ package org.apache.hc.client5.http.impl.cache;
 
 import java.time.Instant;
 
+import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.Header;
@@ -78,7 +79,7 @@ public class TestCachedResponseSuitabilityChecker {
                 new BasicHeader("Content-Length","1")
         };
         entry = getEntry(headers);
-        Assertions.assertFalse(impl.canCachedResponseBeUsed(host, request, entry, now));
+        Assertions.assertFalse(impl.canCachedResponseBeUsed(request, entry, now));
     }
 
     @Test
@@ -89,7 +90,7 @@ public class TestCachedResponseSuitabilityChecker {
                 new BasicHeader("Content-Length","128")
         };
         entry = getEntry(headers);
-        Assertions.assertTrue(impl.canCachedResponseBeUsed(host, request, entry, now));
+        Assertions.assertTrue(impl.canCachedResponseBeUsed(request, entry, now));
     }
 
     @Test
@@ -100,7 +101,7 @@ public class TestCachedResponseSuitabilityChecker {
                 new BasicHeader("Content-Length","128")
         };
         entry = getEntry(headers);
-        Assertions.assertFalse(impl.canCachedResponseBeUsed(host, request, entry, now));
+        Assertions.assertFalse(impl.canCachedResponseBeUsed(request, entry, now));
     }
 
     @Test
@@ -112,7 +113,7 @@ public class TestCachedResponseSuitabilityChecker {
                 new BasicHeader("Content-Length","128")
         };
         entry = getEntry(headers);
-        Assertions.assertFalse(impl.canCachedResponseBeUsed(host, request, entry, now));
+        Assertions.assertFalse(impl.canCachedResponseBeUsed(request, entry, now));
     }
 
     @Test
@@ -124,7 +125,7 @@ public class TestCachedResponseSuitabilityChecker {
                 new BasicHeader("Content-Length","128")
         };
         entry = getEntry(headers);
-        Assertions.assertFalse(impl.canCachedResponseBeUsed(host, request, entry, now));
+        Assertions.assertFalse(impl.canCachedResponseBeUsed(request, entry, now));
     }
 
     @Test
@@ -136,7 +137,7 @@ public class TestCachedResponseSuitabilityChecker {
                 new BasicHeader("Content-Length","128")
         };
         entry = getEntry(headers);
-        Assertions.assertTrue(impl.canCachedResponseBeUsed(host, request, entry, now));
+        Assertions.assertTrue(impl.canCachedResponseBeUsed(request, entry, now));
     }
 
     @Test
@@ -148,7 +149,7 @@ public class TestCachedResponseSuitabilityChecker {
                 new BasicHeader("Content-Length","128")
         };
         entry = getEntry(headers);
-        Assertions.assertTrue(impl.canCachedResponseBeUsed(host, request, entry, now));
+        Assertions.assertTrue(impl.canCachedResponseBeUsed(request, entry, now));
     }
 
     @Test
@@ -160,7 +161,7 @@ public class TestCachedResponseSuitabilityChecker {
                 new BasicHeader("Content-Length","128")
         };
         entry = getEntry(headers);
-        Assertions.assertFalse(impl.canCachedResponseBeUsed(host, request, entry, now));
+        Assertions.assertFalse(impl.canCachedResponseBeUsed(request, entry, now));
     }
 
     @Test
@@ -172,7 +173,7 @@ public class TestCachedResponseSuitabilityChecker {
                 new BasicHeader("Content-Length","128")
         };
         entry = getEntry(headers);
-        Assertions.assertTrue(impl.canCachedResponseBeUsed(host, request, entry, now));
+        Assertions.assertTrue(impl.canCachedResponseBeUsed(request, entry, now));
     }
 
     @Test
@@ -184,7 +185,7 @@ public class TestCachedResponseSuitabilityChecker {
                 new BasicHeader("Content-Length","128")
         };
         entry = getEntry(headers);
-        Assertions.assertFalse(impl.canCachedResponseBeUsed(host, request, entry, now));
+        Assertions.assertFalse(impl.canCachedResponseBeUsed(request, entry, now));
     }
 
 
@@ -197,7 +198,7 @@ public class TestCachedResponseSuitabilityChecker {
                 new BasicHeader("Content-Length","128")
         };
         entry = getEntry(headers);
-        Assertions.assertFalse(impl.canCachedResponseBeUsed(host, request, entry, now));
+        Assertions.assertFalse(impl.canCachedResponseBeUsed(request, entry, now));
     }
 
     @Test
@@ -209,7 +210,7 @@ public class TestCachedResponseSuitabilityChecker {
                 new BasicHeader("Content-Length","128")
         };
         entry = getEntry(headers);
-        Assertions.assertFalse(impl.canCachedResponseBeUsed(host, request, entry, now));
+        Assertions.assertFalse(impl.canCachedResponseBeUsed(request, entry, now));
     }
 
     @Test
@@ -230,7 +231,7 @@ public class TestCachedResponseSuitabilityChecker {
             .setHeuristicCoefficient(0.1f).build();
         impl = new CachedResponseSuitabilityChecker(config);
 
-        Assertions.assertTrue(impl.canCachedResponseBeUsed(host, request, entry, now));
+        Assertions.assertTrue(impl.canCachedResponseBeUsed(request, entry, now));
     }
 
     @Test
@@ -248,7 +249,7 @@ public class TestCachedResponseSuitabilityChecker {
             .build();
         impl = new CachedResponseSuitabilityChecker(config);
 
-        Assertions.assertTrue(impl.canCachedResponseBeUsed(host, request, entry, now));
+        Assertions.assertTrue(impl.canCachedResponseBeUsed(request, entry, now));
     }
 
     @Test
@@ -261,7 +262,7 @@ public class TestCachedResponseSuitabilityChecker {
         };
         entry = getEntry(headers);
 
-        Assertions.assertTrue(impl.canCachedResponseBeUsed(host, headRequest, entry, now));
+        Assertions.assertTrue(impl.canCachedResponseBeUsed(headRequest, entry, now));
     }
 
     @Test
@@ -273,7 +274,7 @@ public class TestCachedResponseSuitabilityChecker {
         };
         entry = HttpTestUtils.makeHeadCacheEntry(headers);
 
-        Assertions.assertFalse(impl.canCachedResponseBeUsed(host, request, entry, now));
+        Assertions.assertFalse(impl.canCachedResponseBeUsed(request, entry, now));
     }
 
     @Test
@@ -286,7 +287,7 @@ public class TestCachedResponseSuitabilityChecker {
         };
         entry = HttpTestUtils.makeCacheEntryWithNoRequestMethodOrEntity(headers);
 
-        Assertions.assertFalse(impl.canCachedResponseBeUsed(host, request, entry, now));
+        Assertions.assertFalse(impl.canCachedResponseBeUsed(request, entry, now));
     }
 
     @Test
@@ -299,7 +300,7 @@ public class TestCachedResponseSuitabilityChecker {
         };
         entry = HttpTestUtils.makeCacheEntryWithNoRequestMethod(headers);
 
-        Assertions.assertTrue(impl.canCachedResponseBeUsed(host, request, entry, now));
+        Assertions.assertTrue(impl.canCachedResponseBeUsed(request, entry, now));
     }
 
     @Test
@@ -311,7 +312,7 @@ public class TestCachedResponseSuitabilityChecker {
         };
         entry = HttpTestUtils.make204CacheEntryWithNoRequestMethod(headers);
 
-        Assertions.assertTrue(impl.canCachedResponseBeUsed(host, request, entry, now));
+        Assertions.assertTrue(impl.canCachedResponseBeUsed(request, entry, now));
     }
 
     @Test
@@ -325,6 +326,19 @@ public class TestCachedResponseSuitabilityChecker {
         };
         entry = HttpTestUtils.makeHeadCacheEntryWithNoRequestMethod(headers);
 
-        Assertions.assertTrue(impl.canCachedResponseBeUsed(host, headRequest, entry, now));
+        Assertions.assertTrue(impl.canCachedResponseBeUsed(headRequest, entry, now));
+    }
+
+    @Test
+    public void testNotSuitableIfGetRequestWithHeadCacheEntry() {
+        // Prepare a cache entry with HEAD method
+        final Header[] headers = {
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
+                new BasicHeader("Cache-Control", "max-age=3600"),
+                new BasicHeader("Hc-Request-Method", HeaderConstants.HEAD_METHOD)
+        };
+        entry = getEntry(headers);
+        // Validate that the cache entry is not suitable for the GET request
+        Assertions.assertFalse(impl.canCachedResponseBeUsed(request, entry, now));
     }
 }

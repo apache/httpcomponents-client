@@ -623,7 +623,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
         final HttpClientContext context  = scope.clientContext;
         recordCacheHit(target, request);
         final Instant now = getCurrentDate();
-        if (suitabilityChecker.canCachedResponseBeUsed(target, request, entry, now)) {
+        if (suitabilityChecker.canCachedResponseBeUsed(request, entry, now)) {
             LOG.debug("Cache hit");
             try {
                 final SimpleHttpResponse cacheResponse = generateCachedResponse(request, context, entry, now);

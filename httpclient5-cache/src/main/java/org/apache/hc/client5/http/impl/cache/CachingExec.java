@@ -254,7 +254,7 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
         context.setAttribute(HttpCoreContext.HTTP_REQUEST, request);
         recordCacheHit(target, request);
         final Instant now = getCurrentDate();
-        if (suitabilityChecker.canCachedResponseBeUsed(target, request, entry, now)) {
+        if (suitabilityChecker.canCachedResponseBeUsed(request, entry, now)) {
             LOG.debug("Cache hit");
             try {
                 return convert(generateCachedResponse(request, context, entry, now), scope);
