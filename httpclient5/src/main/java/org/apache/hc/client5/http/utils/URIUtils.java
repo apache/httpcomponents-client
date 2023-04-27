@@ -210,9 +210,15 @@ public class URIUtils {
             return uri;
         }
         final URIBuilder builder = new URIBuilder(uri);
-        builder.normalizeSyntax();
-        if (builder.getScheme() == null) {
+        final String scheme = builder.getScheme();
+        if (scheme == null) {
             builder.setScheme(URIScheme.HTTP.id);
+        } else {
+            builder.setScheme(TextUtils.toLowerCase(scheme));
+        }
+        final String host = builder.getHost();
+        if (host != null) {
+            builder.setHost(TextUtils.toLowerCase(host));
         }
         if (builder.isPathEmpty()) {
             builder.setPathSegments("");

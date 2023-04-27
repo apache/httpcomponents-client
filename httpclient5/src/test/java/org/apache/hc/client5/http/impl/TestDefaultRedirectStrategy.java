@@ -223,4 +223,30 @@ public class TestDefaultRedirectStrategy {
                 redirectStrategy.createLocationURI(":::::::"));
     }
 
+    @Test
+    public void testResolveRelativeLocation() throws Exception {
+        final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
+        final HttpClientContext context = HttpClientContext.create();
+        final HttpGet request = new HttpGet("http://localhost/");
+        final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_MOVED_TEMPORARILY, "Redirect");
+        response.addHeader("Location", "/foo;bar=baz");
+
+        final URI locationURI = redirectStrategy.getLocationURI(request, response, context);
+
+        Assertions.assertEquals(URI.create("http://localhost/foo;bar=baz"), locationURI);
+    }
+
+    @Test
+    public void testUseAbsoluteLocation() throws Exception {
+        final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
+        final HttpClientContext context = HttpClientContext.create();
+        final HttpGet request = new HttpGet("http://localhost/");
+        final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_MOVED_TEMPORARILY, "Redirect");
+        response.addHeader("Location", "http://localhost/foo;bar=baz");
+
+        final URI locationURI = redirectStrategy.getLocationURI(request, response, context);
+
+        Assertions.assertEquals(URI.create("http://localhost/foo;bar=baz"), locationURI);
+    }
+
 }

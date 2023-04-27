@@ -44,18 +44,6 @@ public class TestURIUtils {
     private final URI baseURI = URI.create("http://a/b/c/d;p?q");
 
     @Test
-    public void testNormalization() {
-        Assertions.assertEquals("example://a/b/c/%7Bfoo%7D", URIUtils.resolve(this.baseURI, "eXAMPLE://a/./b/../b/%63/%7bfoo%7d").toString());
-        Assertions.assertEquals("http://www.example.com/%3C", URIUtils.resolve(this.baseURI, "http://www.example.com/%3c").toString());
-        Assertions.assertEquals("http://www.example.com/", URIUtils.resolve(this.baseURI, "HTTP://www.EXAMPLE.com/").toString());
-        Assertions.assertEquals("http://www.example.com/a%2F", URIUtils.resolve(this.baseURI, "http://www.example.com/a%2f").toString());
-        Assertions.assertEquals("http://www.example.com/?q=%26", URIUtils.resolve(this.baseURI, "http://www.example.com/?q=%26").toString());
-        Assertions.assertEquals("http://www.example.com/%23?q=%26", URIUtils.resolve(this.baseURI, "http://www.example.com/%23?q=%26").toString());
-        Assertions.assertEquals("http://www.example.com/blah-%28%20-blah-%20%26%20-blah-%20%29-blah/",
-                URIUtils.resolve(this.baseURI, "http://www.example.com/blah-%28%20-blah-%20&%20-blah-%20)-blah/").toString());
-    }
-
-    @Test
     public void testResolve() {
         Assertions.assertEquals("g:h", URIUtils.resolve(this.baseURI, "g:h").toString());
         Assertions.assertEquals("http://a/b/c/g", URIUtils.resolve(this.baseURI, "g").toString());
@@ -67,16 +55,16 @@ public class TestURIUtils {
         Assertions.assertEquals("http://a/b/c/d;p?y#f", URIUtils.resolve(this.baseURI, "?y#f")
                 .toString());
         Assertions.assertEquals("http://a/b/c/g?y", URIUtils.resolve(this.baseURI, "g?y").toString());
-        Assertions.assertEquals("http://a/b/c/d%3Bp?q#s", URIUtils.resolve(this.baseURI, "#s")
+        Assertions.assertEquals("http://a/b/c/d;p?q#s", URIUtils.resolve(this.baseURI, "#s")
                 .toString());
         Assertions.assertEquals("http://a/b/c/g#s", URIUtils.resolve(this.baseURI, "g#s").toString());
         Assertions.assertEquals("http://a/b/c/g?y#s", URIUtils.resolve(this.baseURI, "g?y#s")
                 .toString());
-        Assertions.assertEquals("http://a/b/c/%3Bx", URIUtils.resolve(this.baseURI, ";x").toString());
-        Assertions.assertEquals("http://a/b/c/g%3Bx", URIUtils.resolve(this.baseURI, "g;x").toString());
-        Assertions.assertEquals("http://a/b/c/g%3Bx?y#s", URIUtils.resolve(this.baseURI, "g;x?y#s")
+        Assertions.assertEquals("http://a/b/c/;x", URIUtils.resolve(this.baseURI, ";x").toString());
+        Assertions.assertEquals("http://a/b/c/g;x", URIUtils.resolve(this.baseURI, "g;x").toString());
+        Assertions.assertEquals("http://a/b/c/g;x?y#s", URIUtils.resolve(this.baseURI, "g;x?y#s")
                 .toString());
-        Assertions.assertEquals("http://a/b/c/d%3Bp?q", URIUtils.resolve(this.baseURI, "").toString());
+        Assertions.assertEquals("http://a/b/c/d;p?q", URIUtils.resolve(this.baseURI, "").toString());
         Assertions.assertEquals("http://a/b/c/", URIUtils.resolve(this.baseURI, ".").toString());
         Assertions.assertEquals("http://a/b/c/", URIUtils.resolve(this.baseURI, "./").toString());
         Assertions.assertEquals("http://a/b/", URIUtils.resolve(this.baseURI, "..").toString());
@@ -85,11 +73,11 @@ public class TestURIUtils {
         Assertions.assertEquals("http://a/", URIUtils.resolve(this.baseURI, "../..").toString());
         Assertions.assertEquals("http://a/", URIUtils.resolve(this.baseURI, "../../").toString());
         Assertions.assertEquals("http://a/g", URIUtils.resolve(this.baseURI, "../../g").toString());
-        Assertions.assertEquals("http://a/g", URIUtils.resolve(this.baseURI, "../../../g").toString());
-        Assertions.assertEquals("http://a/g", URIUtils.resolve(this.baseURI, "../../../../g")
+        Assertions.assertEquals("http://a/../g", URIUtils.resolve(this.baseURI, "../../../g").toString());
+        Assertions.assertEquals("http://a/../../g", URIUtils.resolve(this.baseURI, "../../../../g")
                 .toString());
-        Assertions.assertEquals("http://a/g", URIUtils.resolve(this.baseURI, "/./g").toString());
-        Assertions.assertEquals("http://a/g", URIUtils.resolve(this.baseURI, "/../g").toString());
+        Assertions.assertEquals("http://a/./g", URIUtils.resolve(this.baseURI, "/./g").toString());
+        Assertions.assertEquals("http://a/../g", URIUtils.resolve(this.baseURI, "/../g").toString());
         Assertions.assertEquals("http://a/b/c/g.", URIUtils.resolve(this.baseURI, "g.").toString());
         Assertions.assertEquals("http://a/b/c/.g", URIUtils.resolve(this.baseURI, ".g").toString());
         Assertions.assertEquals("http://a/b/c/g..", URIUtils.resolve(this.baseURI, "g..").toString());
@@ -98,32 +86,32 @@ public class TestURIUtils {
         Assertions.assertEquals("http://a/b/c/g/", URIUtils.resolve(this.baseURI, "./g/.").toString());
         Assertions.assertEquals("http://a/b/c/g/h", URIUtils.resolve(this.baseURI, "g/./h").toString());
         Assertions.assertEquals("http://a/b/c/h", URIUtils.resolve(this.baseURI, "g/../h").toString());
-        Assertions.assertEquals("http://a/b/c/g%3Bx%3D1/y", URIUtils.resolve(this.baseURI, "g;x=1/./y")
+        Assertions.assertEquals("http://a/b/c/g;x=1/y", URIUtils.resolve(this.baseURI, "g;x=1/./y")
                 .toString());
         Assertions.assertEquals("http://a/b/c/y", URIUtils.resolve(this.baseURI, "g;x=1/../y")
                 .toString());
-        Assertions.assertEquals("http://a/b/c/g?y%2F.%2Fx", URIUtils.resolve(this.baseURI, "g?y/./x")
+        Assertions.assertEquals("http://a/b/c/g?y/./x", URIUtils.resolve(this.baseURI, "g?y/./x")
                 .toString());
-        Assertions.assertEquals("http://a/b/c/g?y%2F..%2Fx", URIUtils.resolve(this.baseURI, "g?y/../x")
+        Assertions.assertEquals("http://a/b/c/g?y/../x", URIUtils.resolve(this.baseURI, "g?y/../x")
                 .toString());
-        Assertions.assertEquals("http://a/b/c/g#s%2F.%2Fx", URIUtils.resolve(this.baseURI, "g#s/./x")
+        Assertions.assertEquals("http://a/b/c/g#s/./x", URIUtils.resolve(this.baseURI, "g#s/./x")
                 .toString());
-        Assertions.assertEquals("http://a/b/c/g#s%2F..%2Fx", URIUtils.resolve(this.baseURI, "g#s/../x")
+        Assertions.assertEquals("http://a/b/c/g#s/../x", URIUtils.resolve(this.baseURI, "g#s/../x")
                 .toString());
         Assertions.assertEquals("http:g", URIUtils.resolve(this.baseURI, "http:g").toString());
         // examples from section 5.2.4
-        Assertions.assertEquals("http://s/a/g", URIUtils.resolve(this.baseURI,
+        Assertions.assertEquals("http://s/a/b/c/./../../g", URIUtils.resolve(this.baseURI,
                 "http://s/a/b/c/./../../g").toString());
-        Assertions.assertEquals("http://s/mid/6", URIUtils.resolve(this.baseURI,
+        Assertions.assertEquals("http://s/mid/content=5/../6", URIUtils.resolve(this.baseURI,
                 "http://s/mid/content=5/../6").toString());
     }
 
     @Test
     public void testResolveOpaque() {
-        Assertions.assertEquals("example://a/b/c/%7Bfoo%7D", URIUtils.resolve(this.baseURI, "eXAMPLE://a/./b/../b/%63/%7bfoo%7d").toString());
+        Assertions.assertEquals("example://a/./b/../b/%63/%7bfoo%7d", URIUtils.resolve(this.baseURI, "eXAMPLE://a/./b/../b/%63/%7bfoo%7d").toString());
         Assertions.assertEquals("file://localhost/etc/fstab", URIUtils.resolve(this.baseURI, "file://localhost/etc/fstab").toString());
         Assertions.assertEquals("file:///etc/fstab", URIUtils.resolve(this.baseURI, "file:///etc/fstab").toString());
-        Assertions.assertEquals("file://localhost/c%3A/WINDOWS/clock.avi", URIUtils.resolve(this.baseURI, "file://localhost/c:/WINDOWS/clock.avi").toString());
+        Assertions.assertEquals("file://localhost/c:/WINDOWS/clock.avi", URIUtils.resolve(this.baseURI, "file://localhost/c:/WINDOWS/clock.avi").toString());
         Assertions.assertEquals("file:///c:/WINDOWS/clock.avi", URIUtils.resolve(this.baseURI, "file:///c:/WINDOWS/clock.avi").toString());
         Assertions.assertEquals("file://hostname/path/to/the%20file.txt", URIUtils.resolve(this.baseURI, "file://hostname/path/to/the%20file.txt").toString());
         Assertions.assertEquals("file:///c:/path/to/the%20file.txt", URIUtils.resolve(this.baseURI, "file:///c:/path/to/the%20file.txt").toString());
