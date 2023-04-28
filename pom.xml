@@ -69,7 +69,7 @@
     <ehcache.version>3.10.8</ehcache.version>
     <memcached.version>2.12.3</memcached.version>
     <slf4j.version>1.7.36</slf4j.version>
-    <junit.version>5.9.1</junit.version>
+    <junit.version>5.9.3</junit.version>
     <hamcrest.version>2.2</hamcrest.version>
     <mockito.version>4.8.1</mockito.version>
     <jna.version>5.12.1</jna.version>
