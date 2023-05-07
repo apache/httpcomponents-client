@@ -316,19 +316,6 @@ public class TestAuthChallengeParser {
     }
 
     @Test
-    public void testParseEmptyNTLMAuthChallenge() throws Exception {
-        final CharArrayBuffer buffer = new CharArrayBuffer(64);
-        buffer.append(StandardAuthScheme.NTLM);
-        final ParserCursor cursor = new ParserCursor(0, buffer.length());
-        final List<AuthChallenge> challenges = parser.parse(ChallengeType.TARGET, buffer, cursor);
-        Assertions.assertNotNull(challenges);
-        Assertions.assertEquals(1, challenges.size());
-        final AuthChallenge challenge1 = challenges.get(0);
-        Assertions.assertEquals(StandardAuthScheme.NTLM, challenge1.getSchemeName());
-        Assertions.assertNull(challenge1.getValue());
-    }
-
-    @Test
     public void testParseParameterAndToken68AuthChallengeMix() throws Exception {
         final CharArrayBuffer buffer = new CharArrayBuffer(64);
         buffer.append("scheme1 aaaa  , scheme2 aaaa==,  scheme3 aaaa=aaaa, scheme4 aaaa=");

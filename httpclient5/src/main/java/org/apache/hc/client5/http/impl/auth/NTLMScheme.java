@@ -30,13 +30,12 @@ import java.security.Principal;
 
 import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.AuthScheme;
-import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.AuthenticationException;
 import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.MalformedChallengeException;
-import org.apache.hc.client5.http.auth.NTCredentials;
+import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
@@ -50,7 +49,14 @@ import org.slf4j.LoggerFactory;
  * and optimized for Windows platforms.
  *
  * @since 4.0
+ *
+ * @deprecated Do not use. the NTLM authentication scheme is no longer supported.
+ * Consider using Basic or Bearer authentication with TLS instead.
+ *
+ * @see BasicScheme
+ * @see BearerScheme
  */
+@Deprecated
 public final class NTLMScheme implements AuthScheme {
 
     private static final Logger LOG = LoggerFactory.getLogger(NTLMScheme.class);
@@ -68,7 +74,7 @@ public final class NTLMScheme implements AuthScheme {
 
     private State state;
     private String challenge;
-    private NTCredentials credentials;
+    private org.apache.hc.client5.http.auth.NTCredentials credentials;
 
     public NTLMScheme(final NTLMEngine engine) {
         super();
@@ -134,8 +140,8 @@ public final class NTLMScheme implements AuthScheme {
         final AuthScope authScope = new AuthScope(host, null, getName());
         final Credentials credentials = credentialsProvider.getCredentials(
                 authScope, context);
-        if (credentials instanceof NTCredentials) {
-            this.credentials = (NTCredentials) credentials;
+        if (credentials instanceof org.apache.hc.client5.http.auth.NTCredentials) {
+            this.credentials = (org.apache.hc.client5.http.auth.NTCredentials) credentials;
             return true;
         }
 

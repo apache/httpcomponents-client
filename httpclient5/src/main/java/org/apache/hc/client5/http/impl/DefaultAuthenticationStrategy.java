@@ -67,7 +67,6 @@ public class DefaultAuthenticationStrategy implements AuthenticationStrategy {
         Collections.unmodifiableList(Arrays.asList(
                 StandardAuthScheme.SPNEGO,
                 StandardAuthScheme.KERBEROS,
-                StandardAuthScheme.NTLM,
                 StandardAuthScheme.BEARER,
                 StandardAuthScheme.DIGEST,
                 StandardAuthScheme.BASIC));

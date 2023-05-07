@@ -57,7 +57,11 @@ public final class StandardAuthScheme {
     /**
      * The NTLM authentication scheme is a proprietary Microsoft Windows
      * authentication protocol as defined in [MS-NLMP].
+     *
+     * @deprecated Do not use. the NTLM authentication scheme is no longer supported.
+     * Consider using Basic or Bearer authentication with TLS instead.
      */
+    @Deprecated
     public static final String NTLM = "NTLM";
 
     /**

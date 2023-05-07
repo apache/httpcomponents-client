@@ -30,7 +30,6 @@ The JAR packages can be found in the target folders of their respective modules
 httpclient5/target/httpclient5-<VERSION>.jar
 httpclient5-cache/target/httpclient5-cache-<VERSION>.jar
 httpclient5-fluent/target/httpclient5-fluent-<VERSION>.jar
-httpclient5-win/target/httpclient5-win-<VERSION>.jar
 httpclient5-osgi/target/org.apache.httpcomponents.httpclient_<VERSION>.jar
 
 where <VERSION> is the release version

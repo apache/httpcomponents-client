@@ -39,7 +39,13 @@ import org.apache.hc.core5.http.protocol.HttpContext;
  * implementation.
  *
  * @since 4.1
+ * @deprecated Do not use. the NTLM authentication scheme is no longer supported.
+ * Consider using Basic or Bearer authentication with TLS instead.
+ *
+ * @see BasicSchemeFactory
+ * @see BearerSchemeFactory
  */
+@Deprecated
 @Contract(threading = ThreadingBehavior.STATELESS)
 public class NTLMSchemeFactory implements AuthSchemeFactory {
 

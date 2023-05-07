@@ -32,7 +32,10 @@ package org.apache.hc.client5.http.impl.auth;
  * Type2 challenge.
  *
  * @since 4.0
+ *
+ * @deprecated Do not use. the NTLM authentication scheme is no longer supported
  */
+@Deprecated
 public interface NTLMEngine {
 
     /**

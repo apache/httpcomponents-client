@@ -44,7 +44,6 @@ import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.entity.EntityBuilder;
 import org.apache.hc.client5.http.impl.DefaultRedirectStrategy;
 import org.apache.hc.client5.http.impl.auth.BasicScheme;
-import org.apache.hc.client5.http.impl.auth.NTLMScheme;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.protocol.RedirectLocations;
 import org.apache.hc.client5.http.protocol.RedirectStrategy;
@@ -187,7 +186,14 @@ public class TestRedirectExec {
         targetAuthExchange.select(new BasicScheme());
         final AuthExchange proxyAuthExchange = new AuthExchange();
         proxyAuthExchange.setState(AuthExchange.State.SUCCESS);
-        proxyAuthExchange.select(new NTLMScheme());
+        proxyAuthExchange.select(new BasicScheme() {
+
+            @Override
+            public boolean isConnectionBased() {
+                return true;
+            }
+
+        });
         context.setAuthExchange(target, targetAuthExchange);
         context.setAuthExchange(proxy, proxyAuthExchange);
 
