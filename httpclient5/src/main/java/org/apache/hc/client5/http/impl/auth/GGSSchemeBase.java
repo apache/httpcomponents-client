@@ -29,21 +29,19 @@ package org.apache.hc.client5.http.impl.auth;
 import java.net.UnknownHostException;
 import java.security.Principal;
 
-import org.apache.hc.client5.http.utils.Base64;
 import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.SystemDefaultDnsResolver;
 import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.AuthScheme;
-import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.AuthenticationException;
 import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.InvalidCredentialsException;
-import org.apache.hc.client5.http.auth.KerberosConfig;
-import org.apache.hc.client5.http.auth.KerberosCredentials;
 import org.apache.hc.client5.http.auth.MalformedChallengeException;
+import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.client5.http.utils.Base64;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.protocol.HttpContext;
@@ -61,7 +59,11 @@ import org.slf4j.LoggerFactory;
  * Common behavior for {@code GSS} based authentication schemes.
  *
  * @since 4.2
+ *
+ * @deprecated Do not use. The GGS based experimental authentication schemes are no longer
+ * supported. Consider using Basic or Bearer authentication with TLS instead.
  */
+@Deprecated
 public abstract class GGSSchemeBase implements AuthScheme {
 
     enum State {
@@ -74,7 +76,7 @@ public abstract class GGSSchemeBase implements AuthScheme {
     private static final Logger LOG = LoggerFactory.getLogger(GGSSchemeBase.class);
     private static final String NO_TOKEN = "";
     private static final String KERBEROS_SCHEME = "HTTP";
-    private final KerberosConfig config;
+    private final org.apache.hc.client5.http.auth.KerberosConfig config;
     private final DnsResolver dnsResolver;
 
     /** Authentication process state */
@@ -83,19 +85,19 @@ public abstract class GGSSchemeBase implements AuthScheme {
     private String challenge;
     private byte[] token;
 
-    GGSSchemeBase(final KerberosConfig config, final DnsResolver dnsResolver) {
+    GGSSchemeBase(final org.apache.hc.client5.http.auth.KerberosConfig config, final DnsResolver dnsResolver) {
         super();
-        this.config = config != null ? config : KerberosConfig.DEFAULT;
+        this.config = config != null ? config : org.apache.hc.client5.http.auth.KerberosConfig.DEFAULT;
         this.dnsResolver = dnsResolver != null ? dnsResolver : SystemDefaultDnsResolver.INSTANCE;
         this.state = State.UNINITIATED;
     }
 
-    GGSSchemeBase(final KerberosConfig config) {
+    GGSSchemeBase(final org.apache.hc.client5.http.auth.KerberosConfig config) {
         this(config, SystemDefaultDnsResolver.INSTANCE);
     }
 
     GGSSchemeBase() {
-        this(KerberosConfig.DEFAULT, SystemDefaultDnsResolver.INSTANCE);
+        this(org.apache.hc.client5.http.auth.KerberosConfig.DEFAULT, SystemDefaultDnsResolver.INSTANCE);
     }
 
     @Override
@@ -155,8 +157,8 @@ public abstract class GGSSchemeBase implements AuthScheme {
         final GSSContext gssContext = manager.createContext(serverName.canonicalize(oid), oid, gssCredential,
                 GSSContext.DEFAULT_LIFETIME);
         gssContext.requestMutualAuth(true);
-        if (config.getRequestDelegCreds() != KerberosConfig.Option.DEFAULT) {
-            gssContext.requestCredDeleg(config.getRequestDelegCreds() == KerberosConfig.Option.ENABLE);
+        if (config.getRequestDelegCreds() != org.apache.hc.client5.http.auth.KerberosConfig.Option.DEFAULT) {
+            gssContext.requestCredDeleg(config.getRequestDelegCreds() == org.apache.hc.client5.http.auth.KerberosConfig.Option.ENABLE);
         }
         return gssContext;
     }
@@ -181,8 +183,8 @@ public abstract class GGSSchemeBase implements AuthScheme {
 
         final Credentials credentials = credentialsProvider.getCredentials(
                 new AuthScope(host, null, getName()), context);
-        if (credentials instanceof KerberosCredentials) {
-            this.gssCredential = ((KerberosCredentials) credentials).getGSSCredential();
+        if (credentials instanceof org.apache.hc.client5.http.auth.KerberosCredentials) {
+            this.gssCredential = ((org.apache.hc.client5.http.auth.KerberosCredentials) credentials).getGSSCredential();
         } else {
             this.gssCredential = null;
         }
@@ -210,13 +212,13 @@ public abstract class GGSSchemeBase implements AuthScheme {
             try {
                 final String authServer;
                 String hostname = host.getHostName();
-                if (config.getUseCanonicalHostname() != KerberosConfig.Option.DISABLE){
+                if (config.getUseCanonicalHostname() != org.apache.hc.client5.http.auth.KerberosConfig.Option.DISABLE){
                     try {
                          hostname = dnsResolver.resolveCanonicalHostname(host.getHostName());
                     } catch (final UnknownHostException ignore){
                     }
                 }
-                if (config.getStripPort() != KerberosConfig.Option.DISABLE) {
+                if (config.getStripPort() != org.apache.hc.client5.http.auth.KerberosConfig.Option.DISABLE) {
                     authServer = hostname;
                 } else {
                     authServer = hostname + ":" + host.getPort();

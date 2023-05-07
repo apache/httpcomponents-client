@@ -65,8 +65,6 @@ public class DefaultAuthenticationStrategy implements AuthenticationStrategy {
 
     private static final List<String> DEFAULT_SCHEME_PRIORITY =
         Collections.unmodifiableList(Arrays.asList(
-                StandardAuthScheme.SPNEGO,
-                StandardAuthScheme.KERBEROS,
                 StandardAuthScheme.BEARER,
                 StandardAuthScheme.DIGEST,
                 StandardAuthScheme.BASIC));

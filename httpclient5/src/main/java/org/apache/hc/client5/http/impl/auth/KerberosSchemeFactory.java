@@ -30,7 +30,6 @@ import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.SystemDefaultDnsResolver;
 import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
-import org.apache.hc.client5.http.auth.KerberosConfig;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Experimental;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
@@ -45,7 +44,14 @@ import org.apache.hc.core5.http.protocol.HttpContext;
  * </p>
  *
  * @since 4.2
+ *
+ * @deprecated Do not use. The GGS based experimental authentication schemes are no longer
+ * supported. Consider using Basic or Bearer authentication with TLS instead.
+ *
+ * @see BasicSchemeFactory
+ * @see BearerSchemeFactory
  */
+@Deprecated
 @Contract(threading = ThreadingBehavior.STATELESS)
 @Experimental
 public class KerberosSchemeFactory implements AuthSchemeFactory {
@@ -53,16 +59,16 @@ public class KerberosSchemeFactory implements AuthSchemeFactory {
     /**
      * Singleton instance for the default configuration.
      */
-    public static final KerberosSchemeFactory DEFAULT = new KerberosSchemeFactory(KerberosConfig.DEFAULT,
+    public static final KerberosSchemeFactory DEFAULT = new KerberosSchemeFactory(org.apache.hc.client5.http.auth.KerberosConfig.DEFAULT,
             SystemDefaultDnsResolver.INSTANCE);
 
-    private final KerberosConfig config;
+    private final org.apache.hc.client5.http.auth.KerberosConfig config;
     private final DnsResolver dnsResolver;
 
     /**
      * @since 5.0
      */
-    public KerberosSchemeFactory(final KerberosConfig config, final DnsResolver dnsResolver) {
+    public KerberosSchemeFactory(final org.apache.hc.client5.http.auth.KerberosConfig config, final DnsResolver dnsResolver) {
         super();
         this.config = config;
         this.dnsResolver = dnsResolver;
