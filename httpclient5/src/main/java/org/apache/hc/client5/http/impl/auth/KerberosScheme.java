@@ -28,7 +28,6 @@ package org.apache.hc.client5.http.impl.auth;
 
 import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
-import org.apache.hc.client5.http.auth.KerberosConfig;
 import org.apache.hc.core5.annotation.Experimental;
 import org.ietf.jgss.GSSException;
 import org.ietf.jgss.Oid;
@@ -41,7 +40,14 @@ import org.ietf.jgss.Oid;
  * </p>
  *
  * @since 4.2
+ *
+ * @deprecated Do not use. The GGS based experimental authentication schemes are no longer
+ * supported. Consider using Basic or Bearer authentication with TLS instead.
+ *
+ * @see BasicScheme
+ * @see BearerScheme
  */
+@Deprecated
 @Experimental
 public class KerberosScheme extends GGSSchemeBase {
 
@@ -50,7 +56,7 @@ public class KerberosScheme extends GGSSchemeBase {
     /**
      * @since 5.0
      */
-    public KerberosScheme(final KerberosConfig config, final DnsResolver dnsResolver) {
+    public KerberosScheme(final org.apache.hc.client5.http.auth.KerberosConfig config, final DnsResolver dnsResolver) {
         super(config, dnsResolver);
     }
 

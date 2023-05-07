@@ -34,7 +34,12 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
  *  Immutable class encapsulating Kerberos configuration options.
  *
  *  @since 4.6
+ *
+ * @deprecated Do not use. The GGS based experimental authentication schemes are no longer
+ * supported. Consider using Basic or Bearer authentication with TLS instead.
+ *
  */
+@Deprecated
 @Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class KerberosConfig implements Cloneable {
 

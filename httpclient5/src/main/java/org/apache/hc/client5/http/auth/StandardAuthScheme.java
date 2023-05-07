@@ -65,17 +65,21 @@ public final class StandardAuthScheme {
     public static final String NTLM = "NTLM";
 
     /**
-     * SPNEGO authentication scheme as defined in RFC 4559 and RFC 4178
-     * (considered to be the most secure among currently supported
-     * authentication schemes if Kerberos is selected).
+     * SPNEGO authentication scheme as defined in RFC 4559 and RFC 4178.
+     *
+     * @deprecated Do not use. The GGS based experimental authentication schemes are no longer
+     * supported. Consider using Basic or Bearer authentication with TLS instead.
      */
+    @Deprecated
     public static final String SPNEGO = "Negotiate";
 
     /**
-     * Kerberos authentication scheme as defined in RFC 4120
-     * (considered to be the most secure among currently supported
-     * authentication schemes).
+     * Kerberos authentication scheme as defined in RFC 4120.
+     *
+     * @deprecated Do not use. The GGS based experimental authentication schemes are no longer
+     * supported. Consider using Basic or Bearer authentication with TLS instead.
      */
+    @Deprecated
     public static final String KERBEROS = "Kerberos";
 
 }

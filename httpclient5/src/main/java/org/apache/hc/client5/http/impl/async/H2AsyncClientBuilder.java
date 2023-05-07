@@ -60,8 +60,6 @@ import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
 import org.apache.hc.client5.http.impl.auth.BasicSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.BearerSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.DigestSchemeFactory;
-import org.apache.hc.client5.http.impl.auth.KerberosSchemeFactory;
-import org.apache.hc.client5.http.impl.auth.SPNegoSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.SystemDefaultCredentialsProvider;
 import org.apache.hc.client5.http.impl.nio.MultihomeConnectionInitiator;
 import org.apache.hc.client5.http.impl.routing.DefaultRoutePlanner;
@@ -821,8 +819,6 @@ public class H2AsyncClientBuilder {
                     .register(StandardAuthScheme.BASIC, BasicSchemeFactory.INSTANCE)
                     .register(StandardAuthScheme.DIGEST, DigestSchemeFactory.INSTANCE)
                     .register(StandardAuthScheme.BEARER, BearerSchemeFactory.INSTANCE)
-                    .register(StandardAuthScheme.SPNEGO, SPNegoSchemeFactory.DEFAULT)
-                    .register(StandardAuthScheme.KERBEROS, KerberosSchemeFactory.DEFAULT)
                     .build();
         }
         Lookup<CookieSpecFactory> cookieSpecRegistryCopy = this.cookieSpecRegistry;
