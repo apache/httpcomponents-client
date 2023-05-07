@@ -32,7 +32,10 @@ import org.apache.hc.client5.http.auth.AuthenticationException;
  * Signals NTLM protocol failure.
  *
  * @since 4.0
+ *
+ * @deprecated Do not use.
  */
+@Deprecated
 public class NTLMEngineException extends AuthenticationException {
 
     private static final long serialVersionUID = 6027981323731768824L;

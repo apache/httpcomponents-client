@@ -70,7 +70,7 @@ public class TestRequestConfig {
                 .setCircularRedirectsAllowed(true)
                 .setMaxRedirects(100)
                 .setCookieSpec(StandardCookieSpec.STRICT)
-                .setTargetPreferredAuthSchemes(Collections.singletonList(StandardAuthScheme.NTLM))
+                .setTargetPreferredAuthSchemes(Collections.singletonList(StandardAuthScheme.BEARER))
                 .setProxyPreferredAuthSchemes(Collections.singletonList(StandardAuthScheme.DIGEST))
                 .setContentCompressionEnabled(false)
                 .build();
@@ -82,7 +82,7 @@ public class TestRequestConfig {
         Assertions.assertTrue(config.isCircularRedirectsAllowed());
         Assertions.assertEquals(100, config.getMaxRedirects());
         Assertions.assertEquals(StandardCookieSpec.STRICT, config.getCookieSpec());
-        Assertions.assertEquals(Collections.singletonList(StandardAuthScheme.NTLM), config.getTargetPreferredAuthSchemes());
+        Assertions.assertEquals(Collections.singletonList(StandardAuthScheme.BEARER), config.getTargetPreferredAuthSchemes());
         Assertions.assertEquals(Collections.singletonList(StandardAuthScheme.DIGEST), config.getProxyPreferredAuthSchemes());
         Assertions.assertFalse(config.isContentCompressionEnabled());
     }

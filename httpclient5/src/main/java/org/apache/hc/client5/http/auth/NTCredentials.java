@@ -43,7 +43,14 @@ import org.apache.hc.core5.util.LangUtils;
  * Windows specific attributes such as name of the domain the user belongs to.
  *
  * @since 4.0
+ *
+ * @deprecated Do not use. the NTLM authentication scheme is no longer supported.
+ * Consider using Basic or Bearer authentication with TLS instead.
+ *
+ * @see UsernamePasswordCredentials
+ * @see BearerToken
  */
+@Deprecated
 @Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class NTCredentials implements Credentials, Serializable {
 
@@ -69,9 +76,7 @@ public class NTCredentials implements Credentials, Serializable {
      * @param workstation The workstation the authentication request is originating from.
      * Essentially, the computer name for this machine.
      * @param domain The domain to authenticate within.
-     * @deprecated (5.3) Use {@link #NTCredentials(char[], String, String, String)}
      */
-    @Deprecated
     public NTCredentials(
             final String userName,
             final char[] password,
@@ -89,9 +94,7 @@ public class NTCredentials implements Credentials, Serializable {
      * Essentially, the computer name for this machine.
      * @param domain The domain to authenticate within.
      * @param netbiosDomain The netbios version of the domain name.
-     @deprecated (5.3) Use {@link #NTCredentials(char[], String, String, String)}
      */
-    @Deprecated
     public NTCredentials(
             final String userName,
             final char[] password,
@@ -114,7 +117,6 @@ public class NTCredentials implements Credentials, Serializable {
      *                      This constructor creates a new instance of NTCredentials, determining the workstation name at runtime
      *                      using the {@link #getWorkstationName()} method. The workstation name will be converted to uppercase
      *                      using the {@link java.util.Locale#ROOT} locale.
-     * @since 5.3
      */
     public NTCredentials(
             final char[] password,

@@ -45,7 +45,6 @@ import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.entity.EntityBuilder;
 import org.apache.hc.client5.http.impl.auth.BasicScheme;
 import org.apache.hc.client5.http.impl.auth.CredentialsProviderBuilder;
-import org.apache.hc.client5.http.impl.auth.NTLMScheme;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
@@ -209,7 +208,14 @@ public class TestProtocolExec {
 
         final AuthExchange authExchange = new AuthExchange();
         authExchange.setState(AuthExchange.State.SUCCESS);
-        authExchange.select(new NTLMScheme());
+        authExchange.select(new BasicScheme() {
+
+            @Override
+            public boolean isConnectionBased() {
+                return true;
+            }
+
+        });
         context.setAuthExchange(target, authExchange);
 
         context.setCredentialsProvider(CredentialsProviderBuilder.create()

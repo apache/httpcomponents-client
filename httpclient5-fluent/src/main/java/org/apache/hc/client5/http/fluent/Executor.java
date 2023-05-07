@@ -33,7 +33,6 @@ import org.apache.hc.client5.http.auth.AuthCache;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.CredentialsStore;
-import org.apache.hc.client5.http.auth.NTCredentials;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.cookie.CookieStore;
@@ -186,10 +185,14 @@ public class Executor {
         return auth(host, new UsernamePasswordCredentials(username, password));
     }
 
+    /**
+     * @deprecated Use {@link #auth(HttpHost, String, char[])}.
+     */
+    @Deprecated
     public Executor auth(final HttpHost host,
             final String username, final char[] password,
             final String workstation, final String domain) {
-        return auth(host, new NTCredentials(username, password, workstation, domain));
+        return auth(host, new org.apache.hc.client5.http.auth.NTCredentials(username, password, workstation, domain));
     }
 
     public Executor clearAuth() {

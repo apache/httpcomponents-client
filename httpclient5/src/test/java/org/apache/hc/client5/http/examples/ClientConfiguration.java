@@ -210,7 +210,7 @@ public class ClientConfiguration {
         final RequestConfig defaultRequestConfig = RequestConfig.custom()
             .setCookieSpec(StandardCookieSpec.STRICT)
             .setExpectContinueEnabled(true)
-            .setTargetPreferredAuthSchemes(Arrays.asList(StandardAuthScheme.NTLM, StandardAuthScheme.DIGEST))
+            .setTargetPreferredAuthSchemes(Arrays.asList(StandardAuthScheme.DIGEST))
             .setProxyPreferredAuthSchemes(Collections.singletonList(StandardAuthScheme.BASIC))
             .build();
 

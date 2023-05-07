@@ -125,6 +125,7 @@ public class TestSPNegoScheme {
 
     }
 
+    @SuppressWarnings("deprecation")
     private static class UseJaasCredentials implements Credentials {
 
         @Override

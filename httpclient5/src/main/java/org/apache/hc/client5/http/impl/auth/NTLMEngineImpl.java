@@ -48,7 +48,10 @@ import org.apache.hc.client5.http.utils.ByteArrayBuilder;
  * authentication protocol.
  *
  * @since 4.1
+ *
+ * @deprecated Do not use.
  */
+@Deprecated
 final class NTLMEngineImpl implements NTLMEngine {
 
     /** Unicode encoding */

@@ -49,7 +49,6 @@ import org.apache.hc.client5.http.impl.auth.BasicSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.DigestSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.HttpAuthenticator;
 import org.apache.hc.client5.http.impl.auth.KerberosSchemeFactory;
-import org.apache.hc.client5.http.impl.auth.NTLMSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.SPNegoSchemeFactory;
 import org.apache.hc.client5.http.impl.io.ManagedHttpClientConnectionFactory;
 import org.apache.hc.client5.http.io.ManagedHttpClientConnection;
@@ -121,7 +120,6 @@ public class ProxyClient {
         this.authSchemeRegistry = RegistryBuilder.<AuthSchemeFactory>create()
                 .register(StandardAuthScheme.BASIC, BasicSchemeFactory.INSTANCE)
                 .register(StandardAuthScheme.DIGEST, DigestSchemeFactory.INSTANCE)
-                .register(StandardAuthScheme.NTLM, NTLMSchemeFactory.INSTANCE)
                 .register(StandardAuthScheme.SPNEGO, SPNegoSchemeFactory.DEFAULT)
                 .register(StandardAuthScheme.KERBEROS, KerberosSchemeFactory.DEFAULT)
                 .build();

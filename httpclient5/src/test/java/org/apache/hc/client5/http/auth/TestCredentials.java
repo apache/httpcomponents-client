@@ -35,6 +35,7 @@ import java.io.ObjectOutputStream;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+@SuppressWarnings("deprecation")
 public class TestCredentials {
 
     @Test

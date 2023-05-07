@@ -52,6 +52,7 @@ import org.apache.hc.core5.http.message.StatusLine;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+@SuppressWarnings("deprecation")
 public class TestByteArrayCacheEntrySerializer {
 
     private ByteArrayCacheEntrySerializer impl;

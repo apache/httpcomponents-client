@@ -94,7 +94,7 @@ public class TestHttpAuthenticator {
         this.authSchemeRegistry = RegistryBuilder.<AuthSchemeFactory>create()
             .register(StandardAuthScheme.BASIC, BasicSchemeFactory.INSTANCE)
             .register(StandardAuthScheme.DIGEST, DigestSchemeFactory.INSTANCE)
-            .register(StandardAuthScheme.NTLM, NTLMSchemeFactory.INSTANCE).build();
+            .build();
         this.context.setAttribute(HttpClientContext.AUTHSCHEME_REGISTRY, this.authSchemeRegistry);
         this.httpAuthenticator = new HttpAuthenticator();
     }

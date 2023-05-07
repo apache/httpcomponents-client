@@ -37,6 +37,7 @@ import org.junit.jupiter.api.Test;
 /**
  * Unit tests for {@link NTLMScheme}.
  */
+@SuppressWarnings("deprecation")
 public class TestNTLMScheme {
 
     @Test
