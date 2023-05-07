@@ -228,7 +228,7 @@ public class TestCachingExecChain {
     }
 
     @Test
-    public void testNonCacheableResponseIsNotCachedAndIsReturnedAsIs() throws Exception {
+    public void testNoCacheResponseIsCachedAndIsReturnedAsIs() throws Exception {
         final HttpCache cache = new BasicHttpCache(new HeapResourceFactory(), mockStorage);
         impl = new CachingExec(cache, null, CacheConfig.DEFAULT);
 
@@ -243,7 +243,29 @@ public class TestCachingExecChain {
 
         Assertions.assertTrue(HttpTestUtils.semanticallyTransparent(resp1, result));
 
-        Mockito.verify(mockStorage, Mockito.never()).putEntry(Mockito.any(), Mockito.any());
+        // Verify that the response is cached
+        Mockito.verify(mockStorage, Mockito.times(1)).putEntry(Mockito.any(), Mockito.any());
+    }
+
+    @Test
+    public void testNoCacheResponseRequiresRevalidation() throws Exception {
+        final HttpCache cache = new BasicHttpCache(new HeapResourceFactory(), mockStorage);
+        impl = new CachingExec(cache, null, CacheConfig.DEFAULT);
+
+        final ClassicHttpRequest req1 = HttpTestUtils.makeDefaultRequest();
+        final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
+        resp1.setHeader("Cache-Control", "no-cache");
+
+        final HttpCacheEntry cacheEntry = HttpTestUtils.makeCacheEntry();
+        Mockito.when(mockStorage.getEntry(Mockito.any())).thenReturn(cacheEntry);
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
+
+        final ClassicHttpResponse result = execute(req1);
+
+        Assertions.assertTrue(HttpTestUtils.semanticallyTransparent(resp1, result));
+
+        // Verify that the origin server was contacted for revalidation
+        Mockito.verify(mockExecChain, Mockito.times(1)).proceed(Mockito.any(), Mockito.any());
     }
 
     @Test

@@ -270,14 +270,31 @@ class ResponseCachingPolicy {
         return status < 500 || status > 505;
     }
 
+    /**
+     * Determines whether the given CacheControl object indicates that the response is explicitly non-cacheable.
+     *
+     * @param cacheControl the CacheControl object representing the cache-control directive(s) from the HTTP response.
+     * @return true if the response is explicitly non-cacheable according to the cache-control directive(s),
+     * false otherwise.
+     * <p>
+     * When cacheControl is non-null:
+     * - Returns true if the response contains "no-store" or (if sharedCache is true) "private" cache-control directives.
+     * - If the response contains the "no-cache" directive, it is considered cacheable, but requires validation against
+     * the origin server before use. In this case, the method returns false.
+     * - Returns false for other cache-control directives, implying the response is cacheable.
+     * <p>
+     * When cacheControl is null, returns false, implying the response is cacheable.
+     */
     protected boolean isExplicitlyNonCacheable(final CacheControl cacheControl) {
         if (cacheControl == null) {
             return false;
-        }else {
-            return cacheControl.isNoStore() || cacheControl.isNoCache() || (sharedCache && cacheControl.isCachePrivate());
+        } else {
+            // The response is considered explicitly non-cacheable if it contains
+            // "no-store" or (if sharedCache is true) "private" directives.
+            // Note that "no-cache" is considered cacheable but requires validation before use.
+            return cacheControl.isNoStore() || (sharedCache && cacheControl.isCachePrivate());
         }
     }
-
     /**
      * @deprecated As of version 5.0, use {@link ResponseCachingPolicy#parseCacheControlHeader(MessageHeaders)} instead.
      */

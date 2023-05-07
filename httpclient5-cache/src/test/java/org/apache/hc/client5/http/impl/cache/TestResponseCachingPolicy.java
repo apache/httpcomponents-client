@@ -45,6 +45,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class TestResponseCachingPolicy {
@@ -307,14 +308,14 @@ public class TestResponseCachingPolicy {
     public void testIsGetWithNoCacheCacheable() {
         response.addHeader("Cache-Control", "no-cache");
 
-        Assertions.assertFalse(policy.isResponseCacheable("GET", response));
+        Assertions.assertTrue(policy.isResponseCacheable("GET", response));
     }
 
     @Test
     public void testIsHeadWithNoCacheCacheable() {
         response.addHeader("Cache-Control", "no-cache");
 
-        Assertions.assertFalse(policy.isResponseCacheable("HEAD", response));
+        Assertions.assertTrue(policy.isResponseCacheable("HEAD", response));
     }
 
     @Test
@@ -349,14 +350,14 @@ public class TestResponseCachingPolicy {
     public void testIsGetWithNoCacheEmbeddedInListCacheable() {
         response.addHeader("Cache-Control", "public, no-cache");
 
-        Assertions.assertFalse(policy.isResponseCacheable("GET", response));
+        Assertions.assertTrue(policy.isResponseCacheable("GET", response));
     }
 
     @Test
     public void testIsHeadWithNoCacheEmbeddedInListCacheable() {
         response.addHeader("Cache-Control", "public, no-cache");
 
-        Assertions.assertFalse(policy.isResponseCacheable("HEAD", response));
+        Assertions.assertTrue(policy.isResponseCacheable("HEAD", response));
     }
 
     @Test
@@ -1010,5 +1011,37 @@ public class TestResponseCachingPolicy {
         response.setCode(HttpStatus.SC_OK);
         response.setHeader("Date", DateUtils.formatStandardDate(now));
         assertTrue(policy.isResponseCacheable(request, response));
+    }
+
+    @Test
+    void testIsResponseCacheableNoCache() {
+        // Set up test data
+        response = new BasicHttpResponse(HttpStatus.SC_OK, "");
+        response.setHeader(HttpHeaders.DATE, DateUtils.formatStandardDate(Instant.now()));
+
+        // Create ResponseCachingPolicy instance and test the method
+        policy = new ResponseCachingPolicy(0, true, false, false, false);
+        request = new BasicHttpRequest("GET", "/foo");
+        response.addHeader(HttpHeaders.CACHE_CONTROL, "no-cache");
+        final boolean isCacheable = policy.isResponseCacheable(request, response);
+
+        // Verify the result
+        assertTrue(isCacheable);
+    }
+
+    @Test
+    void testIsResponseCacheableNoStore() {
+        // Set up test data
+        response = new BasicHttpResponse(HttpStatus.SC_OK, "");
+        response.setHeader(HttpHeaders.DATE, DateUtils.formatStandardDate(Instant.now()));
+
+        // Create ResponseCachingPolicy instance and test the method
+        policy = new ResponseCachingPolicy(0, true, false, false, false);
+        request = new BasicHttpRequest("GET", "/foo");
+        response.addHeader(HttpHeaders.CACHE_CONTROL, "no-store");
+        final boolean isCacheable = policy.isResponseCacheable(request, response);
+
+        // Verify the result
+        assertFalse(isCacheable);
     }
 }
