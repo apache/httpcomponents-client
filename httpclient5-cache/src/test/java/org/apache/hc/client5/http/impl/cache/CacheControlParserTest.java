@@ -26,14 +26,14 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
-import org.apache.hc.core5.http.Header;
-import org.apache.hc.core5.http.message.BasicHeader;
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.message.BasicHeader;
+import org.junit.jupiter.api.Test;
 
 public class CacheControlParserTest {
 
@@ -166,4 +166,40 @@ public class CacheControlParserTest {
 
         assertEquals(120, cacheControl.getStaleWhileRevalidate());
     }
+
+    @Test
+    public void testParseNoCacheFields() {
+        final Header header = new BasicHeader("Cache-Control", "no-cache=\"Set-Cookie, Content-Language\", stale-while-revalidate=120");
+        final CacheControl cacheControl = parser.parse(header);
+
+        assertTrue(cacheControl.isNoCache());
+        assertEquals(2, cacheControl.getNoCacheFields().size());
+        assertTrue(cacheControl.getNoCacheFields().contains("Set-Cookie"));
+        assertTrue(cacheControl.getNoCacheFields().contains("Content-Language"));
+        assertEquals(120, cacheControl.getStaleWhileRevalidate());
+    }
+
+    @Test
+    public void testParseNoCacheFieldsNoQuote() {
+        final Header header = new BasicHeader("Cache-Control", "no-cache=Set-Cookie, Content-Language, stale-while-revalidate=120");
+        final CacheControl cacheControl = parser.parse(header);
+
+        assertTrue(cacheControl.isNoCache());
+        assertEquals(1, cacheControl.getNoCacheFields().size());
+        assertTrue(cacheControl.getNoCacheFields().contains("Set-Cookie"));
+        assertEquals(120, cacheControl.getStaleWhileRevalidate());
+    }
+
+    @Test
+    public void testParseNoCacheFieldsMessy() {
+        final Header header = new BasicHeader("Cache-Control", "no-cache=\"  , , ,,, Set-Cookie  , , Content-Language ,   \", stale-while-revalidate=120");
+        final CacheControl cacheControl = parser.parse(header);
+
+        assertTrue(cacheControl.isNoCache());
+        assertEquals(2, cacheControl.getNoCacheFields().size());
+        assertTrue(cacheControl.getNoCacheFields().contains("Set-Cookie"));
+        assertTrue(cacheControl.getNoCacheFields().contains("Content-Language"));
+        assertEquals(120, cacheControl.getStaleWhileRevalidate());
+    }
+
 }
