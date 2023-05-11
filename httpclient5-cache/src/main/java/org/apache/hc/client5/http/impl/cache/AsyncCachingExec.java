@@ -623,7 +623,22 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
         final HttpClientContext context  = scope.clientContext;
         recordCacheHit(target, request);
         final Instant now = getCurrentDate();
+
+        if (requestContainsNoCacheDirective(request)) {
+            // Revalidate with the server due to no-cache directive in response
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Revalidating with server due to no-cache directive in response.");
+            }
+            revalidateCacheEntry(target, request, entityProducer, scope, chain, asyncExecCallback, entry);
+            return;
+        }
+
         if (suitabilityChecker.canCachedResponseBeUsed(request, entry, now)) {
+            if (responseCachingPolicy.responseContainsNoCacheDirective(entry)) {
+                // Revalidate with the server due to no-cache directive in response
+                revalidateCacheEntry(target, request, entityProducer, scope, chain, asyncExecCallback, entry);
+                return;
+            }
             LOG.debug("Cache hit");
             try {
                 final SimpleHttpResponse cacheResponse = generateCachedResponse(request, context, entry, now);
