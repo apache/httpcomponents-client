@@ -166,4 +166,16 @@ public class CacheControlParserTest {
 
         assertEquals(120, cacheControl.getStaleWhileRevalidate());
     }
+
+    @Test
+    public void testParseNoCacheFields() {
+        final Header header = new BasicHeader("Cache-Control", "no-cache=Set-Cookie, Content-Language, stale-while-revalidate=120");
+        final CacheControl cacheControl = parser.parse(header);
+
+        assertTrue(cacheControl.isNoCache());
+        assertEquals(2, cacheControl.getNoCacheFields().size());
+        assertTrue(cacheControl.getNoCacheFields().contains("Set-Cookie"));
+        assertTrue(cacheControl.getNoCacheFields().contains("Content-Language"));
+        assertEquals(120, cacheControl.getStaleWhileRevalidate());
+    }
 }

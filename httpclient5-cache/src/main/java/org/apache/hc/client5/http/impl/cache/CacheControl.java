@@ -31,6 +31,9 @@ import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 
+import java.util.Collections;
+import java.util.Set;
+
 /**
  * Represents the values of the Cache-Control header in an HTTP response, which indicate whether and for how long
  * the response can be cached by the client and intermediary proxies.
@@ -92,16 +95,22 @@ final class CacheControl {
      * The number of seconds that a stale response is considered fresh for the purpose
      * of serving a response while a revalidation request is made to the origin server.
      */
-    private final long stale_while_revalidate;
+    private final long staleWhileRevalidate;
+
+    /**
+     * A set of field names specified in the "no-cache" directive of the Cache-Control header.
+     */
+    private final Set<String> noCacheFields;
 
 
     /**
      * Creates a new instance of {@code CacheControl} with default values.
      * The default values are: max-age=-1, shared-max-age=-1, must-revalidate=false, no-cache=false,
-     * no-store=false, private=false, proxy-revalidate=false, public=false and stale_while_revalidate=-1.
+     * no-store=false, private=false, proxy-revalidate=false, public=false, stale_while_revalidate=-1,
+     * and noCacheFields as an empty set.
      */
     public CacheControl() {
-        this(-1, -1, false, false, false, false, false, false,-1);
+        this(-1, -1, false, false, false, false, false, false,-1, Collections.emptySet());
     }
 
     /**
@@ -116,10 +125,12 @@ final class CacheControl {
      * @param cachePrivate    The private value from the Cache-Control header.
      * @param proxyRevalidate The proxy-revalidate value from the Cache-Control header.
      * @param cachePublic     The public value from the Cache-Control header.
+     * @param noCacheFields        The set of field names specified in the "no-cache" directive of the Cache-Control header.
      */
     public CacheControl(final long maxAge, final long sharedMaxAge, final boolean mustRevalidate, final boolean noCache, final boolean noStore,
                         final boolean cachePrivate, final boolean proxyRevalidate, final boolean cachePublic,
-                        final long stale_while_revalidate) {
+                        final long staleWhileRevalidate,
+                        final Set<String> noCacheFields) {
         this.maxAge = maxAge;
         this.sharedMaxAge = sharedMaxAge;
         this.noCache = noCache;
@@ -128,7 +139,8 @@ final class CacheControl {
         this.mustRevalidate = mustRevalidate;
         this.proxyRevalidate = proxyRevalidate;
         this.cachePublic = cachePublic;
-        this.stale_while_revalidate = stale_while_revalidate;
+        this.staleWhileRevalidate = staleWhileRevalidate;
+        this.noCacheFields = Collections.unmodifiableSet(noCacheFields);
     }
 
 
@@ -211,12 +223,21 @@ final class CacheControl {
      * @return The stale-while-revalidate value.
      */
     public long getStaleWhileRevalidate() {
-        return stale_while_revalidate;
+        return staleWhileRevalidate;
+    }
+
+    /**
+     * Returns an unmodifiable set of field names specified in the "no-cache" directive of the Cache-Control header.
+     *
+     * @return The set of field names specified in the "no-cache" directive.
+     */
+    public Set<String> getNoCacheFields() {
+        return noCacheFields;
     }
 
     /**
      * Returns a string representation of the {@code CacheControl} object, including the max-age, shared-max-age, no-cache,
-     * no-store, private, must-revalidate, proxy-revalidate, and public values.
+     * no-store, private, must-revalidate, proxy-revalidate, public values, and noCacheFields.
      *
      * @return A string representation of the object.
      */
@@ -226,12 +247,13 @@ final class CacheControl {
                 "maxAge=" + maxAge +
                 ", sharedMaxAge=" + sharedMaxAge +
                 ", noCache=" + noCache +
+                ", noCacheFields=" + noCacheFields +
                 ", noStore=" + noStore +
                 ", cachePrivate=" + cachePrivate +
                 ", mustRevalidate=" + mustRevalidate +
                 ", proxyRevalidate=" + proxyRevalidate +
                 ", cachePublic=" + cachePublic +
-                ", stale_while_revalidate=" + stale_while_revalidate +
+                ", stale_while_revalidate=" + staleWhileRevalidate +
                 '}';
     }
 }

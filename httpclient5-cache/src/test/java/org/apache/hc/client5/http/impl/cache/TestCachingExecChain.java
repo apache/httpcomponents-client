@@ -234,7 +234,7 @@ public class TestCachingExecChain {
 
         final ClassicHttpRequest req1 = HttpTestUtils.makeDefaultRequest();
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
-        resp1.setHeader("Cache-Control", "no-cache");
+        resp1.setHeader("Cache-Control", "no-store");
 
         Mockito.when(mockStorage.getEntry(Mockito.any())).thenReturn(null);
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
@@ -1533,6 +1533,40 @@ public class TestCachingExecChain {
 
         Assertions.assertTrue(warningHeader.isPresent());
         Assertions.assertTrue(warningHeader.get().getValue().contains("110"));
+    }
+
+    @Test
+    public void testNoCacheFieldsRevalidation() throws Exception {
+        final Instant now = Instant.now();
+        final Instant fiveSecondsAgo = now.minusSeconds(5);
+
+        final ClassicHttpRequest req1 = HttpTestUtils.makeDefaultRequest();
+        final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
+        resp1.setHeader("Date", DateUtils.formatStandardDate(now));
+        resp1.setHeader("Cache-Control", "max-age=3100, no-cache=Set-Cookie, Content-Language");
+        resp1.setHeader("Content-Language", "en-US");
+        resp1.setHeader("Etag", "\"new-etag\"");
+
+        final ClassicHttpRequest req2 = HttpTestUtils.makeDefaultRequest();
+        //req2.setHeader("Cache-Control", "no-cache=\"etag\"");
+        final ClassicHttpResponse resp2 = HttpTestUtils.make200Response();
+        resp2.setHeader("ETag", "\"old-etag\"");
+        resp2.setHeader("Date", DateUtils.formatStandardDate(fiveSecondsAgo));
+        resp2.setHeader("Cache-Control", "max-age=3600");
+
+        final ClassicHttpRequest req3 = HttpTestUtils.makeDefaultRequest();
+
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
+
+        execute(req1);
+
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp2);
+
+        execute(req2);
+        final ClassicHttpResponse result = execute(req3);
+
+        // Verify that the backend was called to revalidate the response, as per the new logic
+        Mockito.verify(mockExecChain, Mockito.times(5)).proceed(Mockito.any(), Mockito.any());
     }
 
 }

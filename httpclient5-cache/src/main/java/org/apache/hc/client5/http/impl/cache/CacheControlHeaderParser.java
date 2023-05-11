@@ -27,6 +27,8 @@
 package org.apache.hc.client5.http.impl.cache;
 
 import java.util.BitSet;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.core5.annotation.Contract;
@@ -83,6 +85,8 @@ class CacheControlHeaderParser {
      * The set of characters that can delimit a value in the header.
      */
     private static final BitSet VALUE_DELIMS = Tokenizer.INIT_BITSET(EQUAL_CHAR, ',');
+
+    private static final BitSet VALUE_NO_VACHE_DELIMS = Tokenizer.INIT_BITSET(',');
 
     /**
      * The token parser used to extract values from the header.
@@ -141,6 +145,9 @@ class CacheControlHeaderParser {
         boolean cachePublic = false;
         long staleWhileRevalidate = -1;
 
+        // Declare a new Set variable at the beginning of the method to store the field-names
+        final Set<String> noCacheFields = new HashSet<>();
+
         while (!cursor.atEnd()) {
             final String name = tokenParser.parseToken(buffer, cursor, TOKEN_DELIMS);
             String value = null;
@@ -162,6 +169,22 @@ class CacheControlHeaderParser {
                 mustRevalidate = true;
             } else if (name.equalsIgnoreCase(HeaderConstants.CACHE_CONTROL_NO_CACHE)) {
                 noCache = true;
+                if (value != null) {
+                    final String directives = buffer.substring(cursor.getPos() - value.length() - 1, buffer.length());
+                    int start = 0;
+                    int end;
+                    while (start < directives.length()) {
+                        end = directives.indexOf(',', start);
+                        if (end == -1) {
+                            end = directives.length();
+                        }
+                        final String fieldName = directives.substring(start, end).trim();
+                        if (!fieldName.contains("=")) {
+                            noCacheFields.add(fieldName);
+                        }
+                        start = end + 1;
+                    }
+                }
             } else if (name.equalsIgnoreCase(HeaderConstants.CACHE_CONTROL_NO_STORE)) {
                 noStore = true;
             } else if (name.equalsIgnoreCase(HeaderConstants.PRIVATE)) {
@@ -174,7 +197,7 @@ class CacheControlHeaderParser {
                 staleWhileRevalidate = parseSeconds(name, value);
             }
         }
-        return new CacheControl(maxAge, sharedMaxAge, mustRevalidate, noCache, noStore, cachePrivate, proxyRevalidate, cachePublic, staleWhileRevalidate);
+        return new CacheControl(maxAge, sharedMaxAge, mustRevalidate, noCache, noStore, cachePrivate, proxyRevalidate, cachePublic, staleWhileRevalidate, noCacheFields);
     }
 
     private static long parseSeconds(final String name, final String value) {

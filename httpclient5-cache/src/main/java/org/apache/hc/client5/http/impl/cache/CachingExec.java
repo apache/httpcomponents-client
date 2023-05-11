@@ -286,7 +286,21 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
         context.setAttribute(HttpCoreContext.HTTP_REQUEST, request);
         recordCacheHit(target, request);
         final Instant now = getCurrentDate();
+
+
+        if (requestContainsNoCacheDirective(request)) {
+            // Revalidate with the server
+            return revalidateCacheEntry(target, request, scope, chain, entry);
+        }
+
         if (suitabilityChecker.canCachedResponseBeUsed(request, entry, now)) {
+            if (responseCachingPolicy.responseContainsNoCacheDirective(entry)) {
+                // Revalidate with the server due to no-cache directive in response
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Revalidating with server due to no-cache directive in response.");
+                }
+                return revalidateCacheEntry(target, request, scope, chain, entry);
+            }
             LOG.debug("Cache hit");
             try {
                 return convert(generateCachedResponse(request, context, entry, now), scope);
