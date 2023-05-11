@@ -270,11 +270,29 @@ class ResponseCachingPolicy {
         return status < 500 || status > 505;
     }
 
+    /**
+     * Determines whether the given CacheControl object indicates that the response is explicitly non-cacheable.
+     *
+     * @param cacheControl the CacheControl object representing the cache-control directive(s) from the HTTP response.
+     * @return true if the response is explicitly non-cacheable according to the cache-control directive(s),
+     * false otherwise.
+     * <p>
+     * When cacheControl is non-null:
+     * - Returns true if the response contains "no-store" or (if sharedCache is true) "private" cache-control directives.
+     * - If the response contains the "no-cache" directive, it is considered cacheable, but requires validation against
+     * the origin server before use. In this case, the method returns false.
+     * - Returns false for other cache-control directives, implying the response is cacheable.
+     * <p>
+     * When cacheControl is null, returns false, implying the response is cacheable.
+     */
     protected boolean isExplicitlyNonCacheable(final CacheControl cacheControl) {
         if (cacheControl == null) {
             return false;
-        }else {
-            return cacheControl.isNoStore() || cacheControl.isNoCache() || (sharedCache && cacheControl.isCachePrivate());
+        } else {
+            // The response is considered explicitly non-cacheable if it contains
+            // "no-store" or (if sharedCache is true) "private" directives.
+            // Note that "no-cache" is considered cacheable but requires validation before use.
+            return cacheControl.isNoStore() || (sharedCache && cacheControl.isCachePrivate());
         }
     }
 
@@ -523,6 +541,50 @@ class ResponseCachingPolicy {
         } else {
             return CacheControlHeaderParser.INSTANCE.parse(cacheControlHeader);
         }
+    }
+
+    /**
+     * Determines if the given {@link HttpCacheEntry} requires revalidation based on the presence of the {@code no-cache} directive
+     * in the Cache-Control header.
+     * <p>
+     * The method returns true in the following cases:
+     * - If the {@code no-cache} directive is present without any field names.
+     * - If the {@code no-cache} directive is present with field names, and at least one of these field names is present
+     * in the headers of the {@link HttpCacheEntry}.
+     * <p>
+     * If the {@code no-cache} directive is not present in the Cache-Control header, the method returns {@code false}.
+     *
+     * @param entry the  {@link HttpCacheEntry} containing the headers to check for the {@code no-cache} directive.
+     * @return true if revalidation is required based on the {@code no-cache} directive, {@code false} otherwise.
+     */
+    boolean responseContainsNoCacheDirective(final HttpCacheEntry entry) {
+        final CacheControl responseCacheControl = parseCacheControlHeader(entry);
+
+        if (responseCacheControl != null) {
+            final Set<String> noCacheFields = responseCacheControl.getNoCacheFields();
+
+            // If no-cache directive is present and has no field names
+            if (responseCacheControl.isNoCache() && noCacheFields.isEmpty()) {
+                LOG.debug("No-cache directive present without field names. Revalidation required.");
+                return true;
+            }
+
+            // If no-cache directive is present with field names
+            if (responseCacheControl.isNoCache()) {
+                for (final String field : noCacheFields) {
+                    if (entry.getFirstHeader(field) != null) {
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("No-cache directive field '{}' found in response headers. Revalidation required.", field);
+                        }
+                        return true;
+                    }
+                }
+            }
+        }
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("No no-cache directives found in response headers. No revalidation required.");
+        }
+        return false;
     }
 
 }

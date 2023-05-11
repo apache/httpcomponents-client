@@ -27,6 +27,8 @@
 package org.apache.hc.client5.http.impl.cache;
 
 import java.util.BitSet;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.core5.annotation.Contract;
@@ -34,8 +36,10 @@ import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.FormattedHeader;
 import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.message.ParserCursor;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.CharArrayBuffer;
+import org.apache.hc.core5.util.TextUtils;
 import org.apache.hc.core5.util.Tokenizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -141,6 +145,9 @@ class CacheControlHeaderParser {
         boolean cachePublic = false;
         long staleWhileRevalidate = -1;
 
+        // Declare a new Set variable at the beginning of the method to store the field-names
+        final Set<String> noCacheFields = new HashSet<>();
+
         while (!cursor.atEnd()) {
             final String name = tokenParser.parseToken(buffer, cursor, TOKEN_DELIMS);
             String value = null;
@@ -162,6 +169,18 @@ class CacheControlHeaderParser {
                 mustRevalidate = true;
             } else if (name.equalsIgnoreCase(HeaderConstants.CACHE_CONTROL_NO_CACHE)) {
                 noCache = true;
+                if (value != null) {
+                    final Tokenizer.Cursor valCursor = new ParserCursor(0, value.length());
+                    while (!valCursor.atEnd()) {
+                        final String token = tokenParser.parseToken(value, valCursor, VALUE_DELIMS);
+                        if (!TextUtils.isBlank(token)) {
+                            noCacheFields.add(token);
+                        }
+                        if (!valCursor.atEnd()) {
+                            valCursor.updatePos(valCursor.getPos() + 1);
+                        }
+                    }
+                }
             } else if (name.equalsIgnoreCase(HeaderConstants.CACHE_CONTROL_NO_STORE)) {
                 noStore = true;
             } else if (name.equalsIgnoreCase(HeaderConstants.PRIVATE)) {
@@ -174,7 +193,7 @@ class CacheControlHeaderParser {
                 staleWhileRevalidate = parseSeconds(name, value);
             }
         }
-        return new CacheControl(maxAge, sharedMaxAge, mustRevalidate, noCache, noStore, cachePrivate, proxyRevalidate, cachePublic, staleWhileRevalidate);
+        return new CacheControl(maxAge, sharedMaxAge, mustRevalidate, noCache, noStore, cachePrivate, proxyRevalidate, cachePublic, staleWhileRevalidate, noCacheFields);
     }
 
     private static long parseSeconds(final String name, final String value) {

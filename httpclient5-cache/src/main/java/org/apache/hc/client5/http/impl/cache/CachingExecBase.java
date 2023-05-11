@@ -369,4 +369,26 @@ public class CachingExecBase {
             }
         }
     }
+
+    /**
+     * Checks if the provided HttpRequest contains a 'no-cache' directive in its Cache-Control header.
+     * <p>
+     * According to the HTTP/1.1 specification, a 'no-cache' directive in a request message means
+     * that the client allows a stored response to be used only if it is first validated with the
+     * origin server (or with an intermediate cache that has a fresh response). This directive
+     * applies to both shared and private caches.
+     *
+     * @param request the HttpRequest to check for the 'no-cache' directive
+     * @return true if the 'no-cache' directive is present in the Cache-Control header of the request,
+     * false otherwise
+     */
+    boolean requestContainsNoCacheDirective(final HttpRequest request) {
+        final Header cacheControlHeader = request.getFirstHeader(HttpHeaders.CACHE_CONTROL);
+        if (cacheControlHeader == null) {
+            return false;
+        } else {
+            final CacheControl cacheControl = CacheControlHeaderParser.INSTANCE.parse(cacheControlHeader);
+            return cacheControl.isNoCache();
+        }
+    }
 }
