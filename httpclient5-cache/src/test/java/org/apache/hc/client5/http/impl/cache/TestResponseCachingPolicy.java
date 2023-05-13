@@ -381,7 +381,7 @@ public class TestResponseCachingPolicy {
         response.addHeader("Cache-Control", "max-age=20");
         response.addHeader("Cache-Control", "public, no-store");
 
-        Assertions.assertTrue(policy.isResponseCacheable("GET", response));
+        Assertions.assertFalse(policy.isResponseCacheable("GET", response));
     }
 
     @Test
@@ -389,7 +389,7 @@ public class TestResponseCachingPolicy {
         response.addHeader("Cache-Control", "max-age=20");
         response.addHeader("Cache-Control", "public, no-store");
 
-        Assertions.assertTrue(policy.isResponseCacheable("HEAD", response));
+        Assertions.assertFalse(policy.isResponseCacheable("HEAD", response));
     }
 
     @Test
