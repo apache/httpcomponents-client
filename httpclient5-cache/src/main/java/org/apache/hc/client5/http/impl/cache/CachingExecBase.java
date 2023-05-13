@@ -383,11 +383,11 @@ public class CachingExecBase {
      * false otherwise
      */
     boolean requestContainsNoCacheDirective(final HttpRequest request) {
-        final Header cacheControlHeader = request.getFirstHeader(HttpHeaders.CACHE_CONTROL);
-        if (cacheControlHeader == null) {
+        final Iterator<Header> it = request.headerIterator(HttpHeaders.CACHE_CONTROL);
+        if (it == null || !it.hasNext()) {
             return false;
         } else {
-            final CacheControl cacheControl = CacheControlHeaderParser.INSTANCE.parse(cacheControlHeader);
+            final CacheControl cacheControl = CacheControlHeaderParser.INSTANCE.parse(it);
             return cacheControl.isNoCache();
         }
     }

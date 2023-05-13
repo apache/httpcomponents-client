@@ -535,11 +535,11 @@ class ResponseCachingPolicy {
      * @return a CacheControl instance with the parsed directives or default values if the header is not present
      */
     private CacheControl parseCacheControlHeader(final MessageHeaders messageHeaders) {
-        final Header cacheControlHeader = messageHeaders.getFirstHeader(HttpHeaders.CACHE_CONTROL);
-        if (cacheControlHeader == null) {
+        final Iterator<Header> it = messageHeaders.headerIterator(HttpHeaders.CACHE_CONTROL);
+        if (it == null || !it.hasNext()) {
             return null;
         } else {
-            return CacheControlHeaderParser.INSTANCE.parse(cacheControlHeader);
+            return CacheControlHeaderParser.INSTANCE.parse(it);
         }
     }
 
