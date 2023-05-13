@@ -28,6 +28,7 @@ package org.apache.hc.client5.http.impl.cache;
 
 import java.util.BitSet;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 import org.apache.hc.client5.http.cache.HeaderConstants;
@@ -50,7 +51,7 @@ import org.slf4j.LoggerFactory;
  * This class is thread-safe and has a singleton instance ({@link #INSTANCE}).
  * </p>
  * <p>
- * The {@link #parse(Header)} method takes an HTTP header and returns a {@link CacheControl} object containing
+ * The {@link #parse(Iterator)} method takes an HTTP header and returns a {@link CacheControl} object containing
  * the relevant caching directives. The header can be either a {@link FormattedHeader} object, which contains a
  * pre-parsed {@link CharArrayBuffer}, or a plain {@link Header} object, in which case the value will be parsed and
  * stored in a new {@link CharArrayBuffer}.
@@ -113,28 +114,14 @@ class CacheControlHeaderParser {
      * <p>
      * "s-maxage" (-1).</p>
      *
-     * @param header the header to parse, cannot be {@code null}
+     * @param headerIterator the header to parse, cannot be {@code null}
      * @return a new {@link CacheControl} instance containing the relevant caching directives parsed from the header
      * @throws IllegalArgumentException if the input header is {@code null}
      */
-    public final CacheControl parse(final Header header) {
-        Args.notNull(header, "Header");
+    public final CacheControl parse(final Iterator<Header> headerIterator) {
+        Args.notNull(headerIterator, "headerIterator");
 
-        final CharArrayBuffer buffer;
-        final Tokenizer.Cursor cursor;
-        if (header instanceof FormattedHeader) {
-            buffer = ((FormattedHeader) header).getBuffer();
-            cursor = new Tokenizer.Cursor(((FormattedHeader) header).getValuePos(), buffer.length());
-        } else {
-            final String s = header.getValue();
-            if (s == null) {
-                return new CacheControl();
-            }
-            buffer = new CharArrayBuffer(s.length());
-            buffer.append(s);
-            cursor = new Tokenizer.Cursor(0, buffer.length());
-        }
-
+        // Initialize variables to hold the Cache-Control directives
         long maxAge = -1;
         long sharedMaxAge = -1;
         boolean noCache = false;
@@ -144,55 +131,76 @@ class CacheControlHeaderParser {
         boolean proxyRevalidate = false;
         boolean cachePublic = false;
         long staleWhileRevalidate = -1;
-
         // Declare a new Set variable at the beginning of the method to store the field-names
         final Set<String> noCacheFields = new HashSet<>();
 
-        while (!cursor.atEnd()) {
-            final String name = tokenParser.parseToken(buffer, cursor, TOKEN_DELIMS);
-            String value = null;
-            if (!cursor.atEnd()) {
-                final int valueDelim = buffer.charAt(cursor.getPos());
-                cursor.updatePos(cursor.getPos() + 1);
-                if (valueDelim == EQUAL_CHAR) {
-                    value = tokenParser.parseValue(buffer, cursor, VALUE_DELIMS);
-                    if (!cursor.atEnd()) {
-                        cursor.updatePos(cursor.getPos() + 1);
-                    }
+        // Iterate over each header
+        while (headerIterator.hasNext()) {
+            final Header header = headerIterator.next();
+            final CharArrayBuffer buffer;
+            final Tokenizer.Cursor cursor;
+            if (header instanceof FormattedHeader) {
+                buffer = ((FormattedHeader) header).getBuffer();
+                cursor = new Tokenizer.Cursor(((FormattedHeader) header).getValuePos(), buffer.length());
+            } else {
+                final String s = header.getValue();
+                if (s == null) {
+                    return new CacheControl();
                 }
+                buffer = new CharArrayBuffer(s.length());
+                buffer.append(s);
+                cursor = new Tokenizer.Cursor(0, buffer.length());
             }
-            if (name.equalsIgnoreCase(HeaderConstants.CACHE_CONTROL_S_MAX_AGE)) {
-                sharedMaxAge = parseSeconds(name, value);
-            } else if (name.equalsIgnoreCase(HeaderConstants.CACHE_CONTROL_MAX_AGE)) {
-                maxAge = parseSeconds(name, value);
-            } else if (name.equalsIgnoreCase(HeaderConstants.CACHE_CONTROL_MUST_REVALIDATE)) {
-                mustRevalidate = true;
-            } else if (name.equalsIgnoreCase(HeaderConstants.CACHE_CONTROL_NO_CACHE)) {
-                noCache = true;
-                if (value != null) {
-                    final Tokenizer.Cursor valCursor = new ParserCursor(0, value.length());
-                    while (!valCursor.atEnd()) {
-                        final String token = tokenParser.parseToken(value, valCursor, VALUE_DELIMS);
-                        if (!TextUtils.isBlank(token)) {
-                            noCacheFields.add(token);
-                        }
-                        if (!valCursor.atEnd()) {
-                            valCursor.updatePos(valCursor.getPos() + 1);
+
+            // Parse the header
+            while (!cursor.atEnd()) {
+                final String name = tokenParser.parseToken(buffer, cursor, TOKEN_DELIMS);
+                String value = null;
+                if (!cursor.atEnd()) {
+                    final int valueDelim = buffer.charAt(cursor.getPos());
+                    cursor.updatePos(cursor.getPos() + 1);
+                    if (valueDelim == EQUAL_CHAR) {
+                        value = tokenParser.parseValue(buffer, cursor, VALUE_DELIMS);
+                        if (!cursor.atEnd()) {
+                            cursor.updatePos(cursor.getPos() + 1);
                         }
                     }
                 }
-            } else if (name.equalsIgnoreCase(HeaderConstants.CACHE_CONTROL_NO_STORE)) {
-                noStore = true;
-            } else if (name.equalsIgnoreCase(HeaderConstants.PRIVATE)) {
-                cachePrivate = true;
-            } else if (name.equalsIgnoreCase(HeaderConstants.CACHE_CONTROL_PROXY_REVALIDATE)) {
-                proxyRevalidate = true;
-            } else if (name.equalsIgnoreCase(HeaderConstants.PUBLIC)) {
-                cachePublic = true;
-            } else if (name.equalsIgnoreCase(HeaderConstants.STALE_WHILE_REVALIDATE)) {
-                staleWhileRevalidate = parseSeconds(name, value);
+                // Update the Cache-Control directives based on the current header
+                if (name.equalsIgnoreCase(HeaderConstants.CACHE_CONTROL_S_MAX_AGE)) {
+                    sharedMaxAge = parseSeconds(name, value);
+                } else if (name.equalsIgnoreCase(HeaderConstants.CACHE_CONTROL_MAX_AGE)) {
+                    maxAge = parseSeconds(name, value);
+                } else if (name.equalsIgnoreCase(HeaderConstants.CACHE_CONTROL_MUST_REVALIDATE)) {
+                    mustRevalidate = true;
+                } else if (name.equalsIgnoreCase(HeaderConstants.CACHE_CONTROL_NO_CACHE)) {
+                    noCache = true;
+                    if (value != null) {
+                        final Tokenizer.Cursor valCursor = new ParserCursor(0, value.length());
+                        while (!valCursor.atEnd()) {
+                            final String token = tokenParser.parseToken(value, valCursor, VALUE_DELIMS);
+                            if (!TextUtils.isBlank(token)) {
+                                noCacheFields.add(token);
+                            }
+                            if (!valCursor.atEnd()) {
+                                valCursor.updatePos(valCursor.getPos() + 1);
+                            }
+                        }
+                    }
+                } else if (name.equalsIgnoreCase(HeaderConstants.CACHE_CONTROL_NO_STORE)) {
+                    noStore = true;
+                } else if (name.equalsIgnoreCase(HeaderConstants.PRIVATE)) {
+                    cachePrivate = true;
+                } else if (name.equalsIgnoreCase(HeaderConstants.CACHE_CONTROL_PROXY_REVALIDATE)) {
+                    proxyRevalidate = true;
+                } else if (name.equalsIgnoreCase(HeaderConstants.PUBLIC)) {
+                    cachePublic = true;
+                } else if (name.equalsIgnoreCase(HeaderConstants.STALE_WHILE_REVALIDATE)) {
+                    staleWhileRevalidate = parseSeconds(name, value);
+                }
             }
         }
+        // Return a single CacheControl object with the combined directives
         return new CacheControl(maxAge, sharedMaxAge, mustRevalidate, noCache, noStore, cachePrivate, proxyRevalidate, cachePublic, staleWhileRevalidate, noCacheFields);
     }
 
