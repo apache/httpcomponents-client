@@ -41,7 +41,7 @@ public class TestLinearBackoffManager {
     private LinearBackoffManager impl;
     private MockConnPoolControl connPerRoute;
     private HttpRoute route;
-    private static final long DEFAULT_COOL_DOWN_MS = 5000;
+    private static final long DEFAULT_COOL_DOWN_MS = 10;
 
     @BeforeEach
     public void setUp() {
@@ -68,11 +68,16 @@ public class TestLinearBackoffManager {
     }
 
     @Test
-    public void backoffDoesNotAdjustDuringCoolDownPeriod() throws InterruptedException {
+    public void backoffDoesNotAdjustDuringCoolDownPeriod() {
         connPerRoute.setMaxPerRoute(route, 4);
         impl.backOff(route);
         final long max = connPerRoute.getMaxPerRoute(route);
-        Thread.sleep(1); // Sleep for 1 ms
+        // Replace Thread.sleep(1) with busy waiting
+        final long end = System.currentTimeMillis() + 1;
+        while (System.currentTimeMillis() < end) {
+            // Busy waiting
+        }
+
         impl.backOff(route);
         assertEquals(max, connPerRoute.getMaxPerRoute(route));
     }
@@ -95,11 +100,16 @@ public class TestLinearBackoffManager {
 
 
     @Test
-    public void probeDoesNotAdjustDuringCooldownPeriod() throws InterruptedException {
+    public void probeDoesNotAdjustDuringCooldownPeriod() {
         connPerRoute.setMaxPerRoute(route, 4);
         impl.probe(route);
         final long max = connPerRoute.getMaxPerRoute(route);
-        Thread.sleep(1); // Sleep for 1 ms
+        // Replace Thread.sleep(1) with busy waiting
+        final long end = System.currentTimeMillis() + 1;
+        while (System.currentTimeMillis() < end) {
+            // Busy waiting
+        }
+
         impl.probe(route);
         assertEquals(max, connPerRoute.getMaxPerRoute(route));
     }
