@@ -30,6 +30,7 @@ import java.util.BitSet;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.function.BiConsumer;
 
 import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.core5.annotation.Contract;
@@ -37,6 +38,9 @@ import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.FormattedHeader;
 import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.message.ParserCursor;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.CharArrayBuffer;
@@ -51,14 +55,14 @@ import org.slf4j.LoggerFactory;
  * This class is thread-safe and has a singleton instance ({@link #INSTANCE}).
  * </p>
  * <p>
- * The {@link #parse(Iterator)} method takes an HTTP header and returns a {@link CacheControl} object containing
+ * The {@link #parseResponse(Iterator)} method takes an HTTP header and returns a {@link ResponseCacheControl} object containing
  * the relevant caching directives. The header can be either a {@link FormattedHeader} object, which contains a
  * pre-parsed {@link CharArrayBuffer}, or a plain {@link Header} object, in which case the value will be parsed and
  * stored in a new {@link CharArrayBuffer}.
  * </p>
  * <p>
  * This parser only supports two directives: "max-age" and "s-maxage". If either of these directives are present in the
- * header, their values will be parsed and stored in the {@link CacheControl} object. If both directives are
+ * header, their values will be parsed and stored in the {@link ResponseCacheControl} object. If both directives are
  * present, the value of "s-maxage" takes precedence.
  * </p>
  */
@@ -102,39 +106,7 @@ class CacheControlHeaderParser {
         this.tokenParser = Tokenizer.INSTANCE;
     }
 
-    /**
-     * Parses the specified header and returns a new {@link CacheControl} instance containing the relevant caching
-     * <p>
-     * directives.
-     *
-     * <p>The returned {@link CacheControl} instance will contain the values for "max-age" and "s-maxage" caching
-     * directives parsed from the input header. If the input header does not contain any caching directives or if the
-     * <p>
-     * directives are malformed, the returned {@link CacheControl} instance will have default values for "max-age" and
-     * <p>
-     * "s-maxage" (-1).</p>
-     *
-     * @param headerIterator the header to parse, cannot be {@code null}
-     * @return a new {@link CacheControl} instance containing the relevant caching directives parsed from the header
-     * @throws IllegalArgumentException if the input header is {@code null}
-     */
-    public final CacheControl parse(final Iterator<Header> headerIterator) {
-        Args.notNull(headerIterator, "headerIterator");
-
-        // Initialize variables to hold the Cache-Control directives
-        long maxAge = -1;
-        long sharedMaxAge = -1;
-        boolean noCache = false;
-        boolean noStore = false;
-        boolean cachePrivate = false;
-        boolean mustRevalidate = false;
-        boolean proxyRevalidate = false;
-        boolean cachePublic = false;
-        long staleWhileRevalidate = -1;
-        // Declare a new Set variable at the beginning of the method to store the field-names
-        final Set<String> noCacheFields = new HashSet<>();
-
-        // Iterate over each header
+    public void parse(final Iterator<Header> headerIterator, final BiConsumer<String, String> consumer) {
         while (headerIterator.hasNext()) {
             final Header header = headerIterator.next();
             final CharArrayBuffer buffer;
@@ -145,7 +117,7 @@ class CacheControlHeaderParser {
             } else {
                 final String s = header.getValue();
                 if (s == null) {
-                    return new CacheControl();
+                    return;
                 }
                 buffer = new CharArrayBuffer(s.length());
                 buffer.append(s);
@@ -166,53 +138,121 @@ class CacheControlHeaderParser {
                         }
                     }
                 }
-                // Update the Cache-Control directives based on the current header
-                if (name.equalsIgnoreCase(HeaderConstants.CACHE_CONTROL_S_MAX_AGE)) {
-                    sharedMaxAge = parseSeconds(name, value);
-                } else if (name.equalsIgnoreCase(HeaderConstants.CACHE_CONTROL_MAX_AGE)) {
-                    maxAge = parseSeconds(name, value);
-                } else if (name.equalsIgnoreCase(HeaderConstants.CACHE_CONTROL_MUST_REVALIDATE)) {
-                    mustRevalidate = true;
-                } else if (name.equalsIgnoreCase(HeaderConstants.CACHE_CONTROL_NO_CACHE)) {
-                    noCache = true;
-                    if (value != null) {
-                        final Tokenizer.Cursor valCursor = new ParserCursor(0, value.length());
-                        while (!valCursor.atEnd()) {
-                            final String token = tokenParser.parseToken(value, valCursor, VALUE_DELIMS);
-                            if (!TextUtils.isBlank(token)) {
-                                noCacheFields.add(token);
-                            }
-                            if (!valCursor.atEnd()) {
-                                valCursor.updatePos(valCursor.getPos() + 1);
-                            }
-                        }
-                    }
-                } else if (name.equalsIgnoreCase(HeaderConstants.CACHE_CONTROL_NO_STORE)) {
-                    noStore = true;
-                } else if (name.equalsIgnoreCase(HeaderConstants.PRIVATE)) {
-                    cachePrivate = true;
-                } else if (name.equalsIgnoreCase(HeaderConstants.CACHE_CONTROL_PROXY_REVALIDATE)) {
-                    proxyRevalidate = true;
-                } else if (name.equalsIgnoreCase(HeaderConstants.PUBLIC)) {
-                    cachePublic = true;
-                } else if (name.equalsIgnoreCase(HeaderConstants.STALE_WHILE_REVALIDATE)) {
-                    staleWhileRevalidate = parseSeconds(name, value);
-                }
+                consumer.accept(name, value);
             }
         }
-        // Return a single CacheControl object with the combined directives
-        return new CacheControl(maxAge, sharedMaxAge, mustRevalidate, noCache, noStore, cachePrivate, proxyRevalidate, cachePublic, staleWhileRevalidate, noCacheFields);
+    }
+
+    /**
+     * Parses the specified response header and returns a new {@link ResponseCacheControl} instance containing
+     * the relevant caching directives.
+     *
+     * <p>The returned {@link ResponseCacheControl} instance will contain the values for "max-age" and "s-maxage"
+     * caching directives parsed from the input header. If the input header does not contain any caching directives
+     * or if the directives are malformed, the returned {@link ResponseCacheControl} instance will have default values
+     * for "max-age" and "s-maxage" (-1).</p>
+     *
+     * @param headerIterator the header to parse, cannot be {@code null}
+     * @return a new {@link ResponseCacheControl} instance containing the relevant caching directives parsed
+     * from the response header
+     * @throws IllegalArgumentException if the input header is {@code null}
+     */
+    public final ResponseCacheControl parseResponse(final Iterator<Header> headerIterator) {
+        Args.notNull(headerIterator, "headerIterator");
+        final ResponseCacheControl.Builder builder = new ResponseCacheControl.Builder();
+        parse(headerIterator, (name, value) -> {
+            if (name.equalsIgnoreCase(HeaderConstants.CACHE_CONTROL_S_MAX_AGE)) {
+                builder.setSharedMaxAge(parseSeconds(name, value));
+            } else if (name.equalsIgnoreCase(HeaderConstants.CACHE_CONTROL_MAX_AGE)) {
+                builder.setMaxAge(parseSeconds(name, value));
+            } else if (name.equalsIgnoreCase(HeaderConstants.CACHE_CONTROL_MUST_REVALIDATE)) {
+                builder.setMustRevalidate(true);
+            } else if (name.equalsIgnoreCase(HeaderConstants.CACHE_CONTROL_NO_CACHE)) {
+                builder.setNoCache(true);
+                if (value != null) {
+                    final Tokenizer.Cursor valCursor = new ParserCursor(0, value.length());
+                    final Set<String> noCacheFields = new HashSet<>();
+                    while (!valCursor.atEnd()) {
+                        final String token = tokenParser.parseToken(value, valCursor, VALUE_DELIMS);
+                        if (!TextUtils.isBlank(token)) {
+                            noCacheFields.add(token);
+                        }
+                        if (!valCursor.atEnd()) {
+                            valCursor.updatePos(valCursor.getPos() + 1);
+                        }
+                    }
+                    builder.setNoCacheFields(noCacheFields);
+                }
+            } else if (name.equalsIgnoreCase(HeaderConstants.CACHE_CONTROL_NO_STORE)) {
+                builder.setNoStore(true);
+            } else if (name.equalsIgnoreCase(HeaderConstants.CACHE_CONTROL_PRIVATE)) {
+                builder.setCachePrivate(true);
+            } else if (name.equalsIgnoreCase(HeaderConstants.CACHE_CONTROL_PROXY_REVALIDATE)) {
+                builder.setProxyRevalidate(true);
+            } else if (name.equalsIgnoreCase(HeaderConstants.CACHE_CONTROL_PUBLIC)) {
+                builder.setCachePublic(true);
+            } else if (name.equalsIgnoreCase(HeaderConstants.CACHE_CONTROL_STALE_WHILE_REVALIDATE)) {
+                builder.setStaleWhileRevalidate(parseSeconds(name, value));
+            } else if (name.equalsIgnoreCase(HeaderConstants.CACHE_CONTROL_STALE_IF_ERROR)) {
+                builder.setStaleIfError(parseSeconds(name, value));
+            }
+        });
+        return builder.build();
+    }
+
+    public final ResponseCacheControl parse(final HttpResponse response) {
+        return parseResponse(response.headerIterator(HttpHeaders.CACHE_CONTROL));
+    }
+
+    /**
+     * Parses the specified request header and returns a new {@link RequestCacheControl} instance containing
+     * the relevant caching directives.
+     *
+     * @param headerIterator the header to parse, cannot be {@code null}
+     * @return a new {@link RequestCacheControl} instance containing the relevant caching directives parsed
+     * from the request header
+     * @throws IllegalArgumentException if the input header is {@code null}
+     */
+    public final RequestCacheControl parseRequest(final Iterator<Header> headerIterator) {
+        Args.notNull(headerIterator, "headerIterator");
+        final RequestCacheControl.Builder builder = new RequestCacheControl.Builder();
+        parse(headerIterator, (name, value) -> {
+            if (name.equalsIgnoreCase(HeaderConstants.CACHE_CONTROL_MAX_AGE)) {
+                builder.setMaxAge(parseSeconds(name, value));
+            } else if (name.equalsIgnoreCase(HeaderConstants.CACHE_CONTROL_MAX_STALE)) {
+                builder.setMaxStale(parseSeconds(name, value));
+            } else if (name.equalsIgnoreCase(HeaderConstants.CACHE_CONTROL_MIN_FRESH)) {
+                builder.setMinFresh(parseSeconds(name, value));
+            } else if (name.equalsIgnoreCase(HeaderConstants.CACHE_CONTROL_NO_STORE)) {
+                builder.setNoStore(true);
+            } else if (name.equalsIgnoreCase(HeaderConstants.CACHE_CONTROL_NO_CACHE)) {
+                builder.setNoCache(true);
+            } else if (name.equalsIgnoreCase(HeaderConstants.CACHE_CONTROL_ONLY_IF_CACHED)) {
+                builder.setOnlyIfCached(true);
+            } else if (name.equalsIgnoreCase(HeaderConstants.CACHE_CONTROL_STALE_IF_ERROR)) {
+                builder.setStaleIfError(parseSeconds(name, value));
+            }
+        });
+        return builder.build();
+    }
+
+    public final RequestCacheControl parse(final HttpRequest request) {
+        return parseRequest(request.headerIterator(HttpHeaders.CACHE_CONTROL));
     }
 
     private static long parseSeconds(final String name, final String value) {
+        if (TextUtils.isEmpty(value)) {
+            return -1;
+        }
         try {
-            return value != null ? Long.parseLong(value) : -1;
+            final long n = Long.parseLong(value);
+            return n < 0 ? -1 : n;
         } catch (final NumberFormatException e) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Directive {} was malformed: {}", name, value);
             }
-            return -1;
         }
+        return 0;
     }
 
 }

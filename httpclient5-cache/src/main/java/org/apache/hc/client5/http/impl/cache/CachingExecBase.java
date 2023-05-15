@@ -407,7 +407,7 @@ public class CachingExecBase {
         if (it == null || !it.hasNext()) {
             return false;
         } else {
-            final CacheControl cacheControl = CacheControlHeaderParser.INSTANCE.parse(it);
+            final ResponseCacheControl cacheControl = CacheControlHeaderParser.INSTANCE.parseResponse(it);
             return cacheControl.isNoCache();
         }
     }
