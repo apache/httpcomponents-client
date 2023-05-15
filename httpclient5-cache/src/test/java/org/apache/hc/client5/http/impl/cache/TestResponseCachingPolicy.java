@@ -227,7 +227,7 @@ public class TestResponseCachingPolicy {
         final int status = getRandomStatus();
          response.setCode(status);
         response.setHeader("Cache-Control", "max-age=boom");
-        Assertions.assertTrue(policy.isResponseCacheable("GET", response));
+        Assertions.assertFalse(policy.isResponseCacheable("GET", response));
     }
 
 

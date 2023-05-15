@@ -166,7 +166,7 @@ class ResponseCachingPolicy {
      * @param response The origin response
      * @return {@code true} if response is cacheable
      */
-    public boolean isResponseCacheable(final String httpMethod, final HttpResponse response, final CacheControl cacheControl) {
+    public boolean isResponseCacheable(final String httpMethod, final HttpResponse response, final ResponseCacheControl cacheControl) {
         boolean cacheable = false;
 
         if (!HeaderConstants.GET_METHOD.equals(httpMethod) && !HeaderConstants.HEAD_METHOD.equals(httpMethod)
@@ -285,7 +285,7 @@ class ResponseCachingPolicy {
      * <p>
      * When cacheControl is null, returns false, implying the response is cacheable.
      */
-    protected boolean isExplicitlyNonCacheable(final CacheControl cacheControl) {
+    protected boolean isExplicitlyNonCacheable(final ResponseCacheControl cacheControl) {
         if (cacheControl == null) {
             return false;
         } else {
@@ -313,7 +313,7 @@ class ResponseCachingPolicy {
         return false;
     }
 
-    protected boolean isExplicitlyCacheable(final HttpResponse response, final CacheControl cacheControl ) {
+    protected boolean isExplicitlyCacheable(final HttpResponse response, final ResponseCacheControl cacheControl ) {
         if (response.getFirstHeader(HeaderConstants.EXPIRES) != null) {
             return true;
         }
@@ -363,7 +363,7 @@ class ResponseCachingPolicy {
      * @param response the {@link HttpResponse} from the origin
      * @return {@code true} if response is cacheable
      */
-    public boolean isResponseCacheable(final HttpRequest request, final HttpResponse response, final CacheControl cacheControl) {
+    public boolean isResponseCacheable(final HttpRequest request, final HttpResponse response, final ResponseCacheControl cacheControl) {
         final ProtocolVersion version = request.getVersion() != null ? request.getVersion() : HttpVersion.DEFAULT;
         if (version.compareToVersion(HttpVersion.HTTP_1_1) > 0) {
             if (LOG.isDebugEnabled()) {
@@ -403,7 +403,7 @@ class ResponseCachingPolicy {
         return isResponseCacheable(method, response, cacheControl);
     }
 
-    private boolean expiresHeaderLessOrEqualToDateHeaderAndNoCacheControl(final HttpResponse response, final CacheControl cacheControl) {
+    private boolean expiresHeaderLessOrEqualToDateHeaderAndNoCacheControl(final HttpResponse response, final ResponseCacheControl cacheControl) {
         if (cacheControl != null) {
             return false;
         }
@@ -464,7 +464,7 @@ class ResponseCachingPolicy {
      * @param response the HTTP response for which to calculate the freshness lifetime
      * @return the freshness lifetime of the response, in seconds
      */
-    private Duration calculateFreshnessLifetime(final HttpResponse response, final CacheControl cacheControl) {
+    private Duration calculateFreshnessLifetime(final HttpResponse response, final ResponseCacheControl cacheControl) {
 
         if (cacheControl == null) {
             // If no cache-control header is present, assume no caching directives and return a default value
@@ -516,7 +516,7 @@ class ResponseCachingPolicy {
             final int statusCode = entry.getStatus();
             if (statusCode >= HttpStatus.SC_INTERNAL_SERVER_ERROR && statusCode <= HttpStatus.SC_GATEWAY_TIMEOUT) {
                 // Check if the cached response has a stale-while-revalidate directive
-                final CacheControl cacheControl = parseCacheControlHeader(entry);
+                final ResponseCacheControl cacheControl = parseCacheControlHeader(entry);
                 if (cacheControl == null) {
                     return false;
                 } else {
@@ -534,12 +534,12 @@ class ResponseCachingPolicy {
      * @param messageHeaders the HTTP message to parse the header from
      * @return a CacheControl instance with the parsed directives or default values if the header is not present
      */
-    private CacheControl parseCacheControlHeader(final MessageHeaders messageHeaders) {
+    private ResponseCacheControl parseCacheControlHeader(final MessageHeaders messageHeaders) {
         final Iterator<Header> it = messageHeaders.headerIterator(HttpHeaders.CACHE_CONTROL);
         if (it == null || !it.hasNext()) {
             return null;
         } else {
-            return CacheControlHeaderParser.INSTANCE.parse(it);
+            return CacheControlHeaderParser.INSTANCE.parseResponse(it);
         }
     }
 
@@ -558,7 +558,7 @@ class ResponseCachingPolicy {
      * @return true if revalidation is required based on the {@code no-cache} directive, {@code false} otherwise.
      */
     boolean responseContainsNoCacheDirective(final HttpCacheEntry entry) {
-        final CacheControl responseCacheControl = parseCacheControlHeader(entry);
+        final ResponseCacheControl responseCacheControl = parseCacheControlHeader(entry);
 
         if (responseCacheControl != null) {
             final Set<String> noCacheFields = responseCacheControl.getNoCacheFields();

@@ -56,10 +56,20 @@ public class HeaderConstants {
     public static final String VARY = "Vary";
     public static final String ALLOW = "Allow";
     public static final String VIA = "Via";
+    /**
+     * @deprecated Use {@link #CACHE_CONTROL_PUBLIC}
+     */
+    @Deprecated
     public static final String PUBLIC = "public";
+    /**
+     * @deprecated Use {@link #CACHE_CONTROL_PRIVATE}
+     */
+    @Deprecated
     public static final String PRIVATE = "private";
 
     public static final String CACHE_CONTROL = "Cache-Control";
+    public static final String CACHE_CONTROL_PUBLIC = "public";
+    public static final String CACHE_CONTROL_PRIVATE = "private";
     public static final String CACHE_CONTROL_NO_STORE = "no-store";
     public static final String CACHE_CONTROL_NO_CACHE = "no-cache";
     public static final String CACHE_CONTROL_MAX_AGE = "max-age";
@@ -68,7 +78,18 @@ public class HeaderConstants {
     public static final String CACHE_CONTROL_MIN_FRESH = "min-fresh";
     public static final String CACHE_CONTROL_MUST_REVALIDATE = "must-revalidate";
     public static final String CACHE_CONTROL_PROXY_REVALIDATE = "proxy-revalidate";
+    public static final String CACHE_CONTROL_STALE_IF_ERROR = "stale-if-error";
+    public static final String CACHE_CONTROL_STALE_WHILE_REVALIDATE = "stale-while-revalidate";
+    public static final String CACHE_CONTROL_ONLY_IF_CACHED = "only-if-cached";
+    /**
+     * @deprecated Use {@link #CACHE_CONTROL_STALE_IF_ERROR}
+     */
+    @Deprecated
     public static final String STALE_IF_ERROR = "stale-if-error";
+    /**
+     * @deprecated Use {@link #CACHE_CONTROL_STALE_WHILE_REVALIDATE}
+     */
+    @Deprecated
     public static final String STALE_WHILE_REVALIDATE = "stale-while-revalidate";
 
     public static final String WARNING = "Warning";
