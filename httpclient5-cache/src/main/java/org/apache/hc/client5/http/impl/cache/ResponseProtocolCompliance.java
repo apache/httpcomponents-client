@@ -90,7 +90,7 @@ class ResponseProtocolCompliance {
             return;
         }
 
-        final Header[] warningHeaders = response.getHeaders(HeaderConstants.WARNING);
+        final Header[] warningHeaders = response.getHeaders(HttpHeaders.WARNING);
 
         if (warningHeaders == null || warningHeaders.length == 0) {
             return;
@@ -102,14 +102,14 @@ class ResponseProtocolCompliance {
             for(final WarningValue wv : WarningValue.getWarningValues(h)) {
                 final Instant warnInstant = wv.getWarnDate();
                 if (warnInstant == null || warnInstant.equals(responseDate)) {
-                    newWarningHeaders.add(new BasicHeader(HeaderConstants.WARNING,wv.toString()));
+                    newWarningHeaders.add(new BasicHeader(HttpHeaders.WARNING,wv.toString()));
                 } else {
                     modified = true;
                 }
             }
         }
         if (modified) {
-            response.removeHeaders(HeaderConstants.WARNING);
+            response.removeHeaders(HttpHeaders.WARNING);
             for(final Header h : newWarningHeaders) {
                 response.addHeader(h);
             }
@@ -160,7 +160,7 @@ class ResponseProtocolCompliance {
 
     private void ensurePartialContentIsNotSentToAClientThatDidNotRequestIt(final HttpRequest request,
             final HttpResponse response) throws IOException {
-        if (request.getFirstHeader(HeaderConstants.RANGE) != null
+        if (request.getFirstHeader(HttpHeaders.RANGE) != null
                 || response.getCode() != HttpStatus.SC_PARTIAL_CONTENT) {
             return;
         }
@@ -183,9 +183,9 @@ class ResponseProtocolCompliance {
     }
 
     private void ensure304DoesNotContainExtraEntityHeaders(final HttpResponse response) {
-        final String[] disallowedEntityHeaders = { HeaderConstants.ALLOW, HttpHeaders.CONTENT_ENCODING,
+        final String[] disallowedEntityHeaders = { HttpHeaders.ALLOW, HttpHeaders.CONTENT_ENCODING,
                 "Content-Language", HttpHeaders.CONTENT_LENGTH, "Content-MD5",
-                "Content-Range", HttpHeaders.CONTENT_TYPE, HeaderConstants.LAST_MODIFIED
+                "Content-Range", HttpHeaders.CONTENT_TYPE, HttpHeaders.LAST_MODIFIED
         };
         if (response.getCode() == HttpStatus.SC_NOT_MODIFIED) {
             for(final String hdr : disallowedEntityHeaders) {

@@ -37,7 +37,6 @@ import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.async.methods.SimpleBody;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.cache.CacheResponseStatus;
-import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.HttpCacheStorage;
 import org.apache.hc.client5.http.cache.ResourceFactory;
@@ -216,7 +215,7 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
         }
 
         requestCompliance.makeRequestCompliant(request);
-        request.addHeader("Via",via);
+        request.addHeader(HttpHeaders.VIA, via);
 
         if (!cacheableRequestPolicy.isServableFromCache(request)) {
             LOG.debug("Request is not servable from cache");
@@ -268,7 +267,7 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
         LOG.debug("Calling the backend");
         final ClassicHttpResponse backendResponse = chain.proceed(request, scope);
         try {
-            backendResponse.addHeader("Via", generateViaHeader(backendResponse));
+            backendResponse.addHeader(HttpHeaders.VIA, generateViaHeader(backendResponse));
             return handleBackendResponse(target, request, scope, requestDate, getCurrentDate(), backendResponse);
         } catch (final IOException | RuntimeException ex) {
             backendResponse.close();
@@ -377,7 +376,7 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
                 responseDate = getCurrentDate();
             }
 
-            backendResponse.addHeader(HeaderConstants.VIA, generateViaHeader(backendResponse));
+            backendResponse.addHeader(HttpHeaders.VIA, generateViaHeader(backendResponse));
 
             final int statusCode = backendResponse.getCode();
             if (statusCode == HttpStatus.SC_NOT_MODIFIED || statusCode == HttpStatus.SC_OK) {
@@ -399,7 +398,7 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
                     && validityPolicy.mayReturnStaleIfError(request, cacheEntry, responseDate)) {
                 try {
                     final SimpleHttpResponse cachedResponse = responseGenerator.generateResponse(request, cacheEntry);
-                    cachedResponse.addHeader(HeaderConstants.WARNING, "110 localhost \"Response is stale\"");
+                    cachedResponse.addHeader(HttpHeaders.WARNING, "110 localhost \"Response is stale\"");
                     return convert(cachedResponse, scope);
                 } finally {
                     backendResponse.close();
@@ -528,13 +527,13 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
         try {
             final Instant responseDate = getCurrentDate();
 
-            backendResponse.addHeader("Via", generateViaHeader(backendResponse));
+            backendResponse.addHeader(HttpHeaders.VIA, generateViaHeader(backendResponse));
 
             if (backendResponse.getCode() != HttpStatus.SC_NOT_MODIFIED) {
                 return handleBackendResponse(target, request, scope, requestDate, responseDate, backendResponse);
             }
 
-            final Header resultEtagHeader = backendResponse.getFirstHeader(HeaderConstants.ETAG);
+            final Header resultEtagHeader = backendResponse.getFirstHeader(HttpHeaders.ETAG);
             if (resultEtagHeader == null) {
                 LOG.warn("304 response did not contain ETag");
                 EntityUtils.consume(backendResponse.getEntity());

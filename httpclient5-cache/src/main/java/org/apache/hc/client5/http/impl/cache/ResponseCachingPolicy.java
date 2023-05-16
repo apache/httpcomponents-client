@@ -41,7 +41,6 @@ import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HeaderElement;
 import org.apache.hc.core5.http.HttpHeaders;
-import org.apache.hc.core5.http.HttpMessage;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
@@ -206,12 +205,12 @@ class ResponseCachingPolicy {
             }
         }
 
-        if (response.countHeaders(HeaderConstants.AGE) > 1) {
+        if (response.countHeaders(HttpHeaders.AGE) > 1) {
             LOG.debug("Multiple Age headers");
             return false;
         }
 
-        if (response.countHeaders(HeaderConstants.EXPIRES) > 1) {
+        if (response.countHeaders(HttpHeaders.EXPIRES) > 1) {
             LOG.debug("Multiple Expires headers");
             return false;
         }
@@ -227,7 +226,7 @@ class ResponseCachingPolicy {
             return false;
         }
 
-        final Iterator<HeaderElement> it = MessageSupport.iterate(response, HeaderConstants.VARY);
+        final Iterator<HeaderElement> it = MessageSupport.iterate(response, HttpHeaders.VARY);
         while (it.hasNext()) {
             final HeaderElement elem = it.next();
             if ("*".equals(elem.getName())) {
@@ -296,25 +295,8 @@ class ResponseCachingPolicy {
         }
     }
 
-    /**
-     * @deprecated As of version 5.0, use {@link ResponseCachingPolicy#parseCacheControlHeader(MessageHeaders)} instead.
-     */
-    @Deprecated
-    protected boolean hasCacheControlParameterFrom(final HttpMessage msg, final String[] params) {
-        final Iterator<HeaderElement> it = MessageSupport.iterate(msg, HeaderConstants.CACHE_CONTROL);
-        while (it.hasNext()) {
-            final HeaderElement elem = it.next();
-            for (final String param : params) {
-                if (param.equalsIgnoreCase(elem.getName())) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
     protected boolean isExplicitlyCacheable(final HttpResponse response, final ResponseCacheControl cacheControl ) {
-        if (response.getFirstHeader(HeaderConstants.EXPIRES) != null) {
+        if (response.getFirstHeader(HttpHeaders.EXPIRES) != null) {
             return true;
         }
         if (cacheControl == null) {
@@ -392,7 +374,7 @@ class ResponseCachingPolicy {
         }
 
         if (sharedCache) {
-            if (request.countHeaders(HeaderConstants.AUTHORIZATION) > 0
+            if (request.countHeaders(HttpHeaders.AUTHORIZATION) > 0
                     && cacheControl != null && !(cacheControl.getSharedMaxAge() > -1 || cacheControl.isMustRevalidate() || cacheControl.isPublic())) {
                 LOG.debug("Request contains private credentials");
                 return false;
@@ -407,7 +389,7 @@ class ResponseCachingPolicy {
         if (cacheControl != null) {
             return false;
         }
-        final Header expiresHdr = response.getFirstHeader(HeaderConstants.EXPIRES);
+        final Header expiresHdr = response.getFirstHeader(HttpHeaders.EXPIRES);
         final Header dateHdr = response.getFirstHeader(HttpHeaders.DATE);
         if (expiresHdr == null || dateHdr == null) {
             return false;
@@ -421,7 +403,7 @@ class ResponseCachingPolicy {
     }
 
     private boolean from1_0Origin(final HttpResponse response) {
-        final Iterator<HeaderElement> it = MessageSupport.iterate(response, HeaderConstants.VIA);
+        final Iterator<HeaderElement> it = MessageSupport.iterate(response, HttpHeaders.VIA);
         if (it.hasNext()) {
             final HeaderElement elt = it.next();
             final String proto = elt.toString().split("\\s")[0];

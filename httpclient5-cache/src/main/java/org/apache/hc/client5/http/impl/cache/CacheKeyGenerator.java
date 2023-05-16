@@ -36,13 +36,13 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.function.Resolver;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HeaderElement;
+import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.message.MessageSupport;
@@ -137,7 +137,7 @@ public class CacheKeyGenerator implements Resolver<URI, String> {
      */
     public String generateVariantKey(final HttpRequest req, final HttpCacheEntry entry) {
         final List<String> variantHeaderNames = new ArrayList<>();
-        final Iterator<HeaderElement> it = MessageSupport.iterate(entry, HeaderConstants.VARY);
+        final Iterator<HeaderElement> it = MessageSupport.iterate(entry, HttpHeaders.VARY);
         while (it.hasNext()) {
             final HeaderElement elt = it.next();
             variantHeaderNames.add(elt.getName());

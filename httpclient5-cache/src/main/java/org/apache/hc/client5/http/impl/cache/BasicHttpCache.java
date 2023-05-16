@@ -28,10 +28,8 @@ package org.apache.hc.client5.http.impl.cache;
 
 import java.time.Instant;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
-import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.HttpCacheInvalidator;
 import org.apache.hc.client5.http.cache.HttpCacheStorage;
@@ -39,13 +37,11 @@ import org.apache.hc.client5.http.cache.HttpCacheUpdateException;
 import org.apache.hc.client5.http.cache.ResourceFactory;
 import org.apache.hc.client5.http.cache.ResourceIOException;
 import org.apache.hc.core5.http.Header;
-import org.apache.hc.core5.http.HeaderElement;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.Method;
-import org.apache.hc.core5.http.message.MessageSupport;
 import org.apache.hc.core5.http.message.RequestLine;
 import org.apache.hc.core5.http.message.StatusLine;
 import org.apache.hc.core5.util.ByteArrayBuffer;
@@ -326,8 +322,7 @@ class BasicHttpCache implements HttpCache {
                 continue;
             }
 
-            final Iterator<HeaderElement> it = MessageSupport.iterate(variant, HttpHeaders.DATE);
-            if (!it.hasNext()) {
+            if (!variant.containsHeader(HttpHeaders.DATE)) {
                 continue;
             }
 
@@ -360,7 +355,7 @@ class BasicHttpCache implements HttpCache {
                 try {
                     final HttpCacheEntry entry = storage.getEntry(variantCacheKey);
                     if (entry != null) {
-                        final Header etagHeader = entry.getFirstHeader(HeaderConstants.ETAG);
+                        final Header etagHeader = entry.getFirstHeader(HttpHeaders.ETAG);
                         if (etagHeader != null) {
                             variants.put(etagHeader.getValue(), new Variant(variantCacheKey, entry));
                         }

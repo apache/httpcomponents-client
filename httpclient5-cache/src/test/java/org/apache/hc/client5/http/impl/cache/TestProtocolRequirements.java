@@ -404,9 +404,9 @@ public class TestProtocolRequirements {
 
     @Test
     public void testOrderOfMultipleViaHeadersIsPreservedOnRequests() throws Exception {
-        request.addHeader("Via", "1.0 fred, 1.1 nowhere.com (Apache/1.1)");
-        request.addHeader("Via", "1.0 ricky, 1.1 mertz, 1.0 lucy");
-        testOrderOfMultipleHeadersIsPreservedOnRequests("Via", request);
+        request.addHeader(HttpHeaders.VIA, "1.0 fred, 1.1 nowhere.com (Apache/1.1)");
+        request.addHeader(HttpHeaders.VIA, "1.0 ricky, 1.1 mertz, 1.0 lucy");
+        testOrderOfMultipleHeadersIsPreservedOnRequests(HttpHeaders.VIA, request);
     }
 
     @Test
@@ -465,9 +465,9 @@ public class TestProtocolRequirements {
 
     @Test
     public void testOrderOfMultipleViaHeadersIsPreservedOnResponses() throws Exception {
-        originResponse.addHeader("Via", "1.0 fred, 1.1 nowhere.com (Apache/1.1)");
-        originResponse.addHeader("Via", "1.0 ricky, 1.1 mertz, 1.0 lucy");
-        testOrderOfMultipleHeadersIsPreservedOnResponses("Via");
+        originResponse.addHeader(HttpHeaders.VIA, "1.0 fred, 1.1 nowhere.com (Apache/1.1)");
+        originResponse.addHeader(HttpHeaders.VIA, "1.0 ricky, 1.1 mertz, 1.0 lucy");
+        testOrderOfMultipleHeadersIsPreservedOnResponses(HttpHeaders.VIA);
     }
 
     @Test
@@ -1980,7 +1980,7 @@ public class TestProtocolRequirements {
         resp1.setHeader("ETag", "\"etag\"");
         resp1.setHeader("Cache-Control", "max-age=5");
         resp1.setHeader("Warning", "110 squid \"stale stuff\"");
-        resp1.setHeader("Via", "1.1 fred");
+        resp1.setHeader(HttpHeaders.VIA, "1.1 fred");
 
         final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
 
@@ -1992,7 +1992,7 @@ public class TestProtocolRequirements {
         resp2.setHeader("Date", DateUtils.formatStandardDate(now));
         resp2.setHeader("Server", "MockServer/1.0");
         resp2.setHeader("ETag", "\"etag\"");
-        resp2.setHeader("Via", "1.1 fred");
+        resp2.setHeader(HttpHeaders.VIA, "1.1 fred");
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
         Mockito.when(mockExecChain.proceed(RequestEquivalent.eq(validate), Mockito.any())).thenReturn(resp2);
@@ -2040,7 +2040,7 @@ public class TestProtocolRequirements {
         resp1.setHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo));
         resp1.setHeader("ETag", "\"etag\"");
         resp1.setHeader("Cache-Control", "max-age=5");
-        resp1.setHeader("Via", "1.1 xproxy");
+        resp1.setHeader(HttpHeaders.VIA, "1.1 xproxy");
         resp1.setHeader("Warning", "214 xproxy \"transformed stuff\"");
 
         final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
@@ -2053,7 +2053,7 @@ public class TestProtocolRequirements {
         resp2.setHeader("Date", DateUtils.formatStandardDate(now));
         resp2.setHeader("Server", "MockServer/1.0");
         resp2.setHeader("ETag", "\"etag\"");
-        resp1.setHeader("Via", "1.1 xproxy");
+        resp1.setHeader(HttpHeaders.VIA, "1.1 xproxy");
 
         final ClassicHttpRequest req3 = new BasicClassicHttpRequest("GET", "/");
 
@@ -4223,37 +4223,6 @@ public class TestProtocolRequirements {
         }
     }
 
-    /* "Field names MUST NOT be included with the no-cache directive in a
-     * request."
-     *
-     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9.4
-     */
-    @Test
-    public void testDoesNotTransmitNoCacheDirectivesWithFieldsDownstream() throws Exception {
-        request.setHeader("Cache-Control","no-cache=\"X-Field\"");
-
-        try {
-            execute(request);
-        } catch (final ClientProtocolException acceptable) {
-        }
-
-        final ArgumentCaptor<ClassicHttpRequest> reqCapture = ArgumentCaptor.forClass(ClassicHttpRequest.class);
-        Mockito.verify(mockExecChain, Mockito.atMostOnce()).proceed(reqCapture.capture(), Mockito.any());
-
-        final List<ClassicHttpRequest> allRequests = reqCapture.getAllValues();
-
-        if (!allRequests.isEmpty()) {
-            final ClassicHttpRequest captured = reqCapture.getValue();
-            final Iterator<HeaderElement> it = MessageSupport.iterate(captured, HttpHeaders.CACHE_CONTROL);
-            while (it.hasNext()) {
-                final HeaderElement elt = it.next();
-                if ("no-cache".equals(elt.getName())) {
-                    Assertions.assertNull(elt.getValue());
-                }
-            }
-        }
-    }
-
     /* "The request includes a "no-cache" cache-control directive or, for
      * compatibility with HTTP/1.0 clients, "Pragma: no-cache".... The
      * server MUST NOT use a cached copy when responding to such a request."
@@ -4883,7 +4852,7 @@ public class TestProtocolRequirements {
      */
     @Test
     public void testProperlyFormattedViaHeaderIsAddedToRequests() throws Exception {
-        request.removeHeaders("Via");
+        request.removeHeaders(HttpHeaders.VIA);
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(originResponse);
 
         execute(request);
@@ -4892,21 +4861,21 @@ public class TestProtocolRequirements {
         Mockito.verify(mockExecChain).proceed(reqCapture.capture(), Mockito.any());
 
         final ClassicHttpRequest captured = reqCapture.getValue();
-        final String via = captured.getFirstHeader("Via").getValue();
+        final String via = captured.getFirstHeader(HttpHeaders.VIA).getValue();
         assertValidViaHeader(via);
     }
 
     @Test
     public void testProperlyFormattedViaHeaderIsAddedToResponses() throws Exception {
-        originResponse.removeHeaders("Via");
+        originResponse.removeHeaders(HttpHeaders.VIA);
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(originResponse);
         final ClassicHttpResponse result = execute(request);
-        assertValidViaHeader(result.getFirstHeader("Via").getValue());
+        assertValidViaHeader(result.getFirstHeader(HttpHeaders.VIA).getValue());
     }
 
 
     private void assertValidViaHeader(final String via) {
-        //        Via =  "Via" ":" 1#( received-protocol received-by [ comment ] )
+        //        Via =  HttpHeaders.VIA ":" 1#( received-protocol received-by [ comment ] )
         //        received-protocol = [ protocol-name "/" ] protocol-version
         //        protocol-name     = token
         //        protocol-version  = token
@@ -4978,7 +4947,7 @@ public class TestProtocolRequirements {
         final ClassicHttpRequest originalRequest = new BasicClassicHttpRequest("GET", "/");
         originalRequest.setVersion(HttpVersion.HTTP_1_0);
         request = originalRequest;
-        request.removeHeaders("Via");
+        request.removeHeaders(HttpHeaders.VIA);
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(originResponse);
 
@@ -4988,7 +4957,7 @@ public class TestProtocolRequirements {
         Mockito.verify(mockExecChain).proceed(reqCapture.capture(), Mockito.any());
 
         final ClassicHttpRequest captured = reqCapture.getValue();
-        final String via = captured.getFirstHeader("Via").getValue();
+        final String via = captured.getFirstHeader(HttpHeaders.VIA).getValue();
         final String protocol = via.split("\\s+")[0];
         final String[] protoParts = protocol.split("/");
         if (protoParts.length > 1) {
@@ -5007,7 +4976,7 @@ public class TestProtocolRequirements {
 
         final ClassicHttpResponse result = execute(request);
 
-        final String via = result.getFirstHeader("Via").getValue();
+        final String via = result.getFirstHeader(HttpHeaders.VIA).getValue();
         final String protocol = via.split("\\s+")[0];
         final String[] protoParts = protocol.split("/");
         Assertions.assertTrue(protoParts.length >= 1);

@@ -36,7 +36,6 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import java.time.Instant;
 import java.util.Map;
 
-import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.classic.methods.HttpDelete;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
@@ -131,7 +130,7 @@ public class TestBasicHttpCache {
         final HttpRequest req = new HttpPost("/foo");
         final HttpResponse resp = HttpTestUtils.make200Response();
         resp.setHeader("Content-Location", "/bar");
-        resp.setHeader(HeaderConstants.ETAG, "\"etag\"");
+        resp.setHeader(HttpHeaders.ETAG, "\"etag\"");
         final String key = CacheKeyGenerator.INSTANCE.generateKey(host, new HttpGet("/bar"));
 
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(new Header[] {
@@ -295,7 +294,7 @@ public class TestBasicHttpCache {
         // Retrieve the ETag header value from the original response and assert that
         // the returned cache entry has the same ETag value
         final String expectedEtag = origResponse2.getFirstHeader(HttpHeaders.ETAG).getValue();
-        final String actualEtag = result.getFirstHeader(HeaderConstants.ETAG).getValue();
+        final String actualEtag = result.getFirstHeader(HttpHeaders.ETAG).getValue();
 
         assertEquals(expectedEtag, actualEtag);
     }

@@ -33,6 +33,7 @@ import java.util.Set;
 import java.util.function.BiConsumer;
 
 import org.apache.hc.client5.http.cache.HeaderConstants;
+import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
@@ -202,6 +203,10 @@ class CacheControlHeaderParser {
 
     public final ResponseCacheControl parse(final HttpResponse response) {
         return parseResponse(response.headerIterator(HttpHeaders.CACHE_CONTROL));
+    }
+
+    public final ResponseCacheControl parse(final HttpCacheEntry cacheEntry) {
+        return parseResponse(cacheEntry.headerIterator(HttpHeaders.CACHE_CONTROL));
     }
 
     /**
