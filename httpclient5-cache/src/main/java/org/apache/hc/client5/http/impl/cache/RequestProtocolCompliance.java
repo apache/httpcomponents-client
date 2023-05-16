@@ -27,17 +27,14 @@
 package org.apache.hc.client5.http.impl.cache;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 
 import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.core5.http.Header;
-import org.apache.hc.core5.http.HeaderElement;
+import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.ProtocolVersion;
-import org.apache.hc.core5.http.message.MessageSupport;
 
 class RequestProtocolCompliance {
     private final boolean weakETagOnPutDeleteAllowed;
@@ -51,9 +48,6 @@ class RequestProtocolCompliance {
         super();
         this.weakETagOnPutDeleteAllowed = weakETagOnPutDeleteAllowed;
     }
-
-    private static final List<String> disallowedWithNoCache =
-        Arrays.asList(HeaderConstants.CACHE_CONTROL_MIN_FRESH, HeaderConstants.CACHE_CONTROL_MAX_STALE, HeaderConstants.CACHE_CONTROL_MAX_AGE);
 
     /**
      * Test to see if the {@link HttpRequest} is HTTP1.1 compliant or not
@@ -77,11 +71,6 @@ class RequestProtocolCompliance {
             }
         }
 
-        anError = requestContainsNoCacheDirectiveWithFieldName(request);
-        if (anError != null) {
-            theErrors.add(anError);
-        }
-
         return theErrors;
     }
 
@@ -93,45 +82,10 @@ class RequestProtocolCompliance {
      */
     public void makeRequestCompliant(final HttpRequest request) {
         decrementOPTIONSMaxForwardsIfGreaterThen0(request);
-        stripOtherFreshnessDirectivesWithNoCache(request);
 
         if (requestVersionIsTooLow(request) || requestMinorVersionIsTooHighMajorVersionsMatch(request)) {
             request.setVersion(HttpVersion.HTTP_1_1);
         }
-    }
-
-    private void stripOtherFreshnessDirectivesWithNoCache(final HttpRequest request) {
-        final List<HeaderElement> outElts = new ArrayList<>();
-        boolean shouldStrip = false;
-        final Iterator<HeaderElement> it = MessageSupport.iterate(request, HeaderConstants.CACHE_CONTROL);
-        while (it.hasNext()) {
-            final HeaderElement elt = it.next();
-            if (!disallowedWithNoCache.contains(elt.getName())) {
-                outElts.add(elt);
-            }
-            if (HeaderConstants.CACHE_CONTROL_NO_CACHE.equals(elt.getName())) {
-                shouldStrip = true;
-            }
-        }
-        if (!shouldStrip) {
-            return;
-        }
-        request.removeHeaders(HeaderConstants.CACHE_CONTROL);
-        request.setHeader(HeaderConstants.CACHE_CONTROL, buildHeaderFromElements(outElts));
-    }
-
-    private String buildHeaderFromElements(final List<HeaderElement> outElts) {
-        final StringBuilder newHdr = new StringBuilder();
-        boolean first = true;
-        for(final HeaderElement elt : outElts) {
-            if (!first) {
-                newHdr.append(",");
-            } else {
-                first = false;
-            }
-            newHdr.append(elt);
-        }
-        return newHdr.toString();
     }
 
     private void decrementOPTIONSMaxForwardsIfGreaterThen0(final HttpRequest request) {
@@ -139,15 +93,15 @@ class RequestProtocolCompliance {
             return;
         }
 
-        final Header maxForwards = request.getFirstHeader(HeaderConstants.MAX_FORWARDS);
+        final Header maxForwards = request.getFirstHeader(HttpHeaders.MAX_FORWARDS);
         if (maxForwards == null) {
             return;
         }
 
-        request.removeHeaders(HeaderConstants.MAX_FORWARDS);
+        request.removeHeaders(HttpHeaders.MAX_FORWARDS);
         final int currentMaxForwards = Integer.parseInt(maxForwards.getValue());
 
-        request.setHeader(HeaderConstants.MAX_FORWARDS, Integer.toString(currentMaxForwards - 1));
+        request.setHeader(HttpHeaders.MAX_FORWARDS, Integer.toString(currentMaxForwards - 1));
     }
 
     protected boolean requestMinorVersionIsTooHighMajorVersionsMatch(final HttpRequest request) {
@@ -174,12 +128,12 @@ class RequestProtocolCompliance {
             return null;
         }
 
-        final Header range = request.getFirstHeader(HeaderConstants.RANGE);
+        final Header range = request.getFirstHeader(HttpHeaders.RANGE);
         if (range == null) {
             return null;
         }
 
-        final Header ifRange = request.getFirstHeader(HeaderConstants.IF_RANGE);
+        final Header ifRange = request.getFirstHeader(HttpHeaders.IF_RANGE);
         if (ifRange == null) {
             return null;
         }
@@ -200,14 +154,14 @@ class RequestProtocolCompliance {
             return null;
         }
 
-        final Header ifMatch = request.getFirstHeader(HeaderConstants.IF_MATCH);
+        final Header ifMatch = request.getFirstHeader(HttpHeaders.IF_MATCH);
         if (ifMatch != null) {
             final String val = ifMatch.getValue();
             if (val.startsWith("W/")) {
                 return RequestProtocolError.WEAK_ETAG_ON_PUTDELETE_METHOD_ERROR;
             }
         } else {
-            final Header ifNoneMatch = request.getFirstHeader(HeaderConstants.IF_NONE_MATCH);
+            final Header ifNoneMatch = request.getFirstHeader(HttpHeaders.IF_NONE_MATCH);
             if (ifNoneMatch == null) {
                 return null;
             }
@@ -221,14 +175,4 @@ class RequestProtocolCompliance {
         return null;
     }
 
-    private RequestProtocolError requestContainsNoCacheDirectiveWithFieldName(final HttpRequest request) {
-        final Iterator<HeaderElement> it = MessageSupport.iterate(request, HeaderConstants.CACHE_CONTROL);
-        while (it.hasNext()) {
-            final HeaderElement elt = it.next();
-            if (HeaderConstants.CACHE_CONTROL_NO_CACHE.equalsIgnoreCase(elt.getName()) && elt.getValue() != null) {
-                return RequestProtocolError.NO_CACHE_DIRECTIVE_WITH_FIELD_NAME;
-            }
-        }
-        return null;
-    }
 }

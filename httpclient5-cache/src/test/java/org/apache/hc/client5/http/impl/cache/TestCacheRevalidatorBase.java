@@ -33,8 +33,8 @@ import static org.mockito.Mockito.when;
 
 import java.util.concurrent.RejectedExecutionException;
 
-import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.schedule.SchedulingStrategy;
+import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.message.BasicHttpResponse;
@@ -127,15 +127,15 @@ public class TestCacheRevalidatorBase {
     @Test
     public void testStaleResponse() {
         final HttpResponse response1 = new BasicHttpResponse(HttpStatus.SC_OK);
-        response1.addHeader(HeaderConstants.WARNING, "110 localhost \"Response is stale\"");
+        response1.addHeader(HttpHeaders.WARNING, "110 localhost \"Response is stale\"");
         assertThat(impl.isStale(response1), CoreMatchers.equalTo(true));
 
         final HttpResponse response2 = new BasicHttpResponse(HttpStatus.SC_OK);
-        response2.addHeader(HeaderConstants.WARNING, "111 localhost \"Revalidation failed\"");
+        response2.addHeader(HttpHeaders.WARNING, "111 localhost \"Revalidation failed\"");
         assertThat(impl.isStale(response2), CoreMatchers.equalTo(true));
 
         final HttpResponse response3 = new BasicHttpResponse(HttpStatus.SC_OK);
-        response3.addHeader(HeaderConstants.WARNING, "xxx localhost \"Huh?\"");
+        response3.addHeader(HttpHeaders.WARNING, "xxx localhost \"Huh?\"");
         assertThat(impl.isStale(response3), CoreMatchers.equalTo(false));
 
         final HttpResponse response4 = new BasicHttpResponse(HttpStatus.SC_OK);

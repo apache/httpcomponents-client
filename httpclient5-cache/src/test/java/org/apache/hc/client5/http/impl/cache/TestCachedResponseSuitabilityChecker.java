@@ -188,31 +188,6 @@ public class TestCachedResponseSuitabilityChecker {
         Assertions.assertFalse(impl.canCachedResponseBeUsed(request, entry, now));
     }
 
-
-    @Test
-    public void testMalformedCacheControlMaxAgeRequestHeaderCausesUnsuitableEntry() {
-        request.addHeader(new BasicHeader("Cache-Control", "max-age=foo"));
-        final Header[] headers = {
-                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
-                new BasicHeader("Cache-Control", "max-age=3600"),
-                new BasicHeader("Content-Length","128")
-        };
-        entry = getEntry(headers);
-        Assertions.assertFalse(impl.canCachedResponseBeUsed(request, entry, now));
-    }
-
-    @Test
-    public void testMalformedCacheControlMinFreshRequestHeaderCausesUnsuitableEntry() {
-        request.addHeader(new BasicHeader("Cache-Control", "min-fresh=foo"));
-        final Header[] headers = {
-                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
-                new BasicHeader("Cache-Control", "max-age=3600"),
-                new BasicHeader("Content-Length","128")
-        };
-        entry = getEntry(headers);
-        Assertions.assertFalse(impl.canCachedResponseBeUsed(request, entry, now));
-    }
-
     @Test
     public void testSuitableIfCacheEntryIsHeuristicallyFreshEnough() {
         final Instant oneSecondAgo = now.minusSeconds(1);

@@ -27,7 +27,7 @@
 package org.apache.hc.client5.http.cache;
 
 /**
- * Records static constants for various HTTP header names.
+ * Records static constants for caching directives.
  *
  * @since 4.1
  */
@@ -41,20 +41,75 @@ public class HeaderConstants {
     public static final String TRACE_METHOD = "TRACE";
     public static final String POST_METHOD = "POST";
 
+    /**
+     * @deprecated Use {@link org.apache.hc.core5.http.HttpHeaders}
+     */
+    @Deprecated
     public static final String LAST_MODIFIED = "Last-Modified";
+    /**
+     * @deprecated Use {@link org.apache.hc.core5.http.HttpHeaders}
+     */
+    @Deprecated
     public static final String IF_MATCH = "If-Match";
+    /**
+     * @deprecated Use {@link org.apache.hc.core5.http.HttpHeaders}
+     */
+    @Deprecated
     public static final String IF_RANGE = "If-Range";
+    /**
+     * @deprecated Use {@link org.apache.hc.core5.http.HttpHeaders}
+     */
+    @Deprecated
     public static final String IF_UNMODIFIED_SINCE = "If-Unmodified-Since";
+    /**
+     * @deprecated Use {@link org.apache.hc.core5.http.HttpHeaders}
+     */
+    @Deprecated
     public static final String IF_MODIFIED_SINCE = "If-Modified-Since";
+    /**
+     * @deprecated Use {@link org.apache.hc.core5.http.HttpHeaders}
+     */
+    @Deprecated
     public static final String IF_NONE_MATCH = "If-None-Match";
-
+    /**
+     * @deprecated Use {@link org.apache.hc.core5.http.HttpHeaders}
+     */
+    @Deprecated
     public static final String PRAGMA = "Pragma";
+    /**
+     * @deprecated Use {@link org.apache.hc.core5.http.HttpHeaders}
+     */
+    @Deprecated
     public static final String MAX_FORWARDS = "Max-Forwards";
+    /**
+     * @deprecated Use {@link org.apache.hc.core5.http.HttpHeaders}
+     */
+    @Deprecated
     public static final String ETAG = "ETag";
+    /**
+     * @deprecated Use {@link org.apache.hc.core5.http.HttpHeaders}
+     */
+    @Deprecated
     public static final String EXPIRES = "Expires";
+    /**
+     * @deprecated Use {@link org.apache.hc.core5.http.HttpHeaders}
+     */
+    @Deprecated
     public static final String AGE = "Age";
+    /**
+     * @deprecated Use {@link org.apache.hc.core5.http.HttpHeaders}
+     */
+    @Deprecated
     public static final String VARY = "Vary";
+    /**
+     * @deprecated Use {@link org.apache.hc.core5.http.HttpHeaders}
+     */
+    @Deprecated
     public static final String ALLOW = "Allow";
+    /**
+     * @deprecated Use {@link org.apache.hc.core5.http.HttpHeaders}
+     */
+    @Deprecated
     public static final String VIA = "Via";
     /**
      * @deprecated Use {@link #CACHE_CONTROL_PUBLIC}
@@ -92,11 +147,35 @@ public class HeaderConstants {
     @Deprecated
     public static final String STALE_WHILE_REVALIDATE = "stale-while-revalidate";
 
+    /**
+     * @deprecated Use {@link org.apache.hc.core5.http.HttpHeaders}
+     */
+    @Deprecated
     public static final String WARNING = "Warning";
+    /**
+     * @deprecated Use {@link org.apache.hc.core5.http.HttpHeaders}
+     */
+    @Deprecated
     public static final String RANGE = "Range";
+    /**
+     * @deprecated Use {@link org.apache.hc.core5.http.HttpHeaders}
+     */
+    @Deprecated
     public static final String CONTENT_RANGE = "Content-Range";
+    /**
+     * @deprecated Use {@link org.apache.hc.core5.http.HttpHeaders}
+     */
+    @Deprecated
     public static final String WWW_AUTHENTICATE = "WWW-Authenticate";
+    /**
+     * @deprecated Use {@link org.apache.hc.core5.http.HttpHeaders}
+     */
+    @Deprecated
     public static final String PROXY_AUTHENTICATE = "Proxy-Authenticate";
+    /**
+     * @deprecated Use {@link org.apache.hc.core5.http.HttpHeaders}
+     */
+    @Deprecated
     public static final String AUTHORIZATION = "Authorization";
 
 }

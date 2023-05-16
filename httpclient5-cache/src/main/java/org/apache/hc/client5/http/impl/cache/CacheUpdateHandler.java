@@ -31,7 +31,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.Resource;
 import org.apache.hc.client5.http.cache.ResourceFactory;
@@ -149,7 +148,7 @@ class CacheUpdateHandler {
         // remove cache entry 1xx warnings
         for (final Iterator<Header> it = headerGroup.headerIterator(); it.hasNext(); ) {
             final Header cacheHeader = it.next();
-            if (HeaderConstants.WARNING.equalsIgnoreCase(cacheHeader.getName())) {
+            if (HttpHeaders.WARNING.equalsIgnoreCase(cacheHeader.getName())) {
                 final String warningValue = cacheHeader.getValue();
                 if (warningValue != null && warningValue.startsWith("1")) {
                     it.remove();

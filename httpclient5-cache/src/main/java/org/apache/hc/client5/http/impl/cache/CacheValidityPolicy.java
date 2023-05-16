@@ -28,18 +28,13 @@ package org.apache.hc.client5.http.impl.cache;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Iterator;
 
-import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.Resource;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.Header;
-import org.apache.hc.core5.http.HeaderElement;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.MessageHeaders;
-import org.apache.hc.core5.http.message.MessageSupport;
 import org.apache.hc.core5.util.TimeValue;
 
 class CacheValidityPolicy {
@@ -66,7 +61,7 @@ class CacheValidityPolicy {
             return TimeValue.ZERO_MILLISECONDS;
         }
 
-        final Instant expiry = DateUtils.parseStandardDate(entry, HeaderConstants.EXPIRES);
+        final Instant expiry = DateUtils.parseStandardDate(entry, HttpHeaders.EXPIRES);
         if (expiry == null) {
             return TimeValue.ZERO_MILLISECONDS;
         }
@@ -100,7 +95,7 @@ class CacheValidityPolicy {
     public TimeValue getHeuristicFreshnessLifetime(final HttpCacheEntry entry,
             final float coefficient, final TimeValue defaultLifetime) {
         final Instant dateValue = entry.getInstant();
-        final Instant lastModifiedValue = DateUtils.parseStandardDate(entry, HeaderConstants.LAST_MODIFIED);
+        final Instant lastModifiedValue = DateUtils.parseStandardDate(entry, HttpHeaders.LAST_MODIFIED);
 
         if (dateValue != null && lastModifiedValue != null) {
             final Duration diff = Duration.between(lastModifiedValue, dateValue);
@@ -115,63 +110,40 @@ class CacheValidityPolicy {
     }
 
     public boolean isRevalidatable(final HttpCacheEntry entry) {
-        return entry.getFirstHeader(HeaderConstants.ETAG) != null
-                || entry.getFirstHeader(HeaderConstants.LAST_MODIFIED) != null;
+        return entry.getFirstHeader(HttpHeaders.ETAG) != null
+                || entry.getFirstHeader(HttpHeaders.LAST_MODIFIED) != null;
     }
 
     public boolean mustRevalidate(final HttpCacheEntry entry) {
-        return hasCacheControlDirective(entry, HeaderConstants.CACHE_CONTROL_MUST_REVALIDATE);
+        final ResponseCacheControl cacheControl = CacheControlHeaderParser.INSTANCE.parse(entry);
+        return cacheControl.isMustRevalidate();
     }
 
     public boolean proxyRevalidate(final HttpCacheEntry entry) {
-        return hasCacheControlDirective(entry, HeaderConstants.CACHE_CONTROL_PROXY_REVALIDATE);
+        final ResponseCacheControl cacheControl = CacheControlHeaderParser.INSTANCE.parse(entry);
+        return cacheControl.isProxyRevalidate();
     }
 
     public boolean mayReturnStaleWhileRevalidating(final HttpCacheEntry entry, final Instant now) {
-        final Iterator<HeaderElement> it = MessageSupport.iterate(entry, HeaderConstants.CACHE_CONTROL);
-        while (it.hasNext()) {
-            final HeaderElement elt = it.next();
-            if (HeaderConstants.STALE_WHILE_REVALIDATE.equalsIgnoreCase(elt.getName())) {
-                try {
-                    // in seconds
-                    final int allowedStalenessLifetime = Integer.parseInt(elt.getValue());
-                    if (getStaleness(entry, now).compareTo(TimeValue.ofSeconds(allowedStalenessLifetime)) <= 0) {
-                        return true;
-                    }
-                } catch (final NumberFormatException nfe) {
-                    // skip malformed directive
-                }
+        final ResponseCacheControl cacheControl = CacheControlHeaderParser.INSTANCE.parse(entry);
+        if (cacheControl.getStaleWhileRevalidate() >= 0) {
+            final TimeValue staleness = getStaleness(entry, now);
+            if (staleness.compareTo(TimeValue.ofSeconds(cacheControl.getStaleWhileRevalidate())) <= 0) {
+                return true;
             }
         }
-
         return false;
     }
 
     public boolean mayReturnStaleIfError(final HttpRequest request, final HttpCacheEntry entry, final Instant now) {
+        final RequestCacheControl requestCacheControl = CacheControlHeaderParser.INSTANCE.parse(request);
+        final ResponseCacheControl cacheControl = CacheControlHeaderParser.INSTANCE.parse(entry);
         final TimeValue staleness = getStaleness(entry, now);
-        return mayReturnStaleIfError(request, HeaderConstants.CACHE_CONTROL, staleness)
-                || mayReturnStaleIfError(entry, HeaderConstants.CACHE_CONTROL, staleness);
+        return mayReturnStaleIfError(requestCacheControl, staleness) || mayReturnStaleIfError(cacheControl, staleness);
     }
 
-    private boolean mayReturnStaleIfError(final MessageHeaders headers, final String name, final TimeValue staleness) {
-        boolean result = false;
-        final Iterator<HeaderElement> it = MessageSupport.iterate(headers, name);
-        while (it.hasNext()) {
-            final HeaderElement elt = it.next();
-            if (HeaderConstants.STALE_IF_ERROR.equals(elt.getName())) {
-                try {
-                    // in seconds
-                    final int staleIfError = Integer.parseInt(elt.getValue());
-                    if (staleness.compareTo(TimeValue.ofSeconds(staleIfError)) <= 0) {
-                        result = true;
-                        break;
-                    }
-                } catch (final NumberFormatException nfe) {
-                    // skip malformed directive
-                }
-            }
-        }
-        return result;
+    private boolean mayReturnStaleIfError(final CacheControl cacheControl, final TimeValue staleness) {
+        return cacheControl.getStaleIfError() >= 0 && staleness.compareTo(TimeValue.ofSeconds(cacheControl.getStaleIfError())) <= 0;
     }
 
     /**
@@ -214,7 +186,7 @@ class CacheValidityPolicy {
     protected long getAgeValue(final HttpCacheEntry entry) {
         // This is a header value, we leave as-is
         long ageValue = 0;
-        for (final Header hdr : entry.getHeaders(HeaderConstants.AGE)) {
+        for (final Header hdr : entry.getHeaders(HttpHeaders.AGE)) {
             long hdrAge;
             try {
                 hdrAge = Long.parseLong(hdr.getValue());
@@ -251,35 +223,16 @@ class CacheValidityPolicy {
 
 
     protected long getMaxAge(final HttpCacheEntry entry) {
-        // This is a header value, we leave as-is
-        long maxAge = -1;
-        final Iterator<HeaderElement> it = MessageSupport.iterate(entry, HeaderConstants.CACHE_CONTROL);
-        while (it.hasNext()) {
-            final HeaderElement elt = it.next();
-            if (HeaderConstants.CACHE_CONTROL_MAX_AGE.equals(elt.getName()) || "s-maxage".equals(elt.getName())) {
-                try {
-                    final long currMaxAge = Long.parseLong(elt.getValue());
-                    if (maxAge == -1 || currMaxAge < maxAge) {
-                        maxAge = currMaxAge;
-                    }
-                } catch (final NumberFormatException nfe) {
-                    // be conservative if can't parse
-                    maxAge = 0;
-                }
-            }
+        final ResponseCacheControl cacheControl = CacheControlHeaderParser.INSTANCE.parse(entry);
+        final long maxAge = cacheControl.getMaxAge();
+        final long sharedMaxAge = cacheControl.getSharedMaxAge();
+        if (sharedMaxAge == -1) {
+            return maxAge;
+        } else if (maxAge == -1) {
+            return sharedMaxAge;
+        } else {
+            return Math.min(maxAge, sharedMaxAge);
         }
-        return maxAge;
-    }
-
-    public boolean hasCacheControlDirective(final HttpCacheEntry entry, final String directive) {
-        final Iterator<HeaderElement> it = MessageSupport.iterate(entry, HeaderConstants.CACHE_CONTROL);
-        while (it.hasNext()) {
-            final HeaderElement elt = it.next();
-            if (directive.equalsIgnoreCase(elt.getName())) {
-                return true;
-            }
-        }
-        return false;
     }
 
     public TimeValue getStaleness(final HttpCacheEntry entry, final Instant now) {
