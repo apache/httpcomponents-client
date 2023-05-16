@@ -39,10 +39,12 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
@@ -1500,6 +1502,14 @@ public class TestCachingExecChain {
         Mockito.when(cacheableRequestPolicy.isServableFromCache(Mockito.any())).thenReturn(true);
         Mockito.when(validityPolicy.getStaleness(Mockito.any(), Mockito.any())).thenReturn(TimeValue.MAX_VALUE);
 
+        // Assuming validityPolicy is a Mockito mock
+        Mockito.when(validityPolicy.getCurrentAge(Mockito.any(), Mockito.any()))
+                .thenReturn(TimeValue.ofMilliseconds(0));
+
+        // Assuming validityPolicy is a Mockito mock
+        Mockito.when(validityPolicy.getFreshnessLifetime(Mockito.any()))
+                .thenReturn(TimeValue.ofMilliseconds(0));
+
         final SimpleHttpResponse response = SimpleHttpResponse.create(HttpStatus.SC_OK);
         final AtomicInteger callCount = new AtomicInteger(0);
 
@@ -1558,6 +1568,7 @@ public class TestCachingExecChain {
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
 
+
         execute(req1);
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp2);
@@ -1567,6 +1578,77 @@ public class TestCachingExecChain {
 
         // Verify that the backend was called to revalidate the response, as per the new logic
         Mockito.verify(mockExecChain, Mockito.times(5)).proceed(Mockito.any(), Mockito.any());
+    }
+
+    @Test
+    public void testHeuristicExpirationWarning() throws Exception {
+        impl = new CachingExec(responseCache, validityPolicy, responseCachingPolicy,
+                responseGenerator, cacheableRequestPolicy, suitabilityChecker,
+                responseCompliance, requestCompliance, cacheRevalidator,
+                conditionalRequestBuilder, customConfig);
+        // Create the first request and response
+        final BasicClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "http://foo.example.com/");
+        final BasicClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "http://foo.example.com/");
+        final ClassicHttpResponse resp1 = new BasicClassicHttpResponse(HttpStatus.SC_GATEWAY_TIMEOUT, "OK");
+        resp1.setEntity(HttpTestUtils.makeBody(128));
+        resp1.setHeader("Content-Length", "128");
+        resp1.setHeader("ETag", "\"etag\"");
+        resp1.setHeader("Date", DateUtils.formatStandardDate(Instant.now().minus(Duration.ofHours(10))));
+        resp1.setHeader("Cache-Control", "public, max-age=-1, stale-while-revalidate=1");
+        final ClassicHttpResponse resp2 = HttpTestUtils.make200Response();
+
+        // Set up the mock response chain
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
+        Mockito.when(responseCachingPolicy.isStaleIfErrorEnabled(Mockito.any())).thenReturn(true);
+        Mockito.when(cacheableRequestPolicy.isServableFromCache(Mockito.any())).thenReturn(true);
+        Mockito.when(validityPolicy.getStaleness(Mockito.any(), Mockito.any())).thenReturn(TimeValue.MAX_VALUE);
+
+        // Assuming validityPolicy is a Mockito mock
+        Mockito.when(validityPolicy.getCurrentAge(Mockito.any(), Mockito.any()))
+                .thenReturn(TimeValue.ofDays(2));
+
+        // Assuming validityPolicy is a Mockito mock
+        Mockito.when(validityPolicy.getFreshnessLifetime(Mockito.any()))
+                .thenReturn(TimeValue.ofDays(2));
+
+        final SimpleHttpResponse response = SimpleHttpResponse.create(HttpStatus.SC_OK);
+        final AtomicInteger callCount = new AtomicInteger(0);
+
+        Mockito.doAnswer(invocation -> {
+            if (callCount.getAndIncrement() == 0) {
+                throw new ResourceIOException("ResourceIOException");
+            } else {
+                // Replace this with the actual return value for the second call
+                return response;
+            }
+        }).when(responseGenerator).generateResponse(Mockito.any(), Mockito.any());
+
+        // Execute the first request and assert the response
+        final ClassicHttpResponse response1 = execute(req1);
+        final HttpCacheEntry httpCacheEntry = HttpTestUtils.makeCacheEntry();
+        Mockito.when(responseCache.getCacheEntry(Mockito.any(), Mockito.any())).thenReturn(httpCacheEntry);
+        Assertions.assertEquals(HttpStatus.SC_GATEWAY_TIMEOUT, response1.getCode());
+
+        Mockito.when(mockExecRuntime.fork(Mockito.any())).thenReturn(mockExecRuntime);
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp2);
+
+        final ClassicHttpResponse response2 = execute(req2);
+        // Verify that the response has the expected status code (e.g., 200)
+        Assertions.assertEquals(HttpStatus.SC_OK, response2.getCode());
+
+        // For example, you can check for the "Warning" header indicating a stale response:
+        final List<Header> warningHeaders = Arrays.stream(response.getHeaders())
+                .filter(header -> header.getName().equalsIgnoreCase("Warning"))
+                .collect(Collectors.toList());
+
+
+        Assertions.assertFalse(warningHeaders.isEmpty());
+
+        final boolean found113 = warningHeaders.stream().anyMatch(header -> header.getValue().contains("113 localhost \"Heuristic expiration\""));
+        Assertions.assertTrue(found113);
+
+        final boolean found110 = warningHeaders.stream().anyMatch(header -> header.getValue().contains("110 localhost \"Response is stale\""));
+        Assertions.assertTrue(found110);
     }
 
 }

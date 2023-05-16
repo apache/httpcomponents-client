@@ -40,6 +40,7 @@ import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpCacheContext;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.ResourceIOException;
+import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HeaderElement;
 import org.apache.hc.core5.http.HttpHeaders;
@@ -77,6 +78,8 @@ public class CachingExecBase {
     final CacheConfig cacheConfig;
 
     private static final Logger LOG = LoggerFactory.getLogger(CachingExecBase.class);
+
+    private static final TimeValue ONE_DAY = TimeValue.ofHours(24);
 
     CachingExecBase(
             final CacheValidityPolicy validityPolicy,
@@ -198,6 +201,23 @@ public class CachingExecBase {
         if (TimeValue.isPositive(validityPolicy.getStaleness(entry, now))) {
             cachedResponse.addHeader(HeaderConstants.WARNING,"110 localhost \"Response is stale\"");
         }
+
+        // Adding Warning: 113 - "Heuristic Expiration"
+        if (!entry.containsHeader(HeaderConstants.WARNING)) {
+            final Header header = entry.getFirstHeader(HttpHeaders.DATE);
+            if (header != null) {
+                final Instant responseDate = DateUtils.parseStandardDate(header.getValue());
+                final TimeValue freshnessLifetime = validityPolicy.getFreshnessLifetime(entry);
+                final TimeValue currentAge = validityPolicy.getCurrentAge(entry, responseDate);
+                if (freshnessLifetime.compareTo(ONE_DAY) > 0 && currentAge.compareTo(ONE_DAY) > 0) {
+                    cachedResponse.addHeader(HeaderConstants.WARNING,"113 localhost \"Heuristic expiration\"");
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Added Warning 113 - Heuristic expiration to the response header.");
+                    }
+                }
+            }
+        }
+
         return cachedResponse;
     }
 
