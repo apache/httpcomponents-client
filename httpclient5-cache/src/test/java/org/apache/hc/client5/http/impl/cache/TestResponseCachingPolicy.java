@@ -738,14 +738,14 @@ public class TestResponseCachingPolicy {
     @Test
     public void getsWithQueryParametersFrom1_0OriginsViaProxiesAreNotCacheable() {
         request = new BasicHttpRequest("GET", "/foo?s=bar");
-        response.setHeader("Via", "1.0 someproxy");
+        response.setHeader(HttpHeaders.VIA, "1.0 someproxy");
         Assertions.assertFalse(policy.isResponseCacheable(request, response));
     }
 
     @Test
     public void headsWithQueryParametersFrom1_0OriginsViaProxiesAreNotCacheable() {
         request = new BasicHttpRequest("HEAD", "/foo?s=bar");
-        response.setHeader("Via", "1.0 someproxy");
+        response.setHeader(HttpHeaders.VIA, "1.0 someproxy");
         Assertions.assertFalse(policy.isResponseCacheable(request, response));
     }
 
@@ -754,7 +754,7 @@ public class TestResponseCachingPolicy {
         request = new BasicHttpRequest("GET", "/foo?s=bar");
         response.setHeader("Date", DateUtils.formatStandardDate(now));
         response.setHeader("Expires", DateUtils.formatStandardDate(tenSecondsFromNow));
-        response.setHeader("Via", "1.0 someproxy");
+        response.setHeader(HttpHeaders.VIA, "1.0 someproxy");
         Assertions.assertTrue(policy.isResponseCacheable(request, response));
     }
 
@@ -764,7 +764,7 @@ public class TestResponseCachingPolicy {
         request = new BasicHttpRequest("HEAD", "/foo?s=bar");
         response.setHeader("Date", DateUtils.formatStandardDate(now));
         response.setHeader("Expires", DateUtils.formatStandardDate(tenSecondsFromNow));
-        response.setHeader("Via", "1.0 someproxy");
+        response.setHeader(HttpHeaders.VIA, "1.0 someproxy");
         Assertions.assertTrue(policy.isResponseCacheable(request, response));
     }
 
@@ -774,7 +774,7 @@ public class TestResponseCachingPolicy {
         request = new BasicHttpRequest("GET", "/foo?s=bar");
         response.setHeader("Date", DateUtils.formatStandardDate(now));
         response.setHeader("Expires", DateUtils.formatStandardDate(tenSecondsFromNow));
-        response.setHeader("Via", "1.0 someproxy");
+        response.setHeader(HttpHeaders.VIA, "1.0 someproxy");
         Assertions.assertFalse(policy.isResponseCacheable(request, response));
     }
 
@@ -784,7 +784,7 @@ public class TestResponseCachingPolicy {
         request = new BasicHttpRequest("HEAD", "/foo?s=bar");
         response.setHeader("Date", DateUtils.formatStandardDate(now));
         response.setHeader("Expires", DateUtils.formatStandardDate(tenSecondsFromNow));
-        response.setHeader("Via", "1.0 someproxy");
+        response.setHeader(HttpHeaders.VIA, "1.0 someproxy");
         Assertions.assertFalse(policy.isResponseCacheable(request, response));
     }
 
@@ -793,7 +793,7 @@ public class TestResponseCachingPolicy {
         request = new BasicHttpRequest("GET", "/foo?s=bar");
         response.setHeader("Date", DateUtils.formatStandardDate(now));
         response.setHeader("Expires", DateUtils.formatStandardDate(tenSecondsFromNow));
-        response.setHeader("Via", "HTTP/1.0 someproxy");
+        response.setHeader(HttpHeaders.VIA, "HTTP/1.0 someproxy");
         Assertions.assertTrue(policy.isResponseCacheable(request, response));
     }
 
@@ -803,7 +803,7 @@ public class TestResponseCachingPolicy {
         request = new BasicHttpRequest("HEAD", "/foo?s=bar");
         response.setHeader("Date", DateUtils.formatStandardDate(now));
         response.setHeader("Expires", DateUtils.formatStandardDate(tenSecondsFromNow));
-        response.setHeader("Via", "HTTP/1.0 someproxy");
+        response.setHeader(HttpHeaders.VIA, "HTTP/1.0 someproxy");
         Assertions.assertTrue(policy.isResponseCacheable(request, response));
     }
 
@@ -813,7 +813,7 @@ public class TestResponseCachingPolicy {
         request = new BasicHttpRequest("GET", "/foo?s=bar");
         response.setHeader("Date", DateUtils.formatStandardDate(now));
         response.setHeader("Expires", DateUtils.formatStandardDate(tenSecondsFromNow));
-        response.setHeader("Via", "HTTP/1.0 someproxy");
+        response.setHeader(HttpHeaders.VIA, "HTTP/1.0 someproxy");
         Assertions.assertFalse(policy.isResponseCacheable(request, response));
     }
 
@@ -823,7 +823,7 @@ public class TestResponseCachingPolicy {
         request = new BasicHttpRequest("HEAD", "/foo?s=bar");
         response.setHeader("Date", DateUtils.formatStandardDate(now));
         response.setHeader("Expires", DateUtils.formatStandardDate(tenSecondsFromNow));
-        response.setHeader("Via", "HTTP/1.0 someproxy");
+        response.setHeader(HttpHeaders.VIA, "HTTP/1.0 someproxy");
         Assertions.assertFalse(policy.isResponseCacheable(request, response));
     }
 
@@ -834,7 +834,7 @@ public class TestResponseCachingPolicy {
         response.setVersion(HttpVersion.HTTP_1_0);
         response.setHeader("Date", DateUtils.formatStandardDate(now));
         response.setHeader("Expires", DateUtils.formatStandardDate(tenSecondsFromNow));
-        response.setHeader("Via", "1.1 someproxy");
+        response.setHeader(HttpHeaders.VIA, "1.1 someproxy");
         Assertions.assertTrue(policy.isResponseCacheable(request, response));
     }
 
@@ -846,7 +846,7 @@ public class TestResponseCachingPolicy {
         response.setVersion(HttpVersion.HTTP_1_0);
         response.setHeader("Date", DateUtils.formatStandardDate(now));
         response.setHeader("Expires", DateUtils.formatStandardDate(tenSecondsFromNow));
-        response.setHeader("Via", "1.1 someproxy");
+        response.setHeader(HttpHeaders.VIA, "1.1 someproxy");
         Assertions.assertTrue(policy.isResponseCacheable(request, response));
     }
 

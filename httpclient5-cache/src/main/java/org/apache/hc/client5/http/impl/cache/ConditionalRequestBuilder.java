@@ -26,16 +26,14 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
-import java.util.Iterator;
 import java.util.Map;
 
 import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.core5.function.Factory;
 import org.apache.hc.core5.http.Header;
-import org.apache.hc.core5.http.HeaderElement;
+import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.message.MessageSupport;
 
 class ConditionalRequestBuilder<T extends HttpRequest> {
 
@@ -58,26 +56,17 @@ class ConditionalRequestBuilder<T extends HttpRequest> {
     public T buildConditionalRequest(final T request, final HttpCacheEntry cacheEntry) {
         final T newRequest = messageCopier.create(request);
 
-        final Header eTag = cacheEntry.getFirstHeader(HeaderConstants.ETAG);
+        final Header eTag = cacheEntry.getFirstHeader(HttpHeaders.ETAG);
         if (eTag != null) {
-            newRequest.setHeader(HeaderConstants.IF_NONE_MATCH, eTag.getValue());
+            newRequest.setHeader(HttpHeaders.IF_NONE_MATCH, eTag.getValue());
         }
-        final Header lastModified = cacheEntry.getFirstHeader(HeaderConstants.LAST_MODIFIED);
+        final Header lastModified = cacheEntry.getFirstHeader(HttpHeaders.LAST_MODIFIED);
         if (lastModified != null) {
-            newRequest.setHeader(HeaderConstants.IF_MODIFIED_SINCE, lastModified.getValue());
+            newRequest.setHeader(HttpHeaders.IF_MODIFIED_SINCE, lastModified.getValue());
         }
-        boolean mustRevalidate = false;
-        final Iterator<HeaderElement> it = MessageSupport.iterate(cacheEntry, HeaderConstants.CACHE_CONTROL);
-        while (it.hasNext()) {
-            final HeaderElement elt = it.next();
-            if (HeaderConstants.CACHE_CONTROL_MUST_REVALIDATE.equalsIgnoreCase(elt.getName())
-                    || HeaderConstants.CACHE_CONTROL_PROXY_REVALIDATE.equalsIgnoreCase(elt.getName())) {
-                mustRevalidate = true;
-                break;
-            }
-        }
-        if (mustRevalidate) {
-            newRequest.addHeader(HeaderConstants.CACHE_CONTROL, HeaderConstants.CACHE_CONTROL_MAX_AGE + "=0");
+        final ResponseCacheControl cacheControl = CacheControlHeaderParser.INSTANCE.parse(cacheEntry);
+        if (cacheControl.isMustRevalidate() || cacheControl.isProxyRevalidate()) {
+            newRequest.addHeader(HttpHeaders.CACHE_CONTROL, HeaderConstants.CACHE_CONTROL_MAX_AGE + "=0");
         }
         return newRequest;
 
@@ -108,7 +97,7 @@ class ConditionalRequestBuilder<T extends HttpRequest> {
             etags.append(etag);
         }
 
-        newRequest.setHeader(HeaderConstants.IF_NONE_MATCH, etags.toString());
+        newRequest.setHeader(HttpHeaders.IF_NONE_MATCH, etags.toString());
         return newRequest;
     }
 
@@ -124,13 +113,13 @@ class ConditionalRequestBuilder<T extends HttpRequest> {
      */
     public T buildUnconditionalRequest(final T request) {
         final T newRequest = messageCopier.create(request);
-        newRequest.addHeader(HeaderConstants.CACHE_CONTROL,HeaderConstants.CACHE_CONTROL_NO_CACHE);
-        newRequest.addHeader(HeaderConstants.PRAGMA,HeaderConstants.CACHE_CONTROL_NO_CACHE);
-        newRequest.removeHeaders(HeaderConstants.IF_RANGE);
-        newRequest.removeHeaders(HeaderConstants.IF_MATCH);
-        newRequest.removeHeaders(HeaderConstants.IF_NONE_MATCH);
-        newRequest.removeHeaders(HeaderConstants.IF_UNMODIFIED_SINCE);
-        newRequest.removeHeaders(HeaderConstants.IF_MODIFIED_SINCE);
+        newRequest.addHeader(HttpHeaders.CACHE_CONTROL,HeaderConstants.CACHE_CONTROL_NO_CACHE);
+        newRequest.addHeader(HttpHeaders.PRAGMA,HeaderConstants.CACHE_CONTROL_NO_CACHE);
+        newRequest.removeHeaders(HttpHeaders.IF_RANGE);
+        newRequest.removeHeaders(HttpHeaders.IF_MATCH);
+        newRequest.removeHeaders(HttpHeaders.IF_NONE_MATCH);
+        newRequest.removeHeaders(HttpHeaders.IF_UNMODIFIED_SINCE);
+        newRequest.removeHeaders(HttpHeaders.IF_MODIFIED_SINCE);
         return newRequest;
     }
 

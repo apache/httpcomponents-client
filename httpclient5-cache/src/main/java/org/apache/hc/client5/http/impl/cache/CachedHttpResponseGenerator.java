@@ -82,9 +82,9 @@ class CachedHttpResponseGenerator {
         final TimeValue age = this.validityStrategy.getCurrentAge(entry, now);
         if (TimeValue.isPositive(age)) {
             if (age.compareTo(CacheValidityPolicy.MAX_AGE) >= 0) {
-                response.setHeader(HeaderConstants.AGE, "" + CacheValidityPolicy.MAX_AGE.toSeconds());
+                response.setHeader(HttpHeaders.AGE, Long.toString(CacheValidityPolicy.MAX_AGE.toSeconds()));
             } else {
-                response.setHeader(HeaderConstants.AGE, "" + age.toSeconds());
+                response.setHeader(HttpHeaders.AGE, Long.toString(age.toSeconds()));
             }
         }
 
@@ -111,7 +111,7 @@ class CachedHttpResponseGenerator {
 
         // - ETag and/or Content-Location, if the header would have been sent
         //   in a 200 response to the same request
-        final Header etagHeader = entry.getFirstHeader(HeaderConstants.ETAG);
+        final Header etagHeader = entry.getFirstHeader(HttpHeaders.ETAG);
         if (etagHeader != null) {
             response.addHeader(etagHeader);
         }
@@ -124,17 +124,17 @@ class CachedHttpResponseGenerator {
         // - Expires, Cache-Control, and/or Vary, if the field-value might
         //   differ from that sent in any previous response for the same
         //   variant
-        final Header expiresHeader = entry.getFirstHeader(HeaderConstants.EXPIRES);
+        final Header expiresHeader = entry.getFirstHeader(HttpHeaders.EXPIRES);
         if (expiresHeader != null) {
             response.addHeader(expiresHeader);
         }
 
-        final Header cacheControlHeader = entry.getFirstHeader(HeaderConstants.CACHE_CONTROL);
+        final Header cacheControlHeader = entry.getFirstHeader(HttpHeaders.CACHE_CONTROL);
         if (cacheControlHeader != null) {
             response.addHeader(cacheControlHeader);
         }
 
-        final Header varyHeader = entry.getFirstHeader(HeaderConstants.VARY);
+        final Header varyHeader = entry.getFirstHeader(HttpHeaders.VARY);
         if (varyHeader != null) {
             response.addHeader(varyHeader);
         }
@@ -191,10 +191,6 @@ class CachedHttpResponseGenerator {
             case WEAK_ETAG_ON_PUTDELETE_METHOD_ERROR:
                 return SimpleHttpResponse.create(HttpStatus.SC_BAD_REQUEST,
                         "Weak eTag not compatible with PUT or DELETE requests");
-
-            case NO_CACHE_DIRECTIVE_WITH_FIELD_NAME:
-                return SimpleHttpResponse.create(HttpStatus.SC_BAD_REQUEST,
-                        "No-Cache directive MUST NOT include a field name");
 
             default:
                 throw new IllegalStateException(

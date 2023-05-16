@@ -352,7 +352,7 @@ public class HttpCacheEntry implements MessageHeaders, Serializable {
      * @return {@code true} if this cached response was a variant
      */
     public boolean hasVariants() {
-        return getFirstHeader(HeaderConstants.VARY) != null;
+        return getFirstHeader(HttpHeaders.VARY) != null;
     }
 
     /**

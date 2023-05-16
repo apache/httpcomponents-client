@@ -89,8 +89,8 @@ class CacheInvalidatorBase {
 
     static boolean responseAndEntryEtagsDiffer(final HttpResponse response,
             final HttpCacheEntry entry) {
-        final Header entryEtag = entry.getFirstHeader(HeaderConstants.ETAG);
-        final Header responseEtag = response.getFirstHeader(HeaderConstants.ETAG);
+        final Header entryEtag = entry.getFirstHeader(HttpHeaders.ETAG);
+        final Header responseEtag = response.getFirstHeader(HttpHeaders.ETAG);
         if (entryEtag == null || responseEtag == null) {
             return false;
         }
