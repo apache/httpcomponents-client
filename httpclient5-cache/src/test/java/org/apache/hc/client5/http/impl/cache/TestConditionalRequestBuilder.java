@@ -31,11 +31,11 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HeaderElement;
+import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
@@ -151,16 +151,8 @@ public class TestConditionalRequestBuilder {
 
         final HttpRequest result = impl.buildConditionalRequest(basicRequest, cacheEntry);
 
-        boolean foundMaxAge0 = false;
-
-        final Iterator<HeaderElement> it = MessageSupport.iterate(result, HeaderConstants.CACHE_CONTROL);
-        while (it.hasNext()) {
-            final HeaderElement elt = it.next();
-            if ("max-age".equalsIgnoreCase(elt.getName()) && "0".equals(elt.getValue())) {
-                foundMaxAge0 = true;
-            }
-        }
-        Assertions.assertTrue(foundMaxAge0);
+        final RequestCacheControl cacheControl = CacheControlHeaderParser.INSTANCE.parse(result);
+        Assertions.assertEquals(0, cacheControl.getMaxAge());
     }
 
     @Test
@@ -179,15 +171,8 @@ public class TestConditionalRequestBuilder {
 
         final HttpRequest result = impl.buildConditionalRequest(basicRequest, cacheEntry);
 
-        boolean foundMaxAge0 = false;
-        final Iterator<HeaderElement> it = MessageSupport.iterate(result, HeaderConstants.CACHE_CONTROL);
-        while (it.hasNext()) {
-            final HeaderElement elt = it.next();
-            if ("max-age".equalsIgnoreCase(elt.getName()) && "0".equals(elt.getValue())) {
-                foundMaxAge0 = true;
-            }
-        }
-        Assertions.assertTrue(foundMaxAge0);
+        final RequestCacheControl cacheControl = CacheControlHeaderParser.INSTANCE.parse(result);
+        Assertions.assertEquals(0, cacheControl.getMaxAge());
     }
 
     @Test
@@ -210,15 +195,8 @@ public class TestConditionalRequestBuilder {
     public void testBuildUnconditionalRequestAddsCacheControlNoCache()
         throws Exception {
         final HttpRequest result = impl.buildUnconditionalRequest(request);
-        boolean ccNoCacheFound = false;
-        final Iterator<HeaderElement> it = MessageSupport.iterate(result, HeaderConstants.CACHE_CONTROL);
-        while (it.hasNext()) {
-            final HeaderElement elt = it.next();
-            if ("no-cache".equals(elt.getName())) {
-                ccNoCacheFound = true;
-            }
-        }
-        Assertions.assertTrue(ccNoCacheFound);
+        final RequestCacheControl cacheControl = CacheControlHeaderParser.INSTANCE.parse(result);
+        Assertions.assertTrue(cacheControl.isNoCache());
     }
 
     @Test
@@ -226,7 +204,7 @@ public class TestConditionalRequestBuilder {
         throws Exception {
         final HttpRequest result = impl.buildUnconditionalRequest(request);
         boolean ccNoCacheFound = false;
-        final Iterator<HeaderElement> it = MessageSupport.iterate(result, HeaderConstants.PRAGMA);
+        final Iterator<HeaderElement> it = MessageSupport.iterate(result, HttpHeaders.PRAGMA);
         while (it.hasNext()) {
             final HeaderElement elt = it.next();
             if ("no-cache".equals(elt.getName())) {
@@ -292,14 +270,14 @@ public class TestConditionalRequestBuilder {
         final String etag3 = "\"789\"";
 
         final Map<String,Variant> variantEntries = new HashMap<>();
-        variantEntries.put(etag1, new Variant("A", HttpTestUtils.makeCacheEntry(new Header[] { new BasicHeader("ETag", etag1) })));
-        variantEntries.put(etag2, new Variant("B", HttpTestUtils.makeCacheEntry(new Header[] { new BasicHeader("ETag", etag2) })));
-        variantEntries.put(etag3, new Variant("C", HttpTestUtils.makeCacheEntry(new Header[] { new BasicHeader("ETag", etag3) })));
+        variantEntries.put(etag1, new Variant("A", HttpTestUtils.makeCacheEntry(new BasicHeader("ETag", etag1))));
+        variantEntries.put(etag2, new Variant("B", HttpTestUtils.makeCacheEntry(new BasicHeader("ETag", etag2))));
+        variantEntries.put(etag3, new Variant("C", HttpTestUtils.makeCacheEntry(new BasicHeader("ETag", etag3))));
 
         final HttpRequest conditional = impl.buildConditionalRequestFromVariants(request, variantEntries);
 
         // seems like a lot of work, but necessary, check for existence and exclusiveness
-        String ifNoneMatch = conditional.getFirstHeader(HeaderConstants.IF_NONE_MATCH).getValue();
+        String ifNoneMatch = conditional.getFirstHeader(HttpHeaders.IF_NONE_MATCH).getValue();
         Assertions.assertTrue(ifNoneMatch.contains(etag1));
         Assertions.assertTrue(ifNoneMatch.contains(etag2));
         Assertions.assertTrue(ifNoneMatch.contains(etag3));

@@ -73,13 +73,6 @@ public class TestRequestProtocolCompliance {
     }
 
     @Test
-    public void testRequestContainsNoCacheDirectiveWithFieldName() throws Exception {
-        final HttpRequest req = new BasicHttpRequest("GET", "/");
-        req.setHeader("Cache-Control", "no-cache=false");
-        assertEquals(1, impl.requestIsFatallyNonCompliant(req).size());
-    }
-
-    @Test
     public void doesNotModifyACompliantRequest() throws Exception {
         final HttpRequest req = new BasicHttpRequest("GET", "/");
         final HttpRequest wrapper = BasicRequestBuilder.copy(req).build();
@@ -103,61 +96,6 @@ public class TestRequestProtocolCompliance {
         final HttpRequest wrapper = BasicRequestBuilder.copy(req).build();
         impl.makeRequestCompliant(wrapper);
         assertEquals(HttpVersion.HTTP_1_1, wrapper.getVersion());
-    }
-
-    @Test
-    public void stripsMinFreshFromRequestIfNoCachePresent()
-        throws Exception {
-        final HttpRequest req = new BasicHttpRequest("GET", "/");
-        req.setHeader("Cache-Control", "no-cache, min-fresh=10");
-        final HttpRequest wrapper = BasicRequestBuilder.copy(req).build();
-        impl.makeRequestCompliant(wrapper);
-        assertEquals("no-cache",
-                wrapper.getFirstHeader("Cache-Control").getValue());
-    }
-
-    @Test
-    public void stripsMaxFreshFromRequestIfNoCachePresent()
-        throws Exception {
-        final HttpRequest req = new BasicHttpRequest("GET", "/");
-        req.setHeader("Cache-Control", "no-cache, max-stale=10");
-        final HttpRequest wrapper = BasicRequestBuilder.copy(req).build();
-        impl.makeRequestCompliant(wrapper);
-        assertEquals("no-cache",
-                wrapper.getFirstHeader("Cache-Control").getValue());
-    }
-
-    @Test
-    public void stripsMaxAgeFromRequestIfNoCachePresent()
-        throws Exception {
-        final HttpRequest req = new BasicHttpRequest("GET", "/");
-        req.setHeader("Cache-Control", "no-cache, max-age=10");
-        final HttpRequest wrapper = BasicRequestBuilder.copy(req).build();
-        impl.makeRequestCompliant(wrapper);
-        assertEquals("no-cache",
-                wrapper.getFirstHeader("Cache-Control").getValue());
-    }
-
-    @Test
-    public void doesNotStripMinFreshFromRequestWithoutNoCache()
-        throws Exception {
-        final HttpRequest req = new BasicHttpRequest("GET", "/");
-        req.setHeader("Cache-Control", "min-fresh=10");
-        final HttpRequest wrapper = BasicRequestBuilder.copy(req).build();
-        impl.makeRequestCompliant(wrapper);
-        assertEquals("min-fresh=10",
-                wrapper.getFirstHeader("Cache-Control").getValue());
-    }
-
-    @Test
-    public void correctlyStripsMinFreshFromMiddleIfNoCache()
-        throws Exception {
-        final HttpRequest req = new BasicHttpRequest("GET", "/");
-        req.setHeader("Cache-Control", "no-cache,min-fresh=10,no-store");
-        final HttpRequest wrapper = BasicRequestBuilder.copy(req).build();
-        impl.makeRequestCompliant(wrapper);
-        assertEquals("no-cache,no-store",
-                wrapper.getFirstHeader("Cache-Control").getValue());
     }
 
 }

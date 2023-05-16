@@ -43,7 +43,6 @@ import org.apache.hc.client5.http.async.AsyncExecChainHandler;
 import org.apache.hc.client5.http.async.methods.SimpleBody;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.cache.CacheResponseStatus;
-import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpAsyncCacheStorage;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.ResourceFactory;
@@ -238,7 +237,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
         }
 
         requestCompliance.makeRequestCompliant(request);
-        request.addHeader("Via",via);
+        request.addHeader(HttpHeaders.VIA,via);
 
         if (!cacheableRequestPolicy.isServableFromCache(request)) {
             LOG.debug("Request is not servable from cache");
@@ -318,7 +317,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                     final HttpResponse backendResponse,
                     final EntityDetails entityDetails) throws HttpException, IOException {
                 final Instant responseDate = getCurrentDate();
-                backendResponse.addHeader("Via", generateViaHeader(backendResponse));
+                backendResponse.addHeader(HttpHeaders.VIA, generateViaHeader(backendResponse));
 
                 final AsyncExecCallback callback = new BackendResponseHandler(target, request, requestDate, responseDate, scope, asyncExecCallback);
                 callbackRef.set(callback);
@@ -774,7 +773,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
             void triggerResponseStaleCacheEntry() {
                 try {
                     final SimpleHttpResponse cacheResponse = responseGenerator.generateResponse(request, cacheEntry);
-                    cacheResponse.addHeader(HeaderConstants.WARNING, "110 localhost \"Response is stale\"");
+                    cacheResponse.addHeader(HttpHeaders.WARNING, "110 localhost \"Response is stale\"");
                     triggerResponse(cacheResponse, scope, asyncExecCallback);
                 } catch (final ResourceIOException ex) {
                     asyncExecCallback.failed(ex);
@@ -782,7 +781,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
             }
 
             AsyncExecCallback evaluateResponse(final HttpResponse backendResponse, final Instant responseDate) {
-                backendResponse.addHeader(HeaderConstants.VIA, generateViaHeader(backendResponse));
+                backendResponse.addHeader(HttpHeaders.VIA, generateViaHeader(backendResponse));
 
                 final int statusCode = backendResponse.getCode();
                 if (statusCode == HttpStatus.SC_NOT_MODIFIED || statusCode == HttpStatus.SC_OK) {
@@ -1022,7 +1021,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                     final HttpResponse backendResponse,
                     final EntityDetails entityDetails) throws HttpException, IOException {
                 final Instant responseDate = getCurrentDate();
-                backendResponse.addHeader("Via", generateViaHeader(backendResponse));
+                backendResponse.addHeader(HttpHeaders.VIA, generateViaHeader(backendResponse));
 
                 final AsyncExecCallback callback;
                 // Handle 304 Not Modified responses
@@ -1090,7 +1089,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                 if (backendResponse.getCode() != HttpStatus.SC_NOT_MODIFIED) {
                     callback = new BackendResponseHandler(target, request, requestDate, responseDate, scope, asyncExecCallback);
                 } else {
-                    final Header resultEtagHeader = backendResponse.getFirstHeader(HeaderConstants.ETAG);
+                    final Header resultEtagHeader = backendResponse.getFirstHeader(HttpHeaders.ETAG);
                     if (resultEtagHeader == null) {
                         LOG.warn("304 response did not contain ETag");
                         callback = new AsyncExecCallbackWrapper(asyncExecCallback, () -> callBackend(target, request, entityProducer, scope, chain, asyncExecCallback));

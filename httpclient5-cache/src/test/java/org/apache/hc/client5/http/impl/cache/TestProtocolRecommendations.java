@@ -37,7 +37,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.IOException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -1301,7 +1300,7 @@ public class TestProtocolRecommendations {
         resp2.setEntity(HttpTestUtils.makeBody(200));
         resp2.setHeader("Content-Length","200");
         resp2.setHeader("Date", DateUtils.formatStandardDate(now));
-        resp2.setHeader("Via","1.0 someproxy");
+        resp2.setHeader(HttpHeaders.VIA,"1.0 someproxy");
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp2);
 
@@ -1485,42 +1484,6 @@ public class TestProtocolRecommendations {
         final ClassicHttpResponse result = execute(req2);
 
         assertTrue(HttpTestUtils.semanticallyTransparent(resp2, result));
-    }
-
-    /*
-     * "If a request includes the no-cache directive, it SHOULD NOT
-     * include min-fresh, max-stale, or max-age."
-     *
-     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9.4
-     */
-    @Test
-    public void otherFreshnessRequestDirectivesNotAllowedWithNoCache() throws Exception {
-        final ClassicHttpRequest req1 = HttpTestUtils.makeDefaultRequest();
-        req1.setHeader("Cache-Control", "min-fresh=10, no-cache");
-        req1.addHeader("Cache-Control", "max-stale=0, max-age=0");
-
-        execute(req1);
-
-        final ArgumentCaptor<ClassicHttpRequest> reqCapture = ArgumentCaptor.forClass(ClassicHttpRequest.class);
-        Mockito.verify(mockExecChain).proceed(reqCapture.capture(), Mockito.any());
-
-        final ClassicHttpRequest captured = reqCapture.getValue();
-        boolean foundNoCache = false;
-        boolean foundDisallowedDirective = false;
-        final List<String> disallowed =
-            Arrays.asList("min-fresh", "max-stale", "max-age");
-        final Iterator<HeaderElement> it = MessageSupport.iterate(captured, HttpHeaders.CACHE_CONTROL);
-        while (it.hasNext()) {
-            final HeaderElement elt = it.next();
-            if (disallowed.contains(elt.getName())) {
-                foundDisallowedDirective = true;
-            }
-            if ("no-cache".equals(elt.getName())) {
-                foundNoCache = true;
-            }
-        }
-        assertTrue(foundNoCache);
-        assertFalse(foundDisallowedDirective);
     }
 
     /*

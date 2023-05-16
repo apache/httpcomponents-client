@@ -37,10 +37,10 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
-import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.schedule.ConcurrentCountMap;
 import org.apache.hc.client5.http.schedule.SchedulingStrategy;
 import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TimeValue;
@@ -173,7 +173,7 @@ class CacheRevalidatorBase implements Closeable {
      * @return whether the response is stale or not
      */
     boolean isStale(final HttpResponse httpResponse) {
-        for (final Iterator<Header> it = httpResponse.headerIterator(HeaderConstants.WARNING); it.hasNext(); ) {
+        for (final Iterator<Header> it = httpResponse.headerIterator(HttpHeaders.WARNING); it.hasNext(); ) {
             /*
              * warn-codes
              * 110 = Response is stale

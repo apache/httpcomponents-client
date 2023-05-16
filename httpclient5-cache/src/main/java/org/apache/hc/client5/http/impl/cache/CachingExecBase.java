@@ -42,7 +42,6 @@ import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.ResourceIOException;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.Header;
-import org.apache.hc.core5.http.HeaderElement;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpMessage;
@@ -52,7 +51,6 @@ import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.ProtocolVersion;
 import org.apache.hc.core5.http.URIScheme;
-import org.apache.hc.core5.http.message.MessageSupport;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.VersionInfo;
@@ -191,26 +189,26 @@ public class CachingExecBase {
             final HttpCacheEntry entry,
             final Instant now) throws ResourceIOException {
         final SimpleHttpResponse cachedResponse;
-        if (request.containsHeader(HeaderConstants.IF_NONE_MATCH)
-                || request.containsHeader(HeaderConstants.IF_MODIFIED_SINCE)) {
+        if (request.containsHeader(HttpHeaders.IF_NONE_MATCH)
+                || request.containsHeader(HttpHeaders.IF_MODIFIED_SINCE)) {
             cachedResponse = responseGenerator.generateNotModifiedResponse(entry);
         } else {
             cachedResponse = responseGenerator.generateResponse(request, entry);
         }
         setResponseStatus(context, CacheResponseStatus.CACHE_HIT);
         if (TimeValue.isPositive(validityPolicy.getStaleness(entry, now))) {
-            cachedResponse.addHeader(HeaderConstants.WARNING,"110 localhost \"Response is stale\"");
+            cachedResponse.addHeader(HttpHeaders.WARNING,"110 localhost \"Response is stale\"");
         }
 
         // Adding Warning: 113 - "Heuristic Expiration"
-        if (!entry.containsHeader(HeaderConstants.WARNING)) {
+        if (!entry.containsHeader(HttpHeaders.WARNING)) {
             final Header header = entry.getFirstHeader(HttpHeaders.DATE);
             if (header != null) {
                 final Instant responseDate = DateUtils.parseStandardDate(header.getValue());
                 final TimeValue freshnessLifetime = validityPolicy.getFreshnessLifetime(entry);
                 final TimeValue currentAge = validityPolicy.getCurrentAge(entry, responseDate);
                 if (freshnessLifetime.compareTo(ONE_DAY) > 0 && currentAge.compareTo(ONE_DAY) > 0) {
-                    cachedResponse.addHeader(HeaderConstants.WARNING,"113 localhost \"Heuristic expiration\"");
+                    cachedResponse.addHeader(HttpHeaders.WARNING,"113 localhost \"Heuristic expiration\"");
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("Added Warning 113 - Heuristic expiration to the response header.");
                     }
@@ -245,7 +243,7 @@ public class CachingExecBase {
             final HttpCacheEntry entry) throws IOException {
         final SimpleHttpResponse cachedResponse = responseGenerator.generateResponse(request, entry);
         setResponseStatus(context, CacheResponseStatus.CACHE_HIT);
-        cachedResponse.addHeader(HeaderConstants.WARNING, "111 localhost \"Revalidation failed\"");
+        cachedResponse.addHeader(HttpHeaders.WARNING, "111 localhost \"Revalidation failed\"");
         return cachedResponse;
     }
 
@@ -256,37 +254,24 @@ public class CachingExecBase {
     }
 
     boolean mayCallBackend(final HttpRequest request) {
-        final Iterator<HeaderElement> it = MessageSupport.iterate(request, HeaderConstants.CACHE_CONTROL);
-        while (it.hasNext()) {
-            final HeaderElement elt = it.next();
-            if ("only-if-cached".equals(elt.getName())) {
-                LOG.debug("Request marked only-if-cached");
-                return false;
-            }
+        final RequestCacheControl cacheControl = CacheControlHeaderParser.INSTANCE.parse(request);
+        if (cacheControl.isOnlyIfCached()) {
+            LOG.debug("Request marked only-if-cached");
+            return false;
         }
         return true;
     }
 
     boolean explicitFreshnessRequest(final HttpRequest request, final HttpCacheEntry entry, final Instant now) {
-        final Iterator<HeaderElement> it = MessageSupport.iterate(request, HeaderConstants.CACHE_CONTROL);
-        while (it.hasNext()) {
-            final HeaderElement elt = it.next();
-            if (HeaderConstants.CACHE_CONTROL_MAX_STALE.equals(elt.getName())) {
-                try {
-                    // in seconds
-                    final int maxStale = Integer.parseInt(elt.getValue());
-                    final TimeValue age = validityPolicy.getCurrentAge(entry, now);
-                    final TimeValue lifetime = validityPolicy.getFreshnessLifetime(entry);
-                    if (age.toSeconds() - lifetime.toSeconds() > maxStale) {
-                        return true;
-                    }
-                } catch (final NumberFormatException nfe) {
-                    return true;
-                }
-            } else if (HeaderConstants.CACHE_CONTROL_MIN_FRESH.equals(elt.getName())
-                    || HeaderConstants.CACHE_CONTROL_MAX_AGE.equals(elt.getName())) {
+        final RequestCacheControl cacheControl = CacheControlHeaderParser.INSTANCE.parse(request);
+        if (cacheControl.getMaxStale() >= 0) {
+            final TimeValue age = validityPolicy.getCurrentAge(entry, now);
+            final TimeValue lifetime = validityPolicy.getFreshnessLifetime(entry);
+            if (age.toSeconds() - lifetime.toSeconds() > cacheControl.getMaxStale()) {
                 return true;
             }
+        } else if (cacheControl.getMinFresh() >= 0 || cacheControl.getMaxAge() >= 0) {
+            return true;
         }
         return false;
     }
@@ -349,7 +334,7 @@ public class CachingExecBase {
             return false;
         }
 
-        final Header h = request.getFirstHeader(HeaderConstants.MAX_FORWARDS);
+        final Header h = request.getFirstHeader(HttpHeaders.MAX_FORWARDS);
         return "0".equals(h != null ? h.getValue() : null);
     }
 

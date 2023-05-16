@@ -31,7 +31,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpAsyncCacheInvalidator;
 import org.apache.hc.client5.http.cache.HttpAsyncCacheStorage;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
@@ -43,6 +42,7 @@ import org.apache.hc.core5.concurrent.Cancellable;
 import org.apache.hc.core5.concurrent.ComplexCancellable;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
@@ -540,7 +540,7 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
                                     for (final Map.Entry<String, HttpCacheEntry> resultMapEntry : resultMap.entrySet()) {
                                         final String cacheKey = resultMapEntry.getKey();
                                         final HttpCacheEntry cacheEntry = resultMapEntry.getValue();
-                                        final Header etagHeader = cacheEntry.getFirstHeader(HeaderConstants.ETAG);
+                                        final Header etagHeader = cacheEntry.getFirstHeader(HttpHeaders.ETAG);
                                         if (etagHeader != null) {
                                             variants.put(etagHeader.getValue(), new Variant(cacheKey, cacheEntry));
                                         }
