@@ -86,8 +86,8 @@ public class DefaultCacheInvalidator extends CacheInvalidatorBase implements Htt
             final HttpRequest request,
             final Resolver<URI, String> cacheKeyResolver,
             final HttpCacheStorage storage) {
-        final String s = HttpCacheSupport.getRequestUri(request, host);
-        final URI uri = HttpCacheSupport.normalizeQuietly(s);
+        final String s = CacheSupport.getRequestUri(request, host);
+        final URI uri = CacheSupport.normalize(s);
         final String cacheKey = uri != null ? cacheKeyResolver.resolve(uri) : s;
         final HttpCacheEntry parent = getEntry(storage, cacheKey);
 
@@ -107,7 +107,7 @@ public class DefaultCacheInvalidator extends CacheInvalidatorBase implements Htt
                 }
                 final Header clHdr = request.getFirstHeader(HttpHeaders.CONTENT_LOCATION);
                 if (clHdr != null) {
-                    final URI contentLocation = HttpCacheSupport.normalizeQuietly(clHdr.getValue());
+                    final URI contentLocation = CacheSupport.normalize(clHdr.getValue());
                     if (contentLocation != null) {
                         if (!flushAbsoluteUriFromSameHost(uri, contentLocation, cacheKeyResolver, storage)) {
                             flushRelativeUriFromSameHost(uri, contentLocation, cacheKeyResolver, storage);
@@ -116,7 +116,7 @@ public class DefaultCacheInvalidator extends CacheInvalidatorBase implements Htt
                 }
                 final Header lHdr = request.getFirstHeader(HttpHeaders.LOCATION);
                 if (lHdr != null) {
-                    final URI location = HttpCacheSupport.normalizeQuietly(lHdr.getValue());
+                    final URI location = CacheSupport.normalize(lHdr.getValue());
                     if (location != null) {
                         flushAbsoluteUriFromSameHost(uri, location, cacheKeyResolver, storage);
                     }
@@ -159,8 +159,8 @@ public class DefaultCacheInvalidator extends CacheInvalidatorBase implements Htt
         if (status < 200 || status > 299) {
             return;
         }
-        final String s = HttpCacheSupport.getRequestUri(request, host);
-        final URI uri = HttpCacheSupport.normalizeQuietly(s);
+        final String s = CacheSupport.getRequestUri(request, host);
+        final URI uri = CacheSupport.normalize(s);
         if (uri == null) {
             return;
         }

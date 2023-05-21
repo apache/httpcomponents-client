@@ -70,7 +70,7 @@ public class CacheKeyGenerator implements Resolver<URI, String> {
      */
     public String generateKey(final URI requestUri) {
         try {
-            final URI normalizeRequestUri = HttpCacheSupport.normalize(requestUri);
+            final URI normalizeRequestUri = CacheSupport.normalize(requestUri);
             return normalizeRequestUri.toASCIIString();
         } catch (final URISyntaxException ex) {
             return requestUri.toASCIIString();
@@ -86,7 +86,7 @@ public class CacheKeyGenerator implements Resolver<URI, String> {
      * @return cache key
      */
     public String generateKey(final HttpHost host, final HttpRequest request) {
-        final String s = HttpCacheSupport.getRequestUri(request, host);
+        final String s = CacheSupport.getRequestUri(request, host);
         try {
             return generateKey(new URI(s));
         } catch (final URISyntaxException ex) {
