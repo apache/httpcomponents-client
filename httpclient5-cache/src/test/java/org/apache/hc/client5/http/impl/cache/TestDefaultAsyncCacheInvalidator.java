@@ -83,7 +83,7 @@ public class TestDefaultAsyncCacheInvalidator {
 
         when(cacheKeyResolver.resolve(ArgumentMatchers.any())).thenAnswer((Answer<String>) invocation -> {
             final URI uri = invocation.getArgument(0);
-            return HttpCacheSupport.normalize(uri).toASCIIString();
+            return CacheSupport.normalize(uri).toASCIIString();
         });
 
         host = new HttpHost("foo.example.com");
