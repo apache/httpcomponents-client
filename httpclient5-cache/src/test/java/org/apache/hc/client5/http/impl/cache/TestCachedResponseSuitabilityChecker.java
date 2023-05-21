@@ -32,7 +32,6 @@ import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.Header;
-import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
@@ -48,9 +47,10 @@ public class TestCachedResponseSuitabilityChecker {
     private Instant tenSecondsAgo;
     private Instant nineSecondsAgo;
 
-    private HttpHost host;
     private HttpRequest request;
     private HttpCacheEntry entry;
+    private RequestCacheControl requestCacheControl;
+    private ResponseCacheControl responseCacheControl;
     private CachedResponseSuitabilityChecker impl;
 
     @BeforeEach
@@ -60,9 +60,10 @@ public class TestCachedResponseSuitabilityChecker {
         tenSecondsAgo = now.minusSeconds(10);
         nineSecondsAgo = now.minusSeconds(9);
 
-        host = new HttpHost("foo.example.com");
         request = new BasicHttpRequest("GET", "/foo");
         entry = HttpTestUtils.makeCacheEntry();
+        requestCacheControl = RequestCacheControl.builder().build();
+        responseCacheControl = ResponseCacheControl.builder().build();
 
         impl = new CachedResponseSuitabilityChecker(CacheConfig.DEFAULT);
     }
@@ -75,117 +76,152 @@ public class TestCachedResponseSuitabilityChecker {
     public void testNotSuitableIfContentLengthHeaderIsWrong() {
         final Header[] headers = {
                 new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
-                new BasicHeader("Cache-Control", "max-age=3600"),
                 new BasicHeader("Content-Length","1")
         };
         entry = getEntry(headers);
-        Assertions.assertFalse(impl.canCachedResponseBeUsed(request, entry, now));
+        responseCacheControl = ResponseCacheControl.builder()
+                .setMaxAge(3600)
+                .build();
+
+        Assertions.assertFalse(impl.canCachedResponseBeUsed(requestCacheControl, responseCacheControl, request, entry, now));
     }
 
     @Test
     public void testSuitableIfCacheEntryIsFresh() {
         final Header[] headers = {
                 new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
-                new BasicHeader("Cache-Control", "max-age=3600"),
                 new BasicHeader("Content-Length","128")
         };
         entry = getEntry(headers);
-        Assertions.assertTrue(impl.canCachedResponseBeUsed(request, entry, now));
+        responseCacheControl = ResponseCacheControl.builder()
+                .setMaxAge(3600)
+                .build();
+        Assertions.assertTrue(impl.canCachedResponseBeUsed(requestCacheControl, responseCacheControl, request, entry, now));
     }
 
     @Test
     public void testNotSuitableIfCacheEntryIsNotFresh() {
         final Header[] headers = {
                 new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
-                new BasicHeader("Cache-Control", "max-age=5"),
                 new BasicHeader("Content-Length","128")
         };
         entry = getEntry(headers);
-        Assertions.assertFalse(impl.canCachedResponseBeUsed(request, entry, now));
+        responseCacheControl = ResponseCacheControl.builder()
+                .setMaxAge(5)
+                .build();
+        Assertions.assertFalse(impl.canCachedResponseBeUsed(requestCacheControl, responseCacheControl, request, entry, now));
     }
 
     @Test
     public void testNotSuitableIfRequestHasNoCache() {
-        request.addHeader("Cache-Control", "no-cache");
+        requestCacheControl = RequestCacheControl.builder()
+                .setNoCache(true)
+                .build();
         final Header[] headers = {
                 new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
-                new BasicHeader("Cache-Control", "max-age=3600"),
                 new BasicHeader("Content-Length","128")
         };
         entry = getEntry(headers);
-        Assertions.assertFalse(impl.canCachedResponseBeUsed(request, entry, now));
+        responseCacheControl = ResponseCacheControl.builder()
+                .setMaxAge(3600)
+                .build();
+        Assertions.assertFalse(impl.canCachedResponseBeUsed(requestCacheControl, responseCacheControl, request, entry, now));
     }
 
     @Test
     public void testNotSuitableIfAgeExceedsRequestMaxAge() {
-        request.addHeader("Cache-Control", "max-age=10");
+        requestCacheControl = RequestCacheControl.builder()
+                .setMaxAge(10)
+                .build();
         final Header[] headers = {
                 new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
-                new BasicHeader("Cache-Control", "max-age=3600"),
                 new BasicHeader("Content-Length","128")
         };
+        responseCacheControl = ResponseCacheControl.builder()
+                .setMaxAge(3600)
+                .build();
         entry = getEntry(headers);
-        Assertions.assertFalse(impl.canCachedResponseBeUsed(request, entry, now));
+        Assertions.assertFalse(impl.canCachedResponseBeUsed(requestCacheControl, responseCacheControl, request, entry, now));
     }
 
     @Test
     public void testSuitableIfFreshAndAgeIsUnderRequestMaxAge() {
-        request.addHeader("Cache-Control", "max-age=15");
+        requestCacheControl = RequestCacheControl.builder()
+                .setMaxAge(15)
+                .build();
         final Header[] headers = {
                 new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
-                new BasicHeader("Cache-Control", "max-age=3600"),
                 new BasicHeader("Content-Length","128")
         };
         entry = getEntry(headers);
-        Assertions.assertTrue(impl.canCachedResponseBeUsed(request, entry, now));
+        responseCacheControl = ResponseCacheControl.builder()
+                .setMaxAge(3600)
+                .build();
+        Assertions.assertTrue(impl.canCachedResponseBeUsed(requestCacheControl, responseCacheControl, request, entry, now));
     }
 
     @Test
     public void testSuitableIfFreshAndFreshnessLifetimeGreaterThanRequestMinFresh() {
-        request.addHeader("Cache-Control", "min-fresh=10");
+        requestCacheControl = RequestCacheControl.builder()
+                .setMinFresh(10)
+                .build();
         final Header[] headers = {
                 new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
-                new BasicHeader("Cache-Control", "max-age=3600"),
                 new BasicHeader("Content-Length","128")
         };
         entry = getEntry(headers);
-        Assertions.assertTrue(impl.canCachedResponseBeUsed(request, entry, now));
+        responseCacheControl = ResponseCacheControl.builder()
+                .setMaxAge(3600)
+                .build();
+        Assertions.assertTrue(impl.canCachedResponseBeUsed(requestCacheControl, responseCacheControl, request, entry, now));
     }
 
     @Test
     public void testNotSuitableIfFreshnessLifetimeLessThanRequestMinFresh() {
-        request.addHeader("Cache-Control", "min-fresh=10");
+        requestCacheControl = RequestCacheControl.builder()
+                .setMinFresh(10)
+                .build();
         final Header[] headers = {
                 new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
-                new BasicHeader("Cache-Control", "max-age=15"),
                 new BasicHeader("Content-Length","128")
         };
         entry = getEntry(headers);
-        Assertions.assertFalse(impl.canCachedResponseBeUsed(request, entry, now));
+        responseCacheControl = ResponseCacheControl.builder()
+                .setMaxAge(15)
+                .build();
+        Assertions.assertFalse(impl.canCachedResponseBeUsed(requestCacheControl, responseCacheControl, request, entry, now));
     }
 
     @Test
     public void testSuitableEvenIfStaleButPermittedByRequestMaxStale() {
-        request.addHeader("Cache-Control", "max-stale=10");
+        requestCacheControl = RequestCacheControl.builder()
+                .setMaxStale(10)
+                .build();
         final Header[] headers = {
                 new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
-                new BasicHeader("Cache-Control", "max-age=5"),
                 new BasicHeader("Content-Length","128")
         };
         entry = getEntry(headers);
-        Assertions.assertTrue(impl.canCachedResponseBeUsed(request, entry, now));
+        responseCacheControl = ResponseCacheControl.builder()
+                .setMaxAge(5)
+                .build();
+        Assertions.assertTrue(impl.canCachedResponseBeUsed(requestCacheControl, responseCacheControl, request, entry, now));
     }
 
     @Test
     public void testNotSuitableIfStaleButTooStaleForRequestMaxStale() {
-        request.addHeader("Cache-Control", "max-stale=2");
+        requestCacheControl = RequestCacheControl.builder()
+                .setMaxStale(2)
+                .build();
         final Header[] headers = {
                 new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
-                new BasicHeader("Cache-Control", "max-age=5"),
                 new BasicHeader("Content-Length","128")
         };
         entry = getEntry(headers);
-        Assertions.assertFalse(impl.canCachedResponseBeUsed(request, entry, now));
+        responseCacheControl = ResponseCacheControl.builder()
+                .setMaxAge(5)
+                .build();
+        Assertions.assertFalse(impl.canCachedResponseBeUsed(requestCacheControl, responseCacheControl, request, entry, now));
     }
 
     @Test
@@ -206,7 +242,7 @@ public class TestCachedResponseSuitabilityChecker {
             .setHeuristicCoefficient(0.1f).build();
         impl = new CachedResponseSuitabilityChecker(config);
 
-        Assertions.assertTrue(impl.canCachedResponseBeUsed(request, entry, now));
+        Assertions.assertTrue(impl.canCachedResponseBeUsed(requestCacheControl, responseCacheControl, request, entry, now));
     }
 
     @Test
@@ -224,7 +260,7 @@ public class TestCachedResponseSuitabilityChecker {
             .build();
         impl = new CachedResponseSuitabilityChecker(config);
 
-        Assertions.assertTrue(impl.canCachedResponseBeUsed(request, entry, now));
+        Assertions.assertTrue(impl.canCachedResponseBeUsed(requestCacheControl, responseCacheControl, request, entry, now));
     }
 
     @Test
@@ -232,24 +268,28 @@ public class TestCachedResponseSuitabilityChecker {
         final HttpRequest headRequest = new BasicHttpRequest("HEAD", "/foo");
         final Header[] headers = {
                 new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
-                new BasicHeader("Cache-Control", "max-age=3600"),
                 new BasicHeader("Content-Length","128")
         };
         entry = getEntry(headers);
+        responseCacheControl = ResponseCacheControl.builder()
+                .setMaxAge(3600)
+                .build();
 
-        Assertions.assertTrue(impl.canCachedResponseBeUsed(headRequest, entry, now));
+        Assertions.assertTrue(impl.canCachedResponseBeUsed(requestCacheControl, responseCacheControl, headRequest, entry, now));
     }
 
     @Test
     public void testNotSuitableIfRequestMethodIsGETAndEntryResourceIsNull() {
         final Header[] headers = {
                 new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
-                new BasicHeader("Cache-Control", "max-age=3600"),
                 new BasicHeader("Content-Length","128")
         };
         entry = HttpTestUtils.makeHeadCacheEntry(headers);
+        responseCacheControl = ResponseCacheControl.builder()
+                .setMaxAge(3600)
+                .build();
 
-        Assertions.assertFalse(impl.canCachedResponseBeUsed(request, entry, now));
+        Assertions.assertFalse(impl.canCachedResponseBeUsed(requestCacheControl, responseCacheControl, request, entry, now));
     }
 
     @Test
@@ -257,12 +297,14 @@ public class TestCachedResponseSuitabilityChecker {
         impl = new CachedResponseSuitabilityChecker(CacheConfig.custom().build());
         final Header[] headers = {
                 new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
-                new BasicHeader("Cache-Control", "max-age=3600"),
                 new BasicHeader("Content-Length","128")
         };
         entry = HttpTestUtils.makeCacheEntryWithNoRequestMethodOrEntity(headers);
+        responseCacheControl = ResponseCacheControl.builder()
+                .setMaxAge(3600)
+                .build();
 
-        Assertions.assertFalse(impl.canCachedResponseBeUsed(request, entry, now));
+        Assertions.assertFalse(impl.canCachedResponseBeUsed(requestCacheControl, responseCacheControl, request, entry, now));
     }
 
     @Test
@@ -270,12 +312,14 @@ public class TestCachedResponseSuitabilityChecker {
         impl = new CachedResponseSuitabilityChecker(CacheConfig.custom().build());
         final Header[] headers = {
                 new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
-                new BasicHeader("Cache-Control", "max-age=3600"),
                 new BasicHeader("Content-Length","128")
         };
         entry = HttpTestUtils.makeCacheEntryWithNoRequestMethod(headers);
+        responseCacheControl = ResponseCacheControl.builder()
+                .setMaxAge(3600)
+                .build();
 
-        Assertions.assertTrue(impl.canCachedResponseBeUsed(request, entry, now));
+        Assertions.assertTrue(impl.canCachedResponseBeUsed(requestCacheControl, responseCacheControl, request, entry, now));
     }
 
     @Test
@@ -283,11 +327,13 @@ public class TestCachedResponseSuitabilityChecker {
         impl = new CachedResponseSuitabilityChecker(CacheConfig.custom().build());
         final Header[] headers = {
                 new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
-                new BasicHeader("Cache-Control", "max-age=3600")
         };
         entry = HttpTestUtils.make204CacheEntryWithNoRequestMethod(headers);
+        responseCacheControl = ResponseCacheControl.builder()
+                .setMaxAge(3600)
+                .build();
 
-        Assertions.assertTrue(impl.canCachedResponseBeUsed(request, entry, now));
+        Assertions.assertTrue(impl.canCachedResponseBeUsed(requestCacheControl, responseCacheControl, request, entry, now));
     }
 
     @Test
@@ -296,12 +342,14 @@ public class TestCachedResponseSuitabilityChecker {
         impl = new CachedResponseSuitabilityChecker(CacheConfig.custom().build());
         final Header[] headers = {
                 new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
-                new BasicHeader("Cache-Control", "max-age=3600"),
                 new BasicHeader("Content-Length","128")
         };
         entry = HttpTestUtils.makeHeadCacheEntryWithNoRequestMethod(headers);
+        responseCacheControl = ResponseCacheControl.builder()
+                .setMaxAge(3600)
+                .build();
 
-        Assertions.assertTrue(impl.canCachedResponseBeUsed(headRequest, entry, now));
+        Assertions.assertTrue(impl.canCachedResponseBeUsed(requestCacheControl, responseCacheControl, headRequest, entry, now));
     }
 
     @Test
@@ -309,11 +357,13 @@ public class TestCachedResponseSuitabilityChecker {
         // Prepare a cache entry with HEAD method
         final Header[] headers = {
                 new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
-                new BasicHeader("Cache-Control", "max-age=3600"),
                 new BasicHeader("Hc-Request-Method", HeaderConstants.HEAD_METHOD)
         };
         entry = getEntry(headers);
+        responseCacheControl = ResponseCacheControl.builder()
+                .setMaxAge(3600)
+                .build();
         // Validate that the cache entry is not suitable for the GET request
-        Assertions.assertFalse(impl.canCachedResponseBeUsed(request, entry, now));
+        Assertions.assertFalse(impl.canCachedResponseBeUsed(requestCacheControl, responseCacheControl, request, entry, now));
     }
 }

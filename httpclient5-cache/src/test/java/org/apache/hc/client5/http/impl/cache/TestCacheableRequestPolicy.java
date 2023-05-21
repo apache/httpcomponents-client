@@ -43,100 +43,106 @@ public class TestCacheableRequestPolicy {
     @Test
     public void testIsGetServableFromCache() {
         final BasicHttpRequest request = new BasicHttpRequest("GET", "someUri");
+        final RequestCacheControl cacheControl = RequestCacheControl.builder().build();
 
-        Assertions.assertTrue(policy.isServableFromCache(request));
+        Assertions.assertTrue(policy.isServableFromCache(cacheControl, request));
     }
 
     @Test
     public void testIsGetWithCacheControlServableFromCache() {
-        BasicHttpRequest request = new BasicHttpRequest("GET", "someUri");
-        request.addHeader("Cache-Control", "no-cache");
+        final BasicHttpRequest request = new BasicHttpRequest("GET", "someUri");
+        final RequestCacheControl cacheControl = RequestCacheControl.builder()
+                .setNoCache(true)
+                .build();
 
-        Assertions.assertFalse(policy.isServableFromCache(request));
+        Assertions.assertFalse(policy.isServableFromCache(cacheControl, request));
 
-        request = new BasicHttpRequest("GET", "someUri");
-        request.addHeader("Cache-Control", "no-store");
-        request.addHeader("Cache-Control", "max-age=20");
+        final RequestCacheControl cacheControl2 = RequestCacheControl.builder()
+                .setNoStore(true)
+                .setMaxAge(20)
+                .build();
 
-        Assertions.assertFalse(policy.isServableFromCache(request));
-
-        request = new BasicHttpRequest("GET", "someUri");
-        request.addHeader("Cache-Control", "public");
-        request.addHeader("Cache-Control", "no-store, max-age=20");
-
-        Assertions.assertFalse(policy.isServableFromCache(request));
+        Assertions.assertFalse(policy.isServableFromCache(cacheControl2, request));
     }
 
     @Test
     public void testIsGetWithPragmaServableFromCache() {
-        BasicHttpRequest request = new BasicHttpRequest("GET", "someUri");
+        final BasicHttpRequest request = new BasicHttpRequest("GET", "someUri");
         request.addHeader("Pragma", "no-cache");
+        final RequestCacheControl cacheControl = RequestCacheControl.builder()
+                .build();
 
-        Assertions.assertFalse(policy.isServableFromCache(request));
+        Assertions.assertFalse(policy.isServableFromCache(cacheControl, request));
 
-        request = new BasicHttpRequest("GET", "someUri");
-        request.addHeader("Pragma", "value1");
-        request.addHeader("Pragma", "value2");
+        final BasicHttpRequest request2 = new BasicHttpRequest("GET", "someUri");
+        request2.addHeader("Pragma", "value1");
+        request2.addHeader("Pragma", "value2");
 
-        Assertions.assertFalse(policy.isServableFromCache(request));
+        Assertions.assertFalse(policy.isServableFromCache(cacheControl, request2));
     }
 
     @Test
     public void testIsHeadServableFromCache() {
-        BasicHttpRequest request = new BasicHttpRequest("HEAD", "someUri");
+        final BasicHttpRequest request = new BasicHttpRequest("HEAD", "someUri");
+        final RequestCacheControl cacheControl = RequestCacheControl.builder().build();
 
-        Assertions.assertTrue(policy.isServableFromCache(request));
+        Assertions.assertTrue(policy.isServableFromCache(cacheControl, request));
 
-        request = new BasicHttpRequest("HEAD", "someUri");
-        request.addHeader("Cache-Control", "public");
-        request.addHeader("Cache-Control", "max-age=20");
+        final RequestCacheControl cacheControl2 = RequestCacheControl.builder()
+                .setMaxAge(20)
+                .build();
 
-        Assertions.assertTrue(policy.isServableFromCache(request));
+        Assertions.assertTrue(policy.isServableFromCache(cacheControl2, request));
     }
 
     @Test
     public void testIsHeadWithCacheControlServableFromCache() {
-        BasicHttpRequest request = new BasicHttpRequest("HEAD", "someUri");
-        request.addHeader("Cache-Control", "no-cache");
+        final BasicHttpRequest request = new BasicHttpRequest("HEAD", "someUri");
+        final RequestCacheControl cacheControl = RequestCacheControl.builder()
+                .setNoCache(true)
+                .build();
 
-        Assertions.assertFalse(policy.isServableFromCache(request));
+        Assertions.assertFalse(policy.isServableFromCache(cacheControl, request));
 
-        request = new BasicHttpRequest("HEAD", "someUri");
         request.addHeader("Cache-Control", "no-store");
         request.addHeader("Cache-Control", "max-age=20");
+        final RequestCacheControl cacheControl2 = RequestCacheControl.builder()
+                .setNoStore(true)
+                .setMaxAge(20)
+                .build();
 
-        Assertions.assertFalse(policy.isServableFromCache(request));
-
-        request = new BasicHttpRequest("HEAD", "someUri");
-        request.addHeader("Cache-Control", "public");
-        request.addHeader("Cache-Control", "no-store, max-age=20");
-
-        Assertions.assertFalse(policy.isServableFromCache(request));
+        Assertions.assertFalse(policy.isServableFromCache(cacheControl2, request));
     }
 
     @Test
     public void testIsHeadWithPragmaServableFromCache() {
-        BasicHttpRequest request = new BasicHttpRequest("HEAD", "someUri");
-        request.addHeader("Pragma", "no-cache");
+        final BasicHttpRequest request = new BasicHttpRequest("HEAD", "someUri");
+        final RequestCacheControl cacheControl = RequestCacheControl.builder()
+                .setNoCache(true)
+                .build();
 
-        Assertions.assertFalse(policy.isServableFromCache(request));
+        Assertions.assertFalse(policy.isServableFromCache(cacheControl, request));
 
-        request = new BasicHttpRequest("HEAD", "someUri");
-        request.addHeader("Pragma", "value1");
-        request.addHeader("Pragma", "value2");
+        final BasicHttpRequest request2 = new BasicHttpRequest("HEAD", "someUri");
+        request2.addHeader("Pragma", "value1");
+        request2.addHeader("Pragma", "value2");
+        final RequestCacheControl cacheControl2 = RequestCacheControl.builder()
+                .build();
 
-        Assertions.assertFalse(policy.isServableFromCache(request));
+        Assertions.assertFalse(policy.isServableFromCache(cacheControl2, request2));
     }
 
     @Test
     public void testIsArbitraryMethodServableFromCache() {
-        BasicHttpRequest request = new BasicHttpRequest("TRACE", "someUri");
+        final BasicHttpRequest request = new BasicHttpRequest("TRACE", "someUri");
+        final RequestCacheControl cacheControl = RequestCacheControl.builder()
+                .build();
 
-        Assertions.assertFalse(policy.isServableFromCache(request));
+        Assertions.assertFalse(policy.isServableFromCache(cacheControl, request));
 
-        request = new BasicHttpRequest("get", "someUri");
+        final BasicHttpRequest request2 = new BasicHttpRequest("get", "someUri");
 
-        Assertions.assertFalse(policy.isServableFromCache(request));
+        Assertions.assertFalse(policy.isServableFromCache(cacheControl, request2));
 
     }
 
