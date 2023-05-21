@@ -68,7 +68,7 @@ class CacheInvalidatorBase {
         if (h == null) {
             return null;
         }
-        final URI locationUri = HttpCacheSupport.normalizeQuietly(h.getValue());
+        final URI locationUri = CacheSupport.normalize(h.getValue());
         if (locationUri == null) {
             return requestUri;
         }
