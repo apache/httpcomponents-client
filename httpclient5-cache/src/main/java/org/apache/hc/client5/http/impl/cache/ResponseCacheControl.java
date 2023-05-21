@@ -99,6 +99,8 @@ final class ResponseCacheControl implements CacheControl {
      */
     private final Set<String> noCacheFields;
 
+    private final boolean undefined;
+
     /**
      * Creates a new instance of {@code CacheControl} with the specified values.
      *
@@ -129,6 +131,16 @@ final class ResponseCacheControl implements CacheControl {
         this.staleWhileRevalidate = staleWhileRevalidate;
         this.staleIfError = staleIfError;
         this.noCacheFields = noCacheFields != null ? Collections.unmodifiableSet(noCacheFields) : Collections.emptySet();
+        this.undefined = maxAge == -1 &&
+                sharedMaxAge == -1 &&
+                !noCache &&
+                !noStore &&
+                !cachePrivate &&
+                !mustRevalidate &&
+                !proxyRevalidate &&
+                !cachePublic &&
+                staleWhileRevalidate == -1
+                && staleIfError == -1;
     }
 
     /**
@@ -235,6 +247,10 @@ final class ResponseCacheControl implements CacheControl {
         return noCacheFields;
     }
 
+    public boolean isUndefined() {
+        return undefined;
+    }
+
     @Override
     public String toString() {
         return "CacheControl{" +
@@ -252,7 +268,7 @@ final class ResponseCacheControl implements CacheControl {
                 '}';
     }
 
-    static Builder create() {
+    static Builder builder() {
         return new Builder();
     }
 

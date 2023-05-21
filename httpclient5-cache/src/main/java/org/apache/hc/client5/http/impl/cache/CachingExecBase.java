@@ -28,7 +28,6 @@ package org.apache.hc.client5.http.impl.cache;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -184,6 +183,7 @@ public class CachingExecBase {
     }
 
     SimpleHttpResponse generateCachedResponse(
+            final ResponseCacheControl responseCacheControl,
             final HttpRequest request,
             final HttpContext context,
             final HttpCacheEntry entry,
@@ -196,7 +196,7 @@ public class CachingExecBase {
             cachedResponse = responseGenerator.generateResponse(request, entry);
         }
         setResponseStatus(context, CacheResponseStatus.CACHE_HIT);
-        if (TimeValue.isPositive(validityPolicy.getStaleness(entry, now))) {
+        if (TimeValue.isPositive(validityPolicy.getStaleness(responseCacheControl, entry, now))) {
             cachedResponse.addHeader(HttpHeaders.WARNING,"110 localhost \"Response is stale\"");
         }
 
@@ -205,7 +205,7 @@ public class CachingExecBase {
             final Header header = entry.getFirstHeader(HttpHeaders.DATE);
             if (header != null) {
                 final Instant responseDate = DateUtils.parseStandardDate(header.getValue());
-                final TimeValue freshnessLifetime = validityPolicy.getFreshnessLifetime(entry);
+                final TimeValue freshnessLifetime = validityPolicy.getFreshnessLifetime(responseCacheControl, entry);
                 final TimeValue currentAge = validityPolicy.getCurrentAge(entry, responseDate);
                 if (freshnessLifetime.compareTo(ONE_DAY) > 0 && currentAge.compareTo(ONE_DAY) > 0) {
                     cachedResponse.addHeader(HttpHeaders.WARNING,"113 localhost \"Heuristic expiration\"");
@@ -220,11 +220,13 @@ public class CachingExecBase {
     }
 
     SimpleHttpResponse handleRevalidationFailure(
+            final RequestCacheControl requestCacheControl,
+            final ResponseCacheControl responseCacheControl,
             final HttpRequest request,
             final HttpContext context,
             final HttpCacheEntry entry,
             final Instant now) throws IOException {
-        if (staleResponseNotAllowed(request, entry, now)) {
+        if (staleResponseNotAllowed(requestCacheControl, responseCacheControl, entry, now)) {
             return generateGatewayTimeout(context);
         } else {
             return unvalidatedCacheHit(request, context, entry);
@@ -247,14 +249,16 @@ public class CachingExecBase {
         return cachedResponse;
     }
 
-    boolean staleResponseNotAllowed(final HttpRequest request, final HttpCacheEntry entry, final Instant now) {
-        return validityPolicy.mustRevalidate(entry)
-            || (cacheConfig.isSharedCache() && validityPolicy.proxyRevalidate(entry))
-            || explicitFreshnessRequest(request, entry, now);
+    boolean staleResponseNotAllowed(final RequestCacheControl requestCacheControl,
+                                    final ResponseCacheControl responseCacheControl,
+                                    final HttpCacheEntry entry,
+                                    final Instant now) {
+        return responseCacheControl.isMustRevalidate()
+            || (cacheConfig.isSharedCache() && responseCacheControl.isProxyRevalidate())
+            || explicitFreshnessRequest(requestCacheControl, responseCacheControl, entry, now);
     }
 
-    boolean mayCallBackend(final HttpRequest request) {
-        final RequestCacheControl cacheControl = CacheControlHeaderParser.INSTANCE.parse(request);
+    boolean mayCallBackend(final RequestCacheControl cacheControl) {
         if (cacheControl.isOnlyIfCached()) {
             LOG.debug("Request marked only-if-cached");
             return false;
@@ -262,15 +266,16 @@ public class CachingExecBase {
         return true;
     }
 
-    boolean explicitFreshnessRequest(final HttpRequest request, final HttpCacheEntry entry, final Instant now) {
-        final RequestCacheControl cacheControl = CacheControlHeaderParser.INSTANCE.parse(request);
-        if (cacheControl.getMaxStale() >= 0) {
+    boolean explicitFreshnessRequest(final RequestCacheControl requestCacheControl,
+                                     final ResponseCacheControl responseCacheControl, final HttpCacheEntry entry,
+                                     final Instant now) {
+        if (requestCacheControl.getMaxStale() >= 0) {
             final TimeValue age = validityPolicy.getCurrentAge(entry, now);
-            final TimeValue lifetime = validityPolicy.getFreshnessLifetime(entry);
-            if (age.toSeconds() - lifetime.toSeconds() > cacheControl.getMaxStale()) {
+            final TimeValue lifetime = validityPolicy.getFreshnessLifetime(responseCacheControl, entry);
+            if (age.toSeconds() - lifetime.toSeconds() > requestCacheControl.getMaxStale()) {
                 return true;
             }
-        } else if (cacheControl.getMinFresh() >= 0 || cacheControl.getMaxAge() >= 0) {
+        } else if (requestCacheControl.getMinFresh() >= 0 || requestCacheControl.getMaxAge() >= 0) {
             return true;
         }
         return false;
@@ -375,25 +380,4 @@ public class CachingExecBase {
         }
     }
 
-    /**
-     * Checks if the provided HttpRequest contains a 'no-cache' directive in its Cache-Control header.
-     * <p>
-     * According to the HTTP/1.1 specification, a 'no-cache' directive in a request message means
-     * that the client allows a stored response to be used only if it is first validated with the
-     * origin server (or with an intermediate cache that has a fresh response). This directive
-     * applies to both shared and private caches.
-     *
-     * @param request the HttpRequest to check for the 'no-cache' directive
-     * @return true if the 'no-cache' directive is present in the Cache-Control header of the request,
-     * false otherwise
-     */
-    boolean requestContainsNoCacheDirective(final HttpRequest request) {
-        final Iterator<Header> it = request.headerIterator(HttpHeaders.CACHE_CONTROL);
-        if (it == null || !it.hasNext()) {
-            return false;
-        } else {
-            final ResponseCacheControl cacheControl = CacheControlHeaderParser.INSTANCE.parseResponse(it);
-            return cacheControl.isNoCache();
-        }
-    }
 }

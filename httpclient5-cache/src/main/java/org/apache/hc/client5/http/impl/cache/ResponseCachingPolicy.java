@@ -45,10 +45,8 @@ import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.HttpVersion;
-import org.apache.hc.core5.http.MessageHeaders;
 import org.apache.hc.core5.http.ProtocolVersion;
 import org.apache.hc.core5.http.message.MessageSupport;
-import org.apache.hc.core5.util.Args;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -161,11 +159,9 @@ class ResponseCachingPolicy {
     /**
      * Determines if an HttpResponse can be cached.
      *
-     * @param httpMethod What type of request was this, a GET, PUT, other?
-     * @param response The origin response
      * @return {@code true} if response is cacheable
      */
-    public boolean isResponseCacheable(final String httpMethod, final HttpResponse response, final ResponseCacheControl cacheControl) {
+    public boolean isResponseCacheable(final ResponseCacheControl cacheControl, final String httpMethod, final HttpResponse response) {
         boolean cacheable = false;
 
         if (!HeaderConstants.GET_METHOD.equals(httpMethod) && !HeaderConstants.HEAD_METHOD.equals(httpMethod)
@@ -242,7 +238,7 @@ class ResponseCachingPolicy {
         }
 
         // calculate freshness lifetime
-        final Duration freshnessLifetime = calculateFreshnessLifetime(response, cacheControl);
+        final Duration freshnessLifetime = calculateFreshnessLifetime(cacheControl, response);
         if (freshnessLifetime.isNegative() || freshnessLifetime.isZero()) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Freshness lifetime is invalid");
@@ -250,7 +246,7 @@ class ResponseCachingPolicy {
             return false;
         }
 
-        return cacheable || isExplicitlyCacheable(response, cacheControl);
+        return cacheable || isExplicitlyCacheable(cacheControl, response);
     }
 
     private boolean unknownStatusCode(final int status) {
@@ -295,57 +291,21 @@ class ResponseCachingPolicy {
         }
     }
 
-    protected boolean isExplicitlyCacheable(final HttpResponse response, final ResponseCacheControl cacheControl ) {
+    protected boolean isExplicitlyCacheable(final ResponseCacheControl cacheControl, final HttpResponse response) {
         if (response.getFirstHeader(HttpHeaders.EXPIRES) != null) {
             return true;
         }
-        if (cacheControl == null) {
-            return false;
-        }else {
-            return cacheControl.getMaxAge() > 0 || cacheControl.getSharedMaxAge()>0 ||
-                    cacheControl.isMustRevalidate() || cacheControl.isProxyRevalidate() || (cacheControl.isPublic());
-        }
+        return cacheControl.getMaxAge() > 0 || cacheControl.getSharedMaxAge()>0 ||
+                cacheControl.isMustRevalidate() || cacheControl.isProxyRevalidate() || (cacheControl.isPublic());
     }
 
     /**
      * Determine if the {@link HttpResponse} gotten from the origin is a
      * cacheable response.
      *
-     * @param request  the {@link HttpRequest} that generated an origin hit. Can't be {@code null}.
-     * @param response the {@link HttpResponse} from the origin. Can't be {@code null}.
-     * @return {@code true} if response is cacheable
-     * @since 5.3
-     */
-    public boolean isResponseCacheable(final HttpRequest request, final HttpResponse response) {
-        Args.notNull(request, "Request");
-        Args.notNull(response, "Response");
-        return isResponseCacheable(request, response, parseCacheControlHeader(response));
-    }
-
-    /**
-     * Determines if an HttpResponse can be cached.
-     *
-     * @param httpMethod What type of request was this, a GET, PUT, other?. Can't be {@code null}.
-     * @param response   The origin response. Can't be {@code null}.
-     * @return {@code true} if response is cacheable
-     * @since 5.3
-     */
-    public boolean isResponseCacheable(final String httpMethod, final HttpResponse response) {
-        Args.notEmpty(httpMethod, "httpMethod");
-        Args.notNull(response, "Response");
-        return isResponseCacheable(httpMethod, response, parseCacheControlHeader(response));
-    }
-
-
-    /**
-     * Determine if the {@link HttpResponse} gotten from the origin is a
-     * cacheable response.
-     *
-     * @param request the {@link HttpRequest} that generated an origin hit
-     * @param response the {@link HttpResponse} from the origin
      * @return {@code true} if response is cacheable
      */
-    public boolean isResponseCacheable(final HttpRequest request, final HttpResponse response, final ResponseCacheControl cacheControl) {
+    public boolean isResponseCacheable(final ResponseCacheControl cacheControl, final HttpRequest request, final HttpResponse response) {
         final ProtocolVersion version = request.getVersion() != null ? request.getVersion() : HttpVersion.DEFAULT;
         if (version.compareToVersion(HttpVersion.HTTP_1_1) > 0) {
             if (LOG.isDebugEnabled()) {
@@ -353,7 +313,7 @@ class ResponseCachingPolicy {
             }
             return false;
         }
-        if (cacheControl != null && cacheControl.isNoStore()) {
+        if (cacheControl.isNoStore()) {
             LOG.debug("Response is explicitly non-cacheable per cache control directive");
             return false;
         }
@@ -362,31 +322,31 @@ class ResponseCachingPolicy {
             if (neverCache1_0ResponsesWithQueryString && from1_0Origin(response)) {
                 LOG.debug("Response is not cacheable as it had a query string");
                 return false;
-            } else if (!neverCache1_1ResponsesWithQueryString && !isExplicitlyCacheable(response, cacheControl)) {
+            } else if (!neverCache1_1ResponsesWithQueryString && !isExplicitlyCacheable(cacheControl, response)) {
                 LOG.debug("Response is not cacheable as it is missing explicit caching headers");
                 return false;
             }
         }
 
-        if (expiresHeaderLessOrEqualToDateHeaderAndNoCacheControl(response, cacheControl)) {
+        if (expiresHeaderLessOrEqualToDateHeaderAndNoCacheControl(cacheControl, response)) {
             LOG.debug("Expires header less or equal to Date header and no cache control directives");
             return false;
         }
 
         if (sharedCache) {
             if (request.countHeaders(HttpHeaders.AUTHORIZATION) > 0
-                    && cacheControl != null && !(cacheControl.getSharedMaxAge() > -1 || cacheControl.isMustRevalidate() || cacheControl.isPublic())) {
+                    && !(cacheControl.getSharedMaxAge() > -1 || cacheControl.isMustRevalidate() || cacheControl.isPublic())) {
                 LOG.debug("Request contains private credentials");
                 return false;
             }
         }
 
         final String method = request.getMethod();
-        return isResponseCacheable(method, response, cacheControl);
+        return isResponseCacheable(cacheControl, method, response);
     }
 
-    private boolean expiresHeaderLessOrEqualToDateHeaderAndNoCacheControl(final HttpResponse response, final ResponseCacheControl cacheControl) {
-        if (cacheControl != null) {
+    private boolean expiresHeaderLessOrEqualToDateHeaderAndNoCacheControl(final ResponseCacheControl cacheControl, final HttpResponse response) {
+        if (!cacheControl.isUndefined()) {
             return false;
         }
         final Header expiresHdr = response.getFirstHeader(HttpHeaders.EXPIRES);
@@ -446,9 +406,9 @@ class ResponseCachingPolicy {
      * @param response the HTTP response for which to calculate the freshness lifetime
      * @return the freshness lifetime of the response, in seconds
      */
-    private Duration calculateFreshnessLifetime(final HttpResponse response, final ResponseCacheControl cacheControl) {
+    private Duration calculateFreshnessLifetime(final ResponseCacheControl cacheControl, final HttpResponse response) {
 
-        if (cacheControl == null) {
+        if (cacheControl.isUndefined()) {
             // If no cache-control header is present, assume no caching directives and return a default value
             return DEFAULT_FRESHNESS_DURATION; // 5 minutes
         }
@@ -488,41 +448,19 @@ class ResponseCachingPolicy {
      * {@code stale-while-revalidate} directive in its Cache-Control header. If it does, this method returns {@code true},
      * indicating that a stale response can be served. If not, it returns {@code false}.
      *
-     * @param entry the cached HTTP message entry to check
      * @return {@code true} if a stale response can be served in case of an error status code, {@code false} otherwise
      */
-    boolean isStaleIfErrorEnabled(final HttpCacheEntry entry) {
+    boolean isStaleIfErrorEnabled(final ResponseCacheControl cacheControl, final HttpCacheEntry entry) {
         // Check if the stale-while-revalidate extension is enabled
         if (staleIfErrorEnabled) {
             // Check if the cached response has an error status code
             final int statusCode = entry.getStatus();
             if (statusCode >= HttpStatus.SC_INTERNAL_SERVER_ERROR && statusCode <= HttpStatus.SC_GATEWAY_TIMEOUT) {
                 // Check if the cached response has a stale-while-revalidate directive
-                final ResponseCacheControl cacheControl = parseCacheControlHeader(entry);
-                if (cacheControl == null) {
-                    return false;
-                } else {
-                    return cacheControl.getStaleWhileRevalidate() > 0;
-                }
+                return cacheControl.getStaleWhileRevalidate() > 0;
             }
         }
         return false;
-    }
-
-    /**
-     * Parses the Cache-Control header from the given HTTP messageHeaders and returns the corresponding CacheControl instance.
-     * If the header is not present, returns a CacheControl instance with default values for all directives.
-     *
-     * @param messageHeaders the HTTP message to parse the header from
-     * @return a CacheControl instance with the parsed directives or default values if the header is not present
-     */
-    private ResponseCacheControl parseCacheControlHeader(final MessageHeaders messageHeaders) {
-        final Iterator<Header> it = messageHeaders.headerIterator(HttpHeaders.CACHE_CONTROL);
-        if (it == null || !it.hasNext()) {
-            return null;
-        } else {
-            return CacheControlHeaderParser.INSTANCE.parseResponse(it);
-        }
     }
 
     /**
@@ -539,32 +477,25 @@ class ResponseCachingPolicy {
      * @param entry the  {@link HttpCacheEntry} containing the headers to check for the {@code no-cache} directive.
      * @return true if revalidation is required based on the {@code no-cache} directive, {@code false} otherwise.
      */
-    boolean responseContainsNoCacheDirective(final HttpCacheEntry entry) {
-        final ResponseCacheControl responseCacheControl = parseCacheControlHeader(entry);
+    boolean responseContainsNoCacheDirective(final ResponseCacheControl responseCacheControl, final HttpCacheEntry entry) {
+        final Set<String> noCacheFields = responseCacheControl.getNoCacheFields();
 
-        if (responseCacheControl != null) {
-            final Set<String> noCacheFields = responseCacheControl.getNoCacheFields();
+        // If no-cache directive is present and has no field names
+        if (responseCacheControl.isNoCache() && noCacheFields.isEmpty()) {
+            LOG.debug("No-cache directive present without field names. Revalidation required.");
+            return true;
+        }
 
-            // If no-cache directive is present and has no field names
-            if (responseCacheControl.isNoCache() && noCacheFields.isEmpty()) {
-                LOG.debug("No-cache directive present without field names. Revalidation required.");
-                return true;
-            }
-
-            // If no-cache directive is present with field names
-            if (responseCacheControl.isNoCache()) {
-                for (final String field : noCacheFields) {
-                    if (entry.getFirstHeader(field) != null) {
-                        if (LOG.isDebugEnabled()) {
-                            LOG.debug("No-cache directive field '{}' found in response headers. Revalidation required.", field);
-                        }
-                        return true;
+        // If no-cache directive is present with field names
+        if (responseCacheControl.isNoCache()) {
+            for (final String field : noCacheFields) {
+                if (entry.getFirstHeader(field) != null) {
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("No-cache directive field '{}' found in response headers. Revalidation required.", field);
                     }
+                    return true;
                 }
             }
-        }
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("No no-cache directives found in response headers. No revalidation required.");
         }
         return false;
     }

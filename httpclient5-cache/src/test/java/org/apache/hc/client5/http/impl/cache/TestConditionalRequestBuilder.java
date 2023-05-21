@@ -70,7 +70,8 @@ public class TestConditionalRequestBuilder {
                 new BasicHeader("Last-Modified", lastModified) };
 
         final HttpCacheEntry cacheEntry = HttpTestUtils.makeCacheEntry(headers);
-        final HttpRequest newRequest = impl.buildConditionalRequest(basicRequest, cacheEntry);
+        final ResponseCacheControl cacheControl = ResponseCacheControl.builder().build();
+        final HttpRequest newRequest = impl.buildConditionalRequest(cacheControl, basicRequest, cacheEntry);
 
         Assertions.assertEquals(theMethod, newRequest.getMethod());
         Assertions.assertEquals(theUri, newRequest.getRequestUri());
@@ -98,7 +99,8 @@ public class TestConditionalRequestBuilder {
         };
         final HttpRequest basicRequest = new BasicHttpRequest("GET", "/");
         final HttpCacheEntry cacheEntry = HttpTestUtils.makeCacheEntry(headers);
-        final HttpRequest result = impl.buildConditionalRequest(basicRequest, cacheEntry);
+        final ResponseCacheControl cacheControl = ResponseCacheControl.builder().build();
+        final HttpRequest result = impl.buildConditionalRequest(cacheControl, basicRequest, cacheEntry);
         Assertions.assertEquals(lmDate,
                 result.getFirstHeader("If-Modified-Since").getValue());
         Assertions.assertEquals(etag,
@@ -121,7 +123,8 @@ public class TestConditionalRequestBuilder {
 
         final HttpCacheEntry cacheEntry = HttpTestUtils.makeCacheEntry(headers);
 
-        final HttpRequest newRequest = impl.buildConditionalRequest(basicRequest, cacheEntry);
+        final ResponseCacheControl cacheControl = ResponseCacheControl.builder().build();
+        final HttpRequest newRequest = impl.buildConditionalRequest(cacheControl, basicRequest, cacheEntry);
 
         Assertions.assertEquals(theMethod, newRequest.getMethod());
         Assertions.assertEquals(theUri, newRequest.getRequestUri());
@@ -145,14 +148,18 @@ public class TestConditionalRequestBuilder {
 
         final Header[] cacheEntryHeaders = new Header[] {
                 new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
-                new BasicHeader("ETag", "\"etag\""),
-                new BasicHeader("Cache-Control","max-age=5, must-revalidate") };
+                new BasicHeader("ETag", "\"etag\"")
+        };
         final HttpCacheEntry cacheEntry = HttpTestUtils.makeCacheEntry(elevenSecondsAgo, nineSecondsAgo, cacheEntryHeaders);
 
-        final HttpRequest result = impl.buildConditionalRequest(basicRequest, cacheEntry);
+        final ResponseCacheControl responseCacheControl = ResponseCacheControl.builder()
+                .setMaxAge(5)
+                .setMustRevalidate(true)
+                .build();
+        final HttpRequest result = impl.buildConditionalRequest(responseCacheControl, basicRequest, cacheEntry);
 
-        final RequestCacheControl cacheControl = CacheControlHeaderParser.INSTANCE.parse(result);
-        Assertions.assertEquals(0, cacheControl.getMaxAge());
+        final RequestCacheControl requestCacheControl = CacheControlHeaderParser.INSTANCE.parse(result);
+        Assertions.assertEquals(0, requestCacheControl.getMaxAge());
     }
 
     @Test
@@ -165,14 +172,18 @@ public class TestConditionalRequestBuilder {
 
         final Header[] cacheEntryHeaders = new Header[] {
                 new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
-                new BasicHeader("ETag", "\"etag\""),
-                new BasicHeader("Cache-Control","max-age=5, proxy-revalidate") };
+                new BasicHeader("ETag", "\"etag\"")
+        };
         final HttpCacheEntry cacheEntry = HttpTestUtils.makeCacheEntry(elevenSecondsAgo, nineSecondsAgo, cacheEntryHeaders);
 
-        final HttpRequest result = impl.buildConditionalRequest(basicRequest, cacheEntry);
+        final ResponseCacheControl responseCacheControl = ResponseCacheControl.builder()
+                .setMaxAge(5)
+                .setProxyRevalidate(true)
+                .build();
+        final HttpRequest result = impl.buildConditionalRequest(responseCacheControl, basicRequest, cacheEntry);
 
-        final RequestCacheControl cacheControl = CacheControlHeaderParser.INSTANCE.parse(result);
-        Assertions.assertEquals(0, cacheControl.getMaxAge());
+        final RequestCacheControl requestCacheControl = CacheControlHeaderParser.INSTANCE.parse(result);
+        Assertions.assertEquals(0, requestCacheControl.getMaxAge());
     }
 
     @Test
@@ -195,8 +206,8 @@ public class TestConditionalRequestBuilder {
     public void testBuildUnconditionalRequestAddsCacheControlNoCache()
         throws Exception {
         final HttpRequest result = impl.buildUnconditionalRequest(request);
-        final RequestCacheControl cacheControl = CacheControlHeaderParser.INSTANCE.parse(result);
-        Assertions.assertTrue(cacheControl.isNoCache());
+        final RequestCacheControl requestCacheControl = CacheControlHeaderParser.INSTANCE.parse(result);
+        Assertions.assertTrue(requestCacheControl.isNoCache());
     }
 
     @Test

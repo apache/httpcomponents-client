@@ -48,7 +48,7 @@ class CacheableRequestPolicy {
      *            an HttpRequest
      * @return boolean Is it possible to serve this request from cache
      */
-    public boolean isServableFromCache(final HttpRequest request) {
+    public boolean isServableFromCache(final RequestCacheControl cacheControl, final HttpRequest request) {
         final String method = request.getMethod();
 
         final ProtocolVersion pv = request.getVersion() != null ? request.getVersion() : HttpVersion.DEFAULT;
@@ -69,7 +69,6 @@ class CacheableRequestPolicy {
             return false;
         }
 
-        final RequestCacheControl cacheControl = CacheControlHeaderParser.INSTANCE.parse(request);
         if (cacheControl.isNoStore()) {
             LOG.debug("Request with no-store is not serveable from cache");
             return false;

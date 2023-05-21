@@ -39,8 +39,8 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
-import java.util.List;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -1498,16 +1498,16 @@ public class TestCachingExecChain {
 
         // Set up the mock response chain
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
-        Mockito.when(responseCachingPolicy.isStaleIfErrorEnabled(Mockito.any())).thenReturn(true);
-        Mockito.when(cacheableRequestPolicy.isServableFromCache(Mockito.any())).thenReturn(true);
-        Mockito.when(validityPolicy.getStaleness(Mockito.any(), Mockito.any())).thenReturn(TimeValue.MAX_VALUE);
+        Mockito.when(responseCachingPolicy.isStaleIfErrorEnabled(Mockito.any(), Mockito.any())).thenReturn(true);
+        Mockito.when(cacheableRequestPolicy.isServableFromCache(Mockito.any(), Mockito.any())).thenReturn(true);
+        Mockito.when(validityPolicy.getStaleness(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(TimeValue.MAX_VALUE);
 
         // Assuming validityPolicy is a Mockito mock
         Mockito.when(validityPolicy.getCurrentAge(Mockito.any(), Mockito.any()))
                 .thenReturn(TimeValue.ofMilliseconds(0));
 
         // Assuming validityPolicy is a Mockito mock
-        Mockito.when(validityPolicy.getFreshnessLifetime(Mockito.any()))
+        Mockito.when(validityPolicy.getFreshnessLifetime(Mockito.any(), Mockito.any()))
                 .thenReturn(TimeValue.ofMilliseconds(0));
 
         final SimpleHttpResponse response = SimpleHttpResponse.create(HttpStatus.SC_OK);
@@ -1599,16 +1599,16 @@ public class TestCachingExecChain {
 
         // Set up the mock response chain
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
-        Mockito.when(responseCachingPolicy.isStaleIfErrorEnabled(Mockito.any())).thenReturn(true);
-        Mockito.when(cacheableRequestPolicy.isServableFromCache(Mockito.any())).thenReturn(true);
-        Mockito.when(validityPolicy.getStaleness(Mockito.any(), Mockito.any())).thenReturn(TimeValue.MAX_VALUE);
+        Mockito.when(responseCachingPolicy.isStaleIfErrorEnabled(Mockito.any(), Mockito.any())).thenReturn(true);
+        Mockito.when(cacheableRequestPolicy.isServableFromCache(Mockito.any(), Mockito.any())).thenReturn(true);
+        Mockito.when(validityPolicy.getStaleness(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(TimeValue.MAX_VALUE);
 
         // Assuming validityPolicy is a Mockito mock
         Mockito.when(validityPolicy.getCurrentAge(Mockito.any(), Mockito.any()))
                 .thenReturn(TimeValue.ofDays(2));
 
         // Assuming validityPolicy is a Mockito mock
-        Mockito.when(validityPolicy.getFreshnessLifetime(Mockito.any()))
+        Mockito.when(validityPolicy.getFreshnessLifetime(Mockito.any(), Mockito.any()))
                 .thenReturn(TimeValue.ofDays(2));
 
         final SimpleHttpResponse response = SimpleHttpResponse.create(HttpStatus.SC_OK);
