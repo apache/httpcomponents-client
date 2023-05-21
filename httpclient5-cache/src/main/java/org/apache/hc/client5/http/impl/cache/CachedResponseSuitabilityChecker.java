@@ -70,56 +70,50 @@ class CachedResponseSuitabilityChecker {
         this(new CacheValidityPolicy(), config);
     }
 
-    private boolean isFreshEnough(final HttpCacheEntry entry, final HttpRequest request, final Instant now) {
-        if (validityStrategy.isResponseFresh(entry, now)) {
+    private boolean isFreshEnough(final RequestCacheControl requestCacheControl,
+                                  final ResponseCacheControl responseCacheControl, final HttpCacheEntry entry,
+                                  final Instant now) {
+        if (validityStrategy.isResponseFresh(responseCacheControl, entry, now)) {
             return true;
         }
         if (useHeuristicCaching &&
                 validityStrategy.isResponseHeuristicallyFresh(entry, now, heuristicCoefficient, heuristicDefaultLifetime)) {
             return true;
         }
-        if (originInsistsOnFreshness(entry)) {
+        if (originInsistsOnFreshness(responseCacheControl)) {
             return false;
         }
-        final RequestCacheControl cacheControl = CacheControlHeaderParser.INSTANCE.parse(request);
-        if (cacheControl.getMaxStale() == -1) {
+        if (requestCacheControl.getMaxStale() == -1) {
             return false;
         }
-        return (cacheControl.getMaxStale() > validityStrategy.getStaleness(entry, now).toSeconds());
+        return (requestCacheControl.getMaxStale() > validityStrategy.getStaleness(responseCacheControl, entry, now).toSeconds());
     }
 
-    private boolean originInsistsOnFreshness(final HttpCacheEntry entry) {
-        if (validityStrategy.mustRevalidate(entry)) {
+    private boolean originInsistsOnFreshness(final ResponseCacheControl responseCacheControl) {
+        if (responseCacheControl.isMustRevalidate()) {
             return true;
         }
         if (!sharedCache) {
             return false;
         }
-        final ResponseCacheControl cacheControl = CacheControlHeaderParser.INSTANCE.parse(entry);
-        return cacheControl.isProxyRevalidate() || cacheControl.getSharedMaxAge() >= 0;
+        return responseCacheControl.isProxyRevalidate() || responseCacheControl.getSharedMaxAge() >= 0;
     }
 
     /**
      * Determine if I can utilize a {@link HttpCacheEntry} to respond to the given
      * {@link HttpRequest}
-     *
-     * @param request
-     *            {@link HttpRequest}
-     * @param entry
-     *            {@link HttpCacheEntry}
-     * @param now
-     *            Right now in time
-     * @return boolean yes/no answer
      * @since 5.3
      */
-    public boolean canCachedResponseBeUsed(final HttpRequest request, final HttpCacheEntry entry, final Instant now) {
+    public boolean canCachedResponseBeUsed(final RequestCacheControl requestCacheControl,
+                                           final ResponseCacheControl responseCacheControl, final HttpRequest request,
+                                           final HttpCacheEntry entry, final Instant now) {
 
         if (isGetRequestWithHeadCacheEntry(request, entry)) {
             LOG.debug("Cache entry created by HEAD request cannot be used to serve GET request");
             return false;
         }
 
-        if (!isFreshEnough(entry, request, now)) {
+        if (!isFreshEnough(requestCacheControl, responseCacheControl, entry, now)) {
             LOG.debug("Cache entry is not fresh enough");
             return false;
         }
@@ -149,38 +143,37 @@ class CachedResponseSuitabilityChecker {
                     "request method, entity or a 204 response");
             return false;
         }
-        final RequestCacheControl cacheControl = CacheControlHeaderParser.INSTANCE.parse(request);
-        if (cacheControl.isNoCache()) {
+        if (requestCacheControl.isNoCache()) {
             LOG.debug("Response contained NO CACHE directive, cache was not suitable");
             return false;
         }
 
-        if (cacheControl.isNoStore()) {
+        if (requestCacheControl.isNoStore()) {
             LOG.debug("Response contained NO STORE directive, cache was not suitable");
             return false;
         }
 
-        if (cacheControl.getMaxAge() >= 0) {
-            if (validityStrategy.getCurrentAge(entry, now).toSeconds() > cacheControl.getMaxAge()) {
+        if (requestCacheControl.getMaxAge() >= 0) {
+            if (validityStrategy.getCurrentAge(entry, now).toSeconds() > requestCacheControl.getMaxAge()) {
                 LOG.debug("Response from cache was not suitable due to max age");
                 return false;
             }
         }
 
-        if (cacheControl.getMaxStale() >= 0) {
-            if (validityStrategy.getFreshnessLifetime(entry).toSeconds() > cacheControl.getMaxStale()) {
+        if (requestCacheControl.getMaxStale() >= 0) {
+            if (validityStrategy.getFreshnessLifetime(responseCacheControl, entry).toSeconds() > requestCacheControl.getMaxStale()) {
                 LOG.debug("Response from cache was not suitable due to max stale freshness");
                 return false;
             }
         }
 
-        if (cacheControl.getMinFresh() >= 0) {
-            if (cacheControl.getMinFresh() == 0) {
+        if (requestCacheControl.getMinFresh() >= 0) {
+            if (requestCacheControl.getMinFresh() == 0) {
                 return false;
             }
             final TimeValue age = validityStrategy.getCurrentAge(entry, now);
-            final TimeValue freshness = validityStrategy.getFreshnessLifetime(entry);
-            if (freshness.toSeconds() - age.toSeconds() < cacheControl.getMinFresh()) {
+            final TimeValue freshness = validityStrategy.getFreshnessLifetime(responseCacheControl, entry);
+            if (freshness.toSeconds() - age.toSeconds() < requestCacheControl.getMinFresh()) {
                 LOG.debug("Response from cache was not suitable due to min fresh " +
                         "freshness requirement");
                 return false;

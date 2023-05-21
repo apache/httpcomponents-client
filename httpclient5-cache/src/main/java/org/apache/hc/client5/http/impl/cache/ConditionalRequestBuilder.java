@@ -49,11 +49,12 @@ class ConditionalRequestBuilder<T extends HttpRequest> {
      * the entry with the origin.  Build the origin {@link org.apache.hc.core5.http.HttpRequest}
      * here and return it.
      *
+     * @param cacheControl the cache control directives.
      * @param request the original request from the caller
      * @param cacheEntry the entry that needs to be re-validated
      * @return the wrapped request
      */
-    public T buildConditionalRequest(final T request, final HttpCacheEntry cacheEntry) {
+    public T buildConditionalRequest(final ResponseCacheControl cacheControl, final T request, final HttpCacheEntry cacheEntry) {
         final T newRequest = messageCopier.create(request);
 
         final Header eTag = cacheEntry.getFirstHeader(HttpHeaders.ETAG);
@@ -64,7 +65,6 @@ class ConditionalRequestBuilder<T extends HttpRequest> {
         if (lastModified != null) {
             newRequest.setHeader(HttpHeaders.IF_MODIFIED_SINCE, lastModified.getValue());
         }
-        final ResponseCacheControl cacheControl = CacheControlHeaderParser.INSTANCE.parse(cacheEntry);
         if (cacheControl.isMustRevalidate() || cacheControl.isProxyRevalidate()) {
             newRequest.addHeader(HttpHeaders.CACHE_CONTROL, HeaderConstants.CACHE_CONTROL_MAX_AGE + "=0");
         }
