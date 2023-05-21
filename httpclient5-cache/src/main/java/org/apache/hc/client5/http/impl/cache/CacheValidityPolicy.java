@@ -34,7 +34,6 @@ import org.apache.hc.client5.http.cache.Resource;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHeaders;
-import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.util.TimeValue;
 
 class CacheValidityPolicy {
@@ -50,8 +49,8 @@ class CacheValidityPolicy {
         return TimeValue.ofSeconds(getCorrectedInitialAge(entry).toSeconds() + getResidentTime(entry, now).toSeconds());
     }
 
-    public TimeValue getFreshnessLifetime(final HttpCacheEntry entry) {
-        final long maxAge = getMaxAge(entry);
+    public TimeValue getFreshnessLifetime(final ResponseCacheControl responseCacheControl, final HttpCacheEntry entry) {
+        final long maxAge = getMaxAge(responseCacheControl);
         if (maxAge > -1) {
             return TimeValue.ofSeconds(maxAge);
         }
@@ -69,8 +68,9 @@ class CacheValidityPolicy {
         return TimeValue.ofSeconds(diff.getSeconds());
     }
 
-    public boolean isResponseFresh(final HttpCacheEntry entry, final Instant now) {
-        return getCurrentAge(entry, now).compareTo(getFreshnessLifetime(entry)) == -1;
+    public boolean isResponseFresh(final ResponseCacheControl responseCacheControl, final HttpCacheEntry entry,
+                                   final Instant now) {
+        return getCurrentAge(entry, now).compareTo(getFreshnessLifetime(responseCacheControl, entry)) == -1;
     }
 
     /**
@@ -114,36 +114,28 @@ class CacheValidityPolicy {
                 || entry.getFirstHeader(HttpHeaders.LAST_MODIFIED) != null;
     }
 
-    public boolean mustRevalidate(final HttpCacheEntry entry) {
-        final ResponseCacheControl cacheControl = CacheControlHeaderParser.INSTANCE.parse(entry);
-        return cacheControl.isMustRevalidate();
-    }
-
-    public boolean proxyRevalidate(final HttpCacheEntry entry) {
-        final ResponseCacheControl cacheControl = CacheControlHeaderParser.INSTANCE.parse(entry);
-        return cacheControl.isProxyRevalidate();
-    }
-
-    public boolean mayReturnStaleWhileRevalidating(final HttpCacheEntry entry, final Instant now) {
-        final ResponseCacheControl cacheControl = CacheControlHeaderParser.INSTANCE.parse(entry);
-        if (cacheControl.getStaleWhileRevalidate() >= 0) {
-            final TimeValue staleness = getStaleness(entry, now);
-            if (staleness.compareTo(TimeValue.ofSeconds(cacheControl.getStaleWhileRevalidate())) <= 0) {
+    public boolean mayReturnStaleWhileRevalidating(final ResponseCacheControl responseCacheControl,
+                                                   final HttpCacheEntry entry, final Instant now) {
+        if (responseCacheControl.getStaleWhileRevalidate() >= 0) {
+            final TimeValue staleness = getStaleness(responseCacheControl, entry, now);
+            if (staleness.compareTo(TimeValue.ofSeconds(responseCacheControl.getStaleWhileRevalidate())) <= 0) {
                 return true;
             }
         }
         return false;
     }
 
-    public boolean mayReturnStaleIfError(final HttpRequest request, final HttpCacheEntry entry, final Instant now) {
-        final RequestCacheControl requestCacheControl = CacheControlHeaderParser.INSTANCE.parse(request);
-        final ResponseCacheControl cacheControl = CacheControlHeaderParser.INSTANCE.parse(entry);
-        final TimeValue staleness = getStaleness(entry, now);
-        return mayReturnStaleIfError(requestCacheControl, staleness) || mayReturnStaleIfError(cacheControl, staleness);
+    public boolean mayReturnStaleIfError(final RequestCacheControl requestCacheControl,
+                                         final ResponseCacheControl responseCacheControl, final HttpCacheEntry entry,
+                                         final Instant now) {
+        final TimeValue staleness = getStaleness(responseCacheControl, entry, now);
+        return mayReturnStaleIfError(requestCacheControl, staleness) ||
+                mayReturnStaleIfError(responseCacheControl, staleness);
     }
 
-    private boolean mayReturnStaleIfError(final CacheControl cacheControl, final TimeValue staleness) {
-        return cacheControl.getStaleIfError() >= 0 && staleness.compareTo(TimeValue.ofSeconds(cacheControl.getStaleIfError())) <= 0;
+    private boolean mayReturnStaleIfError(final CacheControl responseCacheControl, final TimeValue staleness) {
+        return responseCacheControl.getStaleIfError() >= 0 &&
+                staleness.compareTo(TimeValue.ofSeconds(responseCacheControl.getStaleIfError())) <= 0;
     }
 
     /**
@@ -222,10 +214,9 @@ class CacheValidityPolicy {
     }
 
 
-    protected long getMaxAge(final HttpCacheEntry entry) {
-        final ResponseCacheControl cacheControl = CacheControlHeaderParser.INSTANCE.parse(entry);
-        final long maxAge = cacheControl.getMaxAge();
-        final long sharedMaxAge = cacheControl.getSharedMaxAge();
+    protected long getMaxAge(final ResponseCacheControl responseCacheControl) {
+        final long maxAge = responseCacheControl.getMaxAge();
+        final long sharedMaxAge = responseCacheControl.getSharedMaxAge();
         if (sharedMaxAge == -1) {
             return maxAge;
         } else if (maxAge == -1) {
@@ -235,9 +226,9 @@ class CacheValidityPolicy {
         }
     }
 
-    public TimeValue getStaleness(final HttpCacheEntry entry, final Instant now) {
+    public TimeValue getStaleness(final ResponseCacheControl responseCacheControl, final HttpCacheEntry entry, final Instant now) {
         final TimeValue age = getCurrentAge(entry, now);
-        final TimeValue freshness = getFreshnessLifetime(entry);
+        final TimeValue freshness = getFreshnessLifetime(responseCacheControl, entry);
         if (age.compareTo(freshness) <= 0) {
             return TimeValue.ZERO_MILLISECONDS;
         }
