@@ -208,8 +208,9 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
             setResponseStatus(context, CacheResponseStatus.CACHE_MODULE_RESPONSE);
             return new BasicClassicHttpResponse(HttpStatus.SC_NOT_IMPLEMENTED);
         }
+        final HttpCacheEntry entry = responseCache.getCacheEntry(target, request);
 
-        final SimpleHttpResponse fatalErrorResponse = getFatallyNonCompliantResponse(request, context);
+        final SimpleHttpResponse fatalErrorResponse = getFatallyNonCompliantResponse(request, context, entry != null);
         if (fatalErrorResponse != null) {
             return convert(fatalErrorResponse, scope);
         }
@@ -224,7 +225,7 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
             return callBackend(target, request, scope, chain);
         }
 
-        final HttpCacheEntry entry = responseCache.getCacheEntry(target, request);
+
         if (entry == null) {
             LOG.debug("Cache miss");
             return handleCacheMiss(target, request, requestCacheControl, scope, chain);
