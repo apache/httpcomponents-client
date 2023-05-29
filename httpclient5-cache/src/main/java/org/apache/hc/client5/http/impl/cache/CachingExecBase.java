@@ -147,8 +147,9 @@ public class CachingExecBase {
      */
     SimpleHttpResponse getFatallyNonCompliantResponse(
             final HttpRequest request,
-            final HttpContext context) {
-        final List<RequestProtocolError> fatalError = requestCompliance.requestIsFatallyNonCompliant(request);
+            final HttpContext context,
+            final boolean resourceExists) {
+        final List<RequestProtocolError> fatalError = requestCompliance.requestIsFatallyNonCompliant(request, resourceExists);
         if (fatalError != null && !fatalError.isEmpty()) {
             setResponseStatus(context, CacheResponseStatus.CACHE_MODULE_RESPONSE);
             return responseGenerator.getErrorForRequest(fatalError.get(0));

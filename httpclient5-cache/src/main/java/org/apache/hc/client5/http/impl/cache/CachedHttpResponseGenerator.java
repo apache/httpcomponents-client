@@ -189,7 +189,7 @@ class CachedHttpResponseGenerator {
                         "Weak eTag not compatible with byte range", ContentType.DEFAULT_TEXT);
 
             case WEAK_ETAG_ON_PUTDELETE_METHOD_ERROR:
-                return SimpleHttpResponse.create(HttpStatus.SC_BAD_REQUEST,
+                return SimpleHttpResponse.create(HttpStatus.SC_PRECONDITION_FAILED,
                         "Weak eTag not compatible with PUT or DELETE requests");
 
             default:

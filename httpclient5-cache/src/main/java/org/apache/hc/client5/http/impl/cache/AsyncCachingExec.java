@@ -230,12 +230,6 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
             return;
         }
 
-        final SimpleHttpResponse fatalErrorResponse = getFatallyNonCompliantResponse(request, context);
-        if (fatalErrorResponse != null) {
-            triggerResponse(fatalErrorResponse, scope, asyncExecCallback);
-            return;
-        }
-
         requestCompliance.makeRequestCompliant(request);
         request.addHeader(HttpHeaders.VIA,via);
 
@@ -266,6 +260,12 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
 
                 @Override
                 public void completed(final HttpCacheEntry entry) {
+                    final SimpleHttpResponse fatalErrorResponse = getFatallyNonCompliantResponse(request, context, entry != null);
+                    if (fatalErrorResponse != null) {
+                        triggerResponse(fatalErrorResponse, scope, asyncExecCallback);
+                        return;
+                    }
+
                     if (entry == null) {
                         LOG.debug("Cache miss");
                         handleCacheMiss(requestCacheControl, target, request, entityProducer, scope, chain, asyncExecCallback);

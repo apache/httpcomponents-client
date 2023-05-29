@@ -26,7 +26,11 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
+import static org.apache.hc.client5.http.utils.DateUtils.parseStandardDate;
+
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.apache.hc.client5.http.cache.HeaderConstants;
@@ -35,9 +39,13 @@ import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.ProtocolVersion;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 class RequestProtocolCompliance {
     private final boolean weakETagOnPutDeleteAllowed;
+
+    private static final Logger LOG = LoggerFactory.getLogger(RequestProtocolCompliance.class);
 
     public RequestProtocolCompliance() {
         super();
@@ -56,7 +64,7 @@ class RequestProtocolCompliance {
      * @param request the HttpRequest Object
      * @return list of {@link RequestProtocolError}
      */
-    public List<RequestProtocolError> requestIsFatallyNonCompliant(final HttpRequest request) {
+    public List<RequestProtocolError> requestIsFatallyNonCompliant(final HttpRequest request, final boolean resourceExists) {
         final List<RequestProtocolError> theErrors = new ArrayList<>();
 
         RequestProtocolError anError = requestHasWeakETagAndRange(request);
@@ -65,7 +73,7 @@ class RequestProtocolCompliance {
         }
 
         if (!weakETagOnPutDeleteAllowed) {
-            anError = requestHasWeekETagForPUTOrDELETEIfMatch(request);
+            anError = requestHasWeekETagForPUTOrDELETEIfMatch(request, resourceExists);
             if (anError != null) {
                 theErrors.add(anError);
             }
@@ -122,52 +130,66 @@ class RequestProtocolCompliance {
     }
 
     private RequestProtocolError requestHasWeakETagAndRange(final HttpRequest request) {
-        // TODO: Should these be looking at all the headers marked as Range?
         final String method = request.getMethod();
-        if (!(HeaderConstants.GET_METHOD.equals(method))) {
+        if (!(HeaderConstants.GET_METHOD.equals(method) || HeaderConstants.HEAD_METHOD.equals(method))) {
             return null;
         }
 
-        final Header range = request.getFirstHeader(HttpHeaders.RANGE);
-        if (range == null) {
+        if (!request.containsHeader(HttpHeaders.RANGE)) {
             return null;
         }
 
-        final Header ifRange = request.getFirstHeader(HttpHeaders.IF_RANGE);
-        if (ifRange == null) {
-            return null;
-        }
+        final Instant ifRangeInstant = parseStandardDate(request, HttpHeaders.IF_RANGE);
+        final Instant lastModifiedInstant = parseStandardDate(request, HttpHeaders.LAST_MODIFIED);
 
-        final String val = ifRange.getValue();
-        if (val.startsWith("W/")) {
-            return RequestProtocolError.WEAK_ETAG_AND_RANGE_ERROR;
+        for (final Iterator<Header> it = request.headerIterator(HttpHeaders.IF_RANGE); it.hasNext(); ) {
+            final String val = it.next().getValue();
+            if (val.startsWith("W/")) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Weak ETag found in If-Range header");
+                }
+                return RequestProtocolError.WEAK_ETAG_AND_RANGE_ERROR;
+            } else {
+                // Not a strong validator or doesn't match Last-Modified
+                if (ifRangeInstant != null && lastModifiedInstant != null
+                        && !ifRangeInstant.equals(lastModifiedInstant)) {
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("If-Range does not match Last-Modified");
+                    }
+                    return RequestProtocolError.WEAK_ETAG_AND_RANGE_ERROR;
+                }
+            }
         }
-
         return null;
     }
 
-    private RequestProtocolError requestHasWeekETagForPUTOrDELETEIfMatch(final HttpRequest request) {
-        // TODO: Should these be looking at all the headers marked as If-Match/If-None-Match?
-
+    private RequestProtocolError requestHasWeekETagForPUTOrDELETEIfMatch(final HttpRequest request, final boolean resourceExists) {
         final String method = request.getMethod();
-        if (!(HeaderConstants.PUT_METHOD.equals(method) || HeaderConstants.DELETE_METHOD.equals(method))) {
+        if (!(HeaderConstants.PUT_METHOD.equals(method) || HeaderConstants.DELETE_METHOD.equals(method)
+                || HeaderConstants.POST_METHOD.equals(method))
+        ) {
             return null;
         }
 
-        final Header ifMatch = request.getFirstHeader(HttpHeaders.IF_MATCH);
-        if (ifMatch != null) {
-            final String val = ifMatch.getValue();
-            if (val.startsWith("W/")) {
-                return RequestProtocolError.WEAK_ETAG_ON_PUTDELETE_METHOD_ERROR;
-            }
-        } else {
-            final Header ifNoneMatch = request.getFirstHeader(HttpHeaders.IF_NONE_MATCH);
-            if (ifNoneMatch == null) {
+        for (final Iterator<Header> it = request.headerIterator(HttpHeaders.IF_MATCH); it.hasNext();) {
+            final String val = it.next().getValue();
+            if (val.equals("*") && !resourceExists) {
                 return null;
             }
+            if (val.startsWith("W/")) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Weak ETag found in If-Match header");
+                }
+                return RequestProtocolError.WEAK_ETAG_ON_PUTDELETE_METHOD_ERROR;
+            }
+        }
 
-            final String val2 = ifNoneMatch.getValue();
-            if (val2.startsWith("W/")) {
+        for (final Iterator<Header> it = request.headerIterator(HttpHeaders.IF_NONE_MATCH); it.hasNext();) {
+            final String val = it.next().getValue();
+            if (val.startsWith("W/") || (val.equals("*") && resourceExists)) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Weak ETag found in If-None-Match header");
+                }
                 return RequestProtocolError.WEAK_ETAG_ON_PUTDELETE_METHOD_ERROR;
             }
         }
