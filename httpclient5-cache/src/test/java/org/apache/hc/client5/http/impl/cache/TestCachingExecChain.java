@@ -56,6 +56,7 @@ import org.apache.hc.client5.http.cache.HttpCacheStorage;
 import org.apache.hc.client5.http.cache.ResourceIOException;
 import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecRuntime;
+import org.apache.hc.client5.http.classic.methods.HttpDelete;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpOptions;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
@@ -64,6 +65,7 @@ import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpStatus;
@@ -1651,4 +1653,40 @@ public class TestCachingExecChain {
         Assertions.assertTrue(found110);
     }
 
+
+    @Test
+    public void testRequestWithWeakETagAndRange() throws Exception {
+        final ClassicHttpRequest req1 = new HttpGet("http://foo1.example.com/");
+        req1.addHeader(HttpHeaders.IF_MATCH, "W/\"weak1\"");
+        req1.addHeader(HttpHeaders.RANGE, "bytes=0-50");
+        req1.addHeader(HttpHeaders.IF_RANGE, "W/\"weak2\""); // ETag doesn't match with If-Match ETag
+        final ClassicHttpResponse resp1 = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
+        resp1.setEntity(HttpTestUtils.makeBody(128));
+        resp1.setHeader("Content-Length", "128");
+        resp1.setHeader("ETag", "\"etag\"");
+        resp1.setHeader("Date", DateUtils.formatStandardDate(Instant.now()));
+        resp1.setHeader("Cache-Control", "public, max-age=3600");
+
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
+
+        final ClassicHttpResponse result = execute(req1);
+        Assertions.assertEquals(HttpStatus.SC_BAD_REQUEST, result.getCode());
+    }
+
+    @Test
+    public void testRequestWithWeakETagForPUTOrDELETEIfMatch() throws Exception {
+        final ClassicHttpRequest req1 = new HttpDelete("http://foo1.example.com/");
+        req1.addHeader(HttpHeaders.IF_MATCH, "W/\"weak1\"");
+        final ClassicHttpResponse resp1 = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
+        resp1.setEntity(HttpTestUtils.makeBody(128));
+        resp1.setHeader("Content-Length", "128");
+        resp1.setHeader("ETag", "\"etag\"");
+        resp1.setHeader("Date", DateUtils.formatStandardDate(Instant.now()));
+        resp1.setHeader("Cache-Control", "public, max-age=3600");
+
+        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
+
+        final ClassicHttpResponse result = execute(req1);
+        Assertions.assertEquals(HttpStatus.SC_PRECONDITION_FAILED, result.getCode());
+    }
 }

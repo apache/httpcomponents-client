@@ -31,7 +31,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collections;
+import java.util.List;
 
+import org.apache.hc.client5.http.cache.HeaderConstants;
+import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.ProtocolVersion;
@@ -54,14 +57,14 @@ public class TestRequestProtocolCompliance {
         final HttpRequest req = new BasicHttpRequest("GET", "/");
         req.setHeader("Range", "bytes=0-499");
         req.setHeader("If-Range", "W/\"weak\"");
-        assertEquals(1, impl.requestIsFatallyNonCompliant(req).size());
+        assertEquals(1, impl.requestIsFatallyNonCompliant(req, false).size());
     }
 
     @Test
     public void testRequestWithWeekETagForPUTOrDELETEIfMatch() throws Exception {
         final HttpRequest req = new BasicHttpRequest("PUT", "http://example.com/");
         req.setHeader("If-Match", "W/\"weak\"");
-        assertEquals(1, impl.requestIsFatallyNonCompliant(req).size());
+        assertEquals(1, impl.requestIsFatallyNonCompliant(req, false).size());
     }
 
     @Test
@@ -69,7 +72,7 @@ public class TestRequestProtocolCompliance {
         final HttpRequest req = new BasicHttpRequest("PUT", "http://example.com/");
         req.setHeader("If-Match", "W/\"weak\"");
         impl = new RequestProtocolCompliance(true);
-        assertEquals(Collections.emptyList(), impl.requestIsFatallyNonCompliant(req));
+        assertEquals(Collections.emptyList(), impl.requestIsFatallyNonCompliant(req, false));
     }
 
     @Test
@@ -96,6 +99,90 @@ public class TestRequestProtocolCompliance {
         final HttpRequest wrapper = BasicRequestBuilder.copy(req).build();
         impl.makeRequestCompliant(wrapper);
         assertEquals(HttpVersion.HTTP_1_1, wrapper.getVersion());
+    }
+
+    @Test
+    public void testRequestWithMultipleIfMatchHeaders() {
+        final HttpRequest req = new BasicHttpRequest(HeaderConstants.PUT_METHOD, "http://example.com/");
+        req.addHeader(HttpHeaders.IF_MATCH, "W/\"weak1\"");
+        req.addHeader(HttpHeaders.IF_MATCH, "W/\"weak2\"");
+        assertEquals(1, impl.requestIsFatallyNonCompliant(req, false).size());
+    }
+
+    @Test
+    public void testRequestWithMultipleIfNoneMatchHeaders() {
+        final HttpRequest req = new BasicHttpRequest(HeaderConstants.PUT_METHOD, "http://example.com/");
+        req.addHeader(HttpHeaders.IF_NONE_MATCH, "W/\"weak1\"");
+        req.addHeader(HttpHeaders.IF_NONE_MATCH, "W/\"weak2\"");
+        assertEquals(1, impl.requestIsFatallyNonCompliant(req, false).size());
+    }
+
+    @Test
+    public void testRequestWithPreconditionFailed() {
+        final HttpRequest req = new BasicHttpRequest(HeaderConstants.GET_METHOD, "http://example.com/");
+        req.addHeader(HttpHeaders.IF_MATCH, "W/\"weak1\"");
+        req.addHeader(HttpHeaders.RANGE, "1");
+        req.addHeader(HttpHeaders.IF_RANGE, "W/\"weak2\""); // ETag doesn't match with If-Match ETag
+        // This will cause the precondition If-Match to fail because the ETags are different
+        final List<RequestProtocolError> requestProtocolErrors = impl.requestIsFatallyNonCompliant(req, false);
+        assertTrue(requestProtocolErrors.contains(RequestProtocolError.WEAK_ETAG_AND_RANGE_ERROR));
+    }
+
+    @Test
+    public void testRequestWithValidIfRangeDate() {
+        final HttpRequest req = new BasicHttpRequest(HeaderConstants.GET_METHOD, "http://example.com/");
+        req.addHeader(HttpHeaders.RANGE, "bytes=0-499");
+        req.addHeader(HttpHeaders.LAST_MODIFIED, "Wed, 21 Oct 2023 07:28:00 GMT");
+        req.addHeader(HttpHeaders.IF_RANGE, "Wed, 21 Oct 2023 07:28:00 GMT");
+        assertTrue(impl.requestIsFatallyNonCompliant(req, false).isEmpty());
+    }
+
+    @Test
+    public void testRequestWithInvalidDateFormat() {
+        final HttpRequest req = new BasicHttpRequest(HeaderConstants.GET_METHOD, "http://example.com/");
+        req.addHeader(HttpHeaders.RANGE, "bytes=0-499");
+        req.addHeader(HttpHeaders.LAST_MODIFIED, "Wed, 21 Oct 2023 07:28:00 GMT");
+        req.addHeader(HttpHeaders.IF_RANGE, "20/10/2023");
+        assertTrue(impl.requestIsFatallyNonCompliant(req, false).isEmpty());
+    }
+
+    @Test
+    public void testRequestWithMissingIfRangeDate() {
+        final HttpRequest req = new BasicHttpRequest(HeaderConstants.GET_METHOD, "http://example.com/");
+        req.addHeader(HttpHeaders.RANGE, "bytes=0-499");
+        req.addHeader(HttpHeaders.LAST_MODIFIED, "Wed, 21 Oct 2023 07:28:00 GMT");
+        assertTrue(impl.requestIsFatallyNonCompliant(req, false).isEmpty());
+    }
+
+    @Test
+    public void testRequestWithWeakETagAndRangeAndDAte() {
+        // Setup request with GET method, Range header, If-Range header starting with "W/",
+        // and a Last-Modified date that doesn't match the If-Range date
+        final HttpRequest req = new BasicHttpRequest(HeaderConstants.GET_METHOD, "http://example.com/");
+        req.addHeader(HttpHeaders.RANGE, "bytes=0-499");
+        req.addHeader(HttpHeaders.LAST_MODIFIED, "Fri, 20 Oct 2023 07:28:00 GMT");
+        req.addHeader(HttpHeaders.IF_RANGE, "Wed, 18 Oct 2023 07:28:00 GMT");
+
+
+        // Use your implementation to check the request
+        final List<RequestProtocolError> errors = impl.requestIsFatallyNonCompliant(req, false);
+
+        // Assert that the WEAK_ETAG_AND_RANGE_ERROR is in the list of errors
+        assertTrue(errors.contains(RequestProtocolError.WEAK_ETAG_AND_RANGE_ERROR));
+    }
+
+    @Test
+    public void testRequestWithWeekETagForPUTOrDELETEIfMatchWithStart() {
+        final HttpRequest req = new BasicHttpRequest("PUT", "http://example.com/");
+        req.setHeader(HttpHeaders.IF_MATCH, "*");
+        assertEquals(0, impl.requestIsFatallyNonCompliant(req, false).size());
+    }
+
+    @Test
+    public void testRequestOkETagForPUTOrDELETEIfMatch() {
+        final HttpRequest req = new BasicHttpRequest("PUT", "http://example.com/");
+        req.setHeader(HttpHeaders.IF_MATCH, "1234");
+        assertEquals(0, impl.requestIsFatallyNonCompliant(req, false).size());
     }
 
 }
