@@ -84,7 +84,9 @@ public class Wire {
             buffer.append('\"');
             buffer.insert(0, '\"');
             buffer.insert(0, header);
-            log.debug(id + " " + buffer.toString());
+            if(enabled()) {
+                log.debug("{} {}", id, buffer.toString());
+            }
         }
     }
 
