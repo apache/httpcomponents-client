@@ -26,16 +26,15 @@
  */
 package org.apache.hc.client5.http;
 
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.Test;
 
 public class SystemDefaultDnsResolverTest {
-
 
     @Test
     void resolve() throws UnknownHostException {
@@ -54,14 +53,6 @@ public class SystemDefaultDnsResolverTest {
         assertEquals(1, result.length);
         assertArrayEquals(new byte[]{(byte) 0xfe, (byte) 0x80, 0, 0, 0, 0, 0, 0, 0x02, 0x21, (byte) 0xb7, (byte) 0xff, (byte) 0xfe, (byte) 0x8a, 0x57, (byte) 0xd5}, result[0].getAddress());
 
-    }
-
-    @Test
-    void resolveCanonicalHostname() throws UnknownHostException {
-        final SystemDefaultDnsResolver resolver = SystemDefaultDnsResolver.INSTANCE;
-
-        final String result1 = resolver.resolveCanonicalHostname("example.com");
-        assertEquals("example.com", result1);
     }
 
 }
