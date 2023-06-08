@@ -277,12 +277,13 @@ class BasicHttpCache implements HttpCache {
             if (LOG.isWarnEnabled()) {
                 LOG.warn("I/O error creating cache entry with key {}", cacheKey);
             }
-            return new HttpCacheEntry(
+            return HttpCacheEntry.create(
                     requestSent,
                     responseReceived,
-                    originResponse.getCode(),
-                    originResponse.getHeaders(),
-                    content != null ? HeapResourceFactory.INSTANCE.generate(null, content.array(), 0, content.length()) : null);
+                    request,
+                    originResponse,
+                    content != null ? HeapResourceFactory.INSTANCE.generate(null, content.array(), 0, content.length()) : null,
+                    null);
         }
     }
 

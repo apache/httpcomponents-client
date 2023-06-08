@@ -358,14 +358,6 @@ public class TestCacheValidityPolicy {
     }
 
     @Test
-    public void testNullResourceInvalidatesEntry() {
-        final int contentLength = 128;
-        final HttpCacheEntry entry = HttpTestUtils.makeHeadCacheEntry(
-                new BasicHeader(HttpHeaders.CONTENT_LENGTH, Integer.toString(contentLength)));
-        assertFalse(impl.contentLengthHeaderMatchesActualLength(entry));
-    }
-
-    @Test
     public void testNegativeAgeHeaderValueReturnsMaxAge() {
         final Header[] headers = new Header[] { new BasicHeader("Age", "-100") };
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers);

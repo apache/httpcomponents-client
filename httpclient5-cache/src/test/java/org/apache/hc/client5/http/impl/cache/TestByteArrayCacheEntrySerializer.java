@@ -280,12 +280,13 @@ public class TestByteArrayCacheEntrySerializer {
         final Map<String,String> variantMap = new HashMap<>();
         variantMap.put("test variant 1","true");
         variantMap.put("test variant 2","true");
-        final HttpCacheEntry cacheEntry = new HttpCacheEntry(
+        final HttpCacheEntry cacheEntry = HttpTestUtils.makeCacheEntry(
                 Instant.now(),
                 Instant.now(),
                 HttpStatus.SC_OK,
                 headers,
-                new HeapResource(body.getBytes(StandardCharsets.UTF_8)), variantMap);
+                new HeapResource(body.getBytes(StandardCharsets.UTF_8)),
+                variantMap);
 
         return new HttpCacheStorageEntry(key, cacheEntry);
     }
@@ -300,12 +301,13 @@ public class TestByteArrayCacheEntrySerializer {
         final Map<String,String> variantMap = new HashMap<>();
         variantMap.put("test variant 1","true");
         variantMap.put("test variant 2","true");
-        final HttpCacheEntry cacheEntry = new HttpCacheEntry(
+        final HttpCacheEntry cacheEntry = HttpTestUtils.makeCacheEntry(
                 Instant.now(),
                 Instant.now(),
                 HttpStatus.SC_OK,
                 headers,
-                new HeapResource(body.getBytes(StandardCharsets.UTF_8)), variantMap);
+                new HeapResource(body.getBytes(StandardCharsets.UTF_8)),
+                variantMap);
 
         return new HttpCacheStorageEntry(key, cacheEntry);
     }

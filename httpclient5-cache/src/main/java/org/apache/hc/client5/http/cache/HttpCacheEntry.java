@@ -36,11 +36,15 @@ import java.util.Map;
 
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.MessageHeaders;
+import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.message.HeaderGroup;
 import org.apache.hc.core5.util.Args;
@@ -58,15 +62,92 @@ import org.apache.hc.core5.util.Args;
 public class HttpCacheEntry implements MessageHeaders, Serializable {
 
     private static final long serialVersionUID = -6300496422359477413L;
-    private static final String REQUEST_METHOD_HEADER_NAME = "Hc-Request-Method";
 
     private final Instant requestDate;
     private final Instant responseDate;
+    private final String method;
+    private final String requestURI;
+    private final HeaderGroup requestHeaders;
     private final int status;
     private final HeaderGroup responseHeaders;
     private final Resource resource;
     private final Map<String, String> variantMap;
-    private final Instant date;
+
+    /**
+     * Create a new {@link HttpCacheEntry}.
+     *
+     * @param requestDate     Date/time when the request was made (Used for age calculations)
+     * @param responseDate    Date/time that the response came back (Used for age calculations)
+     * @param request         Original client request (a deep copy of this object is made)
+     * @param response        Origin response (a deep copy of this object is made)
+     * @param resource        Resource representing origin response body
+     * @param variantMap      describing cache entries that are variants of this parent entry; this
+     *                        maps a "variant key" (derived from the varying request headers) to a
+     *                        "cache key" (where in the cache storage the particular variant is
+     *                        located)
+     * @since 5.3
+     */
+    public static HttpCacheEntry create(final Instant requestDate,
+                                        final Instant responseDate,
+                                        final HttpRequest request,
+                                        final HttpResponse response,
+                                        final Resource resource,
+                                        final Map<String, String> variantMap) {
+        Args.notNull(requestDate, "Request date");
+        Args.notNull(responseDate, "Response date");
+        Args.notNull(request, "Request");
+        Args.notNull(response, "Origin response");
+
+        final HeaderGroup requestHeaders = new HeaderGroup();
+        for (final Iterator<Header> it = request.headerIterator(); it.hasNext(); ) {
+            final Header header = it.next();
+            requestHeaders.addHeader(header);
+        }
+
+        final HeaderGroup responseHeaders = new HeaderGroup();
+        for (final Iterator<Header> it = response.headerIterator(); it.hasNext(); ) {
+            final Header header = it.next();
+            responseHeaders.addHeader(header);
+        }
+
+        return new HttpCacheEntry(
+                requestDate,
+                responseDate,
+                request.getMethod(),
+                request.getRequestUri(),
+                requestHeaders,
+                response.getCode(),
+                responseHeaders,
+                resource,
+                variantMap);
+    }
+
+    /**
+     * Internal constructor that makes no validation of the input parameters and makes
+     * no copies of the original client request and the origin response.
+     */
+    @Internal
+    public HttpCacheEntry(
+            final Instant requestDate,
+            final Instant responseDate,
+            final String method,
+            final String requestURI,
+            final HeaderGroup requestHeaders,
+            final int status,
+            final HeaderGroup responseHeaders,
+            final Resource resource,
+            final Map<String, String> variantMap) {
+        super();
+        this.requestDate = requestDate;
+        this.responseDate = responseDate;
+        this.method = method;
+        this.requestURI = requestURI;
+        this.requestHeaders = requestHeaders;
+        this.status = status;
+        this.responseHeaders = responseHeaders;
+        this.resource = resource;
+        this.variantMap = variantMap != null ? new HashMap<>(variantMap) : null;
+    }
 
     /**
      * Create a new {@link HttpCacheEntry} with variants.
@@ -85,7 +166,7 @@ public class HttpCacheEntry implements MessageHeaders, Serializable {
      *   of this parent entry; this maps a "variant key" (derived
      *   from the varying request headers) to a "cache key" (where
      *   in the cache storage the particular variant is located)
-     * @deprecated  Use {{@link #HttpCacheEntry(Instant, Instant, int, Header[], Resource, Map)}}
+     * @deprecated  Use {{@link HttpCacheEntry#create(Instant, Instant, HttpRequest, HttpResponse, Resource, Map)}
      */
     @Deprecated
     public HttpCacheEntry(
@@ -95,19 +176,7 @@ public class HttpCacheEntry implements MessageHeaders, Serializable {
             final Header[] responseHeaders,
             final Resource resource,
             final Map<String, String> variantMap) {
-        super();
-        Args.notNull(requestDate, "Request date");
-        Args.notNull(responseDate, "Response date");
-        Args.check(status >= HttpStatus.SC_SUCCESS, "Status code");
-        Args.notNull(responseHeaders, "Response headers");
-        this.requestDate = DateUtils.toInstant(requestDate);
-        this.responseDate = DateUtils.toInstant(responseDate);
-        this.status = status;
-        this.responseHeaders = new HeaderGroup();
-        this.responseHeaders.setHeaders(responseHeaders);
-        this.resource = resource;
-        this.variantMap = variantMap != null ? new HashMap<>(variantMap) : null;
-        this.date = parseDate();
+        this(DateUtils.toInstant(requestDate), DateUtils.toInstant(responseDate), status, responseHeaders, resource, variantMap);
     }
 
     /**
@@ -122,8 +191,9 @@ public class HttpCacheEntry implements MessageHeaders, Serializable {
      *                        maps a "variant key" (derived from the varying request headers) to a
      *                        "cache key" (where in the cache storage the particular variant is
      *                        located)
-     * @since 5.2
+     * @deprecated  Use {{@link HttpCacheEntry#create(Instant, Instant, HttpRequest, HttpResponse, Resource, Map)}
      */
+    @Deprecated
     public HttpCacheEntry(
             final Instant requestDate,
             final Instant responseDate,
@@ -138,12 +208,14 @@ public class HttpCacheEntry implements MessageHeaders, Serializable {
         Args.notNull(responseHeaders, "Response headers");
         this.requestDate = requestDate;
         this.responseDate = responseDate;
+        this.method = Method.GET.name();
+        this.requestURI = "/";
+        this.requestHeaders = new HeaderGroup();
         this.status = status;
         this.responseHeaders = new HeaderGroup();
         this.responseHeaders.setHeaders(responseHeaders);
         this.resource = resource;
         this.variantMap = variantMap != null ? new HashMap<>(variantMap) : null;
-        this.date = parseDate();
     }
 
     /**
@@ -154,13 +226,14 @@ public class HttpCacheEntry implements MessageHeaders, Serializable {
      * @param status          HTTP status from origin response
      * @param responseHeaders Header[] from original HTTP Response
      * @param resource        representing origin response body
-     * @deprecated {{@link #HttpCacheEntry(Instant, Instant, int, Header[], Resource)}}
+     * @deprecated  Use {{@link HttpCacheEntry#create(Instant, Instant, HttpRequest, HttpResponse, Resource, Map)}
      */
     @Deprecated
     public HttpCacheEntry(final Date requestDate, final Date responseDate, final int status,
                           final Header[] responseHeaders, final Resource resource) {
         this(requestDate, responseDate, status, responseHeaders, resource, new HashMap<>());
     }
+
     /**
      * Create a new {@link HttpCacheEntry}.
      *
@@ -175,25 +248,20 @@ public class HttpCacheEntry implements MessageHeaders, Serializable {
      * @param responseHeaders
      *          Header[] from original HTTP Response
      * @param resource representing origin response body
+     *
+     * @deprecated  Use {{@link HttpCacheEntry#create(Instant, Instant, HttpRequest, HttpResponse, Resource, Map)}
      */
+    @Deprecated
     public HttpCacheEntry(final Instant requestDate, final Instant responseDate, final int status,
                           final Header[] responseHeaders, final Resource resource) {
         this(requestDate, responseDate, status, responseHeaders, resource, new HashMap<>());
     }
 
     /**
-     * Find the "Date" response header and parse it into a {@link Instant}
-     * @return the Date value of the header or null if the header is not present
-     */
-    private Instant parseDate() {
-        return DateUtils.parseStandardDate(this, HttpHeaders.DATE);
-    }
-
-    /**
      * Returns the status from the origin {@link org.apache.hc.core5.http.HttpResponse}.
      */
     public int getStatus() {
-        return this.status;
+        return status;
     }
 
     /**
@@ -242,14 +310,7 @@ public class HttpCacheEntry implements MessageHeaders, Serializable {
      */
     @Override
     public Header[] getHeaders() {
-        final HeaderGroup filteredHeaders = new HeaderGroup();
-        for (final Iterator<Header> iterator = responseHeaders.headerIterator(); iterator.hasNext();) {
-            final Header header = iterator.next();
-            if (!REQUEST_METHOD_HEADER_NAME.equals(header.getName())) {
-                filteredHeaders.addHeader(header);
-            }
-        }
-        return filteredHeaders.getHeaders();
+        return responseHeaders.getHeaders();
     }
 
     /**
@@ -258,9 +319,6 @@ public class HttpCacheEntry implements MessageHeaders, Serializable {
      */
     @Override
     public Header getFirstHeader(final String name) {
-        if (REQUEST_METHOD_HEADER_NAME.equalsIgnoreCase(name)) {
-            return null;
-        }
         return responseHeaders.getFirstHeader(name);
     }
 
@@ -278,9 +336,6 @@ public class HttpCacheEntry implements MessageHeaders, Serializable {
      */
     @Override
     public Header[] getHeaders(final String name) {
-        if (REQUEST_METHOD_HEADER_NAME.equalsIgnoreCase(name)) {
-            return new Header[0];
-        }
         return responseHeaders.getHeaders(name);
     }
 
@@ -331,11 +386,11 @@ public class HttpCacheEntry implements MessageHeaders, Serializable {
      * @since 4.3
      */
     public Date getDate() {
-        return DateUtils.toDate(date);
+        return DateUtils.toDate(getInstant());
     }
 
     public Instant getInstant() {
-        return date;
+        return DateUtils.parseStandardDate(this, HttpHeaders.DATE);
     }
 
     /**
@@ -375,11 +430,21 @@ public class HttpCacheEntry implements MessageHeaders, Serializable {
      * @since 4.4
      */
     public String getRequestMethod() {
-        final Header requestMethodHeader = responseHeaders.getFirstHeader(REQUEST_METHOD_HEADER_NAME);
-        if (requestMethodHeader != null) {
-            return requestMethodHeader.getValue();
-        }
-        return HeaderConstants.GET_METHOD;
+        return method;
+    }
+
+    /**
+     * @since 5.3
+     */
+    public String getRequestURI() {
+        return requestURI;
+    }
+
+    /**
+     * @since 5.3
+     */
+    public Iterator<Header> requestHeaderIterator() {
+        return requestHeaders.headerIterator();
     }
 
     /**
@@ -391,11 +456,13 @@ public class HttpCacheEntry implements MessageHeaders, Serializable {
         return "HttpCacheEntry{" +
                 "requestDate=" + requestDate +
                 ", responseDate=" + responseDate +
+                ", method='" + method + '\'' +
+                ", requestURI='" + requestURI + '\'' +
+                ", requestHeaders=" + requestHeaders +
                 ", status=" + status +
                 ", responseHeaders=" + responseHeaders +
                 ", resource=" + resource +
                 ", variantMap=" + variantMap +
-                ", date=" + date +
                 '}';
     }
 }
