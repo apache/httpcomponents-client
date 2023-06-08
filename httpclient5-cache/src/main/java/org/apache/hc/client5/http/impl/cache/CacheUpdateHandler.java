@@ -70,12 +70,13 @@ class CacheUpdateHandler {
             final ByteArrayBuffer content,
             final Instant requestSent,
             final Instant responseReceived) throws ResourceIOException {
-        return new HttpCacheEntry(
+        return HttpCacheEntry.create(
                 requestSent,
                 responseReceived,
-                originResponse.getCode(),
-                originResponse.getHeaders(),
-                content != null ? resourceFactory.generate(request.getRequestUri(), content.array(), 0, content.length()) : null);
+                request,
+                originResponse,
+                content != null ? resourceFactory.generate(request.getRequestUri(), content.array(), 0, content.length()) : null,
+                null);
     }
 
     /**
@@ -90,7 +91,7 @@ class CacheUpdateHandler {
             final HttpResponse response) throws ResourceIOException {
         Args.check(response.getCode() == HttpStatus.SC_NOT_MODIFIED,
                 "Response must have 304 status code");
-        final Header[] mergedHeaders = mergeHeaders(entry, response);
+        final HeaderGroup mergedHeaders = mergeHeaders(entry, response);
         Resource resource = null;
         if (entry.getResource() != null) {
             resource = resourceFactory.copy(requestId, entry.getResource());
@@ -98,11 +99,15 @@ class CacheUpdateHandler {
         return new HttpCacheEntry(
                 requestDate,
                 responseDate,
+                entry.getRequestMethod(),
+                entry.getRequestURI(),
+                headers(entry.requestHeaderIterator()),
                 entry.getStatus(),
                 mergedHeaders,
-                resource);
+                resource,
+                null);
     }
-    @SuppressWarnings("deprecation")
+
     public HttpCacheEntry updateParentCacheEntry(
             final String requestId,
             final HttpCacheEntry existing,
@@ -123,18 +128,29 @@ class CacheUpdateHandler {
         return new HttpCacheEntry(
                 src.getRequestInstant(),
                 src.getResponseInstant(),
+                src.getRequestMethod(),
+                src.getRequestURI(),
+                headers(src.requestHeaderIterator()),
                 src.getStatus(),
-                src.getHeaders(),
+                headers(src.headerIterator()),
                 resource,
                 variantMap);
     }
 
-    private Header[] mergeHeaders(final HttpCacheEntry entry, final HttpResponse response) {
-        if (DateSupport.isAfter(entry, response, HttpHeaders.DATE)) {
-            return entry.getHeaders();
+    private static HeaderGroup headers(final Iterator<Header> it) {
+        final HeaderGroup headerGroup = new HeaderGroup();
+        while (it.hasNext()) {
+            headerGroup.addHeader(it.next());
         }
+        return headerGroup;
+    }
+
+    private HeaderGroup mergeHeaders(final HttpCacheEntry entry, final HttpResponse response) {
         final HeaderGroup headerGroup = new HeaderGroup();
         headerGroup.setHeaders(entry.getHeaders());
+        if (DateSupport.isAfter(entry, response, HttpHeaders.DATE)) {
+            return headerGroup;
+        }
         // Remove cache headers that match response
         for (final Iterator<Header> it = response.headerIterator(); it.hasNext(); ) {
             final Header responseHeader = it.next();
@@ -164,7 +180,7 @@ class CacheUpdateHandler {
             }
             headerGroup.addHeader(responseHeader);
         }
-        return headerGroup.getHeaders();
+        return headerGroup;
     }
 
 }

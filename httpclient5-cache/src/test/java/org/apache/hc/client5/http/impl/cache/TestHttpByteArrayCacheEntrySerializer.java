@@ -27,367 +27,423 @@
 
 package org.apache.hc.client5.http.impl.cache;
 
-import static org.apache.hc.client5.http.impl.cache.HttpByteArrayCacheEntrySerializerTestUtils.HttpCacheStorageEntryTestTemplate;
-import static org.apache.hc.client5.http.impl.cache.HttpByteArrayCacheEntrySerializerTestUtils.httpCacheStorageEntryFromBytes;
-import static org.apache.hc.client5.http.impl.cache.HttpByteArrayCacheEntrySerializerTestUtils.makeTestFileObject;
-import static org.apache.hc.client5.http.impl.cache.HttpByteArrayCacheEntrySerializerTestUtils.readTestFileBytes;
-import static org.apache.hc.client5.http.impl.cache.HttpByteArrayCacheEntrySerializerTestUtils.testWithCache;
-import static org.apache.hc.client5.http.impl.cache.HttpByteArrayCacheEntrySerializerTestUtils.verifyHttpCacheEntryFromTestFile;
-
-
-
-import java.io.OutputStream;
-import java.lang.reflect.Field;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
+import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.HttpCacheEntrySerializer;
 import org.apache.hc.client5.http.cache.HttpCacheStorageEntry;
 import org.apache.hc.client5.http.cache.ResourceIOException;
-import org.apache.hc.core5.http.Header;
-import org.apache.hc.core5.http.HttpException;
-import org.apache.hc.core5.http.impl.io.AbstractMessageWriter;
-import org.apache.hc.core5.http.io.SessionOutputBuffer;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.message.BasicHeader;
+import org.apache.hc.core5.util.ByteArrayBuffer;
+import org.hamcrest.MatcherAssert;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 public class TestHttpByteArrayCacheEntrySerializer {
-    private static final String SERIALIAZED_EXTENSION = ".httpbytes.serialized";
-
-    private static final String FILE_TEST_SERIALIZED_NAME = "ApacheLogo" + SERIALIAZED_EXTENSION;
-    private static final String SIMPLE_OBJECT_SERIALIZED_NAME = "simpleObject" + SERIALIAZED_EXTENSION;
-    private static final String VARIANTMAP_TEST_SERIALIZED_NAME = "variantMap" + SERIALIAZED_EXTENSION;
-    private static final String ESCAPED_HEADER_TEST_SERIALIZED_NAME = "escapedHeader" + SERIALIAZED_EXTENSION;
-    private static final String NO_BODY_TEST_SERIALIZED_NAME = "noBody" + SERIALIAZED_EXTENSION;
-    private static final String MISSING_HEADER_TEST_SERIALIZED_NAME = "missingHeader" + SERIALIAZED_EXTENSION;
-    private static final String INVALID_HEADER_TEST_SERIALIZED_NAME = "invalidHeader" + SERIALIAZED_EXTENSION;
-    private static final String VARIANTMAP_MISSING_KEY_TEST_SERIALIZED_NAME = "variantMapMissingKey" + SERIALIAZED_EXTENSION;
-    private static final String VARIANTMAP_MISSING_VALUE_TEST_SERIALIZED_NAME = "variantMapMissingValue" + SERIALIAZED_EXTENSION;
-
-    private static final String TEST_CONTENT_FILE_NAME = "ApacheLogo.png";
 
     private HttpCacheEntrySerializer<byte[]> httpCacheEntrySerializer;
-
-    // Manually set this to true to re-generate all of the serialized files
-    private final boolean reserializeFiles = false;
 
     @BeforeEach
     public void before() {
         httpCacheEntrySerializer = HttpByteArrayCacheEntrySerializer.INSTANCE;
     }
 
+    @Test
+    public void testSimpleSerializeAndDeserialize() throws Exception {
+        final String content = "Hello World";
+        final ContentType contentType = ContentType.TEXT_PLAIN.withCharset(StandardCharsets.UTF_8);
+        final HttpCacheEntry cacheEntry = new HttpCacheEntry(Instant.now(), Instant.now(),
+                "GET", "/stuff", HttpTestUtils.headers(),
+                HttpStatus.SC_OK, HttpTestUtils.headers(new BasicHeader(HttpHeaders.CONTENT_TYPE, contentType.toString())),
+                new HeapResource(content.getBytes(contentType.getCharset())),
+                null);
+        final HttpCacheStorageEntry storageEntry = new HttpCacheStorageEntry("unique-cache-key", cacheEntry);
+        final byte[] serialized = httpCacheEntrySerializer.serialize(storageEntry);
+
+        final HttpCacheStorageEntry deserialized = httpCacheEntrySerializer.deserialize(serialized);
+        MatcherAssert.assertThat(deserialized.getKey(), Matchers.equalTo(storageEntry.getKey()));
+        MatcherAssert.assertThat(deserialized.getContent(), HttpCacheEntryMatcher.equivalent(storageEntry.getContent()));
+    }
+
+    @Test
+    public void testSerializeAndDeserializeLargeContent() throws Exception {
+        final ContentType contentType = ContentType.IMAGE_JPEG;
+        final HeapResource resource = load(getClass().getResource("/ApacheLogo.png"));
+        final HttpCacheEntry cacheEntry = new HttpCacheEntry(Instant.now(), Instant.now(),
+                "GET", "/stuff", HttpTestUtils.headers(),
+                HttpStatus.SC_OK, HttpTestUtils.headers(new BasicHeader(HttpHeaders.CONTENT_TYPE, contentType.toString())),
+                resource,
+                null);
+        final HttpCacheStorageEntry storageEntry = new HttpCacheStorageEntry("unique-cache-key", cacheEntry);
+        final byte[] serialized = httpCacheEntrySerializer.serialize(storageEntry);
+
+        final HttpCacheStorageEntry deserialized = httpCacheEntrySerializer.deserialize(serialized);
+        MatcherAssert.assertThat(deserialized.getKey(), Matchers.equalTo(storageEntry.getKey()));
+        MatcherAssert.assertThat(deserialized.getContent(), HttpCacheEntryMatcher.equivalent(storageEntry.getContent()));
+    }
+
     /**
      * Deserialize a cache entry in a bad format, expecting an exception.
-     *
-     * @throws Exception is expected
      */
     @Test
     public void testInvalidCacheEntry() throws Exception {
         // This file is a JPEG not a cache entry, so should fail to deserialize
-        final byte[] bytes = readTestFileBytes(TEST_CONTENT_FILE_NAME);
+        final HeapResource resource = load(getClass().getResource("/ApacheLogo.png"));
         Assertions.assertThrows(ResourceIOException.class, () ->
-                httpCacheStorageEntryFromBytes(httpCacheEntrySerializer, bytes));
+                httpCacheEntrySerializer.deserialize(resource.get()));
     }
 
     /**
-     * Deserialize a cache entry with a missing header, from a previously saved file.
-     *
-     * @throws Exception is expected
+     * Deserialize truncated cache entries.
+     */
+    @Test
+    public void testTruncatedCacheEntry() throws Exception {
+        final String content1 = HttpByteArrayCacheEntrySerializer.HC_CACHE_VERSION_LINE + "\n" +
+                "HC-Key: unique-cache-key\n" +
+                "HC-Resource-Length: 11\n" +
+                "HC-Request-Instant: 1686210849596\n" +
+                "HC-Response-Instant: 1686210849596\n" +
+                "\n" +
+                "GET /stuff HTTP/1.1\n" +
+                "\n" +
+                "HTTP/1.1 200 \n" +
+                "Content-Type: text/plain; charset=UTF-8\n" +
+                "Cache-control: public, max-age=31536000\n" +
+                "\n" +
+                "Huh?";
+        final byte[] bytes1 = content1.getBytes(StandardCharsets.UTF_8);
+        final ResourceIOException exception1 = Assertions.assertThrows(ResourceIOException.class, () ->
+                httpCacheEntrySerializer.deserialize(bytes1));
+        Assertions.assertEquals("Unexpected end of cache content", exception1.getMessage());
+
+        final String content2 = HttpByteArrayCacheEntrySerializer.HC_CACHE_VERSION_LINE + "\n" +
+                "HC-Key: unique-cache-key\n" +
+                "HC-Resource-Length: 11\n" +
+                "HC-Request-Instant: 1686210849596\n" +
+                "HC-Response-Instant: 1686210849596\n" +
+                "\n" +
+                "GET /stuff HTTP/1.1\n" +
+                "\n" +
+                "HTTP/1.1 200 \n" +
+                "Content-Type: text/plain; charset=UTF-8\n" +
+                "Cache-control: public, max-age=31536000\n";
+        final byte[] bytes2 = content2.getBytes(StandardCharsets.UTF_8);
+        final ResourceIOException exception2 = Assertions.assertThrows(ResourceIOException.class, () ->
+                httpCacheEntrySerializer.deserialize(bytes2));
+        Assertions.assertEquals("Unexpected end of stream", exception2.getMessage());
+
+        final String content3 = HttpByteArrayCacheEntrySerializer.HC_CACHE_VERSION_LINE + "\n" +
+                "HC-Key: unique-cache-key\n" +
+                "HC-Resource-Length: 11\n" +
+                "HC-Request-Instant: 1686210849596\n" +
+                "HC-Response-Instant: 1686210849596\n" +
+                "\n" +
+                "GET /stuff HTTP/1.1\n" +
+                "\n";
+        final byte[] bytes3 = content3.getBytes(StandardCharsets.UTF_8);
+        final ResourceIOException exception3 = Assertions.assertThrows(ResourceIOException.class, () ->
+                httpCacheEntrySerializer.deserialize(bytes3));
+        Assertions.assertEquals("Unexpected end of stream", exception3.getMessage());
+
+        final String content4 = HttpByteArrayCacheEntrySerializer.HC_CACHE_VERSION_LINE + "\n" +
+                "HC-Key: unique-cache-key\n" +
+                "HC-Resource-Length: 11\n" +
+                "HC-Request-Instant: 1686210849596\n" +
+                "HC-Response-Instant: 1686210849596\n";
+        final byte[] bytes4 = content4.getBytes(StandardCharsets.UTF_8);
+        final ResourceIOException exception4 = Assertions.assertThrows(ResourceIOException.class, () ->
+                httpCacheEntrySerializer.deserialize(bytes4));
+        Assertions.assertEquals("Unexpected end of stream", exception4.getMessage());
+
+        final String content5 = HttpByteArrayCacheEntrySerializer.HC_CACHE_VERSION_LINE + "\n" +
+                "HC-Key: unique-cache-key\n";
+        final byte[] bytes5 = content5.getBytes(StandardCharsets.UTF_8);
+        final ResourceIOException exception5 = Assertions.assertThrows(ResourceIOException.class, () ->
+                httpCacheEntrySerializer.deserialize(bytes5));
+        Assertions.assertEquals("Unexpected end of stream", exception5.getMessage());
+
+        final String content6 = HttpByteArrayCacheEntrySerializer.HC_CACHE_VERSION_LINE + "\n";
+        final byte[] bytes6 = content6.getBytes(StandardCharsets.UTF_8);
+        final ResourceIOException exception6 = Assertions.assertThrows(ResourceIOException.class, () ->
+                httpCacheEntrySerializer.deserialize(bytes6));
+        Assertions.assertEquals("Unexpected end of stream", exception6.getMessage());
+
+        final String content7 = "HttpClient CacheEntry 1\n";
+        final byte[] bytes7 = content7.getBytes(StandardCharsets.UTF_8);
+        final ResourceIOException exception7 = Assertions.assertThrows(ResourceIOException.class, () ->
+                httpCacheEntrySerializer.deserialize(bytes7));
+        Assertions.assertEquals("Unexpected cache entry version line", exception7.getMessage());
+    }
+
+    /**
+     * Deserialize cache entries with a missing mandatory header.
      */
     @Test
     public void testMissingHeaderCacheEntry() throws Exception {
-        // This file hand-edited to be missing a necessary header
-        final byte[] bytes = readTestFileBytes(MISSING_HEADER_TEST_SERIALIZED_NAME);
-        Assertions.assertThrows(ResourceIOException.class, () ->
-                httpCacheStorageEntryFromBytes(httpCacheEntrySerializer, bytes));
+        final String content1 = HttpByteArrayCacheEntrySerializer.HC_CACHE_VERSION_LINE + "\n" +
+                "HC-Key: unique-cache-key\n" +
+                "HC-Resource-Length: 11\n" +
+                "HC-Response-Instant: 1686210849596\n" +
+                "\n" +
+                "GET /stuff HTTP/1.1\n" +
+                "\n" +
+                "HTTP/1.1 200 \n" +
+                "Content-Type: text/plain; charset=UTF-8\n" +
+                "Cache-control: public, max-age=31536000\n" +
+                "\n" +
+                "Hello World";
+        final byte[] bytes1 = content1.getBytes(StandardCharsets.UTF_8);
+        final ResourceIOException exception1 = Assertions.assertThrows(ResourceIOException.class, () ->
+                httpCacheEntrySerializer.deserialize(bytes1));
+        Assertions.assertEquals("Invalid cache header format", exception1.getMessage());
+
+        final String content2 = HttpByteArrayCacheEntrySerializer.HC_CACHE_VERSION_LINE + "\n" +
+                "HC-Key: unique-cache-key\n" +
+                "HC-Resource-Length: 11\n" +
+                "HC-Request-Instant: 1686210849596\n" +
+                "\n" +
+                "GET /stuff HTTP/1.1\n" +
+                "\n" +
+                "HTTP/1.1 200 \n" +
+                "Content-Type: text/plain; charset=UTF-8\n" +
+                "Cache-control: public, max-age=31536000\n" +
+                "\n" +
+                "Hello World";
+        final byte[] bytes2 = content2.getBytes(StandardCharsets.UTF_8);
+        final ResourceIOException exception2 = Assertions.assertThrows(ResourceIOException.class, () ->
+                httpCacheEntrySerializer.deserialize(bytes2));
+        Assertions.assertEquals("Invalid cache header format", exception2.getMessage());
     }
 
     /**
-     * Deserialize a cache entry with an invalid header value, from a previously saved file.
-     *
-     * @throws Exception is expected
+     * Deserialize cache entries with an invalid header value.
      */
     @Test
     public void testInvalidHeaderCacheEntry() throws Exception {
-        // This file hand-edited to have an invalid header
-        final byte[] bytes = readTestFileBytes(INVALID_HEADER_TEST_SERIALIZED_NAME);
-        Assertions.assertThrows(ResourceIOException.class, () ->
-                httpCacheStorageEntryFromBytes(httpCacheEntrySerializer, bytes));
+        final String content1 = HttpByteArrayCacheEntrySerializer.HC_CACHE_VERSION_LINE + "\n" +
+                "HC-Key: unique-cache-key\n" +
+                "HC-Resource-Length: 11\n" +
+                "HC-Request-Instant: boom\n" +
+                "HC-Response-Instant: 1686210849596\n" +
+                "\n" +
+                "GET /stuff HTTP/1.1\n" +
+                "\n" +
+                "HTTP/1.1 200 \n" +
+                "Content-Type: text/plain; charset=UTF-8\n" +
+                "Cache-control: public, max-age=31536000\n" +
+                "\n" +
+                "Hello World";
+        final byte[] bytes1 = content1.getBytes(StandardCharsets.UTF_8);
+        final ResourceIOException exception1 = Assertions.assertThrows(ResourceIOException.class, () ->
+                httpCacheEntrySerializer.deserialize(bytes1));
+        Assertions.assertEquals("Invalid cache header format", exception1.getMessage());
+        final String content2 = HttpByteArrayCacheEntrySerializer.HC_CACHE_VERSION_LINE + "\n" +
+                "HC-Key: unique-cache-key\n" +
+                "HC-Resource-Length: 11\n" +
+                "HC-Request-Instant: 1686210849596\n" +
+                "HC-Response-Instant: boom\n" +
+                "\n" +
+                "GET /stuff HTTP/1.1\n" +
+                "\n" +
+                "HTTP/1.1 200 \n" +
+                "Content-Type: text/plain; charset=UTF-8\n" +
+                "Cache-control: public, max-age=31536000\n" +
+                "\n" +
+                "Hello World";
+        final byte[] bytes2 = content1.getBytes(StandardCharsets.UTF_8);
+        final ResourceIOException exception2 = Assertions.assertThrows(ResourceIOException.class, () ->
+                httpCacheEntrySerializer.deserialize(bytes2));
+        Assertions.assertEquals("Invalid cache header format", exception2.getMessage());
     }
 
     /**
-     * Deserialize a cache entry with a missing variant map key, from a previously saved file.
-     *
-     * @throws Exception is expected
+     * Deserialize cache entries with an invalid request line.
      */
     @Test
-    public void testVariantMapMissingKeyCacheEntry() throws Exception {
-        // This file hand-edited to be missing a VariantCache key
-        final byte[] bytes = readTestFileBytes(VARIANTMAP_MISSING_KEY_TEST_SERIALIZED_NAME);
-        Assertions.assertThrows(ResourceIOException.class, () ->
-                httpCacheStorageEntryFromBytes(httpCacheEntrySerializer, bytes));
+    public void testInvalidRequestLineCacheEntry() throws Exception {
+        final String content1 = HttpByteArrayCacheEntrySerializer.HC_CACHE_VERSION_LINE + "\n" +
+                "HC-Key: unique-cache-key\n" +
+                "HC-Resource-Length: 11\n" +
+                "HC-Request-Instant: 1686210849596\n" +
+                "HC-Response-Instant: 1686210849596\n" +
+                "\n" +
+                "GET boom\n" +
+                "\n" +
+                "HTTP/1.1 200 \n" +
+                "Content-Type: text/plain; charset=UTF-8\n" +
+                "Cache-control: public, max-age=31536000\n" +
+                "\n" +
+                "Hello World";
+        final byte[] bytes1 = content1.getBytes(StandardCharsets.UTF_8);
+        final ResourceIOException exception1 = Assertions.assertThrows(ResourceIOException.class, () ->
+                httpCacheEntrySerializer.deserialize(bytes1));
+        Assertions.assertEquals("Invalid cache header format", exception1.getMessage());
     }
 
     /**
-     * Deserialize a cache entry with a missing variant map value, from a previously saved file.
-     *
-     * @throws Exception is expected
+     * Deserialize cache entries with an invalid request line.
      */
     @Test
-    public void testVariantMapMissingValueCacheEntry() throws Exception {
-        // This file hand-edited to be missing a VariantCache value
-        final byte[] bytes = readTestFileBytes(VARIANTMAP_MISSING_VALUE_TEST_SERIALIZED_NAME);
-        Assertions.assertThrows(ResourceIOException.class, () ->
-                httpCacheStorageEntryFromBytes(httpCacheEntrySerializer, bytes));
-    }
-
-    /**
-     * Test an ResourceIOException being thrown while deserializing.
-     *
-     */
-    @Test
-    public void testDeserializeWithResourceIOException() {
-              Assertions.assertThrows(ResourceIOException.class, () ->
-                httpCacheEntrySerializer.deserialize(new byte[0]));
-    }
-
-    ////////////// Using new Constructor with Instant  //////////////
-
-    /**
-     * Serialize and deserialize a simple object with a tiny body.
-     *
-     * @throws Exception if anything goes wrong
-     */
-    @Test
-    public void simpleObjectTest() throws Exception {
-        final HttpCacheStorageEntryTestTemplate cacheObjectValues = HttpCacheStorageEntryTestTemplate.makeDefault();
-        final HttpCacheStorageEntry testEntry = cacheObjectValues.toEntry();
-
-        testWithCache(httpCacheEntrySerializer, testEntry);
-    }
-
-    /**
-     * Serialize and deserialize a larger object with a binary file for a body.
-     *
-     * @throws Exception if anything goes wrong
-     */
-    @Test
-    public void fileObjectTest() throws Exception {
-        final HttpCacheStorageEntryTestTemplate cacheObjectValues = HttpCacheStorageEntryTestTemplate.makeDefault();
-        cacheObjectValues.resource = new FileResource(makeTestFileObject(TEST_CONTENT_FILE_NAME));
-        final HttpCacheStorageEntry testEntry = cacheObjectValues.toEntry();
-
-        testWithCache(httpCacheEntrySerializer, testEntry);
+    public void testInvalidStatusLineCacheEntry() throws Exception {
+        final String content1 = HttpByteArrayCacheEntrySerializer.HC_CACHE_VERSION_LINE + "\n" +
+                "HC-Key: unique-cache-key\n" +
+                "HC-Resource-Length: 11\n" +
+                "HC-Request-Instant: 1686210849596\n" +
+                "HC-Response-Instant: 1686210849596\n" +
+                "\n" +
+                "GET /stuff HTTP/1.1\n" +
+                "\n" +
+                "HTTP/1.1 boom \n" +
+                "Content-Type: text/plain; charset=UTF-8\n" +
+                "Cache-control: public, max-age=31536000\n" +
+                "\n" +
+                "Hello World";
+        final byte[] bytes1 = content1.getBytes(StandardCharsets.UTF_8);
+        final ResourceIOException exception1 = Assertions.assertThrows(ResourceIOException.class, () ->
+                httpCacheEntrySerializer.deserialize(bytes1));
+        Assertions.assertEquals("Invalid cache header format", exception1.getMessage());
     }
 
     /**
      * Serialize and deserialize a cache entry with no headers.
-     *
-     * @throws Exception if anything goes wrong
      */
     @Test
     public void noHeadersTest() throws Exception {
-        final HttpCacheStorageEntryTestTemplate cacheObjectValues = HttpCacheStorageEntryTestTemplate.makeDefault();
-        cacheObjectValues.responseHeaders = new Header[0];
-        final HttpCacheStorageEntry testEntry = cacheObjectValues.toEntry();
+        final String content = "Hello World";
+        final ContentType contentType = ContentType.TEXT_PLAIN.withCharset(StandardCharsets.UTF_8);
+        final HttpCacheEntry cacheEntry = new HttpCacheEntry(Instant.now(), Instant.now(),
+                "GET", "/stuff", HttpTestUtils.headers(),
+                HttpStatus.SC_OK, HttpTestUtils.headers(),
+                new HeapResource(content.getBytes(contentType.getCharset())),
+                null);
+        final HttpCacheStorageEntry storageEntry = new HttpCacheStorageEntry("unique-cache-key", cacheEntry);
+        final byte[] serialized = httpCacheEntrySerializer.serialize(storageEntry);
 
-        testWithCache(httpCacheEntrySerializer, testEntry);
+        final HttpCacheStorageEntry deserialized = httpCacheEntrySerializer.deserialize(serialized);
+        MatcherAssert.assertThat(deserialized.getKey(), Matchers.equalTo(storageEntry.getKey()));
+        MatcherAssert.assertThat(deserialized.getContent(), HttpCacheEntryMatcher.equivalent(storageEntry.getContent()));
     }
 
     /**
      * Serialize and deserialize a cache entry with an empty body.
-     *
-     * @throws Exception if anything goes wrong
      */
     @Test
     public void emptyBodyTest() throws Exception {
-        final HttpCacheStorageEntryTestTemplate cacheObjectValues = HttpCacheStorageEntryTestTemplate.makeDefault();
-        cacheObjectValues.resource = new HeapResource(new byte[0]);
-        final HttpCacheStorageEntry testEntry = cacheObjectValues.toEntry();
+        final HttpCacheEntry cacheEntry = new HttpCacheEntry(Instant.now(), Instant.now(),
+                "GET", "/stuff", HttpTestUtils.headers(),
+                HttpStatus.SC_OK, HttpTestUtils.headers(),
+                new HeapResource(new byte[] {}),
+                null);
+        final HttpCacheStorageEntry storageEntry = new HttpCacheStorageEntry("unique-cache-key", cacheEntry);
+        final byte[] serialized = httpCacheEntrySerializer.serialize(storageEntry);
 
-        testWithCache(httpCacheEntrySerializer, testEntry);
+        final HttpCacheStorageEntry deserialized = httpCacheEntrySerializer.deserialize(serialized);
+        MatcherAssert.assertThat(deserialized.getKey(), Matchers.equalTo(storageEntry.getKey()));
+        MatcherAssert.assertThat(deserialized.getContent(), HttpCacheEntryMatcher.equivalent(storageEntry.getContent()));
     }
 
     /**
      * Serialize and deserialize a cache entry with no body.
-     *
-     * @throws Exception if anything goes wrong
      */
     @Test
     public void noBodyTest() throws Exception {
-        final HttpCacheStorageEntryTestTemplate cacheObjectValues = HttpCacheStorageEntryTestTemplate.makeDefault();
-        cacheObjectValues.resource = null;
-        cacheObjectValues.responseCode = 204;
+        final HttpCacheEntry cacheEntry = new HttpCacheEntry(Instant.now(), Instant.now(),
+                "GET", "/stuff", HttpTestUtils.headers(),
+                HttpStatus.SC_OK, HttpTestUtils.headers(),
+                null,
+                null);
+        final HttpCacheStorageEntry storageEntry = new HttpCacheStorageEntry("unique-cache-key", cacheEntry);
+        final byte[] serialized = httpCacheEntrySerializer.serialize(storageEntry);
 
-        final HttpCacheStorageEntry testEntry = cacheObjectValues.toEntry();
-
-        testWithCache(httpCacheEntrySerializer, testEntry);
+        final HttpCacheStorageEntry deserialized = httpCacheEntrySerializer.deserialize(serialized);
+        MatcherAssert.assertThat(deserialized.getKey(), Matchers.equalTo(storageEntry.getKey()));
+        MatcherAssert.assertThat(deserialized.getContent(), HttpCacheEntryMatcher.equivalent(storageEntry.getContent()));
     }
 
     /**
      * Serialize and deserialize a cache entry with a variant map.
-     *
-     * @throws Exception if anything goes wrong
      */
     @Test
     public void testSimpleVariantMap() throws Exception {
-        final HttpCacheStorageEntryTestTemplate cacheObjectValues = HttpCacheStorageEntryTestTemplate.makeDefault();
+        final String content = "Hello World";
+        final ContentType contentType = ContentType.TEXT_PLAIN.withCharset(StandardCharsets.UTF_8);
         final Map<String, String> variantMap = new HashMap<>();
         variantMap.put("{Accept-Encoding=gzip}","{Accept-Encoding=gzip}https://example.com:1234/foo");
         variantMap.put("{Accept-Encoding=compress}","{Accept-Encoding=compress}https://example.com:1234/foo");
-        cacheObjectValues.variantMap = variantMap;
-        final HttpCacheStorageEntry testEntry = cacheObjectValues.toEntry();
+        final HttpCacheEntry cacheEntry = new HttpCacheEntry(Instant.now(), Instant.now(),
+                "GET", "/stuff", HttpTestUtils.headers(),
+                HttpStatus.SC_OK, HttpTestUtils.headers(new BasicHeader(HttpHeaders.CONTENT_TYPE, contentType.toString())),
+                new HeapResource(content.getBytes(contentType.getCharset())),
+                variantMap);
+        final HttpCacheStorageEntry storageEntry = new HttpCacheStorageEntry("unique-cache-key", cacheEntry);
+        final byte[] serialized = httpCacheEntrySerializer.serialize(storageEntry);
 
-        testWithCache(httpCacheEntrySerializer, testEntry);
+        final HttpCacheStorageEntry deserialized = httpCacheEntrySerializer.deserialize(serialized);
+        MatcherAssert.assertThat(deserialized.getKey(), Matchers.equalTo(storageEntry.getKey()));
+        MatcherAssert.assertThat(deserialized.getContent(), HttpCacheEntryMatcher.equivalent(storageEntry.getContent()));
     }
 
     /**
-     * Ensures that if the server uses our reserved header names we don't mix them up with our own pseudo-headers.
-     *
-     * @throws Exception if anything goes wrong
+     * Deserialize cache entries with trailing garbage.
      */
     @Test
-    public void testEscapedHeaders() throws Exception {
-        final HttpCacheStorageEntryTestTemplate cacheObjectValues = HttpCacheStorageEntryTestTemplate.makeDefault();
-        cacheObjectValues.responseHeaders = new Header[] {
-                new BasicHeader("hc-test-1", "hc-test-1-value"),
-                new BasicHeader("hc-sk", "hc-sk-value"),
-                new BasicHeader("hc-resp-date", "hc-resp-date-value"),
-                new BasicHeader("hc-req-date-date", "hc-req-date-value"),
-                new BasicHeader("hc-varmap-key", "hc-varmap-key-value"),
-                new BasicHeader("hc-varmap-val", "hc-varmap-val-value"),
-        };
-        final HttpCacheStorageEntry testEntry = cacheObjectValues.toEntry();
+    public void testDeserializeCacheEntryWithTrailingGarbage() throws Exception {
+        final String content1 =HttpByteArrayCacheEntrySerializer.HC_CACHE_VERSION_LINE + "\n" +
+                "HC-Key: unique-cache-key\n" +
+                        "HC-Resource-Length: 11\n" +
+                        "HC-Request-Instant: 1686210849596\n" +
+                        "HC-Response-Instant: 1686210849596\n" +
+                        "\n" +
+                        "GET /stuff HTTP/1.1\n" +
+                        "\n" +
+                        "HTTP/1.1 200 \n" +
+                        "Content-Type: text/plain; charset=UTF-8\n" +
+                        "Cache-control: public, max-age=31536000\n" +
+                        "\n" +
+                        "Hello World..... Rubbish";
+        final byte[] bytes1 = content1.getBytes(StandardCharsets.UTF_8);
+        final ResourceIOException exception1 = Assertions.assertThrows(ResourceIOException.class, () ->
+                httpCacheEntrySerializer.deserialize(bytes1));
+        Assertions.assertEquals("Unexpected content at the end of cache content", exception1.getMessage());
 
-        testWithCache(httpCacheEntrySerializer, testEntry);
+        final String content2 =HttpByteArrayCacheEntrySerializer.HC_CACHE_VERSION_LINE + "\n" +
+                "HC-Key: unique-cache-key\n" +
+                        "HC-Request-Instant: 1686210849596\n" +
+                        "HC-Response-Instant: 1686210849596\n" +
+                        "\n" +
+                        "GET /stuff HTTP/1.1\n" +
+                        "\n" +
+                        "HTTP/1.1 200 \n" +
+                        "Content-Type: text/plain; charset=UTF-8\n" +
+                        "Cache-control: public, max-age=31536000\n" +
+                        "\n" +
+                        "Rubbish";
+        final byte[] bytes2 = content2.getBytes(StandardCharsets.UTF_8);
+        final ResourceIOException exception2 = Assertions.assertThrows(ResourceIOException.class, () ->
+                httpCacheEntrySerializer.deserialize(bytes2));
+        Assertions.assertEquals("Unexpected content at the end of cache content", exception1.getMessage());
     }
 
-    /**
-     * Attempt to store a cache entry with a null storage key.
-     *
-     */
-    @Test
-    public void testNullStorageKey() {
-        final HttpCacheStorageEntryTestTemplate cacheObjectValues = HttpCacheStorageEntryTestTemplate.makeDefault();
-        cacheObjectValues.storageKey = null;
-
-        final HttpCacheStorageEntry testEntry = cacheObjectValues.toEntry();
-        Assertions.assertThrows(IllegalStateException.class, () ->
-                httpCacheEntrySerializer.serialize(testEntry));
-    }
-
-    /**
-     * Deserialize a simple object, from a previously saved file.
-     *
-     * Ensures that if the serialization format changes in an incompatible way, we'll find out in a test.
-     *
-     * @throws Exception if anything goes wrong
-     */
-    @Test
-    public void simpleTestFromPreviouslySerialized() throws Exception {
-        final HttpCacheStorageEntryTestTemplate cacheObjectValues = HttpCacheStorageEntryTestTemplate.makeDefault();
-        final HttpCacheStorageEntry testEntry = cacheObjectValues.toEntry();
-
-        verifyHttpCacheEntryFromTestFile(httpCacheEntrySerializer, testEntry, SIMPLE_OBJECT_SERIALIZED_NAME, reserializeFiles);
-    }
-
-    /**
-     * Deserialize a larger object with a binary body, from a previously saved file.
-     *
-     * Ensures that if the serialization format changes in an incompatible way, we'll find out in a test.
-     *
-     * @throws Exception if anything goes wrong
-     */
-    @Test
-    public void fileTestFromPreviouslySerialized() throws Exception {
-        final HttpCacheStorageEntryTestTemplate cacheObjectValues = HttpCacheStorageEntryTestTemplate.makeDefault();
-        cacheObjectValues.resource = new FileResource(makeTestFileObject(TEST_CONTENT_FILE_NAME));
-        final HttpCacheStorageEntry testEntry = cacheObjectValues.toEntry();
-
-        verifyHttpCacheEntryFromTestFile(httpCacheEntrySerializer, testEntry, FILE_TEST_SERIALIZED_NAME, reserializeFiles);
-    }
-
-    /**
-     * Deserialize a cache entry with a variant map, from a previously saved file.
-     *
-     * @throws Exception if anything goes wrong
-     */
-    @Test
-    public void variantMapTestFromPreviouslySerialized() throws Exception {
-        final HttpCacheStorageEntryTestTemplate cacheObjectValues = HttpCacheStorageEntryTestTemplate.makeDefault();
-        final Map<String, String> variantMap = new HashMap<>();
-        variantMap.put("{Accept-Encoding=gzip}","{Accept-Encoding=gzip}https://example.com:1234/foo");
-        variantMap.put("{Accept-Encoding=compress}","{Accept-Encoding=compress}https://example.com:1234/foo");
-        cacheObjectValues.variantMap = variantMap;
-        final HttpCacheStorageEntry testEntry = cacheObjectValues.toEntry();
-
-        verifyHttpCacheEntryFromTestFile(httpCacheEntrySerializer, testEntry, VARIANTMAP_TEST_SERIALIZED_NAME, reserializeFiles);
-    }
-
-    /**
-     * Deserialize a cache entry with headers that use our pseudo-header prefix and need escaping.
-     *
-     * @throws Exception if anything goes wrong
-     */
-    @Test
-    public void escapedHeaderTestFromPreviouslySerialized() throws Exception {
-        final HttpCacheStorageEntryTestTemplate cacheObjectValues = HttpCacheStorageEntryTestTemplate.makeDefault();
-        cacheObjectValues.responseHeaders = new Header[] {
-                new BasicHeader("hc-test-1", "hc-test-1-value"),
-                new BasicHeader("hc-sk", "hc-sk-value"),
-                new BasicHeader("hc-resp-date", "hc-resp-date-value"),
-                new BasicHeader("hc-req-date-date", "hc-req-date-value"),
-                new BasicHeader("hc-varmap-key", "hc-varmap-key-value"),
-                new BasicHeader("hc-varmap-val", "hc-varmap-val-value"),
-        };
-        final HttpCacheStorageEntry testEntry = cacheObjectValues.toEntry();
-
-        verifyHttpCacheEntryFromTestFile(httpCacheEntrySerializer, testEntry, ESCAPED_HEADER_TEST_SERIALIZED_NAME, reserializeFiles);
-    }
-
-    /**
-     * Deserialize a cache entry with no body, from a previously saved file.
-     *
-     * @throws Exception if anything goes wrong
-     */
-    @Test
-    public void noBodyTestFromPreviouslySerialized() throws Exception {
-        final HttpCacheStorageEntryTestTemplate cacheObjectValues = HttpCacheStorageEntryTestTemplate.makeDefault();
-        cacheObjectValues.resource = null;
-        cacheObjectValues.responseCode = 204;
-
-        final HttpCacheStorageEntry testEntry = cacheObjectValues.toEntry();
-
-        verifyHttpCacheEntryFromTestFile(httpCacheEntrySerializer, testEntry, NO_BODY_TEST_SERIALIZED_NAME, reserializeFiles);
-    }
-
-    /**
-     * Test an HttpException being thrown while serializing.
-     *
-     * @throws Exception is expected
-     */
-    @Test
-    public void testSerializeWithHTTPException() throws Exception {
-        final AbstractMessageWriter<SimpleHttpResponse> throwyHttpWriter = Mockito.mock(AbstractMessageWriter.class);
-        Mockito.doThrow(new HttpException("Test Exception"))
-                .when(throwyHttpWriter)
-                .write(Mockito.any(SimpleHttpResponse.class), Mockito.any(SessionOutputBuffer.class), Mockito.any(OutputStream.class));
-
-        final HttpCacheStorageEntryTestTemplate cacheObjectValues = HttpCacheStorageEntryTestTemplate.makeDefault();
-        final HttpCacheStorageEntry testEntry = cacheObjectValues.toEntry();
-
-        final Field field = httpCacheEntrySerializer.getClass().getDeclaredField("responseWriter");
-        field.setAccessible(true);
-        final AbstractMessageWriter<SimpleHttpResponse> originalWriter = (AbstractMessageWriter<SimpleHttpResponse>) field.get(httpCacheEntrySerializer);
-        try {
-            field.set(httpCacheEntrySerializer, throwyHttpWriter);
-            Assertions.assertThrows(ResourceIOException.class, () -> httpCacheEntrySerializer.serialize(testEntry));
-        } finally {
-            field.set(httpCacheEntrySerializer, originalWriter);
+    static HeapResource load(final URL resource) throws IOException {
+        try (final InputStream in = resource.openStream()) {
+            final ByteArrayBuffer buf = new ByteArrayBuffer(1024);
+            final byte[] tmp = new byte[2048];
+            int len;
+            while ((len = in.read(tmp)) != -1) {
+                buf.append(tmp, 0, len);
+            }
+            return new HeapResource(buf.toByteArray());
         }
     }
 
