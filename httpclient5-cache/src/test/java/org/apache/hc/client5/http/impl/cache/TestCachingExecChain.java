@@ -1454,12 +1454,13 @@ public class TestCachingExecChain {
         final Map<String, String> variantMap = new HashMap<>();
         variantMap.put("test variant 1", "true");
         variantMap.put("test variant 2", "true");
-        final HttpCacheEntry cacheEntry = new HttpCacheEntry(
+        final HttpCacheEntry cacheEntry = HttpTestUtils.makeCacheEntry(
                 Instant.now(),
                 Instant.now(),
                 HttpStatus.SC_NOT_MODIFIED,
                 headers,
-                new HeapResource(body.getBytes(StandardCharsets.UTF_8)), variantMap);
+                new HeapResource(body.getBytes(StandardCharsets.UTF_8)),
+                variantMap);
 
         Mockito.when(cacheUpdateHandler.updateCacheEntry(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(cacheEntry);
 
