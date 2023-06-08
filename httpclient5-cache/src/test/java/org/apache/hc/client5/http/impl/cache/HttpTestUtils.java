@@ -36,6 +36,7 @@ import java.util.Objects;
 import java.util.Random;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
+import org.apache.hc.client5.http.cache.Resource;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
@@ -54,6 +55,7 @@ import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
 import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
 import org.apache.hc.core5.http.message.BasicHeader;
+import org.apache.hc.core5.http.message.HeaderGroup;
 import org.apache.hc.core5.http.message.MessageSupport;
 import org.apache.hc.core5.util.ByteArrayBuffer;
 import org.junit.jupiter.api.Assertions;
@@ -238,6 +240,48 @@ public class HttpTestUtils {
         return new ByteArrayEntity(getRandomBytes(nbytes), null);
     }
 
+    public static HeaderGroup headers(final Header... headers) {
+        final HeaderGroup headerGroup = new HeaderGroup();
+        if (headers != null && headers.length > 0) {
+            headerGroup.setHeaders(headers);
+        }
+        return headerGroup;
+    }
+
+    public static HttpCacheEntry makeCacheEntry(final Instant requestDate,
+                                                final Instant responseDate,
+                                                final Method method,
+                                                final String requestUri,
+                                                final Header[] requestHeaders,
+                                                final int status,
+                                                final Header[] responseHeaders,
+                                                final Resource resource,
+                                                final Map<String, String> variantMap) {
+        return new HttpCacheEntry(requestDate, responseDate, method.name(), requestUri,
+                headers(requestHeaders), status, headers(responseHeaders), resource, variantMap);
+    }
+
+    public static HttpCacheEntry makeCacheEntry(final Instant requestDate,
+                                                final Instant responseDate,
+                                                final Method method,
+                                                final int status,
+                                                final Header[] responseHeaders,
+                                                final byte[] content,
+                                                final Map<String, String> variantMap) {
+        return new HttpCacheEntry(requestDate, responseDate, method.name(), "/",
+                headers(), status, headers(responseHeaders), content != null ? new HeapResource(content) : null, variantMap);
+    }
+
+    public static HttpCacheEntry makeCacheEntry(final Instant requestDate,
+                                                final Instant responseDate,
+                                                final int status,
+                                                final Header[] responseHeaders,
+                                                final Resource resource,
+                                                final Map<String, String> variantMap) {
+        return new HttpCacheEntry(requestDate, responseDate, Method.GET.name(), "/",
+                headers(), status, headers(responseHeaders), resource, variantMap);
+    }
+
     public static HttpCacheEntry makeCacheEntry(final Instant requestDate, final Instant responseDate) {
         final Duration diff = Duration.between(requestDate, responseDate);
         final Instant when = requestDate.plusMillis(diff.toMillis() / 2);
@@ -265,15 +309,15 @@ public class HttpTestUtils {
 
     public static HttpCacheEntry makeCacheEntry(final Map<String,String> variantMap) {
         final Instant now = Instant.now();
-        return makeCacheEntry(now, now, getStockHeaders(now),
-                getRandomBytes(128), variantMap);
+        return makeCacheEntry(now, now, Method.GET, "/", null, HttpStatus.SC_OK, getStockHeaders(now),
+                new HeapResource(getRandomBytes(128)), variantMap);
     }
-    @SuppressWarnings("deprecation")
+
     public static HttpCacheEntry makeCacheEntry(final Instant requestDate,
             final Instant responseDate, final Header[] headers, final byte[] bytes,
             final Map<String,String> variantMap) {
-        return new HttpCacheEntry(DateUtils.toDate(requestDate), DateUtils.toDate(responseDate),
-                HttpStatus.SC_OK, headers, new HeapResource(bytes), variantMap);
+        return makeCacheEntry(requestDate, responseDate, Method.GET, "/", null, HttpStatus.SC_OK,
+                headers, new HeapResource(bytes), variantMap);
     }
 
     public static HttpCacheEntry makeCacheEntry(final Header[] headers, final byte[] bytes) {
@@ -349,29 +393,4 @@ public class HttpTestUtils {
         return variants;
     }
 
-
-    public static HttpCacheEntry makeCacheEntryWithNoRequestMethodOrEntity(final Header... headers) {
-        final Instant now = Instant.now();
-        return new HttpCacheEntry(now, now, HttpStatus.SC_OK, headers, null, null);
-    }
-
-    public static HttpCacheEntry makeCacheEntryWithNoRequestMethod(final Header... headers) {
-        final Instant now = Instant.now();
-        return new HttpCacheEntry(now, now, HttpStatus.SC_OK, headers, new HeapResource(getRandomBytes(128)), null);
-    }
-
-    public static HttpCacheEntry make204CacheEntryWithNoRequestMethod(final Header... headers) {
-        final Instant now = Instant.now();
-        return new HttpCacheEntry(now, now, HttpStatus.SC_NO_CONTENT, headers, null, null);
-    }
-
-    public static HttpCacheEntry makeHeadCacheEntry(final Header... headers) {
-        final Instant now = Instant.now();
-        return new HttpCacheEntry(now, now, HttpStatus.SC_OK, headers, null, null);
-    }
-
-    public static HttpCacheEntry makeHeadCacheEntryWithNoRequestMethod(final Header... headers) {
-        final Instant now = Instant.now();
-        return new HttpCacheEntry(now, now, HttpStatus.SC_OK, headers, null, null);
-    }
 }

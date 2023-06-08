@@ -27,7 +27,10 @@
 package org.apache.hc.client5.http.impl.cache;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Objects;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
@@ -52,33 +55,29 @@ public class HttpCacheEntryMatcher extends BaseMatcher<HttpCacheEntry> {
             try {
                 final HttpCacheEntry otherValue = (HttpCacheEntry) item;
 
-                final int expectedStatus = expectedValue.getStatus();
-                final int otherStatus = otherValue.getStatus();
-                if (expectedStatus != otherStatus) {
+                if (!mapEqual(expectedValue.getVariantMap(), otherValue.getVariantMap())) {
                     return false;
                 }
-                final Instant expectedRequestInstant = expectedValue.getRequestInstant();
-                final Instant otherRequestInstant = otherValue.getRequestInstant();
-                if (!Objects.equals(expectedRequestInstant, otherRequestInstant)) {
+                if (!Objects.equals(expectedValue.getRequestMethod(), otherValue.getRequestMethod())) {
                     return false;
                 }
-                final Instant expectedResponseInstant = expectedValue.getResponseInstant();
-                final Instant otherResponseInstant = otherValue.getResponseInstant();
-                if (!Objects.equals(expectedResponseInstant, otherResponseInstant)) {
+                if (!Objects.equals(expectedValue.getRequestURI(), otherValue.getRequestURI())) {
                     return false;
                 }
-
-                final Header[] expectedHeaders = expectedValue.getHeaders();
-                final Header[] otherHeaders = otherValue.getHeaders();
-                if (expectedHeaders.length != otherHeaders.length) {
+                if (!headersEqual(expectedValue.requestHeaderIterator(), otherValue.requestHeaderIterator())) {
                     return false;
                 }
-                for (int i = 0; i < expectedHeaders.length; i++) {
-                    final Header h1 = expectedHeaders[i];
-                    final Header h2 = otherHeaders[i];
-                    if (!h1.getName().equals(h2.getName()) || !Objects.equals(h1.getValue(), h2.getValue())) {
-                        return false;
-                    }
+                if (!instantEqual(expectedValue.getRequestInstant(), otherValue.getRequestInstant())) {
+                    return false;
+                }
+                if (expectedValue.getStatus() != otherValue.getStatus()) {
+                    return false;
+                }
+                if (!headersEqual(expectedValue.requestHeaderIterator(), otherValue.requestHeaderIterator())) {
+                    return false;
+                }
+                if (!instantEqual(expectedValue.getResponseInstant(), otherValue.getResponseInstant())) {
+                    return false;
                 }
                 final Resource expectedResource = expectedValue.getResource();
                 final byte[] expectedContent = expectedResource != null ? expectedResource.get() : null;
@@ -90,6 +89,37 @@ public class HttpCacheEntryMatcher extends BaseMatcher<HttpCacheEntry> {
             }
         }
         return false;
+    }
+
+    private static boolean instantEqual(final Instant expected, final Instant other) {
+        final Instant expectedMs = expected != null ? expected.truncatedTo(ChronoUnit.MILLIS) : null;
+        final Instant otherMs = other != null ? other.truncatedTo(ChronoUnit.MILLIS) : null;
+        return Objects.equals(expectedMs, otherMs);
+    }
+
+    private static boolean headersEqual(final Iterator<Header> expected, final Iterator<Header> other) {
+        while (expected.hasNext()) {
+            final Header h1 = expected.next();
+            if (!other.hasNext()) {
+                return false;
+            }
+            final Header h2 = other.next();
+            if (!h1.getName().equals(h2.getName()) || !Objects.equals(h1.getValue(), h2.getValue())) {
+                return false;
+            }
+        }
+        if (other.hasNext()) {
+            return false;
+        }
+        return true;
+    }
+
+    private static boolean mapEqual(final Map<?, ?> expected, final Map<?, ?> actual) {
+        if (expected.size() != actual.size()) {
+            return false;
+        }
+        return expected.entrySet().stream()
+                .allMatch(e -> Objects.equals(e.getValue(), actual.get(e.getKey())));
     }
 
     @Override
