@@ -30,7 +30,6 @@ package org.apache.hc.client5.http.impl.cache;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
-import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -44,6 +43,8 @@ import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.BasicHttpResponse;
+import org.hamcrest.Matchers;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -220,12 +221,8 @@ public class TestCacheUpdateHandler {
     public void cannotUpdateFromANon304OriginResponse() throws Exception {
         entry = HttpTestUtils.makeCacheEntry();
         response = new BasicHttpResponse(HttpStatus.SC_OK, "OK");
-        try {
-            impl.updateCacheEntry("A", entry, Instant.now(), Instant.now(),
-                    response);
-            fail("should have thrown exception");
-        } catch (final IllegalArgumentException expected) {
-        }
+        Assertions.assertThrows(IllegalArgumentException.class, () ->
+                impl.updateCacheEntry("A", entry, Instant.now(), Instant.now(), response));
     }
 
     @Test
@@ -262,9 +259,8 @@ public class TestCacheUpdateHandler {
         final HttpCacheEntry updatedEntry = impl.updateCacheEntry(null, entry,
                 Instant.now(), Instant.now(), response);
 
-        final Header[] updatedHeaders = updatedEntry.getHeaders();
-        headersContain(updatedHeaders, "Content-Encoding", "identity");
-        headersNotContain(updatedHeaders, "Content-Encoding", "gzip");
+        assertThat(updatedEntry, ContainsHeaderMatcher.contains("Content-Encoding", "identity"));
+        assertThat(updatedEntry, Matchers.not(ContainsHeaderMatcher.contains("Content-Encoding", "gzip")));
     }
 
     @Test
@@ -282,29 +278,8 @@ public class TestCacheUpdateHandler {
         final HttpCacheEntry updatedEntry = impl.updateCacheEntry(null, entry,
                 Instant.now(), Instant.now(), response);
 
-        final Header[] updatedHeaders = updatedEntry.getHeaders();
-        headersContain(updatedHeaders, "Transfer-Encoding", "chunked");
-        headersNotContain(updatedHeaders, "Content-Length", "0");
+        assertThat(updatedEntry, ContainsHeaderMatcher.contains("Transfer-Encoding", "chunked"));
+        assertThat(updatedEntry, Matchers.not(ContainsHeaderMatcher.contains("Content-Length", "0")));
     }
 
-    private void headersContain(final Header[] headers, final String name, final String value) {
-        for (final Header header : headers) {
-            if (header.getName().equals(name)) {
-                if (header.getValue().equals(value)) {
-                    return;
-                }
-            }
-        }
-        fail("Header [" + name + ": " + value + "] not found in headers.");
-    }
-
-    private void headersNotContain(final Header[] headers, final String name, final String value) {
-        for (final Header header : headers) {
-            if (header.getName().equals(name)) {
-                if (header.getValue().equals(value)) {
-                    fail("Header [" + name + ": " + value + "] found in headers where it should not be");
-                }
-            }
-        }
-    }
 }
