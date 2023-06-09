@@ -91,6 +91,9 @@ class CacheUpdateHandler {
             final HttpResponse response) throws ResourceIOException {
         Args.check(response.getCode() == HttpStatus.SC_NOT_MODIFIED,
                 "Response must have 304 status code");
+        if (DateSupport.isAfter(entry, response, HttpHeaders.DATE)) {
+            return entry;
+        }
         final HeaderGroup mergedHeaders = mergeHeaders(entry, response);
         Resource resource = null;
         if (entry.getResource() != null) {
@@ -147,38 +150,35 @@ class CacheUpdateHandler {
 
     private HeaderGroup mergeHeaders(final HttpCacheEntry entry, final HttpResponse response) {
         final HeaderGroup headerGroup = new HeaderGroup();
-        headerGroup.setHeaders(entry.getHeaders());
-        if (DateSupport.isAfter(entry, response, HttpHeaders.DATE)) {
-            return headerGroup;
-        }
-        // Remove cache headers that match response
-        for (final Iterator<Header> it = response.headerIterator(); it.hasNext(); ) {
-            final Header responseHeader = it.next();
+        for (final Iterator<Header> it = entry.headerIterator(); it.hasNext(); ) {
+            final Header entryHeader = it.next();
+            final String headerName = entryHeader.getName();
             // Since we do not expect a content in a 304 response, should retain the original Content-Encoding header
-            if (HttpHeaders.CONTENT_ENCODING.equals(responseHeader.getName())
-                    || HttpHeaders.CONTENT_LENGTH.equals(responseHeader.getName())) {
-                continue;
-            }
-            headerGroup.removeHeaders(responseHeader.getName());
-        }
-        // remove cache entry 1xx warnings
-        for (final Iterator<Header> it = headerGroup.headerIterator(); it.hasNext(); ) {
-            final Header cacheHeader = it.next();
-            if (HttpHeaders.WARNING.equalsIgnoreCase(cacheHeader.getName())) {
-                final String warningValue = cacheHeader.getValue();
-                if (warningValue != null && warningValue.startsWith("1")) {
-                    it.remove();
+            if (headerName.equalsIgnoreCase(HttpHeaders.CONTENT_ENCODING)) {
+                headerGroup.addHeader(entryHeader);
+            } else if (headerName.equalsIgnoreCase(HttpHeaders.CONTENT_LENGTH)) {
+                headerGroup.addHeader(entryHeader);
+            } else if (headerName.equalsIgnoreCase(HttpHeaders.WARNING)) {
+                // remove cache entry 1xx warnings
+                final String warningValue = entryHeader.getValue();
+                if (warningValue != null && !warningValue.startsWith("1")) {
+                    headerGroup.addHeader(entryHeader);
+                }
+            } else {
+                // drop headers present in the response
+                if (!response.containsHeader(headerName)) {
+                    headerGroup.addHeader(entryHeader);
                 }
             }
         }
         for (final Iterator<Header> it = response.headerIterator(); it.hasNext(); ) {
             final Header responseHeader = it.next();
+            final String headerName = responseHeader.getName();
             // Since we do not expect a content in a 304 response, should update the cache entry with Content-Encoding
-            if (HttpHeaders.CONTENT_ENCODING.equals(responseHeader.getName())
-                    || HttpHeaders.CONTENT_LENGTH.equals(responseHeader.getName())) {
-                continue;
+            if (!headerName.equalsIgnoreCase(HttpHeaders.CONTENT_ENCODING)
+                    && !headerName.equalsIgnoreCase(HttpHeaders.CONTENT_LENGTH)) {
+                headerGroup.addHeader(responseHeader);
             }
-            headerGroup.addHeader(responseHeader);
         }
         return headerGroup;
     }
