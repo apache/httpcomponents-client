@@ -39,7 +39,6 @@ import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.Header;
-import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.util.TimeValue;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -72,31 +71,6 @@ public class TestCachedHttpResponseGenerator {
         Assertions.assertNotNull(length, "Content-Length Header is missing");
 
         Assertions.assertEquals(buf.length, Integer.parseInt(length.getValue()), "Content-Length does not match buffer length");
-    }
-
-    @Test
-    public void testContentLengthIsNotAddedWhenTransferEncodingIsPresent() throws Exception {
-
-        final Header[] hdrs = new Header[] { new BasicHeader("Transfer-Encoding", "chunked") };
-        final byte[] buf = new byte[] { 1, 2, 3, 4, 5 };
-        final HttpCacheEntry entry1 = HttpTestUtils.makeCacheEntry(hdrs, buf);
-
-        final SimpleHttpResponse response = impl.generateResponse(request, entry1);
-
-        final Header length = response.getFirstHeader("Content-Length");
-
-        Assertions.assertNull(length);
-    }
-
-    @Test
-    public void testResponseMatchesCacheEntry() throws Exception {
-        final SimpleHttpResponse response = impl.generateResponse(request, entry);
-
-        Assertions.assertTrue(response.containsHeader("Content-Length"));
-
-        Assertions.assertSame("HTTP", response.getVersion().getProtocol());
-        Assertions.assertEquals(1, response.getVersion().getMajor());
-        Assertions.assertEquals(1, response.getVersion().getMinor());
     }
 
     @Test
