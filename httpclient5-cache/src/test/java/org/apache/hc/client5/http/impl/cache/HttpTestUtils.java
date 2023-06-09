@@ -36,6 +36,7 @@ import java.util.Objects;
 import java.util.Random;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
+import org.apache.hc.client5.http.cache.CacheHeaderSupport;
 import org.apache.hc.client5.http.cache.Resource;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.ClassicHttpRequest;
@@ -62,46 +63,12 @@ import org.junit.jupiter.api.Assertions;
 
 public class HttpTestUtils {
 
-    /*
-     * "The following HTTP/1.1 headers are hop-by-hop headers..."
-     *
-     * @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.5.1
-     */
-    private static final String[] HOP_BY_HOP_HEADERS = { "Connection", "Keep-Alive", "Proxy-Authenticate",
-        "Proxy-Authorization", "TE", "Trailers", "Transfer-Encoding", "Upgrade" };
-
-    /*
-     * "Multiple message-header fields with the same field-name MAY be present
-     * in a message if and only if the entire field-value for that header field
-     * is defined as a comma-separated list [i.e., #(values)]."
-     *
-     * @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2
-     */
-    private static final String[] MULTI_HEADERS = { "Accept", "Accept-Charset", "Accept-Encoding",
-        "Accept-Language", "Allow", "Cache-Control", "Connection", "Content-Encoding",
-        "Content-Language", "Expect", "Pragma", "Proxy-Authenticate", "TE", "Trailer",
-        "Transfer-Encoding", "Upgrade", "Via", HttpHeaders.WARNING, "WWW-Authenticate" };
     private static final String[] SINGLE_HEADERS = { "Accept-Ranges", "Age", "Authorization",
         "Content-Length", "Content-Location", "Content-MD5", "Content-Range", "Content-Type",
         "Date", "ETag", "Expires", "From", "Host", "If-Match", "If-Modified-Since",
         "If-None-Match", "If-Range", "If-Unmodified-Since", "Last-Modified", "Location",
         "Max-Forwards", "Proxy-Authorization", "Range", "Referer", "Retry-After", "Server",
         "User-Agent", "Vary" };
-
-    /*
-     * Determines whether the given header name is considered a hop-by-hop
-     * header.
-     *
-     * @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.5.1
-     */
-    public static boolean isHopByHopHeader(final String name) {
-        for (final String s : HOP_BY_HOP_HEADERS) {
-            if (s.equalsIgnoreCase(name)) {
-                return true;
-            }
-        }
-        return false;
-    }
 
     /*
      * Determines whether a given header name may only appear once in a message.
@@ -164,7 +131,7 @@ public class HttpTestUtils {
      */
     public static boolean isEndToEndHeaderSubset(final HttpMessage r1, final HttpMessage r2) {
         for (final Header h : r1.getHeaders()) {
-            if (!isHopByHopHeader(h.getName())) {
+            if (!CacheHeaderSupport.isHopByHop(h)) {
                 final String r1val = getCanonicalHeaderValue(r1, h.getName());
                 final String r2val = getCanonicalHeaderValue(r2, h.getName());
                 if (!r1val.equals(r2val)) {
@@ -291,8 +258,7 @@ public class HttpTestUtils {
     public static Header[] getStockHeaders(final Instant when) {
         return new Header[] {
                 new BasicHeader("Date", DateUtils.formatStandardDate(when)),
-                new BasicHeader("Server", "MockServer/1.0"),
-                new BasicHeader("Content-Length", "128")
+                new BasicHeader("Server", "MockServer/1.0")
         };
     }
 

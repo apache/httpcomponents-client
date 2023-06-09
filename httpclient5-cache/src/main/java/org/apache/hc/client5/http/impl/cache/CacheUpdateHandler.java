@@ -29,8 +29,11 @@ package org.apache.hc.client5.http.impl.cache;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
+import org.apache.hc.client5.http.cache.CacheHeaderSupport;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.Resource;
 import org.apache.hc.client5.http.cache.ResourceFactory;
@@ -156,8 +159,6 @@ class CacheUpdateHandler {
             // Since we do not expect a content in a 304 response, should retain the original Content-Encoding header
             if (headerName.equalsIgnoreCase(HttpHeaders.CONTENT_ENCODING)) {
                 headerGroup.addHeader(entryHeader);
-            } else if (headerName.equalsIgnoreCase(HttpHeaders.CONTENT_LENGTH)) {
-                headerGroup.addHeader(entryHeader);
             } else if (headerName.equalsIgnoreCase(HttpHeaders.WARNING)) {
                 // remove cache entry 1xx warnings
                 final String warningValue = entryHeader.getValue();
@@ -165,18 +166,18 @@ class CacheUpdateHandler {
                     headerGroup.addHeader(entryHeader);
                 }
             } else {
-                // drop headers present in the response
                 if (!response.containsHeader(headerName)) {
                     headerGroup.addHeader(entryHeader);
                 }
             }
         }
+        final Set<String> responseHopByHop = CacheHeaderSupport.hopByHopConnectionSpecific(response);
         for (final Iterator<Header> it = response.headerIterator(); it.hasNext(); ) {
             final Header responseHeader = it.next();
             final String headerName = responseHeader.getName();
             // Since we do not expect a content in a 304 response, should update the cache entry with Content-Encoding
-            if (!headerName.equalsIgnoreCase(HttpHeaders.CONTENT_ENCODING)
-                    && !headerName.equalsIgnoreCase(HttpHeaders.CONTENT_LENGTH)) {
+            if (!headerName.equalsIgnoreCase(HttpHeaders.CONTENT_ENCODING) &&
+                    !responseHopByHop.contains(headerName.toLowerCase(Locale.ROOT))) {
                 headerGroup.addHeader(responseHeader);
             }
         }

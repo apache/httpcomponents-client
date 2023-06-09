@@ -30,7 +30,6 @@ import java.time.Duration;
 import java.time.Instant;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
-import org.apache.hc.client5.http.cache.Resource;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHeaders;
@@ -136,31 +135,6 @@ class CacheValidityPolicy {
     private boolean mayReturnStaleIfError(final CacheControl responseCacheControl, final TimeValue staleness) {
         return responseCacheControl.getStaleIfError() >= 0 &&
                 staleness.compareTo(TimeValue.ofSeconds(responseCacheControl.getStaleIfError())) <= 0;
-    }
-
-    /**
-     * This matters for deciding whether the cache entry is valid to serve as a
-     * response. If these values do not match, we might have a partial response
-     *
-     * @param entry The cache entry we are currently working with
-     * @return boolean indicating whether actual length matches Content-Length
-     */
-    protected boolean contentLengthHeaderMatchesActualLength(final HttpCacheEntry entry) {
-        final Header h = entry.getFirstHeader(HttpHeaders.CONTENT_LENGTH);
-        if (h != null) {
-            try {
-                final long responseLen = Long.parseLong(h.getValue());
-                final Resource resource = entry.getResource();
-                if (resource == null) {
-                    return false;
-                }
-                final long resourceLen = resource.length();
-                return responseLen == resourceLen;
-            } catch (final NumberFormatException ex) {
-                return false;
-            }
-        }
-        return true;
     }
 
     protected TimeValue getApparentAge(final HttpCacheEntry entry) {
