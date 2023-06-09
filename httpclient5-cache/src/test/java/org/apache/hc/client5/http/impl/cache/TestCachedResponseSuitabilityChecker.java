@@ -74,24 +74,9 @@ public class TestCachedResponseSuitabilityChecker {
     }
 
     @Test
-    public void testNotSuitableIfContentLengthHeaderIsWrong() {
-        final Header[] headers = {
-                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
-                new BasicHeader("Content-Length","1")
-        };
-        entry = getEntry(headers);
-        responseCacheControl = ResponseCacheControl.builder()
-                .setMaxAge(3600)
-                .build();
-
-        Assertions.assertFalse(impl.canCachedResponseBeUsed(requestCacheControl, responseCacheControl, request, entry, now));
-    }
-
-    @Test
     public void testSuitableIfCacheEntryIsFresh() {
         final Header[] headers = {
-                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
-                new BasicHeader("Content-Length","128")
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo))
         };
         entry = getEntry(headers);
         responseCacheControl = ResponseCacheControl.builder()
@@ -103,8 +88,7 @@ public class TestCachedResponseSuitabilityChecker {
     @Test
     public void testNotSuitableIfCacheEntryIsNotFresh() {
         final Header[] headers = {
-                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
-                new BasicHeader("Content-Length","128")
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo))
         };
         entry = getEntry(headers);
         responseCacheControl = ResponseCacheControl.builder()
@@ -119,8 +103,7 @@ public class TestCachedResponseSuitabilityChecker {
                 .setNoCache(true)
                 .build();
         final Header[] headers = {
-                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
-                new BasicHeader("Content-Length","128")
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo))
         };
         entry = getEntry(headers);
         responseCacheControl = ResponseCacheControl.builder()
@@ -135,8 +118,7 @@ public class TestCachedResponseSuitabilityChecker {
                 .setMaxAge(10)
                 .build();
         final Header[] headers = {
-                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
-                new BasicHeader("Content-Length","128")
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo))
         };
         responseCacheControl = ResponseCacheControl.builder()
                 .setMaxAge(3600)
@@ -151,8 +133,7 @@ public class TestCachedResponseSuitabilityChecker {
                 .setMaxAge(15)
                 .build();
         final Header[] headers = {
-                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
-                new BasicHeader("Content-Length","128")
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo))
         };
         entry = getEntry(headers);
         responseCacheControl = ResponseCacheControl.builder()
@@ -167,8 +148,7 @@ public class TestCachedResponseSuitabilityChecker {
                 .setMinFresh(10)
                 .build();
         final Header[] headers = {
-                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
-                new BasicHeader("Content-Length","128")
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo))
         };
         entry = getEntry(headers);
         responseCacheControl = ResponseCacheControl.builder()
@@ -183,8 +163,7 @@ public class TestCachedResponseSuitabilityChecker {
                 .setMinFresh(10)
                 .build();
         final Header[] headers = {
-                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
-                new BasicHeader("Content-Length","128")
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo))
         };
         entry = getEntry(headers);
         responseCacheControl = ResponseCacheControl.builder()
@@ -199,8 +178,7 @@ public class TestCachedResponseSuitabilityChecker {
                 .setMaxStale(10)
                 .build();
         final Header[] headers = {
-                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
-                new BasicHeader("Content-Length","128")
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo))
         };
         entry = getEntry(headers);
         responseCacheControl = ResponseCacheControl.builder()
@@ -215,8 +193,7 @@ public class TestCachedResponseSuitabilityChecker {
                 .setMaxStale(2)
                 .build();
         final Header[] headers = {
-                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
-                new BasicHeader("Content-Length","128")
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo))
         };
         entry = getEntry(headers);
         responseCacheControl = ResponseCacheControl.builder()
@@ -232,8 +209,7 @@ public class TestCachedResponseSuitabilityChecker {
 
         final Header[] headers = {
                 new BasicHeader("Date", DateUtils.formatStandardDate(oneSecondAgo)),
-                new BasicHeader("Last-Modified", DateUtils.formatStandardDate(twentyOneSecondsAgo)),
-                new BasicHeader("Content-Length", "128")
+                new BasicHeader("Last-Modified", DateUtils.formatStandardDate(twentyOneSecondsAgo))
         };
 
         entry = HttpTestUtils.makeCacheEntry(oneSecondAgo, oneSecondAgo, headers);
@@ -249,8 +225,7 @@ public class TestCachedResponseSuitabilityChecker {
     @Test
     public void testSuitableIfCacheEntryIsHeuristicallyFreshEnoughByDefault() {
         final Header[] headers = {
-                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
-                new BasicHeader("Content-Length", "128")
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo))
         };
 
         entry = getEntry(headers);
@@ -268,8 +243,7 @@ public class TestCachedResponseSuitabilityChecker {
     public void testSuitableIfRequestMethodisHEAD() {
         final HttpRequest headRequest = new BasicHttpRequest("HEAD", "/foo");
         final Header[] headers = {
-                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
-                new BasicHeader("Content-Length","128")
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo))
         };
         entry = getEntry(headers);
         responseCacheControl = ResponseCacheControl.builder()
@@ -282,25 +256,9 @@ public class TestCachedResponseSuitabilityChecker {
     @Test
     public void testNotSuitableIfRequestMethodIsGETAndEntryResourceIsNull() {
         final Header[] headers = {
-                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
-                new BasicHeader("Content-Length","128")
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo))
         };
         entry = HttpTestUtils.makeCacheEntry(elevenSecondsAgo, nineSecondsAgo, Method.HEAD, HttpStatus.SC_OK, headers, null, null);
-        responseCacheControl = ResponseCacheControl.builder()
-                .setMaxAge(3600)
-                .build();
-
-        Assertions.assertFalse(impl.canCachedResponseBeUsed(requestCacheControl, responseCacheControl, request, entry, now));
-    }
-
-    @Test
-    public void testNotSuitableForGETIfEntryDoesNotSpecifyARequestMethodOrEntity() {
-        impl = new CachedResponseSuitabilityChecker(CacheConfig.custom().build());
-        final Header[] headers = {
-                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
-                new BasicHeader("Content-Length","128")
-        };
-        entry = HttpTestUtils.makeCacheEntry(elevenSecondsAgo, nineSecondsAgo, Method.GET, HttpStatus.SC_OK, headers, null, null);
         responseCacheControl = ResponseCacheControl.builder()
                 .setMaxAge(3600)
                 .build();
@@ -312,8 +270,7 @@ public class TestCachedResponseSuitabilityChecker {
     public void testSuitableForGETIfEntryDoesNotSpecifyARequestMethodButContainsEntity() {
         impl = new CachedResponseSuitabilityChecker(CacheConfig.custom().build());
         final Header[] headers = {
-                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
-                new BasicHeader("Content-Length","128")
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo))
         };
         entry = HttpTestUtils.makeCacheEntry(elevenSecondsAgo, nineSecondsAgo, Method.GET, HttpStatus.SC_OK, headers, HttpTestUtils.getRandomBytes(128), null);
         responseCacheControl = ResponseCacheControl.builder()
@@ -342,8 +299,7 @@ public class TestCachedResponseSuitabilityChecker {
         final HttpRequest headRequest = new BasicHttpRequest("HEAD", "/foo");
         impl = new CachedResponseSuitabilityChecker(CacheConfig.custom().build());
         final Header[] headers = {
-                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
-                new BasicHeader("Content-Length","128")
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo))
         };
         entry = HttpTestUtils.makeCacheEntry(elevenSecondsAgo, nineSecondsAgo, Method.GET, HttpStatus.SC_OK, headers, null, null);
         responseCacheControl = ResponseCacheControl.builder()

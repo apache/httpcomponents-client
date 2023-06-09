@@ -4760,64 +4760,6 @@ public class TestProtocolRequirements {
         Assertions.assertEquals(server, result.getFirstHeader("Server").getValue());
     }
 
-    /* "If multiple encodings have been applied to an entity, the transfer-
-     * codings MUST be listed in the order in which they were applied."
-     *
-     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.41
-     */
-    @Test
-    public void testOrderOfMultipleTransferEncodingHeadersIsPreserved() throws Exception {
-        originResponse.addHeader("Transfer-Encoding","chunked");
-        originResponse.addHeader("Transfer-Encoding","x-transfer");
-
-        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(originResponse);
-
-        final ClassicHttpResponse result = execute(request);
-        int transfer_encodings = 0;
-        final Iterator<HeaderElement> it = MessageSupport.iterate(result, HttpHeaders.TRANSFER_ENCODING);
-        while (it.hasNext()) {
-            final HeaderElement elt = it.next();
-            switch(transfer_encodings) {
-                case 0:
-                    Assertions.assertEquals("chunked",elt.getName());
-                    break;
-                case 1:
-                    Assertions.assertEquals("x-transfer",elt.getName());
-                    break;
-                default:
-                    Assertions.fail("too many transfer encodings");
-            }
-            transfer_encodings++;
-        }
-        Assertions.assertEquals(2, transfer_encodings);
-    }
-
-    @Test
-    public void testOrderOfMultipleTransferEncodingsInSingleHeadersIsPreserved() throws Exception {
-        originResponse.addHeader("Transfer-Encoding","chunked, x-transfer");
-
-        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(originResponse);
-
-        final ClassicHttpResponse result = execute(request);
-        int transfer_encodings = 0;
-        final Iterator<HeaderElement> it = MessageSupport.iterate(result, HttpHeaders.TRANSFER_ENCODING);
-        while (it.hasNext()) {
-            final HeaderElement elt = it.next();
-            switch(transfer_encodings) {
-                case 0:
-                    Assertions.assertEquals("chunked",elt.getName());
-                    break;
-                case 1:
-                    Assertions.assertEquals("x-transfer",elt.getName());
-                    break;
-                default:
-                    Assertions.fail("too many transfer encodings");
-            }
-            transfer_encodings++;
-        }
-        Assertions.assertEquals(2, transfer_encodings);
-    }
-
     /* "A Vary field value of '*' signals that unspecified parameters
      * not limited to the request-headers (e.g., the network address
      * of the client), play a role in the selection of the response

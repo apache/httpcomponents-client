@@ -118,11 +118,6 @@ class CachedResponseSuitabilityChecker {
             return false;
         }
 
-        if (isGet(request) && !validityStrategy.contentLengthHeaderMatchesActualLength(entry)) {
-            LOG.debug("Cache entry Content-Length and header information do not match");
-            return false;
-        }
-
         if (hasUnsupportedConditionalHeaders(request)) {
             LOG.debug("Request contains unsupported conditional headers");
             return false;

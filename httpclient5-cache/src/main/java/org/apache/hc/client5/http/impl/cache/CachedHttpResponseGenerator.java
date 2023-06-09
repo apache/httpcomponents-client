@@ -75,7 +75,7 @@ class CachedHttpResponseGenerator {
             final Header h = entry.getFirstHeader(HttpHeaders.CONTENT_TYPE);
             final ContentType contentType = h != null ? ContentType.parse(h.getValue()) : null;
             final byte[] content = resource.get();
-            addMissingContentLengthHeader(response, content);
+            generateContentLength(response, content);
             response.setBody(content, contentType);
         }
 
@@ -154,12 +154,8 @@ class CachedHttpResponseGenerator {
         return response;
     }
 
-    private void addMissingContentLengthHeader(final HttpResponse response, final byte[] body) {
-        if (transferEncodingIsPresent(response)) {
-            return;
-        }
-        // Some well known proxies respond with Content-Length=0, when returning 304. For robustness, always
-        // use the cached entity's content length, as modern browsers do.
+    private void generateContentLength(final HttpResponse response, final byte[] body) {
+        response.removeHeaders(HttpHeaders.TRANSFER_ENCODING);
         response.setHeader(HttpHeaders.CONTENT_LENGTH, Integer.toString(body.length));
     }
 
