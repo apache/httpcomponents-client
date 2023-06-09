@@ -32,7 +32,9 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.annotation.Contract;
@@ -98,16 +100,22 @@ public class HttpCacheEntry implements MessageHeaders, Serializable {
         Args.notNull(request, "Request");
         Args.notNull(response, "Origin response");
 
+        final Set<String> requestHopByHop = CacheHeaderSupport.hopByHopConnectionSpecific(request);
         final HeaderGroup requestHeaders = new HeaderGroup();
         for (final Iterator<Header> it = request.headerIterator(); it.hasNext(); ) {
             final Header header = it.next();
-            requestHeaders.addHeader(header);
+            if (!requestHopByHop.contains(header.getName().toLowerCase(Locale.ROOT))) {
+                requestHeaders.addHeader(header);
+            }
         }
 
+        final Set<String> responseHopByHop = CacheHeaderSupport.hopByHopConnectionSpecific(request);
         final HeaderGroup responseHeaders = new HeaderGroup();
         for (final Iterator<Header> it = response.headerIterator(); it.hasNext(); ) {
             final Header header = it.next();
-            responseHeaders.addHeader(header);
+            if (!responseHopByHop.contains(header.getName().toLowerCase(Locale.ROOT))) {
+                responseHeaders.addHeader(header);
+            }
         }
 
         return new HttpCacheEntry(
