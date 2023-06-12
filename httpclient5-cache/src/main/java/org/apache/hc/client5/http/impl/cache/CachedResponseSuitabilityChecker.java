@@ -52,8 +52,6 @@ class CachedResponseSuitabilityChecker {
 
     private final boolean sharedCache;
     private final boolean useHeuristicCaching;
-    private final float heuristicCoefficient;
-    private final TimeValue heuristicDefaultLifetime;
     private final CacheValidityPolicy validityStrategy;
 
     CachedResponseSuitabilityChecker(final CacheValidityPolicy validityStrategy,
@@ -62,12 +60,10 @@ class CachedResponseSuitabilityChecker {
         this.validityStrategy = validityStrategy;
         this.sharedCache = config.isSharedCache();
         this.useHeuristicCaching = config.isHeuristicCachingEnabled();
-        this.heuristicCoefficient = config.getHeuristicCoefficient();
-        this.heuristicDefaultLifetime = config.getHeuristicDefaultLifetime();
     }
 
     CachedResponseSuitabilityChecker(final CacheConfig config) {
-        this(new CacheValidityPolicy(), config);
+        this(new CacheValidityPolicy(config), config);
     }
 
     private boolean isFreshEnough(final RequestCacheControl requestCacheControl,
@@ -77,7 +73,7 @@ class CachedResponseSuitabilityChecker {
             return true;
         }
         if (useHeuristicCaching &&
-                validityStrategy.isResponseHeuristicallyFresh(entry, now, heuristicCoefficient, heuristicDefaultLifetime)) {
+                validityStrategy.isResponseHeuristicallyFresh(entry, now)) {
             return true;
         }
         if (originInsistsOnFreshness(responseCacheControl)) {
