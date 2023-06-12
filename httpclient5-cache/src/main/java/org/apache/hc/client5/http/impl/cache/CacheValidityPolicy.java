@@ -34,13 +34,38 @@ import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.util.TimeValue;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 class CacheValidityPolicy {
 
+    private static final Logger LOG = LoggerFactory.getLogger(CacheValidityPolicy.class);
+
+
     public static final TimeValue MAX_AGE = TimeValue.ofSeconds(Integer.MAX_VALUE + 1L);
 
-    CacheValidityPolicy() {
+
+    private final float heuristicCoefficient;
+    private final TimeValue heuristicDefaultLifetime;
+
+
+    /**
+     * Constructs a CacheValidityPolicy with the provided CacheConfig. If the config is null, it will use
+     * default heuristic coefficient and default heuristic lifetime from CacheConfig.DEFAULT.
+     *
+     * @param config The CacheConfig to use for this CacheValidityPolicy. If null, default values are used.
+     */
+    CacheValidityPolicy(final CacheConfig config) {
         super();
+        this.heuristicCoefficient = config != null ? config.getHeuristicCoefficient() : CacheConfig.DEFAULT.getHeuristicCoefficient();
+        this.heuristicDefaultLifetime = config != null ? config.getHeuristicDefaultLifetime() : CacheConfig.DEFAULT.getHeuristicDefaultLifetime();
+    }
+
+    /**
+     * Default constructor for CacheValidityPolicy. Initializes the policy with default values.
+     */
+    CacheValidityPolicy() {
+        this(null);
     }
 
 
@@ -48,23 +73,59 @@ class CacheValidityPolicy {
         return TimeValue.ofSeconds(getCorrectedInitialAge(entry).toSeconds() + getResidentTime(entry, now).toSeconds());
     }
 
+    /**
+     * Calculate the freshness lifetime of a response based on the provided cache control and cache entry.
+     * <ul>
+     * <li>If the cache is shared and the s-maxage response directive is present, use its value.</li>
+     * <li>If the max-age response directive is present, use its value.</li>
+     * <li>If the Expires response header field is present, use its value minus the value of the Date response header field.</li>
+     * <li>Otherwise, a heuristic freshness lifetime might be applicable.</li>
+     * </ul>
+     *
+     * @param responseCacheControl the cache control directives associated with the response.
+     * @param entry                the cache entry associated with the response.
+     * @return the calculated freshness lifetime as a {@link TimeValue}.
+     */
     public TimeValue getFreshnessLifetime(final ResponseCacheControl responseCacheControl, final HttpCacheEntry entry) {
-        final long maxAge = getMaxAge(responseCacheControl);
+        // If the cache is shared and the s-maxage response directive is present, use its value
+        final long sharedMaxAge = responseCacheControl.getSharedMaxAge();
+        if (sharedMaxAge > -1) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Using s-maxage directive for freshness lifetime calculation: {} seconds", sharedMaxAge);
+            }
+            return TimeValue.ofSeconds(sharedMaxAge);
+        }
+
+        // If the max-age response directive is present, use its value
+        final long maxAge = responseCacheControl.getMaxAge();
         if (maxAge > -1) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Using max-age directive for freshness lifetime calculation: {} seconds", maxAge);
+            }
             return TimeValue.ofSeconds(maxAge);
         }
 
+        // If the Expires response header field is present, use its value minus the value of the Date response header field
         final Instant dateValue = entry.getInstant();
-        if (dateValue == null) {
-            return TimeValue.ZERO_MILLISECONDS;
+        if (dateValue != null) {
+            final Instant expiry = DateUtils.parseStandardDate(entry, HttpHeaders.EXPIRES);
+            if (expiry != null) {
+                final Duration diff = Duration.between(dateValue, expiry);
+                if (diff.isNegative()) {
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Negative freshness lifetime detected. Content is already expired. Returning zero freshness lifetime.");
+                    }
+                    return TimeValue.ZERO_MILLISECONDS;
+                }
+                return TimeValue.ofSeconds(diff.getSeconds());
+            }
         }
 
-        final Instant expiry = DateUtils.parseStandardDate(entry, HttpHeaders.EXPIRES);
-        if (expiry == null) {
-            return TimeValue.ZERO_MILLISECONDS;
+        // No explicit expiration time is present in the response. A heuristic freshness lifetime might be applicable
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("No explicit expiration time present in the response. Using heuristic freshness lifetime calculation.");
         }
-        final Duration diff = Duration.between(dateValue, expiry);
-        return TimeValue.ofSeconds(diff.getSeconds());
+        return getHeuristicFreshnessLifetime(entry);
     }
 
     public boolean isResponseFresh(final ResponseCacheControl responseCacheControl, final HttpCacheEntry entry,
@@ -82,17 +143,13 @@ class CacheValidityPolicy {
      *
      * @param entry the cache entry
      * @param now what time is it currently (When is right NOW)
-     * @param coefficient Part of the heuristic for cache entry freshness
-     * @param defaultLifetime How long can I assume a cache entry is default TTL
      * @return {@code true} if the response is fresh
      */
-    public boolean isResponseHeuristicallyFresh(final HttpCacheEntry entry,
-            final Instant now, final float coefficient, final TimeValue defaultLifetime) {
-        return getCurrentAge(entry, now).compareTo(getHeuristicFreshnessLifetime(entry, coefficient, defaultLifetime)) == -1;
+    public boolean isResponseHeuristicallyFresh(final HttpCacheEntry entry, final Instant now) {
+        return getCurrentAge(entry, now).compareTo(getHeuristicFreshnessLifetime(entry)) == -1;
     }
 
-    public TimeValue getHeuristicFreshnessLifetime(final HttpCacheEntry entry,
-            final float coefficient, final TimeValue defaultLifetime) {
+    public TimeValue getHeuristicFreshnessLifetime(final HttpCacheEntry entry) {
         final Instant dateValue = entry.getInstant();
         final Instant lastModifiedValue = DateUtils.parseStandardDate(entry, HttpHeaders.LAST_MODIFIED);
 
@@ -102,10 +159,10 @@ class CacheValidityPolicy {
             if (diff.isNegative()) {
                 return TimeValue.ZERO_MILLISECONDS;
             }
-            return TimeValue.ofSeconds((long) (coefficient * diff.getSeconds()));
+            return TimeValue.ofSeconds((long) (heuristicCoefficient * diff.getSeconds()));
         }
 
-        return defaultLifetime;
+        return heuristicDefaultLifetime;
     }
 
     public boolean isRevalidatable(final HttpCacheEntry entry) {
