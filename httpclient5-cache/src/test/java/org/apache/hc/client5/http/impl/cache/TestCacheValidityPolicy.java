@@ -175,19 +175,24 @@ public class TestCacheValidityPolicy {
     }
 
     @Test
-    public void testFreshnessLifetimeIsMostRestrictiveOfMaxAgeAndSMaxAge() {
+    public void testFreshnessLifetimeUsesSharedMaxAgeInSharedCache() {
+        // assuming impl represents a shared cache
         final ResponseCacheControl cacheControl = ResponseCacheControl.builder()
                 .setMaxAge(10)
                 .setSharedMaxAge(20)
                 .build();
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
-        assertEquals(TimeValue.ofSeconds(10), impl.getFreshnessLifetime(cacheControl, entry));
+        assertEquals(TimeValue.ofSeconds(20), impl.getFreshnessLifetime(cacheControl, entry));
+    }
 
-        final ResponseCacheControl cacheControl2 = ResponseCacheControl.builder()
-                .setMaxAge(20)
-                .setSharedMaxAge(10)
+    @Test
+    public void testFreshnessLifetimeUsesMaxAgeWhenSharedMaxAgeNotPresent() {
+        // assuming impl represents a shared cache
+        final ResponseCacheControl cacheControl = ResponseCacheControl.builder()
+                .setMaxAge(10)
                 .build();
-        assertEquals(TimeValue.ofSeconds(10), impl.getFreshnessLifetime(cacheControl2, entry));
+        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
+        assertEquals(TimeValue.ofSeconds(10), impl.getFreshnessLifetime(cacheControl, entry));
     }
 
     @Test
@@ -227,14 +232,14 @@ public class TestCacheValidityPolicy {
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(
                 new BasicHeader("Date", DateUtils.formatStandardDate(oneSecondAgo)),
                 new BasicHeader("Last-Modified", DateUtils.formatStandardDate(elevenSecondsAgo)));
-        assertEquals(TimeValue.ofSeconds(1), impl.getHeuristicFreshnessLifetime(entry, 0.1f, TimeValue.ZERO_MILLISECONDS));
+        assertEquals(TimeValue.ofSeconds(1), impl.getHeuristicFreshnessLifetime(entry));
     }
 
     @Test
     public void testHeuristicFreshnessLifetimeDefaultsProperly() {
-        final TimeValue defaultFreshness = TimeValue.ofSeconds(10);
+        final TimeValue defaultFreshness = TimeValue.ofSeconds(0);
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
-        assertEquals(defaultFreshness, impl.getHeuristicFreshnessLifetime(entry, 0.1f, defaultFreshness));
+        assertEquals(defaultFreshness, impl.getHeuristicFreshnessLifetime(entry));
     }
 
     @Test
@@ -242,7 +247,7 @@ public class TestCacheValidityPolicy {
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(
                 new BasicHeader("Date", DateUtils.formatStandardDate(elevenSecondsAgo)),
                 new BasicHeader("Last-Modified", DateUtils.formatStandardDate(oneSecondAgo)));
-        assertTrue(TimeValue.isNonNegative(impl.getHeuristicFreshnessLifetime(entry, 0.1f, TimeValue.ofSeconds(10))));
+        assertTrue(TimeValue.isNonNegative(impl.getHeuristicFreshnessLifetime(entry)));
     }
 
     @Test
@@ -263,6 +268,16 @@ public class TestCacheValidityPolicy {
             }
         };
         assertTrue(impl.isResponseFresh(responseCacheControl, entry, now));
+    }
+
+    @Test
+    public void testHeuristicFreshnessLifetimeCustomProperly() {
+        final CacheConfig cacheConfig = CacheConfig.custom().setHeuristicDefaultLifetime(TimeValue.ofSeconds(10))
+                .setHeuristicCoefficient(0.5f).build();
+        impl = new CacheValidityPolicy(cacheConfig);
+        final TimeValue defaultFreshness = TimeValue.ofSeconds(10);
+        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
+        assertEquals(defaultFreshness, impl.getHeuristicFreshnessLifetime(entry));
     }
 
     @Test

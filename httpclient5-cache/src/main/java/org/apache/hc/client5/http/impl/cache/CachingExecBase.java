@@ -100,7 +100,7 @@ public class CachingExecBase {
     CachingExecBase(final CacheConfig config) {
         super();
         this.cacheConfig = config != null ? config : CacheConfig.DEFAULT;
-        this.validityPolicy = new CacheValidityPolicy();
+        this.validityPolicy = new CacheValidityPolicy(config);
         this.responseGenerator = new CachedHttpResponseGenerator(this.validityPolicy);
         this.cacheableRequestPolicy = new CacheableRequestPolicy();
         this.suitabilityChecker = new CachedResponseSuitabilityChecker(this.validityPolicy, this.cacheConfig);
