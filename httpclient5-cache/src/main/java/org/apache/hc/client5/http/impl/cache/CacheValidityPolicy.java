@@ -28,6 +28,7 @@ package org.apache.hc.client5.http.impl.cache;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.utils.DateUtils;
@@ -206,28 +207,53 @@ class CacheValidityPolicy {
         return TimeValue.ofSeconds(diff.getSeconds());
     }
 
+    /**
+     * Extracts and processes the Age value from an HttpCacheEntry by tokenizing the Age header value.
+     * The Age header value is interpreted as a sequence of tokens, and the first token is parsed into a number
+     * representing the age in delta-seconds. If the first token cannot be parsed into a number, the Age value is
+     * considered as invalid and this method returns 0. If the first token represents a negative number or a number
+     * that exceeds Integer.MAX_VALUE, the Age value is set to MAX_AGE (in seconds).
+     * This method uses CacheSupport.parseTokens to robustly handle the Age header value.
+     * <p>
+     * Note: If the HttpCacheEntry contains multiple Age headers, only the first one is considered.
+     *
+     * @param entry The HttpCacheEntry from which to extract the Age value.
+     * @return The Age value in delta-seconds, or MAX_AGE in seconds if the Age value exceeds Integer.MAX_VALUE or
+     * is negative. If the Age value is invalid (cannot be parsed into a number or contains non-numeric characters),
+     * this method returns 0.
+     */
     protected long getAgeValue(final HttpCacheEntry entry) {
-        // This is a header value, we leave as-is
-        long ageValue = 0;
-        for (final Header hdr : entry.getHeaders(HttpHeaders.AGE)) {
-            long hdrAge;
+        final Header age = entry.getFirstHeader(HttpHeaders.AGE);
+        if (age != null) {
             try {
-                hdrAge = Long.parseLong(hdr.getValue());
-                if (hdrAge < 0) {
-                    hdrAge = MAX_AGE.toSeconds();
+                final AtomicReference<String> firstToken = new AtomicReference<>();
+                CacheSupport.parseTokens(age, token -> firstToken.compareAndSet(null, token));
+                final String s = firstToken.get();
+                if (s != null) {
+                    long ageValue = Long.parseLong(s);
+                    if (ageValue < 0) {
+                        ageValue = 0;  // Handle negative age values as invalid
+                    } else if (ageValue > Integer.MAX_VALUE) {
+                        ageValue = MAX_AGE.toSeconds();
+                    }
+                    return ageValue;
                 }
-            } catch (final NumberFormatException nfe) {
-                hdrAge = MAX_AGE.toSeconds();
+            } catch (final NumberFormatException ex) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Invalid Age header: '{}'. Ignoring.", age, ex);
+                }
             }
-            ageValue = (hdrAge > ageValue) ? hdrAge : ageValue;
         }
-        return ageValue;
+        // If we've got here, there were no valid Age headers
+        return 0;
     }
 
-    protected TimeValue getCorrectedReceivedAge(final HttpCacheEntry entry) {
-        final TimeValue apparentAge = getApparentAge(entry);
+
+
+    protected TimeValue getCorrectedAgeValue(final HttpCacheEntry entry) {
         final long ageValue = getAgeValue(entry);
-        return (apparentAge.toSeconds() > ageValue) ? apparentAge : TimeValue.ofSeconds(ageValue);
+        final long responseDelay = getResponseDelay(entry).toSeconds();
+        return TimeValue.ofSeconds(ageValue + responseDelay);
     }
 
     protected TimeValue getResponseDelay(final HttpCacheEntry entry) {
@@ -236,7 +262,9 @@ class CacheValidityPolicy {
     }
 
     protected TimeValue getCorrectedInitialAge(final HttpCacheEntry entry) {
-        return TimeValue.ofSeconds(getCorrectedReceivedAge(entry).toSeconds() + getResponseDelay(entry).toSeconds());
+        final long apparentAge = getApparentAge(entry).toSeconds();
+        final long correctedReceivedAge = getCorrectedAgeValue(entry).toSeconds();
+        return TimeValue.ofSeconds(Math.max(apparentAge, correctedReceivedAge));
     }
 
     protected TimeValue getResidentTime(final HttpCacheEntry entry, final Instant now) {
