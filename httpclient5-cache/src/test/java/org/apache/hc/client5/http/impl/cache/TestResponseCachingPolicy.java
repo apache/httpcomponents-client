@@ -530,10 +530,10 @@ public class TestResponseCachingPolicy {
     }
 
     @Test
-    public void testResponsesWithMultipleAgeHeadersAreNotCacheable() {
+    public void testResponsesWithMultipleAgeHeadersAreCacheable() {
         response.addHeader("Age", "3");
         response.addHeader("Age", "5");
-        Assertions.assertFalse(policy.isResponseCacheable(responseCacheControl, "GET", response));
+        Assertions.assertTrue(policy.isResponseCacheable(responseCacheControl, "GET", response));
     }
 
     @Test
@@ -546,7 +546,7 @@ public class TestResponseCachingPolicy {
         responseCacheControl = ResponseCacheControl.builder()
                 .setCachePublic(true)
                 .build();
-        Assertions.assertFalse(policy.isResponseCacheable(responseCacheControl, request, response));
+        Assertions.assertTrue(policy.isResponseCacheable(responseCacheControl, request, response));
     }
 
     @Test
