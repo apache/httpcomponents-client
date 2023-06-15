@@ -26,6 +26,8 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.SocketTimeoutException;
@@ -2123,7 +2125,13 @@ public class TestProtocolRequirements {
         final ClassicHttpResponse result = execute(request);
 
         Assertions.assertEquals(200, result.getCode());
-        Assertions.assertEquals("11", result.getFirstHeader("Age").getValue());
+        // We calculate the age of the cache entry as per RFC 9111:
+        // We first find the "corrected_initial_age" which is the maximum of "apparentAge" and "correctedReceivedAge".
+        // In this case, max(1, 2) = 2 seconds.
+        // We then add the "residentTime" which is "now - responseTime",
+        // which is the current time minus the time the cache entry was created. In this case, that is 8 seconds.
+        // So, the total age is "corrected_initial_age" + "residentTime" = 2 + 8 = 10 seconds.
+        assertThat(result, ContainsHeaderMatcher.contains("Age", "10"));
     }
 
     /*
@@ -4006,7 +4014,7 @@ public class TestProtocolRequirements {
 
         final ClassicHttpResponse result = execute(request);
 
-        Assertions.assertEquals("2147483648",
+        Assertions.assertEquals(reallyOldAge,
                             result.getFirstHeader("Age").getValue());
     }
 

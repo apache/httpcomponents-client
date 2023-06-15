@@ -201,11 +201,6 @@ class ResponseCachingPolicy {
             }
         }
 
-        if (response.countHeaders(HttpHeaders.AGE) > 1) {
-            LOG.debug("Multiple Age headers");
-            return false;
-        }
-
         if (response.countHeaders(HttpHeaders.EXPIRES) > 1) {
             LOG.debug("Multiple Expires headers");
             return false;
