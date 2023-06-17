@@ -28,6 +28,7 @@ package org.apache.hc.client5.http.impl.cache;
 
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
@@ -37,11 +38,13 @@ import org.apache.hc.client5.http.cache.HttpCacheUpdateException;
 import org.apache.hc.client5.http.cache.ResourceFactory;
 import org.apache.hc.client5.http.cache.ResourceIOException;
 import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HeaderElement;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.Method;
+import org.apache.hc.core5.http.message.MessageSupport;
 import org.apache.hc.core5.http.message.RequestLine;
 import org.apache.hc.core5.http.message.StatusLine;
 import org.apache.hc.core5.util.ByteArrayBuffer;
@@ -308,6 +311,7 @@ class BasicHttpCache implements HttpCache {
         if (!root.hasVariants()) {
             return root;
         }
+
         HttpCacheEntry mostRecentVariant = null;
         for (final String variantCacheKey : root.getVariantMap().values()) {
             final HttpCacheEntry variant;
@@ -323,6 +327,11 @@ class BasicHttpCache implements HttpCache {
                 continue;
             }
 
+            // Skip the variant if it is not suitable
+            if (!isSuitableVariant(variant, request)) {
+                continue;
+            }
+
             if (!variant.containsHeader(HttpHeaders.DATE)) {
                 continue;
             }
@@ -333,6 +342,80 @@ class BasicHttpCache implements HttpCache {
         }
         return mostRecentVariant != null ? mostRecentVariant : root;
     }
+
+    /**
+     * Checks if a cached variant is suitable for a given request.
+     * <p>
+     * It considers Vary, Accept, Accept-Language, and
+     * Accept-Encoding headers of the request and the cached variant.
+     * <p>
+     * If the Vary header is present in the variant, the method ensures
+     * that the value of each field specified in the Vary header matches
+     * between the request and the variant.
+     * <p>
+     * The method also ensures that if the request has Accept,
+     * Accept-Language, or Accept-Encoding headers, the corresponding
+     * headers in the variant match the requested values.
+     * <p>
+     * Note: The current implementation only checks for exact matches of
+     * single header values. If the headers have multiple values, or
+     * q-values and wildcards are used, the method may not work correctly.
+     *
+     * @param variant The cached variant.
+     * @param request The request.
+     * @return true if the variant is suitable for the request; false otherwise.
+     */
+    private boolean isSuitableVariant(final HttpCacheEntry variant, final HttpRequest request) {
+        // Check Vary header
+        final Header varyHeader = variant.getFirstHeader(HttpHeaders.VARY);
+        if (varyHeader != null) {
+            final Iterator<HeaderElement> it = MessageSupport.iterate(variant, HttpHeaders.VARY);
+            while (it.hasNext()) {
+                final HeaderElement varyField = it.next();
+                final Header requestHeader = request.getFirstHeader(varyField.getName());
+                final Header variantHeader = variant.getFirstHeader(varyField.getName());
+                if (requestHeader == null && variantHeader != null ||
+                        requestHeader != null && variantHeader == null ||
+                        requestHeader != null && !requestHeader.getValue().equals(variantHeader.getValue())) {
+                    return false;
+                }
+            }
+        }
+
+        // Check content type
+        final Header acceptHeader = request.getFirstHeader(HttpHeaders.ACCEPT);
+        if (acceptHeader != null && !variant.containsHeader(HttpHeaders.CONTENT_TYPE)) {
+            // This only checks for the presence of Content-Type header in variant.
+            // Ideally, this should parse the Accept and Content-Type headers and check
+            // if any acceptable media type matches the variant's media type.
+            return false;
+        }
+
+        // Check language
+        final Header acceptLanguageHeader = request.getFirstHeader(HttpHeaders.ACCEPT_LANGUAGE);
+        if (acceptLanguageHeader != null) {
+            // Again, this should parse the Accept-Language and Content-Language headers
+            // and check if any acceptable language matches the variant's language.
+            final Header contentLanguageHeader = variant.getFirstHeader(HttpHeaders.CONTENT_LANGUAGE);
+            if (contentLanguageHeader == null || !contentLanguageHeader.getValue().equals(acceptLanguageHeader.getValue())) {
+                return false;
+            }
+        }
+
+        // Check encoding
+        final Header acceptEncodingHeader = request.getFirstHeader(HttpHeaders.ACCEPT_ENCODING);
+        if (acceptEncodingHeader != null) {
+            // Similar to the Accept and Accept-Language headers, the Accept-Encoding
+            // header can have multiple values and should be parsed accordingly.
+            final Header contentEncodingHeader = variant.getFirstHeader(HttpHeaders.CONTENT_ENCODING);
+            if (contentEncodingHeader == null || !contentEncodingHeader.getValue().equals(acceptEncodingHeader.getValue())) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
 
     @Override
     public Map<String, Variant> getVariantCacheEntriesWithEtags(final HttpHost host, final HttpRequest request) {
