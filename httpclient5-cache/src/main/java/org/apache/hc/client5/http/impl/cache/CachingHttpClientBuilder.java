@@ -30,6 +30,7 @@ import java.io.File;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
+import org.apache.hc.client5.http.cache.HttpCacheEntryFactory;
 import org.apache.hc.client5.http.cache.HttpCacheInvalidator;
 import org.apache.hc.client5.http.cache.HttpCacheStorage;
 import org.apache.hc.client5.http.cache.ResourceFactory;
@@ -129,6 +130,7 @@ public class CachingHttpClientBuilder extends HttpClientBuilder {
         }
         final HttpCache httpCache = new BasicHttpCache(
                 resourceFactoryCopy,
+                HttpCacheEntryFactory.INSTANCE,
                 storageCopy,
                 CacheKeyGenerator.INSTANCE,
                 this.httpCacheInvalidator != null ? this.httpCacheInvalidator : new DefaultCacheInvalidator());
