@@ -73,7 +73,7 @@ public class HttpCacheEntryMatcher extends BaseMatcher<HttpCacheEntry> {
                 if (expectedValue.getStatus() != otherValue.getStatus()) {
                     return false;
                 }
-                if (!headersEqual(expectedValue.requestHeaderIterator(), otherValue.requestHeaderIterator())) {
+                if (!headersEqual(expectedValue.headerIterator(), otherValue.headerIterator())) {
                     return false;
                 }
                 if (!instantEqual(expectedValue.getResponseInstant(), otherValue.getResponseInstant())) {

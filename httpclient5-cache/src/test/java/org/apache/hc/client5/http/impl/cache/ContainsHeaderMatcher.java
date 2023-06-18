@@ -29,14 +29,13 @@ package org.apache.hc.client5.http.impl.cache;
 import java.util.Iterator;
 import java.util.Objects;
 
-import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.MessageHeaders;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 
-public class ContainsHeaderMatcher extends BaseMatcher<HttpCacheEntry> {
+public class ContainsHeaderMatcher extends BaseMatcher<MessageHeaders> {
 
     private final String headerName;
     private final Object headerValue;
@@ -65,7 +64,7 @@ public class ContainsHeaderMatcher extends BaseMatcher<HttpCacheEntry> {
         description.appendText("contains header ").appendValue(headerValue).appendText(": ").appendValue(headerValue);
     }
 
-    public static Matcher<HttpCacheEntry> contains(final String headerName, final Object headerValue) {
+    public static Matcher<MessageHeaders> contains(final String headerName, final Object headerValue) {
         return new ContainsHeaderMatcher(headerName, headerValue);
     }
 
