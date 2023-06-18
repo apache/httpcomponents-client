@@ -44,7 +44,6 @@ import org.apache.hc.client5.http.classic.methods.HttpOptions;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.classic.methods.HttpTrace;
 import org.apache.hc.client5.http.utils.DateUtils;
-import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
@@ -133,10 +132,9 @@ public class TestBasicHttpCache {
         resp.setHeader(HttpHeaders.ETAG, "\"etag\"");
         final String key = CacheKeyGenerator.INSTANCE.generateKey(host, new HttpGet("/bar"));
 
-        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(new Header[] {
-           new BasicHeader("Date", DateUtils.formatStandardDate(Instant.now())),
-           new BasicHeader("ETag", "\"old-etag\"")
-        });
+        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(
+                new BasicHeader("Date", DateUtils.formatStandardDate(Instant.now())),
+                new BasicHeader("ETag", "\"old-etag\""));
 
         backing.map.put(key, entry);
 
@@ -154,10 +152,9 @@ public class TestBasicHttpCache {
         resp.setHeader("Content-Location", "/bar");
         final String key = CacheKeyGenerator.INSTANCE.generateKey(host, new HttpGet("/bar"));
 
-        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(new Header[] {
-           new BasicHeader("Date", DateUtils.formatStandardDate(Instant.now())),
-           new BasicHeader("ETag", "\"old-etag\"")
-        });
+        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(
+                new BasicHeader("Date", DateUtils.formatStandardDate(Instant.now())),
+                new BasicHeader("ETag", "\"old-etag\""));
 
         backing.map.put(key, entry);
 
@@ -234,7 +231,7 @@ public class TestBasicHttpCache {
 
         final HttpRequest request = new HttpGet("http://foo.example.com/bar");
         final HttpCacheEntry result = impl.getCacheEntry(host, request);
-        assertNotNull(result);
+        assertNull(result);
     }
 
     @Test

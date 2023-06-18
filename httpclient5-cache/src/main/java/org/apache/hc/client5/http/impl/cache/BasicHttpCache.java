@@ -305,33 +305,22 @@ class BasicHttpCache implements HttpCache {
         if (root == null) {
             return null;
         }
-        if (!root.hasVariants()) {
+        if (root.hasVariants()) {
+            final String variantKey = cacheKeyGenerator.generateVariantKey(request, root);
+            final String variantCacheKey = root.getVariantMap().get(variantKey);
+            if (variantCacheKey != null) {
+                try {
+                    return storage.getEntry(variantCacheKey);
+                } catch (final ResourceIOException ex) {
+                    if (LOG.isWarnEnabled()) {
+                        LOG.warn("I/O error retrieving cache entry with key {}", variantCacheKey);
+                    }
+                }
+            }
+            return null;
+        } else {
             return root;
         }
-        HttpCacheEntry mostRecentVariant = null;
-        for (final String variantCacheKey : root.getVariantMap().values()) {
-            final HttpCacheEntry variant;
-            try {
-                variant = storage.getEntry(variantCacheKey);
-            } catch (final ResourceIOException ex) {
-                if (LOG.isWarnEnabled()) {
-                    LOG.warn("I/O error retrieving cache entry with key {}", variantCacheKey);
-                }
-                continue;
-            }
-            if (variant == null) {
-                continue;
-            }
-
-            if (!variant.containsHeader(HttpHeaders.DATE)) {
-                continue;
-            }
-
-            if (mostRecentVariant == null || mostRecentVariant.getDate().before(variant.getDate())) {
-                mostRecentVariant = variant;
-            }
-        }
-        return mostRecentVariant != null ? mostRecentVariant : root;
     }
 
     @Override
