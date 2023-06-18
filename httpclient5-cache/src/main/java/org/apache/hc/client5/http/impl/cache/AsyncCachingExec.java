@@ -673,8 +673,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
             final boolean staleIfErrorEnabled = responseCachingPolicy.isStaleIfErrorEnabled(responseCacheControl, entry);
             if (cacheRevalidator != null
                     && !staleResponseNotAllowed(requestCacheControl, responseCacheControl, entry, now)
-                    && validityPolicy.mayReturnStaleWhileRevalidating(responseCacheControl, entry, now)
-                    || staleIfErrorEnabled) {
+                    && (validityPolicy.mayReturnStaleWhileRevalidating(responseCacheControl, entry, now) || staleIfErrorEnabled)) {
                 LOG.debug("Serving stale with asynchronous revalidation");
                 try {
                     final SimpleHttpResponse cacheResponse = generateCachedResponse(responseCacheControl, request, context, entry, now);
