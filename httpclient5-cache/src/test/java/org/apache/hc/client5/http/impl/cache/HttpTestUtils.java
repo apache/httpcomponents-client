@@ -36,7 +36,7 @@ import java.util.Objects;
 import java.util.Random;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
-import org.apache.hc.client5.http.cache.CacheHeaderSupport;
+import org.apache.hc.client5.http.cache.HttpCacheEntryFactory;
 import org.apache.hc.client5.http.cache.Resource;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.ClassicHttpRequest;
@@ -131,7 +131,7 @@ public class HttpTestUtils {
      */
     public static boolean isEndToEndHeaderSubset(final HttpMessage r1, final HttpMessage r2) {
         for (final Header h : r1.getHeaders()) {
-            if (!CacheHeaderSupport.isHopByHop(h)) {
+            if (!HttpCacheEntryFactory.isHopByHop(h)) {
                 final String r1val = getCanonicalHeaderValue(r1, h.getName());
                 final String r2val = getCanonicalHeaderValue(r2, h.getName());
                 if (!r1val.equals(r2val)) {
@@ -186,13 +186,23 @@ public class HttpTestUtils {
                 isEndToEndHeaderSubset(r1, r2);
     }
 
-    public static byte[] getRandomBytes(final int nbytes) {
+    public static byte[] makeRandomBytes(final int nbytes) {
         final byte[] bytes = new byte[nbytes];
         new Random().nextBytes(bytes);
         return bytes;
     }
 
-    public static ByteArrayBuffer getRandomBuffer(final int nbytes) {
+    public static Resource makeRandomResource(final int nbytes) {
+        final byte[] bytes = new byte[nbytes];
+        new Random().nextBytes(bytes);
+        return new HeapResource(bytes);
+    }
+
+    public static Resource makeNullResource() {
+        return null;
+    }
+
+    public static ByteArrayBuffer makeRandomBuffer(final int nbytes) {
         final ByteArrayBuffer buf = new ByteArrayBuffer(nbytes);
         buf.setLength(nbytes);
         new Random().nextBytes(buf.array());
@@ -204,7 +214,7 @@ public class HttpTestUtils {
      *  @return an {@link HttpEntity}
      */
     public static HttpEntity makeBody(final int nbytes) {
-        return new ByteArrayEntity(getRandomBytes(nbytes), null);
+        return new ByteArrayEntity(makeRandomBytes(nbytes), null);
     }
 
     public static HeaderGroup headers(final Header... headers) {
@@ -222,37 +232,57 @@ public class HttpTestUtils {
                                                 final Header[] requestHeaders,
                                                 final int status,
                                                 final Header[] responseHeaders,
-                                                final Resource resource,
                                                 final Map<String, String> variantMap) {
-        return new HttpCacheEntry(requestDate, responseDate, method.name(), requestUri,
-                headers(requestHeaders), status, headers(responseHeaders), resource, variantMap);
+        return new HttpCacheEntry(
+                requestDate,
+                responseDate,
+                method.name(), requestUri, headers(requestHeaders),
+                status, headers(responseHeaders),
+                null,
+                variantMap);
     }
 
     public static HttpCacheEntry makeCacheEntry(final Instant requestDate,
                                                 final Instant responseDate,
                                                 final Method method,
+                                                final String requestUri,
+                                                final Header[] requestHeaders,
                                                 final int status,
                                                 final Header[] responseHeaders,
-                                                final byte[] content,
-                                                final Map<String, String> variantMap) {
-        return new HttpCacheEntry(requestDate, responseDate, method.name(), "/",
-                headers(), status, headers(responseHeaders), content != null ? new HeapResource(content) : null, variantMap);
+                                                final Resource resource) {
+        return new HttpCacheEntry(
+                requestDate,
+                responseDate,
+                method.name(), requestUri, headers(requestHeaders),
+                status, headers(responseHeaders),
+                resource,
+                null);
     }
 
     public static HttpCacheEntry makeCacheEntry(final Instant requestDate,
                                                 final Instant responseDate,
                                                 final int status,
                                                 final Header[] responseHeaders,
-                                                final Resource resource,
                                                 final Map<String, String> variantMap) {
-        return new HttpCacheEntry(requestDate, responseDate, Method.GET.name(), "/",
-                headers(), status, headers(responseHeaders), resource, variantMap);
+        return makeCacheEntry(
+                requestDate,
+                responseDate,
+                Method.GET, "/", null,
+                status, responseHeaders,
+                variantMap);
     }
 
-    public static HttpCacheEntry makeCacheEntry(final Instant requestDate, final Instant responseDate) {
-        final Duration diff = Duration.between(requestDate, responseDate);
-        final Instant when = requestDate.plusMillis(diff.toMillis() / 2);
-        return makeCacheEntry(requestDate, responseDate, getStockHeaders(when));
+    public static HttpCacheEntry makeCacheEntry(final Instant requestDate,
+                                                final Instant responseDate,
+                                                final int status,
+                                                final Header[] responseHeaders,
+                                                final Resource resource) {
+        return makeCacheEntry(
+                requestDate,
+                responseDate,
+                Method.GET, "/", null,
+                status, responseHeaders,
+                resource);
     }
 
     public static Header[] getStockHeaders(final Instant when) {
@@ -262,28 +292,30 @@ public class HttpTestUtils {
         };
     }
 
-    public static HttpCacheEntry makeCacheEntry(final Instant requestDate,
-                                                final Instant responseDate, final Header... headers) {
-        final byte[] bytes = getRandomBytes(128);
-        return makeCacheEntry(requestDate, responseDate, headers, bytes);
+    public static HttpCacheEntry makeCacheEntry(final Instant requestDate, final Instant responseDate) {
+        final Duration diff = Duration.between(requestDate, responseDate);
+        final Instant when = requestDate.plusMillis(diff.toMillis() / 2);
+        return makeCacheEntry(requestDate, responseDate, getStockHeaders(when));
     }
 
     public static HttpCacheEntry makeCacheEntry(final Instant requestDate,
-                                                final Instant responseDate, final Header[] headers, final byte[] bytes) {
-        return makeCacheEntry(requestDate, responseDate, headers, bytes, null);
-    }
-
-    public static HttpCacheEntry makeCacheEntry(final Map<String,String> variantMap) {
-        final Instant now = Instant.now();
-        return makeCacheEntry(now, now, Method.GET, "/", null, HttpStatus.SC_OK, getStockHeaders(now),
-                new HeapResource(getRandomBytes(128)), variantMap);
+                                                final Instant responseDate,
+                                                final Header[] headers,
+                                                final byte[] bytes) {
+        return makeCacheEntry(requestDate, responseDate, HttpStatus.SC_OK, headers, new HeapResource(bytes));
     }
 
     public static HttpCacheEntry makeCacheEntry(final Instant requestDate,
-            final Instant responseDate, final Header[] headers, final byte[] bytes,
-            final Map<String,String> variantMap) {
-        return makeCacheEntry(requestDate, responseDate, Method.GET, "/", null, HttpStatus.SC_OK,
-                headers, new HeapResource(bytes), variantMap);
+                                                final Instant responseDate,
+                                                final Header... headers) {
+        return makeCacheEntry(requestDate, responseDate, headers, makeRandomBytes(128));
+    }
+
+    public static HttpCacheEntry makeCacheEntry(final Instant requestDate,
+                                                final Instant responseDate,
+                                                final Header[] headers,
+                                                final Map<String,String> variantMap) {
+        return makeCacheEntry(requestDate, responseDate, Method.GET, "/", null, HttpStatus.SC_OK, headers, variantMap);
     }
 
     public static HttpCacheEntry makeCacheEntry(final Header[] headers, final byte[] bytes) {
@@ -297,7 +329,7 @@ public class HttpTestUtils {
     }
 
     public static HttpCacheEntry makeCacheEntry(final Header... headers) {
-        return makeCacheEntry(headers, getRandomBytes(128));
+        return makeCacheEntry(headers, makeRandomBytes(128));
     }
 
     public static HttpCacheEntry makeCacheEntry() {

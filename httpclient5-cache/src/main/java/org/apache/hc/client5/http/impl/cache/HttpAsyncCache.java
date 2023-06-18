@@ -74,7 +74,7 @@ interface HttpAsyncCache {
     /**
      * Store a {@link HttpResponse} in the cache if possible, and return
      */
-    Cancellable createCacheEntry(
+    Cancellable createEntry(
             HttpHost host,
             HttpRequest request,
             HttpResponse originResponse,
@@ -86,7 +86,7 @@ interface HttpAsyncCache {
     /**
      * Update a {@link HttpCacheEntry} using a 304 {@link HttpResponse}.
      */
-    Cancellable updateCacheEntry(
+    Cancellable updateEntry(
             HttpHost host,
             HttpRequest request,
             HttpCacheEntry stale,
@@ -99,11 +99,11 @@ interface HttpAsyncCache {
      * Update a specific {@link HttpCacheEntry} representing a cached variant
      * using a 304 {@link HttpResponse}.
      */
-    Cancellable updateVariantCacheEntry(
+    Cancellable updateVariantEntry(
             HttpHost host,
             HttpRequest request,
             HttpResponse originResponse,
-            Variant variant,
+            HttpCacheEntry entry,
             Instant requestSent,
             Instant responseReceived,
             FutureCallback<HttpCacheEntry> callback);
@@ -114,7 +114,10 @@ interface HttpAsyncCache {
      */
     Cancellable reuseVariantEntryFor(
             HttpHost host,
-            HttpRequest req,
-            Variant variant,
+            HttpRequest request,
+            HttpResponse originResponse,
+            HttpCacheEntry entry,
+            Instant requestSent,
+            Instant responseReceived,
             FutureCallback<Boolean> callback);
 }

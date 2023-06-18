@@ -159,11 +159,6 @@ class CachedHttpResponseGenerator {
         response.setHeader(HttpHeaders.CONTENT_LENGTH, Integer.toString(body.length));
     }
 
-    private boolean transferEncodingIsPresent(final HttpResponse response) {
-        final Header hdr = response.getFirstHeader(HttpHeaders.TRANSFER_ENCODING);
-        return hdr != null;
-    }
-
     private boolean responseShouldContainEntity(final HttpRequest request, final HttpCacheEntry cacheEntry) {
         return request.getMethod().equals(HeaderConstants.GET_METHOD) && cacheEntry.getResource() != null;
     }

@@ -36,7 +36,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
@@ -275,8 +274,6 @@ public class TestByteArrayCacheEntrySerializer {
         for (int i = 0; i < headers.length; i++) {
             headers[i] = new BasicHeader("header" + i, "value" + i);
         }
-        final String body = "Lorem ipsum dolor sit amet";
-
         final Map<String,String> variantMap = new HashMap<>();
         variantMap.put("test variant 1","true");
         variantMap.put("test variant 2","true");
@@ -285,7 +282,6 @@ public class TestByteArrayCacheEntrySerializer {
                 Instant.now(),
                 HttpStatus.SC_OK,
                 headers,
-                new HeapResource(body.getBytes(StandardCharsets.UTF_8)),
                 variantMap);
 
         return new HttpCacheStorageEntry(key, cacheEntry);
@@ -296,8 +292,6 @@ public class TestByteArrayCacheEntrySerializer {
         for (int i = 0; i < headers.length; i++) {
             headers[i] = new BasicHeader("header" + i, "value" + i);
         }
-        final String body = "Lorem ipsum dolor sit amet";
-
         final Map<String,String> variantMap = new HashMap<>();
         variantMap.put("test variant 1","true");
         variantMap.put("test variant 2","true");
@@ -306,7 +300,6 @@ public class TestByteArrayCacheEntrySerializer {
                 Instant.now(),
                 HttpStatus.SC_OK,
                 headers,
-                new HeapResource(body.getBytes(StandardCharsets.UTF_8)),
                 variantMap);
 
         return new HttpCacheStorageEntry(key, cacheEntry);
