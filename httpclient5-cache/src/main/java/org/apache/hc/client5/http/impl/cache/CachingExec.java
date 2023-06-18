@@ -281,8 +281,7 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
             try {
                 if (cacheRevalidator != null
                         && !staleResponseNotAllowed(requestCacheControl, responseCacheControl, entry, now)
-                        && validityPolicy.mayReturnStaleWhileRevalidating(responseCacheControl, entry, now)
-                        || staleIfErrorEnabled) {
+                        && (validityPolicy.mayReturnStaleWhileRevalidating(responseCacheControl, entry, now) || staleIfErrorEnabled)) {
                     LOG.debug("Serving stale with asynchronous revalidation");
                     final String exchangeId = ExecSupport.getNextExchangeId();
                     context.setExchangeId(exchangeId);
