@@ -34,6 +34,7 @@ import org.apache.hc.core5.function.Factory;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.message.MessageSupport;
 
 class ConditionalRequestBuilder<T extends HttpRequest> {
 
@@ -85,19 +86,7 @@ class ConditionalRequestBuilder<T extends HttpRequest> {
      */
     public T buildConditionalRequestFromVariants(final T request, final Map<String, Variant> variants) {
         final T newRequest = messageCopier.create(request);
-
-        // we do not support partial content so all etags are used
-        final StringBuilder etags = new StringBuilder();
-        boolean first = true;
-        for(final String etag : variants.keySet()) {
-            if (!first) {
-                etags.append(",");
-            }
-            first = false;
-            etags.append(etag);
-        }
-
-        newRequest.setHeader(HttpHeaders.IF_NONE_MATCH, etags.toString());
+        newRequest.setHeader(MessageSupport.format(HttpHeaders.IF_NONE_MATCH, variants.keySet()));
         return newRequest;
     }
 
