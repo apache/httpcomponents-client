@@ -30,8 +30,6 @@ package org.apache.hc.client5.http.impl.cache;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
@@ -62,6 +60,7 @@ import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
 import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
 import org.apache.hc.core5.http.message.MessageSupport;
+import org.hamcrest.MatcherAssert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -186,7 +185,7 @@ public class TestProtocolRecommendations {
 
 
         if (HttpStatus.SC_NOT_MODIFIED == result.getCode()) {
-            assertNull(result.getFirstHeader(headerName));
+            assertFalse(result.containsHeader(headerName));
         }
     }
 
@@ -296,7 +295,7 @@ public class TestProtocolRecommendations {
         final List<ClassicHttpRequest> allRequests = reqCapture.getAllValues();
         if (allRequests.isEmpty() && HttpStatus.SC_NOT_MODIFIED == result.getCode()) {
             // cache generated a 304
-            assertNull(result.getFirstHeader("Content-Range"));
+            assertFalse(result.containsHeader("Content-Range"));
         }
     }
 
@@ -350,7 +349,7 @@ public class TestProtocolRecommendations {
 
         final ClassicHttpResponse result = execute(req);
 
-        assertNull(result.getFirstHeader(entityHeader));
+        assertFalse(result.containsHeader(entityHeader));
     }
 
     @Test
@@ -404,7 +403,7 @@ public class TestProtocolRecommendations {
 
         final ClassicHttpResponse result = execute(req);
 
-        assertNull(result.getFirstHeader("Content-Range"));
+        assertFalse(result.containsHeader("Content-Range"));
     }
 
     @Test
@@ -503,7 +502,7 @@ public class TestProtocolRecommendations {
         final ClassicHttpResponse result = execute(req2);
 
         assertEquals(HttpStatus.SC_OK, result.getCode());
-        assertNotNull(result.getFirstHeader("Warning"));
+        assertTrue(result.containsHeader("Warning"));
 
         Mockito.verify(mockExecChain, Mockito.atMost(1)).proceed(Mockito.any(), Mockito.any());
     }
@@ -596,7 +595,7 @@ public class TestProtocolRecommendations {
 
         final ClassicHttpResponse result = execute(request);
 
-        assertNull(result.getFirstHeader("Warning"));
+        assertFalse(result.containsHeader("Warning"));
     }
 
     @Test
@@ -612,7 +611,7 @@ public class TestProtocolRecommendations {
 
         final ClassicHttpResponse result = execute(request);
 
-        assertEquals(warning, result.getFirstHeader("Warning").getValue());
+        MatcherAssert.assertThat(result, ContainsHeaderMatcher.contains("Warning", warning));
     }
 
     /*
@@ -628,7 +627,7 @@ public class TestProtocolRecommendations {
 
         final ClassicHttpResponse result = execute(request);
 
-        assertEquals(headerValue, result.getFirstHeader(headerName).getValue());
+        MatcherAssert.assertThat(result, ContainsHeaderMatcher.contains(headerName, headerValue));
     }
 
     private void testDoesNotModifyHeaderOnRequests(final String headerName) throws Exception {
@@ -888,8 +887,7 @@ public class TestProtocolRecommendations {
         Mockito.verify(mockExecChain, Mockito.times(2)).proceed(reqCapture.capture(), Mockito.any());
 
         final ClassicHttpRequest captured = reqCapture.getValue();
-        final Header ifModifiedSince = captured.getFirstHeader("If-Modified-Since");
-        assertEquals(lmDate, ifModifiedSince.getValue());
+        MatcherAssert.assertThat(captured, ContainsHeaderMatcher.contains("If-Modified-Since", lmDate));
     }
 
     /*
@@ -928,10 +926,9 @@ public class TestProtocolRecommendations {
         Mockito.verify(mockExecChain, Mockito.times(2)).proceed(reqCapture.capture(), Mockito.any());
 
         final ClassicHttpRequest captured = reqCapture.getValue();
-        final Header ifModifiedSince = captured.getFirstHeader("If-Modified-Since");
-        assertEquals(lmDate, ifModifiedSince.getValue());
-        final Header ifNoneMatch = captured.getFirstHeader("If-None-Match");
-        assertEquals(etag, ifNoneMatch.getValue());
+
+        MatcherAssert.assertThat(captured, ContainsHeaderMatcher.contains("If-Modified-Since", lmDate));
+        MatcherAssert.assertThat(captured, ContainsHeaderMatcher.contains("If-None-Match", etag));
     }
 
     /*
@@ -1031,11 +1028,11 @@ public class TestProtocolRecommendations {
             }
         }
         assertTrue(hasMaxAge0 || hasNoCache);
-        assertNull(captured.getFirstHeader("If-None-Match"));
-        assertNull(captured.getFirstHeader("If-Modified-Since"));
-        assertNull(captured.getFirstHeader("If-Range"));
-        assertNull(captured.getFirstHeader("If-Match"));
-        assertNull(captured.getFirstHeader("If-Unmodified-Since"));
+        assertFalse(captured.containsHeader("If-None-Match"));
+        assertFalse(captured.containsHeader("If-Modified-Since"));
+        assertFalse(captured.containsHeader("If-Range"));
+        assertFalse(captured.containsHeader("If-Match"));
+        assertFalse(captured.containsHeader("If-Unmodified-Since"));
     }
 
     /* "If an entity tag was assigned to a cached representation, the
@@ -1081,10 +1078,22 @@ public class TestProtocolRecommendations {
         execute(req3);
 
         final ArgumentCaptor<ClassicHttpRequest> reqCapture = ArgumentCaptor.forClass(ClassicHttpRequest.class);
-        Mockito.verify(mockExecChain, Mockito.times(1)).proceed(reqCapture.capture(), Mockito.any());
+        Mockito.verify(mockExecChain, Mockito.times(3)).proceed(reqCapture.capture(), Mockito.any());
 
         final ClassicHttpRequest captured = reqCapture.getValue();
-        assertNull(captured.getFirstHeader("If-None-Match"), "If-None-Match header should not be present");
+        boolean foundEtag1 = false;
+        boolean foundEtag2 = false;
+        for(final Header h : captured.getHeaders("If-None-Match")) {
+            for(final String etag : h.getValue().split(",")) {
+                if ("\"etag1\"".equals(etag.trim())) {
+                    foundEtag1 = true;
+                }
+                if ("\"etag2\"".equals(etag.trim())) {
+                    foundEtag2 = true;
+                }
+            }
+        }
+        assertTrue(foundEtag1 && foundEtag2);
     }
 
     /* "If the entity-tag of the new response matches that of an existing
@@ -1126,22 +1135,20 @@ public class TestProtocolRecommendations {
         req4.setHeader("User-Agent", "agent1");
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
-
         execute(req1);
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp2);
-
         execute(req2);
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp3);
-
         final ClassicHttpResponse result1 = execute(req3);
+
         final ClassicHttpResponse result2 = execute(req4);
 
         assertEquals(HttpStatus.SC_OK, result1.getCode());
-        assertEquals("\"etag1\"", result1.getFirstHeader("ETag").getValue());
-        assertEquals(DateUtils.formatStandardDate(tenSecondsAgo), result1.getFirstHeader("Date").getValue());
-        assertEquals(DateUtils.formatStandardDate(tenSecondsAgo), result2.getFirstHeader("Date").getValue());
+        MatcherAssert.assertThat(result1, ContainsHeaderMatcher.contains("ETag", "\"etag1\""));
+        MatcherAssert.assertThat(result1, ContainsHeaderMatcher.contains("Date", DateUtils.formatStandardDate(now)));
+        MatcherAssert.assertThat(result2, ContainsHeaderMatcher.contains("Date", DateUtils.formatStandardDate(now)));
     }
 
     @Test
@@ -1224,7 +1231,7 @@ public class TestProtocolRecommendations {
         execute(req3);
 
         final ArgumentCaptor<ClassicHttpRequest> reqCapture = ArgumentCaptor.forClass(ClassicHttpRequest.class);
-        Mockito.verify(mockExecChain, Mockito.times(1)).proceed(reqCapture.capture(), Mockito.any());
+        Mockito.verify(mockExecChain, Mockito.times(3)).proceed(reqCapture.capture(), Mockito.any());
 
         final ClassicHttpRequest captured = reqCapture.getValue();
         final Iterator<HeaderElement> it = MessageSupport.iterate(captured, HttpHeaders.IF_NONE_MATCH);
