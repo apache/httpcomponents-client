@@ -39,7 +39,6 @@ import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.cache.CacheResponseStatus;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.HttpCacheStorage;
-import org.apache.hc.client5.http.cache.ResourceFactory;
 import org.apache.hc.client5.http.cache.ResourceIOException;
 import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecChainHandler;
@@ -58,7 +57,6 @@ import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
-import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
 import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
@@ -102,45 +100,16 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
     private final HttpCache responseCache;
     private final DefaultCacheRevalidator cacheRevalidator;
     private final ConditionalRequestBuilder<ClassicHttpRequest> conditionalRequestBuilder;
-    private final CacheUpdateHandler cacheUpdateHandler;
 
     private static final Logger LOG = LoggerFactory.getLogger(CachingExec.class);
 
-    CachingExec(final HttpCache cache, final DefaultCacheRevalidator cacheRevalidator, final CacheConfig config, final CacheUpdateHandler cacheUpdateHandler) {
+    CachingExec(final HttpCache cache, final DefaultCacheRevalidator cacheRevalidator, final CacheConfig config) {
         super(config);
         this.responseCache = Args.notNull(cache, "Response cache");
         this.cacheRevalidator = cacheRevalidator;
         this.conditionalRequestBuilder = new ConditionalRequestBuilder<>(classicHttpRequest ->
                 ClassicRequestBuilder.copy(classicHttpRequest).build());
-        this.cacheUpdateHandler = cacheUpdateHandler != null ? cacheUpdateHandler: new CacheUpdateHandler();
     }
-
-    CachingExec(final HttpCache cache, final DefaultCacheRevalidator cacheRevalidator, final CacheConfig config) {
-        this(cache, cacheRevalidator, config, null);
-    }
-
-
-    CachingExec(
-            final HttpCache responseCache,
-            final CacheValidityPolicy validityPolicy,
-            final ResponseCachingPolicy responseCachingPolicy,
-            final CachedHttpResponseGenerator responseGenerator,
-            final CacheableRequestPolicy cacheableRequestPolicy,
-            final CachedResponseSuitabilityChecker suitabilityChecker,
-            final ResponseProtocolCompliance responseCompliance,
-            final RequestProtocolCompliance requestCompliance,
-            final DefaultCacheRevalidator cacheRevalidator,
-            final ConditionalRequestBuilder<ClassicHttpRequest> conditionalRequestBuilder,
-            final CacheConfig config,
-            final CacheUpdateHandler cacheUpdateHandler) {
-        super(validityPolicy, responseCachingPolicy, responseGenerator, cacheableRequestPolicy,
-                suitabilityChecker, responseCompliance, requestCompliance, config);
-        this.responseCache = responseCache;
-        this.cacheRevalidator = cacheRevalidator;
-        this.conditionalRequestBuilder = conditionalRequestBuilder;
-        this.cacheUpdateHandler = cacheUpdateHandler;
-    }
-
 
     CachingExec(
             final HttpCache responseCache,
@@ -154,14 +123,11 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
             final DefaultCacheRevalidator cacheRevalidator,
             final ConditionalRequestBuilder<ClassicHttpRequest> conditionalRequestBuilder,
             final CacheConfig config) {
-       this(responseCache,validityPolicy,responseCachingPolicy,responseGenerator,cacheableRequestPolicy,
-               suitabilityChecker,
-               responseCompliance,
-               requestCompliance,
-               cacheRevalidator,
-               conditionalRequestBuilder,
-               config,
-               null);
+        super(validityPolicy, responseCachingPolicy, responseGenerator, cacheableRequestPolicy,
+                suitabilityChecker, responseCompliance, requestCompliance, config);
+        this.responseCache = responseCache;
+        this.cacheRevalidator = cacheRevalidator;
+        this.conditionalRequestBuilder = conditionalRequestBuilder;
     }
 
     CachingExec(
@@ -171,16 +137,7 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
             final CacheConfig config) {
         this(cache,
                 executorService != null ? new DefaultCacheRevalidator(executorService, schedulingStrategy) : null,
-                config, null);
-    }
-
-    CachingExec(
-            final ResourceFactory resourceFactory,
-            final HttpCacheStorage storage,
-            final ScheduledExecutorService executorService,
-            final SchedulingStrategy schedulingStrategy,
-            final CacheConfig config) {
-        this(new BasicHttpCache(resourceFactory, storage), executorService, schedulingStrategy, config);
+                config);
     }
 
     @Override
@@ -390,7 +347,7 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
             }
 
             if (statusCode == HttpStatus.SC_NOT_MODIFIED) {
-                final HttpCacheEntry updatedEntry = responseCache.updateCacheEntry(
+                final HttpCacheEntry updatedEntry = responseCache.updateEntry(
                         target, request, cacheEntry, backendResponse, requestDate, responseDate);
                 if (suitabilityChecker.isConditional(request)
                         && suitabilityChecker.allConditionalsMatch(request, updatedEntry, Instant.now())) {
@@ -452,13 +409,13 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
         if (backendResponse.getCode() == HttpStatus.SC_NOT_MODIFIED) {
             final HttpCacheEntry existingEntry = responseCache.getCacheEntry(target, request);
             if (existingEntry != null) {
-                final HttpCacheEntry updatedEntry = cacheUpdateHandler.updateCacheEntry(
-                        request.getMethod(),
+                final HttpCacheEntry updatedEntry = responseCache.updateEntry(
+                        target,
+                        request,
                         existingEntry,
+                        backendResponse,
                         requestSent,
-                        responseReceived,
-                        backendResponse);
-
+                        responseReceived);
                 return convert(responseGenerator.generateResponse(request, updatedEntry), scope);
             }
         }
@@ -492,11 +449,11 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
                 LOG.debug("Backend already contains fresher cache entry");
                 cacheEntry = existingEntry;
             } else {
-                cacheEntry = responseCache.createCacheEntry(target, request, backendResponse, buf, requestSent, responseReceived);
+                cacheEntry = responseCache.createEntry(target, request, backendResponse, buf, requestSent, responseReceived);
                 LOG.debug("Backend response successfully cached");
             }
         } else {
-            cacheEntry = responseCache.createCacheEntry(target, request, backendResponse, buf, requestSent, responseReceived);
+            cacheEntry = responseCache.createEntry(target, request, backendResponse, buf, requestSent, responseReceived);
             LOG.debug("Backend response successfully cached (freshness check skipped)");
         }
         return convert(responseGenerator.generateResponse(request, cacheEntry), scope);
@@ -539,13 +496,14 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
 
             if (backendResponse.getCode() != HttpStatus.SC_NOT_MODIFIED) {
                 return handleBackendResponse(target, request, scope, requestDate, responseDate, backendResponse);
+            } else {
+                // 304 response are not expected to have an enclosed content body, but still
+                backendResponse.close();
             }
 
             final Header resultEtagHeader = backendResponse.getFirstHeader(HttpHeaders.ETAG);
             if (resultEtagHeader == null) {
                 LOG.warn("304 response did not contain ETag");
-                EntityUtils.consume(backendResponse.getEntity());
-                backendResponse.close();
                 return callBackend(target, request, scope, chain);
             }
 
@@ -553,29 +511,26 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
             final Variant matchingVariant = variants.get(resultEtag);
             if (matchingVariant == null) {
                 LOG.debug("304 response did not contain ETag matching one sent in If-None-Match");
-                EntityUtils.consume(backendResponse.getEntity());
-                backendResponse.close();
                 return callBackend(target, request, scope, chain);
             }
 
-            if (revalidationResponseIsTooOld(backendResponse, matchingVariant.getEntry())
+            final HttpCacheEntry variantEntry = matchingVariant.getEntry();
+
+            if (revalidationResponseIsTooOld(backendResponse, variantEntry)
                     && (request.getEntity() == null || request.getEntity().isRepeatable())) {
-                EntityUtils.consume(backendResponse.getEntity());
-                backendResponse.close();
                 final ClassicHttpRequest unconditional = conditionalRequestBuilder.buildUnconditionalRequest(request);
                 return callBackend(target, unconditional, scope, chain);
             }
 
             recordCacheUpdate(scope.clientContext);
 
-            final HttpCacheEntry responseEntry = responseCache.updateVariantCacheEntry(
-                    target, conditionalRequest, backendResponse, matchingVariant, requestDate, responseDate);
-            backendResponse.close();
+            final HttpCacheEntry responseEntry = responseCache.updateVariantEntry(
+                    target, conditionalRequest, backendResponse, variantEntry, requestDate, responseDate);
             if (shouldSendNotModifiedResponse(request, responseEntry)) {
                 return convert(responseGenerator.generateNotModifiedResponse(responseEntry), scope);
             }
             final SimpleHttpResponse response = responseGenerator.generateResponse(request, responseEntry);
-            responseCache.reuseVariantEntryFor(target, request, matchingVariant);
+            responseCache.reuseVariantEntryFor(target, request, backendResponse, responseEntry, requestDate, responseDate);
             return convert(response, scope);
         } catch (final IOException | RuntimeException ex) {
             backendResponse.close();

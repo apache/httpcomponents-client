@@ -183,9 +183,11 @@ public class TestBasicHttpCache {
         assertFalse(entry.hasVariants());
         final HttpHost host = new HttpHost("foo.example.com");
         final HttpRequest req = new HttpGet("http://foo.example.com/bar");
+        final HttpResponse resp = HttpTestUtils.make200Response();
+
         final String key = CacheKeyGenerator.INSTANCE.generateKey(host, req);
 
-        impl.storeInCache(key, host, req, entry);
+        impl.storeInCache(host, req, resp, Instant.now(), Instant.now(), key, entry);
         assertSame(entry, backing.map.get(key));
     }
 
@@ -219,7 +221,7 @@ public class TestBasicHttpCache {
         final HttpRequest origRequest = new HttpGet("http://foo.example.com/bar");
         origRequest.setHeader("Accept-Encoding","gzip");
 
-        final ByteArrayBuffer buf = HttpTestUtils.getRandomBuffer(128);
+        final ByteArrayBuffer buf = HttpTestUtils.makeRandomBuffer(128);
         final HttpResponse origResponse = new BasicHttpResponse(HttpStatus.SC_OK, "OK");
         origResponse.setHeader("Date", DateUtils.formatStandardDate(Instant.now()));
         origResponse.setHeader("Cache-Control", "max-age=3600, public");
@@ -227,7 +229,7 @@ public class TestBasicHttpCache {
         origResponse.setHeader("Vary", "Accept-Encoding");
         origResponse.setHeader("Content-Encoding","gzip");
 
-        impl.createCacheEntry(host, origRequest, origResponse, buf, Instant.now(), Instant.now());
+        impl.createEntry(host, origRequest, origResponse, buf, Instant.now(), Instant.now());
 
         final HttpRequest request = new HttpGet("http://foo.example.com/bar");
         final HttpCacheEntry result = impl.getCacheEntry(host, request);
@@ -241,7 +243,7 @@ public class TestBasicHttpCache {
         final HttpRequest origRequest = new HttpGet("http://foo.example.com/bar");
         origRequest.setHeader("Accept-Encoding","gzip");
 
-        final ByteArrayBuffer buf = HttpTestUtils.getRandomBuffer(128);
+        final ByteArrayBuffer buf = HttpTestUtils.makeRandomBuffer(128);
         final HttpResponse origResponse = new BasicHttpResponse(HttpStatus.SC_OK, "OK");
         origResponse.setHeader("Date", DateUtils.formatStandardDate(Instant.now()));
         origResponse.setHeader("Cache-Control", "max-age=3600, public");
@@ -249,7 +251,7 @@ public class TestBasicHttpCache {
         origResponse.setHeader("Vary", "Accept-Encoding");
         origResponse.setHeader("Content-Encoding","gzip");
 
-        impl.createCacheEntry(host, origRequest, origResponse, buf, Instant.now(), Instant.now());
+        impl.createEntry(host, origRequest, origResponse, buf, Instant.now(), Instant.now());
 
         final HttpRequest request = new HttpGet("http://foo.example.com/bar");
         request.setHeader("Accept-Encoding","gzip");
@@ -264,7 +266,7 @@ public class TestBasicHttpCache {
         final HttpRequest origRequest = new HttpGet("http://foo.example.com/bar");
         origRequest.setHeader("Accept-Encoding", "gzip");
 
-        final ByteArrayBuffer buf = HttpTestUtils.getRandomBuffer(128);
+        final ByteArrayBuffer buf = HttpTestUtils.makeRandomBuffer(128);
 
         // Create two response variants with different Date headers
         final HttpResponse origResponse1 = new BasicHttpResponse(HttpStatus.SC_OK, "OK");
@@ -280,8 +282,8 @@ public class TestBasicHttpCache {
         origResponse2.setHeader(HttpHeaders.VARY, "Accept-Encoding");
 
         // Store the two variants in cache
-        impl.createCacheEntry(host, origRequest, origResponse1, buf, Instant.now(), Instant.now());
-        impl.createCacheEntry(host, origRequest, origResponse2, buf, Instant.now(), Instant.now());
+        impl.createEntry(host, origRequest, origResponse1, buf, Instant.now(), Instant.now());
+        impl.createEntry(host, origRequest, origResponse2, buf, Instant.now(), Instant.now());
 
         final HttpRequest request = new HttpGet("http://foo.example.com/bar");
         request.setHeader("Accept-Encoding", "gzip");
@@ -332,8 +334,8 @@ public class TestBasicHttpCache {
         resp2.setHeader("Content-Encoding","gzip");
         resp2.setHeader("Vary", "Accept-Encoding");
 
-        impl.createCacheEntry(host, req1, resp1, null, Instant.now(), Instant.now());
-        impl.createCacheEntry(host, req2, resp2, null, Instant.now(), Instant.now());
+        impl.createEntry(host, req1, resp1, null, Instant.now(), Instant.now());
+        impl.createEntry(host, req2, resp2, null, Instant.now(), Instant.now());
 
         final Map<String,Variant> variants = impl.getVariantCacheEntriesWithEtags(host, req1);
 

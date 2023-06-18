@@ -68,7 +68,7 @@ interface HttpCache {
     /**
      * Store a {@link HttpResponse} in the cache if possible, and return
      */
-    HttpCacheEntry createCacheEntry(
+    HttpCacheEntry createEntry(
             HttpHost host,
             HttpRequest request,
             HttpResponse originResponse,
@@ -79,7 +79,7 @@ interface HttpCache {
     /**
      * Update a {@link HttpCacheEntry} using a 304 {@link HttpResponse}.
      */
-    HttpCacheEntry updateCacheEntry(
+    HttpCacheEntry updateEntry(
             HttpHost host,
             HttpRequest request,
             HttpCacheEntry stale,
@@ -91,11 +91,11 @@ interface HttpCache {
      * Update a specific {@link HttpCacheEntry} representing a cached variant
      * using a 304 {@link HttpResponse}.
      */
-    HttpCacheEntry updateVariantCacheEntry(
+    HttpCacheEntry updateVariantEntry(
             HttpHost host,
             HttpRequest request,
             HttpResponse originResponse,
-            Variant variant,
+            HttpCacheEntry entry,
             Instant requestSent,
             Instant responseReceived);
 
@@ -106,5 +106,8 @@ interface HttpCache {
     void reuseVariantEntryFor(
             HttpHost host,
             HttpRequest request,
-            Variant variant);
+            HttpResponse originResponse,
+            HttpCacheEntry entry,
+            Instant requestSent,
+            Instant responseReceived);
 }

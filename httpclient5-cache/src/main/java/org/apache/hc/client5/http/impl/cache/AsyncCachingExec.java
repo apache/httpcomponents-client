@@ -530,7 +530,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
 
         void triggerNewCacheEntryResponse(final HttpResponse backendResponse, final Instant responseDate, final ByteArrayBuffer buffer) {
             final CancellableDependency operation = scope.cancellableDependency;
-            operation.setDependency(responseCache.createCacheEntry(
+            operation.setDependency(responseCache.createEntry(
                     target,
                     request,
                     backendResponse,
@@ -746,7 +746,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
             void triggerUpdatedCacheEntryResponse(final HttpResponse backendResponse, final Instant responseDate) {
                 final CancellableDependency operation = scope.cancellableDependency;
                 recordCacheUpdate(scope.clientContext);
-                operation.setDependency(responseCache.updateCacheEntry(
+                operation.setDependency(responseCache.updateEntry(
                         target,
                         request,
                         cacheEntry,
@@ -973,11 +973,12 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
 
             void updateVariantCacheEntry(final HttpResponse backendResponse, final Instant responseDate, final Variant matchingVariant) {
                 recordCacheUpdate(scope.clientContext);
-                operation.setDependency(responseCache.updateVariantCacheEntry(
+                final HttpCacheEntry variantEntry = matchingVariant.getEntry();
+                operation.setDependency(responseCache.updateVariantEntry(
                         target,
                         conditionalRequest,
                         backendResponse,
-                        matchingVariant,
+                        variantEntry,
                         requestDate,
                         responseDate,
                         new FutureCallback<HttpCacheEntry>() {
@@ -993,7 +994,10 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                                         operation.setDependency(responseCache.reuseVariantEntryFor(
                                                 target,
                                                 request,
-                                                matchingVariant,
+                                                backendResponse,
+                                                responseEntry,
+                                                requestDate,
+                                                responseDate,
                                                 new FutureCallback<Boolean>() {
 
                                                     @Override
@@ -1048,7 +1052,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                                 if (LOG.isDebugEnabled()) {
                                     LOG.debug("Existing cache entry found, updating cache entry");
                                 }
-                                responseCache.updateCacheEntry(
+                                responseCache.updateEntry(
                                         target,
                                         request,
                                         existingEntry,

@@ -258,7 +258,10 @@ public class TestCachedResponseSuitabilityChecker {
         final Header[] headers = {
                 new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo))
         };
-        entry = HttpTestUtils.makeCacheEntry(elevenSecondsAgo, nineSecondsAgo, Method.HEAD, HttpStatus.SC_OK, headers, null, null);
+        entry = HttpTestUtils.makeCacheEntry(elevenSecondsAgo, nineSecondsAgo,
+                Method.HEAD, "/", null,
+                HttpStatus.SC_OK, headers,
+                HttpTestUtils.makeNullResource());
         responseCacheControl = ResponseCacheControl.builder()
                 .setMaxAge(3600)
                 .build();
@@ -272,7 +275,10 @@ public class TestCachedResponseSuitabilityChecker {
         final Header[] headers = {
                 new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo))
         };
-        entry = HttpTestUtils.makeCacheEntry(elevenSecondsAgo, nineSecondsAgo, Method.GET, HttpStatus.SC_OK, headers, HttpTestUtils.getRandomBytes(128), null);
+        entry = HttpTestUtils.makeCacheEntry(elevenSecondsAgo, nineSecondsAgo,
+                Method.GET, "/", null,
+                HttpStatus.SC_OK, headers,
+                HttpTestUtils.makeRandomResource(128));
         responseCacheControl = ResponseCacheControl.builder()
                 .setMaxAge(3600)
                 .build();
@@ -286,7 +292,10 @@ public class TestCachedResponseSuitabilityChecker {
         final Header[] headers = {
                 new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
         };
-        entry = HttpTestUtils.makeCacheEntry(elevenSecondsAgo, nineSecondsAgo, Method.GET, HttpStatus.SC_OK, headers, null, null);
+        entry = HttpTestUtils.makeCacheEntry(elevenSecondsAgo, nineSecondsAgo,
+                Method.GET, "/", null,
+                HttpStatus.SC_OK, headers,
+                HttpTestUtils.makeNullResource());
         responseCacheControl = ResponseCacheControl.builder()
                 .setMaxAge(3600)
                 .build();
@@ -301,7 +310,10 @@ public class TestCachedResponseSuitabilityChecker {
         final Header[] headers = {
                 new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo))
         };
-        entry = HttpTestUtils.makeCacheEntry(elevenSecondsAgo, nineSecondsAgo, Method.GET, HttpStatus.SC_OK, headers, null, null);
+        entry = HttpTestUtils.makeCacheEntry(elevenSecondsAgo, nineSecondsAgo,
+                Method.GET, "/", null,
+                HttpStatus.SC_OK, headers,
+                HttpTestUtils.makeNullResource());
         responseCacheControl = ResponseCacheControl.builder()
                 .setMaxAge(3600)
                 .build();
@@ -315,7 +327,10 @@ public class TestCachedResponseSuitabilityChecker {
         final Header[] headers = {
                 new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
         };
-        entry = HttpTestUtils.makeCacheEntry(elevenSecondsAgo, nineSecondsAgo, Method.HEAD, HttpStatus.SC_OK, headers, null, null);
+        entry = HttpTestUtils.makeCacheEntry(elevenSecondsAgo, nineSecondsAgo,
+                Method.HEAD, "/", null,
+                HttpStatus.SC_OK, headers,
+                HttpTestUtils.makeNullResource());
         responseCacheControl = ResponseCacheControl.builder()
                 .setMaxAge(3600)
                 .build();

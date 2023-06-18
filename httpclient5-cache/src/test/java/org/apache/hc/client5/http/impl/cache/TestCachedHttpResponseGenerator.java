@@ -33,7 +33,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.Instant;
-import java.util.HashMap;
 
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
@@ -54,7 +53,7 @@ public class TestCachedHttpResponseGenerator {
 
     @BeforeEach
     public void setUp() {
-        entry = HttpTestUtils.makeCacheEntry(new HashMap<>());
+        entry = HttpTestUtils.makeCacheEntry();
         request = HttpTestUtils.makeDefaultRequest();
         mockValidityPolicy = mock(CacheValidityPolicy.class);
         impl = new CachedHttpResponseGenerator(mockValidityPolicy);

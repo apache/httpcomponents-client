@@ -39,9 +39,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -52,6 +50,7 @@ import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.cache.CacheResponseStatus;
 import org.apache.hc.client5.http.cache.HttpCacheContext;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
+import org.apache.hc.client5.http.cache.HttpCacheEntryFactory;
 import org.apache.hc.client5.http.cache.HttpCacheStorage;
 import org.apache.hc.client5.http.cache.ResourceIOException;
 import org.apache.hc.client5.http.classic.ExecChain;
@@ -85,7 +84,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.mockito.Spy;
 
 public class TestCachingExecChain {
 
@@ -95,53 +93,52 @@ public class TestCachingExecChain {
     ExecRuntime mockExecRuntime;
     @Mock
     HttpCacheStorage mockStorage;
-    private DefaultCacheRevalidator cacheRevalidator;
-    private CachedHttpResponseGenerator responseGenerator;
-    @Spy
-    HttpCache cache = new BasicHttpCache();
     @Mock
-    CacheUpdateHandler cacheUpdateHandler;
+    DefaultCacheRevalidator cacheRevalidator;
+    @Mock
+    CachedHttpResponseGenerator responseGenerator;
+    @Mock
+    HttpCacheEntryFactory cacheEntryFactory;
+    @Mock
+    CacheValidityPolicy validityPolicy;
+    @Mock
+    ResponseCachingPolicy responseCachingPolicy;
+    @Mock
+    CacheableRequestPolicy cacheableRequestPolicy;
+    @Mock
+    CachedResponseSuitabilityChecker suitabilityChecker;
+    @Mock
+    ResponseProtocolCompliance responseCompliance;
+    @Mock
+    RequestProtocolCompliance requestCompliance;
+    @Mock
+    ConditionalRequestBuilder<ClassicHttpRequest> conditionalRequestBuilder;
+    @Mock
+    HttpCache responseCache;
 
-    CacheConfig config;
     HttpRoute route;
     HttpHost host;
     ClassicHttpRequest request;
     HttpCacheContext context;
     HttpCacheEntry entry;
+    HttpCache cache;
     CachingExec impl;
-    CacheValidityPolicy validityPolicy;
-    ResponseCachingPolicy responseCachingPolicy;
-    CacheableRequestPolicy cacheableRequestPolicy;
-    CachedResponseSuitabilityChecker suitabilityChecker;
-    ResponseProtocolCompliance responseCompliance;
-    RequestProtocolCompliance requestCompliance;
-    ConditionalRequestBuilder<ClassicHttpRequest> conditionalRequestBuilder;
     CacheConfig customConfig;
-    HttpCache responseCache;
 
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
-        config = CacheConfig.DEFAULT;
         host = new HttpHost("foo.example.com", 80);
         route = new HttpRoute(host);
         request = new BasicClassicHttpRequest("GET", "/stuff");
         context = HttpCacheContext.create();
         entry = HttpTestUtils.makeCacheEntry();
-        cacheRevalidator = mock(DefaultCacheRevalidator.class);
-        responseGenerator = mock(CachedHttpResponseGenerator.class);
-        customConfig =  mock(CacheConfig.class);
+        customConfig = CacheConfig.DEFAULT;
 
-        validityPolicy = mock(CacheValidityPolicy.class);
-        responseCachingPolicy = mock(ResponseCachingPolicy.class);
-        cacheableRequestPolicy = mock(CacheableRequestPolicy.class);
-        suitabilityChecker = mock(CachedResponseSuitabilityChecker.class);
-        responseCompliance = mock(ResponseProtocolCompliance.class);
-        requestCompliance = mock(RequestProtocolCompliance.class);
-        conditionalRequestBuilder = mock(ConditionalRequestBuilder.class);
-        responseCache  = mock(HttpCache.class);
+        cache = Mockito.spy(new BasicHttpCache());
 
-        impl = new CachingExec(cache, null, CacheConfig.DEFAULT, cacheUpdateHandler);
+        impl = new CachingExec(cache, null, CacheConfig.DEFAULT);
+
     }
 
     public ClassicHttpResponse execute(final ClassicHttpRequest request) throws IOException, HttpException {
@@ -163,7 +160,7 @@ public class TestCachingExecChain {
         execute(req2);
 
         Mockito.verify(mockExecChain).proceed(Mockito.any(), Mockito.any());
-        Mockito.verify(cache).createCacheEntry(Mockito.eq(host), RequestEquivalent.eq(req1),
+        Mockito.verify(cache).createEntry(Mockito.eq(host), RequestEquivalent.eq(req1),
                 Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
     }
 
@@ -1055,11 +1052,6 @@ public class TestCachingExecChain {
     }
 
     @Test
-    public void testIsSharedCache() {
-        Assertions.assertTrue(config.isSharedCache());
-    }
-
-    @Test
     public void testTooLargeResponsesAreNotCached() throws Exception {
         final HttpHost host = new HttpHost("foo.example.com");
         final ClassicHttpRequest request = new HttpGet("http://foo.example.com/bar");
@@ -1078,7 +1070,7 @@ public class TestCachingExecChain {
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, mockExecRuntime, context);
         impl.cacheAndReturnResponse(host, request, originResponse, scope, requestSent, responseReceived);
 
-        Mockito.verify(cache, Mockito.never()).createCacheEntry(
+        Mockito.verify(cache, Mockito.never()).createEntry(
                 Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
     }
 
@@ -1104,7 +1096,7 @@ public class TestCachingExecChain {
         final HttpCacheEntry httpCacheEntry = HttpTestUtils.makeCacheEntry();
         final SimpleHttpResponse response = SimpleHttpResponse.create(HttpStatus.SC_OK);
 
-        Mockito.when(mockCache.createCacheEntry(
+        Mockito.when(mockCache.createEntry(
                 Mockito.eq(host),
                 RequestEquivalent.eq(request),
                 ResponseEquivalent.eq(response),
@@ -1115,7 +1107,7 @@ public class TestCachingExecChain {
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, mockExecRuntime, context);
         impl.cacheAndReturnResponse(host, request, originResponse, scope, requestSent, responseReceived);
 
-        Mockito.verify(mockCache).createCacheEntry(
+        Mockito.verify(mockCache).createEntry(
                 Mockito.any(),
                 Mockito.any(),
                 Mockito.any(),
@@ -1426,13 +1418,15 @@ public class TestCachingExecChain {
 
     @Test
     public void testNotModifiedResponseUpdatesCacheEntry() throws Exception {
+        final HttpCache mockCache = mock(HttpCache.class);
+        impl = new CachingExec(mockCache, null, CacheConfig.DEFAULT);
         // Prepare request and host
         final HttpHost host = new HttpHost("foo.example.com");
         final ClassicHttpRequest request = new HttpGet("http://foo.example.com/bar");
 
         // Prepare original cache entry
         final HttpCacheEntry originalEntry = HttpTestUtils.makeCacheEntry();
-        Mockito.when(cache.getCacheEntry(host, request)).thenReturn(originalEntry);
+        Mockito.when(mockCache.getCacheEntry(host, request)).thenReturn(originalEntry);
 
         // Prepare 304 Not Modified response
         final Instant now = Instant.now();
@@ -1451,30 +1445,26 @@ public class TestCachingExecChain {
         }
         final String body = "Lorem ipsum dolor sit amet";
 
-        final Map<String, String> variantMap = new HashMap<>();
-        variantMap.put("test variant 1", "true");
-        variantMap.put("test variant 2", "true");
         final HttpCacheEntry cacheEntry = HttpTestUtils.makeCacheEntry(
                 Instant.now(),
                 Instant.now(),
                 HttpStatus.SC_NOT_MODIFIED,
                 headers,
-                new HeapResource(body.getBytes(StandardCharsets.UTF_8)),
-                variantMap);
+                new HeapResource(body.getBytes(StandardCharsets.UTF_8)));
 
-        Mockito.when(cacheUpdateHandler.updateCacheEntry(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(cacheEntry);
+        Mockito.when(mockCache.updateEntry(Mockito.eq(host), Mockito.eq(request), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(cacheEntry);
 
         // Call cacheAndReturnResponse with 304 Not Modified response
         final ClassicHttpResponse cachedResponse = impl.cacheAndReturnResponse(host, request, backendResponse, scope, requestSent, responseReceived);
 
-
         // Verify cache entry is updated
-        Mockito.verify(cacheUpdateHandler).updateCacheEntry(
-                request.getMethod(),
+        Mockito.verify(mockCache).updateEntry(
+                host,
+                request,
                 originalEntry,
+                backendResponse,
                 requestSent,
-                responseReceived,
-                backendResponse
+                responseReceived
         );
 
         // Verify response is generated from the updated cache entry
