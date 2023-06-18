@@ -1850,7 +1850,7 @@ public class TestProtocolRequirements {
 
         Mockito.when(mockCache.getCacheEntry(Mockito.eq(host), RequestEquivalent.eq(request))).thenReturn(entry);
         Mockito.when(mockExecChain.proceed(RequestEquivalent.eq(validate), Mockito.any())).thenReturn(notModified);
-        Mockito.when(mockCache.updateCacheEntry(
+        Mockito.when(mockCache.updateEntry(
                 Mockito.eq(host),
                 RequestEquivalent.eq(request),
                 Mockito.eq(entry),
@@ -1861,7 +1861,7 @@ public class TestProtocolRequirements {
 
         execute(request);
 
-        Mockito.verify(mockCache).updateCacheEntry(
+        Mockito.verify(mockCache).updateEntry(
                 Mockito.any(),
                 Mockito.any(),
                 Mockito.any(),
@@ -2185,7 +2185,7 @@ public class TestProtocolRequirements {
 
         Mockito.when(mockCache.getCacheEntry(Mockito.eq(host), RequestEquivalent.eq(request))).thenReturn(entry);
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(validated);
-        Mockito.when(mockCache.createCacheEntry(
+        Mockito.when(mockCache.createEntry(
                 Mockito.any(),
                 Mockito.any(),
                 ResponseEquivalent.eq(validated),
@@ -2214,7 +2214,7 @@ public class TestProtocolRequirements {
             }
             Assertions.assertTrue(found113Warning);
         }
-        Mockito.verify(mockCache).createCacheEntry(
+        Mockito.verify(mockCache).createEntry(
                 Mockito.any(),
                 Mockito.any(),
                 Mockito.any(),

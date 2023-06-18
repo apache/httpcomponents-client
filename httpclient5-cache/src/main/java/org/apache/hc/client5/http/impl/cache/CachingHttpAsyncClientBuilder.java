@@ -34,6 +34,7 @@ import org.apache.hc.client5.http.async.AsyncExecChainHandler;
 import org.apache.hc.client5.http.cache.HttpAsyncCacheInvalidator;
 import org.apache.hc.client5.http.cache.HttpAsyncCacheStorage;
 import org.apache.hc.client5.http.cache.HttpAsyncCacheStorageAdaptor;
+import org.apache.hc.client5.http.cache.HttpCacheEntryFactory;
 import org.apache.hc.client5.http.cache.HttpCacheStorage;
 import org.apache.hc.client5.http.cache.ResourceFactory;
 import org.apache.hc.client5.http.impl.ChainElement;
@@ -137,6 +138,7 @@ public class CachingHttpAsyncClientBuilder extends HttpAsyncClientBuilder {
         }
         final HttpAsyncCache httpCache = new BasicHttpAsyncCache(
                 resourceFactoryCopy,
+                HttpCacheEntryFactory.INSTANCE,
                 storageCopy,
                 CacheKeyGenerator.INSTANCE,
                 this.httpCacheInvalidator != null ? this.httpCacheInvalidator : new DefaultAsyncCacheInvalidator());

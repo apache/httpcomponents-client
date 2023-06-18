@@ -32,9 +32,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.annotation.Contract;
@@ -42,8 +40,6 @@ import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHeaders;
-import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.MessageHeaders;
 import org.apache.hc.core5.http.Method;
@@ -74,61 +70,6 @@ public class HttpCacheEntry implements MessageHeaders, Serializable {
     private final HeaderGroup responseHeaders;
     private final Resource resource;
     private final Map<String, String> variantMap;
-
-    /**
-     * Create a new {@link HttpCacheEntry}.
-     *
-     * @param requestDate     Date/time when the request was made (Used for age calculations)
-     * @param responseDate    Date/time that the response came back (Used for age calculations)
-     * @param request         Original client request (a deep copy of this object is made)
-     * @param response        Origin response (a deep copy of this object is made)
-     * @param resource        Resource representing origin response body
-     * @param variantMap      describing cache entries that are variants of this parent entry; this
-     *                        maps a "variant key" (derived from the varying request headers) to a
-     *                        "cache key" (where in the cache storage the particular variant is
-     *                        located)
-     * @since 5.3
-     */
-    public static HttpCacheEntry create(final Instant requestDate,
-                                        final Instant responseDate,
-                                        final HttpRequest request,
-                                        final HttpResponse response,
-                                        final Resource resource,
-                                        final Map<String, String> variantMap) {
-        Args.notNull(requestDate, "Request date");
-        Args.notNull(responseDate, "Response date");
-        Args.notNull(request, "Request");
-        Args.notNull(response, "Origin response");
-
-        final Set<String> requestHopByHop = CacheHeaderSupport.hopByHopConnectionSpecific(request);
-        final HeaderGroup requestHeaders = new HeaderGroup();
-        for (final Iterator<Header> it = request.headerIterator(); it.hasNext(); ) {
-            final Header header = it.next();
-            if (!requestHopByHop.contains(header.getName().toLowerCase(Locale.ROOT))) {
-                requestHeaders.addHeader(header);
-            }
-        }
-
-        final Set<String> responseHopByHop = CacheHeaderSupport.hopByHopConnectionSpecific(request);
-        final HeaderGroup responseHeaders = new HeaderGroup();
-        for (final Iterator<Header> it = response.headerIterator(); it.hasNext(); ) {
-            final Header header = it.next();
-            if (!responseHopByHop.contains(header.getName().toLowerCase(Locale.ROOT))) {
-                responseHeaders.addHeader(header);
-            }
-        }
-
-        return new HttpCacheEntry(
-                requestDate,
-                responseDate,
-                request.getMethod(),
-                request.getRequestUri(),
-                requestHeaders,
-                response.getCode(),
-                responseHeaders,
-                resource,
-                variantMap);
-    }
 
     /**
      * Internal constructor that makes no validation of the input parameters and makes
@@ -174,7 +115,7 @@ public class HttpCacheEntry implements MessageHeaders, Serializable {
      *   of this parent entry; this maps a "variant key" (derived
      *   from the varying request headers) to a "cache key" (where
      *   in the cache storage the particular variant is located)
-     * @deprecated  Use {{@link HttpCacheEntry#create(Instant, Instant, HttpRequest, HttpResponse, Resource, Map)}
+     * @deprecated  Use {{@link HttpCacheEntryFactory}
      */
     @Deprecated
     public HttpCacheEntry(
@@ -199,7 +140,7 @@ public class HttpCacheEntry implements MessageHeaders, Serializable {
      *                        maps a "variant key" (derived from the varying request headers) to a
      *                        "cache key" (where in the cache storage the particular variant is
      *                        located)
-     * @deprecated  Use {{@link HttpCacheEntry#create(Instant, Instant, HttpRequest, HttpResponse, Resource, Map)}
+     * @deprecated  Use {{@link HttpCacheEntryFactory}
      */
     @Deprecated
     public HttpCacheEntry(
@@ -234,7 +175,7 @@ public class HttpCacheEntry implements MessageHeaders, Serializable {
      * @param status          HTTP status from origin response
      * @param responseHeaders Header[] from original HTTP Response
      * @param resource        representing origin response body
-     * @deprecated  Use {{@link HttpCacheEntry#create(Instant, Instant, HttpRequest, HttpResponse, Resource, Map)}
+     * @deprecated  Use {{@link HttpCacheEntryFactory}
      */
     @Deprecated
     public HttpCacheEntry(final Date requestDate, final Date responseDate, final int status,
@@ -257,7 +198,7 @@ public class HttpCacheEntry implements MessageHeaders, Serializable {
      *          Header[] from original HTTP Response
      * @param resource representing origin response body
      *
-     * @deprecated  Use {{@link HttpCacheEntry#create(Instant, Instant, HttpRequest, HttpResponse, Resource, Map)}
+     * @deprecated  Use {{@link HttpCacheEntryFactory}
      */
     @Deprecated
     public HttpCacheEntry(final Instant requestDate, final Instant responseDate, final int status,
@@ -415,7 +356,14 @@ public class HttpCacheEntry implements MessageHeaders, Serializable {
      * @return {@code true} if this cached response was a variant
      */
     public boolean hasVariants() {
-        return getFirstHeader(HttpHeaders.VARY) != null;
+        return containsHeader(HttpHeaders.VARY);
+    }
+
+    /**
+     * @since 5.3
+     */
+    public boolean isVariantRoot() {
+        return variantMap != null;
     }
 
     /**
