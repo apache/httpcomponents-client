@@ -1540,7 +1540,7 @@ public class TestProtocolRequirements {
             Assertions.assertNotNull(result.getFirstHeader("Cache-Control"));
             Assertions.assertNotNull(result.getFirstHeader("Vary"));
         }
-        Mockito.verify(mockExecChain, Mockito.times(2)).proceed(Mockito.any(), Mockito.any());
+        Mockito.verify(mockExecChain, Mockito.times(3)).proceed(Mockito.any(), Mockito.any());
     }
 
     /*
@@ -3689,9 +3689,9 @@ public class TestProtocolRequirements {
 
         Assertions.assertEquals(HttpStatus.SC_OK, result.getCode());
 
-        Mockito.verify(mockExecChain, Mockito.times(1)).proceed(Mockito.any(), Mockito.any());
+        Mockito.verify(mockExecChain, Mockito.times(2)).proceed(Mockito.any(), Mockito.any());
 
-        Assertions.assertFalse(HttpTestUtils.semanticallyTransparent(resp200, result));
+        Assertions.assertTrue(HttpTestUtils.semanticallyTransparent(resp200, result));
     }
 
     /* "Some HTTP methods MUST cause a cache to invalidate an
