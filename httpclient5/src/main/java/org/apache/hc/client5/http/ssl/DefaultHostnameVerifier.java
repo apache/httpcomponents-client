@@ -103,22 +103,37 @@ public final class DefaultHostnameVerifier implements HttpClientHostnameVerifier
     @Override
     public void verify(final String host, final X509Certificate cert) throws SSLException {
         final HostNameType hostType = determineHostFormat(host);
+        final List<SubjectName> subjectAlts;
         switch (hostType) {
-        case IPv4:
-            matchIPAddress(host, getSubjectAltNames(cert, SubjectName.IP));
-            break;
-        case IPv6:
-            matchIPv6Address(host, getSubjectAltNames(cert, SubjectName.IP));
-            break;
-        default:
-            final List<SubjectName> subjectAlts = getSubjectAltNames(cert, SubjectName.DNS);
-            if (subjectAlts.isEmpty()) {
-                // CN matching has been deprecated by rfc2818 and can be used
-                // as fallback only when no subjectAlts of type SubjectName.DNS are available
-                matchCN(host, cert, this.publicSuffixMatcher);
-            } else {
-                matchDNSName(host, subjectAlts, this.publicSuffixMatcher);
-            }
+            case IPv4:
+                subjectAlts = getSubjectAltNames(cert, SubjectName.IP);
+                if (subjectAlts.isEmpty()) {
+                    // CN matching has been deprecated by rfc2818 and can be used
+                    // as fallback only when no subjectAlts are available
+                    matchCN(host, cert, this.publicSuffixMatcher);
+                } else {
+                    matchIPAddress(host, subjectAlts);
+                }
+                break;
+            case IPv6:
+                subjectAlts = getSubjectAltNames(cert, SubjectName.IP);
+                if (subjectAlts.isEmpty()) {
+                    // CN matching has been deprecated by rfc2818 and can be used
+                    // as fallback only when no subjectAlts are available
+                    matchCN(host, cert, this.publicSuffixMatcher);
+                } else {
+                    matchIPv6Address(host, subjectAlts);
+                }
+                break;
+            default:
+                subjectAlts = getSubjectAltNames(cert, SubjectName.DNS);
+                if (subjectAlts.isEmpty()) {
+                    // CN matching has been deprecated by rfc2818 and can be used
+                    // as fallback only when no subjectAlts are available
+                    matchCN(host, cert, this.publicSuffixMatcher);
+                } else {
+                    matchDNSName(host, subjectAlts, this.publicSuffixMatcher);
+                }
         }
     }
 

@@ -589,4 +589,27 @@ public class CertificatesToPlayWith {
         "TMt3BQIgK5IHScVH6Cbi106y+BILx4U0Ygt5IFNnMx/K+Jusuls=\n" +
         "-----END CERTIFICATE-----"
         ).getBytes();
+
+    /**
+     * subject CN=127.0.0.1, OU=server1, no subjects alts
+     */
+    public final static byte[] IP_IN_CN_NO_SUBJECT_ALTS = (
+        "-----BEGIN CERTIFICATE-----\n" +
+            "MIICyjCCAbKgAwIBAgIEXir3GjANBgkqhkiG9w0BAQsFADAmMRAwDgYDVQQLDAdz\n" +
+            "ZXJ2ZXIxMRIwEAYDVQQDDAkxMjcuMC4wLjEwIBcNMjAwMTI0MTM1NDM0WhgPMjA3\n" +
+            "MDAxMjQxMzU0MzRaMCYxEDAOBgNVBAsMB3NlcnZlcjExEjAQBgNVBAMMCTEyNy4w\n" +
+            "LjAuMTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAImEaDch9SdApYhf\n" +
+            "UeVF+iQp5OWgm2j1OBh0Ijggo+m8gPwXcete4hc7j7ClhtDQ5dK24CGKvPAXorbo\n" +
+            "hj0dBRRWkfEhvySTeyrxcmDPXmjucZmQKW6TdMITKXAlm4eI++vVuxkr6VC4InO7\n" +
+            "h0NMzTXywnbej0v99agPbedY+MRDEOcJLWLdqv5l+qtpiD6SGBaGv5P2sEynfR4W\n" +
+            "wP6oUbswLjeI4n1RbgJRvcKWtXsjN6v48xNPuMO8Szx1iYOwsMJBbCr68wVh6aPg\n" +
+            "aBU+tdUn2qoh6k34JAlFP9Is0mMM9odfmDxX7vZL9LL18vdQ3OykkV+GdJR81b2S\n" +
+            "Mtfp70cCAwEAATANBgkqhkiG9w0BAQsFAAOCAQEAdYag9Z7/RvNMkUx4VVEiWV49\n" +
+            "P0MCdv03Tah7AloJks/tgqeYNxT36mpM9YYpEAtidBgofxYCW79ZtTtIEq7FmzCw\n" +
+            "mrzHNnMNx34Nl5g3XwjlS6bgiM1MusWwZNbYcn0jukODrq6SHarwMSv5aDFXVpCV\n" +
+            "8r7C7PSvABCFZQidjmyFcKd6WS081Xy3Moi+kLZ0xL/uK2DjvnH/KEu+mrIq4/ea\n" +
+            "hoNOd8cRr7bt/bz6PMaJ3WxfceSvM63N+cG8EkQmPIALCxpkbITJVAVKNCGqLtLj\n" +
+            "h46sFuVOu6LFoh2lRIm0w6eShbaGLYsrv0nlL9FiyYvGdefXiMFRYHWZfp4idw==\n" +
+            "-----END CERTIFICATE-----"
+    ).getBytes();
 }

@@ -458,4 +458,17 @@ public class TestDefaultHostnameVerifier {
                         publicSuffixMatcher));
     }
 
+    @Test
+    public void testMatchIpInCnWithNoSubjectAlts() throws Exception {
+        final CertificateFactory cf = CertificateFactory.getInstance("X.509");
+        final InputStream in = new ByteArrayInputStream(CertificatesToPlayWith.IP_IN_CN_NO_SUBJECT_ALTS);
+        final X509Certificate x509 = (X509Certificate) cf.generateCertificate(in);
+
+        Assertions.assertEquals("CN=127.0.0.1, OU=server1", x509.getSubjectDN().getName());
+
+        impl.verify("127.0.0.1", x509);
+
+        exceptionPlease(impl, "127.0.0.2", x509);
+        exceptionPlease(impl, "www.foo.com", x509);
+    }
 }
