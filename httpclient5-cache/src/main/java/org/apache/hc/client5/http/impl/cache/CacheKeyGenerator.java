@@ -26,26 +26,27 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.function.Resolver;
 import org.apache.hc.core5.http.Header;
-import org.apache.hc.core5.http.HeaderElement;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.message.MessageSupport;
+import org.apache.hc.core5.http.MessageHeaders;
+import org.apache.hc.core5.net.PercentCodec;
+import org.apache.hc.core5.util.Args;
 
 /**
  * @since 4.1
@@ -78,7 +79,7 @@ public class CacheKeyGenerator implements Resolver<URI, String> {
     }
 
     /**
-     * Computes a key for the given {@link HttpHost} and {@link HttpRequest}
+     * Computes a root key for the given {@link HttpHost} and {@link HttpRequest}
      * that can be used as a unique identifier for cached resources.
      *
      * @param host The host for this request
@@ -94,18 +95,64 @@ public class CacheKeyGenerator implements Resolver<URI, String> {
         }
     }
 
-    private String getFullHeaderValue(final Header[] headers) {
-        if (headers == null) {
-            return "";
+    /**
+     * Returns all variant names contained in {@literal VARY} headers of the given message.
+     *
+     * @since 5.3
+     */
+    public static List<String> variantNames(final MessageHeaders message) {
+        if (message == null) {
+            return null;
         }
-        final StringBuilder buf = new StringBuilder();
-        for (int i = 0; i < headers.length; i++) {
-            final Header hdr = headers[i];
-            if (i > 0) {
-                buf.append(", ");
-            }
-            buf.append(hdr.getValue().trim());
+        final List<String> names = new ArrayList<>();
+        for (final Iterator<Header> it = message.headerIterator(HttpHeaders.VARY); it.hasNext(); ) {
+            final Header header = it.next();
+            CacheSupport.parseTokens(header, names::add);
         }
+        return names;
+    }
+
+    /**
+     * Computes a "variant key" for the given request and the given variants.
+     * @param request originating request
+     * @param variantNames variant names
+     * @return variant key
+     *
+     * @since 5.3
+     */
+    public String generateVariantKey(final HttpRequest request, final Collection<String> variantNames) {
+        Args.notNull(variantNames, "Variant names");
+        final StringBuilder buf = new StringBuilder("{");
+        final AtomicBoolean firstHeader = new AtomicBoolean();
+        variantNames.stream()
+                .map(h -> h.toLowerCase(Locale.ROOT))
+                .sorted()
+                .distinct()
+                .forEach(h -> {
+                    if (!firstHeader.compareAndSet(false, true)) {
+                        buf.append("&");
+                    }
+                    buf.append(PercentCodec.encode(h, StandardCharsets.UTF_8)).append("=");
+                    final List<String> tokens = new ArrayList<>();
+                    final Iterator<Header> headerIterator = request.headerIterator(h);
+                    while (headerIterator.hasNext()) {
+                        final Header header = headerIterator.next();
+                        CacheSupport.parseTokens(header, tokens::add);
+                    }
+                    final AtomicBoolean firstToken = new AtomicBoolean();
+                    tokens.stream()
+                            .filter(t -> !t.isEmpty())
+                            .map(t -> t.toLowerCase(Locale.ROOT))
+                            .sorted()
+                            .distinct()
+                            .forEach(t -> {
+                                if (!firstToken.compareAndSet(false, true)) {
+                                    buf.append(",");
+                                }
+                                buf.append(PercentCodec.encode(t, StandardCharsets.UTF_8));
+                            });
+                });
+        buf.append("}");
         return buf.toString();
     }
 
@@ -118,12 +165,18 @@ public class CacheKeyGenerator implements Resolver<URI, String> {
      * @param request the {@link HttpRequest}
      * @param entry the parent entry used to track the variants
      * @return cache key
+     *
+     * @deprecated Use {@link #generateKey(HttpHost, HttpRequest)} or {@link #generateVariantKey(HttpRequest, Collection)}
      */
+    @Deprecated
     public String generateKey(final HttpHost host, final HttpRequest request, final HttpCacheEntry entry) {
-        if (!entry.hasVariants()) {
-            return generateKey(host, request);
+        final String rootKey = generateKey(host, request);
+        final List<String> variantNames = variantNames(entry);
+        if (variantNames.isEmpty()) {
+            return rootKey;
+        } else {
+            return generateVariantKey(request, variantNames) + rootKey;
         }
-        return generateVariantKey(request, entry) + generateKey(host, request);
     }
 
     /**
@@ -134,35 +187,12 @@ public class CacheKeyGenerator implements Resolver<URI, String> {
      * @param req originating request
      * @param entry cache entry in question that has variants
      * @return variant key
+     *
+     * @deprecated Use {@link #generateVariantKey(HttpRequest, Collection)}.
      */
+    @Deprecated
     public String generateVariantKey(final HttpRequest req, final HttpCacheEntry entry) {
-        final List<String> variantHeaderNames = new ArrayList<>();
-        final Iterator<HeaderElement> it = MessageSupport.iterate(entry, HttpHeaders.VARY);
-        while (it.hasNext()) {
-            final HeaderElement elt = it.next();
-            variantHeaderNames.add(elt.getName());
-        }
-        Collections.sort(variantHeaderNames);
-
-        final StringBuilder buf;
-        try {
-            buf = new StringBuilder("{");
-            boolean first = true;
-            for (final String headerName : variantHeaderNames) {
-                if (!first) {
-                    buf.append("&");
-                }
-                buf.append(URLEncoder.encode(headerName, StandardCharsets.UTF_8.name()));
-                buf.append("=");
-                buf.append(URLEncoder.encode(getFullHeaderValue(req.getHeaders(headerName)),
-                        StandardCharsets.UTF_8.name()));
-                first = false;
-            }
-            buf.append("}");
-        } catch (final UnsupportedEncodingException uee) {
-            throw new RuntimeException("couldn't encode to UTF-8", uee);
-        }
-        return buf.toString();
+        return generateVariantKey(req, variantNames(entry));
     }
 
 }
