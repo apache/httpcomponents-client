@@ -187,7 +187,7 @@ public class TestBasicHttpCache {
 
         final String key = CacheKeyGenerator.INSTANCE.generateKey(host, req);
 
-        impl.storeInCache(host, req, resp, Instant.now(), Instant.now(), key, entry);
+        impl.storeInCache(req, resp, Instant.now(), Instant.now(), key, entry);
         assertSame(entry, backing.map.get(key));
     }
 

@@ -26,18 +26,15 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import java.util.Arrays;
+import java.util.Collections;
 
-import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
-import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.message.BasicHeader;
-import org.apache.hc.core5.http.message.BasicHeaderIterator;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
+import org.apache.hc.core5.http.support.BasicRequestBuilder;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -45,20 +42,12 @@ import org.junit.jupiter.api.Test;
 @SuppressWarnings({"boxing","static-access"}) // this is test code
 public class TestCacheKeyGenerator {
 
-    private static final BasicHttpRequest REQUEST_FULL_EPISODES = new BasicHttpRequest("GET",
-            "/full_episodes");
-    private static final BasicHttpRequest REQUEST_ROOT = new BasicHttpRequest("GET", "/");
-
     private CacheKeyGenerator extractor;
     private HttpHost defaultHost;
-    private HttpCacheEntry mockEntry;
-    private HttpRequest mockRequest;
 
     @BeforeEach
     public void setUp() throws Exception {
         defaultHost = new HttpHost("foo.example.com");
-        mockEntry = mock(HttpCacheEntry.class);
-        mockRequest = mock(HttpRequest.class);
         extractor = CacheKeyGenerator.INSTANCE;
     }
 
@@ -71,203 +60,46 @@ public class TestCacheKeyGenerator {
 
     @Test
     public void testGetURIWithDefaultPortAndScheme() {
-        Assertions.assertEquals("http://www.comcast.net:80/", extractor.generateKey(new HttpHost(
-                "www.comcast.net"), REQUEST_ROOT));
+        Assertions.assertEquals("http://www.comcast.net:80/", extractor.generateKey(
+                new HttpHost("www.comcast.net"),
+                new BasicHttpRequest("GET", "/")));
 
-        Assertions.assertEquals("http://www.fancast.com:80/full_episodes", extractor.generateKey(new HttpHost(
-                "www.fancast.com"), REQUEST_FULL_EPISODES));
+        Assertions.assertEquals("http://www.fancast.com:80/full_episodes", extractor.generateKey(
+                new HttpHost("www.fancast.com"),
+                new BasicHttpRequest("GET", "/full_episodes")));
     }
 
     @Test
     public void testGetURIWithDifferentScheme() {
         Assertions.assertEquals("https://www.comcast.net:443/", extractor.generateKey(
-                new HttpHost("https", "www.comcast.net", -1), REQUEST_ROOT));
+                new HttpHost("https", "www.comcast.net", -1),
+                new BasicHttpRequest("GET", "/")));
 
         Assertions.assertEquals("myhttp://www.fancast.com/full_episodes", extractor.generateKey(
-                new HttpHost("myhttp", "www.fancast.com", -1), REQUEST_FULL_EPISODES));
+                new HttpHost("myhttp", "www.fancast.com", -1),
+                new BasicHttpRequest("GET", "/full_episodes")));
     }
 
     @Test
     public void testGetURIWithDifferentPort() {
-        Assertions.assertEquals("http://www.comcast.net:8080/", extractor.generateKey(new HttpHost(
-                "www.comcast.net", 8080), REQUEST_ROOT));
+        Assertions.assertEquals("http://www.comcast.net:8080/", extractor.generateKey(
+                new HttpHost("www.comcast.net", 8080),
+                new BasicHttpRequest("GET", "/")));
 
         Assertions.assertEquals("http://www.fancast.com:9999/full_episodes", extractor.generateKey(
-                new HttpHost("www.fancast.com", 9999), REQUEST_FULL_EPISODES));
+                new HttpHost("www.fancast.com", 9999),
+                new BasicHttpRequest("GET", "/full_episodes")));
     }
 
     @Test
     public void testGetURIWithDifferentPortAndScheme() {
         Assertions.assertEquals("https://www.comcast.net:8080/", extractor.generateKey(
-                new HttpHost("https", "www.comcast.net", 8080), REQUEST_ROOT));
+                new HttpHost("https", "www.comcast.net", 8080),
+                new BasicHttpRequest("GET", "/")));
 
         Assertions.assertEquals("myhttp://www.fancast.com:9999/full_episodes", extractor.generateKey(
-                new HttpHost("myhttp", "www.fancast.com", 9999), REQUEST_FULL_EPISODES));
-    }
-
-    @Test
-    public void testGetURIWithQueryParameters() {
-        Assertions.assertEquals("http://www.comcast.net:80/?foo=bar", extractor.generateKey(
-                new HttpHost("http", "www.comcast.net", -1), new BasicHttpRequest("GET", "/?foo=bar")));
-        Assertions.assertEquals("http://www.fancast.com:80/full_episodes?foo=bar", extractor.generateKey(
-                new HttpHost("http", "www.fancast.com", -1), new BasicHttpRequest("GET",
-                        "/full_episodes?foo=bar")));
-    }
-
-    @Test
-    public void testGetVariantURIWithNoVaryHeaderReturnsNormalURI() {
-        final String theURI = "theURI";
-        when(mockEntry.hasVariants()).thenReturn(false);
-        extractor = new CacheKeyGenerator() {
-            @Override
-            public String generateKey(final HttpHost h, final HttpRequest request) {
-                Assertions.assertSame(defaultHost, h);
-                Assertions.assertSame(mockRequest, request);
-                return theURI;
-            }
-        };
-
-        final String result = extractor.generateKey(defaultHost, mockRequest, mockEntry);
-        verify(mockEntry).hasVariants();
-        Assertions.assertSame(theURI, result);
-    }
-
-    @Test
-    public void testGetVariantURIWithSingleValueVaryHeaderPrepends() {
-        final String theURI = "theURI";
-        final Header[] varyHeaders = { new BasicHeader("Vary", "Accept-Encoding") };
-        final Header[] encHeaders = { new BasicHeader("Accept-Encoding", "gzip") };
-
-        extractor = new CacheKeyGenerator() {
-            @Override
-            public String generateKey(final HttpHost h, final HttpRequest request) {
-                Assertions.assertSame(defaultHost, h);
-                Assertions.assertSame(mockRequest, request);
-                return theURI;
-            }
-        };
-        when(mockEntry.hasVariants()).thenReturn(true);
-        when(mockEntry.headerIterator("Vary")).thenReturn(new BasicHeaderIterator(varyHeaders, "Vary"));
-        when(mockRequest.getHeaders("Accept-Encoding")).thenReturn(encHeaders);
-
-        final String result = extractor.generateKey(defaultHost, mockRequest, mockEntry);
-
-        verify(mockEntry).hasVariants();
-        verify(mockEntry).headerIterator("Vary");
-        verify(mockRequest).getHeaders("Accept-Encoding");
-        Assertions.assertEquals("{Accept-Encoding=gzip}" + theURI, result);
-    }
-
-    @Test
-    public void testGetVariantURIWithMissingRequestHeader() {
-        final String theURI = "theURI";
-        final Header[] noHeaders = new Header[0];
-        final Header[] varyHeaders = { new BasicHeader("Vary", "Accept-Encoding") };
-        extractor = new CacheKeyGenerator() {
-            @Override
-            public String generateKey(final HttpHost h, final HttpRequest request) {
-                Assertions.assertSame(defaultHost, h);
-                Assertions.assertSame(mockRequest, request);
-                return theURI;
-            }
-        };
-        when(mockEntry.hasVariants()).thenReturn(true);
-        when(mockEntry.headerIterator("Vary")).thenReturn(new BasicHeaderIterator(varyHeaders, "Vary"));
-        when(mockRequest.getHeaders("Accept-Encoding"))
-                .thenReturn(noHeaders);
-
-        final String result = extractor.generateKey(defaultHost, mockRequest, mockEntry);
-
-        verify(mockEntry).hasVariants();
-        verify(mockEntry).headerIterator("Vary");
-        verify(mockRequest).getHeaders("Accept-Encoding");
-        Assertions.assertEquals("{Accept-Encoding=}" + theURI, result);
-    }
-
-    @Test
-    public void testGetVariantURIAlphabetizesWithMultipleVaryingHeaders() {
-        final String theURI = "theURI";
-        final Header[] varyHeaders = { new BasicHeader("Vary", "User-Agent, Accept-Encoding") };
-        final Header[] encHeaders = { new BasicHeader("Accept-Encoding", "gzip") };
-        final Header[] uaHeaders = { new BasicHeader("User-Agent", "browser") };
-        extractor = new CacheKeyGenerator() {
-            @Override
-            public String generateKey(final HttpHost h, final HttpRequest request) {
-                Assertions.assertSame(defaultHost, h);
-                Assertions.assertSame(mockRequest, request);
-                return theURI;
-            }
-        };
-        when(mockEntry.hasVariants()).thenReturn(true);
-        when(mockEntry.headerIterator("Vary")).thenReturn(new BasicHeaderIterator(varyHeaders, "Vary"));
-        when(mockRequest.getHeaders("Accept-Encoding")).thenReturn(encHeaders);
-        when(mockRequest.getHeaders("User-Agent")).thenReturn(uaHeaders);
-
-        final String result = extractor.generateKey(defaultHost, mockRequest, mockEntry);
-
-        verify(mockEntry).hasVariants();
-        verify(mockEntry).headerIterator("Vary");
-        verify(mockRequest).getHeaders("Accept-Encoding");
-        verify(mockRequest).getHeaders("User-Agent");
-        Assertions.assertEquals("{Accept-Encoding=gzip&User-Agent=browser}" + theURI, result);
-    }
-
-    @Test
-    public void testGetVariantURIHandlesMultipleVaryHeaders() {
-        final String theURI = "theURI";
-        final Header[] varyHeaders = { new BasicHeader("Vary", "User-Agent"),
-                new BasicHeader("Vary", "Accept-Encoding") };
-        final Header[] encHeaders = { new BasicHeader("Accept-Encoding", "gzip") };
-        final Header[] uaHeaders = { new BasicHeader("User-Agent", "browser") };
-        extractor = new CacheKeyGenerator() {
-            @Override
-            public String generateKey(final HttpHost h, final HttpRequest request) {
-                Assertions.assertSame(defaultHost, h);
-                Assertions.assertSame(mockRequest, request);
-                return theURI;
-            }
-        };
-        when(mockEntry.hasVariants()).thenReturn(true);
-        when(mockEntry.headerIterator("Vary")).thenReturn(new BasicHeaderIterator(varyHeaders, "Vary"));
-        when(mockRequest.getHeaders("Accept-Encoding")).thenReturn(encHeaders);
-        when(mockRequest.getHeaders("User-Agent")).thenReturn(uaHeaders);
-
-        final String result = extractor.generateKey(defaultHost, mockRequest, mockEntry);
-
-        verify(mockEntry).hasVariants();
-        verify(mockEntry).headerIterator("Vary");
-        verify(mockRequest).getHeaders("Accept-Encoding");
-        verify(mockRequest).getHeaders("User-Agent");
-        Assertions.assertEquals("{Accept-Encoding=gzip&User-Agent=browser}" + theURI, result);
-    }
-
-    @Test
-    public void testGetVariantURIHandlesMultipleLineRequestHeaders() {
-        final String theURI = "theURI";
-        final Header[] varyHeaders = { new BasicHeader("Vary", "User-Agent, Accept-Encoding") };
-        final Header[] encHeaders = { new BasicHeader("Accept-Encoding", "gzip"),
-                new BasicHeader("Accept-Encoding", "deflate") };
-        final Header[] uaHeaders = { new BasicHeader("User-Agent", "browser") };
-        extractor = new CacheKeyGenerator() {
-            @Override
-            public String generateKey(final HttpHost h, final HttpRequest request) {
-                Assertions.assertSame(defaultHost, h);
-                Assertions.assertSame(mockRequest, request);
-                return theURI;
-            }
-        };
-        when(mockEntry.hasVariants()).thenReturn(true);
-        when(mockEntry.headerIterator("Vary")).thenReturn(new BasicHeaderIterator(varyHeaders, "Vary"));
-        when(mockRequest.getHeaders("Accept-Encoding")).thenReturn(encHeaders);
-        when(mockRequest.getHeaders("User-Agent")).thenReturn(uaHeaders);
-
-        final String result = extractor.generateKey(defaultHost, mockRequest, mockEntry);
-
-        verify(mockEntry).hasVariants();
-        verify(mockEntry).headerIterator("Vary");
-        verify(mockRequest).getHeaders("Accept-Encoding");
-        verify(mockRequest).getHeaders("User-Agent");
-        Assertions.assertEquals("{Accept-Encoding=gzip%2C+deflate&User-Agent=browser}" + theURI, result);
+                new HttpHost("myhttp", "www.fancast.com", 9999),
+                new BasicHttpRequest("GET", "/full_episodes")));
     }
 
     /*
@@ -416,5 +248,67 @@ public class TestCacheKeyGenerator {
         final HttpRequest req1 = new BasicHttpRequest("GET", "/~smith/home%20folder.html");
         final HttpRequest req2 = new BasicHttpRequest("GET", "/%7Esmith/home%20folder.html");
         Assertions.assertEquals(extractor.generateKey(host, req1), extractor.generateKey(host, req2));
+    }
+
+    @Test
+    public void testGetURIWithQueryParameters() {
+        Assertions.assertEquals("http://www.comcast.net:80/?foo=bar", extractor.generateKey(
+                new HttpHost("http", "www.comcast.net", -1), new BasicHttpRequest("GET", "/?foo=bar")));
+        Assertions.assertEquals("http://www.fancast.com:80/full_episodes?foo=bar", extractor.generateKey(
+                new HttpHost("http", "www.fancast.com", -1), new BasicHttpRequest("GET",
+                        "/full_episodes?foo=bar")));
+    }
+
+    @Test
+    public void testGetVariantKey() {
+        final HttpRequest request = BasicRequestBuilder.get("/blah")
+                .addHeader(HttpHeaders.USER_AGENT, "some-agent")
+                .addHeader(HttpHeaders.ACCEPT_ENCODING, "gzip,zip")
+                .addHeader(HttpHeaders.ACCEPT_ENCODING, "deflate")
+                .build();
+
+        Assertions.assertEquals("{user-agent=some-agent}",
+                extractor.generateVariantKey(request, Collections.singletonList(HttpHeaders.USER_AGENT)));
+        Assertions.assertEquals("{accept-encoding=deflate,gzip,zip}",
+                extractor.generateVariantKey(request, Collections.singletonList(HttpHeaders.ACCEPT_ENCODING)));
+        Assertions.assertEquals("{accept-encoding=deflate,gzip,zip&user-agent=some-agent}",
+                extractor.generateVariantKey(request, Arrays.asList(HttpHeaders.USER_AGENT, HttpHeaders.ACCEPT_ENCODING)));
+    }
+
+    @Test
+    public void testGetVariantKeyInputNormalization() {
+        final HttpRequest request = BasicRequestBuilder.get("/blah")
+                .addHeader(HttpHeaders.USER_AGENT, "Some-Agent")
+                .addHeader(HttpHeaders.ACCEPT_ENCODING, "gzip, ZIP,,")
+                .addHeader(HttpHeaders.ACCEPT_ENCODING, "deflate")
+                .build();
+
+        Assertions.assertEquals("{user-agent=some-agent}",
+                extractor.generateVariantKey(request, Collections.singletonList(HttpHeaders.USER_AGENT)));
+        Assertions.assertEquals("{accept-encoding=deflate,gzip,zip}",
+                extractor.generateVariantKey(request, Collections.singletonList(HttpHeaders.ACCEPT_ENCODING)));
+        Assertions.assertEquals("{accept-encoding=deflate,gzip,zip&user-agent=some-agent}",
+                extractor.generateVariantKey(request, Arrays.asList(HttpHeaders.USER_AGENT, HttpHeaders.ACCEPT_ENCODING)));
+        Assertions.assertEquals("{accept-encoding=deflate,gzip,zip&user-agent=some-agent}",
+                extractor.generateVariantKey(request, Arrays.asList(HttpHeaders.USER_AGENT, HttpHeaders.ACCEPT_ENCODING, "USER-AGENT", HttpHeaders.ACCEPT_ENCODING)));
+    }
+
+    @Test
+    public void testGetVariantKeyInputNormalizationReservedChars() {
+        final HttpRequest request = BasicRequestBuilder.get("/blah")
+                .addHeader(HttpHeaders.USER_AGENT, "*===some-agent===*")
+                .build();
+
+        Assertions.assertEquals("{user-agent=%2A%3D%3D%3Dsome-agent%3D%3D%3D%2A}",
+                extractor.generateVariantKey(request, Collections.singletonList(HttpHeaders.USER_AGENT)));
+    }
+
+    @Test
+    public void testGetVariantKeyInputNoMatchingHeaders() {
+        final HttpRequest request = BasicRequestBuilder.get("/blah")
+                .build();
+
+        Assertions.assertEquals("{accept-encoding=&user-agent=}",
+                extractor.generateVariantKey(request, Arrays.asList(HttpHeaders.ACCEPT_ENCODING, HttpHeaders.USER_AGENT)));
     }
 }
