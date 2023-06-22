@@ -28,28 +28,33 @@ package org.apache.hc.client5.http.impl.cache;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 
-/** Records a set of information describing a cached variant. */
-class Variant {
+class CacheHit {
 
-    private final String cacheKey;
-    private final HttpCacheEntry entry;
+    final String rootKey;
+    final String variantKey;
+    final HttpCacheEntry entry;
 
-    public Variant(final String cacheKey, final HttpCacheEntry entry) {
-        this.cacheKey = cacheKey;
+    public CacheHit(final String rootKey, final String variantKey, final HttpCacheEntry entry) {
+        this.rootKey = rootKey;
+        this.variantKey = variantKey;
         this.entry = entry;
     }
 
-    public String getCacheKey() {
-        return cacheKey;
+    public CacheHit(final String rootKey, final HttpCacheEntry entry) {
+        this(rootKey, null, entry);
     }
 
-    public HttpCacheEntry getEntry() {
-        return entry;
+    public String getEntryKey() {
+        return variantKey != null ? variantKey : rootKey;
     }
 
     @Override
     public String toString() {
-        return cacheKey;
+        return "CacheHit{" +
+                "rootKey='" + rootKey + '\'' +
+                ", variantKey='" + variantKey + '\'' +
+                ", entry=" + entry +
+                '}';
     }
 
 }

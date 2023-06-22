@@ -1848,24 +1848,23 @@ public class TestProtocolRequirements {
         notModified.setHeader("Date", DateUtils.formatStandardDate(now));
         notModified.setHeader("ETag", "\"etag\"");
 
-        Mockito.when(mockCache.getCacheEntry(Mockito.eq(host), RequestEquivalent.eq(request))).thenReturn(entry);
+        Mockito.when(mockCache.match(Mockito.eq(host), RequestEquivalent.eq(request))).thenReturn(
+                new CacheMatch(new CacheHit("key", entry), null));
         Mockito.when(mockExecChain.proceed(RequestEquivalent.eq(validate), Mockito.any())).thenReturn(notModified);
-        Mockito.when(mockCache.updateEntry(
-                Mockito.eq(host),
-                RequestEquivalent.eq(request),
-                Mockito.eq(entry),
-                ResponseEquivalent.eq(notModified),
-                Mockito.any(),
-                Mockito.any()))
-                .thenReturn(HttpTestUtils.makeCacheEntry());
+        Mockito.when(mockCache.update(
+                        Mockito.any(),
+                        Mockito.any(),
+                        Mockito.any(),
+                        Mockito.any(),
+                        Mockito.any()))
+                .thenReturn(new CacheHit("key", HttpTestUtils.makeCacheEntry()));
 
         execute(request);
 
-        Mockito.verify(mockCache).updateEntry(
+        Mockito.verify(mockCache).update(
                 Mockito.any(),
-                Mockito.any(),
-                Mockito.any(),
-                Mockito.any(),
+                RequestEquivalent.eq(request),
+                ResponseEquivalent.eq(notModified),
                 Mockito.any(),
                 Mockito.any());
     }
@@ -1892,7 +1891,8 @@ public class TestProtocolRequirements {
         impl = new CachingExec(mockCache, null, config);
         request = new BasicClassicHttpRequest("GET", "/thing");
 
-        Mockito.when(mockCache.getCacheEntry(Mockito.eq(host), RequestEquivalent.eq(request))).thenReturn(entry);
+        Mockito.when(mockCache.match(Mockito.eq(host), RequestEquivalent.eq(request))).thenReturn(
+                new CacheMatch(new CacheHit("key", entry), null));
 
         final ClassicHttpResponse result = execute(request);
 
@@ -1936,7 +1936,8 @@ public class TestProtocolRequirements {
         impl = new CachingExec(mockCache, null, config);
         request = new BasicClassicHttpRequest("GET", "/thing");
 
-        Mockito.when(mockCache.getCacheEntry(Mockito.eq(host), RequestEquivalent.eq(request))).thenReturn(entry);
+        Mockito.when(mockCache.match(Mockito.eq(host), RequestEquivalent.eq(request))).thenReturn(
+                new CacheMatch(new CacheHit("key", entry), null));
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenThrow(
                 new IOException("can't talk to origin!"));
 
@@ -2120,7 +2121,8 @@ public class TestProtocolRequirements {
         impl = new CachingExec(mockCache, null, config);
         request = new BasicClassicHttpRequest("GET", "/thing");
 
-        Mockito.when(mockCache.getCacheEntry(Mockito.eq(host), RequestEquivalent.eq(request))).thenReturn(entry);
+        Mockito.when(mockCache.match(Mockito.eq(host), RequestEquivalent.eq(request))).thenReturn(
+                new CacheMatch(new CacheHit("key", entry), null));
 
         final ClassicHttpResponse result = execute(request);
 
@@ -2183,15 +2185,16 @@ public class TestProtocolRequirements {
 
         final HttpCacheEntry cacheEntry = HttpTestUtils.makeCacheEntry();
 
-        Mockito.when(mockCache.getCacheEntry(Mockito.eq(host), RequestEquivalent.eq(request))).thenReturn(entry);
+        Mockito.when(mockCache.match(Mockito.eq(host), RequestEquivalent.eq(request))).thenReturn(
+                new CacheMatch(new CacheHit("key", entry), null));
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(validated);
-        Mockito.when(mockCache.createEntry(
+        Mockito.when(mockCache.store(
                 Mockito.any(),
                 Mockito.any(),
                 ResponseEquivalent.eq(validated),
                 Mockito.any(),
                 Mockito.any(),
-                Mockito.any())).thenReturn(cacheEntry);
+                Mockito.any())).thenReturn(new CacheHit("key", cacheEntry));
 
         final ClassicHttpResponse result = execute(request);
 
@@ -2214,7 +2217,7 @@ public class TestProtocolRequirements {
             }
             Assertions.assertTrue(found113Warning);
         }
-        Mockito.verify(mockCache).createEntry(
+        Mockito.verify(mockCache).store(
                 Mockito.any(),
                 Mockito.any(),
                 Mockito.any(),
