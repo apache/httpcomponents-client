@@ -34,15 +34,15 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
 import java.time.Instant;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.classic.methods.HttpDelete;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
-import org.apache.hc.client5.http.classic.methods.HttpHead;
-import org.apache.hc.client5.http.classic.methods.HttpOptions;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
-import org.apache.hc.client5.http.classic.methods.HttpTrace;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
@@ -52,6 +52,7 @@ import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.BasicHttpResponse;
 import org.apache.hc.core5.util.ByteArrayBuffer;
+import org.hamcrest.MatcherAssert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -67,64 +68,7 @@ public class TestBasicHttpCache {
     }
 
     @Test
-    public void testDoNotFlushCacheEntriesOnGet() throws Exception {
-        final HttpHost host = new HttpHost("foo.example.com");
-        final HttpRequest req = new HttpGet("/bar");
-        final String key = CacheKeyGenerator.INSTANCE.generateKey(host, req);
-        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
-
-        backing.map.put(key, entry);
-
-        impl.flushCacheEntriesFor(host, req);
-
-        assertEquals(entry, backing.map.get(key));
-    }
-
-    @Test
-    public void testDoNotFlushCacheEntriesOnHead() throws Exception {
-        final HttpHost host = new HttpHost("foo.example.com");
-        final HttpRequest req = new HttpHead("/bar");
-        final String key = CacheKeyGenerator.INSTANCE.generateKey(host, req);
-        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
-
-        backing.map.put(key, entry);
-
-        impl.flushCacheEntriesFor(host, req);
-
-        assertEquals(entry, backing.map.get(key));
-    }
-
-    @Test
-    public void testDoNotFlushCacheEntriesOnOptions() throws Exception {
-        final HttpHost host = new HttpHost("foo.example.com");
-        final HttpRequest req = new HttpOptions("/bar");
-        final String key = CacheKeyGenerator.INSTANCE.generateKey(host, req);
-        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
-
-        backing.map.put(key, entry);
-
-        impl.flushCacheEntriesFor(host, req);
-
-        assertEquals(entry, backing.map.get(key));
-    }
-
-    @Test
-    public void testDoNotFlushCacheEntriesOnTrace() throws Exception {
-        final HttpHost host = new HttpHost("foo.example.com");
-        final HttpRequest req = new HttpTrace("/bar");
-        final String key = CacheKeyGenerator.INSTANCE.generateKey(host, req);
-        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
-
-        backing.map.put(key, entry);
-
-        impl.flushCacheEntriesFor(host, req);
-
-        assertEquals(entry, backing.map.get(key));
-    }
-
-    @Test
-    public void testFlushContentLocationEntryIfUnSafeRequest()
-            throws Exception {
+    public void testFlushContentLocationEntryIfUnSafeRequest() throws Exception {
         final HttpHost host = new HttpHost("foo.example.com");
         final HttpRequest req = new HttpPost("/foo");
         final HttpResponse resp = HttpTestUtils.make200Response();
@@ -144,8 +88,7 @@ public class TestBasicHttpCache {
     }
 
     @Test
-    public void testDoNotFlushContentLocationEntryIfSafeRequest()
-            throws Exception {
+    public void testDoNotFlushContentLocationEntryIfSafeRequest() throws Exception {
         final HttpHost host = new HttpHost("foo.example.com");
         final HttpRequest req = new HttpGet("/foo");
         final HttpResponse resp = HttpTestUtils.make200Response();
@@ -187,7 +130,7 @@ public class TestBasicHttpCache {
 
         final String key = CacheKeyGenerator.INSTANCE.generateKey(host, req);
 
-        impl.storeInCache(req, resp, Instant.now(), Instant.now(), key, entry);
+        impl.store(req, resp, Instant.now(), Instant.now(), key, entry);
         assertSame(entry, backing.map.get(key));
     }
 
@@ -195,7 +138,7 @@ public class TestBasicHttpCache {
     public void testGetCacheEntryReturnsNullOnCacheMiss() throws Exception {
         final HttpHost host = new HttpHost("foo.example.com");
         final HttpRequest request = new HttpGet("http://foo.example.com/bar");
-        final HttpCacheEntry result = impl.getCacheEntry(host, request);
+        final CacheMatch result = impl.match(host, request);
         assertNull(result);
     }
 
@@ -210,8 +153,10 @@ public class TestBasicHttpCache {
 
         backing.map.put(key,entry);
 
-        final HttpCacheEntry result = impl.getCacheEntry(host, request);
-        assertSame(entry, result);
+        final CacheMatch result = impl.match(host, request);
+        assertNotNull(result);
+        assertNotNull(result.hit);
+        assertSame(entry, result.hit.entry);
     }
 
     @Test
@@ -229,11 +174,12 @@ public class TestBasicHttpCache {
         origResponse.setHeader("Vary", "Accept-Encoding");
         origResponse.setHeader("Content-Encoding","gzip");
 
-        impl.createEntry(host, origRequest, origResponse, buf, Instant.now(), Instant.now());
+        impl.store(host, origRequest, origResponse, buf, Instant.now(), Instant.now());
 
         final HttpRequest request = new HttpGet("http://foo.example.com/bar");
-        final HttpCacheEntry result = impl.getCacheEntry(host, request);
-        assertNull(result);
+        final CacheMatch result = impl.match(host, request);
+        assertNotNull(result);
+        assertNull(result.hit);
     }
 
     @Test
@@ -251,12 +197,13 @@ public class TestBasicHttpCache {
         origResponse.setHeader("Vary", "Accept-Encoding");
         origResponse.setHeader("Content-Encoding","gzip");
 
-        impl.createEntry(host, origRequest, origResponse, buf, Instant.now(), Instant.now());
+        impl.store(host, origRequest, origResponse, buf, Instant.now(), Instant.now());
 
         final HttpRequest request = new HttpGet("http://foo.example.com/bar");
         request.setHeader("Accept-Encoding","gzip");
-        final HttpCacheEntry result = impl.getCacheEntry(host, request);
+        final CacheMatch result = impl.match(host, request);
         assertNotNull(result);
+        assertNotNull(result.hit);
     }
 
     @Test
@@ -282,28 +229,41 @@ public class TestBasicHttpCache {
         origResponse2.setHeader(HttpHeaders.VARY, "Accept-Encoding");
 
         // Store the two variants in cache
-        impl.createEntry(host, origRequest, origResponse1, buf, Instant.now(), Instant.now());
-        impl.createEntry(host, origRequest, origResponse2, buf, Instant.now(), Instant.now());
+        impl.store(host, origRequest, origResponse1, buf, Instant.now(), Instant.now());
+        impl.store(host, origRequest, origResponse2, buf, Instant.now(), Instant.now());
 
         final HttpRequest request = new HttpGet("http://foo.example.com/bar");
         request.setHeader("Accept-Encoding", "gzip");
-        final HttpCacheEntry result = impl.getCacheEntry(host, request);
+        final CacheMatch result = impl.match(host, request);
         assertNotNull(result);
+        assertNotNull(result.hit);
+        final HttpCacheEntry entry = result.hit.entry;
+        assertNotNull(entry);
 
         // Retrieve the ETag header value from the original response and assert that
         // the returned cache entry has the same ETag value
         final String expectedEtag = origResponse2.getFirstHeader(HttpHeaders.ETAG).getValue();
-        final String actualEtag = result.getFirstHeader(HttpHeaders.ETAG).getValue();
+        final String actualEtag = entry.getFirstHeader(HttpHeaders.ETAG).getValue();
 
         assertEquals(expectedEtag, actualEtag);
     }
 
     @Test
-    public void testGetVariantCacheEntriesReturnsEmptySetOnNoVariants() throws Exception {
-        final HttpHost host = new HttpHost("foo.example.com");
-        final HttpRequest request = new HttpGet("http://foo.example.com/bar");
+    public void testGetVariantsRootNoVariants() throws Exception {
+        final HttpCacheEntry root = HttpTestUtils.makeCacheEntry();
+        final List<CacheHit> variants = impl.getVariants(new CacheHit("root-key", root));
 
-        final Map<String,Variant> variants = impl.getVariantCacheEntriesWithEtags(host, request);
+        assertNotNull(variants);
+        assertEquals(0, variants.size());
+    }
+
+    @Test
+    public void testGetVariantsRootNonExistentVariants() throws Exception {
+        final Map<String, String> variantMap = new HashMap<>();
+        variantMap.put("variant1", "variant-key-1");
+        variantMap.put("variant2", "variant-key-2");
+        final HttpCacheEntry root = HttpTestUtils.makeCacheEntry(variantMap);
+        final List<CacheHit> variants = impl.getVariants(new CacheHit("root-key", root));
 
         assertNotNull(variants);
         assertEquals(0, variants.size());
@@ -334,14 +294,21 @@ public class TestBasicHttpCache {
         resp2.setHeader("Content-Encoding","gzip");
         resp2.setHeader("Vary", "Accept-Encoding");
 
-        impl.createEntry(host, req1, resp1, null, Instant.now(), Instant.now());
-        impl.createEntry(host, req2, resp2, null, Instant.now(), Instant.now());
+        final CacheHit hit1 = impl.store(host, req1, resp1, null, Instant.now(), Instant.now());
+        final CacheHit hit2 = impl.store(host, req2, resp2, null, Instant.now(), Instant.now());
 
-        final Map<String,Variant> variants = impl.getVariantCacheEntriesWithEtags(host, req1);
+        final Map<String, String> variantMap = new HashMap<>();
+        variantMap.put("variant-1", hit1.variantKey);
+        variantMap.put("variant-2", hit2.variantKey);
+
+        final Map<String, HttpCacheEntry> variants = impl.getVariants(new CacheHit(hit1.rootKey,
+                HttpTestUtils.makeCacheEntry(variantMap))).stream()
+                        .collect(Collectors.toMap(CacheHit::getEntryKey, e -> e.entry));
 
         assertNotNull(variants);
         assertEquals(2, variants.size());
-
+        MatcherAssert.assertThat(variants.get(hit1.getEntryKey()), HttpCacheEntryMatcher.equivalent(hit1.entry));
+        MatcherAssert.assertThat(variants.get(hit2.getEntryKey()), HttpCacheEntryMatcher.equivalent(hit2.entry));
     }
 
 }

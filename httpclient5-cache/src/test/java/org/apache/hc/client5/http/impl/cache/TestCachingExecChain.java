@@ -160,7 +160,7 @@ public class TestCachingExecChain {
         execute(req2);
 
         Mockito.verify(mockExecChain).proceed(Mockito.any(), Mockito.any());
-        Mockito.verify(cache).createEntry(Mockito.eq(host), RequestEquivalent.eq(req1),
+        Mockito.verify(cache).store(Mockito.eq(host), RequestEquivalent.eq(req1),
                 Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
     }
 
@@ -1070,7 +1070,7 @@ public class TestCachingExecChain {
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, mockExecRuntime, context);
         impl.cacheAndReturnResponse(host, request, originResponse, scope, requestSent, responseReceived);
 
-        Mockito.verify(cache, Mockito.never()).createEntry(
+        Mockito.verify(cache, Mockito.never()).store(
                 Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
     }
 
@@ -1096,18 +1096,18 @@ public class TestCachingExecChain {
         final HttpCacheEntry httpCacheEntry = HttpTestUtils.makeCacheEntry();
         final SimpleHttpResponse response = SimpleHttpResponse.create(HttpStatus.SC_OK);
 
-        Mockito.when(mockCache.createEntry(
+        Mockito.when(mockCache.store(
                 Mockito.eq(host),
                 RequestEquivalent.eq(request),
                 ResponseEquivalent.eq(response),
                 Mockito.any(),
                 Mockito.eq(requestSent),
-                Mockito.eq(responseReceived))).thenReturn(httpCacheEntry);
+                Mockito.eq(responseReceived))).thenReturn(new CacheHit("key", httpCacheEntry));
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, mockExecRuntime, context);
         impl.cacheAndReturnResponse(host, request, originResponse, scope, requestSent, responseReceived);
 
-        Mockito.verify(mockCache).createEntry(
+        Mockito.verify(mockCache).store(
                 Mockito.any(),
                 Mockito.any(),
                 Mockito.any(),
@@ -1426,7 +1426,8 @@ public class TestCachingExecChain {
 
         // Prepare original cache entry
         final HttpCacheEntry originalEntry = HttpTestUtils.makeCacheEntry();
-        Mockito.when(mockCache.getCacheEntry(host, request)).thenReturn(originalEntry);
+        Mockito.when(mockCache.match(host, request)).thenReturn(
+                new CacheMatch(new CacheHit("key", originalEntry), null));
 
         // Prepare 304 Not Modified response
         final Instant now = Instant.now();
@@ -1452,19 +1453,19 @@ public class TestCachingExecChain {
                 headers,
                 new HeapResource(body.getBytes(StandardCharsets.UTF_8)));
 
-        Mockito.when(mockCache.updateEntry(Mockito.eq(host), Mockito.eq(request), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(cacheEntry);
+        Mockito.when(mockCache.update(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
+                .thenReturn(new CacheHit("key", cacheEntry));
 
         // Call cacheAndReturnResponse with 304 Not Modified response
         final ClassicHttpResponse cachedResponse = impl.cacheAndReturnResponse(host, request, backendResponse, scope, requestSent, responseReceived);
 
         // Verify cache entry is updated
-        Mockito.verify(mockCache).updateEntry(
-                host,
-                request,
-                originalEntry,
-                backendResponse,
-                requestSent,
-                responseReceived
+        Mockito.verify(mockCache).update(
+                Mockito.any(),
+                Mockito.same(request),
+                Mockito.same(backendResponse),
+                Mockito.eq(requestSent),
+                Mockito.eq(responseReceived)
         );
 
         // Verify response is generated from the updated cache entry
@@ -1518,7 +1519,8 @@ public class TestCachingExecChain {
         // Execute the first request and assert the response
         final ClassicHttpResponse response1 = execute(req1);
         final HttpCacheEntry httpCacheEntry = HttpTestUtils.makeCacheEntry();
-        Mockito.when(responseCache.getCacheEntry(Mockito.any(), Mockito.any())).thenReturn(httpCacheEntry);
+        Mockito.when(responseCache.match(Mockito.any(), Mockito.any())).thenReturn(
+                new CacheMatch(new CacheHit("key", httpCacheEntry), null));
         Assertions.assertEquals(HttpStatus.SC_GATEWAY_TIMEOUT, response1.getCode());
 
         Mockito.when(mockExecRuntime.fork(Mockito.any())).thenReturn(mockExecRuntime);
@@ -1619,7 +1621,8 @@ public class TestCachingExecChain {
         // Execute the first request and assert the response
         final ClassicHttpResponse response1 = execute(req1);
         final HttpCacheEntry httpCacheEntry = HttpTestUtils.makeCacheEntry();
-        Mockito.when(responseCache.getCacheEntry(Mockito.any(), Mockito.any())).thenReturn(httpCacheEntry);
+        Mockito.when(responseCache.match(Mockito.any(), Mockito.any())).thenReturn(
+                new CacheMatch(new CacheHit("key", httpCacheEntry), null));
         Assertions.assertEquals(HttpStatus.SC_GATEWAY_TIMEOUT, response1.getCode());
 
         Mockito.when(mockExecRuntime.fork(Mockito.any())).thenReturn(mockExecRuntime);
