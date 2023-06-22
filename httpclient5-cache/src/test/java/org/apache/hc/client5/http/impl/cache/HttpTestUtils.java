@@ -318,6 +318,11 @@ public class HttpTestUtils {
         return makeCacheEntry(requestDate, responseDate, Method.GET, "/", null, HttpStatus.SC_OK, headers, variantMap);
     }
 
+    public static HttpCacheEntry makeCacheEntry(final Map<String, String> variantMap) {
+        final Instant now = Instant.now();
+        return makeCacheEntry(now, now, new Header[] {}, variantMap);
+    }
+
     public static HttpCacheEntry makeCacheEntry(final Header[] headers, final byte[] bytes) {
         final Instant now = Instant.now();
         return makeCacheEntry(now, now, headers, bytes);

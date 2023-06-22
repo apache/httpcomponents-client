@@ -61,7 +61,7 @@ public class ContainsHeaderMatcher extends BaseMatcher<MessageHeaders> {
 
     @Override
     public void describeTo(final Description description) {
-        description.appendText("contains header ").appendValue(headerValue).appendText(": ").appendValue(headerValue);
+        description.appendText("contains header ").appendValue(headerName).appendText(": ").appendValue(headerValue);
     }
 
     public static Matcher<MessageHeaders> contains(final String headerName, final Object headerValue) {

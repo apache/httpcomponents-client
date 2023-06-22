@@ -27,7 +27,7 @@
 package org.apache.hc.client5.http.impl.cache;
 
 import java.time.Instant;
-import java.util.Map;
+import java.util.List;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.core5.http.HttpHost;
@@ -37,7 +37,59 @@ import org.apache.hc.core5.util.ByteArrayBuffer;
 
 interface HttpCache {
 
-    String generateKey (HttpHost host, HttpRequest request, HttpCacheEntry cacheEntry);
+    /**
+     * Returns a result with either a fully matching {@link HttpCacheEntry}
+     * a partial match with a list of known variants or null if no match could be found.
+     */
+    CacheMatch match(HttpHost host, HttpRequest request);
+
+    /**
+     * Retrieves variant {@link HttpCacheEntry}s for the given hit.
+     */
+    List<CacheHit> getVariants(CacheHit hit);
+
+    /**
+     * Stores {@link HttpRequest} / {@link HttpResponse} exchange details in the cache.
+     */
+    CacheHit store(
+            HttpHost host,
+            HttpRequest request,
+            HttpResponse originResponse,
+            ByteArrayBuffer content,
+            Instant requestSent,
+            Instant responseReceived);
+
+    /**
+     * Updates {@link HttpCacheEntry} using details from a 304 {@link HttpResponse} and
+     * updates the root entry if the given cache entry represents a variant.
+     */
+    CacheHit update(
+            CacheHit stale,
+            HttpRequest request,
+            HttpResponse originResponse,
+            Instant requestSent,
+            Instant responseReceived);
+
+    /**
+     * Updates {@link HttpCacheEntry} using details from a 304 {@link HttpResponse}.
+     */
+    CacheHit update(
+            CacheHit stale,
+            HttpResponse originResponse,
+            Instant requestSent,
+            Instant responseReceived);
+
+    /**
+     * Stores {@link HttpRequest} / {@link HttpResponse} exchange details in the cache
+     * re-using the resource of the existing {@link HttpCacheEntry}.
+     */
+    CacheHit storeReusing(
+            CacheHit hit,
+            HttpHost host,
+            HttpRequest request,
+            HttpResponse originResponse,
+            Instant requestSent,
+            Instant responseReceived);
 
     /**
      * Clear all matching {@link HttpCacheEntry}s.
@@ -54,60 +106,4 @@ interface HttpCache {
      */
     void flushCacheEntriesInvalidatedByExchange(HttpHost host, HttpRequest request, HttpResponse response);
 
-    /**
-     * Retrieve matching {@link HttpCacheEntry} from the cache if it exists.
-     */
-    HttpCacheEntry getCacheEntry(HttpHost host, HttpRequest request);
-
-    /**
-     * Retrieve all variants from the cache, if there are no variants then an empty
-     * {@link Map} is returned
-     */
-    Map<String,Variant> getVariantCacheEntriesWithEtags(HttpHost host, HttpRequest request);
-
-    /**
-     * Store a {@link HttpResponse} in the cache if possible, and return
-     */
-    HttpCacheEntry createEntry(
-            HttpHost host,
-            HttpRequest request,
-            HttpResponse originResponse,
-            ByteArrayBuffer content,
-            Instant requestSent,
-            Instant responseReceived);
-
-    /**
-     * Update a {@link HttpCacheEntry} using a 304 {@link HttpResponse}.
-     */
-    HttpCacheEntry updateEntry(
-            HttpHost host,
-            HttpRequest request,
-            HttpCacheEntry stale,
-            HttpResponse originResponse,
-            Instant requestSent,
-            Instant responseReceived);
-
-    /**
-     * Update a specific {@link HttpCacheEntry} representing a cached variant
-     * using a 304 {@link HttpResponse}.
-     */
-    HttpCacheEntry updateVariantEntry(
-            HttpHost host,
-            HttpRequest request,
-            HttpResponse originResponse,
-            HttpCacheEntry entry,
-            Instant requestSent,
-            Instant responseReceived);
-
-    /**
-     * Specifies cache should reuse the given cached variant to satisfy
-     * requests whose varying headers match those of the given client request.
-     */
-    void reuseVariantEntryFor(
-            HttpHost host,
-            HttpRequest request,
-            HttpResponse originResponse,
-            HttpCacheEntry entry,
-            Instant requestSent,
-            Instant responseReceived);
 }
