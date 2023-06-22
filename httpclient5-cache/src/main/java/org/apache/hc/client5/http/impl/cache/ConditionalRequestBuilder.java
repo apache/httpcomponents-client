@@ -26,7 +26,7 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
-import java.util.Map;
+import java.util.Set;
 
 import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
@@ -84,9 +84,9 @@ class ConditionalRequestBuilder<T extends HttpRequest> {
      * @param variants
      * @return the wrapped request
      */
-    public T buildConditionalRequestFromVariants(final T request, final Map<String, Variant> variants) {
+    public T buildConditionalRequestFromVariants(final T request, final Set<String> variants) {
         final T newRequest = messageCopier.create(request);
-        newRequest.setHeader(MessageSupport.format(HttpHeaders.IF_NONE_MATCH, variants.keySet()));
+        newRequest.setHeader(MessageSupport.format(HttpHeaders.IF_NONE_MATCH, variants));
         return newRequest;
     }
 

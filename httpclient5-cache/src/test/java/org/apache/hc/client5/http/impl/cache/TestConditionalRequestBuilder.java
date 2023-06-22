@@ -27,9 +27,10 @@
 package org.apache.hc.client5.http.impl.cache;
 
 import java.time.Instant;
-import java.util.HashMap;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Map;
+import java.util.Set;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.utils.DateUtils;
@@ -280,10 +281,7 @@ public class TestConditionalRequestBuilder {
         final String etag2 = "\"456\"";
         final String etag3 = "\"789\"";
 
-        final Map<String,Variant> variantEntries = new HashMap<>();
-        variantEntries.put(etag1, new Variant("A", HttpTestUtils.makeCacheEntry(new BasicHeader("ETag", etag1))));
-        variantEntries.put(etag2, new Variant("B", HttpTestUtils.makeCacheEntry(new BasicHeader("ETag", etag2))));
-        variantEntries.put(etag3, new Variant("C", HttpTestUtils.makeCacheEntry(new BasicHeader("ETag", etag3))));
+        final Set<String> variantEntries = new HashSet<>(Arrays.asList(etag1, etag2, etag3));
 
         final HttpRequest conditional = impl.buildConditionalRequestFromVariants(request, variantEntries);
 

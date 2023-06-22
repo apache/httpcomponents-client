@@ -27,7 +27,7 @@
 package org.apache.hc.client5.http.impl.cache;
 
 import java.time.Instant;
-import java.util.Map;
+import java.util.Collection;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.core5.concurrent.Cancellable;
@@ -39,7 +39,64 @@ import org.apache.hc.core5.util.ByteArrayBuffer;
 
 interface HttpAsyncCache {
 
-    String generateKey (HttpHost host, HttpRequest request, HttpCacheEntry cacheEntry);
+    /**
+     * Returns a result with either a fully matching {@link HttpCacheEntry}
+     * a partial match with a list of known variants or null if no match could be found.
+     */
+    Cancellable match(HttpHost host, HttpRequest request, FutureCallback<CacheMatch> callback);
+
+    /**
+     * Retrieves variant {@link HttpCacheEntry}s for the given hit.
+     */
+    Cancellable getVariants(
+            CacheHit hit, FutureCallback<Collection<CacheHit>> callback);
+
+    /**
+     * Stores {@link HttpRequest} / {@link HttpResponse} exchange details in the cache.
+     */
+    Cancellable store(
+            HttpHost host,
+            HttpRequest request,
+            HttpResponse originResponse,
+            ByteArrayBuffer content,
+            Instant requestSent,
+            Instant responseReceived,
+            FutureCallback<CacheHit> callback);
+
+    /**
+     * Updates {@link HttpCacheEntry} using details from a 304 {@link HttpResponse} and
+     * updates the root entry if the given cache entry represents a variant.
+     */
+    Cancellable update(
+            CacheHit stale,
+            HttpRequest request,
+            HttpResponse originResponse,
+            Instant requestSent,
+            Instant responseReceived,
+            FutureCallback<CacheHit> callback);
+
+    /**
+     * Updates {@link HttpCacheEntry} using details from a 304 {@link HttpResponse}.
+     */
+    Cancellable update(
+            CacheHit stale,
+            HttpResponse originResponse,
+            Instant requestSent,
+            Instant responseReceived,
+            FutureCallback<CacheHit> callback);
+
+    /**
+     * Stores {@link HttpRequest} / {@link HttpResponse} exchange details in the cache
+     * re-using the resource of the existing {@link HttpCacheEntry}.
+     */
+    Cancellable storeReusing(
+            CacheHit hit,
+            HttpHost host,
+            HttpRequest request,
+            HttpResponse originResponse,
+            Instant requestSent,
+            Instant responseReceived,
+            FutureCallback<CacheHit> callback);
 
     /**
      * Clear all matching {@link HttpCacheEntry}s.
@@ -59,65 +116,4 @@ interface HttpAsyncCache {
     Cancellable flushCacheEntriesInvalidatedByExchange(
             HttpHost host, HttpRequest request, HttpResponse response, FutureCallback<Boolean> callback);
 
-    /**
-     * Retrieve matching {@link HttpCacheEntry} from the cache if it exists
-     */
-    Cancellable getCacheEntry(
-            HttpHost host, HttpRequest request, FutureCallback<HttpCacheEntry> callback);
-
-    /**
-     * Retrieve all variants from the cache, if there are no variants then an empty
-     */
-    Cancellable getVariantCacheEntriesWithEtags(
-            HttpHost host, HttpRequest request, FutureCallback<Map<String,Variant>> callback);
-
-    /**
-     * Store a {@link HttpResponse} in the cache if possible, and return
-     */
-    Cancellable createEntry(
-            HttpHost host,
-            HttpRequest request,
-            HttpResponse originResponse,
-            ByteArrayBuffer content,
-            Instant requestSent,
-            Instant responseReceived,
-            FutureCallback<HttpCacheEntry> callback);
-
-    /**
-     * Update a {@link HttpCacheEntry} using a 304 {@link HttpResponse}.
-     */
-    Cancellable updateEntry(
-            HttpHost host,
-            HttpRequest request,
-            HttpCacheEntry stale,
-            HttpResponse originResponse,
-            Instant requestSent,
-            Instant responseReceived,
-            FutureCallback<HttpCacheEntry> callback);
-
-    /**
-     * Update a specific {@link HttpCacheEntry} representing a cached variant
-     * using a 304 {@link HttpResponse}.
-     */
-    Cancellable updateVariantEntry(
-            HttpHost host,
-            HttpRequest request,
-            HttpResponse originResponse,
-            HttpCacheEntry entry,
-            Instant requestSent,
-            Instant responseReceived,
-            FutureCallback<HttpCacheEntry> callback);
-
-    /**
-     * Specifies cache should reuse the given cached variant to satisfy
-     * requests whose varying headers match those of the given client request.
-     */
-    Cancellable reuseVariantEntryFor(
-            HttpHost host,
-            HttpRequest request,
-            HttpResponse originResponse,
-            HttpCacheEntry entry,
-            Instant requestSent,
-            Instant responseReceived,
-            FutureCallback<Boolean> callback);
 }

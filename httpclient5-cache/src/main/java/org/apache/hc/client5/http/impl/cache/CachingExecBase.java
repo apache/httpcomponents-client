@@ -185,9 +185,9 @@ public class CachingExecBase {
 
     SimpleHttpResponse generateCachedResponse(
             final ResponseCacheControl responseCacheControl,
+            final HttpCacheEntry entry,
             final HttpRequest request,
             final HttpContext context,
-            final HttpCacheEntry entry,
             final Instant now) throws ResourceIOException {
         final SimpleHttpResponse cachedResponse;
         if (request.containsHeader(HttpHeaders.IF_NONE_MATCH)
@@ -223,9 +223,9 @@ public class CachingExecBase {
     SimpleHttpResponse handleRevalidationFailure(
             final RequestCacheControl requestCacheControl,
             final ResponseCacheControl responseCacheControl,
+            final HttpCacheEntry entry,
             final HttpRequest request,
             final HttpContext context,
-            final HttpCacheEntry entry,
             final Instant now) throws IOException {
         if (staleResponseNotAllowed(requestCacheControl, responseCacheControl, entry, now)) {
             return generateGatewayTimeout(context);
@@ -259,8 +259,8 @@ public class CachingExecBase {
             || explicitFreshnessRequest(requestCacheControl, responseCacheControl, entry, now);
     }
 
-    boolean mayCallBackend(final RequestCacheControl cacheControl) {
-        if (cacheControl.isOnlyIfCached()) {
+    boolean mayCallBackend(final RequestCacheControl requestCacheControl) {
+        if (requestCacheControl.isOnlyIfCached()) {
             LOG.debug("Request marked only-if-cached");
             return false;
         }
@@ -268,7 +268,8 @@ public class CachingExecBase {
     }
 
     boolean explicitFreshnessRequest(final RequestCacheControl requestCacheControl,
-                                     final ResponseCacheControl responseCacheControl, final HttpCacheEntry entry,
+                                     final ResponseCacheControl responseCacheControl,
+                                     final HttpCacheEntry entry,
                                      final Instant now) {
         if (requestCacheControl.getMaxStale() >= 0) {
             final TimeValue age = validityPolicy.getCurrentAge(entry, now);
