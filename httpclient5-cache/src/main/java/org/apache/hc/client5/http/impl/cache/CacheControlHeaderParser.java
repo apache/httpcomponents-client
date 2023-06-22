@@ -196,6 +196,8 @@ class CacheControlHeaderParser {
                 builder.setStaleWhileRevalidate(parseSeconds(name, value));
             } else if (name.equalsIgnoreCase(HeaderConstants.CACHE_CONTROL_STALE_IF_ERROR)) {
                 builder.setStaleIfError(parseSeconds(name, value));
+            } else if (name.equalsIgnoreCase(HeaderConstants.CACHE_CONTROL_MUST_UNDERSTAND)) {
+                builder.setMustUnderstand(true);
             }
         });
         return builder.build();
