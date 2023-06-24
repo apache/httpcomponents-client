@@ -1,4 +1,15 @@
-﻿Release 5.2.1
+﻿Release 5.2.2
+------------------
+
+This is a maintenance release.
+
+Change Log
+-------------------
+
+* Bump jna.version from 5.12.1 to 5.13.0 #407.
+  Contributed by Dependabot and Gary Gregory <ggregory at apache.org>
+
+Release 5.2.1
 ------------------
 
 This is a maintenance release that fixes several regressions found in release 5.2.
