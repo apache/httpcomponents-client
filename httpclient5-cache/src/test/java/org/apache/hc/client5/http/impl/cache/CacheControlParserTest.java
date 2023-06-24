@@ -243,4 +243,18 @@ public class CacheControlParserTest {
         );
     }
 
+    @Test
+    public void testParseIsImmutable() {
+        final Header header = new BasicHeader("Cache-Control", "max-age=0 , immutable");
+        final ResponseCacheControl cacheControl = parser.parseResponse(Collections.singletonList(header).iterator());
+        assertTrue(cacheControl.isImmutable());
+    }
+
+    @Test
+    public void testParseMultipleIsImmutable() {
+        final Header header = new BasicHeader("Cache-Control", "immutable, nmax-age=0 , immutable");
+        final ResponseCacheControl cacheControl = parser.parseResponse(Collections.singletonList(header).iterator());
+        assertTrue(cacheControl.isImmutable());
+    }
+
 }

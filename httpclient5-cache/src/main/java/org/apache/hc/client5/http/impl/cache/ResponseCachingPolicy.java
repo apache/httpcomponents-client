@@ -231,8 +231,18 @@ class ResponseCachingPolicy {
             return false;
         }
 
-        // calculate freshness lifetime
         final Duration freshnessLifetime = calculateFreshnessLifetime(cacheControl, response);
+
+        // If the 'immutable' directive is present and the response is still fresh,
+        // then the response is considered cacheable without further validation
+        if (cacheControl.isImmutable() && responseIsStillFresh(response, freshnessLifetime)) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Response is immutable and fresh, considered cacheable without further validation");
+            }
+            return true;
+        }
+
+        // calculate freshness lifetime
         if (freshnessLifetime.isNegative() || freshnessLifetime.isZero()) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Freshness lifetime is invalid");
@@ -519,6 +529,32 @@ class ResponseCachingPolicy {
                 (status >= 400 && status <= 417)   ||
                 (status == 421)                    ||
                 (status >= 500 && status <= 505);
+    }
+
+    /**
+     * Determines if an HttpResponse is still fresh based on its Date header and calculated freshness lifetime.
+     *
+     * <p>
+     * This method calculates the age of the response from its Date header and compares it with the provided freshness
+     * lifetime. If the age is less than the freshness lifetime, the response is considered fresh.
+     * </p>
+     *
+     * <p>
+     * Note: If the Date header is missing or invalid, this method assumes the response is not fresh.
+     * </p>
+     *
+     * @param response          The HttpResponse whose freshness is being checked.
+     * @param freshnessLifetime The calculated freshness lifetime of the HttpResponse.
+     * @return {@code true} if the response age is less than its freshness lifetime, {@code false} otherwise.
+     */
+    private boolean responseIsStillFresh(final HttpResponse response, final Duration freshnessLifetime) {
+        final Instant date = DateUtils.parseStandardDate(response, HttpHeaders.DATE);
+        if (date == null) {
+            // The Date header is missing or invalid. Assuming the response is not fresh.
+            return false;
+        }
+        final Duration age = Duration.between(date, Instant.now());
+        return age.compareTo(freshnessLifetime) < 0;
     }
 
 }
