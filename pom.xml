@@ -72,7 +72,7 @@
     <junit.version>5.9.3</junit.version>
     <hamcrest.version>2.2</hamcrest.version>
     <mockito.version>4.8.1</mockito.version>
-    <jna.version>5.12.1</jna.version>
+    <jna.version>5.13.0</jna.version>
     <hc.stylecheck.version>1</hc.stylecheck.version>
     <rxjava.version>2.2.21</rxjava.version>
     <api.comparison.version>5.2</api.comparison.version>
