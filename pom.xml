@@ -63,7 +63,7 @@
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
     <httpcore.version>5.2.2</httpcore.version>
-    <log4j.version>2.19.0</log4j.version>
+    <log4j.version>2.20.0</log4j.version>
     <brotli.version>0.1.2</brotli.version>
     <conscrypt.version>2.5.2</conscrypt.version>
     <ehcache.version>3.10.8</ehcache.version>
@@ -71,7 +71,7 @@
     <slf4j.version>1.7.36</slf4j.version>
     <junit.version>5.9.3</junit.version>
     <hamcrest.version>2.2</hamcrest.version>
-    <mockito.version>4.8.1</mockito.version>
+    <mockito.version>4.11.0</mockito.version>
     <jna.version>5.13.0</jna.version>
     <hc.stylecheck.version>1</hc.stylecheck.version>
     <rxjava.version>2.2.21</rxjava.version>
