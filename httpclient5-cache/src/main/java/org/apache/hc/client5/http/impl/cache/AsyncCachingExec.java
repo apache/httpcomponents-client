@@ -65,7 +65,6 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
-import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.impl.BasicEntityDetails;
 import org.apache.hc.core5.http.nio.AsyncDataConsumer;
 import org.apache.hc.core5.http.nio.AsyncEntityProducer;
@@ -237,27 +236,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
 
         final RequestCacheControl requestCacheControl = CacheControlHeaderParser.INSTANCE.parse(request);
 
-        if (!cacheableRequestPolicy.isServableFromCache(requestCacheControl, request)) {
-            LOG.debug("Request is not servable from cache");
-            operation.setDependency(responseCache.flushCacheEntriesInvalidatedByRequest(target, request, new FutureCallback<Boolean>() {
-
-                @Override
-                public void completed(final Boolean result) {
-                    callBackend(target, request, entityProducer, scope, chain, asyncExecCallback);
-                }
-
-                @Override
-                public void failed(final Exception cause) {
-                    asyncExecCallback.failed(cause);
-                }
-
-                @Override
-                public void cancelled() {
-                    asyncExecCallback.failed(new InterruptedIOException());
-                }
-
-            }));
-        } else {
+        if (cacheableRequestPolicy.isServableFromCache(requestCacheControl, request)) {
             operation.setDependency(responseCache.match(target, request, new FutureCallback<CacheMatch>() {
 
                 @Override
@@ -291,6 +270,9 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
 
             }));
 
+        } else {
+            LOG.debug("Request is not servable from cache");
+            callBackend(target, request, entityProducer, scope, chain, asyncExecCallback);
         }
     }
 
@@ -479,7 +461,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                 final HttpResponse backendResponse,
                 final EntityDetails entityDetails) throws HttpException, IOException {
             responseCompliance.ensureProtocolCompliance(scope.originalRequest, request, backendResponse);
-            responseCache.flushCacheEntriesInvalidatedByExchange(target, request, backendResponse, new FutureCallback<Boolean>() {
+            responseCache.evictInvalidatedEntries(target, request, backendResponse, new FutureCallback<Boolean>() {
 
                 @Override
                 public void completed(final Boolean result) {
@@ -502,24 +484,6 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                 storeRequestIfModifiedSinceFor304Response(request, backendResponse);
             } else {
                 LOG.debug("Backend response is not cacheable");
-                if (!Method.isSafe(request.getMethod())) {
-                    responseCache.flushCacheEntriesFor(target, request, new FutureCallback<Boolean>() {
-
-                        @Override
-                        public void completed(final Boolean result) {
-                        }
-
-                        @Override
-                        public void failed(final Exception ex) {
-                            LOG.warn("Unable to flush invalidated entries from cache", ex);
-                        }
-
-                        @Override
-                        public void cancelled() {
-                        }
-
-                    });
-                }
             }
             final CachingAsyncDataConsumer cachingDataConsumer = cachingConsumerRef.get();
             if (cachingDataConsumer != null) {

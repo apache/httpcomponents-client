@@ -99,21 +99,9 @@ interface HttpAsyncCache {
             FutureCallback<CacheHit> callback);
 
     /**
-     * Clear all matching {@link HttpCacheEntry}s.
+     * Evicts {@link HttpCacheEntry}s invalidated by the given message exchange.
      */
-    Cancellable flushCacheEntriesFor(
-            HttpHost host, HttpRequest request, FutureCallback<Boolean> callback);
-
-    /**
-     * Flush {@link HttpCacheEntry}s invalidated by the given request
-     */
-    Cancellable flushCacheEntriesInvalidatedByRequest(
-            HttpHost host, HttpRequest request, FutureCallback<Boolean> callback);
-
-    /**
-     * Flush {@link HttpCacheEntry}s invalidated by the given message exchange.
-     */
-    Cancellable flushCacheEntriesInvalidatedByExchange(
+    Cancellable evictInvalidatedEntries(
             HttpHost host, HttpRequest request, HttpResponse response, FutureCallback<Boolean> callback);
 
 }

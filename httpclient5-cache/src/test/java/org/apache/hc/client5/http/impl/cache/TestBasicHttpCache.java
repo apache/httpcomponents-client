@@ -32,7 +32,10 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
+import java.net.URI;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
@@ -40,9 +43,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
-import org.apache.hc.client5.http.classic.methods.HttpDelete;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
-import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
@@ -50,74 +51,31 @@ import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.message.BasicHeader;
+import org.apache.hc.core5.http.message.BasicHttpRequest;
 import org.apache.hc.core5.http.message.BasicHttpResponse;
+import org.apache.hc.core5.net.URIBuilder;
 import org.apache.hc.core5.util.ByteArrayBuffer;
 import org.hamcrest.MatcherAssert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 public class TestBasicHttpCache {
 
-    private BasicHttpCache impl;
+    private HttpHost host;
+    private Instant now;
+    private Instant tenSecondsAgo;
     private SimpleHttpCacheStorage backing;
+    private BasicHttpCache impl;
 
     @BeforeEach
     public void setUp() throws Exception {
-        backing = new SimpleHttpCacheStorage();
+        host = new HttpHost("foo.example.com");
+        now = Instant.now();
+        tenSecondsAgo = now.minusSeconds(10);
+        backing = Mockito.spy(new SimpleHttpCacheStorage());
         impl = new BasicHttpCache(new HeapResourceFactory(), backing);
-    }
-
-    @Test
-    public void testFlushContentLocationEntryIfUnSafeRequest() throws Exception {
-        final HttpHost host = new HttpHost("foo.example.com");
-        final HttpRequest req = new HttpPost("/foo");
-        final HttpResponse resp = HttpTestUtils.make200Response();
-        resp.setHeader("Content-Location", "/bar");
-        resp.setHeader(HttpHeaders.ETAG, "\"etag\"");
-        final String key = CacheKeyGenerator.INSTANCE.generateKey(host, new HttpGet("/bar"));
-
-        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(
-                new BasicHeader("Date", DateUtils.formatStandardDate(Instant.now())),
-                new BasicHeader("ETag", "\"old-etag\""));
-
-        backing.map.put(key, entry);
-
-        impl.flushCacheEntriesInvalidatedByExchange(host, req, resp);
-
-        assertNull(backing.map.get(key));
-    }
-
-    @Test
-    public void testDoNotFlushContentLocationEntryIfSafeRequest() throws Exception {
-        final HttpHost host = new HttpHost("foo.example.com");
-        final HttpRequest req = new HttpGet("/foo");
-        final HttpResponse resp = HttpTestUtils.make200Response();
-        resp.setHeader("Content-Location", "/bar");
-        final String key = CacheKeyGenerator.INSTANCE.generateKey(host, new HttpGet("/bar"));
-
-        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(
-                new BasicHeader("Date", DateUtils.formatStandardDate(Instant.now())),
-                new BasicHeader("ETag", "\"old-etag\""));
-
-        backing.map.put(key, entry);
-
-        impl.flushCacheEntriesInvalidatedByExchange(host, req, resp);
-
-        assertEquals(entry, backing.map.get(key));
-    }
-
-    @Test
-    public void testCanFlushCacheEntriesAtUri() throws Exception {
-        final HttpHost host = new HttpHost("foo.example.com");
-        final HttpRequest req = new HttpDelete("/bar");
-        final String key = CacheKeyGenerator.INSTANCE.generateKey(host, req);
-        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
-
-        backing.map.put(key, entry);
-
-        impl.flushCacheEntriesFor(host, req);
-
-        assertNull(backing.map.get(key));
     }
 
     @Test
@@ -130,7 +88,7 @@ public class TestBasicHttpCache {
 
         final String key = CacheKeyGenerator.INSTANCE.generateKey(host, req);
 
-        impl.store(req, resp, Instant.now(), Instant.now(), key, entry);
+        impl.store(req, resp, now, now, key, entry);
         assertSame(entry, backing.map.get(key));
     }
 
@@ -161,20 +119,18 @@ public class TestBasicHttpCache {
 
     @Test
     public void testGetCacheEntryReturnsNullIfNoVariantInCache() throws Exception {
-        final HttpHost host = new HttpHost("foo.example.com");
-
         final HttpRequest origRequest = new HttpGet("http://foo.example.com/bar");
         origRequest.setHeader("Accept-Encoding","gzip");
 
         final ByteArrayBuffer buf = HttpTestUtils.makeRandomBuffer(128);
         final HttpResponse origResponse = new BasicHttpResponse(HttpStatus.SC_OK, "OK");
-        origResponse.setHeader("Date", DateUtils.formatStandardDate(Instant.now()));
+        origResponse.setHeader("Date", DateUtils.formatStandardDate(now));
         origResponse.setHeader("Cache-Control", "max-age=3600, public");
         origResponse.setHeader("ETag", "\"etag\"");
         origResponse.setHeader("Vary", "Accept-Encoding");
         origResponse.setHeader("Content-Encoding","gzip");
 
-        impl.store(host, origRequest, origResponse, buf, Instant.now(), Instant.now());
+        impl.store(host, origRequest, origResponse, buf, now, now);
 
         final HttpRequest request = new HttpGet("http://foo.example.com/bar");
         final CacheMatch result = impl.match(host, request);
@@ -184,20 +140,18 @@ public class TestBasicHttpCache {
 
     @Test
     public void testGetCacheEntryReturnsVariantIfPresentInCache() throws Exception {
-        final HttpHost host = new HttpHost("foo.example.com");
-
         final HttpRequest origRequest = new HttpGet("http://foo.example.com/bar");
         origRequest.setHeader("Accept-Encoding","gzip");
 
         final ByteArrayBuffer buf = HttpTestUtils.makeRandomBuffer(128);
         final HttpResponse origResponse = new BasicHttpResponse(HttpStatus.SC_OK, "OK");
-        origResponse.setHeader("Date", DateUtils.formatStandardDate(Instant.now()));
+        origResponse.setHeader("Date", DateUtils.formatStandardDate(now));
         origResponse.setHeader("Cache-Control", "max-age=3600, public");
         origResponse.setHeader("ETag", "\"etag\"");
         origResponse.setHeader("Vary", "Accept-Encoding");
         origResponse.setHeader("Content-Encoding","gzip");
 
-        impl.store(host, origRequest, origResponse, buf, Instant.now(), Instant.now());
+        impl.store(host, origRequest, origResponse, buf, now, now);
 
         final HttpRequest request = new HttpGet("http://foo.example.com/bar");
         request.setHeader("Accept-Encoding","gzip");
@@ -208,8 +162,6 @@ public class TestBasicHttpCache {
 
     @Test
     public void testGetCacheEntryReturnsVariantWithMostRecentDateHeader() throws Exception {
-        final HttpHost host = new HttpHost("foo.example.com");
-
         final HttpRequest origRequest = new HttpGet("http://foo.example.com/bar");
         origRequest.setHeader("Accept-Encoding", "gzip");
 
@@ -217,20 +169,20 @@ public class TestBasicHttpCache {
 
         // Create two response variants with different Date headers
         final HttpResponse origResponse1 = new BasicHttpResponse(HttpStatus.SC_OK, "OK");
-        origResponse1.setHeader(HttpHeaders.DATE, DateUtils.formatStandardDate(Instant.now().minusSeconds(3600)));
+        origResponse1.setHeader(HttpHeaders.DATE, DateUtils.formatStandardDate(now.minusSeconds(3600)));
         origResponse1.setHeader(HttpHeaders.CACHE_CONTROL, "max-age=3600, public");
         origResponse1.setHeader(HttpHeaders.ETAG, "\"etag1\"");
         origResponse1.setHeader(HttpHeaders.VARY, "Accept-Encoding");
 
         final HttpResponse origResponse2 = new BasicHttpResponse(HttpStatus.SC_OK, "OK");
-        origResponse2.setHeader(HttpHeaders.DATE, DateUtils.formatStandardDate(Instant.now()));
+        origResponse2.setHeader(HttpHeaders.DATE, DateUtils.formatStandardDate(now));
         origResponse2.setHeader(HttpHeaders.CACHE_CONTROL, "max-age=3600, public");
         origResponse2.setHeader(HttpHeaders.ETAG, "\"etag2\"");
         origResponse2.setHeader(HttpHeaders.VARY, "Accept-Encoding");
 
         // Store the two variants in cache
-        impl.store(host, origRequest, origResponse1, buf, Instant.now(), Instant.now());
-        impl.store(host, origRequest, origResponse2, buf, Instant.now(), Instant.now());
+        impl.store(host, origRequest, origResponse1, buf, now, now);
+        impl.store(host, origRequest, origResponse2, buf, now, now);
 
         final HttpRequest request = new HttpGet("http://foo.example.com/bar");
         request.setHeader("Accept-Encoding", "gzip");
@@ -276,7 +228,7 @@ public class TestBasicHttpCache {
         req1.setHeader("Accept-Encoding", "gzip");
 
         final HttpResponse resp1 = HttpTestUtils.make200Response();
-        resp1.setHeader("Date", DateUtils.formatStandardDate(Instant.now()));
+        resp1.setHeader("Date", DateUtils.formatStandardDate(now));
         resp1.setHeader("Cache-Control", "max-age=3600, public");
         resp1.setHeader("ETag", "\"etag1\"");
         resp1.setHeader("Vary", "Accept-Encoding");
@@ -287,15 +239,15 @@ public class TestBasicHttpCache {
         req2.setHeader("Accept-Encoding", "identity");
 
         final HttpResponse resp2 = HttpTestUtils.make200Response();
-        resp2.setHeader("Date", DateUtils.formatStandardDate(Instant.now()));
+        resp2.setHeader("Date", DateUtils.formatStandardDate(now));
         resp2.setHeader("Cache-Control", "max-age=3600, public");
         resp2.setHeader("ETag", "\"etag2\"");
         resp2.setHeader("Vary", "Accept-Encoding");
         resp2.setHeader("Content-Encoding","gzip");
         resp2.setHeader("Vary", "Accept-Encoding");
 
-        final CacheHit hit1 = impl.store(host, req1, resp1, null, Instant.now(), Instant.now());
-        final CacheHit hit2 = impl.store(host, req2, resp2, null, Instant.now(), Instant.now());
+        final CacheHit hit1 = impl.store(host, req1, resp1, null, now, now);
+        final CacheHit hit2 = impl.store(host, req2, resp2, null, now, now);
 
         final Map<String, String> variantMap = new HashMap<>();
         variantMap.put("variant-1", hit1.variantKey);
@@ -309,6 +261,418 @@ public class TestBasicHttpCache {
         assertEquals(2, variants.size());
         MatcherAssert.assertThat(variants.get(hit1.getEntryKey()), HttpCacheEntryMatcher.equivalent(hit1.entry));
         MatcherAssert.assertThat(variants.get(hit2.getEntryKey()), HttpCacheEntryMatcher.equivalent(hit2.entry));
+    }
+
+    @Test
+    public void testInvalidatesUnsafeRequests() throws Exception {
+        final HttpRequest request = new BasicHttpRequest("POST","/path");
+        final String key = CacheKeyGenerator.INSTANCE.generateKey(host, request);
+
+        final HttpResponse response = HttpTestUtils.make200Response();
+
+        backing.putEntry(key, HttpTestUtils.makeCacheEntry());
+
+        impl.evictInvalidatedEntries(host, request, response);
+
+        verify(backing).getEntry(key);
+        verify(backing).removeEntry(key);
+
+        Assertions.assertNull(backing.getEntry(key));
+    }
+
+    @Test
+    public void testDoesNotInvalidateSafeRequests() throws Exception {
+        final HttpRequest request1 = new BasicHttpRequest("GET","/");
+        final HttpResponse response1 = HttpTestUtils.make200Response();
+
+        impl.evictInvalidatedEntries(host, request1, response1);
+
+        verifyNoMoreInteractions(backing);
+
+        final HttpRequest request2 = new BasicHttpRequest("HEAD","/");
+        final HttpResponse response2 = HttpTestUtils.make200Response();
+        impl.evictInvalidatedEntries(host, request2, response2);
+
+        verifyNoMoreInteractions(backing);
+    }
+
+    @Test
+    public void testInvalidatesUnsafeRequestsWithVariants() throws Exception {
+        final HttpRequest request = new BasicHttpRequest("POST","/path");
+        final String rootKey = CacheKeyGenerator.INSTANCE.generateKey(host, request);
+        final String variantKey1 = "{var1}" + rootKey;
+        final String variantKey2 = "{var2}" + rootKey;
+        final Map<String, String> variantMap = new HashMap<>();
+        variantMap.put("{var1}", variantKey1);
+        variantMap.put("{var2}", variantKey2);
+
+        final HttpResponse response = HttpTestUtils.make200Response();
+
+        backing.putEntry(rootKey, HttpTestUtils.makeCacheEntry(variantMap));
+        backing.putEntry(variantKey1, HttpTestUtils.makeCacheEntry());
+        backing.putEntry(variantKey2, HttpTestUtils.makeCacheEntry());
+
+        impl.evictInvalidatedEntries(host, request, response);
+
+        verify(backing).getEntry(rootKey);
+        verify(backing).removeEntry(rootKey);
+        verify(backing).removeEntry(variantKey1);
+        verify(backing).removeEntry(variantKey2);
+
+        Assertions.assertNull(backing.getEntry(rootKey));
+        Assertions.assertNull(backing.getEntry(variantKey1));
+        Assertions.assertNull(backing.getEntry(variantKey2));
+    }
+
+    @Test
+    public void testInvalidateUriSpecifiedByContentLocationAndFresher() throws Exception {
+        final HttpRequest request = new BasicHttpRequest("PUT", "/foo");
+        final String rootKey = CacheKeyGenerator.INSTANCE.generateKey(host, request);
+        final URI contentUri = new URIBuilder()
+                .setHttpHost(host)
+                .setPath("/bar")
+                .build();
+        final String contentKey = CacheKeyGenerator.INSTANCE.generateKey(contentUri);
+
+        final HttpResponse response = HttpTestUtils.make200Response();
+        response.setHeader("ETag","\"new-etag\"");
+        response.setHeader("Date", DateUtils.formatStandardDate(now));
+        response.setHeader("Content-Location", contentUri.toASCIIString());
+
+        backing.putEntry(rootKey, HttpTestUtils.makeCacheEntry());
+        backing.putEntry(contentKey, HttpTestUtils.makeCacheEntry(
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
+                new BasicHeader("ETag", "\"old-etag\"")
+        ));
+
+        impl.evictInvalidatedEntries(host, request, response);
+
+        verify(backing).getEntry(rootKey);
+        verify(backing).removeEntry(rootKey);
+        verify(backing).getEntry(contentKey);
+        verify(backing).removeEntry(contentKey);
+    }
+
+    @Test
+    public void testInvalidateUriSpecifiedByLocationAndFresher() throws Exception {
+        final HttpRequest request = new BasicHttpRequest("PUT", "/foo");
+        final String rootKey = CacheKeyGenerator.INSTANCE.generateKey(host, request);
+        final URI contentUri = new URIBuilder()
+                .setHttpHost(host)
+                .setPath("/bar")
+                .build();
+        final String contentKey = CacheKeyGenerator.INSTANCE.generateKey(contentUri);
+
+        final HttpResponse response = HttpTestUtils.make200Response();
+        response.setHeader("ETag","\"new-etag\"");
+        response.setHeader("Date", DateUtils.formatStandardDate(now));
+        response.setHeader("Location", contentUri.toASCIIString());
+
+        backing.putEntry(rootKey, HttpTestUtils.makeCacheEntry());
+        backing.putEntry(contentKey, HttpTestUtils.makeCacheEntry(
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
+                new BasicHeader("ETag", "\"old-etag\"")
+        ));
+
+        impl.evictInvalidatedEntries(host, request, response);
+
+        verify(backing).getEntry(rootKey);
+        verify(backing).removeEntry(rootKey);
+        verify(backing).getEntry(contentKey);
+        verify(backing).removeEntry(contentKey);
+    }
+
+    @Test
+    public void testDoesNotInvalidateForUnsuccessfulResponse() throws Exception {
+        final HttpRequest request = new BasicHttpRequest("PUT", "/foo");
+        final URI contentUri = new URIBuilder()
+                .setHttpHost(host)
+                .setPath("/bar")
+                .build();
+        final HttpResponse response = HttpTestUtils.make500Response();
+        response.setHeader("ETag","\"new-etag\"");
+        response.setHeader("Date", DateUtils.formatStandardDate(now));
+        response.setHeader("Content-Location", contentUri.toASCIIString());
+
+        impl.evictInvalidatedEntries(host, request, response);
+
+        verifyNoMoreInteractions(backing);
+    }
+
+    @Test
+    public void testInvalidateUriSpecifiedByContentLocationNonCanonical() throws Exception {
+        final HttpRequest request = new BasicHttpRequest("PUT", "/foo");
+        final String rootKey = CacheKeyGenerator.INSTANCE.generateKey(host, request);
+        final URI contentUri = new URIBuilder()
+                .setHttpHost(host)
+                .setPath("/bar")
+                .build();
+        final String contentKey = CacheKeyGenerator.INSTANCE.generateKey(contentUri);
+
+        final HttpResponse response = HttpTestUtils.make200Response();
+        response.setHeader("ETag","\"new-etag\"");
+        response.setHeader("Date", DateUtils.formatStandardDate(now));
+
+        response.setHeader("Content-Location", contentUri.toASCIIString());
+
+        backing.putEntry(rootKey, HttpTestUtils.makeCacheEntry());
+
+        backing.putEntry(contentKey, HttpTestUtils.makeCacheEntry(
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
+                new BasicHeader("ETag", "\"old-etag\"")));
+
+        impl.evictInvalidatedEntries(host, request, response);
+
+        verify(backing).getEntry(rootKey);
+        verify(backing).removeEntry(rootKey);
+        verify(backing).getEntry(contentKey);
+        verify(backing).removeEntry(contentKey);
+        Assertions.assertNull(backing.getEntry(rootKey));
+        Assertions.assertNull(backing.getEntry(contentKey));
+    }
+
+    @Test
+    public void testInvalidateUriSpecifiedByContentLocationRelative() throws Exception {
+        final HttpRequest request = new BasicHttpRequest("PUT", "/foo");
+        final String rootKey = CacheKeyGenerator.INSTANCE.generateKey(host, request);
+        final URI contentUri = new URIBuilder()
+                .setHttpHost(host)
+                .setPath("/bar")
+                .build();
+        final String contentKey = CacheKeyGenerator.INSTANCE.generateKey(contentUri);
+
+        final HttpResponse response = HttpTestUtils.make200Response();
+        response.setHeader("ETag","\"new-etag\"");
+        response.setHeader("Date", DateUtils.formatStandardDate(now));
+
+        response.setHeader("Content-Location", "/bar");
+
+        backing.putEntry(rootKey, HttpTestUtils.makeCacheEntry());
+
+        backing.putEntry(contentKey, HttpTestUtils.makeCacheEntry(
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
+                new BasicHeader("ETag", "\"old-etag\"")));
+
+        impl.evictInvalidatedEntries(host, request, response);
+
+        verify(backing).getEntry(rootKey);
+        verify(backing).removeEntry(rootKey);
+        verify(backing).getEntry(contentKey);
+        verify(backing).removeEntry(contentKey);
+        Assertions.assertNull(backing.getEntry(rootKey));
+        Assertions.assertNull(backing.getEntry(contentKey));
+    }
+
+    @Test
+    public void testDoesNotInvalidateUriSpecifiedByContentLocationOtherOrigin() throws Exception {
+        final HttpRequest request = new BasicHttpRequest("PUT", "/");
+        final URI contentUri = new URIBuilder()
+                .setHost("bar.example.com")
+                .setPath("/")
+                .build();
+        final String contentKey = CacheKeyGenerator.INSTANCE.generateKey(contentUri);
+
+        final HttpResponse response = HttpTestUtils.make200Response();
+        response.setHeader("ETag","\"new-etag\"");
+        response.setHeader("Date", DateUtils.formatStandardDate(now));
+        response.setHeader("Content-Location", contentUri.toASCIIString());
+
+        backing.putEntry(contentKey, HttpTestUtils.makeCacheEntry());
+
+        impl.evictInvalidatedEntries(host, request, response);
+
+        verify(backing, Mockito.never()).getEntry(contentKey);
+        verify(backing, Mockito.never()).removeEntry(contentKey);
+    }
+
+    @Test
+    public void testDoesNotInvalidateUriSpecifiedByContentLocationIfEtagsMatch() throws Exception {
+        final HttpRequest request = new BasicHttpRequest("PUT", "/foo");
+        final URI contentUri = new URIBuilder()
+                .setHttpHost(host)
+                .setPath("/bar")
+                .build();
+        final String contentKey = CacheKeyGenerator.INSTANCE.generateKey(contentUri);
+
+        final HttpResponse response = HttpTestUtils.make200Response();
+        response.setHeader("ETag","\"same-etag\"");
+        response.setHeader("Date", DateUtils.formatStandardDate(now));
+        response.setHeader("Content-Location", contentUri.toASCIIString());
+
+        backing.putEntry(contentKey, HttpTestUtils.makeCacheEntry(
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
+                new BasicHeader("ETag", "\"same-etag\"")));
+
+        impl.evictInvalidatedEntries(host, request, response);
+
+        verify(backing).getEntry(contentKey);
+        verify(backing, Mockito.never()).removeEntry(contentKey);
+    }
+
+    @Test
+    public void testDoesNotInvalidateUriSpecifiedByContentLocationIfOlder() throws Exception {
+        final HttpRequest request = new BasicHttpRequest("PUT", "/foo");
+        final URI contentUri = new URIBuilder()
+                .setHttpHost(host)
+                .setPath("/bar")
+                .build();
+        final String contentKey = CacheKeyGenerator.INSTANCE.generateKey(contentUri);
+
+        final HttpResponse response = HttpTestUtils.make200Response();
+        response.setHeader("ETag","\"new-etag\"");
+        response.setHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo));
+        response.setHeader("Content-Location", contentUri.toASCIIString());
+
+        backing.putEntry(contentKey, HttpTestUtils.makeCacheEntry(
+                new BasicHeader("Date", DateUtils.formatStandardDate(now)),
+                new BasicHeader("ETag", "\"old-etag\"")));
+
+        impl.evictInvalidatedEntries(host, request, response);
+
+        verify(backing).getEntry(contentKey);
+        verify(backing, Mockito.never()).removeEntry(contentKey);
+    }
+
+    @Test
+    public void testDoesNotInvalidateUriSpecifiedByContentLocationIfResponseHasNoEtag() throws Exception {
+        final HttpRequest request = new BasicHttpRequest("PUT", "/foo");
+        final URI contentUri = new URIBuilder()
+                .setHttpHost(host)
+                .setPath("/bar")
+                .build();
+        final String contentKey = CacheKeyGenerator.INSTANCE.generateKey(contentUri);
+
+        final HttpResponse response = HttpTestUtils.make200Response();
+        response.removeHeaders("ETag");
+        response.setHeader("Date", DateUtils.formatStandardDate(now));
+        response.setHeader("Content-Location", contentUri.toASCIIString());
+
+        backing.putEntry(contentKey, HttpTestUtils.makeCacheEntry(
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
+                new BasicHeader("ETag", "\"old-etag\"")));
+
+        impl.evictInvalidatedEntries(host, request, response);
+
+        verify(backing).getEntry(contentKey);
+        verify(backing, Mockito.never()).removeEntry(contentKey);
+    }
+
+    @Test
+    public void testDoesNotInvalidateUriSpecifiedByContentLocationIfEntryHasNoEtag() throws Exception {
+        final HttpRequest request = new BasicHttpRequest("PUT", "/foo");
+        final URI contentUri = new URIBuilder()
+                .setHttpHost(host)
+                .setPath("/bar")
+                .build();
+        final String contentKey = CacheKeyGenerator.INSTANCE.generateKey(contentUri);
+
+        final HttpResponse response = HttpTestUtils.make200Response();
+        response.setHeader("ETag", "\"some-etag\"");
+        response.setHeader("Date", DateUtils.formatStandardDate(now));
+        response.setHeader("Content-Location", contentUri.toASCIIString());
+
+        backing.putEntry(contentKey, HttpTestUtils.makeCacheEntry(
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo))));
+
+        impl.evictInvalidatedEntries(host, request, response);
+
+        verify(backing).getEntry(contentKey);
+        verify(backing, Mockito.never()).removeEntry(contentKey);
+    }
+
+    @Test
+    public void testInvalidatesUriSpecifiedByContentLocationIfResponseHasNoDate() throws Exception {
+        final HttpRequest request = new BasicHttpRequest("PUT", "/foo");
+        final URI contentUri = new URIBuilder()
+                .setHttpHost(host)
+                .setPath("/bar")
+                .build();
+        final String contentKey = CacheKeyGenerator.INSTANCE.generateKey(contentUri);
+
+        final HttpResponse response = HttpTestUtils.make200Response();
+        response.setHeader("ETag", "\"new-etag\"");
+        response.removeHeaders("Date");
+        response.setHeader("Content-Location", contentUri.toASCIIString());
+
+        backing.putEntry(contentKey, HttpTestUtils.makeCacheEntry(
+                new BasicHeader("ETag", "\"old-etag\""),
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo))));
+
+        impl.evictInvalidatedEntries(host, request, response);
+
+        verify(backing).getEntry(contentKey);
+        verify(backing).removeEntry(contentKey);
+    }
+
+    @Test
+    public void testInvalidatesUriSpecifiedByContentLocationIfEntryHasNoDate() throws Exception {
+        final HttpRequest request = new BasicHttpRequest("PUT", "/foo");
+        final URI contentUri = new URIBuilder()
+                .setHttpHost(host)
+                .setPath("/bar")
+                .build();
+        final String contentKey = CacheKeyGenerator.INSTANCE.generateKey(contentUri);
+
+        final HttpResponse response = HttpTestUtils.make200Response();
+        response.setHeader("ETag","\"new-etag\"");
+        response.setHeader("Date", DateUtils.formatStandardDate(now));
+        response.setHeader("Content-Location", contentUri.toASCIIString());
+
+        backing.putEntry(contentKey, HttpTestUtils.makeCacheEntry(
+                new BasicHeader("ETag", "\"old-etag\"")));
+
+        impl.evictInvalidatedEntries(host, request, response);
+
+        verify(backing).getEntry(contentKey);
+        verify(backing).removeEntry(contentKey);
+    }
+
+    @Test
+    public void testInvalidatesUriSpecifiedByContentLocationIfResponseHasMalformedDate() throws Exception {
+        final HttpRequest request = new BasicHttpRequest("PUT", "/foo");
+        final URI contentUri = new URIBuilder()
+                .setHttpHost(host)
+                .setPath("/bar")
+                .build();
+        final String contentKey = CacheKeyGenerator.INSTANCE.generateKey(contentUri);
+
+        final HttpResponse response = HttpTestUtils.make200Response();
+        response.setHeader("ETag","\"new-etag\"");
+        response.setHeader("Date", "huh?");
+        response.setHeader("Content-Location", contentUri.toASCIIString());
+
+        backing.putEntry(contentKey, HttpTestUtils.makeCacheEntry(
+                new BasicHeader("ETag", "\"old-etag\""),
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo))));
+
+        impl.evictInvalidatedEntries(host, request, response);
+
+        verify(backing).getEntry(contentKey);
+        verify(backing).removeEntry(contentKey);
+    }
+
+    @Test
+    public void testInvalidatesUriSpecifiedByContentLocationIfEntryHasMalformedDate() throws Exception {
+        final HttpRequest request = new BasicHttpRequest("PUT", "/foo");
+        final URI contentUri = new URIBuilder()
+                .setHttpHost(host)
+                .setPath("/bar")
+                .build();
+        final String contentKey = CacheKeyGenerator.INSTANCE.generateKey(contentUri);
+
+        final HttpResponse response = HttpTestUtils.make200Response();
+        response.setHeader("ETag","\"new-etag\"");
+        response.setHeader("Date", DateUtils.formatStandardDate(now));
+        response.setHeader("Content-Location", contentUri.toASCIIString());
+
+        backing.putEntry(contentKey, HttpTestUtils.makeCacheEntry(
+                new BasicHeader("ETag", "\"old-etag\""),
+                new BasicHeader("Date", "huh?")));
+
+        impl.evictInvalidatedEntries(host, request, response);
+
+        verify(backing).getEntry(contentKey);
+        verify(backing).removeEntry(contentKey);
     }
 
 }
