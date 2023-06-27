@@ -45,6 +45,7 @@ import org.apache.hc.client5.http.impl.cache.HttpTestUtils;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -151,7 +152,7 @@ public class TestHttpCacheEntry {
                 new BasicHeader("bar", "barValue2")
         };
         entry = makeEntry(headers);
-        assertEquals(HeaderConstants.GET_METHOD, entry.getRequestMethod());
+        assertEquals(Method.GET.name(), entry.getRequestMethod());
     }
 
     @Test
