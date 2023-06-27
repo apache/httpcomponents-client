@@ -54,7 +54,6 @@ public class CachingHttpClientBuilder extends HttpClientBuilder {
     private File cacheDir;
     private SchedulingStrategy schedulingStrategy;
     private CacheConfig cacheConfig;
-    private HttpCacheInvalidator httpCacheInvalidator;
     private boolean deleteCache;
 
     public static CachingHttpClientBuilder create() {
@@ -92,8 +91,11 @@ public class CachingHttpClientBuilder extends HttpClientBuilder {
         return this;
     }
 
+    /**
+     * @deprecated Do not use.
+     */
+    @Deprecated
     public final CachingHttpClientBuilder setHttpCacheInvalidator(final HttpCacheInvalidator cacheInvalidator) {
-        this.httpCacheInvalidator = cacheInvalidator;
         return this;
     }
 
@@ -132,8 +134,7 @@ public class CachingHttpClientBuilder extends HttpClientBuilder {
                 resourceFactoryCopy,
                 HttpCacheEntryFactory.INSTANCE,
                 storageCopy,
-                CacheKeyGenerator.INSTANCE,
-                this.httpCacheInvalidator != null ? this.httpCacheInvalidator : new DefaultCacheInvalidator());
+                CacheKeyGenerator.INSTANCE);
 
         DefaultCacheRevalidator cacheRevalidator = null;
         if (config.getAsynchronousWorkers() > 0) {

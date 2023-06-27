@@ -41,7 +41,10 @@ import org.apache.hc.core5.http.HttpResponse;
  * that this exchange would invalidate.
  *
  * @since 4.3
+ *
+ * @deprecated Do not use.
  */
+@Deprecated
 @Contract(threading = ThreadingBehavior.STATELESS)
 @Internal
 public interface HttpCacheInvalidator {

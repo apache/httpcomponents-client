@@ -29,16 +29,17 @@ package org.apache.hc.client5.http.impl.cache;
 import java.io.InputStream;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
+import java.util.concurrent.CountDownLatch;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.HttpCacheEntryFactory;
 import org.apache.hc.client5.http.cache.Resource;
 import org.apache.hc.client5.http.utils.DateUtils;
+import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.Header;
@@ -389,11 +390,28 @@ public class HttpTestUtils {
         return new BasicClassicHttpResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Internal Server Error");
     }
 
-    public static Map<String, String> makeDefaultVariantMap(final String key, final String value) {
-        final Map<String, String> variants = new HashMap<>();
-        variants.put(key, value);
+    public static <T> FutureCallback<T> countDown(final CountDownLatch latch) {
+        return new FutureCallback<T>() {
 
-        return variants;
+            @Override
+            public void completed(final T result) {
+                latch.countDown();
+            }
+
+            @Override
+            public void failed(final Exception ex) {
+                latch.countDown();
+                Assertions.fail(ex);
+            }
+
+            @Override
+            public void cancelled() {
+                latch.countDown();
+                Assertions.fail("Unexpected cancellation");
+            }
+
+        };
+
     }
 
 }

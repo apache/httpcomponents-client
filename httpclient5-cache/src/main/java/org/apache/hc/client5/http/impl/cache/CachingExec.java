@@ -57,7 +57,6 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.HttpVersion;
-import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
@@ -182,7 +181,6 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
         final RequestCacheControl requestCacheControl = CacheControlHeaderParser.INSTANCE.parse(request);
         if (!cacheableRequestPolicy.isServableFromCache(requestCacheControl, request)) {
             LOG.debug("Request is not servable from cache");
-            responseCache.flushCacheEntriesInvalidatedByRequest(target, request);
             return callBackend(target, request, scope, chain);
         }
 
@@ -386,7 +384,7 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
 
         responseCompliance.ensureProtocolCompliance(scope.originalRequest, request, backendResponse);
 
-        responseCache.flushCacheEntriesInvalidatedByExchange(target, request, backendResponse);
+        responseCache.evictInvalidatedEntries(target, request, backendResponse);
         final ResponseCacheControl responseCacheControl = CacheControlHeaderParser.INSTANCE.parse(backendResponse);
         final boolean cacheable = responseCachingPolicy.isResponseCacheable(responseCacheControl, request, backendResponse);
         if (cacheable) {
@@ -394,9 +392,6 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
             return cacheAndReturnResponse(target, request, backendResponse, scope, requestDate, responseDate);
         }
         LOG.debug("Backend response is not cacheable");
-        if (!Method.isSafe(request.getMethod())) {
-            responseCache.flushCacheEntriesFor(target, request);
-        }
         return backendResponse;
     }
 
