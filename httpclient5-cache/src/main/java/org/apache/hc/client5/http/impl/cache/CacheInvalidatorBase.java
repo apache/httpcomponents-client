@@ -28,13 +28,13 @@ package org.apache.hc.client5.http.impl.cache;
 
 import java.net.URI;
 
-import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.utils.URIUtils;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.Method;
 
 class CacheInvalidatorBase {
 
@@ -43,11 +43,11 @@ class CacheInvalidatorBase {
     }
 
     static boolean requestIsGet(final HttpRequest req) {
-        return req.getMethod().equals((HeaderConstants.GET_METHOD));
+        return Method.GET.isSame(req.getMethod());
     }
 
     static boolean isAHeadCacheEntry(final HttpCacheEntry parentCacheEntry) {
-        return parentCacheEntry != null && parentCacheEntry.getRequestMethod().equals(HeaderConstants.HEAD_METHOD);
+        return parentCacheEntry != null && Method.HEAD.isSame(parentCacheEntry.getRequestMethod());
     }
 
     static boolean isSameHost(final URI requestURI, final URI targetURI) {
@@ -60,7 +60,7 @@ class CacheInvalidatorBase {
     }
 
     static boolean notGetOrHeadRequest(final String method) {
-        return !(HeaderConstants.GET_METHOD.equals(method) || HeaderConstants.HEAD_METHOD.equals(method));
+        return !(Method.GET.isSame(method) || Method.HEAD.isSame(method));
     }
 
     private static URI getLocationURI(final URI requestUri, final HttpResponse response, final String headerName) {

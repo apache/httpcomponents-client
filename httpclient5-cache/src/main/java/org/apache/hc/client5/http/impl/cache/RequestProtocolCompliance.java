@@ -33,11 +33,11 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.ProtocolVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -97,7 +97,7 @@ class RequestProtocolCompliance {
     }
 
     private void decrementOPTIONSMaxForwardsIfGreaterThen0(final HttpRequest request) {
-        if (!HeaderConstants.OPTIONS_METHOD.equals(request.getMethod())) {
+        if (!Method.OPTIONS.isSame(request.getMethod())) {
             return;
         }
 
@@ -131,7 +131,7 @@ class RequestProtocolCompliance {
 
     private RequestProtocolError requestHasWeakETagAndRange(final HttpRequest request) {
         final String method = request.getMethod();
-        if (!(HeaderConstants.GET_METHOD.equals(method) || HeaderConstants.HEAD_METHOD.equals(method))) {
+        if (!(Method.GET.isSame(method) || Method.HEAD.isSame(method))) {
             return null;
         }
 
@@ -165,8 +165,7 @@ class RequestProtocolCompliance {
 
     private RequestProtocolError requestHasWeekETagForPUTOrDELETEIfMatch(final HttpRequest request, final boolean resourceExists) {
         final String method = request.getMethod();
-        if (!(HeaderConstants.PUT_METHOD.equals(method) || HeaderConstants.DELETE_METHOD.equals(method)
-                || HeaderConstants.POST_METHOD.equals(method))
+        if (!(Method.PUT.isSame(method) || Method.DELETE.isSame(method) || Method.POST.isSame(method))
         ) {
             return null;
         }

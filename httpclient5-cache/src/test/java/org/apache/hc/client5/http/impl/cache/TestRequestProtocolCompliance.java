@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpVersion;
@@ -103,7 +102,7 @@ public class TestRequestProtocolCompliance {
 
     @Test
     public void testRequestWithMultipleIfMatchHeaders() {
-        final HttpRequest req = new BasicHttpRequest(HeaderConstants.PUT_METHOD, "http://example.com/");
+        final HttpRequest req = new BasicHttpRequest("PUT", "http://example.com/");
         req.addHeader(HttpHeaders.IF_MATCH, "W/\"weak1\"");
         req.addHeader(HttpHeaders.IF_MATCH, "W/\"weak2\"");
         assertEquals(1, impl.requestIsFatallyNonCompliant(req, false).size());
@@ -111,7 +110,7 @@ public class TestRequestProtocolCompliance {
 
     @Test
     public void testRequestWithMultipleIfNoneMatchHeaders() {
-        final HttpRequest req = new BasicHttpRequest(HeaderConstants.PUT_METHOD, "http://example.com/");
+        final HttpRequest req = new BasicHttpRequest("PUT", "http://example.com/");
         req.addHeader(HttpHeaders.IF_NONE_MATCH, "W/\"weak1\"");
         req.addHeader(HttpHeaders.IF_NONE_MATCH, "W/\"weak2\"");
         assertEquals(1, impl.requestIsFatallyNonCompliant(req, false).size());
@@ -119,7 +118,7 @@ public class TestRequestProtocolCompliance {
 
     @Test
     public void testRequestWithPreconditionFailed() {
-        final HttpRequest req = new BasicHttpRequest(HeaderConstants.GET_METHOD, "http://example.com/");
+        final HttpRequest req = new BasicHttpRequest("GET", "http://example.com/");
         req.addHeader(HttpHeaders.IF_MATCH, "W/\"weak1\"");
         req.addHeader(HttpHeaders.RANGE, "1");
         req.addHeader(HttpHeaders.IF_RANGE, "W/\"weak2\""); // ETag doesn't match with If-Match ETag
@@ -130,7 +129,7 @@ public class TestRequestProtocolCompliance {
 
     @Test
     public void testRequestWithValidIfRangeDate() {
-        final HttpRequest req = new BasicHttpRequest(HeaderConstants.GET_METHOD, "http://example.com/");
+        final HttpRequest req = new BasicHttpRequest("GET", "http://example.com/");
         req.addHeader(HttpHeaders.RANGE, "bytes=0-499");
         req.addHeader(HttpHeaders.LAST_MODIFIED, "Wed, 21 Oct 2023 07:28:00 GMT");
         req.addHeader(HttpHeaders.IF_RANGE, "Wed, 21 Oct 2023 07:28:00 GMT");
@@ -139,7 +138,7 @@ public class TestRequestProtocolCompliance {
 
     @Test
     public void testRequestWithInvalidDateFormat() {
-        final HttpRequest req = new BasicHttpRequest(HeaderConstants.GET_METHOD, "http://example.com/");
+        final HttpRequest req = new BasicHttpRequest("GET", "http://example.com/");
         req.addHeader(HttpHeaders.RANGE, "bytes=0-499");
         req.addHeader(HttpHeaders.LAST_MODIFIED, "Wed, 21 Oct 2023 07:28:00 GMT");
         req.addHeader(HttpHeaders.IF_RANGE, "20/10/2023");
@@ -148,7 +147,7 @@ public class TestRequestProtocolCompliance {
 
     @Test
     public void testRequestWithMissingIfRangeDate() {
-        final HttpRequest req = new BasicHttpRequest(HeaderConstants.GET_METHOD, "http://example.com/");
+        final HttpRequest req = new BasicHttpRequest("GET", "http://example.com/");
         req.addHeader(HttpHeaders.RANGE, "bytes=0-499");
         req.addHeader(HttpHeaders.LAST_MODIFIED, "Wed, 21 Oct 2023 07:28:00 GMT");
         assertTrue(impl.requestIsFatallyNonCompliant(req, false).isEmpty());
@@ -158,7 +157,7 @@ public class TestRequestProtocolCompliance {
     public void testRequestWithWeakETagAndRangeAndDAte() {
         // Setup request with GET method, Range header, If-Range header starting with "W/",
         // and a Last-Modified date that doesn't match the If-Range date
-        final HttpRequest req = new BasicHttpRequest(HeaderConstants.GET_METHOD, "http://example.com/");
+        final HttpRequest req = new BasicHttpRequest("GET", "http://example.com/");
         req.addHeader(HttpHeaders.RANGE, "bytes=0-499");
         req.addHeader(HttpHeaders.LAST_MODIFIED, "Fri, 20 Oct 2023 07:28:00 GMT");
         req.addHeader(HttpHeaders.IF_RANGE, "Wed, 18 Oct 2023 07:28:00 GMT");

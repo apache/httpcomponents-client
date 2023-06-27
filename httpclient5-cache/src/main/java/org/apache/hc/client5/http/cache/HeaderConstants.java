@@ -33,12 +33,40 @@ package org.apache.hc.client5.http.cache;
  */
 public class HeaderConstants {
 
+    /**
+     * @deprecated Use {@link org.apache.hc.core5.http.Method}
+     */
+    @Deprecated
     public static final String GET_METHOD = "GET";
+    /**
+     * @deprecated Use {@link org.apache.hc.core5.http.Method}
+     */
+    @Deprecated
     public static final String HEAD_METHOD = "HEAD";
+    /**
+     * @deprecated Use {@link org.apache.hc.core5.http.Method}
+     */
+    @Deprecated
     public static final String OPTIONS_METHOD = "OPTIONS";
+    /**
+     * @deprecated Use {@link org.apache.hc.core5.http.Method}
+     */
+    @Deprecated
     public static final String PUT_METHOD = "PUT";
+    /**
+     * @deprecated Use {@link org.apache.hc.core5.http.Method}
+     */
+    @Deprecated
     public static final String DELETE_METHOD = "DELETE";
+    /**
+     * @deprecated Use {@link org.apache.hc.core5.http.Method}
+     */
+    @Deprecated
     public static final String TRACE_METHOD = "TRACE";
+    /**
+     * @deprecated Use {@link org.apache.hc.core5.http.Method}
+     */
+    @Deprecated
     public static final String POST_METHOD = "POST";
 
     /**
