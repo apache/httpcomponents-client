@@ -35,7 +35,6 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.cache.CacheResponseStatus;
-import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpCacheContext;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.ResourceIOException;
@@ -48,6 +47,7 @@ import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.ProtocolVersion;
 import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.protocol.HttpContext;
@@ -332,7 +332,7 @@ public class CachingExecBase {
     }
 
     boolean clientRequestsOurOptions(final HttpRequest request) {
-        if (!HeaderConstants.OPTIONS_METHOD.equals(request.getMethod())) {
+        if (!Method.OPTIONS.isSame(request.getMethod())) {
             return false;
         }
 

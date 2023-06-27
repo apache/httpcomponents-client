@@ -35,7 +35,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.Header;
@@ -45,6 +44,7 @@ import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.ProtocolVersion;
 import org.apache.hc.core5.http.message.MessageSupport;
 import org.slf4j.Logger;
@@ -164,8 +164,7 @@ class ResponseCachingPolicy {
     public boolean isResponseCacheable(final ResponseCacheControl cacheControl, final String httpMethod, final HttpResponse response) {
         boolean cacheable = false;
 
-        if (!HeaderConstants.GET_METHOD.equals(httpMethod) && !HeaderConstants.HEAD_METHOD.equals(httpMethod)
-                && !HeaderConstants.POST_METHOD.equals(httpMethod)) {
+        if (!Method.GET.isSame(httpMethod) && !Method.HEAD.isSame(httpMethod) && !Method.POST.isSame((httpMethod))) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("{} method response is not cacheable", httpMethod);
             }
