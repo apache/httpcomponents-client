@@ -26,25 +26,29 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
+import java.net.URI;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.apache.hc.client5.http.cache.HttpCacheCASOperation;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.HttpCacheEntryFactory;
-import org.apache.hc.client5.http.cache.HttpCacheInvalidator;
 import org.apache.hc.client5.http.cache.HttpCacheStorage;
 import org.apache.hc.client5.http.cache.HttpCacheUpdateException;
 import org.apache.hc.client5.http.cache.Resource;
 import org.apache.hc.client5.http.cache.ResourceFactory;
 import org.apache.hc.client5.http.cache.ResourceIOException;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.message.RequestLine;
 import org.apache.hc.core5.http.message.StatusLine;
@@ -59,27 +63,24 @@ class BasicHttpCache implements HttpCache {
     private final ResourceFactory resourceFactory;
     private final HttpCacheEntryFactory cacheEntryFactory;
     private final CacheKeyGenerator cacheKeyGenerator;
-    private final HttpCacheInvalidator cacheInvalidator;
     private final HttpCacheStorage storage;
 
     public BasicHttpCache(
             final ResourceFactory resourceFactory,
             final HttpCacheEntryFactory cacheEntryFactory,
             final HttpCacheStorage storage,
-            final CacheKeyGenerator cacheKeyGenerator,
-            final HttpCacheInvalidator cacheInvalidator) {
+            final CacheKeyGenerator cacheKeyGenerator) {
         this.resourceFactory = resourceFactory;
         this.cacheEntryFactory = cacheEntryFactory;
         this.cacheKeyGenerator = cacheKeyGenerator;
         this.storage = storage;
-        this.cacheInvalidator = cacheInvalidator;
     }
 
     public BasicHttpCache(
             final ResourceFactory resourceFactory,
             final HttpCacheStorage storage,
             final CacheKeyGenerator cacheKeyGenerator) {
-        this(resourceFactory, HttpCacheEntryFactory.INSTANCE, storage, cacheKeyGenerator, new DefaultCacheInvalidator());
+        this(resourceFactory, HttpCacheEntryFactory.INSTANCE, storage, cacheKeyGenerator);
     }
 
     public BasicHttpCache(final ResourceFactory resourceFactory, final HttpCacheStorage storage) {
@@ -126,6 +127,16 @@ class BasicHttpCache implements HttpCache {
                 LOG.warn("I/O error retrieving cache entry with key {}", cacheKey);
             }
             return null;
+        }
+    }
+
+    private void removeInternal(final String cacheKey) {
+        try {
+            storage.removeEntry(cacheKey);
+        } catch (final ResourceIOException ex) {
+            if (LOG.isWarnEnabled()) {
+                LOG.warn("I/O error removing cache entry with key {}", cacheKey);
+            }
         }
     }
 
@@ -313,36 +324,66 @@ class BasicHttpCache implements HttpCache {
         return store(request, originResponse, requestSent, responseReceived, rootKey, hit.entry);
     }
 
-    @Override
-    public void flushCacheEntriesFor(final HttpHost host, final HttpRequest request) {
-        final String rootKey = cacheKeyGenerator.generateKey(host, request);
+    private void evictAll(final HttpCacheEntry root, final String rootKey) {
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Flush cache entries: {}", rootKey);
+            LOG.debug("Evicting root cache entry {}", rootKey);
         }
-        try {
-            storage.removeEntry(rootKey);
-        } catch (final ResourceIOException ex) {
-            if (LOG.isWarnEnabled()) {
-                LOG.warn("I/O error removing cache entry with key {}", rootKey);
+        removeInternal(rootKey);
+        if (root.isVariantRoot()) {
+            for (final String variantKey : root.getVariantMap().values()) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Evicting variant cache entry {}", variantKey);
+                }
+                removeInternal(variantKey);
             }
         }
     }
 
-    @Override
-    public void flushCacheEntriesInvalidatedByRequest(final HttpHost host, final HttpRequest request) {
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Flush cache entries invalidated by request: {}; {}", host, new RequestLine(request));
+    private void evict(final String rootKey) {
+        final HttpCacheEntry root = getInternal(rootKey);
+        if (root == null) {
+            return;
         }
-        cacheInvalidator.flushCacheEntriesInvalidatedByRequest(host, request, cacheKeyGenerator, storage);
+        evictAll(root, rootKey);
+    }
+
+    private void evict(final String rootKey, final HttpResponse response) {
+        final HttpCacheEntry root = getInternal(rootKey);
+        if (root == null) {
+            return;
+        }
+        final Header existingETag = root.getFirstHeader(HttpHeaders.ETAG);
+        final Header newETag = response.getFirstHeader(HttpHeaders.ETAG);
+        if (existingETag != null && newETag != null &&
+                !Objects.equals(existingETag.getValue(), newETag.getValue()) &&
+                !DateSupport.isBefore(response, root, HttpHeaders.DATE)) {
+            evictAll(root, rootKey);
+        }
     }
 
     @Override
-    public void flushCacheEntriesInvalidatedByExchange(final HttpHost host, final HttpRequest request, final HttpResponse response) {
+    public void evictInvalidatedEntries(final HttpHost host, final HttpRequest request, final HttpResponse response) {
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Flush cache entries invalidated by exchange: {}; {} -> {}", host, new RequestLine(request), new StatusLine(response));
+            LOG.debug("Evict cache entries invalidated by exchange: {}; {} -> {}", host, new RequestLine(request), new StatusLine(response));
         }
-        if (!Method.isSafe(request.getMethod())) {
-            cacheInvalidator.flushCacheEntriesInvalidatedByExchange(host, request, response, cacheKeyGenerator, storage);
+        final int status = response.getCode();
+        if (status >= HttpStatus.SC_SUCCESS && status < HttpStatus.SC_CLIENT_ERROR &&
+                !Method.isSafe(request.getMethod())) {
+            final String rootKey = cacheKeyGenerator.generateKey(host, request);
+            evict(rootKey);
+            final URI requestUri = CacheSupport.normalize(CacheSupport.getRequestUri(request, host));
+            if (requestUri != null) {
+                final URI contentLocation = CacheSupport.getLocationURI(requestUri, response, HttpHeaders.CONTENT_LOCATION);
+                if (contentLocation != null && CacheSupport.isSameOrigin(requestUri, contentLocation)) {
+                    final String cacheKey = cacheKeyGenerator.generateKey(contentLocation);
+                    evict(cacheKey, response);
+                }
+                final URI location = CacheSupport.getLocationURI(requestUri, response, HttpHeaders.LOCATION);
+                if (location != null && CacheSupport.isSameOrigin(requestUri, location)) {
+                    final String cacheKey = cacheKeyGenerator.generateKey(location);
+                    evict(cacheKey, response);
+                }
+            }
         }
     }
 

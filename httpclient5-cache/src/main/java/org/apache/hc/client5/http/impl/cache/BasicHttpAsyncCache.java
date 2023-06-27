@@ -26,16 +26,17 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
+import java.net.URI;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.apache.hc.client5.http.cache.HttpAsyncCacheInvalidator;
 import org.apache.hc.client5.http.cache.HttpAsyncCacheStorage;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.HttpCacheEntryFactory;
@@ -47,9 +48,12 @@ import org.apache.hc.client5.http.impl.Operations;
 import org.apache.hc.core5.concurrent.Cancellable;
 import org.apache.hc.core5.concurrent.ComplexCancellable;
 import org.apache.hc.core5.concurrent.FutureCallback;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.message.RequestLine;
 import org.apache.hc.core5.http.message.StatusLine;
@@ -64,27 +68,24 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
     private final ResourceFactory resourceFactory;
     private final HttpCacheEntryFactory cacheEntryFactory;
     private final CacheKeyGenerator cacheKeyGenerator;
-    private final HttpAsyncCacheInvalidator cacheInvalidator;
     private final HttpAsyncCacheStorage storage;
 
     public BasicHttpAsyncCache(
             final ResourceFactory resourceFactory,
             final HttpCacheEntryFactory cacheEntryFactory,
             final HttpAsyncCacheStorage storage,
-            final CacheKeyGenerator cacheKeyGenerator,
-            final HttpAsyncCacheInvalidator cacheInvalidator) {
+            final CacheKeyGenerator cacheKeyGenerator) {
         this.resourceFactory = resourceFactory;
         this.cacheEntryFactory = cacheEntryFactory;
         this.cacheKeyGenerator = cacheKeyGenerator;
         this.storage = storage;
-        this.cacheInvalidator = cacheInvalidator;
     }
 
     public BasicHttpAsyncCache(
             final ResourceFactory resourceFactory,
             final HttpAsyncCacheStorage storage,
             final CacheKeyGenerator cacheKeyGenerator) {
-        this(resourceFactory, HttpCacheEntryFactory.INSTANCE, storage, cacheKeyGenerator, DefaultAsyncCacheInvalidator.INSTANCE);
+        this(resourceFactory, HttpCacheEntryFactory.INSTANCE, storage, cacheKeyGenerator);
     }
 
     public BasicHttpAsyncCache(final ResourceFactory resourceFactory, final HttpAsyncCacheStorage storage) {
@@ -456,57 +457,124 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
         return store(request, originResponse, requestSent, responseReceived, rootKey, hit.entry, callback);
     }
 
-    @Override
-    public Cancellable flushCacheEntriesFor(
-            final HttpHost host, final HttpRequest request, final FutureCallback<Boolean> callback) {
-        final String rootKey = cacheKeyGenerator.generateKey(host, request);
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Flush cache entries: {}", rootKey);
-        }
-        return storage.removeEntry(rootKey, new FutureCallback<Boolean>() {
+    private void evictEntry(final String cacheKey) {
+        storage.removeEntry(cacheKey, new FutureCallback<Boolean>() {
 
             @Override
             public void completed(final Boolean result) {
-                callback.completed(result);
             }
 
             @Override
             public void failed(final Exception ex) {
-                if (ex instanceof ResourceIOException) {
-                    if (LOG.isWarnEnabled()) {
-                        LOG.warn("I/O error removing cache entry with key {}", rootKey);
+                if (LOG.isWarnEnabled()) {
+                    if (ex instanceof ResourceIOException) {
+                        LOG.warn("I/O error removing cache entry with key {}", cacheKey);
+                    } else {
+                        LOG.warn("Unexpected error removing cache entry with key {}", cacheKey, ex);
                     }
-                    callback.completed(Boolean.TRUE);
-                } else {
-                    callback.failed(ex);
                 }
             }
 
             @Override
             public void cancelled() {
-                callback.cancelled();
+            }
+
+        });
+    }
+
+    private void evictAll(final HttpCacheEntry root, final String rootKey) {
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Evicting root cache entry {}", rootKey);
+        }
+        evictEntry(rootKey);
+        if (root.isVariantRoot()) {
+            for (final String variantKey : root.getVariantMap().values()) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Evicting variant cache entry {}", variantKey);
+                }
+                evictEntry(variantKey);
+            }
+        }
+    }
+
+    private Cancellable evict(final String rootKey) {
+        return storage.getEntry(rootKey, new FutureCallback<HttpCacheEntry>() {
+
+            @Override
+            public void completed(final HttpCacheEntry root) {
+                if (root != null) {
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Evicting root cache entry {}", rootKey);
+                    }
+                    evictAll(root, rootKey);
+                }
+            }
+
+            @Override
+            public void failed(final Exception ex) {
+            }
+
+            @Override
+            public void cancelled() {
+            }
+
+        });
+    }
+
+    private Cancellable evict(final String rootKey, final HttpResponse response) {
+        return storage.getEntry(rootKey, new FutureCallback<HttpCacheEntry>() {
+
+            @Override
+            public void completed(final HttpCacheEntry root) {
+                if (root != null) {
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Evicting root cache entry {}", rootKey);
+                    }
+                    final Header existingETag = root.getFirstHeader(HttpHeaders.ETAG);
+                    final Header newETag = response.getFirstHeader(HttpHeaders.ETAG);
+                    if (existingETag != null && newETag != null &&
+                            !Objects.equals(existingETag.getValue(), newETag.getValue()) &&
+                            !DateSupport.isBefore(response, root, HttpHeaders.DATE)) {
+                        evictAll(root, rootKey);
+                    }
+                }
+            }
+
+            @Override
+            public void failed(final Exception ex) {
+            }
+
+            @Override
+            public void cancelled() {
             }
 
         });
     }
 
     @Override
-    public Cancellable flushCacheEntriesInvalidatedByRequest(
-            final HttpHost host, final HttpRequest request, final FutureCallback<Boolean> callback) {
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Flush cache entries invalidated by request: {}; {}", host, new RequestLine(request));
-        }
-        return cacheInvalidator.flushCacheEntriesInvalidatedByRequest(host, request, cacheKeyGenerator, storage, callback);
-    }
-
-    @Override
-    public Cancellable flushCacheEntriesInvalidatedByExchange(
+    public Cancellable evictInvalidatedEntries(
             final HttpHost host, final HttpRequest request, final HttpResponse response, final FutureCallback<Boolean> callback) {
         if (LOG.isDebugEnabled()) {
             LOG.debug("Flush cache entries invalidated by exchange: {}; {} -> {}", host, new RequestLine(request), new StatusLine(response));
         }
-        if (!Method.isSafe(request.getMethod())) {
-            return cacheInvalidator.flushCacheEntriesInvalidatedByExchange(host, request, response, cacheKeyGenerator, storage, callback);
+        final int status = response.getCode();
+        if (status >= HttpStatus.SC_SUCCESS && status < HttpStatus.SC_CLIENT_ERROR &&
+                !Method.isSafe(request.getMethod())) {
+            final String rootKey = cacheKeyGenerator.generateKey(host, request);
+            evict(rootKey);
+            final URI requestUri = CacheSupport.normalize(CacheSupport.getRequestUri(request, host));
+            if (requestUri != null) {
+                final URI contentLocation = CacheSupport.getLocationURI(requestUri, response, HttpHeaders.CONTENT_LOCATION);
+                if (contentLocation != null && CacheSupport.isSameOrigin(requestUri, contentLocation)) {
+                    final String cacheKey = cacheKeyGenerator.generateKey(contentLocation);
+                    evict(cacheKey, response);
+                }
+                final URI location = CacheSupport.getLocationURI(requestUri, response, HttpHeaders.LOCATION);
+                if (location != null && CacheSupport.isSameOrigin(requestUri, location)) {
+                    final String cacheKey = cacheKeyGenerator.generateKey(location);
+                    evict(cacheKey, response);
+                }
+            }
         }
         callback.completed(Boolean.TRUE);
         return Operations.nonCancellable();
