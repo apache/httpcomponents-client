@@ -140,7 +140,7 @@ public class TestCacheableRequestPolicy {
 
         Assertions.assertFalse(policy.isServableFromCache(cacheControl, request));
 
-        final BasicHttpRequest request2 = new BasicHttpRequest("get", "someUri");
+        final BasicHttpRequest request2 = new BasicHttpRequest("huh", "someUri");
 
         Assertions.assertFalse(policy.isServableFromCache(cacheControl, request2));
 

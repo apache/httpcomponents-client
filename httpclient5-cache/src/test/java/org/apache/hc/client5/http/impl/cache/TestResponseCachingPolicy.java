@@ -512,7 +512,7 @@ public class TestResponseCachingPolicy {
 
         Assertions.assertFalse(policy.isResponseCacheable(responseCacheControl, "PUT", response));
 
-        Assertions.assertFalse(policy.isResponseCacheable(responseCacheControl, "get", response));
+        Assertions.assertFalse(policy.isResponseCacheable(responseCacheControl, "huh", response));
     }
 
     @Test

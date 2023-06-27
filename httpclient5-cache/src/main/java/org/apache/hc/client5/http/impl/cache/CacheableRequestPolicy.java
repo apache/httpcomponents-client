@@ -26,10 +26,10 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
-import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.ProtocolVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,7 +57,7 @@ class CacheableRequestPolicy {
             return false;
         }
 
-        if (!method.equals(HeaderConstants.GET_METHOD) && !method.equals(HeaderConstants.HEAD_METHOD)) {
+        if (!Method.GET.isSame(method) && !Method.HEAD.isSame(method)) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("{} request is not serveable from cache", method);
             }

@@ -29,7 +29,6 @@ package org.apache.hc.client5.http.impl.cache;
 import java.time.Instant;
 
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
-import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.Resource;
 import org.apache.hc.client5.http.cache.ResourceIOException;
@@ -41,6 +40,7 @@ import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.util.TimeValue;
 
@@ -160,7 +160,7 @@ class CachedHttpResponseGenerator {
     }
 
     private boolean responseShouldContainEntity(final HttpRequest request, final HttpCacheEntry cacheEntry) {
-        return request.getMethod().equals(HeaderConstants.GET_METHOD) && cacheEntry.getResource() != null;
+        return Method.GET.isSame(request.getMethod()) && cacheEntry.getResource() != null;
     }
 
     /**

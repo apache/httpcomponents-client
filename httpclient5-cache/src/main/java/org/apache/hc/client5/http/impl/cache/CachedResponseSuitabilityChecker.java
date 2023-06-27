@@ -29,7 +29,6 @@ package org.apache.hc.client5.http.impl.cache;
 import java.time.Instant;
 import java.util.Iterator;
 
-import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.Header;
@@ -37,6 +36,7 @@ import org.apache.hc.core5.http.HeaderElement;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.message.MessageSupport;
 import org.apache.hc.core5.util.TimeValue;
 import org.slf4j.Logger;
@@ -176,7 +176,11 @@ class CachedResponseSuitabilityChecker {
     }
 
     private boolean isGet(final HttpRequest request) {
-        return request.getMethod().equals(HeaderConstants.GET_METHOD);
+        return Method.GET.isSame(request.getMethod());
+    }
+
+    private boolean isHead(final HttpRequest request) {
+        return Method.HEAD.isSame(request.getMethod());
     }
 
     private boolean entryIsNotA204Response(final HttpCacheEntry entry) {
@@ -201,17 +205,18 @@ class CachedResponseSuitabilityChecker {
     }
 
     /**
-     * Determines whether the given request is a {@link HeaderConstants#GET_METHOD} request and the associated cache entry was created by a
-     * {@link HeaderConstants#HEAD_METHOD} request.
+     * Determines whether the given request is a {@link org.apache.hc.core5.http.Method#GET} request and the
+     * associated cache entry was created by a {@link org.apache.hc.core5.http.Method#HEAD} request.
      *
-     * @param request The {@link HttpRequest} to check if it is a {@link HeaderConstants#GET_METHOD} request.
-     * @param entry   The {@link HttpCacheEntry} to check if it was created by a {@link HeaderConstants#HEAD_METHOD} request.
-     * @return true if the request is a {@link HeaderConstants#GET_METHOD} request and the cache entry was created by a
-     * {@link HeaderConstants#HEAD_METHOD} request, otherwise {@code false}.
+     * @param request The {@link HttpRequest} to check if it is a {@link org.apache.hc.core5.http.Method#GET} request.
+     * @param entry   The {@link HttpCacheEntry} to check if it was created by
+     *                a {@link org.apache.hc.core5.http.Method#HEAD} request.
+     * @return true if the request is a {@link org.apache.hc.core5.http.Method#GET} request and the cache entry was
+     * created by a {@link org.apache.hc.core5.http.Method#HEAD} request, otherwise {@code false}.
      * @since 5.3
      */
     public boolean isGetRequestWithHeadCacheEntry(final HttpRequest request, final HttpCacheEntry entry) {
-        return isGet(request) && HeaderConstants.HEAD_METHOD.equalsIgnoreCase(entry.getRequestMethod());
+        return isGet(request) && Method.HEAD.isSame(entry.getRequestMethod());
     }
 
 

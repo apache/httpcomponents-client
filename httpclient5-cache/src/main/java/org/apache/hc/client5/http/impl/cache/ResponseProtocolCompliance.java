@@ -32,7 +32,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.hc.client5.http.ClientProtocolException;
-import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HeaderElement;
@@ -42,6 +41,7 @@ import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.ProtocolVersion;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.MessageSupport;
@@ -169,7 +169,7 @@ class ResponseProtocolCompliance {
 
     private void ensure200ForOPTIONSRequestWithNoBodyHasContentLengthZero(final HttpRequest request,
             final HttpResponse response) {
-        if (!request.getMethod().equalsIgnoreCase(HeaderConstants.OPTIONS_METHOD)) {
+        if (!Method.OPTIONS.isSame(request.getMethod())) {
             return;
         }
 
