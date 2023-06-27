@@ -92,18 +92,8 @@ interface HttpCache {
             Instant responseReceived);
 
     /**
-     * Clear all matching {@link HttpCacheEntry}s.
+     * Evicts {@link HttpCacheEntry}s invalidated by the given message exchange.
      */
-    void flushCacheEntriesFor(HttpHost host, HttpRequest request);
-
-    /**
-     * Flush {@link HttpCacheEntry}s invalidated by the given request
-     */
-    void flushCacheEntriesInvalidatedByRequest(HttpHost host, HttpRequest request);
-
-    /**
-     * Flush {@link HttpCacheEntry}s invalidated by the given message exchange.
-     */
-    void flushCacheEntriesInvalidatedByExchange(HttpHost host, HttpRequest request, HttpResponse response);
+    void evictInvalidatedEntries(HttpHost host, HttpRequest request, HttpResponse response);
 
 }
