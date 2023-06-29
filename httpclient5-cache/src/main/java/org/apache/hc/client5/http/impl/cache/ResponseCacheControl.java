@@ -85,6 +85,11 @@ final class ResponseCacheControl implements CacheControl {
      */
     private final boolean cachePublic;
     /**
+     * Indicates whether the Cache-Control header includes the "must-understand" directive.
+     */
+    private final boolean mustUnderstand;
+
+    /**
      * The number of seconds that a stale response is considered fresh for the purpose
      * of serving a response while a revalidation request is made to the origin server.
      */
@@ -115,11 +120,12 @@ final class ResponseCacheControl implements CacheControl {
      * @param staleWhileRevalidate  The stale-while-revalidate value from the Cache-Control header.
      * @param staleIfError    The stale-if-error value from the Cache-Control header.
      * @param noCacheFields   The set of field names specified in the "no-cache" directive of the Cache-Control header.
+     * @param mustUnderstand  The must-understand value from the Cache-Control header.
      */
     ResponseCacheControl(final long maxAge, final long sharedMaxAge, final boolean mustRevalidate, final boolean noCache,
                          final boolean noStore, final boolean cachePrivate, final boolean proxyRevalidate,
                          final boolean cachePublic, final long staleWhileRevalidate, final long staleIfError,
-                         final Set<String> noCacheFields) {
+                         final Set<String> noCacheFields, final boolean mustUnderstand) {
         this.maxAge = maxAge;
         this.sharedMaxAge = sharedMaxAge;
         this.noCache = noCache;
@@ -141,6 +147,7 @@ final class ResponseCacheControl implements CacheControl {
                 !cachePublic &&
                 staleWhileRevalidate == -1
                 && staleIfError == -1;
+        this.mustUnderstand = mustUnderstand;
     }
 
     /**
@@ -189,6 +196,15 @@ final class ResponseCacheControl implements CacheControl {
      */
     public boolean isCachePrivate() {
         return cachePrivate;
+    }
+
+    /**
+     * Returns the must-understand directive from the Cache-Control header.
+     *
+     * @return The must-understand directive.
+     */
+    public boolean isMustUnderstand() {
+        return mustUnderstand;
     }
 
     /**
@@ -265,6 +281,7 @@ final class ResponseCacheControl implements CacheControl {
                 ", staleWhileRevalidate=" + staleWhileRevalidate +
                 ", staleIfError=" + staleIfError +
                 ", noCacheFields=" + noCacheFields +
+                ", mustUnderstand=" + mustUnderstand +
                 '}';
     }
 
@@ -285,6 +302,7 @@ final class ResponseCacheControl implements CacheControl {
         private long staleWhileRevalidate = -1;
         private long staleIfError = -1;
         private Set<String> noCacheFields;
+        private boolean mustUnderstand;
 
         Builder() {
         }
@@ -388,9 +406,18 @@ final class ResponseCacheControl implements CacheControl {
             return this;
         }
 
+        public boolean isMustUnderstand() {
+            return mustUnderstand;
+        }
+
+        public Builder setMustUnderstand(final boolean mustUnderstand) {
+            this.mustUnderstand = mustUnderstand;
+            return this;
+        }
+
         public ResponseCacheControl build() {
             return new ResponseCacheControl(maxAge, sharedMaxAge, mustRevalidate, noCache, noStore, cachePrivate, proxyRevalidate,
-                    cachePublic, staleWhileRevalidate, staleIfError, noCacheFields);
+                    cachePublic, staleWhileRevalidate, staleIfError, noCacheFields, mustUnderstand);
         }
 
     }
