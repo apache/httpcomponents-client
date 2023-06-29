@@ -307,10 +307,18 @@ class ResponseCachingPolicy {
             }
             return false;
         }
-        if (cacheControl.isNoStore()) {
+
+        if (cacheControl.isMustUnderstand() && cacheControl.isNoStore() && !understoodStatusCode(response.getCode())) {
+            // must-understand cache directive overrides no-store
+            LOG.debug("Response contains a status code that the cache does not understand, so it's not cacheable");
+            return false;
+        }
+
+        if (!cacheControl.isMustUnderstand() && cacheControl.isNoStore()) {
             LOG.debug("Response is explicitly non-cacheable per cache control directive");
             return false;
         }
+
 
         if (request.getRequestUri().contains("?")) {
             if (neverCache1_0ResponsesWithQueryString && from1_0Origin(response)) {
@@ -492,6 +500,25 @@ class ResponseCachingPolicy {
             }
         }
         return false;
+    }
+
+    /**
+     * This method checks if a given HTTP status code is understood according to RFC 7231.
+     * Understood status codes include:
+     * - All 2xx (Successful) status codes (200-299)
+     * - All 3xx (Redirection) status codes (300-399)
+     * - All 4xx (Client Error) status codes up to 417 and 421
+     * - All 5xx (Server Error) status codes up to 505
+     *
+     * @param status The HTTP status code to be checked.
+     * @return true if the HTTP status code is understood, false otherwise.
+     */
+    private boolean understoodStatusCode(final int status) {
+        return (status >= 200 && status <= 206)    ||
+                (status >= 300 && status <= 399)   ||
+                (status >= 400 && status <= 417)   ||
+                (status == 421)                    ||
+                (status >= 500 && status <= 505);
     }
 
 }
