@@ -302,12 +302,11 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
                                                 leaseCompleted(poolEntry);
                                             })), Command.Priority.IMMEDIATE);
                                             return;
-                                        } else {
-                                            if (LOG.isDebugEnabled()) {
-                                                LOG.debug("{} connection {} is closed", id, ConnPoolSupport.getId(connection));
-                                            }
-                                            poolEntry.discardConnection(CloseMode.IMMEDIATE);
                                         }
+                                        if (LOG.isDebugEnabled()) {
+                                            LOG.debug("{} connection {} is closed", id, ConnPoolSupport.getId(connection));
+                                        }
+                                        poolEntry.discardConnection(CloseMode.IMMEDIATE);
                                     }
                                 }
                             }

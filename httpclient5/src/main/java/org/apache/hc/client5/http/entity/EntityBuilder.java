@@ -92,7 +92,9 @@ public class EntityBuilder {
     }
 
     /**
-     * Returns entity content as a string if set using {@link #setText(String)} method.
+     * Gets the entity content as a string if set using {@link #setText(String)}.
+     *
+     * @return the entity content as a string, may be null.
      */
     public String getText() {
         return text;
@@ -101,11 +103,14 @@ public class EntityBuilder {
     /**
      * Sets entity content as a string. This method is mutually exclusive with
      * {@link #setBinary(byte[])},
-     * {@link #setStream(java.io.InputStream)} ,
-     * {@link #setSerializable(java.io.Serializable)} ,
+     * {@link #setStream(java.io.InputStream)},
+     * {@link #setSerializable(java.io.Serializable)},
      * {@link #setParameters(java.util.List)},
      * {@link #setParameters(NameValuePair...)}
      * {@link #setFile(java.io.File)} methods.
+     *
+     * @param text entity content as a string.
+     * @return this
      */
     public EntityBuilder setText(final String text) {
         clearContent();
@@ -114,8 +119,10 @@ public class EntityBuilder {
     }
 
     /**
-     * Returns entity content as a byte array if set using
-     * {@link #setBinary(byte[])} method.
+     * Gets entity content as a byte array if set using
+     * {@link #setBinary(byte[])}.
+     *
+     * @return entity content as a byte array.
      */
     public byte[] getBinary() {
         return binary;
@@ -124,11 +131,14 @@ public class EntityBuilder {
     /**
      * Sets entity content as a byte array. This method is mutually exclusive with
      * {@link #setText(String)},
-     * {@link #setStream(java.io.InputStream)} ,
-     * {@link #setSerializable(java.io.Serializable)} ,
+     * {@link #setStream(java.io.InputStream)},
+     * {@link #setSerializable(java.io.Serializable)},
      * {@link #setParameters(java.util.List)},
      * {@link #setParameters(NameValuePair...)}
-     * {@link #setFile(java.io.File)} methods.
+     * {@link #setFile(java.io.File)}.
+     *
+     * @param binary The new entity content as a byte array.
+     * @return this
      */
     public EntityBuilder setBinary(final byte[] binary) {
         clearContent();
@@ -137,21 +147,26 @@ public class EntityBuilder {
     }
 
     /**
-     * Returns entity content as a {@link InputStream} if set using
+     * Gets entity content as an {@link InputStream} if set using
      * {@link #setStream(java.io.InputStream)} method.
+     *
+     * @return entity content as an {@link InputStream}
      */
     public InputStream getStream() {
         return stream;
     }
 
     /**
-     * Sets entity content as a {@link InputStream}. This method is mutually exclusive with
+     * Sets entity content as an {@link InputStream}. This method is mutually exclusive with
      * {@link #setText(String)},
      * {@link #setBinary(byte[])},
-     * {@link #setSerializable(java.io.Serializable)} ,
+     * {@link #setSerializable(java.io.Serializable)},
      * {@link #setParameters(java.util.List)},
      * {@link #setParameters(NameValuePair...)}
-     * {@link #setFile(java.io.File)} methods.
+     * {@link #setFile(java.io.File)}.
+     *
+     * @param stream The new entity content as an InputStream.
+     * @return this
      */
     public EntityBuilder setStream(final InputStream stream) {
         clearContent();
@@ -160,9 +175,11 @@ public class EntityBuilder {
     }
 
     /**
-     * Returns entity content as a parameter list if set using
+     * Gets entity content as a parameter list if set using
      * {@link #setParameters(java.util.List)} or
-     * {@link #setParameters(NameValuePair...)} methods.
+     * {@link #setParameters(NameValuePair...)}.
+     *
+     * @return entity content as a parameter list.
      */
     public List<NameValuePair> getParameters() {
         return parameters;
@@ -172,9 +189,12 @@ public class EntityBuilder {
      * Sets entity content as a parameter list. This method is mutually exclusive with
      * {@link #setText(String)},
      * {@link #setBinary(byte[])},
-     * {@link #setStream(java.io.InputStream)} ,
-     * {@link #setSerializable(java.io.Serializable)} ,
-     * {@link #setFile(java.io.File)} methods.
+     * {@link #setStream(java.io.InputStream)},
+     * {@link #setSerializable(java.io.Serializable)},
+     * {@link #setFile(java.io.File)}.
+     *
+     * @param parameters entity content as a parameter list.
+     * @return this
      */
     public EntityBuilder setParameters(final List<NameValuePair> parameters) {
         clearContent();
@@ -186,17 +206,22 @@ public class EntityBuilder {
      * Sets entity content as a parameter list. This method is mutually exclusive with
      * {@link #setText(String)},
      * {@link #setBinary(byte[])},
-     * {@link #setStream(java.io.InputStream)} ,
-     * {@link #setSerializable(java.io.Serializable)} ,
-     * {@link #setFile(java.io.File)} methods.
+     * {@link #setStream(java.io.InputStream)},
+     * {@link #setSerializable(java.io.Serializable)},
+     * {@link #setFile(java.io.File)}.
+     *
+     * @param parameters entity content as a parameter list.
+     * @return this
      */
     public EntityBuilder setParameters(final NameValuePair... parameters) {
         return setParameters(Arrays.asList(parameters));
     }
 
     /**
-     * Returns entity content as a {@link Serializable} if set using
+     * Gets entity content as a {@link Serializable} if set using
      * {@link #setSerializable(java.io.Serializable)} method.
+     *
+     * @return entity content as a {@link Serializable}.
      */
     public Serializable getSerializable() {
         return serializable;
@@ -206,10 +231,13 @@ public class EntityBuilder {
      * Sets entity content as a {@link Serializable}. This method is mutually exclusive with
      * {@link #setText(String)},
      * {@link #setBinary(byte[])},
-     * {@link #setStream(java.io.InputStream)} ,
+     * {@link #setStream(java.io.InputStream)},
      * {@link #setParameters(java.util.List)},
      * {@link #setParameters(NameValuePair...)}
-     * {@link #setFile(java.io.File)} methods.
+     * {@link #setFile(java.io.File)}.
+     *
+     * @param serializable entity content as a {@link Serializable}.
+     * @return this
      */
     public EntityBuilder setSerializable(final Serializable serializable) {
         clearContent();
@@ -218,8 +246,10 @@ public class EntityBuilder {
     }
 
     /**
-     * Returns entity content as a {@link File} if set using
-     * {@link #setFile(java.io.File)} method.
+     * Gets the entity content as a {@link File} if set using
+     * {@link #setFile(java.io.File)}.
+     *
+     * @return Gets the entity content as a {@link File}.
      */
     public File getFile() {
         return file;
@@ -229,10 +259,13 @@ public class EntityBuilder {
      * Sets entity content as a {@link File}. This method is mutually exclusive with
      * {@link #setText(String)},
      * {@link #setBinary(byte[])},
-     * {@link #setStream(java.io.InputStream)} ,
+     * {@link #setStream(java.io.InputStream)},
      * {@link #setParameters(java.util.List)},
      * {@link #setParameters(NameValuePair...)}
-     * {@link #setSerializable(java.io.Serializable)} methods.
+     * {@link #setSerializable(java.io.Serializable)}.
+     *
+     * @param file entity content as a {@link File}.
+     * @return this
      */
     public EntityBuilder setFile(final File file) {
         clearContent();
@@ -241,14 +274,19 @@ public class EntityBuilder {
     }
 
     /**
-     * Returns {@link ContentType} of the entity, if set.
+     * Gets the {@link ContentType} of the entity, may be null.
+     *
+     * @return the {@link ContentType} of the entity, may be null.
      */
     public ContentType getContentType() {
         return contentType;
     }
 
     /**
-     * Sets {@link ContentType} of the entity.
+     * Sets the {@link ContentType} of the entity.
+     *
+     * @param contentType the {@link ContentType} of the entity, may be null.
+     * @return this
      */
     public EntityBuilder setContentType(final ContentType contentType) {
         this.contentType = contentType;
@@ -256,14 +294,19 @@ public class EntityBuilder {
     }
 
     /**
-     * Returns content encoding of the entity, if set.
+     * Gets the content encoding of the entity, may be null.
+     *
+     * @return the content encoding of the entity, may be null.
      */
     public String getContentEncoding() {
         return contentEncoding;
     }
 
     /**
-     * Sets content encoding of the entity.
+     * Sets the content encoding of the entity.
+     *
+     * @param contentEncoding the content encoding of the entity, may be null.
+     * @return this
      */
     public EntityBuilder setContentEncoding(final String contentEncoding) {
         this.contentEncoding = contentEncoding;
@@ -271,14 +314,17 @@ public class EntityBuilder {
     }
 
     /**
-     * Returns {@code true} if entity is to be chunk coded, {@code false} otherwise.
+     * Tests if the entity is to be chunk coded ({@code true}), or not ({@code false}).
+     *
+     * @return {@code true} if entity is to be chunk coded, {@code false} otherwise.
      */
     public boolean isChunked() {
         return chunked;
     }
 
     /**
-     * Makes entity chunk coded.
+     * Sets entities to be chunked.
+     * @return this
      */
     public EntityBuilder chunked() {
         this.chunked = true;
@@ -286,14 +332,18 @@ public class EntityBuilder {
     }
 
     /**
-     * Returns {@code true} if entity is to be GZIP compressed, {@code false} otherwise.
+     * Tests if entities are to be GZIP compressed ({@code true}), or not ({@code false}).
+     *
+     * @return {@code true} if entity is to be GZIP compressed, {@code false} otherwise.
      */
     public boolean isGzipCompressed() {
         return gzipCompressed;
     }
 
     /**
-     * Makes entity GZIP compressed.
+     * Sets entities to be GZIP compressed.
+     *
+     * @return this
      */
     public EntityBuilder gzipCompressed() {
         this.gzipCompressed = true;
@@ -305,7 +355,9 @@ public class EntityBuilder {
     }
 
     /**
-     * Creates new instance of {@link HttpEntity} based on the current state.
+     * Builds a new instance of {@link HttpEntity} based on the current state.
+     *
+     * @return a new instance.
      */
     public HttpEntity build() {
         final AbstractHttpEntity e;
