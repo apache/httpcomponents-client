@@ -29,7 +29,6 @@ package org.apache.hc.client5.http.impl.cache;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.concurrent.RejectedExecutionException;
@@ -39,9 +38,6 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import org.apache.hc.client5.http.schedule.ConcurrentCountMap;
 import org.apache.hc.client5.http.schedule.SchedulingStrategy;
-import org.apache.hc.core5.http.Header;
-import org.apache.hc.core5.http.HttpHeaders;
-import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
@@ -165,27 +161,6 @@ class CacheRevalidatorBase implements Closeable {
         synchronized (pendingRequest) {
             return new HashSet<>(pendingRequest);
         }
-    }
-
-    /**
-     * Determines if the given response is generated from a stale cache entry.
-     * @param httpResponse the response to be checked
-     * @return whether the response is stale or not
-     */
-    boolean isStale(final HttpResponse httpResponse) {
-        for (final Iterator<Header> it = httpResponse.headerIterator(HttpHeaders.WARNING); it.hasNext(); ) {
-            /*
-             * warn-codes
-             * 110 = Response is stale
-             * 111 = Revalidation failed
-             */
-            final Header warning = it.next();
-            final String warningValue = warning.getValue();
-            if (warningValue.startsWith("110") || warningValue.startsWith("111")) {
-                return true;
-            }
-        }
-        return false;
     }
 
 }

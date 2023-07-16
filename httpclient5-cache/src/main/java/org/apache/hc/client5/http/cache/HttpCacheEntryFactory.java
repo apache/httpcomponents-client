@@ -110,12 +110,6 @@ public class HttpCacheEntryFactory {
             // Since we do not expect a content in a 304 response, should retain the original Content-Encoding header
             if (headerName.equalsIgnoreCase(HttpHeaders.CONTENT_ENCODING)) {
                 headerGroup.addHeader(entryHeader);
-            } else if (headerName.equalsIgnoreCase(HttpHeaders.WARNING)) {
-                // remove cache entry 1xx warnings
-                final String warningValue = entryHeader.getValue();
-                if (warningValue != null && !warningValue.startsWith("1")) {
-                    headerGroup.addHeader(entryHeader);
-                }
             } else {
                 if (!response.containsHeader(headerName)) {
                     headerGroup.addHeader(entryHeader);

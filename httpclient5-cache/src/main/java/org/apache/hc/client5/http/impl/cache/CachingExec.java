@@ -265,7 +265,7 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
             }
             LOG.debug("Cache hit");
             try {
-                return convert(generateCachedResponse(responseCacheControl, hit.entry, request, context, now), scope);
+                return convert(generateCachedResponse(responseCacheControl, hit.entry, request, context), scope);
             } catch (final ResourceIOException ex) {
                 recordCacheFailure(target, request);
                 if (!mayCallBackend(requestCacheControl)) {
@@ -293,7 +293,7 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
                             scope.originalRequest,
                             scope.execRuntime.fork(null),
                             HttpClientContext.create());
-                    final SimpleHttpResponse response = generateCachedResponse(responseCacheControl, hit.entry, request, context, now);
+                    final SimpleHttpResponse response = generateCachedResponse(responseCacheControl, hit.entry, request, context);
                     cacheRevalidator.revalidateCacheEntry(
                             hit.getEntryKey(),
                             () -> revalidateCacheEntry(requestCacheControl, responseCacheControl, hit, target, request, fork, chain));
@@ -305,7 +305,7 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("Serving stale response due to IOException and stale-if-error enabled");
                     }
-                    return convert(generateCachedResponse(responseCacheControl, hit.entry, request, context, now), scope);
+                    return convert(generateCachedResponse(responseCacheControl, hit.entry, request, context), scope);
                 }
                 return convert(handleRevalidationFailure(requestCacheControl, responseCacheControl, hit.entry, request, context, now), scope);
             }
@@ -361,7 +361,6 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
                     && validityPolicy.mayReturnStaleIfError(requestCacheControl, responseCacheControl, hit.entry, responseDate)) {
                 try {
                     final SimpleHttpResponse cachedResponse = responseGenerator.generateResponse(request, hit.entry);
-                    cachedResponse.addHeader(HttpHeaders.WARNING, "110 localhost \"Response is stale\"");
                     return convert(cachedResponse, scope);
                 } finally {
                     backendResponse.close();

@@ -77,7 +77,7 @@ class DefaultCacheRevalidator extends CacheRevalidatorBase {
             final RevalidationCall call) {
         scheduleRevalidation(cacheKey, () -> {
             try (ClassicHttpResponse httpResponse = call.execute()) {
-                if (httpResponse.getCode() < HttpStatus.SC_SERVER_ERROR && !isStale(httpResponse)) {
+                if (httpResponse.getCode() < HttpStatus.SC_SERVER_ERROR) {
                     jobSuccessful(cacheKey);
                 } else {
                     jobFailed(cacheKey);

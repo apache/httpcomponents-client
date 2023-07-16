@@ -38,7 +38,6 @@ import org.apache.hc.client5.http.cache.CacheResponseStatus;
 import org.apache.hc.client5.http.cache.HttpCacheContext;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.ResourceIOException;
-import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
@@ -187,8 +186,7 @@ public class CachingExecBase {
             final ResponseCacheControl responseCacheControl,
             final HttpCacheEntry entry,
             final HttpRequest request,
-            final HttpContext context,
-            final Instant now) throws ResourceIOException {
+            final HttpContext context) throws ResourceIOException {
         final SimpleHttpResponse cachedResponse;
         if (request.containsHeader(HttpHeaders.IF_NONE_MATCH)
                 || request.containsHeader(HttpHeaders.IF_MODIFIED_SINCE)) {
@@ -197,26 +195,6 @@ public class CachingExecBase {
             cachedResponse = responseGenerator.generateResponse(request, entry);
         }
         setResponseStatus(context, CacheResponseStatus.CACHE_HIT);
-        if (TimeValue.isPositive(validityPolicy.getStaleness(responseCacheControl, entry, now))) {
-            cachedResponse.addHeader(HttpHeaders.WARNING,"110 localhost \"Response is stale\"");
-        }
-
-        // Adding Warning: 113 - "Heuristic Expiration"
-        if (!entry.containsHeader(HttpHeaders.WARNING)) {
-            final Header header = entry.getFirstHeader(HttpHeaders.DATE);
-            if (header != null) {
-                final Instant responseDate = DateUtils.parseStandardDate(header.getValue());
-                final TimeValue freshnessLifetime = validityPolicy.getFreshnessLifetime(responseCacheControl, entry);
-                final TimeValue currentAge = validityPolicy.getCurrentAge(entry, responseDate);
-                if (freshnessLifetime.compareTo(ONE_DAY) > 0 && currentAge.compareTo(ONE_DAY) > 0) {
-                    cachedResponse.addHeader(HttpHeaders.WARNING,"113 localhost \"Heuristic expiration\"");
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("Added Warning 113 - Heuristic expiration to the response header.");
-                    }
-                }
-            }
-        }
-
         return cachedResponse;
     }
 
@@ -246,7 +224,6 @@ public class CachingExecBase {
             final HttpCacheEntry entry) throws IOException {
         final SimpleHttpResponse cachedResponse = responseGenerator.generateResponse(request, entry);
         setResponseStatus(context, CacheResponseStatus.CACHE_HIT);
-        cachedResponse.addHeader(HttpHeaders.WARNING, "111 localhost \"Revalidation failed\"");
         return cachedResponse;
     }
 
