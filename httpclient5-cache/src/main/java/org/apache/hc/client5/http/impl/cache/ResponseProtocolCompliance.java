@@ -79,41 +79,6 @@ class ResponseProtocolCompliance {
         ensure304DoesNotContainExtraEntityHeaders(response);
 
         identityIsNotUsedInContentEncoding(response);
-
-        warningsWithNonMatchingWarnDatesAreRemoved(response);
-    }
-
-    private void warningsWithNonMatchingWarnDatesAreRemoved(
-            final HttpResponse response) {
-        final Instant responseDate = DateUtils.parseStandardDate(response, HttpHeaders.DATE);
-        if (responseDate == null) {
-            return;
-        }
-
-        final Header[] warningHeaders = response.getHeaders(HttpHeaders.WARNING);
-
-        if (warningHeaders == null || warningHeaders.length == 0) {
-            return;
-        }
-
-        final List<Header> newWarningHeaders = new ArrayList<>();
-        boolean modified = false;
-        for(final Header h : warningHeaders) {
-            for(final WarningValue wv : WarningValue.getWarningValues(h)) {
-                final Instant warnInstant = wv.getWarnDate();
-                if (warnInstant == null || warnInstant.equals(responseDate)) {
-                    newWarningHeaders.add(new BasicHeader(HttpHeaders.WARNING,wv.toString()));
-                } else {
-                    modified = true;
-                }
-            }
-        }
-        if (modified) {
-            response.removeHeaders(HttpHeaders.WARNING);
-            for(final Header h : newWarningHeaders) {
-                response.addHeader(h);
-            }
-        }
     }
 
     private void identityIsNotUsedInContentEncoding(final HttpResponse response) {

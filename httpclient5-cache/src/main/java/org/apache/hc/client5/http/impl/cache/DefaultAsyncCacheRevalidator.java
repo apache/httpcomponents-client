@@ -135,7 +135,7 @@ class DefaultAsyncCacheRevalidator extends CacheRevalidatorBase {
             @Override
             public void completed() {
                 final HttpResponse httpResponse = responseRef.getAndSet(null);
-                if (httpResponse != null && httpResponse.getCode() < HttpStatus.SC_SERVER_ERROR && !isStale(httpResponse)) {
+                if (httpResponse != null && httpResponse.getCode() < HttpStatus.SC_SERVER_ERROR) {
                     jobSuccessful(cacheKey);
                 } else {
                     jobFailed(cacheKey);
