@@ -26,7 +26,6 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
-import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.Method;
@@ -61,11 +60,6 @@ class CacheableRequestPolicy {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("{} request is not serveable from cache", method);
             }
-            return false;
-        }
-
-        if (request.countHeaders(HttpHeaders.PRAGMA) > 0) {
-            LOG.debug("request with Pragma header is not serveable from cache");
             return false;
         }
 

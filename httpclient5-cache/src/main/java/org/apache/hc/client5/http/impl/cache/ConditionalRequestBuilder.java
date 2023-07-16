@@ -103,7 +103,6 @@ class ConditionalRequestBuilder<T extends HttpRequest> {
     public T buildUnconditionalRequest(final T request) {
         final T newRequest = messageCopier.create(request);
         newRequest.addHeader(HttpHeaders.CACHE_CONTROL,HeaderConstants.CACHE_CONTROL_NO_CACHE);
-        newRequest.addHeader(HttpHeaders.PRAGMA,HeaderConstants.CACHE_CONTROL_NO_CACHE);
         newRequest.removeHeaders(HttpHeaders.IF_RANGE);
         newRequest.removeHeaders(HttpHeaders.IF_MATCH);
         newRequest.removeHeaders(HttpHeaders.IF_NONE_MATCH);
