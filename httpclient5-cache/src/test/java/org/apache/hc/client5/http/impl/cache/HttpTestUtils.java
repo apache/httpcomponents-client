@@ -29,7 +29,6 @@ package org.apache.hc.client5.http.impl.cache;
 import java.io.InputStream;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
@@ -43,9 +42,7 @@ import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.Header;
-import org.apache.hc.core5.http.HeaderElement;
 import org.apache.hc.core5.http.HttpEntity;
-import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpMessage;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
@@ -58,7 +55,6 @@ import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.HeaderGroup;
-import org.apache.hc.core5.http.message.MessageSupport;
 import org.apache.hc.core5.util.ByteArrayBuffer;
 import org.junit.jupiter.api.Assertions;
 
@@ -362,20 +358,6 @@ public class HttpTestUtils {
 
     public static ClassicHttpResponse make304Response() {
         return new BasicClassicHttpResponse(HttpStatus.SC_NOT_MODIFIED, "Not modified");
-    }
-
-    public static final void assert110WarningFound(final HttpResponse response) {
-        boolean found110Warning = false;
-        final Iterator<HeaderElement> it = MessageSupport.iterate(response, HttpHeaders.WARNING);
-        while (it.hasNext()) {
-            final HeaderElement elt = it.next();
-            final String[] parts = elt.getName().split("\\s");
-            if ("110".equals(parts[0])) {
-                found110Warning = true;
-                break;
-            }
-        }
-        Assertions.assertTrue(found110Warning);
     }
 
     public static ClassicHttpRequest makeDefaultRequest() {

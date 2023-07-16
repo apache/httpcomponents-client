@@ -182,20 +182,6 @@ public class TestHttpCacheEntryFactory {
     }
 
     @Test
-    public void entry1xxWarningsAreRemovedOnMerge() {
-        entry = HttpTestUtils.makeCacheEntry(tenSecondsAgo, eightSecondsAgo,
-                new BasicHeader("Warning", "110 fred \"Response is stale\""),
-                new BasicHeader("ETag", "\"old\""),
-                new BasicHeader("Date", DateUtils.formatStandardDate(eightSecondsAgo)));
-        response.setHeader("ETag", "\"new\"");
-        response.setHeader("Date", DateUtils.formatStandardDate(twoSecondsAgo));
-
-        final HeaderGroup mergedHeaders = impl.mergeHeaders(entry, response);
-
-        Assertions.assertEquals(0, mergedHeaders.countHeaders("Warning"));
-    }
-
-    @Test
     public void entryWithMalformedDateIsStillUpdated() throws Exception {
         entry = HttpTestUtils.makeCacheEntry(tenSecondsAgo, eightSecondsAgo,
                 new BasicHeader("ETag", "\"old\""),
