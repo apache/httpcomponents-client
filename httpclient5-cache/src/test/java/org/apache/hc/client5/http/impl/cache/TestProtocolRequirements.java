@@ -398,13 +398,6 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testOrderOfMultiplePragmaHeadersIsPreservedOnRequests() throws Exception {
-        request.addHeader("Pragma", "no-cache");
-        request.addHeader("Pragma", "x-pragma-1, x-pragma-2");
-        testOrderOfMultipleHeadersIsPreservedOnRequests("Pragma", request);
-    }
-
-    @Test
     public void testOrderOfMultipleViaHeadersIsPreservedOnRequests() throws Exception {
         request.addHeader(HttpHeaders.VIA, "1.0 fred, 1.1 nowhere.com (Apache/1.1)");
         request.addHeader(HttpHeaders.VIA, "1.0 ricky, 1.1 mertz, 1.0 lucy");
@@ -449,13 +442,6 @@ public class TestProtocolRequirements {
         originResponse.addHeader("Content-Language", "mi");
         originResponse.addHeader("Content-Language", "en");
         testOrderOfMultipleHeadersIsPreservedOnResponses("Content-Language");
-    }
-
-    @Test
-    public void testOrderOfMultiplePragmaHeadersIsPreservedOnResponses() throws Exception {
-        originResponse.addHeader("Pragma", "no-cache, x-pragma-2");
-        originResponse.addHeader("Pragma", "x-pragma-1");
-        testOrderOfMultipleHeadersIsPreservedOnResponses("Pragma");
     }
 
     @Test
@@ -2765,7 +2751,6 @@ public class TestProtocolRequirements {
         r.setHeader("Expires", DateUtils.formatStandardDate(Instant.now().plusSeconds(10)));
         r.setHeader("Last-Modified", DateUtils.formatStandardDate(Instant.now().minusSeconds(10)));
         r.setHeader("Location", "http://foo.example.com/other2");
-        r.setHeader("Pragma", "x-pragma");
         r.setHeader("Retry-After","180");
     }
 
@@ -2794,7 +2779,7 @@ public class TestProtocolRequirements {
             "Cache-Control", "ETag", "Allow", "Content-Encoding",
             "Content-Language", "Content-Length", "Content-Location",
             "Content-MD5", "Content-Type", "Expires", "Last-Modified",
-            "Location", "Pragma", "Retry-After"
+            "Location", "Retry-After"
         };
         for(final String h : endToEndHeaders) {
             Assertions.assertEquals(HttpTestUtils.getCanonicalHeaderValue(resp1, h),
@@ -2823,7 +2808,6 @@ public class TestProtocolRequirements {
         resp2.setHeader("Content-Type","text/html");
         resp2.setHeader("Expires", DateUtils.formatStandardDate(Instant.now().plusSeconds(5)));
         resp2.setHeader("Location", "http://foo.example.com/new2");
-        resp2.setHeader("Pragma","x-new-pragma");
         resp2.setHeader("Retry-After","120");
 
         final ClassicHttpRequest req3 = new BasicClassicHttpRequest("GET", "/");
@@ -2839,7 +2823,7 @@ public class TestProtocolRequirements {
         final String[] endToEndHeaders = {
             "Date", "Cache-Control", "Allow", "Content-Language",
             "Content-Location", "Content-Type", "Expires", "Location",
-            "Pragma", "Retry-After"
+            "Retry-After"
         };
         for(final String h : endToEndHeaders) {
             Assertions.assertEquals(HttpTestUtils.getCanonicalHeaderValue(resp2, h),
@@ -3893,9 +3877,8 @@ public class TestProtocolRequirements {
         testSharedCacheMustUseNewRequestHeadersWhenRevalidatingAuthorizedResponse(resp1);
     }
 
-    /* "The request includes a "no-cache" cache-control directive or, for
-     * compatibility with HTTP/1.0 clients, "Pragma: no-cache".... The
-     * server MUST NOT use a cached copy when responding to such a request."
+    /* "The request includes a "no-cache" cache-control directive...
+     * The server MUST NOT use a cached copy when responding to such a request."
      *
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9.4
      */
@@ -3930,13 +3913,6 @@ public class TestProtocolRequirements {
     public void testCacheIsNotUsedWhenRespondingToRequestWithCacheControlNoCache() throws Exception {
         final ClassicHttpRequest req = new BasicClassicHttpRequest("GET", "/");
         req.setHeader("Cache-Control","no-cache");
-        testCacheIsNotUsedWhenRespondingToRequest(req);
-    }
-
-    @Test
-    public void testCacheIsNotUsedWhenRespondingToRequestWithPragmaNoCache() throws Exception {
-        final ClassicHttpRequest req = new BasicClassicHttpRequest("GET", "/");
-        req.setHeader("Pragma","no-cache");
         testCacheIsNotUsedWhenRespondingToRequest(req);
     }
 

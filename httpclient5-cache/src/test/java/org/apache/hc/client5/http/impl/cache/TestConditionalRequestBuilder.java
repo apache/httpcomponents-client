@@ -29,18 +29,15 @@ package org.apache.hc.client5.http.impl.cache;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.Header;
-import org.apache.hc.core5.http.HeaderElement;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
-import org.apache.hc.core5.http.message.MessageSupport;
 import org.apache.hc.core5.http.support.BasicRequestBuilder;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -209,21 +206,6 @@ public class TestConditionalRequestBuilder {
         final HttpRequest result = impl.buildUnconditionalRequest(request);
         final RequestCacheControl requestCacheControl = CacheControlHeaderParser.INSTANCE.parse(result);
         Assertions.assertTrue(requestCacheControl.isNoCache());
-    }
-
-    @Test
-    public void testBuildUnconditionalRequestAddsPragmaNoCache()
-        throws Exception {
-        final HttpRequest result = impl.buildUnconditionalRequest(request);
-        boolean ccNoCacheFound = false;
-        final Iterator<HeaderElement> it = MessageSupport.iterate(result, HttpHeaders.PRAGMA);
-        while (it.hasNext()) {
-            final HeaderElement elt = it.next();
-            if ("no-cache".equals(elt.getName())) {
-                ccNoCacheFound = true;
-            }
-        }
-        Assertions.assertTrue(ccNoCacheFound);
     }
 
     @Test
