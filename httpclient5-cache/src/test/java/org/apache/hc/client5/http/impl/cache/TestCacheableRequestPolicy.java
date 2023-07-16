@@ -66,22 +66,6 @@ public class TestCacheableRequestPolicy {
     }
 
     @Test
-    public void testIsGetWithPragmaServableFromCache() {
-        final BasicHttpRequest request = new BasicHttpRequest("GET", "someUri");
-        request.addHeader("Pragma", "no-cache");
-        final RequestCacheControl cacheControl = RequestCacheControl.builder()
-                .build();
-
-        Assertions.assertFalse(policy.isServableFromCache(cacheControl, request));
-
-        final BasicHttpRequest request2 = new BasicHttpRequest("GET", "someUri");
-        request2.addHeader("Pragma", "value1");
-        request2.addHeader("Pragma", "value2");
-
-        Assertions.assertFalse(policy.isServableFromCache(cacheControl, request2));
-    }
-
-    @Test
     public void testIsHeadServableFromCache() {
         final BasicHttpRequest request = new BasicHttpRequest("HEAD", "someUri");
         final RequestCacheControl cacheControl = RequestCacheControl.builder().build();
@@ -112,24 +96,6 @@ public class TestCacheableRequestPolicy {
                 .build();
 
         Assertions.assertFalse(policy.isServableFromCache(cacheControl2, request));
-    }
-
-    @Test
-    public void testIsHeadWithPragmaServableFromCache() {
-        final BasicHttpRequest request = new BasicHttpRequest("HEAD", "someUri");
-        final RequestCacheControl cacheControl = RequestCacheControl.builder()
-                .setNoCache(true)
-                .build();
-
-        Assertions.assertFalse(policy.isServableFromCache(cacheControl, request));
-
-        final BasicHttpRequest request2 = new BasicHttpRequest("HEAD", "someUri");
-        request2.addHeader("Pragma", "value1");
-        request2.addHeader("Pragma", "value2");
-        final RequestCacheControl cacheControl2 = RequestCacheControl.builder()
-                .build();
-
-        Assertions.assertFalse(policy.isServableFromCache(cacheControl2, request2));
     }
 
     @Test

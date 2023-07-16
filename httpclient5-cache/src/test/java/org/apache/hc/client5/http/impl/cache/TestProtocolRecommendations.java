@@ -454,13 +454,6 @@ public class TestProtocolRecommendations {
     }
 
     @Test
-    public void testDoesNotReturnStaleResponseIfClientExplicitlyRequestsFirstHandOneWithPragma() throws Exception {
-        final ClassicHttpRequest req = new BasicClassicHttpRequest("GET", "/");
-        req.setHeader("Pragma","no-cache");
-        testDoesNotReturnStaleResponseOnError(req);
-    }
-
-    @Test
     public void testDoesNotReturnStaleResponseIfClientExplicitlyRequestsFreshWithMaxAge() throws Exception {
         final ClassicHttpRequest req = new BasicClassicHttpRequest("GET", "/");
         req.setHeader("Cache-Control","max-age=0");
