@@ -245,11 +245,7 @@ public class DigestScheme implements AuthScheme, Serializable {
         final String realm = this.paramMap.get("realm");
         final String nonce = this.paramMap.get("nonce");
         final String opaque = this.paramMap.get("opaque");
-        String algorithm = this.paramMap.get("algorithm");
-        // If an algorithm is not specified, default to MD5.
-        if (algorithm == null) {
-            algorithm = "MD5";
-        }
+        final String algorithm = this.paramMap.get("algorithm");
 
         final Set<String> qopset = new HashSet<>(8);
         QualityOfProtection qop = QualityOfProtection.UNKNOWN;
@@ -278,7 +274,8 @@ public class DigestScheme implements AuthScheme, Serializable {
 
         final Charset charset = AuthSchemeSupport.parseCharset(paramMap.get("charset"), defaultCharset);
         String digAlg = algorithm;
-        if (digAlg.equalsIgnoreCase("MD5-sess")) {
+        // If an algorithm is not specified, default to MD5.
+        if (digAlg == null || digAlg.equalsIgnoreCase("MD5-sess")) {
             digAlg = "MD5";
         }
 
@@ -317,7 +314,7 @@ public class DigestScheme implements AuthScheme, Serializable {
         a1 = null;
         a2 = null;
         // 3.2.2.2: Calculating digest
-        if (algorithm.equalsIgnoreCase("MD5-sess")) {
+        if ("MD5-sess".equalsIgnoreCase(algorithm)) {
             // H( unq(username-value) ":" unq(realm-value) ":" passwd )
             //      ":" unq(nonce-value)
             //      ":" unq(cnonce-value)
@@ -401,8 +398,9 @@ public class DigestScheme implements AuthScheme, Serializable {
             params.add(new BasicNameValuePair("nc", nc));
             params.add(new BasicNameValuePair("cnonce", cnonce));
         }
-        // algorithm cannot be null here
-        params.add(new BasicNameValuePair("algorithm", algorithm));
+        if (algorithm != null) {
+            params.add(new BasicNameValuePair("algorithm", algorithm));
+        }
         if (opaque != null) {
             params.add(new BasicNameValuePair("opaque", opaque));
         }
