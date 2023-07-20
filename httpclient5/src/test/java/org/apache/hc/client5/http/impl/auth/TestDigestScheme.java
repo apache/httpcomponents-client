@@ -247,6 +247,46 @@ public class TestDigestScheme {
                 authscheme.generateAuthResponse(host, request, null));
     }
 
+    @Test
+    public void testDigestAuthenticationNoAlgorithm() throws Exception {
+        final HttpRequest request = new BasicHttpRequest("Simple", "/");
+        final HttpHost host = new HttpHost("somehost", 80);
+        final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
+                .add(new AuthScope(host, "realm1", null), "username", "password".toCharArray())
+                .build();
+
+        final String challenge = StandardAuthScheme.DIGEST + " realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\"";
+        final AuthChallenge authChallenge = parse(challenge);
+        final DigestScheme authscheme = new DigestScheme();
+        authscheme.processChallenge(authChallenge, null);
+
+        final String authResponse = authscheme.generateAuthResponse(host, request, null);
+
+        final Map<String, String> table = parseAuthResponse(authResponse);
+        Assertions.assertNull(table.get("algorithm"));
+    }
+
+    @Test
+    public void testDigestAuthenticationMD5Algorithm() throws Exception {
+        final HttpRequest request = new BasicHttpRequest("Simple", "/");
+        final HttpHost host = new HttpHost("somehost", 80);
+        final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
+                .add(new AuthScope(host, "realm1", null), "username", "password".toCharArray())
+                .build();
+
+        final String challenge = StandardAuthScheme.DIGEST
+                + " realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\""
+                + ", algorithm=MD5";
+        final AuthChallenge authChallenge = parse(challenge);
+        final DigestScheme authscheme = new DigestScheme();
+        authscheme.processChallenge(authChallenge, null);
+
+        final String authResponse = authscheme.generateAuthResponse(host, request, null);
+
+        final Map<String, String> table = parseAuthResponse(authResponse);
+        Assertions.assertEquals("MD5", table.get("algorithm"));
+    }
+
     /**
      * Test digest authentication using the MD5-sess algorithm.
      */
