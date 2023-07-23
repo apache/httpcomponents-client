@@ -163,31 +163,4 @@ class CachedHttpResponseGenerator {
         return Method.GET.isSame(request.getMethod()) && cacheEntry.getResource() != null;
     }
 
-    /**
-     * Extract error information about the {@link HttpRequest} telling the 'caller'
-     * that a problem occurred.
-     *
-     * @param errorCheck What type of error should I get
-     * @return The {@link HttpResponse} that is the error generated
-     */
-    public SimpleHttpResponse getErrorForRequest(final RequestProtocolError errorCheck) {
-        switch (errorCheck) {
-            case BODY_BUT_NO_LENGTH_ERROR:
-                return SimpleHttpResponse.create(HttpStatus.SC_LENGTH_REQUIRED);
-
-            case WEAK_ETAG_AND_RANGE_ERROR:
-                return SimpleHttpResponse.create(HttpStatus.SC_BAD_REQUEST,
-                        "Weak eTag not compatible with byte range", ContentType.DEFAULT_TEXT);
-
-            case WEAK_ETAG_ON_PUTDELETE_METHOD_ERROR:
-                return SimpleHttpResponse.create(HttpStatus.SC_PRECONDITION_FAILED,
-                        "Weak eTag not compatible with PUT or DELETE requests");
-
-            default:
-                throw new IllegalStateException(
-                        "The request was compliant, therefore no error can be generated for it.");
-
-        }
-    }
-
 }
