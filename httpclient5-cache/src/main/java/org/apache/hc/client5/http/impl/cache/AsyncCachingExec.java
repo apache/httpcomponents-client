@@ -112,12 +112,11 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
             final CacheableRequestPolicy cacheableRequestPolicy,
             final CachedResponseSuitabilityChecker suitabilityChecker,
             final ResponseProtocolCompliance responseCompliance,
-            final RequestProtocolCompliance requestCompliance,
             final DefaultAsyncCacheRevalidator cacheRevalidator,
             final ConditionalRequestBuilder<HttpRequest> conditionalRequestBuilder,
             final CacheConfig config) {
         super(validityPolicy, responseCachingPolicy, responseGenerator, cacheableRequestPolicy,
-                suitabilityChecker, responseCompliance, requestCompliance, config);
+                suitabilityChecker, responseCompliance, config);
         this.responseCache = responseCache;
         this.cacheRevalidator = cacheRevalidator;
         this.conditionalRequestBuilder = conditionalRequestBuilder;
@@ -231,7 +230,6 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
             return;
         }
 
-        requestCompliance.makeRequestCompliant(request);
         request.addHeader(HttpHeaders.VIA,via);
 
         final RequestCacheControl requestCacheControl = CacheControlHeaderParser.INSTANCE.parse(request);
@@ -243,12 +241,6 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                 public void completed(final CacheMatch result) {
                     final CacheHit hit = result != null ? result.hit : null;
                     final CacheHit root = result != null ? result.root : null;
-                    final SimpleHttpResponse fatalErrorResponse = getFatallyNonCompliantResponse(request, context, hit != null);
-                    if (fatalErrorResponse != null) {
-                        triggerResponse(fatalErrorResponse, scope, asyncExecCallback);
-                        return;
-                    }
-
                     if (hit == null) {
                         LOG.debug("Cache miss");
                         handleCacheMiss(requestCacheControl, root, target, request, entityProducer, scope, chain, asyncExecCallback);

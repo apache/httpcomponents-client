@@ -28,7 +28,6 @@ package org.apache.hc.client5.http.impl.cache;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -70,12 +69,9 @@ public class CachingExecBase {
     final CacheableRequestPolicy cacheableRequestPolicy;
     final CachedResponseSuitabilityChecker suitabilityChecker;
     final ResponseProtocolCompliance responseCompliance;
-    final RequestProtocolCompliance requestCompliance;
     final CacheConfig cacheConfig;
 
     private static final Logger LOG = LoggerFactory.getLogger(CachingExecBase.class);
-
-    private static final TimeValue ONE_DAY = TimeValue.ofHours(24);
 
     CachingExecBase(
             final CacheValidityPolicy validityPolicy,
@@ -84,14 +80,12 @@ public class CachingExecBase {
             final CacheableRequestPolicy cacheableRequestPolicy,
             final CachedResponseSuitabilityChecker suitabilityChecker,
             final ResponseProtocolCompliance responseCompliance,
-            final RequestProtocolCompliance requestCompliance,
             final CacheConfig config) {
         this.responseCachingPolicy = responseCachingPolicy;
         this.validityPolicy = validityPolicy;
         this.responseGenerator = responseGenerator;
         this.cacheableRequestPolicy = cacheableRequestPolicy;
         this.suitabilityChecker = suitabilityChecker;
-        this.requestCompliance = requestCompliance;
         this.responseCompliance = responseCompliance;
         this.cacheConfig = config != null ? config : CacheConfig.DEFAULT;
     }
@@ -104,7 +98,6 @@ public class CachingExecBase {
         this.cacheableRequestPolicy = new CacheableRequestPolicy();
         this.suitabilityChecker = new CachedResponseSuitabilityChecker(this.validityPolicy, this.cacheConfig);
         this.responseCompliance = new ResponseProtocolCompliance();
-        this.requestCompliance = new RequestProtocolCompliance(this.cacheConfig.isWeakETagOnPutDeleteAllowed());
         this.responseCachingPolicy = new ResponseCachingPolicy(
                 this.cacheConfig.getMaxObjectSize(),
                 this.cacheConfig.isSharedCache(),
@@ -139,21 +132,6 @@ public class CachingExecBase {
      */
     public long getCacheUpdates() {
         return cacheUpdates.get();
-    }
-
-    /**
-     * @since 5.2
-     */
-    SimpleHttpResponse getFatallyNonCompliantResponse(
-            final HttpRequest request,
-            final HttpContext context,
-            final boolean resourceExists) {
-        final List<RequestProtocolError> fatalError = requestCompliance.requestIsFatallyNonCompliant(request, resourceExists);
-        if (fatalError != null && !fatalError.isEmpty()) {
-            setResponseStatus(context, CacheResponseStatus.CACHE_MODULE_RESPONSE);
-            return responseGenerator.getErrorForRequest(fatalError.get(0));
-        }
-        return null;
     }
 
     void recordCacheMiss(final HttpHost target, final HttpRequest request) {
