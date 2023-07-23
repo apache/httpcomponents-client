@@ -120,12 +120,11 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
             final CacheableRequestPolicy cacheableRequestPolicy,
             final CachedResponseSuitabilityChecker suitabilityChecker,
             final ResponseProtocolCompliance responseCompliance,
-            final RequestProtocolCompliance requestCompliance,
             final DefaultCacheRevalidator cacheRevalidator,
             final ConditionalRequestBuilder<ClassicHttpRequest> conditionalRequestBuilder,
             final CacheConfig config) {
         super(validityPolicy, responseCachingPolicy, responseGenerator, cacheableRequestPolicy,
-                suitabilityChecker, responseCompliance, requestCompliance, config);
+                suitabilityChecker, responseCompliance, config);
         this.responseCache = responseCache;
         this.cacheRevalidator = cacheRevalidator;
         this.conditionalRequestBuilder = conditionalRequestBuilder;
@@ -170,12 +169,6 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
         final CacheHit hit = result != null ? result.hit : null;
         final CacheHit root = result != null ? result.root : null;
 
-        final SimpleHttpResponse fatalErrorResponse = getFatallyNonCompliantResponse(request, context, hit != null);
-        if (fatalErrorResponse != null) {
-            return convert(fatalErrorResponse, scope);
-        }
-
-        requestCompliance.makeRequestCompliant(request);
         request.addHeader(HttpHeaders.VIA, via);
 
         final RequestCacheControl requestCacheControl = CacheControlHeaderParser.INSTANCE.parse(request);

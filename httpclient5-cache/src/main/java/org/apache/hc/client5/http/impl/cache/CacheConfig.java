@@ -117,8 +117,10 @@ public class CacheConfig implements Cloneable {
      */
     public final static boolean DEFAULT_303_CACHING_ENABLED = false;
 
-    /** Default setting to allow weak tags on PUT/DELETE methods
+    /**
+     * @deprecated No longer applicable. Do not use.
      */
+    @Deprecated
     public final static boolean DEFAULT_WEAK_ETAG_ON_PUTDELETE_ALLOWED = false;
 
     /** Default setting for heuristic caching
@@ -146,7 +148,6 @@ public class CacheConfig implements Cloneable {
     private final int maxCacheEntries;
     private final int maxUpdateRetries;
     private final boolean allow303Caching;
-    private final boolean weakETagOnPutDeleteAllowed;
     private final boolean heuristicCachingEnabled;
     private final float heuristicCoefficient;
     private final TimeValue heuristicDefaultLifetime;
@@ -168,7 +169,6 @@ public class CacheConfig implements Cloneable {
             final int maxCacheEntries,
             final int maxUpdateRetries,
             final boolean allow303Caching,
-            final boolean weakETagOnPutDeleteAllowed,
             final boolean heuristicCachingEnabled,
             final float heuristicCoefficient,
             final TimeValue heuristicDefaultLifetime,
@@ -183,7 +183,6 @@ public class CacheConfig implements Cloneable {
         this.maxCacheEntries = maxCacheEntries;
         this.maxUpdateRetries = maxUpdateRetries;
         this.allow303Caching = allow303Caching;
-        this.weakETagOnPutDeleteAllowed = weakETagOnPutDeleteAllowed;
         this.heuristicCachingEnabled = heuristicCachingEnabled;
         this.heuristicCoefficient = heuristicCoefficient;
         this.heuristicDefaultLifetime = heuristicDefaultLifetime;
@@ -268,9 +267,12 @@ public class CacheConfig implements Cloneable {
     /**
      * Returns whether weak etags is allowed with PUT/DELETE methods.
      * @return {@code true} if it is allowed.
+     *
+     * @deprecated Do not use.
      */
+    @Deprecated
     public boolean isWeakETagOnPutDeleteAllowed() {
-        return weakETagOnPutDeleteAllowed;
+        return true;
     }
 
     /**
@@ -349,14 +351,12 @@ public class CacheConfig implements Cloneable {
             .setStaleIfErrorEnabled(config.isStaleIfErrorEnabled());
     }
 
-
     public static class Builder {
 
         private long maxObjectSize;
         private int maxCacheEntries;
         private int maxUpdateRetries;
         private boolean allow303Caching;
-        private boolean weakETagOnPutDeleteAllowed;
         private boolean heuristicCachingEnabled;
         private float heuristicCoefficient;
         private TimeValue heuristicDefaultLifetime;
@@ -372,7 +372,6 @@ public class CacheConfig implements Cloneable {
             this.maxCacheEntries = DEFAULT_MAX_CACHE_ENTRIES;
             this.maxUpdateRetries = DEFAULT_MAX_UPDATE_RETRIES;
             this.allow303Caching = DEFAULT_303_CACHING_ENABLED;
-            this.weakETagOnPutDeleteAllowed = DEFAULT_WEAK_ETAG_ON_PUTDELETE_ALLOWED;
             this.heuristicCachingEnabled = DEFAULT_HEURISTIC_CACHING_ENABLED;
             this.heuristicCoefficient = DEFAULT_HEURISTIC_COEFFICIENT;
             this.heuristicDefaultLifetime = DEFAULT_HEURISTIC_LIFETIME;
@@ -418,12 +417,10 @@ public class CacheConfig implements Cloneable {
         }
 
         /**
-         * Allows or disallows weak etags to be used with PUT/DELETE If-Match requests.
-         * @param weakETagOnPutDeleteAllowed should be {@code true} to
-         *   permit weak etags, {@code false} to reject them.
+         * @deprecated No longer applicable. Do not use.
          */
+        @Deprecated
         public Builder setWeakETagOnPutDeleteAllowed(final boolean weakETagOnPutDeleteAllowed) {
-            this.weakETagOnPutDeleteAllowed = weakETagOnPutDeleteAllowed;
             return this;
         }
 
@@ -541,7 +538,6 @@ public class CacheConfig implements Cloneable {
                     maxCacheEntries,
                     maxUpdateRetries,
                     allow303Caching,
-                    weakETagOnPutDeleteAllowed,
                     heuristicCachingEnabled,
                     heuristicCoefficient,
                     heuristicDefaultLifetime,
@@ -562,7 +558,6 @@ public class CacheConfig implements Cloneable {
                 .append(", maxCacheEntries=").append(this.maxCacheEntries)
                 .append(", maxUpdateRetries=").append(this.maxUpdateRetries)
                 .append(", 303CachingEnabled=").append(this.allow303Caching)
-                .append(", weakETagOnPutDeleteAllowed=").append(this.weakETagOnPutDeleteAllowed)
                 .append(", heuristicCachingEnabled=").append(this.heuristicCachingEnabled)
                 .append(", heuristicCoefficient=").append(this.heuristicCoefficient)
                 .append(", heuristicDefaultLifetime=").append(this.heuristicDefaultLifetime)

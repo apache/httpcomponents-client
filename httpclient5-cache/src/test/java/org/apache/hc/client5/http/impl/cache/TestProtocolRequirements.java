@@ -701,29 +701,6 @@ public class TestProtocolRequirements {
     }
 
     /*
-     * "If the Max-Forwards field-value is an integer greater than zero, the
-     * proxy MUST decrement the field-value when it forwards the request."
-     *
-     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.2
-     */
-    @Test
-    public void testDecrementsMaxForwardsWhenForwardingOPTIONSRequest() throws Exception {
-
-        request = new BasicClassicHttpRequest("OPTIONS", "*");
-        request.setHeader("Max-Forwards", "7");
-
-        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(originResponse);
-
-        execute(request);
-
-        final ArgumentCaptor<ClassicHttpRequest> reqCapture = ArgumentCaptor.forClass(ClassicHttpRequest.class);
-        Mockito.verify(mockExecChain).proceed(reqCapture.capture(), Mockito.any());
-
-        final ClassicHttpRequest captured = reqCapture.getValue();
-        Assertions.assertEquals("6", captured.getFirstHeader("Max-Forwards").getValue());
-    }
-
-    /*
      * "If no Max-Forwards field is present in the request, then the forwarded
      * request MUST NOT include a Max-Forwards field."
      *
@@ -1108,51 +1085,6 @@ public class TestProtocolRequirements {
             Assertions.assertNotNull(result.getFirstHeader("Vary"));
         }
         Mockito.verify(mockExecChain, Mockito.times(2)).proceed(Mockito.any(), Mockito.any());
-    }
-
-    /*
-     * "If the [206] response is the result of an If-Range request that used a
-     * weak validator, the response MUST NOT include other entity-headers; this
-     * prevents inconsistencies between cached entity-bodies and updated
-     * headers."
-     *
-     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.2.7
-     */
-    @Test
-    public void test206ResponseToConditionalRangeRequestDoesNotIncludeOtherEntityHeaders() throws Exception {
-
-        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
-
-        final Instant now = Instant.now();
-        final Instant oneHourAgo = now.minus(1, ChronoUnit.HOURS);
-        originResponse = HttpTestUtils.make200Response();
-        originResponse.addHeader("Allow", "GET,HEAD");
-        originResponse.addHeader("Cache-Control", "max-age=3600");
-        originResponse.addHeader("Content-Language", "en");
-        originResponse.addHeader("Content-Encoding", "x-coding");
-        originResponse.addHeader("Content-MD5", "Q2hlY2sgSW50ZWdyaXR5IQ==");
-        originResponse.addHeader("Content-Length", "128");
-        originResponse.addHeader("Content-Type", "application/octet-stream");
-        originResponse.addHeader("Last-Modified", DateUtils.formatStandardDate(oneHourAgo));
-        originResponse.addHeader("ETag", "W/\"weak-tag\"");
-
-        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
-        req2.addHeader("If-Range", "W/\"weak-tag\"");
-        req2.addHeader("Range", "bytes=0-50");
-
-        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(originResponse);
-
-        execute(req1);
-        final ClassicHttpResponse result = execute(req2);
-
-        if (result.getCode() == HttpStatus.SC_PARTIAL_CONTENT) {
-            Assertions.assertNull(result.getFirstHeader("Allow"));
-            Assertions.assertNull(result.getFirstHeader("Content-Encoding"));
-            Assertions.assertNull(result.getFirstHeader("Content-Language"));
-            Assertions.assertNull(result.getFirstHeader("Content-MD5"));
-            Assertions.assertNull(result.getFirstHeader("Last-Modified"));
-        }
-        Mockito.verify(mockExecChain, Mockito.times(1)).proceed(Mockito.any(), Mockito.any());
     }
 
     /*
@@ -1965,122 +1897,6 @@ public class TestProtocolRequirements {
         execute(req2);
         final ClassicHttpResponse result = execute(req3);
         Assertions.assertEquals("\"etag1\"", result.getFirstHeader("ETag").getValue());
-    }
-
-    /*
-     * "Clients MAY issue simple (non-subrange) GET requests with either weak
-     * validators or strong validators. Clients MUST NOT use weak validators in
-     * other forms of request."
-     *
-     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.3.3
-     *
-     * Note that we can't determine a priori whether a given HTTP-date is a weak
-     * or strong validator, because that might depend on an upstream client
-     * having a cache with a Last-Modified and Date entry that allows the date
-     * to be a strong validator. We can tell when *we* are generating a request
-     * for validation, but we can't tell if we receive a conditional request
-     * from upstream.
-     */
-    private ClassicHttpResponse testRequestWithWeakETagValidatorIsNotAllowed(final String header) throws Exception {
-        final ClassicHttpResponse response = execute(request);
-
-        // it's probably ok to return a 400 (Bad Request) to this client
-        final ArgumentCaptor<ClassicHttpRequest> reqCapture = ArgumentCaptor.forClass(ClassicHttpRequest.class);
-        Mockito.verify(mockExecChain, Mockito.atMostOnce()).proceed(reqCapture.capture(), Mockito.any());
-        final List<ClassicHttpRequest> allRequests = reqCapture.getAllValues();
-        if (!allRequests.isEmpty()) {
-            final ClassicHttpRequest forwarded = reqCapture.getValue();
-            if (forwarded != null) {
-                final Header h = forwarded.getFirstHeader(header);
-                if (h != null) {
-                    Assertions.assertFalse(h.getValue().startsWith("W/"));
-                }
-            }
-        }
-        return response;
-    }
-
-    @Test
-    public void testSubrangeGETWithWeakETagIsNotAllowed() throws Exception {
-        request = new BasicClassicHttpRequest("GET", "/");
-        request.setHeader("Range", "bytes=0-500");
-        request.setHeader("If-Range", "W/\"etag\"");
-
-        final ClassicHttpResponse response = testRequestWithWeakETagValidatorIsNotAllowed("If-Range");
-        Assertions.assertEquals(HttpStatus.SC_BAD_REQUEST, response.getCode());
-    }
-
-    @Test
-    public void testPUTWithIfMatchWeakETagIsNotAllowed() throws Exception {
-        final ClassicHttpRequest put = new BasicClassicHttpRequest("PUT", "/");
-        put.setEntity(HttpTestUtils.makeBody(128));
-        put.setHeader("Content-Length", "128");
-        put.setHeader("If-Match", "W/\"etag\"");
-        request = put;
-
-        testRequestWithWeakETagValidatorIsNotAllowed("If-Match");
-    }
-
-    @Test
-    public void testPUTWithIfNoneMatchWeakETagIsNotAllowed() throws Exception {
-        final ClassicHttpRequest put = new BasicClassicHttpRequest("PUT", "/");
-        put.setEntity(HttpTestUtils.makeBody(128));
-        put.setHeader("Content-Length", "128");
-        put.setHeader("If-None-Match", "W/\"etag\"");
-        request = put;
-
-        testRequestWithWeakETagValidatorIsNotAllowed("If-None-Match");
-    }
-
-    @Test
-    public void testDELETEWithIfMatchWeakETagIsNotAllowed() throws Exception {
-        request = new BasicClassicHttpRequest("DELETE", "/");
-        request.setHeader("If-Match", "W/\"etag\"");
-
-        testRequestWithWeakETagValidatorIsNotAllowed("If-Match");
-    }
-
-    @Test
-    public void testDELETEWithIfNoneMatchWeakETagIsNotAllowed() throws Exception {
-        request = new BasicClassicHttpRequest("DELETE", "/");
-        request.setHeader("If-None-Match", "W/\"etag\"");
-
-        testRequestWithWeakETagValidatorIsNotAllowed("If-None-Match");
-    }
-
-    /*
-     * "A cache or origin server receiving a conditional request, other than a
-     * full-body GET request, MUST use the strong comparison function to
-     * evaluate the condition."
-     *
-     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.3.3
-     */
-    @Test
-    public void testSubrangeGETMustUseStrongComparisonForCachedResponse() throws Exception {
-        final Instant now = Instant.now();
-        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
-        final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
-        resp1.setHeader("Date", DateUtils.formatStandardDate(now));
-        resp1.setHeader("Cache-Control", "max-age=3600");
-        resp1.setHeader("ETag", "\"etag\"");
-
-        // according to weak comparison, this would match. Strong
-        // comparison doesn't, because the cache entry's ETag is not
-        // marked weak. Therefore, the If-Range must fail and we must
-        // either get an error back or the full entity, but we better
-        // not get the conditionally-requested Partial Content (206).
-        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
-        req2.setHeader("Range", "bytes=0-50");
-        req2.setHeader("If-Range", "W/\"etag\"");
-
-        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
-
-        execute(req1);
-        final ClassicHttpResponse result = execute(req2);
-
-        Assertions.assertNotEquals(HttpStatus.SC_PARTIAL_CONTENT, result.getCode());
-
-        Mockito.verify(mockExecChain).proceed(Mockito.any(), Mockito.any());
     }
 
     /*
