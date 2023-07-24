@@ -30,7 +30,6 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.Random;
 
-import org.apache.hc.client5.http.ClientProtocolException;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.cache.HttpCacheContext;
 import org.apache.hc.client5.http.classic.ExecChain;
@@ -130,35 +129,6 @@ public class TestProtocolDeviations {
         final byte[] bytes = new byte[nbytes];
         new Random().nextBytes(bytes);
         return new ByteArrayEntity(bytes, null);
-    }
-
-    /*
-     * "10.2.7 206 Partial Content ... The request MUST have included a Range
-     * header field (section 14.35) indicating the desired range, and MAY have
-     * included an If-Range header field (section 14.27) to make the request
-     * conditional."
-     *
-     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.2.7
-     */
-    @Test
-    public void testPartialContentIsNotReturnedToAClientThatDidNotAskForIt() throws Exception {
-
-        // tester's note: I don't know what the cache will *do* in
-        // this situation, but it better not just pass the response
-        // on.
-        request.removeHeaders("Range");
-        originResponse = new BasicClassicHttpResponse(HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
-        originResponse.setHeader("Content-Range", "bytes 0-499/1234");
-        originResponse.setEntity(makeBody(500));
-
-        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(originResponse);
-
-        try {
-            final HttpResponse result = execute(request);
-            Assertions.assertTrue(HttpStatus.SC_PARTIAL_CONTENT != result.getCode());
-        } catch (final ClientProtocolException acceptableBehavior) {
-            // this is probably ok
-        }
     }
 
     /*

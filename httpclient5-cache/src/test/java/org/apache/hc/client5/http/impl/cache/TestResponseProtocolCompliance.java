@@ -26,17 +26,14 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+
 import java.time.Instant;
 
-import org.apache.hc.client5.http.ClientProtocolException;
-import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.utils.DateUtils;
-import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
-import org.apache.hc.core5.http.message.BasicHttpResponse;
-import org.apache.hc.core5.http.support.BasicRequestBuilder;
-import org.junit.jupiter.api.Assertions;
+import org.apache.hc.core5.http.support.BasicResponseBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -46,31 +43,48 @@ public class TestResponseProtocolCompliance {
 
     @BeforeEach
     public void setUp() {
-        impl = new ResponseProtocolCompliance();
+        impl = ResponseProtocolCompliance.INSTANCE;
     }
 
-    private void setMinimalResponseHeaders(final HttpResponse resp) {
-        resp.setHeader("Date", DateUtils.formatStandardDate(Instant.now()));
-        resp.setHeader("Server", "MyServer/1.0");
-    }
-
-    private HttpResponse makePartialResponse(final int nbytes) {
-        final HttpResponse resp = new BasicHttpResponse(HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
-        setMinimalResponseHeaders(resp);
-        resp.setHeader("Content-Length","" + nbytes);
-        resp.setHeader("Content-Range","0-127/256");
-        return resp;
+    private void shouldStripEntityHeaderFromOrigin304ResponseToStrongValidation(
+            final String entityHeader, final String entityHeaderValue) throws Exception {
+        final HttpResponse response = BasicResponseBuilder.create(HttpStatus.SC_NOT_MODIFIED)
+                .addHeader("Date", DateUtils.formatStandardDate(Instant.now()))
+                .addHeader("Etag", "\"etag\"")
+                .addHeader(entityHeader, entityHeaderValue)
+                .build();
+        impl.process(response, null, null);
+        assertFalse(response.containsHeader(entityHeader));
     }
 
     @Test
-    public void throwsExceptionIfOriginReturnsPartialResponseWhenNotRequested() throws Exception {
-        final HttpGet req = new HttpGet("http://foo.example.com/");
-        final HttpRequest wrapper = BasicRequestBuilder.copy(req).build();
-        final int nbytes = 128;
-        final HttpResponse resp = makePartialResponse(nbytes);
+    public void shouldStripContentEncodingFromOrigin304ResponseToStrongValidation() throws Exception {
+        shouldStripEntityHeaderFromOrigin304ResponseToStrongValidation(
+                "Content-Encoding", "gzip");
+    }
 
-        Assertions.assertThrows(ClientProtocolException.class, () ->
-                impl.ensureProtocolCompliance(wrapper, req, resp));
+    @Test
+    public void shouldStripContentLanguageFromOrigin304ResponseToStrongValidation() throws Exception {
+        shouldStripEntityHeaderFromOrigin304ResponseToStrongValidation(
+                "Content-Language", "en");
+    }
+
+    @Test
+    public void shouldStripContentLengthFromOrigin304ResponseToStrongValidation() throws Exception {
+        shouldStripEntityHeaderFromOrigin304ResponseToStrongValidation(
+                "Content-Length", "128");
+    }
+
+    @Test
+    public void shouldStripContentMD5FromOrigin304ResponseToStrongValidation() throws Exception {
+        shouldStripEntityHeaderFromOrigin304ResponseToStrongValidation(
+                "Content-MD5", "Q2hlY2sgSW50ZWdyaXR5IQ==");
+    }
+
+    @Test
+    public void shouldStripContentTypeFromOrigin304ResponseToStrongValidation() throws Exception {
+        shouldStripEntityHeaderFromOrigin304ResponseToStrongValidation(
+                "Content-Type", "text/html;charset=utf-8");
     }
 
 }

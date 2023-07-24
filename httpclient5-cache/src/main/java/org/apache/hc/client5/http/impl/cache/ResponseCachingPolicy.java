@@ -210,12 +210,6 @@ class ResponseCachingPolicy {
             return false;
         }
 
-        final Instant date = DateUtils.parseStandardDate(response, HttpHeaders.DATE);
-        if (date == null) {
-            LOG.debug("Invalid / missing Date header");
-            return false;
-        }
-
         final Iterator<HeaderElement> it = MessageSupport.iterate(response, HttpHeaders.VARY);
         while (it.hasNext()) {
             final HeaderElement elem = it.next();

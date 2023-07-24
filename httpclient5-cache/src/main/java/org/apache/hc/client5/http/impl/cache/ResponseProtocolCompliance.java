@@ -28,163 +28,51 @@ package org.apache.hc.client5.http.impl.cache;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
 
-import org.apache.hc.client5.http.ClientProtocolException;
-import org.apache.hc.client5.http.utils.DateUtils;
-import org.apache.hc.core5.http.Header;
-import org.apache.hc.core5.http.HeaderElement;
-import org.apache.hc.core5.http.HeaderElements;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.http.EntityDetails;
+import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHeaders;
-import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.HttpResponseInterceptor;
 import org.apache.hc.core5.http.HttpStatus;
-import org.apache.hc.core5.http.HttpVersion;
-import org.apache.hc.core5.http.Method;
-import org.apache.hc.core5.http.ProtocolVersion;
 import org.apache.hc.core5.http.message.BasicHeader;
-import org.apache.hc.core5.http.message.MessageSupport;
+import org.apache.hc.core5.http.protocol.HttpContext;
 
-class ResponseProtocolCompliance {
+/**
+ * This response interceptor removes common {@literal Content-} headers from the 304
+ * response messages based on the provision of the HTTP specification that 304
+ * status code represents a confirmation that the requested resource content has
+ * not changed since its retrieval or the last update and adds {@literal Date}
+ * header if it is not present in the response message..
+ */
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
+class ResponseProtocolCompliance implements HttpResponseInterceptor {
 
-    private static final String UNEXPECTED_100_CONTINUE = "The incoming request did not contain a "
-                    + "100-continue header, but the response was a Status 100, continue.";
-    private static final String UNEXPECTED_PARTIAL_CONTENT = "partial content was returned for a request that did not ask for it";
+    public static final ResponseProtocolCompliance INSTANCE = new ResponseProtocolCompliance();
 
-    /**
-     * When we get a response from a down stream server (Origin Server)
-     * we attempt to see if it is HTTP 1.1 Compliant and if not, attempt to
-     * make it so.
-     *
-     * @param originalRequest The original {@link HttpRequest}
-     * @param request The {@link HttpRequest} that generated an origin hit and response
-     * @param response The {@link HttpResponse} from the origin server
-     * @throws IOException Bad things happened
-     */
-    public void ensureProtocolCompliance(
-            final HttpRequest originalRequest,
-            final HttpRequest request,
-            final HttpResponse response) throws IOException {
-        requestDidNotExpect100ContinueButResponseIsOne(originalRequest, response);
+    private final static String[] DISALLOWED_ENTITY_HEADERS = {
+            HttpHeaders.CONTENT_ENCODING,
+            HttpHeaders.CONTENT_LANGUAGE,
+            HttpHeaders.CONTENT_LENGTH,
+            HttpHeaders.CONTENT_MD5,
+            HttpHeaders.CONTENT_RANGE,
+            HttpHeaders.CONTENT_TYPE
+    };
 
-        transferEncodingIsNotReturnedTo1_0Client(originalRequest, response);
-
-        ensurePartialContentIsNotSentToAClientThatDidNotRequestIt(request, response);
-
-        ensure200ForOPTIONSRequestWithNoBodyHasContentLengthZero(request, response);
-
-        ensure206ContainsDateHeader(response);
-
-        ensure304DoesNotContainExtraEntityHeaders(response);
-
-        identityIsNotUsedInContentEncoding(response);
-    }
-
-    private void identityIsNotUsedInContentEncoding(final HttpResponse response) {
-        final Header[] hdrs = response.getHeaders(HttpHeaders.CONTENT_ENCODING);
-        if (hdrs == null || hdrs.length == 0) {
-            return;
-        }
-        final List<Header> newHeaders = new ArrayList<>();
-        boolean modified = false;
-        for (final Header h : hdrs) {
-            final StringBuilder buf = new StringBuilder();
-            boolean first = true;
-            for (final HeaderElement elt : MessageSupport.parse(h)) {
-                if ("identity".equalsIgnoreCase(elt.getName())) {
-                    modified = true;
-                } else {
-                    if (!first) {
-                        buf.append(",");
-                    }
-                    buf.append(elt);
-                    first = false;
-                }
-            }
-            final String newHeaderValue = buf.toString();
-            if (!newHeaderValue.isEmpty()) {
-                newHeaders.add(new BasicHeader(HttpHeaders.CONTENT_ENCODING, newHeaderValue));
-            }
-        }
-        if (!modified) {
-            return;
-        }
-        response.removeHeaders(HttpHeaders.CONTENT_ENCODING);
-        for (final Header h : newHeaders) {
-            response.addHeader(h);
-        }
-    }
-
-    private void ensure206ContainsDateHeader(final HttpResponse response) {
-        if (response.getFirstHeader(HttpHeaders.DATE) == null) {
-            response.addHeader(HttpHeaders.DATE, DateUtils.formatStandardDate(Instant.now()));
-        }
-
-    }
-
-    private void ensurePartialContentIsNotSentToAClientThatDidNotRequestIt(final HttpRequest request,
-            final HttpResponse response) throws IOException {
-        if (request.getFirstHeader(HttpHeaders.RANGE) != null
-                || response.getCode() != HttpStatus.SC_PARTIAL_CONTENT) {
-            return;
-        }
-        throw new ClientProtocolException(UNEXPECTED_PARTIAL_CONTENT);
-    }
-
-    private void ensure200ForOPTIONSRequestWithNoBodyHasContentLengthZero(final HttpRequest request,
-            final HttpResponse response) {
-        if (!Method.OPTIONS.isSame(request.getMethod())) {
-            return;
-        }
-
-        if (response.getCode() != HttpStatus.SC_OK) {
-            return;
-        }
-
-        if (response.getFirstHeader(HttpHeaders.CONTENT_LENGTH) == null) {
-            response.addHeader(HttpHeaders.CONTENT_LENGTH, "0");
-        }
-    }
-
-    private void ensure304DoesNotContainExtraEntityHeaders(final HttpResponse response) {
-        final String[] disallowedEntityHeaders = { HttpHeaders.ALLOW, HttpHeaders.CONTENT_ENCODING,
-                "Content-Language", HttpHeaders.CONTENT_LENGTH, "Content-MD5",
-                "Content-Range", HttpHeaders.CONTENT_TYPE, HttpHeaders.LAST_MODIFIED
-        };
+    @Override
+    public void process(final HttpResponse response,
+                        final EntityDetails entity,
+                        final HttpContext context) throws HttpException, IOException {
         if (response.getCode() == HttpStatus.SC_NOT_MODIFIED) {
-            for(final String hdr : disallowedEntityHeaders) {
-                response.removeHeaders(hdr);
+            for (final String headerName : DISALLOWED_ENTITY_HEADERS) {
+                response.removeHeaders(headerName);
             }
         }
-    }
-
-    private void requestDidNotExpect100ContinueButResponseIsOne(
-            final HttpRequest originalRequest, final HttpResponse response) throws IOException {
-        if (response.getCode() != HttpStatus.SC_CONTINUE) {
-            return;
+        if (!response.containsHeader(HttpHeaders.DATE)) {
+            response.addHeader(new BasicHeader(HttpHeaders.DATE, Instant.now()));
         }
-
-        final Header header = originalRequest.getFirstHeader(HttpHeaders.EXPECT);
-        if (header != null && header.getValue().equalsIgnoreCase(HeaderElements.CONTINUE)) {
-            return;
-        }
-        throw new ClientProtocolException(UNEXPECTED_100_CONTINUE);
-    }
-
-    private void transferEncodingIsNotReturnedTo1_0Client(
-            final HttpRequest originalRequest, final HttpResponse response) {
-        final ProtocolVersion version = originalRequest.getVersion() != null ? originalRequest.getVersion() : HttpVersion.DEFAULT;
-        if (version.compareToVersion(HttpVersion.HTTP_1_1) >= 0) {
-            return;
-        }
-
-        removeResponseTransferEncoding(response);
-    }
-
-    private void removeResponseTransferEncoding(final HttpResponse response) {
-        response.removeHeaders("TE");
-        response.removeHeaders(HttpHeaders.TRANSFER_ENCODING);
     }
 
 }

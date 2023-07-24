@@ -608,12 +608,6 @@ public class TestResponseCachingPolicy {
     }
 
     @Test
-    public void testResponsesWithoutDateHeadersAreNotCacheable() {
-        response.removeHeaders("Date");
-        Assertions.assertFalse(policy.isResponseCacheable(responseCacheControl, "GET", response));
-    }
-
-    @Test
     public void testResponseThatHasTooMuchContentIsNotCacheable() {
         response.setHeader("Content-Length", "9000");
         Assertions.assertFalse(policy.isResponseCacheable(responseCacheControl, "GET", response));

@@ -36,6 +36,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import org.apache.hc.client5.http.impl.cache.DateSupport;
+import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
@@ -47,6 +48,7 @@ import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.MessageHeaders;
+import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.HeaderGroup;
 import org.apache.hc.core5.http.message.MessageSupport;
 import org.apache.hc.core5.util.Args;
@@ -107,22 +109,15 @@ public class HttpCacheEntryFactory {
         for (final Iterator<Header> it = entry.headerIterator(); it.hasNext(); ) {
             final Header entryHeader = it.next();
             final String headerName = entryHeader.getName();
-            // Since we do not expect a content in a 304 response, should retain the original Content-Encoding header
-            if (headerName.equalsIgnoreCase(HttpHeaders.CONTENT_ENCODING)) {
+            if (!response.containsHeader(headerName)) {
                 headerGroup.addHeader(entryHeader);
-            } else {
-                if (!response.containsHeader(headerName)) {
-                    headerGroup.addHeader(entryHeader);
-                }
             }
         }
         final Set<String> responseHopByHop = HttpCacheEntryFactory.hopByHopConnectionSpecific(response);
         for (final Iterator<Header> it = response.headerIterator(); it.hasNext(); ) {
             final Header responseHeader = it.next();
             final String headerName = responseHeader.getName();
-            // Since we do not expect a content in a 304 response, should update the cache entry with Content-Encoding
-            if (!headerName.equalsIgnoreCase(HttpHeaders.CONTENT_ENCODING) &&
-                    !responseHopByHop.contains(headerName.toLowerCase(Locale.ROOT))) {
+            if (!responseHopByHop.contains(headerName.toLowerCase(Locale.ROOT))) {
                 headerGroup.addHeader(responseHeader);
             }
         }
@@ -160,6 +155,12 @@ public class HttpCacheEntryFactory {
         return headerGroup;
     }
 
+    static void ensureDate(final HeaderGroup headers, final Instant instant) {
+        if (!headers.containsHeader(HttpHeaders.DATE)) {
+            headers.addHeader(new BasicHeader(HttpHeaders.DATE, DateUtils.formatStandardDate(instant)));
+        }
+    }
+
     /**
      * Creates a new root {@link HttpCacheEntry} (parent of multiple variants).
      *
@@ -180,14 +181,17 @@ public class HttpCacheEntryFactory {
         Args.notNull(responseInstant, "Response instant");
         Args.notNull(request, "Request");
         Args.notNull(response, "Origin response");
+        final HeaderGroup requestHeaders = filterHopByHopHeaders(request);
+        final HeaderGroup responseHeaders = filterHopByHopHeaders(response);
+        ensureDate(responseHeaders, responseInstant);
         return new HttpCacheEntry(
                 requestInstant,
                 responseInstant,
                 request.getMethod(),
                 request.getRequestUri(),
-                filterHopByHopHeaders(request),
+                requestHeaders,
                 response.getCode(),
-                filterHopByHopHeaders(response),
+                responseHeaders,
                 null,
                 variantMap);
     }
@@ -210,14 +214,17 @@ public class HttpCacheEntryFactory {
         Args.notNull(responseInstant, "Response instant");
         Args.notNull(request, "Request");
         Args.notNull(response, "Origin response");
+        final HeaderGroup requestHeaders = filterHopByHopHeaders(request);
+        final HeaderGroup responseHeaders = filterHopByHopHeaders(response);
+        ensureDate(responseHeaders, responseInstant);
         return new HttpCacheEntry(
                 requestInstant,
                 responseInstant,
                 request.getMethod(),
                 request.getRequestUri(),
-                filterHopByHopHeaders(request),
+                requestHeaders,
                 response.getCode(),
-                filterHopByHopHeaders(response),
+                responseHeaders,
                 resource,
                 null);
     }
