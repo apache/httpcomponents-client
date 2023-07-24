@@ -68,5 +68,4 @@ interface CacheControl {
      * @return The stale-if-error value.
      */
     long getStaleIfError();
-
 }

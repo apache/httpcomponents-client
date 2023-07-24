@@ -1080,4 +1080,14 @@ public class TestResponseCachingPolicy {
                 .build();
         assertFalse(policy.isResponseCacheable(responseCacheControl, request, response));
     }
+
+    @Test
+    public void testImmutableAndFreshResponseIsCacheable() {
+        responseCacheControl = ResponseCacheControl.builder()
+                .setImmutable(true)
+                .setMaxAge(3600) // set this to a value that ensures the response is still fresh
+                .build();
+
+        Assertions.assertTrue(policy.isResponseCacheable(responseCacheControl, "GET", response));
+    }
 }

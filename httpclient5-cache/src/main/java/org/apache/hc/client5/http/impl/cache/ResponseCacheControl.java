@@ -107,6 +107,14 @@ final class ResponseCacheControl implements CacheControl {
     private final boolean undefined;
 
     /**
+     * Flag for the 'immutable' Cache-Control directive.
+     * If this field is true, then the 'immutable' directive is present in the Cache-Control header.
+     * The 'immutable' directive is meant to inform a cache or user agent that the response body will not
+     * change over time, even though it may be requested multiple times.
+     */
+    private final boolean immutable;
+
+    /**
      * Creates a new instance of {@code CacheControl} with the specified values.
      *
      * @param maxAge          The max-age value from the Cache-Control header.
@@ -121,11 +129,12 @@ final class ResponseCacheControl implements CacheControl {
      * @param staleIfError    The stale-if-error value from the Cache-Control header.
      * @param noCacheFields   The set of field names specified in the "no-cache" directive of the Cache-Control header.
      * @param mustUnderstand  The must-understand value from the Cache-Control header.
+     * @param immutable       The immutable value from the Cache-Control header.
      */
     ResponseCacheControl(final long maxAge, final long sharedMaxAge, final boolean mustRevalidate, final boolean noCache,
                          final boolean noStore, final boolean cachePrivate, final boolean proxyRevalidate,
                          final boolean cachePublic, final long staleWhileRevalidate, final long staleIfError,
-                         final Set<String> noCacheFields, final boolean mustUnderstand) {
+                         final Set<String> noCacheFields, final boolean mustUnderstand, final boolean immutable) {
         this.maxAge = maxAge;
         this.sharedMaxAge = sharedMaxAge;
         this.noCache = noCache;
@@ -148,6 +157,7 @@ final class ResponseCacheControl implements CacheControl {
                 staleWhileRevalidate == -1
                 && staleIfError == -1;
         this.mustUnderstand = mustUnderstand;
+        this.immutable = immutable;
     }
 
     /**
@@ -263,8 +273,22 @@ final class ResponseCacheControl implements CacheControl {
         return noCacheFields;
     }
 
+    /**
+     * Returns the 'immutable' Cache-Control directive status.
+     *
+     * @return true if the 'immutable' directive is present in the Cache-Control header.
+     */
     public boolean isUndefined() {
         return undefined;
+    }
+
+    /**
+     * Returns the 'immutable' Cache-Control directive status.
+     *
+     * @return true if the 'immutable' directive is present in the Cache-Control header.
+     */
+    public boolean isImmutable() {
+        return immutable;
     }
 
     @Override
@@ -282,6 +306,7 @@ final class ResponseCacheControl implements CacheControl {
                 ", staleIfError=" + staleIfError +
                 ", noCacheFields=" + noCacheFields +
                 ", mustUnderstand=" + mustUnderstand +
+                ", immutable=" + immutable +
                 '}';
     }
 
@@ -303,6 +328,8 @@ final class ResponseCacheControl implements CacheControl {
         private long staleIfError = -1;
         private Set<String> noCacheFields;
         private boolean mustUnderstand;
+        private boolean noTransform;
+        private boolean immutable;
 
         Builder() {
         }
@@ -415,9 +442,27 @@ final class ResponseCacheControl implements CacheControl {
             return this;
         }
 
+        public boolean isNoTransform() {
+            return noStore;
+        }
+
+        public Builder setNoTransform(final boolean noTransform) {
+            this.noTransform = noTransform;
+            return this;
+        }
+
+        public boolean isImmutable() {
+            return immutable;
+        }
+
+        public Builder setImmutable(final boolean immutable) {
+            this.immutable = immutable;
+            return this;
+        }
+
         public ResponseCacheControl build() {
             return new ResponseCacheControl(maxAge, sharedMaxAge, mustRevalidate, noCache, noStore, cachePrivate, proxyRevalidate,
-                    cachePublic, staleWhileRevalidate, staleIfError, noCacheFields, mustUnderstand);
+                    cachePublic, staleWhileRevalidate, staleIfError, noCacheFields, mustUnderstand, immutable);
         }
 
     }
