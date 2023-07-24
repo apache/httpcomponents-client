@@ -62,6 +62,7 @@ public class CachingHttpClientBuilder extends HttpClientBuilder {
 
     protected CachingHttpClientBuilder() {
         super();
+        addResponseInterceptorFirst(ResponseProtocolCompliance.INSTANCE);
         this.deleteCache = true;
     }
 

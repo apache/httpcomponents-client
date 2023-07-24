@@ -68,7 +68,6 @@ public class CachingExecBase {
     final CachedHttpResponseGenerator responseGenerator;
     final CacheableRequestPolicy cacheableRequestPolicy;
     final CachedResponseSuitabilityChecker suitabilityChecker;
-    final ResponseProtocolCompliance responseCompliance;
     final CacheConfig cacheConfig;
 
     private static final Logger LOG = LoggerFactory.getLogger(CachingExecBase.class);
@@ -79,14 +78,12 @@ public class CachingExecBase {
             final CachedHttpResponseGenerator responseGenerator,
             final CacheableRequestPolicy cacheableRequestPolicy,
             final CachedResponseSuitabilityChecker suitabilityChecker,
-            final ResponseProtocolCompliance responseCompliance,
             final CacheConfig config) {
         this.responseCachingPolicy = responseCachingPolicy;
         this.validityPolicy = validityPolicy;
         this.responseGenerator = responseGenerator;
         this.cacheableRequestPolicy = cacheableRequestPolicy;
         this.suitabilityChecker = suitabilityChecker;
-        this.responseCompliance = responseCompliance;
         this.cacheConfig = config != null ? config : CacheConfig.DEFAULT;
     }
 
@@ -97,7 +94,6 @@ public class CachingExecBase {
         this.responseGenerator = new CachedHttpResponseGenerator(this.validityPolicy);
         this.cacheableRequestPolicy = new CacheableRequestPolicy();
         this.suitabilityChecker = new CachedResponseSuitabilityChecker(this.validityPolicy, this.cacheConfig);
-        this.responseCompliance = new ResponseProtocolCompliance();
         this.responseCachingPolicy = new ResponseCachingPolicy(
                 this.cacheConfig.getMaxObjectSize(),
                 this.cacheConfig.isSharedCache(),

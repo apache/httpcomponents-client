@@ -111,12 +111,10 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
             final CachedHttpResponseGenerator responseGenerator,
             final CacheableRequestPolicy cacheableRequestPolicy,
             final CachedResponseSuitabilityChecker suitabilityChecker,
-            final ResponseProtocolCompliance responseCompliance,
             final DefaultAsyncCacheRevalidator cacheRevalidator,
             final ConditionalRequestBuilder<HttpRequest> conditionalRequestBuilder,
             final CacheConfig config) {
-        super(validityPolicy, responseCachingPolicy, responseGenerator, cacheableRequestPolicy,
-                suitabilityChecker, responseCompliance, config);
+        super(validityPolicy, responseCachingPolicy, responseGenerator, cacheableRequestPolicy, suitabilityChecker, config);
         this.responseCache = responseCache;
         this.cacheRevalidator = cacheRevalidator;
         this.conditionalRequestBuilder = conditionalRequestBuilder;
@@ -452,7 +450,6 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
         public AsyncDataConsumer handleResponse(
                 final HttpResponse backendResponse,
                 final EntityDetails entityDetails) throws HttpException, IOException {
-            responseCompliance.ensureProtocolCompliance(scope.originalRequest, request, backendResponse);
             responseCache.evictInvalidatedEntries(target, request, backendResponse, new FutureCallback<Boolean>() {
 
                 @Override
