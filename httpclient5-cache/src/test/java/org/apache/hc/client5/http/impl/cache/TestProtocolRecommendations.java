@@ -133,31 +133,6 @@ public class TestProtocolRecommendations {
                 mockExecChain);
     }
 
-    /* "identity: The default (identity) encoding; the use of no
-     * transformation whatsoever. This content-coding is used only in the
-     * Accept-Encoding header, and SHOULD NOT be used in the
-     * Content-Encoding header."
-     *
-     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html#sec3.5
-     */
-    @Test
-    public void testIdentityCodingIsNotUsedInContentEncodingHeader() throws Exception {
-        originResponse.setHeader("Content-Encoding", "identity");
-        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(originResponse);
-
-        final ClassicHttpResponse result = execute(request);
-
-        boolean foundIdentity = false;
-        final Iterator<HeaderElement> it = MessageSupport.iterate(result, HttpHeaders.CONTENT_ENCODING);
-        while (it.hasNext()) {
-            final HeaderElement elt = it.next();
-            if ("identity".equalsIgnoreCase(elt.getName())) {
-                foundIdentity = true;
-            }
-        }
-        assertFalse(foundIdentity);
-    }
-
     /*
      * "304 Not Modified. ... If the conditional GET used a strong cache
      * validator (see section 13.3.3), the response SHOULD NOT include
@@ -332,83 +307,6 @@ public class TestProtocolRecommendations {
     @Test
     public void cacheGenerated304ForStrongDateValidatorShouldNotContainLastModified() throws Exception {
         cacheGenerated304ForStrongDateValidatorShouldNotContainEntityHeader(
-                "Last-Modified", DateUtils.formatStandardDate(twoMinutesAgo));
-    }
-
-    private void shouldStripEntityHeaderFromOrigin304ResponseToStrongValidation(
-            final String entityHeader, final String entityHeaderValue) throws Exception {
-        final ClassicHttpRequest req = HttpTestUtils.makeDefaultRequest();
-        req.setHeader("If-None-Match", "\"etag\"");
-
-        final ClassicHttpResponse resp = new BasicClassicHttpResponse(HttpStatus.SC_NOT_MODIFIED, "Not Modified");
-        resp.setHeader("Date", DateUtils.formatStandardDate(now));
-        resp.setHeader("Etag", "\"etag\"");
-        resp.setHeader(entityHeader, entityHeaderValue);
-
-        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp);
-
-        final ClassicHttpResponse result = execute(req);
-
-        assertFalse(result.containsHeader(entityHeader));
-    }
-
-    @Test
-    public void shouldStripAllowFromOrigin304ResponseToStrongValidation() throws Exception {
-        shouldStripEntityHeaderFromOrigin304ResponseToStrongValidation(
-                "Allow", "GET,HEAD");
-    }
-
-    @Test
-    public void shouldStripContentEncodingFromOrigin304ResponseToStrongValidation() throws Exception {
-        shouldStripEntityHeaderFromOrigin304ResponseToStrongValidation(
-                "Content-Encoding", "gzip");
-    }
-
-    @Test
-    public void shouldStripContentLanguageFromOrigin304ResponseToStrongValidation() throws Exception {
-        shouldStripEntityHeaderFromOrigin304ResponseToStrongValidation(
-                "Content-Language", "en");
-    }
-
-    @Test
-    public void shouldStripContentLengthFromOrigin304ResponseToStrongValidation() throws Exception {
-        shouldStripEntityHeaderFromOrigin304ResponseToStrongValidation(
-                "Content-Length", "128");
-    }
-
-    @Test
-    public void shouldStripContentMD5FromOrigin304ResponseToStrongValidation() throws Exception {
-        shouldStripEntityHeaderFromOrigin304ResponseToStrongValidation(
-                "Content-MD5", "Q2hlY2sgSW50ZWdyaXR5IQ==");
-    }
-
-    @Test
-    public void shouldStripContentTypeFromOrigin304ResponseToStrongValidation() throws Exception {
-        shouldStripEntityHeaderFromOrigin304ResponseToStrongValidation(
-                "Content-Type", "text/html;charset=utf-8");
-    }
-
-    @Test
-    public void shouldStripContentRangeFromOrigin304ResponseToStringValidation() throws Exception {
-        final ClassicHttpRequest req = HttpTestUtils.makeDefaultRequest();
-        req.setHeader("If-Range","\"etag\"");
-        req.setHeader("Range","bytes=0-127");
-
-        final ClassicHttpResponse resp = new BasicClassicHttpResponse(HttpStatus.SC_NOT_MODIFIED, "Not Modified");
-        resp.setHeader("Date", DateUtils.formatStandardDate(now));
-        resp.setHeader("ETag", "\"etag\"");
-        resp.setHeader("Content-Range", "bytes 0-127/256");
-
-        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp);
-
-        final ClassicHttpResponse result = execute(req);
-
-        assertFalse(result.containsHeader("Content-Range"));
-    }
-
-    @Test
-    public void shouldStripLastModifiedFromOrigin304ResponseToStrongValidation() throws Exception {
-        shouldStripEntityHeaderFromOrigin304ResponseToStrongValidation(
                 "Last-Modified", DateUtils.formatStandardDate(twoMinutesAgo));
     }
 

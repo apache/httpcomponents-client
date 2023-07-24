@@ -119,12 +119,10 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
             final CachedHttpResponseGenerator responseGenerator,
             final CacheableRequestPolicy cacheableRequestPolicy,
             final CachedResponseSuitabilityChecker suitabilityChecker,
-            final ResponseProtocolCompliance responseCompliance,
             final DefaultCacheRevalidator cacheRevalidator,
             final ConditionalRequestBuilder<ClassicHttpRequest> conditionalRequestBuilder,
             final CacheConfig config) {
-        super(validityPolicy, responseCachingPolicy, responseGenerator, cacheableRequestPolicy,
-                suitabilityChecker, responseCompliance, config);
+        super(validityPolicy, responseCachingPolicy, responseGenerator, cacheableRequestPolicy, suitabilityChecker, config);
         this.responseCache = responseCache;
         this.cacheRevalidator = cacheRevalidator;
         this.conditionalRequestBuilder = conditionalRequestBuilder;
@@ -373,8 +371,6 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
             final Instant requestDate,
             final Instant responseDate,
             final ClassicHttpResponse backendResponse) throws IOException {
-
-        responseCompliance.ensureProtocolCompliance(scope.originalRequest, request, backendResponse);
 
         responseCache.evictInvalidatedEntries(target, request, backendResponse);
         final ResponseCacheControl responseCacheControl = CacheControlHeaderParser.INSTANCE.parse(backendResponse);

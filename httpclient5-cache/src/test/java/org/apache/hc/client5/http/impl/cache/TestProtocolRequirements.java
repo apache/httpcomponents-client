@@ -40,7 +40,6 @@ import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.hc.client5.http.ClientProtocolException;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
@@ -620,31 +619,6 @@ public class TestProtocolRequirements {
     }
 
     /*
-     * "A proxy MUST NOT forward a 100 (Continue) response if the request
-     * message was received from an HTTP/1.0 (or earlier) client and did not
-     * include an Expect request-header field with the '100-continue'
-     * expectation. This requirement overrides the general rule for forwarding
-     * of 1xx responses (see section 10.1)."
-     *
-     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec8.html#sec8.2.3
-     */
-    @Test
-    public void test100ContinueResponsesAreNotForwardedTo1_0ClientsWhoDidNotAskForThem() throws Exception {
-
-        final BasicClassicHttpRequest post = new BasicClassicHttpRequest("POST", "/");
-        post.setVersion(new ProtocolVersion("HTTP", 1, 0));
-        post.setEntity(body);
-        post.setHeader("Content-Length", "128");
-
-        originResponse = new BasicClassicHttpResponse(100, "Continue");
-        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(originResponse);
-
-        // if a 100 response gets up to us from the HttpClient
-        // backend, we can't really handle it at that point
-        Assertions.assertThrows(ClientProtocolException.class, () -> execute(post));
-    }
-
-    /*
      * "9.2 OPTIONS. ...Responses to this method are not cacheable.
      *
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.2
@@ -979,24 +953,6 @@ public class TestProtocolRequirements {
             Assertions.assertNotNull(result.getFirstHeader("Date"));
         }
         Mockito.verify(mockExecChain, Mockito.times(1)).proceed(Mockito.any(), Mockito.any());
-    }
-
-    @Test
-    public void test206ResponseReturnedToClientMustHaveDateHeader() throws Exception {
-        request.addHeader("Range", "bytes=0-50");
-        originResponse = new BasicClassicHttpResponse(HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
-        originResponse.setHeader("Date", DateUtils.formatStandardDate(Instant.now()));
-        originResponse.setHeader("Server", "MockOrigin/1.0");
-        originResponse.setEntity(HttpTestUtils.makeBody(500));
-        originResponse.setHeader("Content-Range", "bytes 0-499/1234");
-        originResponse.removeHeaders("Date");
-
-        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(originResponse);
-
-        final ClassicHttpResponse result = execute(request);
-        Assertions.assertTrue(result.getCode() != HttpStatus.SC_PARTIAL_CONTENT
-                || result.getFirstHeader("Date") != null);
-
     }
 
     @Test
@@ -4131,8 +4087,6 @@ public class TestProtocolRequirements {
     /* "A received message that does not have a Date header field MUST be
      * assigned one by the recipient if the message will be cached by that
      * recipient or gatewayed via a protocol which requires a Date."
-     *
-     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.18
      */
     @Test
     public void testCachedResponsesWithMissingDateHeadersShouldBeAssignedOne() throws Exception {

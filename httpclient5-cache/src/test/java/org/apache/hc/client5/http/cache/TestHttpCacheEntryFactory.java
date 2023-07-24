@@ -49,7 +49,6 @@ import org.apache.hc.core5.http.message.BasicHttpResponse;
 import org.apache.hc.core5.http.message.HeaderGroup;
 import org.apache.hc.core5.http.support.BasicResponseBuilder;
 import org.hamcrest.MatcherAssert;
-import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -205,23 +204,6 @@ public class TestHttpCacheEntryFactory {
         final HeaderGroup mergedHeaders = impl.mergeHeaders(entry, response);
 
         MatcherAssert.assertThat(mergedHeaders, ContainsHeaderMatcher.contains("ETag", "\"new\""));
-    }
-
-    @Test
-    public void testContentEncodingHeaderIsNotUpdatedByMerge() {
-        entry = HttpTestUtils.makeCacheEntry(
-                new BasicHeader("Date", DateUtils.formatStandardDate(requestDate)),
-                new BasicHeader("ETag", "\"etag\""),
-                new BasicHeader("Content-Encoding", "identity"));
-        response.setHeaders(
-                new BasicHeader("Last-Modified", DateUtils.formatStandardDate(responseDate)),
-                new BasicHeader("Cache-Control", "public"),
-                new BasicHeader("Content-Encoding", "gzip"));
-
-        final HeaderGroup mergedHeaders = impl.mergeHeaders(entry, response);
-
-        MatcherAssert.assertThat(mergedHeaders, ContainsHeaderMatcher.contains("Content-Encoding", "identity"));
-        MatcherAssert.assertThat(mergedHeaders, Matchers.not(ContainsHeaderMatcher.contains("Content-Encoding", "gzip")));
     }
 
     @Test
