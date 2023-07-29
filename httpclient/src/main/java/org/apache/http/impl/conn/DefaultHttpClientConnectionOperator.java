@@ -30,7 +30,7 @@ import java.io.IOException;
 import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.NoRouteToHostException;
+import java.net.SocketException;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 
@@ -157,7 +157,7 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
                                     ? new ConnectTimeoutException(ex, host, addresses)
                                     : new HttpHostConnectException(ex, host, addresses);
                 }
-            } catch (final NoRouteToHostException ex) {
+            } catch (final SocketException ex) {
                 if (last) {
                     throw ex;
                 }
