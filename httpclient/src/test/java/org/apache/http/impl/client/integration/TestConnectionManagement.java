@@ -28,6 +28,7 @@
 package org.apache.http.impl.client.integration;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketException;
@@ -446,7 +447,8 @@ public class TestConnectionManagement extends LocalServerTestBase {
 
         this.connManager.setMaxTotal(1);
 
-        final HttpHost target = start();
+        final HttpHost target = new HttpHost(
+                InetAddress.getByName("localhost"), "localhost", start().getPort(), this.scheme.name());
         final HttpRoute route = new HttpRoute(target, null, false);
         final HttpContext context = new BasicHttpContext();
 

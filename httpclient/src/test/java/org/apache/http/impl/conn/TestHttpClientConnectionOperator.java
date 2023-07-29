@@ -28,6 +28,7 @@
 package org.apache.http.impl.conn;
 
 import java.net.ConnectException;
+import java.net.SocketException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -185,6 +186,46 @@ public class TestHttpClientConnectionOperator {
                 Mockito.eq(new InetSocketAddress(ip1, 80)),
                 Mockito.<InetSocketAddress>any(),
                 Mockito.<HttpContext>any())).thenThrow(new ConnectException());
+        Mockito.when(plainSocketFactory.connectSocket(
+                Mockito.anyInt(),
+                Mockito.<Socket>any(),
+                Mockito.<HttpHost>any(),
+                Mockito.eq(new InetSocketAddress(ip2, 80)),
+                Mockito.<InetSocketAddress>any(),
+                Mockito.<HttpContext>any())).thenReturn(socket);
+
+        final InetSocketAddress localAddress = new InetSocketAddress(local, 0);
+        connectionOperator.connect(conn, host, localAddress, 1000, SocketConfig.DEFAULT, context);
+
+        Mockito.verify(plainSocketFactory).connectSocket(
+                1000,
+                socket,
+                host,
+                new InetSocketAddress(ip2, 80),
+                localAddress,
+                context);
+        Mockito.verify(conn, Mockito.times(3)).bind(socket);
+    }
+
+    @Test
+    public void testConnectFailoverSocketException() throws Exception {
+        final HttpContext context = new BasicHttpContext();
+        final HttpHost host = new HttpHost("somehost");
+        final InetAddress local = InetAddress.getByAddress(new byte[] {127, 0, 0, 0});
+        final InetAddress ip1 = InetAddress.getByAddress(new byte[] {10, 0, 0, 1});
+        final InetAddress ip2 = InetAddress.getByAddress(new byte[] {10, 0, 0, 2});
+
+        Mockito.when(dnsResolver.resolve("somehost")).thenReturn(new InetAddress[] { ip1, ip2 });
+        Mockito.when(socketFactoryRegistry.lookup("http")).thenReturn(plainSocketFactory);
+        Mockito.when(schemePortResolver.resolve(host)).thenReturn(80);
+        Mockito.when(plainSocketFactory.createSocket(Mockito.<HttpContext>any())).thenReturn(socket);
+        Mockito.when(plainSocketFactory.connectSocket(
+                Mockito.anyInt(),
+                Mockito.<Socket>any(),
+                Mockito.<HttpHost>any(),
+                Mockito.eq(new InetSocketAddress(ip1, 80)),
+                Mockito.<InetSocketAddress>any(),
+                Mockito.<HttpContext>any())).thenThrow(new SocketException());
         Mockito.when(plainSocketFactory.connectSocket(
                 Mockito.anyInt(),
                 Mockito.<Socket>any(),
