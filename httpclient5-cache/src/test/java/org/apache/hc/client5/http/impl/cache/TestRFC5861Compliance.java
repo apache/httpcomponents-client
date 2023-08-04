@@ -28,7 +28,6 @@ package org.apache.hc.client5.http.impl.cache;
 
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayInputStream;
@@ -45,7 +44,6 @@ import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
-import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
@@ -128,42 +126,6 @@ public class TestRFC5861Compliance {
                 mockExecChain);
     }
 
-    /*
-     * "The stale-if-error Cache-Control extension indicates that when an
-     * error is encountered, a cached stale response MAY be used to satisfy
-     * the request, regardless of other freshness information.When used as a
-     * request Cache-Control extension, its scope of application is the request
-     * it appears in; when used as a response Cache-Control extension, its
-     * scope is any request applicable to the cached response in which it
-     * occurs.Its value indicates the upper limit to staleness; when the cached
-     * response is more stale than the indicated amount, the cached response
-     * SHOULD NOT be used to satisfy the request, absent other information.
-     * In this context, an error is any situation that would result in a
-     * 500, 502, 503, or 504 HTTP response status code being returned."
-     *
-     * http://tools.ietf.org/html/rfc5861
-     */
-    @Test
-    public void testStaleIfErrorInResponseIsTrueReturnsStaleEntryWithWarning()
-            throws Exception{
-        final Instant tenSecondsAgo = Instant.now().minusSeconds(10);
-        final ClassicHttpRequest req1 = HttpTestUtils.makeDefaultRequest();
-        final ClassicHttpResponse resp1 = HttpTestUtils.make200Response(tenSecondsAgo,
-                "public, max-age=5, stale-if-error=60");
-
-        final ClassicHttpRequest req2 = HttpTestUtils.makeDefaultRequest();
-        final ClassicHttpResponse resp2 = HttpTestUtils.make500Response();
-
-        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
-
-        execute(req1);
-
-        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp2);
-
-        final ClassicHttpResponse result = execute(req2);
-
-        HttpTestUtils.assert110WarningFound(result);
-    }
 
     @Test
     public void testConsumesErrorResponseWhenServingStale()
@@ -237,31 +199,6 @@ public class TestRFC5861Compliance {
         assertTrue(HttpStatus.SC_OK != result.getCode());
     }
 
-    @Test
-    public void testStaleIfErrorInResponseNeedNotYieldToProxyRevalidateForPrivateCache()
-            throws Exception{
-        final CacheConfig configUnshared = CacheConfig.custom()
-                .setSharedCache(false).build();
-        impl = new CachingExec(new BasicHttpCache(configUnshared), null, configUnshared);
-
-        final Instant tenSecondsAgo = Instant.now().minusSeconds(10);
-        final ClassicHttpRequest req1 = HttpTestUtils.makeDefaultRequest();
-        final ClassicHttpResponse resp1 = HttpTestUtils.make200Response(tenSecondsAgo,
-                "public, max-age=5, stale-if-error=60, proxy-revalidate");
-
-        final ClassicHttpRequest req2 = HttpTestUtils.makeDefaultRequest();
-        final ClassicHttpResponse resp2 = HttpTestUtils.make500Response();
-
-        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
-
-        execute(req1);
-
-        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp2);
-
-        final ClassicHttpResponse result = execute(req2);
-
-        HttpTestUtils.assert110WarningFound(result);
-    }
 
     @Test
     public void testStaleIfErrorInResponseYieldsToExplicitFreshnessRequest()
@@ -286,52 +223,7 @@ public class TestRFC5861Compliance {
         assertTrue(HttpStatus.SC_OK != result.getCode());
     }
 
-    @Test
-    public void testStaleIfErrorInRequestIsTrueReturnsStaleEntryWithWarning()
-            throws Exception{
-        final Instant tenSecondsAgo = Instant.now().minusSeconds(10);
-        final ClassicHttpRequest req1 = HttpTestUtils.makeDefaultRequest();
-        final ClassicHttpResponse resp1 = HttpTestUtils.make200Response(tenSecondsAgo,
-                "public, max-age=5");
 
-        final ClassicHttpRequest req2 = HttpTestUtils.makeDefaultRequest();
-        req2.setHeader("Cache-Control","public, stale-if-error=60");
-        final ClassicHttpResponse resp2 = HttpTestUtils.make500Response();
-
-        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
-
-        execute(req1);
-
-        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp2);
-
-        final ClassicHttpResponse result = execute(req2);
-
-        HttpTestUtils.assert110WarningFound(result);
-    }
-
-    @Test
-    public void testStaleIfErrorInRequestIsTrueReturnsStaleNonRevalidatableEntryWithWarning()
-        throws Exception {
-        final Instant tenSecondsAgo = Instant.now().minusSeconds(10);
-        final ClassicHttpRequest req1 = HttpTestUtils.makeDefaultRequest();
-        final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
-        resp1.setHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo));
-        resp1.setHeader("Cache-Control", "public, max-age=5");
-
-        final ClassicHttpRequest req2 = HttpTestUtils.makeDefaultRequest();
-        req2.setHeader("Cache-Control", "public, stale-if-error=60");
-        final ClassicHttpResponse resp2 = HttpTestUtils.make500Response();
-
-        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
-
-        execute(req1);
-
-        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp2);
-
-        final ClassicHttpResponse result = execute(req2);
-
-        HttpTestUtils.assert110WarningFound(result);
-    }
 
     @Test
     public void testStaleIfErrorInResponseIsFalseReturnsError()
@@ -413,19 +305,6 @@ public class TestRFC5861Compliance {
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
 
         execute(req1);
-        final ClassicHttpResponse result = execute(req2);
-
-        assertEquals(HttpStatus.SC_OK, result.getCode());
-        boolean warning110Found = false;
-        for(final Header h : result.getHeaders("Warning")) {
-            for(final WarningValue wv : WarningValue.getWarningValues(h)) {
-                if (wv.getWarnCode() == 110) {
-                    warning110Found = true;
-                    break;
-                }
-            }
-        }
-        assertTrue(warning110Found);
 
         Mockito.verify(mockExecChain, Mockito.atLeastOnce()).proceed(Mockito.any(), Mockito.any());
         Mockito.verify(mockExecChain, Mockito.atMost(2)).proceed(Mockito.any(), Mockito.any());
@@ -452,18 +331,6 @@ public class TestRFC5861Compliance {
 
         execute(req1);
         final ClassicHttpResponse result = execute(req2);
-
-        assertEquals(HttpStatus.SC_OK, result.getCode());
-        boolean warning110Found = false;
-        for (final Header h : result.getHeaders("Warning")) {
-            for (final WarningValue wv : WarningValue.getWarningValues(h)) {
-                if (wv.getWarnCode() == 110) {
-                    warning110Found = true;
-                    break;
-                }
-            }
-        }
-        assertTrue(warning110Found);
 
         Mockito.verify(mockExecChain, Mockito.atLeastOnce()).proceed(Mockito.any(), Mockito.any());
         Mockito.verify(mockExecChain, Mockito.atMost(2)).proceed(Mockito.any(), Mockito.any());
@@ -497,164 +364,8 @@ public class TestRFC5861Compliance {
         execute(req1);
         final ClassicHttpResponse result = execute(req2);
 
-        assertEquals(HttpStatus.SC_NOT_MODIFIED, result.getCode());
-        boolean warning110Found = false;
-        for(final Header h : result.getHeaders("Warning")) {
-            for(final WarningValue wv : WarningValue.getWarningValues(h)) {
-                if (wv.getWarnCode() == 110) {
-                    warning110Found = true;
-                    break;
-                }
-            }
-        }
-        assertTrue(warning110Found);
-
         Mockito.verify(mockExecChain, Mockito.atLeastOnce()).proceed(Mockito.any(), Mockito.any());
         Mockito.verify(mockExecChain, Mockito.atMost(2)).proceed(Mockito.any(), Mockito.any());
-    }
-
-    @Test
-    public void testStaleWhileRevalidateYieldsToMustRevalidate()
-        throws Exception {
-
-        final Instant now = Instant.now();
-        final Instant tenSecondsAgo = now.minusSeconds(10);
-
-        config = CacheConfig.custom()
-                .setMaxCacheEntries(MAX_ENTRIES)
-                .setMaxObjectSize(MAX_BYTES)
-                .setAsynchronousWorkers(1)
-                .build();
-        impl = new CachingExec(cache, null, config);
-
-        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
-        final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
-        resp1.setHeader("Cache-Control", "public, max-age=5, stale-while-revalidate=15, must-revalidate");
-        resp1.setHeader("ETag","\"etag\"");
-        resp1.setHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo));
-
-        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
-        final ClassicHttpResponse resp2 = HttpTestUtils.make200Response();
-        resp2.setHeader("Cache-Control", "public, max-age=5, stale-while-revalidate=15, must-revalidate");
-        resp2.setHeader("ETag","\"etag\"");
-        resp2.setHeader("Date", DateUtils.formatStandardDate(now));
-
-        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
-
-        execute(req1);
-
-        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp2);
-
-        final ClassicHttpResponse result = execute(req2);
-
-        assertEquals(HttpStatus.SC_OK, result.getCode());
-        boolean warning110Found = false;
-        for(final Header h : result.getHeaders("Warning")) {
-            for(final WarningValue wv : WarningValue.getWarningValues(h)) {
-                if (wv.getWarnCode() == 110) {
-                    warning110Found = true;
-                    break;
-                }
-            }
-        }
-        assertFalse(warning110Found);
-    }
-
-    @Test
-    public void testStaleWhileRevalidateYieldsToProxyRevalidateForSharedCache()
-        throws Exception {
-
-        final Instant now = Instant.now();
-        final Instant tenSecondsAgo = now.minusSeconds(10);
-
-        config = CacheConfig.custom()
-                .setMaxCacheEntries(MAX_ENTRIES)
-                .setMaxObjectSize(MAX_BYTES)
-                .setAsynchronousWorkers(1)
-                .setSharedCache(true)
-                .build();
-        impl = new CachingExec(cache, null, config);
-
-        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
-        final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
-        resp1.setHeader("Cache-Control", "public, max-age=5, stale-while-revalidate=15, proxy-revalidate");
-        resp1.setHeader("ETag","\"etag\"");
-        resp1.setHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo));
-
-        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
-        final ClassicHttpResponse resp2 = HttpTestUtils.make200Response();
-        resp2.setHeader("Cache-Control", "public, max-age=5, stale-while-revalidate=15, proxy-revalidate");
-        resp2.setHeader("ETag","\"etag\"");
-        resp2.setHeader("Date", DateUtils.formatStandardDate(now));
-
-        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
-
-        execute(req1);
-
-        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp2);
-
-        final ClassicHttpResponse result = execute(req2);
-
-        assertEquals(HttpStatus.SC_OK, result.getCode());
-        boolean warning110Found = false;
-        for(final Header h : result.getHeaders("Warning")) {
-            for(final WarningValue wv : WarningValue.getWarningValues(h)) {
-                if (wv.getWarnCode() == 110) {
-                    warning110Found = true;
-                    break;
-                }
-            }
-        }
-        assertFalse(warning110Found);
-    }
-
-    @Test
-    public void testStaleWhileRevalidateYieldsToExplicitFreshnessRequest()
-        throws Exception {
-
-        final Instant now = Instant.now();
-        final Instant tenSecondsAgo = now.minusSeconds(10);
-
-        config = CacheConfig.custom()
-                .setMaxCacheEntries(MAX_ENTRIES)
-                .setMaxObjectSize(MAX_BYTES)
-                .setAsynchronousWorkers(1)
-                .setSharedCache(true)
-                .build();
-        impl = new CachingExec(cache, null, config);
-
-        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
-        final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
-        resp1.setHeader("Cache-Control", "public, max-age=5, stale-while-revalidate=15");
-        resp1.setHeader("ETag","\"etag\"");
-        resp1.setHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo));
-
-        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
-        req2.setHeader("Cache-Control","min-fresh=2");
-        final ClassicHttpResponse resp2 = HttpTestUtils.make200Response();
-        resp2.setHeader("Cache-Control", "public, max-age=5, stale-while-revalidate=15");
-        resp2.setHeader("ETag","\"etag\"");
-        resp2.setHeader("Date", DateUtils.formatStandardDate(now));
-
-        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
-
-        execute(req1);
-
-        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp2);
-
-        final ClassicHttpResponse result = execute(req2);
-
-        assertEquals(HttpStatus.SC_OK, result.getCode());
-        boolean warning110Found = false;
-        for(final Header h : result.getHeaders("Warning")) {
-            for(final WarningValue wv : WarningValue.getWarningValues(h)) {
-                if (wv.getWarnCode() == 110) {
-                    warning110Found = true;
-                    break;
-                }
-            }
-        }
-        assertFalse(warning110Found);
     }
 
 }

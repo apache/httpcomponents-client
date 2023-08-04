@@ -502,76 +502,10 @@ public class TestProtocolRecommendations {
         final ClassicHttpResponse result = execute(req2);
 
         assertEquals(HttpStatus.SC_OK, result.getCode());
-        assertTrue(result.containsHeader("Warning"));
 
         Mockito.verify(mockExecChain, Mockito.atMost(1)).proceed(Mockito.any(), Mockito.any());
     }
 
-    /*
-     * "A correct cache MUST respond to a request with the most up-to-date
-     * response held by the cache that is appropriate to the request
-     * (see sections 13.2.5, 13.2.6, and 13.12) which meets one of the
-     * following conditions:
-     *
-     * 1. It has been checked for equivalence with what the origin server
-     * would have returned by revalidating the response with the
-     * origin server (section 13.3);
-     *
-     * 2. It is "fresh enough" (see section 13.2). In the default case,
-     * this means it meets the least restrictive freshness requirement
-     * of the client, origin server, and cache (see section 14.9); if
-     * the origin server so specifies, it is the freshness requirement
-     * of the origin server alone.
-     *
-     * If a stored response is not "fresh enough" by the most
-     * restrictive freshness requirement of both the client and the
-     * origin server, in carefully considered circumstances the cache
-     * MAY still return the response with the appropriate Warning
-     * header (see section 13.1.5 and 14.46), unless such a response
-     * is prohibited (e.g., by a "no-store" cache-directive, or by a
-     * "no-cache" cache-request-directive; see section 14.9).
-     *
-     * 3. It is an appropriate 304 (Not Modified), 305 (Proxy Redirect),
-     * or error (4xx or 5xx) response message.
-     *
-     * If the cache can not communicate with the origin server, then a
-     * correct cache SHOULD respond as above if the response can be
-     * correctly served from the cache..."
-     *
-     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.1.1
-     */
-    @Test
-    public void testReturnsCachedResponsesAppropriatelyWhenNoOriginCommunication() throws Exception {
-        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
-        final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
-        resp1.setHeader("Cache-Control", "public, max-age=5");
-        resp1.setHeader("ETag","\"etag\"");
-        resp1.setHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo));
-
-        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
-
-        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
-
-        execute(req1);
-
-        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenThrow(new IOException());
-
-        final ClassicHttpResponse result = execute(req2);
-
-        Mockito.verify(mockExecChain, Mockito.times(2)).proceed(Mockito.any(), Mockito.any());
-
-        assertEquals(HttpStatus.SC_OK, result.getCode());
-        boolean warning111Found = false;
-        for(final Header h : result.getHeaders("Warning")) {
-            for(final WarningValue wv : WarningValue.getWarningValues(h)) {
-                if (wv.getWarnCode() == 111) {
-                    warning111Found = true;
-                    break;
-                }
-            }
-        }
-        assertTrue(warning111Found);
-    }
 
     /*
      * "If a cache receives a response (either an entire response, or a

@@ -752,7 +752,9 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
             void triggerResponseStaleCacheEntry() {
                 try {
                     final SimpleHttpResponse cacheResponse = responseGenerator.generateResponse(request, hit.entry);
-                    cacheResponse.addHeader(HttpHeaders.WARNING, "110 localhost \"Response is stale\"");
+                    if (LOG.isWarnEnabled()) {
+                        LOG.warn("Response is stale for request: {}", request);
+                    }
                     triggerResponse(cacheResponse, scope, asyncExecCallback);
                 } catch (final ResourceIOException ex) {
                     asyncExecCallback.failed(ex);

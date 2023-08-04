@@ -361,7 +361,9 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
                     && validityPolicy.mayReturnStaleIfError(requestCacheControl, responseCacheControl, hit.entry, responseDate)) {
                 try {
                     final SimpleHttpResponse cachedResponse = responseGenerator.generateResponse(request, hit.entry);
-                    cachedResponse.addHeader(HttpHeaders.WARNING, "110 localhost \"Response is stale\"");
+                    if (LOG.isWarnEnabled()) {
+                        LOG.warn("Serving stale response for target '{}', conditional request '{}'", target, conditionalRequest);
+                    }
                     return convert(cachedResponse, scope);
                 } finally {
                     backendResponse.close();
