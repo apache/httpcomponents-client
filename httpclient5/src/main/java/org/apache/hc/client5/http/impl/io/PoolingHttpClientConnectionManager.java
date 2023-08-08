@@ -33,6 +33,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.HttpRoute;
@@ -298,10 +300,21 @@ public class PoolingHttpClientConnectionManager
         final Future<PoolEntry<HttpRoute, ManagedHttpClientConnection>> leaseFuture = this.pool.lease(route, state, requestTimeout, null);
         return new LeaseRequest() {
 
+            private final Lock lock = new ReentrantLock();
             private volatile ConnectionEndpoint endpoint;
 
             @Override
-            public synchronized ConnectionEndpoint get(
+            public ConnectionEndpoint get(
+                    Timeout timeout) throws InterruptedException, ExecutionException, TimeoutException {
+                this.lock.lock();
+                try {
+                    return getImpl(timeout);
+                } finally {
+                    this.lock.unlock();
+                }
+            }
+
+            private ConnectionEndpoint getImpl(
                     final Timeout timeout) throws InterruptedException, ExecutionException, TimeoutException {
                 Args.notNull(timeout, "Operation timeout");
                 if (this.endpoint != null) {
