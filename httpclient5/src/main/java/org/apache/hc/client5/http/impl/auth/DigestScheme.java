@@ -238,7 +238,9 @@ public class DigestScheme implements AuthScheme, Serializable {
     }
 
     private String createDigestResponse(final HttpRequest request) throws AuthenticationException {
-
+        if (credentials == null) {
+            throw new AuthenticationException("User credentials have not been provided");
+        }
         final String uri = request.getRequestUri();
         final String method = request.getMethod();
         final String realm = this.paramMap.get("realm");
