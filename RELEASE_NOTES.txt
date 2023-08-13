@@ -1,13 +1,70 @@
-﻿Release 5.2.2
+﻿Release 5.3 ALPHA1
 ------------------
 
-This is a maintenance release.
+This is the first release in the 5.3 release series that introduces support for the Bearer
+authentication scheme (RFC 6750) and deprecates NTLM and GSS based experimental authentication
+schemes in favor of Basic / Bearer authentication with TLS.
+
+Notable changes and features included in the 5.3 series:
+
+* Introduction of the Bearer authentication scheme.
+
+* Deprecation of the NTLM authentication scheme.
+
+* Deprecation of the GSS based experimental authentication schemes.
+
+* Support for load distribution across multiple proxies.
+
 
 Change Log
 -------------------
 
-* Bump jna.version from 5.12.1 to 5.13.0 #407.
-  Contributed by Dependabot and Gary Gregory <ggregory at apache.org>
+* GSS based experimental authentication schemes deprecated and disabled by default.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* NTLM scheme deprecated and disabled by default.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Added linear and exponential BackoffManager implementations.
+  Contributed by Arturo Bernal <arturobernalg at gmail.com>
+
+* Improved AIMDBackoffManager.
+  Contributed by Arturo Bernal <arturobernalg at gmail.com>
+
+* Added DistributedProxySelector with support for load distribution across multiple
+  proxies.
+  Contributed by Arturo Bernal <arturobernalg at gmail.com>
+
+* Support for preamble and epilogue in multipart entities.
+  Contributed by Arturo Bernal <arturobernalg at gmail.com>
+
+* HttpResponseException to include response message content (up to 256 bytes).
+  Contributed by Arturo Bernal <arturobernalg at gmail.com>
+
+* Workaround for URL quoting issue with LLv6 host literals.
+  Contributed by Arturo Bernal <arturobernalg at gmail.com>
+
+* Bearer auth scheme support (RFC 6750)
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Credentials interface should be able to represent different types of user credentials
+  including token based with no password.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Connection settings `timeToLive` and `validateAfterInactivity` set to zero to always
+  close or validate connections being leased.
+  Contributed by Christoph Kaser <berlin at caser.de>
+
+* Digest authentication scheme to omit the algorithm in the authentication response
+  if it has not been explicitly set in the authentication challenge, as per RFC 7616.
+  Contributed by John Vasileff <john at vasileff.com>
+
+* HTTPCLIENT-2271: Do not optimize the path component of the resolved URI by default.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Pass HttpContext to SSLConnectionSocketFactory#prepareSocket method (#404)
+  Contributed by Alen Turkovic <alturkovic at gmail.com>
+
 
 Release 5.2.1
 ------------------
