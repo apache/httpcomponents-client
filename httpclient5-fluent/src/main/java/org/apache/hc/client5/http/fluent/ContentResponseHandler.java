@@ -65,7 +65,7 @@ public class ContentResponseHandler extends AbstractHttpClientResponseHandler<Co
      * @param response the HTTP response.
      * @return a {@link Content} object that encapsulates the response body, or {@link Content#NO_CONTENT} if the
      * response body is {@code null} or has zero length.
-     * @throws HttpResponseException if the response was unsuccessful (a >= 300 status code).
+     * @throws HttpResponseException if the response was unsuccessful (status code greater than 300).
      * @throws IOException           if an I/O error occurs.
      */
     @Override
