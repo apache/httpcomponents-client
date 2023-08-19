@@ -33,6 +33,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.HttpRoute;
@@ -297,75 +298,82 @@ public class PoolingHttpClientConnectionManager
         }
         final Future<PoolEntry<HttpRoute, ManagedHttpClientConnection>> leaseFuture = this.pool.lease(route, state, requestTimeout, null);
         return new LeaseRequest() {
-
+            // Using a ReentrantLock specific to each LeaseRequest instance to maintain the original
+            // synchronization semantics. This ensures that each LeaseRequest has its own unique lock.
+            private final ReentrantLock lock = new ReentrantLock();
             private volatile ConnectionEndpoint endpoint;
 
             @Override
-            public synchronized ConnectionEndpoint get(
+            public ConnectionEndpoint get(
                     final Timeout timeout) throws InterruptedException, ExecutionException, TimeoutException {
-                Args.notNull(timeout, "Operation timeout");
-                if (this.endpoint != null) {
-                    return this.endpoint;
-                }
-                final PoolEntry<HttpRoute, ManagedHttpClientConnection> poolEntry;
+                lock.lock();
                 try {
-                    poolEntry = leaseFuture.get(timeout.getDuration(), timeout.getTimeUnit());
-                } catch (final TimeoutException ex) {
-                    leaseFuture.cancel(true);
-                    throw ex;
-                }
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("{} endpoint leased {}", id, ConnPoolSupport.formatStats(route, state, pool));
-                }
-                final ConnectionConfig connectionConfig = resolveConnectionConfig(route);
-                try {
-                    if (poolEntry.hasConnection()) {
-                        final TimeValue timeToLive = connectionConfig.getTimeToLive();
-                        if (TimeValue.isNonNegative(timeToLive)) {
-                            if (timeToLive.getDuration() == 0
-                                    || Deadline.calculate(poolEntry.getCreated(), timeToLive).isExpired()) {
-                                poolEntry.discardConnection(CloseMode.GRACEFUL);
+                    Args.notNull(timeout, "Operation timeout");
+                    if (this.endpoint != null) {
+                        return this.endpoint;
+                    }
+                    final PoolEntry<HttpRoute, ManagedHttpClientConnection> poolEntry;
+                    try {
+                        poolEntry = leaseFuture.get(timeout.getDuration(), timeout.getTimeUnit());
+                    } catch (final TimeoutException ex) {
+                        leaseFuture.cancel(true);
+                        throw ex;
+                    }
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("{} endpoint leased {}", id, ConnPoolSupport.formatStats(route, state, pool));
+                    }
+                    final ConnectionConfig connectionConfig = resolveConnectionConfig(route);
+                    try {
+                        if (poolEntry.hasConnection()) {
+                            final TimeValue timeToLive = connectionConfig.getTimeToLive();
+                            if (TimeValue.isNonNegative(timeToLive)) {
+                                if (timeToLive.getDuration() == 0
+                                        || Deadline.calculate(poolEntry.getCreated(), timeToLive).isExpired()) {
+                                    poolEntry.discardConnection(CloseMode.GRACEFUL);
+                                }
                             }
                         }
-                    }
-                    if (poolEntry.hasConnection()) {
-                        final TimeValue timeValue = resolveValidateAfterInactivity(connectionConfig);
-                        if (TimeValue.isNonNegative(timeValue)) {
-                            if (timeValue.getDuration() == 0
-                                    || Deadline.calculate(poolEntry.getUpdated(), timeValue).isExpired()) {
-                                final ManagedHttpClientConnection conn = poolEntry.getConnection();
-                                boolean stale;
-                                try {
-                                    stale = conn.isStale();
-                                } catch (final IOException ignore) {
-                                    stale = true;
-                                }
-                                if (stale) {
-                                    if (LOG.isDebugEnabled()) {
-                                        LOG.debug("{} connection {} is stale", id, ConnPoolSupport.getId(conn));
+                        if (poolEntry.hasConnection()) {
+                            final TimeValue timeValue = resolveValidateAfterInactivity(connectionConfig);
+                            if (TimeValue.isNonNegative(timeValue)) {
+                                if (timeValue.getDuration() == 0
+                                        || Deadline.calculate(poolEntry.getUpdated(), timeValue).isExpired()) {
+                                    final ManagedHttpClientConnection conn = poolEntry.getConnection();
+                                    boolean stale;
+                                    try {
+                                        stale = conn.isStale();
+                                    } catch (final IOException ignore) {
+                                        stale = true;
                                     }
-                                    poolEntry.discardConnection(CloseMode.IMMEDIATE);
+                                    if (stale) {
+                                        if (LOG.isDebugEnabled()) {
+                                            LOG.debug("{} connection {} is stale", id, ConnPoolSupport.getId(conn));
+                                        }
+                                        poolEntry.discardConnection(CloseMode.IMMEDIATE);
+                                    }
                                 }
                             }
                         }
+                        final ManagedHttpClientConnection conn = poolEntry.getConnection();
+                        if (conn != null) {
+                            conn.activate();
+                        } else {
+                            poolEntry.assignConnection(connFactory.createConnection(null));
+                        }
+                        this.endpoint = new InternalConnectionEndpoint(poolEntry);
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("{} acquired {}", id, ConnPoolSupport.getId(endpoint));
+                        }
+                        return this.endpoint;
+                    } catch (final Exception ex) {
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("{} endpoint lease failed", id);
+                        }
+                        pool.release(poolEntry, false);
+                        throw new ExecutionException(ex.getMessage(), ex);
                     }
-                    final ManagedHttpClientConnection conn = poolEntry.getConnection();
-                    if (conn != null) {
-                        conn.activate();
-                    } else {
-                        poolEntry.assignConnection(connFactory.createConnection(null));
-                    }
-                    this.endpoint = new InternalConnectionEndpoint(poolEntry);
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("{} acquired {}", id, ConnPoolSupport.getId(endpoint));
-                    }
-                    return this.endpoint;
-                } catch (final Exception ex) {
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("{} endpoint lease failed", id);
-                    }
-                    pool.release(poolEntry, false);
-                    throw new ExecutionException(ex.getMessage(), ex);
+                } finally {
+                    lock.unlock();
                 }
             }
 

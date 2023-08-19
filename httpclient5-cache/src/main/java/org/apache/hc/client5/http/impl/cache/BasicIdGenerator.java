@@ -32,6 +32,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Formatter;
 import java.util.Locale;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Should produce reasonably unique tokens.
@@ -42,6 +43,8 @@ class BasicIdGenerator {
     private final SecureRandom rnd;
 
     private long count;
+
+    private final ReentrantLock lock;
 
     public BasicIdGenerator() {
         super();
@@ -58,18 +61,24 @@ class BasicIdGenerator {
             throw new Error(ex);
         }
         this.rnd.setSeed(System.currentTimeMillis());
+        this.lock = new ReentrantLock();
     }
 
-    public synchronized void generate(final StringBuilder buffer) {
-        this.count++;
-        final int rndnum = this.rnd.nextInt();
-        buffer.append(System.currentTimeMillis());
-        buffer.append('.');
-        try (Formatter formatter = new Formatter(buffer, Locale.ROOT)) {
-            formatter.format("%1$016x-%2$08x", this.count, rndnum);
+    public void generate(final StringBuilder buffer) {
+        lock.lock();
+        try {
+            this.count++;
+            final int rndnum = this.rnd.nextInt();
+            buffer.append(System.currentTimeMillis());
+            buffer.append('.');
+            try (Formatter formatter = new Formatter(buffer, Locale.ROOT)) {
+                formatter.format("%1$016x-%2$08x", this.count, rndnum);
+            }
+            buffer.append('.');
+            buffer.append(this.hostname);
+        } finally {
+            lock.unlock();
         }
-        buffer.append('.');
-        buffer.append(this.hostname);
     }
 
     public String generate() {

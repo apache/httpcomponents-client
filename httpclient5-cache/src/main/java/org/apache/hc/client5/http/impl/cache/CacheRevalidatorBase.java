@@ -35,6 +35,7 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.hc.client5.http.schedule.ConcurrentCountMap;
 import org.apache.hc.client5.http.schedule.SchedulingStrategy;
@@ -48,6 +49,8 @@ import org.slf4j.LoggerFactory;
  * Abstract cache re-validation class.
  */
 class CacheRevalidatorBase implements Closeable {
+
+    private final ReentrantLock lock;
 
     interface ScheduledExecutor {
 
@@ -103,6 +106,7 @@ class CacheRevalidatorBase implements Closeable {
         this.schedulingStrategy = schedulingStrategy;
         this.pendingRequest = new HashSet<>();
         this.failureCache = new ConcurrentCountMap<>();
+        this.lock = new ReentrantLock();
     }
 
     /**
@@ -119,7 +123,8 @@ class CacheRevalidatorBase implements Closeable {
      * Schedules an asynchronous re-validation
      */
     void scheduleRevalidation(final String cacheKey, final Runnable command) {
-        synchronized (pendingRequest) {
+        lock.lock();
+        try {
             if (!pendingRequest.contains(cacheKey)) {
                 final int consecutiveFailedAttempts = failureCache.getCount(cacheKey);
                 final TimeValue executionTime = schedulingStrategy.schedule(consecutiveFailedAttempts);
@@ -130,6 +135,8 @@ class CacheRevalidatorBase implements Closeable {
                     LOG.debug("Revalidation of cache entry with key {} could not be scheduled", cacheKey, ex);
                 }
             }
+        } finally {
+            lock.unlock();
         }
     }
 
@@ -145,21 +152,30 @@ class CacheRevalidatorBase implements Closeable {
 
     void jobSuccessful(final String identifier) {
         failureCache.resetCount(identifier);
-        synchronized (pendingRequest) {
+        lock.lock();
+        try {
             pendingRequest.remove(identifier);
+        } finally {
+            lock.unlock();
         }
     }
 
     void jobFailed(final String identifier) {
         failureCache.increaseCount(identifier);
-        synchronized (pendingRequest) {
+        lock.lock();
+        try {
             pendingRequest.remove(identifier);
+        } finally {
+            lock.unlock();
         }
     }
 
     Set<String> getScheduledIdentifiers() {
-        synchronized (pendingRequest) {
+        lock.lock();
+        try {
             return new HashSet<>(pendingRequest);
+        } finally {
+            lock.unlock();
         }
     }
 
