@@ -157,7 +157,6 @@ public class CachingExecBase {
     }
 
     SimpleHttpResponse generateCachedResponse(
-            final ResponseCacheControl responseCacheControl,
             final HttpCacheEntry entry,
             final HttpRequest request,
             final HttpContext context) throws ResourceIOException {
