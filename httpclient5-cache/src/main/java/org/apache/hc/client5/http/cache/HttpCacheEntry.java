@@ -28,11 +28,15 @@ package org.apache.hc.client5.http.cache;
 
 import java.io.Serializable;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.annotation.Contract;
@@ -69,7 +73,7 @@ public class HttpCacheEntry implements MessageHeaders, Serializable {
     private final int status;
     private final HeaderGroup responseHeaders;
     private final Resource resource;
-    private final Map<String, String> variantMap;
+    private final Set<String> variants;
 
     /**
      * Internal constructor that makes no validation of the input parameters and makes
@@ -85,7 +89,7 @@ public class HttpCacheEntry implements MessageHeaders, Serializable {
             final int status,
             final HeaderGroup responseHeaders,
             final Resource resource,
-            final Map<String, String> variantMap) {
+            final Collection<String> variants) {
         super();
         this.requestDate = requestDate;
         this.responseDate = responseDate;
@@ -95,7 +99,7 @@ public class HttpCacheEntry implements MessageHeaders, Serializable {
         this.status = status;
         this.responseHeaders = responseHeaders;
         this.resource = resource;
-        this.variantMap = variantMap != null ? new HashMap<>(variantMap) : null;
+        this.variants = variants != null ? Collections.unmodifiableSet(new HashSet<>(variants)) : null;
     }
 
     /**
@@ -164,7 +168,7 @@ public class HttpCacheEntry implements MessageHeaders, Serializable {
         this.responseHeaders = new HeaderGroup();
         this.responseHeaders.setHeaders(responseHeaders);
         this.resource = resource;
-        this.variantMap = variantMap != null ? new HashMap<>(variantMap) : null;
+        this.variants = variantMap != null ? Collections.unmodifiableSet(new HashSet<>(variantMap.keySet())) : null;
     }
 
     /**
@@ -353,30 +357,27 @@ public class HttpCacheEntry implements MessageHeaders, Serializable {
      * Indicates whether the origin response indicated the associated
      * resource had variants (i.e. that the Vary header was set on the
      * origin response).
-     * @return {@code true} if this cached response was a variant
      */
     public boolean hasVariants() {
-        return containsHeader(HttpHeaders.VARY);
+        return variants != null;
     }
 
     /**
+     * Returns all known variants.
+     *
      * @since 5.3
      */
-    public boolean isVariantRoot() {
-        return variantMap != null;
+    public Set<String> getVariants() {
+        return variants != null ? variants : Collections.emptySet();
     }
 
     /**
-     * Returns an index about where in the cache different variants for
-     * a given resource are stored. This maps "variant keys" to "cache keys",
-     * where the variant key is derived from the varying request headers,
-     * and the cache key is the location in the
-     * {@link HttpCacheStorage} where that
-     * particular variant is stored. The first variant returned is used as
-     * the "parent" entry to hold this index of the other variants.
+     * @deprecated No longer applicable. Use {@link #getVariants()} instead.
      */
+    @Deprecated
     public Map<String, String> getVariantMap() {
-        return variantMap != null ? Collections.unmodifiableMap(variantMap) : Collections.emptyMap();
+        return variants != null ? variants.stream()
+                .collect(Collectors.toMap(e -> e, e -> e + requestURI)) : Collections.emptyMap();
     }
 
     /**
@@ -418,7 +419,7 @@ public class HttpCacheEntry implements MessageHeaders, Serializable {
                 ", status=" + status +
                 ", responseHeaders=" + responseHeaders +
                 ", resource=" + resource +
-                ", variantMap=" + variantMap +
+                ", variants=" + variants +
                 '}';
     }
 }

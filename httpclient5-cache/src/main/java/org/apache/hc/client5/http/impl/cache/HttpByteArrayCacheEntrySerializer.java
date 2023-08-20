@@ -32,9 +32,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Instant;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Map;
+import java.util.Set;
 
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
@@ -88,6 +88,7 @@ public class HttpByteArrayCacheEntrySerializer implements HttpCacheEntrySerializ
     static final String HC_CACHE_LENGTH = "HC-Resource-Length";
     static final String HC_REQUEST_INSTANT = "HC-Request-Instant";
     static final String HC_RESPONSE_INSTANT = "HC-Response-Instant";
+    static final String HC_VARIANT = "HC-Variant";
 
     /**
      * Singleton instance of this class.
@@ -166,12 +167,11 @@ public class HttpByteArrayCacheEntrySerializer implements HttpCacheEntrySerializ
             line.append(asStr(cacheEntry.getResponseInstant()));
             outputBuffer.writeLine(line, out);
 
-            final Map<String, String> variantMap = cacheEntry.getVariantMap();
-            for (final Map.Entry<String, String> entry : variantMap.entrySet()) {
+            for (final String variant : cacheEntry.getVariants()) {
                 line.clear();
-                line.append(entry.getKey());
+                line.append(HC_VARIANT);
                 line.append(": ");
-                line.append(entry.getValue());
+                line.append(variant);
                 outputBuffer.writeLine(line, out);
             }
             line.clear();
@@ -243,7 +243,7 @@ public class HttpByteArrayCacheEntrySerializer implements HttpCacheEntrySerializ
             long length = -1;
             Instant requestDate = null;
             Instant responseDate = null;
-            final Map<String, String> variantMap = new HashMap<>();
+            final Set<String> variants = new HashSet<>();
 
             while (true) {
                 line.clear();
@@ -262,8 +262,10 @@ public class HttpByteArrayCacheEntrySerializer implements HttpCacheEntrySerializ
                     requestDate = asInstant(value);
                 } else if (name.equalsIgnoreCase(HC_RESPONSE_INSTANT)) {
                     responseDate = asInstant(value);
+                } else if (name.equalsIgnoreCase(HC_VARIANT)) {
+                    variants.add(value);
                 } else {
-                    variantMap.put(name, value);
+                    throw new ResourceIOException("Unexpected header entry");
                 }
             }
 
@@ -328,7 +330,7 @@ public class HttpByteArrayCacheEntrySerializer implements HttpCacheEntrySerializ
                     statusLine.getStatusCode(),
                     responseHeaders,
                     resource,
-                    variantMap
+                    !variants.isEmpty() ? variants : null
             );
 
             if (LOG.isDebugEnabled()) {

@@ -32,8 +32,8 @@ import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.HttpCacheEntrySerializer;
@@ -378,14 +378,14 @@ public class TestHttpByteArrayCacheEntrySerializer {
     public void testSimpleVariantMap() throws Exception {
         final String content = "Hello World";
         final ContentType contentType = ContentType.TEXT_PLAIN.withCharset(StandardCharsets.UTF_8);
-        final Map<String, String> variantMap = new HashMap<>();
-        variantMap.put("{Accept-Encoding=gzip}","{Accept-Encoding=gzip}https://example.com:1234/foo");
-        variantMap.put("{Accept-Encoding=compress}","{Accept-Encoding=compress}https://example.com:1234/foo");
+        final Set<String> variants = new HashSet<>();
+        variants.add("{Accept-Encoding=gzip}");
+        variants.add("{Accept-Encoding=compress}");
         final HttpCacheEntry cacheEntry = new HttpCacheEntry(Instant.now(), Instant.now(),
                 "GET", "/stuff", HttpTestUtils.headers(),
                 HttpStatus.SC_OK, HttpTestUtils.headers(new BasicHeader(HttpHeaders.CONTENT_TYPE, contentType.toString())),
                 new HeapResource(content.getBytes(contentType.getCharset())),
-                variantMap);
+                variants);
         final HttpCacheStorageEntry storageEntry = new HttpCacheStorageEntry("unique-cache-key", cacheEntry);
         final byte[] serialized = httpCacheEntrySerializer.serialize(storageEntry);
 

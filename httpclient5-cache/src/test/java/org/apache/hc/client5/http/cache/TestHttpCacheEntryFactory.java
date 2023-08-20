@@ -27,8 +27,7 @@
 package org.apache.hc.client5.http.cache;
 
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.hc.client5.http.HeadersMatcher;
@@ -39,6 +38,7 @@ import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
@@ -64,6 +64,7 @@ public class TestHttpCacheEntryFactory {
     private Instant twoSecondsAgo;
     private Instant eightSecondsAgo;
     private Instant tenSecondsAgo;
+    private HttpHost host;
     private HttpRequest request;
     private HttpResponse response;
     private HttpCacheEntryFactory impl;
@@ -79,6 +80,7 @@ public class TestHttpCacheEntryFactory {
         eightSecondsAgo = now.minusSeconds(8);
         tenSecondsAgo = now.minusSeconds(10);
 
+        host = new HttpHost("foo.example.com");
         request = new BasicHttpRequest("GET", "/stuff");
         response = new BasicHttpResponse(HttpStatus.SC_NOT_MODIFIED, "Not Modified");
 
@@ -231,19 +233,19 @@ public class TestHttpCacheEntryFactory {
                 new BasicHeader("X-custom", "my stuff")
         );
 
-        final Map<String, String> variants = new HashMap<>();
-        variants.put("key1", "variant1");
-        variants.put("key2", "variant2");
-        variants.put("key3", "variant3");
+        final Set<String> variants = new HashSet<>();
+        variants.add("variant1");
+        variants.add("variant2");
+        variants.add("variant3");
 
-        final HttpCacheEntry newEntry = impl.createRoot(tenSecondsAgo, oneSecondAgo, request, response, variants);
+        final HttpCacheEntry newEntry = impl.createRoot(tenSecondsAgo, oneSecondAgo, host, request, response, variants);
 
         MatcherAssert.assertThat(newEntry, HttpCacheEntryMatcher.equivalent(
                 HttpTestUtils.makeCacheEntry(
                         tenSecondsAgo,
                         oneSecondAgo,
                         Method.GET,
-                        "/stuff",
+                        "http://foo.example.com:80/stuff",
                         new Header[]{
                                 new BasicHeader("X-custom", "my stuff"),
                                 new BasicHeader(HttpHeaders.ACCEPT, "stuff"),
@@ -259,7 +261,6 @@ public class TestHttpCacheEntryFactory {
                         variants
                         )));
 
-        Assertions.assertTrue(newEntry.isVariantRoot());
         Assertions.assertTrue(newEntry.hasVariants());
         Assertions.assertNull(newEntry.getResource());
     }
@@ -282,14 +283,14 @@ public class TestHttpCacheEntryFactory {
         );
 
         final Resource resource = HttpTestUtils.makeRandomResource(128);
-        final HttpCacheEntry newEntry = impl.create(tenSecondsAgo, oneSecondAgo, request, response, resource);
+        final HttpCacheEntry newEntry = impl.create(tenSecondsAgo, oneSecondAgo, host, request, response, resource);
 
         MatcherAssert.assertThat(newEntry, HttpCacheEntryMatcher.equivalent(
                 HttpTestUtils.makeCacheEntry(
                         tenSecondsAgo,
                         oneSecondAgo,
                         Method.GET,
-                        "/stuff",
+                        "http://foo.example.com:80/stuff",
                         new Header[]{
                                 new BasicHeader("X-custom", "my stuff"),
                                 new BasicHeader(HttpHeaders.ACCEPT, "stuff"),
@@ -304,7 +305,6 @@ public class TestHttpCacheEntryFactory {
                         resource
                 )));
 
-        Assertions.assertFalse(newEntry.isVariantRoot());
         Assertions.assertFalse(newEntry.hasVariants());
     }
 
@@ -361,7 +361,6 @@ public class TestHttpCacheEntryFactory {
                         resource
                 )));
 
-        Assertions.assertFalse(updatedEntry.isVariantRoot());
         Assertions.assertFalse(updatedEntry.hasVariants());
     }
 
