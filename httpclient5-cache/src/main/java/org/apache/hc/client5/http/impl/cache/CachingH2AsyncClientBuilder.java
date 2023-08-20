@@ -31,7 +31,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import org.apache.hc.client5.http.async.AsyncExecChainHandler;
-import org.apache.hc.client5.http.cache.HttpAsyncCacheInvalidator;
 import org.apache.hc.client5.http.cache.HttpAsyncCacheStorage;
 import org.apache.hc.client5.http.cache.HttpAsyncCacheStorageAdaptor;
 import org.apache.hc.client5.http.cache.HttpCacheEntryFactory;
@@ -104,7 +103,7 @@ public class CachingH2AsyncClientBuilder extends H2AsyncClientBuilder {
      * @deprecated Do not use.
      */
     @Deprecated
-    public final CachingH2AsyncClientBuilder setHttpCacheInvalidator(final HttpAsyncCacheInvalidator cacheInvalidator) {
+    public final CachingH2AsyncClientBuilder setHttpCacheInvalidator(final org.apache.hc.client5.http.cache.HttpAsyncCacheInvalidator cacheInvalidator) {
         return this;
     }
 
