@@ -95,7 +95,7 @@ public class CachingHttpClientBuilder extends HttpClientBuilder {
      * @deprecated Do not use.
      */
     @Deprecated
-    public final CachingHttpClientBuilder setHttpCacheInvalidator(final org.apache.hc.client5.http.cache.HttpAsyncCacheInvalidator cacheInvalidator) {
+    public final CachingHttpClientBuilder setHttpCacheInvalidator(final org.apache.hc.client5.http.cache.HttpCacheInvalidator cacheInvalidator) {
         return this;
     }
 
