@@ -606,7 +606,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
             }
             LOG.debug("Cache hit");
             try {
-                final SimpleHttpResponse cacheResponse = generateCachedResponse(responseCacheControl, hit.entry, request, context);
+                final SimpleHttpResponse cacheResponse = generateCachedResponse(hit.entry, request, context);
                 triggerResponse(cacheResponse, scope, asyncExecCallback);
             } catch (final ResourceIOException ex) {
                 recordCacheFailure(target, request);
@@ -634,7 +634,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                     && (validityPolicy.mayReturnStaleWhileRevalidating(responseCacheControl, hit.entry, now) || staleIfErrorEnabled)) {
                 LOG.debug("Serving stale with asynchronous revalidation");
                 try {
-                    final SimpleHttpResponse cacheResponse = generateCachedResponse(responseCacheControl, hit.entry, request, context);
+                    final SimpleHttpResponse cacheResponse = generateCachedResponse(hit.entry, request, context);
                     final String exchangeId = ExecSupport.getNextExchangeId();
                     context.setExchangeId(exchangeId);
                     final AsyncExecChain.Scope fork = new AsyncExecChain.Scope(
@@ -658,7 +658,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                             LOG.debug("Serving stale response due to IOException and stale-if-error enabled");
                         }
                         try {
-                            final SimpleHttpResponse cacheResponse = generateCachedResponse(responseCacheControl, hit.entry, request, context);
+                            final SimpleHttpResponse cacheResponse = generateCachedResponse(hit.entry, request, context);
                             triggerResponse(cacheResponse, scope, asyncExecCallback);
                         } catch (final ResourceIOException ex2) {
                             if (LOG.isDebugEnabled()) {
