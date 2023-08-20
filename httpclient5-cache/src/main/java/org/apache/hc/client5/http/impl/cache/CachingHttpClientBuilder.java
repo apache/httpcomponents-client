@@ -31,7 +31,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntryFactory;
-import org.apache.hc.client5.http.cache.HttpCacheInvalidator;
 import org.apache.hc.client5.http.cache.HttpCacheStorage;
 import org.apache.hc.client5.http.cache.ResourceFactory;
 import org.apache.hc.client5.http.classic.ExecChainHandler;
@@ -96,7 +95,7 @@ public class CachingHttpClientBuilder extends HttpClientBuilder {
      * @deprecated Do not use.
      */
     @Deprecated
-    public final CachingHttpClientBuilder setHttpCacheInvalidator(final HttpCacheInvalidator cacheInvalidator) {
+    public final CachingHttpClientBuilder setHttpCacheInvalidator(final org.apache.hc.client5.http.cache.HttpAsyncCacheInvalidator cacheInvalidator) {
         return this;
     }
 
