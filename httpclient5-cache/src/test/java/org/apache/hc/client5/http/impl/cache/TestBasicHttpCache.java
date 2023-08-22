@@ -37,9 +37,10 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import java.net.URI;
 import java.time.Instant;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
@@ -88,7 +89,7 @@ public class TestBasicHttpCache {
 
         final String key = CacheKeyGenerator.INSTANCE.generateKey(host, req);
 
-        impl.store(req, resp, now, now, key, entry);
+        impl.store(host, req, resp, now, now, key, entry);
         assertSame(entry, backing.map.get(key));
     }
 
@@ -211,10 +212,10 @@ public class TestBasicHttpCache {
 
     @Test
     public void testGetVariantsRootNonExistentVariants() throws Exception {
-        final Map<String, String> variantMap = new HashMap<>();
-        variantMap.put("variant1", "variant-key-1");
-        variantMap.put("variant2", "variant-key-2");
-        final HttpCacheEntry root = HttpTestUtils.makeCacheEntry(variantMap);
+        final Set<String> varinats = new HashSet<>();
+        varinats.add("variant1");
+        varinats.add("variant2");
+        final HttpCacheEntry root = HttpTestUtils.makeCacheEntry(varinats);
         final List<CacheHit> variants = impl.getVariants(new CacheHit("root-key", root));
 
         assertNotNull(variants);
@@ -224,8 +225,11 @@ public class TestBasicHttpCache {
     @Test
     public void testGetVariantCacheEntriesReturnsAllVariants() throws Exception {
         final HttpHost host = new HttpHost("foo.example.com");
-        final HttpRequest req1 = new HttpGet("http://foo.example.com/bar");
+        final URI uri = new URI("http://foo.example.com/bar");
+        final HttpRequest req1 = new HttpGet(uri);
         req1.setHeader("Accept-Encoding", "gzip");
+
+        final String rootKey = CacheKeyGenerator.INSTANCE.generateKey(uri);
 
         final HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Date", DateUtils.formatStandardDate(now));
@@ -233,9 +237,8 @@ public class TestBasicHttpCache {
         resp1.setHeader("ETag", "\"etag1\"");
         resp1.setHeader("Vary", "Accept-Encoding");
         resp1.setHeader("Content-Encoding","gzip");
-        resp1.setHeader("Vary", "Accept-Encoding");
 
-        final HttpRequest req2 = new HttpGet("http://foo.example.com/bar");
+        final HttpRequest req2 = new HttpGet(uri);
         req2.setHeader("Accept-Encoding", "identity");
 
         final HttpResponse resp2 = HttpTestUtils.make200Response();
@@ -244,23 +247,22 @@ public class TestBasicHttpCache {
         resp2.setHeader("ETag", "\"etag2\"");
         resp2.setHeader("Vary", "Accept-Encoding");
         resp2.setHeader("Content-Encoding","gzip");
-        resp2.setHeader("Vary", "Accept-Encoding");
 
         final CacheHit hit1 = impl.store(host, req1, resp1, null, now, now);
         final CacheHit hit2 = impl.store(host, req2, resp2, null, now, now);
 
-        final Map<String, String> variantMap = new HashMap<>();
-        variantMap.put("variant-1", hit1.variantKey);
-        variantMap.put("variant-2", hit2.variantKey);
+        final Set<String> variants = new HashSet<>();
+        variants.add("{accept-encoding=gzip}");
+        variants.add("{accept-encoding=identity}");
 
-        final Map<String, HttpCacheEntry> variants = impl.getVariants(new CacheHit(hit1.rootKey,
-                HttpTestUtils.makeCacheEntry(variantMap))).stream()
+        final Map<String, HttpCacheEntry> variantMap = impl.getVariants(new CacheHit(hit1.rootKey,
+                HttpTestUtils.makeCacheEntry(variants))).stream()
                         .collect(Collectors.toMap(CacheHit::getEntryKey, e -> e.entry));
 
-        assertNotNull(variants);
-        assertEquals(2, variants.size());
-        MatcherAssert.assertThat(variants.get(hit1.getEntryKey()), HttpCacheEntryMatcher.equivalent(hit1.entry));
-        MatcherAssert.assertThat(variants.get(hit2.getEntryKey()), HttpCacheEntryMatcher.equivalent(hit2.entry));
+        assertNotNull(variantMap);
+        assertEquals(2, variantMap.size());
+        MatcherAssert.assertThat(variantMap.get("{accept-encoding=gzip}"), HttpCacheEntryMatcher.equivalent(hit1.entry));
+        MatcherAssert.assertThat(variantMap.get("{accept-encoding=identity}"), HttpCacheEntryMatcher.equivalent(hit2.entry));
     }
 
     @Test
@@ -300,15 +302,15 @@ public class TestBasicHttpCache {
     public void testInvalidatesUnsafeRequestsWithVariants() throws Exception {
         final HttpRequest request = new BasicHttpRequest("POST","/path");
         final String rootKey = CacheKeyGenerator.INSTANCE.generateKey(host, request);
+        final Set<String> variants = new HashSet<>();
+        variants.add("{var1}");
+        variants.add("{var2}");
         final String variantKey1 = "{var1}" + rootKey;
         final String variantKey2 = "{var2}" + rootKey;
-        final Map<String, String> variantMap = new HashMap<>();
-        variantMap.put("{var1}", variantKey1);
-        variantMap.put("{var2}", variantKey2);
 
         final HttpResponse response = HttpTestUtils.make200Response();
 
-        backing.putEntry(rootKey, HttpTestUtils.makeCacheEntry(variantMap));
+        backing.putEntry(rootKey, HttpTestUtils.makeCacheEntry(variants));
         backing.putEntry(variantKey1, HttpTestUtils.makeCacheEntry());
         backing.putEntry(variantKey2, HttpTestUtils.makeCacheEntry());
 

@@ -30,10 +30,10 @@ import java.net.URI;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 import org.apache.hc.client5.http.cache.HttpCacheCASOperation;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
@@ -150,14 +150,14 @@ class BasicHttpCache implements HttpCache {
         if (root == null) {
             return null;
         }
-        if (root.isVariantRoot()) {
+        if (root.hasVariants()) {
             final List<String> variantNames = CacheKeyGenerator.variantNames(root);
             final String variantKey = cacheKeyGenerator.generateVariantKey(request, variantNames);
-            final String cacheKey = root.getVariantMap().get(variantKey);
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Get cache variant entry: {}", cacheKey);
-            }
-            if (cacheKey != null) {
+            if (root.getVariants().contains(variantKey)) {
+                final String cacheKey = variantKey + rootKey;
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Get cache variant entry: {}", cacheKey);
+                }
                 final HttpCacheEntry entry = getInternal(cacheKey);
                 if (entry != null) {
                     return new CacheMatch(new CacheHit(rootKey, cacheKey, entry), new CacheHit(rootKey, root));
@@ -175,10 +175,11 @@ class BasicHttpCache implements HttpCache {
             LOG.debug("Get variant cache entries: {}", hit.rootKey);
         }
         final HttpCacheEntry root = hit.entry;
-        if (root != null && root.isVariantRoot()) {
+        final String rootKey = hit.rootKey;
+        if (root != null && root.hasVariants()) {
             final List<CacheHit> variants = new ArrayList<>();
-            for (final String variantKey : root.getVariantMap().values()) {
-                final HttpCacheEntry variant = getInternal(variantKey);
+            for (final String variantKey : root.getVariants()) {
+                final HttpCacheEntry variant = getInternal(variantKey + rootKey);
                 if (variant != null) {
                     variants.add(new CacheHit(hit.rootKey, variantKey, variant));
                 }
@@ -189,14 +190,15 @@ class BasicHttpCache implements HttpCache {
     }
 
     CacheHit store(
+            final HttpHost host,
             final HttpRequest request,
             final HttpResponse originResponse,
             final Instant requestSent,
             final Instant responseReceived,
             final String rootKey,
             final HttpCacheEntry entry) {
-        if (entry.hasVariants()) {
-            return storeVariant(request, originResponse, requestSent, responseReceived, rootKey, entry);
+        if (entry.containsHeader(HttpHeaders.VARY)) {
+            return storeVariant(host, request, originResponse, requestSent, responseReceived, rootKey, entry);
         } else {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Put entry in cache: {}", rootKey);
@@ -207,6 +209,7 @@ class BasicHttpCache implements HttpCache {
     }
 
     CacheHit storeVariant(
+            final HttpHost host,
             final HttpRequest request,
             final HttpResponse originResponse,
             final Instant requestSent,
@@ -228,9 +231,9 @@ class BasicHttpCache implements HttpCache {
         }
 
         updateInternal(rootKey, existing -> {
-            final Map<String, String> variantMap = existing != null ? new HashMap<>(existing.getVariantMap()) : new HashMap<>();
-            variantMap.put(variantKey, variantCacheKey);
-            return cacheEntryFactory.createRoot(requestSent, responseReceived, request, originResponse, variantMap);
+            final Set<String> variants = existing != null ? new HashSet<>(existing.getVariants()) : new HashSet<>();
+            variants.add(variantKey);
+            return cacheEntryFactory.createRoot(requestSent, responseReceived, host, request, originResponse, variants);
         });
         return new CacheHit(rootKey, variantCacheKey, entry);
     }
@@ -257,18 +260,20 @@ class BasicHttpCache implements HttpCache {
             final HttpCacheEntry backup = cacheEntryFactory.create(
                     requestSent,
                     responseReceived,
+                    host,
                     request,
                     originResponse,
                     content != null ? HeapResourceFactory.INSTANCE.generate(null, content.array(), 0, content.length()) : null);
             return new CacheHit(rootKey, backup);
         }
-        final HttpCacheEntry entry = cacheEntryFactory.create(requestSent, responseReceived, request, originResponse, resource);
-        return store(request, originResponse, requestSent, responseReceived, rootKey, entry);
+        final HttpCacheEntry entry = cacheEntryFactory.create(requestSent, responseReceived, host, request, originResponse, resource);
+        return store(host, request, originResponse, requestSent, responseReceived, rootKey, entry);
     }
 
     @Override
     public CacheHit update(
             final CacheHit stale,
+            final HttpHost host,
             final HttpRequest request,
             final HttpResponse originResponse,
             final Instant requestSent,
@@ -282,7 +287,7 @@ class BasicHttpCache implements HttpCache {
                 responseReceived,
                 originResponse,
                 stale.entry);
-        return store(request, originResponse, requestSent, responseReceived, entryKey, updatedEntry);
+        return store(host, request, originResponse, requestSent, responseReceived, entryKey, updatedEntry);
     }
 
     @Override
@@ -321,7 +326,7 @@ class BasicHttpCache implements HttpCache {
         if (LOG.isDebugEnabled()) {
             LOG.debug("Store cache entry using existing entry: {} -> {}", rootKey, hit.rootKey);
         }
-        return store(request, originResponse, requestSent, responseReceived, rootKey, hit.entry);
+        return store(host, request, originResponse, requestSent, responseReceived, rootKey, hit.entry);
     }
 
     private void evictAll(final HttpCacheEntry root, final String rootKey) {
@@ -329,12 +334,13 @@ class BasicHttpCache implements HttpCache {
             LOG.debug("Evicting root cache entry {}", rootKey);
         }
         removeInternal(rootKey);
-        if (root.isVariantRoot()) {
-            for (final String variantKey : root.getVariantMap().values()) {
+        if (root.hasVariants()) {
+            for (final String variantKey : root.getVariants()) {
+                final String variantEntryKey = variantKey + rootKey;
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("Evicting variant cache entry {}", variantKey);
+                    LOG.debug("Evicting variant cache entry {}", variantEntryKey);
                 }
-                removeInternal(variantKey);
+                removeInternal(variantEntryKey);
             }
         }
     }

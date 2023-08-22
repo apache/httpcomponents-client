@@ -339,7 +339,7 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
             }
 
             if (statusCode == HttpStatus.SC_NOT_MODIFIED) {
-                final CacheHit updated = responseCache.update(hit, request, backendResponse, requestDate, responseDate);
+                final CacheHit updated = responseCache.update(hit, target, request, backendResponse, requestDate, responseDate);
                 if (suitabilityChecker.isConditional(request)
                         && suitabilityChecker.allConditionalsMatch(request, updated.entry, Instant.now())) {
                     return convert(responseGenerator.generateNotModifiedResponse(updated.entry), scope);
@@ -399,6 +399,7 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
             if (hit != null) {
                 final CacheHit updated = responseCache.update(
                         hit,
+                        target,
                         request,
                         backendResponse,
                         requestSent,
@@ -458,7 +459,7 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
         if (!mayCallBackend(requestCacheControl)) {
             return new BasicClassicHttpResponse(HttpStatus.SC_GATEWAY_TIMEOUT, "Gateway Timeout");
         }
-        if (partialMatch != null && partialMatch.entry.isVariantRoot()) {
+        if (partialMatch != null && partialMatch.entry.hasVariants()) {
             final List<CacheHit> variants = responseCache.getVariants(partialMatch);
             if (variants != null && !variants.isEmpty()) {
                 return negotiateResponseFromVariants(target, request, scope, chain, variants);

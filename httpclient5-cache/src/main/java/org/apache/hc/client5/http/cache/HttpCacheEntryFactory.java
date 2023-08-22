@@ -26,15 +26,17 @@
  */
 package org.apache.hc.client5.http.cache;
 
+import java.net.URI;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.apache.hc.client5.http.impl.cache.CacheSupport;
 import org.apache.hc.client5.http.impl.cache.DateSupport;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.annotation.Contract;
@@ -43,6 +45,7 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HeaderElements;
 import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpMessage;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
@@ -161,26 +164,36 @@ public class HttpCacheEntryFactory {
         }
     }
 
+    static String normalizeRequestUri(final HttpHost host, final HttpRequest request) {
+        final String s = CacheSupport.getRequestUri(request, host);
+        final URI normalizeRequestUri = CacheSupport.normalize(s);
+        return normalizeRequestUri.toASCIIString();
+    }
+
     /**
      * Creates a new root {@link HttpCacheEntry} (parent of multiple variants).
      *
      * @param requestInstant   Date/time when the request was made (Used for age calculations)
      * @param responseInstant  Date/time that the response came back (Used for age calculations)
+     * @param host             Target host
      * @param request          Original client request (a deep copy of this object is made)
-     * @param variantMap       describing cache entries that are variants of this parent entry; this
+     * @param variants         describing cache entries that are variants of this parent entry; this
      *                         maps a "variant key" (derived from the varying request headers) to a
      *                         "cache key" (where in the cache storage the particular variant is
      *                         located)
      */
     public HttpCacheEntry createRoot(final Instant requestInstant,
                                      final Instant responseInstant,
+                                     final HttpHost host,
                                      final HttpRequest request,
                                      final HttpResponse response,
-                                     final Map<String, String> variantMap) {
+                                     final Collection<String> variants) {
         Args.notNull(requestInstant, "Request instant");
         Args.notNull(responseInstant, "Response instant");
+        Args.notNull(host, "Host");
         Args.notNull(request, "Request");
         Args.notNull(response, "Origin response");
+        final String requestUri = normalizeRequestUri(host, request);
         final HeaderGroup requestHeaders = filterHopByHopHeaders(request);
         final HeaderGroup responseHeaders = filterHopByHopHeaders(response);
         ensureDate(responseHeaders, responseInstant);
@@ -188,12 +201,12 @@ public class HttpCacheEntryFactory {
                 requestInstant,
                 responseInstant,
                 request.getMethod(),
-                request.getRequestUri(),
+                requestUri,
                 requestHeaders,
                 response.getCode(),
                 responseHeaders,
                 null,
-                variantMap);
+                variants);
     }
 
     /**
@@ -201,19 +214,23 @@ public class HttpCacheEntryFactory {
      *
      * @param requestInstant   Date/time when the request was made (Used for age calculations)
      * @param responseInstant  Date/time that the response came back (Used for age calculations)
+     * @param host             Target host
      * @param request          Original client request (a deep copy of this object is made)
      * @param response         Origin response (a deep copy of this object is made)
      * @param resource         Resource representing origin response body
      */
     public HttpCacheEntry create(final Instant requestInstant,
                                  final Instant responseInstant,
+                                 final HttpHost host,
                                  final HttpRequest request,
                                  final HttpResponse response,
                                  final Resource resource) {
         Args.notNull(requestInstant, "Request instant");
         Args.notNull(responseInstant, "Response instant");
+        Args.notNull(host, "Host");
         Args.notNull(request, "Request");
         Args.notNull(response, "Origin response");
+        final String requestUri = normalizeRequestUri(host, request);
         final HeaderGroup requestHeaders = filterHopByHopHeaders(request);
         final HeaderGroup responseHeaders = filterHopByHopHeaders(response);
         ensureDate(responseHeaders, responseInstant);
@@ -221,7 +238,7 @@ public class HttpCacheEntryFactory {
                 requestInstant,
                 responseInstant,
                 request.getMethod(),
-                request.getRequestUri(),
+                requestUri,
                 requestHeaders,
                 response.getCode(),
                 responseHeaders,
@@ -282,7 +299,7 @@ public class HttpCacheEntryFactory {
                 entry.getStatus(),
                 headers(entry.headerIterator()),
                 entry.getResource(),
-                entry.isVariantRoot() ? new HashMap<>(entry.getVariantMap()) : null);
+                entry.hasVariants() ? new HashSet<>(entry.getVariants()) : null);
     }
 
 }

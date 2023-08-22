@@ -38,8 +38,8 @@ import java.io.ObjectOutputStream;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.HttpCacheStorageEntry;
@@ -274,15 +274,15 @@ public class TestByteArrayCacheEntrySerializer {
         for (int i = 0; i < headers.length; i++) {
             headers[i] = new BasicHeader("header" + i, "value" + i);
         }
-        final Map<String,String> variantMap = new HashMap<>();
-        variantMap.put("test variant 1","true");
-        variantMap.put("test variant 2","true");
+        final Set<String> variants = new HashSet<>();
+        variants.add("test variant 1");
+        variants.add("test variant 2");
         final HttpCacheEntry cacheEntry = HttpTestUtils.makeCacheEntry(
                 Instant.now(),
                 Instant.now(),
                 HttpStatus.SC_OK,
                 headers,
-                variantMap);
+                variants);
 
         return new HttpCacheStorageEntry(key, cacheEntry);
     }
@@ -292,15 +292,15 @@ public class TestByteArrayCacheEntrySerializer {
         for (int i = 0; i < headers.length; i++) {
             headers[i] = new BasicHeader("header" + i, "value" + i);
         }
-        final Map<String,String> variantMap = new HashMap<>();
-        variantMap.put("test variant 1","true");
-        variantMap.put("test variant 2","true");
+        final Set<String> variants = new HashSet<>();
+        variants.add("test variant 1");
+        variants.add("test variant 2");
         final HttpCacheEntry cacheEntry = HttpTestUtils.makeCacheEntry(
                 Instant.now(),
                 Instant.now(),
                 HttpStatus.SC_OK,
                 headers,
-                variantMap);
+                variants);
 
         return new HttpCacheStorageEntry(key, cacheEntry);
     }

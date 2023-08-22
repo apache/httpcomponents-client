@@ -29,7 +29,7 @@ package org.apache.hc.client5.http.impl.cache;
 import java.io.InputStream;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Map;
+import java.util.Collection;
 import java.util.Objects;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
@@ -229,14 +229,14 @@ public class HttpTestUtils {
                                                 final Header[] requestHeaders,
                                                 final int status,
                                                 final Header[] responseHeaders,
-                                                final Map<String, String> variantMap) {
+                                                final Collection<String> variants) {
         return new HttpCacheEntry(
                 requestDate,
                 responseDate,
                 method.name(), requestUri, headers(requestHeaders),
                 status, headers(responseHeaders),
                 null,
-                variantMap);
+                variants);
     }
 
     public static HttpCacheEntry makeCacheEntry(final Instant requestDate,
@@ -260,13 +260,13 @@ public class HttpTestUtils {
                                                 final Instant responseDate,
                                                 final int status,
                                                 final Header[] responseHeaders,
-                                                final Map<String, String> variantMap) {
+                                                final Collection<String> variants) {
         return makeCacheEntry(
                 requestDate,
                 responseDate,
                 Method.GET, "/", null,
                 status, responseHeaders,
-                variantMap);
+                variants);
     }
 
     public static HttpCacheEntry makeCacheEntry(final Instant requestDate,
@@ -311,13 +311,13 @@ public class HttpTestUtils {
     public static HttpCacheEntry makeCacheEntry(final Instant requestDate,
                                                 final Instant responseDate,
                                                 final Header[] headers,
-                                                final Map<String,String> variantMap) {
-        return makeCacheEntry(requestDate, responseDate, Method.GET, "/", null, HttpStatus.SC_OK, headers, variantMap);
+                                                final Collection<String> variants) {
+        return makeCacheEntry(requestDate, responseDate, Method.GET, "/", null, HttpStatus.SC_OK, headers, variants);
     }
 
-    public static HttpCacheEntry makeCacheEntry(final Map<String, String> variantMap) {
+    public static HttpCacheEntry makeCacheEntry(final Collection<String> variants) {
         final Instant now = Instant.now();
-        return makeCacheEntry(now, now, new Header[] {}, variantMap);
+        return makeCacheEntry(now, now, new Header[] {}, variants);
     }
 
     public static HttpCacheEntry makeCacheEntry(final Header[] headers, final byte[] bytes) {

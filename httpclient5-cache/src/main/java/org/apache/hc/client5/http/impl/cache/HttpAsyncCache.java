@@ -69,6 +69,7 @@ interface HttpAsyncCache {
      */
     Cancellable update(
             CacheHit stale,
+            HttpHost host,
             HttpRequest request,
             HttpResponse originResponse,
             Instant requestSent,
