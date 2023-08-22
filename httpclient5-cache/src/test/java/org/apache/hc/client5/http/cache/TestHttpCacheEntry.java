@@ -27,19 +27,20 @@
 package org.apache.hc.client5.http.cache;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 
 import java.time.Instant;
 import java.time.temporal.ChronoField;
+import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.hc.client5.http.impl.cache.HttpTestUtils;
 import org.apache.hc.client5.http.utils.DateUtils;
@@ -47,6 +48,7 @@ import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.message.BasicHeader;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -77,10 +79,10 @@ public class TestHttpCacheEntry {
                                      final int status,
                                      final Header[] headers,
                                      final Resource resource,
-                                     final Map<String, String> variantMap) {
+                                     final Collection<String> variants) {
         return new HttpCacheEntry(requestDate, responseDate,
                 "GET", "/", HttpTestUtils.headers(),
-                status, HttpTestUtils.headers(headers), resource, variantMap);
+                status, HttpTestUtils.headers(headers), resource, variants);
     }
     @Test
     public void testGetHeadersReturnsCorrectHeaders() {
@@ -120,29 +122,6 @@ public class TestHttpCacheEntry {
         };
         entry = makeEntry(headers);
         assertNull(entry.getFirstHeader("quux"));
-    }
-
-    @Test
-    public void testCacheEntryWithOneVaryHeaderHasVariants() {
-        final Header[] headers = { new BasicHeader("Vary", "User-Agent") };
-        entry = makeEntry(headers);
-        assertTrue(entry.hasVariants());
-    }
-
-    @Test
-    public void testCacheEntryWithMultipleVaryHeadersHasVariants() {
-        final Header[] headers = { new BasicHeader("Vary", "User-Agent"),
-                new BasicHeader("Vary", "Accept-Encoding")
-        };
-        entry = makeEntry(headers);
-        assertTrue(entry.hasVariants());
-    }
-
-    @Test
-    public void testCacheEntryWithVaryStarHasVariants(){
-        final Header[] headers = { new BasicHeader("Vary", "*") };
-        entry = makeEntry(headers);
-        assertTrue(entry.hasVariants());
     }
 
     @Test
@@ -204,42 +183,38 @@ public class TestHttpCacheEntry {
     public void canProvideVariantMap() {
         makeEntry(Instant.now(), Instant.now(), HttpStatus.SC_OK,
                 new Header[]{}, mockResource,
-                new HashMap<>());
+                null);
     }
 
     @Test
     public void canRetrieveOriginalVariantMap() {
-        final Map<String,String> variantMap = new HashMap<>();
-        variantMap.put("A","B");
-        variantMap.put("C","D");
+        final Set<String> variants = new HashSet<>();
+        variants.add("A");
+        variants.add("B");
+        variants.add("C");
         entry = makeEntry(Instant.now(), Instant.now(), HttpStatus.SC_OK,
                 new Header[]{}, mockResource,
-                variantMap);
-        final Map<String,String> result = entry.getVariantMap();
-        assertEquals(2, result.size());
-        assertEquals("B", result.get("A"));
-        assertEquals("D", result.get("C"));
+                variants);
+        final Set<String> result = entry.getVariants();
+        assertEquals(3, result.size());
+        assertTrue(result.contains("A"));
+        assertTrue(result.contains("B"));
+        assertTrue(result.contains("C"));
+        assertFalse(result.contains("D"));
     }
 
     @Test
     public void retrievedVariantMapIsNotModifiable() {
-        final Map<String,String> variantMap = new HashMap<>();
-        variantMap.put("A","B");
-        variantMap.put("C","D");
+        final Set<String> variants = new HashSet<>();
+        variants.add("A");
+        variants.add("B");
+        variants.add("C");
         entry = makeEntry(Instant.now(), Instant.now(), HttpStatus.SC_OK,
                 new Header[]{}, mockResource,
-                variantMap);
-        final Map<String,String> result = entry.getVariantMap();
-        try {
-            result.remove("A");
-            fail("Should have thrown exception");
-        } catch (final UnsupportedOperationException expected) {
-        }
-        try {
-            result.put("E","F");
-            fail("Should have thrown exception");
-        } catch (final UnsupportedOperationException expected) {
-        }
+                variants);
+        final Set<String> result = entry.getVariants();
+        Assertions.assertThrows(UnsupportedOperationException.class, () -> result.remove("A"));
+        Assertions.assertThrows(UnsupportedOperationException.class, () -> result.add("D"));
     }
 
     @Test

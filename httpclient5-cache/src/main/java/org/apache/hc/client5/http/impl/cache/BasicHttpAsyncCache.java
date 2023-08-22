@@ -30,7 +30,7 @@ import java.net.URI;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -104,14 +104,14 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
             @Override
             public void completed(final HttpCacheEntry root) {
                 if (root != null) {
-                    if (root.isVariantRoot()) {
+                    if (root.hasVariants()) {
                         final List<String> variantNames = CacheKeyGenerator.variantNames(root);
                         final String variantKey = cacheKeyGenerator.generateVariantKey(request, variantNames);
-                        final String cacheKey = root.getVariantMap().get(variantKey);
-                        if (LOG.isDebugEnabled()) {
-                            LOG.debug("Get cache variant entry: {}", cacheKey);
-                        }
-                        if (cacheKey != null) {
+                        if (root.getVariants().contains(variantKey)) {
+                            final String cacheKey = variantKey + rootKey;
+                            if (LOG.isDebugEnabled()) {
+                                LOG.debug("Get cache variant entry: {}", cacheKey);
+                            }
                             complexCancellable.setDependency(storage.getEntry(
                                     cacheKey,
                                     new FutureCallback<HttpCacheEntry>() {
@@ -179,8 +179,11 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
         }
         final ComplexCancellable complexCancellable = new ComplexCancellable();
         final HttpCacheEntry root = hit.entry;
-        if (root != null && root.isVariantRoot()) {
-            final Set<String> variantCacheKeys = root.getVariantMap().keySet();
+        final String rootKey = hit.rootKey;
+        if (root != null && root.hasVariants()) {
+            final List<String> variantCacheKeys = root.getVariants().stream()
+                    .map(e -> e + rootKey)
+                    .collect(Collectors.toList());
             complexCancellable.setDependency(storage.getEntries(
                     variantCacheKeys,
                     new FutureCallback<Map<String, HttpCacheEntry>>() {
@@ -253,6 +256,7 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
     }
 
     Cancellable storeVariant(
+            final HttpHost host,
             final HttpRequest request,
             final HttpResponse originResponse,
             final Instant requestSent,
@@ -278,9 +282,9 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
 
                 storage.updateEntry(rootKey,
                         existing -> {
-                            final Map<String,String> variantMap = existing != null ? new HashMap<>(existing.getVariantMap()) : new HashMap<>();
-                            variantMap.put(variantKey, variantCacheKey);
-                            return cacheEntryFactory.createRoot(requestSent, responseReceived, request, originResponse, variantMap);
+                            final Set<String> variantMap = existing != null ? new HashSet<>(existing.getVariants()) : new HashSet<>();
+                            variantMap.add(variantKey);
+                            return cacheEntryFactory.createRoot(requestSent, responseReceived, host, request, originResponse, variantMap);
                         },
                         new FutureCallback<Boolean>() {
 
@@ -333,6 +337,7 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
     }
 
     Cancellable store(
+            final HttpHost host,
             final HttpRequest request,
             final HttpResponse originResponse,
             final Instant requestSent,
@@ -340,8 +345,8 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
             final String rootKey,
             final HttpCacheEntry entry,
             final FutureCallback<CacheHit> callback) {
-        if (entry.hasVariants()) {
-            return storeVariant(request, originResponse, requestSent, responseReceived, rootKey, entry, callback);
+        if (entry.containsHeader(HttpHeaders.VARY)) {
+            return storeVariant(host, request, originResponse, requestSent, responseReceived, rootKey, entry, callback);
         } else {
             return storeEntry(rootKey, entry, callback);
         }
@@ -370,14 +375,16 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
             final HttpCacheEntry backup = cacheEntryFactory.create(
                     requestSent,
                     responseReceived,
+                    host,
                     request,
                     originResponse,
                     content != null ? HeapResourceFactory.INSTANCE.generate(null, content.array(), 0, content.length()) : null);
             callback.completed(new CacheHit(rootKey, backup));
             return Operations.nonCancellable();
         }
-        final HttpCacheEntry entry = cacheEntryFactory.create(requestSent, responseReceived, request, originResponse, resource);
+        final HttpCacheEntry entry = cacheEntryFactory.create(requestSent, responseReceived, host, request, originResponse, resource);
         return store(
+                host,
                 request,
                 originResponse,
                 requestSent,
@@ -390,6 +397,7 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
     @Override
     public Cancellable update(
             final CacheHit stale,
+            final HttpHost host,
             final HttpRequest request,
             final HttpResponse originResponse,
             final Instant requestSent,
@@ -410,6 +418,7 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
         }
 
         return store(
+                host,
                 request,
                 originResponse,
                 requestSent,
@@ -454,7 +463,7 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
         if (LOG.isDebugEnabled()) {
             LOG.debug("Store cache entry using existing entry: {} -> {}", rootKey, hit.rootKey);
         }
-        return store(request, originResponse, requestSent, responseReceived, rootKey, hit.entry, callback);
+        return store(host, request, originResponse, requestSent, responseReceived, rootKey, hit.entry, callback);
     }
 
     private void evictEntry(final String cacheKey) {
@@ -487,12 +496,13 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
             LOG.debug("Evicting root cache entry {}", rootKey);
         }
         evictEntry(rootKey);
-        if (root.isVariantRoot()) {
-            for (final String variantKey : root.getVariantMap().values()) {
+        if (root.hasVariants()) {
+            for (final String variantKey : root.getVariants()) {
+                final String variantEntryKey = variantKey + rootKey;
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("Evicting variant cache entry {}", variantKey);
+                    LOG.debug("Evicting variant cache entry {}", variantEntryKey);
                 }
-                evictEntry(variantKey);
+                evictEntry(variantEntryKey);
             }
         }
     }

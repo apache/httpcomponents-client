@@ -703,6 +703,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                 recordCacheUpdate(scope.clientContext);
                 operation.setDependency(responseCache.update(
                         hit,
+                        target,
                         request,
                         backendResponse,
                         requestDate,
@@ -880,7 +881,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
             triggerResponse(cacheResponse, scope, asyncExecCallback);
         }
 
-        if (partialMatch != null && partialMatch.entry.isVariantRoot()) {
+        if (partialMatch != null && partialMatch.entry.hasVariants()) {
             operation.setDependency(responseCache.getVariants(
                     partialMatch,
                     new FutureCallback<Collection<CacheHit>>() {
@@ -1016,6 +1017,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                                 }
                                 responseCache.update(
                                         hit,
+                                        target,
                                         request,
                                         backendResponse,
                                         requestDate,

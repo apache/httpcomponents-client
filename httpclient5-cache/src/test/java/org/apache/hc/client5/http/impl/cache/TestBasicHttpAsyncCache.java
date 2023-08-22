@@ -31,8 +31,8 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import java.net.URI;
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
 import org.apache.hc.client5.http.utils.DateUtils;
@@ -111,15 +111,15 @@ public class TestBasicHttpAsyncCache {
     public void testInvalidatesUnsafeRequestsWithVariants() throws Exception {
         final HttpRequest request = new BasicHttpRequest("POST", "/path");
         final String rootKey = CacheKeyGenerator.INSTANCE.generateKey(host, request);
+        final Set<String> variants = new HashSet<>();
+        variants.add("{var1}");
+        variants.add("{var2}");
         final String variantKey1 = "{var1}" + rootKey;
         final String variantKey2 = "{var2}" + rootKey;
-        final Map<String, String> variantMap = new HashMap<>();
-        variantMap.put("{var1}", variantKey1);
-        variantMap.put("{var2}", variantKey2);
 
         final HttpResponse response = HttpTestUtils.make200Response();
 
-        mockStorage.putEntry(rootKey, HttpTestUtils.makeCacheEntry(variantMap));
+        mockStorage.putEntry(rootKey, HttpTestUtils.makeCacheEntry(variants));
         mockStorage.putEntry(variantKey1, HttpTestUtils.makeCacheEntry());
         mockStorage.putEntry(variantKey2, HttpTestUtils.makeCacheEntry());
 

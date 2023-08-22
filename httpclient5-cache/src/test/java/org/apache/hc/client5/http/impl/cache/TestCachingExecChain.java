@@ -1432,7 +1432,7 @@ public class TestCachingExecChain {
                 headers,
                 new HeapResource(body.getBytes(StandardCharsets.UTF_8)));
 
-        Mockito.when(mockCache.update(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
+        Mockito.when(mockCache.update(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
                 .thenReturn(new CacheHit("key", cacheEntry));
 
         // Call cacheAndReturnResponse with 304 Not Modified response
@@ -1441,6 +1441,7 @@ public class TestCachingExecChain {
         // Verify cache entry is updated
         Mockito.verify(mockCache).update(
                 Mockito.any(),
+                Mockito.same(host),
                 Mockito.same(request),
                 Mockito.same(backendResponse),
                 Mockito.eq(requestSent),

@@ -1723,6 +1723,7 @@ public class TestProtocolRequirements {
                         Mockito.any(),
                         Mockito.any(),
                         Mockito.any(),
+                        Mockito.any(),
                         Mockito.any()))
                 .thenReturn(new CacheHit("key", HttpTestUtils.makeCacheEntry()));
 
@@ -1730,6 +1731,7 @@ public class TestProtocolRequirements {
 
         Mockito.verify(mockCache).update(
                 Mockito.any(),
+                Mockito.eq(host),
                 RequestEquivalent.eq(request),
                 ResponseEquivalent.eq(notModified),
                 Mockito.any(),

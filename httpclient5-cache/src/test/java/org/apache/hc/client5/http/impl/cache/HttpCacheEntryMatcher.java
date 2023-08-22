@@ -30,8 +30,8 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.Resource;
@@ -55,7 +55,7 @@ public class HttpCacheEntryMatcher extends BaseMatcher<HttpCacheEntry> {
             try {
                 final HttpCacheEntry otherValue = (HttpCacheEntry) item;
 
-                if (!mapEqual(expectedValue.getVariantMap(), otherValue.getVariantMap())) {
+                if (!setEqual(expectedValue.getVariants(), otherValue.getVariants())) {
                     return false;
                 }
                 if (!Objects.equals(expectedValue.getRequestMethod(), otherValue.getRequestMethod())) {
@@ -114,12 +114,11 @@ public class HttpCacheEntryMatcher extends BaseMatcher<HttpCacheEntry> {
         return true;
     }
 
-    private static boolean mapEqual(final Map<?, ?> expected, final Map<?, ?> actual) {
+    private static boolean setEqual(final Set<?> expected, final Set<?> actual) {
         if (expected.size() != actual.size()) {
             return false;
         }
-        return expected.entrySet().stream()
-                .allMatch(e -> Objects.equals(e.getValue(), actual.get(e.getKey())));
+        return actual.containsAll(expected);
     }
 
     @Override

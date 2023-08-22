@@ -65,6 +65,7 @@ interface HttpCache {
      */
     CacheHit update(
             CacheHit stale,
+            HttpHost host,
             HttpRequest request,
             HttpResponse originResponse,
             Instant requestSent,
