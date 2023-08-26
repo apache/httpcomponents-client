@@ -52,13 +52,13 @@ import org.apache.hc.core5.util.Args;
 @Contract(threading = ThreadingBehavior.SAFE)
 public class BasicHttpCacheStorage implements HttpCacheStorage {
 
-    private final CacheMap entries;
+    private final InternalCacheStorage entries;
 
     private final ReentrantLock lock;
 
     public BasicHttpCacheStorage(final CacheConfig config) {
         super();
-        this.entries = new CacheMap(config.getMaxCacheEntries());
+        this.entries = new InternalCacheStorage(config.getMaxCacheEntries(), null);
         this.lock = new ReentrantLock();
     }
 
