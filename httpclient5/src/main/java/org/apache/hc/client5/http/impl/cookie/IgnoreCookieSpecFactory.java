@@ -27,6 +27,8 @@
 
 package org.apache.hc.client5.http.impl.cookie;
 
+import java.util.concurrent.locks.ReentrantLock;
+
 import org.apache.hc.client5.http.cookie.CookieSpec;
 import org.apache.hc.client5.http.cookie.CookieSpecFactory;
 import org.apache.hc.core5.annotation.Contract;
@@ -43,17 +45,23 @@ public class IgnoreCookieSpecFactory implements CookieSpecFactory {
 
     private volatile CookieSpec cookieSpec;
 
+    private final ReentrantLock lock;
+
     public IgnoreCookieSpecFactory() {
         super();
+        this.lock = new ReentrantLock();
     }
 
     @Override
     public CookieSpec create(final HttpContext context) {
         if (cookieSpec == null) {
-            synchronized (this) {
+            lock.lock();
+            try {
                 if (cookieSpec == null) {
                     this.cookieSpec = IgnoreSpecSpec.INSTANCE;
                 }
+            } finally {
+                lock.unlock();
             }
         }
         return this.cookieSpec;

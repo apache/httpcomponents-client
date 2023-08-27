@@ -35,6 +35,7 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
@@ -51,6 +52,8 @@ import org.slf4j.LoggerFactory;
 public final class PublicSuffixMatcherLoader {
 
     private static final Logger LOG = LoggerFactory.getLogger(PublicSuffixMatcherLoader.class);
+
+    private static final ReentrantLock lock = new ReentrantLock();
 
     private static PublicSuffixMatcher load(final InputStream in) throws IOException {
         final List<PublicSuffixList> lists = PublicSuffixListParser.INSTANCE.parseByType(
@@ -76,7 +79,8 @@ public final class PublicSuffixMatcherLoader {
 
     public static PublicSuffixMatcher getDefault() {
         if (DEFAULT_INSTANCE == null) {
-            synchronized (PublicSuffixMatcherLoader.class) {
+            lock.lock();
+            try {
                 if (DEFAULT_INSTANCE == null){
                     final URL url = PublicSuffixMatcherLoader.class.getResource(
                             "/mozilla/public-suffix-list.txt");
@@ -91,6 +95,8 @@ public final class PublicSuffixMatcherLoader {
                         DEFAULT_INSTANCE = new PublicSuffixMatcher(DomainType.ICANN, Collections.singletonList("com"), null);
                     }
                 }
+            } finally {
+                lock.unlock();
             }
         }
         return DEFAULT_INSTANCE;

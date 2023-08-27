@@ -34,6 +34,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.hc.client5.http.cache.HttpCacheCASOperation;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
@@ -82,12 +83,15 @@ public class ManagedHttpCacheStorage implements HttpCacheStorage, Closeable {
     private final Set<ResourceReference> resources;
     private final AtomicBoolean active;
 
+    private final ReentrantLock lock;
+
     public ManagedHttpCacheStorage(final CacheConfig config) {
         super();
         this.entries = new CacheMap(config.getMaxCacheEntries());
         this.morque = new ReferenceQueue<>();
         this.resources = new HashSet<>();
         this.active = new AtomicBoolean(true);
+        this.lock = new ReentrantLock();
     }
 
     private void ensureValidState() {
@@ -110,9 +114,12 @@ public class ManagedHttpCacheStorage implements HttpCacheStorage, Closeable {
         Args.notNull(url, "URL");
         Args.notNull(entry, "Cache entry");
         ensureValidState();
-        synchronized (this) {
+        lock.lock();
+        try {
             this.entries.put(url, entry);
             keepResourceReference(entry);
+        } finally {
+            lock.unlock();
         }
     }
 
@@ -120,8 +127,11 @@ public class ManagedHttpCacheStorage implements HttpCacheStorage, Closeable {
     public HttpCacheEntry getEntry(final String url) throws ResourceIOException {
         Args.notNull(url, "URL");
         ensureValidState();
-        synchronized (this) {
+        lock.lock();
+        try {
             return this.entries.get(url);
+        } finally {
+            lock.unlock();
         }
     }
 
@@ -129,10 +139,13 @@ public class ManagedHttpCacheStorage implements HttpCacheStorage, Closeable {
     public void removeEntry(final String url) throws ResourceIOException {
         Args.notNull(url, "URL");
         ensureValidState();
-        synchronized (this) {
+        lock.lock();
+        try {
             // Cannot deallocate the associated resources immediately as the
             // cache entry may still be in use
             this.entries.remove(url);
+        } finally {
+            lock.unlock();
         }
     }
 
@@ -143,13 +156,16 @@ public class ManagedHttpCacheStorage implements HttpCacheStorage, Closeable {
         Args.notNull(url, "URL");
         Args.notNull(casOperation, "CAS operation");
         ensureValidState();
-        synchronized (this) {
+        lock.lock();
+        try {
             final HttpCacheEntry existing = this.entries.get(url);
             final HttpCacheEntry updated = casOperation.execute(existing);
             this.entries.put(url, updated);
             if (existing != updated) {
                 keepResourceReference(updated);
             }
+        } finally {
+            lock.unlock();
         }
     }
 
@@ -170,8 +186,11 @@ public class ManagedHttpCacheStorage implements HttpCacheStorage, Closeable {
         if (isActive()) {
             ResourceReference ref;
             while ((ref = (ResourceReference) this.morque.poll()) != null) {
-                synchronized (this) {
+                lock.lock();
+                try {
                     this.resources.remove(ref);
+                } finally {
+                    lock.unlock();
                 }
                 ref.getResource().dispose();
             }
@@ -180,7 +199,8 @@ public class ManagedHttpCacheStorage implements HttpCacheStorage, Closeable {
 
     public void shutdown() {
         if (compareAndSet()) {
-            synchronized (this) {
+            lock.lock();
+            try {
                 this.entries.clear();
                 for (final ResourceReference ref: this.resources) {
                     ref.getResource().dispose();
@@ -188,6 +208,8 @@ public class ManagedHttpCacheStorage implements HttpCacheStorage, Closeable {
                 this.resources.clear();
                 while (this.morque.poll() != null) {
                 }
+            } finally {
+                lock.unlock();
             }
         }
     }
@@ -195,12 +217,15 @@ public class ManagedHttpCacheStorage implements HttpCacheStorage, Closeable {
     @Override
     public void close() {
         if (compareAndSet()) {
-            synchronized (this) {
+            lock.lock();
+            try {
                 ResourceReference ref;
                 while ((ref = (ResourceReference) this.morque.poll()) != null) {
                     this.resources.remove(ref);
                     ref.getResource().dispose();
                 }
+            } finally {
+                lock.unlock();
             }
         }
     }

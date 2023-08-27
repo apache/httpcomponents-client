@@ -29,6 +29,7 @@ package org.apache.hc.client5.http.impl.cache;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.hc.client5.http.cache.HttpCacheCASOperation;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
@@ -53,9 +54,12 @@ public class BasicHttpCacheStorage implements HttpCacheStorage {
 
     private final CacheMap entries;
 
+    private final ReentrantLock lock;
+
     public BasicHttpCacheStorage(final CacheConfig config) {
         super();
         this.entries = new CacheMap(config.getMaxCacheEntries());
+        this.lock = new ReentrantLock();
     }
 
     /**
@@ -67,9 +71,14 @@ public class BasicHttpCacheStorage implements HttpCacheStorage {
      *            HttpCacheEntry to place in the cache
      */
     @Override
-    public synchronized void putEntry(
+    public void putEntry(
             final String url, final HttpCacheEntry entry) throws ResourceIOException {
-        entries.put(url, entry);
+        lock.lock();
+        try {
+            entries.put(url, entry);
+        } finally {
+            lock.unlock();
+        }
     }
 
     /**
@@ -80,8 +89,13 @@ public class BasicHttpCacheStorage implements HttpCacheStorage {
      * @return HttpCacheEntry if one exists, or null for cache miss
      */
     @Override
-    public synchronized HttpCacheEntry getEntry(final String url) throws ResourceIOException {
-        return entries.get(url);
+    public HttpCacheEntry getEntry(final String url) throws ResourceIOException {
+        lock.lock();
+        try {
+            return entries.get(url);
+        } finally {
+            lock.unlock();
+        }
     }
 
     /**
@@ -91,15 +105,26 @@ public class BasicHttpCacheStorage implements HttpCacheStorage {
      *            Url that is the cache key
      */
     @Override
-    public synchronized void removeEntry(final String url) throws ResourceIOException {
-        entries.remove(url);
+    public void removeEntry(final String url) throws ResourceIOException {
+        lock.lock();
+        try {
+            entries.remove(url);
+        } finally {
+            lock.unlock();
+        }
+
     }
 
     @Override
-    public synchronized void updateEntry(
+    public void updateEntry(
             final String url, final HttpCacheCASOperation casOperation) throws ResourceIOException {
-        final HttpCacheEntry existingEntry = entries.get(url);
-        entries.put(url, casOperation.execute(existingEntry));
+        lock.lock();
+        try {
+            final HttpCacheEntry existingEntry = entries.get(url);
+            entries.put(url, casOperation.execute(existingEntry));
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
