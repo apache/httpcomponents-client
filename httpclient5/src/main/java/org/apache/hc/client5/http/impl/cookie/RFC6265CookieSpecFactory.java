@@ -27,6 +27,8 @@
 
 package org.apache.hc.client5.http.impl.cookie;
 
+import java.util.concurrent.locks.ReentrantLock;
+
 import org.apache.hc.client5.http.cookie.Cookie;
 import org.apache.hc.client5.http.cookie.CookieOrigin;
 import org.apache.hc.client5.http.cookie.CookieSpec;
@@ -48,6 +50,8 @@ import org.apache.hc.core5.http.protocol.HttpContext;
 @Contract(threading = ThreadingBehavior.SAFE)
 public class RFC6265CookieSpecFactory implements CookieSpecFactory {
 
+    private final ReentrantLock lock;
+
     public enum CompatibilityLevel {
         STRICT,
         RELAXED,
@@ -65,6 +69,7 @@ public class RFC6265CookieSpecFactory implements CookieSpecFactory {
         super();
         this.compatibilityLevel = compatibilityLevel != null ? compatibilityLevel : CompatibilityLevel.RELAXED;
         this.publicSuffixMatcher = publicSuffixMatcher;
+        this.lock = new ReentrantLock();
     }
 
     public RFC6265CookieSpecFactory(final PublicSuffixMatcher publicSuffixMatcher) {
@@ -78,7 +83,8 @@ public class RFC6265CookieSpecFactory implements CookieSpecFactory {
     @Override
     public CookieSpec create(final HttpContext context) {
         if (cookieSpec == null) {
-            synchronized (this) {
+            lock.lock();
+            try {
                 if (cookieSpec == null) {
                     switch (this.compatibilityLevel) {
                         case STRICT:
@@ -118,6 +124,8 @@ public class RFC6265CookieSpecFactory implements CookieSpecFactory {
                                     LaxExpiresHandler.INSTANCE);
                     }
                 }
+            } finally {
+                lock.unlock();
             }
         }
         return this.cookieSpec;
