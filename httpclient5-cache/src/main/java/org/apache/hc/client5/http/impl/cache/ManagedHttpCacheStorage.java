@@ -78,7 +78,7 @@ import org.apache.hc.core5.util.Args;
 @Contract(threading = ThreadingBehavior.SAFE)
 public class ManagedHttpCacheStorage implements HttpCacheStorage, Closeable {
 
-    private final CacheMap entries;
+    private final InternalCacheStorage entries;
     private final ReferenceQueue<HttpCacheEntry> morque;
     private final Set<ResourceReference> resources;
     private final AtomicBoolean active;
@@ -87,7 +87,7 @@ public class ManagedHttpCacheStorage implements HttpCacheStorage, Closeable {
 
     public ManagedHttpCacheStorage(final CacheConfig config) {
         super();
-        this.entries = new CacheMap(config.getMaxCacheEntries());
+        this.entries = new InternalCacheStorage(config.getMaxCacheEntries(), null);
         this.morque = new ReferenceQueue<>();
         this.resources = new HashSet<>();
         this.active = new AtomicBoolean(true);
