@@ -92,6 +92,7 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
     private final RequestConfig defaultConfig;
     private final ConcurrentLinkedQueue<Closeable> closeables;
     private final ScheduledExecutorService scheduledExecutorService;
+    private final AsyncExecChain.Scheduler scheduler;
 
     InternalAbstractHttpAsyncClient(
             final DefaultConnectingIOReactor ioReactor,
@@ -113,6 +114,30 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
         this.defaultConfig = defaultConfig;
         this.closeables = closeables != null ? new ConcurrentLinkedQueue<>(closeables) : null;
         this.scheduledExecutorService = Executors.newSingleThreadScheduledExecutor(SCHEDULER_THREAD_FACTORY);
+        this.scheduler = new AsyncExecChain.Scheduler() {
+
+            @Override
+            public void scheduleExecution(
+                    final HttpRequest request,
+                    final AsyncEntityProducer entityProducer,
+                    final AsyncExecChain.Scope scope,
+                    final AsyncExecCallback asyncExecCallback,
+                    final TimeValue delay) {
+                executeScheduled(request, entityProducer, scope, execChain::execute, asyncExecCallback, delay);
+            }
+
+            @Override
+            public void scheduleExecution(
+                    final HttpRequest request,
+                    final AsyncEntityProducer entityProducer,
+                    final AsyncExecChain.Scope scope,
+                    final AsyncExecChain chain,
+                    final AsyncExecCallback asyncExecCallback,
+                    final TimeValue delay) {
+                executeScheduled(request, entityProducer, scope, chain, asyncExecCallback, delay);
+            }
+        };
+
     }
 
     @Override
@@ -197,8 +222,6 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
                 }
                 final AsyncExecRuntime execRuntime = createAsyncExecRuntime(pushHandlerFactory);
 
-                final AsyncExecChain.Scheduler scheduler = this::executeScheduled;
-
                 final AsyncExecChain.Scope scope = new AsyncExecChain.Scope(exchangeId, route, request, future,
                         clientContext, execRuntime, scheduler, new AtomicInteger(1));
                 final AtomicBoolean outputTerminated = new AtomicBoolean(false);
@@ -262,6 +285,7 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
 
                         } : null,
                         scope,
+                        execChain::execute,
                         new AsyncExecCallback() {
 
                             @Override
@@ -343,18 +367,20 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
             final HttpRequest request,
             final AsyncEntityProducer entityProducer,
             final AsyncExecChain.Scope scope,
+            final AsyncExecChain chain,
             final AsyncExecCallback asyncExecCallback) throws HttpException, IOException {
-        execChain.execute(request, entityProducer, scope, asyncExecCallback);
+        chain.proceed(request, entityProducer, scope, asyncExecCallback);
     }
 
     void executeScheduled(
             final HttpRequest request,
             final AsyncEntityProducer entityProducer,
             final AsyncExecChain.Scope scope,
+            final AsyncExecChain chain,
             final AsyncExecCallback asyncExecCallback,
             final TimeValue delay) {
         final ScheduledRequestExecution scheduledTask = new ScheduledRequestExecution(
-                request, entityProducer, scope, asyncExecCallback, delay);
+                request, entityProducer, scope, chain, asyncExecCallback, delay);
         if (TimeValue.isPositive(delay)) {
             scheduledExecutorService.schedule(scheduledTask, delay.getDuration(), delay.getTimeUnit());
         } else {
@@ -367,17 +393,20 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
         final HttpRequest request;
         final AsyncEntityProducer entityProducer;
         final AsyncExecChain.Scope scope;
+        final AsyncExecChain chain;
         final AsyncExecCallback asyncExecCallback;
         final TimeValue delay;
 
         ScheduledRequestExecution(final HttpRequest request,
                                   final AsyncEntityProducer entityProducer,
                                   final AsyncExecChain.Scope scope,
+                                  final AsyncExecChain chain,
                                   final AsyncExecCallback asyncExecCallback,
                                   final TimeValue delay) {
             this.request = request;
             this.entityProducer = entityProducer;
             this.scope = scope;
+            this.chain = chain;
             this.asyncExecCallback = asyncExecCallback;
             this.delay = delay;
         }
@@ -385,7 +414,7 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
         @Override
         public void run() {
             try {
-                execChain.execute(request, entityProducer, scope, asyncExecCallback);
+                chain.proceed(request, entityProducer, scope, asyncExecCallback);
             } catch (final Exception ex) {
                 asyncExecCallback.failed(ex);
             }

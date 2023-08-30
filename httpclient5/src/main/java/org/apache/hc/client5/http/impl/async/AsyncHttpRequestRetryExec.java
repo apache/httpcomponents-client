@@ -131,7 +131,13 @@ public final class AsyncHttpRequestRetryExec implements AsyncExecChainHandler {
                     if (entityProducer != null) {
                        entityProducer.releaseResources();
                     }
-                    scope.scheduler.scheduleExecution(request, entityProducer, scope, asyncExecCallback, state.delay);
+                    scope.scheduler.scheduleExecution(
+                            request,
+                            entityProducer,
+                            scope,
+                            (r, e, s, c) -> execute(r, e, s, chain, c),
+                            asyncExecCallback,
+                            state.delay);
                 } else {
                     asyncExecCallback.completed();
                 }
@@ -161,7 +167,13 @@ public final class AsyncHttpRequestRetryExec implements AsyncExecChainHandler {
                         state.retrying = true;
                         final int execCount = scope.execCount.incrementAndGet();
                         state.delay = retryStrategy.getRetryInterval(request, (IOException) cause, execCount - 1, clientContext);
-                        scope.scheduler.scheduleExecution(request, entityProducer, scope, asyncExecCallback, state.delay);
+                        scope.scheduler.scheduleExecution(
+                                request,
+                                entityProducer,
+                                scope,
+                                (r, e, s, c) -> execute(r, e, s, chain, c),
+                                asyncExecCallback,
+                                state.delay);
                         return;
                     }
                 }

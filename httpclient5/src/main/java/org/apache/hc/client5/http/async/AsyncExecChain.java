@@ -32,6 +32,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.concurrent.CancellableDependency;
 import org.apache.hc.core5.http.HttpException;
@@ -116,7 +117,7 @@ public interface AsyncExecChain {
          * @param request the actual request.
          * @param entityProducer the request entity producer or {@code null} if the request
          *                      does not enclose an entity.
-         * @param scope the execution scope .
+         * @param scope the execution scope.
          * @param asyncExecCallback the execution callback.
          * @param delay re-execution delay. Can be {@code null} if the request is to be
          *              re-executed immediately.
@@ -127,6 +128,31 @@ public interface AsyncExecChain {
                 AsyncExecChain.Scope scope,
                 AsyncExecCallback asyncExecCallback,
                 TimeValue delay);
+
+        /**
+         * Schedules request re-execution of the given execution chain immediately or
+         * after a delay.
+         * @param request the actual request.
+         * @param entityProducer the request entity producer or {@code null} if the request
+         *                      does not enclose an entity.
+         * @param scope the execution scope.
+         * @param chain the execution chain.
+         * @param asyncExecCallback the execution callback.
+         * @param delay re-execution delay. Can be {@code null} if the request is to be
+         *              re-executed immediately.
+         *
+         * @since 5.3
+         */
+        @Internal
+        default void scheduleExecution(
+                HttpRequest request,
+                AsyncEntityProducer entityProducer,
+                AsyncExecChain.Scope scope,
+                AsyncExecChain chain,
+                AsyncExecCallback asyncExecCallback,
+                TimeValue delay) {
+            scheduleExecution(request, entityProducer, scope, asyncExecCallback, delay);
+        }
 
     }
 
