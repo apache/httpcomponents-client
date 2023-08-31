@@ -60,9 +60,9 @@ import org.apache.hc.core5.http.HttpException;
  *
  * @since 4.3
  * @see ChainElement
- * @see HttpClientBuilder#addExecInterceptorFirst(String, ExecChainHandler) 
+ * @see HttpClientBuilder#addExecInterceptorFirst(String, ExecChainHandler)
  * @see HttpClientBuilder#addExecInterceptorBefore(String, String, ExecChainHandler)
- * @see HttpClientBuilder#addExecInterceptorAfter(String, String, ExecChainHandler) 
+ * @see HttpClientBuilder#addExecInterceptorAfter(String, String, ExecChainHandler)
  * @see HttpClientBuilder#addExecInterceptorLast(String, ExecChainHandler)
  */
 @Contract(threading = ThreadingBehavior.STATELESS)
