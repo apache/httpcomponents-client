@@ -91,7 +91,7 @@ public class TestHttpClientConnectionOperator {
         Mockito.when(dnsResolver.resolve("somehost")).thenReturn(new InetAddress[] { ip1, ip2 });
         Mockito.when(socketFactoryRegistry.lookup("http")).thenReturn(plainSocketFactory);
         Mockito.when(schemePortResolver.resolve(host)).thenReturn(80);
-        Mockito.when(plainSocketFactory.createSocket(Mockito.any())).thenReturn(socket);
+        Mockito.when(plainSocketFactory.createSocket(Mockito.any(), Mockito.any())).thenReturn(socket);
         Mockito.when(plainSocketFactory.connectSocket(
                 Mockito.any(),
                 Mockito.any(),
@@ -141,7 +141,7 @@ public class TestHttpClientConnectionOperator {
         Mockito.when(dnsResolver.resolve("somehost")).thenReturn(new InetAddress[] { ip1, ip2 });
         Mockito.when(socketFactoryRegistry.lookup("http")).thenReturn(plainSocketFactory);
         Mockito.when(schemePortResolver.resolve(host)).thenReturn(80);
-        Mockito.when(plainSocketFactory.createSocket(Mockito.any())).thenReturn(socket);
+        Mockito.when(plainSocketFactory.createSocket(Mockito.any(), Mockito.any())).thenReturn(socket);
         Mockito.when(plainSocketFactory.connectSocket(
                 Mockito.any(),
                 Mockito.any(),
@@ -166,7 +166,7 @@ public class TestHttpClientConnectionOperator {
         Mockito.when(dnsResolver.resolve("somehost")).thenReturn(new InetAddress[] { ip1, ip2 });
         Mockito.when(socketFactoryRegistry.lookup("http")).thenReturn(plainSocketFactory);
         Mockito.when(schemePortResolver.resolve(host)).thenReturn(80);
-        Mockito.when(plainSocketFactory.createSocket(Mockito.any())).thenReturn(socket);
+        Mockito.when(plainSocketFactory.createSocket(Mockito.any(), Mockito.any())).thenReturn(socket);
         Mockito.when(plainSocketFactory.connectSocket(
                 Mockito.any(),
                 Mockito.any(),
@@ -192,7 +192,7 @@ public class TestHttpClientConnectionOperator {
         Mockito.when(dnsResolver.resolve("somehost")).thenReturn(new InetAddress[] { ip1, ip2 });
         Mockito.when(socketFactoryRegistry.lookup("http")).thenReturn(plainSocketFactory);
         Mockito.when(schemePortResolver.resolve(host)).thenReturn(80);
-        Mockito.when(plainSocketFactory.createSocket(Mockito.any())).thenReturn(socket);
+        Mockito.when(plainSocketFactory.createSocket(Mockito.any(), Mockito.any())).thenReturn(socket);
         Mockito.when(plainSocketFactory.connectSocket(
                 Mockito.any(),
                 Mockito.any(),
@@ -236,7 +236,7 @@ public class TestHttpClientConnectionOperator {
 
         Mockito.when(socketFactoryRegistry.lookup("http")).thenReturn(plainSocketFactory);
         Mockito.when(schemePortResolver.resolve(host)).thenReturn(80);
-        Mockito.when(plainSocketFactory.createSocket(Mockito.any())).thenReturn(socket);
+        Mockito.when(plainSocketFactory.createSocket(Mockito.any(), Mockito.any())).thenReturn(socket);
         Mockito.when(plainSocketFactory.connectSocket(
                 Mockito.any(),
                 Mockito.any(),

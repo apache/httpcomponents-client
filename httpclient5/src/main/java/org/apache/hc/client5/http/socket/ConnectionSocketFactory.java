@@ -29,9 +29,11 @@ package org.apache.hc.client5.http.socket;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.net.Socket;
 
 import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.protocol.HttpContext;
@@ -50,12 +52,20 @@ public interface ConnectionSocketFactory {
      * Creates new, unconnected socket. The socket should subsequently be passed to
      * {@link #connectSocket(TimeValue, Socket, HttpHost, InetSocketAddress, InetSocketAddress,
      *    HttpContext) connectSocket} method.
-     *
-     * @return  a new socket
-     *
-     * @throws IOException if an I/O error occurs while creating the socket
      */
     Socket createSocket(HttpContext context) throws IOException;
+
+    /**
+     * Creates new, unconnected socket via a proxy (generally SOCKS is expected).
+     * The socket should subsequently be passed to {@link #connectSocket(TimeValue, Socket,
+     * HttpHost, InetSocketAddress, InetSocketAddress, HttpContext) connectSocket} method.
+     *
+     * @since 5.2
+     */
+    @Internal
+    default Socket createSocket(Proxy proxy, HttpContext context) throws IOException {
+        return createSocket(context);
+    }
 
     /**
      * Connects the socket to the target host with the given resolved remote address.

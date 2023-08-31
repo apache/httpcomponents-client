@@ -30,6 +30,7 @@ package org.apache.hc.client5.http.ssl;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.net.Socket;
 import java.security.AccessController;
 import java.security.PrivilegedActionException;
@@ -39,7 +40,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import javax.net.SocketFactory;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLException;
@@ -200,7 +200,12 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
 
     @Override
     public Socket createSocket(final HttpContext context) throws IOException {
-        return SocketFactory.getDefault().createSocket();
+        return new Socket();
+    }
+
+    @Override
+    public Socket createSocket(final Proxy proxy, final HttpContext context) throws IOException {
+        return new Socket(proxy);
     }
 
     @Override

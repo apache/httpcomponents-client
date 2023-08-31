@@ -29,6 +29,7 @@ package org.apache.hc.client5.http.socket;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.net.Socket;
 import java.security.AccessController;
 import java.security.PrivilegedActionException;
@@ -58,6 +59,11 @@ public class PlainConnectionSocketFactory implements ConnectionSocketFactory {
 
     public PlainConnectionSocketFactory() {
         super();
+    }
+
+    @Override
+    public Socket createSocket(final Proxy proxy, final HttpContext context) throws IOException {
+        return proxy != null ? new Socket(proxy) : new Socket();
     }
 
     @Override
