@@ -28,6 +28,9 @@ package org.apache.hc.client5.http.async;
 
 import java.io.IOException;
 
+import org.apache.hc.client5.http.impl.ChainElement;
+import org.apache.hc.client5.http.impl.async.AsyncHttpRequestRetryExec;
+import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HttpException;
@@ -39,8 +42,20 @@ import org.apache.hc.core5.http.nio.AsyncEntityProducer;
  * chain. Handlers can either be a decorator around another element that implements
  * a cross cutting aspect or a self-contained executor capable of producing a response
  * for the given request.
- *
+ * <p>
+ * For information regarding the handler chain behaviour in case of a request re-execution,
+ * please refer to the {@link AsyncHttpRequestRetryExec} javadoc.
+ * </p>
+ * <p>
+ * Well known request execution handlers could be referred to by name using one of the
+ * {@link ChainElement} enum values.
+ * </p>
  * @since 5.0
+ * @see ChainElement
+ * @see HttpAsyncClientBuilder#addExecInterceptorFirst(String, AsyncExecChainHandler)
+ * @see HttpAsyncClientBuilder#addExecInterceptorBefore(String, String, AsyncExecChainHandler)
+ * @see HttpAsyncClientBuilder#addExecInterceptorAfter(String, String, AsyncExecChainHandler)
+ * @see HttpAsyncClientBuilder#addExecInterceptorLast(String, AsyncExecChainHandler)
  */
 @Contract(threading = ThreadingBehavior.STATELESS)
 public interface AsyncExecChainHandler {
