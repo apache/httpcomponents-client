@@ -260,7 +260,7 @@ public class TestPoolingHttpClientConnectionManager {
         Mockito.when(dnsResolver.resolve("somehost")).thenReturn(new InetAddress[]{remote});
         Mockito.when(schemePortResolver.resolve(target)).thenReturn(8443);
         Mockito.when(socketFactoryRegistry.lookup("https")).thenReturn(plainSocketFactory);
-        Mockito.when(plainSocketFactory.createSocket(Mockito.any())).thenReturn(socket);
+        Mockito.when(plainSocketFactory.createSocket(Mockito.any(), Mockito.any())).thenReturn(socket);
         Mockito.when(plainSocketFactory.connectSocket(
                 Mockito.eq(socket),
                 Mockito.any(),
@@ -274,7 +274,7 @@ public class TestPoolingHttpClientConnectionManager {
 
         Mockito.verify(dnsResolver, Mockito.times(1)).resolve("somehost");
         Mockito.verify(schemePortResolver, Mockito.times(1)).resolve(target);
-        Mockito.verify(plainSocketFactory, Mockito.times(1)).createSocket(context);
+        Mockito.verify(plainSocketFactory, Mockito.times(1)).createSocket(null, context);
         Mockito.verify(plainSocketFactory, Mockito.times(1)).connectSocket(
                 socket,
                 target,
@@ -288,7 +288,7 @@ public class TestPoolingHttpClientConnectionManager {
 
         Mockito.verify(dnsResolver, Mockito.times(2)).resolve("somehost");
         Mockito.verify(schemePortResolver, Mockito.times(2)).resolve(target);
-        Mockito.verify(plainSocketFactory, Mockito.times(2)).createSocket(context);
+        Mockito.verify(plainSocketFactory, Mockito.times(2)).createSocket(null, context);
         Mockito.verify(plainSocketFactory, Mockito.times(1)).connectSocket(
                 socket,
                 target,
@@ -345,7 +345,7 @@ public class TestPoolingHttpClientConnectionManager {
         Mockito.when(schemePortResolver.resolve(target)).thenReturn(8443);
         Mockito.when(socketFactoryRegistry.lookup("http")).thenReturn(plainsf);
         Mockito.when(socketFactoryRegistry.lookup("https")).thenReturn(sslsf);
-        Mockito.when(plainsf.createSocket(Mockito.any())).thenReturn(mockSock);
+        Mockito.when(plainsf.createSocket(Mockito.any(), Mockito.any())).thenReturn(mockSock);
         Mockito.when(plainsf.connectSocket(
                 Mockito.eq(mockSock),
                 Mockito.any(),
@@ -359,7 +359,7 @@ public class TestPoolingHttpClientConnectionManager {
 
         Mockito.verify(dnsResolver, Mockito.times(1)).resolve("someproxy");
         Mockito.verify(schemePortResolver, Mockito.times(1)).resolve(proxy);
-        Mockito.verify(plainsf, Mockito.times(1)).createSocket(context);
+        Mockito.verify(plainsf, Mockito.times(1)).createSocket(null, context);
         Mockito.verify(plainsf, Mockito.times(1)).connectSocket(
                 mockSock,
                 proxy,

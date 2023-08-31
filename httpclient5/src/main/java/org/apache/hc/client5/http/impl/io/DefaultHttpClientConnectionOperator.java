@@ -29,7 +29,9 @@ package org.apache.hc.client5.http.impl.io;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.net.Socket;
+import java.net.SocketAddress;
 import java.util.Arrays;
 
 import org.apache.hc.client5.http.ConnectExceptionSupport;
@@ -146,13 +148,14 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
         }
 
         final Timeout soTimeout = socketConfig.getSoTimeout();
-
+        final SocketAddress socksProxyAddress = socketConfig.getSocksProxyAddress();
+        final Proxy proxy = socksProxyAddress != null ? new Proxy(Proxy.Type.SOCKS, socksProxyAddress) : null;
         final int port = this.schemePortResolver.resolve(host);
         for (int i = 0; i < remoteAddresses.length; i++) {
             final InetAddress address = remoteAddresses[i];
             final boolean last = i == remoteAddresses.length - 1;
 
-            Socket sock = sf.createSocket(context);
+            Socket sock = sf.createSocket(proxy, context);
             if (soTimeout != null) {
                 sock.setSoTimeout(soTimeout.toMillisecondsIntBound());
             }
