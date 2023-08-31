@@ -35,6 +35,7 @@ import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecChain.Scope;
 import org.apache.hc.client5.http.classic.ExecChainHandler;
 import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.ChainElement;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Internal;
@@ -64,6 +65,7 @@ import org.slf4j.LoggerFactory;
  * <p>
  * If this handler is active, pay particular attention to the placement
  * of other handlers within the handler chain relative to the retry handler.
+ * Use {@link ChainElement#RETRY} as name when referring to this handler.
  * </p>
  * <p>
  * If a custom handler is placed <b>before</b> the retry handler, the handler will

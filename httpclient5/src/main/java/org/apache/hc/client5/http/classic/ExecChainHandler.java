@@ -29,6 +29,8 @@ package org.apache.hc.client5.http.classic;
 
 import java.io.IOException;
 
+import org.apache.hc.client5.http.impl.ChainElement;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.classic.HttpRequestRetryExec;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
@@ -51,8 +53,17 @@ import org.apache.hc.core5.http.HttpException;
  * For information regarding the handler chain behaviour in case of a request re-execution,
  * please refer to the {@link HttpRequestRetryExec} javadoc.
  * </p>
+ *<p>
+ * Well known request execution handlers could be referred to by name using one of the
+ * {@link ChainElement} enum values.
+ *</p>
  *
  * @since 4.3
+ * @see ChainElement
+ * @see HttpClientBuilder#addExecInterceptorFirst(String, ExecChainHandler) 
+ * @see HttpClientBuilder#addExecInterceptorBefore(String, String, ExecChainHandler)
+ * @see HttpClientBuilder#addExecInterceptorAfter(String, String, ExecChainHandler) 
+ * @see HttpClientBuilder#addExecInterceptorLast(String, ExecChainHandler)
  */
 @Contract(threading = ThreadingBehavior.STATELESS)
 public interface ExecChainHandler {
