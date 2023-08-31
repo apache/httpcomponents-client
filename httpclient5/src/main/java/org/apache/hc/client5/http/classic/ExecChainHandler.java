@@ -29,6 +29,7 @@ package org.apache.hc.client5.http.classic;
 
 import java.io.IOException;
 
+import org.apache.hc.client5.http.impl.classic.HttpRequestRetryExec;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.ClassicHttpRequest;
@@ -45,6 +46,10 @@ import org.apache.hc.core5.http.HttpException;
  * or response post-processing of any sort to release resources associated with the response
  * by calling {@link ClassicHttpResponse#close()} methods in case of an I/O, protocol or
  * runtime exception, or in case the response is not propagated to the caller.
+ * </p>
+ * <p>
+ * For information regarding the handler chain behaviour in case of a request re-execution,
+ * please refer to the {@link HttpRequestRetryExec} javadoc.
  * </p>
  *
  * @since 4.3

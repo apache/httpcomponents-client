@@ -61,6 +61,31 @@ import org.slf4j.LoggerFactory;
  * endpoint is delegated to the next executor in the request execution
  * chain.
  * </p>
+ * <p>
+ * If this handler is active, pay particular attention to the placement
+ * of other handlers within the handler chain relative to the retry handler.
+ * </p>
+ * <p>
+ * If a custom handler is placed <b>before</b> the retry handler, the handler will
+ * see the initial request and the final outcome after the last retry. Elapsed time
+ * will account for any delays imposed by the retry handler. To place a handler before
+ * the retry handler:
+ *
+ * <pre>{@code
+    asyncClientBuilder.addExecInterceptorBefore(ChainElement.RETRY.name(), "MyCustomHandler", handler);
+ * }</pre>
+ * </p>
+ *
+ * <p>
+ * A custom handler which is placed <b>after</b> the retry handler will be invoked for
+ * each individual retry. Elapsed time will measure each individual http request,
+ * without the delay imposed by the retry handler. To place a handler after the retry handler:
+ *
+ * <pre>{@code
+    asyncClientBuilder.addExecInterceptorAfter(ChainElement.RETRY.name(), "MyCustomHandler", handler);
+}</pre>
+ * </p>
+ *
  *
  * @since 5.0
  */

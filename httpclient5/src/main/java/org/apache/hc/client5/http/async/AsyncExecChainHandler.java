@@ -28,6 +28,7 @@ package org.apache.hc.client5.http.async;
 
 import java.io.IOException;
 
+import org.apache.hc.client5.http.impl.async.AsyncHttpRequestRetryExec;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HttpException;
@@ -39,7 +40,10 @@ import org.apache.hc.core5.http.nio.AsyncEntityProducer;
  * chain. Handlers can either be a decorator around another element that implements
  * a cross cutting aspect or a self-contained executor capable of producing a response
  * for the given request.
- *
+ * <p>
+ * For information regarding the handler chain behaviour in case of a request re-execution,
+ * please refer to the {@link AsyncHttpRequestRetryExec} javadoc.
+ * </p>
  * @since 5.0
  */
 @Contract(threading = ThreadingBehavior.STATELESS)
