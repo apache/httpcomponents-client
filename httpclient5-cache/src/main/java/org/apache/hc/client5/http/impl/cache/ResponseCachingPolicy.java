@@ -29,9 +29,6 @@ package org.apache.hc.client5.http.impl.cache;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -71,20 +68,12 @@ class ResponseCachingPolicy {
      */
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.RFC_1123_DATE_TIME;
 
-    private final static Set<Integer> CACHEABLE_STATUS_CODES =
-            new HashSet<>(Arrays.asList(HttpStatus.SC_OK,
-                    HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION,
-                    HttpStatus.SC_MULTIPLE_CHOICES,
-                    HttpStatus.SC_MOVED_PERMANENTLY,
-                    HttpStatus.SC_GONE));
-
     private static final Logger LOG = LoggerFactory.getLogger(ResponseCachingPolicy.class);
 
     private final long maxObjectSizeBytes;
     private final boolean sharedCache;
     private final boolean neverCache1_0ResponsesWithQueryString;
     private final boolean neverCache1_1ResponsesWithQueryString;
-    private final Set<Integer> uncacheableStatusCodes;
 
     /**
      * A flag indicating whether serving stale cache entries is allowed when an error occurs
@@ -95,32 +84,6 @@ class ResponseCachingPolicy {
     private final boolean staleIfErrorEnabled;
 
     /**
-     * Define a cache policy that limits the size of things that should be stored
-     * in the cache to a maximum of {@link HttpResponse} bytes in size.
-     *
-     * @param maxObjectSizeBytes the size to limit items into the cache
-     * @param sharedCache whether to behave as a shared cache (true) or a
-     * non-shared/private cache (false)
-     * @param neverCache1_0ResponsesWithQueryString true to never cache HTTP 1.0 responses with a query string, false
-     * to cache if explicit cache headers are found.
-     * @param allow303Caching if this policy is permitted to cache 303 response
-     * @param neverCache1_1ResponsesWithQueryString {@code true} to never cache HTTP 1.1 responses with a query string,
-     * {@code false} to cache if explicit cache headers are found.
-     */
-    public ResponseCachingPolicy(final long maxObjectSizeBytes,
-            final boolean sharedCache,
-            final boolean neverCache1_0ResponsesWithQueryString,
-            final boolean allow303Caching,
-            final boolean neverCache1_1ResponsesWithQueryString) {
-        this(maxObjectSizeBytes,
-                sharedCache,
-                neverCache1_0ResponsesWithQueryString,
-                allow303Caching,
-                neverCache1_1ResponsesWithQueryString,
-                false);
-    }
-
-    /**
      * Constructs a new ResponseCachingPolicy with the specified cache policy settings and stale-if-error support.
      *
      * @param maxObjectSizeBytes                    the maximum size of objects, in bytes, that should be stored
@@ -129,8 +92,6 @@ class ResponseCachingPolicy {
      *                                              non-shared/private cache (false)
      * @param neverCache1_0ResponsesWithQueryString {@code true} to never cache HTTP 1.0 responses with a query string,
      *                                              {@code false} to cache if explicit cache headers are found.
-     * @param allow303Caching                       {@code true} if this policy is permitted to cache 303 responses,
-     *                                              {@code false} otherwise
      * @param neverCache1_1ResponsesWithQueryString {@code true} to never cache HTTP 1.1 responses with a query string,
      *                                              {@code false} to cache if explicit cache headers are found.
      * @param staleIfErrorEnabled                   {@code true} to enable the stale-if-error cache directive, which
@@ -141,18 +102,12 @@ class ResponseCachingPolicy {
     public ResponseCachingPolicy(final long maxObjectSizeBytes,
              final boolean sharedCache,
              final boolean neverCache1_0ResponsesWithQueryString,
-             final boolean allow303Caching,
              final boolean neverCache1_1ResponsesWithQueryString,
              final boolean staleIfErrorEnabled) {
         this.maxObjectSizeBytes = maxObjectSizeBytes;
         this.sharedCache = sharedCache;
         this.neverCache1_0ResponsesWithQueryString = neverCache1_0ResponsesWithQueryString;
         this.neverCache1_1ResponsesWithQueryString = neverCache1_1ResponsesWithQueryString;
-        if (allow303Caching) {
-            uncacheableStatusCodes = new HashSet<>(Collections.singletonList(HttpStatus.SC_PARTIAL_CONTENT));
-        } else {
-            uncacheableStatusCodes = new HashSet<>(Arrays.asList(HttpStatus.SC_PARTIAL_CONTENT, HttpStatus.SC_SEE_OTHER));
-        }
         this.staleIfErrorEnabled = staleIfErrorEnabled;
     }
 
@@ -172,15 +127,15 @@ class ResponseCachingPolicy {
         }
 
         final int status = response.getCode();
-        if (CACHEABLE_STATUS_CODES.contains(status)) {
+        if (isKnownCacheableStatusCode(status)) {
             // these response codes MAY be cached
             cacheable = true;
-        } else if (uncacheableStatusCodes.contains(status)) {
+        } else if (isKnownNonCacheableStatusCode(status)) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("{} response is not cacheable", status);
             }
             return false;
-        } else if (unknownStatusCode(status)) {
+        } else if (isUnknownStatusCode(status)) {
             // a response with an unknown status code MUST NOT be
             // cached
             if (LOG.isDebugEnabled()) {
@@ -247,7 +202,19 @@ class ResponseCachingPolicy {
         return cacheable || isExplicitlyCacheable(cacheControl, response);
     }
 
-    private boolean unknownStatusCode(final int status) {
+    private static boolean isKnownCacheableStatusCode(final int status) {
+        return status == HttpStatus.SC_OK ||
+                status == HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION ||
+                status == HttpStatus.SC_MULTIPLE_CHOICES ||
+                status == HttpStatus.SC_MOVED_PERMANENTLY ||
+                status == HttpStatus.SC_GONE;
+    }
+
+    private static boolean isKnownNonCacheableStatusCode(final int status) {
+        return status == HttpStatus.SC_PARTIAL_CONTENT;
+    }
+
+    private static boolean isUnknownStatusCode(final int status) {
         if (status >= 100 && status <= 101) {
             return false;
         }
@@ -507,7 +474,6 @@ class ResponseCachingPolicy {
     }
 
     /**
-     * This method checks if a given HTTP status code is understood according to RFC 7231.
      * Understood status codes include:
      * - All 2xx (Successful) status codes (200-299)
      * - All 3xx (Redirection) status codes (300-399)

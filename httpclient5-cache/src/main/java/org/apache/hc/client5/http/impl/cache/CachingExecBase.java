@@ -98,7 +98,6 @@ public class CachingExecBase {
                 this.cacheConfig.getMaxObjectSize(),
                 this.cacheConfig.isSharedCache(),
                 this.cacheConfig.isNeverCacheHTTP10ResponsesWithQuery(),
-                this.cacheConfig.is303CachingEnabled(),
                 this.cacheConfig.isNeverCacheHTTP11ResponsesWithQuery(),
                 this.cacheConfig.isStaleIfErrorEnabled());
     }
