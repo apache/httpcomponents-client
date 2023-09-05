@@ -30,21 +30,18 @@ import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TimeValue;
 
 /**
- * <p>Java Beans-style configuration for caching {@link org.apache.hc.client5.http.classic.HttpClient}.
- * Any class in the caching module that has configuration options should take a
- * {@link CacheConfig} argument in one of its constructors. A
- * {@code CacheConfig} instance has sane and conservative defaults, so the
- * easiest way to specify options is to get an instance and then set just
- * the options you want to modify from their defaults.</p>
- *
- * <p><b>N.B.</b> This class is only for caching-specific configuration; to
- * configure the behavior of the rest of the client, configure the
- * {@link org.apache.hc.client5.http.classic.HttpClient} used as the &quot;backend&quot;
- * for the {@code CachingHttpClient}.</p>
+ * <p>Configuration for HTTP caches</p>
  *
  * <p>Cache configuration can be grouped into the following categories:</p>
  *
- * <p><b>Cache size.</b> If the backend storage supports these limits, you
+ * <p><b>Protocol options.</b> I some cases the HTTP protocol allows for
+ * conditional behaviors or optional protocol extensions. Such conditional
+ * protocol behaviors or extensions can be turned on or off here.
+ * See {@link CacheConfig#isNeverCacheHTTP10ResponsesWithQuery()},
+ * {@link CacheConfig#isNeverCacheHTTP11ResponsesWithQuery()},
+ * {@link CacheConfig#isStaleIfErrorEnabled()}</p>
+ *
+ * <p><b>Cache size.</b> If the backend storage supports these limits, one
  * can specify the {@link CacheConfig#getMaxCacheEntries maximum number of
  * cache entries} as well as the {@link CacheConfig#getMaxObjectSize()}
  * maximum cacheable response body size}.</p>
@@ -54,37 +51,25 @@ import org.apache.hc.core5.util.TimeValue;
  * responses to requests with {@code Authorization} headers or responses
  * marked with {@code Cache-Control: private}. If, however, the cache
  * is only going to be used by one logical "user" (behaving similarly to a
- * browser cache), then you will want to {@link
- * CacheConfig#isSharedCache()}  turn off the shared cache setting}.</p>
+ * browser cache), then one may want to {@link CacheConfig#isSharedCache()}
+ * turn off the shared cache setting}.</p>
  *
- * <p><b>Weak ETags on PUT/DELETE If-Match requests</b>. RFC2616 explicitly
- * prohibits the use of weak validators in non-GET requests, however, the
- * HTTPbis working group says while the limitation for weak validators on ranged
- * requests makes sense, weak ETag validation is useful on full non-GET
- * requests; e.g., PUT with If-Match. This behavior is off by default, to err on
- * the side of a conservative adherence to the existing standard, but you may
- * want to {@link Builder#setWeakETagOnPutDeleteAllowed(boolean) enable it}.
- *
- * <p><b>Heuristic caching</b>. Per RFC2616, a cache may cache certain cache
- * entries even if no explicit cache control headers are set by the origin.
- * This behavior is off by default, but you may want to turn this on if you
- * are working with an origin that doesn't set proper headers but where you
- * still want to cache the responses. You will want to {@link
- * CacheConfig#isHeuristicCachingEnabled()} enable heuristic caching},
+ * <p><b>Heuristic caching</b>. Per HTTP caching specification, a cache may
+ * cache certain cache entries even if no explicit cache control headers are
+ * set by the origin. This behavior is off by default, but you may want to
+ * turn this on if you are working with an origin that doesn't set proper
+ * headers but where one may still want to cache the responses. Use {@link
+ * CacheConfig#isHeuristicCachingEnabled()} to enable heuristic caching},
  * then specify either a {@link CacheConfig#getHeuristicDefaultLifetime()
  * default freshness lifetime} and/or a {@link
  * CacheConfig#getHeuristicCoefficient() fraction of the time since
- * the resource was last modified}. See Sections
- * <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.2.2">
- * 13.2.2</a> and <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.2.4">
- * 13.2.4</a> of the HTTP/1.1 RFC for more details on heuristic caching.</p>
+ * the resource was last modified}.
  *
  * <p><b>Background validation</b>. The cache module supports the
- * {@code stale-while-revalidate} directive of
- * <a href="http://tools.ietf.org/html/rfc5861">RFC5861</a>, which allows
- * certain cache entry revalidations to happen in the background. Asynchronous
- * validation is enabled by default but it could be disabled by setting the number
- * of re-validation workers to {@code 0} with {@link CacheConfig#getAsynchronousWorkers()}
+ * {@code stale-while-revalidate} directive, which allows certain cache entry
+ * revalidations to happen in the background. Asynchronous validation is enabled
+ * by default but it could be disabled by setting the number of re-validation
+ * workers to {@code 0} with {@link CacheConfig#getAsynchronousWorkers()}
  * parameter</p>
  */
 public class CacheConfig implements Cloneable {
