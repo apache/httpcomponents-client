@@ -261,8 +261,10 @@ public class TestBasicHttpCache {
 
         assertNotNull(variantMap);
         assertEquals(2, variantMap.size());
-        MatcherAssert.assertThat(variantMap.get("{accept-encoding=gzip}"), HttpCacheEntryMatcher.equivalent(hit1.entry));
-        MatcherAssert.assertThat(variantMap.get("{accept-encoding=identity}"), HttpCacheEntryMatcher.equivalent(hit2.entry));
+        MatcherAssert.assertThat(variantMap.get("{accept-encoding=gzip}" + rootKey),
+                HttpCacheEntryMatcher.equivalent(hit1.entry));
+        MatcherAssert.assertThat(variantMap.get("{accept-encoding=identity}" + rootKey),
+                HttpCacheEntryMatcher.equivalent(hit2.entry));
     }
 
     @Test
