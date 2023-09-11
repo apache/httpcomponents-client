@@ -179,9 +179,10 @@ class BasicHttpCache implements HttpCache {
         if (root != null && root.hasVariants()) {
             final List<CacheHit> variants = new ArrayList<>();
             for (final String variantKey : root.getVariants()) {
-                final HttpCacheEntry variant = getInternal(variantKey + rootKey);
+                final String variantCacheKey = variantKey + rootKey;
+                final HttpCacheEntry variant = getInternal(variantCacheKey);
                 if (variant != null) {
-                    variants.add(new CacheHit(hit.rootKey, variantKey, variant));
+                    variants.add(new CacheHit(rootKey, variantCacheKey, variant));
                 }
             }
             return variants;
