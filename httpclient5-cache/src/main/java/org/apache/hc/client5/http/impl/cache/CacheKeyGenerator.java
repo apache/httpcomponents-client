@@ -157,6 +157,23 @@ public class CacheKeyGenerator implements Resolver<URI, String> {
     }
 
     /**
+     * Computes a "variant key" from the headers of the given request if the given
+     * cache entry can have variants ({@code Vary} header is present).
+     *
+     * @param request originating request
+     * @param entry cache entry
+     * @return variant key if the given cache entry can have variants, {@code null} otherwise.
+     */
+    public String generateVariantKey(final HttpRequest request, final HttpCacheEntry entry) {
+        if (entry.containsHeader(HttpHeaders.VARY)) {
+            final List<String> variantNames = variantNames(entry);
+            return generateVariantKey(request, variantNames);
+        } else {
+            return null;
+        }
+    }
+
+    /**
      * Computes a key for the given {@link HttpHost} and {@link HttpRequest}
      * that can be used as a unique identifier for cached resources. if the request has a
      * {@literal VARY} header the identifier will also include variant key.
@@ -177,22 +194,6 @@ public class CacheKeyGenerator implements Resolver<URI, String> {
         } else {
             return generateVariantKey(request, variantNames) + rootKey;
         }
-    }
-
-    /**
-     * Computes a "variant key" from the headers of a given request that are
-     * covered by the Vary header of a given cache entry. Any request whose
-     * varying headers match those of this request should have the same
-     * variant key.
-     * @param req originating request
-     * @param entry cache entry in question that has variants
-     * @return variant key
-     *
-     * @deprecated Use {@link #generateVariantKey(HttpRequest, Collection)}.
-     */
-    @Deprecated
-    public String generateVariantKey(final HttpRequest req, final HttpCacheEntry entry) {
-        return generateVariantKey(req, variantNames(entry));
     }
 
 }

@@ -72,20 +72,11 @@ interface HttpCache {
             Instant responseReceived);
 
     /**
-     * Updates {@link HttpCacheEntry} using details from a 304 {@link HttpResponse}.
-     */
-    CacheHit update(
-            CacheHit stale,
-            HttpResponse originResponse,
-            Instant requestSent,
-            Instant responseReceived);
-
-    /**
      * Stores {@link HttpRequest} / {@link HttpResponse} exchange details in the cache
-     * re-using the resource of the existing {@link HttpCacheEntry}.
+     * from the negotiated {@link HttpCacheEntry}.
      */
-    CacheHit storeReusing(
-            CacheHit hit,
+    CacheHit storeFromNegotiated(
+            CacheHit negotiated,
             HttpHost host,
             HttpRequest request,
             HttpResponse originResponse,

@@ -29,10 +29,12 @@ package org.apache.hc.client5.http.impl.cache;
 import java.util.Arrays;
 import java.util.Collections;
 
+import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
 import org.apache.hc.core5.http.support.BasicRequestBuilder;
 import org.junit.jupiter.api.Assertions;
@@ -43,11 +45,9 @@ import org.junit.jupiter.api.Test;
 public class TestCacheKeyGenerator {
 
     private CacheKeyGenerator extractor;
-    private HttpHost defaultHost;
 
     @BeforeEach
     public void setUp() throws Exception {
-        defaultHost = new HttpHost("foo.example.com");
         extractor = CacheKeyGenerator.INSTANCE;
     }
 
@@ -311,4 +311,21 @@ public class TestCacheKeyGenerator {
         Assertions.assertEquals("{accept-encoding=&user-agent=}",
                 extractor.generateVariantKey(request, Arrays.asList(HttpHeaders.ACCEPT_ENCODING, HttpHeaders.USER_AGENT)));
     }
+
+    @Test
+    public void testGetVariantKeyFromCachedResponse() {
+        final HttpRequest request = BasicRequestBuilder.get("/blah")
+                .addHeader("User-Agent", "agent1")
+                .addHeader("Accept-Encoding", "text/plain")
+                .build();
+
+        final HttpCacheEntry entry1 = HttpTestUtils.makeCacheEntry();
+        Assertions.assertNull(extractor.generateVariantKey(request, entry1));
+
+        final HttpCacheEntry entry2 = HttpTestUtils.makeCacheEntry(
+                new BasicHeader("Vary", "User-Agent, Accept-Encoding")
+        );
+        Assertions.assertEquals("{accept-encoding=text%2Fplain&user-agent=agent1}", extractor.generateVariantKey(request, entry2));
+    }
+
 }

@@ -233,14 +233,16 @@ public class TestHttpCacheEntryFactory {
                 new BasicHeader("X-custom", "my stuff")
         );
 
+        final HttpCacheEntry newEntry = impl.create(tenSecondsAgo, oneSecondAgo, host, request, response, HttpTestUtils.makeRandomResource(1024));
+
         final Set<String> variants = new HashSet<>();
         variants.add("variant1");
         variants.add("variant2");
         variants.add("variant3");
 
-        final HttpCacheEntry newEntry = impl.createRoot(tenSecondsAgo, oneSecondAgo, host, request, response, variants);
+        final HttpCacheEntry newRoot = impl.createRoot(newEntry, variants);
 
-        MatcherAssert.assertThat(newEntry, HttpCacheEntryMatcher.equivalent(
+        MatcherAssert.assertThat(newRoot, HttpCacheEntryMatcher.equivalent(
                 HttpTestUtils.makeCacheEntry(
                         tenSecondsAgo,
                         oneSecondAgo,
@@ -261,8 +263,8 @@ public class TestHttpCacheEntryFactory {
                         variants
                         )));
 
-        Assertions.assertTrue(newEntry.hasVariants());
-        Assertions.assertNull(newEntry.getResource());
+        Assertions.assertTrue(newRoot.hasVariants());
+        Assertions.assertNull(newRoot.getResource());
     }
 
     @Test

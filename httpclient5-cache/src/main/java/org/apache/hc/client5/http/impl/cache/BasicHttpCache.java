@@ -190,53 +190,33 @@ class BasicHttpCache implements HttpCache {
         return Collections.emptyList();
     }
 
-    CacheHit store(
-            final HttpHost host,
-            final HttpRequest request,
-            final HttpResponse originResponse,
-            final Instant requestSent,
-            final Instant responseReceived,
-            final String rootKey,
-            final HttpCacheEntry entry) {
-        if (entry.containsHeader(HttpHeaders.VARY)) {
-            return storeVariant(host, request, originResponse, requestSent, responseReceived, rootKey, entry);
-        } else {
+    CacheHit store(final String rootKey, final String variantKey, final HttpCacheEntry entry) {
+        if (variantKey == null) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Put entry in cache: {}", rootKey);
+                LOG.debug("Store entry in cache: {}", rootKey);
             }
             storeInternal(rootKey, entry);
             return new CacheHit(rootKey, entry);
+        } else {
+            final String variantCacheKey = variantKey + rootKey;
+
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Store variant entry in cache: {}", variantCacheKey);
+            }
+
+            storeInternal(variantCacheKey, entry);
+
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Update root entry: {}", rootKey);
+            }
+
+            updateInternal(rootKey, existing -> {
+                final Set<String> variants = existing != null ? new HashSet<>(existing.getVariants()) : new HashSet<>();
+                variants.add(variantKey);
+                return cacheEntryFactory.createRoot(entry, variants);
+            });
+            return new CacheHit(rootKey, variantCacheKey, entry);
         }
-    }
-
-    CacheHit storeVariant(
-            final HttpHost host,
-            final HttpRequest request,
-            final HttpResponse originResponse,
-            final Instant requestSent,
-            final Instant responseReceived,
-            final String rootKey,
-            final HttpCacheEntry entry) {
-        final List<String> variantNames = CacheKeyGenerator.variantNames(entry);
-        final String variantKey = cacheKeyGenerator.generateVariantKey(request, variantNames);
-        final String variantCacheKey = variantKey + rootKey;
-
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Put variant entry in cache: {}", variantCacheKey);
-        }
-
-        storeInternal(variantCacheKey, entry);
-
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Update root entry: {}", rootKey);
-        }
-
-        updateInternal(rootKey, existing -> {
-            final Set<String> variants = existing != null ? new HashSet<>(existing.getVariants()) : new HashSet<>();
-            variants.add(variantKey);
-            return cacheEntryFactory.createRoot(requestSent, responseReceived, host, request, originResponse, variants);
-        });
-        return new CacheHit(rootKey, variantCacheKey, entry);
     }
 
     @Override
@@ -249,7 +229,7 @@ class BasicHttpCache implements HttpCache {
             final Instant responseReceived) {
         final String rootKey = cacheKeyGenerator.generateKey(host, request);
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Store cache entry: {}", rootKey);
+            LOG.debug("Create cache entry: {}", rootKey);
         }
         final Resource resource;
         try {
@@ -268,7 +248,8 @@ class BasicHttpCache implements HttpCache {
             return new CacheHit(rootKey, backup);
         }
         final HttpCacheEntry entry = cacheEntryFactory.create(requestSent, responseReceived, host, request, originResponse, resource);
-        return store(host, request, originResponse, requestSent, responseReceived, rootKey, entry);
+        final String variantKey = cacheKeyGenerator.generateVariantKey(request, entry);
+        return store(rootKey,variantKey, entry);
     }
 
     @Override
@@ -279,55 +260,40 @@ class BasicHttpCache implements HttpCache {
             final HttpResponse originResponse,
             final Instant requestSent,
             final Instant responseReceived) {
-        final String entryKey = stale.getEntryKey();
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Update cache entry: {}", entryKey);
+            LOG.debug("Update cache entry: {}", stale.getEntryKey());
         }
         final HttpCacheEntry updatedEntry = cacheEntryFactory.createUpdated(
                 requestSent,
                 responseReceived,
                 originResponse,
                 stale.entry);
-        return store(host, request, originResponse, requestSent, responseReceived, entryKey, updatedEntry);
+        final String variantKey = cacheKeyGenerator.generateVariantKey(request, updatedEntry);
+        return store(stale.rootKey, variantKey, updatedEntry);
     }
 
     @Override
-    public CacheHit update(
-            final CacheHit stale,
-            final HttpResponse originResponse,
-            final Instant requestSent,
-            final Instant responseReceived) {
-        final String entryKey = stale.getEntryKey();
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Update cache entry (no root)): {}", entryKey);
-        }
-        final HttpCacheEntry updatedEntry = cacheEntryFactory.createUpdated(
-                requestSent,
-                responseReceived,
-                originResponse,
-                stale.entry);
-
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Put entry in cache: {}", entryKey);
-        }
-
-        storeInternal(entryKey, updatedEntry);
-        return new CacheHit(stale.rootKey, stale.variantKey, updatedEntry);
-    }
-
-    @Override
-    public CacheHit storeReusing(
-            final CacheHit hit,
+    public CacheHit storeFromNegotiated(
+            final CacheHit negotiated,
             final HttpHost host,
             final HttpRequest request,
             final HttpResponse originResponse,
             final Instant requestSent,
             final Instant responseReceived) {
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Update negotiated cache entry: {}", negotiated.getEntryKey());
+        }
+        final HttpCacheEntry updatedEntry = cacheEntryFactory.createUpdated(
+                requestSent,
+                responseReceived,
+                originResponse,
+                negotiated.entry);
+        storeInternal(negotiated.getEntryKey(), updatedEntry);
+
         final String rootKey = cacheKeyGenerator.generateKey(host, request);
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Store cache entry using existing entry: {} -> {}", rootKey, hit.rootKey);
-        }
-        return store(host, request, originResponse, requestSent, responseReceived, rootKey, hit.entry);
+        final HttpCacheEntry copy = cacheEntryFactory.copy(updatedEntry);
+        final String variantKey = cacheKeyGenerator.generateVariantKey(request, copy);
+        return store(rootKey, variantKey, copy);
     }
 
     private void evictAll(final HttpCacheEntry root, final String rootKey) {
