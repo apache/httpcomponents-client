@@ -77,21 +77,11 @@ interface HttpAsyncCache {
             FutureCallback<CacheHit> callback);
 
     /**
-     * Updates {@link HttpCacheEntry} using details from a 304 {@link HttpResponse}.
-     */
-    Cancellable update(
-            CacheHit stale,
-            HttpResponse originResponse,
-            Instant requestSent,
-            Instant responseReceived,
-            FutureCallback<CacheHit> callback);
-
-    /**
      * Stores {@link HttpRequest} / {@link HttpResponse} exchange details in the cache
-     * re-using the resource of the existing {@link HttpCacheEntry}.
+     * from the negotiated {@link HttpCacheEntry}.
      */
-    Cancellable storeReusing(
-            CacheHit hit,
+    Cancellable storeFromNegotiated(
+            CacheHit negotiated,
             HttpHost host,
             HttpRequest request,
             HttpResponse originResponse,

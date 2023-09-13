@@ -43,6 +43,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.hc.client5.http.HeadersMatcher;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.utils.DateUtils;
@@ -77,20 +78,6 @@ public class TestBasicHttpCache {
         tenSecondsAgo = now.minusSeconds(10);
         backing = Mockito.spy(new SimpleHttpCacheStorage());
         impl = new BasicHttpCache(new HeapResourceFactory(), backing);
-    }
-
-    @Test
-    public void testStoreInCachePutsNonVariantEntryInPlace() throws Exception {
-        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
-        assertFalse(entry.hasVariants());
-        final HttpHost host = new HttpHost("foo.example.com");
-        final HttpRequest req = new HttpGet("http://foo.example.com/bar");
-        final HttpResponse resp = HttpTestUtils.make200Response();
-
-        final String key = CacheKeyGenerator.INSTANCE.generateKey(host, req);
-
-        impl.store(host, req, resp, now, now, key, entry);
-        assertSame(entry, backing.map.get(key));
     }
 
     @Test
@@ -256,8 +243,8 @@ public class TestBasicHttpCache {
         variants.add("{accept-encoding=identity}");
 
         final Map<String, HttpCacheEntry> variantMap = impl.getVariants(new CacheHit(hit1.rootKey,
-                HttpTestUtils.makeCacheEntry(variants))).stream()
-                        .collect(Collectors.toMap(CacheHit::getEntryKey, e -> e.entry));
+                        HttpTestUtils.makeCacheEntry(variants))).stream()
+                .collect(Collectors.toMap(CacheHit::getEntryKey, e -> e.entry));
 
         assertNotNull(variantMap);
         assertEquals(2, variantMap.size());
@@ -265,6 +252,171 @@ public class TestBasicHttpCache {
                 HttpCacheEntryMatcher.equivalent(hit1.entry));
         MatcherAssert.assertThat(variantMap.get("{accept-encoding=identity}" + rootKey),
                 HttpCacheEntryMatcher.equivalent(hit2.entry));
+    }
+
+    @Test
+    public void testUpdateCacheEntry() throws Exception {
+        final HttpHost host = new HttpHost("foo.example.com");
+        final URI uri = new URI("http://foo.example.com/bar");
+        final HttpRequest req1 = new HttpGet(uri);
+
+        final HttpResponse resp1 = HttpTestUtils.make200Response();
+        resp1.setHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo));
+        resp1.setHeader("Cache-Control", "max-age=3600, public");
+        resp1.setHeader("ETag", "\"etag1\"");
+        resp1.setHeader("Content-Encoding","gzip");
+
+        final HttpRequest revalidate = new HttpGet(uri);
+        revalidate.setHeader("If-None-Match","\"etag1\"");
+
+        final HttpResponse resp2 = HttpTestUtils.make304Response();
+        resp2.setHeader("Date", DateUtils.formatStandardDate(now));
+        resp2.setHeader("Cache-Control", "max-age=3600, public");
+
+        final CacheHit hit1 = impl.store(host, req1, resp1, null, now, now);
+        Assertions.assertNotNull(hit1);
+        Assertions.assertEquals(1, backing.map.size());
+        Assertions.assertSame(hit1.entry, backing.map.get(hit1.getEntryKey()));
+
+        final CacheHit updated = impl.update(hit1, host, req1, resp2, now, now);
+        Assertions.assertNotNull(updated);
+        Assertions.assertEquals(1, backing.map.size());
+        Assertions.assertSame(updated.entry, backing.map.get(hit1.getEntryKey()));
+
+        MatcherAssert.assertThat(
+                updated.entry.getHeaders(),
+                HeadersMatcher.same(
+                        new BasicHeader("Server", "MockOrigin/1.0"),
+                        new BasicHeader("ETag", "\"etag1\""),
+                        new BasicHeader("Content-Encoding","gzip"),
+                        new BasicHeader("Date", DateUtils.formatStandardDate(now)),
+                        new BasicHeader("Cache-Control", "max-age=3600, public")
+                ));
+    }
+
+    @Test
+    public void testUpdateVariantCacheEntry() throws Exception {
+        final HttpHost host = new HttpHost("foo.example.com");
+        final URI uri = new URI("http://foo.example.com/bar");
+        final HttpRequest req1 = new HttpGet(uri);
+        req1.setHeader("User-Agent", "agent1");
+
+        final HttpResponse resp1 = HttpTestUtils.make200Response();
+        resp1.setHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo));
+        resp1.setHeader("Cache-Control", "max-age=3600, public");
+        resp1.setHeader("ETag", "\"etag1\"");
+        resp1.setHeader("Content-Encoding","gzip");
+        resp1.setHeader("Vary", "User-Agent");
+
+        final HttpRequest revalidate = new HttpGet(uri);
+        revalidate.setHeader("If-None-Match","\"etag1\"");
+
+        final HttpResponse resp2 = HttpTestUtils.make304Response();
+        resp2.setHeader("Date", DateUtils.formatStandardDate(now));
+        resp2.setHeader("Cache-Control", "max-age=3600, public");
+
+        final CacheHit hit1 = impl.store(host, req1, resp1, null, now, now);
+        Assertions.assertNotNull(hit1);
+        Assertions.assertEquals(2, backing.map.size());
+        Assertions.assertSame(hit1.entry, backing.map.get(hit1.getEntryKey()));
+
+        final CacheHit updated = impl.update(hit1, host, req1, resp2, now, now);
+        Assertions.assertNotNull(updated);
+        Assertions.assertEquals(2, backing.map.size());
+        Assertions.assertSame(updated.entry, backing.map.get(hit1.getEntryKey()));
+
+        MatcherAssert.assertThat(
+                updated.entry.getHeaders(),
+                HeadersMatcher.same(
+                        new BasicHeader("Server", "MockOrigin/1.0"),
+                        new BasicHeader("ETag", "\"etag1\""),
+                        new BasicHeader("Content-Encoding","gzip"),
+                        new BasicHeader("Vary","User-Agent"),
+                        new BasicHeader("Date", DateUtils.formatStandardDate(now)),
+                        new BasicHeader("Cache-Control", "max-age=3600, public")
+                ));
+    }
+
+    @Test
+    public void testUpdateCacheEntryTurnsVariant() throws Exception {
+        final HttpHost host = new HttpHost("foo.example.com");
+        final URI uri = new URI("http://foo.example.com/bar");
+        final HttpRequest req1 = new HttpGet(uri);
+        req1.setHeader("User-Agent", "agent1");
+
+        final HttpResponse resp1 = HttpTestUtils.make200Response();
+        resp1.setHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo));
+        resp1.setHeader("Cache-Control", "max-age=3600, public");
+        resp1.setHeader("ETag", "\"etag1\"");
+        resp1.setHeader("Content-Encoding","gzip");
+
+        final HttpRequest revalidate = new HttpGet(uri);
+        revalidate.setHeader("If-None-Match","\"etag1\"");
+
+        final HttpResponse resp2 = HttpTestUtils.make304Response();
+        resp2.setHeader("Date", DateUtils.formatStandardDate(now));
+        resp2.setHeader("Cache-Control", "max-age=3600, public");
+        resp2.setHeader("Vary", "User-Agent");
+
+        final CacheHit hit1 = impl.store(host, req1, resp1, null, now, now);
+        Assertions.assertNotNull(hit1);
+        Assertions.assertEquals(1, backing.map.size());
+        Assertions.assertSame(hit1.entry, backing.map.get(hit1.getEntryKey()));
+
+        final CacheHit updated = impl.update(hit1, host, req1, resp2, now, now);
+        Assertions.assertNotNull(updated);
+        Assertions.assertEquals(2, backing.map.size());
+
+        MatcherAssert.assertThat(
+                updated.entry.getHeaders(),
+                HeadersMatcher.same(
+                        new BasicHeader("Server", "MockOrigin/1.0"),
+                        new BasicHeader("ETag", "\"etag1\""),
+                        new BasicHeader("Content-Encoding","gzip"),
+                        new BasicHeader("Date", DateUtils.formatStandardDate(now)),
+                        new BasicHeader("Cache-Control", "max-age=3600, public"),
+                        new BasicHeader("Vary","User-Agent")));
+    }
+
+    @Test
+    public void testStoreFromNegotiatedVariant() throws Exception {
+        final HttpHost host = new HttpHost("foo.example.com");
+        final URI uri = new URI("http://foo.example.com/bar");
+        final HttpRequest req1 = new HttpGet(uri);
+        req1.setHeader("User-Agent", "agent1");
+
+        final HttpResponse resp1 = HttpTestUtils.make200Response();
+        resp1.setHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo));
+        resp1.setHeader("Cache-Control", "max-age=3600, public");
+        resp1.setHeader("ETag", "\"etag1\"");
+        resp1.setHeader("Content-Encoding","gzip");
+        resp1.setHeader("Vary", "User-Agent");
+
+        final CacheHit hit1 = impl.store(host, req1, resp1, null, now, now);
+        Assertions.assertNotNull(hit1);
+        Assertions.assertEquals(2, backing.map.size());
+        Assertions.assertSame(hit1.entry, backing.map.get(hit1.getEntryKey()));
+
+        final HttpRequest req2 = new HttpGet(uri);
+        req2.setHeader("User-Agent", "agent2");
+
+        final HttpResponse resp2 = HttpTestUtils.make304Response();
+        resp2.setHeader("Date", DateUtils.formatStandardDate(now));
+        resp2.setHeader("Cache-Control", "max-age=3600, public");
+
+        final CacheHit hit2 = impl.storeFromNegotiated(hit1, host, req2, resp2, now, now);
+        Assertions.assertNotNull(hit2);
+        Assertions.assertEquals(3, backing.map.size());
+
+        MatcherAssert.assertThat(
+                hit2.entry.getHeaders(),
+                HeadersMatcher.same(
+                        new BasicHeader("Server", "MockOrigin/1.0"),
+                        new BasicHeader("ETag", "\"etag1\""),
+                        new BasicHeader("Content-Encoding","gzip"),
+                        new BasicHeader("Vary","User-Agent"),
+                        new BasicHeader("Date", DateUtils.formatStandardDate(now)),
+                        new BasicHeader("Cache-Control", "max-age=3600, public")));
     }
 
     @Test

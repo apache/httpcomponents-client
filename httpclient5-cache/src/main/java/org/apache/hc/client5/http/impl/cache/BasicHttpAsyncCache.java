@@ -38,6 +38,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.hc.client5.http.cache.HttpAsyncCacheStorage;
+import org.apache.hc.client5.http.cache.HttpCacheCASOperation;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.HttpCacheEntryFactory;
 import org.apache.hc.client5.http.cache.HttpCacheUpdateException;
@@ -45,6 +46,7 @@ import org.apache.hc.client5.http.cache.Resource;
 import org.apache.hc.client5.http.cache.ResourceFactory;
 import org.apache.hc.client5.http.cache.ResourceIOException;
 import org.apache.hc.client5.http.impl.Operations;
+import org.apache.hc.core5.concurrent.CallbackContribution;
 import org.apache.hc.core5.concurrent.Cancellable;
 import org.apache.hc.core5.concurrent.ComplexCancellable;
 import org.apache.hc.core5.concurrent.FutureCallback;
@@ -142,9 +144,12 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
 
                                     }));
                             return;
+                        } else {
+                            callback.completed(new CacheMatch(null, new CacheHit(rootKey, root)));
                         }
+                    } else {
+                        callback.completed(new CacheMatch(new CacheHit(rootKey, root), null));
                     }
-                    callback.completed(new CacheMatch(new CacheHit(rootKey, root), null));
                 } else {
                     callback.completed(null);
                 }
@@ -220,135 +225,163 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
         return complexCancellable;
     }
 
-    Cancellable storeEntry(
-            final String rootKey,
-            final HttpCacheEntry entry,
-            final FutureCallback<CacheHit> callback) {
+    Cancellable storeInternal(final String cacheKey, final HttpCacheEntry entry, final FutureCallback<Boolean> callback) {
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Put entry in cache: {}", rootKey);
+            LOG.debug("Store entry in cache: {}", cacheKey);
         }
 
-        return storage.putEntry(rootKey, entry, new FutureCallback<Boolean>() {
+        return storage.putEntry(cacheKey, entry, new FutureCallback<Boolean>() {
 
             @Override
             public void completed(final Boolean result) {
-                callback.completed(new CacheHit(rootKey, entry));
+                if (callback != null) {
+                    callback.completed(result);
+                }
             }
 
             @Override
             public void failed(final Exception ex) {
                 if (ex instanceof ResourceIOException) {
                     if (LOG.isWarnEnabled()) {
-                        LOG.warn("I/O error storing cache entry with key {}", rootKey);
+                        LOG.warn("I/O error storing cache entry with key {}", cacheKey);
                     }
-                    callback.completed(new CacheHit(rootKey, entry));
+                    if (callback != null) {
+                        callback.completed(false);
+                    }
                 } else {
-                    callback.failed(ex);
+                    if (callback != null) {
+                        callback.failed(ex);
+                    }
                 }
             }
 
             @Override
             public void cancelled() {
-                callback.cancelled();
+                if (callback != null) {
+                    callback.cancelled();
+                }
             }
 
         });
     }
 
-    Cancellable storeVariant(
-            final HttpHost host,
-            final HttpRequest request,
-            final HttpResponse originResponse,
-            final Instant requestSent,
-            final Instant responseReceived,
-            final String rootKey,
-            final HttpCacheEntry entry,
-            final FutureCallback<CacheHit> callback) {
-        final List<String> variantNames = CacheKeyGenerator.variantNames(entry);
-        final String variantKey = cacheKeyGenerator.generateVariantKey(request, variantNames);
-        final String variantCacheKey = variantKey + rootKey;
-
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Put variant entry in cache: {}", variantCacheKey);
-        }
-
-        return storage.putEntry(variantCacheKey, entry, new FutureCallback<Boolean>() {
+    Cancellable updateInternal(final String cacheKey, final HttpCacheCASOperation casOperation, final FutureCallback<Boolean> callback) {
+        return storage.updateEntry(cacheKey, casOperation, new FutureCallback<Boolean>() {
 
             @Override
             public void completed(final Boolean result) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Update root entry: {}", rootKey);
+                if (callback != null) {
+                    callback.completed(result);
                 }
-
-                storage.updateEntry(rootKey,
-                        existing -> {
-                            final Set<String> variantMap = existing != null ? new HashSet<>(existing.getVariants()) : new HashSet<>();
-                            variantMap.add(variantKey);
-                            return cacheEntryFactory.createRoot(requestSent, responseReceived, host, request, originResponse, variantMap);
-                        },
-                        new FutureCallback<Boolean>() {
-
-                            @Override
-                            public void completed(final Boolean result) {
-                                callback.completed(new CacheHit(rootKey, variantCacheKey, entry));
-                            }
-
-                            @Override
-                            public void failed(final Exception ex) {
-                                if (ex instanceof HttpCacheUpdateException) {
-                                    if (LOG.isWarnEnabled()) {
-                                        LOG.warn("Cannot update cache entry with key {}", rootKey);
-                                    }
-                                } else if (ex instanceof ResourceIOException) {
-                                    if (LOG.isWarnEnabled()) {
-                                        LOG.warn("I/O error updating cache entry with key {}", rootKey);
-                                    }
-                                } else {
-                                    callback.failed(ex);
-                                }
-                            }
-
-                            @Override
-                            public void cancelled() {
-                                callback.cancelled();
-                            }
-
-                        });
             }
 
             @Override
             public void failed(final Exception ex) {
-                if (ex instanceof ResourceIOException) {
+                if (ex instanceof HttpCacheUpdateException) {
                     if (LOG.isWarnEnabled()) {
-                        LOG.warn("I/O error updating cache entry with key {}", variantCacheKey);
+                        LOG.warn("Cannot update cache entry with key {}", cacheKey);
                     }
-                    callback.completed(new CacheHit(rootKey, variantCacheKey, entry));
+                    if (callback != null) {
+                        callback.completed(false);
+                    }
+                } else if (ex instanceof ResourceIOException) {
+                    if (LOG.isWarnEnabled()) {
+                        LOG.warn("I/O error updating cache entry with key {}", cacheKey);
+                    }
+                    if (callback != null) {
+                        callback.completed(false);
+                    }
                 } else {
-                    callback.failed(ex);
+                    if (callback != null) {
+                        callback.failed(ex);
+                    }
                 }
             }
 
             @Override
             public void cancelled() {
-                callback.cancelled();
+                if (callback != null) {
+                    callback.cancelled();
+                }
+            }
+
+        });
+    }
+
+    private void removeInternal(final String cacheKey) {
+        storage.removeEntry(cacheKey, new FutureCallback<Boolean>() {
+
+            @Override
+            public void completed(final Boolean result) {
+            }
+
+            @Override
+            public void failed(final Exception ex) {
+                if (LOG.isWarnEnabled()) {
+                    if (ex instanceof ResourceIOException) {
+                        LOG.warn("I/O error removing cache entry with key {}", cacheKey);
+                    } else {
+                        LOG.warn("Unexpected error removing cache entry with key {}", cacheKey, ex);
+                    }
+                }
+            }
+
+            @Override
+            public void cancelled() {
             }
 
         });
     }
 
     Cancellable store(
-            final HttpHost host,
-            final HttpRequest request,
-            final HttpResponse originResponse,
-            final Instant requestSent,
-            final Instant responseReceived,
             final String rootKey,
+            final String variantKey,
             final HttpCacheEntry entry,
             final FutureCallback<CacheHit> callback) {
-        if (entry.containsHeader(HttpHeaders.VARY)) {
-            return storeVariant(host, request, originResponse, requestSent, responseReceived, rootKey, entry, callback);
+        if (variantKey == null) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Store entry in cache: {}", rootKey);
+            }
+            return storeInternal(rootKey, entry, new CallbackContribution<Boolean>(callback) {
+
+                @Override
+                public void completed(final Boolean result) {
+                    callback.completed(new CacheHit(rootKey, entry));
+                }
+
+            });
         } else {
-            return storeEntry(rootKey, entry, callback);
+            final String variantCacheKey = variantKey + rootKey;
+
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Store variant entry in cache: {}", variantCacheKey);
+            }
+
+            return storeInternal(variantCacheKey, entry, new CallbackContribution<Boolean>(callback) {
+
+                @Override
+                public void completed(final Boolean result) {
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Update root entry: {}", rootKey);
+                    }
+
+                    updateInternal(rootKey,
+                            existing -> {
+                                final Set<String> variantMap = existing != null ? new HashSet<>(existing.getVariants()) : new HashSet<>();
+                                variantMap.add(variantKey);
+                                return cacheEntryFactory.createRoot(entry, variantMap);
+                            },
+                            new CallbackContribution<Boolean>(callback) {
+
+                                @Override
+                                public void completed(final Boolean result) {
+                                    callback.completed(new CacheHit(rootKey, variantCacheKey, entry));
+                                }
+
+                            });
+                }
+
+            });
         }
     }
 
@@ -383,15 +416,8 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
             return Operations.nonCancellable();
         }
         final HttpCacheEntry entry = cacheEntryFactory.create(requestSent, responseReceived, host, request, originResponse, resource);
-        return store(
-                host,
-                request,
-                originResponse,
-                requestSent,
-                responseReceived,
-                rootKey,
-                entry,
-                callback);
+        final String variantKey = cacheKeyGenerator.generateVariantKey(request, entry);
+        return store(rootKey,variantKey, entry, callback);
     }
 
     @Override
@@ -403,106 +429,56 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
             final Instant requestSent,
             final Instant responseReceived,
             final FutureCallback<CacheHit> callback) {
-        final String entryKey = stale.getEntryKey();
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Update cache entry: {}", entryKey);
+            LOG.debug("Update cache entry: {}", stale.getEntryKey());
         }
         final HttpCacheEntry updatedEntry = cacheEntryFactory.createUpdated(
                 requestSent,
                 responseReceived,
                 originResponse,
                 stale.entry);
-
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Put entry in cache: {}", entryKey);
-        }
-
-        return store(
-                host,
-                request,
-                originResponse,
-                requestSent,
-                responseReceived,
-                entryKey,
-                updatedEntry,
-                callback);
+        final String variantKey = cacheKeyGenerator.generateVariantKey(request, updatedEntry);
+        return store(stale.rootKey, variantKey, updatedEntry, callback);
     }
 
     @Override
-    public Cancellable update(
-            final CacheHit stale,
-            final HttpResponse originResponse,
-            final Instant requestSent,
-            final Instant responseReceived,
-            final FutureCallback<CacheHit> callback) {
-        final String entryKey = stale.getEntryKey();
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Update cache entry (no root): {}", entryKey);
-        }
-        final HttpCacheEntry updatedEntry = cacheEntryFactory.createUpdated(
-                requestSent,
-                responseReceived,
-                originResponse,
-                stale.entry);
-        return storeEntry(
-                entryKey,
-                updatedEntry,
-                callback);
-    }
-
-    @Override
-    public Cancellable storeReusing(
-            final CacheHit hit,
+    public Cancellable storeFromNegotiated(
+            final CacheHit negotiated,
             final HttpHost host,
             final HttpRequest request,
             final HttpResponse originResponse,
             final Instant requestSent,
             final Instant responseReceived,
             final FutureCallback<CacheHit> callback) {
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Update negotiated cache entry: {}", negotiated.getEntryKey());
+        }
+        final HttpCacheEntry updatedEntry = cacheEntryFactory.createUpdated(
+                requestSent,
+                responseReceived,
+                originResponse,
+                negotiated.entry);
+
+        storeInternal(negotiated.getEntryKey(), updatedEntry, null);
+
         final String rootKey = cacheKeyGenerator.generateKey(host, request);
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Store cache entry using existing entry: {} -> {}", rootKey, hit.rootKey);
-        }
-        return store(host, request, originResponse, requestSent, responseReceived, rootKey, hit.entry, callback);
-    }
-
-    private void evictEntry(final String cacheKey) {
-        storage.removeEntry(cacheKey, new FutureCallback<Boolean>() {
-
-            @Override
-            public void completed(final Boolean result) {
-            }
-
-            @Override
-            public void failed(final Exception ex) {
-                if (LOG.isWarnEnabled()) {
-                    if (ex instanceof ResourceIOException) {
-                        LOG.warn("I/O error removing cache entry with key {}", cacheKey);
-                    } else {
-                        LOG.warn("Unexpected error removing cache entry with key {}", cacheKey, ex);
-                    }
-                }
-            }
-
-            @Override
-            public void cancelled() {
-            }
-
-        });
+        final HttpCacheEntry copy = cacheEntryFactory.copy(updatedEntry);
+        final String variantKey = cacheKeyGenerator.generateVariantKey(request, copy);
+        return store(rootKey, variantKey, copy, callback);
     }
 
     private void evictAll(final HttpCacheEntry root, final String rootKey) {
         if (LOG.isDebugEnabled()) {
             LOG.debug("Evicting root cache entry {}", rootKey);
         }
-        evictEntry(rootKey);
+        removeInternal(rootKey);
         if (root.hasVariants()) {
             for (final String variantKey : root.getVariants()) {
                 final String variantEntryKey = variantKey + rootKey;
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Evicting variant cache entry {}", variantEntryKey);
                 }
-                evictEntry(variantEntryKey);
+                removeInternal(variantEntryKey);
             }
         }
     }

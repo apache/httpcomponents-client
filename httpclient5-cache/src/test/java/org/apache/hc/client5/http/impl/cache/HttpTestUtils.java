@@ -33,6 +33,7 @@ import java.util.Collection;
 import java.util.Objects;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
+import java.util.function.Consumer;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.HttpCacheEntryFactory;
@@ -372,11 +373,14 @@ public class HttpTestUtils {
         return new BasicClassicHttpResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Internal Server Error");
     }
 
-    public static <T> FutureCallback<T> countDown(final CountDownLatch latch) {
+    public static <T> FutureCallback<T> countDown(final CountDownLatch latch, final Consumer<T> consumer) {
         return new FutureCallback<T>() {
 
             @Override
             public void completed(final T result) {
+                if (consumer != null) {
+                    consumer.accept(result);
+                }
                 latch.countDown();
             }
 
@@ -394,6 +398,10 @@ public class HttpTestUtils {
 
         };
 
+    }
+
+    public static <T> FutureCallback<T> countDown(final CountDownLatch latch) {
+        return countDown(latch, null);
     }
 
 }
