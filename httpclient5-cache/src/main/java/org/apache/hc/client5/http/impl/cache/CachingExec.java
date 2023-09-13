@@ -520,13 +520,12 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
 
             recordCacheUpdate(scope.clientContext);
 
-            final CacheHit hit = responseCache.update(match, backendResponse, requestDate, responseDate);
+            final CacheHit hit = responseCache.storeFromNegotiated(match, target, request, backendResponse, requestDate, responseDate);
             if (shouldSendNotModifiedResponse(request, hit.entry)) {
                 return convert(responseGenerator.generateNotModifiedResponse(hit.entry), scope);
+            } else {
+                return convert(responseGenerator.generateResponse(request, hit.entry), scope);
             }
-            final SimpleHttpResponse response = responseGenerator.generateResponse(request, hit.entry);
-            responseCache.storeReusing(hit, target, request, backendResponse, requestDate, responseDate);
-            return convert(response, scope);
         } catch (final IOException | RuntimeException ex) {
             backendResponse.close();
             throw ex;

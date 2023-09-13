@@ -173,38 +173,24 @@ public class HttpCacheEntryFactory {
     /**
      * Creates a new root {@link HttpCacheEntry} (parent of multiple variants).
      *
-     * @param requestInstant   Date/time when the request was made (Used for age calculations)
-     * @param responseInstant  Date/time that the response came back (Used for age calculations)
-     * @param host             Target host
-     * @param request          Original client request (a deep copy of this object is made)
+     * @param latestVariant    The most recently created variant entry
      * @param variants         describing cache entries that are variants of this parent entry; this
      *                         maps a "variant key" (derived from the varying request headers) to a
      *                         "cache key" (where in the cache storage the particular variant is
      *                         located)
      */
-    public HttpCacheEntry createRoot(final Instant requestInstant,
-                                     final Instant responseInstant,
-                                     final HttpHost host,
-                                     final HttpRequest request,
-                                     final HttpResponse response,
+    public HttpCacheEntry createRoot(final HttpCacheEntry latestVariant,
                                      final Collection<String> variants) {
-        Args.notNull(requestInstant, "Request instant");
-        Args.notNull(responseInstant, "Response instant");
-        Args.notNull(host, "Host");
-        Args.notNull(request, "Request");
-        Args.notNull(response, "Origin response");
-        final String requestUri = normalizeRequestUri(host, request);
-        final HeaderGroup requestHeaders = filterHopByHopHeaders(request);
-        final HeaderGroup responseHeaders = filterHopByHopHeaders(response);
-        ensureDate(responseHeaders, responseInstant);
+        Args.notNull(latestVariant, "Request");
+        Args.notNull(variants, "Variants");
         return new HttpCacheEntry(
-                requestInstant,
-                responseInstant,
-                request.getMethod(),
-                requestUri,
-                requestHeaders,
-                response.getCode(),
-                responseHeaders,
+                latestVariant.getRequestInstant(),
+                latestVariant.getResponseInstant(),
+                latestVariant.getRequestMethod(),
+                latestVariant.getRequestURI(),
+                headers(latestVariant.requestHeaderIterator()),
+                latestVariant.getStatus(),
+                headers(latestVariant.headerIterator()),
                 null,
                 variants);
     }

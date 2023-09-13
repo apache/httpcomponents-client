@@ -938,8 +938,10 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
 
             void updateVariantCacheEntry(final HttpResponse backendResponse, final Instant responseDate, final CacheHit match) {
                 recordCacheUpdate(scope.clientContext);
-                operation.setDependency(responseCache.update(
+                operation.setDependency(responseCache.storeFromNegotiated(
                         match,
+                        target,
+                        request,
                         backendResponse,
                         requestDate,
                         responseDate,
@@ -953,31 +955,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                                 } else {
                                     try {
                                         final SimpleHttpResponse cacheResponse = responseGenerator.generateResponse(request, hit.entry);
-                                        operation.setDependency(responseCache.storeReusing(
-                                                hit,
-                                                target,
-                                                request,
-                                                backendResponse,
-                                                requestDate,
-                                                responseDate,
-                                                new FutureCallback<CacheHit>() {
-
-                                                    @Override
-                                                    public void completed(final CacheHit result) {
-                                                        triggerResponse(cacheResponse, scope, asyncExecCallback);
-                                                    }
-
-                                                    @Override
-                                                    public void failed(final Exception ex) {
-                                                        asyncExecCallback.failed(ex);
-                                                    }
-
-                                                    @Override
-                                                    public void cancelled() {
-                                                        asyncExecCallback.failed(new InterruptedIOException());
-                                                    }
-
-                                                }));
+                                        triggerResponse(cacheResponse, scope, asyncExecCallback);
                                     } catch (final ResourceIOException ex) {
                                         asyncExecCallback.failed(ex);
                                     }
