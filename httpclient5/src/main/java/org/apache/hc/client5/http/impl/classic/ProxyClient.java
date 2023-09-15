@@ -140,12 +140,10 @@ public class ProxyClient {
         Args.notNull(proxy, "Proxy host");
         Args.notNull(target, "Target host");
         Args.notNull(credentials, "Credentials");
-        HttpHost host = target;
-        if (host.getPort() <= 0) {
-            host = new HttpHost(host.getSchemeName(), host.getHostName(), 80);
-        }
+        Args.check(target.getPort() > 0, "A valid port number must be provided for the tunnel CONNECT request.");
+
         final HttpRoute route = new HttpRoute(
-                host,
+                target,
                 null,
                 proxy, false, TunnelType.TUNNELLED, LayerType.PLAIN);
 
@@ -153,7 +151,7 @@ public class ProxyClient {
         final HttpContext context = new BasicHttpContext();
         ClassicHttpResponse response;
 
-        final ClassicHttpRequest connect = new BasicClassicHttpRequest(Method.CONNECT, proxy, host.toHostString());
+        final ClassicHttpRequest connect = new BasicClassicHttpRequest(Method.CONNECT, proxy, target.toHostString());
 
         final BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
         credsProvider.setCredentials(new AuthScope(proxy), credentials);
