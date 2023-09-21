@@ -26,7 +26,6 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -36,14 +35,11 @@ import java.io.IOException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Iterator;
-import java.util.List;
 
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecRuntime;
-import org.apache.hc.client5.http.classic.methods.HttpGet;
-import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.ClassicHttpRequest;
@@ -55,7 +51,6 @@ import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpStatus;
-import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
 import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
@@ -70,8 +65,8 @@ import org.mockito.MockitoAnnotations;
 
 /*
  * This test class captures functionality required to achieve unconditional
- * compliance with the HTTP/1.1 spec, i.e. all the SHOULD, SHOULD NOT,
- * RECOMMENDED, and NOT RECOMMENDED behaviors.
+ * compliance with the HTTP/1.1 caching protocol (SHOULD, SHOULD NOT,
+ * RECOMMENDED, and NOT RECOMMENDED behaviors).
  */
 public class TestProtocolRecommendations {
 
@@ -133,13 +128,6 @@ public class TestProtocolRecommendations {
                 mockExecChain);
     }
 
-    /*
-     * "304 Not Modified. ... If the conditional GET used a strong cache
-     * validator (see section 13.3.3), the response SHOULD NOT include
-     * other entity-headers."
-     *
-     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.3.5
-     */
     private void cacheGenerated304ForValidatorShouldNotContainEntityHeader(
             final String headerName, final String headerValue, final String validatorHeader,
             final String validator, final String conditionalHeader) throws Exception {
@@ -158,10 +146,8 @@ public class TestProtocolRecommendations {
         execute(req1);
         final ClassicHttpResponse result = execute(req2);
 
-
-        if (HttpStatus.SC_NOT_MODIFIED == result.getCode()) {
-            assertFalse(result.containsHeader(headerName));
-        }
+        assertEquals(HttpStatus.SC_NOT_MODIFIED, result.getCode());
+        assertFalse(result.containsHeader(headerName));
     }
 
     private void cacheGenerated304ForStrongETagValidatorShouldNotContainEntityHeader(
@@ -237,55 +223,6 @@ public class TestProtocolRecommendations {
                 "Content-MD5", "Q2hlY2sgSW50ZWdyaXR5IQ==");
     }
 
-    private void cacheGenerated304ForStrongValidatorShouldNotContainContentRange(
-            final String validatorHeader, final String validator, final String conditionalHeader) throws Exception {
-        final ClassicHttpRequest req1 = HttpTestUtils.makeDefaultRequest();
-        req1.setHeader("Range","bytes=0-127");
-        final ClassicHttpResponse resp1 = new BasicClassicHttpResponse(HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
-        resp1.setHeader("Cache-Control","max-age=3600");
-        resp1.setHeader(validatorHeader, validator);
-        resp1.setHeader("Content-Range", "bytes 0-127/256");
-
-        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
-
-        final ClassicHttpRequest req2 = HttpTestUtils.makeDefaultRequest();
-        req2.setHeader("If-Range", validator);
-        req2.setHeader("Range","bytes=0-127");
-        req2.setHeader(conditionalHeader, validator);
-
-        try (final ClassicHttpResponse resp2 = new BasicClassicHttpResponse(HttpStatus.SC_NOT_MODIFIED, "Not Modified")) {
-            resp2.setHeader("Date", DateUtils.formatStandardDate(now));
-            resp2.setHeader(validatorHeader, validator);
-        }
-
-        // cache module does not currently deal with byte ranges, but we want
-        // this test to work even if it does some day
-
-        execute(req1);
-        final ClassicHttpResponse result = execute(req2);
-
-        final ArgumentCaptor<ClassicHttpRequest> reqCapture = ArgumentCaptor.forClass(ClassicHttpRequest.class);
-        Mockito.verify(mockExecChain, Mockito.atMost(2)).proceed(reqCapture.capture(), Mockito.any());
-
-        final List<ClassicHttpRequest> allRequests = reqCapture.getAllValues();
-        if (allRequests.isEmpty() && HttpStatus.SC_NOT_MODIFIED == result.getCode()) {
-            // cache generated a 304
-            assertFalse(result.containsHeader("Content-Range"));
-        }
-    }
-
-    @Test
-    public void cacheGenerated304ForStrongEtagValidatorShouldNotContainContentRange() throws Exception {
-        cacheGenerated304ForStrongValidatorShouldNotContainContentRange(
-                "ETag", "\"etag\"", "If-None-Match");
-    }
-
-    @Test
-    public void cacheGenerated304ForStrongDateValidatorShouldNotContainContentRange() throws Exception {
-        cacheGenerated304ForStrongValidatorShouldNotContainContentRange(
-                "Last-Modified", DateUtils.formatStandardDate(twoMinutesAgo), "If-Modified-Since");
-    }
-
     @Test
     public void cacheGenerated304ForStrongEtagValidatorShouldNotContainContentType() throws Exception {
         cacheGenerated304ForStrongETagValidatorShouldNotContainEntityHeader(
@@ -310,11 +247,6 @@ public class TestProtocolRecommendations {
                 "Last-Modified", DateUtils.formatStandardDate(twoMinutesAgo));
     }
 
-    /*
-     * "For this reason, a cache SHOULD NOT return a stale response if the
-     * client explicitly requests a first-hand or fresh one, unless it is
-     * impossible to comply for technical or policy reasons."
-     */
     private ClassicHttpRequest requestToPopulateStaleCacheEntry() throws Exception {
         final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
@@ -397,12 +329,6 @@ public class TestProtocolRecommendations {
         Mockito.verify(mockExecChain, Mockito.atMost(1)).proceed(Mockito.any(), Mockito.any());
     }
 
-    /*
-     * "A transparent proxy SHOULD NOT modify an end-to-end header unless
-     * the definition of that header requires or specifically allows that."
-     *
-     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.5.2
-     */
     private void testDoesNotModifyHeaderOnResponses(final String headerName) throws Exception {
         final String headerValue = HttpTestUtils
             .getCanonicalHeaderValue(originResponse, headerName);
@@ -635,14 +561,6 @@ public class TestProtocolRecommendations {
         testDoesNotModifyHeaderOnResponses("X-Extension");
     }
 
-
-    /*
-     * "[HTTP/1.1 clients], If only a Last-Modified value has been provided
-     * by the origin server, SHOULD use that value in non-subrange cache-
-     * conditional requests (using If-Modified-Since)."
-     *
-     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.3.4
-     */
     @Test
     public void testUsesLastModifiedDateForCacheConditionalRequests() throws Exception {
         final Instant twentySecondsAgo = now.plusSeconds(20);
@@ -673,14 +591,6 @@ public class TestProtocolRecommendations {
         MatcherAssert.assertThat(captured, ContainsHeaderMatcher.contains("If-Modified-Since", lmDate));
     }
 
-    /*
-     * "[HTTP/1.1 clients], if both an entity tag and a Last-Modified value
-     * have been provided by the origin server, SHOULD use both validators
-     * in cache-conditional requests. This allows both HTTP/1.0 and
-     * HTTP/1.1 caches to respond appropriately."
-     *
-     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.3.4
-     */
     @Test
     public void testUsesBothLastModifiedAndETagForConditionalRequestsIfAvailable() throws Exception {
         final Instant twentySecondsAgo = now.plusSeconds(20);
@@ -714,14 +624,6 @@ public class TestProtocolRecommendations {
         MatcherAssert.assertThat(captured, ContainsHeaderMatcher.contains("If-None-Match", etag));
     }
 
-    /*
-     * "If an origin server wishes to force a semantically transparent cache
-     * to validate every request, it MAY assign an explicit expiration time
-     * in the past. This means that the response is always stale, and so the
-     * cache SHOULD validate it before using it for subsequent requests."
-     *
-     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.2.1
-     */
     @Test
     public void testRevalidatesCachedResponseWithExpirationInThePast() throws Exception {
         final Instant oneSecondAgo = now.minusSeconds(1);
@@ -753,19 +655,6 @@ public class TestProtocolRecommendations {
         assertEquals(HttpStatus.SC_OK, result.getCode());
     }
 
-    /* "When a client tries to revalidate a cache entry, and the response
-     * it receives contains a Date header that appears to be older than the
-     * one for the existing entry, then the client SHOULD repeat the
-     * request unconditionally, and include
-     *     Cache-Control: max-age=0
-     * to force any intermediate caches to validate their copies directly
-     * with the origin server, or
-     *     Cache-Control: no-cache
-     * to force any intermediate caches to obtain a new copy from the
-     * origin server."
-     *
-     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.2.6
-     */
     @Test
     public void testRetriesValidationThatResultsInAnOlderDated304Response() throws Exception {
         final Instant elevenSecondsAgo = now.minusSeconds(11);
@@ -818,16 +707,6 @@ public class TestProtocolRecommendations {
         assertFalse(captured.containsHeader("If-Unmodified-Since"));
     }
 
-    /* "If an entity tag was assigned to a cached representation, the
-     * forwarded request SHOULD be conditional and include the entity
-     * tags in an If-None-Match header field from all its cache entries
-     * for the resource."
-     *
-     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.6
-     * NOTE: This test no longer includes ETag headers "etag1" and "etag2"
-     *       as they were causing issues with stack traces when printed to console
-     *       or logged in the log file.
-     */
     @Test
     public void testSendsAllVariantEtagsInConditionalRequest() throws Exception {
         final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET","/");
@@ -879,13 +758,6 @@ public class TestProtocolRecommendations {
         assertTrue(foundEtag1 && foundEtag2);
     }
 
-    /* "If the entity-tag of the new response matches that of an existing
-     * entry, the new response SHOULD be used to processChallenge the header fields
-     * of the existing entry, and the result MUST be returned to the
-     * client."
-     *
-     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.6
-     */
     @Test
     public void testResponseToExistingVariantsUpdatesEntry() throws Exception {
 
@@ -948,6 +820,8 @@ public class TestProtocolRecommendations {
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
 
+        execute(req1);
+
         final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
         req2.setHeader("User-Agent", "agent2");
 
@@ -957,153 +831,16 @@ public class TestProtocolRecommendations {
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp2);
 
+        execute(req2);
+
         final ClassicHttpRequest req3 = new BasicClassicHttpRequest("GET", "/");
         req3.setHeader("User-Agent", "agent2");
 
-        execute(req1);
-        execute(req2);
-        execute(req3);
-    }
-
-    /* "If any of the existing cache entries contains only partial content
-     * for the associated entity, its entity-tag SHOULD NOT be included in
-     * the If-None-Match header field unless the request is for a range
-     * that would be fully satisfied by that entry."
-     *
-     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.6
-     */
-    @Test
-    public void variantNegotiationsDoNotIncludeEtagsForPartialResponses() throws Exception {
-        final ClassicHttpRequest req1 = HttpTestUtils.makeDefaultRequest();
-        req1.setHeader("User-Agent", "agent1");
-        final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
-        resp1.setHeader("Cache-Control", "max-age=3600");
-        resp1.setHeader("Vary", "User-Agent");
-        resp1.setHeader("ETag", "\"etag1\"");
-
-        final ClassicHttpRequest req2 = HttpTestUtils.makeDefaultRequest();
-        req2.setHeader("User-Agent", "agent2");
-        req2.setHeader("Range", "bytes=0-49");
-        final ClassicHttpResponse resp2 = new BasicClassicHttpResponse(HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
-        resp2.setEntity(HttpTestUtils.makeBody(50));
-        resp2.setHeader("Content-Length","50");
-        resp2.setHeader("Content-Range","bytes 0-49/100");
-        resp2.setHeader("Vary","User-Agent");
-        resp2.setHeader("ETag", "\"etag2\"");
-        resp2.setHeader("Cache-Control","max-age=3600");
-        resp2.setHeader("Date", DateUtils.formatStandardDate(Instant.now()));
-
-        final ClassicHttpRequest req3 = HttpTestUtils.makeDefaultRequest();
-        req3.setHeader("User-Agent", "agent3");
-
-        final ClassicHttpResponse resp3 = HttpTestUtils.make200Response();
-        resp1.setHeader("Cache-Control", "max-age=3600");
-        resp1.setHeader("Vary", "User-Agent");
-        resp1.setHeader("ETag", "\"etag3\"");
-
-        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
-
-        execute(req1);
-
-        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp2);
-
-        execute(req2);
-
-        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp3);
-
         execute(req3);
 
-        final ArgumentCaptor<ClassicHttpRequest> reqCapture = ArgumentCaptor.forClass(ClassicHttpRequest.class);
-        Mockito.verify(mockExecChain, Mockito.times(3)).proceed(reqCapture.capture(), Mockito.any());
-
-        final ClassicHttpRequest captured = reqCapture.getValue();
-        final Iterator<HeaderElement> it = MessageSupport.iterate(captured, HttpHeaders.IF_NONE_MATCH);
-        while (it.hasNext()) {
-            final HeaderElement elt = it.next();
-            assertNotEquals("\"etag2\"", elt.toString());
-        }
+        Mockito.verify(mockExecChain, Mockito.times(2)).proceed(Mockito.any(), Mockito.any());
     }
 
-    /* "If a cache receives a successful response whose Content-Location
-     * field matches that of an existing cache entry for the same Request-
-     * URI, whose entity-tag differs from that of the existing entry, and
-     * whose Date is more recent than that of the existing entry, the
-     * existing entry SHOULD NOT be returned in response to future requests
-     * and SHOULD be deleted from the cache.
-     *
-     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.6
-     */
-    @Test
-    public void cachedEntryShouldNotBeUsedIfMoreRecentMentionInContentLocation() throws Exception {
-        final ClassicHttpRequest req1 = new HttpGet("http://foo.example.com/");
-        final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
-        resp1.setHeader("Cache-Control","max-age=3600");
-        resp1.setHeader("ETag", "\"old-etag\"");
-        resp1.setHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo));
-
-        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
-
-        final ClassicHttpRequest req2 = new HttpPost("http://foo.example.com/bar");
-        final ClassicHttpResponse resp2 = HttpTestUtils.make200Response();
-        resp2.setHeader("ETag", "\"new-etag\"");
-        resp2.setHeader("Date", DateUtils.formatStandardDate(now));
-        resp2.setHeader("Content-Location", "http://foo.example.com/");
-
-        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp2);
-
-        final ClassicHttpRequest req3 = new HttpGet("http://foo.example.com");
-        final ClassicHttpResponse resp3 = HttpTestUtils.make200Response();
-
-        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp3);
-
-        execute(req1);
-        execute(req2);
-        execute(req3);
-    }
-
-    /*
-     * "This specifically means that responses from HTTP/1.0 servers for such
-     * URIs [those containing a '?' in the rel_path part] SHOULD NOT be taken
-     * from a cache."
-     *
-     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.9
-     */
-    @Test
-    public void responseToGetWithQueryFrom1_0OriginAndNoExpiresIsNotCached() throws Exception {
-        final ClassicHttpRequest req2 = new HttpGet("http://foo.example.com/bar?baz=quux");
-        final ClassicHttpResponse resp2 = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
-        resp2.setVersion(HttpVersion.HTTP_1_0);
-        resp2.setEntity(HttpTestUtils.makeBody(200));
-        resp2.setHeader("Content-Length","200");
-        resp2.setHeader("Date", DateUtils.formatStandardDate(now));
-
-        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp2);
-
-        execute(req2);
-    }
-
-    @Test
-    public void responseToGetWithQueryFrom1_0OriginVia1_1ProxyAndNoExpiresIsNotCached() throws Exception {
-        final ClassicHttpRequest req2 = new HttpGet("http://foo.example.com/bar?baz=quux");
-        final ClassicHttpResponse resp2 = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
-        resp2.setVersion(HttpVersion.HTTP_1_0);
-        resp2.setEntity(HttpTestUtils.makeBody(200));
-        resp2.setHeader("Content-Length","200");
-        resp2.setHeader("Date", DateUtils.formatStandardDate(now));
-        resp2.setHeader(HttpHeaders.VIA,"1.0 someproxy");
-
-        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp2);
-
-        execute(req2);
-    }
-
-    /*
-     * "A cache that passes through requests for methods it does not
-     * understand SHOULD invalidate any entities referred to by the
-     * Request-URI."
-     *
-     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.10
-     */
     @Test
     public void shouldInvalidateNonvariantCacheEntryForUnknownMethod() throws Exception {
         final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
@@ -1111,6 +848,8 @@ public class TestProtocolRecommendations {
         resp1.setHeader("Cache-Control","max-age=3600");
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
+
+        execute(req1);
 
         final ClassicHttpRequest req2 = new BasicClassicHttpRequest("FROB", "/");
         final ClassicHttpResponse resp2 = HttpTestUtils.make200Response();
@@ -1124,7 +863,6 @@ public class TestProtocolRecommendations {
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp3);
 
-        execute(req1);
         execute(req2);
         final ClassicHttpResponse result = execute(req3);
 
@@ -1184,13 +922,6 @@ public class TestProtocolRecommendations {
         assertTrue(HttpTestUtils.semanticallyTransparent(resp5, result5));
     }
 
-    /*
-     * "If a new cacheable response is received from a resource while any
-     * existing responses for the same resource are cached, the cache
-     * SHOULD use the new response to reply to the current request."
-     *
-     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.12
-     */
     @Test
     public void cacheShouldUpdateWithNewCacheableResponse() throws Exception {
         final ClassicHttpRequest req1 = HttpTestUtils.makeDefaultRequest();
@@ -1200,6 +931,8 @@ public class TestProtocolRecommendations {
         resp1.setHeader("ETag", "\"etag1\"");
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
+
+        execute(req1);
 
         final ClassicHttpRequest req2 = HttpTestUtils.makeDefaultRequest();
         req2.setHeader("Cache-Control", "max-age=0");
@@ -1212,24 +945,12 @@ public class TestProtocolRecommendations {
 
         final ClassicHttpRequest req3 = HttpTestUtils.makeDefaultRequest();
 
-        execute(req1);
         execute(req2);
         final ClassicHttpResponse result = execute(req3);
 
         assertTrue(HttpTestUtils.semanticallyTransparent(resp2, result));
     }
 
-    /*
-     * "Many HTTP/1.0 cache implementations will treat an Expires value
-     * that is less than or equal to the response Date value as being
-     * equivalent to the Cache-Control response directive 'no-cache'.
-     * If an HTTP/1.1 cache receives such a response, and the response
-     * does not include a Cache-Control header field, it SHOULD consider
-     * the response to be non-cacheable in order to retain compatibility
-     * with HTTP/1.0 servers."
-     *
-     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9.3
-     */
     @Test
     public void expiresEqualToDateWithNoCacheControlIsNotCacheable() throws Exception {
         final ClassicHttpRequest req1 = HttpTestUtils.makeDefaultRequest();
@@ -1240,6 +961,8 @@ public class TestProtocolRecommendations {
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
 
+        execute(req1);
+
         final ClassicHttpRequest req2 = HttpTestUtils.makeDefaultRequest();
         req2.setHeader("Cache-Control", "max-stale=1000");
         final ClassicHttpResponse resp2 = HttpTestUtils.make200Response();
@@ -1247,7 +970,6 @@ public class TestProtocolRecommendations {
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp2);
 
-        execute(req1);
         final ClassicHttpResponse result = execute(req2);
 
         assertTrue(HttpTestUtils.semanticallyTransparent(resp2, result));
@@ -1263,6 +985,8 @@ public class TestProtocolRecommendations {
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
 
+        execute(req1);
+
         final ClassicHttpRequest req2 = HttpTestUtils.makeDefaultRequest();
         req2.setHeader("Cache-Control", "max-stale=1000");
         final ClassicHttpResponse resp2 = HttpTestUtils.make200Response();
@@ -1270,21 +994,11 @@ public class TestProtocolRecommendations {
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp2);
 
-        execute(req1);
         final ClassicHttpResponse result = execute(req2);
 
         assertTrue(HttpTestUtils.semanticallyTransparent(resp2, result));
     }
 
-    /*
-     * "To do this, the client may include the only-if-cached directive in
-     * a request. If it receives this directive, a cache SHOULD either
-     * respond using a cached entry that is consistent with the other
-     * constraints of the request, or respond with a 504 (Gateway Timeout)
-     * status."
-     *
-     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9.4
-     */
     @Test
     public void cacheMissResultsIn504WithOnlyIfCached() throws Exception {
         final ClassicHttpRequest req = HttpTestUtils.makeDefaultRequest();

@@ -30,21 +30,18 @@ import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TimeValue;
 
 /**
- * <p>Java Beans-style configuration for caching {@link org.apache.hc.client5.http.classic.HttpClient}.
- * Any class in the caching module that has configuration options should take a
- * {@link CacheConfig} argument in one of its constructors. A
- * {@code CacheConfig} instance has sane and conservative defaults, so the
- * easiest way to specify options is to get an instance and then set just
- * the options you want to modify from their defaults.</p>
- *
- * <p><b>N.B.</b> This class is only for caching-specific configuration; to
- * configure the behavior of the rest of the client, configure the
- * {@link org.apache.hc.client5.http.classic.HttpClient} used as the &quot;backend&quot;
- * for the {@code CachingHttpClient}.</p>
+ * <p>Configuration for HTTP caches</p>
  *
  * <p>Cache configuration can be grouped into the following categories:</p>
  *
- * <p><b>Cache size.</b> If the backend storage supports these limits, you
+ * <p><b>Protocol options.</b> I some cases the HTTP protocol allows for
+ * conditional behaviors or optional protocol extensions. Such conditional
+ * protocol behaviors or extensions can be turned on or off here.
+ * See {@link CacheConfig#isNeverCacheHTTP10ResponsesWithQuery()},
+ * {@link CacheConfig#isNeverCacheHTTP11ResponsesWithQuery()},
+ * {@link CacheConfig#isStaleIfErrorEnabled()}</p>
+ *
+ * <p><b>Cache size.</b> If the backend storage supports these limits, one
  * can specify the {@link CacheConfig#getMaxCacheEntries maximum number of
  * cache entries} as well as the {@link CacheConfig#getMaxObjectSize()}
  * maximum cacheable response body size}.</p>
@@ -54,46 +51,25 @@ import org.apache.hc.core5.util.TimeValue;
  * responses to requests with {@code Authorization} headers or responses
  * marked with {@code Cache-Control: private}. If, however, the cache
  * is only going to be used by one logical "user" (behaving similarly to a
- * browser cache), then you will want to {@link
- * CacheConfig#isSharedCache()}  turn off the shared cache setting}.</p>
+ * browser cache), then one may want to {@link CacheConfig#isSharedCache()}
+ * turn off the shared cache setting}.</p>
  *
- * <p><b>303 caching</b>. RFC2616 explicitly disallows caching 303 responses;
- * however, the HTTPbis working group says they can be cached
- * if explicitly indicated in the response headers and permitted by the request method.
- * (They also indicate that disallowing 303 caching is actually an unintended
- * spec error in RFC2616).
- * This behavior is off by default, to err on the side of a conservative
- * adherence to the existing standard, but you may want to
- * {@link Builder#setAllow303Caching(boolean) enable it}.
- *
- * <p><b>Weak ETags on PUT/DELETE If-Match requests</b>. RFC2616 explicitly
- * prohibits the use of weak validators in non-GET requests, however, the
- * HTTPbis working group says while the limitation for weak validators on ranged
- * requests makes sense, weak ETag validation is useful on full non-GET
- * requests; e.g., PUT with If-Match. This behavior is off by default, to err on
- * the side of a conservative adherence to the existing standard, but you may
- * want to {@link Builder#setWeakETagOnPutDeleteAllowed(boolean) enable it}.
- *
- * <p><b>Heuristic caching</b>. Per RFC2616, a cache may cache certain cache
- * entries even if no explicit cache control headers are set by the origin.
- * This behavior is off by default, but you may want to turn this on if you
- * are working with an origin that doesn't set proper headers but where you
- * still want to cache the responses. You will want to {@link
- * CacheConfig#isHeuristicCachingEnabled()} enable heuristic caching},
+ * <p><b>Heuristic caching</b>. Per HTTP caching specification, a cache may
+ * cache certain cache entries even if no explicit cache control headers are
+ * set by the origin. This behavior is off by default, but you may want to
+ * turn this on if you are working with an origin that doesn't set proper
+ * headers but where one may still want to cache the responses. Use {@link
+ * CacheConfig#isHeuristicCachingEnabled()} to enable heuristic caching},
  * then specify either a {@link CacheConfig#getHeuristicDefaultLifetime()
  * default freshness lifetime} and/or a {@link
  * CacheConfig#getHeuristicCoefficient() fraction of the time since
- * the resource was last modified}. See Sections
- * <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.2.2">
- * 13.2.2</a> and <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.2.4">
- * 13.2.4</a> of the HTTP/1.1 RFC for more details on heuristic caching.</p>
+ * the resource was last modified}.
  *
  * <p><b>Background validation</b>. The cache module supports the
- * {@code stale-while-revalidate} directive of
- * <a href="http://tools.ietf.org/html/rfc5861">RFC5861</a>, which allows
- * certain cache entry revalidations to happen in the background. Asynchronous
- * validation is enabled by default but it could be disabled by setting the number
- * of re-validation workers to {@code 0} with {@link CacheConfig#getAsynchronousWorkers()}
+ * {@code stale-while-revalidate} directive, which allows certain cache entry
+ * revalidations to happen in the background. Asynchronous validation is enabled
+ * by default but it could be disabled by setting the number of re-validation
+ * workers to {@code 0} with {@link CacheConfig#getAsynchronousWorkers()}
  * parameter</p>
  */
 public class CacheConfig implements Cloneable {
@@ -113,8 +89,10 @@ public class CacheConfig implements Cloneable {
      */
     public final static int DEFAULT_MAX_UPDATE_RETRIES = 1;
 
-    /** Default setting for 303 caching
+    /**
+     * @deprecated No longer applicable. Do not use.
      */
+    @Deprecated
     public final static boolean DEFAULT_303_CACHING_ENABLED = false;
 
     /**
@@ -147,7 +125,6 @@ public class CacheConfig implements Cloneable {
     private final long maxObjectSize;
     private final int maxCacheEntries;
     private final int maxUpdateRetries;
-    private final boolean allow303Caching;
     private final boolean heuristicCachingEnabled;
     private final float heuristicCoefficient;
     private final TimeValue heuristicDefaultLifetime;
@@ -168,7 +145,6 @@ public class CacheConfig implements Cloneable {
             final long maxObjectSize,
             final int maxCacheEntries,
             final int maxUpdateRetries,
-            final boolean allow303Caching,
             final boolean heuristicCachingEnabled,
             final float heuristicCoefficient,
             final TimeValue heuristicDefaultLifetime,
@@ -182,7 +158,6 @@ public class CacheConfig implements Cloneable {
         this.maxObjectSize = maxObjectSize;
         this.maxCacheEntries = maxCacheEntries;
         this.maxUpdateRetries = maxUpdateRetries;
-        this.allow303Caching = allow303Caching;
         this.heuristicCachingEnabled = heuristicCachingEnabled;
         this.heuristicCoefficient = heuristicCoefficient;
         this.heuristicDefaultLifetime = heuristicDefaultLifetime;
@@ -257,11 +232,11 @@ public class CacheConfig implements Cloneable {
     }
 
     /**
-     * Returns whether 303 caching is enabled.
-     * @return {@code true} if it is enabled.
+     * @deprecated No longer applicable. Do not use.
      */
+    @Deprecated
     public boolean is303CachingEnabled() {
-        return allow303Caching;
+        return true;
     }
 
     /**
@@ -356,7 +331,6 @@ public class CacheConfig implements Cloneable {
         private long maxObjectSize;
         private int maxCacheEntries;
         private int maxUpdateRetries;
-        private boolean allow303Caching;
         private boolean heuristicCachingEnabled;
         private float heuristicCoefficient;
         private TimeValue heuristicDefaultLifetime;
@@ -371,7 +345,6 @@ public class CacheConfig implements Cloneable {
             this.maxObjectSize = DEFAULT_MAX_OBJECT_SIZE_BYTES;
             this.maxCacheEntries = DEFAULT_MAX_CACHE_ENTRIES;
             this.maxUpdateRetries = DEFAULT_MAX_UPDATE_RETRIES;
-            this.allow303Caching = DEFAULT_303_CACHING_ENABLED;
             this.heuristicCachingEnabled = DEFAULT_HEURISTIC_CACHING_ENABLED;
             this.heuristicCoefficient = DEFAULT_HEURISTIC_COEFFICIENT;
             this.heuristicDefaultLifetime = DEFAULT_HEURISTIC_LIFETIME;
@@ -407,12 +380,10 @@ public class CacheConfig implements Cloneable {
         }
 
         /**
-         * Enables or disables 303 caching.
-         * @param allow303Caching should be {@code true} to
-         *   permit 303 caching, {@code false} to disable it.
+         * @deprecated Has no effect. Do not use.
          */
+        @Deprecated
         public Builder setAllow303Caching(final boolean allow303Caching) {
-            this.allow303Caching = allow303Caching;
             return this;
         }
 
@@ -537,7 +508,6 @@ public class CacheConfig implements Cloneable {
                     maxObjectSize,
                     maxCacheEntries,
                     maxUpdateRetries,
-                    allow303Caching,
                     heuristicCachingEnabled,
                     heuristicCoefficient,
                     heuristicDefaultLifetime,
@@ -557,7 +527,6 @@ public class CacheConfig implements Cloneable {
         builder.append("[maxObjectSize=").append(this.maxObjectSize)
                 .append(", maxCacheEntries=").append(this.maxCacheEntries)
                 .append(", maxUpdateRetries=").append(this.maxUpdateRetries)
-                .append(", 303CachingEnabled=").append(this.allow303Caching)
                 .append(", heuristicCachingEnabled=").append(this.heuristicCachingEnabled)
                 .append(", heuristicCoefficient=").append(this.heuristicCoefficient)
                 .append(", heuristicDefaultLifetime=").append(this.heuristicDefaultLifetime)

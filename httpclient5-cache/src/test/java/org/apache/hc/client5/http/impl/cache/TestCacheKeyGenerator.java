@@ -102,20 +102,6 @@ public class TestCacheKeyGenerator {
                 new BasicHttpRequest("GET", "/full_episodes")));
     }
 
-    /*
-     * "When comparing two URIs to decide if they match or not, a client
-     * SHOULD use a case-sensitive octet-by-octet comparison of the entire
-     * URIs, with these exceptions:
-     * - A port that is empty or not given is equivalent to the default
-     * port for that URI-reference;
-     * - Comparisons of host names MUST be case-insensitive;
-     * - Comparisons of scheme names MUST be case-insensitive;
-     * - An empty abs_path is equivalent to an abs_path of "/".
-     * Characters other than those in the 'reserved' and 'unsafe' sets
-     * (see RFC 2396 [42]) are equivalent to their '"%" HEX HEX' encoding."
-     *
-     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html#sec3.2.3
-     */
     @Test
     public void testEmptyPortEquivalentToDefaultPortForHttp() {
         final HttpHost host1 = new HttpHost("foo.example.com:");

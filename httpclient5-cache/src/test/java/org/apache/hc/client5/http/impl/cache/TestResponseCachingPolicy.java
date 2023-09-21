@@ -910,17 +910,6 @@ public class TestResponseCachingPolicy {
     }
 
     @Test
-    public void test303WithExplicitCachingHeadersUnderDefaultBehavior() {
-        // RFC 2616 says: 303 should not be cached
-        response.setCode(HttpStatus.SC_SEE_OTHER);
-        response.setHeader("Date", DateUtils.formatStandardDate(now));
-        responseCacheControl = ResponseCacheControl.builder()
-                .setMaxAge(300)
-                .build();
-        Assertions.assertFalse(policy.isResponseCacheable(responseCacheControl, request, response));
-    }
-
-    @Test
     public void test303WithExplicitCachingHeadersWhenPermittedByConfig() {
         // HTTPbis working group says ok if explicitly indicated by
         // response headers
@@ -1039,7 +1028,7 @@ public class TestResponseCachingPolicy {
         request = new BasicHttpRequest("GET","/foo?s=bar");
         // HTTPbis working group says ok if explicitly indicated by
         // response headers
-        policy = new ResponseCachingPolicy(0, true, false, false, true);
+        policy = new ResponseCachingPolicy(0, true, false, true, true);
         response.setCode(HttpStatus.SC_OK);
         response.setHeader("Date", DateUtils.formatStandardDate(now));
         assertTrue(policy.isResponseCacheable(responseCacheControl, request, response));
@@ -1052,7 +1041,7 @@ public class TestResponseCachingPolicy {
         response.setHeader(HttpHeaders.DATE, DateUtils.formatStandardDate(Instant.now()));
 
         // Create ResponseCachingPolicy instance and test the method
-        policy = new ResponseCachingPolicy(0, true, false, false, false);
+        policy = new ResponseCachingPolicy(0, true, false, false, true);
         request = new BasicHttpRequest("GET", "/foo");
         responseCacheControl = ResponseCacheControl.builder()
                 .setNoCache(true)
