@@ -56,8 +56,6 @@ import org.slf4j.LoggerFactory;
 
 public class CachingExecBase {
 
-    final static boolean SUPPORTS_RANGE_AND_CONTENT_RANGE_HEADERS = false;
-
     final AtomicLong cacheHits = new AtomicLong();
     final AtomicLong cacheMisses = new AtomicLong();
     final AtomicLong cacheUpdates = new AtomicLong();
@@ -98,7 +96,6 @@ public class CachingExecBase {
                 this.cacheConfig.getMaxObjectSize(),
                 this.cacheConfig.isSharedCache(),
                 this.cacheConfig.isNeverCacheHTTP10ResponsesWithQuery(),
-                this.cacheConfig.is303CachingEnabled(),
                 this.cacheConfig.isNeverCacheHTTP11ResponsesWithQuery(),
                 this.cacheConfig.isStaleIfErrorEnabled());
     }
@@ -268,16 +265,6 @@ public class CachingExecBase {
         }
     }
 
-    /**
-     * Reports whether this {@code CachingHttpClient} implementation
-     * supports byte-range requests as specified by the {@code Range}
-     * and {@code Content-Range} headers.
-     * @return {@code true} if byte-range requests are supported
-     */
-    boolean supportsRangeAndContentRangeHeaders() {
-        return SUPPORTS_RANGE_AND_CONTENT_RANGE_HEADERS;
-    }
-
     Instant getCurrentDate() {
         return Instant.now();
     }
@@ -299,7 +286,7 @@ public class CachingExecBase {
         // either backend response or cached entry did not have a valid
         // Date header, so we can't tell if they are out of order
         // according to the origin clock; thus we can skip the
-        // unconditional retry recommended in 13.2.6 of RFC 2616.
+        // unconditional retry.
         return DateSupport.isBefore(backendResponse, cacheEntry, HttpHeaders.DATE);
     }
 

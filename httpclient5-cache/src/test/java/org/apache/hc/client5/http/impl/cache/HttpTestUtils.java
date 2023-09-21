@@ -30,6 +30,7 @@ import java.io.InputStream;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
@@ -61,24 +62,6 @@ import org.junit.jupiter.api.Assertions;
 
 public class HttpTestUtils {
 
-    private static final String[] SINGLE_HEADERS = { "Accept-Ranges", "Age", "Authorization",
-        "Content-Length", "Content-Location", "Content-MD5", "Content-Range", "Content-Type",
-        "Date", "ETag", "Expires", "From", "Host", "If-Match", "If-Modified-Since",
-        "If-None-Match", "If-Range", "If-Unmodified-Since", "Last-Modified", "Location",
-        "Max-Forwards", "Proxy-Authorization", "Range", "Referer", "Retry-After", "Server",
-        "User-Agent", "Vary" };
-
-    /*
-     * Determines whether a given header name may only appear once in a message.
-     */
-    public static boolean isSingleHeader(final String name) {
-        for (final String s : SINGLE_HEADERS) {
-            if (s.equalsIgnoreCase(name)) {
-                return true;
-            }
-        }
-        return false;
-    }
     /*
      * Assertions.asserts that two request or response bodies are byte-equivalent.
      */
@@ -103,24 +86,28 @@ public class HttpTestUtils {
     /*
      * Retrieves the full header value by combining multiple headers and
      * separating with commas, canonicalizing whitespace along the way.
-     *
-     * @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2
      */
     public static String getCanonicalHeaderValue(final HttpMessage r, final String name) {
-        if (isSingleHeader(name)) {
+        final int n = r.countHeaders(name);
+        r.getFirstHeader(name);
+        if (n == 0) {
+            return null;
+        } else if (n == 1) {
             final Header h = r.getFirstHeader(name);
-            return (h != null) ? h.getValue() : null;
-        }
-        final StringBuilder buf = new StringBuilder();
-        boolean first = true;
-        for (final Header h : r.getHeaders(name)) {
-            if (!first) {
-                buf.append(", ");
+            return h != null ? h.getValue() : null;
+        } else {
+            final StringBuilder buf = new StringBuilder();
+            for (final Iterator<Header> it = r.headerIterator(name); it.hasNext(); ) {
+                if (buf.length() > 0) {
+                    buf.append(", ");
+                }
+                final Header header = it.next();
+                if (header != null) {
+                    buf.append(header.getValue().trim());
+                }
             }
-            buf.append(h.getValue().trim());
-            first = false;
+            return buf.toString();
         }
-        return buf.toString();
     }
 
     /*
@@ -132,7 +119,7 @@ public class HttpTestUtils {
             if (!HttpCacheEntryFactory.isHopByHop(h)) {
                 final String r1val = getCanonicalHeaderValue(r1, h.getName());
                 final String r2val = getCanonicalHeaderValue(r2, h.getName());
-                if (!r1val.equals(r2val)) {
+                if (!Objects.equals(r1val, r2val)) {
                     return false;
                 }
             }
@@ -146,21 +133,23 @@ public class HttpTestUtils {
      * is semantically transparent, the client receives exactly the same
      * response (except for hop-by-hop headers) that it would have received had
      * its request been handled directly by the origin server."
-     *
-     * @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec1.html#sec1.3
      */
     public static boolean semanticallyTransparent(
             final ClassicHttpResponse r1, final ClassicHttpResponse r2) throws Exception {
-        final boolean entitiesEquivalent = equivalent(r1.getEntity(), r2.getEntity());
-        if (!entitiesEquivalent) {
-            return false;
-        }
-        final boolean statusLinesEquivalent = Objects.equals(r1.getReasonPhrase(), r2.getReasonPhrase())
+        final boolean statusLineEquivalent = Objects.equals(r1.getReasonPhrase(), r2.getReasonPhrase())
                 && r1.getCode() == r2.getCode();
-        if (!statusLinesEquivalent) {
+        if (!statusLineEquivalent) {
             return false;
         }
-        return isEndToEndHeaderSubset(r1, r2);
+        final boolean headerEquivalent = isEndToEndHeaderSubset(r1, r2);
+        if (!headerEquivalent) {
+            return false;
+        }
+        final boolean entityEquivalent = equivalent(r1.getEntity(), r2.getEntity());
+        if (!entityEquivalent) {
+            return false;
+        }
+        return true;
     }
 
     /* Assertions.asserts that protocol versions equivalent. */

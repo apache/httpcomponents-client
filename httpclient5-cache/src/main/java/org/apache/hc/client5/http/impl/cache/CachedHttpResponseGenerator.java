@@ -100,9 +100,8 @@ class CachedHttpResponseGenerator {
         final SimpleHttpResponse response = new SimpleHttpResponse(HttpStatus.SC_NOT_MODIFIED, "Not Modified");
 
         // The response MUST include the following headers
-        //  (http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html)
 
-        // - Date, unless its omission is required by section 14.8.1
+        // - Date
         Header dateHeader = entry.getFirstHeader(HttpHeaders.DATE);
         if (dateHeader == null) {
             dateHeader = new BasicHeader(HttpHeaders.DATE, DateUtils.formatStandardDate(Instant.now()));
