@@ -77,6 +77,7 @@ import org.apache.hc.client5.http.impl.routing.SystemDefaultRoutePlanner;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.protocol.RedirectStrategy;
 import org.apache.hc.client5.http.protocol.RequestAddCookies;
+import org.apache.hc.client5.http.protocol.RequestTraceInterceptor;
 import org.apache.hc.client5.http.protocol.RequestClientConnControl;
 import org.apache.hc.client5.http.protocol.RequestDefaultHeaders;
 import org.apache.hc.client5.http.protocol.RequestExpectContinue;
@@ -819,6 +820,8 @@ public class HttpClientBuilder {
                 new RequestTargetHost(),
                 new RequestClientConnControl(),
                 new RequestUserAgent(userAgentCopy),
+                new RequestExpectContinue(),
+                new RequestTraceInterceptor(),
                 new RequestExpectContinue(),
                 new RequestIfRange());
         if (!cookieManagementDisabled) {
