@@ -80,6 +80,7 @@ import org.apache.hc.client5.http.protocol.RequestAddCookies;
 import org.apache.hc.client5.http.protocol.RequestClientConnControl;
 import org.apache.hc.client5.http.protocol.RequestDefaultHeaders;
 import org.apache.hc.client5.http.protocol.RequestExpectContinue;
+import org.apache.hc.client5.http.protocol.RequestIfRange;
 import org.apache.hc.client5.http.protocol.ResponseProcessCookies;
 import org.apache.hc.client5.http.routing.HttpRoutePlanner;
 import org.apache.hc.core5.annotation.Internal;
@@ -818,7 +819,8 @@ public class HttpClientBuilder {
                 new RequestTargetHost(),
                 new RequestClientConnControl(),
                 new RequestUserAgent(userAgentCopy),
-                new RequestExpectContinue());
+                new RequestExpectContinue(),
+                new RequestIfRange());
         if (!cookieManagementDisabled) {
             b.add(RequestAddCookies.INSTANCE);
         }
