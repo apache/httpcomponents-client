@@ -37,6 +37,7 @@ import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.config.CharCodingConfig;
 import org.apache.hc.core5.http.nio.AsyncPushConsumer;
 import org.apache.hc.core5.http.nio.entity.AbstractCharDataConsumer;
 import org.apache.hc.core5.http.protocol.HttpContext;
@@ -47,6 +48,19 @@ import org.apache.hc.core5.http.protocol.HttpContext;
  * @since 5.0
  */
 public abstract class AbstractCharPushConsumer extends AbstractCharDataConsumer implements AsyncPushConsumer {
+
+    private final Charset defaultCharset;
+
+    public AbstractCharPushConsumer() {
+        this.defaultCharset = StandardCharsets.UTF_8;
+    }
+
+    protected AbstractCharPushConsumer(final int bufSize,
+                                       final CharCodingConfig charCodingConfig) {
+        super(bufSize, charCodingConfig);
+        this.defaultCharset = charCodingConfig != null && charCodingConfig.getCharset() != null
+                ? charCodingConfig.getCharset() : StandardCharsets.UTF_8;
+    }
 
     /**
      * Triggered to signal the beginning of data processing.
@@ -72,7 +86,7 @@ public abstract class AbstractCharPushConsumer extends AbstractCharDataConsumer 
             }
             Charset charset = contentType != null ? contentType.getCharset() : null;
             if (charset == null) {
-                charset = StandardCharsets.US_ASCII;
+                charset = defaultCharset;
             }
             setCharset(charset);
             start(promise, response, contentType != null ? contentType : ContentType.DEFAULT_TEXT);
