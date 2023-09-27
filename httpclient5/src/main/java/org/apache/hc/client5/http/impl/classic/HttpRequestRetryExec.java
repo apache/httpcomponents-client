@@ -43,6 +43,7 @@ import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.NoHttpResponseException;
 import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
 import org.apache.hc.core5.util.Args;
@@ -146,6 +147,19 @@ public class HttpRequestRetryExec implements ExecChainHandler {
                     }
                     return response;
                 }
+
+                // Check for 403 Forbidden status code
+                // According to the RFC guidelines, "The client SHOULD NOT automatically
+                // repeat the request with the same credentials. The client MAY repeat the request with
+                // new or different credentials. However, a request might be forbidden for reasons unrelated
+                // to the credentials."
+                if (response != null && response.getCode() == HttpStatus.SC_FORBIDDEN) {
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("{} received 403 Forbidden, not retrying", exchangeId);
+                    }
+                    return response;
+                }
+
                 if (retryStrategy.retryRequest(response, execCount, context)) {
                     final TimeValue nextInterval = retryStrategy.getRetryInterval(response, execCount, context);
                     // Make sure the retry interval does not exceed the response timeout

@@ -41,6 +41,7 @@ import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.nio.AsyncDataConsumer;
 import org.apache.hc.core5.http.nio.AsyncEntityProducer;
 import org.apache.hc.core5.http.nio.entity.DiscardingEntityConsumer;
@@ -142,6 +143,19 @@ public final class AsyncHttpRequestRetryExec implements AsyncExecChainHandler {
                 if (cause instanceof IOException) {
                     final HttpRoute route = scope.route;
                     final HttpClientContext clientContext = scope.clientContext;
+
+                    // Check for 403 Forbidden status code
+                    // According to the RFC guidelines, "The client SHOULD NOT automatically
+                    // repeat the request with the same credentials. The client MAY repeat the request with
+                    // new or different credentials. However, a request might be forbidden for reasons unrelated
+                    // to the credentials."
+                    if (clientContext != null && clientContext.getResponse() != null
+                            && clientContext.getResponse().getCode() == HttpStatus.SC_FORBIDDEN) {
+                        if (LOG.isInfoEnabled()) {
+                            LOG.info("403 Forbidden status received. Automatic retries are disallowed.");
+                        }
+                    }
+
                     if (entityProducer != null && !entityProducer.isRepeatable()) {
                         if (LOG.isDebugEnabled()) {
                             LOG.debug("{} cannot retry non-repeatable request", exchangeId);

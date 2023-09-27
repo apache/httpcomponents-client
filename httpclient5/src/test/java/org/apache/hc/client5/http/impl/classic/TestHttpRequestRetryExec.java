@@ -43,7 +43,9 @@ import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
+import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
 import org.junit.jupiter.api.Assertions;
@@ -328,6 +330,41 @@ public class TestHttpRequestRetryExec {
         Mockito.verify(chain, Mockito.times(1)).proceed(
                 Mockito.same(request),
                 Mockito.same(scope));
+    }
+
+    @Test
+    public void testShouldNotRetryOn403() throws Exception {
+        final HttpRoute route = new HttpRoute(target); // Replace 'target' with your target host
+        final HttpGet request = new HttpGet("/test");
+        final HttpClientContext context = HttpClientContext.create();
+
+        final ClassicHttpResponse response = new BasicClassicHttpResponse(HttpStatus.SC_FORBIDDEN);
+
+        final ExecChain chain = Mockito.mock(ExecChain.class);
+        final HttpRequestRetryStrategy retryStrategy = Mockito.mock(HttpRequestRetryStrategy.class);
+
+        Mockito.when(chain.proceed(
+                Mockito.same(request),
+                Mockito.any())).thenReturn(response);
+
+        Mockito.when(retryStrategy.retryRequest(
+                Mockito.any(),
+                Mockito.anyInt(),
+                Mockito.any())).thenReturn(Boolean.TRUE);
+
+        final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context); // Replace 'endpoint' with your endpoint
+        final HttpRequestRetryExec retryExec = new HttpRequestRetryExec(retryStrategy);
+
+        retryExec.execute(request, scope, chain);
+
+        Mockito.verify(chain, Mockito.times(1)).proceed(
+                Mockito.any(),
+                Mockito.same(scope));
+
+        Mockito.verify(retryStrategy, Mockito.times(0)).retryRequest(
+                Mockito.any(),
+                Mockito.anyInt(),
+                Mockito.any());
     }
 
 }
