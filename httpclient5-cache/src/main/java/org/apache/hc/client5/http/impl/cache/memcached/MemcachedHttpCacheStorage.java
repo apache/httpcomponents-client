@@ -208,8 +208,12 @@ public class MemcachedHttpCacheStorage extends AbstractBinaryCacheStorage<CASVal
     @Override
     protected boolean updateCAS(
             final String storageKey, final CASValue<Object> casValue, final byte[] storageObject) throws ResourceIOException {
-        final CASResponse casResult = client.cas(storageKey, casValue.getCas(), storageObject);
-        return casResult == CASResponse.OK;
+        try {
+            final CASResponse casResult = client.cas(storageKey, casValue.getCas(), storageObject);
+            return casResult == CASResponse.OK;
+        } catch (final OperationTimeoutException ex) {
+            throw new MemcachedOperationTimeoutException(ex);
+        }
     }
 
     @Override
@@ -219,12 +223,16 @@ public class MemcachedHttpCacheStorage extends AbstractBinaryCacheStorage<CASVal
 
     @Override
     protected Map<String, byte[]> bulkRestore(final Collection<String> storageKeys) throws ResourceIOException {
-        final Map<String, ?> storageObjectMap = client.getBulk(storageKeys);
-        final Map<String, byte[]> resultMap = new HashMap<>(storageObjectMap.size());
-        for (final Map.Entry<String, ?> resultEntry: storageObjectMap.entrySet()) {
-            resultMap.put(resultEntry.getKey(), castAsByteArray(resultEntry.getValue()));
+        try {
+            final Map<String, ?> storageObjectMap = client.getBulk(storageKeys);
+            final Map<String, byte[]> resultMap = new HashMap<>(storageObjectMap.size());
+            for (final Map.Entry<String, ?> resultEntry: storageObjectMap.entrySet()) {
+                resultMap.put(resultEntry.getKey(), castAsByteArray(resultEntry.getValue()));
+            }
+            return resultMap;
+        } catch (final OperationTimeoutException ex) {
+            throw new MemcachedOperationTimeoutException(ex);
         }
-        return resultMap;
     }
 
 }
