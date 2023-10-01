@@ -37,6 +37,11 @@ import org.apache.hc.core5.ssl.TrustStrategy;
  * A trust strategy that accepts self-signed certificates as trusted. Verification of all other
  * certificates is done by the trust manager configured in the SSL context.
  *
+ * <h2>Security Warning</h2>
+ * This acts like {@link TrustAllStrategy}, with the only restriction that the certificate chain
+ * must have length 1. This means this trust strategy does not protect against man-in-the-middle
+ * attacks. See the {@link TrustAllStrategy} for more information and more secure alternatives.
+ *
  * @since 4.1
  */
 @Contract(threading = ThreadingBehavior.STATELESS)
