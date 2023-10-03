@@ -48,9 +48,9 @@ import org.apache.hc.core5.http.protocol.HttpContext;
  * header if it is not present in the response message..
  */
 @Contract(threading = ThreadingBehavior.IMMUTABLE)
-class ResponseProtocolCompliance implements HttpResponseInterceptor {
+class ResponseCacheConformance implements HttpResponseInterceptor {
 
-    public static final ResponseProtocolCompliance INSTANCE = new ResponseProtocolCompliance();
+    public static final ResponseCacheConformance INSTANCE = new ResponseCacheConformance();
 
     private final static String[] DISALLOWED_ENTITY_HEADERS = {
             HttpHeaders.CONTENT_ENCODING,

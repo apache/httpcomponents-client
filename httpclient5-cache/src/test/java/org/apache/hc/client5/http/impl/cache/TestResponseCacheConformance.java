@@ -37,13 +37,13 @@ import org.apache.hc.core5.http.support.BasicResponseBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class TestResponseProtocolCompliance {
+public class TestResponseCacheConformance {
 
-    private ResponseProtocolCompliance impl;
+    private ResponseCacheConformance impl;
 
     @BeforeEach
     public void setUp() {
-        impl = ResponseProtocolCompliance.INSTANCE;
+        impl = ResponseCacheConformance.INSTANCE;
     }
 
     private void shouldStripEntityHeaderFromOrigin304ResponseToStrongValidation(
