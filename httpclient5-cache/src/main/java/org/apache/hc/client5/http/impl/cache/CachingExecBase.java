@@ -28,8 +28,6 @@ package org.apache.hc.client5.http.impl.cache;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
@@ -40,17 +38,12 @@ import org.apache.hc.client5.http.cache.ResourceIOException;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.HttpMessage;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
-import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.Method;
-import org.apache.hc.core5.http.ProtocolVersion;
-import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.TimeValue;
-import org.apache.hc.core5.util.VersionInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,7 +53,6 @@ public class CachingExecBase {
     final AtomicLong cacheMisses = new AtomicLong();
     final AtomicLong cacheUpdates = new AtomicLong();
 
-    final Map<ProtocolVersion, String> viaHeaders = new ConcurrentHashMap<>(4);
     final ResponseCachingPolicy responseCachingPolicy;
     final CacheValidityPolicy validityPolicy;
     final CachedHttpResponseGenerator responseGenerator;
@@ -228,35 +220,6 @@ public class CachingExecBase {
             return true;
         }
         return false;
-    }
-
-    String generateViaHeader(final HttpMessage msg) {
-
-        if (msg.getVersion() == null) {
-            msg.setVersion(HttpVersion.DEFAULT);
-        }
-        final ProtocolVersion pv = msg.getVersion();
-        final String existingEntry = viaHeaders.get(msg.getVersion());
-        if (existingEntry != null) {
-            return existingEntry;
-        }
-
-        final VersionInfo vi = VersionInfo.loadVersionInfo("org.apache.hc.client5", getClass().getClassLoader());
-        final String release = (vi != null) ? vi.getRelease() : VersionInfo.UNAVAILABLE;
-
-        final String value;
-        final int major = pv.getMajor();
-        final int minor = pv.getMinor();
-        if (URIScheme.HTTP.same(pv.getProtocol())) {
-            value = String.format("%d.%d localhost (Apache-HttpClient/%s (cache))", major, minor,
-                    release);
-        } else {
-            value = String.format("%s/%d.%d localhost (Apache-HttpClient/%s (cache))", pv.getProtocol(), major,
-                    minor, release);
-        }
-        viaHeaders.put(pv, value);
-
-        return value;
     }
 
     void setResponseStatus(final HttpContext context, final CacheResponseStatus value) {

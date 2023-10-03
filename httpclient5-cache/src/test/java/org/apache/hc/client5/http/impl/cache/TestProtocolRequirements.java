@@ -36,8 +36,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
@@ -55,7 +53,6 @@ import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpStatus;
-import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
 import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
@@ -2259,131 +2256,6 @@ public class TestProtocolRequirements {
 
         final ClassicHttpResponse result = execute(request);
         Assertions.assertEquals(server, result.getFirstHeader("Server").getValue());
-    }
-
-    @Test
-    public void testProperlyFormattedViaHeaderIsAddedToRequests() throws Exception {
-        request.removeHeaders(HttpHeaders.VIA);
-        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(originResponse);
-
-        execute(request);
-
-        final ArgumentCaptor<ClassicHttpRequest> reqCapture = ArgumentCaptor.forClass(ClassicHttpRequest.class);
-        Mockito.verify(mockExecChain).proceed(reqCapture.capture(), Mockito.any());
-
-        final ClassicHttpRequest captured = reqCapture.getValue();
-        final String via = captured.getFirstHeader(HttpHeaders.VIA).getValue();
-        assertValidViaHeader(via);
-    }
-
-    @Test
-    public void testProperlyFormattedViaHeaderIsAddedToResponses() throws Exception {
-        originResponse.removeHeaders(HttpHeaders.VIA);
-        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(originResponse);
-        final ClassicHttpResponse result = execute(request);
-        assertValidViaHeader(result.getFirstHeader(HttpHeaders.VIA).getValue());
-    }
-
-    private void assertValidViaHeader(final String via) {
-        //        Via =  HttpHeaders.VIA ":" 1#( received-protocol received-by [ comment ] )
-        //        received-protocol = [ protocol-name "/" ] protocol-version
-        //        protocol-name     = token
-        //        protocol-version  = token
-        //        received-by       = ( host [ ":" port ] ) | pseudonym
-        //        pseudonym         = token
-
-        final String[] parts = via.split("\\s+");
-        Assertions.assertTrue(parts.length >= 2);
-
-        // received protocol
-        final String receivedProtocol = parts[0];
-        final String[] protocolParts = receivedProtocol.split("/");
-        Assertions.assertTrue(protocolParts.length >= 1);
-        Assertions.assertTrue(protocolParts.length <= 2);
-
-        final String tokenRegexp = "[^\\p{Cntrl}()<>@,;:\\\\\"/\\[\\]?={} \\t]+";
-        for(final String protocolPart : protocolParts) {
-            Assertions.assertTrue(Pattern.matches(tokenRegexp, protocolPart));
-        }
-
-        // received-by
-        if (!Pattern.matches(tokenRegexp, parts[1])) {
-            // host : port
-            new HttpHost(parts[1]); // TODO - unused - is this a test bug? else use Assertions.assertNotNull
-        }
-
-        // comment
-        if (parts.length > 2) {
-            final StringBuilder buf = new StringBuilder(parts[2]);
-            for(int i=3; i<parts.length; i++) {
-                buf.append(" "); buf.append(parts[i]);
-            }
-            Assertions.assertTrue(isValidComment(buf.toString()));
-        }
-    }
-
-    private boolean isValidComment(final String s) {
-        final String leafComment = "^\\(([^\\p{Cntrl}()]|\\\\\\p{ASCII})*\\)$";
-        final String nestedPrefix = "^\\(([^\\p{Cntrl}()]|\\\\\\p{ASCII})*\\(";
-        final String nestedSuffix = "\\)([^\\p{Cntrl}()]|\\\\\\p{ASCII})*\\)$";
-
-        if (Pattern.matches(leafComment,s)) {
-            return true;
-        }
-        final Matcher pref = Pattern.compile(nestedPrefix).matcher(s);
-        final Matcher suff = Pattern.compile(nestedSuffix).matcher(s);
-        if (!pref.find()) {
-            return false;
-        }
-        if (!suff.find()) {
-            return false;
-        }
-        return isValidComment(s.substring(pref.end() - 1, suff.start() + 1));
-    }
-
-    @Test
-    public void testViaHeaderOnRequestProperlyRecordsClientProtocol() throws Exception {
-        final ClassicHttpRequest originalRequest = new BasicClassicHttpRequest("GET", "/");
-        originalRequest.setVersion(HttpVersion.HTTP_1_0);
-        request = originalRequest;
-        request.removeHeaders(HttpHeaders.VIA);
-
-        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(originResponse);
-
-        execute(request);
-
-        final ArgumentCaptor<ClassicHttpRequest> reqCapture = ArgumentCaptor.forClass(ClassicHttpRequest.class);
-        Mockito.verify(mockExecChain).proceed(reqCapture.capture(), Mockito.any());
-
-        final ClassicHttpRequest captured = reqCapture.getValue();
-        final String via = captured.getFirstHeader(HttpHeaders.VIA).getValue();
-        final String protocol = via.split("\\s+")[0];
-        final String[] protoParts = protocol.split("/");
-        if (protoParts.length > 1) {
-            Assertions.assertTrue("http".equalsIgnoreCase(protoParts[0]));
-        }
-        Assertions.assertEquals("1.0",protoParts[protoParts.length-1]);
-    }
-
-    @Test
-    public void testViaHeaderOnResponseProperlyRecordsOriginProtocol() throws Exception {
-
-        originResponse = new BasicClassicHttpResponse(HttpStatus.SC_NO_CONTENT, "No Content");
-        originResponse.setVersion(HttpVersion.HTTP_1_0);
-
-        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(originResponse);
-
-        final ClassicHttpResponse result = execute(request);
-
-        final String via = result.getFirstHeader(HttpHeaders.VIA).getValue();
-        final String protocol = via.split("\\s+")[0];
-        final String[] protoParts = protocol.split("/");
-        Assertions.assertTrue(protoParts.length >= 1);
-        Assertions.assertTrue(protoParts.length <= 2);
-        if (protoParts.length > 1) {
-            Assertions.assertTrue("http".equalsIgnoreCase(protoParts[0]));
-        }
-        Assertions.assertEquals("1.0", protoParts[protoParts.length - 1]);
     }
 
 }

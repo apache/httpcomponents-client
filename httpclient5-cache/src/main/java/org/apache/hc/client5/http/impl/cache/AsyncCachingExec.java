@@ -217,7 +217,6 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
         final URIAuthority authority = request.getAuthority();
         final String scheme = request.getScheme();
         final HttpHost target = authority != null ? new HttpHost(scheme, authority) : route.getTargetHost();
-        final String via = generateViaHeader(request);
 
         // default response context
         setResponseStatus(context, CacheResponseStatus.CACHE_MISS);
@@ -227,8 +226,6 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
             triggerResponse(SimpleHttpResponse.create(HttpStatus.SC_NOT_IMPLEMENTED), scope, asyncExecCallback);
             return;
         }
-
-        request.addHeader(HttpHeaders.VIA,via);
 
         final RequestCacheControl requestCacheControl = CacheControlHeaderParser.INSTANCE.parse(request);
 
@@ -296,8 +293,6 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                     final HttpResponse backendResponse,
                     final EntityDetails entityDetails) throws HttpException, IOException {
                 final Instant responseDate = getCurrentDate();
-                backendResponse.addHeader(HttpHeaders.VIA, generateViaHeader(backendResponse));
-
                 final AsyncExecCallback callback = new BackendResponseHandler(target, request, requestDate, responseDate, scope, asyncExecCallback);
                 callbackRef.set(callback);
                 return callback.handleResponse(backendResponse, entityDetails);
@@ -749,8 +744,6 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
             }
 
             AsyncExecCallback evaluateResponse(final HttpResponse backendResponse, final Instant responseDate) {
-                backendResponse.addHeader(HttpHeaders.VIA, generateViaHeader(backendResponse));
-
                 final int statusCode = backendResponse.getCode();
                 if (statusCode == HttpStatus.SC_NOT_MODIFIED || statusCode == HttpStatus.SC_OK) {
                     recordCacheUpdate(scope.clientContext);
@@ -980,8 +973,6 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                     final HttpResponse backendResponse,
                     final EntityDetails entityDetails) throws HttpException, IOException {
                 final Instant responseDate = getCurrentDate();
-                backendResponse.addHeader(HttpHeaders.VIA, generateViaHeader(backendResponse));
-
                 final AsyncExecCallback callback;
                 // Handle 304 Not Modified responses
                 if (backendResponse.getCode() == HttpStatus.SC_NOT_MODIFIED) {

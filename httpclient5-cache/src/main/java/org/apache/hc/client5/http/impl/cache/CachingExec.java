@@ -154,7 +154,6 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
         final URIAuthority authority = request.getAuthority();
         final String scheme = request.getScheme();
         final HttpHost target = authority != null ? new HttpHost(scheme, authority) : route.getTargetHost();
-        final String via = generateViaHeader(request);
 
         // default response context
         setResponseStatus(context, CacheResponseStatus.CACHE_MISS);
@@ -166,8 +165,6 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
         final CacheMatch result = responseCache.match(target, request);
         final CacheHit hit = result != null ? result.hit : null;
         final CacheHit root = result != null ? result.root : null;
-
-        request.addHeader(HttpHeaders.VIA, via);
 
         final RequestCacheControl requestCacheControl = CacheControlHeaderParser.INSTANCE.parse(request);
         if (!cacheableRequestPolicy.isServableFromCache(requestCacheControl, request)) {
@@ -220,7 +217,6 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
         LOG.debug("Calling the backend");
         final ClassicHttpResponse backendResponse = chain.proceed(request, scope);
         try {
-            backendResponse.addHeader(HttpHeaders.VIA, generateViaHeader(backendResponse));
             return handleBackendResponse(target, request, scope, requestDate, getCurrentDate(), backendResponse);
         } catch (final IOException | RuntimeException ex) {
             backendResponse.close();
@@ -330,8 +326,6 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
                 backendResponse = chain.proceed(unconditional, scope);
                 responseDate = getCurrentDate();
             }
-
-            backendResponse.addHeader(HttpHeaders.VIA, generateViaHeader(backendResponse));
 
             final int statusCode = backendResponse.getCode();
             if (statusCode == HttpStatus.SC_NOT_MODIFIED || statusCode == HttpStatus.SC_OK) {
@@ -489,8 +483,6 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
         final ClassicHttpResponse backendResponse = chain.proceed(conditionalRequest, scope);
         try {
             final Instant responseDate = getCurrentDate();
-
-            backendResponse.addHeader(HttpHeaders.VIA, generateViaHeader(backendResponse));
 
             if (backendResponse.getCode() != HttpStatus.SC_NOT_MODIFIED) {
                 return handleBackendResponse(target, request, scope, requestDate, responseDate, backendResponse);

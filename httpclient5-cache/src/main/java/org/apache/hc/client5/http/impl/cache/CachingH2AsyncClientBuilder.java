@@ -66,6 +66,8 @@ public class CachingH2AsyncClientBuilder extends H2AsyncClientBuilder {
     protected CachingH2AsyncClientBuilder() {
         super();
         addResponseInterceptorFirst(ResponseProtocolCompliance.INSTANCE);
+        addResponseInterceptorLast(ResponseViaCache.INSTANCE);
+        addRequestInterceptorLast(RequestViaCache.INSTANCE);
         this.deleteCache = true;
     }
 
