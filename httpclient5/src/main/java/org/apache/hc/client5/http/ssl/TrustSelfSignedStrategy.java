@@ -42,8 +42,13 @@ import org.apache.hc.core5.ssl.TrustStrategy;
  * must have length 1. This means this trust strategy does not protect against man-in-the-middle
  * attacks. See the {@link TrustAllStrategy} for more information and more secure alternatives.
  *
+ * @deprecated
+ *      For self-signed certificates prefer specifying a keystore containing the certificate when
+ *      calling the {@link org.apache.hc.core5.ssl.SSLContextBuilder} {@code loadTrustMaterial}
+ *      methods.
  * @since 4.1
  */
+@Deprecated
 @Contract(threading = ThreadingBehavior.STATELESS)
 public class TrustSelfSignedStrategy implements TrustStrategy {
 
