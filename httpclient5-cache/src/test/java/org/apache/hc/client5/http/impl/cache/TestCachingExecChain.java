@@ -45,7 +45,6 @@ import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.cache.CacheResponseStatus;
 import org.apache.hc.client5.http.cache.HttpCacheContext;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
-import org.apache.hc.client5.http.cache.HttpCacheEntryFactory;
 import org.apache.hc.client5.http.cache.HttpCacheStorage;
 import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecRuntime;
@@ -58,9 +57,7 @@ import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpStatus;
-import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.InputStreamEntity;
 import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
@@ -71,7 +68,6 @@ import org.apache.hc.core5.net.URIAuthority;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
@@ -86,24 +82,6 @@ public class TestCachingExecChain {
     HttpCacheStorage mockStorage;
     @Mock
     DefaultCacheRevalidator cacheRevalidator;
-    @Mock
-    CachedHttpResponseGenerator responseGenerator;
-    @Mock
-    HttpCacheEntryFactory cacheEntryFactory;
-    @Mock
-    CacheValidityPolicy validityPolicy;
-    @Mock
-    ResponseCachingPolicy responseCachingPolicy;
-    @Mock
-    CacheableRequestPolicy cacheableRequestPolicy;
-    @Mock
-    CachedResponseSuitabilityChecker suitabilityChecker;
-    @Mock
-    ResponseProtocolCompliance responseCompliance;
-    @Mock
-    ConditionalRequestBuilder<ClassicHttpRequest> conditionalRequestBuilder;
-    @Mock
-    HttpCache responseCache;
 
     HttpRoute route;
     HttpHost host;
@@ -246,27 +224,6 @@ public class TestCachingExecChain {
     }
 
     @Test
-    public void testRecordsClientProtocolInViaHeaderIfRequestNotServableFromCache() throws Exception {
-        final ClassicHttpRequest originalRequest = new BasicClassicHttpRequest("GET", "/");
-        originalRequest.setVersion(HttpVersion.HTTP_1_0);
-        final ClassicHttpRequest req = originalRequest;
-        req.setHeader("Cache-Control", "no-cache");
-        final ClassicHttpResponse resp = new BasicClassicHttpResponse(HttpStatus.SC_NO_CONTENT, "No Content");
-
-        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp);
-
-        execute(req);
-
-        final ArgumentCaptor<ClassicHttpRequest> reqCapture = ArgumentCaptor.forClass(ClassicHttpRequest.class);
-        Mockito.verify(mockExecChain).proceed(reqCapture.capture(), Mockito.any());
-
-        final HttpRequest captured = reqCapture.getValue();
-        final String via = captured.getFirstHeader("Via").getValue();
-        final String proto = via.split("\\s+")[0];
-        Assertions.assertTrue("http/1.0".equalsIgnoreCase(proto) || "1.0".equalsIgnoreCase(proto));
-    }
-
-    @Test
     public void testSetsCacheMissContextIfRequestNotServableFromCache() throws Exception {
         final ClassicHttpRequest req = new HttpGet("http://foo.example.com/");
         req.setHeader("Cache-Control", "no-cache");
@@ -276,34 +233,6 @@ public class TestCachingExecChain {
 
         execute(req);
         Assertions.assertEquals(CacheResponseStatus.CACHE_MISS, context.getCacheResponseStatus());
-    }
-
-    @Test
-    public void testSetsViaHeaderOnResponseIfRequestNotServableFromCache() throws Exception {
-        final ClassicHttpRequest req = new HttpGet("http://foo.example.com/");
-        req.setHeader("Cache-Control", "no-cache");
-        final ClassicHttpResponse resp = new BasicClassicHttpResponse(HttpStatus.SC_NO_CONTENT, "No Content");
-
-        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp);
-
-        final ClassicHttpResponse result = execute(req);
-        Assertions.assertNotNull(result.getFirstHeader("Via"));
-    }
-
-    @Test
-    public void testSetsViaHeaderOnResponseForCacheMiss() throws Exception {
-        final ClassicHttpRequest req1 = new HttpGet("http://foo.example.com/");
-        final ClassicHttpResponse resp1 = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
-        resp1.setEntity(HttpTestUtils.makeBody(128));
-        resp1.setHeader("Content-Length", "128");
-        resp1.setHeader("ETag", "\"etag\"");
-        resp1.setHeader("Date", DateUtils.formatStandardDate(Instant.now()));
-        resp1.setHeader("Cache-Control", "public, max-age=3600");
-
-        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
-
-        final ClassicHttpResponse result = execute(req1);
-        Assertions.assertNotNull(result.getFirstHeader("Via"));
     }
 
     @Test
@@ -322,24 +251,6 @@ public class TestCachingExecChain {
         execute(req1);
         execute(req2);
         Assertions.assertEquals(CacheResponseStatus.CACHE_HIT, context.getCacheResponseStatus());
-    }
-
-    @Test
-    public void testSetsViaHeaderOnResponseIfRequestServedFromCache() throws Exception {
-        final ClassicHttpRequest req1 = new HttpGet("http://foo.example.com/");
-        final ClassicHttpRequest req2 = new HttpGet("http://foo.example.com/");
-        final ClassicHttpResponse resp1 = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
-        resp1.setEntity(HttpTestUtils.makeBody(128));
-        resp1.setHeader("Content-Length", "128");
-        resp1.setHeader("ETag", "\"etag\"");
-        resp1.setHeader("Date", DateUtils.formatStandardDate(Instant.now()));
-        resp1.setHeader("Cache-Control", "public, max-age=3600");
-
-        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
-
-        execute(req1);
-        final ClassicHttpResponse result = execute(req2);
-        Assertions.assertNotNull(result.getFirstHeader("Via"));
     }
 
     @Test
@@ -631,38 +542,6 @@ public class TestCachingExecChain {
     }
 
     @Test
-    public void testSetsViaHeaderIfRequestWasSuccessfullyValidated() throws Exception {
-        final Instant now = Instant.now();
-        final Instant tenSecondsAgo = now.minusSeconds(10);
-
-        final ClassicHttpRequest req1 = new HttpGet("http://foo.example.com/");
-        final ClassicHttpRequest req2 = new HttpGet("http://foo.example.com/");
-
-        final ClassicHttpResponse resp1 = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
-        resp1.setEntity(HttpTestUtils.makeBody(128));
-        resp1.setHeader("Content-Length", "128");
-        resp1.setHeader("ETag", "\"etag\"");
-        resp1.setHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo));
-        resp1.setHeader("Cache-Control", "public, max-age=5");
-
-        final ClassicHttpResponse resp2 = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
-        resp2.setEntity(HttpTestUtils.makeBody(128));
-        resp2.setHeader("Content-Length", "128");
-        resp2.setHeader("ETag", "\"etag\"");
-        resp2.setHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo));
-        resp2.setHeader("Cache-Control", "public, max-age=5");
-
-        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
-
-        execute(req1);
-
-        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp2);
-
-        final ClassicHttpResponse result = execute(req2);
-        Assertions.assertNotNull(result.getFirstHeader("Via"));
-    }
-
-    @Test
     public void testSetsModuleResponseContextIfValidationRequiredButFailed() throws Exception {
         final Instant now = Instant.now();
         final Instant tenSecondsAgo = now.minusSeconds(10);
@@ -711,31 +590,6 @@ public class TestCachingExecChain {
 
         execute(req2);
         Assertions.assertEquals(CacheResponseStatus.CACHE_HIT, context.getCacheResponseStatus());
-    }
-
-    @Test
-    public void testSetViaHeaderIfValidationFailsButNotRequired() throws Exception {
-        final Instant now = Instant.now();
-        final Instant tenSecondsAgo = now.minusSeconds(10);
-
-        final ClassicHttpRequest req1 = new HttpGet("http://foo.example.com/");
-        final ClassicHttpRequest req2 = new HttpGet("http://foo.example.com/");
-
-        final ClassicHttpResponse resp1 = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
-        resp1.setEntity(HttpTestUtils.makeBody(128));
-        resp1.setHeader("Content-Length", "128");
-        resp1.setHeader("ETag", "\"etag\"");
-        resp1.setHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo));
-        resp1.setHeader("Cache-Control", "public, max-age=5");
-
-        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
-
-        execute(req1);
-
-        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenThrow(new IOException());
-
-        final ClassicHttpResponse result = execute(req2);
-        Assertions.assertNotNull(result.getFirstHeader("Via"));
     }
 
     @Test

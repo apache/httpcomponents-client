@@ -43,6 +43,7 @@ import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.ProtocolVersion;
+import org.apache.hc.core5.http.message.BasicTokenIterator;
 import org.apache.hc.core5.http.message.MessageSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -336,15 +337,10 @@ class ResponseCachingPolicy {
     }
 
     private boolean from1_0Origin(final HttpResponse response) {
-        final Iterator<HeaderElement> it = MessageSupport.iterate(response, HttpHeaders.VIA);
+        final Iterator<String> it = new BasicTokenIterator(response.headerIterator(HttpHeaders.VIA));
         if (it.hasNext()) {
-            final HeaderElement elt = it.next();
-            final String proto = elt.toString().split("\\s")[0];
-            if (proto.contains("/")) {
-                return proto.equals("HTTP/1.0");
-            } else {
-                return proto.equals("1.0");
-            }
+            final String token = it.next();
+            return token.startsWith("1.0 ") || token.startsWith("HTTP/1.0 ");
         }
         final ProtocolVersion version = response.getVersion() != null ? response.getVersion() : HttpVersion.DEFAULT;
         return HttpVersion.HTTP_1_0.equals(version);
