@@ -34,9 +34,15 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.ssl.TrustStrategy;
 
 /**
- * A trust strategy that accepts all certificates as trusted. Verification of
- * all other certificates is done by the trust manager configured in the SSL
- * context.
+ * A trust strategy that accepts all certificates as trusted.
+ *
+ * <h2>Security Warning</h2>
+ * This trust strategy effectively disables trust verification of SSL / TLS,
+ * and allows man-in-the-middle attacks. If possible avoid this trust strategy
+ * and use more secure alternatives. For example, for self-signed certificates
+ * prefer specifying a keystore containing the certificate chain when calling
+ * the {@link org.apache.hc.core5.ssl.SSLContextBuilder} {@code loadTrustMaterial}
+ * methods.
  *
  * @since 4.5.4
  * @since 5.0
