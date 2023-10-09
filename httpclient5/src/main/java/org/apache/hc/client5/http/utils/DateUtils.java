@@ -44,27 +44,29 @@ import org.apache.hc.core5.util.Args;
 
 /**
  * A utility class for parsing and formatting HTTP dates as used in cookies and
- * other headers.  This class handles dates as defined by RFC 2616 section
- * 3.3.1 as well as some other common non-standard formats.
+ * other headers.
  *
  * @since 4.3
  */
 public final class DateUtils {
 
     /**
-     * Date format pattern used to parse HTTP date headers in RFC 1123 format.
+     * @deprecated use {@link #INTERNET_MESSAGE_FORMAT}
      */
+    @Deprecated
     public static final String PATTERN_RFC1123 = "EEE, dd MMM yyyy HH:mm:ss zzz";
+    public static final String INTERNET_MESSAGE_FORMAT = "EEE, dd MMM yyyy HH:mm:ss zzz";
 
     /**
-     * Date formatter used to parse HTTP date headers in RFC 1123 format.
+     * Date formatter used to parse HTTP date headers in the Internet Message Format
+     * specified by the HTTP protocol.
      *
      * @since 5.2
      */
     public static final DateTimeFormatter FORMATTER_RFC1123 = new DateTimeFormatterBuilder()
             .parseLenient()
             .parseCaseInsensitive()
-            .appendPattern(PATTERN_RFC1123)
+            .appendPattern(INTERNET_MESSAGE_FORMAT)
             .toFormatter(Locale.ENGLISH);
 
     /**
