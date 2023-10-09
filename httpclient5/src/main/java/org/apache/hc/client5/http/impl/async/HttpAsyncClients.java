@@ -113,8 +113,8 @@ public final class HttpAsyncClients {
 
     private static HttpProcessor createMinimalProtocolProcessor() {
         return new DefaultHttpProcessor(
-                new H2RequestContent(),
                 new H2RequestTargetHost(),
+                new H2RequestContent(),
                 new H2RequestConnControl(),
                 new RequestUserAgent(VersionInfo.getSoftwareInfo(
                         "Apache-HttpAsyncClient", "org.apache.hc.client5", HttpAsyncClients.class)));
