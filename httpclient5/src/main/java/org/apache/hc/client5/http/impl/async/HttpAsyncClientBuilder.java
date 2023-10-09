@@ -832,11 +832,11 @@ public class HttpAsyncClientBuilder {
             }
         }
         b.addAll(
+                new H2RequestTargetHost(),
                 new RequestDefaultHeaders(defaultHeaders),
                 new RequestUserAgent(userAgentCopy),
                 new RequestExpectContinue(),
                 new H2RequestContent(),
-                new H2RequestTargetHost(),
                 new H2RequestConnControl());
         if (!cookieManagementDisabled) {
             b.add(RequestAddCookies.INSTANCE);
