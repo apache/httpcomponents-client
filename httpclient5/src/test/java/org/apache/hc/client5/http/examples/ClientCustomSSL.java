@@ -56,10 +56,12 @@ public class ClientCustomSSL {
         // Trust standard CA and those trusted by our custom strategy
         final SSLContext sslContext = SSLContexts.custom()
                 // Specify a custom TrustStrategy
-                // Note that this is not needed when the certificate has been issued by a trusted CA,
-                // or when using a custom truststore which contains the certificate chain
-                // Warning: While this example is better than using TrustAllStrategy, it still allows
-                //          man-in-the-middle attacks
+                // Custom TrustStrategy implementations are intended for verification of certificates
+                // whose CA is not trusted by the system, and where specifying a custom truststore
+                // containing the certificate chain is not an option.
+                // Validation of the server certificate without validation of the entire certificate chain
+                // is preferred to completely disabling trust verification, however this
+                // *still allows man-in-the-middle attacks*.
                 .loadTrustMaterial((chain, authType) -> {
                     final X509Certificate cert = chain[0];
                     return "CN=httpbin.org".equalsIgnoreCase(cert.getSubjectDN().getName());
