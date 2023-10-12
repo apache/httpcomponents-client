@@ -59,7 +59,14 @@ public class AsyncClientCustomSSL {
     public static void main(final String[] args) throws Exception {
         // Trust standard CA and those trusted by our custom strategy
         final SSLContext sslContext = SSLContexts.custom()
+                // Custom TrustStrategy implementations are intended for verification
+                // of certificates whose CA is not trusted by the system, and where specifying
+                // a custom truststore containing the certificate chain is not an option.
                 .loadTrustMaterial((chain, authType) -> {
+                    // Please note that validation of the server certificate without validation
+                    // of the entire certificate chain in this example is preferred to completely
+                    // disabling trust verification, however this still potentially allows
+                    // for man-in-the-middle attacks.
                     final X509Certificate cert = chain[0];
                     return "CN=httpbin.org".equalsIgnoreCase(cert.getSubjectDN().getName());
                 })
