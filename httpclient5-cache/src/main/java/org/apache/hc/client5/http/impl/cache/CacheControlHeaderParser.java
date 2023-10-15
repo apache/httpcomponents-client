@@ -118,7 +118,7 @@ class CacheControlHeaderParser {
             } else {
                 final String s = header.getValue();
                 if (s == null) {
-                    return;
+                    continue;
                 }
                 buffer = new CharArrayBuffer(s.length());
                 buffer.append(s);
