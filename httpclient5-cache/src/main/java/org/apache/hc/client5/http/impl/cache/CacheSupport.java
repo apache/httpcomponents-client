@@ -45,6 +45,8 @@ import org.apache.hc.core5.net.URIAuthority;
 import org.apache.hc.core5.net.URIBuilder;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.CharArrayBuffer;
+import org.apache.hc.core5.util.TextUtils;
+import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Tokenizer;
 
 /**
@@ -190,6 +192,25 @@ public final class CacheSupport {
 
     public static boolean isSameOrigin(final URI requestURI, final URI targetURI) {
         return targetURI.isAbsolute() && Objects.equals(requestURI.getAuthority(), targetURI.getAuthority());
+    }
+
+    public static final TimeValue MAX_AGE = TimeValue.ofSeconds(Integer.MAX_VALUE + 1L);
+
+    public static long deltaSeconds(final String s) {
+        if (TextUtils.isEmpty(s)) {
+            return -1;
+        }
+        try {
+            long ageValue = Long.parseLong(s);
+            if (ageValue < 0) {
+                ageValue = -1;  // Handle negative age values as invalid
+            } else if (ageValue > Integer.MAX_VALUE) {
+                ageValue = MAX_AGE.toSeconds();
+            }
+            return ageValue;
+        } catch (final NumberFormatException ignore) {
+        }
+        return 0;
     }
 
 }
