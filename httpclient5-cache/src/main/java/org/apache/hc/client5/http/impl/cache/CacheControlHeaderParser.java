@@ -250,18 +250,11 @@ class CacheControlHeaderParser {
     }
 
     private static long parseSeconds(final String name, final String value) {
-        if (TextUtils.isEmpty(value)) {
-            return -1;
+        final long delta = CacheSupport.deltaSeconds(value);
+        if (delta == -1 && LOG.isDebugEnabled()) {
+            LOG.debug("Directive {} was malformed: {}", name, value);
         }
-        try {
-            final long n = Long.parseLong(value);
-            return n < 0 ? -1 : n;
-        } catch (final NumberFormatException e) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Directive {} was malformed: {}", name, value);
-            }
-        }
-        return 0;
+        return delta;
     }
 
 }

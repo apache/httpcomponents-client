@@ -67,7 +67,7 @@ public class TestCacheValidityPolicy {
                 new BasicHeader("Server", "MockServer/1.0")
         };
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers);
-        assertEquals(CacheValidityPolicy.MAX_AGE, impl.getApparentAge(entry));
+        assertEquals(CacheSupport.MAX_AGE, impl.getApparentAge(entry));
     }
 
     @Test
