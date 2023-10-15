@@ -42,10 +42,6 @@ class CacheValidityPolicy {
 
     private static final Logger LOG = LoggerFactory.getLogger(CacheValidityPolicy.class);
 
-
-    public static final TimeValue MAX_AGE = TimeValue.ofSeconds(Integer.MAX_VALUE + 1L);
-
-
     private final float heuristicCoefficient;
     private final TimeValue heuristicDefaultLifetime;
 
@@ -198,7 +194,7 @@ class CacheValidityPolicy {
     protected TimeValue getApparentAge(final HttpCacheEntry entry) {
         final Instant dateValue = entry.getInstant();
         if (dateValue == null) {
-            return MAX_AGE;
+            return CacheSupport.MAX_AGE;
         }
         final Duration diff = Duration.between(dateValue, entry.getResponseInstant());
         if (diff.isNegative()) {
@@ -225,24 +221,13 @@ class CacheValidityPolicy {
     protected long getAgeValue(final HttpCacheEntry entry) {
         final Header age = entry.getFirstHeader(HttpHeaders.AGE);
         if (age != null) {
-            try {
-                final AtomicReference<String> firstToken = new AtomicReference<>();
-                CacheSupport.parseTokens(age, token -> firstToken.compareAndSet(null, token));
-                final String s = firstToken.get();
-                if (s != null) {
-                    long ageValue = Long.parseLong(s);
-                    if (ageValue < 0) {
-                        ageValue = 0;  // Handle negative age values as invalid
-                    } else if (ageValue > Integer.MAX_VALUE) {
-                        ageValue = MAX_AGE.toSeconds();
-                    }
-                    return ageValue;
-                }
-            } catch (final NumberFormatException ex) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Invalid Age header: '{}'. Ignoring.", age, ex);
-                }
+            final AtomicReference<String> firstToken = new AtomicReference<>();
+            CacheSupport.parseTokens(age, token -> firstToken.compareAndSet(null, token));
+            final long delta = CacheSupport.deltaSeconds(firstToken.get());
+            if (delta == -1 && LOG.isDebugEnabled()) {
+                LOG.debug("Malformed Age value: {}", age);
             }
+            return delta > 0 ? delta : 0;
         }
         // If we've got here, there were no valid Age headers
         return 0;

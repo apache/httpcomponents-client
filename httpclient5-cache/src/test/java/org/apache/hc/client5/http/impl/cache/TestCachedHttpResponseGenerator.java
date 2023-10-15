@@ -106,7 +106,7 @@ public class TestCachedHttpResponseGenerator {
 
     @Test
     public void testAgeHeaderIsPopulatedWithMaxAgeIfCurrentAgeTooBig() throws Exception {
-        currentAge(TimeValue.ofSeconds(CacheValidityPolicy.MAX_AGE.toSeconds() + 1L));
+        currentAge(TimeValue.ofSeconds(CacheSupport.MAX_AGE.toSeconds() + 1L));
 
         final SimpleHttpResponse response = impl.generateResponse(request, entry);
 
@@ -114,7 +114,7 @@ public class TestCachedHttpResponseGenerator {
 
         final Header ageHdr = response.getFirstHeader("Age");
         Assertions.assertNotNull(ageHdr);
-        Assertions.assertEquals(CacheValidityPolicy.MAX_AGE.toSeconds(), Long.parseLong(ageHdr.getValue()));
+        Assertions.assertEquals(CacheSupport.MAX_AGE.toSeconds(), Long.parseLong(ageHdr.getValue()));
     }
 
     private void currentAge(final TimeValue age) {
