@@ -37,7 +37,6 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import org.apache.hc.client5.http.impl.cache.CacheSupport;
-import org.apache.hc.client5.http.impl.cache.DateSupport;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Internal;
@@ -252,7 +251,7 @@ public class HttpCacheEntryFactory {
         Args.check(response.getCode() == HttpStatus.SC_NOT_MODIFIED,
                 "Response must have 304 status code");
         Args.notNull(entry, "Cache entry");
-        if (DateSupport.isAfter(entry, response, HttpHeaders.DATE)) {
+        if (HttpCacheEntry.isNewer(entry, response)) {
             return entry;
         }
         final HeaderGroup mergedHeaders = mergeHeaders(entry, response);

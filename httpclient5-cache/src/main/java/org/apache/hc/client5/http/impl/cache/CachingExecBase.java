@@ -250,7 +250,7 @@ public class CachingExecBase {
         // Date header, so we can't tell if they are out of order
         // according to the origin clock; thus we can skip the
         // unconditional retry.
-        return DateSupport.isBefore(backendResponse, cacheEntry, HttpHeaders.DATE);
+        return HttpCacheEntry.isNewer(cacheEntry, backendResponse);
     }
 
     boolean shouldSendNotModifiedResponse(final HttpRequest request, final HttpCacheEntry responseEntry) {

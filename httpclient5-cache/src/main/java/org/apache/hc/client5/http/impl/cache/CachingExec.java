@@ -39,6 +39,7 @@ import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.async.methods.SimpleBody;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.cache.CacheResponseStatus;
+import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.HttpCacheStorage;
 import org.apache.hc.client5.http.cache.ResourceIOException;
 import org.apache.hc.client5.http.classic.ExecChain;
@@ -428,7 +429,7 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
         if (cacheConfig.isFreshnessCheckEnabled()) {
             final CacheMatch result = responseCache.match(target ,request);
             hit = result != null ? result.hit : null;
-            if (DateSupport.isAfter(hit != null ? hit.entry : null, backendResponse, HttpHeaders.DATE)) {
+            if (HttpCacheEntry.isNewer(hit != null ? hit.entry : null, backendResponse)) {
                 LOG.debug("Backend already contains fresher cache entry");
             } else {
                 hit = responseCache.store(target, request, backendResponse, buf, requestSent, responseReceived);
