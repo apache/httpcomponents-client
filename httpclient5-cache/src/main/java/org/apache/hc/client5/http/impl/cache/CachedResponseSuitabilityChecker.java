@@ -286,7 +286,7 @@ class CachedResponseSuitabilityChecker {
      * @return  boolean Does the last modified header match
      */
     private boolean lastModifiedValidatorMatches(final HttpRequest request, final HttpCacheEntry entry, final Instant now) {
-        final Instant lastModified = DateUtils.parseStandardDate(entry, HttpHeaders.LAST_MODIFIED);
+        final Instant lastModified = entry.getLastModified();
         if (lastModified == null) {
             return false;
         }

@@ -36,6 +36,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import org.apache.hc.client5.http.utils.DateUtils;
@@ -74,6 +75,9 @@ public class HttpCacheEntry implements MessageHeaders, Serializable {
     private final HeaderGroup responseHeaders;
     private final Resource resource;
     private final Set<String> variants;
+    private final AtomicReference<Instant> dateRef;
+    private final AtomicReference<Instant> expiresRef;
+    private final AtomicReference<Instant> lastModifiedRef;
 
     /**
      * Internal constructor that makes no validation of the input parameters and makes
@@ -100,6 +104,9 @@ public class HttpCacheEntry implements MessageHeaders, Serializable {
         this.responseHeaders = responseHeaders;
         this.resource = resource;
         this.variants = variants != null ? Collections.unmodifiableSet(new HashSet<>(variants)) : null;
+        this.dateRef = new AtomicReference<>();
+        this.expiresRef = new AtomicReference<>();
+        this.lastModifiedRef = new AtomicReference<>();
     }
 
     /**
@@ -169,6 +176,9 @@ public class HttpCacheEntry implements MessageHeaders, Serializable {
         this.responseHeaders.setHeaders(responseHeaders);
         this.resource = resource;
         this.variants = variantMap != null ? Collections.unmodifiableSet(new HashSet<>(variantMap.keySet())) : null;
+        this.dateRef = new AtomicReference<>();
+        this.expiresRef = new AtomicReference<>();
+        this.lastModifiedRef = new AtomicReference<>();
     }
 
     /**
@@ -342,8 +352,41 @@ public class HttpCacheEntry implements MessageHeaders, Serializable {
         return DateUtils.toDate(getInstant());
     }
 
+    private static final Instant NON_VALUE = Instant.ofEpochSecond(Instant.MIN.getEpochSecond(), 0);
+
+    private Instant getInstant(final AtomicReference<Instant> ref, final String headerName) {
+        Instant instant = ref.get();
+        if (instant == null) {
+            instant = DateUtils.parseStandardDate(this, headerName);
+            if (instant == null) {
+                instant = NON_VALUE;
+            }
+            if (!ref.compareAndSet(null, instant)) {
+                instant = ref.get();
+            }
+        }
+        return instant != null && instant != NON_VALUE ? instant : null;
+    }
+
+    /**
+     * @since 5.2
+     */
     public Instant getInstant() {
-        return DateUtils.parseStandardDate(this, HttpHeaders.DATE);
+        return getInstant(dateRef, HttpHeaders.DATE);
+    }
+
+    /**
+     * @since 5.4
+     */
+    public Instant getExpires() {
+        return getInstant(expiresRef, HttpHeaders.EXPIRES);
+    }
+
+    /**
+     * @since 5.4
+     */
+    public Instant getLastModified() {
+        return getInstant(lastModifiedRef, HttpHeaders.LAST_MODIFIED);
     }
 
     /**
@@ -402,6 +445,28 @@ public class HttpCacheEntry implements MessageHeaders, Serializable {
      */
     public Iterator<Header> requestHeaderIterator() {
         return requestHeaders.headerIterator();
+    }
+
+    /**
+     * Tests if the given {@link HttpCacheEntry} is newer than the given {@link MessageHeaders}
+     * by comparing values of their {@literal DATE} header. In case the given entry, or the message,
+     * or their {@literal DATE} headers are null, this method returns {@code false}.
+     *
+     * @since 5.3
+     */
+    public static boolean isNewer(final HttpCacheEntry entry, final MessageHeaders message) {
+        if (entry == null || message == null) {
+            return false;
+        }
+        final Instant cacheDate = entry.getInstant();
+        if (cacheDate == null) {
+            return false;
+        }
+        final Instant messageDate = DateUtils.parseStandardDate(message, HttpHeaders.DATE);
+        if (messageDate == null) {
+            return false;
+        }
+        return cacheDate.compareTo(messageDate) > 0;
     }
 
     /**
