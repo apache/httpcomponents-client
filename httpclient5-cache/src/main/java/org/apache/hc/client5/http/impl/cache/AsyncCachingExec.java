@@ -46,6 +46,7 @@ import org.apache.hc.client5.http.async.methods.SimpleBody;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.cache.CacheResponseStatus;
 import org.apache.hc.client5.http.cache.HttpAsyncCacheStorage;
+import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.ResourceFactory;
 import org.apache.hc.client5.http.cache.ResourceIOException;
 import org.apache.hc.client5.http.impl.ExecSupport;
@@ -531,7 +532,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                         @Override
                         public void completed(final CacheMatch result) {
                             final CacheHit hit = result != null ? result.hit : null;
-                            if (DateSupport.isAfter(hit != null ? hit.entry : null, backendResponse, HttpHeaders.DATE)) {
+                            if (HttpCacheEntry.isNewer(hit != null ? hit.entry : null, backendResponse)) {
                                 LOG.debug("Backend already contains fresher cache entry");
                                 try {
                                     final SimpleHttpResponse cacheResponse = responseGenerator.generateResponse(request, hit.entry);

@@ -329,7 +329,7 @@ class BasicHttpCache implements HttpCache {
         final Header newETag = response.getFirstHeader(HttpHeaders.ETAG);
         if (existingETag != null && newETag != null &&
                 !Objects.equals(existingETag.getValue(), newETag.getValue()) &&
-                !DateSupport.isBefore(response, root, HttpHeaders.DATE)) {
+                !HttpCacheEntry.isNewer(root, response)) {
             evictAll(root, rootKey);
         }
     }

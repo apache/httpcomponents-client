@@ -36,18 +36,22 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.Month;
+import java.time.ZoneId;
 import java.time.temporal.ChronoField;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.hc.client5.http.impl.cache.HttpTestUtils;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.message.BasicHeader;
+import org.apache.hc.core5.http.message.HeaderGroup;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -84,79 +88,82 @@ public class TestHttpCacheEntry {
                 "GET", "/", HttpTestUtils.headers(),
                 status, HttpTestUtils.headers(headers), resource, variants);
     }
+
+    private HttpCacheEntry makeEntry(final Instant requestDate,
+                                     final Instant responseDate,
+                                     final int status,
+                                     final Header... headers) {
+        return new HttpCacheEntry(requestDate, responseDate,
+                "GET", "/", HttpTestUtils.headers(),
+                status, HttpTestUtils.headers(headers), mockResource, null);
+    }
+
     @Test
     public void testGetHeadersReturnsCorrectHeaders() {
-        final Header[] headers = { new BasicHeader("foo", "fooValue"),
+        entry = makeEntry(
                 new BasicHeader("bar", "barValue1"),
-                new BasicHeader("bar", "barValue2")
-        };
-        entry = makeEntry(headers);
+                new BasicHeader("bar", "barValue2"));
         assertEquals(2, entry.getHeaders("bar").length);
     }
 
     @Test
     public void testGetFirstHeaderReturnsCorrectHeader() {
-        final Header[] headers = { new BasicHeader("foo", "fooValue"),
+        entry = makeEntry(
                 new BasicHeader("bar", "barValue1"),
-                new BasicHeader("bar", "barValue2")
-        };
-        entry = makeEntry(headers);
+                new BasicHeader("bar", "barValue2"));
         assertEquals("barValue1", entry.getFirstHeader("bar").getValue());
     }
 
     @Test
     public void testGetHeadersReturnsEmptyArrayIfNoneMatch() {
-        final Header[] headers = { new BasicHeader("foo", "fooValue"),
+        entry = makeEntry(
+                new BasicHeader("foo", "fooValue"),
                 new BasicHeader("bar", "barValue1"),
-                new BasicHeader("bar", "barValue2")
-        };
-        entry = makeEntry(headers);
+                new BasicHeader("bar", "barValue2"));
         assertEquals(0, entry.getHeaders("baz").length);
     }
 
     @Test
     public void testGetFirstHeaderReturnsNullIfNoneMatch() {
-        final Header[] headers = { new BasicHeader("foo", "fooValue"),
+        entry = makeEntry(
+                new BasicHeader("foo", "fooValue"),
                 new BasicHeader("bar", "barValue1"),
-                new BasicHeader("bar", "barValue2")
-        };
-        entry = makeEntry(headers);
+                new BasicHeader("bar", "barValue2"));
         assertNull(entry.getFirstHeader("quux"));
     }
 
     @Test
     public void testGetMethodReturnsCorrectRequestMethod() {
-        final Header[] headers = { new BasicHeader("foo", "fooValue"),
+        entry = makeEntry(
+                new BasicHeader("foo", "fooValue"),
                 new BasicHeader("bar", "barValue1"),
-                new BasicHeader("bar", "barValue2")
-        };
-        entry = makeEntry(headers);
+                new BasicHeader("bar", "barValue2"));
         assertEquals(Method.GET.name(), entry.getRequestMethod());
     }
 
     @Test
     public void statusCodeComesFromOriginalStatusLine() {
-        entry = makeEntry(Instant.now(), Instant.now(), HttpStatus.SC_OK, new Header[]{}, mockResource, null);
+        entry = makeEntry(Instant.now(), Instant.now(), HttpStatus.SC_OK);
         assertEquals(HttpStatus.SC_OK, entry.getStatus());
     }
 
     @Test
     public void canGetOriginalRequestDate() {
         final Instant requestDate = Instant.now();
-        entry = makeEntry(requestDate, Instant.now(), HttpStatus.SC_OK, new Header[]{}, mockResource, null);
+        entry = makeEntry(requestDate, Instant.now(), HttpStatus.SC_OK);
         assertEquals(requestDate, entry.getRequestInstant());
     }
 
     @Test
     public void canGetOriginalResponseDate() {
         final Instant responseDate = Instant.now();
-        entry = makeEntry(Instant.now(), responseDate, HttpStatus.SC_OK, new Header[]{}, mockResource, null);
+        entry = makeEntry(Instant.now(), responseDate, HttpStatus.SC_OK);
         assertEquals(responseDate, entry.getResponseInstant());
     }
 
     @Test
     public void canGetOriginalResource() {
-        entry = makeEntry(Instant.now(), Instant.now(), HttpStatus.SC_OK, new Header[]{}, mockResource, null);
+        entry = makeEntry(Instant.now(), Instant.now(), HttpStatus.SC_OK);
         assertSame(mockResource, entry.getResource());
     }
 
@@ -172,18 +179,6 @@ public class TestHttpCacheEntry {
         for(int i=0; i<headers.length; i++) {
             assertEquals(headers[i], result[i]);
         }
-    }
-
-    @Test
-    public void canConstructWithoutVariants() {
-        makeEntry(Instant.now(), Instant.now(), HttpStatus.SC_OK, new Header[]{}, mockResource, null);
-    }
-
-    @Test
-    public void canProvideVariantMap() {
-        makeEntry(Instant.now(), Instant.now(), HttpStatus.SC_OK,
-                new Header[]{}, mockResource,
-                null);
     }
 
     @Test
@@ -219,33 +214,91 @@ public class TestHttpCacheEntry {
 
     @Test
     public void canConvertToString() {
-        entry = makeEntry(Instant.now(), Instant.now(), HttpStatus.SC_OK, new Header[]{}, mockResource, null);
+        entry = makeEntry(Instant.now(), Instant.now(), HttpStatus.SC_OK);
         assertNotNull(entry.toString());
         assertNotEquals("", entry.toString());
     }
 
     @Test
     public void testMissingDateHeaderIsIgnored() {
-        final Header[] headers = new Header[] {};
-        entry = makeEntry(Instant.now(), Instant.now(), HttpStatus.SC_OK, headers, mockResource, null);
-        assertNull(entry.getDate());
+        entry = makeEntry(Instant.now(), Instant.now(), HttpStatus.SC_OK);
+        assertNull(entry.getInstant());
     }
 
     @Test
     public void testMalformedDateHeaderIsIgnored() {
-        final Header[] headers = new Header[] { new BasicHeader("Date", "asdf") };
-        entry = makeEntry(Instant.now(), Instant.now(), HttpStatus.SC_OK, headers, mockResource, null);
-        assertNull(entry.getDate());
+        entry = makeEntry(Instant.now(), Instant.now(), HttpStatus.SC_OK,
+                new BasicHeader("Date", "asdf"));
+        assertNull(entry.getInstant());
     }
 
     @Test
     public void testValidDateHeaderIsParsed() {
         final Instant date = Instant.now().with(ChronoField.MILLI_OF_SECOND, 0);
-        final Header[] headers = new Header[] { new BasicHeader("Date", DateUtils.formatStandardDate(date)) };
-        entry = makeEntry(Instant.now(), Instant.now(), HttpStatus.SC_OK, headers, mockResource, null);
-        final Date dateHeaderValue = entry.getDate();
+        entry = makeEntry(Instant.now(), Instant.now(), HttpStatus.SC_OK,
+                new BasicHeader("Date", DateUtils.formatStandardDate(date)));
+        final Instant dateHeaderValue = entry.getInstant();
         assertNotNull(dateHeaderValue);
-        assertEquals(DateUtils.toDate(date), dateHeaderValue);
+        assertEquals(date, dateHeaderValue);
+    }
+
+    @Test
+    public void testEpochDateHeaderIsParsed() {
+        entry = makeEntry(Instant.now(), Instant.now(), HttpStatus.SC_OK,
+                new BasicHeader("Date", DateUtils.formatStandardDate(Instant.EPOCH)));
+        final Instant dateHeaderValue = entry.getInstant();
+        assertNotNull(dateHeaderValue);
+        assertEquals(Instant.EPOCH, dateHeaderValue);
+    }
+
+    @Test
+    public void testDateParsedOnce() {
+        final Instant date = Instant.now().with(ChronoField.MILLI_OF_SECOND, 0);
+        entry = makeEntry(Instant.now(), Instant.now(), HttpStatus.SC_OK,
+                new BasicHeader("Date", DateUtils.formatStandardDate(date)));
+        final Instant dateHeaderValue = entry.getInstant();
+        assertNotNull(dateHeaderValue);
+        assertSame(dateHeaderValue, entry.getInstant());
+        assertSame(dateHeaderValue, entry.getInstant());
+    }
+
+    @Test
+    public void testExpiresParsedOnce() {
+        final Instant date = Instant.now().with(ChronoField.MILLI_OF_SECOND, 0);
+        entry = makeEntry(Instant.now(), Instant.now(), HttpStatus.SC_OK,
+                new BasicHeader("Last-Modified", DateUtils.formatStandardDate(date)));
+        final Instant lastModifiedHeaderValue = entry.getLastModified();
+        assertNotNull(lastModifiedHeaderValue);
+        assertSame(lastModifiedHeaderValue, entry.getLastModified());
+        assertSame(lastModifiedHeaderValue, entry.getLastModified());
+    }
+
+    private static Instant createInstant(final int year, final Month month, final int day) {
+        return LocalDate.of(year, month, day).atStartOfDay(ZoneId.of("GMT")).toInstant();
+    }
+
+    @Test
+    public void testIsCacheEntryNewer() throws Exception {
+        assertFalse(HttpCacheEntry.isNewer(null, null));
+        entry = makeEntry();
+        final HeaderGroup message = new HeaderGroup();
+        assertFalse(HttpCacheEntry.isNewer(entry, message));
+
+        entry = makeEntry(new BasicHeader(HttpHeaders.DATE, "huh?"));
+        message.setHeader(new BasicHeader(HttpHeaders.DATE, "eh?"));
+        assertFalse(HttpCacheEntry.isNewer(entry, message));
+
+        entry = makeEntry(new BasicHeader(HttpHeaders.DATE, "huh?"));
+        message.setHeader(new BasicHeader(HttpHeaders.DATE, DateUtils.formatStandardDate(createInstant(2017, Month.DECEMBER, 26))));
+        assertFalse(HttpCacheEntry.isNewer(entry, message));
+
+        entry = makeEntry(new BasicHeader(HttpHeaders.DATE, DateUtils.formatStandardDate(createInstant(2017, Month.DECEMBER, 27))));
+        message.setHeader(new BasicHeader(HttpHeaders.DATE, DateUtils.formatStandardDate(createInstant(2017, Month.DECEMBER, 26))));
+        assertTrue(HttpCacheEntry.isNewer(entry, message));
+
+        entry = makeEntry(new BasicHeader(HttpHeaders.DATE, DateUtils.formatStandardDate(createInstant(2017, Month.DECEMBER, 25))));
+        message.setHeader(new BasicHeader(HttpHeaders.DATE, DateUtils.formatStandardDate(createInstant(2017, Month.DECEMBER, 26))));
+        assertFalse(HttpCacheEntry.isNewer(entry, message));
     }
 
 }

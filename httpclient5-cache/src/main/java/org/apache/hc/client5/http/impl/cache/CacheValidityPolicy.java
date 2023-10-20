@@ -31,7 +31,6 @@ import java.time.Instant;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
-import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.util.TimeValue;
@@ -105,7 +104,7 @@ class CacheValidityPolicy {
         // If the Expires response header field is present, use its value minus the value of the Date response header field
         final Instant dateValue = entry.getInstant();
         if (dateValue != null) {
-            final Instant expiry = DateUtils.parseStandardDate(entry, HttpHeaders.EXPIRES);
+            final Instant expiry = entry.getExpires();
             if (expiry != null) {
                 final Duration diff = Duration.between(dateValue, expiry);
                 if (diff.isNegative()) {
@@ -148,7 +147,7 @@ class CacheValidityPolicy {
 
     public TimeValue getHeuristicFreshnessLifetime(final HttpCacheEntry entry) {
         final Instant dateValue = entry.getInstant();
-        final Instant lastModifiedValue = DateUtils.parseStandardDate(entry, HttpHeaders.LAST_MODIFIED);
+        final Instant lastModifiedValue = entry.getLastModified();
 
         if (dateValue != null && lastModifiedValue != null) {
             final Duration diff = Duration.between(lastModifiedValue, dateValue);
@@ -163,8 +162,7 @@ class CacheValidityPolicy {
     }
 
     public boolean isRevalidatable(final HttpCacheEntry entry) {
-        return entry.getFirstHeader(HttpHeaders.ETAG) != null
-                || entry.getFirstHeader(HttpHeaders.LAST_MODIFIED) != null;
+        return entry.containsHeader(HttpHeaders.ETAG) || entry.containsHeader(HttpHeaders.LAST_MODIFIED);
     }
 
     public boolean mayReturnStaleWhileRevalidating(final ResponseCacheControl responseCacheControl,
