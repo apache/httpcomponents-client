@@ -28,7 +28,6 @@ package org.apache.hc.client5.http.impl.cache;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.time.format.DateTimeFormatter;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -61,13 +60,6 @@ class ResponseCachingPolicy {
      * value as needed.</p>
      */
      private static final Duration DEFAULT_FRESHNESS_DURATION = Duration.ofMinutes(5);
-
-    /**
-     * This {@link DateTimeFormatter} is used to format and parse date-time objects in a specific format commonly
-     * used in HTTP protocol messages. The format includes the day of the week, day of the month, month, year, and time
-     * of day, all represented in GMT time. An example of a date-time string in this format is "Tue, 15 Nov 1994 08:12:31 GMT".
-     */
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.RFC_1123_DATE_TIME;
 
     private static final Logger LOG = LoggerFactory.getLogger(ResponseCachingPolicy.class);
 
@@ -112,12 +104,25 @@ class ResponseCachingPolicy {
         this.staleIfErrorEnabled = staleIfErrorEnabled;
     }
 
-    /**
-     * Determines if an HttpResponse can be cached.
-     *
-     * @return {@code true} if response is cacheable
-     */
-    public boolean isResponseCacheable(final ResponseCacheControl cacheControl, final String httpMethod, final HttpResponse response) {
+    boolean isResponseCacheable(final ResponseCacheControl cacheControl, final String httpMethod, final HttpResponse response) {
+        if (response.countHeaders(HttpHeaders.EXPIRES) > 1) {
+            LOG.debug("Multiple Expires headers");
+            return false;
+        }
+
+        if (response.countHeaders(HttpHeaders.DATE) > 1) {
+            LOG.debug("Multiple Date headers");
+            return false;
+        }
+
+        final Instant responseDate = DateUtils.parseStandardDate(response, HttpHeaders.DATE);
+        final Instant responseExpires = DateUtils.parseStandardDate(response, HttpHeaders.EXPIRES);
+
+        if (expiresHeaderLessOrEqualToDateHeaderAndNoCacheControl(cacheControl,  responseDate, responseExpires)) {
+            LOG.debug("Expires header less or equal to Date header and no cache control directives");
+            return false;
+        }
+
         boolean cacheable = false;
 
         if (!Method.GET.isSame(httpMethod) && !Method.HEAD.isSame(httpMethod) && !Method.POST.isSame((httpMethod))) {
@@ -156,16 +161,6 @@ class ResponseCachingPolicy {
             }
         }
 
-        if (response.countHeaders(HttpHeaders.EXPIRES) > 1) {
-            LOG.debug("Multiple Expires headers");
-            return false;
-        }
-
-        if (response.countHeaders(HttpHeaders.DATE) > 1) {
-            LOG.debug("Multiple Date headers");
-            return false;
-        }
-
         final Iterator<HeaderElement> it = MessageSupport.iterate(response, HttpHeaders.VARY);
         while (it.hasNext()) {
             final HeaderElement elem = it.next();
@@ -181,11 +176,11 @@ class ResponseCachingPolicy {
             return false;
         }
 
-        final Duration freshnessLifetime = calculateFreshnessLifetime(cacheControl, response);
+        final Duration freshnessLifetime = calculateFreshnessLifetime(cacheControl, responseDate, responseExpires);
 
         // If the 'immutable' directive is present and the response is still fresh,
         // then the response is considered cacheable without further validation
-        if (cacheControl.isImmutable() && responseIsStillFresh(response, freshnessLifetime)) {
+        if (cacheControl.isImmutable() && responseIsStillFresh(responseDate, freshnessLifetime)) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Response is immutable and fresh, considered cacheable without further validation");
             }
@@ -258,7 +253,7 @@ class ResponseCachingPolicy {
     }
 
     protected boolean isExplicitlyCacheable(final ResponseCacheControl cacheControl, final HttpResponse response) {
-        if (response.getFirstHeader(HttpHeaders.EXPIRES) != null) {
+        if (response.containsHeader(HttpHeaders.EXPIRES)) {
             return true;
         }
         return cacheControl.getMaxAge() > 0 || cacheControl.getSharedMaxAge()>0 ||
@@ -302,11 +297,6 @@ class ResponseCachingPolicy {
             }
         }
 
-        if (expiresHeaderLessOrEqualToDateHeaderAndNoCacheControl(cacheControl, response)) {
-            LOG.debug("Expires header less or equal to Date header and no cache control directives");
-            return false;
-        }
-
         if (sharedCache) {
             if (request.countHeaders(HttpHeaders.AUTHORIZATION) > 0
                     && !(cacheControl.getSharedMaxAge() > -1 || cacheControl.isMustRevalidate() || cacheControl.isPublic())) {
@@ -319,21 +309,14 @@ class ResponseCachingPolicy {
         return isResponseCacheable(cacheControl, method, response);
     }
 
-    private boolean expiresHeaderLessOrEqualToDateHeaderAndNoCacheControl(final ResponseCacheControl cacheControl, final HttpResponse response) {
+    private boolean expiresHeaderLessOrEqualToDateHeaderAndNoCacheControl(final ResponseCacheControl cacheControl, final Instant responseDate, final Instant expires) {
         if (!cacheControl.isUndefined()) {
             return false;
         }
-        final Header expiresHdr = response.getFirstHeader(HttpHeaders.EXPIRES);
-        final Header dateHdr = response.getFirstHeader(HttpHeaders.DATE);
-        if (expiresHdr == null || dateHdr == null) {
+        if (expires == null || responseDate == null) {
             return false;
         }
-        final Instant expires = DateUtils.parseStandardDate(expiresHdr.getValue());
-        final Instant date = DateUtils.parseStandardDate(dateHdr.getValue());
-        if (expires == null || date == null) {
-            return false;
-        }
-        return expires.equals(date) || expires.isBefore(date);
+        return expires.equals(responseDate) || expires.isBefore(responseDate);
     }
 
     private boolean from1_0Origin(final HttpResponse response) {
@@ -371,11 +354,8 @@ class ResponseCachingPolicy {
      * for all use cases. Developers should consult the HTTP caching specifications for more information and consider
      * implementing additional caching mechanisms as needed.
      * </p>
-     *
-     * @param response the HTTP response for which to calculate the freshness lifetime
-     * @return the freshness lifetime of the response, in seconds
      */
-    private Duration calculateFreshnessLifetime(final ResponseCacheControl cacheControl, final HttpResponse response) {
+    private Duration calculateFreshnessLifetime(final ResponseCacheControl cacheControl, final Instant responseDate, final Instant responseExpires) {
 
         if (cacheControl.isUndefined()) {
             // If no cache-control header is present, assume no caching directives and return a default value
@@ -389,21 +369,8 @@ class ResponseCachingPolicy {
             return Duration.ofSeconds(cacheControl.getMaxAge());
         }
 
-        // Check if Expires is present and use its value minus the value of the Date header
-        Instant expiresInstant = null;
-        Instant dateInstant = null;
-        final Header expire = response.getFirstHeader(HttpHeaders.EXPIRES);
-        if (expire != null) {
-            final String expiresHeaderValue = expire.getValue();
-            expiresInstant = FORMATTER.parse(expiresHeaderValue, Instant::from);
-        }
-        final Header date = response.getFirstHeader(HttpHeaders.DATE);
-        if (date != null) {
-            final String dateHeaderValue = date.getValue();
-            dateInstant = FORMATTER.parse(dateHeaderValue, Instant::from);
-        }
-        if (expiresInstant != null && dateInstant != null) {
-            return Duration.ofSeconds(expiresInstant.getEpochSecond() - dateInstant.getEpochSecond());
+        if (responseDate != null && responseExpires != null) {
+            return Duration.ofSeconds(responseExpires.getEpochSecond() - responseDate.getEpochSecond());
         }
 
         // If none of the above conditions are met, a heuristic freshness lifetime might be applicable
@@ -499,17 +466,16 @@ class ResponseCachingPolicy {
      * Note: If the Date header is missing or invalid, this method assumes the response is not fresh.
      * </p>
      *
-     * @param response          The HttpResponse whose freshness is being checked.
+     * @param responseDate  The response date.
      * @param freshnessLifetime The calculated freshness lifetime of the HttpResponse.
      * @return {@code true} if the response age is less than its freshness lifetime, {@code false} otherwise.
      */
-    private boolean responseIsStillFresh(final HttpResponse response, final Duration freshnessLifetime) {
-        final Instant date = DateUtils.parseStandardDate(response, HttpHeaders.DATE);
-        if (date == null) {
+    private boolean responseIsStillFresh(final Instant responseDate, final Duration freshnessLifetime) {
+        if (responseDate == null) {
             // The Date header is missing or invalid. Assuming the response is not fresh.
             return false;
         }
-        final Duration age = Duration.between(date, Instant.now());
+        final Duration age = Duration.between(responseDate, Instant.now());
         return age.compareTo(freshnessLifetime) < 0;
     }
 

@@ -31,6 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Random;
 
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
@@ -217,7 +218,7 @@ public class TestResponseCachingPolicy {
     public void testNon206WithExplicitExpiresIsCacheable() {
         final int status = getRandomStatus();
         response.setCode(status);
-        response.setHeader("Expires", DateUtils.formatStandardDate(Instant.now()));
+        response.setHeader("Expires", DateUtils.formatStandardDate(Instant.now().plus(1, ChronoUnit.HOURS)));
         Assertions.assertTrue(policy.isResponseCacheable(responseCacheControl, "GET", response));
     }
 
