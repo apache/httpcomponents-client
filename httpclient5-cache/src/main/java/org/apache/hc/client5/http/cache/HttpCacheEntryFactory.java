@@ -36,7 +36,7 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.apache.hc.client5.http.impl.cache.CacheSupport;
+import org.apache.hc.client5.http.impl.cache.CacheKeyGenerator;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Internal;
@@ -163,12 +163,6 @@ public class HttpCacheEntryFactory {
         }
     }
 
-    static String normalizeRequestUri(final HttpHost host, final HttpRequest request) {
-        final String s = CacheSupport.getRequestUri(request, host);
-        final URI normalizeRequestUri = CacheSupport.normalize(s);
-        return normalizeRequestUri.toASCIIString();
-    }
-
     /**
      * Creates a new root {@link HttpCacheEntry} (parent of multiple variants).
      *
@@ -215,7 +209,8 @@ public class HttpCacheEntryFactory {
         Args.notNull(host, "Host");
         Args.notNull(request, "Request");
         Args.notNull(response, "Origin response");
-        final String requestUri = normalizeRequestUri(host, request);
+        final String s = CacheKeyGenerator.getRequestUri(host, request);
+        final URI uri = CacheKeyGenerator.normalize(s);
         final HeaderGroup requestHeaders = filterHopByHopHeaders(request);
         final HeaderGroup responseHeaders = filterHopByHopHeaders(response);
         ensureDate(responseHeaders, responseInstant);
@@ -223,7 +218,7 @@ public class HttpCacheEntryFactory {
                 requestInstant,
                 responseInstant,
                 request.getMethod(),
-                requestUri,
+                uri.toASCIIString(),
                 requestHeaders,
                 response.getCode(),
                 responseHeaders,

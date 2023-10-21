@@ -26,6 +26,8 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -49,6 +51,54 @@ public class TestCacheKeyGenerator {
     @BeforeEach
     public void setUp() throws Exception {
         extractor = CacheKeyGenerator.INSTANCE;
+    }
+
+    @Test
+    public void testGetRequestUri() {
+        Assertions.assertEquals("http://foo.example.com/stuff?huh",
+                CacheKeyGenerator.getRequestUri(
+                        new HttpHost("bar.example.com"),
+                        new HttpGet("http://foo.example.com/stuff?huh")));
+
+        Assertions.assertEquals("http://bar.example.com/stuff?huh",
+                CacheKeyGenerator.getRequestUri(
+                        new HttpHost("bar.example.com"),
+                        new HttpGet("/stuff?huh")));
+
+        Assertions.assertEquals("http://foo.example.com:8888/stuff?huh",
+                CacheKeyGenerator.getRequestUri(
+                        new HttpHost("bar.example.com", 8080),
+                        new HttpGet("http://foo.example.com:8888/stuff?huh")));
+
+        Assertions.assertEquals("https://bar.example.com:8443/stuff?huh",
+                CacheKeyGenerator.getRequestUri(
+                        new HttpHost("https", "bar.example.com", 8443),
+                        new HttpGet("/stuff?huh")));
+
+        Assertions.assertEquals("http://foo.example.com/",
+                CacheKeyGenerator.getRequestUri(
+                        new HttpHost("bar.example.com"),
+                        new HttpGet("http://foo.example.com")));
+
+        Assertions.assertEquals("http://bar.example.com/stuff?huh",
+                CacheKeyGenerator.getRequestUri(
+                        new HttpHost("bar.example.com"),
+                        new HttpGet("stuff?huh")));
+    }
+
+    @Test
+    public void testNormalizeRequestUri() throws URISyntaxException {
+        Assertions.assertEquals(URI.create("http://bar.example.com:80/stuff?huh"),
+                CacheKeyGenerator.normalize(URI.create("//bar.example.com/stuff?huh")));
+
+        Assertions.assertEquals(URI.create("http://bar.example.com:80/stuff?huh"),
+                CacheKeyGenerator.normalize(URI.create("http://bar.example.com/stuff?huh")));
+
+        Assertions.assertEquals(URI.create("http://bar.example.com:80/stuff?huh"),
+                CacheKeyGenerator.normalize(URI.create("http://bar.example.com/stuff?huh#there")));
+
+        Assertions.assertEquals(URI.create("http://bar.example.com:80/stuff?huh"),
+                CacheKeyGenerator.normalize(URI.create("HTTP://BAR.example.com/p1/p2/../../stuff?huh")));
     }
 
     @Test
