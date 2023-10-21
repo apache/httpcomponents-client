@@ -42,14 +42,12 @@ import org.apache.hc.core5.http.HttpRequest;
 @Deprecated
 public final class HttpCacheSupport {
 
-    private static final URI BASE_URI = URI.create("http://example.com/");
-
     public static String getRequestUri(final HttpRequest request, final HttpHost target) {
-        return CacheSupport.getRequestUri(request, target);
+        return CacheKeyGenerator.getRequestUri(target, request);
     }
 
     public static URI normalize(final URI requestUri) throws URISyntaxException {
-        return CacheSupport.normalize(requestUri);
+        return CacheKeyGenerator.normalize(requestUri);
     }
 
     /**
@@ -73,7 +71,7 @@ public final class HttpCacheSupport {
      * @since 5.2
      */
     public static URI normalizeQuietly(final String requestUri) {
-        return CacheSupport.normalize(requestUri);
+        return CacheKeyGenerator.normalize(requestUri);
     }
 
 }
