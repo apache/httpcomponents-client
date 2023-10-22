@@ -462,6 +462,11 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                 }
 
             });
+            if (isResponseTooBig(entityDetails)) {
+                LOG.debug("Backend response is known to be too big");
+                return asyncExecCallback.handleResponse(backendResponse, entityDetails);
+            }
+
             final ResponseCacheControl responseCacheControl = CacheControlHeaderParser.INSTANCE.parse(backendResponse);
             final boolean cacheable = responseCachingPolicy.isResponseCacheable(responseCacheControl, request, backendResponse);
             if (cacheable) {

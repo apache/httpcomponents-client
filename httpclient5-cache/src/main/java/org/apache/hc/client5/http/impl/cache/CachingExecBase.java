@@ -35,6 +35,7 @@ import org.apache.hc.client5.http.cache.CacheResponseStatus;
 import org.apache.hc.client5.http.cache.HttpCacheContext;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.ResourceIOException;
+import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
@@ -85,7 +86,6 @@ public class CachingExecBase {
         this.cacheableRequestPolicy = new CacheableRequestPolicy();
         this.suitabilityChecker = new CachedResponseSuitabilityChecker(this.validityPolicy, this.cacheConfig);
         this.responseCachingPolicy = new ResponseCachingPolicy(
-                this.cacheConfig.getMaxObjectSize(),
                 this.cacheConfig.isSharedCache(),
                 this.cacheConfig.isNeverCacheHTTP10ResponsesWithQuery(),
                 this.cacheConfig.isNeverCacheHTTP11ResponsesWithQuery(),
@@ -280,6 +280,18 @@ public class CachingExecBase {
                 backendResponse.addHeader(HttpHeaders.LAST_MODIFIED, h.getValue());
             }
         }
+    }
+
+    boolean isResponseTooBig(final EntityDetails entityDetails) {
+        if (entityDetails == null) {
+            return false;
+        }
+        final long contentLength = entityDetails.getContentLength();
+        if (contentLength == -1) {
+            return false;
+        }
+        final long maxObjectSize = cacheConfig.getMaxObjectSize();
+        return contentLength > maxObjectSize;
     }
 
 }

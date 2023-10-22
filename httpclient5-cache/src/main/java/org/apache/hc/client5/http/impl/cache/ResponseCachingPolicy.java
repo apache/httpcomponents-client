@@ -33,8 +33,6 @@ import java.util.Set;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.utils.DateUtils;
-import org.apache.hc.core5.http.Header;
-import org.apache.hc.core5.http.HeaderElement;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
@@ -43,7 +41,6 @@ import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.ProtocolVersion;
 import org.apache.hc.core5.http.message.BasicTokenIterator;
-import org.apache.hc.core5.http.message.MessageSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,7 +60,6 @@ class ResponseCachingPolicy {
 
     private static final Logger LOG = LoggerFactory.getLogger(ResponseCachingPolicy.class);
 
-    private final long maxObjectSizeBytes;
     private final boolean sharedCache;
     private final boolean neverCache1_0ResponsesWithQueryString;
     private final boolean neverCache1_1ResponsesWithQueryString;
@@ -79,8 +75,6 @@ class ResponseCachingPolicy {
     /**
      * Constructs a new ResponseCachingPolicy with the specified cache policy settings and stale-if-error support.
      *
-     * @param maxObjectSizeBytes                    the maximum size of objects, in bytes, that should be stored
-     *                                              in the cache
      * @param sharedCache                           whether to behave as a shared cache (true) or a
      *                                              non-shared/private cache (false)
      * @param neverCache1_0ResponsesWithQueryString {@code true} to never cache HTTP 1.0 responses with a query string,
@@ -92,19 +86,86 @@ class ResponseCachingPolicy {
      *                                              results in an error, {@code false} to disable this feature.
      * @since 5.3
      */
-    public ResponseCachingPolicy(final long maxObjectSizeBytes,
+    public ResponseCachingPolicy(
              final boolean sharedCache,
              final boolean neverCache1_0ResponsesWithQueryString,
              final boolean neverCache1_1ResponsesWithQueryString,
              final boolean staleIfErrorEnabled) {
-        this.maxObjectSizeBytes = maxObjectSizeBytes;
         this.sharedCache = sharedCache;
         this.neverCache1_0ResponsesWithQueryString = neverCache1_0ResponsesWithQueryString;
         this.neverCache1_1ResponsesWithQueryString = neverCache1_1ResponsesWithQueryString;
         this.staleIfErrorEnabled = staleIfErrorEnabled;
     }
 
-    boolean isResponseCacheable(final ResponseCacheControl cacheControl, final String httpMethod, final HttpResponse response) {
+    /**
+     * Determine if the {@link HttpResponse} gotten from the origin is a
+     * cacheable response.
+     *
+     * @return {@code true} if response is cacheable
+     */
+    public boolean isResponseCacheable(final ResponseCacheControl cacheControl, final HttpRequest request, final HttpResponse response) {
+        final ProtocolVersion version = request.getVersion() != null ? request.getVersion() : HttpVersion.DEFAULT;
+        if (version.compareToVersion(HttpVersion.HTTP_1_1) > 0) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Protocol version {} is non-cacheable", version);
+            }
+            return false;
+        }
+
+        // Presently only GET and HEAD methods are supported
+        final String httpMethod = request.getMethod();
+        if (!Method.GET.isSame(httpMethod) && !Method.HEAD.isSame(httpMethod)) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{} method response is not cacheable", httpMethod);
+            }
+            return false;
+        }
+
+        final int code = response.getCode();
+
+        // Should never happen but better be defensive
+        if (code <= HttpStatus.SC_INFORMATIONAL) {
+            return false;
+        }
+
+        if (isKnownNonCacheableStatusCode(code)) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{} response is not cacheable", code);
+            }
+            return false;
+        }
+
+        if (request.getPath().contains("?")) {
+            if (neverCache1_0ResponsesWithQueryString && from1_0Origin(response)) {
+                LOG.debug("Response is not cacheable as it had a query string");
+                return false;
+            } else if (!neverCache1_1ResponsesWithQueryString && !isExplicitlyCacheable(cacheControl, response)) {
+                LOG.debug("Response is not cacheable as it is missing explicit caching headers");
+                return false;
+            }
+        }
+
+        if (cacheControl.isMustUnderstand() && !understoodStatusCode(code)) {
+            // must-understand cache directive overrides no-store
+            LOG.debug("Response contains a status code that the cache does not understand, so it's not cacheable");
+            return false;
+        }
+
+        if (isExplicitlyNonCacheable(cacheControl)) {
+            LOG.debug("Response is explicitly non-cacheable per cache control directive");
+            return false;
+        }
+
+        if (sharedCache) {
+            if (request.containsHeader(HttpHeaders.AUTHORIZATION) &&
+                    cacheControl.getSharedMaxAge() == -1 &&
+                    !cacheControl.isPublic()) {
+                LOG.debug("Request contains private credentials");
+                return false;
+            }
+        }
+
+        // See if the response is tainted
         if (response.countHeaders(HttpHeaders.EXPIRES) > 1) {
             LOG.debug("Multiple Expires headers");
             return false;
@@ -118,84 +179,24 @@ class ResponseCachingPolicy {
         final Instant responseDate = DateUtils.parseStandardDate(response, HttpHeaders.DATE);
         final Instant responseExpires = DateUtils.parseStandardDate(response, HttpHeaders.EXPIRES);
 
-        if (expiresHeaderLessOrEqualToDateHeaderAndNoCacheControl(cacheControl,  responseDate, responseExpires)) {
+        if (expiresHeaderLessOrEqualToDateHeaderAndNoCacheControl(cacheControl, responseDate, responseExpires)) {
             LOG.debug("Expires header less or equal to Date header and no cache control directives");
             return false;
         }
 
-        boolean cacheable = false;
-
-        if (!Method.GET.isSame(httpMethod) && !Method.HEAD.isSame(httpMethod) && !Method.POST.isSame((httpMethod))) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("{} method response is not cacheable", httpMethod);
-            }
-            return false;
-        }
-
-        final int status = response.getCode();
-        if (isKnownCacheableStatusCode(status)) {
-            // these response codes MAY be cached
-            cacheable = true;
-        } else if (isKnownNonCacheableStatusCode(status)) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("{} response is not cacheable", status);
-            }
-            return false;
-        } else if (isUnknownStatusCode(status)) {
-            // a response with an unknown status code MUST NOT be
-            // cached
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("{} response is unknown", status);
-            }
-            return false;
-        }
-
-        final Header contentLength = response.getFirstHeader(HttpHeaders.CONTENT_LENGTH);
-        if (contentLength != null) {
-            final long contentLengthValue = Long.parseLong(contentLength.getValue());
-            if (contentLengthValue > this.maxObjectSizeBytes) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Response content length exceeds {}", this.maxObjectSizeBytes);
-                }
-                return false;
-            }
-        }
-
-        final Iterator<HeaderElement> it = MessageSupport.iterate(response, HttpHeaders.VARY);
+        // Treat responses with `Vary: *` as essentially non-cacheable.
+        final Iterator<String> it = new BasicTokenIterator(response.headerIterator(HttpHeaders.VARY));
         while (it.hasNext()) {
-            final HeaderElement elem = it.next();
-            if ("*".equals(elem.getName())) {
+            final String token = it.next();
+            if ("*".equals(token)) {
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("Vary * found");
+                    LOG.debug("Vary: * found");
                 }
                 return false;
             }
         }
-        if (isExplicitlyNonCacheable(cacheControl)) {
-            LOG.debug("Response is explicitly non-cacheable");
-            return false;
-        }
 
-        final Duration freshnessLifetime = calculateFreshnessLifetime(cacheControl, responseDate, responseExpires);
-
-        // If the 'immutable' directive is present and the response is still fresh,
-        // then the response is considered cacheable without further validation
-        if (cacheControl.isImmutable() && responseIsStillFresh(responseDate, freshnessLifetime)) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Response is immutable and fresh, considered cacheable without further validation");
-            }
-            return true;
-        }
-
-        // calculate freshness lifetime
-        if (freshnessLifetime.isNegative() || freshnessLifetime.isZero()) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Freshness lifetime is invalid");
-            }
-            return false;
-        }
-
-        return cacheable || isExplicitlyCacheable(cacheControl, response);
+        return isExplicitlyCacheable(cacheControl, response) || isHeuristicallyCacheable(cacheControl, code, responseDate, responseExpires);
     }
 
     private static boolean isKnownCacheableStatusCode(final int status) {
@@ -253,60 +254,57 @@ class ResponseCachingPolicy {
     }
 
     protected boolean isExplicitlyCacheable(final ResponseCacheControl cacheControl, final HttpResponse response) {
+        if (cacheControl.isPublic()) {
+            return true;
+        }
+        if (!sharedCache && cacheControl.isCachePrivate()) {
+            return true;
+        }
         if (response.containsHeader(HttpHeaders.EXPIRES)) {
             return true;
         }
-        return cacheControl.getMaxAge() > 0 || cacheControl.getSharedMaxAge()>0 ||
-                cacheControl.isMustRevalidate() || cacheControl.isProxyRevalidate() || (cacheControl.isPublic());
+        if (cacheControl.getMaxAge() > 0) {
+            return true;
+        }
+        if (sharedCache && cacheControl.getSharedMaxAge() > 0) {
+            return true;
+        }
+        return false;
     }
 
-    /**
-     * Determine if the {@link HttpResponse} gotten from the origin is a
-     * cacheable response.
-     *
-     * @return {@code true} if response is cacheable
-     */
-    public boolean isResponseCacheable(final ResponseCacheControl cacheControl, final HttpRequest request, final HttpResponse response) {
-        final ProtocolVersion version = request.getVersion() != null ? request.getVersion() : HttpVersion.DEFAULT;
-        if (version.compareToVersion(HttpVersion.HTTP_1_1) > 0) {
+    protected boolean isHeuristicallyCacheable(final ResponseCacheControl cacheControl,
+                                               final int status,
+                                               final Instant responseDate,
+                                               final Instant responseExpires) {
+        if (isKnownCacheableStatusCode(status)) {
+            final Duration freshnessLifetime = calculateFreshnessLifetime(cacheControl, responseDate, responseExpires);
+            // calculate freshness lifetime
+            if (freshnessLifetime.isNegative()) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Freshness lifetime is invalid");
+                }
+                return false;
+            }
+            // If the 'immutable' directive is present and the response is still fresh,
+            // then the response is considered cacheable without further validation
+            if (cacheControl.isImmutable() && responseIsStillFresh(responseDate, freshnessLifetime)) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Response is immutable and fresh, considered cacheable without further validation");
+                }
+                return true;
+            }
+            if (freshnessLifetime.compareTo(Duration.ZERO) > 0) {
+                return true;
+            }
+        } else if (isUnknownStatusCode(status)) {
+            // a response with an unknown status code MUST NOT be
+            // cached
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Protocol version {} is non-cacheable", version);
+                LOG.debug("{} response is unknown", status);
             }
             return false;
         }
-
-        if (cacheControl.isMustUnderstand() && cacheControl.isNoStore() && !understoodStatusCode(response.getCode())) {
-            // must-understand cache directive overrides no-store
-            LOG.debug("Response contains a status code that the cache does not understand, so it's not cacheable");
-            return false;
-        }
-
-        if (!cacheControl.isMustUnderstand() && cacheControl.isNoStore()) {
-            LOG.debug("Response is explicitly non-cacheable per cache control directive");
-            return false;
-        }
-
-
-        if (request.getRequestUri().contains("?")) {
-            if (neverCache1_0ResponsesWithQueryString && from1_0Origin(response)) {
-                LOG.debug("Response is not cacheable as it had a query string");
-                return false;
-            } else if (!neverCache1_1ResponsesWithQueryString && !isExplicitlyCacheable(cacheControl, response)) {
-                LOG.debug("Response is not cacheable as it is missing explicit caching headers");
-                return false;
-            }
-        }
-
-        if (sharedCache) {
-            if (request.countHeaders(HttpHeaders.AUTHORIZATION) > 0
-                    && !(cacheControl.getSharedMaxAge() > -1 || cacheControl.isMustRevalidate() || cacheControl.isPublic())) {
-                LOG.debug("Request contains private credentials");
-                return false;
-            }
-        }
-
-        final String method = request.getMethod();
-        return isResponseCacheable(cacheControl, method, response);
+        return false;
     }
 
     private boolean expiresHeaderLessOrEqualToDateHeaderAndNoCacheControl(final ResponseCacheControl cacheControl, final Instant responseDate, final Instant expires) {
@@ -316,7 +314,7 @@ class ResponseCachingPolicy {
         if (expires == null || responseDate == null) {
             return false;
         }
-        return expires.equals(responseDate) || expires.isBefore(responseDate);
+        return expires.compareTo(responseDate) <= 0;
     }
 
     private boolean from1_0Origin(final HttpResponse response) {
