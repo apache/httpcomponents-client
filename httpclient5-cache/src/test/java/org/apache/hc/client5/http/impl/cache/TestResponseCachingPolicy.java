@@ -42,6 +42,7 @@ import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
 import org.apache.hc.core5.http.message.BasicHttpResponse;
 import org.junit.jupiter.api.Assertions;
@@ -67,7 +68,7 @@ public class TestResponseCachingPolicy {
         sixSecondsAgo = now.minusSeconds(6);
         tenSecondsFromNow = now.plusSeconds(10);
 
-        policy = new ResponseCachingPolicy(0, true, false, false, false);
+        policy = new ResponseCachingPolicy(true, false, false, false);
         request = new BasicHttpRequest("GET","/");
         response = new BasicHttpResponse(HttpStatus.SC_OK, "");
         response.setHeader("Date", DateUtils.formatStandardDate(Instant.now()));
@@ -76,14 +77,26 @@ public class TestResponseCachingPolicy {
     }
 
     @Test
-    public void testIsGetCacheable() {
-        Assertions.assertTrue(policy.isResponseCacheable(responseCacheControl, "GET", response));
+    public void testGetCacheable() {
+        policy = new ResponseCachingPolicy(true, false, false, true);
+        request = new BasicHttpRequest(Method.GET, "/");
+        Assertions.assertTrue(policy.isResponseCacheable(responseCacheControl, request, response));
     }
 
     @Test
-    public void testIsHeadCacheable() {
-        policy = new ResponseCachingPolicy(0, true, false, false, true);
-        Assertions.assertTrue(policy.isResponseCacheable(responseCacheControl, "HEAD", response));
+    public void testHeadCacheable() {
+        policy = new ResponseCachingPolicy(true, false, false, true);
+        request = new BasicHttpRequest(Method.HEAD, "/");
+        Assertions.assertTrue(policy.isResponseCacheable(responseCacheControl, request, response));
+    }
+
+    @Test
+    public void testArbitraryMethodNotCacheable() {
+        request = new BasicHttpRequest("PUT", "/");
+        Assertions.assertFalse(policy.isResponseCacheable(responseCacheControl, request, response));
+
+        request = new BasicHttpRequest("huh", "/");
+        Assertions.assertFalse(policy.isResponseCacheable(responseCacheControl, request, response));
     }
 
     @Test
@@ -95,7 +108,7 @@ public class TestResponseCachingPolicy {
 
     @Test
     public void testResponsesToRequestsWithAuthorizationHeadersAreCacheableByNonSharedCache() {
-        policy = new ResponseCachingPolicy(0, false, false, false, true);
+        policy = new ResponseCachingPolicy(false, false, false, true);
         request = new BasicHttpRequest("GET","/");
         request.setHeader("Authorization", StandardAuthScheme.BASIC + " dXNlcjpwYXNzd2Q=");
         Assertions.assertTrue(policy.isResponseCacheable(responseCacheControl, request, response));
@@ -109,16 +122,6 @@ public class TestResponseCachingPolicy {
                 .setSharedMaxAge(3600)
                 .build();
 
-        Assertions.assertTrue(policy.isResponseCacheable(responseCacheControl, request, response));
-    }
-
-    @Test
-    public void testAuthorizedResponsesWithMustRevalidateAreCacheable() {
-        request = new BasicHttpRequest("GET","/");
-        request.setHeader("Authorization", StandardAuthScheme.BASIC + " dXNlcjpwYXNzd2Q=");
-        responseCacheControl = ResponseCacheControl.builder()
-                .setMustRevalidate(true)
-                .build();
         Assertions.assertTrue(policy.isResponseCacheable(responseCacheControl, request, response));
     }
 
@@ -145,65 +148,53 @@ public class TestResponseCachingPolicy {
     @Test
     public void test203ResponseCodeIsCacheable() {
         response.setCode(HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION);
-        Assertions.assertTrue(policy.isResponseCacheable(responseCacheControl, "GET", response));
+        Assertions.assertTrue(policy.isResponseCacheable(responseCacheControl, request, response));
     }
 
     @Test
     public void test206ResponseCodeIsNotCacheable() {
         response.setCode(HttpStatus.SC_PARTIAL_CONTENT);
-        Assertions.assertFalse(policy.isResponseCacheable(responseCacheControl, "GET", response));
-    }
-
-    @Test
-    public void test206ResponseCodeIsNotCacheableUsingSharedPublicCache() {
-        policy = new ResponseCachingPolicy(0, true, false, false, true);
-
-        request.setHeader("Authorization", StandardAuthScheme.BASIC + " QWxhZGRpbjpvcGVuIHNlc2FtZQ==");
-        response.setCode(HttpStatus.SC_PARTIAL_CONTENT);
-        responseCacheControl = ResponseCacheControl.builder()
-                .setCachePublic(true)
-                .build();
         Assertions.assertFalse(policy.isResponseCacheable(responseCacheControl, request, response));
     }
 
     @Test
     public void test300ResponseCodeIsCacheable() {
         response.setCode(HttpStatus.SC_MULTIPLE_CHOICES);
-        Assertions.assertTrue(policy.isResponseCacheable(responseCacheControl, "GET", response));
+        Assertions.assertTrue(policy.isResponseCacheable(responseCacheControl, request, response));
     }
 
     @Test
     public void test301ResponseCodeIsCacheable() {
         response.setCode(HttpStatus.SC_MOVED_PERMANENTLY);
-        Assertions.assertTrue(policy.isResponseCacheable(responseCacheControl, "GET", response));
+        Assertions.assertTrue(policy.isResponseCacheable(responseCacheControl, request, response));
     }
 
     @Test
     public void test410ResponseCodeIsCacheable() {
         response.setCode(HttpStatus.SC_GONE);
-        Assertions.assertTrue(policy.isResponseCacheable(responseCacheControl, "GET", response));
+        Assertions.assertTrue(policy.isResponseCacheable(responseCacheControl, request, response));
     }
 
     @Test
     public void testPlain302ResponseCodeIsNotCacheable() {
         response.setCode(HttpStatus.SC_MOVED_TEMPORARILY);
         response.removeHeaders("Expires");
-        Assertions.assertFalse(policy.isResponseCacheable(responseCacheControl, "GET", response));
+        Assertions.assertFalse(policy.isResponseCacheable(responseCacheControl, request, response));
     }
 
     @Test
     public void testPlain303ResponseCodeIsNotCacheableUnderDefaultBehavior() {
         response.setCode(HttpStatus.SC_SEE_OTHER);
         response.removeHeaders("Expires");
-        Assertions.assertFalse(policy.isResponseCacheable(responseCacheControl, "GET", response));
+        Assertions.assertFalse(policy.isResponseCacheable(responseCacheControl, request, response));
     }
 
     @Test
     public void testPlain303ResponseCodeIsNotCacheableEvenIf303CachingEnabled() {
-        policy = new ResponseCachingPolicy(0, true, false, true, true);
+        policy = new ResponseCachingPolicy(true, false, true, true);
         response.setCode(HttpStatus.SC_SEE_OTHER);
         response.removeHeaders("Expires");
-        Assertions.assertFalse(policy.isResponseCacheable(responseCacheControl, "GET", response));
+        Assertions.assertFalse(policy.isResponseCacheable(responseCacheControl, request, response));
     }
 
 
@@ -211,7 +202,7 @@ public class TestResponseCachingPolicy {
     public void testPlain307ResponseCodeIsNotCacheable() {
         response.setCode(HttpStatus.SC_TEMPORARY_REDIRECT);
         response.removeHeaders("Expires");
-        Assertions.assertFalse(policy.isResponseCacheable(responseCacheControl, "GET", response));
+        Assertions.assertFalse(policy.isResponseCacheable(responseCacheControl, request, response));
     }
 
     @Test
@@ -219,7 +210,7 @@ public class TestResponseCachingPolicy {
         final int status = getRandomStatus();
         response.setCode(status);
         response.setHeader("Expires", DateUtils.formatStandardDate(Instant.now().plus(1, ChronoUnit.HOURS)));
-        Assertions.assertTrue(policy.isResponseCacheable(responseCacheControl, "GET", response));
+        Assertions.assertTrue(policy.isResponseCacheable(responseCacheControl, request, response));
     }
 
     @Test
@@ -229,7 +220,7 @@ public class TestResponseCachingPolicy {
         responseCacheControl = ResponseCacheControl.builder()
                 .setMaxAge(0)
                 .build();
-        Assertions.assertFalse(policy.isResponseCacheable(responseCacheControl, "GET", response));
+        Assertions.assertFalse(policy.isResponseCacheable(responseCacheControl, request, response));
     }
 
     @Test
@@ -237,7 +228,7 @@ public class TestResponseCachingPolicy {
         final int status = getRandomStatus();
         response.setCode(status);
         response.removeHeaders(HttpHeaders.CACHE_CONTROL);
-        Assertions.assertTrue(policy.isResponseCacheable(responseCacheControl, "GET", response));
+        Assertions.assertTrue(policy.isResponseCacheable(responseCacheControl, request, response));
     }
 
     @Test
@@ -247,7 +238,7 @@ public class TestResponseCachingPolicy {
         responseCacheControl = ResponseCacheControl.builder()
                 .setSharedMaxAge(1)
                 .build();
-        Assertions.assertTrue(policy.isResponseCacheable(responseCacheControl, "GET", response));
+        Assertions.assertTrue(policy.isResponseCacheable(responseCacheControl, request, response));
     }
 
     @Test
@@ -257,7 +248,7 @@ public class TestResponseCachingPolicy {
         responseCacheControl = ResponseCacheControl.builder()
                 .setMustRevalidate(true)
                 .build();
-        Assertions.assertTrue(policy.isResponseCacheable(responseCacheControl, "GET", response));
+        Assertions.assertTrue(policy.isResponseCacheable(responseCacheControl, request, response));
     }
 
     @Test
@@ -267,7 +258,7 @@ public class TestResponseCachingPolicy {
         responseCacheControl = ResponseCacheControl.builder()
                 .setProxyRevalidate(true)
                 .build();
-        Assertions.assertTrue(policy.isResponseCacheable(responseCacheControl, "GET", response));
+        Assertions.assertTrue(policy.isResponseCacheable(responseCacheControl, request, response));
     }
 
     @Test
@@ -277,7 +268,7 @@ public class TestResponseCachingPolicy {
         responseCacheControl = ResponseCacheControl.builder()
                 .setCachePublic(true)
                 .build();
-        Assertions.assertTrue(policy.isResponseCacheable(responseCacheControl, "GET", response));
+        Assertions.assertTrue(policy.isResponseCacheable(responseCacheControl, request, response));
     }
 
     @Test
@@ -287,146 +278,86 @@ public class TestResponseCachingPolicy {
         responseCacheControl = ResponseCacheControl.builder()
                 .setCachePrivate(true)
                 .build();
-        Assertions.assertFalse(policy.isResponseCacheable(responseCacheControl, "GET", response));
+        Assertions.assertFalse(policy.isResponseCacheable(responseCacheControl, request, response));
     }
 
     @Test
     public void test200ResponseWithPrivateCacheControlIsCacheableByNonSharedCache() {
-        policy = new ResponseCachingPolicy(0, false, false, false, true);
+        policy = new ResponseCachingPolicy(false, false, false, true);
         response.setCode(HttpStatus.SC_OK);
         responseCacheControl = ResponseCacheControl.builder()
                 .setCachePrivate(true)
                 .build();
-        Assertions.assertTrue(policy.isResponseCacheable(responseCacheControl, "GET", response));
+        Assertions.assertTrue(policy.isResponseCacheable(responseCacheControl, request, response));
     }
 
     @Test
-    public void testIsGetWithNoCacheCacheable() {
+    public void testControlNoCacheCacheable() {
         responseCacheControl = ResponseCacheControl.builder()
                 .setNoCache(true)
                 .build();
 
-        Assertions.assertTrue(policy.isResponseCacheable(responseCacheControl, "GET", response));
+        Assertions.assertTrue(policy.isResponseCacheable(responseCacheControl, request, response));
     }
 
     @Test
-    public void testIsHeadWithNoCacheCacheable() {
-        responseCacheControl = ResponseCacheControl.builder()
-                .setNoCache(true)
-                .build();
-
-        Assertions.assertTrue(policy.isResponseCacheable(responseCacheControl, "HEAD", response));
-    }
-
-    @Test
-    public void testIsGetWithNoStoreCacheable() {
+    public void testControlNoStoreNotCacheable() {
         responseCacheControl = ResponseCacheControl.builder()
                 .setNoStore(true)
                 .build();
 
-        Assertions.assertFalse(policy.isResponseCacheable(responseCacheControl, "GET", response));
+        Assertions.assertFalse(policy.isResponseCacheable(responseCacheControl, request, response));
     }
 
     @Test
-    public void testIsHeadWithNoStoreCacheable() {
-        responseCacheControl = ResponseCacheControl.builder()
-                .setNoStore(true)
-                .build();
-
-        Assertions.assertFalse(policy.isResponseCacheable(responseCacheControl, "HEAD", response));
-    }
-
-    @Test
-    public void testIsGetWithNoStoreEmbeddedInListCacheable() {
+    public void testControlNoStoreEmbeddedInListCacheable() {
         responseCacheControl = ResponseCacheControl.builder()
                 .setCachePublic(true)
                 .setNoStore(true)
                 .build();
 
-        Assertions.assertFalse(policy.isResponseCacheable(responseCacheControl, "GET", response));
+        Assertions.assertFalse(policy.isResponseCacheable(responseCacheControl, request, response));
     }
 
     @Test
-    public void testIsHeadWithNoStoreEmbeddedInListCacheable() {
-        responseCacheControl = ResponseCacheControl.builder()
-                .setCachePublic(true)
-                .setNoStore(true)
-                .build();
-
-        Assertions.assertFalse(policy.isResponseCacheable(responseCacheControl, "HEAD", response));
-    }
-
-    @Test
-    public void testIsGetWithNoCacheEmbeddedInListCacheable() {
+    public void testControlNoCacheEmbeddedInListCacheable() {
         responseCacheControl = ResponseCacheControl.builder()
                 .setCachePublic(true)
                 .setNoCache(true)
                 .build();
 
-        Assertions.assertTrue(policy.isResponseCacheable(responseCacheControl, "GET", response));
+        Assertions.assertTrue(policy.isResponseCacheable(responseCacheControl, request, response));
     }
 
     @Test
-    public void testIsHeadWithNoCacheEmbeddedInListCacheable() {
-        responseCacheControl = ResponseCacheControl.builder()
-                .setCachePublic(true)
-                .setNoCache(true)
-                .build();
-
-        Assertions.assertTrue(policy.isResponseCacheable(responseCacheControl, "HEAD", response));
-    }
-
-    @Test
-    public void testIsGetWithNoCacheEmbeddedInListAfterFirstHeaderCacheable() {
+    public void testControlNoCacheEmbeddedInListAfterFirstHeaderCacheable() {
         responseCacheControl = ResponseCacheControl.builder()
                 .setMaxAge(20)
                 .setCachePublic(true)
                 .setNoCache(true)
                 .build();
 
-        Assertions.assertTrue(policy.isResponseCacheable(responseCacheControl, "GET", response));
+        Assertions.assertTrue(policy.isResponseCacheable(responseCacheControl, request, response));
     }
 
     @Test
-    public void testIsHeadWithNoCacheEmbeddedInListAfterFirstHeaderCacheable() {
-        responseCacheControl = ResponseCacheControl.builder()
-                .setMaxAge(20)
-                .setCachePublic(true)
-                .setNoCache(true)
-                .build();
-
-        Assertions.assertTrue(policy.isResponseCacheable(responseCacheControl, "HEAD", response));
-    }
-
-    @Test
-    public void testIsGetWithNoStoreEmbeddedInListAfterFirstHeaderCacheable() {
+    public void testControlNoStoreEmbeddedInListAfterFirstHeaderCacheable() {
         responseCacheControl = ResponseCacheControl.builder()
                 .setMaxAge(20)
                 .setCachePublic(true)
                 .setNoStore(true)
                 .build();
 
-        Assertions.assertFalse(policy.isResponseCacheable(responseCacheControl, "GET", response));
+        Assertions.assertFalse(policy.isResponseCacheable(responseCacheControl, request, response));
     }
 
     @Test
-    public void testIsHeadWithNoStoreEmbeddedInListAfterFirstHeaderCacheable() {
-        responseCacheControl = ResponseCacheControl.builder()
-                .setMaxAge(20)
-                .setCachePublic(true)
-                .setNoStore(true)
-                .build();
-
-        Assertions.assertFalse(policy.isResponseCacheable(responseCacheControl, "HEAD", response));
-    }
-
-    @Test
-    public void testIsGetWithAnyCacheControlCacheable() {
+    public void testControlAnyCacheControlCacheable() {
         responseCacheControl = ResponseCacheControl.builder()
                 .setMaxAge(10)
                 .build();
 
-        Assertions.assertTrue(policy.isResponseCacheable(responseCacheControl, "GET", response));
+        Assertions.assertTrue(policy.isResponseCacheable(responseCacheControl, request, response));
 
         response = new BasicHttpResponse(HttpStatus.SC_OK, "");
         response.setHeader("Date", DateUtils.formatStandardDate(Instant.now()));
@@ -434,58 +365,29 @@ public class TestResponseCachingPolicy {
         responseCacheControl = ResponseCacheControl.builder()
                 .build();
 
-        Assertions.assertTrue(policy.isResponseCacheable(responseCacheControl, "GET", response));
+        Assertions.assertTrue(policy.isResponseCacheable(responseCacheControl, request, response));
     }
 
     @Test
-    public void testIsHeadWithAnyCacheControlCacheable() {
-        policy = new ResponseCachingPolicy(0, true, false, false, true);
-        responseCacheControl = ResponseCacheControl.builder()
-                .setMaxAge(10)
-                .build();
-
-        Assertions.assertTrue(policy.isResponseCacheable(responseCacheControl, "HEAD", response));
-
-        response = new BasicHttpResponse(HttpStatus.SC_OK, "");
-        response.setHeader("Date", DateUtils.formatStandardDate(Instant.now()));
-        response.setHeader("Content-Length", "0");
-        responseCacheControl = ResponseCacheControl.builder()
-                .build();
-
-        Assertions.assertTrue(policy.isResponseCacheable(responseCacheControl, "HEAD", response));
-    }
-
-    @Test
-    public void testIsGetWithout200Cacheable() {
+    public void testControlWithout200Cacheable() {
         HttpResponse response404 = new BasicHttpResponse(HttpStatus.SC_NOT_FOUND, "");
 
-        Assertions.assertFalse(policy.isResponseCacheable(responseCacheControl, "GET", response404));
+        Assertions.assertFalse(policy.isResponseCacheable(responseCacheControl, request, response404));
 
         response404 = new BasicHttpResponse(HttpStatus.SC_GATEWAY_TIMEOUT, "");
 
-        Assertions.assertFalse(policy.isResponseCacheable(responseCacheControl, "GET", response404));
-    }
-
-    @Test
-    public void testIsHeadWithout200Cacheable() {
-        HttpResponse response404 = new BasicHttpResponse(HttpStatus.SC_NOT_FOUND, "");
-
-        Assertions.assertFalse(policy.isResponseCacheable(responseCacheControl, "HEAD", response404));
-
-        response404 = new BasicHttpResponse(HttpStatus.SC_GATEWAY_TIMEOUT, "");
-
-        Assertions.assertFalse(policy.isResponseCacheable(responseCacheControl, "HEAD", response404));
+        Assertions.assertFalse(policy.isResponseCacheable(responseCacheControl, request, response404));
     }
 
     @Test
     public void testVaryStarIsNotCacheable() {
         response.setHeader("Vary", "*");
-        Assertions.assertFalse(policy.isResponseCacheable(responseCacheControl, "GET", response));
+        Assertions.assertFalse(policy.isResponseCacheable(responseCacheControl, request, response));
     }
 
     @Test
     public void testVaryStarIsNotCacheableUsingSharedPublicCache() {
-        policy = new ResponseCachingPolicy(0, true, false, false, true);
+        policy = new ResponseCachingPolicy(true, false, false, true);
 
         request.setHeader("Authorization", StandardAuthScheme.BASIC + " QWxhZGRpbjpvcGVuIHNlc2FtZQ==");
         response.setHeader("Vary", "*");
@@ -496,29 +398,14 @@ public class TestResponseCachingPolicy {
     }
 
     @Test
-    public void testIsGetWithVaryHeaderCacheable() {
+    public void testRequestWithVaryHeaderCacheable() {
         response.addHeader("Vary", "Accept-Encoding");
-        Assertions.assertTrue(policy.isResponseCacheable(responseCacheControl, "GET", response));
-    }
-
-    @Test
-    public void testIsHeadWithVaryHeaderCacheable() {
-        policy = new ResponseCachingPolicy(0, true, false, false, true);
-        response.addHeader("Vary", "Accept-Encoding");
-        Assertions.assertTrue(policy.isResponseCacheable(responseCacheControl, "HEAD", response));
-    }
-
-    @Test
-    public void testIsArbitraryMethodCacheable() {
-
-        Assertions.assertFalse(policy.isResponseCacheable(responseCacheControl, "PUT", response));
-
-        Assertions.assertFalse(policy.isResponseCacheable(responseCacheControl, "huh", response));
+        Assertions.assertTrue(policy.isResponseCacheable(responseCacheControl, request, response));
     }
 
     @Test
     public void testIsArbitraryMethodCacheableUsingSharedPublicCache() {
-        policy = new ResponseCachingPolicy(0, true, false, false, true);
+        policy = new ResponseCachingPolicy(true, false, false, true);
 
         request = new HttpOptions("http://foo.example.com/");
         request.setHeader("Authorization", StandardAuthScheme.BASIC + " QWxhZGRpbjpvcGVuIHNlc2FtZQ==");
@@ -534,12 +421,12 @@ public class TestResponseCachingPolicy {
     public void testResponsesWithMultipleAgeHeadersAreCacheable() {
         response.addHeader("Age", "3");
         response.addHeader("Age", "5");
-        Assertions.assertTrue(policy.isResponseCacheable(responseCacheControl, "GET", response));
+        Assertions.assertTrue(policy.isResponseCacheable(responseCacheControl, request, response));
     }
 
     @Test
     public void testResponsesWithMultipleAgeHeadersAreNotCacheableUsingSharedPublicCache() {
-        policy = new ResponseCachingPolicy(0, true, false, false, true);
+        policy = new ResponseCachingPolicy(true, false, false, true);
 
         request.setHeader("Authorization", StandardAuthScheme.BASIC + " QWxhZGRpbjpvcGVuIHNlc2FtZQ==");
         response.addHeader("Age", "3");
@@ -554,12 +441,12 @@ public class TestResponseCachingPolicy {
     public void testResponsesWithMultipleDateHeadersAreNotCacheable() {
         response.addHeader("Date", DateUtils.formatStandardDate(now));
         response.addHeader("Date", DateUtils.formatStandardDate(sixSecondsAgo));
-        Assertions.assertFalse(policy.isResponseCacheable(responseCacheControl, "GET", response));
+        Assertions.assertFalse(policy.isResponseCacheable(responseCacheControl, request, response));
     }
 
     @Test
     public void testResponsesWithMultipleDateHeadersAreNotCacheableUsingSharedPublicCache() {
-        policy = new ResponseCachingPolicy(0, true, false, false, true);
+        policy = new ResponseCachingPolicy(true, false, false, true);
 
         request.setHeader("Authorization", StandardAuthScheme.BASIC + " QWxhZGRpbjpvcGVuIHNlc2FtZQ==");
         response.addHeader("Date", DateUtils.formatStandardDate(now));
@@ -573,12 +460,12 @@ public class TestResponseCachingPolicy {
     @Test
     public void testResponsesWithMalformedDateHeadersAreNotCacheable() {
         response.addHeader("Date", "garbage");
-        Assertions.assertFalse(policy.isResponseCacheable(responseCacheControl, "GET", response));
+        Assertions.assertFalse(policy.isResponseCacheable(responseCacheControl, request, response));
     }
 
     @Test
     public void testResponsesWithMalformedDateHeadersAreNotCacheableUsingSharedPublicCache() {
-        policy = new ResponseCachingPolicy(0, true, false, false, true);
+        policy = new ResponseCachingPolicy(true, false, false, true);
 
         request.setHeader("Authorization", StandardAuthScheme.BASIC + " QWxhZGRpbjpvcGVuIHNlc2FtZQ==");
         response.addHeader("Date", "garbage");
@@ -592,12 +479,12 @@ public class TestResponseCachingPolicy {
     public void testResponsesWithMultipleExpiresHeadersAreNotCacheable() {
         response.addHeader("Expires", DateUtils.formatStandardDate(now));
         response.addHeader("Expires", DateUtils.formatStandardDate(sixSecondsAgo));
-        Assertions.assertFalse(policy.isResponseCacheable(responseCacheControl, "GET", response));
+        Assertions.assertFalse(policy.isResponseCacheable(responseCacheControl, request, response));
     }
 
     @Test
     public void testResponsesWithMultipleExpiresHeadersAreNotCacheableUsingSharedPublicCache() {
-        policy = new ResponseCachingPolicy(0, true, false, false, true);
+        policy = new ResponseCachingPolicy(true, false, false, true);
 
         request.setHeader("Authorization", StandardAuthScheme.BASIC + " QWxhZGRpbjpvcGVuIHNlc2FtZQ==");
         response.addHeader("Expires", DateUtils.formatStandardDate(now));
@@ -609,27 +496,9 @@ public class TestResponseCachingPolicy {
     }
 
     @Test
-    public void testResponseThatHasTooMuchContentIsNotCacheable() {
-        response.setHeader("Content-Length", "9000");
-        Assertions.assertFalse(policy.isResponseCacheable(responseCacheControl, "GET", response));
-    }
-
-    @Test
-    public void testResponseThatHasTooMuchContentIsNotCacheableUsingSharedPublicCache() {
-        policy = new ResponseCachingPolicy(0, true, false, false, true);
-
-        request.setHeader("Authorization", StandardAuthScheme.BASIC + " QWxhZGRpbjpvcGVuIHNlc2FtZQ==");
-        response.setHeader("Content-Length", "9000");
-        responseCacheControl = ResponseCacheControl.builder()
-                .setCachePublic(true)
-                .build();
-        Assertions.assertFalse(policy.isResponseCacheable(responseCacheControl, request, response));
-    }
-
-    @Test
     public void testResponsesThatAreSmallEnoughAreCacheable() {
         response.setHeader("Content-Length", "0");
-        Assertions.assertTrue(policy.isResponseCacheable(responseCacheControl, "GET", response));
+        Assertions.assertTrue(policy.isResponseCacheable(responseCacheControl, request, response));
     }
 
     @Test
@@ -646,14 +515,14 @@ public class TestResponseCachingPolicy {
 
     @Test
     public void testResponsesToGETWithQueryParamsButNoExplicitCachingAreNotCacheableEvenWhen1_0QueryCachingDisabled() {
-        policy = new ResponseCachingPolicy(0, true, true, false, false);
+        policy = new ResponseCachingPolicy(true, true, false, false);
         request = new BasicHttpRequest("GET", "/foo?s=bar");
         Assertions.assertFalse(policy.isResponseCacheable(responseCacheControl, request, response));
     }
 
     @Test
     public void testResponsesToHEADWithQueryParamsButNoExplicitCachingAreNotCacheableEvenWhen1_0QueryCachingDisabled() {
-        policy = new ResponseCachingPolicy(0, true, true, false, false);
+        policy = new ResponseCachingPolicy(true, true, false, false);
         request = new BasicHttpRequest("HEAD", "/foo?s=bar");
         Assertions.assertFalse(policy.isResponseCacheable(responseCacheControl, request, response));
     }
@@ -668,7 +537,7 @@ public class TestResponseCachingPolicy {
 
     @Test
     public void testResponsesToHEADWithQueryParamsAndExplicitCachingAreCacheable() {
-        policy = new ResponseCachingPolicy(0, true, false, false, true);
+        policy = new ResponseCachingPolicy(true, false, false, true);
         request = new BasicHttpRequest("HEAD", "/foo?s=bar");
         response.setHeader("Date", DateUtils.formatStandardDate(now));
         response.setHeader("Expires", DateUtils.formatStandardDate(tenSecondsFromNow));
@@ -677,7 +546,7 @@ public class TestResponseCachingPolicy {
 
     @Test
     public void testResponsesToGETWithQueryParamsAndExplicitCachingAreCacheableEvenWhen1_0QueryCachingDisabled() {
-        policy = new ResponseCachingPolicy(0, true, true, false, true);
+        policy = new ResponseCachingPolicy(true, true, false, true);
         request = new BasicHttpRequest("GET", "/foo?s=bar");
         response.setHeader("Date", DateUtils.formatStandardDate(now));
         response.setHeader("Expires", DateUtils.formatStandardDate(tenSecondsFromNow));
@@ -686,7 +555,7 @@ public class TestResponseCachingPolicy {
 
     @Test
     public void testResponsesToHEADWithQueryParamsAndExplicitCachingAreCacheableEvenWhen1_0QueryCachingDisabled() {
-        policy = new ResponseCachingPolicy(0, true, true, false, true);
+        policy = new ResponseCachingPolicy(true, true, false, true);
         request = new BasicHttpRequest("HEAD", "/foo?s=bar");
         response.setHeader("Date", DateUtils.formatStandardDate(now));
         response.setHeader("Expires", DateUtils.formatStandardDate(tenSecondsFromNow));
@@ -711,7 +580,7 @@ public class TestResponseCachingPolicy {
 
     @Test
     public void getsWithQueryParametersDirectlyFrom1_0OriginsAreNotCacheableEvenWithSetting() {
-        policy = new ResponseCachingPolicy(0, true, true, false, true);
+        policy = new ResponseCachingPolicy(true, true, false, true);
         request = new BasicHttpRequest("GET", "/foo?s=bar");
         response = new BasicHttpResponse(HttpStatus.SC_OK, "OK");
         response.setVersion(HttpVersion.HTTP_1_0);
@@ -720,7 +589,7 @@ public class TestResponseCachingPolicy {
 
     @Test
     public void headsWithQueryParametersDirectlyFrom1_0OriginsAreNotCacheableEvenWithSetting() {
-        policy = new ResponseCachingPolicy(0, true, true, false, true);
+        policy = new ResponseCachingPolicy(true, true, false, true);
         request = new BasicHttpRequest("HEAD", "/foo?s=bar");
         response = new BasicHttpResponse(HttpStatus.SC_OK, "OK");
         response.setVersion(HttpVersion.HTTP_1_0);
@@ -739,7 +608,7 @@ public class TestResponseCachingPolicy {
 
     @Test
     public void headsWithQueryParametersDirectlyFrom1_0OriginsAreCacheableWithExpires() {
-        policy = new ResponseCachingPolicy(0, true, false, false, true);
+        policy = new ResponseCachingPolicy(true, false, false, true);
         request = new BasicHttpRequest("HEAD", "/foo?s=bar");
         response = new BasicHttpResponse(HttpStatus.SC_OK, "OK");
         response.setVersion(HttpVersion.HTTP_1_0);
@@ -750,7 +619,7 @@ public class TestResponseCachingPolicy {
 
     @Test
     public void getsWithQueryParametersDirectlyFrom1_0OriginsCanBeNotCacheableEvenWithExpires() {
-        policy = new ResponseCachingPolicy(0, true, true, false, true);
+        policy = new ResponseCachingPolicy(true, true, false, true);
         request = new BasicHttpRequest("GET", "/foo?s=bar");
         response = new BasicHttpResponse(HttpStatus.SC_OK, "OK");
         response.setVersion(HttpVersion.HTTP_1_0);
@@ -761,7 +630,7 @@ public class TestResponseCachingPolicy {
 
     @Test
     public void headsWithQueryParametersDirectlyFrom1_0OriginsCanBeNotCacheableEvenWithExpires() {
-        policy = new ResponseCachingPolicy(0, true, true, false, true);
+        policy = new ResponseCachingPolicy(true, true, false, true);
         request = new BasicHttpRequest("HEAD", "/foo?s=bar");
         response = new BasicHttpResponse(HttpStatus.SC_OK, "OK");
         response.setVersion(HttpVersion.HTTP_1_0);
@@ -795,7 +664,7 @@ public class TestResponseCachingPolicy {
 
     @Test
     public void headsWithQueryParametersFrom1_0OriginsViaProxiesAreCacheableWithExpires() {
-        policy = new ResponseCachingPolicy(0, true, false, false, true);
+        policy = new ResponseCachingPolicy(true, false, false, true);
         request = new BasicHttpRequest("HEAD", "/foo?s=bar");
         response.setHeader("Date", DateUtils.formatStandardDate(now));
         response.setHeader("Expires", DateUtils.formatStandardDate(tenSecondsFromNow));
@@ -805,7 +674,7 @@ public class TestResponseCachingPolicy {
 
     @Test
     public void getsWithQueryParametersFrom1_0OriginsViaProxiesCanNotBeCacheableEvenWithExpires() {
-        policy = new ResponseCachingPolicy(0, true, true, true, true);
+        policy = new ResponseCachingPolicy(true, true, true, true);
         request = new BasicHttpRequest("GET", "/foo?s=bar");
         response.setHeader("Date", DateUtils.formatStandardDate(now));
         response.setHeader("Expires", DateUtils.formatStandardDate(tenSecondsFromNow));
@@ -815,7 +684,7 @@ public class TestResponseCachingPolicy {
 
     @Test
     public void headsWithQueryParametersFrom1_0OriginsViaProxiesCanNotBeCacheableEvenWithExpires() {
-        policy = new ResponseCachingPolicy(0, true, true, true, true);
+        policy = new ResponseCachingPolicy(true, true, true, true);
         request = new BasicHttpRequest("HEAD", "/foo?s=bar");
         response.setHeader("Date", DateUtils.formatStandardDate(now));
         response.setHeader("Expires", DateUtils.formatStandardDate(tenSecondsFromNow));
@@ -834,7 +703,7 @@ public class TestResponseCachingPolicy {
 
     @Test
     public void headsWithQueryParametersFrom1_0OriginsViaExplicitProxiesAreCacheableWithExpires() {
-        policy = new ResponseCachingPolicy(0, true, false, false, false);
+        policy = new ResponseCachingPolicy(true, false, false, false);
         request = new BasicHttpRequest("HEAD", "/foo?s=bar");
         response.setHeader("Date", DateUtils.formatStandardDate(now));
         response.setHeader("Expires", DateUtils.formatStandardDate(tenSecondsFromNow));
@@ -844,7 +713,7 @@ public class TestResponseCachingPolicy {
 
     @Test
     public void getsWithQueryParametersFrom1_0OriginsViaExplicitProxiesCanNotBeCacheableEvenWithExpires() {
-        policy = new ResponseCachingPolicy(0, true, true, true, true);
+        policy = new ResponseCachingPolicy(true, true, true, true);
         request = new BasicHttpRequest("GET", "/foo?s=bar");
         response.setHeader("Date", DateUtils.formatStandardDate(now));
         response.setHeader("Expires", DateUtils.formatStandardDate(tenSecondsFromNow));
@@ -854,7 +723,7 @@ public class TestResponseCachingPolicy {
 
     @Test
     public void headsWithQueryParametersFrom1_0OriginsViaExplicitProxiesCanNotBeCacheableEvenWithExpires() {
-        policy = new ResponseCachingPolicy(0, true, true, true, true);
+        policy = new ResponseCachingPolicy(true, true, true, true);
         request = new BasicHttpRequest("HEAD", "/foo?s=bar");
         response.setHeader("Date", DateUtils.formatStandardDate(now));
         response.setHeader("Expires", DateUtils.formatStandardDate(tenSecondsFromNow));
@@ -875,7 +744,7 @@ public class TestResponseCachingPolicy {
 
     @Test
     public void headsWithQueryParametersFrom1_1OriginsVia1_0ProxiesAreCacheableWithExpires() {
-        policy = new ResponseCachingPolicy(0, true, false, false, true);
+        policy = new ResponseCachingPolicy(true, false, false, true);
         request = new BasicHttpRequest("HEAD", "/foo?s=bar");
         response = new BasicHttpResponse(HttpStatus.SC_OK, "OK");
         response.setVersion(HttpVersion.HTTP_1_0);
@@ -914,7 +783,7 @@ public class TestResponseCachingPolicy {
     public void test303WithExplicitCachingHeadersWhenPermittedByConfig() {
         // HTTPbis working group says ok if explicitly indicated by
         // response headers
-        policy = new ResponseCachingPolicy(0, true, false, true, true);
+        policy = new ResponseCachingPolicy(true, false, true, true);
         response.setCode(HttpStatus.SC_SEE_OTHER);
         response.setHeader("Date", DateUtils.formatStandardDate(now));
         responseCacheControl = ResponseCacheControl.builder()
@@ -955,8 +824,8 @@ public class TestResponseCachingPolicy {
 
 
         // Create ResponseCachingPolicy instance and test the method
-        policy = new ResponseCachingPolicy(0, true, false, false, false);
-        request = new BasicHttpRequest("POST", "/foo");
+        policy = new ResponseCachingPolicy(true, false, false, false);
+        request = new BasicHttpRequest("GET", "/foo");
         assertTrue(policy.isResponseCacheable(responseCacheControl, request, response));
     }
 
@@ -973,8 +842,8 @@ public class TestResponseCachingPolicy {
 
 
         // Create ResponseCachingPolicy instance and test the method
-        policy = new ResponseCachingPolicy(0, true, false, false, false);
-        request = new BasicHttpRequest("POST", "/foo");
+        policy = new ResponseCachingPolicy(true, false, false, false);
+        request = new BasicHttpRequest("GET", "/foo");
         responseCacheControl = ResponseCacheControl.builder()
                 .setMaxAge(60)
                 .build();
@@ -993,8 +862,8 @@ public class TestResponseCachingPolicy {
 
 
         // Create ResponseCachingPolicy instance and test the method
-        policy = new ResponseCachingPolicy(0, true, false, false,false);
-        request = new BasicHttpRequest("POST", "/foo");
+        policy = new ResponseCachingPolicy(true, false, false,false);
+        request = new BasicHttpRequest("GET", "/foo");
         responseCacheControl = ResponseCacheControl.builder()
                 .setMaxAge(60)
                 .build();
@@ -1013,8 +882,8 @@ public class TestResponseCachingPolicy {
 
 
         // Create ResponseCachingPolicy instance and test the method
-        policy = new ResponseCachingPolicy(0, true, false, false,false);
-        request = new BasicHttpRequest("POST", "/foo");
+        policy = new ResponseCachingPolicy(true, false, false,false);
+        request = new BasicHttpRequest("GET", "/foo");
         assertTrue(policy.isResponseCacheable(responseCacheControl, request, response));
     }
 
@@ -1029,7 +898,7 @@ public class TestResponseCachingPolicy {
         request = new BasicHttpRequest("GET","/foo?s=bar");
         // HTTPbis working group says ok if explicitly indicated by
         // response headers
-        policy = new ResponseCachingPolicy(0, true, false, true, true);
+        policy = new ResponseCachingPolicy(true, false, true, true);
         response.setCode(HttpStatus.SC_OK);
         response.setHeader("Date", DateUtils.formatStandardDate(now));
         assertTrue(policy.isResponseCacheable(responseCacheControl, request, response));
@@ -1042,7 +911,7 @@ public class TestResponseCachingPolicy {
         response.setHeader(HttpHeaders.DATE, DateUtils.formatStandardDate(Instant.now()));
 
         // Create ResponseCachingPolicy instance and test the method
-        policy = new ResponseCachingPolicy(0, true, false, false, true);
+        policy = new ResponseCachingPolicy(true, false, false, true);
         request = new BasicHttpRequest("GET", "/foo");
         responseCacheControl = ResponseCacheControl.builder()
                 .setNoCache(true)
@@ -1057,7 +926,7 @@ public class TestResponseCachingPolicy {
         response.setHeader(HttpHeaders.DATE, DateUtils.formatStandardDate(Instant.now()));
 
         // Create ResponseCachingPolicy instance and test the method
-        policy = new ResponseCachingPolicy(0, true, false, false, false);
+        policy = new ResponseCachingPolicy(true, false, false, false);
         request = new BasicHttpRequest("GET", "/foo");
         responseCacheControl = ResponseCacheControl.builder()
                 .setNoStore(true)
@@ -1072,6 +941,6 @@ public class TestResponseCachingPolicy {
                 .setMaxAge(3600) // set this to a value that ensures the response is still fresh
                 .build();
 
-        Assertions.assertTrue(policy.isResponseCacheable(responseCacheControl, "GET", response));
+        Assertions.assertTrue(policy.isResponseCacheable(responseCacheControl, request, response));
     }
 }
