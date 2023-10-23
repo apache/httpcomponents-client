@@ -212,6 +212,8 @@ public class HttpCacheEntryFactory {
         final String s = CacheKeyGenerator.getRequestUri(host, request);
         final URI uri = CacheKeyGenerator.normalize(s);
         final HeaderGroup requestHeaders = filterHopByHopHeaders(request);
+        // Strip AUTHORIZATION from request headers
+        requestHeaders.removeHeaders(HttpHeaders.AUTHORIZATION);
         final HeaderGroup responseHeaders = filterHopByHopHeaders(response);
         ensureDate(responseHeaders, responseInstant);
         return new HttpCacheEntry(
@@ -256,6 +258,8 @@ public class HttpCacheEntryFactory {
         final String s = CacheKeyGenerator.getRequestUri(host, request);
         final URI uri = CacheKeyGenerator.normalize(s);
         final HeaderGroup requestHeaders = filterHopByHopHeaders(request);
+        // Strip AUTHORIZATION from request headers
+        requestHeaders.removeHeaders(HttpHeaders.AUTHORIZATION);
         final HeaderGroup mergedHeaders = mergeHeaders(entry, response);
         return new HttpCacheEntry(
                 requestInstant,

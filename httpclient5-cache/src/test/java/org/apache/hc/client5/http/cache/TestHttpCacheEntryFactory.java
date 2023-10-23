@@ -273,7 +273,8 @@ public class TestHttpCacheEntryFactory {
                 new BasicHeader("Keep-Alive", "timeout, max=20"),
                 new BasicHeader("X-custom", "my stuff"),
                 new BasicHeader(HttpHeaders.ACCEPT, "stuff"),
-                new BasicHeader(HttpHeaders.ACCEPT_LANGUAGE, "en, de")
+                new BasicHeader(HttpHeaders.ACCEPT_LANGUAGE, "en, de"),
+                new BasicHeader(HttpHeaders.AUTHORIZATION, "Super secret")
         );
         response.setHeaders(
                 new BasicHeader(HttpHeaders.TRANSFER_ENCODING, "identity"),
