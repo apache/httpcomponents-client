@@ -36,6 +36,9 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.Instant;
+import java.util.Map;
+
 public class TestExponentialBackoffManager {
 
     private ExponentialBackoffManager impl;
@@ -62,14 +65,18 @@ public class TestExponentialBackoffManager {
     }
 
     @Test
-    public void exponentialGrowthRateIsConfigurable() throws InterruptedException {
+    public void exponentialGrowthRateIsConfigurable() {
         final int customCoolDownMs = 500;
         connPerRoute.setMaxPerRoute(route, 4);
         impl.setBackoffFactor(0.5);
         impl.setCoolDown(TimeValue.ofMilliseconds(customCoolDownMs));
         impl.backOff(route);
         assertEquals(2, connPerRoute.getMaxPerRoute(route));
-        Thread.sleep(customCoolDownMs + 100); // Sleep for a slightly longer than the custom cooldown period
+
+        // Manipulate lastRouteBackoffs to simulate that enough time has passed for the cooldown period
+        final Map<HttpRoute, Instant> lastRouteBackoffs = impl.getLastRouteBackoffs();
+        lastRouteBackoffs.put(route, Instant.now().minusMillis(customCoolDownMs + 1));
+
         impl.backOff(route);
         assertEquals(1, connPerRoute.getMaxPerRoute(route));
     }
@@ -84,41 +91,62 @@ public class TestExponentialBackoffManager {
     }
 
     @Test
-    public void backoffDoesNotAdjustDuringCoolDownPeriod() throws InterruptedException {
+    public void backoffDoesNotAdjustDuringCoolDownPeriod() {
         connPerRoute.setMaxPerRoute(route, 4);
         impl.backOff(route);
         final long max = connPerRoute.getMaxPerRoute(route);
-        Thread.sleep(1); // Sleep for 1 ms
+
+        // Manipulate lastRouteBackoffs to simulate that not enough time has passed for the cooldown period
+        final Map<HttpRoute, Instant> lastRouteBackoffs = impl.getLastRouteBackoffs();
+        lastRouteBackoffs.put(route, Instant.now().minusMillis(10));
+
+        // Perform another backoff
         impl.backOff(route);
         assertEquals(max, connPerRoute.getMaxPerRoute(route));
     }
 
     @Test
-    public void backoffStillAdjustsAfterCoolDownPeriod() throws InterruptedException {
+    public void backoffStillAdjustsAfterCoolDownPeriod() {
         connPerRoute.setMaxPerRoute(route, 8);
         impl.backOff(route);
         final long max = connPerRoute.getMaxPerRoute(route);
-        Thread.sleep(DEFAULT_COOL_DOWN_MS + 1); // Sleep for cooldown period + 1 ms
+
+        // Manipulate lastRouteBackoffs to simulate that enough time has passed for the cooldown period
+        final Map<HttpRoute, Instant> lastRouteBackoffs = impl.getLastRouteBackoffs();
+        lastRouteBackoffs.put(route, Instant.now().minusMillis(DEFAULT_COOL_DOWN_MS + 1));
+
+        // Perform another backoff
         impl.backOff(route);
+
+        // Assert that the max connections have decreased
         assertTrue(max == 1 || max > connPerRoute.getMaxPerRoute(route));
     }
 
+
     @Test
-    public void probeDoesNotAdjustDuringCooldownPeriod() throws InterruptedException {
+    public void probeDoesNotAdjustDuringCooldownPeriod() {
         connPerRoute.setMaxPerRoute(route, 4);
         impl.probe(route);
         final long max = connPerRoute.getMaxPerRoute(route);
-        Thread.sleep(1); // Sleep for 1 ms
+
+        // Manipulate lastRouteProbes to simulate that not enough time has passed for the cooldown period
+        final Map<HttpRoute, Instant> lastRouteProbes = impl.getLastRouteProbes();
+        lastRouteProbes.put(route, Instant.now().minusMillis(0));
+
         impl.probe(route);
         assertEquals(max, connPerRoute.getMaxPerRoute(route));
     }
 
     @Test
-    public void probeStillAdjustsAfterCoolDownPeriod() throws InterruptedException {
+    public void probeStillAdjustsAfterCoolDownPeriod() {
         connPerRoute.setMaxPerRoute(route, 8);
         impl.probe(route);
         final long max = connPerRoute.getMaxPerRoute(route);
-        Thread.sleep(DEFAULT_COOL_DOWN_MS + 1); // Sleep for cooldown period + 1 ms
+
+        // Manipulate lastRouteProbes to simulate that enough time has passed for the cooldown period
+        final Map<HttpRoute, Instant> lastRouteProbes = impl.getLastRouteProbes();
+        lastRouteProbes.put(route, Instant.now().minusMillis(DEFAULT_COOL_DOWN_MS + 1));
+
         impl.probe(route);
         assertTrue(max < connPerRoute.getMaxPerRoute(route));
     }
@@ -126,7 +154,6 @@ public class TestExponentialBackoffManager {
     @Test
     public void willBackoffImmediatelyEvenAfterAProbe() {
         connPerRoute.setMaxPerRoute(route, 8);
-        final long now = System.currentTimeMillis();
         impl.probe(route);
         final long max = connPerRoute.getMaxPerRoute(route);
         impl.backOff(route);
@@ -134,22 +161,23 @@ public class TestExponentialBackoffManager {
     }
 
     @Test
-    public void coolDownPeriodIsConfigurable() throws InterruptedException {
+    public void coolDownPeriodIsConfigurable() {
         final long cd = 500; // Fixed cooldown period of 500 milliseconds
         impl.setCoolDown(TimeValue.ofMilliseconds(cd));
-
-        // Sleep for a short duration before starting the test to reduce potential timing issues
-        Thread.sleep(100);
-
-        // Probe and check if the connection count remains the same during the cooldown period
+        connPerRoute.setMaxPerRoute(route, 4);
         impl.probe(route);
         final int max0 = connPerRoute.getMaxPerRoute(route);
-        Thread.sleep(cd / 2); // Sleep for half the cooldown period
+
+        // Manipulate lastRouteProbes to simulate that not enough time has passed for the cooldown period
+        final Map<HttpRoute, Instant> lastRouteProbes = impl.getLastRouteProbes();
+        lastRouteProbes.put(route, Instant.now().minusMillis(cd / 2));
+
         impl.probe(route);
         assertEquals(max0, connPerRoute.getMaxPerRoute(route));
 
-        // Probe and check if the connection count increases after the cooldown period
-        Thread.sleep(cd / 2 + 1); // Sleep for the remaining half of the cooldown period + 1 ms
+        // Manipulate lastRouteProbes again to simulate that enough time has passed for the cooldown period
+        lastRouteProbes.put(route, Instant.now().minusMillis(cd + 1));
+
         impl.probe(route);
         assertTrue(max0 < connPerRoute.getMaxPerRoute(route));
     }
