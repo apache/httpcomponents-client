@@ -30,10 +30,9 @@ package org.apache.hc.client5.http.protocol;
 
 
 import java.io.IOException;
-import java.time.Duration;
 import java.time.Instant;
-import java.time.format.DateTimeFormatter;
 
+import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.EntityDetails;
@@ -69,13 +68,6 @@ import org.apache.hc.core5.util.Args;
  */
 @Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class RequestIfRange implements HttpRequestInterceptor {
-
-    /**
-     * This {@link DateTimeFormatter} is used to format and parse date-time objects in a specific format commonly
-     * used in HTTP protocol messages. The format includes the day of the week, day of the month, month, year, and time
-     * of day, all represented in GMT time. An example of a date-time string in this format is "Tue, 15 Nov 1994 08:12:31 GMT".
-     */
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.RFC_1123_DATE_TIME;
 
     /**
      * Singleton instance.
@@ -121,36 +113,21 @@ public class RequestIfRange implements HttpRequestInterceptor {
             throw new ProtocolException("'If-Range' header must not contain a weak entity tag.");
         }
 
-        final Header dateHeader = request.getFirstHeader(HttpHeaders.DATE);
+        final Instant dateInstant = DateUtils.parseStandardDate(request, HttpHeaders.DATE);
 
-        if (dateHeader == null) {
+        if (dateInstant == null) {
             return;
         }
 
+        final Instant lastModifiedInstant = DateUtils.parseStandardDate(request, HttpHeaders.LAST_MODIFIED);
 
-        final Instant lastModifiedInstant;
-        final Instant dateInstant;
-        final Header lastModifiedHeader = request.getFirstHeader(HttpHeaders.LAST_MODIFIED);
-
-        if (lastModifiedHeader != null) {
-            final String lastModifiedValue = lastModifiedHeader.getValue();
-            lastModifiedInstant = FORMATTER.parse(lastModifiedValue, Instant::from);
-        }
-        else {
+        if (lastModifiedInstant == null) {
             // If there's no Last-Modified header, we exit early because we can't deduce that it is strong.
             return;
         }
 
-        final String dateValue = dateHeader.getValue();
-        dateInstant = FORMATTER.parse(dateValue, Instant::from);
-
-        long difference = 0;
-        if (lastModifiedInstant != null && dateInstant != null) {
-            difference = Duration.between(lastModifiedInstant, dateInstant).getSeconds();
-        }
-
         // If the difference between the Last-Modified and Date headers is less than 1 second, throw an exception
-        if (difference < 1 && eTag!= null) {
+        if (lastModifiedInstant.plusSeconds(1).isAfter(dateInstant) && eTag != null) {
             throw new ProtocolException("'If-Range' header with a Date must be a strong validator.");
         }
     }
