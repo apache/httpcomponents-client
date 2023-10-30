@@ -211,7 +211,7 @@ public class TestHttpCacheEntryFactory {
     @Test
     public void testUpdateCacheEntryReturnsDifferentEntryInstance() {
         entry = HttpTestUtils.makeCacheEntry();
-        final HttpCacheEntry newEntry = impl.createUpdated(requestDate, responseDate, response, entry);
+        final HttpCacheEntry newEntry = impl.createUpdated(requestDate, responseDate, host, request, response, entry);
         Assertions.assertNotSame(newEntry, entry);
     }
 
@@ -339,17 +339,23 @@ public class TestHttpCacheEntryFactory {
                 new BasicHeader("Cache-Control", "public")
         );
 
-        final HttpCacheEntry updatedEntry = impl.createUpdated(tenSecondsAgo, oneSecondAgo, response, entry);
+        request.setHeaders(
+                new BasicHeader("X-custom", "my other stuff"),
+                new BasicHeader(HttpHeaders.ACCEPT, "stuff, other-stuff"),
+                new BasicHeader(HttpHeaders.ACCEPT_LANGUAGE, "en, de")
+        );
+
+        final HttpCacheEntry updatedEntry = impl.createUpdated(tenSecondsAgo, oneSecondAgo, host, request, response, entry);
 
         MatcherAssert.assertThat(updatedEntry, HttpCacheEntryMatcher.equivalent(
                 HttpTestUtils.makeCacheEntry(
                         tenSecondsAgo,
                         oneSecondAgo,
                         Method.GET,
-                        "/stuff",
+                        "http://foo.example.com:80/stuff",
                         new Header[]{
-                                new BasicHeader("X-custom", "my stuff"),
-                                new BasicHeader(HttpHeaders.ACCEPT, "stuff"),
+                                new BasicHeader("X-custom", "my other stuff"),
+                                new BasicHeader(HttpHeaders.ACCEPT, "stuff, other-stuff"),
                                 new BasicHeader(HttpHeaders.ACCEPT_LANGUAGE, "en, de")
                         },
                         HttpStatus.SC_NOT_MODIFIED,
@@ -374,7 +380,7 @@ public class TestHttpCacheEntryFactory {
         response.setHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo));
         response.setHeader("ETag", "\"old-etag\"");
 
-        final HttpCacheEntry newEntry = impl.createUpdated(Instant.now(), Instant.now(), response, entry);
+        final HttpCacheEntry newEntry = impl.createUpdated(Instant.now(), Instant.now(), host, request, response, entry);
 
         Assertions.assertSame(newEntry, entry);
     }
@@ -382,7 +388,7 @@ public class TestHttpCacheEntryFactory {
     @Test
     public void testUpdateHasLatestRequestAndResponseDates() {
         entry = HttpTestUtils.makeCacheEntry(tenSecondsAgo, eightSecondsAgo);
-        final HttpCacheEntry updated = impl.createUpdated(twoSecondsAgo, oneSecondAgo, response, entry);
+        final HttpCacheEntry updated = impl.createUpdated(twoSecondsAgo, oneSecondAgo, host, request, response, entry);
 
         Assertions.assertEquals(twoSecondsAgo, updated.getRequestInstant());
         Assertions.assertEquals(oneSecondAgo, updated.getResponseInstant());
@@ -393,7 +399,7 @@ public class TestHttpCacheEntryFactory {
         entry = HttpTestUtils.makeCacheEntry();
         response = new BasicHttpResponse(HttpStatus.SC_OK, "OK");
         Assertions.assertThrows(IllegalArgumentException.class, () ->
-                impl.createUpdated(Instant.now(), Instant.now(), response, entry));
+                impl.createUpdated(Instant.now(), Instant.now(), host, request, response, entry));
     }
 
 }
