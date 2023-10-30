@@ -232,12 +232,16 @@ public class HttpCacheEntryFactory {
      *
      * @param requestInstant   Date/time when the request was made (Used for age calculations)
      * @param responseInstant  Date/time that the response came back (Used for age calculations)
+     * @param host             Target host
+     * @param request          Original client request (a deep copy of this object is made)
      * @param response         Origin response (a deep copy of this object is made)
      * @param entry            Existing cache entry.
      */
     public HttpCacheEntry createUpdated(
             final Instant requestInstant,
             final Instant responseInstant,
+            final HttpHost host,
+            final HttpRequest request,
             final HttpResponse response,
             final HttpCacheEntry entry) {
         Args.notNull(requestInstant, "Request instant");
@@ -249,13 +253,16 @@ public class HttpCacheEntryFactory {
         if (HttpCacheEntry.isNewer(entry, response)) {
             return entry;
         }
+        final String s = CacheKeyGenerator.getRequestUri(host, request);
+        final URI uri = CacheKeyGenerator.normalize(s);
+        final HeaderGroup requestHeaders = filterHopByHopHeaders(request);
         final HeaderGroup mergedHeaders = mergeHeaders(entry, response);
         return new HttpCacheEntry(
                 requestInstant,
                 responseInstant,
-                entry.getRequestMethod(),
-                entry.getRequestURI(),
-                headers(entry.requestHeaderIterator()),
+                request.getMethod(),
+                uri.toASCIIString(),
+                requestHeaders,
                 entry.getStatus(),
                 mergedHeaders,
                 entry.getResource(),

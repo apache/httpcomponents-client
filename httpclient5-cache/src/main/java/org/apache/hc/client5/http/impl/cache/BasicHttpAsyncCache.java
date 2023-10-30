@@ -435,6 +435,8 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
         final HttpCacheEntry updatedEntry = cacheEntryFactory.createUpdated(
                 requestSent,
                 responseReceived,
+                host,
+                request,
                 originResponse,
                 stale.entry);
         final String variantKey = cacheKeyGenerator.generateVariantKey(request, updatedEntry);
@@ -456,6 +458,8 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
         final HttpCacheEntry updatedEntry = cacheEntryFactory.createUpdated(
                 requestSent,
                 responseReceived,
+                host,
+                request,
                 originResponse,
                 negotiated.entry);
 
