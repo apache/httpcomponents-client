@@ -266,6 +266,8 @@ class BasicHttpCache implements HttpCache {
         final HttpCacheEntry updatedEntry = cacheEntryFactory.createUpdated(
                 requestSent,
                 responseReceived,
+                host,
+                request,
                 originResponse,
                 stale.entry);
         final String variantKey = cacheKeyGenerator.generateVariantKey(request, updatedEntry);
@@ -286,8 +288,10 @@ class BasicHttpCache implements HttpCache {
         final HttpCacheEntry updatedEntry = cacheEntryFactory.createUpdated(
                 requestSent,
                 responseReceived,
+                host,
+                request,
                 originResponse,
-                negotiated.entry);
+               negotiated.entry);
         storeInternal(negotiated.getEntryKey(), updatedEntry);
 
         final String rootKey = cacheKeyGenerator.generateKey(host, request);
