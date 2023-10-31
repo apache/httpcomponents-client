@@ -78,6 +78,7 @@
     <api.comparison.version>5.2</api.comparison.version>
     <hc.animal-sniffer.signature.ignores>javax.net.ssl.SSLEngine,javax.net.ssl.SSLParameters,java.nio.ByteBuffer,java.nio.CharBuffer</hc.animal-sniffer.signature.ignores>
     <japicmp.version>0.15.4</japicmp.version>
+    <zstd.version>1.5.5-6</zstd.version>
   </properties>
 
   <dependencyManagement>
@@ -192,6 +193,11 @@
         <artifactId>hamcrest</artifactId>
         <version>${hamcrest.version}</version>
         <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.github.luben</groupId>
+        <artifactId>zstd-jni</artifactId>
+        <version>${zstd.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

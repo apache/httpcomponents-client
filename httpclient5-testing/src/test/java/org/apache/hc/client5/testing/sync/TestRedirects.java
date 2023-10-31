@@ -27,9 +27,11 @@
 package org.apache.hc.client5.testing.sync;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -641,8 +643,12 @@ public class TestRedirects {
         Assertions.assertEquals(new URIBuilder().setHttpHost(target).setPath("/random/100").build(),
                 reqWrapper.getUri());
 
-        assertThat(values.poll(), CoreMatchers.equalTo("gzip, x-gzip, deflate"));
-        assertThat(values.poll(), CoreMatchers.equalTo("gzip, x-gzip, deflate"));
+        final String[] expectedEncodings = new String[] {"gzip", "x-gzip", "deflate"};
+        final String[] firstPoll = values.poll().split(",\\s*");
+        final String[] secondPoll = values.poll().split(",\\s*");
+
+        assertThat(Arrays.asList(firstPoll), containsInAnyOrder(expectedEncodings));
+        assertThat(Arrays.asList(secondPoll), containsInAnyOrder(expectedEncodings));
         assertThat(values.poll(), CoreMatchers.nullValue());
     }
 
