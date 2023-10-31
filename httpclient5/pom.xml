@@ -97,6 +97,11 @@
       <artifactId>mockito-core</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>com.github.luben</groupId>
+      <artifactId>zstd-jni</artifactId>
+      <optional>true</optional>
+    </dependency>
   </dependencies>
 
   <build>

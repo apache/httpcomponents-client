@@ -28,8 +28,11 @@
 package org.apache.hc.client5.http.impl.classic;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecChainHandler;
@@ -40,6 +43,8 @@ import org.apache.hc.client5.http.entity.DecompressingEntity;
 import org.apache.hc.client5.http.entity.DeflateInputStreamFactory;
 import org.apache.hc.client5.http.entity.GZIPInputStreamFactory;
 import org.apache.hc.client5.http.entity.InputStreamFactory;
+import org.apache.hc.client5.http.entity.ZstdDecompressingEntity;
+import org.apache.hc.client5.http.entity.ZstdInputStreamFactory;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Internal;
@@ -87,30 +92,20 @@ public final class ContentCompressionExec implements ExecChainHandler {
             final Lookup<InputStreamFactory> decoderRegistry,
             final boolean ignoreUnknown) {
 
-        final boolean brotliSupported = BrotliDecompressingEntity.isAvailable();
-        final String[] encoding;
-        if (brotliSupported) {
-            encoding = new String[] {"gzip", "x-gzip", "deflate", "br"};
-        } else {
-            encoding = new String[] {"gzip", "x-gzip", "deflate"};
-        }
+        final Map<String, InputStreamFactory> compressors = prepareCompressorMap();
+        final List<String> supportedEncodings = new ArrayList<>(compressors.keySet());
+
         this.acceptEncoding = MessageSupport.format(HttpHeaders.ACCEPT_ENCODING,
-                                                    acceptEncoding != null ? acceptEncoding.toArray(
-                                                        EMPTY_STRING_ARRAY) : encoding);
+                acceptEncoding != null ? acceptEncoding.toArray(
+                        EMPTY_STRING_ARRAY) : supportedEncodings.toArray(EMPTY_STRING_ARRAY));
 
         if (decoderRegistry != null) {
             this.decoderRegistry = decoderRegistry;
         } else {
-            final RegistryBuilder<InputStreamFactory> builder = RegistryBuilder.<InputStreamFactory>create()
-                .register("gzip", GZIPInputStreamFactory.getInstance())
-                .register("x-gzip", GZIPInputStreamFactory.getInstance())
-                .register("deflate", DeflateInputStreamFactory.getInstance());
-            if (brotliSupported) {
-                builder.register("br", BrotliInputStreamFactory.getInstance());
-            }
+            final RegistryBuilder<InputStreamFactory> builder = RegistryBuilder.create();
+            compressors.forEach(builder::register);
             this.decoderRegistry = builder.build();
         }
-
 
         this.ignoreUnknown = ignoreUnknown;
     }
@@ -176,6 +171,40 @@ public final class ContentCompressionExec implements ExecChainHandler {
             }
         }
         return response;
+    }
+
+    /**
+     * <p>
+     * Prepares a mapping of content encoding types to their corresponding
+     * {@link InputStreamFactory} instances.
+     * </p>
+     *
+     * <p>
+     * The method populates the map with factory instances for handling
+     * "gzip", "x-gzip", and "deflate" content encodings. Additionally, it
+     * checks for the availability of Brotli and Zstd decompressors and adds
+     * them to the map if available.
+     * </p>
+     *
+     * @return A {@link Map} with content encoding types as keys and their
+     * corresponding {@link InputStreamFactory} instances as values.
+     */
+    private static Map<String, InputStreamFactory> prepareCompressorMap() {
+        final Map<String, InputStreamFactory> map = new HashMap<>();
+
+        map.put("gzip", GZIPInputStreamFactory.getInstance());
+        map.put("x-gzip", GZIPInputStreamFactory.getInstance());
+        map.put("deflate", DeflateInputStreamFactory.getInstance());
+
+        if (BrotliDecompressingEntity.isAvailable()) {
+            map.put("br", BrotliInputStreamFactory.getInstance());
+        }
+
+        if (ZstdDecompressingEntity.isAvailable()) {
+            map.put("zstd", ZstdInputStreamFactory.getInstance());
+        }
+
+        return map;
     }
 
 }
