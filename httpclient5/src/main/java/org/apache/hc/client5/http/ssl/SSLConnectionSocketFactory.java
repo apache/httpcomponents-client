@@ -32,6 +32,7 @@ import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.net.Socket;
+import java.net.SocketAddress;
 import java.security.AccessController;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
@@ -236,22 +237,7 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
             sock.bind(localAddress);
         }
         try {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Connecting socket to {} with timeout {}", remoteAddress, connectTimeout);
-            }
-            // Run this under a doPrivileged to support lib users that run under a SecurityManager this allows granting connect permissions
-            // only to this library
-            try {
-                AccessController.doPrivileged((PrivilegedExceptionAction<Object>) () -> {
-                    sock.connect(remoteAddress, Timeout.defaultsToDisabled(connectTimeout).toMillisecondsIntBound());
-                    return null;
-                });
-            } catch (final PrivilegedActionException e) {
-                Asserts.check(e.getCause() instanceof  IOException,
-                        "method contract violation only checked exceptions are wrapped: " + e.getCause());
-                // only checked exceptions are wrapped - error and RTExceptions are rethrown by doPrivileged
-                throw (IOException) e.getCause();
-            }
+            connectSocket(sock, remoteAddress, connectTimeout, context);
         } catch (final IOException ex) {
             Closer.closeQuietly(sock);
             throw ex;
@@ -263,6 +249,44 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
             return sock;
         }
         return createLayeredSocket(sock, host.getHostName(), remoteAddress.getPort(), attachment, context);
+    }
+
+    /**
+     * Connects the socket to the target host with the given resolved remote address using
+     * {@link Socket#connect(SocketAddress, int)}. This method may be overridden to customize
+     * how precisely {@link Socket#connect(SocketAddress, int)} is handled without impacting
+     * other connection establishment code within {@link #executeHandshake(SSLSocket, String, Object, HttpContext)},
+     * for example.
+     *
+     * @param sock the socket to connect.
+     * @param remoteAddress the resolved remote address to connect to.
+     * @param connectTimeout connect timeout.
+     * @param context the actual HTTP context.
+     * @throws IOException if an I/O error occurs
+     */
+    protected void connectSocket(
+            final Socket sock,
+            final InetSocketAddress remoteAddress,
+            final Timeout connectTimeout,
+            final HttpContext context) throws IOException {
+        Args.notNull(sock, "Socket");
+        Args.notNull(remoteAddress, "Remote address");
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Connecting socket to {} with timeout {}", remoteAddress, connectTimeout);
+        }
+        // Run this under a doPrivileged to support lib users that run under a SecurityManager this allows granting connect permissions
+        // only to this library
+        try {
+            AccessController.doPrivileged((PrivilegedExceptionAction<Object>) () -> {
+                sock.connect(remoteAddress, Timeout.defaultsToDisabled(connectTimeout).toMillisecondsIntBound());
+                return null;
+            });
+        } catch (final PrivilegedActionException e) {
+            Asserts.check(e.getCause() instanceof IOException,
+                    "method contract violation only checked exceptions are wrapped: " + e.getCause());
+            // only checked exceptions are wrapped - error and RTExceptions are rethrown by doPrivileged
+            throw (IOException) e.getCause();
+        }
     }
 
     @Override
