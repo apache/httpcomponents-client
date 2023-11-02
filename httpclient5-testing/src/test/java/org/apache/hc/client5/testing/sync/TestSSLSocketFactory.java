@@ -35,6 +35,7 @@ import java.net.Socket;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
@@ -57,6 +58,7 @@ import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.ssl.SSLContexts;
 import org.apache.hc.core5.ssl.TrustStrategy;
 import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -119,6 +121,44 @@ public class TestSSLSocketFactory {
 
                 Assertions.assertNotNull(sslsession);
                 Assertions.assertTrue(hostVerifier.isFired());
+            }
+        }
+    }
+
+    @Test
+    public void testBasicSslConnectOverride() throws Exception {
+        this.server = ServerBootstrap.bootstrap()
+                .setSslContext(SSLTestContexts.createServerSSLContext())
+                .create();
+        this.server.start();
+
+        final HttpContext context = new BasicHttpContext();
+        final AtomicBoolean connectCalled = new AtomicBoolean();
+        final SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(
+                SSLTestContexts.createClientSSLContext()) {
+            @Override
+            protected void connectSocket(
+                    final Socket sock,
+                    final InetSocketAddress remoteAddress,
+                    final Timeout connectTimeout,
+                    final HttpContext context) throws IOException {
+                connectCalled.set(true);
+                super.connectSocket(sock, remoteAddress, connectTimeout, context);
+            }
+        };
+        try (final Socket socket = socketFactory.createSocket(context)) {
+            final InetSocketAddress remoteAddress = new InetSocketAddress("localhost", this.server.getLocalPort());
+            final HttpHost target = new HttpHost("https", "localhost", this.server.getLocalPort());
+            try (final SSLSocket sslSocket = (SSLSocket) socketFactory.connectSocket(
+                    TimeValue.ZERO_MILLISECONDS,
+                    socket,
+                    target,
+                    remoteAddress,
+                    null,
+                    context)) {
+                final SSLSession sslsession = sslSocket.getSession();
+                Assertions.assertNotNull(sslsession);
+                Assertions.assertTrue(connectCalled.get());
             }
         }
     }
