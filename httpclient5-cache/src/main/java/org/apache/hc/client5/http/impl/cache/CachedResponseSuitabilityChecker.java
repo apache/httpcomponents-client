@@ -26,8 +26,16 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
+import java.util.Set;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.utils.DateUtils;
@@ -51,7 +59,6 @@ class CachedResponseSuitabilityChecker {
     private static final Logger LOG = LoggerFactory.getLogger(CachedResponseSuitabilityChecker.class);
 
     private final boolean sharedCache;
-    private final boolean useHeuristicCaching;
     private final CacheValidityPolicy validityStrategy;
 
     CachedResponseSuitabilityChecker(final CacheValidityPolicy validityStrategy,
@@ -59,140 +66,192 @@ class CachedResponseSuitabilityChecker {
         super();
         this.validityStrategy = validityStrategy;
         this.sharedCache = config.isSharedCache();
-        this.useHeuristicCaching = config.isHeuristicCachingEnabled();
     }
 
     CachedResponseSuitabilityChecker(final CacheConfig config) {
         this(new CacheValidityPolicy(config), config);
     }
 
-    private boolean isFreshEnough(final RequestCacheControl requestCacheControl,
-                                  final ResponseCacheControl responseCacheControl, final HttpCacheEntry entry,
-                                  final Instant now) {
-        if (validityStrategy.isResponseFresh(responseCacheControl, entry, now)) {
-            return true;
-        }
-        if (useHeuristicCaching &&
-                validityStrategy.isResponseHeuristicallyFresh(entry, now)) {
-            return true;
-        }
-        if (originInsistsOnFreshness(responseCacheControl)) {
-            return false;
-        }
-        if (requestCacheControl.getMaxStale() == -1) {
-            return false;
-        }
-        return (requestCacheControl.getMaxStale() > validityStrategy.getStaleness(responseCacheControl, entry, now).toSeconds());
-    }
-
-    private boolean originInsistsOnFreshness(final ResponseCacheControl responseCacheControl) {
-        if (responseCacheControl.isMustRevalidate()) {
-            return true;
-        }
-        if (!sharedCache) {
-            return false;
-        }
-        return responseCacheControl.isProxyRevalidate() || responseCacheControl.getSharedMaxAge() >= 0;
-    }
-
     /**
-     * Determine if I can utilize a {@link HttpCacheEntry} to respond to the given
-     * {@link HttpRequest}
+     * Determine if I can utilize the given {@link HttpCacheEntry} to respond to the given
+     * {@link HttpRequest}.
+     *
      * @since 5.3
      */
-    public boolean canCachedResponseBeUsed(final RequestCacheControl requestCacheControl,
-                                           final ResponseCacheControl responseCacheControl, final HttpRequest request,
-                                           final HttpCacheEntry entry, final Instant now) {
-
-        if (isGetRequestWithHeadCacheEntry(request, entry)) {
-            LOG.debug("Cache entry created by HEAD request cannot be used to serve GET request");
-            return false;
+    public CacheSuitability assessSuitability(final RequestCacheControl requestCacheControl,
+                                              final ResponseCacheControl responseCacheControl,
+                                              final HttpRequest request,
+                                              final HttpCacheEntry entry,
+                                              final Instant now) {
+        if (!requestMethodMatch(request, entry)) {
+            LOG.debug("Request method and the cache entry method do not match");
+            return CacheSuitability.MISMATCH;
         }
 
-        if (!isFreshEnough(requestCacheControl, responseCacheControl, entry, now)) {
-            LOG.debug("Cache entry is not fresh enough");
-            return false;
+        if (!requestUriMatch(request, entry)) {
+            LOG.debug("Target request URI and the cache entry request URI do not match");
+            return CacheSuitability.MISMATCH;
+        }
+
+        if (!requestHeadersMatch(request, entry)) {
+            LOG.debug("Request headers nominated by the cached response do not match those of the request associated with the cache entry");
+            return CacheSuitability.MISMATCH;
+        }
+
+        if (!requestHeadersMatch(request, entry)) {
+            LOG.debug("Request headers nominated by the cached response do not match those of the request associated with the cache entry");
+            return CacheSuitability.MISMATCH;
+        }
+
+        if (requestCacheControl.isNoCache()) {
+            LOG.debug("Request contained no-cache directive; the cache entry must be re-validated");
+            return CacheSuitability.REVALIDATION_REQUIRED;
+        }
+
+        if (isResponseNoCache(responseCacheControl, entry)) {
+            LOG.debug("Response contained no-cache directive; the cache entry must be re-validated");
+            return CacheSuitability.REVALIDATION_REQUIRED;
         }
 
         if (hasUnsupportedConditionalHeaders(request)) {
-            LOG.debug("Request contains unsupported conditional headers");
-            return false;
+            LOG.debug("Response from cache is not suitable due to the request containing unsupported conditional headers");
+            return CacheSuitability.REVALIDATION_REQUIRED;
         }
 
         if (!isConditional(request) && entry.getStatus() == HttpStatus.SC_NOT_MODIFIED) {
             LOG.debug("Unconditional request and non-modified cached response");
-            return false;
+            return CacheSuitability.REVALIDATION_REQUIRED;
         }
 
-        if (isConditional(request) && !allConditionalsMatch(request, entry, now)) {
-            LOG.debug("Conditional request and with mismatched conditions");
-            return false;
+        if (!allConditionalsMatch(request, entry, now)) {
+            LOG.debug("Response from cache is not suitable due to the conditional request and with mismatched conditions");
+            return CacheSuitability.REVALIDATION_REQUIRED;
         }
 
-        if (hasUnsupportedCacheEntryForGet(request, entry)) {
-            LOG.debug("HEAD response caching enabled but the cache entry does not contain a " +
-                    "request method, entity or a 204 response");
-            return false;
-        }
-        if (requestCacheControl.isNoCache()) {
-            LOG.debug("Response contained NO CACHE directive, cache was not suitable");
-            return false;
+        final TimeValue currentAge = validityStrategy.getCurrentAge(entry, now);
+        final TimeValue freshnessLifetime = validityStrategy.getFreshnessLifetime(responseCacheControl, entry);
+
+        final boolean fresh = currentAge.compareTo(freshnessLifetime) < 0;
+
+        if (!fresh && responseCacheControl.isMustRevalidate()) {
+            LOG.debug("Response from cache is not suitable due to the response must-revalidate requirement");
+            return CacheSuitability.REVALIDATION_REQUIRED;
         }
 
-        if (requestCacheControl.isNoStore()) {
-            LOG.debug("Response contained NO STORE directive, cache was not suitable");
-            return false;
+        if (!fresh && sharedCache && responseCacheControl.isProxyRevalidate()) {
+            LOG.debug("Response from cache is not suitable due to the response proxy-revalidate requirement");
+            return CacheSuitability.REVALIDATION_REQUIRED;
         }
 
-        if (requestCacheControl.getMaxAge() >= 0) {
-            if (validityStrategy.getCurrentAge(entry, now).toSeconds() > requestCacheControl.getMaxAge()) {
-                LOG.debug("Response from cache was not suitable due to max age");
-                return false;
+        if (fresh && requestCacheControl.getMaxAge() >= 0) {
+            if (currentAge.toSeconds() > requestCacheControl.getMaxAge() && requestCacheControl.getMaxStale() == -1) {
+                LOG.debug("Response from cache is not suitable due to the request max-age requirement");
+                return CacheSuitability.REVALIDATION_REQUIRED;
+            }
+        }
+
+        if (fresh && requestCacheControl.getMinFresh() >= 0) {
+            if (requestCacheControl.getMinFresh() == 0 ||
+                    freshnessLifetime.toSeconds() - currentAge.toSeconds() < requestCacheControl.getMinFresh()) {
+                LOG.debug("Response from cache is not suitable due to the request min-fresh requirement");
+                return CacheSuitability.REVALIDATION_REQUIRED;
             }
         }
 
         if (requestCacheControl.getMaxStale() >= 0) {
-            if (validityStrategy.getFreshnessLifetime(responseCacheControl, entry).toSeconds() > requestCacheControl.getMaxStale()) {
-                LOG.debug("Response from cache was not suitable due to max stale freshness");
-                return false;
+            final long stale = currentAge.compareTo(freshnessLifetime) > 0 ? currentAge.toSeconds() - freshnessLifetime.toSeconds() : 0;
+            if (stale >= requestCacheControl.getMaxStale()) {
+                LOG.debug("Response from cache is not suitable due to the request max-stale requirement");
+                return CacheSuitability.REVALIDATION_REQUIRED;
+            } else {
+                LOG.debug("The cache entry is fresh enough");
+                return CacheSuitability.FRESH_ENOUGH;
             }
         }
 
-        if (requestCacheControl.getMinFresh() >= 0) {
-            if (requestCacheControl.getMinFresh() == 0) {
-                return false;
+        if (fresh) {
+            LOG.debug("The cache entry is fresh");
+            return CacheSuitability.FRESH;
+        } else {
+            LOG.debug("The cache entry is stale");
+            return CacheSuitability.STALE;
+        }
+    }
+
+    boolean requestMethodMatch(final HttpRequest request, final HttpCacheEntry entry) {
+        return request.getMethod().equalsIgnoreCase(entry.getRequestMethod()) ||
+                (Method.HEAD.isSame(request.getMethod()) && Method.GET.isSame(entry.getRequestMethod()));
+    }
+
+    boolean requestUriMatch(final HttpRequest request, final HttpCacheEntry entry) {
+        try {
+            final URI requestURI = CacheKeyGenerator.normalize(request.getUri());
+            final URI cacheURI = new URI(entry.getRequestURI());
+            if (requestURI.isAbsolute()) {
+                return Objects.equals(requestURI, cacheURI);
+            } else {
+                return Objects.equals(requestURI.getPath(), cacheURI.getPath()) && Objects.equals(requestURI.getQuery(), cacheURI.getQuery());
             }
-            final TimeValue age = validityStrategy.getCurrentAge(entry, now);
-            final TimeValue freshness = validityStrategy.getFreshnessLifetime(responseCacheControl, entry);
-            if (freshness.toSeconds() - age.toSeconds() < requestCacheControl.getMinFresh()) {
-                LOG.debug("Response from cache was not suitable due to min fresh " +
-                        "freshness requirement");
-                return false;
+        } catch (final URISyntaxException ex) {
+            return false;
+        }
+    }
+
+    boolean requestHeadersMatch(final HttpRequest request, final HttpCacheEntry entry) {
+        final Iterator<Header> it = entry.headerIterator(HttpHeaders.VARY);
+        if (it.hasNext()) {
+            final Set<String> headerNames = new HashSet<>();
+            while (it.hasNext()) {
+                final Header header = it.next();
+                CacheSupport.parseTokens(header, e -> {
+                    headerNames.add(e.toLowerCase(Locale.ROOT));
+                });
+            }
+            final List<String> tokensInRequest = new ArrayList<>();
+            final List<String> tokensInCache = new ArrayList<>();
+            for (final String headerName: headerNames) {
+                if (headerName.equalsIgnoreCase("*")) {
+                    return false;
+                }
+                CacheKeyGenerator.normalizeElements(request, headerName, tokensInRequest::add);
+                CacheKeyGenerator.normalizeElements(entry.requestHeaders(), headerName, tokensInCache::add);
+                if (!Objects.equals(tokensInRequest, tokensInCache)) {
+                    return false;
+                }
             }
         }
-
-        LOG.debug("Response from cache was suitable");
         return true;
     }
 
-    private boolean isGet(final HttpRequest request) {
-        return Method.GET.isSame(request.getMethod());
-    }
-
-    private boolean isHead(final HttpRequest request) {
-        return Method.HEAD.isSame(request.getMethod());
-    }
-
-    private boolean entryIsNotA204Response(final HttpCacheEntry entry) {
-        return entry.getStatus() != HttpStatus.SC_NO_CONTENT;
-    }
-
-    private boolean cacheEntryDoesNotContainMethodAndEntity(final HttpCacheEntry entry) {
-        return entry.getRequestMethod() == null && entry.getResource() == null;
-    }
-
-    private boolean hasUnsupportedCacheEntryForGet(final HttpRequest request, final HttpCacheEntry entry) {
-        return isGet(request) && cacheEntryDoesNotContainMethodAndEntity(entry) && entryIsNotA204Response(entry);
+    /**
+     * Determines if the given {@link HttpCacheEntry} requires revalidation based on the presence of the {@code no-cache} directive
+     * in the Cache-Control header.
+     * <p>
+     * The method returns true in the following cases:
+     * - If the {@code no-cache} directive is present without any field names (unqualified).
+     * - If the {@code no-cache} directive is present with field names, and at least one of these field names is present
+     * in the headers of the {@link HttpCacheEntry}.
+     * <p>
+     * If the {@code no-cache} directive is not present in the Cache-Control header, the method returns {@code false}.
+     */
+    boolean isResponseNoCache(final ResponseCacheControl responseCacheControl, final HttpCacheEntry entry) {
+        // If no-cache directive is present and has no field names
+        if (responseCacheControl.isNoCache()) {
+            final Set<String> noCacheFields = responseCacheControl.getNoCacheFields();
+            if (noCacheFields.isEmpty()) {
+                LOG.debug("Revalidation required due to unqualified no-cache directive");
+                return true;
+            }
+            for (final String field : noCacheFields) {
+                if (entry.containsHeader(field)) {
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Revalidation required due to no-cache directive with field {}", field);
+                    }
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /**
@@ -205,22 +264,6 @@ class CachedResponseSuitabilityChecker {
     }
 
     /**
-     * Determines whether the given request is a {@link org.apache.hc.core5.http.Method#GET} request and the
-     * associated cache entry was created by a {@link org.apache.hc.core5.http.Method#HEAD} request.
-     *
-     * @param request The {@link HttpRequest} to check if it is a {@link org.apache.hc.core5.http.Method#GET} request.
-     * @param entry   The {@link HttpCacheEntry} to check if it was created by
-     *                a {@link org.apache.hc.core5.http.Method#HEAD} request.
-     * @return true if the request is a {@link org.apache.hc.core5.http.Method#GET} request and the cache entry was
-     * created by a {@link org.apache.hc.core5.http.Method#HEAD} request, otherwise {@code false}.
-     * @since 5.3
-     */
-    public boolean isGetRequestWithHeadCacheEntry(final HttpRequest request, final HttpCacheEntry entry) {
-        return isGet(request) && Method.HEAD.isSame(entry.getRequestMethod());
-    }
-
-
-    /**
      * Check that conditionals that are part of this request match
      * @param request The current httpRequest being made
      * @param entry the cache entry
@@ -230,6 +273,10 @@ class CachedResponseSuitabilityChecker {
     public boolean allConditionalsMatch(final HttpRequest request, final HttpCacheEntry entry, final Instant now) {
         final boolean hasEtagValidator = hasSupportedEtagValidator(request);
         final boolean hasLastModifiedValidator = hasSupportedLastModifiedValidator(request);
+
+        if (!hasEtagValidator && !hasLastModifiedValidator) {
+            return true;
+        }
 
         final boolean etagValidatorMatches = (hasEtagValidator) && etagValidatorMatches(request, entry);
         final boolean lastModifiedValidatorMatches = (hasLastModifiedValidator) && lastModifiedValidatorMatches(request, entry, now);
@@ -244,18 +291,18 @@ class CachedResponseSuitabilityChecker {
         return !hasLastModifiedValidator || lastModifiedValidatorMatches;
     }
 
-    private boolean hasUnsupportedConditionalHeaders(final HttpRequest request) {
-        return (request.getFirstHeader(HttpHeaders.IF_RANGE) != null
-                || request.getFirstHeader(HttpHeaders.IF_MATCH) != null
-                || hasValidDateField(request, HttpHeaders.IF_UNMODIFIED_SINCE));
+    boolean hasUnsupportedConditionalHeaders(final HttpRequest request) {
+        return (request.containsHeader(HttpHeaders.IF_RANGE)
+                || request.containsHeader(HttpHeaders.IF_MATCH)
+                || request.containsHeader(HttpHeaders.IF_UNMODIFIED_SINCE));
     }
 
-    private boolean hasSupportedEtagValidator(final HttpRequest request) {
+    boolean hasSupportedEtagValidator(final HttpRequest request) {
         return request.containsHeader(HttpHeaders.IF_NONE_MATCH);
     }
 
-    private boolean hasSupportedLastModifiedValidator(final HttpRequest request) {
-        return hasValidDateField(request, HttpHeaders.IF_MODIFIED_SINCE);
+    boolean hasSupportedLastModifiedValidator(final HttpRequest request) {
+        return request.containsHeader(HttpHeaders.IF_MODIFIED_SINCE);
     }
 
     /**
@@ -264,7 +311,7 @@ class CachedResponseSuitabilityChecker {
      * @param entry the cache entry
      * @return boolean does the etag validator match
      */
-    private boolean etagValidatorMatches(final HttpRequest request, final HttpCacheEntry entry) {
+    boolean etagValidatorMatches(final HttpRequest request, final HttpCacheEntry entry) {
         final Header etagHeader = entry.getFirstHeader(HttpHeaders.ETAG);
         final String etag = (etagHeader != null) ? etagHeader.getValue() : null;
         final Iterator<HeaderElement> it = MessageSupport.iterate(request, HttpHeaders.IF_NONE_MATCH);
@@ -285,7 +332,7 @@ class CachedResponseSuitabilityChecker {
      * @param now right NOW in time
      * @return  boolean Does the last modified header match
      */
-    private boolean lastModifiedValidatorMatches(final HttpRequest request, final HttpCacheEntry entry, final Instant now) {
+    boolean lastModifiedValidatorMatches(final HttpRequest request, final HttpCacheEntry entry, final Instant now) {
         final Instant lastModified = entry.getLastModified();
         if (lastModified == null) {
             return false;
@@ -302,11 +349,4 @@ class CachedResponseSuitabilityChecker {
         return true;
     }
 
-    private boolean hasValidDateField(final HttpRequest request, final String headerName) {
-        for(final Header h : request.getHeaders(headerName)) {
-            final Instant instant = DateUtils.parseStandardDate(h.getValue());
-            return instant != null;
-        }
-        return false;
-    }
 }

@@ -31,11 +31,12 @@ import java.time.Instant;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
+import org.apache.hc.core5.http.support.BasicRequestBuilder;
 import org.apache.hc.core5.util.TimeValue;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -69,32 +70,204 @@ public class TestCachedResponseSuitabilityChecker {
         impl = new CachedResponseSuitabilityChecker(CacheConfig.DEFAULT);
     }
 
-    private HttpCacheEntry getEntry(final Header[] headers) {
-        return HttpTestUtils.makeCacheEntry(elevenSecondsAgo, nineSecondsAgo, headers);
+    private HttpCacheEntry makeEntry(final Instant requestDate,
+                                     final Instant responseDate,
+                                     final Method method,
+                                     final String requestUri,
+                                     final Header[] requestHeaders,
+                                     final int status,
+                                     final Header[] responseHeaders) {
+        return HttpTestUtils.makeCacheEntry(requestDate, responseDate, method, requestUri, requestHeaders,
+                status, responseHeaders, HttpTestUtils.makeNullResource());
+    }
+
+    private HttpCacheEntry makeEntry(final Header... headers) {
+        return makeEntry(elevenSecondsAgo, nineSecondsAgo, Method.GET, "/foo", null, 200, headers);
+    }
+
+    private HttpCacheEntry makeEntry(final Instant requestDate,
+                                     final Instant responseDate,
+                                     final Header... headers) {
+        return makeEntry(requestDate, responseDate, Method.GET, "/foo", null, 200, headers);
+    }
+
+    private HttpCacheEntry makeEntry(final Method method, final String requestUri, final Header... headers) {
+        return makeEntry(elevenSecondsAgo, nineSecondsAgo, method, requestUri, null, 200, headers);
+    }
+
+    private HttpCacheEntry makeEntry(final Method method, final String requestUri, final Header[] requestHeaders,
+                                     final int status, final Header[] responseHeaders) {
+        return makeEntry(elevenSecondsAgo, nineSecondsAgo, method, requestUri, requestHeaders,
+                status, responseHeaders);
+    }
+
+    @Test
+    public void testRequestMethodMatch() {
+        request = new BasicHttpRequest("GET", "/foo");
+        entry = makeEntry(Method.GET, "/foo",
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)));
+        Assertions.assertTrue(impl.requestMethodMatch(request, entry));
+
+        request = new BasicHttpRequest("HEAD", "/foo");
+        Assertions.assertTrue(impl.requestMethodMatch(request, entry));
+
+        request = new BasicHttpRequest("POST", "/foo");
+        Assertions.assertFalse(impl.requestMethodMatch(request, entry));
+
+        request = new BasicHttpRequest("HEAD", "/foo");
+        entry = makeEntry(Method.HEAD, "/foo",
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)));
+        Assertions.assertTrue(impl.requestMethodMatch(request, entry));
+
+        request = new BasicHttpRequest("GET", "/foo");
+        entry = makeEntry(Method.HEAD, "/foo",
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)));
+        Assertions.assertFalse(impl.requestMethodMatch(request, entry));
+    }
+
+    @Test
+    public void testRequestUriMatch() {
+        request = new BasicHttpRequest("GET", "/foo");
+        entry = makeEntry(Method.GET, "/foo",
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)));
+        Assertions.assertTrue(impl.requestUriMatch(request, entry));
+
+        request = new BasicHttpRequest("GET", new HttpHost("some-host"), "/foo");
+        entry = makeEntry(Method.GET, "http://some-host:80/foo",
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)));
+        Assertions.assertTrue(impl.requestUriMatch(request, entry));
+
+        request = new BasicHttpRequest("GET", new HttpHost("Some-Host"), "/foo?bar");
+        entry = makeEntry(Method.GET, "http://some-host:80/foo?bar",
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)));
+        Assertions.assertTrue(impl.requestUriMatch(request, entry));
+
+        request = new BasicHttpRequest("GET", new HttpHost("some-other-host"), "/foo");
+        entry = makeEntry(Method.GET, "http://some-host:80/foo",
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)));
+        Assertions.assertFalse(impl.requestUriMatch(request, entry));
+
+        request = new BasicHttpRequest("GET", new HttpHost("some-host"), "/foo?huh");
+        entry = makeEntry(Method.GET, "http://some-host:80/foo?bar",
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)));
+        Assertions.assertFalse(impl.requestUriMatch(request, entry));
+    }
+
+    @Test
+    public void testRequestHeadersMatch() {
+        request = BasicRequestBuilder.get("/foo").build();
+        entry = makeEntry(
+                Method.GET, "/foo",
+                new Header[]{},
+                200,
+                new Header[]{
+                        new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo))
+                });
+        Assertions.assertTrue(impl.requestHeadersMatch(request, entry));
+
+        request = BasicRequestBuilder.get("/foo").build();
+        entry = makeEntry(
+                Method.GET, "/foo",
+                new Header[]{},
+                200,
+                new Header[]{
+                        new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
+                        new BasicHeader("Vary", "")
+                });
+        Assertions.assertTrue(impl.requestHeadersMatch(request, entry));
+
+        request = BasicRequestBuilder.get("/foo")
+                .addHeader("Accept-Encoding", "blah")
+                .build();
+        entry = makeEntry(
+                Method.GET, "/foo",
+                new Header[]{
+                        new BasicHeader("Accept-Encoding", "blah")
+                },
+                200,
+                new Header[]{
+                        new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
+                        new BasicHeader("Vary", "Accept-Encoding")
+                });
+        Assertions.assertTrue(impl.requestHeadersMatch(request, entry));
+
+        request = BasicRequestBuilder.get("/foo")
+                .addHeader("Accept-Encoding", "gzip, deflate, deflate ,  zip, ")
+                .build();
+        entry = makeEntry(
+                Method.GET, "/foo",
+                new Header[]{
+                        new BasicHeader("Accept-Encoding", " gzip, zip, deflate")
+                },
+                200,
+                new Header[]{
+                        new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
+                        new BasicHeader("Vary", "Accept-Encoding")
+                });
+        Assertions.assertTrue(impl.requestHeadersMatch(request, entry));
+
+        request = BasicRequestBuilder.get("/foo")
+                .addHeader("Accept-Encoding", "gzip, deflate, zip")
+                .build();
+        entry = makeEntry(
+                Method.GET, "/foo",
+                new Header[]{
+                        new BasicHeader("Accept-Encoding", " gzip, deflate")
+                },
+                200,
+                new Header[]{
+                        new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
+                        new BasicHeader("Vary", "Accept-Encoding")
+                });
+        Assertions.assertFalse(impl.requestHeadersMatch(request, entry));
+    }
+
+    @Test
+    public void testResponseNoCache() {
+        entry = makeEntry(new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)));
+        responseCacheControl = ResponseCacheControl.builder()
+                .setNoCache(false)
+                .build();
+
+        Assertions.assertFalse(impl.isResponseNoCache(responseCacheControl, entry));
+
+        responseCacheControl = ResponseCacheControl.builder()
+                .setNoCache(true)
+                .build();
+
+        Assertions.assertTrue(impl.isResponseNoCache(responseCacheControl, entry));
+
+        responseCacheControl = ResponseCacheControl.builder()
+                .setNoCache(true)
+                .setNoCacheFields("stuff", "more-stuff")
+                .build();
+
+        Assertions.assertFalse(impl.isResponseNoCache(responseCacheControl, entry));
+
+        entry = makeEntry(
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
+                new BasicHeader("stuff", "booh"));
+
+        Assertions.assertTrue(impl.isResponseNoCache(responseCacheControl, entry));
     }
 
     @Test
     public void testSuitableIfCacheEntryIsFresh() {
-        final Header[] headers = {
-                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo))
-        };
-        entry = getEntry(headers);
+        entry = makeEntry(new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)));
         responseCacheControl = ResponseCacheControl.builder()
                 .setMaxAge(3600)
                 .build();
-        Assertions.assertTrue(impl.canCachedResponseBeUsed(requestCacheControl, responseCacheControl, request, entry, now));
+        Assertions.assertEquals(CacheSuitability.FRESH, impl.assessSuitability(requestCacheControl, responseCacheControl, request, entry, now));
     }
 
     @Test
     public void testNotSuitableIfCacheEntryIsNotFresh() {
-        final Header[] headers = {
-                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo))
-        };
-        entry = getEntry(headers);
+        entry = makeEntry(
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)));
         responseCacheControl = ResponseCacheControl.builder()
                 .setMaxAge(5)
                 .build();
-        Assertions.assertFalse(impl.canCachedResponseBeUsed(requestCacheControl, responseCacheControl, request, entry, now));
+        Assertions.assertEquals(CacheSuitability.STALE, impl.assessSuitability(requestCacheControl, responseCacheControl, request, entry, now));
     }
 
     @Test
@@ -102,14 +275,12 @@ public class TestCachedResponseSuitabilityChecker {
         requestCacheControl = RequestCacheControl.builder()
                 .setNoCache(true)
                 .build();
-        final Header[] headers = {
-                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo))
-        };
-        entry = getEntry(headers);
+        entry = makeEntry(
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)));
         responseCacheControl = ResponseCacheControl.builder()
                 .setMaxAge(3600)
                 .build();
-        Assertions.assertFalse(impl.canCachedResponseBeUsed(requestCacheControl, responseCacheControl, request, entry, now));
+        Assertions.assertEquals(CacheSuitability.REVALIDATION_REQUIRED, impl.assessSuitability(requestCacheControl, responseCacheControl, request, entry, now));
     }
 
     @Test
@@ -117,14 +288,12 @@ public class TestCachedResponseSuitabilityChecker {
         requestCacheControl = RequestCacheControl.builder()
                 .setMaxAge(10)
                 .build();
-        final Header[] headers = {
-                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo))
-        };
         responseCacheControl = ResponseCacheControl.builder()
                 .setMaxAge(3600)
                 .build();
-        entry = getEntry(headers);
-        Assertions.assertFalse(impl.canCachedResponseBeUsed(requestCacheControl, responseCacheControl, request, entry, now));
+        entry = makeEntry(
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)));
+        Assertions.assertEquals(CacheSuitability.REVALIDATION_REQUIRED, impl.assessSuitability(requestCacheControl, responseCacheControl, request, entry, now));
     }
 
     @Test
@@ -132,14 +301,12 @@ public class TestCachedResponseSuitabilityChecker {
         requestCacheControl = RequestCacheControl.builder()
                 .setMaxAge(15)
                 .build();
-        final Header[] headers = {
-                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo))
-        };
-        entry = getEntry(headers);
+        entry = makeEntry(
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)));
         responseCacheControl = ResponseCacheControl.builder()
                 .setMaxAge(3600)
                 .build();
-        Assertions.assertTrue(impl.canCachedResponseBeUsed(requestCacheControl, responseCacheControl, request, entry, now));
+        Assertions.assertEquals(CacheSuitability.FRESH, impl.assessSuitability(requestCacheControl, responseCacheControl, request, entry, now));
     }
 
     @Test
@@ -147,14 +314,12 @@ public class TestCachedResponseSuitabilityChecker {
         requestCacheControl = RequestCacheControl.builder()
                 .setMinFresh(10)
                 .build();
-        final Header[] headers = {
-                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo))
-        };
-        entry = getEntry(headers);
+        entry = makeEntry(
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)));
         responseCacheControl = ResponseCacheControl.builder()
                 .setMaxAge(3600)
                 .build();
-        Assertions.assertTrue(impl.canCachedResponseBeUsed(requestCacheControl, responseCacheControl, request, entry, now));
+        Assertions.assertEquals(CacheSuitability.FRESH, impl.assessSuitability(requestCacheControl, responseCacheControl, request, entry, now));
     }
 
     @Test
@@ -162,14 +327,12 @@ public class TestCachedResponseSuitabilityChecker {
         requestCacheControl = RequestCacheControl.builder()
                 .setMinFresh(10)
                 .build();
-        final Header[] headers = {
-                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo))
-        };
-        entry = getEntry(headers);
+        entry = makeEntry(
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)));
         responseCacheControl = ResponseCacheControl.builder()
                 .setMaxAge(15)
                 .build();
-        Assertions.assertFalse(impl.canCachedResponseBeUsed(requestCacheControl, responseCacheControl, request, entry, now));
+        Assertions.assertEquals(CacheSuitability.REVALIDATION_REQUIRED, impl.assessSuitability(requestCacheControl, responseCacheControl, request, entry, now));
     }
 
     @Test
@@ -180,11 +343,11 @@ public class TestCachedResponseSuitabilityChecker {
         final Header[] headers = {
                 new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo))
         };
-        entry = getEntry(headers);
+        entry = makeEntry(headers);
         responseCacheControl = ResponseCacheControl.builder()
                 .setMaxAge(5)
                 .build();
-        Assertions.assertTrue(impl.canCachedResponseBeUsed(requestCacheControl, responseCacheControl, request, entry, now));
+        Assertions.assertEquals(CacheSuitability.FRESH_ENOUGH, impl.assessSuitability(requestCacheControl, responseCacheControl, request, entry, now));
     }
 
     @Test
@@ -192,14 +355,12 @@ public class TestCachedResponseSuitabilityChecker {
         requestCacheControl = RequestCacheControl.builder()
                 .setMaxStale(2)
                 .build();
-        final Header[] headers = {
-                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo))
-        };
-        entry = getEntry(headers);
+        entry = makeEntry(
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)));
         responseCacheControl = ResponseCacheControl.builder()
                 .setMaxAge(5)
                 .build();
-        Assertions.assertFalse(impl.canCachedResponseBeUsed(requestCacheControl, responseCacheControl, request, entry, now));
+        Assertions.assertEquals(CacheSuitability.REVALIDATION_REQUIRED, impl.assessSuitability(requestCacheControl, responseCacheControl, request, entry, now));
     }
 
     @Test
@@ -207,28 +368,22 @@ public class TestCachedResponseSuitabilityChecker {
         final Instant oneSecondAgo = now.minusSeconds(1);
         final Instant twentyOneSecondsAgo = now.minusSeconds(21);
 
-        final Header[] headers = {
+        entry = makeEntry(oneSecondAgo, oneSecondAgo,
                 new BasicHeader("Date", DateUtils.formatStandardDate(oneSecondAgo)),
-                new BasicHeader("Last-Modified", DateUtils.formatStandardDate(twentyOneSecondsAgo))
-        };
-
-        entry = HttpTestUtils.makeCacheEntry(oneSecondAgo, oneSecondAgo, headers);
+                new BasicHeader("Last-Modified", DateUtils.formatStandardDate(twentyOneSecondsAgo)));
 
         final CacheConfig config = CacheConfig.custom()
             .setHeuristicCachingEnabled(true)
             .setHeuristicCoefficient(0.1f).build();
         impl = new CachedResponseSuitabilityChecker(config);
 
-        Assertions.assertTrue(impl.canCachedResponseBeUsed(requestCacheControl, responseCacheControl, request, entry, now));
+        Assertions.assertEquals(CacheSuitability.FRESH, impl.assessSuitability(requestCacheControl, responseCacheControl, request, entry, now));
     }
 
     @Test
     public void testSuitableIfCacheEntryIsHeuristicallyFreshEnoughByDefault() {
-        final Header[] headers = {
-                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo))
-        };
-
-        entry = getEntry(headers);
+        entry = makeEntry(
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)));
 
         final CacheConfig config = CacheConfig.custom()
             .setHeuristicCachingEnabled(true)
@@ -236,71 +391,43 @@ public class TestCachedResponseSuitabilityChecker {
             .build();
         impl = new CachedResponseSuitabilityChecker(config);
 
-        Assertions.assertTrue(impl.canCachedResponseBeUsed(requestCacheControl, responseCacheControl, request, entry, now));
+        Assertions.assertEquals(CacheSuitability.FRESH, impl.assessSuitability(requestCacheControl, responseCacheControl, request, entry, now));
     }
 
     @Test
     public void testSuitableIfRequestMethodisHEAD() {
         final HttpRequest headRequest = new BasicHttpRequest("HEAD", "/foo");
-        final Header[] headers = {
-                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo))
-        };
-        entry = getEntry(headers);
+        entry = makeEntry(
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)));
         responseCacheControl = ResponseCacheControl.builder()
                 .setMaxAge(3600)
                 .build();
 
-        Assertions.assertTrue(impl.canCachedResponseBeUsed(requestCacheControl, responseCacheControl, headRequest, entry, now));
-    }
-
-    @Test
-    public void testNotSuitableIfRequestMethodIsGETAndEntryResourceIsNull() {
-        final Header[] headers = {
-                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo))
-        };
-        entry = HttpTestUtils.makeCacheEntry(elevenSecondsAgo, nineSecondsAgo,
-                Method.HEAD, "/", null,
-                HttpStatus.SC_OK, headers,
-                HttpTestUtils.makeNullResource());
-        responseCacheControl = ResponseCacheControl.builder()
-                .setMaxAge(3600)
-                .build();
-
-        Assertions.assertFalse(impl.canCachedResponseBeUsed(requestCacheControl, responseCacheControl, request, entry, now));
+        Assertions.assertEquals(CacheSuitability.FRESH, impl.assessSuitability(requestCacheControl, responseCacheControl, headRequest, entry, now));
     }
 
     @Test
     public void testSuitableForGETIfEntryDoesNotSpecifyARequestMethodButContainsEntity() {
         impl = new CachedResponseSuitabilityChecker(CacheConfig.custom().build());
-        final Header[] headers = {
-                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo))
-        };
-        entry = HttpTestUtils.makeCacheEntry(elevenSecondsAgo, nineSecondsAgo,
-                Method.GET, "/", null,
-                HttpStatus.SC_OK, headers,
-                HttpTestUtils.makeRandomResource(128));
+        entry = makeEntry(Method.GET, "/foo",
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)));
         responseCacheControl = ResponseCacheControl.builder()
                 .setMaxAge(3600)
                 .build();
 
-        Assertions.assertTrue(impl.canCachedResponseBeUsed(requestCacheControl, responseCacheControl, request, entry, now));
+        Assertions.assertEquals(CacheSuitability.FRESH, impl.assessSuitability(requestCacheControl, responseCacheControl, request, entry, now));
     }
 
     @Test
     public void testSuitableForGETIfHeadResponseCachingEnabledAndEntryDoesNotSpecifyARequestMethodButContains204Response() {
         impl = new CachedResponseSuitabilityChecker(CacheConfig.custom().build());
-        final Header[] headers = {
-                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
-        };
-        entry = HttpTestUtils.makeCacheEntry(elevenSecondsAgo, nineSecondsAgo,
-                Method.GET, "/", null,
-                HttpStatus.SC_OK, headers,
-                HttpTestUtils.makeNullResource());
+        entry = makeEntry(Method.GET, "/foo",
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)));
         responseCacheControl = ResponseCacheControl.builder()
                 .setMaxAge(3600)
                 .build();
 
-        Assertions.assertTrue(impl.canCachedResponseBeUsed(requestCacheControl, responseCacheControl, request, entry, now));
+        Assertions.assertEquals(CacheSuitability.FRESH, impl.assessSuitability(requestCacheControl, responseCacheControl, request, entry, now));
     }
 
     @Test
@@ -308,33 +435,26 @@ public class TestCachedResponseSuitabilityChecker {
         final HttpRequest headRequest = new BasicHttpRequest("HEAD", "/foo");
         impl = new CachedResponseSuitabilityChecker(CacheConfig.custom().build());
         final Header[] headers = {
-                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo))
+
         };
-        entry = HttpTestUtils.makeCacheEntry(elevenSecondsAgo, nineSecondsAgo,
-                Method.GET, "/", null,
-                HttpStatus.SC_OK, headers,
-                HttpTestUtils.makeNullResource());
+        entry = makeEntry(Method.GET, "/foo",
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)));
         responseCacheControl = ResponseCacheControl.builder()
                 .setMaxAge(3600)
                 .build();
 
-        Assertions.assertTrue(impl.canCachedResponseBeUsed(requestCacheControl, responseCacheControl, headRequest, entry, now));
+        Assertions.assertEquals(CacheSuitability.FRESH, impl.assessSuitability(requestCacheControl, responseCacheControl, headRequest, entry, now));
     }
 
     @Test
     public void testNotSuitableIfGetRequestWithHeadCacheEntry() {
         // Prepare a cache entry with HEAD method
-        final Header[] headers = {
-                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
-        };
-        entry = HttpTestUtils.makeCacheEntry(elevenSecondsAgo, nineSecondsAgo,
-                Method.HEAD, "/", null,
-                HttpStatus.SC_OK, headers,
-                HttpTestUtils.makeNullResource());
+        entry = makeEntry(Method.HEAD, "/foo",
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)));
         responseCacheControl = ResponseCacheControl.builder()
                 .setMaxAge(3600)
                 .build();
         // Validate that the cache entry is not suitable for the GET request
-        Assertions.assertFalse(impl.canCachedResponseBeUsed(requestCacheControl, responseCacheControl, request, entry, now));
+        Assertions.assertEquals(CacheSuitability.MISMATCH, impl.assessSuitability(requestCacheControl, responseCacheControl, request, entry, now));
     }
 }

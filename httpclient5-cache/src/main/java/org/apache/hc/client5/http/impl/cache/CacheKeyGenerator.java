@@ -34,7 +34,11 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
+import java.util.stream.StreamSupport;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.core5.annotation.Contract;
@@ -42,15 +46,22 @@ import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.function.Resolver;
 import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HeaderElement;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.MessageHeaders;
+import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.http.URIScheme;
+import org.apache.hc.core5.http.message.BasicHeaderElementIterator;
+import org.apache.hc.core5.http.message.BasicHeaderValueFormatter;
+import org.apache.hc.core5.http.message.BasicNameValuePair;
 import org.apache.hc.core5.net.PercentCodec;
 import org.apache.hc.core5.net.URIAuthority;
 import org.apache.hc.core5.net.URIBuilder;
 import org.apache.hc.core5.util.Args;
+import org.apache.hc.core5.util.CharArrayBuffer;
+import org.apache.hc.core5.util.TextUtils;
 
 /**
  * @since 4.1
@@ -201,6 +212,56 @@ public class CacheKeyGenerator implements Resolver<URI, String> {
         return names;
     }
 
+    @Internal
+    public static void normalizeElements(final MessageHeaders message, final String headerName, final Consumer<String> consumer) {
+        // User-Agent as a special case due to its grammar
+        if (headerName.equalsIgnoreCase(HttpHeaders.USER_AGENT)) {
+            final Header header = message.getFirstHeader(headerName);
+            if (header != null) {
+                consumer.accept(header.getValue().toLowerCase(Locale.ROOT));
+            }
+        } else {
+            normalizeElements(message.headerIterator(headerName), consumer);
+        }
+    }
+
+    @Internal
+    public static void normalizeElements(final Iterator<Header> iterator, final Consumer<String> consumer) {
+        final Iterator<HeaderElement> it = new BasicHeaderElementIterator(iterator);
+        StreamSupport.stream(Spliterators.spliteratorUnknownSize(it, Spliterator.NONNULL), false)
+                .filter(e -> !TextUtils.isBlank(e.getName()))
+                .map(e -> {
+                    if (e.getValue() == null && e.getParameterCount() == 0) {
+                        return e.getName().toLowerCase(Locale.ROOT);
+                    } else {
+                        final CharArrayBuffer buf = new CharArrayBuffer(1024);
+                        BasicHeaderValueFormatter.INSTANCE.formatNameValuePair(
+                                buf,
+                                new BasicNameValuePair(
+                                    e.getName().toLowerCase(Locale.ROOT),
+                                    !TextUtils.isBlank(e.getValue()) ? e.getValue() : null),
+                                false);
+                        if (e.getParameterCount() > 0) {
+                            for (final NameValuePair nvp : e.getParameters()) {
+                                if (!TextUtils.isBlank(nvp.getName())) {
+                                    buf.append(';');
+                                    BasicHeaderValueFormatter.INSTANCE.formatNameValuePair(
+                                            buf,
+                                            new BasicNameValuePair(
+                                                    nvp.getName().toLowerCase(Locale.ROOT),
+                                                    !TextUtils.isBlank(nvp.getValue()) ? nvp.getValue() : null),
+                                            false);
+                                }
+                            }
+                        }
+                        return buf.toString();
+                    }
+                })
+                .sorted()
+                .distinct()
+                .forEach(consumer);
+    }
+
     /**
      * Computes a "variant key" for the given request and the given variants.
      * @param request originating request
@@ -222,24 +283,13 @@ public class CacheKeyGenerator implements Resolver<URI, String> {
                         buf.append("&");
                     }
                     buf.append(PercentCodec.encode(h, StandardCharsets.UTF_8)).append("=");
-                    final List<String> tokens = new ArrayList<>();
-                    final Iterator<Header> headerIterator = request.headerIterator(h);
-                    while (headerIterator.hasNext()) {
-                        final Header header = headerIterator.next();
-                        CacheSupport.parseTokens(header, tokens::add);
-                    }
                     final AtomicBoolean firstToken = new AtomicBoolean();
-                    tokens.stream()
-                            .filter(t -> !t.isEmpty())
-                            .map(t -> t.toLowerCase(Locale.ROOT))
-                            .sorted()
-                            .distinct()
-                            .forEach(t -> {
-                                if (!firstToken.compareAndSet(false, true)) {
-                                    buf.append(",");
-                                }
-                                buf.append(PercentCodec.encode(t, StandardCharsets.UTF_8));
-                            });
+                    normalizeElements(request, h, t -> {
+                        if (!firstToken.compareAndSet(false, true)) {
+                            buf.append(",");
+                        }
+                        buf.append(PercentCodec.encode(t, StandardCharsets.UTF_8));
+                    });
                 });
         buf.append("}");
         return buf.toString();

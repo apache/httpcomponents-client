@@ -29,7 +29,6 @@ package org.apache.hc.client5.http.impl.cache;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Instant;
@@ -245,26 +244,6 @@ public class TestCacheValidityPolicy {
     }
 
     @Test
-    public void testResponseIsFreshIfFreshnessLifetimeExceedsCurrentAge() {
-        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
-        final ResponseCacheControl responseCacheControl = ResponseCacheControl.builder().build();
-        impl = new CacheValidityPolicy() {
-            @Override
-            public TimeValue getCurrentAge(final HttpCacheEntry e, final Instant d) {
-                assertSame(entry, e);
-                assertEquals(now, d);
-                return TimeValue.ofSeconds(6);
-            }
-            @Override
-            public TimeValue getFreshnessLifetime(final ResponseCacheControl cacheControl, final HttpCacheEntry e) {
-                assertSame(entry, e);
-                return TimeValue.ofSeconds(10);
-            }
-        };
-        assertTrue(impl.isResponseFresh(responseCacheControl, entry, now));
-    }
-
-    @Test
     public void testHeuristicFreshnessLifetimeCustomProperly() {
         final CacheConfig cacheConfig = CacheConfig.custom().setHeuristicDefaultLifetime(TimeValue.ofSeconds(10))
                 .setHeuristicCoefficient(0.5f).build();
@@ -272,46 +251,6 @@ public class TestCacheValidityPolicy {
         final TimeValue defaultFreshness = TimeValue.ofSeconds(10);
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
         assertEquals(defaultFreshness, impl.getHeuristicFreshnessLifetime(entry));
-    }
-
-    @Test
-    public void testResponseIsNotFreshIfFreshnessLifetimeEqualsCurrentAge() {
-        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
-        final ResponseCacheControl responseCacheControl = ResponseCacheControl.builder().build();
-        impl = new CacheValidityPolicy() {
-            @Override
-            public TimeValue getCurrentAge(final HttpCacheEntry e, final Instant d) {
-                assertEquals(now, d);
-                assertSame(entry, e);
-                return TimeValue.ofSeconds(6);
-            }
-            @Override
-            public TimeValue getFreshnessLifetime(final ResponseCacheControl cacheControl, final HttpCacheEntry e) {
-                assertSame(entry, e);
-                return TimeValue.ofSeconds(6);
-            }
-        };
-        assertFalse(impl.isResponseFresh(responseCacheControl, entry, now));
-    }
-
-    @Test
-    public void testResponseIsNotFreshIfCurrentAgeExceedsFreshnessLifetime() {
-        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
-        final ResponseCacheControl responseCacheControl = ResponseCacheControl.builder().build();
-        impl = new CacheValidityPolicy() {
-            @Override
-            public TimeValue getCurrentAge(final HttpCacheEntry e, final Instant d) {
-                assertEquals(now, d);
-                assertSame(entry, e);
-                return TimeValue.ofSeconds(10);
-            }
-            @Override
-            public TimeValue getFreshnessLifetime(final ResponseCacheControl cacheControl, final HttpCacheEntry e) {
-                assertSame(entry, e);
-                return TimeValue.ofSeconds(6);
-            }
-        };
-        assertFalse(impl.isResponseFresh(responseCacheControl, entry, now));
     }
 
     @Test
