@@ -343,6 +343,13 @@ public class HttpCacheEntry implements MessageHeaders, Serializable {
     }
 
     /**
+     * @since 5.3
+     */
+    public MessageHeaders responseHeaders() {
+        return responseHeaders;
+    }
+
+    /**
      * Gets the Date value of the "Date" header or null if the header is missing or cannot be
      * parsed.
      *
@@ -443,8 +450,22 @@ public class HttpCacheEntry implements MessageHeaders, Serializable {
     /**
      * @since 5.3
      */
+    public MessageHeaders requestHeaders() {
+        return requestHeaders;
+    }
+
+    /**
+     * @since 5.3
+     */
     public Iterator<Header> requestHeaderIterator() {
         return requestHeaders.headerIterator();
+    }
+
+    /**
+     * @since 5.3
+     */
+    public Iterator<Header> requestHeaderIterator(final String headerName) {
+        return requestHeaders.headerIterator(headerName);
     }
 
     /**

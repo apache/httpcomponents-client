@@ -229,6 +229,9 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
         }
 
         final RequestCacheControl requestCacheControl = CacheControlHeaderParser.INSTANCE.parse(request);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Request cache control: {}", requestCacheControl);
+        }
 
         if (cacheableRequestPolicy.isServableFromCache(requestCacheControl, request)) {
             operation.setDependency(responseCache.match(target, request, new FutureCallback<CacheMatch>() {
@@ -242,6 +245,9 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                         handleCacheMiss(requestCacheControl, root, target, request, entityProducer, scope, chain, asyncExecCallback);
                     } else {
                         final ResponseCacheControl responseCacheControl = CacheControlHeaderParser.INSTANCE.parse(hit.entry);
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("Response cache control: {}", responseCacheControl);
+                        }
                         handleCacheHit(requestCacheControl, responseCacheControl, hit, target, request, entityProducer, scope, chain, asyncExecCallback);
                     }
                 }
@@ -590,21 +596,11 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
         recordCacheHit(target, request);
         final Instant now = getCurrentDate();
 
-        if (requestCacheControl.isNoCache()) {
-            // Revalidate with the server due to no-cache directive in response
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Revalidating with server due to no-cache directive in response.");
-            }
-            revalidateCacheEntry(requestCacheControl, responseCacheControl, hit, target, request, entityProducer, scope, chain, asyncExecCallback);
-            return;
+        final CacheSuitability cacheSuitability = suitabilityChecker.assessSuitability(requestCacheControl, responseCacheControl, request, hit.entry, now);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Request {} {}: {}", request.getMethod(), request.getRequestUri(), cacheSuitability);
         }
-
-        if (suitabilityChecker.canCachedResponseBeUsed(requestCacheControl, responseCacheControl, request, hit.entry, now)) {
-            if (responseCachingPolicy.responseContainsNoCacheDirective(responseCacheControl, hit.entry)) {
-                // Revalidate with the server due to no-cache directive in response
-                revalidateCacheEntry(requestCacheControl, responseCacheControl, hit, target, request, entityProducer, scope, chain, asyncExecCallback);
-                return;
-            }
+        if (cacheSuitability == CacheSuitability.FRESH || cacheSuitability == CacheSuitability.FRESH_ENOUGH) {
             LOG.debug("Cache hit");
             try {
                 final SimpleHttpResponse cacheResponse = generateCachedResponse(hit.entry, request, context);
@@ -623,60 +619,71 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                     }
                 }
             }
-        } else if (!mayCallBackend(requestCacheControl)) {
-            LOG.debug("Cache entry not suitable but only-if-cached requested");
-            final SimpleHttpResponse cacheResponse = generateGatewayTimeout(context);
-            triggerResponse(cacheResponse, scope, asyncExecCallback);
-        } else if (!(hit.entry.getStatus() == HttpStatus.SC_NOT_MODIFIED && !suitabilityChecker.isConditional(request))) {
-            LOG.debug("Revalidating cache entry");
-            final boolean staleIfErrorEnabled = responseCachingPolicy.isStaleIfErrorEnabled(responseCacheControl, hit.entry);
-            if (cacheRevalidator != null
-                    && !staleResponseNotAllowed(requestCacheControl, responseCacheControl, hit.entry, now)
-                    && (validityPolicy.mayReturnStaleWhileRevalidating(responseCacheControl, hit.entry, now) || staleIfErrorEnabled)) {
-                LOG.debug("Serving stale with asynchronous revalidation");
-                try {
-                    final SimpleHttpResponse cacheResponse = generateCachedResponse(hit.entry, request, context);
-                    final String exchangeId = ExecSupport.getNextExchangeId();
-                    context.setExchangeId(exchangeId);
-                    final AsyncExecChain.Scope fork = new AsyncExecChain.Scope(
-                            exchangeId,
-                            scope.route,
-                            scope.originalRequest,
-                            new ComplexFuture<>(null),
-                            HttpClientContext.create(),
-                            scope.execRuntime.fork(),
-                            scope.scheduler,
-                            scope.execCount);
-                    cacheRevalidator.revalidateCacheEntry(
-                            hit.getEntryKey(),
-                            asyncExecCallback,
-                            asyncExecCallback1 -> revalidateCacheEntry(requestCacheControl, responseCacheControl,
-                                    hit, target, request, entityProducer, fork, chain, asyncExecCallback1));
-                    triggerResponse(cacheResponse, scope, asyncExecCallback);
-                } catch (final ResourceIOException ex) {
-                    if (staleIfErrorEnabled) {
-                        if (LOG.isDebugEnabled()) {
-                            LOG.debug("Serving stale response due to IOException and stale-if-error enabled");
-                        }
-                        try {
-                            final SimpleHttpResponse cacheResponse = generateCachedResponse(hit.entry, request, context);
-                            triggerResponse(cacheResponse, scope, asyncExecCallback);
-                        } catch (final ResourceIOException ex2) {
+        } else {
+            if (!mayCallBackend(requestCacheControl)) {
+                LOG.debug("Cache entry not is not fresh and only-if-cached requested");
+                final SimpleHttpResponse cacheResponse = generateGatewayTimeout(context);
+                triggerResponse(cacheResponse, scope, asyncExecCallback);
+            } else if (cacheSuitability == CacheSuitability.MISMATCH) {
+                LOG.debug("Cache entry does not match the request; calling backend");
+                callBackend(target, request, entityProducer, scope, chain, asyncExecCallback);
+            } else if (entityProducer != null && !entityProducer.isRepeatable()) {
+                LOG.debug("Request is not repeatable; calling backend");
+                callBackend(target, request, entityProducer, scope, chain, asyncExecCallback);
+            } else if (hit.entry.getStatus() == HttpStatus.SC_NOT_MODIFIED && !suitabilityChecker.isConditional(request)) {
+                LOG.debug("Cache entry with NOT_MODIFIED does not match the non-conditional request; calling backend");
+                callBackend(target, request, entityProducer, scope, chain, asyncExecCallback);
+            } else if (cacheSuitability == CacheSuitability.REVALIDATION_REQUIRED || cacheSuitability == CacheSuitability.STALE) {
+                LOG.debug("Revalidating cache entry");
+                final boolean staleIfErrorEnabled = responseCachingPolicy.isStaleIfErrorEnabled(responseCacheControl, hit.entry);
+                if (cacheRevalidator != null
+                        && !staleResponseNotAllowed(requestCacheControl, responseCacheControl, hit.entry, now)
+                        && (validityPolicy.mayReturnStaleWhileRevalidating(responseCacheControl, hit.entry, now) || staleIfErrorEnabled)) {
+                    LOG.debug("Serving stale with asynchronous revalidation");
+                    try {
+                        final SimpleHttpResponse cacheResponse = generateCachedResponse(hit.entry, request, context);
+                        final String exchangeId = ExecSupport.getNextExchangeId();
+                        context.setExchangeId(exchangeId);
+                        final AsyncExecChain.Scope fork = new AsyncExecChain.Scope(
+                                exchangeId,
+                                scope.route,
+                                scope.originalRequest,
+                                new ComplexFuture<>(null),
+                                HttpClientContext.create(),
+                                scope.execRuntime.fork(),
+                                scope.scheduler,
+                                scope.execCount);
+                        cacheRevalidator.revalidateCacheEntry(
+                                hit.getEntryKey(),
+                                asyncExecCallback,
+                                asyncExecCallback1 -> revalidateCacheEntry(requestCacheControl, responseCacheControl,
+                                        hit, target, request, entityProducer, fork, chain, asyncExecCallback1));
+                        triggerResponse(cacheResponse, scope, asyncExecCallback);
+                    } catch (final ResourceIOException ex) {
+                        if (staleIfErrorEnabled) {
                             if (LOG.isDebugEnabled()) {
-                                LOG.debug("Failed to generate cached response, falling back to backend", ex2);
+                                LOG.debug("Serving stale response due to IOException and stale-if-error enabled");
                             }
-                            callBackend(target, request, entityProducer, scope, chain, asyncExecCallback);
+                            try {
+                                final SimpleHttpResponse cacheResponse = generateCachedResponse(hit.entry, request, context);
+                                triggerResponse(cacheResponse, scope, asyncExecCallback);
+                            } catch (final ResourceIOException ex2) {
+                                if (LOG.isDebugEnabled()) {
+                                    LOG.debug("Failed to generate cached response, falling back to backend", ex2);
+                                }
+                                callBackend(target, request, entityProducer, scope, chain, asyncExecCallback);
+                            }
+                        } else {
+                            asyncExecCallback.failed(ex);
                         }
-                    } else {
-                        asyncExecCallback.failed(ex);
                     }
+                } else {
+                    revalidateCacheEntry(requestCacheControl, responseCacheControl, hit, target, request, entityProducer, scope, chain, asyncExecCallback);
                 }
             } else {
-                revalidateCacheEntry(requestCacheControl, responseCacheControl, hit, target, request, entityProducer, scope, chain, asyncExecCallback);
+                LOG.debug("Cache entry not usable; calling backend");
+                callBackend(target, request, entityProducer, scope, chain, asyncExecCallback);
             }
-        } else {
-            LOG.debug("Cache entry not usable; calling backend");
-            callBackend(target, request, entityProducer, scope, chain, asyncExecCallback);
         }
     }
 
@@ -773,8 +780,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                 final Instant responseDate1 = getCurrentDate();
 
                 final AsyncExecCallback callback1;
-                if (revalidationResponseIsTooOld(backendResponse1, hit.entry)
-                        && (entityProducer == null || entityProducer.isRepeatable())) {
+                if (revalidationResponseIsTooOld(backendResponse1, hit.entry)) {
 
                     final HttpRequest unconditional = conditionalRequestBuilder.buildUnconditionalRequest(
                             BasicRequestBuilder.copy(scope.originalRequest).build());
@@ -880,14 +886,14 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
             triggerResponse(cacheResponse, scope, asyncExecCallback);
         }
 
-        if (partialMatch != null && partialMatch.entry.hasVariants()) {
+        if (partialMatch != null && partialMatch.entry.hasVariants() && entityProducer == null) {
             operation.setDependency(responseCache.getVariants(
                     partialMatch,
                     new FutureCallback<Collection<CacheHit>>() {
 
                         @Override
                         public void completed(final Collection<CacheHit> variants) {
-                            if (variants != null && !variants.isEmpty() && (entityProducer == null || entityProducer.isRepeatable())) {
+                            if (variants != null && !variants.isEmpty()) {
                                 negotiateResponseFromVariants(target, request, entityProducer, scope, chain, asyncExecCallback, variants);
                             } else {
                                 callBackend(target, request, entityProducer, scope, chain, asyncExecCallback);

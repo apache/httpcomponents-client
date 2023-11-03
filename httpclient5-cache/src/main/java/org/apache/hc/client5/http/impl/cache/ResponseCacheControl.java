@@ -27,7 +27,9 @@
 
 package org.apache.hc.client5.http.impl.cache;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.hc.core5.annotation.Contract;
@@ -225,7 +227,6 @@ final class ResponseCacheControl implements CacheControl {
     public boolean isMustRevalidate() {
         return mustRevalidate;
     }
-
 
     /**
      * Returns whether the proxy-revalidate value is set in the Cache-Control header.
@@ -430,6 +431,12 @@ final class ResponseCacheControl implements CacheControl {
 
         public Builder setNoCacheFields(final Set<String> noCacheFields) {
             this.noCacheFields = noCacheFields;
+            return this;
+        }
+
+        public Builder setNoCacheFields(final String... noCacheFields) {
+            this.noCacheFields = new HashSet<>();
+            this.noCacheFields.addAll(Arrays.asList(noCacheFields));
             return this;
         }
 

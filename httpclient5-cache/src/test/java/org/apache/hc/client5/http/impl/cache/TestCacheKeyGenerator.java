@@ -28,15 +28,20 @@ package org.apache.hc.client5.http.impl.cache;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.message.BasicHeader;
+import org.apache.hc.core5.http.message.BasicHeaderIterator;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
 import org.apache.hc.core5.http.support.BasicRequestBuilder;
 import org.junit.jupiter.api.Assertions;
@@ -293,6 +298,41 @@ public class TestCacheKeyGenerator {
         Assertions.assertEquals("http://www.fancast.com:80/full_episodes?foo=bar", extractor.generateKey(
                 new HttpHost("http", "www.fancast.com", -1), new BasicHttpRequest("GET",
                         "/full_episodes?foo=bar")));
+    }
+
+    private static Iterator<Header> headers(final Header... headers) {
+        return new BasicHeaderIterator(headers, null);
+    }
+
+    @Test
+    public void testNormalizeHeaderElements() {
+        final List<String> tokens = new ArrayList<>();
+        CacheKeyGenerator.normalizeElements(headers(
+                new BasicHeader("Accept-Encoding", "gzip,zip,deflate")
+        ), tokens::add);
+        Assertions.assertEquals(Arrays.asList("deflate", "gzip", "zip"), tokens);
+
+        tokens.clear();
+        CacheKeyGenerator.normalizeElements(headers(
+                new BasicHeader("Accept-Encoding", "  gZip  , Zip,  ,  ,  deflate  ")
+        ), tokens::add);
+        Assertions.assertEquals(Arrays.asList("deflate", "gzip", "zip"), tokens);
+
+        tokens.clear();
+        CacheKeyGenerator.normalizeElements(headers(
+                new BasicHeader("Accept-Encoding", "gZip,Zip,,"),
+                new BasicHeader("Accept-Encoding", "   gZip,Zip,,,"),
+                new BasicHeader("Accept-Encoding", "gZip,  ,,,deflate")
+        ), tokens::add);
+        Assertions.assertEquals(Arrays.asList("deflate", "gzip", "zip"), tokens);
+
+        tokens.clear();
+        CacheKeyGenerator.normalizeElements(headers(
+                new BasicHeader("Cookie", "name1 = value1 ;   p1 = v1 ; P2   = \"v2\""),
+                new BasicHeader("Cookie", "name3;;;"),
+                new BasicHeader("Cookie", "   name2 = \" value 2 \"   ; ; ; ,,,")
+        ), tokens::add);
+        Assertions.assertEquals(Arrays.asList("name1=value1;p1=v1;p2=v2", "name2=\" value 2 \"", "name3"), tokens);
     }
 
     @Test

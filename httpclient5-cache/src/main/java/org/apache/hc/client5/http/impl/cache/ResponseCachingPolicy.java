@@ -29,7 +29,6 @@ package org.apache.hc.client5.http.impl.cache;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Iterator;
-import java.util.Set;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.utils.DateUtils;
@@ -392,43 +391,6 @@ class ResponseCachingPolicy {
             if (statusCode >= HttpStatus.SC_INTERNAL_SERVER_ERROR && statusCode <= HttpStatus.SC_GATEWAY_TIMEOUT) {
                 // Check if the cached response has a stale-while-revalidate directive
                 return cacheControl.getStaleWhileRevalidate() > 0;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Determines if the given {@link HttpCacheEntry} requires revalidation based on the presence of the {@code no-cache} directive
-     * in the Cache-Control header.
-     * <p>
-     * The method returns true in the following cases:
-     * - If the {@code no-cache} directive is present without any field names.
-     * - If the {@code no-cache} directive is present with field names, and at least one of these field names is present
-     * in the headers of the {@link HttpCacheEntry}.
-     * <p>
-     * If the {@code no-cache} directive is not present in the Cache-Control header, the method returns {@code false}.
-     *
-     * @param entry the  {@link HttpCacheEntry} containing the headers to check for the {@code no-cache} directive.
-     * @return true if revalidation is required based on the {@code no-cache} directive, {@code false} otherwise.
-     */
-    boolean responseContainsNoCacheDirective(final ResponseCacheControl responseCacheControl, final HttpCacheEntry entry) {
-        final Set<String> noCacheFields = responseCacheControl.getNoCacheFields();
-
-        // If no-cache directive is present and has no field names
-        if (responseCacheControl.isNoCache() && noCacheFields.isEmpty()) {
-            LOG.debug("No-cache directive present without field names. Revalidation required.");
-            return true;
-        }
-
-        // If no-cache directive is present with field names
-        if (responseCacheControl.isNoCache()) {
-            for (final String field : noCacheFields) {
-                if (entry.getFirstHeader(field) != null) {
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("No-cache directive field '{}' found in response headers. Revalidation required.", field);
-                    }
-                    return true;
-                }
             }
         }
         return false;
