@@ -53,6 +53,7 @@ import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
 import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
@@ -102,7 +103,7 @@ public class TestProtocolRequirements {
 
         body = HttpTestUtils.makeBody(ENTITY_LENGTH);
 
-        request = new BasicClassicHttpRequest("GET", "/foo");
+        request = new BasicClassicHttpRequest("GET", "/");
 
         context = HttpClientContext.create();
 
@@ -538,37 +539,6 @@ public class TestProtocolRequirements {
     }
 
     @Test
-    public void testMustNotUseMultipartByteRangeContentTypeOnCacheGenerated416Responses() throws Exception {
-
-        originResponse.setEntity(HttpTestUtils.makeBody(ENTITY_LENGTH));
-        originResponse.setHeader("Content-Length", "128");
-        originResponse.setHeader("Cache-Control", "max-age=3600");
-
-        final ClassicHttpRequest rangeReq = new BasicClassicHttpRequest("GET", "/");
-        rangeReq.setHeader("Range", "bytes=1000-1200");
-
-        final ClassicHttpResponse orig416 = new BasicClassicHttpResponse(416,
-                "Requested Range Not Satisfiable");
-
-        // cache may 416 me right away if it understands byte ranges,
-        // ok to delegate to origin though
-        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(originResponse);
-        Mockito.when(mockExecChain.proceed(RequestEquivalent.eq(rangeReq), Mockito.any())).thenReturn(orig416);
-
-        execute(request);
-        final ClassicHttpResponse result = execute(rangeReq);
-
-        // might have gotten a 416 from the origin or the cache
-        Assertions.assertEquals(416, result.getCode());
-        final Iterator<HeaderElement> it = MessageSupport.iterate(result, HttpHeaders.CONTENT_TYPE);
-        while (it.hasNext()) {
-            final HeaderElement elt = it.next();
-            Assertions.assertFalse("multipart/byteranges".equalsIgnoreCase(elt.getName()));
-        }
-        Mockito.verify(mockExecChain, Mockito.times(2)).proceed(Mockito.any(), Mockito.any());
-    }
-
-    @Test
     public void testMustReturnACacheEntryIfItCanRevalidateIt() throws Exception {
 
         final Instant now = Instant.now();
@@ -576,17 +546,12 @@ public class TestProtocolRequirements {
         final Instant nineSecondsAgo = now.minusSeconds(9);
         final Instant eightSecondsAgo = now.minusSeconds(8);
 
-        final Header[] hdrs = new Header[] {
-                new BasicHeader("Date", DateUtils.formatStandardDate(nineSecondsAgo)),
-                new BasicHeader("Cache-Control", "max-age=0"),
-                new BasicHeader("ETag", "\"etag\""),
-                new BasicHeader("Content-Length", "128")
-        };
-
-        final byte[] bytes = new byte[128];
-        new Random().nextBytes(bytes);
-
-        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(tenSecondsAgo, eightSecondsAgo, hdrs, bytes);
+        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(tenSecondsAgo, eightSecondsAgo,
+                Method.GET, "/thing", null,
+                200, new Header[] {
+                        new BasicHeader("Date", DateUtils.formatStandardDate(nineSecondsAgo)),
+                        new BasicHeader("ETag", "\"etag\"")
+                }, HttpTestUtils.makeNullResource());
 
         impl = new CachingExec(mockCache, null, config);
 
@@ -602,6 +567,12 @@ public class TestProtocolRequirements {
         Mockito.when(mockCache.match(Mockito.eq(host), RequestEquivalent.eq(request))).thenReturn(
                 new CacheMatch(new CacheHit("key", entry), null));
         Mockito.when(mockExecChain.proceed(RequestEquivalent.eq(validate), Mockito.any())).thenReturn(notModified);
+        final HttpCacheEntry updated = HttpTestUtils.makeCacheEntry(tenSecondsAgo, eightSecondsAgo,
+                Method.GET, "/thing", null,
+                200, new Header[] {
+                        new BasicHeader("Date", DateUtils.formatStandardDate(now)),
+                        new BasicHeader("ETag", "\"etag\"")
+                }, HttpTestUtils.makeNullResource());
         Mockito.when(mockCache.update(
                         Mockito.any(),
                         Mockito.any(),
@@ -609,7 +580,7 @@ public class TestProtocolRequirements {
                         Mockito.any(),
                         Mockito.any(),
                         Mockito.any()))
-                .thenReturn(new CacheHit("key", HttpTestUtils.makeCacheEntry()));
+                .thenReturn(new CacheHit("key", updated));
 
         execute(request);
 
@@ -672,7 +643,7 @@ public class TestProtocolRequirements {
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(tenSecondsAgo, eightSecondsAgo, hdrs, bytes);
 
         impl = new CachingExec(mockCache, null, config);
-        request = new BasicClassicHttpRequest("GET", "/thing");
+        request = new BasicClassicHttpRequest("GET", "/");
 
         Mockito.when(mockCache.match(Mockito.eq(host), RequestEquivalent.eq(request))).thenReturn(
                 new CacheMatch(new CacheHit("key", entry), null));
