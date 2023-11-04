@@ -369,6 +369,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
         }
     }
 
+
     private InternalConnectionEndpoint cast(final ConnectionEndpoint endpoint) {
         if (endpoint instanceof InternalConnectionEndpoint) {
             return (InternalConnectionEndpoint) endpoint;
@@ -390,22 +391,13 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
                 return;
             }
             try {
-                if (keepAlive == null) {
-                    this.conn.close(CloseMode.GRACEFUL);
+                if (keepAlive == null && conn != null) {
+                    conn.close(CloseMode.GRACEFUL);
                 }
                 this.updated = System.currentTimeMillis();
-                if (!this.conn.isOpen() && !this.conn.isConsistent()) {
-                    this.route = null;
-                    this.conn = null;
-                    this.expiry = Long.MAX_VALUE;
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("{} Connection is not kept alive", id);
-                    }
-                } else {
+                if (conn != null && conn.isOpen() && conn.isConsistent()) {
                     this.state = state;
-                    if (conn != null) {
-                        conn.passivate();
-                    }
+                    conn.passivate();
                     if (TimeValue.isPositive(keepAlive)) {
                         if (LOG.isDebugEnabled()) {
                             LOG.debug("{} Connection can be kept alive for {}", id, keepAlive);
@@ -416,6 +408,13 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
                             LOG.debug("{} Connection can be kept alive indefinitely", id);
                         }
                         this.expiry = Long.MAX_VALUE;
+                    }
+                } else {
+                    this.route = null;
+                    this.conn = null;
+                    this.expiry = Long.MAX_VALUE;
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("{} Connection is not kept alive", id);
                     }
                 }
             } finally {
