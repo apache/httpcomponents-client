@@ -126,6 +126,8 @@ public class TestBasicHttpClientConnectionManager {
 
         Mockito.when(conn.isOpen()).thenReturn(Boolean.TRUE);
 
+        Mockito.when(conn.isConsistent()).thenReturn(Boolean.TRUE);
+
         mgr.release(endpoint1, null, TimeValue.ofMilliseconds(100));
 
         Assertions.assertEquals(route, mgr.getRoute());
@@ -153,6 +155,7 @@ public class TestBasicHttpClientConnectionManager {
         Mockito.verify(connFactory, Mockito.times(1)).createConnection(Mockito.any());
 
         Mockito.when(conn.isOpen()).thenReturn(Boolean.TRUE);
+        Mockito.when(conn.isConsistent()).thenReturn(Boolean.TRUE);
 
         mgr.release(endpoint1, "some other state", TimeValue.ofMilliseconds(10000));
 
@@ -181,6 +184,7 @@ public class TestBasicHttpClientConnectionManager {
         Mockito.verify(connFactory, Mockito.times(1)).createConnection(Mockito.any());
 
         Mockito.when(conn.isOpen()).thenReturn(Boolean.TRUE, Boolean.FALSE);
+        Mockito.when(conn.isConsistent()).thenReturn(Boolean.TRUE, Boolean.FALSE);
 
         mgr.release(endpoint1, null, TimeValue.NEG_ONE_MILLISECOND);
 
@@ -212,6 +216,7 @@ public class TestBasicHttpClientConnectionManager {
         Mockito.verify(connFactory, Mockito.times(1)).createConnection(Mockito.any());
 
         Mockito.when(conn.isOpen()).thenReturn(Boolean.TRUE, Boolean.FALSE);
+        Mockito.when(conn.isConsistent()).thenReturn(Boolean.TRUE, Boolean.FALSE);
 
         mgr.release(endpoint1, null, TimeValue.ofMilliseconds(10));
 
@@ -256,6 +261,7 @@ public class TestBasicHttpClientConnectionManager {
         Mockito.verify(connFactory, Mockito.times(1)).createConnection(Mockito.any());
 
         Mockito.when(conn.isOpen()).thenReturn(Boolean.TRUE);
+        Mockito.when(conn.isConsistent()).thenReturn(Boolean.TRUE);
 
         mgr.release(endpoint1, null, TimeValue.NEG_ONE_MILLISECOND);
 
@@ -288,6 +294,7 @@ public class TestBasicHttpClientConnectionManager {
         Mockito.verify(connFactory, Mockito.times(1)).createConnection(Mockito.any());
 
         Mockito.when(conn.isOpen()).thenReturn(Boolean.TRUE, Boolean.FALSE);
+        Mockito.when(conn.isConsistent()).thenReturn(Boolean.TRUE, Boolean.FALSE);
 
         mgr.release(endpoint1, null, TimeValue.ofMilliseconds(10));
 
@@ -315,6 +322,7 @@ public class TestBasicHttpClientConnectionManager {
         Mockito.verify(connFactory, Mockito.times(1)).createConnection(Mockito.any());
 
         Mockito.when(conn.isOpen()).thenReturn(Boolean.TRUE, Boolean.FALSE);
+        Mockito.when(conn.isConsistent()).thenReturn(Boolean.TRUE, Boolean.FALSE);
 
         mgr.release(endpoint1, null, TimeValue.NEG_ONE_MILLISECOND);
 
@@ -478,6 +486,74 @@ public class TestBasicHttpClientConnectionManager {
         Mockito.verify(schemePortResolver, Mockito.times(1)).resolve(target);
         Mockito.verify(sslSocketFactory, Mockito.times(1)).createLayeredSocket(
                 socket, "somehost", 8443, tlsConfig, context);
+    }
+
+
+    @Test
+    public void shouldCloseStaleConnectionAndCreateNewOne() throws Exception {
+        final HttpHost target = new HttpHost("somehost", 80);
+        final HttpRoute route = new HttpRoute(target);
+
+        Mockito.when(connFactory.createConnection(Mockito.any())).thenReturn(conn);
+
+        final LeaseRequest connRequest1 = mgr.lease("some-id", route, null);
+        final ConnectionEndpoint endpoint1 = connRequest1.get(Timeout.ZERO_MILLISECONDS);
+        Assertions.assertNotNull(endpoint1);
+
+        Mockito.verify(connFactory, Mockito.times(1)).createConnection(Mockito.any());
+
+        Mockito.when(conn.isOpen()).thenReturn(Boolean.TRUE);
+        Mockito.when(conn.isConsistent()).thenReturn(Boolean.TRUE);
+
+        mgr.release(endpoint1, null, TimeValue.ofMilliseconds(100));
+
+        Assertions.assertEquals(route, mgr.getRoute());
+        Assertions.assertNull(mgr.getState());
+
+        final LeaseRequest connRequest2 = mgr.lease("some-id", route, null);
+        Mockito.when(conn.isStale()).thenReturn(Boolean.TRUE);
+        final ConnectionEndpoint conn2 = connRequest2.get(Timeout.ZERO_MILLISECONDS);
+        Assertions.assertNotNull(conn2);
+        Assertions.assertTrue(conn2.isConnected());
+
+        Mockito.verify(connFactory, Mockito.times(1)).createConnection(Mockito.any());
+    }
+
+    @Test
+    public void shouldCloseGRACEFULStaleConnection() throws Exception {
+        final HttpHost target = new HttpHost("somehost", 80);
+        final HttpRoute route = new HttpRoute(target);
+
+        Mockito.when(connFactory.createConnection(Mockito.any())).thenReturn(conn);
+
+        final LeaseRequest connRequest1 = mgr.lease("some-id", route, null);
+        final ConnectionEndpoint endpoint1 = connRequest1.get(Timeout.ZERO_MILLISECONDS);
+        Assertions.assertNotNull(endpoint1);
+
+        Mockito.verify(connFactory, Mockito.times(1)).createConnection(Mockito.any());
+
+        Mockito.when(conn.isOpen()).thenReturn(Boolean.TRUE);
+        Mockito.when(conn.isConsistent()).thenReturn(Boolean.TRUE);
+
+        // Simulate the connection being released with no keep-alive (it should be closed)
+        mgr.release(endpoint1, null, null);
+
+        // Ensure the connection was closed
+        Mockito.verify(conn, Mockito.times(1)).close(CloseMode.GRACEFUL);
+
+        // Now, when a new lease request is made, the connection is stale
+        Mockito.when(conn.isStale()).thenReturn(Boolean.TRUE);
+
+        // Attempt to lease a new connection
+        final LeaseRequest connRequest2 = mgr.lease("some-id", route, null);
+        final ConnectionEndpoint endpoint2 = connRequest2.get(Timeout.ZERO_MILLISECONDS);
+        Assertions.assertNotNull(endpoint2);
+
+        // The connection should be closed and a new one created because the old one was stale
+        Mockito.verify(connFactory, Mockito.times(1)).createConnection(Mockito.any());
+
+        // The new connection should be connected
+        Assertions.assertTrue(endpoint2.isConnected());
     }
 
 }
