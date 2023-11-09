@@ -37,6 +37,8 @@ enum CacheSuitability {
     FRESH, // the cache entry is fresh and can be used to satisfy the request
     FRESH_ENOUGH, // the cache entry is deemed fresh enough and can be used to satisfy the request
     STALE, // the cache entry is stale and may be unsuitable to satisfy the request
+    STALE_WHILE_REVALIDATED, // the cache entry is stale but may be unsuitable to satisfy the request
+                              // while being re-validated at the same time
     REVALIDATION_REQUIRED
            // the cache entry is stale and must not be used to satisfy the request
            // without revalidation

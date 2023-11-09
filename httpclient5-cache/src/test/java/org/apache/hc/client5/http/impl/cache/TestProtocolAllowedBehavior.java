@@ -27,14 +27,11 @@
 package org.apache.hc.client5.http.impl.cache;
 
 import java.io.IOException;
-import java.net.SocketTimeoutException;
-import java.time.Instant;
 
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecRuntime;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
-import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpException;
@@ -105,29 +102,6 @@ public class TestProtocolAllowedBehavior {
                 ClassicRequestBuilder.copy(request).build(),
                 new ExecChain.Scope("test", route, request, mockExecRuntime, context),
                 mockExecChain);
-    }
-
-    @Test
-    public void testNonSharedCacheReturnsStaleResponseWhenRevalidationFailsForProxyRevalidate() throws Exception {
-        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET","/");
-        final Instant now = Instant.now();
-        final Instant tenSecondsAgo = now.minusSeconds(10);
-        originResponse.setHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo));
-        originResponse.setHeader("Cache-Control","max-age=5,proxy-revalidate");
-        originResponse.setHeader("Etag","\"etag\"");
-
-        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET","/");
-
-        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(originResponse);
-
-        execute(req1);
-
-        Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenThrow(new SocketTimeoutException());
-
-        final HttpResponse result = execute(req2);
-        Assertions.assertEquals(HttpStatus.SC_OK, result.getCode());
-
-        Mockito.verifyNoInteractions(mockCache);
     }
 
     @Test
