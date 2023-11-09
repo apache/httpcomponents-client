@@ -44,7 +44,6 @@ import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.protocol.HttpContext;
-import org.apache.hc.core5.util.TimeValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -88,8 +87,7 @@ public class CachingExecBase {
         this.responseCachingPolicy = new ResponseCachingPolicy(
                 this.cacheConfig.isSharedCache(),
                 this.cacheConfig.isNeverCacheHTTP10ResponsesWithQuery(),
-                this.cacheConfig.isNeverCacheHTTP11ResponsesWithQuery(),
-                this.cacheConfig.isStaleIfErrorEnabled());
+                this.cacheConfig.isNeverCacheHTTP11ResponsesWithQuery());
     }
 
     /**
@@ -146,31 +144,14 @@ public class CachingExecBase {
     }
 
     SimpleHttpResponse generateCachedResponse(
-            final HttpCacheEntry entry,
-            final HttpRequest request,
-            final HttpContext context) throws ResourceIOException {
-        final SimpleHttpResponse cachedResponse;
-        if (request.containsHeader(HttpHeaders.IF_NONE_MATCH)
-                || request.containsHeader(HttpHeaders.IF_MODIFIED_SINCE)) {
-            cachedResponse = responseGenerator.generateNotModifiedResponse(entry);
-        } else {
-            cachedResponse = responseGenerator.generateResponse(request, entry);
-        }
-        setResponseStatus(context, CacheResponseStatus.CACHE_HIT);
-        return cachedResponse;
-    }
-
-    SimpleHttpResponse handleRevalidationFailure(
-            final RequestCacheControl requestCacheControl,
-            final ResponseCacheControl responseCacheControl,
-            final HttpCacheEntry entry,
             final HttpRequest request,
             final HttpContext context,
-            final Instant now) throws IOException {
-        if (staleResponseNotAllowed(requestCacheControl, responseCacheControl, entry, now)) {
-            return generateGatewayTimeout(context);
+            final HttpCacheEntry entry) throws ResourceIOException {
+        setResponseStatus(context, CacheResponseStatus.CACHE_HIT);
+        if (shouldSendNotModifiedResponse(request, entry, Instant.now())) {
+            return responseGenerator.generateNotModifiedResponse(entry);
         } else {
-            return unvalidatedCacheHit(request, context, entry);
+            return responseGenerator.generateResponse(request, entry);
         }
     }
 
@@ -189,37 +170,12 @@ public class CachingExecBase {
         return cachedResponse;
     }
 
-    boolean staleResponseNotAllowed(final RequestCacheControl requestCacheControl,
-                                    final ResponseCacheControl responseCacheControl,
-                                    final HttpCacheEntry entry,
-                                    final Instant now) {
-        return responseCacheControl.isMustRevalidate()
-            || (cacheConfig.isSharedCache() && responseCacheControl.isProxyRevalidate())
-            || explicitFreshnessRequest(requestCacheControl, responseCacheControl, entry, now);
-    }
-
     boolean mayCallBackend(final RequestCacheControl requestCacheControl) {
         if (requestCacheControl.isOnlyIfCached()) {
             LOG.debug("Request marked only-if-cached");
             return false;
         }
         return true;
-    }
-
-    boolean explicitFreshnessRequest(final RequestCacheControl requestCacheControl,
-                                     final ResponseCacheControl responseCacheControl,
-                                     final HttpCacheEntry entry,
-                                     final Instant now) {
-        if (requestCacheControl.getMaxStale() >= 0) {
-            final TimeValue age = validityPolicy.getCurrentAge(entry, now);
-            final TimeValue lifetime = validityPolicy.getFreshnessLifetime(responseCacheControl, entry);
-            if (age.toSeconds() - lifetime.toSeconds() > requestCacheControl.getMaxStale()) {
-                return true;
-            }
-        } else if (requestCacheControl.getMinFresh() >= 0 || requestCacheControl.getMaxAge() >= 0) {
-            return true;
-        }
-        return false;
     }
 
     void setResponseStatus(final HttpContext context, final CacheResponseStatus value) {
@@ -245,17 +201,9 @@ public class CachingExecBase {
         return "0".equals(h != null ? h.getValue() : null);
     }
 
-    boolean revalidationResponseIsTooOld(final HttpResponse backendResponse, final HttpCacheEntry cacheEntry) {
-        // either backend response or cached entry did not have a valid
-        // Date header, so we can't tell if they are out of order
-        // according to the origin clock; thus we can skip the
-        // unconditional retry.
-        return HttpCacheEntry.isNewer(cacheEntry, backendResponse);
-    }
-
-    boolean shouldSendNotModifiedResponse(final HttpRequest request, final HttpCacheEntry responseEntry) {
-        return (suitabilityChecker.isConditional(request)
-                && suitabilityChecker.allConditionalsMatch(request, responseEntry, Instant.now()));
+    boolean shouldSendNotModifiedResponse(final HttpRequest request, final HttpCacheEntry responseEntry, final Instant now) {
+        return suitabilityChecker.isConditional(request)
+                && suitabilityChecker.allConditionalsMatch(request, responseEntry, now);
     }
 
     boolean staleIfErrorAppliesTo(final int statusCode) {

@@ -146,34 +146,6 @@ class CacheValidityPolicy {
         return heuristicDefaultLifetime;
     }
 
-    public boolean isRevalidatable(final HttpCacheEntry entry) {
-        return entry.containsHeader(HttpHeaders.ETAG) || entry.containsHeader(HttpHeaders.LAST_MODIFIED);
-    }
-
-    public boolean mayReturnStaleWhileRevalidating(final ResponseCacheControl responseCacheControl,
-                                                   final HttpCacheEntry entry, final Instant now) {
-        if (responseCacheControl.getStaleWhileRevalidate() >= 0) {
-            final TimeValue staleness = getStaleness(responseCacheControl, entry, now);
-            if (staleness.compareTo(TimeValue.ofSeconds(responseCacheControl.getStaleWhileRevalidate())) <= 0) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public boolean mayReturnStaleIfError(final RequestCacheControl requestCacheControl,
-                                         final ResponseCacheControl responseCacheControl, final HttpCacheEntry entry,
-                                         final Instant now) {
-        final TimeValue staleness = getStaleness(responseCacheControl, entry, now);
-        return mayReturnStaleIfError(requestCacheControl, staleness) ||
-                mayReturnStaleIfError(responseCacheControl, staleness);
-    }
-
-    private boolean mayReturnStaleIfError(final CacheControl responseCacheControl, final TimeValue staleness) {
-        return responseCacheControl.getStaleIfError() >= 0 &&
-                staleness.compareTo(TimeValue.ofSeconds(responseCacheControl.getStaleIfError())) <= 0;
-    }
-
     TimeValue getApparentAge(final HttpCacheEntry entry) {
         final Instant dateValue = entry.getInstant();
         if (dateValue == null) {
@@ -236,15 +208,6 @@ class CacheValidityPolicy {
     TimeValue getResidentTime(final HttpCacheEntry entry, final Instant now) {
         final Duration diff = Duration.between(entry.getResponseInstant(), now);
         return TimeValue.ofSeconds(diff.getSeconds());
-    }
-
-    TimeValue getStaleness(final ResponseCacheControl responseCacheControl, final HttpCacheEntry entry, final Instant now) {
-        final TimeValue age = getCurrentAge(entry, now);
-        final TimeValue freshness = getFreshnessLifetime(responseCacheControl, entry);
-        if (age.compareTo(freshness) <= 0) {
-            return TimeValue.ZERO_MILLISECONDS;
-        }
-        return TimeValue.ofSeconds(age.toSeconds() - freshness.toSeconds());
     }
 
 }

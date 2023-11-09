@@ -30,7 +30,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Iterator;
 
-import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpRequest;
@@ -64,14 +63,6 @@ class ResponseCachingPolicy {
     private final boolean neverCache1_1ResponsesWithQueryString;
 
     /**
-     * A flag indicating whether serving stale cache entries is allowed when an error occurs
-     * while fetching a fresh response from the origin server.
-     * If {@code true}, stale cache entries may be served in case of errors.
-     * If {@code false}, stale cache entries will not be served in case of errors.
-     */
-    private final boolean staleIfErrorEnabled;
-
-    /**
      * Constructs a new ResponseCachingPolicy with the specified cache policy settings and stale-if-error support.
      *
      * @param sharedCache                           whether to behave as a shared cache (true) or a
@@ -80,20 +71,15 @@ class ResponseCachingPolicy {
      *                                              {@code false} to cache if explicit cache headers are found.
      * @param neverCache1_1ResponsesWithQueryString {@code true} to never cache HTTP 1.1 responses with a query string,
      *                                              {@code false} to cache if explicit cache headers are found.
-     * @param staleIfErrorEnabled                   {@code true} to enable the stale-if-error cache directive, which
-     *                                              allows clients to receive a stale cache entry when a request
-     *                                              results in an error, {@code false} to disable this feature.
      * @since 5.3
      */
     public ResponseCachingPolicy(
              final boolean sharedCache,
              final boolean neverCache1_0ResponsesWithQueryString,
-             final boolean neverCache1_1ResponsesWithQueryString,
-             final boolean staleIfErrorEnabled) {
+             final boolean neverCache1_1ResponsesWithQueryString) {
         this.sharedCache = sharedCache;
         this.neverCache1_0ResponsesWithQueryString = neverCache1_0ResponsesWithQueryString;
         this.neverCache1_1ResponsesWithQueryString = neverCache1_1ResponsesWithQueryString;
-        this.staleIfErrorEnabled = staleIfErrorEnabled;
     }
 
     /**
@@ -372,28 +358,6 @@ class ResponseCachingPolicy {
 
         // If none of the above conditions are met, a heuristic freshness lifetime might be applicable
         return DEFAULT_FRESHNESS_DURATION; // 5 minutes
-    }
-
-    /**
-     * Determines whether a stale response should be served in case of an error status code in the cached response.
-     * This method first checks if the {@code stale-if-error} extension is enabled in the cache configuration. If it is, it
-     * then checks if the cached response has an error status code (500-504). If it does, it checks if the response has a
-     * {@code stale-while-revalidate} directive in its Cache-Control header. If it does, this method returns {@code true},
-     * indicating that a stale response can be served. If not, it returns {@code false}.
-     *
-     * @return {@code true} if a stale response can be served in case of an error status code, {@code false} otherwise
-     */
-    boolean isStaleIfErrorEnabled(final ResponseCacheControl cacheControl, final HttpCacheEntry entry) {
-        // Check if the stale-while-revalidate extension is enabled
-        if (staleIfErrorEnabled) {
-            // Check if the cached response has an error status code
-            final int statusCode = entry.getStatus();
-            if (statusCode >= HttpStatus.SC_INTERNAL_SERVER_ERROR && statusCode <= HttpStatus.SC_GATEWAY_TIMEOUT) {
-                // Check if the cached response has a stale-while-revalidate directive
-                return cacheControl.getStaleWhileRevalidate() > 0;
-            }
-        }
-        return false;
     }
 
     /**

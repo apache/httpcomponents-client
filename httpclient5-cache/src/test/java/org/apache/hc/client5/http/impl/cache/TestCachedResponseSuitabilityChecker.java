@@ -457,4 +457,105 @@ public class TestCachedResponseSuitabilityChecker {
         // Validate that the cache entry is not suitable for the GET request
         Assertions.assertEquals(CacheSuitability.MISMATCH, impl.assessSuitability(requestCacheControl, responseCacheControl, request, entry, now));
     }
+
+    @Test
+    public void testSuitableIfErrorRequestCacheControl() {
+        // Prepare a cache entry with HEAD method
+        entry = makeEntry(Method.GET, "/foo",
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)));
+        responseCacheControl = ResponseCacheControl.builder()
+                .setMaxAge(5)
+                .build();
+
+        // the entry has been stale for 6 seconds
+
+        requestCacheControl = RequestCacheControl.builder()
+                .setStaleIfError(10)
+                .build();
+        Assertions.assertTrue(impl.isSuitableIfError(requestCacheControl, responseCacheControl, entry, now));
+
+        requestCacheControl = RequestCacheControl.builder()
+                .setStaleIfError(5)
+                .build();
+        Assertions.assertFalse(impl.isSuitableIfError(requestCacheControl, responseCacheControl, entry, now));
+
+        requestCacheControl = RequestCacheControl.builder()
+                .setStaleIfError(10)
+                .setMinFresh(4) // should take precedence over stale-if-error
+                .build();
+        Assertions.assertFalse(impl.isSuitableIfError(requestCacheControl, responseCacheControl, entry, now));
+
+        requestCacheControl = RequestCacheControl.builder()
+                .setStaleIfError(-1) // not set or not valid
+                .build();
+        Assertions.assertFalse(impl.isSuitableIfError(requestCacheControl, responseCacheControl, entry, now));
+    }
+
+    @Test
+    public void testSuitableIfErrorResponseCacheControl() {
+        // Prepare a cache entry with HEAD method
+        entry = makeEntry(Method.GET, "/foo",
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)));
+        responseCacheControl = ResponseCacheControl.builder()
+                .setMaxAge(5)
+                .setStaleIfError(10)
+                .build();
+
+        // the entry has been stale for 6 seconds
+
+        Assertions.assertTrue(impl.isSuitableIfError(requestCacheControl, responseCacheControl, entry, now));
+
+        responseCacheControl = ResponseCacheControl.builder()
+                .setMaxAge(5)
+                .setStaleIfError(5)
+                .build();
+        Assertions.assertFalse(impl.isSuitableIfError(requestCacheControl, responseCacheControl, entry, now));
+
+        responseCacheControl = ResponseCacheControl.builder()
+                .setMaxAge(5)
+                .setStaleIfError(-1) // not set or not valid
+                .build();
+        Assertions.assertFalse(impl.isSuitableIfError(requestCacheControl, responseCacheControl, entry, now));
+    }
+
+    @Test
+    public void testSuitableIfErrorRequestCacheControlTakesPrecedenceOverResponseCacheControl() {
+        // Prepare a cache entry with HEAD method
+        entry = makeEntry(Method.GET, "/foo",
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)));
+        responseCacheControl = ResponseCacheControl.builder()
+                .setMaxAge(5)
+                .setStaleIfError(5)
+                .build();
+
+        // the entry has been stale for 6 seconds
+
+        Assertions.assertFalse(impl.isSuitableIfError(requestCacheControl, responseCacheControl, entry, now));
+
+        requestCacheControl = RequestCacheControl.builder()
+                .setStaleIfError(10)
+                .build();
+        Assertions.assertTrue(impl.isSuitableIfError(requestCacheControl, responseCacheControl, entry, now));
+    }
+
+    @Test
+    public void testSuitableIfErrorConfigDefault() {
+        // Prepare a cache entry with HEAD method
+        entry = makeEntry(Method.GET, "/foo",
+                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)));
+        responseCacheControl = ResponseCacheControl.builder()
+                .setMaxAge(5)
+                .build();
+        impl = new CachedResponseSuitabilityChecker(CacheConfig.custom()
+                .setStaleIfErrorEnabled(true)
+                .build());
+        Assertions.assertTrue(impl.isSuitableIfError(requestCacheControl, responseCacheControl, entry, now));
+
+        requestCacheControl = RequestCacheControl.builder()
+                .setStaleIfError(5)
+                .build();
+
+        Assertions.assertFalse(impl.isSuitableIfError(requestCacheControl, responseCacheControl, entry, now));
+    }
+
 }
