@@ -58,14 +58,16 @@ class CachedResponseSuitabilityChecker {
 
     private static final Logger LOG = LoggerFactory.getLogger(CachedResponseSuitabilityChecker.class);
 
-    private final boolean sharedCache;
     private final CacheValidityPolicy validityStrategy;
+    private final boolean sharedCache;
+    private final boolean staleifError;
 
     CachedResponseSuitabilityChecker(final CacheValidityPolicy validityStrategy,
                                      final CacheConfig config) {
         super();
         this.validityStrategy = validityStrategy;
         this.sharedCache = config.isSharedCache();
+        this.staleifError = config.isStaleIfErrorEnabled();
     }
 
     CachedResponseSuitabilityChecker(final CacheConfig config) {
@@ -173,6 +175,13 @@ class CachedResponseSuitabilityChecker {
             LOG.debug("The cache entry is fresh");
             return CacheSuitability.FRESH;
         } else {
+            if (responseCacheControl.getStaleWhileRevalidate() > 0) {
+                final long stale = currentAge.compareTo(freshnessLifetime) > 0 ? currentAge.toSeconds() - freshnessLifetime.toSeconds() : 0;
+                if (stale < responseCacheControl.getStaleWhileRevalidate()) {
+                    LOG.debug("The cache entry is stale but suitable while being revalidated");
+                    return CacheSuitability.STALE_WHILE_REVALIDATED;
+                }
+            }
             LOG.debug("The cache entry is stale");
             return CacheSuitability.STALE;
         }
@@ -347,6 +356,32 @@ class CachedResponseSuitabilityChecker {
             }
         }
         return true;
+    }
+
+    public boolean isSuitableIfError(final RequestCacheControl requestCacheControl,
+                                     final ResponseCacheControl responseCacheControl,
+                                     final HttpCacheEntry entry,
+                                     final Instant now) {
+        // Explicit cache control
+        if (requestCacheControl.getStaleIfError() > 0 || responseCacheControl.getStaleIfError() > 0) {
+            final TimeValue currentAge = validityStrategy.getCurrentAge(entry, now);
+            final TimeValue freshnessLifetime = validityStrategy.getFreshnessLifetime(responseCacheControl, entry);
+            if (requestCacheControl.getMinFresh() > 0 && requestCacheControl.getMinFresh() < freshnessLifetime.toSeconds()) {
+                return false;
+            }
+            final long stale = currentAge.compareTo(freshnessLifetime) > 0 ? currentAge.toSeconds() - freshnessLifetime.toSeconds() : 0;
+            if (requestCacheControl.getStaleIfError() > 0 && stale < requestCacheControl.getStaleIfError()) {
+                return true;
+            }
+            if (responseCacheControl.getStaleIfError() > 0 && stale < responseCacheControl.getStaleIfError()) {
+                return true;
+            }
+        }
+        // Global override
+        if (staleifError && requestCacheControl.getStaleIfError() == -1 && responseCacheControl.getStaleIfError() == -1) {
+            return true;
+        }
+        return false;
     }
 
 }

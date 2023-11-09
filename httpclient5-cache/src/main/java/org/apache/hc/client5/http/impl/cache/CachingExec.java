@@ -59,6 +59,7 @@ import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
 import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
@@ -251,7 +252,7 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
         if (cacheSuitability == CacheSuitability.FRESH || cacheSuitability == CacheSuitability.FRESH_ENOUGH) {
             LOG.debug("Cache hit");
             try {
-                return convert(generateCachedResponse(hit.entry, request, context), scope);
+                return convert(generateCachedResponse(request, context, hit.entry), scope);
             } catch (final ResourceIOException ex) {
                 recordCacheFailure(target, request);
                 if (!mayCallBackend(requestCacheControl)) {
@@ -271,40 +272,39 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
                 LOG.debug("Request is not repeatable; calling backend");
                 return callBackend(target, request, scope, chain);
             } else if (hit.entry.getStatus() == HttpStatus.SC_NOT_MODIFIED && !suitabilityChecker.isConditional(request)) {
-                LOG.debug("Cache entry with NOT_MODIFIED does not match the non-conditional request; calling backend");
+                LOG.debug("Non-modified cache entry does not match the non-conditional request; calling backend");
                 return callBackend(target, request, scope, chain);
-            } else if (cacheSuitability == CacheSuitability.REVALIDATION_REQUIRED || cacheSuitability == CacheSuitability.STALE) {
-                LOG.debug("Revalidating cache entry");
-                final boolean staleIfErrorEnabled = responseCachingPolicy.isStaleIfErrorEnabled(responseCacheControl, hit.entry);
+            } else if (cacheSuitability == CacheSuitability.REVALIDATION_REQUIRED) {
+                LOG.debug("Revalidation required; revalidating cache entry");
                 try {
-                    if (cacheRevalidator != null
-                            && !staleResponseNotAllowed(requestCacheControl, responseCacheControl, hit.entry, now)
-                            && (validityPolicy.mayReturnStaleWhileRevalidating(responseCacheControl, hit.entry, now) || staleIfErrorEnabled)) {
-                        LOG.debug("Serving stale with asynchronous revalidation");
-                        final String exchangeId = ExecSupport.getNextExchangeId();
-                        context.setExchangeId(exchangeId);
-                        final ExecChain.Scope fork = new ExecChain.Scope(
-                                exchangeId,
-                                scope.route,
-                                scope.originalRequest,
-                                scope.execRuntime.fork(null),
-                                HttpClientContext.create());
-                        final SimpleHttpResponse response = generateCachedResponse(hit.entry, request, context);
-                        cacheRevalidator.revalidateCacheEntry(
-                                hit.getEntryKey(),
-                                () -> revalidateCacheEntry(requestCacheControl, responseCacheControl, hit, target, request, fork, chain));
-                        return convert(response, scope);
-                    }
-                    return revalidateCacheEntry(requestCacheControl, responseCacheControl, hit, target, request, scope, chain);
-                } catch (final IOException ioex) {
-                    if (staleIfErrorEnabled) {
-                        if (LOG.isDebugEnabled()) {
-                            LOG.debug("Serving stale response due to IOException and stale-if-error enabled");
-                        }
-                        return convert(generateCachedResponse(hit.entry, request, context), scope);
-                    }
-                    return convert(handleRevalidationFailure(requestCacheControl, responseCacheControl, hit.entry, request, context, now), scope);
+                    return revalidateCacheEntry(responseCacheControl, hit, target, request, scope, chain);
+                } catch (final IOException ex) {
+                    LOG.debug(ex.getMessage(), ex);
+                    return convert(generateGatewayTimeout(scope.clientContext), scope);
                 }
+            } else if (cacheSuitability == CacheSuitability.STALE_WHILE_REVALIDATED) {
+                if (cacheRevalidator != null) {
+                    LOG.debug("Serving stale with asynchronous revalidation");
+                    final String exchangeId = ExecSupport.getNextExchangeId();
+                    context.setExchangeId(exchangeId);
+                    final ExecChain.Scope fork = new ExecChain.Scope(
+                            exchangeId,
+                            scope.route,
+                            scope.originalRequest,
+                            scope.execRuntime.fork(null),
+                            HttpClientContext.create());
+                    cacheRevalidator.revalidateCacheEntry(
+                            hit.getEntryKey(),
+                            () -> revalidateCacheEntry(responseCacheControl, hit, target, request, fork, chain));
+                    final SimpleHttpResponse response = unvalidatedCacheHit(request, context, hit.entry);
+                    return convert(response, scope);
+                } else {
+                    LOG.debug("Revalidating stale cache entry (asynchronous revalidation disabled)");
+                    return revalidateCacheEntryWithFallback(requestCacheControl, responseCacheControl, hit, target, request, scope, chain);
+                }
+            } else if (cacheSuitability == CacheSuitability.STALE) {
+                LOG.debug("Revalidating stale cache entry");
+                return revalidateCacheEntryWithFallback(requestCacheControl, responseCacheControl, hit, target, request, scope, chain);
             } else {
                 LOG.debug("Cache entry not usable; calling backend");
                 return callBackend(target, request, scope, chain);
@@ -313,7 +313,6 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
     }
 
     ClassicHttpResponse revalidateCacheEntry(
-            final RequestCacheControl requestCacheControl,
             final ResponseCacheControl responseCacheControl,
             final CacheHit hit,
             final HttpHost target,
@@ -328,7 +327,7 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
         try {
             Instant responseDate = getCurrentDate();
 
-            if (revalidationResponseIsTooOld(backendResponse, hit.entry)) {
+            if (HttpCacheEntry.isNewer(hit.entry, backendResponse)) {
                 backendResponse.close();
                 final ClassicHttpRequest unconditional = conditionalRequestBuilder.buildUnconditionalRequest(
                         scope.originalRequest);
@@ -341,31 +340,50 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
             if (statusCode == HttpStatus.SC_NOT_MODIFIED || statusCode == HttpStatus.SC_OK) {
                 recordCacheUpdate(scope.clientContext);
             }
-
             if (statusCode == HttpStatus.SC_NOT_MODIFIED) {
                 final CacheHit updated = responseCache.update(hit, target, request, backendResponse, requestDate, responseDate);
-                if (suitabilityChecker.isConditional(request)
-                        && suitabilityChecker.allConditionalsMatch(request, updated.entry, Instant.now())) {
-                    return convert(responseGenerator.generateNotModifiedResponse(updated.entry), scope);
-                }
-                return convert(responseGenerator.generateResponse(request, updated.entry), scope);
-            }
-
-            if (staleIfErrorAppliesTo(statusCode)
-                    && !staleResponseNotAllowed(requestCacheControl, responseCacheControl, hit.entry, getCurrentDate())
-                    && validityPolicy.mayReturnStaleIfError(requestCacheControl, responseCacheControl, hit.entry, responseDate)) {
-                try {
-                    final SimpleHttpResponse cachedResponse = responseGenerator.generateResponse(request, hit.entry);
-                    return convert(cachedResponse, scope);
-                } finally {
-                    backendResponse.close();
-                }
+                return convert(generateCachedResponse(request, scope.clientContext, updated.entry), scope);
             }
             return handleBackendResponse(target, conditionalRequest, scope, requestDate, responseDate, backendResponse);
         } catch (final IOException | RuntimeException ex) {
             backendResponse.close();
             throw ex;
         }
+    }
+
+    ClassicHttpResponse revalidateCacheEntryWithFallback(
+            final RequestCacheControl requestCacheControl,
+            final ResponseCacheControl responseCacheControl,
+            final CacheHit hit,
+            final HttpHost target,
+            final ClassicHttpRequest request,
+            final ExecChain.Scope scope,
+            final ExecChain chain) throws HttpException, IOException {
+        final HttpClientContext context = scope.clientContext;
+        final ClassicHttpResponse response;
+        try {
+            response = revalidateCacheEntry(responseCacheControl, hit, target, request, scope, chain);
+        } catch (final IOException ex) {
+            if (suitabilityChecker.isSuitableIfError(requestCacheControl, responseCacheControl, hit.entry, getCurrentDate())) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Serving stale response due to IOException and stale-if-error enabled");
+                }
+                return convert(unvalidatedCacheHit(request, context, hit.entry), scope);
+            } else {
+                LOG.debug(ex.getMessage(), ex);
+                return convert(generateGatewayTimeout(context), scope);
+            }
+        }
+        final int status = response.getCode();
+        if (staleIfErrorAppliesTo(status) &&
+                suitabilityChecker.isSuitableIfError(requestCacheControl, responseCacheControl, hit.entry, getCurrentDate())) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Serving stale response due to {} status and stale-if-error enabled", status);
+            }
+            EntityUtils.consume(response.getEntity());
+            return convert(unvalidatedCacheHit(request, context, hit.entry), scope);
+        }
+        return response;
     }
 
     ClassicHttpResponse handleBackendResponse(
@@ -518,7 +536,7 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
                 return callBackend(target, request, scope, chain);
             }
 
-            if (revalidationResponseIsTooOld(backendResponse, match.entry)) {
+            if (HttpCacheEntry.isNewer(match.entry, backendResponse)) {
                 final ClassicHttpRequest unconditional = conditionalRequestBuilder.buildUnconditionalRequest(request);
                 return callBackend(target, unconditional, scope, chain);
             }
@@ -526,7 +544,7 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
             recordCacheUpdate(scope.clientContext);
 
             final CacheHit hit = responseCache.storeFromNegotiated(match, target, request, backendResponse, requestDate, responseDate);
-            if (shouldSendNotModifiedResponse(request, hit.entry)) {
+            if (shouldSendNotModifiedResponse(request, hit.entry, Instant.now())) {
                 return convert(responseGenerator.generateNotModifiedResponse(hit.entry), scope);
             } else {
                 return convert(responseGenerator.generateResponse(request, hit.entry), scope);

@@ -28,7 +28,6 @@ package org.apache.hc.client5.http.impl.cache;
 
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Instant;
@@ -254,30 +253,6 @@ public class TestCacheValidityPolicy {
     }
 
     @Test
-    public void testCacheEntryIsRevalidatableIfHeadersIncludeETag() {
-        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(
-                new BasicHeader("Expires", DateUtils.formatStandardDate(Instant.now())),
-                new BasicHeader("ETag", "somevalue"));
-        assertTrue(impl.isRevalidatable(entry));
-    }
-
-    @Test
-    public void testCacheEntryIsRevalidatableIfHeadersIncludeLastModifiedDate() {
-        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(
-                new BasicHeader("Expires", DateUtils.formatStandardDate(Instant.now())),
-                new BasicHeader("Last-Modified", DateUtils.formatStandardDate(Instant.now())));
-        assertTrue(impl.isRevalidatable(entry));
-    }
-
-    @Test
-    public void testCacheEntryIsNotRevalidatableIfNoAppropriateHeaders() {
-        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(
-                new BasicHeader("Expires", DateUtils.formatStandardDate(Instant.now())),
-                new BasicHeader("Cache-Control", "public"));
-        assertFalse(impl.isRevalidatable(entry));
-    }
-
-    @Test
     public void testNegativeAgeHeaderValueReturnsZero() {
         final Header[] headers = new Header[] { new BasicHeader("Age", "-100") };
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers);
@@ -326,103 +301,4 @@ public class TestCacheValidityPolicy {
         assertEquals(0, impl.getAgeValue(entry));
     }
 
-
-    @Test
-    public void testMayReturnStaleIfErrorInResponseIsTrueWithinStaleness(){
-        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(now, now,
-                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)));
-        final RequestCacheControl requestCacheControl = RequestCacheControl.builder()
-                .build();
-        final ResponseCacheControl responseCacheControl = ResponseCacheControl.builder()
-                .setMaxAge(5)
-                .setStaleIfError(15)
-                .build();
-        assertTrue(impl.mayReturnStaleIfError(requestCacheControl, responseCacheControl, entry, now));
-    }
-
-    @Test
-    public void testMayReturnStaleIfErrorInRequestIsTrueWithinStaleness(){
-        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(now, now,
-                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)));
-        final RequestCacheControl requestCacheControl = RequestCacheControl.builder()
-                .build();
-        final ResponseCacheControl responseCacheControl = ResponseCacheControl.builder()
-                .setStaleIfError(15)
-                .build();
-        assertTrue(impl.mayReturnStaleIfError(requestCacheControl, responseCacheControl, entry, now));
-    }
-
-    @Test
-    public void testMayNotReturnStaleIfErrorInResponseAndAfterResponseWindow(){
-        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(now, now,
-                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)));
-        final RequestCacheControl requestCacheControl = RequestCacheControl.builder()
-                .build();
-        final ResponseCacheControl responseCacheControl = ResponseCacheControl.builder()
-                .setMaxAge(5)
-                .setStaleIfError(1)
-                .build();
-        assertFalse(impl.mayReturnStaleIfError(requestCacheControl, responseCacheControl, entry, now));
-    }
-
-    @Test
-    public void testMayNotReturnStaleIfErrorInResponseAndAfterRequestWindow(){
-        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(now, now,
-                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)),
-                new BasicHeader("Cache-Control", "max-age=5"));
-        final RequestCacheControl requestCacheControl = RequestCacheControl.builder()
-                .setStaleIfError(1)
-                .build();
-        final ResponseCacheControl responseCacheControl = ResponseCacheControl.builder()
-                .setMaxAge(5)
-                .build();
-        assertFalse(impl.mayReturnStaleIfError(requestCacheControl, responseCacheControl, entry, now));
-    }
-
-    @Test
-    public void testMayReturnStaleWhileRevalidatingIsFalseWhenDirectiveIsAbsent() {
-        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
-        final ResponseCacheControl responseCacheControl = ResponseCacheControl.builder()
-                .setCachePublic(true)
-                .build();
-
-        assertFalse(impl.mayReturnStaleWhileRevalidating(responseCacheControl, entry, now));
-    }
-
-    @Test
-    public void testMayReturnStaleWhileRevalidatingIsTrueWhenWithinStaleness() {
-        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(now, now,
-                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)));
-        final ResponseCacheControl responseCacheControl = ResponseCacheControl.builder()
-                .setMaxAge(5)
-                .setStaleWhileRevalidate(15)
-                .build();
-
-        assertTrue(impl.mayReturnStaleWhileRevalidating(responseCacheControl, entry, now));
-    }
-
-    @Test
-    public void testMayReturnStaleWhileRevalidatingIsFalseWhenPastStaleness() {
-        final Instant twentyFiveSecondsAgo = now.minusSeconds(25);
-        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(now, now,
-                new BasicHeader("Date", DateUtils.formatStandardDate(twentyFiveSecondsAgo)));
-        final ResponseCacheControl responseCacheControl = ResponseCacheControl.builder()
-                .setMaxAge(5)
-                .setStaleWhileRevalidate(15)
-                .build();
-
-        assertFalse(impl.mayReturnStaleWhileRevalidating(responseCacheControl, entry, now));
-    }
-
-    @Test
-    public void testMayReturnStaleWhileRevalidatingIsFalseWhenDirectiveEmpty() {
-        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(now, now,
-                new BasicHeader("Date", DateUtils.formatStandardDate(tenSecondsAgo)));
-        final ResponseCacheControl responseCacheControl = ResponseCacheControl.builder()
-                .setMaxAge(5)
-                .setStaleWhileRevalidate(0)
-                .build();
-
-        assertFalse(impl.mayReturnStaleWhileRevalidating(responseCacheControl, entry, now));
-    }
 }

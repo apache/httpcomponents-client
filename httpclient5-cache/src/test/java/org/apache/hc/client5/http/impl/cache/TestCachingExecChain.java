@@ -589,7 +589,7 @@ public class TestCachingExecChain {
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenThrow(new IOException());
 
         execute(req2);
-        Assertions.assertEquals(CacheResponseStatus.CACHE_HIT, context.getCacheResponseStatus());
+        Assertions.assertEquals(CacheResponseStatus.CACHE_MODULE_RESPONSE, context.getCacheResponseStatus());
     }
 
     @Test
@@ -1220,33 +1220,31 @@ public class TestCachingExecChain {
 
         // Create the first request and response
         final BasicClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "http://foo.example.com/");
-        final BasicClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "http://foo.example.com/");
-        final ClassicHttpResponse resp1 = new BasicClassicHttpResponse(HttpStatus.SC_GATEWAY_TIMEOUT, "OK");
+        final ClassicHttpResponse resp1 = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
         resp1.setEntity(HttpTestUtils.makeBody(128));
         resp1.setHeader("Content-Length", "128");
-        resp1.setHeader("ETag", "\"etag\"");
+        resp1.setHeader("ETag", "\"abc\"");
         resp1.setHeader("Date", DateUtils.formatStandardDate(Instant.now().minus(Duration.ofHours(10))));
-        resp1.setHeader("Cache-Control", "public, max-age=-1, stale-while-revalidate=1");
+        resp1.setHeader("Cache-Control", "public, stale-while-revalidate=1");
+
+        final BasicClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "http://foo.example.com/");
         req2.addHeader("If-None-Match", "\"abc\"");
-        final ClassicHttpResponse resp2 = HttpTestUtils.make200Response();
+        final ClassicHttpResponse resp2 = HttpTestUtils.make500Response();
 
         // Set up the mock response chain
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
 
-
         // Execute the first request and assert the response
         final ClassicHttpResponse response1 = execute(req1);
-        Assertions.assertEquals(HttpStatus.SC_GATEWAY_TIMEOUT, response1.getCode());
-
+        Assertions.assertEquals(HttpStatus.SC_OK, response1.getCode());
 
         // Execute the second request and assert the response
         Mockito.when(mockExecRuntime.fork(Mockito.any())).thenReturn(mockExecRuntime);
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp2);
         final ClassicHttpResponse response2 = execute(req2);
-        Assertions.assertEquals(HttpStatus.SC_NOT_MODIFIED, response2.getCode());
+        Assertions.assertEquals(HttpStatus.SC_OK, response2.getCode());
 
-        // Assert that the cache revalidator was called
-        Mockito.verify(cacheRevalidator, Mockito.times(1)).revalidateCacheEntry(Mockito.any(), Mockito.any());
+        Mockito.verify(cacheRevalidator, Mockito.never()).revalidateCacheEntry(Mockito.any(), Mockito.any());
     }
 
     @Test
