@@ -31,19 +31,15 @@ import java.time.Instant;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
-import org.apache.hc.client5.http.cache.CacheResponseStatus;
-import org.apache.hc.client5.http.cache.HttpCacheContext;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.ResourceIOException;
 import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHeaders;
-import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.Method;
-import org.apache.hc.core5.http.protocol.HttpContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -117,57 +113,23 @@ public class CachingExecBase {
         return cacheUpdates.get();
     }
 
-    void recordCacheMiss(final HttpHost target, final HttpRequest request) {
-        cacheMisses.getAndIncrement();
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Cache miss [host: {}; uri: {}]", target, request.getRequestUri());
-        }
-    }
-
-    void recordCacheHit(final HttpHost target, final HttpRequest request) {
-        cacheHits.getAndIncrement();
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Cache hit [host: {}; uri: {}]", target, request.getRequestUri());
-        }
-    }
-
-    void recordCacheFailure(final HttpHost target, final HttpRequest request) {
-        cacheMisses.getAndIncrement();
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Cache failure [host: {}; uri: {}]", target, request.getRequestUri());
-        }
-    }
-
-    void recordCacheUpdate(final HttpContext context) {
-        cacheUpdates.getAndIncrement();
-        setResponseStatus(context, CacheResponseStatus.VALIDATED);
-    }
-
     SimpleHttpResponse generateCachedResponse(
             final HttpRequest request,
-            final HttpContext context,
-            final HttpCacheEntry entry) throws ResourceIOException {
-        setResponseStatus(context, CacheResponseStatus.CACHE_HIT);
-        if (shouldSendNotModifiedResponse(request, entry, Instant.now())) {
+            final HttpCacheEntry entry,
+            final Instant now) throws ResourceIOException {
+        if (shouldSendNotModifiedResponse(request, entry, now)) {
             return responseGenerator.generateNotModifiedResponse(entry);
         } else {
             return responseGenerator.generateResponse(request, entry);
         }
     }
 
-    SimpleHttpResponse generateGatewayTimeout(
-            final HttpContext context) {
-        setResponseStatus(context, CacheResponseStatus.CACHE_MODULE_RESPONSE);
+    SimpleHttpResponse generateGatewayTimeout() {
         return SimpleHttpResponse.create(HttpStatus.SC_GATEWAY_TIMEOUT, "Gateway Timeout");
     }
 
-    SimpleHttpResponse unvalidatedCacheHit(
-            final HttpRequest request,
-            final HttpContext context,
-            final HttpCacheEntry entry) throws IOException {
-        final SimpleHttpResponse cachedResponse = responseGenerator.generateResponse(request, entry);
-        setResponseStatus(context, CacheResponseStatus.CACHE_HIT);
-        return cachedResponse;
+    SimpleHttpResponse unvalidatedCacheHit(final HttpRequest request, final HttpCacheEntry entry) throws IOException {
+        return responseGenerator.generateResponse(request, entry);
     }
 
     boolean mayCallBackend(final RequestCacheControl requestCacheControl) {
@@ -176,12 +138,6 @@ public class CachingExecBase {
             return false;
         }
         return true;
-    }
-
-    void setResponseStatus(final HttpContext context, final CacheResponseStatus value) {
-        if (context != null) {
-            context.setAttribute(HttpCacheContext.CACHE_RESPONSE_STATUS, value);
-        }
     }
 
     Instant getCurrentDate() {

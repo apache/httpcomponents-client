@@ -39,6 +39,7 @@ import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.async.methods.SimpleBody;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.cache.CacheResponseStatus;
+import org.apache.hc.client5.http.cache.HttpCacheContext;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.HttpCacheStorage;
 import org.apache.hc.client5.http.cache.ResourceIOException;
@@ -150,18 +151,30 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
 
         final HttpRoute route = scope.route;
         final HttpClientContext context = scope.clientContext;
-        context.setAttribute(HttpClientContext.HTTP_ROUTE, scope.route);
-        context.setAttribute(HttpCoreContext.HTTP_REQUEST, request);
 
         final URIAuthority authority = request.getAuthority();
         final String scheme = request.getScheme();
         final HttpHost target = authority != null ? new HttpHost(scheme, authority) : route.getTargetHost();
+        final ClassicHttpResponse response = doExecute(target, request, scope, chain);
 
-        // default response context
-        setResponseStatus(context, CacheResponseStatus.CACHE_MISS);
+        context.setAttribute(HttpCoreContext.HTTP_REQUEST, request);
+        context.setAttribute(HttpCoreContext.HTTP_RESPONSE, response);
+
+        return response;
+    }
+
+    ClassicHttpResponse doExecute(
+            final HttpHost target,
+            final ClassicHttpRequest request,
+            final ExecChain.Scope scope,
+            final ExecChain chain) throws IOException, HttpException {
+
+        final HttpClientContext context = scope.clientContext;
+
+        context.setAttribute(HttpCacheContext.CACHE_RESPONSE_STATUS, CacheResponseStatus.CACHE_MISS);
 
         if (clientRequestsOurOptions(request)) {
-            setResponseStatus(context, CacheResponseStatus.CACHE_MODULE_RESPONSE);
+            context.setAttribute(HttpCacheContext.CACHE_RESPONSE_STATUS, CacheResponseStatus.CACHE_MODULE_RESPONSE);
             return new BasicClassicHttpResponse(HttpStatus.SC_NOT_IMPLEMENTED);
         }
         final CacheMatch result = responseCache.match(target, request);
@@ -177,7 +190,6 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
             return callBackend(target, request, scope, chain);
         }
 
-
         if (hit == null) {
             LOG.debug("Cache miss");
             return handleCacheMiss(requestCacheControl, root, target, request, scope, chain);
@@ -190,7 +202,7 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
         }
     }
 
-    private static ClassicHttpResponse convert(final SimpleHttpResponse cacheResponse, final ExecChain.Scope scope) {
+    private static ClassicHttpResponse convert(final SimpleHttpResponse cacheResponse) {
         if (cacheResponse == null) {
             return null;
         }
@@ -210,7 +222,6 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
                 response.setEntity(new ByteArrayEntity(body.getBodyBytes(), contentType, contentEncoding, false));
             }
         }
-        scope.clientContext.setAttribute(HttpCoreContext.HTTP_RESPONSE, response);
         return response;
     }
 
@@ -225,7 +236,7 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
         LOG.debug("Calling the backend");
         final ClassicHttpResponse backendResponse = chain.proceed(request, scope);
         try {
-            return handleBackendResponse(target, request, scope, requestDate, getCurrentDate(), backendResponse);
+            return handleBackendResponse(target, request, requestDate, getCurrentDate(), backendResponse);
         } catch (final IOException | RuntimeException ex) {
             backendResponse.close();
             throw ex;
@@ -241,8 +252,12 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
             final ExecChain.Scope scope,
             final ExecChain chain) throws IOException, HttpException {
         final HttpClientContext context  = scope.clientContext;
-        context.setAttribute(HttpCoreContext.HTTP_REQUEST, request);
-        recordCacheHit(target, request);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Request {} {}: cache hit", request.getMethod(), request.getRequestUri());
+        }
+        context.setAttribute(HttpCacheContext.CACHE_RESPONSE_STATUS, CacheResponseStatus.CACHE_HIT);
+        cacheHits.getAndIncrement();
+
         final Instant now = getCurrentDate();
 
         final CacheSuitability cacheSuitability = suitabilityChecker.assessSuitability(requestCacheControl, responseCacheControl, request, hit.entry, now);
@@ -250,21 +265,22 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
             LOG.debug("Request {} {}: {}", request.getMethod(), request.getRequestUri(), cacheSuitability);
         }
         if (cacheSuitability == CacheSuitability.FRESH || cacheSuitability == CacheSuitability.FRESH_ENOUGH) {
-            LOG.debug("Cache hit");
+            LOG.debug("Cache hit is suitable");
             try {
-                return convert(generateCachedResponse(request, context, hit.entry), scope);
+                return convert(generateCachedResponse(request, hit.entry, now));
             } catch (final ResourceIOException ex) {
-                recordCacheFailure(target, request);
                 if (!mayCallBackend(requestCacheControl)) {
-                    return convert(generateGatewayTimeout(context), scope);
+                    context.setAttribute(HttpCacheContext.CACHE_RESPONSE_STATUS, CacheResponseStatus.CACHE_MODULE_RESPONSE);
+                    return convert(generateGatewayTimeout());
                 }
-                setResponseStatus(scope.clientContext, CacheResponseStatus.FAILURE);
+                context.setAttribute(HttpCacheContext.CACHE_RESPONSE_STATUS, CacheResponseStatus.FAILURE);
                 return chain.proceed(request, scope);
             }
         } else {
             if (!mayCallBackend(requestCacheControl)) {
                 LOG.debug("Cache entry not is not fresh and only-if-cached requested");
-                return convert(generateGatewayTimeout(context), scope);
+                context.setAttribute(HttpCacheContext.CACHE_RESPONSE_STATUS, CacheResponseStatus.CACHE_MODULE_RESPONSE);
+                return convert(generateGatewayTimeout());
             } else if (cacheSuitability == CacheSuitability.MISMATCH) {
                 LOG.debug("Cache entry does not match the request; calling backend");
                 return callBackend(target, request, scope, chain);
@@ -276,12 +292,7 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
                 return callBackend(target, request, scope, chain);
             } else if (cacheSuitability == CacheSuitability.REVALIDATION_REQUIRED) {
                 LOG.debug("Revalidation required; revalidating cache entry");
-                try {
-                    return revalidateCacheEntry(responseCacheControl, hit, target, request, scope, chain);
-                } catch (final IOException ex) {
-                    LOG.debug(ex.getMessage(), ex);
-                    return convert(generateGatewayTimeout(scope.clientContext), scope);
-                }
+                return revalidateCacheEntryWithoutFallback(responseCacheControl, hit, target, request, scope, chain);
             } else if (cacheSuitability == CacheSuitability.STALE_WHILE_REVALIDATED) {
                 if (cacheRevalidator != null) {
                     LOG.debug("Serving stale with asynchronous revalidation");
@@ -296,8 +307,8 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
                     cacheRevalidator.revalidateCacheEntry(
                             hit.getEntryKey(),
                             () -> revalidateCacheEntry(responseCacheControl, hit, target, request, fork, chain));
-                    final SimpleHttpResponse response = unvalidatedCacheHit(request, context, hit.entry);
-                    return convert(response, scope);
+                    context.setAttribute(HttpCacheContext.CACHE_RESPONSE_STATUS, CacheResponseStatus.CACHE_MODULE_RESPONSE);
+                    return convert(unvalidatedCacheHit(request, hit.entry));
                 } else {
                     LOG.debug("Revalidating stale cache entry (asynchronous revalidation disabled)");
                     return revalidateCacheEntryWithFallback(requestCacheControl, responseCacheControl, hit, target, request, scope, chain);
@@ -319,6 +330,7 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
             final ClassicHttpRequest request,
             final ExecChain.Scope scope,
             final ExecChain chain) throws IOException, HttpException {
+        final HttpClientContext context = scope.clientContext;
         Instant requestDate = getCurrentDate();
         final ClassicHttpRequest conditionalRequest = conditionalRequestBuilder.buildConditionalRequest(
                 responseCacheControl, scope.originalRequest, hit.entry);
@@ -338,16 +350,34 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
 
             final int statusCode = backendResponse.getCode();
             if (statusCode == HttpStatus.SC_NOT_MODIFIED || statusCode == HttpStatus.SC_OK) {
-                recordCacheUpdate(scope.clientContext);
+                context.setAttribute(HttpCacheContext.CACHE_RESPONSE_STATUS, CacheResponseStatus.VALIDATED);
+                cacheUpdates.getAndIncrement();
             }
             if (statusCode == HttpStatus.SC_NOT_MODIFIED) {
                 final CacheHit updated = responseCache.update(hit, target, request, backendResponse, requestDate, responseDate);
-                return convert(generateCachedResponse(request, scope.clientContext, updated.entry), scope);
+                return convert(generateCachedResponse(request, updated.entry, responseDate));
             }
-            return handleBackendResponse(target, conditionalRequest, scope, requestDate, responseDate, backendResponse);
+            return handleBackendResponse(target, conditionalRequest, requestDate, responseDate, backendResponse);
         } catch (final IOException | RuntimeException ex) {
             backendResponse.close();
             throw ex;
+        }
+    }
+
+    ClassicHttpResponse revalidateCacheEntryWithoutFallback(
+            final ResponseCacheControl responseCacheControl,
+            final CacheHit hit,
+            final HttpHost target,
+            final ClassicHttpRequest request,
+            final ExecChain.Scope scope,
+            final ExecChain chain) throws HttpException {
+        final HttpClientContext context = scope.clientContext;
+        try {
+            return revalidateCacheEntry(responseCacheControl, hit, target, request, scope, chain);
+        } catch (final IOException ex) {
+            LOG.debug(ex.getMessage(), ex);
+            context.setAttribute(HttpCacheContext.CACHE_RESPONSE_STATUS, CacheResponseStatus.CACHE_MODULE_RESPONSE);
+            return convert(generateGatewayTimeout());
         }
     }
 
@@ -364,14 +394,13 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
         try {
             response = revalidateCacheEntry(responseCacheControl, hit, target, request, scope, chain);
         } catch (final IOException ex) {
+            LOG.debug(ex.getMessage(), ex);
+            context.setAttribute(HttpCacheContext.CACHE_RESPONSE_STATUS, CacheResponseStatus.CACHE_MODULE_RESPONSE);
             if (suitabilityChecker.isSuitableIfError(requestCacheControl, responseCacheControl, hit.entry, getCurrentDate())) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Serving stale response due to IOException and stale-if-error enabled");
-                }
-                return convert(unvalidatedCacheHit(request, context, hit.entry), scope);
+                LOG.debug("Serving stale response due to IOException and stale-if-error enabled");
+                return convert(unvalidatedCacheHit(request, hit.entry));
             } else {
-                LOG.debug(ex.getMessage(), ex);
-                return convert(generateGatewayTimeout(context), scope);
+                return convert(generateGatewayTimeout());
             }
         }
         final int status = response.getCode();
@@ -381,7 +410,8 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
                 LOG.debug("Serving stale response due to {} status and stale-if-error enabled", status);
             }
             EntityUtils.consume(response.getEntity());
-            return convert(unvalidatedCacheHit(request, context, hit.entry), scope);
+            context.setAttribute(HttpCacheContext.CACHE_RESPONSE_STATUS, CacheResponseStatus.CACHE_MODULE_RESPONSE);
+            return convert(unvalidatedCacheHit(request, hit.entry));
         }
         return response;
     }
@@ -389,7 +419,6 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
     ClassicHttpResponse handleBackendResponse(
             final HttpHost target,
             final ClassicHttpRequest request,
-            final ExecChain.Scope scope,
             final Instant requestDate,
             final Instant responseDate,
             final ClassicHttpResponse backendResponse) throws IOException {
@@ -403,7 +432,7 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
         final boolean cacheable = responseCachingPolicy.isResponseCacheable(responseCacheControl, request, backendResponse);
         if (cacheable) {
             storeRequestIfModifiedSinceFor304Response(request, backendResponse);
-            return cacheAndReturnResponse(target, request, backendResponse, scope, requestDate, responseDate);
+            return cacheAndReturnResponse(target, request, backendResponse, requestDate, responseDate);
         }
         LOG.debug("Backend response is not cacheable");
         return backendResponse;
@@ -413,7 +442,6 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
             final HttpHost target,
             final HttpRequest request,
             final ClassicHttpResponse backendResponse,
-            final ExecChain.Scope scope,
             final Instant requestSent,
             final Instant responseReceived) throws IOException {
         LOG.debug("Caching backend response");
@@ -430,7 +458,7 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
                         backendResponse,
                         requestSent,
                         responseReceived);
-                return convert(responseGenerator.generateResponse(request, updated.entry), scope);
+                return convert(responseGenerator.generateResponse(request, updated.entry));
             }
         }
 
@@ -470,7 +498,7 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
             hit = responseCache.store(target, request, backendResponse, buf, requestSent, responseReceived);
             LOG.debug("Backend response successfully cached (freshness check skipped)");
         }
-        return convert(responseGenerator.generateResponse(request, hit.entry), scope);
+        return convert(responseGenerator.generateResponse(request, hit.entry));
     }
 
     private ClassicHttpResponse handleCacheMiss(
@@ -480,10 +508,15 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
             final ClassicHttpRequest request,
             final ExecChain.Scope scope,
             final ExecChain chain) throws IOException, HttpException {
-        recordCacheMiss(target, request);
+        cacheMisses.getAndIncrement();
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Request {} {}: cache miss", request.getMethod(), request.getRequestUri());
+        }
 
+        final HttpClientContext context = scope.clientContext;
         if (!mayCallBackend(requestCacheControl)) {
-            return new BasicClassicHttpResponse(HttpStatus.SC_GATEWAY_TIMEOUT, "Gateway Timeout");
+            context.setAttribute(HttpCacheContext.CACHE_RESPONSE_STATUS, CacheResponseStatus.CACHE_MODULE_RESPONSE);
+            return convert(generateGatewayTimeout());
         }
         if (partialMatch != null && partialMatch.entry.hasVariants() && request.getEntity() == null) {
             final List<CacheHit> variants = responseCache.getVariants(partialMatch);
@@ -517,7 +550,7 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
             final Instant responseDate = getCurrentDate();
 
             if (backendResponse.getCode() != HttpStatus.SC_NOT_MODIFIED) {
-                return handleBackendResponse(target, request, scope, requestDate, responseDate, backendResponse);
+                return handleBackendResponse(target, request, requestDate, responseDate, backendResponse);
             } else {
                 // 304 response are not expected to have an enclosed content body, but still
                 backendResponse.close();
@@ -541,13 +574,15 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
                 return callBackend(target, unconditional, scope, chain);
             }
 
-            recordCacheUpdate(scope.clientContext);
+            final HttpClientContext context = scope.clientContext;
+            context.setAttribute(HttpCacheContext.CACHE_RESPONSE_STATUS, CacheResponseStatus.VALIDATED);
+            cacheUpdates.getAndIncrement();
 
             final CacheHit hit = responseCache.storeFromNegotiated(match, target, request, backendResponse, requestDate, responseDate);
-            if (shouldSendNotModifiedResponse(request, hit.entry, Instant.now())) {
-                return convert(responseGenerator.generateNotModifiedResponse(hit.entry), scope);
+            if (shouldSendNotModifiedResponse(request, hit.entry, responseDate)) {
+                return convert(responseGenerator.generateNotModifiedResponse(hit.entry));
             } else {
-                return convert(responseGenerator.generateResponse(request, hit.entry), scope);
+                return convert(responseGenerator.generateResponse(request, hit.entry));
             }
         } catch (final IOException | RuntimeException ex) {
             backendResponse.close();

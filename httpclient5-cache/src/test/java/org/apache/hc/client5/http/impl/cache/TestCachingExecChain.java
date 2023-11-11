@@ -900,8 +900,7 @@ public class TestCachingExecChain {
         originResponse.setHeader("Date", DateUtils.formatStandardDate(responseGenerated));
         originResponse.setHeader("ETag", "\"etag\"");
 
-        final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, mockExecRuntime, context);
-        impl.cacheAndReturnResponse(host, request, originResponse, scope, requestSent, responseReceived);
+        impl.cacheAndReturnResponse(host, request, originResponse, requestSent, responseReceived);
 
         Mockito.verify(cache, Mockito.never()).store(
                 Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
@@ -937,8 +936,7 @@ public class TestCachingExecChain {
                 Mockito.eq(requestSent),
                 Mockito.eq(responseReceived))).thenReturn(new CacheHit("key", httpCacheEntry));
 
-        final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, mockExecRuntime, context);
-        impl.cacheAndReturnResponse(host, request, originResponse, scope, requestSent, responseReceived);
+        impl.cacheAndReturnResponse(host, request, originResponse, requestSent, responseReceived);
 
         Mockito.verify(mockCache).store(
                 Mockito.any(),
@@ -956,18 +954,6 @@ public class TestCachingExecChain {
         final ClassicHttpResponse resp = execute(request);
 
         Assertions.assertEquals(HttpStatus.SC_GATEWAY_TIMEOUT, resp.getCode());
-    }
-
-    @Test
-    public void testSetsRouteInContextOnCacheHit() throws Exception {
-        final ClassicHttpResponse response = HttpTestUtils.make200Response();
-        response.setHeader("Cache-Control", "max-age=3600");
-        Mockito.when(mockExecChain.proceed(RequestEquivalent.eq(request), Mockito.any())).thenReturn(response);
-
-        final HttpClientContext ctx = HttpClientContext.create();
-        impl.execute(request, new ExecChain.Scope("test", route, request, mockExecRuntime, context), mockExecChain);
-        impl.execute(request, new ExecChain.Scope("test", route, request, mockExecRuntime, ctx), mockExecChain);
-        Assertions.assertEquals(route, ctx.getHttpRoute());
     }
 
     @Test
@@ -1288,7 +1274,7 @@ public class TestCachingExecChain {
                 .thenReturn(new CacheHit("key", cacheEntry));
 
         // Call cacheAndReturnResponse with 304 Not Modified response
-        final ClassicHttpResponse cachedResponse = impl.cacheAndReturnResponse(host, request, backendResponse, scope, requestSent, responseReceived);
+        final ClassicHttpResponse cachedResponse = impl.cacheAndReturnResponse(host, request, backendResponse, requestSent, responseReceived);
 
         // Verify cache entry is updated
         Mockito.verify(mockCache).update(
