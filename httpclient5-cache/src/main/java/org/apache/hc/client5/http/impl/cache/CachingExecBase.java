@@ -40,8 +40,6 @@ import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.Method;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class CachingExecBase {
 
@@ -55,8 +53,6 @@ public class CachingExecBase {
     final CacheableRequestPolicy cacheableRequestPolicy;
     final CachedResponseSuitabilityChecker suitabilityChecker;
     final CacheConfig cacheConfig;
-
-    private static final Logger LOG = LoggerFactory.getLogger(CachingExecBase.class);
 
     CachingExecBase(
             final CacheValidityPolicy validityPolicy,
@@ -130,14 +126,6 @@ public class CachingExecBase {
 
     SimpleHttpResponse unvalidatedCacheHit(final HttpRequest request, final HttpCacheEntry entry) throws IOException {
         return responseGenerator.generateResponse(request, entry);
-    }
-
-    boolean mayCallBackend(final RequestCacheControl requestCacheControl) {
-        if (requestCacheControl.isOnlyIfCached()) {
-            LOG.debug("Request marked only-if-cached");
-            return false;
-        }
-        return true;
     }
 
     Instant getCurrentDate() {

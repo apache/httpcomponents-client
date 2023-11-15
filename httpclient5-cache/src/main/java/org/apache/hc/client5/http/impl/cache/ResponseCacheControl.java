@@ -294,21 +294,49 @@ final class ResponseCacheControl implements CacheControl {
 
     @Override
     public String toString() {
-        return "CacheControl{" +
-                "maxAge=" + maxAge +
-                ", sharedMaxAge=" + sharedMaxAge +
-                ", noCache=" + noCache +
-                ", noStore=" + noStore +
-                ", cachePrivate=" + cachePrivate +
-                ", mustRevalidate=" + mustRevalidate +
-                ", proxyRevalidate=" + proxyRevalidate +
-                ", cachePublic=" + cachePublic +
-                ", staleWhileRevalidate=" + staleWhileRevalidate +
-                ", staleIfError=" + staleIfError +
-                ", noCacheFields=" + noCacheFields +
-                ", mustUnderstand=" + mustUnderstand +
-                ", immutable=" + immutable +
-                '}';
+            final StringBuilder buf = new StringBuilder();
+            buf.append("[");
+            if (maxAge >= 0) {
+                buf.append("max-age=").append(maxAge).append(",");
+            }
+            if (sharedMaxAge >= 0) {
+                buf.append("shared-max-age=").append(sharedMaxAge).append(",");
+            }
+            if (noCache) {
+                buf.append("no-cache").append(",");
+            }
+            if (noStore) {
+                buf.append("no-store").append(",");
+            }
+            if (cachePrivate) {
+                buf.append("private").append(",");
+            }
+            if (cachePublic) {
+                buf.append("public").append(",");
+            }
+            if (mustRevalidate) {
+                buf.append("must-revalidate").append(",");
+            }
+            if (proxyRevalidate) {
+                buf.append("proxy-revalidate").append(",");
+            }
+            if (staleWhileRevalidate >= 0) {
+                buf.append("state-while-revalidate=").append(staleWhileRevalidate).append(",");
+            }
+            if (staleIfError >= 0) {
+                buf.append("stale-if-error").append(staleIfError).append(",");
+            }
+            if (mustUnderstand) {
+                buf.append("must-understand").append(",");
+            }
+            if (immutable) {
+                buf.append("immutable").append(",");
+            }
+            if (buf.charAt(buf.length() - 1) == ',') {
+                buf.setLength(buf.length() - 1);
+            }
+            buf.append("]");
+            return buf.toString();
     }
 
     static Builder builder() {

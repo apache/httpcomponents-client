@@ -131,7 +131,13 @@ class CachedResponseSuitabilityChecker {
         }
 
         final TimeValue currentAge = validityStrategy.getCurrentAge(entry, now);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Cache entry current age: {}", currentAge);
+        }
         final TimeValue freshnessLifetime = validityStrategy.getFreshnessLifetime(responseCacheControl, entry);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Cache entry freshness lifetime: {}", freshnessLifetime);
+        }
 
         final boolean fresh = currentAge.compareTo(freshnessLifetime) < 0;
 
@@ -162,6 +168,9 @@ class CachedResponseSuitabilityChecker {
 
         if (requestCacheControl.getMaxStale() >= 0) {
             final long stale = currentAge.compareTo(freshnessLifetime) > 0 ? currentAge.toSeconds() - freshnessLifetime.toSeconds() : 0;
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Cache entry staleness: {} SECONDS", stale);
+            }
             if (stale >= requestCacheControl.getMaxStale()) {
                 LOG.debug("Response from cache is not suitable due to the request max-stale requirement");
                 return CacheSuitability.REVALIDATION_REQUIRED;

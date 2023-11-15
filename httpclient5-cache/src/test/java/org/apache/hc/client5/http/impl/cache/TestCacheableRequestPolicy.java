@@ -45,7 +45,7 @@ public class TestCacheableRequestPolicy {
         final BasicHttpRequest request = new BasicHttpRequest("GET", "someUri");
         final RequestCacheControl cacheControl = RequestCacheControl.builder().build();
 
-        Assertions.assertTrue(policy.isServableFromCache(cacheControl, request));
+        Assertions.assertTrue(policy.canBeServedFromCache(cacheControl, request));
     }
 
     @Test
@@ -55,14 +55,14 @@ public class TestCacheableRequestPolicy {
                 .setNoCache(true)
                 .build();
 
-        Assertions.assertFalse(policy.isServableFromCache(cacheControl, request));
+        Assertions.assertFalse(policy.canBeServedFromCache(cacheControl, request));
 
         final RequestCacheControl cacheControl2 = RequestCacheControl.builder()
                 .setNoStore(true)
                 .setMaxAge(20)
                 .build();
 
-        Assertions.assertFalse(policy.isServableFromCache(cacheControl2, request));
+        Assertions.assertFalse(policy.canBeServedFromCache(cacheControl2, request));
     }
 
     @Test
@@ -70,13 +70,13 @@ public class TestCacheableRequestPolicy {
         final BasicHttpRequest request = new BasicHttpRequest("HEAD", "someUri");
         final RequestCacheControl cacheControl = RequestCacheControl.builder().build();
 
-        Assertions.assertTrue(policy.isServableFromCache(cacheControl, request));
+        Assertions.assertTrue(policy.canBeServedFromCache(cacheControl, request));
 
         final RequestCacheControl cacheControl2 = RequestCacheControl.builder()
                 .setMaxAge(20)
                 .build();
 
-        Assertions.assertTrue(policy.isServableFromCache(cacheControl2, request));
+        Assertions.assertTrue(policy.canBeServedFromCache(cacheControl2, request));
     }
 
     @Test
@@ -86,7 +86,7 @@ public class TestCacheableRequestPolicy {
                 .setNoCache(true)
                 .build();
 
-        Assertions.assertFalse(policy.isServableFromCache(cacheControl, request));
+        Assertions.assertFalse(policy.canBeServedFromCache(cacheControl, request));
 
         request.addHeader("Cache-Control", "no-store");
         request.addHeader("Cache-Control", "max-age=20");
@@ -95,7 +95,7 @@ public class TestCacheableRequestPolicy {
                 .setMaxAge(20)
                 .build();
 
-        Assertions.assertFalse(policy.isServableFromCache(cacheControl2, request));
+        Assertions.assertFalse(policy.canBeServedFromCache(cacheControl2, request));
     }
 
     @Test
@@ -104,11 +104,11 @@ public class TestCacheableRequestPolicy {
         final RequestCacheControl cacheControl = RequestCacheControl.builder()
                 .build();
 
-        Assertions.assertFalse(policy.isServableFromCache(cacheControl, request));
+        Assertions.assertFalse(policy.canBeServedFromCache(cacheControl, request));
 
         final BasicHttpRequest request2 = new BasicHttpRequest("huh", "someUri");
 
-        Assertions.assertFalse(policy.isServableFromCache(cacheControl, request2));
+        Assertions.assertFalse(policy.canBeServedFromCache(cacheControl, request2));
 
     }
 
