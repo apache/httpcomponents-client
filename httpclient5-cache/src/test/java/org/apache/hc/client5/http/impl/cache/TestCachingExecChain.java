@@ -900,7 +900,7 @@ public class TestCachingExecChain {
         originResponse.setHeader("Date", DateUtils.formatStandardDate(responseGenerated));
         originResponse.setHeader("ETag", "\"etag\"");
 
-        impl.cacheAndReturnResponse(host, request, originResponse, requestSent, responseReceived);
+        impl.cacheAndReturnResponse("exchange-id", host, request, originResponse, requestSent, responseReceived);
 
         Mockito.verify(cache, Mockito.never()).store(
                 Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
@@ -936,7 +936,7 @@ public class TestCachingExecChain {
                 Mockito.eq(requestSent),
                 Mockito.eq(responseReceived))).thenReturn(new CacheHit("key", httpCacheEntry));
 
-        impl.cacheAndReturnResponse(host, request, originResponse, requestSent, responseReceived);
+        impl.cacheAndReturnResponse("exchange-id", host, request, originResponse, requestSent, responseReceived);
 
         Mockito.verify(mockCache).store(
                 Mockito.any(),
@@ -1274,7 +1274,7 @@ public class TestCachingExecChain {
                 .thenReturn(new CacheHit("key", cacheEntry));
 
         // Call cacheAndReturnResponse with 304 Not Modified response
-        final ClassicHttpResponse cachedResponse = impl.cacheAndReturnResponse(host, request, backendResponse, requestSent, responseReceived);
+        final ClassicHttpResponse cachedResponse = impl.cacheAndReturnResponse("exchange-id", host, request, backendResponse, requestSent, responseReceived);
 
         // Verify cache entry is updated
         Mockito.verify(mockCache).update(
