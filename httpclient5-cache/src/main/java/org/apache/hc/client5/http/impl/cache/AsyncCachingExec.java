@@ -770,7 +770,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
         final Instant requestDate = getCurrentDate();
         final HttpRequest conditionalRequest = conditionalRequestBuilder.buildConditionalRequest(
                 responseCacheControl,
-                BasicRequestBuilder.copy(scope.originalRequest).build(),
+                BasicRequestBuilder.copy(request).build(),
                 hit.entry);
         final HttpClientContext context = scope.clientContext;
         chainProceed(conditionalRequest, entityProducer, scope, chain, new AsyncExecCallback() {

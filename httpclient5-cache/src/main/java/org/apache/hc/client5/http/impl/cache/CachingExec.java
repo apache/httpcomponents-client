@@ -343,7 +343,7 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
         final HttpClientContext context = scope.clientContext;
         Instant requestDate = getCurrentDate();
         final ClassicHttpRequest conditionalRequest = conditionalRequestBuilder.buildConditionalRequest(
-                responseCacheControl, scope.originalRequest, hit.entry);
+                responseCacheControl, request, hit.entry);
 
         ClassicHttpResponse backendResponse = chain.proceed(conditionalRequest, scope);
         try {
