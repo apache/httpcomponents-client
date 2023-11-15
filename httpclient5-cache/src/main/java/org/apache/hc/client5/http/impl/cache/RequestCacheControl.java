@@ -137,16 +137,37 @@ final class RequestCacheControl implements CacheControl {
 
     @Override
     public String toString() {
-        return "RequestCacheControl{" +
-                "maxAge=" + maxAge +
-                ", maxStale=" + maxStale +
-                ", minFresh=" + minFresh +
-                ", noCache=" + noCache +
-                ", noStore=" + noStore +
-                ", onlyIfCached=" + onlyIfCached +
-                ", staleIfError=" + staleIfError +
-                ", noTransform=" + noTransform +
-                '}';
+        final StringBuilder buf = new StringBuilder();
+        buf.append("[");
+        if (maxAge >= 0) {
+            buf.append("max-age=").append(maxAge).append(",");
+        }
+        if (maxStale >= 0) {
+            buf.append("max-stale=").append(maxStale).append(",");
+        }
+        if (minFresh >= 0) {
+            buf.append("max-fresh=").append(minFresh).append(",");
+        }
+        if (noCache) {
+            buf.append("no-cache").append(",");
+        }
+        if (noStore) {
+            buf.append("no-store").append(",");
+        }
+        if (onlyIfCached) {
+            buf.append("only-if-cached").append(",");
+        }
+        if (staleIfError >= 0) {
+            buf.append("stale-if-error").append(staleIfError).append(",");
+        }
+        if (noTransform) {
+            buf.append("no-transform").append(",");
+        }
+        if (buf.charAt(buf.length() - 1) == ',') {
+            buf.setLength(buf.length() - 1);
+        }
+        buf.append("]");
+        return buf.toString();
     }
 
     static Builder builder() {

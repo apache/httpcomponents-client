@@ -252,7 +252,7 @@ class CacheControlHeaderParser {
     private static long parseSeconds(final String name, final String value) {
         final long delta = CacheSupport.deltaSeconds(value);
         if (delta == -1 && LOG.isDebugEnabled()) {
-            LOG.debug("Directive {} was malformed: {}", name, value);
+            LOG.debug("Directive {} is malformed: {}", name, value);
         }
         return delta;
     }

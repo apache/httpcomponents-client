@@ -47,31 +47,31 @@ class CacheableRequestPolicy {
      *            an HttpRequest
      * @return boolean Is it possible to serve this request from cache
      */
-    public boolean isServableFromCache(final RequestCacheControl cacheControl, final HttpRequest request) {
+    public boolean canBeServedFromCache(final RequestCacheControl cacheControl, final HttpRequest request) {
         final String method = request.getMethod();
 
         final ProtocolVersion pv = request.getVersion() != null ? request.getVersion() : HttpVersion.DEFAULT;
         if (HttpVersion.HTTP_1_1.compareToVersion(pv) != 0) {
-            LOG.debug("non-HTTP/1.1 request is not serveable from cache");
+            LOG.debug("non-HTTP/1.1 request cannot be served from cache");
             return false;
         }
 
         if (!Method.GET.isSame(method) && !Method.HEAD.isSame(method)) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug("{} request is not serveable from cache", method);
+                LOG.debug("{} request cannot be served from cache", method);
             }
             return false;
         }
 
         if (cacheControl.isNoStore()) {
-            LOG.debug("Request with no-store is not serveable from cache");
+            LOG.debug("Request with no-store cannot be served from cache");
             return false;
         }
         if (cacheControl.isNoCache()) {
-            LOG.debug("Request with no-cache is not serveable from cache");
+            LOG.debug("Request with no-cache cannot be served from cache");
             return false;
         }
-        LOG.debug("Request is serveable from cache");
+        LOG.debug("Request can be served from cache");
         return true;
     }
 
