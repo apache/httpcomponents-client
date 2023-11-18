@@ -184,12 +184,27 @@ public class BasicScheme implements AuthScheme, Serializable {
         }
     }
 
+    private void validatePassword() throws AuthenticationException {
+        if (credentials == null) {
+            throw new AuthenticationException("User credentials not set");
+        }
+        final char[] password = credentials.getUserPassword();
+        if (password != null) {
+            for (final char ch : password) {
+                if (Character.isISOControl(ch)) {
+                    throw new AuthenticationException("Password must not contain any control characters");
+                }
+            }
+        }
+    }
+
     @Override
     public String generateAuthResponse(
             final HttpHost host,
             final HttpRequest request,
             final HttpContext context) throws AuthenticationException {
         validateUsername();
+        validatePassword();
         if (this.buffer == null) {
             this.buffer = new ByteArrayBuilder(64);
         } else {
