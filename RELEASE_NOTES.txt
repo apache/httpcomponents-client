@@ -1,13 +1,48 @@
 ﻿Release 5.2.2
 ------------------
 
-This is a maintenance release.
+This is a maintenance release that fixes several minor defects found since release 5.2.1
+and upgrades HttpCore to version 5.2.3.
 
 Change Log
 -------------------
 
+* HTTPCLIENT-2302: Add comment to TrustStrategy usage in examples (#492).
+  Contributed by Marcono1234 <marcono1234 at users.noreply.github.com>
+
+* More consistent handling of OperationTimeoutException in MemcachedHttpCacheStorage.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2300: Abstract char message consumers to use UTF-8 by default if a charset
+  has not been explicitly specified by the Content-Type.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2299: Socket timeout value set via DefaultManagedHttpClientConnection#setSocketTimeout
+  is not correctly persisted and can be overwritten upon connection activation.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Upgraded HttpCore to version 5.2.3.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2292: HttpClient ignores socketConfig#getSocksProxyAddress.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Allows setting connection timeToLive and validateAfterInactivity to zero to always close
+  or validate a connection.
+  Contributed by Christoph Kaser <berlin at caser.de>
+
+* HTTPCLIENT-2271: Do not optimize the path component of the resolved URI by default.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2262: Corrected RequestConfig#connectionRequestTimeout Javadoc.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Pass HttpContext to SSLConnectionSocketFactory#prepareSocket method (#404).
+  Contributed by Alen Turkovic <alturkovic at gmail.com>
+
 * Bump jna.version from 5.12.1 to 5.13.0 #407.
   Contributed by Dependabot and Gary Gregory <ggregory at apache.org>
+
 
 Release 5.2.1
 ------------------
