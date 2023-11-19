@@ -90,6 +90,7 @@ public final class AsyncRedirectExec implements AsyncExecChainHandler {
         volatile URI redirectURI;
         volatile int maxRedirects;
         volatile int redirectCount;
+        volatile HttpRequest originalRequest;
         volatile HttpRequest currentRequest;
         volatile AsyncEntityProducer currentEntityProducer;
         volatile RedirectLocations redirectLocations;
@@ -150,7 +151,7 @@ public final class AsyncRedirectExec implements AsyncExecChainHandler {
                                 redirectBuilder = BasicRequestBuilder.get();
                                 state.currentEntityProducer = null;
                             } else {
-                                redirectBuilder = BasicRequestBuilder.copy(scope.originalRequest);
+                                redirectBuilder = BasicRequestBuilder.copy(state.originalRequest);
                             }
                             break;
                         case HttpStatus.SC_SEE_OTHER:
@@ -158,15 +159,16 @@ public final class AsyncRedirectExec implements AsyncExecChainHandler {
                                 redirectBuilder = BasicRequestBuilder.get();
                                 state.currentEntityProducer = null;
                             } else {
-                                redirectBuilder = BasicRequestBuilder.copy(scope.originalRequest);
+                                redirectBuilder = BasicRequestBuilder.copy(state.originalRequest);
                             }
                             break;
                         default:
-                            redirectBuilder = BasicRequestBuilder.copy(scope.originalRequest);
+                            redirectBuilder = BasicRequestBuilder.copy(state.originalRequest);
                     }
                     redirectBuilder.setUri(redirectUri);
                     state.reroute = false;
                     state.redirectURI = redirectUri;
+                    state.originalRequest = redirectBuilder.build();
                     state.currentRequest = redirectBuilder.build();
 
                     if (!Objects.equals(currentRoute.getTargetHost(), newTarget)) {
@@ -270,6 +272,7 @@ public final class AsyncRedirectExec implements AsyncExecChainHandler {
         final State state = new State();
         state.maxRedirects = config.getMaxRedirects() > 0 ? config.getMaxRedirects() : 50;
         state.redirectCount = 0;
+        state.originalRequest = scope.originalRequest;
         state.currentRequest = request;
         state.currentEntityProducer = entityProducer;
         state.redirectLocations = redirectLocations;
