@@ -108,6 +108,7 @@ public final class RedirectExec implements ExecChainHandler {
 
         final RequestConfig config = context.getRequestConfig();
         final int maxRedirects = config.getMaxRedirects() > 0 ? config.getMaxRedirects() : 50;
+        ClassicHttpRequest originalRequest = scope.originalRequest;
         ClassicHttpRequest currentRequest = request;
         ExecChain.Scope currentScope = scope;
         for (int redirectCount = 0;;) {
@@ -153,18 +154,18 @@ public final class RedirectExec implements ExecChainHandler {
                             if (Method.POST.isSame(request.getMethod())) {
                                 redirectBuilder = ClassicRequestBuilder.get();
                             } else {
-                                redirectBuilder = ClassicRequestBuilder.copy(scope.originalRequest);
+                                redirectBuilder = ClassicRequestBuilder.copy(originalRequest);
                             }
                             break;
                         case HttpStatus.SC_SEE_OTHER:
                             if (!Method.GET.isSame(request.getMethod()) && !Method.HEAD.isSame(request.getMethod())) {
                                 redirectBuilder = ClassicRequestBuilder.get();
                             } else {
-                                redirectBuilder = ClassicRequestBuilder.copy(scope.originalRequest);
+                                redirectBuilder = ClassicRequestBuilder.copy(originalRequest);
                             }
                             break;
                         default:
-                            redirectBuilder = ClassicRequestBuilder.copy(scope.originalRequest);
+                            redirectBuilder = ClassicRequestBuilder.copy(originalRequest);
                     }
                     redirectBuilder.setUri(redirectUri);
 
@@ -201,6 +202,7 @@ public final class RedirectExec implements ExecChainHandler {
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("{} redirecting to '{}' via {}", exchangeId, redirectUri, currentRoute);
                     }
+                    originalRequest = redirectBuilder.build();
                     currentRequest = redirectBuilder.build();
                     RequestEntityProxy.enhance(currentRequest);
 
