@@ -229,4 +229,18 @@ public class TestBasicScheme {
         Assertions.assertThrows(AuthenticationException.class, () -> authscheme.generateAuthResponse(host, request, null));
     }
 
+    @Test
+    public void testBasicAuthenticationPasswordWithControlCharacters() throws Exception {
+        final BasicScheme authscheme = new BasicScheme();
+        final HttpHost host = new HttpHost("somehost", 80);
+        final HttpRequest request = new BasicHttpRequest("GET", "/");
+
+        // Creating a password with a control character (ASCII code 0-31 or 127)
+        final char[] password = new char[]{'p', 'a', 's', 's', 0x1F, 'w', 'o', 'r', 'd'};
+        authscheme.initPreemptive(new UsernamePasswordCredentials("username", password));
+
+        // Expecting an AuthenticationException due to control character in password
+        Assertions.assertThrows(AuthenticationException.class, () -> authscheme.generateAuthResponse(host, request, null));
+    }
+
 }
