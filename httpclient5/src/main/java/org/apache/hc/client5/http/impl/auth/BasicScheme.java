@@ -81,16 +81,27 @@ public class BasicScheme implements AuthScheme, Serializable {
     private UsernamePasswordCredentials credentials;
 
     /**
-     * @since 4.3
+     * @deprecated This constructor is deprecated to enforce the use of {@link StandardCharsets#UTF_8} encoding
+     * in compliance with RFC 7617 for HTTP Basic Authentication. Use the default constructor {@link #BasicScheme()} instead.
+     *
+     * @param charset the {@link Charset} set to be used for encoding credentials. This parameter is ignored as UTF-8 is always used.
      */
+    @Deprecated
     public BasicScheme(final Charset charset) {
         this.paramMap = new HashMap<>();
-        this.defaultCharset = charset != null ? charset : StandardCharsets.US_ASCII;
+        this.defaultCharset = StandardCharsets.UTF_8; // Always use UTF-8
         this.complete = false;
     }
 
+    /**
+     * Constructs a new BasicScheme with UTF-8 as the charset.
+     *
+     * @since 4.3
+     */
     public BasicScheme() {
-        this(StandardCharsets.US_ASCII);
+        this.paramMap = new HashMap<>();
+        this.defaultCharset = StandardCharsets.UTF_8;
+        this.complete = false;
     }
 
     public void initPreemptive(final Credentials credentials) {
@@ -232,7 +243,7 @@ public class BasicScheme implements AuthScheme, Serializable {
         try {
             this.defaultCharset = Charset.forName(in.readUTF());
         } catch (final UnsupportedCharsetException ex) {
-            this.defaultCharset = StandardCharsets.US_ASCII;
+            this.defaultCharset = StandardCharsets.UTF_8;
         }
     }
 

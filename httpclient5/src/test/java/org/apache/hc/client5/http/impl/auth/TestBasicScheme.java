@@ -104,25 +104,14 @@ public class TestBasicScheme {
     static final String TEST_UTF8_PASSWORD = "123\u00A3";
 
     @Test
-    public void testBasicAuthenticationDefaultCharsetASCII() throws Exception {
+    public void testBasicAuthenticationDefaultCharset() throws Exception {
         final HttpHost host  = new HttpHost("somehost", 80);
         final UsernamePasswordCredentials creds = new UsernamePasswordCredentials("test", TEST_UTF8_PASSWORD.toCharArray());
-        final BasicScheme authscheme = new BasicScheme(StandardCharsets.US_ASCII);
+        final BasicScheme authscheme = new BasicScheme();
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         authscheme.initPreemptive(creds);
         final String authResponse = authscheme.generateAuthResponse(host, request, null);
-        Assertions.assertEquals("Basic dGVzdDoxMjM/", authResponse);
-    }
-
-    @Test
-    public void testBasicAuthenticationDefaultCharsetISO88591() throws Exception {
-        final HttpHost host  = new HttpHost("somehost", 80);
-        final UsernamePasswordCredentials creds = new UsernamePasswordCredentials("test", TEST_UTF8_PASSWORD.toCharArray());
-        final BasicScheme authscheme = new BasicScheme(StandardCharsets.ISO_8859_1);
-        final HttpRequest request = new BasicHttpRequest("GET", "/");
-        authscheme.initPreemptive(creds);
-        final String authResponse = authscheme.generateAuthResponse(host, request, null);
-        Assertions.assertEquals("Basic dGVzdDoxMjOj", authResponse);
+        Assertions.assertEquals("Basic dGVzdDoxMjPCow==", authResponse);
     }
 
     @Test

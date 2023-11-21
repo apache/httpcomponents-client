@@ -28,7 +28,6 @@
 package org.apache.hc.client5.testing.classic;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -71,7 +70,7 @@ public class AuthenticatingDecorator implements HttpServerRequestHandler {
 
     public AuthenticatingDecorator(final HttpServerRequestHandler requestHandler,
                                    final Authenticator authenticator) {
-        this(requestHandler, new BasicAuthenticationHandler(StandardCharsets.US_ASCII), authenticator);
+        this(requestHandler, new BasicAuthenticationHandler(), authenticator);
     }
 
     protected void customizeUnauthorizedResponse(final ClassicHttpResponse unauthorized) {

@@ -28,6 +28,7 @@
 package org.apache.hc.client5.http.impl.auth;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
@@ -52,20 +53,28 @@ public class BasicSchemeFactory implements AuthSchemeFactory {
     private final Charset charset;
 
     /**
-     * @since 4.3
+     * @deprecated This constructor is deprecated to enforce the use of {@link StandardCharsets#UTF_8} encoding
+     * in compliance with RFC 7617 for HTTP Basic Authentication. Use the default constructor {@link #BasicSchemeFactory()} instead.
+     *
+     * @param charset the {@link Charset} set to be used for encoding credentials. This parameter is ignored as UTF-8 is always used.
      */
+    @Deprecated
     public BasicSchemeFactory(final Charset charset) {
         super();
-        this.charset = charset;
+        this.charset = StandardCharsets.UTF_8; // Always use UTF-8
     }
 
+    /**
+     * Constructs a new {@link BasicSchemeFactory} with {@link StandardCharsets#UTF_8} as the charset.
+     * This default setting aligns with standard practices for encoding credentials in Basic Authentication.
+     */
     public BasicSchemeFactory() {
-        this(null);
+        this.charset = StandardCharsets.UTF_8;
     }
 
     @Override
     public AuthScheme create(final HttpContext context) {
-        return new BasicScheme(this.charset);
+        return new BasicScheme();
     }
 
 }
