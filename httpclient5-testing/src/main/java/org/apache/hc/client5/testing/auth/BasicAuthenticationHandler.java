@@ -32,25 +32,29 @@ import java.nio.charset.StandardCharsets;
 
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.utils.Base64;
-import org.apache.hc.core5.util.Args;
 
 public class BasicAuthenticationHandler extends AbstractAuthenticationHandler {
 
     private final Charset charset;
 
     /**
+     * @param charset the {@link Charset} set to be used for encoding credentials. This parameter is ignored as UTF-8 is always used.
      * @since 5.3
+     * @deprecated This constructor is deprecated to enforce the use of {@link StandardCharsets#UTF_8} encoding
+     * in compliance with RFC 7617 for HTTP Basic Authentication. Use the default constructor {@link #BasicAuthenticationHandler()} instead.
      */
+    @Deprecated
     public BasicAuthenticationHandler(final Charset charset) {
-        this.charset = Args.notNull(charset, "Charset");
+        this.charset = StandardCharsets.UTF_8; // Always use UTF-8
     }
 
     /**
-     * @deprecated Use {@link #BasicAuthenticationHandler(Charset)}
+     * Constructs a new BasicAuthenticationHandler with UTF-8 as the charset.
+     * This default setting aligns with standard practices for encoding credentials in Basic Authentication.
+     *
      */
-    @Deprecated
     public BasicAuthenticationHandler() {
-        this(StandardCharsets.US_ASCII);
+        this.charset = StandardCharsets.UTF_8;
     }
 
     @Override

@@ -28,7 +28,6 @@ package org.apache.hc.client5.testing.async;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
@@ -80,7 +79,7 @@ public class AuthenticatingAsyncDecorator implements AsyncServerExchangeHandler 
     }
 
     public AuthenticatingAsyncDecorator(final AsyncServerExchangeHandler exchangeHandler, final Authenticator authenticator) {
-        this(exchangeHandler, new BasicAuthenticationHandler(StandardCharsets.US_ASCII), authenticator);
+        this(exchangeHandler, new BasicAuthenticationHandler(), authenticator);
     }
 
     protected void customizeUnauthorizedResponse(final HttpResponse unauthorized) {

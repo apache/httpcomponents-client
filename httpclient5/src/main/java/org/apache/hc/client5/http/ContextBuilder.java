@@ -27,7 +27,6 @@
 
 package org.apache.hc.client5.http;
 
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -111,7 +110,7 @@ public class ContextBuilder {
 
     public ContextBuilder preemptiveBasicAuth(final HttpHost host, final UsernamePasswordCredentials credentials) {
         Args.notNull(host, "HTTP host");
-        final BasicScheme authScheme = new BasicScheme(StandardCharsets.UTF_8);
+        final BasicScheme authScheme = new BasicScheme();
         authScheme.initPreemptive(credentials);
         preemptiveAuth(host, authScheme);
         return this;
