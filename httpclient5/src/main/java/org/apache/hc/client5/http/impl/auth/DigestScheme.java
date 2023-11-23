@@ -122,13 +122,20 @@ public class DigestScheme implements AuthScheme, Serializable {
     private UsernamePasswordCredentials credentials;
 
     public DigestScheme() {
-        this(StandardCharsets.ISO_8859_1);
-    }
-
-    public DigestScheme(final Charset charset) {
-        this.defaultCharset = charset != null ? charset : StandardCharsets.ISO_8859_1;
+        this.defaultCharset =  StandardCharsets.UTF_8;
         this.paramMap = new HashMap<>();
         this.complete = false;
+    }
+
+    /**
+     * @deprecated This constructor is deprecated to enforce the use of {@link StandardCharsets#UTF_8} encoding
+     * in compliance with RFC 7616 for HTTP Digest Access Authentication. Use the default constructor {@link #DigestScheme()} instead.
+     *
+     * @param charset the {@link Charset} set to be used for encoding credentials. This parameter is ignored as UTF-8 is always used.
+     */
+    @Deprecated
+    public DigestScheme(final Charset charset) {
+        this();
     }
 
     public void initPreemptive(final Credentials credentials, final String cnonce, final String realm) {
