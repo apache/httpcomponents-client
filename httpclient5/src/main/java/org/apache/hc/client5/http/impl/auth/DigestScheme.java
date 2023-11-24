@@ -223,6 +223,13 @@ public class DigestScheme implements AuthScheme, Serializable {
         if (this.paramMap.get("nonce") == null) {
             throw new AuthenticationException("missing nonce");
         }
+
+        final boolean hasUsername = this.paramMap.containsKey("username");
+        final boolean hasUsernameStar = this.paramMap.containsKey("username*");
+        if (hasUsername && hasUsernameStar) {
+            throw new AuthenticationException("Both 'username' and 'username*' cannot be present in the same header.");
+        }
+
         return createDigestResponse(request);
     }
 

@@ -746,4 +746,25 @@ public class TestDigestScheme {
         Assertions.assertEquals(digestScheme.getCnonce(), authScheme.getCnonce());
     }
 
+
+    @Test
+    public void testErrorOnBothUsernameAndUsernameStar() throws Exception {
+        final ClassicHttpRequest request = new BasicClassicHttpRequest("Post", "/");
+        request.setEntity(new InputStreamEntity(new ByteArrayInputStream(new byte[] {'a'}), -1, ContentType.DEFAULT_TEXT));
+        final HttpHost host = new HttpHost("somehost", 80);
+        final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
+                .add(new AuthScope(host, "realm1", null), "username", "password".toCharArray())
+                .build();
+
+        final String challenge = StandardAuthScheme.DIGEST + " realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\", " +
+                "qop=\"auth,auth-int\", username=\"username1\", username*=\"username2\"";
+        final AuthChallenge authChallenge = parse(challenge);
+        final DigestScheme authscheme = new DigestScheme();
+        authscheme.processChallenge(authChallenge, null);
+
+        Assertions.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
+        Assertions.assertThrows(AuthenticationException.class, () ->
+                authscheme.generateAuthResponse(host, request, null));
+    }
+
 }
