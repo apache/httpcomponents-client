@@ -341,17 +341,30 @@ public class DigestScheme implements AuthScheme, Serializable {
         }
         buffer.charset(charset);
 
+        a1 = null;
+        a2 = null;
 
+
+        // Extract username and username*
         String username = credentials.getUserName();
+        String encodedUsername = null;
+        // Check if 'username' has invalid characters and use 'username*'
+        if (username != null && containsInvalidABNFChars(username)) {
+            encodedUsername = "UTF-8''" + RFC5987Codec.encode(username, StandardCharsets.UTF_8);
+        }
 
+        final String usernameForDigest;
         if (this.userhashSupported) {
             final String usernameRealm = username + ":" + realm;
             final byte[] hashedBytes = digester.digest(usernameRealm.getBytes(StandardCharsets.UTF_8));
-            username = formatHex(hashedBytes); // Convert to hex string
+            usernameForDigest = formatHex(hashedBytes); // Use hashed username for digest
+            username = usernameForDigest;
+        } else if (encodedUsername != null) {
+            usernameForDigest = encodedUsername; // Use encoded username for digest
+        } else {
+            usernameForDigest = username; // Use regular username for digest
         }
 
-        a1 = null;
-        a2 = null;
         // 3.2.2.2: Calculating digest
         if ("MD5-sess".equalsIgnoreCase(algorithm)) {
             // H( unq(username-value) ":" unq(realm-value) ":" passwd )
@@ -426,7 +439,17 @@ public class DigestScheme implements AuthScheme, Serializable {
         buffer.append(StandardAuthScheme.DIGEST + " ");
 
         final List<BasicNameValuePair> params = new ArrayList<>(20);
-        params.add(new BasicNameValuePair("username", username));
+        if (this.userhashSupported) {
+            // Use hashed username for the 'username' parameter
+            params.add(new BasicNameValuePair("username", usernameForDigest));
+            params.add(new BasicNameValuePair("userhash", "true"));
+        } else if (encodedUsername != null) {
+            // Use encoded 'username*' parameter
+            params.add(new BasicNameValuePair("username*", encodedUsername));
+        } else {
+            // Use regular 'username' parameter
+            params.add(new BasicNameValuePair("username", username));
+        }
         params.add(new BasicNameValuePair("realm", realm));
         params.add(new BasicNameValuePair("nonce", nonce));
         params.add(new BasicNameValuePair("uri", uri));
@@ -442,10 +465,6 @@ public class DigestScheme implements AuthScheme, Serializable {
         }
         if (opaque != null) {
             params.add(new BasicNameValuePair("opaque", opaque));
-        }
-
-        if (this.userhashSupported) {
-            params.add(new BasicNameValuePair("userhash", "true"));
         }
 
         for (int i = 0; i < params.size(); i++) {
@@ -528,5 +547,45 @@ public class DigestScheme implements AuthScheme, Serializable {
     @Override
     public String toString() {
         return getName() + this.paramMap;
+    }
+
+    /**
+     * Checks if a given string contains characters that are not allowed
+     * in an ABNF quoted-string as per standard specifications.
+     * <p>
+     * The method checks for:
+     * - Control characters (ASCII 0x00 to 0x1F and 0x7F).
+     * - Characters outside the printable ASCII range (above 0x7E).
+     * - Double quotes (&quot;) and backslashes (\), which are not allowed.
+     * </p>
+     *
+     * @param value The string to be checked for invalid ABNF characters.
+     * @return {@code true} if invalid characters are found, {@code false} otherwise.
+     * @throws IllegalArgumentException if the input string is null.
+     */
+    private boolean containsInvalidABNFChars(final String value) {
+        if (value == null) {
+            throw new IllegalArgumentException("Input string should not be null.");
+        }
+
+        for (int i = 0; i < value.length(); i++) {
+            final char c = value.charAt(i);
+
+            // Check for control characters and DEL
+            if (c <= 0x1F || c == 0x7F) {
+                return true;
+            }
+
+            // Check for characters outside the range 0x20 to 0x7E
+            if (c > 0x7E) {
+                return true;
+            }
+
+            // Exclude double quotes and backslash
+            if (c == '"' || c == '\\') {
+                return true;
+            }
+        }
+        return false;
     }
 }

@@ -819,4 +819,91 @@ public class TestDigestScheme {
         final String response = table.get("response");
         Assertions.assertNotNull(response);
     }
+    @Test
+    public void testDigestAuthenticationWithInvalidUsernameAndValidUsernameStar() throws Exception {
+        final ClassicHttpRequest request = new BasicClassicHttpRequest("POST", "/");
+        final HttpHost host = new HttpHost("somehost", 80);
+        final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
+                .add(new AuthScope(host, "realm1", null), "invalid\"username", "password".toCharArray())
+                .build();
+
+        final String encodedUsername = "UTF-8''J%C3%A4s%C3%B8n%20Doe";
+        final String challenge = StandardAuthScheme.DIGEST + " realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\", " +
+                "qop=\"auth-int\", username*=\"" + encodedUsername + "\"";
+        final AuthChallenge authChallenge = parse(challenge);
+        final DigestScheme authscheme = new DigestScheme();
+        authscheme.processChallenge(authChallenge, null);
+
+        Assertions.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
+
+        final String authResponse = authscheme.generateAuthResponse(host, request, null);
+        Assertions.assertNotNull(authResponse);
+    }
+
+    @Test
+    public void testDigestAuthenticationWithHighAsciiCharInUsername() throws Exception {
+        final ClassicHttpRequest request = new BasicClassicHttpRequest("POST", "/");
+        final HttpHost host = new HttpHost("somehost", 80);
+        // Using a username with a high ASCII character
+        final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
+                .add(new AuthScope(host, "realm1", null), "high\u007Fchar", "password".toCharArray())
+                .build();
+
+        final String challenge = StandardAuthScheme.DIGEST + " realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\", qop=\"auth-int\"";
+        final AuthChallenge authChallenge = parse(challenge);
+        final DigestScheme authscheme = new DigestScheme();
+        authscheme.processChallenge(authChallenge, null);
+
+        Assertions.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
+        final String authResponse = authscheme.generateAuthResponse(host, request, null);
+
+        // Optionally, verify that 'username*' is used in the response
+        Assertions.assertTrue(authResponse.contains("username*"));
+    }
+
+
+    @Test
+    public void testDigestAuthenticationWithExtendedAsciiCharInUsername() throws Exception {
+        final ClassicHttpRequest request = new BasicClassicHttpRequest("POST", "/");
+        final HttpHost host = new HttpHost("somehost", 80);
+        // Using an extended ASCII character (e.g., 0x80) in the username
+        final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
+                .add(new AuthScope(host, "realm1", null), "username\u0080", "password".toCharArray())
+                .build();
+
+        final String challenge = StandardAuthScheme.DIGEST + " realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\", qop=\"auth-int\"";
+        final AuthChallenge authChallenge = parse(challenge);
+        final DigestScheme authscheme = new DigestScheme();
+        authscheme.processChallenge(authChallenge, null);
+
+        Assertions.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
+        final String authResponse = authscheme.generateAuthResponse(host, request, null);
+
+
+        Assertions.assertTrue(authResponse.contains("username*"));
+    }
+
+
+    @Test
+    public void testDigestAuthenticationWithNonAsciiUsername() throws Exception {
+        final ClassicHttpRequest request = new BasicClassicHttpRequest("POST", "/");
+        final HttpHost host = new HttpHost("somehost", 80);
+        // Using a username with non-ASCII characters
+        final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
+                .add(new AuthScope(host, "realm1", null), "Jäsøn Doe", "password".toCharArray())
+                .build();
+
+        final String challenge = StandardAuthScheme.DIGEST + " realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\", qop=\"auth-int\"";
+        final AuthChallenge authChallenge = parse(challenge);
+        final DigestScheme authscheme = new DigestScheme();
+        authscheme.processChallenge(authChallenge, null);
+
+        Assertions.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
+        final String authResponse = authscheme.generateAuthResponse(host, request, null);
+
+        // Optionally, verify that 'username*' is used in the response
+        Assertions.assertTrue(authResponse.contains("username*"));
+    }
+
+
 }
