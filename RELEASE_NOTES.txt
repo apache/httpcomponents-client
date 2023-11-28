@@ -1,4 +1,23 @@
-﻿Release 5.2.2
+﻿Release 5.2.3
+------------------
+
+This is a maintenance release that fixes a regression introduced in 5.2.2 that causes
+all requests over a TLS connection fail with a runtime exception and upgrades HttpCore
+to version 5.2.4.
+
+
+Change Log
+-------------------
+
+* Upgraded HttpCore to version 5.2.4.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2307: Fixed IllegalArgumentException (in java.net.Socket.<init>) 
+  in TLS mode when there is no proxy.
+  Contributed by Cédric Tabin <cedric.tabin at sai-erp.net>
+
+
+Release 5.2.2
 ------------------
 
 This is a maintenance release that fixes several minor defects found since release 5.2.1
