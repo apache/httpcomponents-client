@@ -74,22 +74,30 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 /**
  * Client protocol handling tests.
  */
-public class TestClientRequestExecution {
+public abstract class TestClientRequestExecution {
 
     public static final Timeout TIMEOUT = Timeout.ofMinutes(1);
 
     @RegisterExtension
-    private TestClientResources testResources = new TestClientResources(URIScheme.HTTP, TIMEOUT);
+    private TestClientResources testResources;
+
+    protected TestClientRequestExecution(final URIScheme scheme) {
+        this.testResources = new TestClientResources(scheme, TIMEOUT);
+    }
+
+    public URIScheme scheme() {
+        return testResources.scheme();
+    }
 
     public ClassicTestServer startServer() throws IOException {
         return testResources.startServer(null, null, null);
     }
 
-    public CloseableHttpClient startClient(final Consumer<HttpClientBuilder> clientCustomizer) {
+    public CloseableHttpClient startClient(final Consumer<HttpClientBuilder> clientCustomizer) throws Exception {
         return testResources.startClient(clientCustomizer);
     }
 
-    public CloseableHttpClient startClient() {
+    public CloseableHttpClient startClient() throws Exception {
         return testResources.startClient(builder -> {});
     }
 

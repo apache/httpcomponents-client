@@ -37,6 +37,7 @@ import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.classic.MinimalHttpClient;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
 import org.apache.hc.client5.testing.SSLTestContexts;
 import org.apache.hc.core5.function.Decorator;
 import org.apache.hc.core5.http.HttpHost;
@@ -98,6 +99,10 @@ public class TestClientResources implements BeforeEachCallback, AfterEachCallbac
         }
     }
 
+    public URIScheme scheme() {
+        return this.scheme;
+    }
+
     public ClassicTestServer startServer(
             final Http1Config http1Config,
             final HttpProcessor httpProcessor,
@@ -114,11 +119,12 @@ public class TestClientResources implements BeforeEachCallback, AfterEachCallbac
 
     public CloseableHttpClient startClient(
             final Consumer<PoolingHttpClientConnectionManagerBuilder> connManagerCustomizer,
-            final Consumer<HttpClientBuilder> clientCustomizer) {
+            final Consumer<HttpClientBuilder> clientCustomizer) throws Exception {
         Assertions.assertNull(connManager);
         Assertions.assertNull(client);
 
         final PoolingHttpClientConnectionManagerBuilder connManagerBuilder = PoolingHttpClientConnectionManagerBuilder.create();
+        connManagerBuilder.setSSLSocketFactory(new SSLConnectionSocketFactory(SSLTestContexts.createClientSSLContext()));
         connManagerBuilder.setDefaultSocketConfig(SocketConfig.custom()
                 .setSoTimeout(timeout)
                 .build());
@@ -136,11 +142,12 @@ public class TestClientResources implements BeforeEachCallback, AfterEachCallbac
         return client;
     }
 
-    public MinimalHttpClient startMinimalClient() {
+    public MinimalHttpClient startMinimalClient() throws Exception {
         Assertions.assertNull(connManager);
         Assertions.assertNull(client);
 
         final PoolingHttpClientConnectionManagerBuilder connManagerBuilder = PoolingHttpClientConnectionManagerBuilder.create();
+        connManagerBuilder.setSSLSocketFactory(new SSLConnectionSocketFactory(SSLTestContexts.createClientSSLContext()));
         connManagerBuilder.setDefaultSocketConfig(SocketConfig.custom()
                 .setSoTimeout(timeout)
                 .build());
@@ -155,7 +162,7 @@ public class TestClientResources implements BeforeEachCallback, AfterEachCallbac
     }
 
     public CloseableHttpClient startClient(
-            final Consumer<HttpClientBuilder> clientCustomizer) {
+            final Consumer<HttpClientBuilder> clientCustomizer) throws Exception {
         return startClient(b -> {}, clientCustomizer);
     }
 

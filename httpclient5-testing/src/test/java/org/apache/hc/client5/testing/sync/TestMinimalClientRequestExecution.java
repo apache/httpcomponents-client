@@ -56,13 +56,20 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 /**
  * Client protocol handling tests.
  */
-public class TestMinimalClientRequestExecution {
+public abstract class TestMinimalClientRequestExecution {
 
     public static final Timeout TIMEOUT = Timeout.ofMinutes(1);
 
     @RegisterExtension
-    private TestClientResources testResources = new TestClientResources(URIScheme.HTTP, TIMEOUT);
+    private TestClientResources testResources;
 
+    protected TestMinimalClientRequestExecution(final URIScheme scheme) {
+        this.testResources = new TestClientResources(scheme, TIMEOUT);
+    }
+
+    public URIScheme scheme() {
+        return testResources.scheme();
+    }
     private static class SimpleService implements HttpRequestHandler {
 
         public SimpleService() {

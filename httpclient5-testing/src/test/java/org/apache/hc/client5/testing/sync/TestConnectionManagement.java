@@ -76,7 +76,7 @@ public class TestConnectionManagement {
         return testResources.startServer(null, null, null);
     }
 
-    public CloseableHttpClient startClient() {
+    public CloseableHttpClient startClient() throws Exception {
         return testResources.startClient(b -> {}, b -> {});
     }
 

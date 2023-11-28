@@ -99,12 +99,20 @@ import org.mockito.Mockito;
 /**
  * Unit tests for automatic client authentication.
  */
-public class TestClientAuthentication {
+public abstract class TestClientAuthentication {
 
     public static final Timeout TIMEOUT = Timeout.ofMinutes(1);
 
     @RegisterExtension
-    private TestClientResources testResources = new TestClientResources(URIScheme.HTTP, TIMEOUT);
+    private TestClientResources testResources;
+
+    protected TestClientAuthentication(final URIScheme scheme) {
+        this.testResources = new TestClientResources(scheme, TIMEOUT);
+    }
+
+    public URIScheme scheme() {
+        return testResources.scheme();
+    }
 
     public ClassicTestServer startServer(final Authenticator authenticator) throws IOException {
         return testResources.startServer(
@@ -117,11 +125,11 @@ public class TestClientAuthentication {
         return startServer(new BasicTestAuthenticator("test:test", "test realm"));
     }
 
-    public CloseableHttpClient startClient(final Consumer<HttpClientBuilder> clientCustomizer) {
+    public CloseableHttpClient startClient(final Consumer<HttpClientBuilder> clientCustomizer) throws Exception {
         return testResources.startClient(clientCustomizer);
     }
 
-    public CloseableHttpClient startClient() {
+    public CloseableHttpClient startClient() throws Exception {
         return testResources.startClient(builder -> {});
     }
 

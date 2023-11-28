@@ -81,23 +81,31 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 /**
  * Redirection test cases.
  */
-public class TestRedirects {
+public abstract class TestRedirects {
 
     public static final Timeout TIMEOUT = Timeout.ofMinutes(1);
 
     @RegisterExtension
-    private TestClientResources testResources = new TestClientResources(URIScheme.HTTP, TIMEOUT);
+    private TestClientResources testResources;
+
+    protected TestRedirects(final URIScheme scheme) {
+        this.testResources = new TestClientResources(scheme, TIMEOUT);
+    }
+
+    public URIScheme scheme() {
+        return testResources.scheme();
+    }
 
     public ClassicTestServer startServer(final HttpProcessor httpProcessor,
                                          final Decorator<HttpServerRequestHandler> handlerDecorator) throws IOException {
         return testResources.startServer(null, httpProcessor, handlerDecorator);
     }
 
-    public CloseableHttpClient startClient(final Consumer<HttpClientBuilder> clientCustomizer) {
+    public CloseableHttpClient startClient(final Consumer<HttpClientBuilder> clientCustomizer) throws Exception {
         return testResources.startClient(clientCustomizer);
     }
 
-    public CloseableHttpClient startClient() {
+    public CloseableHttpClient startClient() throws Exception {
         return testResources.startClient(builder -> {});
     }
 
