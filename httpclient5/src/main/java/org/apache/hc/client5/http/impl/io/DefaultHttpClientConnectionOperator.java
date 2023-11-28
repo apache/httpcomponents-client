@@ -149,7 +149,7 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
 
         final Timeout soTimeout = socketConfig.getSoTimeout();
         final SocketAddress socksProxyAddress = socketConfig.getSocksProxyAddress();
-        final Proxy proxy = socksProxyAddress != null ? new Proxy(Proxy.Type.SOCKS, socksProxyAddress) : null;
+        final Proxy proxy = socksProxyAddress == null ? Proxy.NO_PROXY : new Proxy(Proxy.Type.SOCKS, socksProxyAddress);
         final int port = this.schemePortResolver.resolve(host);
         for (int i = 0; i < remoteAddresses.length; i++) {
             final InetAddress address = remoteAddresses[i];
