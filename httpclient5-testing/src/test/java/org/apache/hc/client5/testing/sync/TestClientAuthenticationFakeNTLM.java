@@ -68,11 +68,11 @@ public class TestClientAuthenticationFakeNTLM {
         return testResources.startServer(null, null, null);
     }
 
-    public CloseableHttpClient startClient(final Consumer<HttpClientBuilder> clientCustomizer) {
+    public CloseableHttpClient startClient(final Consumer<HttpClientBuilder> clientCustomizer) throws Exception {
         return testResources.startClient(clientCustomizer);
     }
 
-    public CloseableHttpClient startClient() {
+    public CloseableHttpClient startClient() throws Exception {
         return testResources.startClient(builder -> {});
     }
 
