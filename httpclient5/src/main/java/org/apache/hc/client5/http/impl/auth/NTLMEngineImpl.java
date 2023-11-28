@@ -161,7 +161,7 @@ final class NTLMEngineImpl implements NTLMEngine {
             final String host, final String domain) throws NTLMEngineException {
 
         final String response;
-        if (message == null || message.trim().equals("")) {
+        if (message == null || message.trim().isEmpty()) {
             response = getType1Message(host, domain);
         } else {
             final Type2Message t2m = new Type2Message(message);
@@ -190,7 +190,7 @@ final class NTLMEngineImpl implements NTLMEngine {
             final String host, final String domain, final Certificate peerServerCertificate) throws NTLMEngineException {
 
         final String response;
-        if (message == null || message.trim().equals("")) {
+        if (message == null || message.trim().isEmpty()) {
             response = new Type1Message(host, domain).getResponse();
         } else {
             final Type1Message t1m = new Type1Message(host, domain);
