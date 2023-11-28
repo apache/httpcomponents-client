@@ -29,6 +29,7 @@ package org.apache.hc.client5.http.impl.io;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.net.Socket;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -274,7 +275,7 @@ public class TestPoolingHttpClientConnectionManager {
 
         Mockito.verify(dnsResolver, Mockito.times(1)).resolve("somehost");
         Mockito.verify(schemePortResolver, Mockito.times(1)).resolve(target);
-        Mockito.verify(plainSocketFactory, Mockito.times(1)).createSocket(null, context);
+        Mockito.verify(plainSocketFactory, Mockito.times(1)).createSocket(Proxy.NO_PROXY, context);
         Mockito.verify(plainSocketFactory, Mockito.times(1)).connectSocket(
                 socket,
                 target,
@@ -288,7 +289,7 @@ public class TestPoolingHttpClientConnectionManager {
 
         Mockito.verify(dnsResolver, Mockito.times(2)).resolve("somehost");
         Mockito.verify(schemePortResolver, Mockito.times(2)).resolve(target);
-        Mockito.verify(plainSocketFactory, Mockito.times(2)).createSocket(null, context);
+        Mockito.verify(plainSocketFactory, Mockito.times(2)).createSocket(Proxy.NO_PROXY, context);
         Mockito.verify(plainSocketFactory, Mockito.times(1)).connectSocket(
                 socket,
                 target,
@@ -359,7 +360,7 @@ public class TestPoolingHttpClientConnectionManager {
 
         Mockito.verify(dnsResolver, Mockito.times(1)).resolve("someproxy");
         Mockito.verify(schemePortResolver, Mockito.times(1)).resolve(proxy);
-        Mockito.verify(plainsf, Mockito.times(1)).createSocket(null, context);
+        Mockito.verify(plainsf, Mockito.times(1)).createSocket(Proxy.NO_PROXY, context);
         Mockito.verify(plainsf, Mockito.times(1)).connectSocket(
                 mockSock,
                 proxy,
