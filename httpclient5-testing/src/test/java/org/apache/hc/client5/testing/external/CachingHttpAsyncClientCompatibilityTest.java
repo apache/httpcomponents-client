@@ -35,13 +35,12 @@ import java.util.concurrent.TimeoutException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.net.ssl.SSLContext;
-
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
-import org.apache.hc.client5.http.async.methods.SimpleHttpRequests;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
+import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
 import org.apache.hc.client5.http.cache.CacheResponseStatus;
 import org.apache.hc.client5.http.cache.HttpCacheContext;
+import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.cache.CacheConfig;
 import org.apache.hc.client5.http.impl.cache.CachingHttpAsyncClients;
@@ -88,17 +87,20 @@ public class CachingHttpAsyncClientCompatibilityTest {
     CachingHttpAsyncClientCompatibilityTest(final HttpVersion protocolVersion, final HttpHost target) throws Exception {
         this.protocolVersion = protocolVersion;
         this.target = target;
-        final SSLContext sslContext = SSLContexts.custom()
-                .loadTrustMaterial(getClass().getResource("/test-ca.keystore"), "nopassword".toCharArray()).build();
         this.connManager = PoolingAsyncClientConnectionManagerBuilder.create()
-                .setTlsStrategy(new DefaultClientTlsStrategy(sslContext))
+                .setTlsStrategy(new DefaultClientTlsStrategy(SSLContexts.custom()
+                        .loadTrustMaterial(getClass().getResource("/test-ca.keystore"), "nopassword".toCharArray())
+                        .build()))
+                .setDefaultTlsConfig(TlsConfig.custom()
+                        .setVersionPolicy(this.protocolVersion == HttpVersion.HTTP_2 ?
+                                HttpVersionPolicy.FORCE_HTTP_2 : HttpVersionPolicy.FORCE_HTTP_1)
+                        .build())
                 .build();
         this.client = CachingHttpAsyncClients.custom()
                 .setCacheConfig(CacheConfig.custom()
                         .setMaxObjectSize(20480)
                         .build())
                 .setResourceFactory(HeapResourceFactory.INSTANCE)
-                .setVersionPolicy(this.protocolVersion == HttpVersion.HTTP_2 ? HttpVersionPolicy.FORCE_HTTP_2 : HttpVersionPolicy.FORCE_HTTP_1)
                 .setConnectionManager(this.connManager)
                 .build();
     }
@@ -122,7 +124,7 @@ public class CachingHttpAsyncClientCompatibilityTest {
         if (message != null && !TextUtils.isBlank(message)) {
             buf.append(" -> ").append(message);
         }
-        System.out.println(buf.toString());
+        System.out.println(buf);
     }
 
     void execute() throws Exception {
@@ -131,7 +133,10 @@ public class CachingHttpAsyncClientCompatibilityTest {
         // Initial ping
         {
             final HttpCacheContext context = HttpCacheContext.create();
-            final SimpleHttpRequest options = SimpleHttpRequests.options(target, "*");
+            final SimpleHttpRequest options = SimpleRequestBuilder.options()
+                    .setHttpHost(target)
+                    .setPath("*")
+                    .build();
             final Future<SimpleHttpResponse> future = client.execute(options, context, null);
             try {
                 final SimpleHttpResponse response = future.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
@@ -155,7 +160,10 @@ public class CachingHttpAsyncClientCompatibilityTest {
 
             final Pattern linkPattern = Pattern.compile("^<(.*)>;rel=preload$");
             final List<String> links = new ArrayList<>();
-            final SimpleHttpRequest getRoot1 = SimpleHttpRequests.get(target, "/");
+            final SimpleHttpRequest getRoot1 = SimpleRequestBuilder.get()
+                    .setHttpHost(target)
+                    .setPath("/")
+                    .build();
             final Future<SimpleHttpResponse> future1 = client.execute(getRoot1, context, null);
             try {
                 final SimpleHttpResponse response = future1.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
@@ -179,7 +187,10 @@ public class CachingHttpAsyncClientCompatibilityTest {
                 logResult(TestResult.NOK, getRoot1, "(time out)");
             }
             for (final String link: links) {
-                final SimpleHttpRequest getLink = SimpleHttpRequests.get(target, link);
+                final SimpleHttpRequest getLink = SimpleRequestBuilder.get()
+                        .setHttpHost(target)
+                        .setPath(link)
+                        .build();
                 final Future<SimpleHttpResponse> linkFuture = client.execute(getLink, context, null);
                 try {
                     final SimpleHttpResponse response = linkFuture.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
@@ -198,7 +209,10 @@ public class CachingHttpAsyncClientCompatibilityTest {
                 }
             }
 
-            final SimpleHttpRequest getRoot2 = SimpleHttpRequests.get(target, "/");
+            final SimpleHttpRequest getRoot2 = SimpleRequestBuilder.get()
+                    .setHttpHost(target)
+                    .setPath("/")
+                    .build();
             final Future<SimpleHttpResponse> future2 = client.execute(getRoot2, context, null);
             try {
                 final SimpleHttpResponse response = future2.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
@@ -216,7 +230,10 @@ public class CachingHttpAsyncClientCompatibilityTest {
                 logResult(TestResult.NOK, getRoot2, "(time out)");
             }
             for (final String link: links) {
-                final SimpleHttpRequest getLink = SimpleHttpRequests.get(target, link);
+                final SimpleHttpRequest getLink = SimpleRequestBuilder.get()
+                        .setHttpHost(target)
+                        .setPath(link)
+                        .build();
                 final Future<SimpleHttpResponse> linkFuture = client.execute(getLink, context, null);
                 try {
                     final SimpleHttpResponse response = linkFuture.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());

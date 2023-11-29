@@ -36,20 +36,18 @@ import org.apache.hc.client5.http.RouteInfo.LayerType;
 import org.apache.hc.client5.http.RouteInfo.TunnelType;
 import org.apache.hc.client5.http.auth.AuthExchange;
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
-import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.Credentials;
+import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.DefaultAuthenticationStrategy;
+import org.apache.hc.client5.http.impl.DefaultClientConnectionReuseStrategy;
 import org.apache.hc.client5.http.impl.TunnelRefusedException;
 import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
 import org.apache.hc.client5.http.impl.auth.BasicSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.DigestSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.HttpAuthenticator;
-import org.apache.hc.client5.http.impl.auth.KerberosSchemeFactory;
-import org.apache.hc.client5.http.impl.auth.NTLMSchemeFactory;
-import org.apache.hc.client5.http.impl.auth.SPNegoSchemeFactory;
 import org.apache.hc.client5.http.impl.io.ManagedHttpClientConnectionFactory;
 import org.apache.hc.client5.http.io.ManagedHttpClientConnection;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
@@ -61,11 +59,11 @@ import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.config.CharCodingConfig;
 import org.apache.hc.core5.http.config.Http1Config;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.config.RegistryBuilder;
-import org.apache.hc.core5.http.impl.DefaultConnectionReuseStrategy;
 import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
 import org.apache.hc.core5.http.io.HttpConnectionFactory;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
@@ -104,7 +102,12 @@ public class ProxyClient {
             final CharCodingConfig charCodingConfig,
             final RequestConfig requestConfig) {
         super();
-        this.connFactory = connFactory != null ? connFactory : new ManagedHttpClientConnectionFactory(h1Config, charCodingConfig, null, null);
+        this.connFactory = connFactory != null
+                ? connFactory
+                : ManagedHttpClientConnectionFactory.builder()
+                .http1Config(h1Config)
+                .charCodingConfig(charCodingConfig)
+                .build();
         this.requestConfig = requestConfig != null ? requestConfig : RequestConfig.DEFAULT;
         this.httpProcessor = new DefaultHttpProcessor(
                 new RequestTargetHost(), new RequestClientConnControl(), new RequestUserAgent());
@@ -115,11 +118,8 @@ public class ProxyClient {
         this.authSchemeRegistry = RegistryBuilder.<AuthSchemeFactory>create()
                 .register(StandardAuthScheme.BASIC, BasicSchemeFactory.INSTANCE)
                 .register(StandardAuthScheme.DIGEST, DigestSchemeFactory.INSTANCE)
-                .register(StandardAuthScheme.NTLM, NTLMSchemeFactory.INSTANCE)
-                .register(StandardAuthScheme.SPNEGO, SPNegoSchemeFactory.DEFAULT)
-                .register(StandardAuthScheme.KERBEROS, KerberosSchemeFactory.DEFAULT)
                 .build();
-        this.reuseStrategy = new DefaultConnectionReuseStrategy();
+        this.reuseStrategy = DefaultClientConnectionReuseStrategy.INSTANCE;
     }
 
     /**
@@ -153,7 +153,7 @@ public class ProxyClient {
         final HttpContext context = new BasicHttpContext();
         ClassicHttpResponse response;
 
-        final ClassicHttpRequest connect = new BasicClassicHttpRequest("CONNECT", host.toHostString());
+        final ClassicHttpRequest connect = new BasicClassicHttpRequest(Method.CONNECT, proxy, host.toHostString());
 
         final BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
         credsProvider.setCredentials(new AuthScope(proxy), credentials);

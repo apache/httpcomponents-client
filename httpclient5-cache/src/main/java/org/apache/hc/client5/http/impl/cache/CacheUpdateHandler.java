@@ -26,7 +26,7 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -36,7 +36,6 @@ import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.Resource;
 import org.apache.hc.client5.http.cache.ResourceFactory;
 import org.apache.hc.client5.http.cache.ResourceIOException;
-import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpRequest;
@@ -66,12 +65,12 @@ class CacheUpdateHandler {
     /**
      * Creates a cache entry for the given request, origin response message and response content.
      */
-    public HttpCacheEntry createtCacheEntry(
+    public HttpCacheEntry createCacheEntry(
             final HttpRequest request,
             final HttpResponse originResponse,
             final ByteArrayBuffer content,
-            final Date requestSent,
-            final Date responseReceived) throws ResourceIOException {
+            final Instant requestSent,
+            final Instant responseReceived) throws ResourceIOException {
         return new HttpCacheEntry(
                 requestSent,
                 responseReceived,
@@ -87,8 +86,8 @@ class CacheUpdateHandler {
     public HttpCacheEntry updateCacheEntry(
             final String requestId,
             final HttpCacheEntry entry,
-            final Date requestDate,
-            final Date responseDate,
+            final Instant requestDate,
+            final Instant responseDate,
             final HttpResponse response) throws ResourceIOException {
         Args.check(response.getCode() == HttpStatus.SC_NOT_MODIFIED,
                 "Response must have 304 status code");
@@ -104,7 +103,7 @@ class CacheUpdateHandler {
                 mergedHeaders,
                 resource);
     }
-
+    @SuppressWarnings("deprecation")
     public HttpCacheEntry updateParentCacheEntry(
             final String requestId,
             final HttpCacheEntry existing,
@@ -123,8 +122,8 @@ class CacheUpdateHandler {
         final Map<String,String> variantMap = new HashMap<>(src.getVariantMap());
         variantMap.put(variantKey, variantCacheKey);
         return new HttpCacheEntry(
-                src.getRequestDate(),
-                src.getResponseDate(),
+                src.getRequestInstant(),
+                src.getResponseInstant(),
                 src.getStatus(),
                 src.getHeaders(),
                 resource,
@@ -132,7 +131,7 @@ class CacheUpdateHandler {
     }
 
     private Header[] mergeHeaders(final HttpCacheEntry entry, final HttpResponse response) {
-        if (DateUtils.isAfter(entry, response, HttpHeaders.DATE)) {
+        if (DateSupport.isAfter(entry, response, HttpHeaders.DATE)) {
             return entry.getHeaders();
         }
         final HeaderGroup headerGroup = new HeaderGroup();
@@ -141,7 +140,8 @@ class CacheUpdateHandler {
         for (final Iterator<Header> it = response.headerIterator(); it.hasNext(); ) {
             final Header responseHeader = it.next();
             // Since we do not expect a content in a 304 response, should retain the original Content-Encoding header
-            if (HttpHeaders.CONTENT_ENCODING.equals(responseHeader.getName())) {
+            if (HttpHeaders.CONTENT_ENCODING.equals(responseHeader.getName())
+                    || HttpHeaders.CONTENT_LENGTH.equals(responseHeader.getName())) {
                 continue;
             }
             headerGroup.removeHeaders(responseHeader.getName());
@@ -159,7 +159,8 @@ class CacheUpdateHandler {
         for (final Iterator<Header> it = response.headerIterator(); it.hasNext(); ) {
             final Header responseHeader = it.next();
             // Since we do not expect a content in a 304 response, should update the cache entry with Content-Encoding
-            if (HttpHeaders.CONTENT_ENCODING.equals(responseHeader.getName())) {
+            if (HttpHeaders.CONTENT_ENCODING.equals(responseHeader.getName())
+                    || HttpHeaders.CONTENT_LENGTH.equals(responseHeader.getName())) {
                 continue;
             }
             headerGroup.addHeader(responseHeader);

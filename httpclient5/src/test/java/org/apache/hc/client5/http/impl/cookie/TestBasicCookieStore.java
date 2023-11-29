@@ -31,13 +31,14 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.Calendar;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import org.apache.hc.client5.http.cookie.BasicCookieStore;
 import org.apache.hc.client5.http.cookie.Cookie;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for {@link BasicCookieStore}.
@@ -50,14 +51,14 @@ public class TestBasicCookieStore {
         store.addCookie(new BasicClientCookie("name1", "value1"));
         store.addCookies(new BasicClientCookie[] {new BasicClientCookie("name2", "value2")});
         List<Cookie> list = store.getCookies();
-        Assert.assertNotNull(list);
-        Assert.assertEquals(2, list.size());
-        Assert.assertEquals("name1", list.get(0).getName());
-        Assert.assertEquals("name2", list.get(1).getName());
+        Assertions.assertNotNull(list);
+        Assertions.assertEquals(2, list.size());
+        Assertions.assertEquals("name1", list.get(0).getName());
+        Assertions.assertEquals("name2", list.get(1).getName());
         store.clear();
         list = store.getCookies();
-        Assert.assertNotNull(list);
-        Assert.assertEquals(0, list.size());
+        Assertions.assertNotNull(list);
+        Assertions.assertEquals(0, list.size());
     }
 
     @Test
@@ -65,13 +66,12 @@ public class TestBasicCookieStore {
         final BasicCookieStore store = new BasicCookieStore();
         final BasicClientCookie cookie = new BasicClientCookie("name1", "value1");
 
-        final Calendar c = Calendar.getInstance();
-        c.add(Calendar.DAY_OF_YEAR, -10);
-        cookie.setExpiryDate(c.getTime());
+        final Instant  minus_10_days = Instant.now().minus(10, ChronoUnit.DAYS);
+        cookie.setExpiryDate(minus_10_days);
         store.addCookie(cookie);
         final List<Cookie> list = store.getCookies();
-        Assert.assertNotNull(list);
-        Assert.assertEquals(0, list.size());
+        Assertions.assertNotNull(list);
+        Assertions.assertEquals(0, list.size());
     }
 
     @Test
@@ -89,12 +89,12 @@ public class TestBasicCookieStore {
         final BasicCookieStore clone = (BasicCookieStore) inStream.readObject();
         final List<Cookie> expected = orig.getCookies();
         final List<Cookie> clones = clone.getCookies();
-        Assert.assertNotNull(expected);
-        Assert.assertNotNull(clones);
-        Assert.assertEquals(expected.size(), clones.size());
+        Assertions.assertNotNull(expected);
+        Assertions.assertNotNull(clones);
+        Assertions.assertEquals(expected.size(), clones.size());
         for (int i = 0; i < expected.size(); i++) {
-            Assert.assertEquals(expected.get(i).getName(), clones.get(i).getName());
-            Assert.assertEquals(expected.get(i).getValue(), clones.get(i).getValue());
+            Assertions.assertEquals(expected.get(i).getName(), clones.get(i).getName());
+            Assertions.assertEquals(expected.get(i).getValue(), clones.get(i).getValue());
         }
     }
 

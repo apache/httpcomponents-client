@@ -28,7 +28,9 @@ package org.apache.hc.client5.http.fluent;
 
 import java.io.IOException;
 
+import org.apache.hc.client5.http.HttpResponseException;
 import org.apache.hc.client5.http.impl.classic.AbstractHttpClientResponseHandler;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
@@ -39,10 +41,15 @@ import org.apache.hc.core5.http.io.entity.EntityUtils;
  * to {@link Content} instances.
  *
  * @see Content
- *
  * @since 4.4
  */
 public class ContentResponseHandler extends AbstractHttpClientResponseHandler<Content> {
+
+
+    /**
+     * The maximum length of the exception message, to avoid excessive memory usage.
+     */
+    private static final int MAX_MESSAGE_LENGTH = 256;
 
     @Override
     public Content handleEntity(final HttpEntity entity) throws IOException {
@@ -51,4 +58,26 @@ public class ContentResponseHandler extends AbstractHttpClientResponseHandler<Co
                 Content.NO_CONTENT;
     }
 
+    /**
+     * Handles a successful response (2xx status code) and returns the response entity as a {@link Content} object.
+     * If no response entity exists, {@link Content#NO_CONTENT} is returned.
+     *
+     * @param response the HTTP response.
+     * @return a {@link Content} object that encapsulates the response body, or {@link Content#NO_CONTENT} if the
+     * response body is {@code null} or has zero length.
+     * @throws HttpResponseException if the response was unsuccessful (status code greater than 300).
+     * @throws IOException           if an I/O error occurs.
+     */
+    @Override
+    public Content handleResponse(final ClassicHttpResponse response) throws IOException {
+        final int statusCode = response.getCode();
+        final HttpEntity entity = response.getEntity();
+        final byte[] contentBytes = (entity != null) ? EntityUtils.toByteArray(entity, MAX_MESSAGE_LENGTH) : new byte[0];
+        final ContentType contentType = (entity != null && entity.getContentType() != null) ? ContentType.parse(entity.getContentType()) : ContentType.DEFAULT_BINARY;
+        final Content content = new Content(contentBytes, contentType);
+        if (statusCode >= 300) {
+            throw new HttpResponseException(statusCode, response.getReasonPhrase(), contentBytes, contentType);
+        }
+        return content;
+    }
 }

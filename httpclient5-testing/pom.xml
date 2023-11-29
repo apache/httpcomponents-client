@@ -23,24 +23,26 @@
    individuals on behalf of the Apache Software Foundation.  For more
    information on the Apache Software Foundation, please see
    <http://www.apache.org />.
- --><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+ --><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.apache.httpcomponents.client5</groupId>
     <artifactId>httpclient5-parent</artifactId>
-    <version>5.0.1-SNAPSHOT</version>
+    <version>5.3-alpha2-SNAPSHOT</version>
   </parent>
   <artifactId>httpclient5-testing</artifactId>
   <name>Apache HttpClient Integration Tests</name>
   <description>Apache HttpClient integration tests</description>
-  <url>http://hc.apache.org/httpcomponents-client</url>
   <packaging>jar</packaging>
+
+  <properties>
+    <Automatic-Module-Name>org.apache.httpcomponents.client5.httpclient5.testing</Automatic-Module-Name>
+  </properties>
 
   <dependencies>
     <dependency>
       <groupId>org.apache.httpcomponents.core5</groupId>
       <artifactId>httpcore5-testing</artifactId>
-      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.httpcomponents.core5</groupId>
@@ -50,47 +52,40 @@
     <dependency>
       <groupId>org.apache.httpcomponents.client5</groupId>
       <artifactId>httpclient5</artifactId>
-      <version>${project.version}</version>
-      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
-      <scope>compile</scope>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-slf4j-impl</artifactId>
-      <scope>compile</scope>
       <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-core</artifactId>
-      <scope>compile</scope>
       <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>org.apache.httpcomponents.client5</groupId>
       <artifactId>httpclient5-cache</artifactId>
-      <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.httpcomponents.client5</groupId>
       <artifactId>httpclient5-fluent</artifactId>
-      <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.apache.httpcomponents.client5</groupId>
-      <artifactId>httpclient5-win</artifactId>
-      <version>${project.version}</version>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -101,42 +96,19 @@
     <dependency>
       <groupId>io.reactivex.rxjava2</groupId>
       <artifactId>rxjava</artifactId>
-      <version>${rxjava.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
 
   <reporting>
     <plugins>
-
-      <plugin>
-        <artifactId>maven-javadoc-plugin</artifactId>
-        <configuration>
-          <!-- reduce console output. Can override with -Dquiet=false -->
-          <quiet>true</quiet>
-          <source>${maven.compiler.source}</source>
-          <links>
-            <link>http://docs.oracle.com/javase/7/docs/api/</link>
-            <link>http://hc.apache.org/httpcomponents-core-5.0.x/httpcore5/apidocs/</link>
-            <link>http://hc.apache.org/httpcomponents-core-5.0.x/httpcore5-h2/apidocs/</link>
-            <link>http://hc.apache.org/httpcomponents-client-5.0.x/httpclient5/apidocs/</link>
-          </links>
-        </configuration>
-        <reportSets>
-          <reportSet>
-            <reports>
-              <report>javadoc</report>
-            </reports>
-          </reportSet>
-        </reportSets>
-      </plugin>
-
       <plugin>
         <artifactId>maven-project-info-reports-plugin</artifactId>
         <inherited>false</inherited>
         <reportSets>
           <reportSet>
             <reports>
+              <report>index</report>
               <report>dependencies</report>
               <report>dependency-info</report>
               <report>summary</report>
@@ -144,7 +116,6 @@
           </reportSet>
         </reportSets>
       </plugin>
-
     </plugins>
   </reporting>
 

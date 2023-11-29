@@ -41,6 +41,7 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.ProtocolException;
+import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.protocol.HttpContext;
 
 /**
@@ -66,6 +67,7 @@ public class DefaultRoutePlanner implements HttpRoutePlanner {
         }
         final HttpClientContext clientContext = HttpClientContext.adapt(context);
         final RequestConfig config = clientContext.getRequestConfig();
+        @SuppressWarnings("deprecation")
         HttpHost proxy = config.getProxy();
         if (proxy == null) {
             proxy = determineProxy(host, context);
@@ -74,7 +76,7 @@ public class DefaultRoutePlanner implements HttpRoutePlanner {
         if (target.getPort() < 0) {
             throw new ProtocolException("Unroutable protocol scheme: " + target);
         }
-        final boolean secure = target.getSchemeName().equalsIgnoreCase("https");
+        final boolean secure = target.getSchemeName().equalsIgnoreCase(URIScheme.HTTPS.getId());
         if (proxy == null) {
             return new HttpRoute(target, determineLocalAddress(target, context), secure);
         }

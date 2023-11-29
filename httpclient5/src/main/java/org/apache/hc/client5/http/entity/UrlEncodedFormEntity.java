@@ -32,7 +32,7 @@ import java.util.List;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.http.io.entity.StringEntity;
-import org.apache.hc.core5.net.URLEncodedUtils;
+import org.apache.hc.core5.net.WWWFormCodec;
 
 /**
  * An entity composed of a list of url-encoded pairs.
@@ -54,7 +54,7 @@ public class UrlEncodedFormEntity extends StringEntity {
     public UrlEncodedFormEntity(
             final Iterable<? extends NameValuePair> parameters,
             final Charset charset) {
-        super(URLEncodedUtils.format(
+        super(WWWFormCodec.format(
                 parameters,
                 charset != null ? charset : ContentType.APPLICATION_FORM_URLENCODED.getCharset()),
                 charset != null ? ContentType.APPLICATION_FORM_URLENCODED.withCharset(charset) : ContentType.APPLICATION_FORM_URLENCODED);

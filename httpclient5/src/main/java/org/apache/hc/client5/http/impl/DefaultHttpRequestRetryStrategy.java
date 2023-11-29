@@ -30,10 +30,11 @@ package org.apache.hc.client5.http.impl;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.net.ConnectException;
+import java.net.NoRouteToHostException;
 import java.net.UnknownHostException;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -106,6 +107,7 @@ public class DefaultHttpRequestRetryStrategy implements HttpRequestRetryStrategy
      * <li>UnknownHostException</li>
      * <li>ConnectException</li>
      * <li>ConnectionClosedException</li>
+     * <li>NoRouteToHostException</li>
      * <li>SSLException</li>
      * </ul>
      *
@@ -129,6 +131,7 @@ public class DefaultHttpRequestRetryStrategy implements HttpRequestRetryStrategy
                         UnknownHostException.class,
                         ConnectException.class,
                         ConnectionClosedException.class,
+                        NoRouteToHostException.class,
                         SSLException.class),
                 Arrays.asList(
                         HttpStatus.SC_TOO_MANY_REQUESTS,
@@ -211,10 +214,10 @@ public class DefaultHttpRequestRetryStrategy implements HttpRequestRetryStrategy
             try {
                 retryAfter = TimeValue.ofSeconds(Long.parseLong(value));
             } catch (final NumberFormatException ignore) {
-                final Date retryAfterDate = DateUtils.parseDate(value);
+                final Instant retryAfterDate = DateUtils.parseStandardDate(value);
                 if (retryAfterDate != null) {
                     retryAfter =
-                            TimeValue.ofMilliseconds(retryAfterDate.getTime() - System.currentTimeMillis());
+                            TimeValue.ofMilliseconds(retryAfterDate.toEpochMilli() - System.currentTimeMillis());
                 }
             }
 

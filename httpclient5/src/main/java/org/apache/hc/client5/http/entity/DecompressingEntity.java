@@ -47,6 +47,7 @@ public class DecompressingEntity extends HttpEntityWrapper {
     private static final int BUFFER_SIZE = 1024 * 2;
 
     private final InputStreamFactory inputStreamFactory;
+
     /**
      * {@link #getContent()} method must return the same {@link InputStream}
      * instance when DecompressingEntity is wrapping a streaming entity.
@@ -54,7 +55,7 @@ public class DecompressingEntity extends HttpEntityWrapper {
     private InputStream content;
 
     /**
-     * Creates a new {@link DecompressingEntity}.
+     * Constructs a new {@link DecompressingEntity}.
      *
      * @param wrapped the non-null {@link HttpEntity} to be wrapped
      * @param inputStreamFactory factory to create decompressing stream.

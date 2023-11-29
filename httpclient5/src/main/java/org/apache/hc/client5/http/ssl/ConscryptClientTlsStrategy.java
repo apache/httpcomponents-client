@@ -38,7 +38,6 @@ import javax.net.ssl.SSLParameters;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
-import org.apache.hc.core5.http2.ssl.H2TlsSupport;
 import org.apache.hc.core5.reactor.ssl.SSLBufferMode;
 import org.apache.hc.core5.reactor.ssl.TlsDetails;
 import org.apache.hc.core5.ssl.SSLContexts;
@@ -77,13 +76,13 @@ public class ConscryptClientTlsStrategy extends AbstractClientTlsStrategy {
     }
 
     public ConscryptClientTlsStrategy(
-            final SSLContext sslcontext,
+            final SSLContext sslContext,
             final HostnameVerifier hostnameVerifier) {
-        this(sslcontext, null, null, SSLBufferMode.STATIC, hostnameVerifier);
+        this(sslContext, null, null, SSLBufferMode.STATIC, hostnameVerifier);
     }
 
-    public ConscryptClientTlsStrategy(final SSLContext sslcontext) {
-        this(sslcontext, HttpsSupport.getDefaultHostnameVerifier());
+    public ConscryptClientTlsStrategy(final SSLContext sslContext) {
+        this(sslContext, HttpsSupport.getDefaultHostnameVerifier());
     }
 
     @Override
@@ -92,7 +91,7 @@ public class ConscryptClientTlsStrategy extends AbstractClientTlsStrategy {
             sslEngine.setSSLParameters(sslParameters);
             Conscrypt.setApplicationProtocols(sslEngine, appProtocols);
         } else {
-            H2TlsSupport.setApplicationProtocols(sslParameters, appProtocols);
+            sslParameters.setApplicationProtocols(appProtocols);
             sslEngine.setSSLParameters(sslParameters);
         }
     }
@@ -109,7 +108,7 @@ public class ConscryptClientTlsStrategy extends AbstractClientTlsStrategy {
         try {
             final Class<?> clazz = Class.forName("org.conscrypt.Conscrypt");
             final Method method = clazz.getMethod("isAvailable");
-            return (Boolean) method.invoke(null);
+            return ((Boolean) method.invoke(null)).booleanValue();
         } catch (final ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
             return false;
         }

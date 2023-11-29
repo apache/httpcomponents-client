@@ -37,10 +37,17 @@ import org.apache.hc.core5.util.Args;
 
 /**
  * HTTP response that can enclose a body represented as a simple text string or an array of bytes.
+ * <p>
+ * IMPORTANT: {@link SimpleHttpResponse}s are intended for simple scenarios where entities inclosed
+ * in responses are known to be small. It is generally recommended to use streaming
+ * {@link org.apache.hc.core5.http.nio.AsyncResponseConsumer}s, for instance, such as based on
+ * {@link AbstractCharResponseConsumer} or {@link AbstractBinResponseConsumer}.
  *
  * @since 5.0
  *
  * @see SimpleBody
+ * @see AbstractCharResponseConsumer
+ * @see AbstractBinResponseConsumer
  */
 public final class SimpleHttpResponse extends BasicHttpResponse {
 

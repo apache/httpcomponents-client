@@ -36,24 +36,22 @@ import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecRuntime;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.entity.EntityBuilder;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.HttpResponse;
-import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
 import org.apache.hc.core5.util.TimeValue;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.apache.hc.core5.util.Timeout;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 @SuppressWarnings({"boxing","static-access"}) // test code
 public class TestHttpRequestRetryExec {
@@ -64,13 +62,15 @@ public class TestHttpRequestRetryExec {
     private ExecChain chain;
     @Mock
     private ExecRuntime endpoint;
+    @Mock
+    private TimeValue nextInterval;
 
     private HttpRequestRetryExec retryExec;
     private HttpHost target;
 
-    @Before
+    @BeforeEach
     public void setup() throws Exception {
-        MockitoAnnotations.initMocks(this);
+        MockitoAnnotations.openMocks(this);
         retryExec = new HttpRequestRetryExec(retryStrategy);
         target = new HttpHost("localhost", 80);
     }
@@ -86,26 +86,123 @@ public class TestHttpRequestRetryExec {
 
         Mockito.when(chain.proceed(
                 Mockito.same(request),
-                Mockito.<ExecChain.Scope>any())).thenReturn(response);
+                Mockito.any())).thenReturn(response);
         Mockito.when(retryStrategy.retryRequest(
-                Mockito.<HttpResponse>any(),
+                Mockito.any(),
                 Mockito.anyInt(),
-                Mockito.<HttpContext>any())).thenReturn(Boolean.TRUE, Boolean.FALSE);
+                Mockito.any())).thenReturn(Boolean.TRUE, Boolean.FALSE);
         Mockito.when(retryStrategy.getRetryInterval(
-                Mockito.<HttpResponse>any(),
+                Mockito.any(),
                 Mockito.anyInt(),
-                Mockito.<HttpContext>any())).thenReturn(TimeValue.ZERO_MILLISECONDS);
+                Mockito.any())).thenReturn(TimeValue.ZERO_MILLISECONDS);
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
         retryExec.execute(request, scope, chain);
 
         Mockito.verify(chain, Mockito.times(2)).proceed(
-                Mockito.<ClassicHttpRequest>any(),
+                Mockito.any(),
                 Mockito.same(scope));
         Mockito.verify(response, Mockito.times(1)).close();
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test
+    public void testRetrySleepOnIOException() throws Exception {
+        final HttpRoute route = new HttpRoute(target);
+        final HttpGet request = new HttpGet("/test");
+        final HttpClientContext context = HttpClientContext.create();
+
+        final ClassicHttpResponse response = Mockito.mock(ClassicHttpResponse.class);
+
+        Mockito.when(chain.proceed(
+                Mockito.same(request),
+                Mockito.any())).thenThrow(new IOException("Ka-boom"));
+        Mockito.when(retryStrategy.retryRequest(
+                Mockito.any(),
+                Mockito.any(),
+                Mockito.anyInt(),
+                Mockito.any())).thenReturn(Boolean.TRUE, Boolean.FALSE);
+        Mockito.when(retryStrategy.getRetryInterval(
+                Mockito.any(),
+                Mockito.any(),
+                Mockito.anyInt(),
+                Mockito.any())).thenReturn(nextInterval);
+        Mockito.when(nextInterval.getDuration()).thenReturn(100L);
+        Mockito.when(nextInterval.compareTo(Mockito.any())).thenReturn(-1);
+
+        final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
+        retryExec.execute(request, scope, chain);
+
+        Mockito.verify(chain, Mockito.times(2)).proceed(
+                Mockito.any(),
+                Mockito.same(scope));
+        Mockito.verify(nextInterval, Mockito.times(1)).sleep();
+    }
+
+    @Test
+    public void testRetryIntervalGreaterResponseTimeout() throws Exception {
+        final HttpRoute route = new HttpRoute(target);
+        final HttpGet request = new HttpGet("/test");
+        final HttpClientContext context = HttpClientContext.create();
+        context.setRequestConfig(RequestConfig.custom()
+                .setResponseTimeout(Timeout.ofSeconds(3))
+                .build());
+
+        final ClassicHttpResponse response = Mockito.mock(ClassicHttpResponse.class);
+
+        Mockito.when(chain.proceed(
+                Mockito.same(request),
+                Mockito.any())).thenReturn(response);
+        Mockito.when(retryStrategy.retryRequest(
+                Mockito.any(),
+                Mockito.anyInt(),
+                Mockito.any())).thenReturn(Boolean.TRUE, Boolean.FALSE);
+        Mockito.when(retryStrategy.getRetryInterval(
+                Mockito.any(),
+                Mockito.anyInt(),
+                Mockito.any())).thenReturn(TimeValue.ofSeconds(5));
+
+        final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
+        retryExec.execute(request, scope, chain);
+
+        Mockito.verify(chain, Mockito.times(1)).proceed(
+                Mockito.any(),
+                Mockito.same(scope));
+        Mockito.verify(response, Mockito.times(0)).close();
+    }
+
+    @Test
+    public void testRetryIntervalResponseTimeoutNull() throws Exception {
+        final HttpRoute route = new HttpRoute(target);
+        final HttpGet request = new HttpGet("/test");
+        final HttpClientContext context = HttpClientContext.create();
+        context.setRequestConfig(RequestConfig.custom()
+                .setResponseTimeout(null)
+                .build());
+
+        final ClassicHttpResponse response = Mockito.mock(ClassicHttpResponse.class);
+
+        Mockito.when(chain.proceed(
+                Mockito.same(request),
+                Mockito.any())).thenReturn(response);
+        Mockito.when(retryStrategy.retryRequest(
+                Mockito.any(),
+                Mockito.anyInt(),
+                Mockito.any())).thenReturn(Boolean.TRUE, Boolean.FALSE);
+        Mockito.when(retryStrategy.getRetryInterval(
+                Mockito.any(),
+                Mockito.anyInt(),
+                Mockito.any())).thenReturn(TimeValue.ofSeconds(1));
+
+        final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
+        retryExec.execute(request, scope, chain);
+
+        Mockito.verify(chain, Mockito.times(2)).proceed(
+                Mockito.any(),
+                Mockito.same(scope));
+        Mockito.verify(response, Mockito.times(1)).close();
+    }
+
+    @Test
     public void testStrategyRuntimeException() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final ClassicHttpRequest request = new HttpGet("/test");
@@ -113,19 +210,16 @@ public class TestHttpRequestRetryExec {
 
         final ClassicHttpResponse response = Mockito.mock(ClassicHttpResponse.class);
         Mockito.when(chain.proceed(
-                Mockito.<ClassicHttpRequest>any(),
-                Mockito.<ExecChain.Scope>any())).thenReturn(response);
+                Mockito.any(),
+                Mockito.any())).thenReturn(response);
         Mockito.doThrow(new RuntimeException("Ooopsie")).when(retryStrategy).retryRequest(
-                Mockito.<HttpResponse>any(),
+                Mockito.any(),
                 Mockito.anyInt(),
-                Mockito.<HttpContext>any());
+                Mockito.any());
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
-        try {
-            retryExec.execute(request, scope, chain);
-        } catch (final Exception ex) {
-            Mockito.verify(response).close();
-            throw ex;
-        }
+        Assertions.assertThrows(RuntimeException.class, () ->
+                retryExec.execute(request, scope, chain));
+        Mockito.verify(response).close();
     }
 
     @Test
@@ -140,21 +234,17 @@ public class TestHttpRequestRetryExec {
 
         final ClassicHttpResponse response = Mockito.mock(ClassicHttpResponse.class);
         Mockito.when(chain.proceed(
-                Mockito.<ClassicHttpRequest>any(),
-                Mockito.<ExecChain.Scope>any())).thenReturn(response);
-        Mockito.when(retryStrategy.retryRequest(
-                Mockito.<HttpResponse>any(),
-                Mockito.anyInt(),
-                Mockito.<HttpContext>any())).thenReturn(Boolean.TRUE, Boolean.FALSE);
+                Mockito.any(),
+                Mockito.any())).thenReturn(response);
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, endpoint, context);
         final ClassicHttpResponse finalResponse = retryExec.execute(request, scope, chain);
 
-        Assert.assertSame(response, finalResponse);
+        Assertions.assertSame(response, finalResponse);
         Mockito.verify(response, Mockito.times(0)).close();
     }
 
-    @Test(expected = IOException.class)
+    @Test
     public void testFundamentals2() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpGet originalRequest = new HttpGet("/test");
@@ -163,70 +253,58 @@ public class TestHttpRequestRetryExec {
         final HttpClientContext context = HttpClientContext.create();
 
         Mockito.when(chain.proceed(
-                Mockito.<ClassicHttpRequest>any(),
-                Mockito.<ExecChain.Scope>any())).thenAnswer(new Answer<Object>() {
-
-            @Override
-            public Object answer(final InvocationOnMock invocationOnMock) throws Throwable {
-                final Object[] args = invocationOnMock.getArguments();
-                final ClassicHttpRequest wrapper = (ClassicHttpRequest) args[0];
-                final Header[] headers = wrapper.getHeaders();
-                Assert.assertEquals(2, headers.length);
-                Assert.assertEquals("this", headers[0].getValue());
-                Assert.assertEquals("that", headers[1].getValue());
-                wrapper.addHeader("Cookie", "monster");
-                throw new IOException("Ka-boom");
-            }
-
-        });
+                Mockito.any(),
+                Mockito.any())).thenAnswer(invocationOnMock -> {
+                    final Object[] args = invocationOnMock.getArguments();
+                    final ClassicHttpRequest wrapper = (ClassicHttpRequest) args[0];
+                    final Header[] headers = wrapper.getHeaders();
+                    Assertions.assertEquals(2, headers.length);
+                    Assertions.assertEquals("this", headers[0].getValue());
+                    Assertions.assertEquals("that", headers[1].getValue());
+                    wrapper.addHeader("Cookie", "monster");
+                    throw new IOException("Ka-boom");
+                });
         Mockito.when(retryStrategy.retryRequest(
-                Mockito.<HttpRequest>any(),
-                Mockito.<IOException>any(),
+                Mockito.any(),
+                Mockito.any(),
                 Mockito.eq(1),
-                Mockito.<HttpContext>any())).thenReturn(Boolean.TRUE);
+                Mockito.any())).thenReturn(Boolean.TRUE);
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, originalRequest, endpoint, context);
-        final ClassicHttpRequest request = ClassicRequestCopier.INSTANCE.copy(originalRequest);
-        try {
-            retryExec.execute(request, scope, chain);
-        } catch (final IOException ex) {
-            Mockito.verify(chain, Mockito.times(2)).proceed(
-                    Mockito.<ClassicHttpRequest>any(),
-                    Mockito.same(scope));
-            throw ex;
-        }
+        final ClassicHttpRequest request = ClassicRequestBuilder.copy(originalRequest).build();
+        Assertions.assertThrows(IOException.class, () ->
+                retryExec.execute(request, scope, chain));
+        Mockito.verify(chain, Mockito.times(2)).proceed(
+                Mockito.any(),
+                Mockito.same(scope));
     }
 
 
-    @Test(expected = IOException.class)
+    @Test
     public void testAbortedRequest() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpGet originalRequest = new HttpGet("/test");
         final HttpClientContext context = HttpClientContext.create();
 
         Mockito.when(chain.proceed(
-                Mockito.<ClassicHttpRequest>any(),
-                Mockito.<ExecChain.Scope>any())).thenThrow(new IOException("Ka-boom"));
+                Mockito.any(),
+                Mockito.any())).thenThrow(new IOException("Ka-boom"));
         Mockito.when(endpoint.isExecutionAborted()).thenReturn(true);
 
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, originalRequest, endpoint, context);
-        final ClassicHttpRequest request = ClassicRequestCopier.INSTANCE.copy(originalRequest);
-        try {
-            retryExec.execute(request, scope, chain);
-        } catch (final IOException ex) {
-            Mockito.verify(chain, Mockito.times(1)).proceed(
-                    Mockito.same(request),
-                    Mockito.same(scope));
-            Mockito.verify(retryStrategy, Mockito.never()).retryRequest(
-                    Mockito.<HttpRequest>any(),
-                    Mockito.<IOException>any(),
-                    Mockito.anyInt(),
-                    Mockito.<HttpContext>any());
-
-            throw ex;
-        }
+        final ClassicHttpRequest request = ClassicRequestBuilder.copy(originalRequest).build();
+        Assertions.assertThrows(IOException.class, () ->
+                retryExec.execute(request, scope, chain));
+        Mockito.verify(chain, Mockito.times(1)).proceed(
+                Mockito.same(request),
+                Mockito.same(scope));
+        Mockito.verify(retryStrategy, Mockito.never()).retryRequest(
+                Mockito.any(),
+                Mockito.any(),
+                Mockito.anyInt(),
+                Mockito.any());
     }
 
-    @Test(expected = IOException.class)
+    @Test
     public void testNonRepeatableRequest() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpPost originalRequest = new HttpPost("/test");
@@ -236,34 +314,20 @@ public class TestHttpRequestRetryExec {
         final HttpClientContext context = HttpClientContext.create();
 
         Mockito.when(chain.proceed(
-                Mockito.<ClassicHttpRequest>any(),
-                Mockito.<ExecChain.Scope>any())).thenAnswer(new Answer<Object>() {
-
-            @Override
-            public Object answer(final InvocationOnMock invocationOnMock) throws Throwable {
-                final Object[] args = invocationOnMock.getArguments();
-                final ClassicHttpRequest req = (ClassicHttpRequest) args[0];
-                req.getEntity().writeTo(new ByteArrayOutputStream());
-                throw new IOException("Ka-boom");
-            }
-
-        });
-        Mockito.when(retryStrategy.retryRequest(
-                Mockito.<HttpRequest>any(),
-                Mockito.<IOException>any(),
-                Mockito.eq(1),
-                Mockito.<HttpContext>any())).thenReturn(Boolean.TRUE);
+                Mockito.any(),
+                Mockito.any())).thenAnswer(invocationOnMock -> {
+                    final Object[] args = invocationOnMock.getArguments();
+                    final ClassicHttpRequest req = (ClassicHttpRequest) args[0];
+                    req.getEntity().writeTo(new ByteArrayOutputStream());
+                    throw new IOException("Ka-boom");
+                });
         final ExecChain.Scope scope = new ExecChain.Scope("test", route, originalRequest, endpoint, context);
-        final ClassicHttpRequest request = ClassicRequestCopier.INSTANCE.copy(originalRequest);
-        try {
-            retryExec.execute(request, scope, chain);
-        } catch (final IOException ex) {
-            Mockito.verify(chain, Mockito.times(1)).proceed(
-                    Mockito.same(request),
-                    Mockito.same(scope));
-
-            throw ex;
-        }
+        final ClassicHttpRequest request = ClassicRequestBuilder.copy(originalRequest).build();
+        Assertions.assertThrows(IOException.class, () ->
+                retryExec.execute(request, scope, chain));
+        Mockito.verify(chain, Mockito.times(1)).proceed(
+                Mockito.same(request),
+                Mockito.same(scope));
     }
 
 }

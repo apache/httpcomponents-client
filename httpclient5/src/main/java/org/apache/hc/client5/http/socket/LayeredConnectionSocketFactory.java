@@ -62,4 +62,30 @@ public interface LayeredConnectionSocketFactory extends ConnectionSocketFactory 
         int port,
         HttpContext context) throws IOException;
 
+    /**
+     * Returns a socket connected to the given host that is layered over an
+     * existing socket.  Used primarily for creating secure sockets through
+     * proxies.
+     *
+     * @param socket the existing socket
+     * @param target the name of the target host.
+     * @param port the port to connect to on the target host.
+     * @param context the actual HTTP context.
+     * @param attachment connect request attachment.
+     *
+     * @return Socket a new socket
+     *
+     * @throws IOException if an I/O error occurs while creating the socket
+     *
+     * @since 5.2
+     */
+    default Socket createLayeredSocket(
+            Socket socket,
+            String target,
+            int port,
+            Object attachment,
+            HttpContext context) throws IOException {
+        return createLayeredSocket(socket, target, port, context);
+    }
+
 }

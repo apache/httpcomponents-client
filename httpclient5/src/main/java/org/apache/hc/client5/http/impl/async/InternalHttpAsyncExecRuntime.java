@@ -33,17 +33,18 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.async.AsyncExecRuntime;
 import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.impl.ConnPoolSupport;
 import org.apache.hc.client5.http.impl.Operations;
 import org.apache.hc.client5.http.nio.AsyncClientConnectionManager;
 import org.apache.hc.client5.http.nio.AsyncConnectionEndpoint;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.core5.concurrent.CallbackContribution;
 import org.apache.hc.core5.concurrent.Cancellable;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.nio.AsyncClientExchangeHandler;
 import org.apache.hc.core5.http.nio.AsyncPushConsumer;
 import org.apache.hc.core5.http.nio.HandlerFactory;
-import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.reactor.ConnectionInitiator;
 import org.apache.hc.core5.util.TimeValue;
@@ -56,7 +57,11 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
     private final AsyncClientConnectionManager manager;
     private final ConnectionInitiator connectionInitiator;
     private final HandlerFactory<AsyncPushConsumer> pushHandlerFactory;
-    private final HttpVersionPolicy versionPolicy;
+    /**
+     * @deprecated TLS should be configured by the connection manager
+     */
+    @Deprecated
+    private final TlsConfig tlsConfig;
     private final AtomicReference<AsyncConnectionEndpoint> endpointRef;
     private volatile boolean reusable;
     private volatile Object state;
@@ -67,14 +72,14 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
             final AsyncClientConnectionManager manager,
             final ConnectionInitiator connectionInitiator,
             final HandlerFactory<AsyncPushConsumer> pushHandlerFactory,
-            final HttpVersionPolicy versionPolicy) {
+            final TlsConfig tlsConfig) {
         super();
         this.log = log;
         this.manager = manager;
         this.connectionInitiator = connectionInitiator;
         this.pushHandlerFactory = pushHandlerFactory;
-        this.versionPolicy = versionPolicy;
-        this.endpointRef = new AtomicReference<>(null);
+        this.tlsConfig = tlsConfig;
+        this.endpointRef = new AtomicReference<>();
         this.validDuration = TimeValue.NEG_ONE_MILLISECOND;
     }
 
@@ -95,7 +100,7 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
             final RequestConfig requestConfig = context.getRequestConfig();
             final Timeout connectionRequestTimeout = requestConfig.getConnectionRequestTimeout();
             if (log.isDebugEnabled()) {
-                log.debug(id + ": acquiring endpoint (" + connectionRequestTimeout + ")");
+                log.debug("{} acquiring endpoint ({})", id, connectionRequestTimeout);
             }
             return Operations.cancellable(manager.lease(
                     id,
@@ -109,7 +114,7 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
                             endpointRef.set(connectionEndpoint);
                             reusable = connectionEndpoint.isConnected();
                             if (log.isDebugEnabled()) {
-                                log.debug(id + ": acquired endpoint " + ConnPoolSupport.getId(connectionEndpoint));
+                                log.debug("{} acquired endpoint {}", id, ConnPoolSupport.getId(connectionEndpoint));
                             }
                             callback.completed(InternalHttpAsyncExecRuntime.this);
                         }
@@ -133,11 +138,11 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
         try {
             endpoint.close(CloseMode.IMMEDIATE);
             if (log.isDebugEnabled()) {
-                log.debug(ConnPoolSupport.getId(endpoint) + ": endpoint closed");
+                log.debug("{} endpoint closed", ConnPoolSupport.getId(endpoint));
             }
         } finally {
             if (log.isDebugEnabled()) {
-                log.debug(ConnPoolSupport.getId(endpoint) + ": discarding endpoint");
+                log.debug("{} discarding endpoint", ConnPoolSupport.getId(endpoint));
             }
             manager.release(endpoint, null, TimeValue.ZERO_MILLISECONDS);
         }
@@ -149,7 +154,7 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
         if (endpoint != null) {
             if (reusable) {
                 if (log.isDebugEnabled()) {
-                    log.debug(ConnPoolSupport.getId(endpoint) + ": releasing valid endpoint");
+                    log.debug("{} releasing valid endpoint", ConnPoolSupport.getId(endpoint));
                 }
                 manager.release(endpoint, state, validDuration);
             } else {
@@ -203,34 +208,27 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
             return Operations.nonCancellable();
         }
         final RequestConfig requestConfig = context.getRequestConfig();
+        @SuppressWarnings("deprecation")
         final Timeout connectTimeout = requestConfig.getConnectTimeout();
         if (log.isDebugEnabled()) {
-            log.debug(ConnPoolSupport.getId(endpoint) + ": connecting endpoint (" + connectTimeout + ")");
+            log.debug("{} connecting endpoint ({})", ConnPoolSupport.getId(endpoint), connectTimeout);
         }
         return Operations.cancellable(manager.connect(
                 endpoint,
                 connectionInitiator,
                 connectTimeout,
-                versionPolicy,
+                tlsConfig,
                 context,
-                new FutureCallback<AsyncConnectionEndpoint>() {
+                new CallbackContribution<AsyncConnectionEndpoint>(callback) {
 
                     @Override
                     public void completed(final AsyncConnectionEndpoint endpoint) {
                         if (log.isDebugEnabled()) {
-                            log.debug(ConnPoolSupport.getId(endpoint) + ": endpoint connected");
+                            log.debug("{} endpoint connected", ConnPoolSupport.getId(endpoint));
                         }
-                        callback.completed(InternalHttpAsyncExecRuntime.this);
-                    }
-
-                    @Override
-                    public void failed(final Exception ex) {
-                        callback.failed(ex);
-                    }
-
-                    @Override
-                    public void cancelled() {
-                        callback.cancelled();
+                        if (callback != null) {
+                            callback.completed(InternalHttpAsyncExecRuntime.this);
+                        }
                     }
 
         }));
@@ -239,16 +237,25 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
 
     @Override
     public void upgradeTls(final HttpClientContext context) {
+        upgradeTls(context, null);
+    }
+
+    @Override
+    public void upgradeTls(final HttpClientContext context, final FutureCallback<AsyncExecRuntime> callback) {
         final AsyncConnectionEndpoint endpoint = ensureValid();
-        final RequestConfig requestConfig = context.getRequestConfig();
-        final Timeout connectTimeout = requestConfig.getConnectTimeout();
-        if (TimeValue.isPositive(connectTimeout)) {
-            endpoint.setSocketTimeout(connectTimeout);
-        }
         if (log.isDebugEnabled()) {
-            log.debug(ConnPoolSupport.getId(endpoint) + ": upgrading endpoint (" + connectTimeout + ")");
+            log.debug("{} upgrading endpoint", ConnPoolSupport.getId(endpoint));
         }
-        manager.upgrade(endpoint, versionPolicy, context);
+        manager.upgrade(endpoint, tlsConfig, context, new CallbackContribution<AsyncConnectionEndpoint>(callback) {
+
+            @Override
+            public void completed(final AsyncConnectionEndpoint endpoint) {
+                if (callback != null) {
+                    callback.completed(InternalHttpAsyncExecRuntime.this);
+                }
+            }
+
+        });
     }
 
     @Override
@@ -257,7 +264,7 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
         final AsyncConnectionEndpoint endpoint = ensureValid();
         if (endpoint.isConnected()) {
             if (log.isDebugEnabled()) {
-                log.debug(ConnPoolSupport.getId(endpoint) + ": start execution " + id);
+                log.debug("{} start execution {}", ConnPoolSupport.getId(endpoint), id);
             }
             final RequestConfig requestConfig = context.getRequestConfig();
             final Timeout responseTimeout = requestConfig.getResponseTimeout();
@@ -266,12 +273,9 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
             }
             endpoint.execute(id, exchangeHandler, context);
             if (context.getRequestConfig().isHardCancellationEnabled()) {
-                return new Cancellable() {
-                    @Override
-                    public boolean cancel() {
-                        exchangeHandler.cancel();
-                        return true;
-                    }
+                return () -> {
+                    exchangeHandler.cancel();
+                    return true;
                 };
             }
         } else {
@@ -280,7 +284,7 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
                 @Override
                 public void completed(final AsyncExecRuntime runtime) {
                     if (log.isDebugEnabled()) {
-                        log.debug(ConnPoolSupport.getId(endpoint) + ": start execution " + id);
+                        log.debug("{} start execution {}", ConnPoolSupport.getId(endpoint), id);
                     }
                     try {
                         endpoint.execute(id, exchangeHandler, pushHandlerFactory, context);
@@ -320,7 +324,7 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
 
     @Override
     public AsyncExecRuntime fork() {
-        return new InternalHttpAsyncExecRuntime(log, manager, connectionInitiator, pushHandlerFactory, versionPolicy);
+        return new InternalHttpAsyncExecRuntime(log, manager, connectionInitiator, pushHandlerFactory, tlsConfig);
     }
 
 }

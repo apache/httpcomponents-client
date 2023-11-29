@@ -33,6 +33,7 @@ import java.io.InterruptedIOException;
 import org.apache.hc.client5.http.AuthenticationStrategy;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.RouteTracker;
+import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.async.AsyncExecCallback;
 import org.apache.hc.client5.http.async.AsyncExecChain;
 import org.apache.hc.client5.http.async.AsyncExecChainHandler;
@@ -41,6 +42,7 @@ import org.apache.hc.client5.http.auth.AuthExchange;
 import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.TunnelRefusedException;
+import org.apache.hc.client5.http.impl.auth.AuthCacheKeeper;
 import org.apache.hc.client5.http.impl.auth.HttpAuthenticator;
 import org.apache.hc.client5.http.impl.routing.BasicRouteDirector;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
@@ -57,6 +59,7 @@ import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
 import org.apache.hc.core5.http.message.StatusLine;
 import org.apache.hc.core5.http.nio.AsyncDataConsumer;
@@ -78,22 +81,26 @@ import org.slf4j.LoggerFactory;
 @Internal
 public final class AsyncConnectExec implements AsyncExecChainHandler {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger LOG = LoggerFactory.getLogger(AsyncConnectExec.class);
 
     private final HttpProcessor proxyHttpProcessor;
     private final AuthenticationStrategy proxyAuthStrategy;
     private final HttpAuthenticator authenticator;
+    private final AuthCacheKeeper authCacheKeeper;
     private final HttpRouteDirector routeDirector;
 
     public AsyncConnectExec(
             final HttpProcessor proxyHttpProcessor,
-            final AuthenticationStrategy proxyAuthStrategy) {
+            final AuthenticationStrategy proxyAuthStrategy,
+            final SchemePortResolver schemePortResolver,
+            final boolean authCachingDisabled) {
         Args.notNull(proxyHttpProcessor, "Proxy HTTP processor");
         Args.notNull(proxyAuthStrategy, "Proxy authentication strategy");
         this.proxyHttpProcessor = proxyHttpProcessor;
         this.proxyAuthStrategy  = proxyAuthStrategy;
-        this.authenticator      = new HttpAuthenticator(log);
-        this.routeDirector      = new BasicRouteDirector();
+        this.authenticator = new HttpAuthenticator();
+        this.authCacheKeeper = authCachingDisabled ? null : new AuthCacheKeeper(schemePortResolver);
+        this.routeDirector = BasicRouteDirector.INSTANCE;
     }
 
     static class State {
@@ -128,8 +135,8 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
 
         if (!execRuntime.isEndpointAcquired()) {
             final Object userToken = clientContext.getUserToken();
-            if (log.isDebugEnabled()) {
-                log.debug(exchangeId + ": acquiring connection with route " + route);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{} acquiring connection with route {}", exchangeId, route);
             }
             cancellableDependency.setDependency(execRuntime.acquireEndpoint(
                     exchangeId, route, userToken, clientContext, new FutureCallback<AsyncExecRuntime>() {
@@ -186,137 +193,176 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
         final CancellableDependency operation = scope.cancellableDependency;
         final HttpClientContext clientContext = scope.clientContext;
 
-        int step;
-        do {
-            final HttpRoute fact = tracker.toRoute();
-            step = routeDirector.nextStep(route, fact);
-            switch (step) {
-                case HttpRouteDirector.CONNECT_TARGET:
-                    operation.setDependency(execRuntime.connectEndpoint(clientContext, new FutureCallback<AsyncExecRuntime>() {
+        final HttpRoute fact = tracker.toRoute();
+        final int step = routeDirector.nextStep(route, fact);
 
-                        @Override
-                        public void completed(final AsyncExecRuntime execRuntime) {
-                            tracker.connectTarget(route.isSecure());
-                            if (log.isDebugEnabled()) {
-                                log.debug(exchangeId + ": connected to target");
-                            }
-                            proceedToNextHop(state, request, entityProducer, scope, chain, asyncExecCallback);
+        switch (step) {
+            case HttpRouteDirector.CONNECT_TARGET:
+                operation.setDependency(execRuntime.connectEndpoint(clientContext, new FutureCallback<AsyncExecRuntime>() {
+
+                    @Override
+                    public void completed(final AsyncExecRuntime execRuntime) {
+                        tracker.connectTarget(route.isSecure());
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("{} connected to target", exchangeId);
                         }
+                        proceedToNextHop(state, request, entityProducer, scope, chain, asyncExecCallback);
+                    }
 
-                        @Override
-                        public void failed(final Exception ex) {
-                            asyncExecCallback.failed(ex);
+                    @Override
+                    public void failed(final Exception ex) {
+                        asyncExecCallback.failed(ex);
+                    }
+
+                    @Override
+                    public void cancelled() {
+                        asyncExecCallback.failed(new InterruptedIOException());
+                    }
+
+                }));
+                break;
+
+            case HttpRouteDirector.CONNECT_PROXY:
+                operation.setDependency(execRuntime.connectEndpoint(clientContext, new FutureCallback<AsyncExecRuntime>() {
+
+                    @Override
+                    public void completed(final AsyncExecRuntime execRuntime) {
+                        final HttpHost proxy  = route.getProxyHost();
+                        tracker.connectProxy(proxy, route.isSecure() && !route.isTunnelled());
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("{} connected to proxy", exchangeId);
                         }
+                        proceedToNextHop(state, request, entityProducer, scope, chain, asyncExecCallback);
+                    }
 
-                        @Override
-                        public void cancelled() {
-                            asyncExecCallback.failed(new InterruptedIOException());
-                        }
+                    @Override
+                    public void failed(final Exception ex) {
+                        asyncExecCallback.failed(ex);
+                    }
 
-                    }));
-                    return;
+                    @Override
+                    public void cancelled() {
+                        asyncExecCallback.failed(new InterruptedIOException());
+                    }
 
-                case HttpRouteDirector.CONNECT_PROXY:
-                    operation.setDependency(execRuntime.connectEndpoint(clientContext, new FutureCallback<AsyncExecRuntime>() {
-
-                        @Override
-                        public void completed(final AsyncExecRuntime execRuntime) {
-                            final HttpHost proxy  = route.getProxyHost();
-                            tracker.connectProxy(proxy, route.isSecure() && !route.isTunnelled());
-                            if (log.isDebugEnabled()) {
-                                log.debug(exchangeId + ": connected to proxy");
-                            }
-                            proceedToNextHop(state, request, entityProducer, scope, chain, asyncExecCallback);
-                        }
-
-                        @Override
-                        public void failed(final Exception ex) {
-                            asyncExecCallback.failed(ex);
-                        }
-
-                        @Override
-                        public void cancelled() {
-                            asyncExecCallback.failed(new InterruptedIOException());
-                        }
-
-                    }));
-                    return;
+                }));
+                break;
 
                 case HttpRouteDirector.TUNNEL_TARGET:
                     try {
                         final HttpHost proxy = route.getProxyHost();
                         final HttpHost target = route.getTargetHost();
-                        createTunnel(state, proxy ,target, scope, chain, new AsyncExecCallback() {
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("{} create tunnel", exchangeId);
+                        }
+                        createTunnel(state, proxy, target, scope, chain, new AsyncExecCallback() {
 
-                            @Override
-                            public AsyncDataConsumer handleResponse(
-                                    final HttpResponse response,
-                                    final EntityDetails entityDetails) throws HttpException, IOException {
-                                return asyncExecCallback.handleResponse(response, entityDetails);
-                            }
+                        @Override
+                        public AsyncDataConsumer handleResponse(
+                                final HttpResponse response,
+                                final EntityDetails entityDetails) throws HttpException, IOException {
+                            return asyncExecCallback.handleResponse(response, entityDetails);
+                        }
 
-                            @Override
-                            public void handleInformationResponse(
-                                    final HttpResponse response) throws HttpException, IOException {
-                                asyncExecCallback.handleInformationResponse(response);
-                            }
+                        @Override
+                        public void handleInformationResponse(
+                                final HttpResponse response) throws HttpException, IOException {
+                            asyncExecCallback.handleInformationResponse(response);
+                        }
 
                             @Override
                             public void completed() {
-                                if (log.isDebugEnabled()) {
-                                    log.debug(exchangeId + ": tunnel to target created");
+                                if (!execRuntime.isEndpointConnected()) {
+                                    // Remote endpoint disconnected. Need to start over
+                                    if (LOG.isDebugEnabled()) {
+                                        LOG.debug("{} proxy disconnected", exchangeId);
+                                    }
+                                    state.tracker.reset();
                                 }
-                                tracker.tunnelTarget(false);
-                                proceedToNextHop(state, request, entityProducer, scope, chain, asyncExecCallback);
+                                if (state.challenged) {
+                                    if (LOG.isDebugEnabled()) {
+                                        LOG.debug("{} proxy authentication required", exchangeId);
+                                    }
+                                    proceedToNextHop(state, request, entityProducer, scope, chain, asyncExecCallback);
+                                } else {
+                                    if (state.tunnelRefused) {
+                                        if (LOG.isDebugEnabled()) {
+                                            LOG.debug("{} tunnel refused", exchangeId);
+                                        }
+                                        asyncExecCallback.failed(new TunnelRefusedException("Tunnel refused", null));
+                                    } else {
+                                        if (LOG.isDebugEnabled()) {
+                                            LOG.debug("{} tunnel to target created", exchangeId);
+                                        }
+                                        tracker.tunnelTarget(false);
+                                        proceedToNextHop(state, request, entityProducer, scope, chain, asyncExecCallback);
+                                    }
+                                }
                             }
 
-                            @Override
-                            public void failed(final Exception cause) {
-                                asyncExecCallback.failed(cause);
-                            }
+                        @Override
+                        public void failed(final Exception cause) {
+                            asyncExecCallback.failed(cause);
+                        }
 
-                        });
-                    } catch (final HttpException | IOException ex) {
+                    });
+                } catch (final HttpException | IOException ex) {
+                    asyncExecCallback.failed(ex);
+                }
+                break;
+
+            case HttpRouteDirector.TUNNEL_PROXY:
+                // The most simple example for this case is a proxy chain
+                // of two proxies, where P1 must be tunnelled to P2.
+                // route: Source -> P1 -> P2 -> Target (3 hops)
+                // fact:  Source -> P1 -> Target       (2 hops)
+                asyncExecCallback.failed(new HttpException("Proxy chains are not supported"));
+                break;
+
+            case HttpRouteDirector.LAYER_PROTOCOL:
+                execRuntime.upgradeTls(clientContext, new FutureCallback<AsyncExecRuntime>() {
+
+                    @Override
+                    public void completed(final AsyncExecRuntime asyncExecRuntime) {
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("{} upgraded to TLS", exchangeId);
+                        }
+                        tracker.layerProtocol(route.isSecure());
+                        proceedToNextHop(state, request, entityProducer, scope, chain, asyncExecCallback);
+                    }
+
+                    @Override
+                    public void failed(final Exception ex) {
                         asyncExecCallback.failed(ex);
                     }
-                    return;
 
-                case HttpRouteDirector.TUNNEL_PROXY:
-                    // The most simple example for this case is a proxy chain
-                    // of two proxies, where P1 must be tunnelled to P2.
-                    // route: Source -> P1 -> P2 -> Target (3 hops)
-                    // fact:  Source -> P1 -> Target       (2 hops)
-                    asyncExecCallback.failed(new HttpException("Proxy chains are not supported"));
-                    return;
-
-                case HttpRouteDirector.LAYER_PROTOCOL:
-                    execRuntime.upgradeTls(clientContext);
-                    if (log.isDebugEnabled()) {
-                        log.debug(exchangeId + ": upgraded to TLS");
+                    @Override
+                    public void cancelled() {
+                        asyncExecCallback.failed(new InterruptedIOException());
                     }
-                    tracker.layerProtocol(route.isSecure());
-                    break;
 
-                case HttpRouteDirector.UNREACHABLE:
-                    asyncExecCallback.failed(new HttpException("Unable to establish route: " +
-                            "planned = " + route + "; current = " + fact));
-                    return;
+                });
+                break;
 
-                case HttpRouteDirector.COMPLETE:
-                    if (log.isDebugEnabled()) {
-                        log.debug(exchangeId + ": route fully established");
-                    }
-                    try {
-                        chain.proceed(request, entityProducer, scope, asyncExecCallback);
-                    } catch (final HttpException | IOException ex) {
-                        asyncExecCallback.failed(ex);
-                    }
-                    break;
+            case HttpRouteDirector.UNREACHABLE:
+                asyncExecCallback.failed(new HttpException("Unable to establish route: " +
+                        "planned = " + route + "; current = " + fact));
+                break;
 
-                default:
-                    throw new IllegalStateException("Unknown step indicator "  + step + " from RouteDirector.");
-            }
-        } while (step > HttpRouteDirector.COMPLETE);
+            case HttpRouteDirector.COMPLETE:
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("{} route fully established", exchangeId);
+                }
+                try {
+                    chain.proceed(request, entityProducer, scope, asyncExecCallback);
+                } catch (final HttpException | IOException ex) {
+                    asyncExecCallback.failed(ex);
+                }
+                break;
+
+            default:
+                throw new IllegalStateException("Unknown step indicator "  + step + " from RouteDirector.");
+        }
     }
 
     private void createTunnel(
@@ -327,12 +373,15 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
             final AsyncExecChain chain,
             final AsyncExecCallback asyncExecCallback) throws HttpException, IOException {
 
-        final AsyncExecRuntime execRuntime = scope.execRuntime;
         final HttpClientContext clientContext = scope.clientContext;
 
         final AuthExchange proxyAuthExchange = proxy != null ? clientContext.getAuthExchange(proxy) : new AuthExchange();
 
-        final HttpRequest connect = new BasicHttpRequest("CONNECT", nextHop, nextHop.toHostString());
+        if (authCacheKeeper != null) {
+            authCacheKeeper.loadPreemptively(proxy, null, proxyAuthExchange, clientContext);
+        }
+
+        final HttpRequest connect = new BasicHttpRequest(Method.CONNECT, nextHop, nextHop.toHostString());
         connect.setVersion(HttpVersion.HTTP_1_1);
 
         proxyHttpProcessor.process(connect, null, clientContext);
@@ -371,22 +420,7 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
 
             @Override
             public void completed() {
-                if (!execRuntime.isEndpointConnected()) {
-                    state.tracker.reset();
-                }
-                if (state.challenged) {
-                    try {
-                        createTunnel(state, proxy, nextHop, scope, chain, asyncExecCallback);
-                    } catch (final HttpException | IOException ex) {
-                        asyncExecCallback.failed(ex);
-                    }
-                } else {
-                    if (state.tunnelRefused) {
-                        asyncExecCallback.failed(new TunnelRefusedException("Tunnel refused", null));
-                    } else {
-                        asyncExecCallback.completed();
-                    }
-                }
+                asyncExecCallback.completed();
             }
 
             @Override
@@ -406,9 +440,24 @@ public final class AsyncConnectExec implements AsyncExecChainHandler {
         final RequestConfig config = context.getRequestConfig();
         if (config.isAuthenticationEnabled()) {
             final boolean proxyAuthRequested = authenticator.isChallenged(proxy, ChallengeType.PROXY, response, proxyAuthExchange, context);
+
+            if (authCacheKeeper != null) {
+                if (proxyAuthRequested) {
+                    authCacheKeeper.updateOnChallenge(proxy, null, proxyAuthExchange, context);
+                } else {
+                    authCacheKeeper.updateOnNoChallenge(proxy, null, proxyAuthExchange, context);
+                }
+            }
+
             if (proxyAuthRequested) {
-                return authenticator.updateAuthState(proxy, ChallengeType.PROXY, response,
+                final boolean updated = authenticator.updateAuthState(proxy, ChallengeType.PROXY, response,
                         proxyAuthStrategy, proxyAuthExchange, context);
+
+                if (authCacheKeeper != null) {
+                    authCacheKeeper.updateOnResponse(proxy, null, proxyAuthExchange, context);
+                }
+
+                return updated;
             }
         }
         return false;

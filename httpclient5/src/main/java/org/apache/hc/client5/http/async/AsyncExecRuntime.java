@@ -114,6 +114,21 @@ public interface AsyncExecRuntime {
     void upgradeTls(HttpClientContext context);
 
     /**
+     * Upgrades transport security of the active connection by using the TLS security protocol.
+     *
+     * @param context the execution context.
+     *
+     * @since 5.2
+     */
+    default void upgradeTls(HttpClientContext context,
+                            FutureCallback<AsyncExecRuntime> callback) {
+        upgradeTls(context);
+        if (callback != null) {
+            callback.completed(this);
+        }
+    }
+
+    /**
      * Validates the connection making sure it can be used to execute requests.
      *
      * @return {@code true} if the connection is valid, {@code false}.

@@ -32,9 +32,9 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
-import java.util.Stack;
 
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.net.URIAuthority;
 import org.apache.hc.core5.net.URIBuilder;
 import org.apache.hc.core5.util.Args;
@@ -63,7 +63,10 @@ public class URIUtils {
      *
      * @throws URISyntaxException
      *             If the resulting URI is invalid.
+     *
+     * @deprecated Use {@link URIBuilder}.
      */
+    @Deprecated
     public static URI rewriteURI(
             final URI uri,
             final HttpHost target,
@@ -106,7 +109,10 @@ public class URIUtils {
      * A convenience method for
      * {@link URIUtils#rewriteURI(URI, HttpHost, boolean)} that always keeps the
      * fragment.
+     *
+     * @deprecated Use {@link URIBuilder}.
      */
+    @Deprecated
     public static URI rewriteURI(
             final URI uri,
             final HttpHost target) throws URISyntaxException {
@@ -123,7 +129,10 @@ public class URIUtils {
      *            original URI.
      * @throws URISyntaxException
      *             If the resulting URI is invalid.
+     *
+     * @deprecated Use {@link URIBuilder}.
      */
+    @Deprecated
     public static URI rewriteURI(final URI uri) throws URISyntaxException {
         Args.notNull(uri, "URI");
         if (uri.isOpaque()) {
@@ -133,8 +142,8 @@ public class URIUtils {
         if (uribuilder.getUserInfo() != null) {
             uribuilder.setUserInfo(null);
         }
-        if (TextUtils.isEmpty(uribuilder.getPath())) {
-            uribuilder.setPath("/");
+        if (uribuilder.isPathEmpty()) {
+            uribuilder.setPathSegments("");
         }
         if (uribuilder.getHost() != null) {
             uribuilder.setHost(uribuilder.getHost().toLowerCase(Locale.ROOT));
@@ -190,8 +199,7 @@ public class URIUtils {
     }
 
     /**
-     * Removes dot segments according to RFC 3986, section 5.2.4 and
-     * Syntax-Based Normalization according to RFC 3986, section 6.2.2.
+     * Removes dot segments and performs Syntax-Based Normalization.
      *
      * @param uri the original URI
      * @return the URI without dot segments
@@ -201,38 +209,19 @@ public class URIUtils {
             // opaque and file: URIs
             return uri;
         }
-        Args.check(uri.isAbsolute(), "Base URI must be absolute");
         final URIBuilder builder = new URIBuilder(uri);
-        final String path = builder.getPath();
-        if (path != null && !path.equals("/")) {
-            final String[] inputSegments = path.split("/");
-            final Stack<String> outputSegments = new Stack<>();
-            for (final String inputSegment : inputSegments) {
-                if ((inputSegment.isEmpty()) || (".".equals(inputSegment))) {
-                    // Do nothing
-                } else if ("..".equals(inputSegment)) {
-                    if (!outputSegments.isEmpty()) {
-                        outputSegments.pop();
-                    }
-                } else {
-                    outputSegments.push(inputSegment);
-                }
-            }
-            final StringBuilder outputBuffer = new StringBuilder();
-            for (final String outputSegment : outputSegments) {
-                outputBuffer.append('/').append(outputSegment);
-            }
-            if (path.lastIndexOf('/') == path.length() - 1) {
-                // path.endsWith("/") || path.equals("")
-                outputBuffer.append('/');
-            }
-            builder.setPath(outputBuffer.toString());
+        final String scheme = builder.getScheme();
+        if (scheme == null) {
+            builder.setScheme(URIScheme.HTTP.id);
+        } else {
+            builder.setScheme(TextUtils.toLowerCase(scheme));
         }
-        if (builder.getScheme() != null) {
-            builder.setScheme(builder.getScheme().toLowerCase(Locale.ROOT));
+        final String host = builder.getHost();
+        if (host != null) {
+            builder.setHost(TextUtils.toLowerCase(host));
         }
-        if (builder.getHost() != null) {
-            builder.setHost(builder.getHost().toLowerCase(Locale.ROOT));
+        if (builder.isPathEmpty()) {
+            builder.setPathSegments("");
         }
         return builder.build();
     }
@@ -250,56 +239,17 @@ public class URIUtils {
         if (uri == null) {
             return null;
         }
-        HttpHost target = null;
-        if (uri.isAbsolute()) {
-            int port = uri.getPort(); // may be overridden later
-            String host = uri.getHost();
-            if (host == null) { // normal parse failed; let's do it ourselves
-                // authority does not seem to care about the valid character-set for host names
-                host = uri.getAuthority();
-                if (host != null) {
-                    // Strip off any leading user credentials
-                    final int at = host.indexOf('@');
-                    if (at >= 0) {
-                        if (host.length() > at+1 ) {
-                            host = host.substring(at+1);
-                        } else {
-                            host = null; // @ on its own
-                        }
-                    }
-                    // Extract the port suffix, if present
-                    if (host != null) {
-                        final int colon = host.indexOf(':');
-                        if (colon >= 0) {
-                            final int pos = colon + 1;
-                            int len = 0;
-                            for (int i = pos; i < host.length(); i++) {
-                                if (Character.isDigit(host.charAt(i))) {
-                                    len++;
-                                } else {
-                                    break;
-                                }
-                            }
-                            if (len > 0) {
-                                try {
-                                    port = Integer.parseInt(host.substring(pos, pos + len));
-                                } catch (final NumberFormatException ex) {
-                                }
-                            }
-                            host = host.substring(0, colon);
-                        }
-                    }
-                }
-            }
-            final String scheme = uri.getScheme();
-            if (!TextUtils.isBlank(host)) {
-                try {
-                    target = new HttpHost(scheme, host, port);
-                } catch (final IllegalArgumentException ignore) {
-                }
+        final URIBuilder uriBuilder = new URIBuilder(uri);
+        final String scheme = uriBuilder.getScheme();
+        final String host = uriBuilder.getHost();
+        final int port = uriBuilder.getPort();
+        if (!TextUtils.isBlank(host)) {
+            try {
+                return new HttpHost(scheme, host, port);
+            } catch (final IllegalArgumentException ignore) {
             }
         }
-        return target;
+        return null;
     }
 
     /**
@@ -352,7 +302,10 @@ public class URIUtils {
      * Convenience factory method for {@link URI} instances.
      *
      * @since 5.0
+     *
+     * @deprecated Use {@link URIBuilder}.
      */
+    @Deprecated
     public static URI create(final HttpHost host, final String path) throws URISyntaxException {
         final URIBuilder builder = new URIBuilder(path);
         if (host != null) {
@@ -365,7 +318,10 @@ public class URIUtils {
      * Convenience factory method for {@link URI} instances.
      *
      * @since 5.0
+     *
+     * @deprecated Use {@link URIBuilder}.
      */
+    @Deprecated
     public static URI create(final String scheme, final URIAuthority host, final String path) throws URISyntaxException {
         final URIBuilder builder = new URIBuilder(path);
         if (scheme != null) {

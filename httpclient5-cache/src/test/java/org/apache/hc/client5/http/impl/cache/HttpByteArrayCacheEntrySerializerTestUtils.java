@@ -34,8 +34,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.Collections;
-import java.util.Date;
 import java.util.Map;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
@@ -45,11 +45,10 @@ import org.apache.hc.client5.http.cache.Resource;
 import org.apache.hc.client5.http.cache.ResourceIOException;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.message.BasicHeader;
-
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
 class HttpByteArrayCacheEntrySerializerTestUtils {
     private final static String TEST_RESOURCE_DIR = "src/test/resources/";
@@ -60,8 +59,8 @@ class HttpByteArrayCacheEntrySerializerTestUtils {
      */
     static class HttpCacheStorageEntryTestTemplate {
         Resource resource;
-        Date requestDate;
-        Date responseDate;
+        Instant requestDate;
+        Instant responseDate;
         int responseCode;
         Header[] responseHeaders;
         Map<String, String> variantMap;
@@ -121,8 +120,8 @@ class HttpByteArrayCacheEntrySerializerTestUtils {
     private static final HttpCacheStorageEntryTestTemplate DEFAULT_HTTP_CACHE_STORAGE_ENTRY_TEST_TEMPLATE = new HttpCacheStorageEntryTestTemplate();
     static {
         DEFAULT_HTTP_CACHE_STORAGE_ENTRY_TEST_TEMPLATE.resource = new HeapResource("Hello World".getBytes(StandardCharsets.UTF_8));
-        DEFAULT_HTTP_CACHE_STORAGE_ENTRY_TEST_TEMPLATE.requestDate = new Date(165214800000L);
-        DEFAULT_HTTP_CACHE_STORAGE_ENTRY_TEST_TEMPLATE.responseDate = new Date(2611108800000L);
+        DEFAULT_HTTP_CACHE_STORAGE_ENTRY_TEST_TEMPLATE.requestDate = Instant.ofEpochMilli(165214800000L);
+        DEFAULT_HTTP_CACHE_STORAGE_ENTRY_TEST_TEMPLATE.responseDate = Instant.ofEpochMilli(2611108800000L);
         DEFAULT_HTTP_CACHE_STORAGE_ENTRY_TEST_TEMPLATE.responseCode = 200;
         DEFAULT_HTTP_CACHE_STORAGE_ENTRY_TEST_TEMPLATE.responseHeaders = new Header[]{
                 new BasicHeader("Content-type", "text/html"),
@@ -221,14 +220,14 @@ class HttpByteArrayCacheEntrySerializerTestUtils {
         final HttpCacheEntry expectedContent = expected.getContent();
         final HttpCacheEntry actualContent = actual.getContent();
 
-        assertEquals(expectedContent.getRequestDate(), actualContent.getRequestDate());
-        assertEquals(expectedContent.getResponseDate(), actualContent.getResponseDate());
+        assertEquals(expectedContent.getRequestInstant(), actualContent.getRequestInstant());
+        assertEquals(expectedContent.getResponseInstant(), actualContent.getResponseInstant());
+
         assertEquals(expectedContent.getStatus(), actualContent.getStatus());
 
         assertArrayEquals(expectedContent.getVariantMap().keySet().toArray(), actualContent.getVariantMap().keySet().toArray());
         for (final String key : expectedContent.getVariantMap().keySet()) {
-            assertEquals("Expected same variantMap values for key '" + key + "'",
-                    expectedContent.getVariantMap().get(key), actualContent.getVariantMap().get(key));
+            assertEquals(expectedContent.getVariantMap().get(key), actualContent.getVariantMap().get(key), "Expected same variantMap values for key '" + key + "'");
         }
 
         // Verify that the same headers are present on the expected and actual content.
@@ -248,7 +247,7 @@ class HttpByteArrayCacheEntrySerializerTestUtils {
         }
 
         if (expectedContent.getResource() == null) {
-            assertNull("Expected null resource", actualContent.getResource());
+            assertNull(actualContent.getResource(), "Expected null resource");
         } else {
             final byte[] expectedBytes = readFullyStrict(
                     expectedContent.getResource().getInputStream(),
@@ -283,14 +282,8 @@ class HttpByteArrayCacheEntrySerializerTestUtils {
     static void saveEntryToFile(final HttpCacheEntrySerializer<byte[]> serializer, final HttpCacheStorageEntry httpCacheStorageEntry, final File outFile) throws Exception {
         final byte[] bytes = serializer.serialize(httpCacheStorageEntry);
 
-        OutputStream out = null;
-        try {
-            out = new FileOutputStream(outFile);
+        try (OutputStream out = new FileOutputStream(outFile)) {
             out.write(bytes);
-        } finally {
-            if (out != null) {
-                out.close();
-            }
         }
     }
 

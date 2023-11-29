@@ -31,9 +31,7 @@ import java.net.Socket;
 
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
-import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
@@ -43,12 +41,10 @@ import org.apache.hc.core5.http.impl.bootstrap.HttpServer;
 import org.apache.hc.core5.http.impl.bootstrap.ServerBootstrap;
 import org.apache.hc.core5.http.impl.io.DefaultBHttpServerConnection;
 import org.apache.hc.core5.http.io.HttpConnectionFactory;
-import org.apache.hc.core5.http.io.HttpRequestHandler;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
-import org.apache.hc.core5.http.protocol.HttpContext;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class TestMalformedServerResponse {
 
@@ -91,43 +87,27 @@ public class TestMalformedServerResponse {
     public void testNoContentResponseWithGarbage() throws Exception {
         try (final HttpServer server = ServerBootstrap.bootstrap()
                 .setConnectionFactory(new BrokenServerConnectionFactory())
-                .register("/nostuff", new HttpRequestHandler() {
-
-                    @Override
-                    public void handle(
-                            final ClassicHttpRequest request,
-                            final ClassicHttpResponse response,
-                            final HttpContext context) throws HttpException, IOException {
-                        response.setCode(HttpStatus.SC_NO_CONTENT);
-                    }
-
-                })
-                .register("/stuff", new HttpRequestHandler() {
-
-                    @Override
-                    public void handle(
-                            final ClassicHttpRequest request,
-                            final ClassicHttpResponse response,
-                            final HttpContext context) throws HttpException, IOException {
-                        response.setCode(HttpStatus.SC_OK);
-                        response.setEntity(new StringEntity("Some important stuff"));
-                    }
-
+                .register("/nostuff", (request, response, context) -> response.setCode(HttpStatus.SC_NO_CONTENT))
+                .register("/stuff", (request, response, context) -> {
+                    response.setCode(HttpStatus.SC_OK);
+                    response.setEntity(new StringEntity("Some important stuff"));
                 })
                 .create()) {
             server.start();
             final HttpHost target = new HttpHost("localhost", server.getLocalPort());
             try (final CloseableHttpClient httpclient = HttpClientBuilder.create().build()) {
                 final HttpGet get1 = new HttpGet("/nostuff");
-                try (final CloseableHttpResponse response1 = httpclient.execute(target, get1)) {
-                    Assert.assertEquals(HttpStatus.SC_NO_CONTENT, response1.getCode());
-                    EntityUtils.consume(response1.getEntity());
-                }
+                httpclient.execute(target, get1, response -> {
+                    Assertions.assertEquals(HttpStatus.SC_NO_CONTENT, response.getCode());
+                    EntityUtils.consume(response.getEntity());
+                    return null;
+                });
                 final HttpGet get2 = new HttpGet("/stuff");
-                try (final CloseableHttpResponse response2 = httpclient.execute(target, get2)) {
-                    Assert.assertEquals(HttpStatus.SC_OK, response2.getCode());
-                    EntityUtils.consume(response2.getEntity());
-                }
+                httpclient.execute(target, get2, response -> {
+                    Assertions.assertEquals(HttpStatus.SC_OK, response.getCode());
+                    EntityUtils.consume(response.getEntity());
+                    return null;
+                });
             }
         }
     }

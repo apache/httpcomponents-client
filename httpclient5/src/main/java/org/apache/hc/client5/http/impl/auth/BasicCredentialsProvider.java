@@ -26,7 +26,6 @@
  */
 package org.apache.hc.client5.http.impl.auth;
 
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.hc.client5.http.auth.AuthScope;
@@ -63,43 +62,9 @@ public class BasicCredentialsProvider implements CredentialsStore {
         credMap.put(authScope, credentials);
     }
 
-    /**
-     * Find matching {@link Credentials credentials} for the given authentication scope.
-     *
-     * @param map the credentials hash map
-     * @param authScope the {@link AuthScope authentication scope}
-     * @return the credentials
-     *
-     */
-    private static Credentials matchCredentials(
-            final Map<AuthScope, Credentials> map,
-            final AuthScope authScope) {
-        // see if we get a direct hit
-        Credentials creds = map.get(authScope);
-        if (creds == null) {
-            // Nope.
-            // Do a full scan
-            int bestMatchFactor  = -1;
-            AuthScope bestMatch  = null;
-            for (final AuthScope current: map.keySet()) {
-                final int factor = authScope.match(current);
-                if (factor > bestMatchFactor) {
-                    bestMatchFactor = factor;
-                    bestMatch = current;
-                }
-            }
-            if (bestMatch != null) {
-                creds = map.get(bestMatch);
-            }
-        }
-        return creds;
-    }
-
     @Override
-    public Credentials getCredentials(final AuthScope authScope,
-                                      final HttpContext httpContext) {
-        Args.notNull(authScope, "Authentication scope");
-        return matchCredentials(this.credMap, authScope);
+    public Credentials getCredentials(final AuthScope authScope, final HttpContext context) {
+        return CredentialsMatcher.matchCredentials(this.credMap, authScope);
     }
 
     @Override
@@ -109,7 +74,7 @@ public class BasicCredentialsProvider implements CredentialsStore {
 
     @Override
     public String toString() {
-        return credMap.toString();
+        return credMap.keySet().toString();
     }
 
 }

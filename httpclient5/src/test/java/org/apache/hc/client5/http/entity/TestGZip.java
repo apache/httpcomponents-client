@@ -39,8 +39,8 @@ import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.InputStreamEntity;
 import org.apache.hc.core5.http.io.entity.StringEntity;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
@@ -50,34 +50,37 @@ public class TestGZip {
     public void testBasic() throws Exception {
         final String s = "some kind of text";
         final StringEntity e = new StringEntity(s, ContentType.TEXT_PLAIN, false);
-        final GzipCompressingEntity gzipe = new GzipCompressingEntity(e);
-        Assert.assertTrue(gzipe.isChunked());
-        Assert.assertEquals(-1, gzipe.getContentLength());
-        Assert.assertNotNull(gzipe.getContentEncoding());
-        Assert.assertEquals("gzip", gzipe.getContentEncoding());
+        try (final GzipCompressingEntity gzipe = new GzipCompressingEntity(e)) {
+            Assertions.assertTrue(gzipe.isChunked());
+            Assertions.assertEquals(-1, gzipe.getContentLength());
+            Assertions.assertNotNull(gzipe.getContentEncoding());
+            Assertions.assertEquals("gzip", gzipe.getContentEncoding());
+        }
     }
 
     @Test
     public void testCompressionDecompression() throws Exception {
         final StringEntity in = new StringEntity("some kind of text", ContentType.TEXT_PLAIN);
-        final GzipCompressingEntity gzipe = new GzipCompressingEntity(in);
-        final ByteArrayOutputStream buf = new ByteArrayOutputStream();
-        gzipe.writeTo(buf);
-        final ByteArrayEntity out = new ByteArrayEntity(buf.toByteArray(), ContentType.APPLICATION_OCTET_STREAM);
-        final GzipDecompressingEntity gunzipe = new GzipDecompressingEntity(out);
-        Assert.assertEquals("some kind of text", EntityUtils.toString(gunzipe, StandardCharsets.US_ASCII));
+        try (final GzipCompressingEntity gzipe = new GzipCompressingEntity(in)) {
+            final ByteArrayOutputStream buf = new ByteArrayOutputStream();
+            gzipe.writeTo(buf);
+            final ByteArrayEntity out = new ByteArrayEntity(buf.toByteArray(), ContentType.APPLICATION_OCTET_STREAM);
+            final GzipDecompressingEntity gunzipe = new GzipDecompressingEntity(out);
+            Assertions.assertEquals("some kind of text", EntityUtils.toString(gunzipe, StandardCharsets.US_ASCII));
+        }
     }
 
     @Test
     public void testCompressionIOExceptionLeavesOutputStreamOpen() throws Exception {
         final HttpEntity in = Mockito.mock(HttpEntity.class);
-        Mockito.doThrow(new IOException("Ooopsie")).when(in).writeTo(ArgumentMatchers.<OutputStream>any());
-        final GzipCompressingEntity gzipe = new GzipCompressingEntity(in);
-        final OutputStream out = Mockito.mock(OutputStream.class);
-        try {
-            gzipe.writeTo(out);
-        } catch (final IOException ex) {
-            Mockito.verify(out, Mockito.never()).close();
+        Mockito.doThrow(new IOException("Ooopsie")).when(in).writeTo(ArgumentMatchers.any());
+        try (final GzipCompressingEntity gzipe = new GzipCompressingEntity(in)) {
+            final OutputStream out = Mockito.mock(OutputStream.class);
+            try {
+                gzipe.writeTo(out);
+            } catch (final IOException ex) {
+                Mockito.verify(out, Mockito.never()).close();
+            }
         }
     }
 
@@ -96,7 +99,7 @@ public class TestGZip {
         }
 
         try (final GzipDecompressingEntity entity = new GzipDecompressingEntity(new InputStreamEntity(new ByteArrayInputStream(bytes), ContentType.APPLICATION_OCTET_STREAM))) {
-            Assert.assertEquals("stream-1\nstream-2\n", EntityUtils.toString(entity, StandardCharsets.US_ASCII));
+            Assertions.assertEquals("stream-1\nstream-2\n", EntityUtils.toString(entity, StandardCharsets.US_ASCII));
         }
     }
 

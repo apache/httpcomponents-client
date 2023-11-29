@@ -43,6 +43,7 @@ import org.apache.hc.core5.concurrent.Cancellable;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.function.Resolver;
 import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
@@ -62,26 +63,26 @@ public class DefaultAsyncCacheInvalidator extends CacheInvalidatorBase implement
 
     public static final DefaultAsyncCacheInvalidator INSTANCE = new DefaultAsyncCacheInvalidator();
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger LOG = LoggerFactory.getLogger(DefaultAsyncCacheInvalidator.class);
 
     private void removeEntry(final HttpAsyncCacheStorage storage, final String cacheKey) {
         storage.removeEntry(cacheKey, new FutureCallback<Boolean>() {
 
             @Override
             public void completed(final Boolean result) {
-                if (log.isDebugEnabled()) {
-                    if (result) {
-                        log.debug("Cache entry with key " + cacheKey + " successfully flushed");
+                if (LOG.isDebugEnabled()) {
+                    if (result.booleanValue()) {
+                        LOG.debug("Cache entry with key {} successfully flushed", cacheKey);
                     } else {
-                        log.debug("Cache entry with key " + cacheKey + " could not be flushed");
+                        LOG.debug("Cache entry with key {} could not be flushed", cacheKey);
                     }
                 }
             }
 
             @Override
             public void failed(final Exception ex) {
-                if (log.isWarnEnabled()) {
-                    log.warn("Unable to flush cache entry with key " + cacheKey, ex);
+                if (LOG.isWarnEnabled()) {
+                    LOG.warn("Unable to flush cache entry with key {}", cacheKey, ex);
                 }
             }
 
@@ -100,7 +101,7 @@ public class DefaultAsyncCacheInvalidator extends CacheInvalidatorBase implement
             final HttpAsyncCacheStorage storage,
             final FutureCallback<Boolean> callback) {
         final String s = HttpCacheSupport.getRequestUri(request, host);
-        final URI uri = HttpCacheSupport.normalizeQuetly(s);
+        final URI uri = HttpCacheSupport.normalizeQuietly(s);
         final String cacheKey = uri != null ? cacheKeyResolver.resolve(uri) : s;
         return storage.getEntry(cacheKey, new FutureCallback<HttpCacheEntry>() {
 
@@ -108,8 +109,8 @@ public class DefaultAsyncCacheInvalidator extends CacheInvalidatorBase implement
             public void completed(final HttpCacheEntry parentEntry) {
                 if (requestShouldNotBeCached(request) || shouldInvalidateHeadCacheEntry(request, parentEntry)) {
                     if (parentEntry != null) {
-                        if (log.isDebugEnabled()) {
-                            log.debug("Invalidating parentEntry cache entry with key " + cacheKey);
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("Invalidating parentEntry cache entry with key {}", cacheKey);
                         }
                         for (final String variantURI : parentEntry.getVariantMap().values()) {
                             removeEntry(storage, variantURI);
@@ -117,21 +118,21 @@ public class DefaultAsyncCacheInvalidator extends CacheInvalidatorBase implement
                         removeEntry(storage, cacheKey);
                     }
                     if (uri != null) {
-                        if (log.isWarnEnabled()) {
-                            log.warn(s + " is not a valid URI");
+                        if (LOG.isWarnEnabled()) {
+                            LOG.warn("{} is not a valid URI", s);
                         }
-                        final Header clHdr = request.getFirstHeader("Content-Location");
+                        final Header clHdr = request.getFirstHeader(HttpHeaders.CONTENT_LOCATION);
                         if (clHdr != null) {
-                            final URI contentLocation = HttpCacheSupport.normalizeQuetly(clHdr.getValue());
+                            final URI contentLocation = HttpCacheSupport.normalizeQuietly(clHdr.getValue());
                             if (contentLocation != null) {
                                 if (!flushAbsoluteUriFromSameHost(uri, contentLocation, cacheKeyResolver, storage)) {
                                     flushRelativeUriFromSameHost(uri, contentLocation, cacheKeyResolver, storage);
                                 }
                             }
                         }
-                        final Header lHdr = request.getFirstHeader("Location");
+                        final Header lHdr = request.getFirstHeader(HttpHeaders.LOCATION);
                         if (lHdr != null) {
-                            final URI location = HttpCacheSupport.normalizeQuetly(lHdr.getValue());
+                            final URI location = HttpCacheSupport.normalizeQuietly(lHdr.getValue());
                             if (location != null) {
                                 flushAbsoluteUriFromSameHost(uri, location, cacheKeyResolver, storage);
                             }
@@ -189,7 +190,7 @@ public class DefaultAsyncCacheInvalidator extends CacheInvalidatorBase implement
         final int status = response.getCode();
         if (status >= HttpStatus.SC_SUCCESS && status < HttpStatus.SC_REDIRECTION) {
             final String s = HttpCacheSupport.getRequestUri(request, host);
-            final URI requestUri = HttpCacheSupport.normalizeQuetly(s);
+            final URI requestUri = HttpCacheSupport.normalizeQuietly(s);
             if (requestUri != null) {
                 final List<String> cacheKeys = new ArrayList<>(2);
                 final URI contentLocation = getContentLocationURI(requestUri, response);

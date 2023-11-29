@@ -130,6 +130,12 @@ public class HttpClientContext extends HttpCoreContext {
      */
     public static final String REQUEST_CONFIG = "http.request-config";
 
+    /**
+     * Attribute name of a {@link java.lang.String} object that represents the ID of the
+     * current message exchange.
+     */
+    public static final String EXCHANGE_ID = "http.exchange-id";
+
     public static HttpClientContext adapt(final HttpContext context) {
         Args.notNull(context, "HTTP context");
         if (context instanceof HttpClientContext) {
@@ -174,12 +180,13 @@ public class HttpClientContext extends HttpCoreContext {
         return getAttribute(COOKIE_ORIGIN, CookieOrigin.class);
     }
 
-    private <T> Lookup<T> getLookup(final String name, final Class<T> clazz) {
-        return getAttribute(name, Lookup.class);
+    @SuppressWarnings("unchecked")
+    private <T> Lookup<T> getLookup(final String name) {
+        return (Lookup<T>) getAttribute(name, Lookup.class);
     }
 
     public Lookup<CookieSpecFactory> getCookieSpecRegistry() {
-        return getLookup(COOKIESPEC_REGISTRY, CookieSpecFactory.class);
+        return getLookup(COOKIESPEC_REGISTRY);
     }
 
     public void setCookieSpecRegistry(final Lookup<CookieSpecFactory> lookup) {
@@ -187,7 +194,7 @@ public class HttpClientContext extends HttpCoreContext {
     }
 
     public Lookup<AuthSchemeFactory> getAuthSchemeRegistry() {
-        return getLookup(AUTHSCHEME_REGISTRY, AuthSchemeFactory.class);
+        return getLookup(AUTHSCHEME_REGISTRY);
     }
 
     public void setAuthSchemeRegistry(final Lookup<AuthSchemeFactory> lookup) {
@@ -273,6 +280,20 @@ public class HttpClientContext extends HttpCoreContext {
 
     public void setRequestConfig(final RequestConfig config) {
         setAttribute(REQUEST_CONFIG, config);
+    }
+
+    /**
+     * @since 5.1
+     */
+    public String getExchangeId() {
+        return getAttribute(EXCHANGE_ID, String.class);
+    }
+
+    /**
+     * @since 5.1
+     */
+    public void setExchangeId(final String id) {
+        setAttribute(EXCHANGE_ID, id);
     }
 
 }

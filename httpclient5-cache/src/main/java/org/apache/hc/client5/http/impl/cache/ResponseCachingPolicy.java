@@ -26,8 +26,9 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
+import java.time.Instant;
 import java.util.Arrays;
-import java.util.Date;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -60,7 +61,7 @@ class ResponseCachingPolicy {
                     HttpStatus.SC_MOVED_PERMANENTLY,
                     HttpStatus.SC_GONE));
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger LOG = LoggerFactory.getLogger(ResponseCachingPolicy.class);
 
     private final long maxObjectSizeBytes;
     private final boolean sharedCache;
@@ -86,7 +87,7 @@ class ResponseCachingPolicy {
         this.sharedCache = sharedCache;
         this.neverCache1_0ResponsesWithQueryString = neverCache1_0ResponsesWithQueryString;
         if (allow303Caching) {
-            uncacheableStatusCodes = new HashSet<>(Arrays.asList(HttpStatus.SC_PARTIAL_CONTENT));
+            uncacheableStatusCodes = new HashSet<>(Collections.singletonList(HttpStatus.SC_PARTIAL_CONTENT));
         } else {
             uncacheableStatusCodes = new HashSet<>(Arrays.asList(HttpStatus.SC_PARTIAL_CONTENT, HttpStatus.SC_SEE_OTHER));
         }
@@ -103,8 +104,8 @@ class ResponseCachingPolicy {
         boolean cacheable = false;
 
         if (!HeaderConstants.GET_METHOD.equals(httpMethod) && !HeaderConstants.HEAD_METHOD.equals(httpMethod)) {
-            if (log.isDebugEnabled()) {
-                log.debug(httpMethod + " method response is not cacheable");
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{} method response is not cacheable", httpMethod);
             }
             return false;
         }
@@ -114,15 +115,15 @@ class ResponseCachingPolicy {
             // these response codes MAY be cached
             cacheable = true;
         } else if (uncacheableStatusCodes.contains(status)) {
-            if (log.isDebugEnabled()) {
-                log.debug(status + " response is not cacheable");
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{} response is not cacheable", status);
             }
             return false;
         } else if (unknownStatusCode(status)) {
             // a response with an unknown status code MUST NOT be
             // cached
-            if (log.isDebugEnabled()) {
-                log.debug(status + " response is unknown");
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{} response is unknown", status);
             }
             return false;
         }
@@ -131,31 +132,31 @@ class ResponseCachingPolicy {
         if (contentLength != null) {
             final long contentLengthValue = Long.parseLong(contentLength.getValue());
             if (contentLengthValue > this.maxObjectSizeBytes) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Response content length exceeds " + this.maxObjectSizeBytes);
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Response content length exceeds {}", this.maxObjectSizeBytes);
                 }
                 return false;
             }
         }
 
         if (response.countHeaders(HeaderConstants.AGE) > 1) {
-            log.debug("Multiple Age headers");
+            LOG.debug("Multiple Age headers");
             return false;
         }
 
         if (response.countHeaders(HeaderConstants.EXPIRES) > 1) {
-            log.debug("Multiple Expires headers");
+            LOG.debug("Multiple Expires headers");
             return false;
         }
 
         if (response.countHeaders(HttpHeaders.DATE) > 1) {
-            log.debug("Multiple Date headers");
+            LOG.debug("Multiple Date headers");
             return false;
         }
 
-        final Date date = DateUtils.parseDate(response, HttpHeaders.DATE);
+        final Instant date = DateUtils.parseStandardDate(response, HttpHeaders.DATE);
         if (date == null) {
-            log.debug("Invalid / missing Date header");
+            LOG.debug("Invalid / missing Date header");
             return false;
         }
 
@@ -163,15 +164,15 @@ class ResponseCachingPolicy {
         while (it.hasNext()) {
             final HeaderElement elem = it.next();
             if ("*".equals(elem.getName())) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Vary * found");
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Vary * found");
                 }
                 return false;
             }
         }
 
         if (isExplicitlyNonCacheable(response)) {
-            log.debug("Response is explicitly non-cacheable");
+            LOG.debug("Response is explicitly non-cacheable");
             return false;
         }
 
@@ -191,10 +192,7 @@ class ResponseCachingPolicy {
         if (status >= 400 && status <= 417) {
             return false;
         }
-        if (status >= 500 && status <= 505) {
-            return false;
-        }
-        return true;
+        return status < 500 || status > 505;
     }
 
     protected boolean isExplicitlyNonCacheable(final HttpResponse response) {
@@ -246,37 +244,37 @@ class ResponseCachingPolicy {
     public boolean isResponseCacheable(final HttpRequest request, final HttpResponse response) {
         final ProtocolVersion version = request.getVersion() != null ? request.getVersion() : HttpVersion.DEFAULT;
         if (version.compareToVersion(HttpVersion.HTTP_1_1) > 0) {
-            if (log.isDebugEnabled()) {
-                log.debug("Protocol version " + version + " is non-cacheable");
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Protocol version {} is non-cacheable", version);
             }
             return false;
         }
 
         final String[] uncacheableRequestDirectives = { HeaderConstants.CACHE_CONTROL_NO_STORE };
         if (hasCacheControlParameterFrom(request,uncacheableRequestDirectives)) {
-            log.debug("Response is explcitily non-cacheable per cache control directive");
+            LOG.debug("Response is explicitly non-cacheable per cache control directive");
             return false;
         }
 
         if (request.getRequestUri().contains("?")) {
             if (neverCache1_0ResponsesWithQueryString && from1_0Origin(response)) {
-                log.debug("Response is not cacheable as it had a query string");
+                LOG.debug("Response is not cacheable as it had a query string");
                 return false;
             } else if (!isExplicitlyCacheable(response)) {
-                log.debug("Response is not cacheable as it is missing explicit caching headers");
+                LOG.debug("Response is not cacheable as it is missing explicit caching headers");
                 return false;
             }
         }
 
         if (expiresHeaderLessOrEqualToDateHeaderAndNoCacheControl(response)) {
-            log.debug("Expires header less or equal to Date header and no cache control directives");
+            LOG.debug("Expires header less or equal to Date header and no cache control directives");
             return false;
         }
 
         if (sharedCache) {
             if (request.countHeaders(HeaderConstants.AUTHORIZATION) > 0
                     && !hasCacheControlParameterFrom(response, AUTH_CACHEABLE_PARAMS)) {
-                log.debug("Request contains private credentials");
+                LOG.debug("Request contains private credentials");
                 return false;
             }
         }
@@ -294,17 +292,17 @@ class ResponseCachingPolicy {
         if (expiresHdr == null || dateHdr == null) {
             return false;
         }
-        final Date expires = DateUtils.parseDate(expiresHdr.getValue());
-        final Date date = DateUtils.parseDate(dateHdr.getValue());
+        final Instant expires = DateUtils.parseStandardDate(expiresHdr.getValue());
+        final Instant date = DateUtils.parseStandardDate(dateHdr.getValue());
         if (expires == null || date == null) {
             return false;
         }
-        return expires.equals(date) || expires.before(date);
+        return expires.equals(date) || expires.isBefore(date);
     }
 
     private boolean from1_0Origin(final HttpResponse response) {
         final Iterator<HeaderElement> it = MessageSupport.iterate(response, HeaderConstants.VIA);
-        while (it.hasNext()) {
+        if (it.hasNext()) {
             final HeaderElement elt = it.next();
             final String proto = elt.toString().split("\\s")[0];
             if (proto.contains("/")) {

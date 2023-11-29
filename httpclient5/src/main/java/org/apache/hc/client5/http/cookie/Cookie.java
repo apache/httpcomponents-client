@@ -27,6 +27,7 @@
 
 package org.apache.hc.client5.http.cookie;
 
+import java.time.Instant;
 import java.util.Date;
 
 /**
@@ -44,6 +45,7 @@ public interface Cookie {
     String MAX_AGE_ATTR    = "max-age";
     String SECURE_ATTR     = "secure";
     String EXPIRES_ATTR    = "expires";
+    String HTTP_ONLY_ATTR  = "httpOnly";
 
     /**
      * @since 5.0
@@ -76,8 +78,25 @@ public interface Cookie {
      * considered immutable. Changing it (e.g. using setTime()) could result
      * in undefined behaviour. Do so at your peril. </p>
      * @return Expiration {@link Date}, or {@code null}.
+     * @deprecated Use {{@link #getExpiryInstant()}}
      */
+    @Deprecated
     Date getExpiryDate();
+
+    /**
+     * Returns the expiration {@link Instant} of the cookie, or {@code null} if none exists.
+     * <p><strong>Note:</strong> the object returned by this method is
+     * considered immutable. Changing it (e.g. using setTime()) could result in undefined behaviour.
+     * Do so at your peril. </p>
+     *
+     * @return Expiration {@link Instant}, or {@code null}.
+     * @since 5.2
+     */
+    @SuppressWarnings("deprecated")
+    default Instant getExpiryInstant() {
+        final Date date = getExpiryDate();
+        return date != null ? Instant.ofEpochMilli(date.getTime()) : null;
+    }
 
     /**
      * Returns {@code false} if the cookie should be discarded at the end
@@ -118,13 +137,47 @@ public interface Cookie {
      * @param date Current time
      *
      * @return {@code true} if the cookie has expired.
+     * @deprecated Use {{@link #isExpired(Instant)}}
      */
+    @Deprecated
     boolean isExpired(final Date date);
+
+    /**
+     * Returns true if this cookie has expired.
+     *
+     * @param date Current time
+     * @return {@code true} if the cookie has expired.
+     * @since 5.2
+     */
+    @SuppressWarnings("deprecation")
+    default boolean isExpired(final Instant date) {
+        return isExpired(date != null ? new Date(date.toEpochMilli()) : null);
+    }
+
+    /**
+     * Returns creation time of the cookie.
+     * @deprecated Use {@link #getCreationInstant()}
+     */
+    @Deprecated
+    Date getCreationDate();
 
     /**
      * Returns creation time of the cookie.
      */
-    Date getCreationDate();
+    default Instant getCreationInstant() { return null;  }
+
+    /**
+     * Checks whether this Cookie has been marked as {@code httpOnly}.
+     * <p>The default implementation returns {@code false}.
+     *
+     * @return true if this Cookie has been marked as {@code httpOnly},
+     * false otherwise
+     *
+     * @since 5.2
+     */
+    default boolean isHttpOnly(){
+        return false;
+    }
 
 }
 

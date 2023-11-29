@@ -28,25 +28,20 @@
 package org.apache.hc.client5.http.async.methods;
 
 import java.net.URI;
-import java.util.Locale;
 
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
-import org.apache.hc.core5.util.Args;
 
 /**
  * Common HTTP methods using {@link BasicHttpRequest} as a HTTP request message representation.
  *
  * @since 5.0
+ *
+ * @deprecated Use {@link org.apache.hc.core5.http.support.BasicRequestBuilder}.
  */
+@Deprecated
 public final class BasicHttpRequests {
-
-    // TODO Next version of HttpCore:
-    // Method.normalizedValueOf(method)
-    private static Method normalizedValueOf(final String method) {
-        return Method.valueOf(Args.notNull(method, "method").toUpperCase(Locale.ROOT));
-    }
 
     /**
      * Creates a new BasicHttpRequest for the given {@code method} and {@code String} URI.
@@ -56,9 +51,7 @@ public final class BasicHttpRequests {
      * @return A new BasicHttpRequest.
      */
     public static BasicHttpRequest create(final String method, final String uri) {
-        // TODO Next version of HttpCore:
-        // return create(Method.normalizedValueOf(method), uri);
-        return create(normalizedValueOf(method), uri);
+        return create(Method.normalizedValueOf(method), uri);
     }
 
     /**
@@ -69,9 +62,7 @@ public final class BasicHttpRequests {
      * @return A new BasicHttpRequest.
      */
     public static BasicHttpRequest create(final String method, final URI uri) {
-        // TODO Next version of HttpCore:
-        // return create(Method.normalizedValueOf(method), uri);
-        return create(normalizedValueOf(method), uri);
+        return create(Method.normalizedValueOf(method), uri);
     }
 
     public static BasicHttpRequest delete(final String uri) {

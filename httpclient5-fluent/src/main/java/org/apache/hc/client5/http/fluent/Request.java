@@ -33,7 +33,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -41,12 +41,12 @@ import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 
-import org.apache.hc.client5.http.classic.methods.ClassicHttpRequests;
 import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
 import org.apache.hc.client5.http.config.Configurable;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.ContentType;
@@ -60,7 +60,8 @@ import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
 import org.apache.hc.core5.http.io.entity.FileEntity;
 import org.apache.hc.core5.http.io.entity.InputStreamEntity;
-import org.apache.hc.core5.net.URLEncodedUtils;
+import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
+import org.apache.hc.core5.net.WWWFormCodec;
 import org.apache.hc.core5.util.Timeout;
 
 /**
@@ -70,8 +71,20 @@ import org.apache.hc.core5.util.Timeout;
  */
 public class Request {
 
+    /**
+     * @deprecated This attribute is no longer supported as a part of the public API.
+     */
+    @Deprecated
     public static final String DATE_FORMAT = "EEE, dd MMM yyyy HH:mm:ss zzz";
+    /**
+     * @deprecated This attribute is no longer supported as a part of the public API.
+     */
+    @Deprecated
     public static final Locale DATE_LOCALE = Locale.US;
+    /**
+     * @deprecated This attribute is no longer supported as a part of the public API.
+     */
+    @Deprecated
     public static final TimeZone TIME_ZONE = TimeZone.getTimeZone("GMT");
 
     private final ClassicHttpRequest request;
@@ -79,8 +92,6 @@ public class Request {
     private Timeout connectTimeout;
     private Timeout responseTimeout;
     private HttpHost proxy;
-
-    private SimpleDateFormat dateFormatter;
 
     public static Request create(final Method method, final URI uri) {
       return new Request(new HttpUriRequestBase(method.name(), uri));
@@ -95,67 +106,67 @@ public class Request {
   }
 
     public static Request get(final URI uri) {
-       return new Request(ClassicHttpRequests.get(uri));
+       return new Request(new BasicClassicHttpRequest(Method.GET, uri));
     }
 
     public static Request get(final String uri) {
-        return new Request(ClassicHttpRequests.get(uri));
+        return new Request(new BasicClassicHttpRequest(Method.GET, uri));
     }
 
     public static Request head(final URI uri) {
-        return new Request(ClassicHttpRequests.head(uri));
+        return new Request(new BasicClassicHttpRequest(Method.HEAD, uri));
     }
 
     public static Request head(final String uri) {
-        return new Request(ClassicHttpRequests.head(uri));
+        return new Request(new BasicClassicHttpRequest(Method.HEAD, uri));
     }
 
     public static Request post(final URI uri) {
-        return new Request(ClassicHttpRequests.post(uri));
+        return new Request(new BasicClassicHttpRequest(Method.POST, uri));
     }
 
     public static Request post(final String uri) {
-      return new Request(ClassicHttpRequests.post(uri));
+      return new Request(new BasicClassicHttpRequest(Method.POST, uri));
     }
 
     public static Request patch(final URI uri) {
-      return new Request(ClassicHttpRequests.patch(uri));
+      return new Request(new BasicClassicHttpRequest(Method.PATCH, uri));
     }
 
     public static Request patch(final String uri) {
-      return new Request(ClassicHttpRequests.patch(uri));
+      return new Request(new BasicClassicHttpRequest(Method.PATCH, uri));
     }
 
     public static Request put(final URI uri) {
-      return new Request(ClassicHttpRequests.put(uri));
+      return new Request(new BasicClassicHttpRequest(Method.PUT, uri));
     }
 
     public static Request put(final String uri) {
-      return new Request(ClassicHttpRequests.put(uri));
+      return new Request(new BasicClassicHttpRequest(Method.PUT, uri));
     }
 
     public static Request trace(final URI uri) {
-      return new Request(ClassicHttpRequests.trace(uri));
+      return new Request(new BasicClassicHttpRequest(Method.TRACE, uri));
     }
 
     public static Request trace(final String uri) {
-      return new Request(ClassicHttpRequests.trace(uri));
+      return new Request(new BasicClassicHttpRequest(Method.TRACE, uri));
     }
 
     public static Request delete(final URI uri) {
-      return new Request(ClassicHttpRequests.delete(uri));
+      return new Request(new BasicClassicHttpRequest(Method.DELETE, uri));
     }
 
     public static Request delete(final String uri) {
-      return new Request(ClassicHttpRequests.delete(uri));
+      return new Request(new BasicClassicHttpRequest(Method.DELETE, uri));
     }
 
     public static Request options(final URI uri) {
-      return new Request(ClassicHttpRequests.options(uri));
+      return new Request(new BasicClassicHttpRequest(Method.OPTIONS, uri));
     }
 
     public static Request options(final String uri) {
-      return new Request(ClassicHttpRequests.options(uri));
+      return new Request(new BasicClassicHttpRequest(Method.OPTIONS, uri));
     }
 
     Request(final ClassicHttpRequest request) {
@@ -163,6 +174,7 @@ public class Request {
         this.request = request;
     }
 
+    @SuppressWarnings("deprecation")
     ClassicHttpResponse internalExecute(
             final CloseableHttpClient client,
             final HttpClientContext localContext) throws IOException {
@@ -173,7 +185,7 @@ public class Request {
             builder = RequestConfig.custom();
         }
         if (this.useExpectContinue != null) {
-            builder.setExpectContinueEnabled(this.useExpectContinue);
+            builder.setExpectContinueEnabled(this.useExpectContinue.booleanValue());
         }
         if (this.connectTimeout != null) {
             builder.setConnectTimeout(this.connectTimeout);
@@ -186,7 +198,7 @@ public class Request {
         }
         final RequestConfig config = builder.build();
         localContext.setRequestConfig(config);
-        return client.execute(this.request, localContext);
+        return client.executeOpen(null, this.request, localContext);
     }
 
     public Response execute() throws IOException {
@@ -245,30 +257,49 @@ public class Request {
         return this;
     }
 
-    private SimpleDateFormat getDateFormat() {
-        if (this.dateFormatter == null) {
-            this.dateFormatter = new SimpleDateFormat(DATE_FORMAT, DATE_LOCALE);
-            this.dateFormatter.setTimeZone(TIME_ZONE);
-        }
-        return this.dateFormatter;
-    }
-
     ClassicHttpRequest getRequest() {
       return request;
     }
 
+    /**
+     * @deprecated Use {@link #setDate(Instant)}
+     */
+    @Deprecated
     public Request setDate(final Date date) {
-        this.request.setHeader(HttpHeader.DATE, getDateFormat().format(date));
+        this.request.setHeader(HttpHeader.DATE, DateUtils.formatStandardDate(DateUtils.toInstant(date)));
         return this;
     }
 
+    /**
+     * @deprecated Use {@link #setIfModifiedSince(Instant)}
+     */
+    @Deprecated
     public Request setIfModifiedSince(final Date date) {
-        this.request.setHeader(HttpHeader.IF_MODIFIED_SINCE, getDateFormat().format(date));
+        this.request.setHeader(HttpHeader.IF_MODIFIED_SINCE, DateUtils.formatStandardDate(DateUtils.toInstant(date)));
         return this;
     }
 
+    /**
+     * @deprecated Use {@link #setIfUnmodifiedSince(Instant)}
+     */
+    @Deprecated
     public Request setIfUnmodifiedSince(final Date date) {
-        this.request.setHeader(HttpHeader.IF_UNMODIFIED_SINCE, getDateFormat().format(date));
+        this.request.setHeader(HttpHeader.IF_UNMODIFIED_SINCE, DateUtils.formatStandardDate(DateUtils.toInstant(date)));
+        return this;
+    }
+
+    public Request setDate(final Instant instant) {
+        this.request.setHeader(HttpHeader.DATE, DateUtils.formatStandardDate(instant));
+        return this;
+    }
+
+    public Request setIfModifiedSince(final Instant instant) {
+        this.request.setHeader(HttpHeader.IF_MODIFIED_SINCE, DateUtils.formatStandardDate(instant));
+        return this;
+    }
+
+    public Request setIfUnmodifiedSince(final Instant instant) {
+        this.request.setHeader(HttpHeader.IF_UNMODIFIED_SINCE, DateUtils.formatStandardDate(instant));
         return this;
     }
 
@@ -334,7 +365,7 @@ public class Request {
         }
         final ContentType contentType = charset != null ?
                 ContentType.APPLICATION_FORM_URLENCODED.withCharset(charset) : ContentType.APPLICATION_FORM_URLENCODED;
-        final String s = URLEncodedUtils.format(paramList, contentType.getCharset());
+        final String s = WWWFormCodec.format(paramList, contentType.getCharset());
         return bodyString(s, contentType);
     }
 

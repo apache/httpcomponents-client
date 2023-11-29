@@ -48,7 +48,7 @@ import org.slf4j.LoggerFactory;
 public class InMemoryDnsResolver implements DnsResolver {
 
     /** Logger associated to this class. */
-    private final Logger log = LoggerFactory.getLogger(InMemoryDnsResolver.class);
+    private static final Logger LOG = LoggerFactory.getLogger(InMemoryDnsResolver.class);
 
     /**
      * In-memory collection that will hold the associations between a host name
@@ -86,8 +86,8 @@ public class InMemoryDnsResolver implements DnsResolver {
     @Override
     public InetAddress[] resolve(final String host) throws UnknownHostException {
         final InetAddress[] resolvedAddresses = dnsMap.get(host);
-        if (log.isInfoEnabled()) {
-            log.info("Resolving " + host + " to " + Arrays.deepToString(resolvedAddresses));
+        if (LOG.isInfoEnabled()) {
+            LOG.info("Resolving {} to {}", host, Arrays.deepToString(resolvedAddresses));
         }
         if(resolvedAddresses == null){
             throw new UnknownHostException(host + " cannot be resolved");

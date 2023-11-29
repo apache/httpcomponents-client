@@ -26,20 +26,16 @@
  */
 package org.apache.hc.client5.testing.async;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static org.hamcrest.MatcherAssert.assertThat;
+
 import java.nio.ByteBuffer;
-import java.util.Arrays;
-import java.util.Collection;
 
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
-import org.apache.hc.client5.http.async.methods.SimpleHttpRequests;
-import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
-import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManager;
-import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
-import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
-import org.apache.hc.client5.testing.SSLTestContexts;
 import org.apache.hc.core5.http.HeaderElements;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
@@ -50,127 +46,89 @@ import org.apache.hc.core5.http.config.Http1Config;
 import org.apache.hc.core5.http.nio.AsyncRequestProducer;
 import org.apache.hc.core5.http.nio.support.AsyncRequestBuilder;
 import org.apache.hc.core5.reactive.ReactiveResponseConsumer;
+import org.apache.hc.core5.reactive.ReactiveServerExchangeHandler;
+import org.apache.hc.core5.testing.nio.H2TestServer;
+import org.apache.hc.core5.testing.reactive.ReactiveRandomProcessor;
 import org.hamcrest.CoreMatchers;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExternalResource;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.reactivestreams.Publisher;
 
-@RunWith(Parameterized.class)
-public class TestHttp1Reactive extends AbstractHttpReactiveFundamentalsTest<CloseableHttpAsyncClient> {
-
-    @Parameterized.Parameters(name = "HTTP/1.1 {0}")
-    public static Collection<Object[]> protocols() {
-        return Arrays.asList(new Object[][]{
-                { URIScheme.HTTP },
-                { URIScheme.HTTPS },
-        });
-    }
-
-    protected HttpAsyncClientBuilder clientBuilder;
-    protected PoolingAsyncClientConnectionManager connManager;
-
-    @Rule
-    public ExternalResource connManagerResource = new ExternalResource() {
-
-        @Override
-        protected void before() throws Throwable {
-            connManager = PoolingAsyncClientConnectionManagerBuilder.create()
-                    .setTlsStrategy(new DefaultClientTlsStrategy(SSLTestContexts.createClientSSLContext()))
-                    .build();
-        }
-
-        @Override
-        protected void after() {
-            if (connManager != null) {
-                connManager.close();
-                connManager = null;
-            }
-        }
-
-    };
-
-    @Rule
-    public ExternalResource clientResource = new ExternalResource() {
-
-        @Override
-        protected void before() throws Throwable {
-            clientBuilder = HttpAsyncClientBuilder.create()
-                    .setDefaultRequestConfig(RequestConfig.custom()
-                            .setConnectionRequestTimeout(TIMEOUT)
-                            .setConnectTimeout(TIMEOUT)
-                            .build())
-                    .setConnectionManager(connManager);
-        }
-
-    };
+public abstract class TestHttp1Reactive extends AbstractHttpReactiveFundamentalsTest<CloseableHttpAsyncClient> {
 
     public TestHttp1Reactive(final URIScheme scheme) {
         super(scheme);
     }
 
     @Override
-    protected CloseableHttpAsyncClient createClient() {
-        return clientBuilder.build();
+    protected H2TestServer startServer() throws Exception {
+        return startServer(Http1Config.DEFAULT, null, null);
     }
 
     @Override
-    public HttpHost start() throws Exception {
-        return super.start(null, Http1Config.DEFAULT);
+    protected CloseableHttpAsyncClient startClient() throws Exception {
+        return startClient(b -> {});
     }
 
-    @Test(timeout = 60_000)
-    public void testSequentialGetRequestsCloseConnection() throws Exception {
-        final HttpHost target = start();
+    @ParameterizedTest(name = "{displayName}; concurrent connections: {0}")
+    @ValueSource(ints = {5, 1, 20})
+    @Timeout(value = 60_000, unit = MILLISECONDS)
+    public void testSequentialGetRequestsCloseConnection(final int concurrentConns) throws Exception {
+        final H2TestServer server = startServer();
+        server.register("/random/*", () ->
+                new ReactiveServerExchangeHandler(new ReactiveRandomProcessor()));
+        final HttpHost target = targetHost();
+
+        final CloseableHttpAsyncClient client = startClient();
+        final PoolingAsyncClientConnectionManager connManager = connManager();
+        connManager.setDefaultMaxPerRoute(concurrentConns);
+        connManager.setMaxTotal(100);
+
         for (int i = 0; i < 3; i++) {
-            final SimpleHttpRequest get = SimpleHttpRequests.get(target, "/random/2048");
+            final SimpleHttpRequest get = SimpleRequestBuilder.get()
+                    .setHttpHost(target)
+                    .setPath("/random/2048")
+                    .build();
             get.setHeader(HttpHeaders.CONNECTION, HeaderElements.CLOSE);
             final AsyncRequestProducer request = AsyncRequestBuilder.get(target + "/random/2048").build();
             final ReactiveResponseConsumer consumer = new ReactiveResponseConsumer();
 
-            httpclient.execute(request, consumer, null);
+            client.execute(request, consumer, null);
 
             final Message<HttpResponse, Publisher<ByteBuffer>> response = consumer.getResponseFuture().get();
-            Assert.assertThat(response, CoreMatchers.notNullValue());
-            Assert.assertThat(response.getHead().getCode(), CoreMatchers.equalTo(200));
+            assertThat(response, CoreMatchers.notNullValue());
+            assertThat(response.getHead().getCode(), CoreMatchers.equalTo(200));
             final String body = publisherToString(response.getBody());
-            Assert.assertThat(body, CoreMatchers.notNullValue());
-            Assert.assertThat(body.length(), CoreMatchers.equalTo(2048));
+            assertThat(body, CoreMatchers.notNullValue());
+            assertThat(body.length(), CoreMatchers.equalTo(2048));
         }
     }
 
-    @Test(timeout = 60_000)
-    public void testConcurrentPostsOverMultipleConnections() throws Exception {
-        connManager.setDefaultMaxPerRoute(20);
-        connManager.setMaxTotal(100);
-        super.testConcurrentPostRequests();
-    }
-
-    @Test(timeout = 60_000)
-    public void testConcurrentPostsOverSingleConnection() throws Exception {
-        connManager.setDefaultMaxPerRoute(1);
-        connManager.setMaxTotal(100);
-        super.testConcurrentPostRequests();
-    }
-
-    @Test(timeout = 60_000)
+    @Test
+    @Timeout(value = 60_000, unit = MILLISECONDS)
     public void testSharedPool() throws Exception {
-        final HttpHost target = start();
+        final H2TestServer server = startServer();
+        server.register("/random/*", () ->
+                new ReactiveServerExchangeHandler(new ReactiveRandomProcessor()));
+        final HttpHost target = targetHost();
+
+        final CloseableHttpAsyncClient client = startClient();
+        final PoolingAsyncClientConnectionManager connManager = connManager();
+
         final AsyncRequestProducer request1 = AsyncRequestBuilder.get(target + "/random/2048").build();
         final ReactiveResponseConsumer consumer1 = new ReactiveResponseConsumer();
 
-        httpclient.execute(request1, consumer1, null);
+        client.execute(request1, consumer1, null);
 
         final Message<HttpResponse, Publisher<ByteBuffer>> response1 = consumer1.getResponseFuture().get();
-        Assert.assertThat(response1, CoreMatchers.notNullValue());
-        Assert.assertThat(response1.getHead(), CoreMatchers.notNullValue());
-        Assert.assertThat(response1.getHead().getCode(), CoreMatchers.equalTo(200));
+        assertThat(response1, CoreMatchers.notNullValue());
+        assertThat(response1.getHead(), CoreMatchers.notNullValue());
+        assertThat(response1.getHead().getCode(), CoreMatchers.equalTo(200));
         final String body1 = publisherToString(response1.getBody());
-        Assert.assertThat(body1, CoreMatchers.notNullValue());
-        Assert.assertThat(body1.length(), CoreMatchers.equalTo(2048));
+        assertThat(body1, CoreMatchers.notNullValue());
+        assertThat(body1.length(), CoreMatchers.equalTo(2048));
 
 
         try (final CloseableHttpAsyncClient httpclient2 = HttpAsyncClients.custom()
@@ -184,24 +142,24 @@ public class TestHttp1Reactive extends AbstractHttpReactiveFundamentalsTest<Clos
             httpclient2.execute(request2, consumer2, null);
 
             final Message<HttpResponse, Publisher<ByteBuffer>> response2 = consumer2.getResponseFuture().get();
-            Assert.assertThat(response2, CoreMatchers.notNullValue());
-            Assert.assertThat(response2.getHead().getCode(), CoreMatchers.equalTo(200));
+            assertThat(response2, CoreMatchers.notNullValue());
+            assertThat(response2.getHead().getCode(), CoreMatchers.equalTo(200));
             final String body2 = publisherToString(response2.getBody());
-            Assert.assertThat(body2, CoreMatchers.notNullValue());
-            Assert.assertThat(body2.length(), CoreMatchers.equalTo(2048));
+            assertThat(body2, CoreMatchers.notNullValue());
+            assertThat(body2.length(), CoreMatchers.equalTo(2048));
         }
 
         final AsyncRequestProducer request3 = AsyncRequestBuilder.get(target + "/random/2048").build();
         final ReactiveResponseConsumer consumer3 = new ReactiveResponseConsumer();
 
-        httpclient.execute(request3, consumer3, null);
+        client.execute(request3, consumer3, null);
 
         final Message<HttpResponse, Publisher<ByteBuffer>> response3 = consumer3.getResponseFuture().get();
-        Assert.assertThat(response3, CoreMatchers.notNullValue());
-        Assert.assertThat(response3.getHead().getCode(), CoreMatchers.equalTo(200));
+        assertThat(response3, CoreMatchers.notNullValue());
+        assertThat(response3.getHead().getCode(), CoreMatchers.equalTo(200));
         final String body3 = publisherToString(response3.getBody());
-        Assert.assertThat(body3, CoreMatchers.notNullValue());
-        Assert.assertThat(body3.length(), CoreMatchers.equalTo(2048));
+        assertThat(body3, CoreMatchers.notNullValue());
+        assertThat(body3.length(), CoreMatchers.equalTo(2048));
     }
 
 }

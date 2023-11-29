@@ -27,7 +27,7 @@
 package org.apache.hc.client5.http.impl.cache;
 
 import java.io.IOException;
-import java.util.Date;
+import java.time.Instant;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -40,7 +40,6 @@ import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpCacheContext;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.ResourceIOException;
-import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HeaderElement;
 import org.apache.hc.core5.http.HttpHeaders;
@@ -78,7 +77,7 @@ public class CachingExecBase {
     final RequestProtocolCompliance requestCompliance;
     final CacheConfig cacheConfig;
 
-    final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger LOG = LoggerFactory.getLogger(CachingExecBase.class);
 
     CachingExecBase(
             final CacheValidityPolicy validityPolicy,
@@ -140,7 +139,10 @@ public class CachingExecBase {
         return cacheUpdates.get();
     }
 
-    SimpleHttpResponse getFatallyNoncompliantResponse(
+    /**
+     * @since 5.2
+     */
+    SimpleHttpResponse getFatallyNonCompliantResponse(
             final HttpRequest request,
             final HttpContext context) {
         final List<RequestProtocolError> fatalError = requestCompliance.requestIsFatallyNonCompliant(request);
@@ -153,22 +155,22 @@ public class CachingExecBase {
 
     void recordCacheMiss(final HttpHost target, final HttpRequest request) {
         cacheMisses.getAndIncrement();
-        if (log.isTraceEnabled()) {
-            log.debug("Cache miss [host: " + target + "; uri: " + request.getRequestUri() + "]");
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Cache miss [host: {}; uri: {}]", target, request.getRequestUri());
         }
     }
 
     void recordCacheHit(final HttpHost target, final HttpRequest request) {
         cacheHits.getAndIncrement();
-        if (log.isTraceEnabled()) {
-            log.debug("Cache hit [host: " + target + "; uri: " + request.getRequestUri() + "]");
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Cache hit [host: {}; uri: {}]", target, request.getRequestUri());
         }
     }
 
     void recordCacheFailure(final HttpHost target, final HttpRequest request) {
         cacheMisses.getAndIncrement();
-        if (log.isTraceEnabled()) {
-            log.debug("Cache failure [host: " + target + "; uri: " + request.getRequestUri() + "]");
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Cache failure [host: {}; uri: {}]", target, request.getRequestUri());
         }
     }
 
@@ -181,7 +183,7 @@ public class CachingExecBase {
             final HttpRequest request,
             final HttpContext context,
             final HttpCacheEntry entry,
-            final Date now) throws ResourceIOException {
+            final Instant now) throws ResourceIOException {
         final SimpleHttpResponse cachedResponse;
         if (request.containsHeader(HeaderConstants.IF_NONE_MATCH)
                 || request.containsHeader(HeaderConstants.IF_MODIFIED_SINCE)) {
@@ -200,7 +202,7 @@ public class CachingExecBase {
             final HttpRequest request,
             final HttpContext context,
             final HttpCacheEntry entry,
-            final Date now) throws IOException {
+            final Instant now) throws IOException {
         if (staleResponseNotAllowed(request, entry, now)) {
             return generateGatewayTimeout(context);
         } else {
@@ -224,7 +226,7 @@ public class CachingExecBase {
         return cachedResponse;
     }
 
-    boolean staleResponseNotAllowed(final HttpRequest request, final HttpCacheEntry entry, final Date now) {
+    boolean staleResponseNotAllowed(final HttpRequest request, final HttpCacheEntry entry, final Instant now) {
         return validityPolicy.mustRevalidate(entry)
             || (cacheConfig.isSharedCache() && validityPolicy.proxyRevalidate(entry))
             || explicitFreshnessRequest(request, entry, now);
@@ -235,14 +237,14 @@ public class CachingExecBase {
         while (it.hasNext()) {
             final HeaderElement elt = it.next();
             if ("only-if-cached".equals(elt.getName())) {
-                log.debug("Request marked only-if-cached");
+                LOG.debug("Request marked only-if-cached");
                 return false;
             }
         }
         return true;
     }
 
-    boolean explicitFreshnessRequest(final HttpRequest request, final HttpCacheEntry entry, final Date now) {
+    boolean explicitFreshnessRequest(final HttpRequest request, final HttpCacheEntry entry, final Instant now) {
         final Iterator<HeaderElement> it = MessageSupport.iterate(request, HeaderConstants.CACHE_CONTROL);
         while (it.hasNext()) {
             final HeaderElement elt = it.next();
@@ -311,8 +313,8 @@ public class CachingExecBase {
         return SUPPORTS_RANGE_AND_CONTENT_RANGE_HEADERS;
     }
 
-    Date getCurrentDate() {
-        return new Date();
+    Instant getCurrentDate() {
+        return Instant.now();
     }
 
     boolean clientRequestsOurOptions(final HttpRequest request) {
@@ -325,11 +327,7 @@ public class CachingExecBase {
         }
 
         final Header h = request.getFirstHeader(HeaderConstants.MAX_FORWARDS);
-        if (!"0".equals(h != null ? h.getValue() : null)) {
-            return false;
-        }
-
-        return true;
+        return "0".equals(h != null ? h.getValue() : null);
     }
 
     boolean revalidationResponseIsTooOld(final HttpResponse backendResponse, final HttpCacheEntry cacheEntry) {
@@ -337,12 +335,12 @@ public class CachingExecBase {
         // Date header, so we can't tell if they are out of order
         // according to the origin clock; thus we can skip the
         // unconditional retry recommended in 13.2.6 of RFC 2616.
-        return DateUtils.isBefore(backendResponse, cacheEntry, HttpHeaders.DATE);
+        return DateSupport.isBefore(backendResponse, cacheEntry, HttpHeaders.DATE);
     }
 
     boolean shouldSendNotModifiedResponse(final HttpRequest request, final HttpCacheEntry responseEntry) {
         return (suitabilityChecker.isConditional(request)
-                && suitabilityChecker.allConditionalsMatch(request, responseEntry, new Date()));
+                && suitabilityChecker.allConditionalsMatch(request, responseEntry, Instant.now()));
     }
 
     boolean staleIfErrorAppliesTo(final int statusCode) {
@@ -362,9 +360,9 @@ public class CachingExecBase {
      */
     void storeRequestIfModifiedSinceFor304Response(final HttpRequest request, final HttpResponse backendResponse) {
         if (backendResponse.getCode() == HttpStatus.SC_NOT_MODIFIED) {
-            final Header h = request.getFirstHeader("If-Modified-Since");
+            final Header h = request.getFirstHeader(HttpHeaders.IF_MODIFIED_SINCE);
             if (h != null) {
-                backendResponse.addHeader("Last-Modified", h.getValue());
+                backendResponse.addHeader(HttpHeaders.LAST_MODIFIED, h.getValue());
             }
         }
     }

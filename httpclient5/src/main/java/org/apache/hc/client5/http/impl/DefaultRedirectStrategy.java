@@ -45,7 +45,6 @@ import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.net.URIBuilder;
 import org.apache.hc.core5.util.Args;
-import org.apache.hc.core5.util.TextUtils;
 
 /**
  * Default implementation of {@link RedirectStrategy}.
@@ -91,7 +90,7 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
         Args.notNull(context, "HTTP context");
 
         //get the location header to find out where to redirect to
-        final Header locationHeader = response.getFirstHeader("location");
+        final Header locationHeader = response.getFirstHeader(HttpHeaders.LOCATION);
         if (locationHeader == null) {
             throw new HttpException("Redirect location is missing");
         }
@@ -119,9 +118,8 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
             if (host != null) {
                 b.setHost(host.toLowerCase(Locale.ROOT));
             }
-            final String path = b.getPath();
-            if (TextUtils.isEmpty(path)) {
-                b.setPath("/");
+            if (b.isPathEmpty()) {
+                b.setPathSegments("");
             }
             return b.build();
         } catch (final URISyntaxException ex) {

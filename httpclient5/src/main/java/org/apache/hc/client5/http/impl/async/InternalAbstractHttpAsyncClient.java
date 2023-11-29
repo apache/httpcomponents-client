@@ -32,9 +32,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.async.AsyncExecCallback;
@@ -47,10 +50,11 @@ import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.cookie.CookieSpecFactory;
 import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.client5.http.impl.ExecSupport;
-import org.apache.hc.client5.http.impl.RequestCopier;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.routing.RoutingSupport;
+import org.apache.hc.core5.concurrent.Cancellable;
 import org.apache.hc.core5.concurrent.ComplexFuture;
+import org.apache.hc.core5.concurrent.DefaultThreadFactory;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.HttpException;
@@ -66,14 +70,20 @@ import org.apache.hc.core5.http.nio.AsyncRequestProducer;
 import org.apache.hc.core5.http.nio.AsyncResponseConsumer;
 import org.apache.hc.core5.http.nio.DataStreamChannel;
 import org.apache.hc.core5.http.nio.HandlerFactory;
-import org.apache.hc.core5.http.nio.RequestChannel;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.http.support.BasicRequestBuilder;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.io.ModalCloseable;
 import org.apache.hc.core5.reactor.DefaultConnectingIOReactor;
+import org.apache.hc.core5.util.TimeValue;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBase {
 
+    private final static ThreadFactory SCHEDULER_THREAD_FACTORY = new DefaultThreadFactory("Scheduled-executor", true);
+
+    private static final Logger LOG = LoggerFactory.getLogger(InternalAbstractHttpAsyncClient.class);
     private final AsyncExecChainElement execChain;
     private final Lookup<CookieSpecFactory> cookieSpecRegistry;
     private final Lookup<AuthSchemeFactory> authSchemeRegistry;
@@ -81,6 +91,8 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
     private final CredentialsProvider credentialsProvider;
     private final RequestConfig defaultConfig;
     private final ConcurrentLinkedQueue<Closeable> closeables;
+    private final ScheduledExecutorService scheduledExecutorService;
+    private final AsyncExecChain.Scheduler scheduler;
 
     InternalAbstractHttpAsyncClient(
             final DefaultConnectingIOReactor ioReactor,
@@ -101,6 +113,31 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
         this.credentialsProvider = credentialsProvider;
         this.defaultConfig = defaultConfig;
         this.closeables = closeables != null ? new ConcurrentLinkedQueue<>(closeables) : null;
+        this.scheduledExecutorService = Executors.newSingleThreadScheduledExecutor(SCHEDULER_THREAD_FACTORY);
+        this.scheduler = new AsyncExecChain.Scheduler() {
+
+            @Override
+            public void scheduleExecution(
+                    final HttpRequest request,
+                    final AsyncEntityProducer entityProducer,
+                    final AsyncExecChain.Scope scope,
+                    final AsyncExecCallback asyncExecCallback,
+                    final TimeValue delay) {
+                executeScheduled(request, entityProducer, scope, execChain::execute, asyncExecCallback, delay);
+            }
+
+            @Override
+            public void scheduleExecution(
+                    final HttpRequest request,
+                    final AsyncEntityProducer entityProducer,
+                    final AsyncExecChain.Scope scope,
+                    final AsyncExecChain chain,
+                    final AsyncExecCallback asyncExecCallback,
+                    final TimeValue delay) {
+                executeScheduled(request, entityProducer, scope, chain, asyncExecCallback, delay);
+            }
+        };
+
     }
 
     @Override
@@ -115,8 +152,14 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
                         closeable.close();
                     }
                 } catch (final IOException ex) {
-                    this.log.error(ex.getMessage(), ex);
+                    LOG.error(ex.getMessage(), ex);
                 }
+            }
+        }
+        final List<Runnable> runnables = this.scheduledExecutorService.shutdownNow();
+        for (final Runnable runnable: runnables) {
+            if (runnable instanceof Cancellable) {
+                ((Cancellable) runnable).cancel();
             }
         }
     }
@@ -157,172 +200,232 @@ abstract class InternalAbstractHttpAsyncClient extends AbstractHttpAsyncClientBa
                 throw new CancellationException("Request execution cancelled");
             }
             final HttpClientContext clientContext = context != null ? HttpClientContext.adapt(context) : HttpClientContext.create();
-            requestProducer.sendRequest(new RequestChannel() {
+            requestProducer.sendRequest((request, entityDetails, c) -> {
 
-                @Override
-                public void sendRequest(
-                        final HttpRequest request,
-                        final EntityDetails entityDetails,
-                        final HttpContext context) throws HttpException, IOException {
+                RequestConfig requestConfig = null;
+                if (request instanceof Configurable) {
+                    requestConfig = ((Configurable) request).getConfig();
+                }
+                if (requestConfig != null) {
+                    clientContext.setRequestConfig(requestConfig);
+                }
 
-                    RequestConfig requestConfig = null;
-                    if (request instanceof Configurable) {
-                        requestConfig = ((Configurable) request).getConfig();
-                    }
-                    if (requestConfig != null) {
-                        clientContext.setRequestConfig(requestConfig);
-                    }
-                    final HttpRoute route = determineRoute(
-                            httpHost != null ? httpHost : RoutingSupport.determineHost(request),
-                            clientContext);
-                    final String exchangeId = ExecSupport.getNextExchangeId();
-                    if (log.isDebugEnabled()) {
-                        log.debug(exchangeId + ": preparing request execution");
-                    }
-                    final AsyncExecRuntime execRuntime = createAsyncExecRuntime(pushHandlerFactory);
+                setupContext(clientContext);
 
-                    setupContext(clientContext);
+                final HttpRoute route = determineRoute(
+                        httpHost != null ? httpHost : RoutingSupport.determineHost(request),
+                        clientContext);
+                final String exchangeId = ExecSupport.getNextExchangeId();
+                clientContext.setExchangeId(exchangeId);
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("{} preparing request execution", exchangeId);
+                }
+                final AsyncExecRuntime execRuntime = createAsyncExecRuntime(pushHandlerFactory);
 
-                    final AsyncExecChain.Scope scope = new AsyncExecChain.Scope(exchangeId, route, request, future,
-                            clientContext, execRuntime);
-                    final AtomicBoolean outputTerminated = new AtomicBoolean(false);
-                    execChain.execute(
-                            RequestCopier.INSTANCE.copy(request),
-                            entityDetails != null ? new AsyncEntityProducer() {
+                final AsyncExecChain.Scope scope = new AsyncExecChain.Scope(exchangeId, route, request, future,
+                        clientContext, execRuntime, scheduler, new AtomicInteger(1));
+                final AtomicBoolean outputTerminated = new AtomicBoolean(false);
+                executeImmediate(
+                        BasicRequestBuilder.copy(request).build(),
+                        entityDetails != null ? new AsyncEntityProducer() {
 
-                                @Override
-                                public void releaseResources() {
+                            @Override
+                            public void releaseResources() {
+                                requestProducer.releaseResources();
+                            }
+
+                            @Override
+                            public void failed(final Exception cause) {
+                                requestProducer.failed(cause);
+                            }
+
+                            @Override
+                            public boolean isRepeatable() {
+                                return requestProducer.isRepeatable();
+                            }
+
+                            @Override
+                            public long getContentLength() {
+                                return entityDetails.getContentLength();
+                            }
+
+                            @Override
+                            public String getContentType() {
+                                return entityDetails.getContentType();
+                            }
+
+                            @Override
+                            public String getContentEncoding() {
+                                return entityDetails.getContentEncoding();
+                            }
+
+                            @Override
+                            public boolean isChunked() {
+                                return entityDetails.isChunked();
+                            }
+
+                            @Override
+                            public Set<String> getTrailerNames() {
+                                return entityDetails.getTrailerNames();
+                            }
+
+                            @Override
+                            public int available() {
+                                return requestProducer.available();
+                            }
+
+                            @Override
+                            public void produce(final DataStreamChannel channel) throws IOException {
+                                if (outputTerminated.get()) {
+                                    channel.endStream();
+                                    return;
+                                }
+                                requestProducer.produce(channel);
+                            }
+
+                        } : null,
+                        scope,
+                        execChain::execute,
+                        new AsyncExecCallback() {
+
+                            @Override
+                            public AsyncDataConsumer handleResponse(
+                                    final HttpResponse response,
+                                    final EntityDetails entityDetails) throws HttpException, IOException {
+                                if (response.getCode() >= HttpStatus.SC_CLIENT_ERROR) {
+                                    outputTerminated.set(true);
                                     requestProducer.releaseResources();
                                 }
+                                responseConsumer.consumeResponse(response, entityDetails, c,
+                                        new FutureCallback<T>() {
 
-                                @Override
-                                public void failed(final Exception cause) {
-                                    requestProducer.failed(cause);
+                                            @Override
+                                            public void completed(final T result) {
+                                                future.completed(result);
+                                            }
+
+                                            @Override
+                                            public void failed(final Exception ex) {
+                                                future.failed(ex);
+                                            }
+
+                                            @Override
+                                            public void cancelled() {
+                                                future.cancel();
+                                            }
+
+                                        });
+                                return entityDetails != null ? responseConsumer : null;
+                            }
+
+                            @Override
+                            public void handleInformationResponse(
+                                    final HttpResponse response) throws HttpException, IOException {
+                                responseConsumer.informationResponse(response, c);
+                            }
+
+                            @Override
+                            public void completed() {
+                                if (LOG.isDebugEnabled()) {
+                                    LOG.debug("{} message exchange successfully completed", exchangeId);
                                 }
-
-                                @Override
-                                public boolean isRepeatable() {
-                                    return requestProducer.isRepeatable();
+                                try {
+                                    execRuntime.releaseEndpoint();
+                                } finally {
+                                    responseConsumer.releaseResources();
+                                    requestProducer.releaseResources();
                                 }
+                            }
 
-                                @Override
-                                public long getContentLength() {
-                                    return entityDetails.getContentLength();
+                            @Override
+                            public void failed(final Exception cause) {
+                                if (LOG.isDebugEnabled()) {
+                                    LOG.debug("{} request failed: {}", exchangeId, cause.getMessage());
                                 }
-
-                                @Override
-                                public String getContentType() {
-                                    return entityDetails.getContentType();
-                                }
-
-                                @Override
-                                public String getContentEncoding() {
-                                    return entityDetails.getContentEncoding();
-                                }
-
-                                @Override
-                                public boolean isChunked() {
-                                    return entityDetails.isChunked();
-                                }
-
-                                @Override
-                                public Set<String> getTrailerNames() {
-                                    return entityDetails.getTrailerNames();
-                                }
-
-                                @Override
-                                public int available() {
-                                    return requestProducer.available();
-                                }
-
-                                @Override
-                                public void produce(final DataStreamChannel channel) throws IOException {
-                                    if (outputTerminated.get()) {
-                                        channel.endStream();
-                                        return;
-                                    }
-                                    requestProducer.produce(channel);
-                                }
-
-                            } : null,
-                            scope,
-                            new AsyncExecCallback() {
-
-                                @Override
-                                public AsyncDataConsumer handleResponse(
-                                        final HttpResponse response,
-                                        final EntityDetails entityDetails) throws HttpException, IOException {
-                                    if (response.getCode() >= HttpStatus.SC_CLIENT_ERROR) {
-                                        outputTerminated.set(true);
-                                        requestProducer.releaseResources();
-                                    }
-                                    responseConsumer.consumeResponse(response, entityDetails, context,
-                                            new FutureCallback<T>() {
-
-                                                @Override
-                                                public void completed(final T result) {
-                                                    future.completed(result);
-                                                }
-
-                                                @Override
-                                                public void failed(final Exception ex) {
-                                                    future.failed(ex);
-                                                }
-
-                                                @Override
-                                                public void cancelled() {
-                                                    future.cancel();
-                                                }
-
-                                            });
-                                    return responseConsumer;
-                                }
-
-                                @Override
-                                public void handleInformationResponse(
-                                        final HttpResponse response) throws HttpException, IOException {
-                                    responseConsumer.informationResponse(response, context);
-                                }
-
-                                @Override
-                                public void completed() {
-                                    if (log.isDebugEnabled()) {
-                                        log.debug(exchangeId + ": message exchange successfully completed");
-                                    }
+                                try {
+                                    execRuntime.discardEndpoint();
+                                    responseConsumer.failed(cause);
+                                } finally {
                                     try {
-                                        execRuntime.releaseEndpoint();
+                                        future.failed(cause);
                                     } finally {
                                         responseConsumer.releaseResources();
                                         requestProducer.releaseResources();
                                     }
                                 }
+                            }
 
-                                @Override
-                                public void failed(final Exception cause) {
-                                    if (log.isDebugEnabled()) {
-                                        log.debug(exchangeId + ": request failed: " + cause.getMessage());
-                                    }
-                                    try {
-                                        execRuntime.discardEndpoint();
-                                        responseConsumer.failed(cause);
-                                    } finally {
-                                        try {
-                                            future.failed(cause);
-                                        } finally {
-                                            responseConsumer.releaseResources();
-                                            requestProducer.releaseResources();
-                                        }
-                                    }
-                                }
-
-                            });
-                }
-
+                        });
             }, context);
         } catch (final HttpException | IOException | IllegalStateException ex) {
             future.failed(ex);
         }
         return future;
+    }
+
+    void executeImmediate(
+            final HttpRequest request,
+            final AsyncEntityProducer entityProducer,
+            final AsyncExecChain.Scope scope,
+            final AsyncExecChain chain,
+            final AsyncExecCallback asyncExecCallback) throws HttpException, IOException {
+        chain.proceed(request, entityProducer, scope, asyncExecCallback);
+    }
+
+    void executeScheduled(
+            final HttpRequest request,
+            final AsyncEntityProducer entityProducer,
+            final AsyncExecChain.Scope scope,
+            final AsyncExecChain chain,
+            final AsyncExecCallback asyncExecCallback,
+            final TimeValue delay) {
+        final ScheduledRequestExecution scheduledTask = new ScheduledRequestExecution(
+                request, entityProducer, scope, chain, asyncExecCallback, delay);
+        if (TimeValue.isPositive(delay)) {
+            scheduledExecutorService.schedule(scheduledTask, delay.getDuration(), delay.getTimeUnit());
+        } else {
+            scheduledExecutorService.execute(scheduledTask);
+        }
+    }
+
+    class ScheduledRequestExecution implements Runnable, Cancellable {
+
+        final HttpRequest request;
+        final AsyncEntityProducer entityProducer;
+        final AsyncExecChain.Scope scope;
+        final AsyncExecChain chain;
+        final AsyncExecCallback asyncExecCallback;
+        final TimeValue delay;
+
+        ScheduledRequestExecution(final HttpRequest request,
+                                  final AsyncEntityProducer entityProducer,
+                                  final AsyncExecChain.Scope scope,
+                                  final AsyncExecChain chain,
+                                  final AsyncExecCallback asyncExecCallback,
+                                  final TimeValue delay) {
+            this.request = request;
+            this.entityProducer = entityProducer;
+            this.scope = scope;
+            this.chain = chain;
+            this.asyncExecCallback = asyncExecCallback;
+            this.delay = delay;
+        }
+
+        @Override
+        public void run() {
+            try {
+                chain.proceed(request, entityProducer, scope, asyncExecCallback);
+            } catch (final Exception ex) {
+                asyncExecCallback.failed(ex);
+            }
+        }
+
+        @Override
+        public boolean cancel() {
+            asyncExecCallback.failed(new CancellationException("Request execution cancelled"));
+            return true;
+        }
+
     }
 
 }

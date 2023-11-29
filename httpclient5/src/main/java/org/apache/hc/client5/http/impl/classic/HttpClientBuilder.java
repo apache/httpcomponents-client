@@ -28,8 +28,9 @@
 package org.apache.hc.client5.http.impl.classic;
 
 import java.io.Closeable;
-import java.io.IOException;
 import java.net.ProxySelector;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -43,8 +44,8 @@ import org.apache.hc.client5.http.HttpRequestRetryStrategy;
 import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.UserTokenHandler;
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
-import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
+import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.classic.BackoffManager;
 import org.apache.hc.client5.http.classic.ConnectionBackoffStrategy;
 import org.apache.hc.client5.http.classic.ExecChainHandler;
@@ -56,6 +57,7 @@ import org.apache.hc.client5.http.entity.InputStreamFactory;
 import org.apache.hc.client5.http.impl.ChainElement;
 import org.apache.hc.client5.http.impl.CookieSpecSupport;
 import org.apache.hc.client5.http.impl.DefaultAuthenticationStrategy;
+import org.apache.hc.client5.http.impl.DefaultClientConnectionReuseStrategy;
 import org.apache.hc.client5.http.impl.DefaultConnectionKeepAliveStrategy;
 import org.apache.hc.client5.http.impl.DefaultHttpRequestRetryStrategy;
 import org.apache.hc.client5.http.impl.DefaultRedirectStrategy;
@@ -65,10 +67,8 @@ import org.apache.hc.client5.http.impl.IdleConnectionEvictor;
 import org.apache.hc.client5.http.impl.NoopUserTokenHandler;
 import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
 import org.apache.hc.client5.http.impl.auth.BasicSchemeFactory;
+import org.apache.hc.client5.http.impl.auth.BearerSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.DigestSchemeFactory;
-import org.apache.hc.client5.http.impl.auth.KerberosSchemeFactory;
-import org.apache.hc.client5.http.impl.auth.NTLMSchemeFactory;
-import org.apache.hc.client5.http.impl.auth.SPNegoSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.SystemDefaultCredentialsProvider;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.impl.routing.DefaultProxyRoutePlanner;
@@ -77,7 +77,6 @@ import org.apache.hc.client5.http.impl.routing.SystemDefaultRoutePlanner;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.protocol.RedirectStrategy;
 import org.apache.hc.client5.http.protocol.RequestAddCookies;
-import org.apache.hc.client5.http.protocol.RequestAuthCache;
 import org.apache.hc.client5.http.protocol.RequestClientConnControl;
 import org.apache.hc.client5.http.protocol.RequestDefaultHeaders;
 import org.apache.hc.client5.http.protocol.RequestExpectContinue;
@@ -87,18 +86,14 @@ import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.http.ConnectionReuseStrategy;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpRequestInterceptor;
-import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpResponseInterceptor;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.config.NamedElementChain;
 import org.apache.hc.core5.http.config.Registry;
 import org.apache.hc.core5.http.config.RegistryBuilder;
-import org.apache.hc.core5.http.impl.DefaultConnectionReuseStrategy;
 import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
 import org.apache.hc.core5.http.protocol.DefaultHttpProcessor;
-import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
 import org.apache.hc.core5.http.protocol.HttpProcessorBuilder;
 import org.apache.hc.core5.http.protocol.RequestContent;
@@ -125,6 +120,10 @@ import org.apache.hc.core5.util.VersionInfo;
  *  <li>https.proxyHost</li>
  *  <li>https.proxyPort</li>
  *  <li>http.nonProxyHosts</li>
+ *  <li>https.proxyUser</li>
+ *  <li>http.proxyUser</li>
+ *  <li>https.proxyPassword</li>
+ *  <li>http.proxyPassword</li>
  *  <li>http.keepAlive</li>
  *  <li>http.agent</li>
  * </ul>
@@ -140,45 +139,45 @@ public class HttpClientBuilder {
 
     private static class RequestInterceptorEntry {
 
-        enum Postion { FIRST, LAST }
+        enum Position { FIRST, LAST }
 
-        final Postion postion;
+        final RequestInterceptorEntry.Position position;
         final HttpRequestInterceptor interceptor;
 
-        private RequestInterceptorEntry(final Postion postion, final HttpRequestInterceptor interceptor) {
-            this.postion = postion;
+        private RequestInterceptorEntry(final RequestInterceptorEntry.Position position, final HttpRequestInterceptor interceptor) {
+            this.position = position;
             this.interceptor = interceptor;
         }
     }
 
     private static class ResponseInterceptorEntry {
 
-        enum Postion { FIRST, LAST }
+        enum Position { FIRST, LAST }
 
-        final Postion postion;
+        final ResponseInterceptorEntry.Position position;
         final HttpResponseInterceptor interceptor;
 
-        private ResponseInterceptorEntry(final Postion postion, final HttpResponseInterceptor interceptor) {
-            this.postion = postion;
+        private ResponseInterceptorEntry(final ResponseInterceptorEntry.Position position, final HttpResponseInterceptor interceptor) {
+            this.position = position;
             this.interceptor = interceptor;
         }
     }
 
     private static class ExecInterceptorEntry {
 
-        enum Postion { BEFORE, AFTER, REPLACE, FIRST, LAST }
+        enum Position { BEFORE, AFTER, REPLACE, FIRST, LAST }
 
-        final Postion postion;
+        final ExecInterceptorEntry.Position position;
         final String name;
         final ExecChainHandler interceptor;
         final String existing;
 
         private ExecInterceptorEntry(
-                final Postion postion,
+                final ExecInterceptorEntry.Position position,
                 final String name,
                 final ExecChainHandler interceptor,
                 final String existing) {
-            this.postion = postion;
+            this.position = position;
             this.name = name;
             this.interceptor = interceptor;
             this.existing = existing;
@@ -226,6 +225,7 @@ public class HttpClientBuilder {
     private boolean authCachingDisabled;
     private boolean connectionStateDisabled;
     private boolean defaultUserAgentDisabled;
+    private ProxySelector proxySelector;
 
     private List<Closeable> closeables;
 
@@ -365,7 +365,7 @@ public class HttpClientBuilder {
         if (responseInterceptors == null) {
             responseInterceptors = new LinkedList<>();
         }
-        responseInterceptors.add(new ResponseInterceptorEntry(ResponseInterceptorEntry.Postion.FIRST, interceptor));
+        responseInterceptors.add(new ResponseInterceptorEntry(ResponseInterceptorEntry.Position.FIRST, interceptor));
         return this;
     }
 
@@ -377,7 +377,7 @@ public class HttpClientBuilder {
         if (responseInterceptors == null) {
             responseInterceptors = new LinkedList<>();
         }
-        responseInterceptors.add(new ResponseInterceptorEntry(ResponseInterceptorEntry.Postion.LAST, interceptor));
+        responseInterceptors.add(new ResponseInterceptorEntry(ResponseInterceptorEntry.Position.LAST, interceptor));
         return this;
     }
 
@@ -389,7 +389,7 @@ public class HttpClientBuilder {
         if (requestInterceptors == null) {
             requestInterceptors = new LinkedList<>();
         }
-        requestInterceptors.add(new RequestInterceptorEntry(RequestInterceptorEntry.Postion.FIRST, interceptor));
+        requestInterceptors.add(new RequestInterceptorEntry(RequestInterceptorEntry.Position.FIRST, interceptor));
         return this;
     }
 
@@ -401,7 +401,7 @@ public class HttpClientBuilder {
         if (requestInterceptors == null) {
             requestInterceptors = new LinkedList<>();
         }
-        requestInterceptors.add(new RequestInterceptorEntry(RequestInterceptorEntry.Postion.LAST, interceptor));
+        requestInterceptors.add(new RequestInterceptorEntry(RequestInterceptorEntry.Position.LAST, interceptor));
         return this;
     }
 
@@ -415,7 +415,7 @@ public class HttpClientBuilder {
         if (execInterceptors == null) {
             execInterceptors = new LinkedList<>();
         }
-        execInterceptors.add(new ExecInterceptorEntry(ExecInterceptorEntry.Postion.BEFORE, name, interceptor, existing));
+        execInterceptors.add(new ExecInterceptorEntry(ExecInterceptorEntry.Position.BEFORE, name, interceptor, existing));
         return this;
     }
 
@@ -429,7 +429,7 @@ public class HttpClientBuilder {
         if (execInterceptors == null) {
             execInterceptors = new LinkedList<>();
         }
-        execInterceptors.add(new ExecInterceptorEntry(ExecInterceptorEntry.Postion.AFTER, name, interceptor, existing));
+        execInterceptors.add(new ExecInterceptorEntry(ExecInterceptorEntry.Position.AFTER, name, interceptor, existing));
         return this;
     }
 
@@ -442,7 +442,7 @@ public class HttpClientBuilder {
         if (execInterceptors == null) {
             execInterceptors = new LinkedList<>();
         }
-        execInterceptors.add(new ExecInterceptorEntry(ExecInterceptorEntry.Postion.REPLACE, existing, interceptor, existing));
+        execInterceptors.add(new ExecInterceptorEntry(ExecInterceptorEntry.Position.REPLACE, existing, interceptor, existing));
         return this;
     }
 
@@ -452,7 +452,10 @@ public class HttpClientBuilder {
     public final HttpClientBuilder addExecInterceptorFirst(final String name, final ExecChainHandler interceptor) {
         Args.notNull(name, "Name");
         Args.notNull(interceptor, "Interceptor");
-        execInterceptors.add(new ExecInterceptorEntry(ExecInterceptorEntry.Postion.FIRST, name, interceptor, null));
+        if (execInterceptors == null) {
+            execInterceptors = new LinkedList<>();
+        }
+        execInterceptors.add(new ExecInterceptorEntry(ExecInterceptorEntry.Position.FIRST, name, interceptor, null));
         return this;
     }
 
@@ -462,7 +465,10 @@ public class HttpClientBuilder {
     public final HttpClientBuilder addExecInterceptorLast(final String name, final ExecChainHandler interceptor) {
         Args.notNull(name, "Name");
         Args.notNull(interceptor, "Interceptor");
-        execInterceptors.add(new ExecInterceptorEntry(ExecInterceptorEntry.Postion.LAST, name, interceptor, null));
+        if (execInterceptors == null) {
+            execInterceptors = new LinkedList<>();
+        }
+        execInterceptors.add(new ExecInterceptorEntry(ExecInterceptorEntry.Position.LAST, name, interceptor, null));
         return this;
     }
 
@@ -696,6 +702,20 @@ public class HttpClientBuilder {
     }
 
     /**
+     * Sets the {@link java.net.ProxySelector} that will be used to select the proxies
+     * to be used for establishing HTTP connections. If a non-null proxy selector is set,
+     * it will take precedence over the proxy settings configured in the client.
+     *
+     * @param proxySelector the {@link java.net.ProxySelector} to be used, or null to use
+     *                      the default system proxy selector.
+     * @return this {@link HttpClientBuilder} instance, to allow for method chaining.
+     */
+    public final HttpClientBuilder setProxySelector(final ProxySelector proxySelector) {
+        this.proxySelector = proxySelector;
+        return this;
+    }
+
+    /**
      * Request exec chain customization and extension.
      * <p>
      * For internal use.
@@ -736,18 +756,12 @@ public class HttpClientBuilder {
             if (systemProperties) {
                 final String s = System.getProperty("http.keepAlive", "true");
                 if ("true".equalsIgnoreCase(s)) {
-                    reuseStrategyCopy = DefaultConnectionReuseStrategy.INSTANCE;
+                    reuseStrategyCopy = DefaultClientConnectionReuseStrategy.INSTANCE;
                 } else {
-                    reuseStrategyCopy = new ConnectionReuseStrategy() {
-                        @Override
-                        public boolean keepAlive(
-                                final HttpRequest request, final HttpResponse response, final HttpContext context) {
-                            return false;
-                        }
-                    };
+                    reuseStrategyCopy = (request, response, context) -> false;
                 }
             } else {
-                reuseStrategyCopy = DefaultConnectionReuseStrategy.INSTANCE;
+                reuseStrategyCopy = DefaultClientConnectionReuseStrategy.INSTANCE;
             }
         }
 
@@ -783,28 +797,17 @@ public class HttpClientBuilder {
             }
         }
 
-        final NamedElementChain<ExecChainHandler> execChainDefinition = new NamedElementChain<>();
-        execChainDefinition.addLast(
-                new MainClientExec(connManagerCopy, reuseStrategyCopy, keepAliveStrategyCopy, userTokenHandlerCopy),
-                ChainElement.MAIN_TRANSPORT.name());
-        execChainDefinition.addFirst(
-                new ConnectExec(
-                        reuseStrategyCopy,
-                        new DefaultHttpProcessor(new RequestTargetHost(), new RequestUserAgent(userAgentCopy)),
-                        proxyAuthStrategyCopy),
-                ChainElement.CONNECT.name());
-
         final HttpProcessorBuilder b = HttpProcessorBuilder.create();
         if (requestInterceptors != null) {
             for (final RequestInterceptorEntry entry: requestInterceptors) {
-                if (entry.postion == RequestInterceptorEntry.Postion.FIRST) {
+                if (entry.position == RequestInterceptorEntry.Position.FIRST) {
                     b.addFirst(entry.interceptor);
                 }
             }
         }
         if (responseInterceptors != null) {
             for (final ResponseInterceptorEntry entry: responseInterceptors) {
-                if (entry.postion == ResponseInterceptorEntry.Postion.FIRST) {
+                if (entry.position == ResponseInterceptorEntry.Position.FIRST) {
                     b.addFirst(entry.interceptor);
                 }
             }
@@ -817,31 +820,46 @@ public class HttpClientBuilder {
                 new RequestUserAgent(userAgentCopy),
                 new RequestExpectContinue());
         if (!cookieManagementDisabled) {
-            b.add(new RequestAddCookies());
-        }
-        if (!authCachingDisabled) {
-            b.add(new RequestAuthCache());
+            b.add(RequestAddCookies.INSTANCE);
         }
         if (!cookieManagementDisabled) {
-            b.add(new ResponseProcessCookies());
+            b.add(ResponseProcessCookies.INSTANCE);
         }
         if (requestInterceptors != null) {
             for (final RequestInterceptorEntry entry: requestInterceptors) {
-                if (entry.postion == RequestInterceptorEntry.Postion.LAST) {
-                    b.addFirst(entry.interceptor);
+                if (entry.position == RequestInterceptorEntry.Position.LAST) {
+                    b.addLast(entry.interceptor);
                 }
             }
         }
         if (responseInterceptors != null) {
             for (final ResponseInterceptorEntry entry: responseInterceptors) {
-                if (entry.postion == ResponseInterceptorEntry.Postion.LAST) {
-                    b.addFirst(entry.interceptor);
+                if (entry.position == ResponseInterceptorEntry.Position.LAST) {
+                    b.addLast(entry.interceptor);
                 }
             }
         }
         final HttpProcessor httpProcessor = b.build();
+
+        final NamedElementChain<ExecChainHandler> execChainDefinition = new NamedElementChain<>();
+        execChainDefinition.addLast(
+                new MainClientExec(connManagerCopy, httpProcessor, reuseStrategyCopy, keepAliveStrategyCopy, userTokenHandlerCopy),
+                ChainElement.MAIN_TRANSPORT.name());
         execChainDefinition.addFirst(
-                new ProtocolExec(httpProcessor, targetAuthStrategyCopy, proxyAuthStrategyCopy),
+                new ConnectExec(
+                        reuseStrategyCopy,
+                        new DefaultHttpProcessor(new RequestTargetHost(), new RequestUserAgent(userAgentCopy)),
+                        proxyAuthStrategyCopy,
+                        schemePortResolver != null ? schemePortResolver : DefaultSchemePortResolver.INSTANCE,
+                        authCachingDisabled),
+                ChainElement.CONNECT.name());
+
+        execChainDefinition.addFirst(
+                new ProtocolExec(
+                        targetAuthStrategyCopy,
+                        proxyAuthStrategyCopy,
+                        schemePortResolver != null ? schemePortResolver : DefaultSchemePortResolver.INSTANCE,
+                        authCachingDisabled),
                 ChainElement.PROTOCOL.name());
 
         // Add request retry executor, if not disabled
@@ -863,9 +881,11 @@ public class HttpClientBuilder {
             }
             if (proxy != null) {
                 routePlannerCopy = new DefaultProxyRoutePlanner(proxy, schemePortResolverCopy);
+            } else if (this.proxySelector != null) {
+                routePlannerCopy = new SystemDefaultRoutePlanner(schemePortResolverCopy, this.proxySelector);
             } else if (systemProperties) {
-                routePlannerCopy = new SystemDefaultRoutePlanner(
-                        schemePortResolverCopy, ProxySelector.getDefault());
+                final ProxySelector defaultProxySelector = AccessController.doPrivileged((PrivilegedAction<ProxySelector>) ProxySelector::getDefault);
+                routePlannerCopy = new SystemDefaultRoutePlanner(schemePortResolverCopy, defaultProxySelector);
             } else {
                 routePlannerCopy = new DefaultRoutePlanner(schemePortResolverCopy);
             }
@@ -906,7 +926,7 @@ public class HttpClientBuilder {
 
         if (execInterceptors != null) {
             for (final ExecInterceptorEntry entry: execInterceptors) {
-                switch (entry.postion) {
+                switch (entry.position) {
                     case AFTER:
                         execChainDefinition.addAfter(entry.existing, entry.interceptor, entry.name);
                         break;
@@ -920,7 +940,9 @@ public class HttpClientBuilder {
                         execChainDefinition.addFirst(entry.interceptor, entry.name);
                         break;
                     case LAST:
-                        execChainDefinition.addLast(entry.interceptor, entry.name);
+                        // Don't add last, after MainClientExec, as that does not delegate to the chain
+                        // Instead, add the interceptor just before it, making it effectively the last interceptor
+                        execChainDefinition.addBefore(ChainElement.MAIN_TRANSPORT.name(), entry.interceptor, entry.name);
                         break;
                 }
             }
@@ -940,9 +962,7 @@ public class HttpClientBuilder {
             authSchemeRegistryCopy = RegistryBuilder.<AuthSchemeFactory>create()
                 .register(StandardAuthScheme.BASIC, BasicSchemeFactory.INSTANCE)
                 .register(StandardAuthScheme.DIGEST, DigestSchemeFactory.INSTANCE)
-                .register(StandardAuthScheme.NTLM, NTLMSchemeFactory.INSTANCE)
-                .register(StandardAuthScheme.SPNEGO, SPNegoSchemeFactory.DEFAULT)
-                .register(StandardAuthScheme.KERBEROS, KerberosSchemeFactory.DEFAULT)
+                .register(StandardAuthScheme.BEARER, BearerSchemeFactory.INSTANCE)
                 .build();
         }
         Lookup<CookieSpecFactory> cookieSpecRegistryCopy = this.cookieSpecRegistry;
@@ -973,18 +993,13 @@ public class HttpClientBuilder {
                 if (connManagerCopy instanceof ConnPoolControl) {
                     final IdleConnectionEvictor connectionEvictor = new IdleConnectionEvictor((ConnPoolControl<?>) connManagerCopy,
                             maxIdleTime, maxIdleTime);
-                    closeablesCopy.add(new Closeable() {
-
-                        @Override
-                        public void close() throws IOException {
-                            connectionEvictor.shutdown();
-                            try {
-                                connectionEvictor.awaitTermination(Timeout.ofSeconds(1));
-                            } catch (final InterruptedException interrupted) {
-                                Thread.currentThread().interrupt();
-                            }
+                    closeablesCopy.add(() -> {
+                        connectionEvictor.shutdown();
+                        try {
+                            connectionEvictor.awaitTermination(Timeout.ofSeconds(1));
+                        } catch (final InterruptedException interrupted) {
+                            Thread.currentThread().interrupt();
                         }
-
                     });
                     connectionEvictor.start();
                 }

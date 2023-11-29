@@ -45,7 +45,7 @@ abstract class AbstractHttpAsyncClientBase extends CloseableHttpAsyncClient {
 
     enum Status { READY, RUNNING, TERMINATED }
 
-    final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger LOG = LoggerFactory.getLogger(AbstractHttpAsyncClientBase.class);
 
     private final AsyncPushConsumerRegistry pushConsumerRegistry;
     private final DefaultConnectingIOReactor ioReactor;
@@ -66,13 +66,7 @@ abstract class AbstractHttpAsyncClientBase extends CloseableHttpAsyncClient {
     @Override
     public final void start() {
         if (status.compareAndSet(Status.READY, Status.RUNNING)) {
-            executorService.execute(new Runnable() {
-
-                @Override
-                public void run() {
-                    ioReactor.start();
-                }
-            });
+            executorService.execute(ioReactor::start);
         }
     }
 
@@ -101,8 +95,8 @@ abstract class AbstractHttpAsyncClientBase extends CloseableHttpAsyncClient {
 
     @Override
     public final void initiateShutdown() {
-        if (log.isDebugEnabled()) {
-            log.debug("Initiating shutdown");
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Initiating shutdown");
         }
         ioReactor.initiateShutdown();
     }
@@ -112,8 +106,8 @@ abstract class AbstractHttpAsyncClientBase extends CloseableHttpAsyncClient {
 
     @Override
     public final void close(final CloseMode closeMode) {
-        if (log.isDebugEnabled()) {
-            log.debug("Shutdown " + closeMode);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Shutdown {}", closeMode);
         }
         ioReactor.initiateShutdown();
         ioReactor.close(closeMode);

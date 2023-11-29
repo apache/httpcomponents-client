@@ -27,7 +27,6 @@
 package org.apache.hc.client5.http.examples;
 
 import java.io.IOException;
-import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -41,6 +40,8 @@ import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.config.Http1Config;
+import org.apache.hc.core5.http.message.BasicHttpRequest;
+import org.apache.hc.core5.http.message.StatusLine;
 import org.apache.hc.core5.http.nio.AsyncClientExchangeHandler;
 import org.apache.hc.core5.http.nio.CapacityChannel;
 import org.apache.hc.core5.http.nio.DataStreamChannel;
@@ -50,11 +51,10 @@ import org.apache.hc.core5.http.nio.entity.StringAsyncEntityConsumer;
 import org.apache.hc.core5.http.nio.support.BasicRequestProducer;
 import org.apache.hc.core5.http.nio.support.BasicResponseConsumer;
 import org.apache.hc.core5.http.protocol.HttpContext;
-import org.apache.hc.core5.http2.HttpVersionPolicy;
+import org.apache.hc.core5.http.support.BasicRequestBuilder;
 import org.apache.hc.core5.http2.config.H2Config;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.reactor.IOReactorConfig;
-import org.apache.hc.core5.util.Timeout;
 
 /**
  * This example demonstrates a full-duplex, streaming HTTP/1.1 message exchange.
@@ -63,24 +63,20 @@ public class AsyncClientFullDuplexExchange {
 
     public static void main(final String[] args) throws Exception {
 
-        final IOReactorConfig ioReactorConfig = IOReactorConfig.custom()
-                .setSoTimeout(Timeout.ofSeconds(5))
-                .build();
-
         final MinimalHttpAsyncClient client = HttpAsyncClients.createMinimal(
-                HttpVersionPolicy.NEGOTIATE,
                 H2Config.DEFAULT,
                 Http1Config.DEFAULT,
-                ioReactorConfig);
+                IOReactorConfig.DEFAULT);
 
         client.start();
 
-        final URI requestUri = new URI("http://httpbin.org/post");
-        final BasicRequestProducer requestProducer = new BasicRequestProducer(
-                "POST", requestUri, new BasicAsyncEntityProducer("stuff", ContentType.TEXT_PLAIN));
+        final BasicHttpRequest request = BasicRequestBuilder.post("http://httpbin.org/post").build();
+        final BasicRequestProducer requestProducer = new BasicRequestProducer(request,
+                new BasicAsyncEntityProducer("stuff", ContentType.TEXT_PLAIN));
         final BasicResponseConsumer<String> responseConsumer = new BasicResponseConsumer<>(
                 new StringAsyncEntityConsumer());
 
+        System.out.println("Executing request " + request);
         final CountDownLatch latch = new CountDownLatch(1);
         client.execute(new AsyncClientExchangeHandler() {
 
@@ -93,12 +89,12 @@ public class AsyncClientFullDuplexExchange {
 
             @Override
             public void cancel() {
-                System.out.println(requestUri + " cancelled");
+                System.out.println(request + " cancelled");
             }
 
             @Override
             public void failed(final Exception cause) {
-                System.out.println(requestUri + "->" + cause);
+                System.out.println(request + "->" + cause);
             }
 
             @Override
@@ -120,7 +116,7 @@ public class AsyncClientFullDuplexExchange {
             public void consumeInformation(
                     final HttpResponse response,
                     final HttpContext context) throws HttpException, IOException {
-                System.out.println(requestUri + "->" + response.getCode());
+                System.out.println(request + "->" + new StatusLine(response));
             }
 
             @Override
@@ -128,7 +124,7 @@ public class AsyncClientFullDuplexExchange {
                     final HttpResponse response,
                     final EntityDetails entityDetails,
                     final HttpContext context) throws HttpException, IOException {
-                System.out.println(requestUri + "->" + response.getCode());
+                System.out.println(request + "->" + new StatusLine(response));
                 responseConsumer.consumeResponse(response, entityDetails, context, null);
             }
 

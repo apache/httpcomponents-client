@@ -26,56 +26,28 @@
  */
 package org.apache.hc.client5.testing.async;
 
-import java.util.Arrays;
-import java.util.Collection;
-
-import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
-import org.apache.hc.client5.http.impl.async.H2AsyncClientBuilder;
-import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
-import org.apache.hc.client5.testing.SSLTestContexts;
+import org.apache.hc.core5.function.Decorator;
 import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.URIScheme;
-import org.junit.Rule;
-import org.junit.rules.ExternalResource;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.apache.hc.core5.http.nio.AsyncServerExchangeHandler;
+import org.apache.hc.core5.http2.config.H2Config;
+import org.apache.hc.core5.testing.nio.H2TestServer;
 
-@RunWith(Parameterized.class)
-public class TestH2AsyncRedirect extends AbstractHttpAsyncRedirectsTest<CloseableHttpAsyncClient> {
-
-    @Parameterized.Parameters(name = "HTTP/2 {0}")
-    public static Collection<Object[]> protocols() {
-        return Arrays.asList(new Object[][]{
-                { URIScheme.HTTP },
-                { URIScheme.HTTPS }
-        });
-    }
-
-    protected H2AsyncClientBuilder clientBuilder;
+public abstract class TestH2AsyncRedirect extends AbstractHttpAsyncRedirectsTest<CloseableHttpAsyncClient> {
 
     public TestH2AsyncRedirect(final URIScheme scheme) {
-        super(HttpVersion.HTTP_2, scheme);
+        super(scheme, HttpVersion.HTTP_2);
     }
 
-    @Rule
-    public ExternalResource clientResource = new ExternalResource() {
-
-        @Override
-        protected void before() throws Throwable {
-            clientBuilder = H2AsyncClientBuilder.create()
-                    .setDefaultRequestConfig(RequestConfig.custom()
-                            .setConnectionRequestTimeout(TIMEOUT)
-                            .setConnectTimeout(TIMEOUT)
-                            .build())
-                    .setTlsStrategy(new DefaultClientTlsStrategy(SSLTestContexts.createClientSSLContext()));
-        }
-
-    };
+    @Override
+    protected H2TestServer startServer(final Decorator<AsyncServerExchangeHandler> exchangeHandlerDecorator) throws Exception {
+        return startServer(H2Config.DEFAULT, null, exchangeHandlerDecorator);
+    }
 
     @Override
-    protected CloseableHttpAsyncClient createClient() {
-        return clientBuilder.build();
+    protected CloseableHttpAsyncClient startClient() throws Exception {
+        return startH2Client(b -> {});
     }
 
 }

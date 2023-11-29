@@ -87,7 +87,7 @@ public class  RandomHandler implements HttpRequestHandler {
         final String path = uri.getPath();
         final int slash = path.lastIndexOf('/');
         if (slash != -1) {
-            final String payload = path.substring(slash + 1, path.length());
+            final String payload = path.substring(slash + 1);
             final long n;
             if (!payload.isEmpty()) {
                 try {

@@ -63,7 +63,7 @@ public class AsyncRandomHandler implements AsyncServerExchangeHandler {
     private final AtomicReference<AsyncEntityProducer> entityProducerRef;
 
     public AsyncRandomHandler() {
-        this.entityProducerRef = new AtomicReference<>(null);
+        this.entityProducerRef = new AtomicReference<>();
     }
 
     @Override
@@ -96,7 +96,7 @@ public class AsyncRandomHandler implements AsyncServerExchangeHandler {
         final String path = uri.getPath();
         final int slash = path.lastIndexOf('/');
         if (slash != -1) {
-            final String payload = path.substring(slash + 1, path.length());
+            final String payload = path.substring(slash + 1);
             final long n;
             if (!payload.isEmpty()) {
                 try {

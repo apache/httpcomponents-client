@@ -26,138 +26,93 @@
  */
 package org.apache.hc.client5.testing.async;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.concurrent.Future;
+import static org.hamcrest.MatcherAssert.assertThat;
 
-import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
-import org.apache.hc.client5.http.async.methods.SimpleHttpRequests;
+import java.util.Random;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
-import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
-import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManager;
-import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
-import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
-import org.apache.hc.client5.testing.SSLTestContexts;
 import org.apache.hc.core5.http.HeaderElements;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.config.Http1Config;
+import org.apache.hc.core5.testing.nio.H2TestServer;
 import org.hamcrest.CoreMatchers;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExternalResource;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
-@RunWith(Parameterized.class)
-public class TestHttp1Async extends AbstractHttpAsyncFundamentalsTest<CloseableHttpAsyncClient> {
-
-    @Parameterized.Parameters(name = "HTTP/1.1 {0}")
-    public static Collection<Object[]> protocols() {
-        return Arrays.asList(new Object[][]{
-                { URIScheme.HTTP },
-                { URIScheme.HTTPS },
-        });
-    }
-
-    protected HttpAsyncClientBuilder clientBuilder;
-    protected PoolingAsyncClientConnectionManager connManager;
-
-    @Rule
-    public ExternalResource connManagerResource = new ExternalResource() {
-
-        @Override
-        protected void before() throws Throwable {
-            connManager = PoolingAsyncClientConnectionManagerBuilder.create()
-                    .setTlsStrategy(new DefaultClientTlsStrategy(SSLTestContexts.createClientSSLContext()))
-                    .build();
-        }
-
-        @Override
-        protected void after() {
-            if (connManager != null) {
-                connManager.close();
-                connManager = null;
-            }
-        }
-
-    };
-
-    @Rule
-    public ExternalResource clientBuilderResource = new ExternalResource() {
-
-        @Override
-        protected void before() throws Throwable {
-            clientBuilder = HttpAsyncClientBuilder.create()
-                    .setDefaultRequestConfig(RequestConfig.custom()
-                            .setConnectionRequestTimeout(TIMEOUT)
-                            .setConnectTimeout(TIMEOUT)
-                            .build())
-                    .setConnectionManager(connManager);
-        }
-
-    };
+public abstract class TestHttp1Async extends AbstractHttpAsyncFundamentalsTest<CloseableHttpAsyncClient> {
 
     public TestHttp1Async(final URIScheme scheme) {
         super(scheme);
     }
 
     @Override
-    protected CloseableHttpAsyncClient createClient() {
-        return clientBuilder.build();
+    protected H2TestServer startServer() throws Exception {
+        return startServer(Http1Config.DEFAULT, null, null);
     }
 
     @Override
-    public HttpHost start() throws Exception {
-        return super.start(null, Http1Config.DEFAULT);
+    protected CloseableHttpAsyncClient startClient() throws Exception {
+        return startClient(b -> {});
     }
 
-    @Test
-    public void testSequenctialGetRequestsCloseConnection() throws Exception {
-        final HttpHost target = start();
+    @ParameterizedTest(name = "{displayName}; concurrent connections: {0}")
+    @ValueSource(ints = {5, 1, 20})
+    public void testSequentialGetRequestsCloseConnection(final int concurrentConns) throws Exception {
+        final H2TestServer server = startServer();
+        server.register("/random/*", AsyncRandomHandler::new);
+        final HttpHost target = targetHost();
+
+        final CloseableHttpAsyncClient client = startClient();
+        final PoolingAsyncClientConnectionManager connManager = connManager();
+        connManager.setDefaultMaxPerRoute(concurrentConns);
+        connManager.setMaxTotal(100);
         for (int i = 0; i < 3; i++) {
-            final SimpleHttpRequest get = SimpleHttpRequests.get(target, "/random/2048");
-            get.setHeader(HttpHeaders.CONNECTION, HeaderElements.CLOSE);
-            final Future<SimpleHttpResponse> future = httpclient.execute(get, null);
+            final Future<SimpleHttpResponse> future = client.execute(
+                    SimpleRequestBuilder.get()
+                            .setHttpHost(target)
+                            .setPath("/random/2048")
+                            .addHeader(HttpHeaders.CONNECTION, HeaderElements.CLOSE)
+                            .build(), null);
             final SimpleHttpResponse response = future.get();
-            Assert.assertThat(response, CoreMatchers.notNullValue());
-            Assert.assertThat(response.getCode(), CoreMatchers.equalTo(200));
+            assertThat(response, CoreMatchers.notNullValue());
+            assertThat(response.getCode(), CoreMatchers.equalTo(200));
             final String body = response.getBodyText();
-            Assert.assertThat(body, CoreMatchers.notNullValue());
-            Assert.assertThat(body.length(), CoreMatchers.equalTo(2048));
+            assertThat(body, CoreMatchers.notNullValue());
+            assertThat(body.length(), CoreMatchers.equalTo(2048));
         }
     }
 
     @Test
-    public void testConcurrentPostsOverMultipleConnections() throws Exception {
-        connManager.setDefaultMaxPerRoute(20);
-        connManager.setMaxTotal(100);
-        super.testConcurrentPostRequests();
-    }
-
-    @Test
-    public void testConcurrentPostsOverSingleConnection() throws Exception {
-        connManager.setDefaultMaxPerRoute(1);
-        connManager.setMaxTotal(100);
-        super.testConcurrentPostRequests();
-    }
-
-    @Test
     public void testSharedPool() throws Exception {
-        final HttpHost target = start();
-        final Future<SimpleHttpResponse> future1 = httpclient.execute(
-                SimpleHttpRequests.get(target, "/random/2048"), null);
+        final H2TestServer server = startServer();
+        server.register("/random/*", AsyncRandomHandler::new);
+        final HttpHost target = targetHost();
+
+        final CloseableHttpAsyncClient client = startClient();
+        final PoolingAsyncClientConnectionManager connManager = connManager();
+        final Future<SimpleHttpResponse> future1 = client.execute(
+                SimpleRequestBuilder.get()
+                        .setHttpHost(target)
+                        .setPath("/random/2048")
+                        .build(), null);
         final SimpleHttpResponse response1 = future1.get();
-        Assert.assertThat(response1, CoreMatchers.notNullValue());
-        Assert.assertThat(response1.getCode(), CoreMatchers.equalTo(200));
+        assertThat(response1, CoreMatchers.notNullValue());
+        assertThat(response1.getCode(), CoreMatchers.equalTo(200));
         final String body1 = response1.getBodyText();
-        Assert.assertThat(body1, CoreMatchers.notNullValue());
-        Assert.assertThat(body1.length(), CoreMatchers.equalTo(2048));
+        assertThat(body1, CoreMatchers.notNullValue());
+        assertThat(body1.length(), CoreMatchers.equalTo(2048));
 
 
         try (final CloseableHttpAsyncClient httpclient2 = HttpAsyncClients.custom()
@@ -166,23 +121,106 @@ public class TestHttp1Async extends AbstractHttpAsyncFundamentalsTest<CloseableH
                 .build()) {
             httpclient2.start();
             final Future<SimpleHttpResponse> future2 = httpclient2.execute(
-                    SimpleHttpRequests.get(target, "/random/2048"), null);
+                    SimpleRequestBuilder.get()
+                            .setHttpHost(target)
+                            .setPath("/random/2048")
+                            .build(), null);
             final SimpleHttpResponse response2 = future2.get();
-            Assert.assertThat(response2, CoreMatchers.notNullValue());
-            Assert.assertThat(response2.getCode(), CoreMatchers.equalTo(200));
+            assertThat(response2, CoreMatchers.notNullValue());
+            assertThat(response2.getCode(), CoreMatchers.equalTo(200));
             final String body2 = response2.getBodyText();
-            Assert.assertThat(body2, CoreMatchers.notNullValue());
-            Assert.assertThat(body2.length(), CoreMatchers.equalTo(2048));
+            assertThat(body2, CoreMatchers.notNullValue());
+            assertThat(body2.length(), CoreMatchers.equalTo(2048));
         }
 
-        final Future<SimpleHttpResponse> future3 = httpclient.execute(
-                SimpleHttpRequests.get(target, "/random/2048"), null);
+        final Future<SimpleHttpResponse> future3 = client.execute(
+                SimpleRequestBuilder.get()
+                        .setHttpHost(target)
+                        .setPath("/random/2048")
+                        .build(), null);
         final SimpleHttpResponse response3 = future3.get();
-        Assert.assertThat(response3, CoreMatchers.notNullValue());
-        Assert.assertThat(response3.getCode(), CoreMatchers.equalTo(200));
+        assertThat(response3, CoreMatchers.notNullValue());
+        assertThat(response3.getCode(), CoreMatchers.equalTo(200));
         final String body3 = response3.getBodyText();
-        Assert.assertThat(body3, CoreMatchers.notNullValue());
-        Assert.assertThat(body3.length(), CoreMatchers.equalTo(2048));
+        assertThat(body3, CoreMatchers.notNullValue());
+        assertThat(body3.length(), CoreMatchers.equalTo(2048));
+    }
+
+    @Test
+    public void testRequestCancellation() throws Exception {
+        final H2TestServer server = startServer();
+        server.register("/random/*", AsyncRandomHandler::new);
+        final HttpHost target = targetHost();
+
+        final CloseableHttpAsyncClient client = startClient();
+        final PoolingAsyncClientConnectionManager connManager = connManager();
+        connManager.setDefaultMaxPerRoute(1);
+        connManager.setMaxTotal(1);
+
+        final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
+        try {
+
+            for (int i = 0; i < 20; i++) {
+                final Future<SimpleHttpResponse> future = client.execute(
+                        SimpleRequestBuilder.get()
+                                .setHttpHost(target)
+                                .setPath("/random/1000")
+                                .build(), null);
+
+                executorService.schedule(new Runnable() {
+
+                    @Override
+                    public void run() {
+                        future.cancel(true);
+                    }
+                }, i % 5, TimeUnit.MILLISECONDS);
+
+                try {
+                    future.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
+                } catch (final TimeoutException ex) {
+                    throw ex;
+                } catch (final Exception ignore) {
+                }
+            }
+
+            final Random rnd = new Random();
+            for (int i = 0; i < 20; i++) {
+                final Future<SimpleHttpResponse> future = client.execute(
+                        SimpleRequestBuilder.get()
+                                .setHttpHost(target)
+                                .setPath("/random/1000")
+                                .build(), null);
+
+                executorService.schedule(new Runnable() {
+
+                    @Override
+                    public void run() {
+                        future.cancel(true);
+                    }
+                }, rnd.nextInt(200), TimeUnit.MILLISECONDS);
+
+                try {
+                    future.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
+                } catch (final TimeoutException ex) {
+                    throw ex;
+                } catch (final Exception ignore) {
+                }
+            }
+
+            for (int i = 0; i < 5; i++) {
+                final Future<SimpleHttpResponse> future = client.execute(
+                        SimpleRequestBuilder.get()
+                                .setHttpHost(target)
+                                .setPath("/random/1000")
+                                .build(), null);
+                final SimpleHttpResponse response = future.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
+                assertThat(response, CoreMatchers.notNullValue());
+                assertThat(response.getCode(), CoreMatchers.equalTo(200));
+            }
+
+        } finally {
+            executorService.shutdownNow();
+        }
     }
 
 }

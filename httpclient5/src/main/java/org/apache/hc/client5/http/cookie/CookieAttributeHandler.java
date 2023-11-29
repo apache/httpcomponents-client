@@ -50,12 +50,13 @@ public interface CookieAttributeHandler {
    *
    * @param cookie {@link org.apache.hc.client5.http.cookie.Cookie} to be updated
    * @param value cookie attribute value from the cookie response header
+   * @throws MalformedCookieException if cookie parsing fails for this attribute
    */
   void parse(SetCookie cookie, String value)
           throws MalformedCookieException;
 
   /**
-   * Peforms cookie validation for the given attribute value.
+   * Performs cookie validation for the given attribute value.
    *
    * @param cookie {@link org.apache.hc.client5.http.cookie.Cookie} to validate
    * @param origin the cookie source to validate against

@@ -26,62 +26,25 @@
  */
 package org.apache.hc.client5.testing.async;
 
-import java.util.Arrays;
-import java.util.Collection;
-
-import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
-import org.apache.hc.client5.http.impl.async.H2AsyncClientBuilder;
-import org.apache.hc.client5.testing.SSLTestContexts;
-import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.URIScheme;
-import org.apache.hc.core5.http.nio.ssl.BasicClientTlsStrategy;
 import org.apache.hc.core5.http2.config.H2Config;
-import org.junit.Rule;
-import org.junit.rules.ExternalResource;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.apache.hc.core5.testing.nio.H2TestServer;
 
-@RunWith(Parameterized.class)
-public class TestH2Reactive extends AbstractHttpReactiveFundamentalsTest<CloseableHttpAsyncClient> {
-
-    @Parameterized.Parameters(name = "HTTP/2 {0}")
-    public static Collection<Object[]> protocols() {
-        return Arrays.asList(new Object[][]{
-                { URIScheme.HTTP },
-                { URIScheme.HTTPS }
-        });
-    }
-
-    protected H2AsyncClientBuilder clientBuilder;
-
-    @Rule
-    public ExternalResource clientResource = new ExternalResource() {
-
-        @Override
-        protected void before() throws Throwable {
-            clientBuilder = H2AsyncClientBuilder.create()
-                    .setDefaultRequestConfig(RequestConfig.custom()
-                            .setConnectionRequestTimeout(TIMEOUT)
-                            .setConnectTimeout(TIMEOUT)
-                            .build())
-                    .setTlsStrategy(new BasicClientTlsStrategy(SSLTestContexts.createClientSSLContext()));
-        }
-
-    };
+public abstract class TestH2Reactive extends AbstractHttpReactiveFundamentalsTest<CloseableHttpAsyncClient> {
 
     public TestH2Reactive(final URIScheme scheme) {
         super(scheme);
     }
 
     @Override
-    protected CloseableHttpAsyncClient createClient() {
-        return clientBuilder.build();
+    protected H2TestServer startServer() throws Exception {
+        return startServer(H2Config.DEFAULT, null, null);
     }
 
     @Override
-    public HttpHost start() throws Exception {
-        return super.start(null, H2Config.DEFAULT);
+    protected CloseableHttpAsyncClient startClient() throws Exception {
+        return startH2Client(b -> {});
     }
 
 }

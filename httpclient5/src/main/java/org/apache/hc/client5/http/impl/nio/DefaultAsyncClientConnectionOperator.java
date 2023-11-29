@@ -34,17 +34,23 @@ import java.util.concurrent.Future;
 
 import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.SchemePortResolver;
+import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
 import org.apache.hc.client5.http.nio.AsyncClientConnectionOperator;
 import org.apache.hc.client5.http.nio.ManagedAsyncClientConnection;
 import org.apache.hc.client5.http.routing.RoutingSupport;
+import org.apache.hc.core5.concurrent.CallbackContribution;
 import org.apache.hc.core5.concurrent.ComplexFuture;
 import org.apache.hc.core5.concurrent.FutureCallback;
+import org.apache.hc.core5.concurrent.FutureContribution;
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
+import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.reactor.ConnectionInitiator;
 import org.apache.hc.core5.reactor.IOSession;
+import org.apache.hc.core5.reactor.ssl.TransportSecurityLayer;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.Timeout;
 
@@ -71,39 +77,62 @@ final class DefaultAsyncClientConnectionOperator implements AsyncClientConnectio
             final Timeout connectTimeout,
             final Object attachment,
             final FutureCallback<ManagedAsyncClientConnection> callback) {
+        return connect(connectionInitiator, host, localAddress, connectTimeout,
+            attachment, null, callback);
+    }
+
+    @Override
+    public Future<ManagedAsyncClientConnection> connect(
+            final ConnectionInitiator connectionInitiator,
+            final HttpHost host,
+            final SocketAddress localAddress,
+            final Timeout connectTimeout,
+            final Object attachment,
+            final HttpContext context,
+            final FutureCallback<ManagedAsyncClientConnection> callback) {
         Args.notNull(connectionInitiator, "Connection initiator");
         Args.notNull(host, "Host");
         final ComplexFuture<ManagedAsyncClientConnection> future = new ComplexFuture<>(callback);
         final HttpHost remoteEndpoint = RoutingSupport.normalize(host, schemePortResolver);
         final InetAddress remoteAddress = host.getAddress();
         final TlsStrategy tlsStrategy = tlsStrategyLookup != null ? tlsStrategyLookup.lookup(host.getSchemeName()) : null;
+        final TlsConfig tlsConfig = attachment instanceof TlsConfig ? (TlsConfig) attachment : TlsConfig.DEFAULT;
         final Future<IOSession> sessionFuture = sessionRequester.connect(
                 connectionInitiator,
                 remoteEndpoint,
                 remoteAddress != null ? new InetSocketAddress(remoteAddress, remoteEndpoint.getPort()) : null,
                 localAddress,
                 connectTimeout,
-                attachment,
+                tlsConfig.getHttpVersionPolicy(),
                 new FutureCallback<IOSession>() {
 
                     @Override
                     public void completed(final IOSession session) {
                         final DefaultManagedAsyncClientConnection connection = new DefaultManagedAsyncClientConnection(session);
-                        if (tlsStrategy != null) {
+                        if (tlsStrategy != null && URIScheme.HTTPS.same(host.getSchemeName())) {
                             try {
+                                final Timeout socketTimeout = connection.getSocketTimeout();
+                                final Timeout handshakeTimeout = tlsConfig.getHandshakeTimeout();
                                 tlsStrategy.upgrade(
                                         connection,
                                         host,
-                                        session.getLocalAddress(),
-                                        session.getRemoteAddress(),
                                         attachment,
-                                        connectTimeout);
+                                        handshakeTimeout != null ? handshakeTimeout : connectTimeout,
+                                        new FutureContribution<TransportSecurityLayer>(future) {
+
+                                            @Override
+                                            public void completed(final TransportSecurityLayer transportSecurityLayer) {
+                                                connection.setSocketTimeout(socketTimeout);
+                                                future.completed(connection);
+                                            }
+
+                                        });
                             } catch (final Exception ex) {
                                 future.failed(ex);
-                                return;
                             }
+                        } else {
+                            future.completed(connection);
                         }
-                        future.completed(connection);
                     }
 
                     @Override
@@ -122,17 +151,48 @@ final class DefaultAsyncClientConnectionOperator implements AsyncClientConnectio
     }
 
     @Override
-    public void upgrade(final ManagedAsyncClientConnection connection, final HttpHost host, final Object attachment) {
+    public void upgrade(
+            final ManagedAsyncClientConnection connection,
+            final HttpHost host,
+            final Object attachment) {
+        upgrade(connection, host, attachment, null, null);
+    }
+
+    @Override
+    public void upgrade(
+            final ManagedAsyncClientConnection connection,
+            final HttpHost host,
+            final Object attachment,
+            final HttpContext context) {
+        upgrade(connection, host, attachment, context, null);
+    }
+
+    @Override
+    public void upgrade(
+            final ManagedAsyncClientConnection connection,
+            final HttpHost host,
+            final Object attachment,
+            final HttpContext context,
+            final FutureCallback<ManagedAsyncClientConnection> callback) {
         final TlsStrategy tlsStrategy = tlsStrategyLookup != null ? tlsStrategyLookup.lookup(host.getSchemeName()) : null;
         if (tlsStrategy != null) {
             tlsStrategy.upgrade(
                     connection,
                     host,
-                    connection.getLocalAddress(),
-                    connection.getRemoteAddress(),
                     attachment,
-                    null);
+                    null,
+                    new CallbackContribution<TransportSecurityLayer>(callback) {
+
+                        @Override
+                        public void completed(final TransportSecurityLayer transportSecurityLayer) {
+                            if (callback != null) {
+                                callback.completed(connection);
+                            }
+                        }
+
+                    });
         }
 
     }
+
 }

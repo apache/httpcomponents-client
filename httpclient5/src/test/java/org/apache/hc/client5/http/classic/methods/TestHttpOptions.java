@@ -30,8 +30,8 @@ package org.apache.hc.client5.http.classic.methods;
 import java.util.Set;
 
 import org.apache.hc.core5.http.message.BasicHttpResponse;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class TestHttpOptions {
 
@@ -44,8 +44,8 @@ public class TestHttpOptions {
         final HttpOptions opt = new HttpOptions("*");
         final Set<String> methodsName = opt.getAllowedMethods(resp);
 
-        Assert.assertTrue(methodsName.contains("POST"));
-        Assert.assertTrue(methodsName.contains("GET"));
+        Assertions.assertTrue(methodsName.contains("POST"));
+        Assertions.assertTrue(methodsName.contains("GET"));
     }
 
 }

@@ -26,7 +26,7 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
-import java.util.Date;
+import java.time.Instant;
 
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.cache.HeaderConstants;
@@ -64,7 +64,7 @@ class CachedHttpResponseGenerator {
      * @return {@link SimpleHttpResponse} constructed response
      */
     SimpleHttpResponse generateResponse(final HttpRequest request, final HttpCacheEntry entry) throws ResourceIOException {
-        final Date now = new Date();
+        final Instant now =Instant.now();
         final SimpleHttpResponse response = new SimpleHttpResponse(entry.getStatus());
         response.setVersion(HttpVersion.DEFAULT);
 
@@ -105,7 +105,7 @@ class CachedHttpResponseGenerator {
         // - Date, unless its omission is required by section 14.8.1
         Header dateHeader = entry.getFirstHeader(HttpHeaders.DATE);
         if (dateHeader == null) {
-            dateHeader = new BasicHeader(HttpHeaders.DATE, DateUtils.formatDate(new Date()));
+            dateHeader = new BasicHeader(HttpHeaders.DATE, DateUtils.formatStandardDate(Instant.now()));
         }
         response.addHeader(dateHeader);
 
@@ -116,7 +116,7 @@ class CachedHttpResponseGenerator {
             response.addHeader(etagHeader);
         }
 
-        final Header contentLocationHeader = entry.getFirstHeader("Content-Location");
+        final Header contentLocationHeader = entry.getFirstHeader(HttpHeaders.CONTENT_LOCATION);
         if (contentLocationHeader != null) {
             response.addHeader(contentLocationHeader);
         }
@@ -162,7 +162,7 @@ class CachedHttpResponseGenerator {
 
     /**
      * Extract error information about the {@link HttpRequest} telling the 'caller'
-     * that a problem occured.
+     * that a problem occurred.
      *
      * @param errorCheck What type of error should I get
      * @return The {@link HttpResponse} that is the error generated

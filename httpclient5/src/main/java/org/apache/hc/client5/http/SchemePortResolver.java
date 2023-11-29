@@ -29,6 +29,7 @@ package org.apache.hc.client5.http;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.net.NamedEndpoint;
 
 /**
  * Strategy for default port resolution for protocol schemes.
@@ -42,5 +43,14 @@ public interface SchemePortResolver {
      * Returns the actual port for the host based on the protocol scheme.
      */
     int resolve(HttpHost host);
+
+    /**
+     * Returns the actual port for the host based on the protocol scheme.
+     *
+     * @since 5.2
+     */
+    default int resolve(String scheme, NamedEndpoint endpoint) {
+        return resolve(new HttpHost(scheme, endpoint));
+    }
 
 }

@@ -42,7 +42,7 @@ class LegacyMultipart extends AbstractMultipartFormat {
 
     private final List<MultipartPart> parts;
 
-    public LegacyMultipart(
+     public LegacyMultipart(
             final Charset charset,
             final String boundary,
             final List<MultipartPart> parts) {

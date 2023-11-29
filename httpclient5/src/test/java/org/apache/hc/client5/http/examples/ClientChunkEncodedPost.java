@@ -31,11 +31,11 @@ import java.io.FileInputStream;
 
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.InputStreamEntity;
+import org.apache.hc.core5.http.message.StatusLine;
 
 /**
  * Example how to use unbuffered chunk-encoded POST request.
@@ -63,11 +63,12 @@ public class ClientChunkEncodedPost {
             httppost.setEntity(reqEntity);
 
             System.out.println("Executing request " + httppost.getMethod() + " " + httppost.getUri());
-            try (final CloseableHttpResponse response = httpclient.execute(httppost)) {
+            httpclient.execute(httppost, response -> {
                 System.out.println("----------------------------------------");
-                System.out.println(response.getCode() + " " + response.getReasonPhrase());
-                System.out.println(EntityUtils.toString(response.getEntity()));
-            }
+                System.out.println(httppost + "->" + new StatusLine(response));
+                EntityUtils.consume(response.getEntity());
+                return null;
+            });
         }
     }
 

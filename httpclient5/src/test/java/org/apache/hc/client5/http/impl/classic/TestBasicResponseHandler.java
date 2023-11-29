@@ -33,8 +33,8 @@ import org.apache.hc.client5.http.HttpResponseException;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.io.entity.StringEntity;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 /**
@@ -52,7 +52,7 @@ public class TestBasicResponseHandler {
 
         final BasicHttpClientResponseHandler handler = new BasicHttpClientResponseHandler();
         final String s = handler.handleResponse(response);
-        Assert.assertEquals("stuff", s);
+        Assertions.assertEquals("stuff", s);
     }
 
     @Test
@@ -66,12 +66,9 @@ public class TestBasicResponseHandler {
         Mockito.when(response.getEntity()).thenReturn(entity);
 
         final BasicHttpClientResponseHandler handler = new BasicHttpClientResponseHandler();
-        try {
-            handler.handleResponse(response);
-            Assert.fail("HttpResponseException expected");
-        } catch (final HttpResponseException ex) {
-            Assert.assertEquals(404, ex.getStatusCode());
-        }
+        final HttpResponseException exception = Assertions.assertThrows(HttpResponseException.class, () ->
+                handler.handleResponse(response));
+        Assertions.assertEquals(404, exception.getStatusCode());
         Mockito.verify(entity).getContent();
         Mockito.verify(inStream).close();
     }

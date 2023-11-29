@@ -37,17 +37,17 @@ import java.util.List;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.http.message.BasicNameValuePair;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class TestMultipartEntityBuilder {
 
     @Test
     public void testBasics() throws Exception {
         final MultipartFormEntity entity = MultipartEntityBuilder.create().buildEntity();
-        Assert.assertNotNull(entity);
-        Assert.assertTrue(entity.getMultipart() instanceof HttpStrictMultipart);
-        Assert.assertEquals(0, entity.getMultipart().getParts().size());
+        Assertions.assertNotNull(entity);
+        Assertions.assertTrue(entity.getMultipart() instanceof HttpStrictMultipart);
+        Assertions.assertEquals(0, entity.getMultipart().getParts().size());
     }
 
     @Test
@@ -57,10 +57,10 @@ public class TestMultipartEntityBuilder {
                 .setCharset(StandardCharsets.UTF_8)
                 .setLaxMode()
                 .buildEntity();
-        Assert.assertNotNull(entity);
-        Assert.assertTrue(entity.getMultipart() instanceof LegacyMultipart);
-        Assert.assertEquals("blah-blah", entity.getMultipart().boundary);
-        Assert.assertEquals(StandardCharsets.UTF_8, entity.getMultipart().charset);
+        Assertions.assertNotNull(entity);
+        Assertions.assertTrue(entity.getMultipart() instanceof LegacyMultipart);
+        Assertions.assertEquals("blah-blah", entity.getMultipart().boundary);
+        Assertions.assertEquals(StandardCharsets.UTF_8, entity.getMultipart().charset);
     }
 
     @Test
@@ -70,12 +70,14 @@ public class TestMultipartEntityBuilder {
                 .addBinaryBody("p2", new File("stuff"))
                 .addBinaryBody("p3", new byte[]{})
                 .addBinaryBody("p4", new ByteArrayInputStream(new byte[]{}))
+                .addBinaryBody("p5", new ByteArrayInputStream(new byte[]{}), ContentType.DEFAULT_BINARY, "filename")
                 .buildEntity();
-        Assert.assertNotNull(entity);
+        Assertions.assertNotNull(entity);
         final List<MultipartPart> bodyParts = entity.getMultipart().getParts();
-        Assert.assertNotNull(bodyParts);
-        Assert.assertEquals(4, bodyParts.size());
+        Assertions.assertNotNull(bodyParts);
+        Assertions.assertEquals(5, bodyParts.size());
     }
+
 
     @Test
     public void testMultipartCustomContentType() throws Exception {
@@ -85,8 +87,8 @@ public class TestMultipartEntityBuilder {
                 .setCharset(StandardCharsets.UTF_8)
                 .setLaxMode()
                 .buildEntity();
-        Assert.assertNotNull(entity);
-        Assert.assertEquals("application/xml; boundary=blah-blah; charset=UTF-8", entity.getContentType());
+        Assertions.assertNotNull(entity);
+        Assertions.assertEquals("application/xml; boundary=blah-blah; charset=UTF-8", entity.getContentType());
     }
 
     @Test
@@ -96,10 +98,10 @@ public class TestMultipartEntityBuilder {
                         new BasicNameValuePair("boundary", "yada-yada"),
                         new BasicNameValuePair("charset", "ascii")))
                 .buildEntity();
-        Assert.assertNotNull(entity);
-        Assert.assertEquals("multipart/form-data; boundary=yada-yada; charset=US-ASCII", entity.getContentType());
-        Assert.assertEquals("yada-yada", entity.getMultipart().boundary);
-        Assert.assertEquals(StandardCharsets.US_ASCII, entity.getMultipart().charset);
+        Assertions.assertNotNull(entity);
+        Assertions.assertEquals("multipart/form-data; boundary=yada-yada; charset=US-ASCII", entity.getContentType());
+        Assertions.assertEquals("yada-yada", entity.getMultipart().boundary);
+        Assertions.assertEquals(StandardCharsets.US_ASCII, entity.getMultipart().charset);
     }
 
     @Test
@@ -113,16 +115,31 @@ public class TestMultipartEntityBuilder {
                 .setCharset(StandardCharsets.UTF_8)
                 .setLaxMode()
                 .buildEntity();
-        Assert.assertNotNull(entity);
-        Assert.assertEquals("multipart/form-data; boundary=blah-blah; charset=UTF-8; my=stuff",
+        Assertions.assertNotNull(entity);
+        Assertions.assertEquals("multipart/form-data; boundary=blah-blah; charset=UTF-8; my=stuff",
+                entity.getContentType());
+    }
+
+    @Test
+    public void testMultipartCustomContentTypeUsingAddParameter() {
+        final MultipartEntityBuilder eb = MultipartEntityBuilder.create();
+        eb.setMimeSubtype("related");
+        eb.addParameter(new BasicNameValuePair("boundary", "yada-yada"));
+        eb.addParameter(new BasicNameValuePair("charset", "ascii"));
+        eb.addParameter(new BasicNameValuePair("my", "stuff"));
+        eb.buildEntity();
+        final MultipartFormEntity entity =  eb.buildEntity();
+        Assertions.assertNotNull(entity);
+        Assertions.assertEquals("multipart/related; boundary=yada-yada; charset=US-ASCII; my=stuff",
                 entity.getContentType());
     }
 
     @Test
     public void testMultipartWriteTo() throws Exception {
+        final String helloWorld = "hello world";
         final List<NameValuePair> parameters = new ArrayList<>();
         parameters.add(new BasicNameValuePair(MimeConsts.FIELD_PARAM_NAME, "test"));
-        parameters.add(new BasicNameValuePair(MimeConsts.FIELD_PARAM_FILENAME, "hello world"));
+        parameters.add(new BasicNameValuePair(MimeConsts.FIELD_PARAM_FILENAME, helloWorld));
         final MultipartFormEntity entity = MultipartEntityBuilder.create()
                 .setStrictMode()
                 .setBoundary("xxxxxxxxxxxxxxxxxxxxxxxx")
@@ -137,25 +154,27 @@ public class TestMultipartEntityBuilder {
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
         entity.writeTo(out);
         out.close();
-        Assert.assertEquals("--xxxxxxxxxxxxxxxxxxxxxxxx\r\n" +
+        Assertions.assertEquals("--xxxxxxxxxxxxxxxxxxxxxxxx\r\n" +
                 "Content-Disposition: multipart/form-data; name=\"test\"; filename=\"hello world\"\r\n" +
                 "Content-Type: text/plain; charset=ISO-8859-1\r\n" +
                 "\r\n" +
-                "hello world\r\n" +
+                helloWorld + "\r\n" +
                 "--xxxxxxxxxxxxxxxxxxxxxxxx--\r\n", out.toString(StandardCharsets.US_ASCII.name()));
     }
+
     @Test
     public void testMultipartWriteToRFC7578Mode() throws Exception {
+        final String helloWorld = "hello \u03BA\u03CC\u03C3\u03BC\u03B5!%";
         final List<NameValuePair> parameters = new ArrayList<>();
         parameters.add(new BasicNameValuePair(MimeConsts.FIELD_PARAM_NAME, "test"));
-        parameters.add(new BasicNameValuePair(MimeConsts.FIELD_PARAM_FILENAME, "hello \u03BA\u03CC\u03C3\u03BC\u03B5!%"));
+        parameters.add(new BasicNameValuePair(MimeConsts.FIELD_PARAM_FILENAME, helloWorld));
 
         final MultipartFormEntity entity = MultipartEntityBuilder.create()
                 .setMode(HttpMultipartMode.EXTENDED)
                 .setBoundary("xxxxxxxxxxxxxxxxxxxxxxxx")
                 .addPart(new FormBodyPartBuilder()
                         .setName("test")
-                        .setBody(new StringBody("hello world", ContentType.TEXT_PLAIN))
+                        .setBody(new StringBody(helloWorld, ContentType.TEXT_PLAIN.withCharset(StandardCharsets.UTF_8)))
                         .addField("Content-Disposition", "multipart/form-data", parameters)
                         .build())
                 .buildEntity();
@@ -163,12 +182,76 @@ public class TestMultipartEntityBuilder {
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
         entity.writeTo(out);
         out.close();
-        Assert.assertEquals("--xxxxxxxxxxxxxxxxxxxxxxxx\r\n" +
+        Assertions.assertEquals("--xxxxxxxxxxxxxxxxxxxxxxxx\r\n" +
                 "Content-Disposition: multipart/form-data; name=\"test\"; filename=\"hello%20%CE%BA%CF%8C%CF%83%CE%BC%CE%B5!%25\"\r\n" +
-                "Content-Type: text/plain; charset=ISO-8859-1\r\n" +
+                "Content-Type: text/plain; charset=UTF-8\r\n" +
                 "\r\n" +
-                "hello world\r\n" +
-                "--xxxxxxxxxxxxxxxxxxxxxxxx--\r\n", out.toString(StandardCharsets.US_ASCII.name()));
+                "hello \u00ce\u00ba\u00cf\u008c\u00cf\u0083\u00ce\u00bc\u00ce\u00b5!%\r\n" +
+                "--xxxxxxxxxxxxxxxxxxxxxxxx--\r\n", out.toString(StandardCharsets.ISO_8859_1.name()));
+    }
+
+    @Test
+    public void testMultipartWriteToRFC6532Mode() throws Exception {
+        final String helloWorld = "hello \u03BA\u03CC\u03C3\u03BC\u03B5!%";
+        final List<NameValuePair> parameters = new ArrayList<>();
+        parameters.add(new BasicNameValuePair(MimeConsts.FIELD_PARAM_NAME, "test"));
+        parameters.add(new BasicNameValuePair(MimeConsts.FIELD_PARAM_FILENAME, helloWorld));
+
+        final MultipartFormEntity entity = MultipartEntityBuilder.create()
+                .setMode(HttpMultipartMode.EXTENDED)
+                .setContentType(ContentType.create("multipart/other"))
+                .setBoundary("xxxxxxxxxxxxxxxxxxxxxxxx")
+                .addPart(new FormBodyPartBuilder()
+                        .setName("test")
+                        .setBody(new StringBody(helloWorld, ContentType.TEXT_PLAIN.withCharset(StandardCharsets.UTF_8)))
+                        .addField("Content-Disposition", "multipart/form-data", parameters)
+                        .build())
+                .buildEntity();
+
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        entity.writeTo(out);
+        out.close();
+        Assertions.assertEquals("--xxxxxxxxxxxxxxxxxxxxxxxx\r\n" +
+                "Content-Disposition: multipart/form-data; name=\"test\"; " +
+                "filename=\"hello \u00ce\u00ba\u00cf\u008c\u00cf\u0083\u00ce\u00bc\u00ce\u00b5!%\"\r\n" +
+                "Content-Type: text/plain; charset=UTF-8\r\n" +
+                "\r\n" +
+                "hello \u00ce\u00ba\u00cf\u008c\u00cf\u0083\u00ce\u00bc\u00ce\u00b5!%\r\n" +
+                "--xxxxxxxxxxxxxxxxxxxxxxxx--\r\n", out.toString(StandardCharsets.ISO_8859_1.name()));
+    }
+
+    @Test
+    public void testMultipartWriteToWithPreambleAndEpilogue() throws Exception {
+        final String helloWorld = "hello \u03BA\u03CC\u03C3\u03BC\u03B5!%";
+        final List<NameValuePair> parameters = new ArrayList<>();
+        parameters.add(new BasicNameValuePair(MimeConsts.FIELD_PARAM_NAME, "test"));
+        parameters.add(new BasicNameValuePair(MimeConsts.FIELD_PARAM_FILENAME, helloWorld));
+
+        final MultipartFormEntity entity = MultipartEntityBuilder.create()
+                .setMode(HttpMultipartMode.EXTENDED)
+                .setContentType(ContentType.create("multipart/other"))
+                .setBoundary("xxxxxxxxxxxxxxxxxxxxxxxx")
+                .addPart(new FormBodyPartBuilder()
+                        .setName("test")
+                        .setBody(new StringBody(helloWorld, ContentType.TEXT_PLAIN.withCharset(StandardCharsets.UTF_8)))
+                        .addField("Content-Disposition", "multipart/form-data", parameters)
+                        .build())
+                .addPreamble("This is the preamble.")
+                .addEpilogue("This is the epilogue.")
+                .buildEntity();
+
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        entity.writeTo(out);
+        out.close();
+        Assertions.assertEquals("This is the preamble.\r\n" +
+                "--xxxxxxxxxxxxxxxxxxxxxxxx\r\n" +
+                "Content-Disposition: multipart/form-data; name=\"test\"; " +
+                "filename=\"hello \u00ce\u00ba\u00cf\u008c\u00cf\u0083\u00ce\u00bc\u00ce\u00b5!%\"\r\n" +
+                "Content-Type: text/plain; charset=UTF-8\r\n" +
+                "\r\n" +
+                "hello \u00ce\u00ba\u00cf\u008c\u00cf\u0083\u00ce\u00bc\u00ce\u00b5!%\r\n" +
+                "--xxxxxxxxxxxxxxxxxxxxxxxx--\r\n" +
+                "This is the epilogue.\r\n", out.toString(StandardCharsets.ISO_8859_1.name()));
     }
 
 }

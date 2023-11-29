@@ -36,7 +36,6 @@ import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.function.Factory;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
-import org.apache.hc.core5.http2.ssl.H2TlsSupport;
 import org.apache.hc.core5.reactor.ssl.SSLBufferMode;
 import org.apache.hc.core5.reactor.ssl.TlsDetails;
 import org.apache.hc.core5.ssl.SSLContexts;
@@ -64,8 +63,16 @@ public class DefaultClientTlsStrategy extends AbstractClientTlsStrategy {
                 HttpsSupport.getDefaultHostnameVerifier());
     }
 
-    private final Factory<SSLEngine, TlsDetails> tlsDetailsFactory;
+    /**
+     * @deprecated To be removed.
+     */
+    @Deprecated
+    private Factory<SSLEngine, TlsDetails> tlsDetailsFactory;
 
+    /**
+     * @deprecated Use {@link DefaultClientTlsStrategy#DefaultClientTlsStrategy(SSLContext, String[], String[], SSLBufferMode, HostnameVerifier)}
+     */
+    @Deprecated
     public DefaultClientTlsStrategy(
             final SSLContext sslContext,
             final String[] supportedProtocols,
@@ -83,26 +90,27 @@ public class DefaultClientTlsStrategy extends AbstractClientTlsStrategy {
             final String[] supportedCipherSuites,
             final SSLBufferMode sslBufferManagement,
             final HostnameVerifier hostnameVerifier) {
-        this(sslContext, supportedProtocols, supportedCipherSuites, sslBufferManagement, hostnameVerifier, null);
+        super(sslContext, supportedProtocols, supportedCipherSuites, sslBufferManagement, hostnameVerifier);
     }
 
     public DefaultClientTlsStrategy(
-            final SSLContext sslcontext,
+            final SSLContext sslContext,
             final HostnameVerifier hostnameVerifier) {
-        this(sslcontext, null, null, SSLBufferMode.STATIC, hostnameVerifier, null);
+        this(sslContext, null, null, SSLBufferMode.STATIC, hostnameVerifier);
     }
 
-    public DefaultClientTlsStrategy(final SSLContext sslcontext) {
-        this(sslcontext, HttpsSupport.getDefaultHostnameVerifier());
+    public DefaultClientTlsStrategy(final SSLContext sslContext) {
+        this(sslContext, HttpsSupport.getDefaultHostnameVerifier());
     }
 
     @Override
     void applyParameters(final SSLEngine sslEngine, final SSLParameters sslParameters, final String[] appProtocols) {
-        H2TlsSupport.setApplicationProtocols(sslParameters, appProtocols);
+        sslParameters.setApplicationProtocols(appProtocols);
         sslEngine.setSSLParameters(sslParameters);
     }
 
     @Override
+    @SuppressWarnings("deprecated")
     TlsDetails createTlsDetails(final SSLEngine sslEngine) {
         return tlsDetailsFactory != null ? tlsDetailsFactory.create(sslEngine) : null;
     }

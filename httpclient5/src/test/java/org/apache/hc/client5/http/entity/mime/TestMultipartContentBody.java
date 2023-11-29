@@ -31,54 +31,54 @@ import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 
 import org.apache.hc.core5.http.ContentType;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class TestMultipartContentBody {
 
     @Test
     public void testStringBody() throws Exception {
         final StringBody b1 = new StringBody("text", ContentType.DEFAULT_TEXT);
-        Assert.assertEquals(4, b1.getContentLength());
+        Assertions.assertEquals(4, b1.getContentLength());
 
-        Assert.assertEquals("ISO-8859-1", b1.getCharset());
+        Assertions.assertEquals("ISO-8859-1", b1.getCharset());
 
-        Assert.assertNull(b1.getFilename());
-        Assert.assertEquals("text/plain", b1.getMimeType());
-        Assert.assertEquals("text", b1.getMediaType());
-        Assert.assertEquals("plain", b1.getSubType());
+        Assertions.assertNull(b1.getFilename());
+        Assertions.assertEquals("text/plain", b1.getMimeType());
+        Assertions.assertEquals("text", b1.getMediaType());
+        Assertions.assertEquals("plain", b1.getSubType());
 
         final StringBody b2 = new StringBody("more text",
                 ContentType.create("text/other", StandardCharsets.ISO_8859_1));
-        Assert.assertEquals(9, b2.getContentLength());
-        Assert.assertEquals(StandardCharsets.ISO_8859_1.name(), b2.getCharset());
+        Assertions.assertEquals(9, b2.getContentLength());
+        Assertions.assertEquals(StandardCharsets.ISO_8859_1.name(), b2.getCharset());
 
-        Assert.assertNull(b2.getFilename());
-        Assert.assertEquals("text/other", b2.getMimeType());
-        Assert.assertEquals("text", b2.getMediaType());
-        Assert.assertEquals("other", b2.getSubType());
+        Assertions.assertNull(b2.getFilename());
+        Assertions.assertEquals("text/other", b2.getMimeType());
+        Assertions.assertEquals("text", b2.getMediaType());
+        Assertions.assertEquals("other", b2.getSubType());
     }
 
     @Test
     public void testInputStreamBody() throws Exception {
         final byte[] stuff = "Stuff".getBytes(StandardCharsets.US_ASCII);
         final InputStreamBody b1 = new InputStreamBody(new ByteArrayInputStream(stuff), "stuff");
-        Assert.assertEquals(-1, b1.getContentLength());
+        Assertions.assertEquals(-1, b1.getContentLength());
 
-        Assert.assertNull(b1.getCharset());
-        Assert.assertEquals("stuff", b1.getFilename());
-        Assert.assertEquals("application/octet-stream", b1.getMimeType());
-        Assert.assertEquals("application", b1.getMediaType());
-        Assert.assertEquals("octet-stream", b1.getSubType());
+        Assertions.assertNull(b1.getCharset());
+        Assertions.assertEquals("stuff", b1.getFilename());
+        Assertions.assertEquals("application/octet-stream", b1.getMimeType());
+        Assertions.assertEquals("application", b1.getMediaType());
+        Assertions.assertEquals("octet-stream", b1.getSubType());
 
         final InputStreamBody b2 = new InputStreamBody(
                 new ByteArrayInputStream(stuff), ContentType.create("some/stuff"), "stuff");
-        Assert.assertEquals(-1, b2.getContentLength());
-        Assert.assertNull(b2.getCharset());
-        Assert.assertEquals("stuff", b2.getFilename());
-        Assert.assertEquals("some/stuff", b2.getMimeType());
-        Assert.assertEquals("some", b2.getMediaType());
-        Assert.assertEquals("stuff", b2.getSubType());
+        Assertions.assertEquals(-1, b2.getContentLength());
+        Assertions.assertNull(b2.getCharset());
+        Assertions.assertEquals("stuff", b2.getFilename());
+        Assertions.assertEquals("some/stuff", b2.getMimeType());
+        Assertions.assertEquals("some", b2.getMediaType());
+        Assertions.assertEquals("stuff", b2.getSubType());
     }
 
 }

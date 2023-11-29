@@ -121,7 +121,7 @@ class RequestProtocolCompliance {
     }
 
     private String buildHeaderFromElements(final List<HeaderElement> outElts) {
-        final StringBuilder newHdr = new StringBuilder("");
+        final StringBuilder newHdr = new StringBuilder();
         boolean first = true;
         for(final HeaderElement elt : outElts) {
             if (!first) {
@@ -129,7 +129,7 @@ class RequestProtocolCompliance {
             } else {
                 first = false;
             }
-            newHdr.append(elt.toString());
+            newHdr.append(elt);
         }
         return newHdr.toString();
     }
@@ -159,11 +159,7 @@ class RequestProtocolCompliance {
             return false;
         }
 
-        if (requestProtocol.getMinor() > HttpVersion.HTTP_1_1.getMinor()) {
-            return true;
-        }
-
-        return false;
+        return requestProtocol.getMinor() > HttpVersion.HTTP_1_1.getMinor();
     }
 
     protected boolean requestVersionIsTooLow(final HttpRequest request) {

@@ -28,7 +28,6 @@ package org.apache.hc.client5.http.examples;
 
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.core5.http.HttpEntity;
@@ -103,7 +102,7 @@ public class ClientMultiThreadedExecution {
         public void run() {
             try {
                 System.out.println(id + " - about to get something from " + httpget.getUri());
-                try (CloseableHttpResponse response = httpClient.execute(httpget, context)) {
+                this.httpClient.execute(httpget, response -> {
                     System.out.println(id + " - get executed");
                     // get the response body as an array of bytes
                     final HttpEntity entity = response.getEntity();
@@ -111,7 +110,8 @@ public class ClientMultiThreadedExecution {
                         final byte[] bytes = EntityUtils.toByteArray(entity);
                         System.out.println(id + " - " + bytes.length + " bytes read");
                     }
-                }
+                    return null;
+                });
             } catch (final Exception e) {
                 System.out.println(id + " - error: " + e);
             }

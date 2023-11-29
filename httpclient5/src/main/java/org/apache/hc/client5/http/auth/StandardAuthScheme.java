@@ -39,34 +39,47 @@ public final class StandardAuthScheme {
     }
 
     /**
-     * Basic authentication scheme as defined in RFC 2617 (considered inherently
-     * insecure without transport encryption, but most widely supported).
+     * Basic authentication scheme (considered inherently insecure without TLS,
+     * but most widely supported).
      */
     public static final String BASIC = "Basic";
 
     /**
-     * Digest authentication scheme as defined in RFC 2617.
+     * Digest authentication scheme.
      */
     public static final String DIGEST = "Digest";
 
     /**
+     * Bearer authentication scheme (should be used with TLS).
+     */
+    public static final String BEARER = "Bearer";
+
+    /**
      * The NTLM authentication scheme is a proprietary Microsoft Windows
      * authentication protocol as defined in [MS-NLMP].
+     *
+     * @deprecated Do not use. the NTLM authentication scheme is no longer supported.
+     * Consider using Basic or Bearer authentication with TLS instead.
      */
+    @Deprecated
     public static final String NTLM = "NTLM";
 
     /**
-     * SPNEGO authentication scheme as defined in RFC 4559 and RFC 4178
-     * (considered to be the most secure among currently supported
-     * authentication schemes if Kerberos is selected).
+     * SPNEGO authentication scheme as defined in RFC 4559 and RFC 4178.
+     *
+     * @deprecated Do not use. The GGS based experimental authentication schemes are no longer
+     * supported. Consider using Basic or Bearer authentication with TLS instead.
      */
+    @Deprecated
     public static final String SPNEGO = "Negotiate";
 
     /**
-     * Kerberos authentication scheme as defined in RFC 4120
-     * (considered to be the most secure among currently supported
-     * authentication schemes).
+     * Kerberos authentication scheme as defined in RFC 4120.
+     *
+     * @deprecated Do not use. The GGS based experimental authentication schemes are no longer
+     * supported. Consider using Basic or Bearer authentication with TLS instead.
      */
+    @Deprecated
     public static final String KERBEROS = "Kerberos";
 
 }

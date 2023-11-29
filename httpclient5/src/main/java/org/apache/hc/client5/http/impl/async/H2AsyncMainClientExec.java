@@ -32,6 +32,7 @@ import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.async.AsyncExecCallback;
 import org.apache.hc.client5.http.async.AsyncExecChain;
 import org.apache.hc.client5.http.async.AsyncExecChainHandler;
@@ -54,6 +55,9 @@ import org.apache.hc.core5.http.nio.CapacityChannel;
 import org.apache.hc.core5.http.nio.DataStreamChannel;
 import org.apache.hc.core5.http.nio.RequestChannel;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.http.protocol.HttpCoreContext;
+import org.apache.hc.core5.http.protocol.HttpProcessor;
+import org.apache.hc.core5.util.Args;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,7 +72,13 @@ import org.slf4j.LoggerFactory;
 @Internal
 public class H2AsyncMainClientExec implements AsyncExecChainHandler {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger LOG = LoggerFactory.getLogger(H2AsyncMainClientExec.class);
+
+    private final HttpProcessor httpProcessor;
+
+    H2AsyncMainClientExec(final HttpProcessor httpProcessor) {
+        this.httpProcessor = Args.notNull(httpProcessor, "HTTP protocol processor");
+    }
 
     @Override
     public void execute(
@@ -78,17 +88,18 @@ public class H2AsyncMainClientExec implements AsyncExecChainHandler {
             final AsyncExecChain chain,
             final AsyncExecCallback asyncExecCallback) throws HttpException, IOException {
         final String exchangeId = scope.exchangeId;
+        final HttpRoute route = scope.route;
         final CancellableDependency operation = scope.cancellableDependency;
         final HttpClientContext clientContext = scope.clientContext;
         final AsyncExecRuntime execRuntime = scope.execRuntime;
 
-        if (log.isDebugEnabled()) {
-            log.debug(exchangeId + ": executing " + new RequestLine(request));
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("{} executing {}", exchangeId, new RequestLine(request));
         }
 
         final AsyncClientExchangeHandler internalExchangeHandler = new AsyncClientExchangeHandler() {
 
-            private final AtomicReference<AsyncDataConsumer> entityConsumerRef = new AtomicReference<>(null);
+            private final AtomicReference<AsyncDataConsumer> entityConsumerRef = new AtomicReference<>();
 
             @Override
             public void releaseResources() {
@@ -115,6 +126,11 @@ public class H2AsyncMainClientExec implements AsyncExecChainHandler {
 
             @Override
             public void produceRequest(final RequestChannel channel, final HttpContext context) throws HttpException, IOException {
+
+                clientContext.setAttribute(HttpClientContext.HTTP_ROUTE, route);
+                clientContext.setAttribute(HttpCoreContext.HTTP_REQUEST, request);
+                httpProcessor.process(request, entityProducer, clientContext);
+
                 channel.sendRequest(request, entityProducer, context);
             }
 
@@ -137,6 +153,10 @@ public class H2AsyncMainClientExec implements AsyncExecChainHandler {
                     final HttpResponse response,
                     final EntityDetails entityDetails,
                     final HttpContext context) throws HttpException, IOException {
+
+                clientContext.setAttribute(HttpCoreContext.HTTP_RESPONSE, response);
+                httpProcessor.process(response, entityDetails, clientContext);
+
                 entityConsumerRef.set(asyncExecCallback.handleResponse(response, entityDetails));
                 if (entityDetails == null) {
                     execRuntime.validateConnection();
@@ -175,10 +195,10 @@ public class H2AsyncMainClientExec implements AsyncExecChainHandler {
 
         };
 
-        if (log.isDebugEnabled()) {
+        if (LOG.isDebugEnabled()) {
             operation.setDependency(execRuntime.execute(
                     exchangeId,
-                    new LoggingAsyncClientExchangeHandler(log, exchangeId, internalExchangeHandler),
+                    new LoggingAsyncClientExchangeHandler(LOG, exchangeId, internalExchangeHandler),
                     clientContext));
         } else {
             operation.setDependency(execRuntime.execute(exchangeId, internalExchangeHandler, clientContext));

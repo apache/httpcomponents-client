@@ -36,7 +36,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.BitSet;
 import java.util.List;
 
-import org.apache.commons.codec.DecoderException;
 import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.util.ByteArrayBuffer;
 
@@ -46,12 +45,37 @@ class HttpRFC7578Multipart extends AbstractMultipartFormat {
 
     private final List<MultipartPart> parts;
 
+    /**
+     * Constructs a new instance of {@code HttpRFC7578Multipart} with the given charset, boundary, parts, preamble, and epilogue.
+     *
+     * @param charset  the charset to use.
+     * @param boundary the boundary string to use.
+     * @param parts    the list of parts to include in the multipart message.
+     * @param preamble the optional preamble string to include before the first part. May be {@code null}.
+     * @param epilogue the optional epilogue string to include after the last part. May be {@code null}.
+     */
     public HttpRFC7578Multipart(
         final Charset charset,
         final String boundary,
-        final List<MultipartPart> parts) {
-        super(charset, boundary);
+        final List<MultipartPart> parts,
+        final String preamble,
+        final String epilogue) {
+        super(charset, boundary, preamble, epilogue);
         this.parts = parts;
+    }
+
+    /**
+     * Constructs a new instance of {@code HttpRFC7578Multipart} with the given charset, boundary, and parts.
+     *
+     * @param charset  the charset to use.
+     * @param boundary the boundary string to use.
+     * @param parts    the list of parts to include in the multipart message.
+     */
+    public HttpRFC7578Multipart(
+            final Charset charset,
+            final String boundary,
+            final List<MultipartPart> parts) {
+        this(charset,boundary,parts,null, null);
     }
 
     @Override
@@ -129,7 +153,7 @@ class HttpRFC7578Multipart extends AbstractMultipartFormat {
             return buffer.toByteArray();
         }
 
-        public byte[] decode(final byte[] bytes) throws DecoderException {
+        public byte[] decode(final byte[] bytes) {
             if (bytes == null) {
                 return null;
             }
@@ -137,13 +161,12 @@ class HttpRFC7578Multipart extends AbstractMultipartFormat {
             for (int i = 0; i < bytes.length; i++) {
                 final int b = bytes[i];
                 if (b == ESCAPE_CHAR) {
-                    try {
-                        final int u = digit16(bytes[++i]);
-                        final int l = digit16(bytes[++i]);
-                        buffer.append((char) ((u << 4) + l));
-                    } catch (final ArrayIndexOutOfBoundsException e) {
-                        throw new DecoderException("Invalid URL encoding: ", e);
+                    if (i >= bytes.length - 2) {
+                        throw new IllegalArgumentException("Invalid encoding: too short");
                     }
+                    final int u = digit16(bytes[++i]);
+                    final int l = digit16(bytes[++i]);
+                    buffer.append((char) ((u << 4) + l));
                 } else {
                     buffer.append(b);
                 }
@@ -158,19 +181,19 @@ class HttpRFC7578Multipart extends AbstractMultipartFormat {
     private static final int RADIX = 16;
 
     /**
-     * Returns the numeric value of the character <code>b</code> in radix 16.
+     * Returns the numeric value of the character {@code b} in radix 16.
      *
      * @param b
      *            The byte to be converted.
      * @return The numeric value represented by the character in radix 16.
      *
-     * @throws DecoderException
+     * @throws IllegalArgumentException
      *             Thrown when the byte is not valid per {@link Character#digit(char,int)}
      */
-    static int digit16(final byte b) throws DecoderException {
+    static int digit16(final byte b) {
         final int i = Character.digit((char) b, RADIX);
         if (i == -1) {
-            throw new DecoderException("Invalid URL encoding: not a valid digit (radix " + RADIX + "): " + b);
+            throw new IllegalArgumentException("Invalid encoding: not a valid digit (radix " + RADIX + "): " + b);
         }
         return i;
     }

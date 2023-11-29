@@ -40,7 +40,7 @@ import java.util.Random;
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 
-import org.apache.commons.codec.binary.Base64;
+import org.apache.hc.client5.http.utils.Base64;
 import org.apache.hc.client5.http.utils.ByteArrayBuilder;
 
 /**
@@ -48,7 +48,10 @@ import org.apache.hc.client5.http.utils.ByteArrayBuilder;
  * authentication protocol.
  *
  * @since 4.1
+ *
+ * @deprecated Do not use.
  */
+@Deprecated
 final class NTLMEngineImpl implements NTLMEngine {
 
     /** Unicode encoding */
@@ -158,7 +161,7 @@ final class NTLMEngineImpl implements NTLMEngine {
             final String host, final String domain) throws NTLMEngineException {
 
         final String response;
-        if (message == null || message.trim().equals("")) {
+        if (message == null || message.trim().isEmpty()) {
             response = getType1Message(host, domain);
         } else {
             final Type2Message t2m = new Type2Message(message);
@@ -187,7 +190,7 @@ final class NTLMEngineImpl implements NTLMEngine {
             final String host, final String domain, final Certificate peerServerCertificate) throws NTLMEngineException {
 
         final String response;
-        if (message == null || message.trim().equals("")) {
+        if (message == null || message.trim().isEmpty()) {
             response = new Type1Message(host, domain).getResponse();
         } else {
             final Type1Message t1m = new Type1Message(host, domain);
@@ -332,22 +335,22 @@ final class NTLMEngineImpl implements NTLMEngine {
         byte[] timestamp;
 
         // Stuff we always generate
-        byte[] lmHash = null;
-        byte[] lmResponse = null;
-        byte[] ntlmHash = null;
-        byte[] ntlmResponse = null;
-        byte[] ntlmv2Hash = null;
-        byte[] lmv2Hash = null;
-        byte[] lmv2Response = null;
-        byte[] ntlmv2Blob = null;
-        byte[] ntlmv2Response = null;
-        byte[] ntlm2SessionResponse = null;
-        byte[] lm2SessionResponse = null;
-        byte[] lmUserSessionKey = null;
-        byte[] ntlmUserSessionKey = null;
-        byte[] ntlmv2UserSessionKey = null;
-        byte[] ntlm2SessionResponseUserSessionKey = null;
-        byte[] lanManagerSessionKey = null;
+        byte[] lmHash;
+        byte[] lmResponse;
+        byte[] ntlmHash;
+        byte[] ntlmResponse;
+        byte[] ntlmv2Hash;
+        byte[] lmv2Hash;
+        byte[] lmv2Response;
+        byte[] ntlmv2Blob;
+        byte[] ntlmv2Response;
+        byte[] ntlm2SessionResponse;
+        byte[] lm2SessionResponse;
+        byte[] lmUserSessionKey;
+        byte[] ntlmUserSessionKey;
+        byte[] ntlmv2UserSessionKey;
+        byte[] ntlm2SessionResponseUserSessionKey;
+        byte[] lanManagerSessionKey;
 
         public CipherGen(final Random random, final long currentTime,
             final String domain, final String user, final char[] password,
@@ -687,9 +690,6 @@ final class NTLMEngineImpl implements NTLMEngine {
      *         the NTLM Response and the NTLMv2 and LMv2 Hashes.
      */
     private static byte[] ntlmHash(final char[] password) throws NTLMEngineException {
-        if (UNICODE_LITTLE_UNMARKED == null) {
-            throw new NTLMEngineException("Unicode not supported");
-        }
         final byte[] unicodePassword = new ByteArrayBuilder()
                 .charset(UNICODE_LITTLE_UNMARKED).append(password).toByteArray();
         final MD4 md4 = new MD4();
@@ -705,9 +705,6 @@ final class NTLMEngineImpl implements NTLMEngine {
      */
     private static byte[] lmv2Hash(final String domain, final String user, final byte[] ntlmHash)
             throws NTLMEngineException {
-        if (UNICODE_LITTLE_UNMARKED == null) {
-            throw new NTLMEngineException("Unicode not supported");
-        }
         final HMACMD5 hmacMD5 = new HMACMD5(ntlmHash);
         // Upper case username, upper case domain!
         hmacMD5.update(user.toUpperCase(Locale.ROOT).getBytes(UNICODE_LITTLE_UNMARKED));
@@ -725,9 +722,6 @@ final class NTLMEngineImpl implements NTLMEngine {
      */
     private static byte[] ntlmv2Hash(final String domain, final String user, final byte[] ntlmHash)
             throws NTLMEngineException {
-        if (UNICODE_LITTLE_UNMARKED == null) {
-            throw new NTLMEngineException("Unicode not supported");
-        }
         final HMACMD5 hmacMD5 = new HMACMD5(ntlmHash);
         // Upper case username, mixed case target!!
         hmacMD5.update(user.toUpperCase(Locale.ROOT).getBytes(UNICODE_LITTLE_UNMARKED));
@@ -798,7 +792,7 @@ final class NTLMEngineImpl implements NTLMEngine {
 
     enum Mode
     {
-        CLIENT, SERVER;
+        CLIENT, SERVER
     }
 
     static class Handle
@@ -808,7 +802,7 @@ final class NTLMEngineImpl implements NTLMEngine {
         private final Cipher rc4;
         final Mode mode;
         final private boolean isConnection;
-        int sequenceNumber = 0;
+        int sequenceNumber;
 
 
         Handle( final byte[] exportedSessionKey, final Mode mode, final boolean isConnection ) throws NTLMEngineException
@@ -926,7 +920,7 @@ final class NTLMEngineImpl implements NTLMEngine {
             return sig;
         }
 
-        private boolean validateSignature( final byte[] signature, final byte message[] )
+        private boolean validateSignature( final byte[] signature, final byte[] message )
         {
             final byte[] computedSignature = computeSignature( message );
             //            log.info( "SSSSS validateSignature("+seqNumber+")\n"
@@ -1071,19 +1065,16 @@ final class NTLMEngineImpl implements NTLMEngine {
         if ((flags & FLAG_REQUEST_UNICODE_ENCODING) == 0) {
             return DEFAULT_CHARSET;
         }
-        if (UNICODE_LITTLE_UNMARKED == null) {
-            throw new NTLMEngineException( "Unicode not supported" );
-        }
         return UNICODE_LITTLE_UNMARKED;
     }
 
     /** NTLM message generation, base class */
     static class NTLMMessage {
         /** The current response */
-        byte[] messageContents = null;
+        byte[] messageContents;
 
         /** The current output position */
-        int currentOutputPosition = 0;
+        int currentOutputPosition;
 
         /** Constructor to use when message contents are not yet known */
         NTLMMessage() {
@@ -1113,8 +1104,8 @@ final class NTLMEngineImpl implements NTLMEngine {
             // Check to be sure there's a type 2 message indicator next
             final int type = readULong(SIGNATURE.length);
             if (type != expectedType) {
-                throw new NTLMEngineException("NTLM type " + Integer.toString(expectedType)
-                        + " message expected - instead got type " + Integer.toString(type));
+                throw new NTLMEngineException("NTLM type " + expectedType
+                        + " message expected - instead got type " + type);
             }
 
             currentOutputPosition = messageContents.length;
@@ -1260,7 +1251,7 @@ final class NTLMEngineImpl implements NTLMEngine {
 
         Type1Message(final String domain, final String host, final Integer flags) {
             super();
-            this.flags = ((flags == null)?getDefaultFlags():flags);
+            this.flags = ((flags == null)?getDefaultFlags(): flags.intValue());
 
             // See HTTPCLIENT-1662
             final String unqualifiedHost = host;
@@ -1862,7 +1853,7 @@ final class NTLMEngineImpl implements NTLMEngine {
         int B = 0xefcdab89;
         int C = 0x98badcfe;
         int D = 0x10325476;
-        long count = 0L;
+        long count;
         final byte[] dataBuffer = new byte[64];
 
         MD4() {

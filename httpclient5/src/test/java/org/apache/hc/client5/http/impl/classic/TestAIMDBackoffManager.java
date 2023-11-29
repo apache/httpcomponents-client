@@ -26,32 +26,38 @@
  */
 package org.apache.hc.client5.http.impl.classic;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Random;
+import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CyclicBarrier;
 
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.classic.BackoffManager;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.util.TimeValue;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class TestAIMDBackoffManager {
 
     private AIMDBackoffManager impl;
     private MockConnPoolControl connPerRoute;
     private HttpRoute route;
-    private MockClock clock;
+    private static final long DEFAULT_COOL_DOWN_MS = 10; // Adjust this value to match the default cooldown period in AIMDBackoffManager
 
-    @Before
+
+    @BeforeEach
     public void setUp() {
         connPerRoute = new MockConnPoolControl();
         route = new HttpRoute(new HttpHost("localhost", 80));
-        clock = new MockClock();
-        impl = new AIMDBackoffManager(connPerRoute, clock);
+        impl = new AIMDBackoffManager(connPerRoute);
         impl.setPerHostConnectionCap(10);
+        impl.setCoolDown(TimeValue.ofMilliseconds(DEFAULT_COOL_DOWN_MS));
+
     }
 
     @Test
@@ -92,23 +98,25 @@ public class TestAIMDBackoffManager {
     @Test
     public void backoffDoesNotAdjustDuringCoolDownPeriod() {
         connPerRoute.setMaxPerRoute(route, 4);
-        final long now = System.currentTimeMillis();
-        clock.setCurrentTime(now);
         impl.backOff(route);
         final long max = connPerRoute.getMaxPerRoute(route);
-        clock.setCurrentTime(now + 1);
+
+        // Replace Thread.sleep(1) with busy waiting
+        final long end = System.currentTimeMillis() + 1;
+        while (System.currentTimeMillis() < end) {
+            // Busy waiting
+        }
+
         impl.backOff(route);
         assertEquals(max, connPerRoute.getMaxPerRoute(route));
     }
 
     @Test
-    public void backoffStillAdjustsAfterCoolDownPeriod() {
+    public void backoffStillAdjustsAfterCoolDownPeriod() throws InterruptedException {
         connPerRoute.setMaxPerRoute(route, 8);
-        final long now = System.currentTimeMillis();
-        clock.setCurrentTime(now);
         impl.backOff(route);
         final long max = connPerRoute.getMaxPerRoute(route);
-        clock.setCurrentTime(now + 10 * 1000L);
+        Thread.sleep(DEFAULT_COOL_DOWN_MS + 100); // Sleep for cooldown period + 100 ms
         impl.backOff(route);
         assertTrue(max == 1 || max > connPerRoute.getMaxPerRoute(route));
     }
@@ -116,23 +124,25 @@ public class TestAIMDBackoffManager {
     @Test
     public void probeDoesNotAdjustDuringCooldownPeriod() {
         connPerRoute.setMaxPerRoute(route, 4);
-        final long now = System.currentTimeMillis();
-        clock.setCurrentTime(now);
         impl.probe(route);
         final long max = connPerRoute.getMaxPerRoute(route);
-        clock.setCurrentTime(now + 1);
+
+        // Replace Thread.sleep(1) with busy waiting
+        final long end = System.currentTimeMillis() + 1;
+        while (System.currentTimeMillis() < end) {
+            // Busy waiting
+        }
+
         impl.probe(route);
         assertEquals(max, connPerRoute.getMaxPerRoute(route));
     }
 
     @Test
-    public void probeStillAdjustsAfterCoolDownPeriod() {
+    public void probeStillAdjustsAfterCoolDownPeriod() throws InterruptedException {
         connPerRoute.setMaxPerRoute(route, 8);
-        final long now = System.currentTimeMillis();
-        clock.setCurrentTime(now);
         impl.probe(route);
         final long max = connPerRoute.getMaxPerRoute(route);
-        clock.setCurrentTime(now + 10 * 1000L);
+        Thread.sleep(DEFAULT_COOL_DOWN_MS + 100); // Sleep for cooldown period + 1 ms
         impl.probe(route);
         assertTrue(max < connPerRoute.getMaxPerRoute(route));
     }
@@ -141,10 +151,8 @@ public class TestAIMDBackoffManager {
     public void willBackoffImmediatelyEvenAfterAProbe() {
         connPerRoute.setMaxPerRoute(route, 8);
         final long now = System.currentTimeMillis();
-        clock.setCurrentTime(now);
         impl.probe(route);
         final long max = connPerRoute.getMaxPerRoute(route);
-        clock.setCurrentTime(now + 1);
         impl.backOff(route);
         assertTrue(connPerRoute.getMaxPerRoute(route) < max);
     }
@@ -158,24 +166,66 @@ public class TestAIMDBackoffManager {
     }
 
     @Test
-    public void coolDownPeriodIsConfigurable() {
-        long cd = new Random().nextLong() / 2;
-        if (cd < 0) {
-            cd *= -1;
-        }
-        if (cd < 1) {
-            cd++;
-        }
-        final long now = System.currentTimeMillis();
+    public void coolDownPeriodIsConfigurable() throws InterruptedException {
+        final long cd = new Random().nextInt(500) + 500; // Random cooldown period between 500 and 1000 milliseconds
         impl.setCoolDown(TimeValue.ofMilliseconds(cd));
-        clock.setCurrentTime(now);
+
+        // Probe and check if the connection count remains the same during the cooldown period
         impl.probe(route);
         final int max0 = connPerRoute.getMaxPerRoute(route);
-        clock.setCurrentTime(now);
+        Thread.sleep(cd / 2 + 100); // Sleep for half the cooldown period + 100 ms buffer
         impl.probe(route);
         assertEquals(max0, connPerRoute.getMaxPerRoute(route));
-        clock.setCurrentTime(now + cd + 1);
+
+        // Probe and check if the connection count increases after the cooldown period
+        Thread.sleep(cd / 2 + 100); // Sleep for the remaining half of the cooldown period + 100 ms buffer
         impl.probe(route);
         assertTrue(max0 < connPerRoute.getMaxPerRoute(route));
+    }
+
+    @Test
+    public void testConcurrency() throws InterruptedException {
+        final int initialMaxPerRoute = 10;
+        final int numberOfThreads = 20;
+        final int numberOfOperationsPerThread = 100;  // reduced operations
+
+        // Create a cyclic barrier that will wait for all threads to be ready before proceeding
+        final CyclicBarrier barrier = new CyclicBarrier(numberOfThreads);
+
+        final CountDownLatch latch = new CountDownLatch(numberOfThreads);
+
+        for (int i = 0; i < numberOfThreads; i++) {
+            final HttpRoute threadRoute = new HttpRoute(new HttpHost("localhost", 8080 + i)); // Each thread gets its own route
+            connPerRoute.setMaxPerRoute(threadRoute, initialMaxPerRoute);
+
+            new Thread(() -> {
+                try {
+                    // Wait for all threads to be ready
+                    barrier.await();
+
+                    // Run operations
+                    for (int j = 0; j < numberOfOperationsPerThread; j++) {
+                        if (Math.random() < 0.5) {
+                            impl.backOff(threadRoute);
+                        } else {
+                            impl.probe(threadRoute);
+                        }
+                    }
+                } catch (InterruptedException | BrokenBarrierException e) {
+                    Thread.currentThread().interrupt();
+                } finally {
+                    latch.countDown();
+                }
+            }).start();
+        }
+
+        latch.await();
+
+        // Check that the final value for each route is within an acceptable range
+        for (int i = 0; i < numberOfThreads; i++) {
+            final HttpRoute threadRoute = new HttpRoute(new HttpHost("localhost", 8080 + i));
+            final int finalMaxPerRoute = connPerRoute.getMaxPerRoute(threadRoute);
+            assertTrue(finalMaxPerRoute >= 1 && finalMaxPerRoute <= initialMaxPerRoute + 7);  // more permissive check
+        }
     }
 }

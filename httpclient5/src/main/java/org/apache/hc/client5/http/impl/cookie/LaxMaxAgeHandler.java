@@ -26,7 +26,7 @@
  */
 package org.apache.hc.client5.http.impl.cookie;
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -48,6 +48,13 @@ import org.apache.hc.core5.util.TextUtils;
 @Contract(threading = ThreadingBehavior.STATELESS)
 public class LaxMaxAgeHandler extends AbstractCookieAttributeHandler implements CommonCookieAttributeHandler {
 
+    /**
+     * Singleton instance.
+     *
+     * @since 5.2
+     */
+    public static final LaxMaxAgeHandler INSTANCE = new LaxMaxAgeHandler();
+
     private final static Pattern MAX_AGE_PATTERN = Pattern.compile("^\\-?[0-9]+$");
 
     public LaxMaxAgeHandler() {
@@ -68,8 +75,8 @@ public class LaxMaxAgeHandler extends AbstractCookieAttributeHandler implements 
             } catch (final NumberFormatException e) {
                 return;
             }
-            final Date expiryDate = age >= 0 ? new Date(System.currentTimeMillis() + age * 1000L) :
-                    new Date(Long.MIN_VALUE);
+            final Instant expiryDate = age >= 0 ? Instant.now().plusSeconds(age) :
+                    Instant.EPOCH;
             cookie.setExpiryDate(expiryDate);
         }
     }

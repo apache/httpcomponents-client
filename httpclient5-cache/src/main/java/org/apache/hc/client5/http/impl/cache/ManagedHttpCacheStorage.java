@@ -91,7 +91,7 @@ public class ManagedHttpCacheStorage implements HttpCacheStorage, Closeable {
     }
 
     private void ensureValidState() {
-        if (!this.active.get()) {
+        if (!isActive()) {
             throw new IllegalStateException("Cache has been shut down");
         }
     }
@@ -167,7 +167,7 @@ public class ManagedHttpCacheStorage implements HttpCacheStorage, Closeable {
     }
 
     public void cleanResources() {
-        if (this.active.get()) {
+        if (isActive()) {
             ResourceReference ref;
             while ((ref = (ResourceReference) this.morque.poll()) != null) {
                 synchronized (this) {
@@ -179,7 +179,7 @@ public class ManagedHttpCacheStorage implements HttpCacheStorage, Closeable {
     }
 
     public void shutdown() {
-        if (this.active.compareAndSet(true, false)) {
+        if (compareAndSet()) {
             synchronized (this) {
                 this.entries.clear();
                 for (final ResourceReference ref: this.resources) {
@@ -194,7 +194,7 @@ public class ManagedHttpCacheStorage implements HttpCacheStorage, Closeable {
 
     @Override
     public void close() {
-        if (this.active.compareAndSet(true, false)) {
+        if (compareAndSet()) {
             synchronized (this) {
                 ResourceReference ref;
                 while ((ref = (ResourceReference) this.morque.poll()) != null) {
@@ -205,4 +205,17 @@ public class ManagedHttpCacheStorage implements HttpCacheStorage, Closeable {
         }
     }
 
+    /**
+     * Check if the cache is still active and has not shut down.
+     *
+     * @return {@code true} if the cache is active, otherwise return {@code false}.
+     * @since 5.2
+     */
+    public boolean isActive() {
+        return active.get();
+    }
+
+    private boolean compareAndSet(){
+        return this.active.compareAndSet(true, false);
+    }
 }

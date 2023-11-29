@@ -32,6 +32,7 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLException;
@@ -56,8 +57,8 @@ final class TlsSessionValidator {
 
         if (log.isDebugEnabled()) {
             log.debug("Secure session established");
-            log.debug(" negotiated protocol: " + sslsession.getProtocol());
-            log.debug(" negotiated cipher suite: " + sslsession.getCipherSuite());
+            log.debug(" negotiated protocol: {}", sslsession.getProtocol());
+            log.debug(" negotiated cipher suite: {}", sslsession.getCipherSuite());
 
             try {
 
@@ -67,29 +68,29 @@ final class TlsSessionValidator {
                     final X509Certificate x509 = (X509Certificate) cert;
                     final X500Principal peer = x509.getSubjectX500Principal();
 
-                    log.debug(" peer principal: " + peer.toString());
+                    log.debug(" peer principal: {}", peer);
                     final Collection<List<?>> altNames1 = x509.getSubjectAlternativeNames();
                     if (altNames1 != null) {
                         final List<String> altNames = new ArrayList<>();
                         for (final List<?> aC : altNames1) {
                             if (!aC.isEmpty()) {
-                                altNames.add((String) aC.get(1));
+                                altNames.add(Objects.toString(aC.get(1), null));
                             }
                         }
-                        log.debug(" peer alternative names: " + altNames);
+                        log.debug(" peer alternative names: {}", altNames);
                     }
 
                     final X500Principal issuer = x509.getIssuerX500Principal();
-                    log.debug(" issuer principal: " + issuer.toString());
+                    log.debug(" issuer principal: {}", issuer);
                     final Collection<List<?>> altNames2 = x509.getIssuerAlternativeNames();
                     if (altNames2 != null) {
                         final List<String> altNames = new ArrayList<>();
                         for (final List<?> aC : altNames2) {
                             if (!aC.isEmpty()) {
-                                altNames.add((String) aC.get(1));
+                                altNames.add(Objects.toString(aC.get(1), null));
                             }
                         }
-                        log.debug(" issuer alternative names: " + altNames);
+                        log.debug(" issuer alternative names: {}", altNames);
                     }
                 }
             } catch (final Exception ignore) {

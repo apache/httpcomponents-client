@@ -29,8 +29,8 @@ package org.apache.hc.client5.http.protocol;
 import java.net.URI;
 import java.util.List;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  *  Simple tests for {@link RedirectLocations}.
@@ -51,19 +51,19 @@ public class TestRedirectLocation {
         locations.add(uri3);
         locations.add(uri3);
 
-        Assert.assertTrue(locations.contains(uri1));
-        Assert.assertTrue(locations.contains(uri2));
-        Assert.assertTrue(locations.contains(uri3));
-        Assert.assertFalse(locations.contains(new URI("/")));
+        Assertions.assertTrue(locations.contains(uri1));
+        Assertions.assertTrue(locations.contains(uri2));
+        Assertions.assertTrue(locations.contains(uri3));
+        Assertions.assertFalse(locations.contains(new URI("/")));
 
         final List<URI> list = locations.getAll();
-        Assert.assertNotNull(list);
-        Assert.assertEquals(5, list.size());
-        Assert.assertEquals(uri1, list.get(0));
-        Assert.assertEquals(uri2, list.get(1));
-        Assert.assertEquals(uri2, list.get(2));
-        Assert.assertEquals(uri3, list.get(3));
-        Assert.assertEquals(uri3, list.get(4));
+        Assertions.assertNotNull(list);
+        Assertions.assertEquals(5, list.size());
+        Assertions.assertEquals(uri1, list.get(0));
+        Assertions.assertEquals(uri2, list.get(1));
+        Assertions.assertEquals(uri2, list.get(2));
+        Assertions.assertEquals(uri3, list.get(3));
+        Assertions.assertEquals(uri3, list.get(4));
     }
 
 }

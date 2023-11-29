@@ -26,7 +26,7 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -34,7 +34,6 @@ import java.util.Set;
 import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpAsyncCacheInvalidator;
 import org.apache.hc.client5.http.cache.HttpAsyncCacheStorage;
-import org.apache.hc.client5.http.cache.HttpCacheCASOperation;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.HttpCacheUpdateException;
 import org.apache.hc.client5.http.cache.ResourceFactory;
@@ -56,7 +55,7 @@ import org.slf4j.LoggerFactory;
 
 class BasicHttpAsyncCache implements HttpAsyncCache {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger LOG = LoggerFactory.getLogger(BasicHttpAsyncCache.class);
 
     private final CacheUpdateHandler cacheUpdateHandler;
     private final CacheKeyGenerator cacheKeyGenerator;
@@ -97,8 +96,8 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
     @Override
     public Cancellable flushCacheEntriesFor(
             final HttpHost host, final HttpRequest request, final FutureCallback<Boolean> callback) {
-        if (log.isDebugEnabled()) {
-            log.debug("Flush cache entries: " + host + "; " + new RequestLine(request));
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Flush cache entries: {}; {}", host, new RequestLine(request));
         }
         if (!Method.isSafe(request.getMethod())) {
             final String cacheKey = cacheKeyGenerator.generateKey(host, request);
@@ -112,8 +111,8 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
                 @Override
                 public void failed(final Exception ex) {
                     if (ex instanceof ResourceIOException) {
-                        if (log.isWarnEnabled()) {
-                            log.warn("I/O error removing cache entry with key " + cacheKey);
+                        if (LOG.isWarnEnabled()) {
+                            LOG.warn("I/O error removing cache entry with key {}", cacheKey);
                         }
                         callback.completed(Boolean.TRUE);
                     } else {
@@ -135,8 +134,8 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
     @Override
     public Cancellable flushCacheEntriesInvalidatedByRequest(
             final HttpHost host, final HttpRequest request, final FutureCallback<Boolean> callback) {
-        if (log.isDebugEnabled()) {
-            log.debug("Flush cache entries invalidated by request: " + host + "; " + new RequestLine(request));
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Flush cache entries invalidated by request: {}; {}", host, new RequestLine(request));
         }
         return cacheInvalidator.flushCacheEntriesInvalidatedByRequest(host, request, cacheKeyGenerator, storage, callback);
     }
@@ -144,8 +143,8 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
     @Override
     public Cancellable flushCacheEntriesInvalidatedByExchange(
             final HttpHost host, final HttpRequest request, final HttpResponse response, final FutureCallback<Boolean> callback) {
-        if (log.isDebugEnabled()) {
-            log.debug("Flush cache entries invalidated by exchange: " + host + "; " + new RequestLine(request) + " -> " + new StatusLine(response));
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Flush cache entries invalidated by exchange: {}; {} -> {}", host, new RequestLine(request), new StatusLine(response));
         }
         if (!Method.isSafe(request.getMethod())) {
             return cacheInvalidator.flushCacheEntriesInvalidatedByExchange(host, request, response, cacheKeyGenerator, storage, callback);
@@ -181,8 +180,8 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
             @Override
             public void failed(final Exception ex) {
                 if (ex instanceof ResourceIOException) {
-                    if (log.isWarnEnabled()) {
-                        log.warn("I/O error storing cache entry with key " + cacheKey);
+                    if (LOG.isWarnEnabled()) {
+                        LOG.warn("I/O error storing cache entry with key {}", cacheKey);
                     }
                     callback.completed(Boolean.TRUE);
                 } else {
@@ -211,14 +210,7 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
             @Override
             public void completed(final Boolean result) {
                 storage.updateEntry(cacheKey,
-                        new HttpCacheCASOperation() {
-
-                            @Override
-                            public HttpCacheEntry execute(final HttpCacheEntry existing) throws ResourceIOException {
-                                return cacheUpdateHandler.updateParentCacheEntry(req.getRequestUri(), existing, entry, variantKey, variantCacheKey);
-                            }
-
-                        },
+                        existing -> cacheUpdateHandler.updateParentCacheEntry(req.getRequestUri(), existing, entry, variantKey, variantCacheKey),
                         new FutureCallback<Boolean>() {
 
                             @Override
@@ -229,12 +221,12 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
                             @Override
                             public void failed(final Exception ex) {
                                 if (ex instanceof HttpCacheUpdateException) {
-                                    if (log.isWarnEnabled()) {
-                                        log.warn("Cannot update cache entry with key " + cacheKey);
+                                    if (LOG.isWarnEnabled()) {
+                                        LOG.warn("Cannot update cache entry with key {}", cacheKey);
                                     }
                                 } else if (ex instanceof ResourceIOException) {
-                                    if (log.isWarnEnabled()) {
-                                        log.warn("I/O error updating cache entry with key " + cacheKey);
+                                    if (LOG.isWarnEnabled()) {
+                                        LOG.warn("I/O error updating cache entry with key {}", cacheKey);
                                     }
                                 } else {
                                     callback.failed(ex);
@@ -252,8 +244,8 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
             @Override
             public void failed(final Exception ex) {
                 if (ex instanceof ResourceIOException) {
-                    if (log.isWarnEnabled()) {
-                        log.warn("I/O error updating cache entry with key " + variantCacheKey);
+                    if (LOG.isWarnEnabled()) {
+                        LOG.warn("I/O error updating cache entry with key {}", variantCacheKey);
                     }
                     callback.completed(Boolean.TRUE);
                 } else {
@@ -272,22 +264,15 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
     @Override
     public Cancellable reuseVariantEntryFor(
             final HttpHost host, final HttpRequest request, final Variant variant, final FutureCallback<Boolean> callback) {
-        if (log.isDebugEnabled()) {
-            log.debug("Re-use variant entry: " + host + "; " + new RequestLine(request) + " / " + variant);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Re-use variant entry: {}; {} / {}", host, new RequestLine(request), variant);
         }
         final String cacheKey = cacheKeyGenerator.generateKey(host, request);
         final HttpCacheEntry entry = variant.getEntry();
         final String variantKey = cacheKeyGenerator.generateVariantKey(request, entry);
         final String variantCacheKey = variant.getCacheKey();
         return storage.updateEntry(cacheKey,
-                new HttpCacheCASOperation() {
-
-                    @Override
-                    public HttpCacheEntry execute(final HttpCacheEntry existing) throws ResourceIOException {
-                        return cacheUpdateHandler.updateParentCacheEntry(request.getRequestUri(), existing, entry, variantKey, variantCacheKey);
-                    }
-
-                },
+                existing -> cacheUpdateHandler.updateParentCacheEntry(request.getRequestUri(), existing, entry, variantKey, variantCacheKey),
                 new FutureCallback<Boolean>() {
 
                     @Override
@@ -298,12 +283,12 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
                     @Override
                     public void failed(final Exception ex) {
                         if (ex instanceof HttpCacheUpdateException) {
-                            if (log.isWarnEnabled()) {
-                                log.warn("Cannot update cache entry with key " + cacheKey);
+                            if (LOG.isWarnEnabled()) {
+                                LOG.warn("Cannot update cache entry with key {}", cacheKey);
                             }
                         } else if (ex instanceof ResourceIOException) {
-                            if (log.isWarnEnabled()) {
-                                log.warn("I/O error updating cache entry with key " + cacheKey);
+                            if (LOG.isWarnEnabled()) {
+                                LOG.warn("I/O error updating cache entry with key {}", cacheKey);
                             }
                         } else {
                             callback.failed(ex);
@@ -324,11 +309,11 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
             final HttpRequest request,
             final HttpCacheEntry stale,
             final HttpResponse originResponse,
-            final Date requestSent,
-            final Date responseReceived,
+            final Instant requestSent,
+            final Instant responseReceived,
             final FutureCallback<HttpCacheEntry> callback) {
-        if (log.isDebugEnabled()) {
-            log.debug("Update cache entry: " + host + "; " + new RequestLine(request));
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Update cache entry: {}; {}", host, new RequestLine(request));
         }
         final String cacheKey = cacheKeyGenerator.generateKey(host, request);
         try {
@@ -357,8 +342,8 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
 
             });
         } catch (final ResourceIOException ex) {
-            if (log.isWarnEnabled()) {
-                log.warn("I/O error updating cache entry with key " + cacheKey);
+            if (LOG.isWarnEnabled()) {
+                LOG.warn("I/O error updating cache entry with key {}", cacheKey);
             }
             callback.completed(stale);
             return Operations.nonCancellable();
@@ -371,11 +356,11 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
             final HttpRequest request,
             final HttpResponse originResponse,
             final Variant variant,
-            final Date requestSent,
-            final Date responseReceived,
+            final Instant requestSent,
+            final Instant responseReceived,
             final FutureCallback<HttpCacheEntry> callback) {
-        if (log.isDebugEnabled()) {
-            log.debug("Update variant cache entry: " + host + "; " + new RequestLine(request) + " / " + variant);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Update variant cache entry: {}; {} / {}", host, new RequestLine(request), variant);
         }
         final HttpCacheEntry entry = variant.getEntry();
         final String cacheKey = variant.getCacheKey();
@@ -405,8 +390,8 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
 
             });
         } catch (final ResourceIOException ex) {
-            if (log.isWarnEnabled()) {
-                log.warn("I/O error updating cache entry with key " + cacheKey);
+            if (LOG.isWarnEnabled()) {
+                LOG.warn("I/O error updating cache entry with key {}", cacheKey);
             }
             callback.completed(entry);
             return Operations.nonCancellable();
@@ -419,15 +404,15 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
             final HttpRequest request,
             final HttpResponse originResponse,
             final ByteArrayBuffer content,
-            final Date requestSent,
-            final Date responseReceived,
+            final Instant requestSent,
+            final Instant responseReceived,
             final FutureCallback<HttpCacheEntry> callback) {
-        if (log.isDebugEnabled()) {
-            log.debug("Create cache entry: " + host + "; " + new RequestLine(request));
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Create cache entry: {}; {}", host, new RequestLine(request));
         }
         final String cacheKey = cacheKeyGenerator.generateKey(host, request);
         try {
-            final HttpCacheEntry entry = cacheUpdateHandler.createtCacheEntry(request, originResponse, content, requestSent, responseReceived);
+            final HttpCacheEntry entry = cacheUpdateHandler.createCacheEntry(request, originResponse, content, requestSent, responseReceived);
             return storeInCache(cacheKey, host, request, entry, new FutureCallback<Boolean>() {
 
                 @Override
@@ -447,8 +432,8 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
 
             });
         } catch (final ResourceIOException ex) {
-            if (log.isWarnEnabled()) {
-                log.warn("I/O error creating cache entry with key " + cacheKey);
+            if (LOG.isWarnEnabled()) {
+                LOG.warn("I/O error creating cache entry with key {}", cacheKey);
             }
             callback.completed(new HttpCacheEntry(
                     requestSent,
@@ -462,8 +447,8 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
 
     @Override
     public Cancellable getCacheEntry(final HttpHost host, final HttpRequest request, final FutureCallback<HttpCacheEntry> callback) {
-        if (log.isDebugEnabled()) {
-            log.debug("Get cache entry: " + host + "; " + new RequestLine(request));
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Get cache entry: {}; {}", host, new RequestLine(request));
         }
         final ComplexCancellable complexCancellable = new ComplexCancellable();
         final String cacheKey = cacheKeyGenerator.generateKey(host, request);
@@ -488,8 +473,8 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
                                         @Override
                                         public void failed(final Exception ex) {
                                             if (ex instanceof ResourceIOException) {
-                                                if (log.isWarnEnabled()) {
-                                                    log.warn("I/O error retrieving cache entry with key " + variantCacheKey);
+                                                if (LOG.isWarnEnabled()) {
+                                                    LOG.warn("I/O error retrieving cache entry with key {}", variantCacheKey);
                                                 }
                                                 callback.completed(null);
                                             } else {
@@ -513,8 +498,8 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
             @Override
             public void failed(final Exception ex) {
                 if (ex instanceof ResourceIOException) {
-                    if (log.isWarnEnabled()) {
-                        log.warn("I/O error retrieving cache entry with key " + cacheKey);
+                    if (LOG.isWarnEnabled()) {
+                        LOG.warn("I/O error retrieving cache entry with key {}", cacheKey);
                     }
                     callback.completed(null);
                 } else {
@@ -534,8 +519,8 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
     @Override
     public Cancellable getVariantCacheEntriesWithEtags(
             final HttpHost host, final HttpRequest request, final FutureCallback<Map<String, Variant>> callback) {
-        if (log.isDebugEnabled()) {
-            log.debug("Get variant cache entries: " + host + "; " + new RequestLine(request));
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Get variant cache entries: {}; {}", host, new RequestLine(request));
         }
         final ComplexCancellable complexCancellable = new ComplexCancellable();
         final String cacheKey = cacheKeyGenerator.generateKey(host, request);
@@ -566,8 +551,8 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
                                 @Override
                                 public void failed(final Exception ex) {
                                     if (ex instanceof ResourceIOException) {
-                                        if (log.isWarnEnabled()) {
-                                            log.warn("I/O error retrieving cache entry with keys " + variantCacheKeys);
+                                        if (LOG.isWarnEnabled()) {
+                                            LOG.warn("I/O error retrieving cache entry with keys {}", variantCacheKeys);
                                         }
                                         callback.completed(variants);
                                     } else {
@@ -589,8 +574,8 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
             @Override
             public void failed(final Exception ex) {
                 if (ex instanceof ResourceIOException) {
-                    if (log.isWarnEnabled()) {
-                        log.warn("I/O error retrieving cache entry with key " + cacheKey);
+                    if (LOG.isWarnEnabled()) {
+                        LOG.warn("I/O error retrieving cache entry with key {}", cacheKey);
                     }
                     callback.completed(variants);
                 } else {

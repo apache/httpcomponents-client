@@ -35,7 +35,7 @@ import org.apache.hc.core5.io.Closer;
 public class ConsumableInputStream extends InputStream {
 
     private final ByteArrayInputStream buf;
-    private boolean closed = false;
+    private boolean closed;
 
     public ConsumableInputStream(final ByteArrayInputStream buf) {
         this.buf = buf;

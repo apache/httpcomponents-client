@@ -37,20 +37,19 @@ import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.ChallengeType;
-import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.config.RequestConfig;
-import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
 import org.apache.hc.client5.http.impl.auth.BasicScheme;
 import org.apache.hc.client5.http.impl.auth.BasicSchemeFactory;
+import org.apache.hc.client5.http.impl.auth.CredentialsProviderBuilder;
 import org.apache.hc.client5.http.impl.auth.DigestScheme;
 import org.apache.hc.client5.http.impl.auth.DigestSchemeFactory;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.http.config.Registry;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.message.BasicNameValuePair;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * Simple tests for {@link DefaultAuthenticationStrategy}.
@@ -62,21 +61,12 @@ public class TestAuthenticationStrategy {
     public void testSelectInvalidInput() throws Exception {
         final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
         final HttpClientContext context = HttpClientContext.create();
-        try {
-            authStrategy.select(null, Collections.<String, AuthChallenge>emptyMap(), context);
-            Assert.fail("NullPointerException expected");
-        } catch (final NullPointerException ex) {
-        }
-        try {
-            authStrategy.select(ChallengeType.TARGET, null, context);
-            Assert.fail("NullPointerException expected");
-        } catch (final NullPointerException ex) {
-        }
-        try {
-            authStrategy.select(ChallengeType.TARGET, Collections.<String, AuthChallenge>emptyMap(), null);
-            Assert.fail("NullPointerException expected");
-        } catch (final NullPointerException ex) {
-        }
+        Assertions.assertThrows(NullPointerException.class, () ->
+                authStrategy.select(null, Collections.emptyMap(), context));
+        Assertions.assertThrows(NullPointerException.class, () ->
+                authStrategy.select(ChallengeType.TARGET, null, context));
+        Assertions.assertThrows(NullPointerException.class, () ->
+                authStrategy.select(ChallengeType.TARGET, Collections.emptyMap(), null));
     }
 
     @Test
@@ -91,8 +81,8 @@ public class TestAuthenticationStrategy {
                 new BasicNameValuePair("realm", "test"), new BasicNameValuePair("nonce", "1234")));
 
         final List<AuthScheme> authSchemes = authStrategy.select(ChallengeType.TARGET, challenges, context);
-        Assert.assertNotNull(authSchemes);
-        Assert.assertEquals(0, authSchemes.size());
+        Assertions.assertNotNull(authSchemes);
+        Assertions.assertEquals(0, authSchemes.size());
     }
 
     @Test
@@ -112,19 +102,17 @@ public class TestAuthenticationStrategy {
             .register(StandardAuthScheme.BASIC, BasicSchemeFactory.INSTANCE)
             .register(StandardAuthScheme.DIGEST, DigestSchemeFactory.INSTANCE).build();
         context.setAuthSchemeRegistry(authSchemeRegistry);
-
-        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        credentialsProvider.setCredentials(new AuthScope("somehost", 80),
-                new UsernamePasswordCredentials("user", "pwd".toCharArray()));
-        context.setCredentialsProvider(credentialsProvider);
+        context.setCredentialsProvider(CredentialsProviderBuilder.create()
+                .add(new AuthScope("somehost", 80), "user", "pwd".toCharArray())
+                .build());
 
         final List<AuthScheme> authSchemes = authStrategy.select(ChallengeType.TARGET, challenges, context);
-        Assert.assertNotNull(authSchemes);
-        Assert.assertEquals(2, authSchemes.size());
+        Assertions.assertNotNull(authSchemes);
+        Assertions.assertEquals(2, authSchemes.size());
         final AuthScheme authScheme1 = authSchemes.get(0);
-        Assert.assertTrue(authScheme1 instanceof DigestScheme);
+        Assertions.assertTrue(authScheme1 instanceof DigestScheme);
         final AuthScheme authScheme2 = authSchemes.get(1);
-        Assert.assertTrue(authScheme2 instanceof BasicScheme);
+        Assertions.assertTrue(authScheme2 instanceof BasicScheme);
     }
 
     @Test
@@ -148,16 +136,15 @@ public class TestAuthenticationStrategy {
         context.setAuthSchemeRegistry(authSchemeRegistry);
         context.setRequestConfig(config);
 
-        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        credentialsProvider.setCredentials(new AuthScope("somehost", 80),
-                new UsernamePasswordCredentials("user", "pwd".toCharArray()));
-        context.setCredentialsProvider(credentialsProvider);
+        context.setCredentialsProvider(CredentialsProviderBuilder.create()
+                .add(new AuthScope("somehost", 80), "user", "pwd".toCharArray())
+                .build());
 
         final List<AuthScheme> authSchemes = authStrategy.select(ChallengeType.TARGET, challenges, context);
-        Assert.assertNotNull(authSchemes);
-        Assert.assertEquals(1, authSchemes.size());
+        Assertions.assertNotNull(authSchemes);
+        Assertions.assertEquals(1, authSchemes.size());
         final AuthScheme authScheme1 = authSchemes.get(0);
-        Assert.assertTrue(authScheme1 instanceof BasicScheme);
+        Assertions.assertTrue(authScheme1 instanceof BasicScheme);
     }
 
 }

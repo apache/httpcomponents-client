@@ -138,7 +138,7 @@ public class DeflateInputStream extends InputStream {
 
     static class DeflateStream extends InflaterInputStream {
 
-        private boolean closed = false;
+        private boolean closed;
 
         public DeflateStream(final InputStream in, final Inflater inflater) {
             super(in, inflater);

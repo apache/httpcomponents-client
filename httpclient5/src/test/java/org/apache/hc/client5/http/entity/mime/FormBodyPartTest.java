@@ -30,8 +30,8 @@ package org.apache.hc.client5.http.entity.mime;
 import java.io.File;
 
 import org.apache.hc.core5.http.ContentType;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class FormBodyPartTest {
 
@@ -40,6 +40,6 @@ public class FormBodyPartTest {
         final File tmp= File.createTempFile("test", "test");
         tmp.deleteOnExit();
         final FileBody obj = new FileBody(tmp, ContentType.APPLICATION_OCTET_STREAM);
-        Assert.assertEquals(tmp.getName(), obj.getFilename());
+        Assertions.assertEquals(tmp.getName(), obj.getFilename());
     }
 }

@@ -35,18 +35,15 @@ import java.util.Map;
 import java.util.Queue;
 
 import org.apache.hc.client5.http.AuthenticationStrategy;
-import org.apache.hc.client5.http.auth.AuthCache;
 import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.AuthExchange;
 import org.apache.hc.client5.http.auth.AuthScheme;
-import org.apache.hc.client5.http.auth.AuthStateCacheable;
 import org.apache.hc.client5.http.auth.AuthenticationException;
 import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.MalformedChallengeException;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.annotation.Contract;
-import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.FormattedHeader;
 import org.apache.hc.core5.http.Header;
@@ -66,24 +63,21 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Utility class that implements commons aspects of the client side HTTP authentication.
+ * <p>
+ * Please note that since version 5.2 this class no longer updated the authentication cache
+ * bound to the execution context.
  *
  * @since 4.3
  */
 @Contract(threading = ThreadingBehavior.STATELESS)
 public final class HttpAuthenticator {
 
-    private final Logger log;
+    private static final Logger LOG = LoggerFactory.getLogger(HttpAuthenticator.class);
+
     private final AuthChallengeParser parser;
 
-    @Internal
-    public HttpAuthenticator(final Logger log) {
-        super();
-        this.log = log != null ? log : LoggerFactory.getLogger(getClass());
-        this.parser = new AuthChallengeParser();
-    }
-
     public HttpAuthenticator() {
-        this(null);
+        this.parser = new AuthChallengeParser();
     }
 
     /**
@@ -116,20 +110,21 @@ public final class HttpAuthenticator {
         }
 
         final HttpClientContext clientContext = HttpClientContext.adapt(context);
+        final String exchangeId = clientContext.getExchangeId();
 
         if (response.getCode() == challengeCode) {
-            this.log.debug("Authentication required");
-            if (authExchange.getState() == AuthExchange.State.SUCCESS) {
-                clearCache(host, clientContext);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{} Authentication required", exchangeId);
             }
             return true;
         }
         switch (authExchange.getState()) {
         case CHALLENGED:
         case HANDSHAKE:
-            this.log.debug("Authentication succeeded");
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{} Authentication succeeded", exchangeId);
+            }
             authExchange.setState(AuthExchange.State.SUCCESS);
-            updateCache(host, authExchange.getAuthScheme(), clientContext);
             break;
         case SUCCESS:
             break;
@@ -160,11 +155,12 @@ public final class HttpAuthenticator {
             final AuthExchange authExchange,
             final HttpContext context) {
 
-        if (this.log.isDebugEnabled()) {
-            this.log.debug(host.toHostString() + " requested authentication");
-        }
-
         final HttpClientContext clientContext = HttpClientContext.adapt(context);
+        final String exchangeId = clientContext.getExchangeId();
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("{} {} requested authentication", exchangeId, host.toHostString());
+        }
 
         final Header[] headers = response.getHeaders(
                 challengeType == ChallengeType.PROXY ? HttpHeaders.PROXY_AUTHENTICATE : HttpHeaders.WWW_AUTHENTICATE);
@@ -189,8 +185,8 @@ public final class HttpAuthenticator {
             try {
                 authChallenges = parser.parse(challengeType, buffer, cursor);
             } catch (final ParseException ex) {
-                if (this.log.isWarnEnabled()) {
-                    this.log.warn("Malformed challenge: " + header.getValue());
+                if (LOG.isWarnEnabled()) {
+                    LOG.warn("{} Malformed challenge: {}", exchangeId, header.getValue());
                 }
                 continue;
             }
@@ -202,8 +198,9 @@ public final class HttpAuthenticator {
             }
         }
         if (challengeMap.isEmpty()) {
-            this.log.debug("Response contains no valid authentication challenges");
-            clearCache(host, clientContext);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{} Response contains no valid authentication challenges", exchangeId);
+            }
             authExchange.reset();
             return false;
         }
@@ -223,20 +220,23 @@ public final class HttpAuthenticator {
                     final String schemeName = authScheme.getName();
                     final AuthChallenge challenge = challengeMap.get(schemeName.toLowerCase(Locale.ROOT));
                     if (challenge != null) {
-                        this.log.debug("Authorization challenge processed");
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("{} Authorization challenge processed", exchangeId);
+                        }
                         try {
                             authScheme.processChallenge(challenge, context);
                         } catch (final MalformedChallengeException ex) {
-                            if (this.log.isWarnEnabled()) {
-                                this.log.warn(ex.getMessage());
+                            if (LOG.isWarnEnabled()) {
+                                LOG.warn("{} {}", exchangeId, ex.getMessage());
                             }
-                            clearCache(host, clientContext);
                             authExchange.reset();
+                            authExchange.setState(AuthExchange.State.FAILURE);
                             return false;
                         }
                         if (authScheme.isChallengeComplete()) {
-                            this.log.debug("Authentication failed");
-                            clearCache(host, clientContext);
+                            if (LOG.isDebugEnabled()) {
+                                LOG.debug("{} Authentication failed", exchangeId);
+                            }
                             authExchange.reset();
                             authExchange.setState(AuthExchange.State.FAILURE);
                             return false;
@@ -252,12 +252,16 @@ public final class HttpAuthenticator {
         final List<AuthScheme> preferredSchemes = authStrategy.select(challengeType, challengeMap, context);
         final CredentialsProvider credsProvider = clientContext.getCredentialsProvider();
         if (credsProvider == null) {
-            this.log.debug("Credentials provider not set in the context");
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{} Credentials provider not set in the context", exchangeId);
+            }
             return false;
         }
 
         final Queue<AuthScheme> authOptions = new LinkedList<>();
-        this.log.debug("Selecting authentication options");
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("{} Selecting authentication options", exchangeId);
+        }
         for (final AuthScheme authScheme: preferredSchemes) {
             try {
                 final String schemeName = authScheme.getName();
@@ -267,14 +271,14 @@ public final class HttpAuthenticator {
                     authOptions.add(authScheme);
                 }
             } catch (final AuthenticationException | MalformedChallengeException ex) {
-                if (this.log.isWarnEnabled()) {
-                    this.log.warn(ex.getMessage());
+                if (LOG.isWarnEnabled()) {
+                    LOG.warn(ex.getMessage());
                 }
             }
         }
         if (!authOptions.isEmpty()) {
-            if (this.log.isDebugEnabled()) {
-                this.log.debug("Selected authentication options: " + authOptions);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{} Selected authentication options: {}", exchangeId, authOptions);
             }
             authExchange.reset();
             authExchange.setState(AuthExchange.State.CHALLENGED);
@@ -300,6 +304,8 @@ public final class HttpAuthenticator {
             final HttpRequest request,
             final AuthExchange authExchange,
             final HttpContext context) {
+        final HttpClientContext clientContext = HttpClientContext.adapt(context);
+        final String exchangeId = clientContext.getExchangeId();
         AuthScheme authScheme = authExchange.getAuthScheme();
         switch (authExchange.getState()) {
         case FAILURE:
@@ -319,9 +325,9 @@ public final class HttpAuthenticator {
                 while (!authOptions.isEmpty()) {
                     authScheme = authOptions.remove();
                     authExchange.select(authScheme);
-                    if (this.log.isDebugEnabled()) {
-                        this.log.debug("Generating response to an authentication challenge using "
-                                + authScheme.getName() + " scheme");
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("{} Generating response to an authentication challenge using {} scheme",
+                                exchangeId, authScheme.getName());
                     }
                     try {
                         final String authResponse = authScheme.generateAuthResponse(host, request, context);
@@ -331,8 +337,8 @@ public final class HttpAuthenticator {
                         request.addHeader(header);
                         break;
                     } catch (final AuthenticationException ex) {
-                        if (this.log.isWarnEnabled()) {
-                            this.log.warn(authScheme + " authentication error: " + ex.getMessage());
+                        if (LOG.isWarnEnabled()) {
+                            LOG.warn("{} {} authentication error: {}", exchangeId, authScheme, ex.getMessage());
                         }
                     }
                 }
@@ -349,36 +355,10 @@ public final class HttpAuthenticator {
                         authResponse);
                 request.addHeader(header);
             } catch (final AuthenticationException ex) {
-                if (this.log.isErrorEnabled()) {
-                    this.log.error(authScheme + " authentication error: " + ex.getMessage());
+                if (LOG.isErrorEnabled()) {
+                    LOG.error("{} {} authentication error: {}", exchangeId, authScheme, ex.getMessage());
                 }
             }
-        }
-    }
-
-    private void updateCache(final HttpHost host, final AuthScheme authScheme, final HttpClientContext clientContext) {
-        final boolean cachable = authScheme.getClass().getAnnotation(AuthStateCacheable.class) != null;
-        if (cachable) {
-            AuthCache authCache = clientContext.getAuthCache();
-            if (authCache == null) {
-                authCache = new BasicAuthCache();
-                clientContext.setAuthCache(authCache);
-            }
-            if (this.log.isDebugEnabled()) {
-                this.log.debug("Caching '" + authScheme.getName() + "' auth scheme for " + host);
-            }
-            authCache.put(host, authScheme);
-        }
-    }
-
-    private void clearCache(final HttpHost host, final HttpClientContext clientContext) {
-
-        final AuthCache authCache = clientContext.getAuthCache();
-        if (authCache != null) {
-            if (this.log.isDebugEnabled()) {
-                this.log.debug("Clearing cached auth scheme for " + host);
-            }
-            authCache.remove(host);
         }
     }
 

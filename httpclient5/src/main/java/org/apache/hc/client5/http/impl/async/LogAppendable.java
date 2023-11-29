@@ -60,7 +60,7 @@ final class LogAppendable implements Appendable {
     @Override
     public Appendable append(final char ch) throws IOException {
         if (ch == '\n') {
-            log.debug(prefix + " " + buffer.toString());
+            log.debug("{} {}", prefix, buffer);
             buffer.setLength(0);
         } else if (ch != '\r') {
             buffer.append(ch);
@@ -70,7 +70,7 @@ final class LogAppendable implements Appendable {
 
     public void flush() {
         if (buffer.length() > 0) {
-            log.debug(prefix + " " + buffer.toString());
+            log.debug("{} {}", prefix, buffer);
             buffer.setLength(0);
         }
     }

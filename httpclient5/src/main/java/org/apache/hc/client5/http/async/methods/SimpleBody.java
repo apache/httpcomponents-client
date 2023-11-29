@@ -84,10 +84,8 @@ public final class SimpleBody {
         if (bodyAsBytes != null) {
             final Charset charset = (contentType != null ? contentType : ContentType.DEFAULT_TEXT).getCharset();
             return new String(bodyAsBytes, charset != null ? charset : StandardCharsets.US_ASCII);
-        } else if (bodyAsText != null) {
-            return bodyAsText;
         } else {
-            return null;
+            return bodyAsText;
         }
     }
 
@@ -101,8 +99,8 @@ public final class SimpleBody {
 
     @Override
     public String toString() {
-        return "content length=" + (bodyAsBytes != null ? bodyAsBytes.length : "chunked") +
-                ", content type=" + contentType;
+        return "SimpleBody{content length=" + (bodyAsBytes != null ? bodyAsBytes.length : "chunked") +
+                ", content type=" + contentType + "}";
     }
 
 }

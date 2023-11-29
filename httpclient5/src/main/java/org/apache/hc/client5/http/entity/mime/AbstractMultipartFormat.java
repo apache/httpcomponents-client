@@ -46,11 +46,21 @@ import org.apache.hc.core5.util.ByteArrayBuffer;
  */
 abstract class AbstractMultipartFormat {
 
+    /**
+     * The preamble to be included before the multipart content.
+     */
+    private String preamble;
+
+    /**
+     * The epilogue to be included after the multipart content.
+     */
+    private String epilogue;
+
     static ByteArrayBuffer encode(
-            final Charset charset, final String string) {
+            final Charset charset, final CharSequence string) {
         final ByteBuffer encoded = charset.encode(CharBuffer.wrap(string));
         final ByteArrayBuffer bab = new ByteArrayBuffer(encoded.remaining());
-        bab.append(encoded.array(), encoded.position(), encoded.remaining());
+        bab.append(encoded.array(), encoded.arrayOffset() + encoded.position(), encoded.remaining());
         return bab;
     }
 
@@ -60,30 +70,63 @@ abstract class AbstractMultipartFormat {
     }
 
     static void writeBytes(
-            final String s, final Charset charset, final OutputStream out) throws IOException {
+            final CharSequence s, final Charset charset, final OutputStream out) throws IOException {
         final ByteArrayBuffer b = encode(charset, s);
         writeBytes(b, out);
     }
 
     static void writeBytes(
-            final String s, final OutputStream out) throws IOException {
+            final CharSequence s, final OutputStream out) throws IOException {
         final ByteArrayBuffer b = encode(StandardCharsets.ISO_8859_1, s);
         writeBytes(b, out);
     }
 
+    static boolean isLineBreak(final char ch) {
+        return ch == '\r' || ch == '\n' || ch == '\f' || ch == 11;
+    }
+
+    static CharSequence stripLineBreaks(final CharSequence s) {
+        if (s == null) {
+            return null;
+        }
+        boolean requiresRewrite = false;
+        int n = 0;
+        for (; n < s.length(); n++) {
+            final char ch = s.charAt(n);
+            if (isLineBreak(ch)) {
+                requiresRewrite = true;
+                break;
+            }
+        }
+        if (!requiresRewrite) {
+            return s;
+        }
+        final StringBuilder buf = new StringBuilder();
+        buf.append(s, 0, n);
+        for (; n < s.length(); n++) {
+            final char ch = s.charAt(n);
+            if (isLineBreak(ch)) {
+                buf.append(' ');
+            } else {
+                buf.append(ch);
+            }
+        }
+        return buf.toString();
+    }
+
     static void writeField(
             final MimeField field, final OutputStream out) throws IOException {
-        writeBytes(field.getName(), out);
+        writeBytes(stripLineBreaks(field.getName()), out);
         writeBytes(FIELD_SEP, out);
-        writeBytes(field.getBody(), out);
+        writeBytes(stripLineBreaks(field.getBody()), out);
         writeBytes(CR_LF, out);
     }
 
     static void writeField(
             final MimeField field, final Charset charset, final OutputStream out) throws IOException {
-        writeBytes(field.getName(), charset, out);
+        writeBytes(stripLineBreaks(field.getName()), charset, out);
         writeBytes(FIELD_SEP, out);
-        writeBytes(field.getBody(), charset, out);
+        writeBytes(stripLineBreaks(field.getBody()), charset, out);
         writeBytes(CR_LF, out);
     }
 
@@ -97,7 +140,7 @@ abstract class AbstractMultipartFormat {
     /**
      * Creates an instance with the specified settings.
      *
-     * @param charset the character set to use. May be {@code null}, in which case {@link StandardCharsets#ISO_8859_1} is used.
+     * @param charset  the character set to use. May be {@code null}, in which case {@link StandardCharsets#ISO_8859_1} is used.
      * @param boundary to use  - must not be {@code null}
      * @throws IllegalArgumentException if charset is null or boundary is null
      */
@@ -108,18 +151,54 @@ abstract class AbstractMultipartFormat {
         this.boundary = boundary;
     }
 
+    /*  */
+
+    /**
+     * Constructs a new instance of {@code AbstractMultipartFormat} with the given charset, boundary, preamble, and epilogue.
+     *
+     * @param charset  the charset to use.
+     * @param boundary the boundary string to use.
+     * @param preamble the preamble string to use. Can be {@code null}.
+     * @param epilogue the epilogue string to use. Can be {@code null}.
+     * @throws IllegalArgumentException if the boundary string is {@code null}.
+     */
+    public AbstractMultipartFormat(final Charset charset, final String boundary, final String preamble, final String epilogue) {
+        super();
+        Args.notNull(boundary, "Multipart boundary");
+        this.charset = charset != null ? charset : StandardCharsets.ISO_8859_1;
+        this.boundary = boundary;
+        this.preamble = preamble;
+        this.epilogue = epilogue;
+    }
+
     public AbstractMultipartFormat(final String boundary) {
         this(null, boundary);
     }
 
     public abstract List<MultipartPart> getParts();
 
+    /**
+     * Writes the multipart message to the specified output stream.
+     * <p>
+     * If {@code writeContent} is {@code true}, the content of each part will also be written.
+     *
+     * <p>If {@code preamble} is not {@code null}, it will be written before the first boundary.
+     * If {@code epilogue} is not {@code null}, it will be written after the last boundary.
+     *
+     * @param out          the output stream to write the message to.
+     * @param writeContent whether to write the content of each part.
+     * @throws IOException if an I/O error occurs.
+     */
     void doWriteTo(
-        final OutputStream out,
-        final boolean writeContent) throws IOException {
+            final OutputStream out,
+            final boolean writeContent) throws IOException {
 
         final ByteArrayBuffer boundaryEncoded = encode(this.charset, this.boundary);
-        for (final MultipartPart part: getParts()) {
+        if (this.preamble != null) {
+            writeBytes(this.preamble, out);
+            writeBytes(CR_LF, out);
+        }
+        for (final MultipartPart part : getParts()) {
             writeBytes(TWO_HYPHENS, out);
             writeBytes(boundaryEncoded, out);
             writeBytes(CR_LF, out);
@@ -137,14 +216,18 @@ abstract class AbstractMultipartFormat {
         writeBytes(boundaryEncoded, out);
         writeBytes(TWO_HYPHENS, out);
         writeBytes(CR_LF, out);
+        if (this.epilogue != null) {
+            writeBytes(this.epilogue, out);
+            writeBytes(CR_LF, out);
+        }
     }
 
     /**
-      * Write the multipart header fields; depends on the style.
-      */
+     * Write the multipart header fields; depends on the style.
+     */
     protected abstract void formatMultipartHeader(
-        final MultipartPart part,
-        final OutputStream out) throws IOException;
+            final MultipartPart part,
+            final OutputStream out) throws IOException;
 
     /**
      * Writes out the content in the multipart/form encoding. This method
@@ -167,11 +250,11 @@ abstract class AbstractMultipartFormat {
      * </p>
      *
      * @return total length of the multipart entity if known, {@code -1}
-     *   otherwise.
+     * otherwise.
      */
     public long getTotalLength() {
         long contentLen = 0;
-        for (final MultipartPart part: getParts()) {
+        for (final MultipartPart part : getParts()) {
             final ContentBody body = part.getBody();
             final long len = body.getContentLength();
             if (len >= 0) {

@@ -33,6 +33,7 @@ import org.apache.hc.client5.http.config.Configurable;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
+import org.apache.hc.core5.net.URIAuthority;
 
 /**
  * HTTP request message with a custom configuration.
@@ -50,6 +51,13 @@ public class ConfigurableHttpRequest extends BasicHttpRequest implements Configu
 
     public ConfigurableHttpRequest(final String method, final HttpHost host, final String path) {
         super(method, host, path);
+    }
+
+    /**
+     * @since 5.1
+     */
+    public ConfigurableHttpRequest(final String method, final String scheme, final URIAuthority authority, final String path) {
+        super(method, scheme, authority, path);
     }
 
     public ConfigurableHttpRequest(final String method, final URI requestUri) {

@@ -28,8 +28,8 @@ package org.apache.hc.client5.http.impl.classic;
 
 import org.apache.hc.client5.http.cookie.CookieIdentityComparator;
 import org.apache.hc.client5.http.impl.cookie.BasicClientCookie;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * Simple tests for {@link CookieIdentityComparator}.
@@ -38,58 +38,58 @@ public class TestCookieIdentityComparator {
 
     @Test
     public void testCookieIdentityComparasionByName() {
-        final CookieIdentityComparator comparator = new CookieIdentityComparator();
+        final CookieIdentityComparator comparator = CookieIdentityComparator.INSTANCE;
         final BasicClientCookie c1 = new BasicClientCookie("name", "value1");
         final BasicClientCookie c2 = new BasicClientCookie("name", "value2");
-        Assert.assertTrue(comparator.compare(c1, c2) == 0);
+        Assertions.assertEquals(0, comparator.compare(c1, c2));
 
         final BasicClientCookie c3 = new BasicClientCookie("name1", "value");
         final BasicClientCookie c4 = new BasicClientCookie("name2", "value");
-        Assert.assertFalse(comparator.compare(c3, c4) == 0);
+        Assertions.assertNotEquals(0, comparator.compare(c3, c4));
     }
 
     @Test
     public void testCookieIdentityComparasionByNameAndDomain() {
-        final CookieIdentityComparator comparator = new CookieIdentityComparator();
+        final CookieIdentityComparator comparator = CookieIdentityComparator.INSTANCE;
         final BasicClientCookie c1 = new BasicClientCookie("name", "value1");
         c1.setDomain("www.domain.com");
         final BasicClientCookie c2 = new BasicClientCookie("name", "value2");
         c2.setDomain("www.domain.com");
-        Assert.assertTrue(comparator.compare(c1, c2) == 0);
+        Assertions.assertEquals(0, comparator.compare(c1, c2));
 
         final BasicClientCookie c3 = new BasicClientCookie("name", "value1");
         c3.setDomain("www.domain.com");
         final BasicClientCookie c4 = new BasicClientCookie("name", "value2");
         c4.setDomain("domain.com");
-        Assert.assertFalse(comparator.compare(c3, c4) == 0);
+        Assertions.assertNotEquals(0, comparator.compare(c3, c4));
     }
 
     @Test
     public void testCookieIdentityComparasionByNameAndNullDomain() {
-        final CookieIdentityComparator comparator = new CookieIdentityComparator();
+        final CookieIdentityComparator comparator = CookieIdentityComparator.INSTANCE;
         final BasicClientCookie c1 = new BasicClientCookie("name", "value1");
         c1.setDomain(null);
         final BasicClientCookie c2 = new BasicClientCookie("name", "value2");
         c2.setDomain(null);
-        Assert.assertTrue(comparator.compare(c1, c2) == 0);
+        Assertions.assertEquals(0, comparator.compare(c1, c2));
 
         final BasicClientCookie c3 = new BasicClientCookie("name", "value1");
         c3.setDomain("www.domain.com");
         final BasicClientCookie c4 = new BasicClientCookie("name", "value2");
         c4.setDomain(null);
-        Assert.assertFalse(comparator.compare(c3, c4) == 0);
+        Assertions.assertNotEquals(0, comparator.compare(c3, c4));
     }
 
     @Test
     public void testCookieIdentityComparasionByNameDomainAndPath() {
-        final CookieIdentityComparator comparator = new CookieIdentityComparator();
+        final CookieIdentityComparator comparator = CookieIdentityComparator.INSTANCE;
         final BasicClientCookie c1 = new BasicClientCookie("name", "value1");
         c1.setDomain("www.domain.com");
         c1.setPath("/whatever");
         final BasicClientCookie c2 = new BasicClientCookie("name", "value2");
         c2.setDomain("www.domain.com");
         c2.setPath("/whatever");
-        Assert.assertTrue(comparator.compare(c1, c2) == 0);
+        Assertions.assertEquals(0, comparator.compare(c1, c2));
 
         final BasicClientCookie c3 = new BasicClientCookie("name", "value1");
         c3.setDomain("www.domain.com");
@@ -97,19 +97,19 @@ public class TestCookieIdentityComparator {
         final BasicClientCookie c4 = new BasicClientCookie("name", "value2");
         c4.setDomain("domain.com");
         c4.setPath("/whatever-not");
-        Assert.assertFalse(comparator.compare(c3, c4) == 0);
+        Assertions.assertNotEquals(0, comparator.compare(c3, c4));
     }
 
     @Test
     public void testCookieIdentityComparasionByNameDomainAndNullPath() {
-        final CookieIdentityComparator comparator = new CookieIdentityComparator();
+        final CookieIdentityComparator comparator = CookieIdentityComparator.INSTANCE;
         final BasicClientCookie c1 = new BasicClientCookie("name", "value1");
         c1.setDomain("www.domain.com");
         c1.setPath("/");
         final BasicClientCookie c2 = new BasicClientCookie("name", "value2");
         c2.setDomain("www.domain.com");
         c2.setPath(null);
-        Assert.assertTrue(comparator.compare(c1, c2) == 0);
+        Assertions.assertEquals(0, comparator.compare(c1, c2));
 
         final BasicClientCookie c3 = new BasicClientCookie("name", "value1");
         c3.setDomain("www.domain.com");
@@ -117,7 +117,7 @@ public class TestCookieIdentityComparator {
         final BasicClientCookie c4 = new BasicClientCookie("name", "value2");
         c4.setDomain("domain.com");
         c4.setPath(null);
-        Assert.assertFalse(comparator.compare(c3, c4) == 0);
+        Assertions.assertNotEquals(0, comparator.compare(c3, c4));
     }
 
 }

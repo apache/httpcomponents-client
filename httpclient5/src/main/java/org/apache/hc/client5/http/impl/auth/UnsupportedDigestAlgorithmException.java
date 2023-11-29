@@ -37,14 +37,14 @@ public class UnsupportedDigestAlgorithmException extends RuntimeException {
     private static final long serialVersionUID = 319558534317118022L;
 
     /**
-     * Creates a new UnsupportedAuthAlgoritmException with a {@code null} detail message.
+     * Creates a new UnsupportedDigestAlgorithmException with a {@code null} detail message.
      */
     public UnsupportedDigestAlgorithmException() {
         super();
     }
 
     /**
-     * Creates a new UnsupportedAuthAlgoritmException with the specified message.
+     * Creates a new UnsupportedDigestAlgorithmException with the specified message.
      *
      * @param message the exception detail message
      */
@@ -53,7 +53,7 @@ public class UnsupportedDigestAlgorithmException extends RuntimeException {
     }
 
     /**
-     * Creates a new UnsupportedAuthAlgoritmException with the specified detail message and cause.
+     * Creates a new UnsupportedDigestAlgorithmException with the specified detail message and cause.
      *
      * @param message the exception detail message
      * @param cause the {@code Throwable} that caused this exception, or {@code null}

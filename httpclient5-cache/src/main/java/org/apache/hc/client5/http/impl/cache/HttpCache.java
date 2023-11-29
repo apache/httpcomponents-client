@@ -26,7 +26,7 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.Map;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
@@ -73,8 +73,8 @@ interface HttpCache {
             HttpRequest request,
             HttpResponse originResponse,
             ByteArrayBuffer content,
-            Date requestSent,
-            Date responseReceived);
+            Instant requestSent,
+            Instant responseReceived);
 
     /**
      * Update a {@link HttpCacheEntry} using a 304 {@link HttpResponse}.
@@ -84,8 +84,8 @@ interface HttpCache {
             HttpRequest request,
             HttpCacheEntry stale,
             HttpResponse originResponse,
-            Date requestSent,
-            Date responseReceived);
+            Instant requestSent,
+            Instant responseReceived);
 
     /**
      * Update a specific {@link HttpCacheEntry} representing a cached variant
@@ -96,8 +96,8 @@ interface HttpCache {
             HttpRequest request,
             HttpResponse originResponse,
             Variant variant,
-            Date requestSent,
-            Date responseReceived);
+            Instant requestSent,
+            Instant responseReceived);
 
     /**
      * Specifies cache should reuse the given cached variant to satisfy

@@ -34,9 +34,9 @@ import java.net.SocketException;
 import org.apache.hc.client5.http.classic.ExecRuntime;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 @SuppressWarnings("boxing") // test code
@@ -47,7 +47,7 @@ public class TestResponseEntityWrapper {
     private ExecRuntime execRuntime;
     private ResponseEntityProxy wrapper;
 
-    @Before
+    @BeforeEach
     public void setup() throws Exception {
         inStream = Mockito.mock(InputStream.class);
         entity = Mockito.mock(HttpEntity.class);
@@ -71,11 +71,7 @@ public class TestResponseEntityWrapper {
         Mockito.when(entity.isStreaming()).thenReturn(true);
         Mockito.when(execRuntime.isConnectionReusable()).thenReturn(true);
         Mockito.doThrow(new IOException()).when(inStream).close();
-        try {
-            EntityUtils.consume(wrapper);
-            Assert.fail("IOException expected");
-        } catch (final IOException ex) {
-        }
+        Assertions.assertThrows(IOException.class, () -> EntityUtils.consume(wrapper));
         Mockito.verify(execRuntime, Mockito.atLeast(1)).discardEndpoint();
     }
 
@@ -104,11 +100,7 @@ public class TestResponseEntityWrapper {
         Mockito.when(entity.isStreaming()).thenReturn(true);
         Mockito.when(execRuntime.isConnectionReusable()).thenReturn(true);
         Mockito.doThrow(new IOException()).when(entity).writeTo(outStream);
-        try {
-            wrapper.writeTo(outStream);
-            Assert.fail("IOException expected");
-        } catch (final IOException ex) {
-        }
+        Assertions.assertThrows(IOException.class, () -> wrapper.writeTo(outStream));
         Mockito.verify(execRuntime, Mockito.never()).releaseEndpoint();
         Mockito.verify(execRuntime, Mockito.atLeast(1)).discardEndpoint();
     }
@@ -119,7 +111,7 @@ public class TestResponseEntityWrapper {
         Mockito.when(entity.isStreaming()).thenReturn(true);
         Mockito.when(execRuntime.isConnectionReusable()).thenReturn(true);
         final InputStream content = wrapper.getContent();
-        Assert.assertEquals(-1, content.read());
+        Assertions.assertEquals(-1, content.read());
         Mockito.verify(inStream).close();
         Mockito.verify(execRuntime).releaseEndpoint();
     }
@@ -131,11 +123,7 @@ public class TestResponseEntityWrapper {
         Mockito.when(execRuntime.isConnectionReusable()).thenReturn(true);
         Mockito.doThrow(new IOException()).when(inStream).close();
         final InputStream content = wrapper.getContent();
-        try {
-            content.read();
-            Assert.fail("IOException expected");
-        } catch (final IOException ex) {
-        }
+        Assertions.assertThrows(IOException.class, () -> content.read());
         Mockito.verify(execRuntime, Mockito.atLeast(1)).discardEndpoint();
     }
 

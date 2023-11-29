@@ -26,13 +26,14 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
 
-import java.util.Date;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+
+import java.time.Instant;
 import java.util.Map;
 
 import org.apache.hc.client5.http.cache.HeaderConstants;
@@ -52,16 +53,15 @@ import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.BasicHttpResponse;
 import org.apache.hc.core5.util.ByteArrayBuffer;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class TestBasicHttpCache {
 
     private BasicHttpCache impl;
     private SimpleHttpCacheStorage backing;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         backing = new SimpleHttpCacheStorage();
         impl = new BasicHttpCache(new HeapResourceFactory(), backing);
@@ -134,7 +134,7 @@ public class TestBasicHttpCache {
         final String key = CacheKeyGenerator.INSTANCE.generateKey(host, new HttpGet("/bar"));
 
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(new Header[] {
-           new BasicHeader("Date", DateUtils.formatDate(new Date())),
+           new BasicHeader("Date", DateUtils.formatStandardDate(Instant.now())),
            new BasicHeader("ETag", "\"old-etag\"")
         });
 
@@ -155,7 +155,7 @@ public class TestBasicHttpCache {
         final String key = CacheKeyGenerator.INSTANCE.generateKey(host, new HttpGet("/bar"));
 
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(new Header[] {
-           new BasicHeader("Date", DateUtils.formatDate(new Date())),
+           new BasicHeader("Date", DateUtils.formatStandardDate(Instant.now())),
            new BasicHeader("ETag", "\"old-etag\"")
         });
 
@@ -197,7 +197,7 @@ public class TestBasicHttpCache {
         final HttpHost host = new HttpHost("foo.example.com");
         final HttpRequest request = new HttpGet("http://foo.example.com/bar");
         final HttpCacheEntry result = impl.getCacheEntry(host, request);
-        Assert.assertNull(result);
+        assertNull(result);
     }
 
     @Test
@@ -212,7 +212,7 @@ public class TestBasicHttpCache {
         backing.map.put(key,entry);
 
         final HttpCacheEntry result = impl.getCacheEntry(host, request);
-        Assert.assertSame(entry, result);
+        assertSame(entry, result);
     }
 
     @Test
@@ -224,13 +224,13 @@ public class TestBasicHttpCache {
 
         final ByteArrayBuffer buf = HttpTestUtils.getRandomBuffer(128);
         final HttpResponse origResponse = new BasicHttpResponse(HttpStatus.SC_OK, "OK");
-        origResponse.setHeader("Date", DateUtils.formatDate(new Date()));
+        origResponse.setHeader("Date", DateUtils.formatStandardDate(Instant.now()));
         origResponse.setHeader("Cache-Control", "max-age=3600, public");
         origResponse.setHeader("ETag", "\"etag\"");
         origResponse.setHeader("Vary", "Accept-Encoding");
         origResponse.setHeader("Content-Encoding","gzip");
 
-        impl.createCacheEntry(host, origRequest, origResponse, buf, new Date(), new Date());
+        impl.createCacheEntry(host, origRequest, origResponse, buf, Instant.now(), Instant.now());
 
         final HttpRequest request = new HttpGet("http://foo.example.com/bar");
         final HttpCacheEntry result = impl.getCacheEntry(host, request);
@@ -246,13 +246,13 @@ public class TestBasicHttpCache {
 
         final ByteArrayBuffer buf = HttpTestUtils.getRandomBuffer(128);
         final HttpResponse origResponse = new BasicHttpResponse(HttpStatus.SC_OK, "OK");
-        origResponse.setHeader("Date", DateUtils.formatDate(new Date()));
+        origResponse.setHeader("Date", DateUtils.formatStandardDate(Instant.now()));
         origResponse.setHeader("Cache-Control", "max-age=3600, public");
         origResponse.setHeader("ETag", "\"etag\"");
         origResponse.setHeader("Vary", "Accept-Encoding");
         origResponse.setHeader("Content-Encoding","gzip");
 
-        impl.createCacheEntry(host, origRequest, origResponse, buf, new Date(), new Date());
+        impl.createCacheEntry(host, origRequest, origResponse, buf, Instant.now(), Instant.now());
 
         final HttpRequest request = new HttpGet("http://foo.example.com/bar");
         request.setHeader("Accept-Encoding","gzip");
@@ -278,7 +278,7 @@ public class TestBasicHttpCache {
         req1.setHeader("Accept-Encoding", "gzip");
 
         final HttpResponse resp1 = HttpTestUtils.make200Response();
-        resp1.setHeader("Date", DateUtils.formatDate(new Date()));
+        resp1.setHeader("Date", DateUtils.formatStandardDate(Instant.now()));
         resp1.setHeader("Cache-Control", "max-age=3600, public");
         resp1.setHeader("ETag", "\"etag1\"");
         resp1.setHeader("Vary", "Accept-Encoding");
@@ -289,15 +289,15 @@ public class TestBasicHttpCache {
         req2.setHeader("Accept-Encoding", "identity");
 
         final HttpResponse resp2 = HttpTestUtils.make200Response();
-        resp2.setHeader("Date", DateUtils.formatDate(new Date()));
+        resp2.setHeader("Date", DateUtils.formatStandardDate(Instant.now()));
         resp2.setHeader("Cache-Control", "max-age=3600, public");
         resp2.setHeader("ETag", "\"etag2\"");
         resp2.setHeader("Vary", "Accept-Encoding");
         resp2.setHeader("Content-Encoding","gzip");
         resp2.setHeader("Vary", "Accept-Encoding");
 
-        impl.createCacheEntry(host, req1, resp1, null, new Date(), new Date());
-        impl.createCacheEntry(host, req2, resp2, null, new Date(), new Date());
+        impl.createCacheEntry(host, req1, resp1, null, Instant.now(), Instant.now());
+        impl.createCacheEntry(host, req2, resp2, null, Instant.now(), Instant.now());
 
         final Map<String,Variant> variants = impl.getVariantCacheEntriesWithEtags(host, req1);
 

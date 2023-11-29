@@ -32,9 +32,10 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
 import java.util.Random;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
+@SuppressWarnings("deprecation")
 public class TestNTLMEngineImpl {
 
     @Test
@@ -88,7 +89,7 @@ public class TestNTLMEngineImpl {
         while (i < answer.length) {
             if (answer[i] != correctAnswer[i]) {
                 throw new Exception("Answer value for MD4('" + input + "') disagrees at position "
-                        + Integer.toString(i));
+                        + i);
             }
             i++;
         }
@@ -318,9 +319,9 @@ public class TestNTLMEngineImpl {
     /* Byte array check helper */
     static void checkArraysMatch(final byte[] a1, final byte[] a2)
         throws Exception {
-        Assert.assertEquals(a1.length,a2.length);
+        Assertions.assertEquals(a1.length,a2.length);
         for (int i = 0; i < a1.length; i++) {
-            Assert.assertEquals(a1[i],a2[i]);
+            Assertions.assertEquals(a1[i],a2[i]);
         }
     }
 

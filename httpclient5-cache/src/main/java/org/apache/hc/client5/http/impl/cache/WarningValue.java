@@ -26,8 +26,8 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
+import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -38,17 +38,17 @@ import org.apache.hc.core5.http.Header;
 /** This class provides for parsing and understanding Warning headers. As
  * the Warning header can be multi-valued, but the values can contain
  * separators like commas inside quoted strings, we cannot use the regular
- * {@link Header#getElements()} call to access the values.
+ * {@link Header#getValue()} } call to access the values.
  */
 class WarningValue {
 
     private int offs;
-    private int init_offs;
+    private final int init_offs;
     private final String src;
     private int warnCode;
     private String warnAgent;
     private String warnText;
-    private Date warnDate;
+    private Instant warnDate;
 
     WarningValue(final String s) {
         this(s, 0);
@@ -60,7 +60,7 @@ class WarningValue {
         consumeWarnValue();
     }
 
-    /** Returns an array of the parseable warning values contained
+    /** Returns an array of the parsable warning values contained
      * in the given header value, which is assumed to be a
      * Warning header. Improperly formatted warning values will be
      * skipped, in keeping with the philosophy of "ignore what you
@@ -119,8 +119,7 @@ class WarningValue {
      * CHAR           = <any US-ASCII character (octets 0 - 127)>
      */
     private boolean isChar(final char c) {
-        final int i = c;
-        return (i >= 0 && i <= 127);
+        return ((int) c >= 0 && (int) c <= 127);
     }
 
     /*
@@ -128,8 +127,7 @@ class WarningValue {
                         (octets 0 - 31) and DEL (127)>
      */
     private boolean isControl(final char c) {
-        final int i = c;
-        return (i == 127 || (i >=0 && i <= 31));
+        return ((int) c == 127 || ((int) c >=0 && (int) c <= 31));
     }
 
     /*
@@ -223,7 +221,7 @@ class WarningValue {
             } else if (c == '\"') {
                 foundEnd = true;
                 offs++;
-            } else if (c != '\"' && !isControl(c)) {
+            } else if (!isControl(c)) {
                 offs++;
             } else {
                 parseError();
@@ -267,7 +265,7 @@ class WarningValue {
             parseError();
         }
         offs += m.end();
-        warnDate = DateUtils.parseDate(src.substring(curr+1,offs-1));
+        warnDate = DateUtils.parseStandardDate(src.substring(curr+1,offs-1));
     }
 
     /*
@@ -344,9 +342,9 @@ class WarningValue {
     /** Returns the date and time when this warning was added, or
      * {@code null} if a warning date was not supplied in the
      * header.
-     * @return {@link Date}
+     * @return {@link Instant}
      */
-    public Date getWarnDate() { return warnDate; }
+    public Instant getWarnDate() { return warnDate; }
 
     /** Formats a {@code WarningValue} as a {@link String}
      * suitable for including in a header. For example, you can:
@@ -360,10 +358,10 @@ class WarningValue {
     @Override
     public String toString() {
         if (warnDate != null) {
-            return String.format("%d %s %s \"%s\"", Integer.valueOf(warnCode),
-                    warnAgent, warnText, DateUtils.formatDate(warnDate));
+            return String.format("%d %s %s \"%s\"", warnCode,
+                    warnAgent, warnText, DateUtils.formatStandardDate(warnDate));
         } else {
-            return String.format("%d %s %s", Integer.valueOf(warnCode), warnAgent, warnText);
+            return String.format("%d %s %s", warnCode, warnAgent, warnText);
         }
     }
 

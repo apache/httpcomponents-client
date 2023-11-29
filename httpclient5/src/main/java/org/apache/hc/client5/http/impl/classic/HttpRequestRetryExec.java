@@ -33,8 +33,10 @@ import org.apache.hc.client5.http.HttpRequestRetryStrategy;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecChain.Scope;
-import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.classic.ExecChainHandler;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.ChainElement;
+import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
@@ -43,8 +45,10 @@ import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.NoHttpResponseException;
+import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,6 +62,22 @@ import org.slf4j.LoggerFactory;
  * endpoint is delegated to the next executor in the request execution
  * chain.
  * </p>
+ * <p>
+ * If this handler is active, pay particular attention to the placement
+ * of other handlers within the handler chain relative to the retry handler.
+ * Use {@link ChainElement#RETRY} as name when referring to this handler.
+ * </p>
+ * <p>
+ * If a custom handler is placed <b>before</b> the retry handler, the handler will
+ * see the initial request and the final outcome after the last retry. Elapsed time
+ * will account for any delays imposed by the retry handler.
+ * </p>
+ *
+ * <p>
+ * A custom handler which is placed <b>after</b> the retry handler will be invoked for
+ * each individual retry. Elapsed time will measure each individual http request,
+ * without the delay imposed by the retry handler.
+ * </p>
  *
  * @since 5.0
  */
@@ -65,7 +85,7 @@ import org.slf4j.LoggerFactory;
 @Internal
 public class HttpRequestRetryExec implements ExecChainHandler {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger LOG = LoggerFactory.getLogger(HttpRequestRetryExec.class);
 
     private final HttpRequestRetryStrategy retryStrategy;
 
@@ -97,20 +117,32 @@ public class HttpRequestRetryExec implements ExecChainHandler {
                 }
                 final HttpEntity requestEntity = request.getEntity();
                 if (requestEntity != null && !requestEntity.isRepeatable()) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("{}: cannot retry non-repeatable request", exchangeId);
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("{} cannot retry non-repeatable request", exchangeId);
                     }
                     throw ex;
                 }
                 if (retryStrategy.retryRequest(request, ex, execCount, context)) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("{}: {}", exchangeId, ex.getMessage(), ex);
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("{} {}", exchangeId, ex.getMessage(), ex);
                     }
-                    if (log.isInfoEnabled()) {
-                        log.info("Recoverable I/O exception ({}) caught when processing request to {}",
+                    if (LOG.isInfoEnabled()) {
+                        LOG.info("Recoverable I/O exception ({}) caught when processing request to {}",
                                 ex.getClass().getName(), route);
                     }
-                    currentRequest = ClassicRequestCopier.INSTANCE.copy(scope.originalRequest);
+                    final TimeValue nextInterval = retryStrategy.getRetryInterval(request, ex, execCount, context);
+                    if (TimeValue.isPositive(nextInterval)) {
+                        try {
+                            if (LOG.isDebugEnabled()) {
+                                LOG.debug("{} wait for {}", exchangeId, nextInterval);
+                            }
+                            nextInterval.sleep();
+                        } catch (final InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                            throw new InterruptedIOException();
+                        }
+                    }
+                    currentRequest = ClassicRequestBuilder.copy(scope.originalRequest).build();
                     continue;
                 } else {
                     if (ex instanceof NoHttpResponseException) {
@@ -126,19 +158,26 @@ public class HttpRequestRetryExec implements ExecChainHandler {
             try {
                 final HttpEntity entity = request.getEntity();
                 if (entity != null && !entity.isRepeatable()) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("{}: cannot retry non-repeatable request", exchangeId);
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("{} cannot retry non-repeatable request", exchangeId);
                     }
                     return response;
                 }
                 if (retryStrategy.retryRequest(response, execCount, context)) {
+                    final TimeValue nextInterval = retryStrategy.getRetryInterval(response, execCount, context);
+                    // Make sure the retry interval does not exceed the response timeout
+                    if (TimeValue.isPositive(nextInterval)) {
+                        final RequestConfig requestConfig = context.getRequestConfig();
+                        final Timeout responseTimeout = requestConfig.getResponseTimeout();
+                        if (responseTimeout != null && nextInterval.compareTo(responseTimeout) > 0) {
+                            return response;
+                        }
+                    }
                     response.close();
-                    final TimeValue nextInterval =
-                            retryStrategy.getRetryInterval(response, execCount, context);
                     if (TimeValue.isPositive(nextInterval)) {
                         try {
-                            if (log.isDebugEnabled()) {
-                                log.debug("{}: wait for {}", exchangeId, nextInterval);
+                            if (LOG.isDebugEnabled()) {
+                                LOG.debug("{} wait for {}", exchangeId, nextInterval);
                             }
                             nextInterval.sleep();
                         } catch (final InterruptedException e) {
@@ -146,7 +185,7 @@ public class HttpRequestRetryExec implements ExecChainHandler {
                             throw new InterruptedIOException();
                         }
                     }
-                    currentRequest = ClassicRequestCopier.INSTANCE.copy(scope.originalRequest);
+                    currentRequest = ClassicRequestBuilder.copy(scope.originalRequest).build();
                 } else {
                     return response;
                 }

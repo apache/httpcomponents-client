@@ -23,64 +23,61 @@
    individuals on behalf of the Apache Software Foundation.  For more
    information on the Apache Software Foundation, please see
    <http://www.apache.org />.
- --><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+ --><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <parent>
     <groupId>org.apache.httpcomponents</groupId>
     <artifactId>httpcomponents-parent</artifactId>
-    <version>11</version>
+    <version>13</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.apache.httpcomponents.client5</groupId>
   <artifactId>httpclient5-parent</artifactId>
   <name>Apache HttpComponents Client Parent</name>
-  <version>5.0.1-SNAPSHOT</version>
+  <version>5.3-alpha2-SNAPSHOT</version>
   <description>Apache HttpComponents Client is a library of components for building client side HTTP services</description>
-  <url>http://hc.apache.org/httpcomponents-client-5.0.x/</url>
+  <url>https://hc.apache.org/httpcomponents-client-5.0.x/${project.version}/</url>
   <inceptionYear>1999</inceptionYear>
   <packaging>pom</packaging>
 
-  <organization>
-    <name>The Apache Software Foundation</name>
-    <url>http://www.apache.org/</url>
-  </organization>
-
-  <licenses>
-    <license>
-      <name>Apache License, Version 2.0</name>
-      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-      <distribution>repo</distribution>
-    </license>
-  </licenses>
-
   <issueManagement>
     <system>Jira</system>
-    <url>http://issues.apache.org/jira/browse/HTTPCLIENT</url>
+    <url>https://issues.apache.org/jira/browse/HTTPCLIENT</url>
   </issueManagement>
 
   <scm>
-    <connection>scm:git:https://git-wip-us.apache.org/repos/asf/httpcomponents-client.git</connection>
-    <developerConnection>scm:git:https://git-wip-us.apache.org/repos/asf/httpcomponents-client.git</developerConnection>
+    <connection>scm:git:https://gitbox.apache.org/repos/asf/httpcomponents-client.git</connection>
+    <developerConnection>scm:git:https://gitbox.apache.org/repos/asf/httpcomponents-client.git</developerConnection>
     <url>https://github.com/apache/httpcomponents-client/tree/${project.scm.tag}</url>
-    <tag>5.0.1-SNAPSHOT</tag>
+    <tag>5.3-alpha2-SNAPSHOT</tag>
   </scm>
 
+ <distributionManagement>
+    <site>
+      <id>apache.website</id>
+      <name>Apache HttpComponents Website</name>
+      <url>scm:svn:https://svn.apache.org/repos/asf/httpcomponents/site/components/httpcomponents-client-5.3.x/LATEST/</url>
+    </site>
+  </distributionManagement>
+
   <properties>
-    <maven.compiler.source>1.7</maven.compiler.source>
-    <maven.compiler.target>1.7</maven.compiler.target>
-    <httpcore.version>5.0</httpcore.version>
-    <log4j.version>2.9.1</log4j.version>
-    <commons-codec.version>1.13</commons-codec.version>
-    <conscrypt.version>2.2.1</conscrypt.version>
-    <ehcache.version>3.4.0</ehcache.version>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+    <httpcore.version>5.2.4</httpcore.version>
+    <log4j.version>2.20.0</log4j.version>
+    <brotli.version>0.1.2</brotli.version>
+    <conscrypt.version>2.5.2</conscrypt.version>
+    <ehcache.version>3.10.8</ehcache.version>
     <memcached.version>2.12.3</memcached.version>
-    <slf4j.version>1.7.25</slf4j.version>
-    <junit.version>4.12</junit.version>
-    <easymock.version>3.6</easymock.version>
-    <mockito.version>2.23.0</mockito.version>
-    <jna.version>5.2.0</jna.version>
+    <slf4j.version>1.7.36</slf4j.version>
+    <junit.version>5.10.1</junit.version>
+    <hamcrest.version>2.2</hamcrest.version>
+    <mockito.version>4.11.0</mockito.version>
+    <jna.version>5.13.0</jna.version>
     <hc.stylecheck.version>1</hc.stylecheck.version>
-    <rxjava.version>2.2.7</rxjava.version>
-    <api.comparison.version>5.0</api.comparison.version>
+    <rxjava.version>2.2.21</rxjava.version>
+    <api.comparison.version>5.2</api.comparison.version>
+    <hc.animal-sniffer.signature.ignores>javax.net.ssl.SSLEngine,javax.net.ssl.SSLParameters,java.nio.ByteBuffer,java.nio.CharBuffer</hc.animal-sniffer.signature.ignores>
+    <japicmp.version>0.15.4</japicmp.version>
   </properties>
 
   <dependencyManagement>
@@ -106,6 +103,27 @@
         <version>${httpcore.version}</version>
       </dependency>
       <dependency>
+        <groupId>org.apache.httpcomponents.client5</groupId>
+        <artifactId>httpclient5</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.httpcomponents.client5</groupId>
+        <artifactId>httpclient5</artifactId>
+        <version>${project.version}</version>
+        <classifier>tests</classifier>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.httpcomponents.client5</groupId>
+        <artifactId>httpclient5-cache</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.httpcomponents.client5</groupId>
+        <artifactId>httpclient5-fluent</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
         <groupId>org.slf4j</groupId>
         <artifactId>slf4j-api</artifactId>
         <version>${slf4j.version}</version>
@@ -121,9 +139,9 @@
         <version>${log4j.version}</version>
       </dependency>
       <dependency>
-        <groupId>commons-codec</groupId>
-        <artifactId>commons-codec</artifactId>
-        <version>${commons-codec.version}</version>
+        <groupId>org.brotli</groupId>
+        <artifactId>dec</artifactId>
+        <version>${brotli.version}</version>
       </dependency>
       <dependency>
         <groupId>org.conscrypt</groupId>
@@ -157,10 +175,11 @@
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>junit</groupId>
-        <artifactId>junit</artifactId>
+        <groupId>org.junit</groupId>
+        <artifactId>junit-bom</artifactId>
         <version>${junit.version}</version>
-        <scope>test</scope>
+        <type>pom</type>
+        <scope>import</scope>
       </dependency>
       <dependency>
         <groupId>org.mockito</groupId>
@@ -169,9 +188,9 @@
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.easymock</groupId>
-        <artifactId>easymock</artifactId>
-        <version>${easymock.version}</version>
+        <groupId>org.hamcrest</groupId>
+        <artifactId>hamcrest</artifactId>
+        <version>${hamcrest.version}</version>
         <scope>test</scope>
       </dependency>
     </dependencies>
@@ -181,81 +200,36 @@
     <module>httpclient5</module>
     <module>httpclient5-fluent</module>
     <module>httpclient5-cache</module>
-    <module>httpclient5-win</module>
     <module>httpclient5-testing</module>
   </modules>
 
   <build>
+    <defaultGoal>clean verify</defaultGoal>
     <plugins>
       <plugin>
         <artifactId>maven-jar-plugin</artifactId>
         <configuration>
           <archive>
             <manifestEntries>
-              <Specification-Title>HttpComponents ${project.name}</Specification-Title>
-              <Specification-Version>${project.version}</Specification-Version>
-              <Specification-Vendor>The Apache Software Foundation</Specification-Vendor>
-              <Implementation-Title>HttpComponents ${project.name}</Implementation-Title>
-              <Implementation-Version>${project.version}</Implementation-Version>
-              <Implementation-Vendor>The Apache Software Foundation</Implementation-Vendor>
-              <Implementation-Vendor-Id>org.apache</Implementation-Vendor-Id>
-              <url>${project.url}</url>
-            </manifestEntries>
-          </archive>
-        </configuration>
-      </plugin>
-      <plugin>
-        <artifactId>maven-source-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>attach-sources</id>
-            <goals>
-              <goal>jar</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <archive>
-            <!-- Ensure source jars have full manifest entries (note: defaults aren't suitable) -->
-            <manifestEntries>
-              <Specification-Title>HttpComponents ${project.name}</Specification-Title>
-              <Specification-Version>${project.version}</Specification-Version>
-              <Specification-Vendor>The Apache Software Foundation</Specification-Vendor>
-              <Implementation-Title>HttpComponents ${project.name}</Implementation-Title>
-              <Implementation-Version>${project.version}</Implementation-Version>
-              <Implementation-Vendor>The Apache Software Foundation</Implementation-Vendor>
-              <Implementation-Vendor-Id>org.apache</Implementation-Vendor-Id>
+              <Automatic-Module-Name>${Automatic-Module-Name}</Automatic-Module-Name>
+              <Implementation-URL>${project.url}</Implementation-URL>
             </manifestEntries>
           </archive>
         </configuration>
       </plugin>
       <plugin>
         <artifactId>maven-javadoc-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>attach-javadocs</id>
-            <goals>
-              <goal>jar</goal>
-            </goals>
-          </execution>
-        </executions>
         <configuration>
-          <!-- reduce console output. Can override with -Dquiet=false -->
-          <quiet>true</quiet>
-          <source>${maven.compiler.source}</source>
           <links>
-            <link>http://docs.oracle.com/javase/7/docs/api/</link>
-            <link>http://hc.apache.org/httpcomponents-core-5.0.x/httpcore5/apidocs/</link>
-            <link>http://hc.apache.org/httpcomponents-core-5.0.x/httpcore5-h2/apidocs/</link>
+            <link>https://hc.apache.org/httpcomponents-core-5.2.x/current/httpcore5/apidocs/</link>
+            <link>https://hc.apache.org/httpcomponents-core-5.2.x/current/httpcore5-h2/apidocs/</link>
+            <link>${project.url}/httpclient5/apidocs/</link>
           </links>
         </configuration>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
-        <configuration>
-          <encoding>UTF-8</encoding>
-        </configuration>
         <executions>
           <execution>
             <id>validate-main</id>
@@ -266,7 +240,9 @@
               <consoleOutput>true</consoleOutput>
               <failsOnError>true</failsOnError>
               <linkXRef>false</linkXRef>
-              <sourceDirectory>${basedir}/src/main</sourceDirectory>
+              <sourceDirectories>
+                <sourceDirectory>${basedir}/src/main</sourceDirectory>
+              </sourceDirectories>
             </configuration>
             <goals>
               <goal>checkstyle</goal>
@@ -281,7 +257,9 @@
               <consoleOutput>true</consoleOutput>
               <failsOnError>true</failsOnError>
               <linkXRef>false</linkXRef>
-              <sourceDirectory>${basedir}/src/test</sourceDirectory>
+              <sourceDirectories>
+                <sourceDirectory>${basedir}/src/test</sourceDirectory>
+              </sourceDirectories>
             </configuration>
             <goals>
               <goal>checkstyle</goal>
@@ -290,11 +268,46 @@
         </executions>
       </plugin>
       <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>clirr-maven-plugin</artifactId>
+        <groupId>com.github.siom79.japicmp</groupId>
+        <artifactId>japicmp-maven-plugin</artifactId>
         <configuration>
-          <comparisonVersion>${api.comparison.version}</comparisonVersion>
+          <oldVersion>
+            <dependency>
+              <groupId>${project.groupId}</groupId>
+              <artifactId>${project.artifactId}</artifactId>
+              <version>${api.comparison.version}</version>
+              <type>jar</type>
+            </dependency>
+          </oldVersion>
+          <newVersion>
+            <file>
+              <path>${project.build.directory}/${project.artifactId}-${project.version}.${project.packaging}</path>
+            </file>
+          </newVersion>
+          <parameter>
+            <breakBuildOnBinaryIncompatibleModifications>true</breakBuildOnBinaryIncompatibleModifications>
+            <breakBuildOnSourceIncompatibleModifications>true</breakBuildOnSourceIncompatibleModifications>
+            <overrideCompatibilityChangeParameters>
+              <overrideCompatibilityChangeParameter>
+                <compatibilityChange>METHOD_NEW_DEFAULT</compatibilityChange>
+                <binaryCompatible>true</binaryCompatible>
+                <sourceCompatible>true</sourceCompatible>
+              </overrideCompatibilityChangeParameter>
+            </overrideCompatibilityChangeParameters>
+            <excludes>
+              <exclude>@org.apache.hc.core5.annotation.Internal</exclude>
+            </excludes>
+            <ignoreMissingClasses>true</ignoreMissingClasses>
+          </parameter>
         </configuration>
+        <executions>
+          <execution>
+            <phase>verify</phase>
+            <goals>
+              <goal>cmp</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
       <plugin>
         <groupId>org.apache.rat</groupId>
@@ -320,31 +333,18 @@
           </excludes>
         </configuration>
       </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-      </plugin>
     </plugins>
   </build>
 
   <reporting>
     <plugins>
-
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>clirr-maven-plugin</artifactId>
-        <version>${hc.clirr.version}</version>
-        <configuration>
-          <comparisonVersion>${api.comparison.version}</comparisonVersion>
-        </configuration>
-      </plugin>
-
       <plugin>
         <artifactId>maven-project-info-reports-plugin</artifactId>
         <inherited>false</inherited>
         <reportSets>
           <reportSet>
             <reports>
+              <report>index</report>
               <report>dependency-info</report>
               <report>dependency-management</report>
               <report>issue-management</report>
@@ -356,7 +356,86 @@
           </reportSet>
         </reportSets>
       </plugin>
-
+      <plugin>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <configuration>
+          <quiet>true</quiet>
+          <notimestamp>true</notimestamp>
+          <links>
+            <link>https://hc.apache.org/httpcomponents-core-5.0.x/httpcore5/apidocs/</link>
+            <link>https://hc.apache.org/httpcomponents-core-5.0.x/httpcore5-h2/apidocs/</link>
+            <link>${project.url}/httpclient5/apidocs/</link>
+          </links>
+          <groups>
+            <group>
+              <title>Apache HttpClient</title>
+              <packages>org.apache.hc.client5.http*</packages>
+            </group>
+            <group>
+              <title>Apache HttpClient Cache</title>
+              <packages>org.apache.hc.client5.http.cache*:org.apache.hc.client5.http.impl.cache*:org.apache.hc.client5.http.schedule:org.apache.hc.client5.http.impl.schedule*</packages>
+            </group>
+            <group>
+              <title>Apache HttpClient Fluent</title>
+              <packages>org.apache.hc.client5.http.fluent*</packages>
+            </group>
+            <group>
+              <title>Apache HttpClient Testing</title>
+              <packages>org.apache.hc.client5.testing*</packages>
+            </group>
+            <group>
+              <title>Apache HttpClient Windows features</title>
+              <packages>org.apache.hc.client5.http.impl.win*</packages>
+            </group>
+          </groups>
+        </configuration>
+        <reportSets>
+          <reportSet>
+            <reports>
+              <report>javadoc</report>
+              <report>aggregate</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+      </plugin>
+      <plugin>
+        <groupId>com.github.siom79.japicmp</groupId>
+        <artifactId>japicmp-maven-plugin</artifactId>
+        <reportSets>
+          <reportSet>
+            <reports>
+              <report>cmp-report</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+        <configuration>
+          <oldVersion>
+            <dependency>
+              <groupId>${project.groupId}</groupId>
+              <artifactId>${project.artifactId}</artifactId>
+              <version>${api.comparison.version}</version>
+              <type>jar</type>
+            </dependency>
+          </oldVersion>
+          <newVersion>
+            <file>
+              <path>${project.build.directory}/${project.artifactId}-${project.version}.${project.packaging}</path>
+            </file>
+          </newVersion>
+          <parameter>
+            <excludes>
+              <exclude>@org.apache.hc.core5.annotation.Internal</exclude>
+            </excludes>
+            <ignoreMissingClasses>true</ignoreMissingClasses>
+          </parameter>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-jxr-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <artifactId>maven-surefire-report-plugin</artifactId>
+      </plugin>
     </plugins>
   </reporting>
 

@@ -55,14 +55,13 @@ import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
+import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
 import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.io.ModalCloseable;
-import org.apache.hc.core5.net.URIAuthority;
 import org.apache.hc.core5.util.Args;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,7 +79,7 @@ import org.slf4j.LoggerFactory;
 @Internal
 class InternalHttpClient extends CloseableHttpClient implements Configurable {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger LOG = LoggerFactory.getLogger(InternalHttpClient.class);
 
     private final HttpClientConnectionManager connManager;
     private final HttpRequestExecutor requestExecutor;
@@ -117,11 +116,7 @@ class InternalHttpClient extends CloseableHttpClient implements Configurable {
         this.closeables = closeables != null ?  new ConcurrentLinkedQueue<>(closeables) : null;
     }
 
-    private HttpRoute determineRoute(
-            final HttpHost host,
-            final HttpRequest request,
-            final HttpContext context) throws HttpException {
-        final HttpHost target = host != null ? host : RoutingSupport.determineHost(request);
+    private HttpRoute determineRoute(final HttpHost target, final HttpContext context) throws HttpException {
         return this.routePlanner.determineRoute(target, context);
     }
 
@@ -150,12 +145,6 @@ class InternalHttpClient extends CloseableHttpClient implements Configurable {
             final HttpContext context) throws IOException {
         Args.notNull(request, "HTTP request");
         try {
-            if (request.getScheme() == null && target != null) {
-                request.setScheme(target.getSchemeName());
-            }
-            if (request.getAuthority() == null && target != null) {
-                request.setAuthority(new URIAuthority(target));
-            }
             final HttpClientContext localcontext = HttpClientContext.adapt(
                     context != null ? context : new BasicHttpContext());
             RequestConfig config = null;
@@ -166,16 +155,19 @@ class InternalHttpClient extends CloseableHttpClient implements Configurable {
                 localcontext.setRequestConfig(config);
             }
             setupContext(localcontext);
-            final HttpRoute route = determineRoute(target, request, localcontext);
+            final HttpRoute route = determineRoute(
+                    target != null ? target : RoutingSupport.determineHost(request),
+                    localcontext);
             final String exchangeId = ExecSupport.getNextExchangeId();
-            if (log.isDebugEnabled()) {
-                log.debug(exchangeId + ": preparing request execution");
+            localcontext.setExchangeId(exchangeId);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{} preparing request execution", exchangeId);
             }
 
-            final ExecRuntime execRuntime = new InternalExecRuntime(log, connManager, requestExecutor,
+            final ExecRuntime execRuntime = new InternalExecRuntime(LOG, connManager, requestExecutor,
                     request instanceof CancellableDependency ? (CancellableDependency) request : null);
             final ExecChain.Scope scope = new ExecChain.Scope(exchangeId, route, request, execRuntime, localcontext);
-            final ClassicHttpResponse response = this.execChain.execute(ClassicRequestCopier.INSTANCE.copy(request), scope);
+            final ClassicHttpResponse response = this.execChain.execute(ClassicRequestBuilder.copy(request).build(), scope);
             return CloseableHttpResponse.adapt(response);
         } catch (final HttpException httpException) {
             throw new ClientProtocolException(httpException.getMessage(), httpException);
@@ -204,7 +196,7 @@ class InternalHttpClient extends CloseableHttpClient implements Configurable {
                         closeable.close();
                     }
                 } catch (final IOException ex) {
-                    this.log.error(ex.getMessage(), ex);
+                    LOG.error(ex.getMessage(), ex);
                 }
             }
         }

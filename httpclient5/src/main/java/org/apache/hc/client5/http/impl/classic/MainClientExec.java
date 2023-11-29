@@ -48,6 +48,8 @@ import org.apache.hc.core5.http.ConnectionReuseStrategy;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.message.RequestLine;
+import org.apache.hc.core5.http.protocol.HttpCoreContext;
+import org.apache.hc.core5.http.protocol.HttpProcessor;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TimeValue;
@@ -65,9 +67,10 @@ import org.slf4j.LoggerFactory;
 @Internal
 public final class MainClientExec implements ExecChainHandler {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger LOG = LoggerFactory.getLogger(MainClientExec.class);
 
     private final HttpClientConnectionManager connectionManager;
+    private final HttpProcessor httpProcessor;
     private final ConnectionReuseStrategy reuseStrategy;
     private final ConnectionKeepAliveStrategy keepAliveStrategy;
     private final UserTokenHandler userTokenHandler;
@@ -77,10 +80,12 @@ public final class MainClientExec implements ExecChainHandler {
      */
     public MainClientExec(
             final HttpClientConnectionManager connectionManager,
+            final HttpProcessor httpProcessor,
             final ConnectionReuseStrategy reuseStrategy,
             final ConnectionKeepAliveStrategy keepAliveStrategy,
             final UserTokenHandler userTokenHandler) {
         this.connectionManager = Args.notNull(connectionManager, "Connection manager");
+        this.httpProcessor = Args.notNull(httpProcessor, "HTTP protocol processor");
         this.reuseStrategy = Args.notNull(reuseStrategy, "Connection reuse strategy");
         this.keepAliveStrategy = Args.notNull(keepAliveStrategy, "Connection keep alive strategy");
         this.userTokenHandler = Args.notNull(userTokenHandler, "User token handler");
@@ -98,17 +103,24 @@ public final class MainClientExec implements ExecChainHandler {
         final HttpClientContext context = scope.clientContext;
         final ExecRuntime execRuntime = scope.execRuntime;
 
-        if (log.isDebugEnabled()) {
-            log.debug(exchangeId + ": executing " + new RequestLine(request));
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("{} executing {}", exchangeId, new RequestLine(request));
         }
         try {
-            RequestEntityProxy.enhance(request);
+            // Run request protocol interceptors
+            context.setAttribute(HttpClientContext.HTTP_ROUTE, route);
+            context.setAttribute(HttpCoreContext.HTTP_REQUEST, request);
+
+            httpProcessor.process(request, request.getEntity(), context);
 
             final ClassicHttpResponse response = execRuntime.execute(exchangeId, request, context);
 
+            context.setAttribute(HttpCoreContext.HTTP_RESPONSE, response);
+            httpProcessor.process(response, response.getEntity(), context);
+
             Object userToken = context.getUserToken();
             if (userToken == null) {
-                userToken = userTokenHandler.getUserToken(route, context);
+                userToken = userTokenHandler.getUserToken(route, request, context);
                 context.setAttribute(HttpClientContext.USER_TOKEN, userToken);
             }
 
@@ -116,14 +128,14 @@ public final class MainClientExec implements ExecChainHandler {
             if (reuseStrategy.keepAlive(request, response, context)) {
                 // Set the idle duration of this connection
                 final TimeValue duration = keepAliveStrategy.getKeepAliveDuration(response, context);
-                if (this.log.isDebugEnabled()) {
+                if (LOG.isDebugEnabled()) {
                     final String s;
                     if (duration != null) {
                         s = "for " + duration;
                     } else {
                         s = "indefinitely";
                     }
-                    this.log.debug(exchangeId + ": connection can be kept alive " + s);
+                    LOG.debug("{} connection can be kept alive {}", exchangeId, s);
                 }
                 execRuntime.markConnectionReusable(userToken, duration);
             } else {
@@ -136,7 +148,6 @@ public final class MainClientExec implements ExecChainHandler {
                 execRuntime.releaseEndpoint();
                 return new CloseableHttpResponse(response, null);
             }
-            ResponseEntityProxy.enhance(response, execRuntime);
             return new CloseableHttpResponse(response, execRuntime);
         } catch (final ConnectionShutdownException ex) {
             final InterruptedIOException ioex = new InterruptedIOException(

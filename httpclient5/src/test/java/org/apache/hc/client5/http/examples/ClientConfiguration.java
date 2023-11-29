@@ -32,29 +32,31 @@ import java.net.UnknownHostException;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Collections;
 
 import javax.net.ssl.SSLContext;
 
+import org.apache.hc.client5.http.ContextBuilder;
 import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.SystemDefaultDnsResolver;
-import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
+import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.cookie.BasicCookieStore;
-import org.apache.hc.client5.http.cookie.StandardCookieSpec;
 import org.apache.hc.client5.http.cookie.CookieStore;
-import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
+import org.apache.hc.client5.http.cookie.StandardCookieSpec;
+import org.apache.hc.client5.http.impl.auth.CredentialsProviderBuilder;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.ManagedHttpClientConnectionFactory;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.io.ManagedHttpClientConnection;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
-import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
-import org.apache.hc.client5.http.socket.PlainConnectionSocketFactory;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
@@ -63,8 +65,6 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.ParseException;
 import org.apache.hc.core5.http.config.CharCodingConfig;
 import org.apache.hc.core5.http.config.Http1Config;
-import org.apache.hc.core5.http.config.Registry;
-import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.impl.io.DefaultClassicHttpResponseFactory;
 import org.apache.hc.core5.http.impl.io.DefaultHttpRequestWriterFactory;
 import org.apache.hc.core5.http.impl.io.DefaultHttpResponseParser;
@@ -78,6 +78,8 @@ import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.BasicLineParser;
 import org.apache.hc.core5.http.message.LineParser;
+import org.apache.hc.core5.http.message.StatusLine;
+import org.apache.hc.core5.http.ssl.TLS;
 import org.apache.hc.core5.pool.PoolConcurrencyPolicy;
 import org.apache.hc.core5.pool.PoolReusePolicy;
 import org.apache.hc.core5.ssl.SSLContexts;
@@ -143,14 +145,11 @@ public class ClientConfiguration {
 
         // SSL context for secure connections can be created either based on
         // system or application specific properties.
-        final SSLContext sslcontext = SSLContexts.createSystemDefault();
+        final SSLContext sslContext = SSLContexts.createSystemDefault();
 
         // Create a registry of custom connection socket factories for supported
         // protocol schemes.
-        final Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create()
-            .register("http", PlainConnectionSocketFactory.INSTANCE)
-            .register("https", new SSLConnectionSocketFactory(sslcontext))
-            .build();
+        final SSLConnectionSocketFactory sslConnectionSocketFactory = new SSLConnectionSocketFactory(sslContext);
 
         // Use custom DNS resolver to override the system DNS resolution.
         final DnsResolver dnsResolver = new SystemDefaultDnsResolver() {
@@ -167,19 +166,32 @@ public class ClientConfiguration {
         };
 
         // Create a connection manager with custom configuration.
-        final PoolingHttpClientConnectionManager connManager = new PoolingHttpClientConnectionManager(
-                socketFactoryRegistry, PoolConcurrencyPolicy.STRICT, PoolReusePolicy.LIFO, TimeValue.ofMinutes(5),
-                null, dnsResolver, null);
+        final PoolingHttpClientConnectionManager connManager = PoolingHttpClientConnectionManagerBuilder.create()
+                .setSSLSocketFactory(sslConnectionSocketFactory)
+                .setConnectionFactory(connFactory)
+                .setDnsResolver(dnsResolver)
+                .setPoolConcurrencyPolicy(PoolConcurrencyPolicy.STRICT)
+                .setConnPoolPolicy(PoolReusePolicy.LIFO)
+                .build();
 
-        // Create socket configuration
-        final SocketConfig socketConfig = SocketConfig.custom()
-            .setTcpNoDelay(true)
-            .build();
         // Configure the connection manager to use socket configuration either
         // by default or for a specific host.
-        connManager.setDefaultSocketConfig(socketConfig);
-        // Validate connections after 1 sec of inactivity
-        connManager.setValidateAfterInactivity(TimeValue.ofSeconds(10));
+        connManager.setDefaultSocketConfig(SocketConfig.custom()
+                .setTcpNoDelay(true)
+                .build());
+        // Validate connections after 10 sec of inactivity
+        connManager.setDefaultConnectionConfig(ConnectionConfig.custom()
+                .setConnectTimeout(Timeout.ofSeconds(30))
+                .setSocketTimeout(Timeout.ofSeconds(30))
+                .setValidateAfterInactivity(TimeValue.ofSeconds(10))
+                .setTimeToLive(TimeValue.ofHours(1))
+                .build());
+
+        // Use TLS v1.3 only
+        connManager.setDefaultTlsConfig(TlsConfig.custom()
+                .setHandshakeTimeout(Timeout.ofSeconds(30))
+                .setSupportedProtocols(TLS.V_1_3)
+                .build());
 
         // Configure total max or per route limits for persistent connections
         // that can be kept in the pool or leased by the connection manager.
@@ -190,13 +202,14 @@ public class ClientConfiguration {
         // Use custom cookie store if necessary.
         final CookieStore cookieStore = new BasicCookieStore();
         // Use custom credentials provider if necessary.
-        final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+        final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
+                .build();
         // Create global request configuration
         final RequestConfig defaultRequestConfig = RequestConfig.custom()
             .setCookieSpec(StandardCookieSpec.STRICT)
             .setExpectContinueEnabled(true)
-            .setTargetPreferredAuthSchemes(Arrays.asList(StandardAuthScheme.NTLM, StandardAuthScheme.DIGEST))
-            .setProxyPreferredAuthSchemes(Arrays.asList(StandardAuthScheme.BASIC))
+            .setTargetPreferredAuthSchemes(Arrays.asList(StandardAuthScheme.DIGEST))
+            .setProxyPreferredAuthSchemes(Collections.singletonList(StandardAuthScheme.BASIC))
             .build();
 
         // Create an HttpClient with the given custom dependencies and configuration.
@@ -213,42 +226,36 @@ public class ClientConfiguration {
             // They will take precedence over the one set at the client level.
             final RequestConfig requestConfig = RequestConfig.copy(defaultRequestConfig)
                     .setConnectionRequestTimeout(Timeout.ofSeconds(5))
-                    .setConnectTimeout(Timeout.ofSeconds(5))
-                    .setProxy(new HttpHost("myotherproxy", 8080))
                     .build();
             httpget.setConfig(requestConfig);
 
             // Execution context can be customized locally.
-            final HttpClientContext context = HttpClientContext.create();
             // Contextual attributes set the local context level will take
             // precedence over those set at the client level.
-            context.setCookieStore(cookieStore);
-            context.setCredentialsProvider(credentialsProvider);
+            final HttpClientContext context = ContextBuilder.create()
+                    .useCookieStore(cookieStore)
+                    .useCredentialsProvider(credentialsProvider)
+                    .build();
 
             System.out.println("Executing request " + httpget.getMethod() + " " + httpget.getUri());
-            try (final CloseableHttpResponse response = httpclient.execute(httpget, context)) {
+            httpclient.execute(httpget, context, response -> {
                 System.out.println("----------------------------------------");
-                System.out.println(response.getCode() + " " + response.getReasonPhrase());
-                System.out.println(EntityUtils.toString(response.getEntity()));
-
-                // Once the request has been executed the local context can
-                // be used to examine updated state and various objects affected
-                // by the request execution.
-
-                // Last executed request
-                context.getRequest();
-                // Execution route
-                context.getHttpRoute();
-                // Auth exchanges
-                context.getAuthExchanges();
-                // Cookie origin
-                context.getCookieOrigin();
-                // Cookie spec used
-                context.getCookieSpec();
-                // User security token
-                context.getUserToken();
-
-            }
+                System.out.println(httpget + "->" + new StatusLine(response));
+                EntityUtils.consume(response.getEntity());
+                return null;
+            });
+            // Last executed request
+            context.getRequest();
+            // Execution route
+            context.getHttpRoute();
+            // Auth exchanges
+            context.getAuthExchanges();
+            // Cookie origin
+            context.getCookieOrigin();
+            // Cookie spec used
+            context.getCookieSpec();
+            // User security token
+            context.getUserToken();
         }
     }
 

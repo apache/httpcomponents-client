@@ -50,14 +50,7 @@ public final class HttpsSupport {
     }
 
     private static String getProperty(final String key) {
-        return AccessController.doPrivileged(new PrivilegedAction<String>() {
-
-            @Override
-            public String run() {
-                return System.getProperty(key);
-            }
-
-        });
+        return AccessController.doPrivileged((PrivilegedAction<String>) () -> System.getProperty(key));
     }
 
     public static String[] getSystemProtocols() {

@@ -33,7 +33,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
-import java.util.Date;
+import java.time.Instant;
 
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.cache.CacheResponseStatus;
@@ -50,10 +50,10 @@ import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 public class TestHttpCacheJiraNumber1147 {
@@ -71,7 +71,7 @@ public class TestHttpCacheJiraNumber1147 {
         }
     }
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         cacheDir = File.createTempFile("cachedir", "");
         if (cacheDir.exists()) {
@@ -80,7 +80,7 @@ public class TestHttpCacheJiraNumber1147 {
         cacheDir.mkdir();
     }
 
-    @After
+    @AfterEach
     public void cleanUp() {
         removeCache();
     }
@@ -102,15 +102,15 @@ public class TestHttpCacheJiraNumber1147 {
         final ClassicHttpRequest get = new HttpGet("http://somehost/");
         final HttpCacheContext context = HttpCacheContext.create();
 
-        final Date now = new Date();
-        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        final Instant now = Instant.now();
+        final Instant tenSecondsAgo = now.minusSeconds(10);
 
         final ClassicHttpResponse response = new BasicClassicHttpResponse(200, "OK");
         response.setEntity(HttpTestUtils.makeBody(128));
         response.setHeader("Content-Length", "128");
         response.setHeader("ETag", "\"etag\"");
         response.setHeader("Cache-Control", "public, max-age=3600");
-        response.setHeader("Last-Modified", DateUtils.formatDate(tenSecondsAgo));
+        response.setHeader("Last-Modified", DateUtils.formatStandardDate(tenSecondsAgo));
 
         when(mockExecChain.proceed(
                 isA(ClassicHttpRequest.class),
@@ -121,7 +121,7 @@ public class TestHttpCacheJiraNumber1147 {
 
         final ExecChain.Scope scope = new ExecChain.Scope("teset", route, get, mockEndpoint, context);
         final ClassicHttpResponse response1 = t.execute(get, scope, mockExecChain);
-        Assert.assertEquals(200, response1.getCode());
+        Assertions.assertEquals(200, response1.getCode());
         EntityUtils.consume(response1.getEntity());
 
         verify(mockExecChain).proceed(isA(ClassicHttpRequest.class), isA(ExecChain.Scope.class));
@@ -132,13 +132,13 @@ public class TestHttpCacheJiraNumber1147 {
         when(mockExecChain.proceed(isA(ClassicHttpRequest.class), isA(ExecChain.Scope.class))).thenReturn(response);
 
         final ClassicHttpResponse response2 = t.execute(get, scope, mockExecChain);
-        Assert.assertEquals(200, response2.getCode());
+        Assertions.assertEquals(200, response2.getCode());
         EntityUtils.consume(response2.getEntity());
 
         verify(mockExecChain, Mockito.times(1)).proceed(
                 isA(ClassicHttpRequest.class),
                 isA(ExecChain.Scope.class));
-        Assert.assertEquals(CacheResponseStatus.FAILURE, context.getCacheResponseStatus());
+        Assertions.assertEquals(CacheResponseStatus.FAILURE, context.getCacheResponseStatus());
     }
 
     protected ExecChainHandler createCachingExecChain(final BasicHttpCache cache, final CacheConfig config) {

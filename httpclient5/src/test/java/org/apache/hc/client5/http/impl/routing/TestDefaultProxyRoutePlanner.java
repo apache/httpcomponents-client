@@ -32,13 +32,11 @@ import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.message.BasicHttpRequest;
 import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.HttpContext;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 /**
@@ -50,7 +48,7 @@ public class TestDefaultProxyRoutePlanner {
     private SchemePortResolver schemePortResolver;
     private DefaultProxyRoutePlanner routePlanner;
 
-    @Before
+    @BeforeEach
     public void setup() {
         defaultProxy = new HttpHost("default.proxy.host", 8888);
         schemePortResolver = Mockito.mock(SchemePortResolver.class);
@@ -65,26 +63,26 @@ public class TestDefaultProxyRoutePlanner {
         final HttpContext context = new BasicHttpContext();
         final HttpRoute route = routePlanner.determineRoute(target, context);
 
-        Assert.assertEquals(target, route.getTargetHost());
-        Assert.assertEquals(defaultProxy, route.getProxyHost());
-        Assert.assertEquals(2, route.getHopCount());
-        Assert.assertFalse(route.isSecure());
+        Assertions.assertEquals(target, route.getTargetHost());
+        Assertions.assertEquals(defaultProxy, route.getProxyHost());
+        Assertions.assertEquals(2, route.getHopCount());
+        Assertions.assertFalse(route.isSecure());
     }
 
     @Test
+    @SuppressWarnings("deprecation")
     public void testViaProxy() throws Exception {
         final HttpHost target = new HttpHost("http", "somehost", 80);
         final HttpHost proxy = new HttpHost("custom.proxy.host", 8080);
-        final HttpRequest request = new BasicHttpRequest("GET", "/");
 
         final HttpClientContext context = HttpClientContext.create();
         context.setRequestConfig(RequestConfig.custom().setProxy(proxy).build());
         final HttpRoute route = routePlanner.determineRoute(target, context);
 
-        Assert.assertEquals(target, route.getTargetHost());
-        Assert.assertEquals(proxy, route.getProxyHost());
-        Assert.assertEquals(2, route.getHopCount());
-        Assert.assertFalse(route.isSecure());
+        Assertions.assertEquals(target, route.getTargetHost());
+        Assertions.assertEquals(proxy, route.getProxyHost());
+        Assertions.assertEquals(2, route.getHopCount());
+        Assertions.assertFalse(route.isSecure());
     }
 
 }

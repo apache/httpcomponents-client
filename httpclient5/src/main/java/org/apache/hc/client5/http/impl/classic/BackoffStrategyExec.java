@@ -35,12 +35,13 @@ import org.apache.hc.client5.http.classic.ConnectionBackoffStrategy;
 import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecChainHandler;
 import org.apache.hc.core5.annotation.Contract;
-import org.apache.hc.core5.annotation.Experimental;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.util.Args;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Request execution handler in the classic request execution chain
@@ -54,12 +55,22 @@ import org.apache.hc.core5.util.Args;
  * @since 4.3
  */
 @Contract(threading = ThreadingBehavior.STATELESS)
-@Experimental
 public final class BackoffStrategyExec implements ExecChainHandler {
+
+    private static final Logger LOG = LoggerFactory.getLogger(BackoffStrategyExec.class);
 
     private final ConnectionBackoffStrategy connectionBackoffStrategy;
     private final BackoffManager backoffManager;
 
+    /**
+     * Constructs a {@code BackoffStrategyExec} with the specified
+     * {@link ConnectionBackoffStrategy} and {@link BackoffManager}.
+     *
+     * @param connectionBackoffStrategy the strategy to determine whether
+     *                                  to backoff based on the response or exception
+     * @param backoffManager            the manager responsible for applying backoff
+     *                                  and probing actions to the HTTP routes
+     */
     public BackoffStrategyExec(
             final ConnectionBackoffStrategy connectionBackoffStrategy,
             final BackoffManager backoffManager) {
@@ -84,13 +95,22 @@ public final class BackoffStrategyExec implements ExecChainHandler {
             response = chain.proceed(request, scope);
         } catch (final IOException | HttpException ex) {
             if (this.connectionBackoffStrategy.shouldBackoff(ex)) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Backing off route {} due to exception: {}", route, ex.getMessage());
+                }
                 this.backoffManager.backOff(route);
             }
             throw ex;
         }
         if (this.connectionBackoffStrategy.shouldBackoff(response)) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Backing off route {} due to response status: {}", route, response.getCode());
+            }
             this.backoffManager.backOff(route);
         } else {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Probing route: {}", route);
+            }
             this.backoffManager.probe(route);
         }
         return response;

@@ -37,15 +37,15 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 import org.apache.hc.core5.http.ContentType;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class TestMultipartForm {
 
     private File tmpfile;
 
-    @After
+    @AfterEach
     public void cleanup() {
         if (tmpfile != null) {
             tmpfile.delete();
@@ -65,7 +65,7 @@ public class TestMultipartForm {
                 "field3",
                 new StringBody("all kind of stuff", ContentType.DEFAULT_TEXT)).build();
         final HttpStrictMultipart multipart = new HttpStrictMultipart(null, "foo",
-                Arrays.<MultipartPart>asList(p1, p2, p3));
+                Arrays.asList(p1, p2, p3));
 
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
         multipart.writeTo(out);
@@ -89,8 +89,8 @@ public class TestMultipartForm {
             "all kind of stuff\r\n" +
             "--foo--\r\n";
         final String s = out.toString("US-ASCII");
-        Assert.assertEquals(expected, s);
-        Assert.assertEquals(s.length(), multipart.getTotalLength());
+        Assertions.assertEquals(expected, s);
+        Assertions.assertEquals(s.length(), multipart.getTotalLength());
     }
 
     @Test
@@ -102,7 +102,7 @@ public class TestMultipartForm {
                 "field2",
                 new StringBody("that stuff", ContentType.parse("stuff/plain; param=value"))).build();
         final HttpStrictMultipart multipart = new HttpStrictMultipart(null, "foo",
-                Arrays.<MultipartPart>asList(p1, p2));
+                Arrays.asList(p1, p2));
 
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
         multipart.writeTo(out);
@@ -121,8 +121,8 @@ public class TestMultipartForm {
                         "that stuff\r\n" +
                         "--foo--\r\n";
         final String s = out.toString("US-ASCII");
-        Assert.assertEquals(expected, s);
-        Assert.assertEquals(s.length(), multipart.getTotalLength());
+        Assertions.assertEquals(expected, s);
+        Assertions.assertEquals(s.length(), multipart.getTotalLength());
     }
 
     @Test
@@ -140,7 +140,7 @@ public class TestMultipartForm {
                 "field2",
                 new InputStreamBody(new FileInputStream(tmpfile), "file.tmp")).build();
         final HttpStrictMultipart multipart = new HttpStrictMultipart(null, "foo",
-                Arrays.<MultipartPart>asList(p1, p2));
+                Arrays.asList(p1, p2));
 
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
         multipart.writeTo(out);
@@ -161,8 +161,8 @@ public class TestMultipartForm {
             "some random whatever\r\n" +
             "--foo--\r\n";
         final String s = out.toString("US-ASCII");
-        Assert.assertEquals(expected, s);
-        Assert.assertEquals(-1, multipart.getTotalLength());
+        Assertions.assertEquals(expected, s);
+        Assertions.assertEquals(-1, multipart.getTotalLength());
     }
 
     @Test
@@ -183,7 +183,7 @@ public class TestMultipartForm {
                 "field3",
                 new InputStreamBody(new FileInputStream(tmpfile), "file.tmp")).build();
         final HttpStrictMultipart multipart = new HttpStrictMultipart(null, "foo",
-                Arrays.<MultipartPart>asList(p1, p2, p3));
+                Arrays.asList(p1, p2, p3));
 
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
         multipart.writeTo(out);
@@ -210,8 +210,8 @@ public class TestMultipartForm {
             "some random whatever\r\n" +
             "--foo--\r\n";
         final String s = out.toString("US-ASCII");
-        Assert.assertEquals(expected, s);
-        Assert.assertEquals(-1, multipart.getTotalLength());
+        Assertions.assertEquals(expected, s);
+        Assertions.assertEquals(-1, multipart.getTotalLength());
     }
 
     @Test
@@ -232,7 +232,7 @@ public class TestMultipartForm {
                 "field3",
                 new InputStreamBody(new FileInputStream(tmpfile), "file.tmp")).build();
         final HttpRFC6532Multipart multipart = new HttpRFC6532Multipart(null, "foo",
-                Arrays.<MultipartPart>asList(p1, p2, p3));
+                Arrays.asList(p1, p2, p3));
 
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
         multipart.writeTo(out);
@@ -259,8 +259,8 @@ public class TestMultipartForm {
             "some random whatever\r\n" +
             "--foo--\r\n";
         final String s = out.toString("UTF-8");
-        Assert.assertEquals(expected, s);
-        Assert.assertEquals(-1, multipart.getTotalLength());
+        Assertions.assertEquals(expected, s);
+        Assertions.assertEquals(-1, multipart.getTotalLength());
     }
 
     private static final int SWISS_GERMAN_HELLO [] = {
@@ -302,7 +302,7 @@ public class TestMultipartForm {
                 new InputStreamBody(new FileInputStream(tmpfile), s2 + ".tmp")).build();
         final LegacyMultipart multipart = new LegacyMultipart(
                 StandardCharsets.UTF_8, "foo",
-                Arrays.<MultipartPart>asList(p1, p2));
+                Arrays.asList(p1, p2));
 
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
         multipart.writeTo(out);
@@ -323,8 +323,8 @@ public class TestMultipartForm {
             "some random whatever\r\n" +
             "--foo--\r\n";
         final String s = out.toString("UTF-8");
-        Assert.assertEquals(expected, s);
-        Assert.assertEquals(-1, multipart.getTotalLength());
+        Assertions.assertEquals(expected, s);
+        Assertions.assertEquals(-1, multipart.getTotalLength());
     }
 
     @Test
@@ -334,12 +334,12 @@ public class TestMultipartForm {
 
         final FormBodyPart p1 = FormBodyPartBuilder.create(
                 "field1",
-                new StringBody(s1, ContentType.create("text/plain", Charset.forName("ISO-8859-1")))).build();
+                new StringBody(s1, ContentType.create("text/plain", StandardCharsets.ISO_8859_1))).build();
         final FormBodyPart p2 = FormBodyPartBuilder.create(
                 "field2",
                 new StringBody(s2, ContentType.create("text/plain", Charset.forName("KOI8-R")))).build();
         final HttpStrictMultipart multipart = new HttpStrictMultipart(null, "foo",
-                Arrays.<MultipartPart>asList(p1, p2));
+                Arrays.asList(p1, p2));
 
         final ByteArrayOutputStream out1 = new ByteArrayOutputStream();
         multipart.writeTo(out1);
@@ -366,11 +366,52 @@ public class TestMultipartForm {
         final byte[] actual = out1.toByteArray();
         final byte[] expected = out2.toByteArray();
 
-        Assert.assertEquals(expected.length, actual.length);
+        Assertions.assertEquals(expected.length, actual.length);
         for (int i = 0; i < actual.length; i++) {
-            Assert.assertEquals(expected[i], actual[i]);
+            Assertions.assertEquals(expected[i], actual[i]);
         }
-        Assert.assertEquals(expected.length, multipart.getTotalLength());
+        Assertions.assertEquals(expected.length, multipart.getTotalLength());
     }
 
+    @Test
+    public void testMultipartFormBinaryPartsPreamblEpilogue() throws Exception {
+        tmpfile = File.createTempFile("tmp", ".bin");
+        try (Writer writer = new FileWriter(tmpfile)) {
+            writer.append("some random whatever");
+        }
+
+        final FormBodyPart p1 = FormBodyPartBuilder.create(
+                "field1",
+                new FileBody(tmpfile)).build();
+        @SuppressWarnings("resource")
+        final FormBodyPart p2 = FormBodyPartBuilder.create(
+                "field2",
+                new InputStreamBody(new FileInputStream(tmpfile), "file.tmp")).build();
+        final HttpStrictMultipart multipart = new HttpStrictMultipart(null, "foo",
+                Arrays.asList(p1, p2), "This is the preamble", "This is the epilogue");
+
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        multipart.writeTo(out);
+        out.close();
+
+        final String expected =
+                "This is the preamble\r\n" +
+                        "--foo\r\n" +
+                        "Content-Disposition: form-data; name=\"field1\"; " +
+                        "filename=\"" + tmpfile.getName() + "\"\r\n" +
+                        "Content-Type: application/octet-stream\r\n" +
+                        "\r\n" +
+                        "some random whatever\r\n" +
+                        "--foo\r\n" +
+                        "Content-Disposition: form-data; name=\"field2\"; " +
+                        "filename=\"file.tmp\"\r\n" +
+                        "Content-Type: application/octet-stream\r\n" +
+                        "\r\n" +
+                        "some random whatever\r\n" +
+                        "--foo--\r\n" +
+                        "This is the epilogue\r\n";
+        final String s = out.toString("US-ASCII");
+        Assertions.assertEquals(expected, s);
+        Assertions.assertEquals(-1, multipart.getTotalLength());
+    }
 }

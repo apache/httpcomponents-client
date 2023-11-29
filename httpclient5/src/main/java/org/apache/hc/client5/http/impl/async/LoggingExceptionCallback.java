@@ -33,16 +33,16 @@ import org.slf4j.LoggerFactory;
 
 class LoggingExceptionCallback implements Callback<Exception> {
 
-    static LoggingExceptionCallback INSTANCE = new LoggingExceptionCallback();
+    static final LoggingExceptionCallback INSTANCE = new LoggingExceptionCallback();
 
-    private final Logger log = LoggerFactory.getLogger("org.apache.hc.client5.http.impl.async");
+    private static final Logger LOG = LoggerFactory.getLogger("org.apache.hc.client5.http.impl.async");
 
     private LoggingExceptionCallback() {
     }
 
     @Override
     public void execute(final Exception ex) {
-        log.error(ex.getMessage(), ex);
+        LOG.error(ex.getMessage(), ex);
     }
 
 }

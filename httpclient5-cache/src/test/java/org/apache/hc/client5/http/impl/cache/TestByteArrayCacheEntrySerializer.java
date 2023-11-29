@@ -26,15 +26,18 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -46,22 +49,26 @@ import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.StatusLine;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import com.sun.rowset.JdbcRowSetImpl;
-
+@SuppressWarnings("deprecation")
 public class TestByteArrayCacheEntrySerializer {
 
     private ByteArrayCacheEntrySerializer impl;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         impl = new ByteArrayCacheEntrySerializer();
     }
 
     @Test
-    public void canSerializeEntriesWithVariantMaps() throws Exception {
+    public void canSerializeEntriesWithVariantMapsDeprecatedConstructor() throws Exception {
+        readWriteVerify(makeCacheEntryDeprecatedConstructorWithVariantMap("somekey"));
+    }
+
+    @Test
+    public void canSerializeEntriesWithVariantMapsAndInstant() throws Exception {
         readWriteVerify(makeCacheEntryWithVariantMap("somekey"));
     }
 
@@ -83,6 +90,11 @@ public class TestByteArrayCacheEntrySerializer {
     @Test
     public void isAllowedClassNameDataTrue() {
         assertIsAllowedClassNameTrue(Date.class.getName());
+    }
+
+    @Test
+    public void isAllowedClassNameInstantTrue() {
+        assertIsAllowedClassNameTrue(Instant.class.getName());
     }
 
     @Test
@@ -239,13 +251,10 @@ public class TestByteArrayCacheEntrySerializer {
     }
 
     private byte[] serializeProhibitedObject() throws IOException {
-        final JdbcRowSetImpl jdbcRowSet = new JdbcRowSetImpl();
+        final BigDecimal bigDecimal = new BigDecimal("1000.00");
         final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        final ObjectOutputStream oos = new ObjectOutputStream(baos);
-        try {
-            oos.writeObject(jdbcRowSet);
-        } finally {
-            oos.close();
+        try (ObjectOutputStream oos = new ObjectOutputStream(baos)) {
+            oos.writeObject(bigDecimal);
         }
         return baos.toByteArray();
     }
@@ -260,6 +269,27 @@ public class TestByteArrayCacheEntrySerializer {
         assertThat(readEntry.getContent(), HttpCacheEntryMatcher.equivalent(writeEntry.getContent()));
     }
 
+
+    private HttpCacheStorageEntry makeCacheEntryDeprecatedConstructorWithVariantMap(final String key) {
+        final Header[] headers = new Header[5];
+        for (int i = 0; i < headers.length; i++) {
+            headers[i] = new BasicHeader("header" + i, "value" + i);
+        }
+        final String body = "Lorem ipsum dolor sit amet";
+
+        final Map<String,String> variantMap = new HashMap<>();
+        variantMap.put("test variant 1","true");
+        variantMap.put("test variant 2","true");
+        final HttpCacheEntry cacheEntry = new HttpCacheEntry(
+                Instant.now(),
+                Instant.now(),
+                HttpStatus.SC_OK,
+                headers,
+                new HeapResource(body.getBytes(StandardCharsets.UTF_8)), variantMap);
+
+        return new HttpCacheStorageEntry(key, cacheEntry);
+    }
+
     private HttpCacheStorageEntry makeCacheEntryWithVariantMap(final String key) {
         final Header[] headers = new Header[5];
         for (int i = 0; i < headers.length; i++) {
@@ -271,8 +301,8 @@ public class TestByteArrayCacheEntrySerializer {
         variantMap.put("test variant 1","true");
         variantMap.put("test variant 2","true");
         final HttpCacheEntry cacheEntry = new HttpCacheEntry(
-                new Date(),
-                new Date(),
+                Instant.now(),
+                Instant.now(),
                 HttpStatus.SC_OK,
                 headers,
                 new HeapResource(body.getBytes(StandardCharsets.UTF_8)), variantMap);

@@ -26,6 +26,9 @@
  */
 package org.apache.hc.client5.testing.async;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static org.hamcrest.MatcherAssert.assertThat;
+
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
@@ -46,6 +49,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
+import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.concurrent.FutureCallback;
@@ -58,67 +63,82 @@ import org.apache.hc.core5.http.nio.AsyncRequestProducer;
 import org.apache.hc.core5.http.nio.support.AsyncRequestBuilder;
 import org.apache.hc.core5.reactive.ReactiveEntityProducer;
 import org.apache.hc.core5.reactive.ReactiveResponseConsumer;
-import org.apache.hc.core5.testing.reactive.ReactiveTestUtils;
-import org.apache.hc.core5.testing.reactive.ReactiveTestUtils.StreamDescription;
+import org.apache.hc.core5.reactive.ReactiveServerExchangeHandler;
+import org.apache.hc.core5.testing.nio.H2TestServer;
+import org.apache.hc.core5.testing.reactive.Reactive3TestUtils;
+import org.apache.hc.core5.testing.reactive.Reactive3TestUtils.StreamDescription;
+import org.apache.hc.core5.testing.reactive.ReactiveEchoProcessor;
+import org.apache.hc.core5.testing.reactive.ReactiveRandomProcessor;
 import org.apache.hc.core5.util.TextUtils;
 import org.hamcrest.CoreMatchers;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.reactivestreams.Publisher;
 
-import io.reactivex.Flowable;
-import io.reactivex.functions.Consumer;
-import io.reactivex.schedulers.Schedulers;
-
-public abstract class AbstractHttpReactiveFundamentalsTest<T extends CloseableHttpAsyncClient> extends AbstractIntegrationTestBase<T> {
+public abstract class AbstractHttpReactiveFundamentalsTest<T extends CloseableHttpAsyncClient> extends AbstractIntegrationTestBase {
 
     public AbstractHttpReactiveFundamentalsTest(final URIScheme scheme) {
         super(scheme);
     }
 
-    @Override
-    protected final boolean isReactive() {
-        return true;
-    }
+    abstract protected H2TestServer startServer() throws Exception;
 
-    @Test(timeout = 60_000)
+    abstract protected T startClient() throws Exception;
+
+    @Test
+    @Timeout(value = 60_000, unit = MILLISECONDS)
     public void testSequentialGetRequests() throws Exception {
-        final HttpHost target = start();
+        final H2TestServer server = startServer();
+        server.register("/random/*", () ->
+                new ReactiveServerExchangeHandler(new ReactiveRandomProcessor()));
+        final HttpHost target = targetHost();
+        final T client = startClient();
         for (int i = 0; i < 3; i++) {
             final ReactiveResponseConsumer consumer = new ReactiveResponseConsumer();
 
-            httpclient.execute(AsyncRequestBuilder.get(target + "/random/2048").build(), consumer, null);
+            client.execute(AsyncRequestBuilder.get(target + "/random/2048").build(), consumer, null);
 
             final Message<HttpResponse, Publisher<ByteBuffer>> response = consumer.getResponseFuture().get();
-            Assert.assertThat(response, CoreMatchers.notNullValue());
-            Assert.assertThat(response.getHead().getCode(), CoreMatchers.equalTo(200));
+            assertThat(response, CoreMatchers.notNullValue());
+            assertThat(response.getHead().getCode(), CoreMatchers.equalTo(200));
 
             final String body = publisherToString(response.getBody());
-            Assert.assertThat(body, CoreMatchers.notNullValue());
-            Assert.assertThat(body.length(), CoreMatchers.equalTo(2048));
+            assertThat(body, CoreMatchers.notNullValue());
+            assertThat(body.length(), CoreMatchers.equalTo(2048));
         }
     }
 
-    @Test(timeout = 2000)
+    @Test
+    @Timeout(value = 2000, unit = MILLISECONDS)
     public void testSequentialHeadRequests() throws Exception {
-        final HttpHost target = start();
+        final H2TestServer server = startServer();
+        server.register("/random/*", () ->
+                new ReactiveServerExchangeHandler(new ReactiveRandomProcessor()));
+        final HttpHost target = targetHost();
+        final T client = startClient();
         for (int i = 0; i < 3; i++) {
             final ReactiveResponseConsumer consumer = new ReactiveResponseConsumer();
 
-            httpclient.execute(AsyncRequestBuilder.head(target + "/random/2048").build(), consumer, null);
+            client.execute(AsyncRequestBuilder.head(target + "/random/2048").build(), consumer, null);
 
             final Message<HttpResponse, Publisher<ByteBuffer>> response = consumer.getResponseFuture().get();
-            Assert.assertThat(response, CoreMatchers.notNullValue());
-            Assert.assertThat(response.getHead().getCode(), CoreMatchers.equalTo(200));
+            assertThat(response, CoreMatchers.notNullValue());
+            assertThat(response.getHead().getCode(), CoreMatchers.equalTo(200));
 
             final String body = publisherToString(response.getBody());
-            Assert.assertThat(body, CoreMatchers.nullValue());
+            assertThat(body, CoreMatchers.nullValue());
         }
     }
 
-    @Test(timeout = 60_000)
+    @Test
+    @Timeout(value = 60_000, unit = MILLISECONDS)
     public void testSequentialPostRequests() throws Exception {
-        final HttpHost target = start();
+        final H2TestServer server = startServer();
+        server.register("/echo/*", () ->
+                new ReactiveServerExchangeHandler(new ReactiveEchoProcessor()));
+        final HttpHost target = targetHost();
+        final T client = startClient();
         for (int i = 0; i < 3; i++) {
             final byte[] b1 = new byte[1024];
             final Random rnd = new Random(System.currentTimeMillis());
@@ -129,21 +149,26 @@ public abstract class AbstractHttpReactiveFundamentalsTest<T extends CloseableHt
                 .setEntity(new ReactiveEntityProducer(publisher, -1, ContentType.APPLICATION_OCTET_STREAM, null))
                 .build();
 
-            httpclient.execute(request, consumer, HttpClientContext.create(), null);
+            client.execute(request, consumer, HttpClientContext.create(), null);
 
             final Future<Message<HttpResponse, Publisher<ByteBuffer>>> responseFuture = consumer.getResponseFuture();
             final Message<HttpResponse, Publisher<ByteBuffer>> responseMessage = responseFuture.get();
-            Assert.assertThat(responseMessage, CoreMatchers.notNullValue());
+            assertThat(responseMessage, CoreMatchers.notNullValue());
             final HttpResponse response = responseMessage.getHead();
-            Assert.assertThat(response.getCode(), CoreMatchers.equalTo(200));
+            assertThat(response.getCode(), CoreMatchers.equalTo(200));
             final byte[] b2 = publisherToByteArray(responseMessage.getBody());
-            Assert.assertThat(b1, CoreMatchers.equalTo(b2));
+            assertThat(b1, CoreMatchers.equalTo(b2));
         }
     }
 
-    @Test(timeout = 60_000)
+    @Test
+    @Timeout(value = 60_000, unit = MILLISECONDS)
     public void testConcurrentPostRequests() throws Exception {
-        final HttpHost target = start();
+        final H2TestServer server = startServer();
+        server.register("/echo/*", () ->
+                new ReactiveServerExchangeHandler(new ReactiveEchoProcessor()));
+        final HttpHost target = targetHost();
+        final T client = startClient();
 
         final int reqCount = 500;
         final int maxSize = 128 * 1024;
@@ -158,21 +183,18 @@ public abstract class AbstractHttpReactiveFundamentalsTest<T extends CloseableHt
                     .build();
 
             final ReactiveResponseConsumer consumer = new ReactiveResponseConsumer(new FutureCallback<Message<HttpResponse, Publisher<ByteBuffer>>>() {
+                @Override
                 public void completed(final Message<HttpResponse, Publisher<ByteBuffer>> result) {
                     final Flowable<ByteBuffer> flowable = Flowable.fromPublisher(result.getBody())
                             .observeOn(Schedulers.io()); // Stream the data on an RxJava scheduler, not a client thread
-                    ReactiveTestUtils.consumeStream(flowable)
-                            .subscribe(new Consumer<StreamDescription>() {
-                                @Override
-                                public void accept(final StreamDescription streamDescription) {
-                                    responses.add(streamDescription);
-                                }
-                            });
+                    Reactive3TestUtils.consumeStream(flowable).subscribe(responses::add);
                 }
+                @Override
                 public void failed(final Exception ex) { }
+                @Override
                 public void cancelled() { }
             });
-            httpclient.execute(request, consumer, HttpClientContext.create(), null);
+            client.execute(request, consumer, HttpClientContext.create(), null);
         }
 
         for (int i = 0; i < reqCount; i++) {
@@ -180,17 +202,22 @@ public abstract class AbstractHttpReactiveFundamentalsTest<T extends CloseableHt
             final StreamingTestCase streamingTestCase = testCases.get(streamDescription.length);
             final long expectedLength = streamingTestCase.length;
             final long actualLength = streamDescription.length;
-            Assert.assertEquals(expectedLength, actualLength);
+            Assertions.assertEquals(expectedLength, actualLength);
 
             final String expectedHash = streamingTestCase.expectedHash.get();
             final String actualHash = TextUtils.toHexString(streamDescription.md.digest());
-            Assert.assertEquals(expectedHash, actualHash);
+            Assertions.assertEquals(expectedHash, actualHash);
         }
     }
 
-    @Test(timeout = 60_000)
+    @Test
+    @Timeout(value = 60_000, unit = MILLISECONDS)
     public void testRequestExecutionFromCallback() throws Exception {
-        final HttpHost target = start();
+        final H2TestServer server = startServer();
+        server.register("/random/*", () ->
+                new ReactiveServerExchangeHandler(new ReactiveRandomProcessor()));
+        final HttpHost target = targetHost();
+        final T client = startClient();
         final int requestNum = 50;
         final AtomicInteger count = new AtomicInteger(requestNum);
         final Queue<Message<HttpResponse, Publisher<ByteBuffer>>> resultQueue = new ConcurrentLinkedQueue<>();
@@ -203,7 +230,7 @@ public abstract class AbstractHttpReactiveFundamentalsTest<T extends CloseableHt
                     resultQueue.add(result);
                     if (count.decrementAndGet() > 0) {
                         final ReactiveResponseConsumer consumer = new ReactiveResponseConsumer(this);
-                        httpclient.execute(AsyncRequestBuilder.get(target + "/random/2048").build(), consumer, null);
+                        client.execute(AsyncRequestBuilder.get(target + "/random/2048").build(), consumer, null);
                     }
                 } finally {
                     countDownLatch.countDown();
@@ -224,18 +251,15 @@ public abstract class AbstractHttpReactiveFundamentalsTest<T extends CloseableHt
         final int threadNum = 5;
         final ExecutorService executorService = Executors.newFixedThreadPool(threadNum);
         for (int i = 0; i < threadNum; i++) {
-            executorService.execute(new Runnable() {
-                @Override
-                public void run() {
-                    if (!Thread.currentThread().isInterrupted()) {
-                        final ReactiveResponseConsumer consumer = new ReactiveResponseConsumer(callback);
-                        httpclient.execute(AsyncRequestBuilder.get(target + "/random/2048").build(), consumer, null);
-                    }
+            executorService.execute(() -> {
+                if (!Thread.currentThread().isInterrupted()) {
+                    final ReactiveResponseConsumer consumer = new ReactiveResponseConsumer(callback);
+                    client.execute(AsyncRequestBuilder.get(target + "/random/2048").build(), consumer, null);
                 }
             });
         }
 
-        Assert.assertThat(countDownLatch.await(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit()), CoreMatchers.equalTo(true));
+        assertThat(countDownLatch.await(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit()), CoreMatchers.equalTo(true));
 
         executorService.shutdownNow();
         executorService.awaitTermination(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
@@ -245,22 +269,26 @@ public abstract class AbstractHttpReactiveFundamentalsTest<T extends CloseableHt
             if (response == null) {
                 break;
             }
-            Assert.assertThat(response.getHead().getCode(), CoreMatchers.equalTo(200));
+            assertThat(response.getHead().getCode(), CoreMatchers.equalTo(200));
         }
     }
 
     @Test
     public void testBadRequest() throws Exception {
-        final HttpHost target = start();
+        final H2TestServer server = startServer();
+        server.register("/random/*", () ->
+                new ReactiveServerExchangeHandler(new ReactiveRandomProcessor()));
+        final HttpHost target = targetHost();
+        final T client = startClient();
         final AsyncRequestProducer request = AsyncRequestBuilder.get(target + "/random/boom").build();
         final ReactiveResponseConsumer consumer = new ReactiveResponseConsumer();
 
-        httpclient.execute(request, consumer, null);
+        client.execute(request, consumer, null);
 
         final Future<Message<HttpResponse, Publisher<ByteBuffer>>> future = consumer.getResponseFuture();
         final HttpResponse response = future.get().getHead();
-        Assert.assertThat(response, CoreMatchers.notNullValue());
-        Assert.assertThat(response.getCode(), CoreMatchers.equalTo(400));
+        assertThat(response, CoreMatchers.notNullValue());
+        assertThat(response.getCode(), CoreMatchers.equalTo(400));
     }
 
     static String publisherToString(final Publisher<ByteBuffer> publisher) throws Exception {
@@ -304,8 +332,8 @@ public abstract class AbstractHttpReactiveFundamentalsTest<T extends CloseableHt
             while (testCases.size() < numTestCases) {
                 final long seed = 198723L * testCaseNum++;
                 final int length = 1 + new Random(seed).nextInt(maxSize);
-                final AtomicReference<String> expectedHash = new AtomicReference<>(null);
-                final Flowable<ByteBuffer> stream = ReactiveTestUtils.produceStream(length, expectedHash);
+                final AtomicReference<String> expectedHash = new AtomicReference<>();
+                final Flowable<ByteBuffer> stream = Reactive3TestUtils.produceStream(length, expectedHash);
                 final StreamingTestCase streamingTestCase = new StreamingTestCase(length, expectedHash, stream);
                 testCases.put((long) length, streamingTestCase);
             }

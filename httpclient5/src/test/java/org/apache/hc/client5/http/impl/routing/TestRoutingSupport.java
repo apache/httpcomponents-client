@@ -27,8 +27,12 @@
 
 package org.apache.hc.client5.http.impl.routing;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+
+import java.net.InetAddress;
 import java.net.URI;
 
+import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
 import org.apache.hc.client5.http.routing.RoutingSupport;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
@@ -36,8 +40,8 @@ import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
 import org.apache.hc.core5.net.URIAuthority;
 import org.hamcrest.CoreMatchers;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class TestRoutingSupport {
 
@@ -45,18 +49,39 @@ public class TestRoutingSupport {
     public void testDetermineHost() throws Exception {
         final HttpRequest request1 = new BasicHttpRequest("GET", "/");
         final HttpHost host1 = RoutingSupport.determineHost(request1);
-        Assert.assertThat(host1, CoreMatchers.nullValue());
+        assertThat(host1, CoreMatchers.nullValue());
 
         final HttpRequest request2 = new BasicHttpRequest("GET", new URI("https://somehost:8443/"));
         final HttpHost host2 = RoutingSupport.determineHost(request2);
-        Assert.assertThat(host2, CoreMatchers.equalTo(new HttpHost("https", "somehost", 8443)));
+        assertThat(host2, CoreMatchers.equalTo(new HttpHost("https", "somehost", 8443)));
     }
 
-    @Test(expected = ProtocolException.class)
+    @Test
     public void testDetermineHostMissingScheme() throws Exception {
         final HttpRequest request1 = new BasicHttpRequest("GET", "/");
         request1.setAuthority(new URIAuthority("host"));
-        RoutingSupport.determineHost(request1);
+        Assertions.assertThrows(ProtocolException.class, () ->
+                RoutingSupport.determineHost(request1));
+    }
+
+    @Test
+    public void testNormalizeHost() throws Exception {
+        Assertions.assertEquals(new HttpHost("http", "somehost", 80),
+                RoutingSupport.normalize(
+                        new HttpHost("http", "somehost", -1),
+                        DefaultSchemePortResolver.INSTANCE));
+        Assertions.assertEquals(new HttpHost("https", "somehost", 443),
+                RoutingSupport.normalize(
+                        new HttpHost("https", "somehost", -1),
+                        DefaultSchemePortResolver.INSTANCE));
+        Assertions.assertEquals(new HttpHost("http", InetAddress.getLocalHost(), "localhost", 80),
+                RoutingSupport.normalize(
+                        new HttpHost("http", InetAddress.getLocalHost(), "localhost", -1),
+                        DefaultSchemePortResolver.INSTANCE));
+        Assertions.assertEquals(new HttpHost("http", "somehost", 8080),
+                RoutingSupport.normalize(
+                        new HttpHost("http", "somehost", 8080),
+                        DefaultSchemePortResolver.INSTANCE));
     }
 
 }

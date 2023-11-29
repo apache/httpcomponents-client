@@ -26,19 +26,19 @@
  */
 package org.apache.hc.client5.http.examples;
 
+import org.apache.hc.client5.http.ContextBuilder;
 import org.apache.hc.client5.http.auth.AuthExchange;
 import org.apache.hc.client5.http.auth.AuthScheme;
-import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
-import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
+import org.apache.hc.client5.http.impl.auth.CredentialsProviderBuilder;
 import org.apache.hc.client5.http.impl.auth.DigestScheme;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.message.StatusLine;
 
 /**
  * An example of how HttpClient can authenticate multiple requests
@@ -53,20 +53,19 @@ public class ClientPreemptiveDigestAuthentication {
 
             final HttpHost target = new HttpHost("http", "httpbin.org", 80);
 
-            final HttpClientContext localContext = HttpClientContext.create();
-            final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-            credentialsProvider.setCredentials(
-                    new AuthScope(target),
-                    new UsernamePasswordCredentials("user", "passwd".toCharArray()));
-            localContext.setCredentialsProvider(credentialsProvider);
+            final HttpClientContext localContext = ContextBuilder.create()
+                    .useCredentialsProvider(CredentialsProviderBuilder.create()
+                            .add(target, new UsernamePasswordCredentials("user", "passwd".toCharArray()))
+                            .build())
+                    .build();
 
             final HttpGet httpget = new HttpGet("http://httpbin.org/digest-auth/auth/user/passwd");
 
             System.out.println("Executing request " + httpget.getMethod() + " " + httpget.getUri());
             for (int i = 0; i < 3; i++) {
-                try (final CloseableHttpResponse response = httpclient.execute(target, httpget, localContext)) {
+                httpclient.execute(httpget, localContext, response -> {
                     System.out.println("----------------------------------------");
-                    System.out.println(response.getCode() + " " + response.getReasonPhrase());
+                    System.out.println(httpget + "->" + new StatusLine(response));
                     EntityUtils.consume(response.getEntity());
 
                     final AuthExchange authExchange = localContext.getAuthExchange(target);
@@ -78,7 +77,8 @@ public class ClientPreemptiveDigestAuthentication {
                                     "; count: " + digestScheme.getNounceCount());
                         }
                     }
-                }
+                    return null;
+                });
             }
         }
     }

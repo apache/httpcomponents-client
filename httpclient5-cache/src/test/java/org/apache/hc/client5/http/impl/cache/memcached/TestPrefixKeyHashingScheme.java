@@ -26,10 +26,11 @@
  */
 package org.apache.hc.client5.http.impl.cache.memcached;
 
-import static org.junit.Assert.assertEquals;
 
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 
 public class TestPrefixKeyHashingScheme {
@@ -39,14 +40,11 @@ public class TestPrefixKeyHashingScheme {
     private PrefixKeyHashingScheme impl;
     private KeyHashingScheme scheme;
 
-    @Before
+    @BeforeEach
     public void setUp() {
-        scheme = new KeyHashingScheme() {
-            @Override
-            public String hash(final String storageKey) {
-                assertEquals(KEY, storageKey);
-                return "hash";
-            }
+        scheme = storageKey -> {
+            assertEquals(KEY, storageKey);
+            return "hash";
         };
         impl = new PrefixKeyHashingScheme(PREFIX, scheme);
     }

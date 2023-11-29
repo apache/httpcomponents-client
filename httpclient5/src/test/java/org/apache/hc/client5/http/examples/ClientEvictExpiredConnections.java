@@ -28,10 +28,10 @@ package org.apache.hc.client5.http.examples;
 
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.message.StatusLine;
 import org.apache.hc.core5.pool.PoolStats;
 import org.apache.hc.core5.util.TimeValue;
 
@@ -61,11 +61,12 @@ public class ClientEvictExpiredConnections {
 
                 System.out.println("Executing request " + request.getMethod() + " " + request.getRequestUri());
 
-                try (final CloseableHttpResponse response = httpclient.execute(request)) {
+                httpclient.execute(request, response -> {
                     System.out.println("----------------------------------------");
-                    System.out.println(response.getCode() + " " + response.getReasonPhrase());
+                    System.out.println(request + "->" + new StatusLine(response));
                     EntityUtils.consume(response.getEntity());
-                }
+                    return null;
+                });
             }
 
             final PoolStats stats1 = cm.getTotalStats();

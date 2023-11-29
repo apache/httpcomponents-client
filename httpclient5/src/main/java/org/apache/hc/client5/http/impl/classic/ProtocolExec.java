@@ -28,24 +28,22 @@
 package org.apache.hc.client5.http.impl.classic;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Iterator;
 
 import org.apache.hc.client5.http.AuthenticationStrategy;
 import org.apache.hc.client5.http.HttpRoute;
+import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.auth.AuthExchange;
 import org.apache.hc.client5.http.auth.ChallengeType;
-import org.apache.hc.client5.http.auth.CredentialsProvider;
-import org.apache.hc.client5.http.auth.CredentialsStore;
 import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecChainHandler;
 import org.apache.hc.client5.http.classic.ExecRuntime;
 import org.apache.hc.client5.http.config.RequestConfig;
-import org.apache.hc.client5.http.impl.AuthSupport;
+import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
+import org.apache.hc.client5.http.impl.RequestSupport;
+import org.apache.hc.client5.http.impl.auth.AuthCacheKeeper;
 import org.apache.hc.client5.http.impl.auth.HttpAuthenticator;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
-import org.apache.hc.client5.http.utils.URIUtils;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
@@ -60,8 +58,7 @@ import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
-import org.apache.hc.core5.http.protocol.HttpCoreContext;
-import org.apache.hc.core5.http.protocol.HttpProcessor;
+import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
 import org.apache.hc.core5.net.URIAuthority;
 import org.apache.hc.core5.util.Args;
 import org.slf4j.Logger;
@@ -82,32 +79,35 @@ import org.slf4j.LoggerFactory;
 @Internal
 public final class ProtocolExec implements ExecChainHandler {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger LOG = LoggerFactory.getLogger(ProtocolExec.class);
 
-    private final HttpProcessor httpProcessor;
     private final AuthenticationStrategy targetAuthStrategy;
     private final AuthenticationStrategy proxyAuthStrategy;
     private final HttpAuthenticator authenticator;
+    private final SchemePortResolver schemePortResolver;
+    private final AuthCacheKeeper authCacheKeeper;
 
     public ProtocolExec(
-            final HttpProcessor httpProcessor,
             final AuthenticationStrategy targetAuthStrategy,
-            final AuthenticationStrategy proxyAuthStrategy) {
-        this.httpProcessor = Args.notNull(httpProcessor, "HTTP protocol processor");
+            final AuthenticationStrategy proxyAuthStrategy,
+            final SchemePortResolver schemePortResolver,
+            final boolean authCachingDisabled) {
         this.targetAuthStrategy = Args.notNull(targetAuthStrategy, "Target authentication strategy");
         this.proxyAuthStrategy = Args.notNull(proxyAuthStrategy, "Proxy authentication strategy");
         this.authenticator = new HttpAuthenticator();
+        this.schemePortResolver = schemePortResolver != null ? schemePortResolver : DefaultSchemePortResolver.INSTANCE;
+        this.authCacheKeeper = authCachingDisabled ? null : new AuthCacheKeeper(this.schemePortResolver);
     }
 
     @Override
     public ClassicHttpResponse execute(
-            final ClassicHttpRequest request,
+            final ClassicHttpRequest userRequest,
             final ExecChain.Scope scope,
             final ExecChain chain) throws IOException, HttpException {
-        Args.notNull(request, "HTTP request");
+        Args.notNull(userRequest, "HTTP request");
         Args.notNull(scope, "Scope");
 
-        if (Method.CONNECT.isSame(request.getMethod())) {
+        if (Method.CONNECT.isSame(userRequest.getMethod())) {
             throw new ProtocolException("Direct execution of CONNECT is not allowed");
         }
 
@@ -116,73 +116,102 @@ public final class ProtocolExec implements ExecChainHandler {
         final HttpClientContext context = scope.clientContext;
         final ExecRuntime execRuntime = scope.execRuntime;
 
-        final HttpHost target = route.getTargetHost();
+        final HttpHost routeTarget = route.getTargetHost();
         final HttpHost proxy = route.getProxyHost();
-        final AuthExchange targetAuthExchange = context.getAuthExchange(target);
-        final AuthExchange proxyAuthExchange = proxy != null ? context.getAuthExchange(proxy) : new AuthExchange();
 
         try {
+            final ClassicHttpRequest request;
             if (proxy != null && !route.isTunnelled()) {
-                try {
-                    URI uri = request.getUri();
-                    if (!uri.isAbsolute()) {
-                        uri = URIUtils.rewriteURI(uri, target, true);
-                    } else {
-                        uri = URIUtils.rewriteURI(uri);
-                    }
-                    request.setPath(uri.toASCIIString());
-                } catch (final URISyntaxException ex) {
-                    throw new ProtocolException("Invalid request URI: " + request.getRequestUri(), ex);
+                final ClassicRequestBuilder requestBuilder = ClassicRequestBuilder.copy(userRequest);
+                if (requestBuilder.getAuthority() == null) {
+                    requestBuilder.setAuthority(new URIAuthority(routeTarget));
                 }
+                requestBuilder.setAbsoluteRequestUri(true);
+                request = requestBuilder.build();
+            } else {
+                request = userRequest;
+            }
+
+            // Ensure the request has a scheme and an authority
+            if (request.getScheme() == null) {
+                request.setScheme(routeTarget.getSchemeName());
+            }
+            if (request.getAuthority() == null) {
+                request.setAuthority(new URIAuthority(routeTarget));
             }
 
             final URIAuthority authority = request.getAuthority();
-            if (authority != null) {
-                final CredentialsProvider credsProvider = context.getCredentialsProvider();
-                if (credsProvider instanceof CredentialsStore) {
-                    AuthSupport.extractFromAuthority(request.getScheme(), authority, (CredentialsStore) credsProvider);
+            if (authority.getUserInfo() != null) {
+                throw new ProtocolException("Request URI authority contains deprecated userinfo component");
+            }
+
+            final HttpHost target = new HttpHost(
+                    request.getScheme(),
+                    authority.getHostName(),
+                    schemePortResolver.resolve(request.getScheme(), authority));
+            final String pathPrefix = RequestSupport.extractPathPrefix(request);
+
+            final AuthExchange targetAuthExchange = context.getAuthExchange(target);
+            final AuthExchange proxyAuthExchange = proxy != null ? context.getAuthExchange(proxy) : new AuthExchange();
+
+            if (!targetAuthExchange.isConnectionBased() &&
+                    targetAuthExchange.getPathPrefix() != null &&
+                    !pathPrefix.startsWith(targetAuthExchange.getPathPrefix())) {
+                // force re-authentication if the current path prefix does not match
+                // that of the previous authentication exchange.
+                targetAuthExchange.reset();
+            }
+            if (targetAuthExchange.getPathPrefix() == null) {
+                targetAuthExchange.setPathPrefix(pathPrefix);
+            }
+
+            if (authCacheKeeper != null) {
+                authCacheKeeper.loadPreemptively(target, pathPrefix, targetAuthExchange, context);
+                if (proxy != null) {
+                    authCacheKeeper.loadPreemptively(proxy, null, proxyAuthExchange, context);
                 }
             }
 
+            RequestEntityProxy.enhance(request);
 
             for (;;) {
 
-                // Run request protocol interceptors
-                context.setAttribute(HttpClientContext.HTTP_ROUTE, route);
-                context.setAttribute(HttpCoreContext.HTTP_REQUEST, request);
-
-                httpProcessor.process(request, request.getEntity(), context);
-
                 if (!request.containsHeader(HttpHeaders.AUTHORIZATION)) {
-                    if (log.isDebugEnabled()) {
-                        log.debug(exchangeId + ": target auth state: " + targetAuthExchange.getState());
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("{} target auth state: {}", exchangeId, targetAuthExchange.getState());
                     }
                     authenticator.addAuthResponse(target, ChallengeType.TARGET, request, targetAuthExchange, context);
                 }
                 if (!request.containsHeader(HttpHeaders.PROXY_AUTHORIZATION) && !route.isTunnelled()) {
-                    if (log.isDebugEnabled()) {
-                        log.debug(exchangeId + ": proxy auth state: " + proxyAuthExchange.getState());
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("{} proxy auth state: {}", exchangeId, proxyAuthExchange.getState());
                     }
                     authenticator.addAuthResponse(proxy, ChallengeType.PROXY, request, proxyAuthExchange, context);
                 }
 
                 final ClassicHttpResponse response = chain.proceed(request, scope);
 
-                context.setAttribute(HttpCoreContext.HTTP_RESPONSE, response);
-                httpProcessor.process(response, response.getEntity(), context);
-
                 if (Method.TRACE.isSame(request.getMethod())) {
                     // Do not perform authentication for TRACE request
+                    ResponseEntityProxy.enhance(response, execRuntime);
                     return response;
                 }
                 final HttpEntity requestEntity = request.getEntity();
                 if (requestEntity != null && !requestEntity.isRepeatable()) {
-                    if (log.isDebugEnabled()) {
-                        log.debug(exchangeId + ": Cannot retry non-repeatable request");
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("{} Cannot retry non-repeatable request", exchangeId);
                     }
+                    ResponseEntityProxy.enhance(response, execRuntime);
                     return response;
                 }
-                if (needAuthentication(targetAuthExchange, proxyAuthExchange, route, request, response, context)) {
+                if (needAuthentication(
+                        targetAuthExchange,
+                        proxyAuthExchange,
+                        proxy != null ? proxy : target,
+                        target,
+                        pathPrefix,
+                        response,
+                        context)) {
                     // Make sure the response body is fully consumed, if present
                     final HttpEntity responseEntity = response.getEntity();
                     if (execRuntime.isConnectionReusable()) {
@@ -191,15 +220,15 @@ public final class ProtocolExec implements ExecChainHandler {
                         execRuntime.disconnectEndpoint();
                         if (proxyAuthExchange.getState() == AuthExchange.State.SUCCESS
                                 && proxyAuthExchange.isConnectionBased()) {
-                            if (log.isDebugEnabled()) {
-                                log.debug(exchangeId + ": resetting proxy auth state");
+                            if (LOG.isDebugEnabled()) {
+                                LOG.debug("{} resetting proxy auth state", exchangeId);
                             }
                             proxyAuthExchange.reset();
                         }
                         if (targetAuthExchange.getState() == AuthExchange.State.SUCCESS
                                 && targetAuthExchange.isConnectionBased()) {
-                            if (log.isDebugEnabled()) {
-                                log.debug(exchangeId + ": resetting target auth state");
+                            if (LOG.isDebugEnabled()) {
+                                LOG.debug("{} resetting target auth state", exchangeId);
                             }
                             targetAuthExchange.reset();
                         }
@@ -211,6 +240,7 @@ public final class ProtocolExec implements ExecChainHandler {
                         request.addHeader(it.next());
                     }
                 } else {
+                    ResponseEntityProxy.enhance(response, execRuntime);
                     return response;
                 }
             }
@@ -219,11 +249,10 @@ public final class ProtocolExec implements ExecChainHandler {
             throw ex;
         } catch (final RuntimeException | IOException ex) {
             execRuntime.discardEndpoint();
-            if (proxyAuthExchange.isConnectionBased()) {
-                proxyAuthExchange.reset();
-            }
-            if (targetAuthExchange.isConnectionBased()) {
-                targetAuthExchange.reset();
+            for (final AuthExchange authExchange : context.getAuthExchanges().values()) {
+                if (authExchange.isConnectionBased()) {
+                    authExchange.reset();
+                }
             }
             throw ex;
         }
@@ -232,31 +261,54 @@ public final class ProtocolExec implements ExecChainHandler {
     private boolean needAuthentication(
             final AuthExchange targetAuthExchange,
             final AuthExchange proxyAuthExchange,
-            final HttpRoute route,
-            final ClassicHttpRequest request,
+            final HttpHost proxy,
+            final HttpHost target,
+            final String pathPrefix,
             final HttpResponse response,
             final HttpClientContext context) {
         final RequestConfig config = context.getRequestConfig();
         if (config.isAuthenticationEnabled()) {
-            final HttpHost target = AuthSupport.resolveAuthTarget(request, route);
             final boolean targetAuthRequested = authenticator.isChallenged(
                     target, ChallengeType.TARGET, response, targetAuthExchange, context);
 
-            HttpHost proxy = route.getProxyHost();
-            // if proxy is not set use target host instead
-            if (proxy == null) {
-                proxy = route.getTargetHost();
+            if (authCacheKeeper != null) {
+                if (targetAuthRequested) {
+                    authCacheKeeper.updateOnChallenge(target, pathPrefix, targetAuthExchange, context);
+                } else {
+                    authCacheKeeper.updateOnNoChallenge(target, pathPrefix, targetAuthExchange, context);
+                }
             }
+
             final boolean proxyAuthRequested = authenticator.isChallenged(
                     proxy, ChallengeType.PROXY, response, proxyAuthExchange, context);
 
+            if (authCacheKeeper != null) {
+                if (proxyAuthRequested) {
+                    authCacheKeeper.updateOnChallenge(proxy, null, proxyAuthExchange, context);
+                } else {
+                    authCacheKeeper.updateOnNoChallenge(proxy, null, proxyAuthExchange, context);
+                }
+            }
+
             if (targetAuthRequested) {
-                return authenticator.updateAuthState(target, ChallengeType.TARGET, response,
+                final boolean updated = authenticator.updateAuthState(target, ChallengeType.TARGET, response,
                         targetAuthStrategy, targetAuthExchange, context);
+
+                if (authCacheKeeper != null) {
+                    authCacheKeeper.updateOnResponse(target, pathPrefix, targetAuthExchange, context);
+                }
+
+                return updated;
             }
             if (proxyAuthRequested) {
-                return authenticator.updateAuthState(proxy, ChallengeType.PROXY, response,
+                final boolean updated = authenticator.updateAuthState(proxy, ChallengeType.PROXY, response,
                         proxyAuthStrategy, proxyAuthExchange, context);
+
+                if (authCacheKeeper != null) {
+                    authCacheKeeper.updateOnResponse(proxy, null, proxyAuthExchange, context);
+                }
+
+                return updated;
             }
         }
         return false;

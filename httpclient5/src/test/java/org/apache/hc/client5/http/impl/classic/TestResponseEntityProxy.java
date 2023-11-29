@@ -27,6 +27,10 @@
 
 package org.apache.hc.client5.http.impl.classic;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.util.List;
+
 import org.apache.hc.client5.http.classic.ExecRuntime;
 import org.apache.hc.core5.function.Supplier;
 import org.apache.hc.core5.http.ClassicHttpResponse;
@@ -35,17 +39,15 @@ import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.impl.io.ChunkedInputStream;
 import org.apache.hc.core5.http.impl.io.SessionInputBufferImpl;
 import org.apache.hc.core5.http.io.SessionInputBuffer;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.apache.hc.core5.http.io.entity.BasicHttpEntity;
+import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.util.List;
 
 public class TestResponseEntityProxy {
 
@@ -56,9 +58,9 @@ public class TestResponseEntityProxy {
     @Mock
     private HttpEntity entity;
 
-    @Before
+    @BeforeEach
     public void setUp() {
-        MockitoAnnotations.initMocks(this);
+        MockitoAnnotations.openMocks(this);
         Mockito.when(entity.isStreaming()).thenReturn(Boolean.TRUE);
         Mockito.when(response.getEntity()).thenReturn(entity);
     }
@@ -78,7 +80,7 @@ public class TestResponseEntityProxy {
         while (is.read() != -1) {} // read until the end
         final Supplier<List<? extends Header>> trailers = wrappedEntity.getTrailers();
 
-        Assert.assertTrue(trailers.get().isEmpty());
+        Assertions.assertTrue(trailers.get().isEmpty());
     }
 
     @Test
@@ -100,9 +102,37 @@ public class TestResponseEntityProxy {
         final Supplier<List<? extends Header>> trailers = wrappedEntity.getTrailers();
         final List<? extends Header> headers = trailers.get();
 
-        Assert.assertEquals(1, headers.size());
+        Assertions.assertEquals(1, headers.size());
         final Header header = headers.get(0);
-        Assert.assertEquals("X-Test-Trailer-Header", header.getName());
-        Assert.assertEquals("test", header.getValue());
+        Assertions.assertEquals("X-Test-Trailer-Header", header.getName());
+        Assertions.assertEquals("test", header.getValue());
+    }
+
+    @Test
+    public void testWriteToNullDrainsAndReleasesStream() throws Exception {
+        final SessionInputBuffer sessionInputBuffer = new SessionInputBufferImpl(100);
+        final ByteArrayInputStream inputStream = new ByteArrayInputStream("0\r\nX-Test-Trailer-Header: test\r\n".getBytes());
+        final ChunkedInputStream chunkedInputStream = new ChunkedInputStream(sessionInputBuffer, inputStream);
+        final CloseableHttpResponse resp = new CloseableHttpResponse(new BasicClassicHttpResponse(200), execRuntime);
+        final HttpEntity entity = new BasicHttpEntity(chunkedInputStream, null, true);
+        Assertions.assertTrue(entity.isStreaming());
+        resp.setEntity(entity);
+
+        ResponseEntityProxy.enhance(resp, execRuntime);
+
+        final HttpEntity wrappedEntity = resp.getEntity();
+
+        wrappedEntity.writeTo(null);
+        Mockito.verify(execRuntime).releaseEndpoint();
+
+        final Supplier<List<? extends Header>> trailers = wrappedEntity.getTrailers();
+        final List<? extends Header> headers = trailers.get();
+
+        Assertions.assertEquals(1, headers.size());
+        final Header header = headers.get(0);
+        Assertions.assertEquals("X-Test-Trailer-Header", header.getName());
+        Assertions.assertEquals("test", header.getValue());
+
+
     }
 }

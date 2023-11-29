@@ -34,6 +34,7 @@ import org.apache.hc.client5.http.auth.AuthCache;
 import org.apache.hc.client5.http.auth.AuthExchange;
 import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
+import org.apache.hc.client5.http.impl.RequestSupport;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.EntityDetails;
@@ -42,7 +43,6 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpRequestInterceptor;
 import org.apache.hc.core5.http.protocol.HttpContext;
-import org.apache.hc.core5.net.URIAuthority;
 import org.apache.hc.core5.util.Args;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,11 +53,14 @@ import org.slf4j.LoggerFactory;
  * {@link AuthCache} associated with the given target or proxy host.
  *
  * @since 4.1
+ *
+ * @deprecated Do not use.
  */
+@Deprecated
 @Contract(threading = ThreadingBehavior.STATELESS)
 public class RequestAuthCache implements HttpRequestInterceptor {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger LOG = LoggerFactory.getLogger(RequestAuthCache.class);
 
     public RequestAuthCache() {
         super();
@@ -70,41 +73,40 @@ public class RequestAuthCache implements HttpRequestInterceptor {
         Args.notNull(context, "HTTP context");
 
         final HttpClientContext clientContext = HttpClientContext.adapt(context);
+        final String exchangeId = clientContext.getExchangeId();
 
         final AuthCache authCache = clientContext.getAuthCache();
         if (authCache == null) {
-            this.log.debug("Auth cache not set in the context");
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{} Auth cache not set in the context", exchangeId);
+            }
             return;
         }
 
         final CredentialsProvider credsProvider = clientContext.getCredentialsProvider();
         if (credsProvider == null) {
-            this.log.debug("Credentials provider not set in the context");
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{} Credentials provider not set in the context", exchangeId);
+            }
             return;
         }
 
         final RouteInfo route = clientContext.getHttpRoute();
         if (route == null) {
-            this.log.debug("Route info not set in the context");
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{} Route info not set in the context", exchangeId);
+            }
             return;
         }
 
-        final URIAuthority authority = request.getAuthority();
-        final HttpHost target;
-        if (authority != null) {
-            target = new HttpHost(
-                    request.getScheme(),
-                    authority.getHostName(),
-                    authority.getPort() >= 0 ? authority.getPort() : route.getTargetHost().getPort());
-        } else {
-            target = route.getTargetHost();
-        }
+        final HttpHost target = new HttpHost(request.getScheme(), request.getAuthority());
         final AuthExchange targetAuthExchange = clientContext.getAuthExchange(target);
         if (targetAuthExchange.getState() == AuthExchange.State.UNCHALLENGED) {
-            final AuthScheme authScheme = authCache.get(target);
+            final String pathPrefix = RequestSupport.extractPathPrefix(request);
+            final AuthScheme authScheme = authCache.get(target, pathPrefix);
             if (authScheme != null) {
-                if (this.log.isDebugEnabled()) {
-                    this.log.debug("Re-using cached '" + authScheme.getName() + "' auth scheme for " + target);
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("{} Re-using cached '{}' auth scheme for {}", exchangeId, authScheme.getName(), target);
                 }
                 targetAuthExchange.select(authScheme);
             }
@@ -114,10 +116,10 @@ public class RequestAuthCache implements HttpRequestInterceptor {
         if (proxy != null) {
             final AuthExchange proxyAuthExchange = clientContext.getAuthExchange(proxy);
             if (proxyAuthExchange.getState() == AuthExchange.State.UNCHALLENGED) {
-                final AuthScheme authScheme = authCache.get(proxy);
+                final AuthScheme authScheme = authCache.get(proxy, null);
                 if (authScheme != null) {
-                    if (this.log.isDebugEnabled()) {
-                        this.log.debug("Re-using cached '" + authScheme.getName() + "' auth scheme for " + proxy);
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("{} Re-using cached '{}' auth scheme for {}", exchangeId, authScheme.getName(), proxy);
                     }
                     proxyAuthExchange.select(authScheme);
                 }

@@ -59,6 +59,9 @@ import org.apache.hc.core5.http.nio.CapacityChannel;
 import org.apache.hc.core5.http.nio.DataStreamChannel;
 import org.apache.hc.core5.http.nio.RequestChannel;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.http.protocol.HttpCoreContext;
+import org.apache.hc.core5.http.protocol.HttpProcessor;
+import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TimeValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,12 +77,16 @@ import org.slf4j.LoggerFactory;
 @Internal
 class HttpAsyncMainClientExec implements AsyncExecChainHandler {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger LOG = LoggerFactory.getLogger(HttpAsyncMainClientExec.class);
 
+    private final HttpProcessor httpProcessor;
     private final ConnectionKeepAliveStrategy keepAliveStrategy;
     private final UserTokenHandler userTokenHandler;
 
-    HttpAsyncMainClientExec(final ConnectionKeepAliveStrategy keepAliveStrategy, final UserTokenHandler userTokenHandler) {
+    HttpAsyncMainClientExec(final HttpProcessor httpProcessor,
+                            final ConnectionKeepAliveStrategy keepAliveStrategy,
+                            final UserTokenHandler userTokenHandler) {
+        this.httpProcessor = Args.notNull(httpProcessor, "HTTP protocol processor");
         this.keepAliveStrategy = keepAliveStrategy;
         this.userTokenHandler = userTokenHandler;
     }
@@ -97,14 +104,14 @@ class HttpAsyncMainClientExec implements AsyncExecChainHandler {
         final HttpClientContext clientContext = scope.clientContext;
         final AsyncExecRuntime execRuntime = scope.execRuntime;
 
-        if (log.isDebugEnabled()) {
-            log.debug(exchangeId + ": executing " + new RequestLine(request));
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("{} executing {}", exchangeId, new RequestLine(request));
         }
 
         final AtomicInteger messageCountDown = new AtomicInteger(2);
         final AsyncClientExchangeHandler internalExchangeHandler = new AsyncClientExchangeHandler() {
 
-            private final AtomicReference<AsyncDataConsumer> entityConsumerRef = new AtomicReference<>(null);
+            private final AtomicReference<AsyncDataConsumer> entityConsumerRef = new AtomicReference<>();
 
             @Override
             public void releaseResources() {
@@ -126,13 +133,20 @@ class HttpAsyncMainClientExec implements AsyncExecChainHandler {
 
             @Override
             public void cancel() {
-                failed(new InterruptedIOException());
+                if (messageCountDown.get() > 0) {
+                    failed(new InterruptedIOException());
+                }
             }
 
             @Override
             public void produceRequest(
                     final RequestChannel channel,
                     final HttpContext context) throws HttpException, IOException {
+
+                clientContext.setAttribute(HttpClientContext.HTTP_ROUTE, route);
+                clientContext.setAttribute(HttpCoreContext.HTTP_REQUEST, request);
+                httpProcessor.process(request, entityProducer, clientContext);
+
                 channel.sendRequest(request, entityProducer, context);
                 if (entityProducer == null) {
                     messageCountDown.decrementAndGet();
@@ -189,6 +203,10 @@ class HttpAsyncMainClientExec implements AsyncExecChainHandler {
                     final HttpResponse response,
                     final EntityDetails entityDetails,
                     final HttpContext context) throws HttpException, IOException {
+
+                clientContext.setAttribute(HttpCoreContext.HTTP_RESPONSE, response);
+                httpProcessor.process(response, entityDetails, clientContext);
+
                 entityConsumerRef.set(asyncExecCallback.handleResponse(response, entityDetails));
                 if (response.getCode() >= HttpStatus.SC_CLIENT_ERROR) {
                     messageCountDown.decrementAndGet();
@@ -196,7 +214,7 @@ class HttpAsyncMainClientExec implements AsyncExecChainHandler {
                 final TimeValue keepAliveDuration = keepAliveStrategy.getKeepAliveDuration(response, clientContext);
                 Object userToken = clientContext.getUserToken();
                 if (userToken == null) {
-                    userToken = userTokenHandler.getUserToken(route, clientContext);
+                    userToken = userTokenHandler.getUserToken(route, request, clientContext);
                     clientContext.setAttribute(HttpClientContext.USER_TOKEN, userToken);
                 }
                 execRuntime.markConnectionReusable(userToken, keepAliveDuration);
@@ -241,10 +259,10 @@ class HttpAsyncMainClientExec implements AsyncExecChainHandler {
 
         };
 
-        if (log.isDebugEnabled()) {
+        if (LOG.isDebugEnabled()) {
             operation.setDependency(execRuntime.execute(
                     exchangeId,
-                    new LoggingAsyncClientExchangeHandler(log, exchangeId, internalExchangeHandler),
+                    new LoggingAsyncClientExchangeHandler(LOG, exchangeId, internalExchangeHandler),
                     clientContext));
         } else {
             operation.setDependency(execRuntime.execute(exchangeId, internalExchangeHandler, clientContext));

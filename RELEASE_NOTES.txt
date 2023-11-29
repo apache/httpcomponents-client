@@ -1,4 +1,628 @@
-﻿Release 5.0
+﻿Release 5.3 ALPHA1
+------------------
+
+This is the first release in the 5.3 release series that introduces support for the Bearer
+authentication scheme (RFC 6750) and deprecates NTLM and GSS based experimental authentication
+schemes in favor of Basic / Bearer authentication with TLS.
+
+Notable changes and features included in the 5.3 series:
+
+* Introduction of the Bearer authentication scheme.
+
+* Deprecation of the NTLM authentication scheme.
+
+* Deprecation of the GSS based experimental authentication schemes.
+
+* Support for load distribution across multiple proxies.
+
+
+Change Log
+-------------------
+
+* GSS based experimental authentication schemes deprecated and disabled by default.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* NTLM scheme deprecated and disabled by default.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Added linear and exponential BackoffManager implementations.
+  Contributed by Arturo Bernal <arturobernalg at gmail.com>
+
+* Improved AIMDBackoffManager.
+  Contributed by Arturo Bernal <arturobernalg at gmail.com>
+
+* Added DistributedProxySelector with support for load distribution across multiple
+  proxies.
+  Contributed by Arturo Bernal <arturobernalg at gmail.com>
+
+* Support for preamble and epilogue in multipart entities.
+  Contributed by Arturo Bernal <arturobernalg at gmail.com>
+
+* HttpResponseException to include response message content (up to 256 bytes).
+  Contributed by Arturo Bernal <arturobernalg at gmail.com>
+
+* Workaround for URL quoting issue with LLv6 host literals.
+  Contributed by Arturo Bernal <arturobernalg at gmail.com>
+
+* Bearer auth scheme support (RFC 6750)
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Credentials interface should be able to represent different types of user credentials
+  including token based with no password.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Connection settings `timeToLive` and `validateAfterInactivity` set to zero to always
+  close or validate connections being leased.
+  Contributed by Christoph Kaser <berlin at caser.de>
+
+* Digest authentication scheme to omit the algorithm in the authentication response
+  if it has not been explicitly set in the authentication challenge, as per RFC 7616.
+  Contributed by John Vasileff <john at vasileff.com>
+
+* HTTPCLIENT-2271: Do not optimize the path component of the resolved URI by default.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Pass HttpContext to SSLConnectionSocketFactory#prepareSocket method (#404)
+  Contributed by Alen Turkovic <alturkovic at gmail.com>
+
+
+Release 5.2.1
+------------------
+
+This is a maintenance release that fixes several regressions found in release 5.2.
+
+Change Log
+-------------------
+
+* Regression: Async execution runtimes set the negotiated protocol version in the execution
+  context at the wrong point of request execution.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Cancel connection request on exception.
+  Contributed by Bryan Keller <bryanck at gmail.com>
+
+* Replace deprecated use of LangUtils#equals() with Objects.equals().
+  Contributed by Gary Gregory <ggregory at apache.org>
+
+* Regression: Multipart body builder and multipart formatters fail to escape special characters
+  such as backslash and quote mark.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+
+Release 5.2
+------------------
+
+This is the first GA release in the 5.2 release series. This release finalizes the 5.2 APIs
+and corrects a number of defects discovered since the previous release.
+
+Please note that 5.2 upgrades the minimal JRE level to version 8 (8u251 is required).
+
+Please note this is likely to be the last release series with support for SPNEGO and NTLM
+authentication. As of version 5.3 GSS-API-based authentication schemes (Kerberos, SPNEGO)
+and NTLM authentication schemes are going to be deprecated and disabled by default.
+
+
+Notable changes and features included in the 5.2 series:
+
+* Upgrade to Java 8.
+
+* Improved support for TLS upgrade and HTTP protocol upgrade (async).
+
+* Support for H2 tunneling via HTTP/1.1 proxy.
+
+* Conformance to RFC 7617 (The 'Basic' HTTP Authentication Scheme).
+
+* Migration to Java 8 Time primitives in State Management and Cache APIs.
+
+* Connection and TLS configuration on a per route basis.
+
+* Base64 codec based on Commons Codec replaced with JRE Base64 codec.
+  Dependency on Commons Codec dropped.
+
+* Optional support for BR (Brotli) decompression.
+
+
+Change Log
+-------------------
+
+* HTTPCLIENT-2242: RoutingSupport fails to copy InetAddress when normalizing HttpHost.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2240: Fixed incorrect CONNECT method initialization in ProxyClient.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2236: MultihomeIOSessionRequester fails to enhance the cause exception in case
+  of connect failure if the remoteAddress argument has been given.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Use Objects.toString() instead of String type cast
+  Contributed by Gary Gregory <garydgregory at gmail.com>
+
+* HTTPCLIENT-2232: Last protocol interceptors moved at the end of the H2 protocol processing
+  pipeline.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* H2 async runtime to proactively set HTTP/2 protocol version in the execution context.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2231: Fixed a race condition in the main async executor when the request execution
+  on an I/O thread is faster than execution pipeline management on the client thread.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Avoid duplicate redundant objects and use Singleton instead.
+  Contributed by Arturo Bernal <arturobernalg at gmail.com>
+
+* HTTPCLIENT-2225: Connection route calculation does not take the default RequestConfig into
+  account.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Avoid unnecessary use of Instant.toEpochMilli by using Instant#compareTo to compare
+  Instants directly.
+  Contributed by jkmcl
+
+* HTTPCLIENT-2221 Closing a classic response/entity allows connection reuse.
+  Contributed by Carter Kozak <ckozak at apache.org>
+
+
+
+Release 5.2 BETA1
+------------------
+
+This is the first BETA release in the 5.2 release series that upgrades minimal JRE
+level to version 8 (8u251 is required) and includes several protocol level and
+API improvements. It also includes all bug fixes from the 5.1 branch.
+
+Change Log
+-------------------
+
+* Upgraded HttpCore to version 5.2-beta2.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2218: Use Java 8 Base64 utility (#370).
+  Contributed by j3graham <j3graham@gmail.com>
+
+* Added support for BR (Brotli) decompression (#363).
+  Contributed by 殷成涛 <yinwoods@163.com>
+
+* HTTPCLIENT-2212: MinimalHttpAsyncClient fails to release client endpoints in case of
+  a connect error (such as TLS handshake failure).
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* InternalAbstractHttpAsyncClient to create daemin threads.
+  Contributed by Richard Hernandez <riher at amazon.com>
+
+* HTTPCLIENT-2080: Added #getRetryInterval method to HttpRequestRetryStrategy for use
+  on retriable IOExceptions (#356).
+  Contributed by Anthony Baldocchi <489445+ajbaldocchi at users.noreply.github.com>
+
+* Fixed infinite recursion in SSLConnectionSocketFactory.
+  Contributed by Ryan Schmitt <rschmitt at apache.org>
+
+* HTTPCLIENT-2200: Protocol interceptors are executed before the connection route has
+  been fully established.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2209: Pass HttpContext to AsyncClientConnectionOperator (#353).
+  Contributed by Andriy Redko <drreta at gmail.com>
+
+* HTTPCLIENT-2206: Corrected resource de-allocation by fluent response objects.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* ExecSupport#getNextExchangeId() optimization (#352)
+  Contributed by David Schlosnagle <schlosna at gmail.com>
+
+* HTTPCLIENT-2203: Corrected target host normalization by the request execution interceptors;
+  added ContextBuilder with support for preemptive authentication initialization.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2202: MemcachedHttpCacheStorage to support MemcachedClientIF interface.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Bug fix: ByteArrayBuilder incorrectly handles empty strings.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2198: Fixed AbstractClientTlsStrategy to respect HttpVersionPolicy.
+  Contributed by Andrei Vasilev <59628447+AndreiSVasilev at users.noreply.github.com>
+
+* Updated AbstractClientTlsStrategy to pass only the HttpVersionPolicy set by TlsConfig
+  instead of the entire TlsConfig to H2TlsSupport#selectApplicationProtocols() method.
+  Contributed by Andrei Vasilev <59628447+AndreiSVasilev at users.noreply.github.com>
+
+* HTTPCLIENT-2195, regression: Classic ConnectExec incorrectly discards the proxy response
+  body even if the request cannot be executed and the response is final.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2194: Async retry request interceptor fails to correct include request body
+  on retry (#343).
+  Contributed by JasonMathison <JasonMathison at users.noreply.github.com>
+
+* Deprecated execute methods that return an open response object in favor of execute
+  methods with a response handler and automatic resource deallocation.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2189: Cookie and Cache APIs to use Java time primitives.
+  Contributed by Arturo Bernal <arturobernalg at gmail.com>
+
+* Apply English locale to all date header formatters.
+  Contributed by Michael Osipov <michaelo at apache.org>
+
+* HTTPCLIENT-2184: Fixed an issue in which connections were not returned to the pool
+  when requests contained non-repeatable bodies AND responses were streamed.
+  Contributed by Carter Kozak <ckozak at apache.org>
+
+
+
+Release 5.2 ALPHA1
+------------------
+
+This is the first ALPHA release in the 5.2 release series that upgrades minimal JRE
+level to version 1.8 (8u251 is required) and includes several protocol level and
+API improvements. It also includes all bug fixes from the 5.1 branch.
+
+Notable changes and features included in the 5.2 series:
+
+* Upgrade to Java 8.
+
+* Improved support for TLS upgrade and HTTP protocol upgrade (async).
+
+* Support for H2 tunneling via HTTP/1.1 proxy.
+
+* Conformance to RFC 7617 (The 'Basic' HTTP Authentication Scheme).
+
+
+Change Log
+-------------------
+
+* Replaced SimpleDateFormat and Calendar with Java 8 Time APIs; removed thread-local
+  from DateUtils.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Support for connection 'total time to live' setting on a per-route basis.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Configurable IOReactor IO session decorator configurable.
+  Contributed by Arturo Bernal <arturobernalg at gmail.com>
+
+* HTTPCLIENT-2182: access to SSLSession attributes via reflection disallowed as of Java 16.
+  Core TLS functions now use new Java 1.8 API introduced by 8u251 update.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2135: TLS configuration on a per-host basis.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* RFC 7230: treat presence of userinfo in authority component in request URI as an HTTP
+  protocol violation.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* AuthCache conformance to RFC 7617.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Added immutable CredentialsProvider implementations and a CredentialsProvider builder.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2045: BASIC auth scheme conformance to RFC 7617.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2120: support for H2 via HTTP/1.1 proxy.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Moved connection management related settings from RequestConfig to new class ConnectionConfig.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2139: Cookie Header HttpOnly attribute.
+  Contributed by Arturo Bernal <arturobernalg at gmail.com>
+
+
+
+Release 5.1.1
+-----------
+
+This release upgrades HttpCore to the latest 5.1 version and fixes a number of issues found
+since release 5.1.
+
+
+Change Log
+-------------------
+
+* Don't initialize AtomicReference to its default value.
+  Contributed by Gary Gregory <ggregory at apache.org>
+
+* Corrected resolution of the target host in DefaultUserTokenHandler.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2177: automatically force HTTP/1.1 protocol policy when executing requests
+  via a proxy tunnel.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2177: fixed incorrect route state tracking by the async connect executor
+  when negotiating a tunnel via a proxy.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2177: keep successful tunnel connections alive regardless of `Connection: close`.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2173: async pooling connection manager to close half-open connection gracefully.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Don't retry a request for NoRouteToHostException.
+  Contributed by Jaikiran Pai <jaikiran.pai at gmail.com>
+
+* HTTPCLIENT-2170: Classic protocol layer no longer releases the underlying connection back
+  to the pool prematurely while the NTLM handshake is still ongoing.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Fixed connection lease request cancellation race in both classic and asyc pooling connection
+  managers.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+
+Release 5.1
+-----------
+
+This is the first GA release in the 5.1 release series.
+
+Notable changes and features included in the 5.1 series:
+
+* Conditional conformance with RFC 3986 (Uniform Resource Identifier (URI): Generic Syntax).
+
+* Improved support for out of sequence response message handing by the the classic (blocking)
+  HTTP transport.
+
+* Improved message builders.
+
+
+Please note that 5.1 is going to be the last release series compatible with Java 1.7. 
+HttpClient will require Java 1.8 as of 5.2.
+
+
+Change Log
+-------------------
+
+* HTTPCLIENT-2157: Response object generated by the classic caching backend is missing
+  the original content encoding.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2152: Fixed handling of unexpected unchecked exception by the async request
+  retry exec interceptor.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Async clients to support scheduled (delayed) re-execution of requests.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2148: fluent Executor volatile access thread safety (#301).
+  Contributed by Carter Kozak <ckozak at apache.org>
+
+* HTTPCLIENT-2149: When no dNSName, match against CN.
+  Contributed by Peter Dettman <peter.dettman at bouncycastle.org>
+
+* HTTPCLIENT-2147: fixed broken preemptive auth in HC Fluent.
+  Contributed by Robert Rodewald <robert.rodewald at kopsis.com>
+
+* HTTPCORE-672: cleanup of H2 connection validation code.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HttpAsyncClientBuilder: Make IOReactor exception callback configurable
+  Contributed by Ryan Schmitt <ryansch at amazon.com>
+
+* HTTPCLIENT-2141: HttpClient to not retry requests if the retry interval exceeds the response
+  timeout.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Fixed NPE during dispose in Response if entity is null
+  Contributed by Sandeep Kulkarni <sandeep at snk.local>
+
+* Blocking connection managers to validate connections after inactivity of more than 2s
+  by default.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Deprecated request factory classes in favor of request builders.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2140: Upgraded Commons Codec to version 1.15.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Deprecated message copiers in favor of generic message builders.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Kerberos/SPNego fixes
+  Contributed by Carey Lin <careylin1111 at gmail.com>
+
+
+
+Release 5.1 BETA1
+------------------
+
+This is the first BETA release in the 5.1 release series that includes a number of
+new features as well performance optimizations in the classic HTTP transport.
+
+Notable changes and features included in the 5.1 series:
+
+* Conditional conformance with RFC 3986 (Uniform Resource Identifier (URI): Generic Syntax).
+
+* Improved support for out of sequence response message handing by the the classic (blocking)
+  HTTP transport.
+
+
+Changelog:
+-------------------
+
+* RFC 3986 conformance: URIUtils to re-use URIBuilder functionality.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Improved I/O session and wire logging.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Add interceptors before MAIN_TRANSPORT so they won't be ignored (#272)
+  Contributed by Rob Spoor <robtimus at users.noreply.github.com>
+
+* HTTPCLIENT-2104: ManagedHttpClientConnectionFactory to support ResponseOutOfOrderStrategy configuration.
+  Contributed by Carter Kozak <ckozak at apache.org>
+
+* Fixed NPE when H2/Async client interceptors are added using first/last (#268).
+  Contributed by Koji Lin <koji.lin at gmail.com>
+
+* HTTPCLIENT-2126: `InternalAbstractHttpAsyncClient` incorrectly handles response messages with no enclosed
+  entity.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2124: Fixed NOE  in MinimalHttpClient#doExecute (#261).
+  Contributed by Gary Gregory <ggregory at apache.org>
+
+* HTTPCLIENT-2122: async client to throw `HTTP/2 tunneling not supported` protocol exception in case of
+  `force HTTP/2` version policy used along with request proxy routing.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2123: H2AsyncClientBuilder incorrectly adds last request interceptors to the head of
+  the interceptor list.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Use decimal numbers for endpoint/execution IDs (#249).
+  Contributed by Michael Osipov <michaelo@apache.org>
+
+* HTTPCLIENT-2106: Added charset parameter for DigestScheme.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2103: ManagedHttpClientConnectionFactory provides a fluent builder
+  Contributed by Carter Kozak <ckozak at apache.org>
+
+
+
+Release 5.0.3
+-----------------
+
+This release upgrades HttpCore to the latest version, improves conformance to RFC 7235
+(Hypertext Transfer Protocol (HTTP/1.1): Authentication) and addresses a number of
+issues found since 5.0.2 release.
+
+Changelog:
+-------------------
+
+* PR #270: Master try w res and more.
+  - Use try-with-resources.
+  - Use Arrays.fill().
+  - Add missing @override.
+  - Simplify if/else.
+  - Remove redundant modifiers. …
+  - Remove redundant returns.
+  Contributed by Gary Gregory <ggregory at apache.org>
+
+
+
+Release 5.0.2
+-----------------
+
+This release upgrades HttpCore to the latest version, improves conformance to RFC 7235
+(Hypertext Transfer Protocol (HTTP/1.1): Authentication) and addresses a number of
+issues found since 5.0.1 release.
+
+Changelog:
+-------------------
+
+* HTTPCLIENT-2116: Incorrect request message composition when routing requests
+  via a proxy.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* PoolingAsyncClientConnectionManager incorrectly emits Ping commands to HTTP/1.1
+  endpoints (#255).
+  Contributed by 滕杰1 <tengjie1 at xdf.cn>
+
+* HTTPCLIENT-2115: HttpAsyncClientBuilder and H2AsyncClientBuilder fail to take
+  `replaceExecInterceptor()` into account.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2112: AbstractMultipartFormat respects ByteBuffer.arrayOffset (#253).
+  Contributed by Carter Kozak <ckozak at apache.org>
+
+* Avoid updating Content-Length header in a 304 response.
+  Contributed by Dirk Henselin <dirk.henselin at vwgis.de>
+
+* HTTPCLIENT-2105: Async clients incorrectly handle redirects of requests with enclosed
+  entity.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2100: Incorrect handling of EXTENDED mode by MultipartEntityBuilder
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2099, HTTPCLIENT-2091: SSLConnectionSocketFactory connect timeout fix (#241).
+  Contributed by Carter Kozak <ckozak at apache.org>
+
+* Bug fix: BasicExpiresHandler is annotated as immutable but is not (#240).
+  Contributed by Gary Gregory <ggregory at apache.org>
+
+* HTTPCLIENT-2096: Migrate instance loggers to static fields
+  Contributed by Carter Kozak <ckozak at apache.org>
+
+* Added Automatic-Module-Name to the artefact manifests.
+  Contributed by Niels Basjes <niels at basjes.nl>
+
+* MultipartEntityBuilder#generateBoundary optimization (#233)
+  Contributed by slisaasquatch <slisaasquatch at users.noreply.github.com>
+
+* HTTPCLIENT-2094: ConnectionManager validateAfterInactivity zero duration agreement
+  Contributed by Carter Kozak <ckozak at apache.org>
+
+* RFC 7235 compliance, HTTPCLIENT-2086: Fixed parsing of token68 based (base64-encoded)
+  auth schemes.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2091: Connect timeout is used instead of socket timeout after a tls upgrade
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2084: Client builders incorrectly add message interceptors with LAST position
+  to the head of the list.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2083: Fix NPE when classic client interceptors are added.
+  Contributed by Carter Kozak <ckozak at apache.org>
+
+
+Release 5.0.1
+-----------------
+
+This release upgrades HttpCore to the latest version and addresses a number of issues found
+since 5.0 release.
+
+Changelog:
+-------------------
+
+* Bug fix: Classic connection managers fail to take #isConsistent() flag into account when
+  re-using persistent connections.
+7  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2077: Authentication failure due to incorrect NTLM auth value check.
+  Contributed by vonahok <64310078+vonahok at users.noreply.github.com>
+
+* HTTPCLIENT-2051: Corrected handling of 303 redirects.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPASYNC-160: HttpAsyncClient in INACTIVE or STOPPED state throws a IllegalStateException
+  causing the current thread to terminate.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2076: Fixed NPE in LaxExpiresHandler.
+  Contributed by heejeongkim <aprilhjk at gmail.com>
+
+* HTTPCLIENT-2074: Disallow direct execution of CONNECT methods by standard client implementations.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2075: New method Request.responseTimeout(Timeout) in Fluent HC.
+  Contributed by Ralph <ralph.geerkens at rwth-aachen.de>
+
+* HTTPCLIENT-2073: (regression) WindowsNegotiateScheme incorrectly rejects empty NTLM challenge.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2069: RequestConfig#copy does not copy #responseTimeout.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2061: Corrected sequence of request execution interceptors in classic HttpClient.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Fixed NPE for null HttpContext in minimal async clients.
+  Contributed by slisaasquatch <sli at saasquat.ch>
+
+
+
+Release 5.0
 -----------------
 
 This is the first stable (GA) release of HttpClient 5.0.

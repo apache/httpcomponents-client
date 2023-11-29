@@ -47,7 +47,7 @@ import org.slf4j.LoggerFactory;
  */
 public class LenientHttpResponseParser extends DefaultHttpResponseParser {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger LOG = LoggerFactory.getLogger(LenientHttpResponseParser.class);
 
     /**
      * Creates new instance of DefaultHttpResponseParser.
@@ -84,8 +84,8 @@ public class LenientHttpResponseParser extends DefaultHttpResponseParser {
         try {
             return super.createMessage(buffer);
         } catch (final HttpException ex) {
-            if (this.log.isDebugEnabled()) {
-                this.log.debug("Garbage in response: " + buffer.toString());
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Garbage in response: {}", buffer);
             }
             return null;
         }

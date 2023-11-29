@@ -26,8 +26,6 @@
  */
 package org.apache.hc.client5.http.impl;
 
-import java.util.concurrent.atomic.AtomicLong;
-
 import org.apache.hc.core5.annotation.Internal;
 
 /**
@@ -38,14 +36,13 @@ import org.apache.hc.core5.annotation.Internal;
 @Internal
 public final class ExecSupport {
 
-    private static final AtomicLong COUNT = new AtomicLong(0);
+    private static final PrefixedIncrementingId INCREMENTING_ID = new PrefixedIncrementingId("ex-");
 
     public static long getNextExecNumber() {
-        return COUNT.incrementAndGet();
+        return INCREMENTING_ID.getNextNumber();
     }
 
     public static String getNextExchangeId() {
-        return String.format("ex-%08X", COUNT.incrementAndGet());
+        return INCREMENTING_ID.getNextId();
     }
-
 }

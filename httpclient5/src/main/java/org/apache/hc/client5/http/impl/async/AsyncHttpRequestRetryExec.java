@@ -33,7 +33,7 @@ import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.async.AsyncExecCallback;
 import org.apache.hc.client5.http.async.AsyncExecChain;
 import org.apache.hc.client5.http.async.AsyncExecChainHandler;
-import org.apache.hc.client5.http.impl.RequestCopier;
+import org.apache.hc.client5.http.impl.ChainElement;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Internal;
@@ -44,8 +44,10 @@ import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.nio.AsyncDataConsumer;
 import org.apache.hc.core5.http.nio.AsyncEntityProducer;
-import org.apache.hc.core5.http.nio.entity.NoopEntityConsumer;
+import org.apache.hc.core5.http.nio.entity.DiscardingEntityConsumer;
+import org.apache.hc.core5.http.support.BasicRequestBuilder;
 import org.apache.hc.core5.util.Args;
+import org.apache.hc.core5.util.TimeValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,6 +62,22 @@ import org.slf4j.LoggerFactory;
  * endpoint is delegated to the next executor in the request execution
  * chain.
  * </p>
+ * <p>
+ * If this handler is active, pay particular attention to the placement
+ * of other handlers within the handler chain relative to the retry handler.
+ * Use {@link ChainElement#RETRY} as name when referring to this handler.
+ * </p>
+ * <p>
+ * If a custom handler is placed <b>before</b> the retry handler, the handler will
+ * see the initial request and the final outcome after the last retry. Elapsed time
+ * will account for any delays imposed by the retry handler.
+ * </p>
+ *
+ * <p>
+ * A custom handler which is placed <b>after</b> the retry handler will be invoked for
+ * each individual retry. Elapsed time will measure each individual http request,
+ * without the delay imposed by the retry handler.
+ * </p>
  *
  * @since 5.0
  */
@@ -67,7 +85,7 @@ import org.slf4j.LoggerFactory;
 @Internal
 public final class AsyncHttpRequestRetryExec implements AsyncExecChainHandler {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger LOG = LoggerFactory.getLogger(AsyncHttpRequestRetryExec.class);
 
     private final HttpRequestRetryStrategy retryStrategy;
 
@@ -78,8 +96,8 @@ public final class AsyncHttpRequestRetryExec implements AsyncExecChainHandler {
 
     private static class State {
 
-        volatile int execCount;
         volatile boolean retrying;
+        volatile TimeValue delay;
 
     }
 
@@ -93,7 +111,7 @@ public final class AsyncHttpRequestRetryExec implements AsyncExecChainHandler {
 
         final String exchangeId = scope.exchangeId;
 
-        chain.proceed(RequestCopier.INSTANCE.copy(request), entityProducer, scope, new AsyncExecCallback() {
+        chain.proceed(BasicRequestBuilder.copy(request).build(), entityProducer, scope, new AsyncExecCallback() {
 
             @Override
             public AsyncDataConsumer handleResponse(
@@ -101,14 +119,18 @@ public final class AsyncHttpRequestRetryExec implements AsyncExecChainHandler {
                     final EntityDetails entityDetails) throws HttpException, IOException {
                 final HttpClientContext clientContext = scope.clientContext;
                 if (entityProducer != null && !entityProducer.isRepeatable()) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("{}: cannot retry non-repeatable request", exchangeId);
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("{} cannot retry non-repeatable request", exchangeId);
                     }
                     return asyncExecCallback.handleResponse(response, entityDetails);
                 }
-                state.retrying = retryStrategy.retryRequest(response, state.execCount, clientContext);
+                state.retrying = retryStrategy.retryRequest(response, scope.execCount.get(), clientContext);
                 if (state.retrying) {
-                    return new NoopEntityConsumer();
+                    state.delay = retryStrategy.getRetryInterval(response, scope.execCount.get(), clientContext);
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("{} retrying request in {}", exchangeId, state.delay);
+                    }
+                    return new DiscardingEntityConsumer<>();
                 } else {
                     return asyncExecCallback.handleResponse(response, entityDetails);
                 }
@@ -122,12 +144,17 @@ public final class AsyncHttpRequestRetryExec implements AsyncExecChainHandler {
             @Override
             public void completed() {
                 if (state.retrying) {
-                    state.execCount++;
-                    try {
-                        internalExecute(state, request, entityProducer, scope, chain, asyncExecCallback);
-                    } catch (final IOException | HttpException ex) {
-                        asyncExecCallback.failed(ex);
+                    scope.execCount.incrementAndGet();
+                    if (entityProducer != null) {
+                       entityProducer.releaseResources();
                     }
+                    scope.scheduler.scheduleExecution(
+                            request,
+                            entityProducer,
+                            scope,
+                            (r, e, s, c) -> execute(r, e, s, chain, c),
+                            asyncExecCallback,
+                            state.delay);
                 } else {
                     asyncExecCallback.completed();
                 }
@@ -139,15 +166,15 @@ public final class AsyncHttpRequestRetryExec implements AsyncExecChainHandler {
                     final HttpRoute route = scope.route;
                     final HttpClientContext clientContext = scope.clientContext;
                     if (entityProducer != null && !entityProducer.isRepeatable()) {
-                        if (log.isDebugEnabled()) {
-                            log.debug("{}: cannot retry non-repeatable request", exchangeId);
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("{} cannot retry non-repeatable request", exchangeId);
                         }
-                    } else if (retryStrategy.retryRequest(request, (IOException) cause, state.execCount, clientContext)) {
-                        if (log.isDebugEnabled()) {
-                            log.debug("{}: {}", exchangeId, cause.getMessage(), cause);
+                    } else if (retryStrategy.retryRequest(request, (IOException) cause, scope.execCount.get(), clientContext)) {
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("{} {}", exchangeId, cause.getMessage(), cause);
                         }
-                        if (log.isInfoEnabled()) {
-                            log.info("Recoverable I/O exception ({}) caught when processing request to {}",
+                        if (LOG.isInfoEnabled()) {
+                            LOG.info("Recoverable I/O exception ({}) caught when processing request to {}",
                                     cause.getClass().getName(), route);
                         }
                         scope.execRuntime.discardEndpoint();
@@ -155,12 +182,15 @@ public final class AsyncHttpRequestRetryExec implements AsyncExecChainHandler {
                             entityProducer.releaseResources();
                         }
                         state.retrying = true;
-                        state.execCount++;
-                        try {
-                            internalExecute(state, request, entityProducer, scope, chain, asyncExecCallback);
-                        } catch (final IOException | HttpException ex) {
-                            asyncExecCallback.failed(ex);
-                        }
+                        final int execCount = scope.execCount.incrementAndGet();
+                        state.delay = retryStrategy.getRetryInterval(request, (IOException) cause, execCount - 1, clientContext);
+                        scope.scheduler.scheduleExecution(
+                                request,
+                                entityProducer,
+                                scope,
+                                (r, e, s, c) -> execute(r, e, s, chain, c),
+                                asyncExecCallback,
+                                state.delay);
                         return;
                     }
                 }
@@ -179,7 +209,6 @@ public final class AsyncHttpRequestRetryExec implements AsyncExecChainHandler {
             final AsyncExecChain chain,
             final AsyncExecCallback asyncExecCallback) throws HttpException, IOException {
         final State state = new State();
-        state.execCount = 1;
         state.retrying = false;
         internalExecute(state, request, entityProducer, scope, chain, asyncExecCallback);
     }

@@ -45,9 +45,11 @@ import org.apache.hc.core5.http.config.CharCodingConfig;
 import org.apache.hc.core5.http.config.Http1Config;
 import org.apache.hc.core5.http.impl.DefaultContentLengthStrategy;
 import org.apache.hc.core5.http.impl.io.DefaultHttpRequestWriterFactory;
+import org.apache.hc.core5.http.impl.io.NoResponseOutOfOrderStrategy;
 import org.apache.hc.core5.http.io.HttpConnectionFactory;
 import org.apache.hc.core5.http.io.HttpMessageParserFactory;
 import org.apache.hc.core5.http.io.HttpMessageWriterFactory;
+import org.apache.hc.core5.http.io.ResponseOutOfOrderStrategy;
 
 /**
  * Factory for {@link ManagedHttpClientConnection} instances.
@@ -66,15 +68,16 @@ public class ManagedHttpClientConnectionFactory implements HttpConnectionFactory
     private final HttpMessageParserFactory<ClassicHttpResponse> responseParserFactory;
     private final ContentLengthStrategy incomingContentStrategy;
     private final ContentLengthStrategy outgoingContentStrategy;
+    private final ResponseOutOfOrderStrategy responseOutOfOrderStrategy;
 
-    public ManagedHttpClientConnectionFactory(
+    private ManagedHttpClientConnectionFactory(
             final Http1Config h1Config,
             final CharCodingConfig charCodingConfig,
             final HttpMessageWriterFactory<ClassicHttpRequest> requestWriterFactory,
             final HttpMessageParserFactory<ClassicHttpResponse> responseParserFactory,
             final ContentLengthStrategy incomingContentStrategy,
-            final ContentLengthStrategy outgoingContentStrategy) {
-        super();
+            final ContentLengthStrategy outgoingContentStrategy,
+            final ResponseOutOfOrderStrategy responseOutOfOrderStrategy) {
         this.h1Config = h1Config != null ? h1Config : Http1Config.DEFAULT;
         this.charCodingConfig = charCodingConfig != null ? charCodingConfig : CharCodingConfig.DEFAULT;
         this.requestWriterFactory = requestWriterFactory != null ? requestWriterFactory :
@@ -85,6 +88,25 @@ public class ManagedHttpClientConnectionFactory implements HttpConnectionFactory
                 DefaultContentLengthStrategy.INSTANCE;
         this.outgoingContentStrategy = outgoingContentStrategy != null ? outgoingContentStrategy :
                 DefaultContentLengthStrategy.INSTANCE;
+        this.responseOutOfOrderStrategy = responseOutOfOrderStrategy != null ? responseOutOfOrderStrategy :
+                NoResponseOutOfOrderStrategy.INSTANCE;
+    }
+
+    public ManagedHttpClientConnectionFactory(
+            final Http1Config h1Config,
+            final CharCodingConfig charCodingConfig,
+            final HttpMessageWriterFactory<ClassicHttpRequest> requestWriterFactory,
+            final HttpMessageParserFactory<ClassicHttpResponse> responseParserFactory,
+            final ContentLengthStrategy incomingContentStrategy,
+            final ContentLengthStrategy outgoingContentStrategy) {
+        this(
+                h1Config,
+                charCodingConfig,
+                requestWriterFactory,
+                responseParserFactory,
+                incomingContentStrategy,
+                outgoingContentStrategy,
+                null);
     }
 
     public ManagedHttpClientConnectionFactory(
@@ -123,7 +145,7 @@ public class ManagedHttpClientConnectionFactory implements HttpConnectionFactory
             charEncoder.onMalformedInput(malformedInputAction);
             charEncoder.onUnmappableCharacter(unmappableInputAction);
         }
-        final String id = "http-outgoing-" + Long.toString(COUNTER.getAndIncrement());
+        final String id = "http-outgoing-" + COUNTER.getAndIncrement();
         final DefaultManagedHttpClientConnection conn = new DefaultManagedHttpClientConnection(
                 id,
                 charDecoder,
@@ -131,6 +153,7 @@ public class ManagedHttpClientConnectionFactory implements HttpConnectionFactory
                 h1Config,
                 incomingContentStrategy,
                 outgoingContentStrategy,
+                responseOutOfOrderStrategy,
                 requestWriterFactory,
                 responseParserFactory);
         if (socket != null) {
@@ -139,4 +162,78 @@ public class ManagedHttpClientConnectionFactory implements HttpConnectionFactory
         return conn;
     }
 
+    /**
+     * Create a new {@link Builder}.
+     *
+     * @since 5.1
+     */
+    public static Builder builder()  {
+        return new Builder();
+    }
+
+    /**
+     * Builder for {@link ManagedHttpClientConnectionFactory}.
+     *
+     * @since 5.1
+     */
+    public static final class Builder {
+
+        private Http1Config http1Config;
+        private CharCodingConfig charCodingConfig;
+        private ContentLengthStrategy incomingContentLengthStrategy;
+        private ContentLengthStrategy outgoingContentLengthStrategy;
+        private ResponseOutOfOrderStrategy responseOutOfOrderStrategy;
+        private HttpMessageWriterFactory<ClassicHttpRequest> requestWriterFactory;
+        private HttpMessageParserFactory<ClassicHttpResponse> responseParserFactory;
+
+        private Builder() {}
+
+        public Builder http1Config(final Http1Config http1Config) {
+            this.http1Config = http1Config;
+            return this;
+        }
+
+        public Builder charCodingConfig(final CharCodingConfig charCodingConfig) {
+            this.charCodingConfig = charCodingConfig;
+            return this;
+        }
+
+        public Builder incomingContentLengthStrategy(final ContentLengthStrategy incomingContentLengthStrategy) {
+            this.incomingContentLengthStrategy = incomingContentLengthStrategy;
+            return this;
+        }
+
+        public Builder outgoingContentLengthStrategy(final ContentLengthStrategy outgoingContentLengthStrategy) {
+            this.outgoingContentLengthStrategy = outgoingContentLengthStrategy;
+            return this;
+        }
+
+        public Builder responseOutOfOrderStrategy(final ResponseOutOfOrderStrategy responseOutOfOrderStrategy) {
+            this.responseOutOfOrderStrategy = responseOutOfOrderStrategy;
+            return this;
+        }
+
+        public Builder requestWriterFactory(
+                final HttpMessageWriterFactory<ClassicHttpRequest> requestWriterFactory) {
+            this.requestWriterFactory = requestWriterFactory;
+            return this;
+        }
+
+        public Builder responseParserFactory(
+                final HttpMessageParserFactory<ClassicHttpResponse> responseParserFactory) {
+            this.responseParserFactory = responseParserFactory;
+            return this;
+        }
+
+        public ManagedHttpClientConnectionFactory build() {
+            return new ManagedHttpClientConnectionFactory(
+                    http1Config,
+                    charCodingConfig,
+                    requestWriterFactory,
+                    responseParserFactory,
+                    incomingContentLengthStrategy,
+                    outgoingContentLengthStrategy,
+                    responseOutOfOrderStrategy);
+        }
+    }
 }

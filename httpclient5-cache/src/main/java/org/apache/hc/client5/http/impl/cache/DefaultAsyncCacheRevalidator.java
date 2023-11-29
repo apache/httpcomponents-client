@@ -42,12 +42,16 @@ import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.nio.AsyncDataConsumer;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Class used for asynchronous revalidations to be used when the {@code stale-while-revalidate}
  * directive is present
  */
 class DefaultAsyncCacheRevalidator extends CacheRevalidatorBase {
+
+    private static final Logger LOG = LoggerFactory.getLogger(DefaultAsyncCacheRevalidator.class);
 
     interface RevalidationCall {
 
@@ -83,8 +87,6 @@ class DefaultAsyncCacheRevalidator extends CacheRevalidatorBase {
 
     }
 
-    private final CacheKeyGenerator cacheKeyGenerator;
-
     /**
      * Create DefaultCacheRevalidator which will make ache revalidation requests
      * using the supplied {@link SchedulingStrategy} and {@link ScheduledExecutor}.
@@ -93,8 +95,6 @@ class DefaultAsyncCacheRevalidator extends CacheRevalidatorBase {
             final ScheduledExecutor scheduledExecutor,
             final SchedulingStrategy schedulingStrategy) {
         super(new InternalScheduledExecutor(scheduledExecutor), schedulingStrategy);
-        this.cacheKeyGenerator = CacheKeyGenerator.INSTANCE;
-
     }
 
     /**
@@ -114,59 +114,52 @@ class DefaultAsyncCacheRevalidator extends CacheRevalidatorBase {
             final String cacheKey ,
             final AsyncExecCallback asyncExecCallback,
             final RevalidationCall call) {
-        scheduleRevalidation(cacheKey, new Runnable() {
+        scheduleRevalidation(cacheKey, () -> call.execute(new AsyncExecCallback() {
 
-                        @Override
-                        public void run() {
-                            call.execute(new AsyncExecCallback() {
+            private final AtomicReference<HttpResponse> responseRef = new AtomicReference<>();
 
-                                private final AtomicReference<HttpResponse> responseRef = new AtomicReference<>(null);
+            @Override
+            public AsyncDataConsumer handleResponse(
+                    final HttpResponse response,
+                    final EntityDetails entityDetails) throws HttpException, IOException {
+                responseRef.set(response);
+                return asyncExecCallback.handleResponse(response, entityDetails);
+            }
 
-                                @Override
-                                public AsyncDataConsumer handleResponse(
-                                        final HttpResponse response,
-                                        final EntityDetails entityDetails) throws HttpException, IOException {
-                                    responseRef.set(response);
-                                    return asyncExecCallback.handleResponse(response, entityDetails);
-                                }
+            @Override
+            public void handleInformationResponse(
+                    final HttpResponse response) throws HttpException, IOException {
+                asyncExecCallback.handleInformationResponse(response);
+            }
 
-                                @Override
-                                public void handleInformationResponse(
-                                        final HttpResponse response) throws HttpException, IOException {
-                                    asyncExecCallback.handleInformationResponse(response);
-                                }
+            @Override
+            public void completed() {
+                final HttpResponse httpResponse = responseRef.getAndSet(null);
+                if (httpResponse != null && httpResponse.getCode() < HttpStatus.SC_SERVER_ERROR && !isStale(httpResponse)) {
+                    jobSuccessful(cacheKey);
+                } else {
+                    jobFailed(cacheKey);
+                }
+                asyncExecCallback.completed();
+            }
 
-                                @Override
-                                public void completed() {
-                                    final HttpResponse httpResponse = responseRef.getAndSet(null);
-                                    if (httpResponse != null && httpResponse.getCode() < HttpStatus.SC_SERVER_ERROR && !isStale(httpResponse)) {
-                                        jobSuccessful(cacheKey);
-                                    } else {
-                                        jobFailed(cacheKey);
-                                    }
-                                    asyncExecCallback.completed();
-                                }
+            @Override
+            public void failed(final Exception cause) {
+                if (cause instanceof IOException) {
+                    LOG.debug("Asynchronous revalidation failed due to I/O error", cause);
+                } else if (cause instanceof HttpException) {
+                    LOG.error("HTTP protocol exception during asynchronous revalidation", cause);
+                } else {
+                    LOG.error("Unexpected runtime exception thrown during asynchronous revalidation", cause);
+                }
+                try {
+                    jobFailed(cacheKey);
+                } finally {
+                    asyncExecCallback.failed(cause);
+                }
+            }
 
-                                @Override
-                                public void failed(final Exception cause) {
-                                    if (cause instanceof IOException) {
-                                        log.debug("Asynchronous revalidation failed due to I/O error", cause);
-                                    } else if (cause instanceof HttpException) {
-                                        log.error("HTTP protocol exception during asynchronous revalidation", cause);
-                                    } else {
-                                        log.error("Unexpected runtime exception thrown during asynchronous revalidation", cause);
-                                    }
-                                    try {
-                                        jobFailed(cacheKey);
-                                    } finally {
-                                        asyncExecCallback.failed(cause);
-                                    }
-                                }
-
-                            });
-                        }
-
-                    });
+        }));
     }
 
 }

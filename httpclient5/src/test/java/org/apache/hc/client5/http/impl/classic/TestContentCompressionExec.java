@@ -43,15 +43,13 @@ import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.MockitoAnnotations;
 
-@RunWith(MockitoJUnitRunner.class)
 public class TestContentCompressionExec {
 
     @Mock
@@ -66,8 +64,9 @@ public class TestContentCompressionExec {
     private ExecChain.Scope scope;
     private ContentCompressionExec impl;
 
-    @Before
+    @BeforeEach
     public void setup() {
+        MockitoAnnotations.openMocks(this);
         host = new HttpHost("somehost", 80);
         context = HttpClientContext.create();
         scope = new ExecChain.Scope("test", new HttpRoute(host), originaRequest, execRuntime, context);
@@ -85,7 +84,7 @@ public class TestContentCompressionExec {
         impl.execute(request, scope, execChain);
 
         final HttpEntity entity = response.getEntity();
-        Assert.assertNull(entity);
+        Assertions.assertNull(entity);
     }
 
     @Test
@@ -100,8 +99,8 @@ public class TestContentCompressionExec {
         impl.execute(request, scope, execChain);
 
         final HttpEntity entity = response.getEntity();
-        Assert.assertNotNull(entity);
-        Assert.assertTrue(entity instanceof StringEntity);
+        Assertions.assertNotNull(entity);
+        Assertions.assertTrue(entity instanceof StringEntity);
     }
 
     @Test
@@ -116,8 +115,8 @@ public class TestContentCompressionExec {
         impl.execute(request, scope, execChain);
 
         final HttpEntity entity = response.getEntity();
-        Assert.assertNotNull(entity);
-        Assert.assertTrue(entity instanceof DecompressingEntity);
+        Assertions.assertNotNull(entity);
+        Assertions.assertTrue(entity instanceof DecompressingEntity);
     }
 
     @Test
@@ -132,8 +131,8 @@ public class TestContentCompressionExec {
         impl.execute(request, scope, execChain);
 
         final HttpEntity entity = response.getEntity();
-        Assert.assertNotNull(entity);
-        Assert.assertTrue(entity instanceof StringEntity);
+        Assertions.assertNotNull(entity);
+        Assertions.assertTrue(entity instanceof StringEntity);
     }
 
     @Test
@@ -148,8 +147,8 @@ public class TestContentCompressionExec {
         impl.execute(request, scope, execChain);
 
         final HttpEntity entity = response.getEntity();
-        Assert.assertNotNull(entity);
-        Assert.assertTrue(entity instanceof DecompressingEntity);
+        Assertions.assertNotNull(entity);
+        Assertions.assertTrue(entity instanceof DecompressingEntity);
     }
 
     @Test
@@ -164,8 +163,8 @@ public class TestContentCompressionExec {
         impl.execute(request, scope, execChain);
 
         final HttpEntity entity = response.getEntity();
-        Assert.assertNotNull(entity);
-        Assert.assertTrue(entity instanceof DecompressingEntity);
+        Assertions.assertNotNull(entity);
+        Assertions.assertTrue(entity instanceof DecompressingEntity);
     }
 
     @Test
@@ -180,11 +179,27 @@ public class TestContentCompressionExec {
         impl.execute(request, scope, execChain);
 
         final HttpEntity entity = response.getEntity();
-        Assert.assertNotNull(entity);
-        Assert.assertTrue(entity instanceof StringEntity);
+        Assertions.assertNotNull(entity);
+        Assertions.assertTrue(entity instanceof StringEntity);
     }
 
-    @Test(expected=HttpException.class)
+    @Test
+    public void testBrotliContentEncoding() throws Exception {
+        final ClassicHttpRequest request = new BasicClassicHttpRequest(Method.GET, host, "/");
+        final ClassicHttpResponse response = new BasicClassicHttpResponse(200, "OK");
+        final HttpEntity original = EntityBuilder.create().setText("encoded stuff").setContentEncoding("br").build();
+        response.setEntity(original);
+
+        Mockito.when(execChain.proceed(request, scope)).thenReturn(response);
+
+        impl.execute(request, scope, execChain);
+
+        final HttpEntity entity = response.getEntity();
+        Assertions.assertNotNull(entity);
+        Assertions.assertTrue(entity instanceof DecompressingEntity);
+    }
+
+    @Test
     public void testUnknownContentEncoding() throws Exception {
         final ClassicHttpRequest request = new BasicClassicHttpRequest(Method.GET, host, "/");
         final ClassicHttpResponse response = new BasicClassicHttpResponse(200, "OK");
@@ -195,7 +210,8 @@ public class TestContentCompressionExec {
 
         Mockito.when(execChain.proceed(request, scope)).thenReturn(response);
 
-        impl.execute(request, scope, execChain);
+        Assertions.assertThrows(HttpException.class, () ->
+                impl.execute(request, scope, execChain));
     }
 
     @Test
@@ -216,8 +232,8 @@ public class TestContentCompressionExec {
         impl.execute(request, scope, execChain);
 
         final HttpEntity entity = response.getEntity();
-        Assert.assertNotNull(entity);
-        Assert.assertFalse(entity instanceof GzipDecompressingEntity);
+        Assertions.assertNotNull(entity);
+        Assertions.assertFalse(entity instanceof GzipDecompressingEntity);
     }
 
 }

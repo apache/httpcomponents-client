@@ -38,10 +38,18 @@ import org.apache.hc.core5.http.protocol.HttpContext;
 /**
  * HTTP response consumer that generates a {@link SimpleHttpResponse} instance based on events
  * of an incoming data stream.
+ * <p>
+ * IMPORTANT: {@link SimpleHttpResponse}s are intended for simple scenarios where entities inclosed
+ * in responses are known to be small. It is generally recommended to use streaming
+ * {@link org.apache.hc.core5.http.nio.AsyncResponseConsumer}s, for instance, such as based on
+ * {@link AbstractCharResponseConsumer} or {@link AbstractBinResponseConsumer}.
  *
  * @since 5.0
  *
  * @see SimpleBody
+ * @see SimpleHttpResponse
+ * @see AbstractCharResponseConsumer
+ * @see AbstractBinResponseConsumer
  */
 public final class SimpleResponseConsumer extends AbstractAsyncResponseConsumer<SimpleHttpResponse, byte[]> {
 

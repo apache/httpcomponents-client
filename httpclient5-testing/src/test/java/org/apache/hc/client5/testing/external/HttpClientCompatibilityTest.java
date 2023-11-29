@@ -95,9 +95,7 @@ public class HttpClientCompatibilityTest {
         this.target = target;
         this.proxy = proxy;
         this.credentialsProvider = new BasicCredentialsProvider();
-        final RequestConfig requestConfig = RequestConfig.custom()
-                .setProxy(proxy)
-                .build();
+        final RequestConfig requestConfig = RequestConfig.DEFAULT;
         if (proxy != null && proxyCreds != null) {
             this.credentialsProvider.setCredentials(new AuthScope(proxy), proxyCreds);
         }
@@ -108,6 +106,7 @@ public class HttpClientCompatibilityTest {
                 .build();
         this.client = HttpClients.custom()
                 .setConnectionManager(this.connManager)
+                .setProxy(this.proxy)
                 .setDefaultRequestConfig(requestConfig)
                 .build();
     }
@@ -133,7 +132,7 @@ public class HttpClientCompatibilityTest {
         if (message != null && !TextUtils.isBlank(message)) {
             buf.append(" -> ").append(message);
         }
-        System.out.println(buf.toString());
+        System.out.println(buf);
     }
 
     void execute() {
@@ -143,7 +142,7 @@ public class HttpClientCompatibilityTest {
             final HttpClientContext context = HttpClientContext.create();
             context.setCredentialsProvider(credentialsProvider);
             final HttpOptions options = new HttpOptions("*");
-            try (ClassicHttpResponse response = client.execute(target, options, context)) {
+            try (ClassicHttpResponse response = client.executeOpen(target, options, context)) {
                 final int code = response.getCode();
                 EntityUtils.consume(response.getEntity());
                 if (code == HttpStatus.SC_OK) {
@@ -163,7 +162,7 @@ public class HttpClientCompatibilityTest {
             final String[] requestUris = new String[] {"/", "/news.html", "/status.html"};
             for (final String requestUri: requestUris) {
                 final HttpGet httpGet = new HttpGet(requestUri);
-                try (ClassicHttpResponse response = client.execute(target, httpGet, context)) {
+                try (ClassicHttpResponse response = client.executeOpen(target, httpGet, context)) {
                     final int code = response.getCode();
                     EntityUtils.consume(response.getEntity());
                     if (code == HttpStatus.SC_OK) {
@@ -186,7 +185,7 @@ public class HttpClientCompatibilityTest {
             context.setCredentialsProvider(credentialsProvider);
 
             final HttpGet httpGetSecret = new HttpGet("/private/big-secret.txt");
-            try (ClassicHttpResponse response = client.execute(target, httpGetSecret, context)) {
+            try (ClassicHttpResponse response = client.executeOpen(target, httpGetSecret, context)) {
                 final int code = response.getCode();
                 EntityUtils.consume(response.getEntity());
                 if (code == HttpStatus.SC_UNAUTHORIZED) {
@@ -208,7 +207,7 @@ public class HttpClientCompatibilityTest {
             context.setCredentialsProvider(credentialsProvider);
 
             final HttpGet httpGetSecret = new HttpGet("/private/big-secret.txt");
-            try (ClassicHttpResponse response = client.execute(target, httpGetSecret, context)) {
+            try (ClassicHttpResponse response = client.executeOpen(target, httpGetSecret, context)) {
                 final int code = response.getCode();
                 EntityUtils.consume(response.getEntity());
                 if (code == HttpStatus.SC_UNAUTHORIZED) {
@@ -230,7 +229,7 @@ public class HttpClientCompatibilityTest {
             context.setCredentialsProvider(credentialsProvider);
 
             final HttpGet httpGetSecret = new HttpGet("/private/big-secret.txt");
-            try (ClassicHttpResponse response = client.execute(target, httpGetSecret, context)) {
+            try (ClassicHttpResponse response = client.executeOpen(target, httpGetSecret, context)) {
                 final int code = response.getCode();
                 EntityUtils.consume(response.getEntity());
                 if (code == HttpStatus.SC_OK) {
@@ -253,7 +252,7 @@ public class HttpClientCompatibilityTest {
 
             final HttpGet httpGetSecret = new HttpGet("/private/big-secret.txt");
             httpGetSecret.setHeader(HttpHeaders.CONNECTION, HeaderElements.CLOSE);
-            try (ClassicHttpResponse response = client.execute(target, httpGetSecret, context)) {
+            try (ClassicHttpResponse response = client.executeOpen(target, httpGetSecret, context)) {
                 final int code = response.getCode();
                 EntityUtils.consume(response.getEntity());
                 if (code == HttpStatus.SC_OK) {

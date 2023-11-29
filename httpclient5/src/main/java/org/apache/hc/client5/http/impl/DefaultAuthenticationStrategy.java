@@ -39,8 +39,8 @@ import org.apache.hc.client5.http.AuthenticationStrategy;
 import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
-import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.auth.ChallengeType;
+import org.apache.hc.client5.http.auth.StandardAuthScheme;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.annotation.Contract;
@@ -59,15 +59,13 @@ import org.slf4j.LoggerFactory;
 @Contract(threading = ThreadingBehavior.STATELESS)
 public class DefaultAuthenticationStrategy implements AuthenticationStrategy {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger LOG = LoggerFactory.getLogger(DefaultAuthenticationStrategy.class);
 
     public static final DefaultAuthenticationStrategy INSTANCE = new DefaultAuthenticationStrategy();
 
     private static final List<String> DEFAULT_SCHEME_PRIORITY =
         Collections.unmodifiableList(Arrays.asList(
-                StandardAuthScheme.SPNEGO,
-                StandardAuthScheme.KERBEROS,
-                StandardAuthScheme.NTLM,
+                StandardAuthScheme.BEARER,
                 StandardAuthScheme.DIGEST,
                 StandardAuthScheme.BASIC));
 
@@ -80,11 +78,14 @@ public class DefaultAuthenticationStrategy implements AuthenticationStrategy {
         Args.notNull(challenges, "Map of auth challenges");
         Args.notNull(context, "HTTP context");
         final HttpClientContext clientContext = HttpClientContext.adapt(context);
+        final String exchangeId = clientContext.getExchangeId();
 
         final List<AuthScheme> options = new ArrayList<>();
         final Lookup<AuthSchemeFactory> registry = clientContext.getAuthSchemeRegistry();
         if (registry == null) {
-            this.log.debug("Auth scheme registry not set in the context");
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{} Auth scheme registry not set in the context", exchangeId);
+            }
             return options;
         }
         final RequestConfig config = clientContext.getRequestConfig();
@@ -93,8 +94,8 @@ public class DefaultAuthenticationStrategy implements AuthenticationStrategy {
         if (authPrefs == null) {
             authPrefs = DEFAULT_SCHEME_PRIORITY;
         }
-        if (this.log.isDebugEnabled()) {
-            this.log.debug("Authentication schemes in the order of preference: " + authPrefs);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("{} Authentication schemes in the order of preference: {}", exchangeId, authPrefs);
         }
 
         for (final String schemeName: authPrefs) {
@@ -102,8 +103,8 @@ public class DefaultAuthenticationStrategy implements AuthenticationStrategy {
             if (challenge != null) {
                 final AuthSchemeFactory authSchemeFactory = registry.lookup(schemeName);
                 if (authSchemeFactory == null) {
-                    if (this.log.isWarnEnabled()) {
-                        this.log.warn("Authentication scheme " + schemeName + " not supported");
+                    if (LOG.isWarnEnabled()) {
+                        LOG.warn("{} Authentication scheme {} not supported", exchangeId, schemeName);
                         // Try again
                     }
                     continue;
@@ -111,8 +112,8 @@ public class DefaultAuthenticationStrategy implements AuthenticationStrategy {
                 final AuthScheme authScheme = authSchemeFactory.create(context);
                 options.add(authScheme);
             } else {
-                if (this.log.isDebugEnabled()) {
-                    this.log.debug("Challenge for " + schemeName + " authentication scheme not available");
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("{} Challenge for {} authentication scheme not available", exchangeId, schemeName);
                 }
             }
         }

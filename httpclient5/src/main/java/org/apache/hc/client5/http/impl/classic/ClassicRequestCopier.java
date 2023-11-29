@@ -28,7 +28,6 @@ package org.apache.hc.client5.http.impl.classic;
 
 import java.util.Iterator;
 
-import org.apache.hc.client5.http.impl.MessageCopier;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
@@ -37,8 +36,11 @@ import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
  * {@link ClassicHttpRequest} copier.
  *
  * @since 5.0
+ *
+ * @deprecated Use {@link org.apache.hc.core5.http.io.support.ClassicRequestBuilder}
  */
-public final class ClassicRequestCopier implements MessageCopier<ClassicHttpRequest> {
+@Deprecated
+public final class ClassicRequestCopier implements org.apache.hc.client5.http.impl.MessageCopier<ClassicHttpRequest> {
 
     public static final ClassicRequestCopier INSTANCE = new ClassicRequestCopier();
 
@@ -47,13 +49,13 @@ public final class ClassicRequestCopier implements MessageCopier<ClassicHttpRequ
         if (original == null) {
             return null;
         }
-        final BasicClassicHttpRequest copy = new BasicClassicHttpRequest(original.getMethod(), original.getPath());
+        final BasicClassicHttpRequest copy = new BasicClassicHttpRequest(original.getMethod(), null, original.getPath());
+        copy.setScheme(original.getScheme());
+        copy.setAuthority(original.getAuthority());
         copy.setVersion(original.getVersion());
         for (final Iterator<Header> it = original.headerIterator(); it.hasNext(); ) {
             copy.addHeader(it.next());
         }
-        copy.setScheme(original.getScheme());
-        copy.setAuthority(original.getAuthority());
         copy.setEntity(original.getEntity());
         return copy;
     }

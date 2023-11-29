@@ -38,6 +38,7 @@ import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpRequestInterceptor;
+import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.Args;
 import org.slf4j.Logger;
@@ -53,7 +54,7 @@ import org.slf4j.LoggerFactory;
 @Contract(threading = ThreadingBehavior.STATELESS)
 public class RequestClientConnControl implements HttpRequestInterceptor {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger LOG = LoggerFactory.getLogger(RequestClientConnControl.class);
 
     public RequestClientConnControl() {
         super();
@@ -65,16 +66,19 @@ public class RequestClientConnControl implements HttpRequestInterceptor {
         Args.notNull(request, "HTTP request");
 
         final String method = request.getMethod();
-        if (method.equalsIgnoreCase("CONNECT")) {
+        if (Method.CONNECT.isSame(method)) {
             return;
         }
 
         final HttpClientContext clientContext = HttpClientContext.adapt(context);
+        final String exchangeId = clientContext.getExchangeId();
 
         // Obtain the client connection (required)
         final RouteInfo route = clientContext.getHttpRoute();
         if (route == null) {
-            this.log.debug("Connection route not set in the context");
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{} Connection route not set in the context", exchangeId);
+            }
             return;
         }
 

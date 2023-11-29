@@ -48,7 +48,7 @@ public abstract class Resource implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
-     * Returns resource content as a {@link InputStream}.
+     * Returns resource content as an {@link InputStream}.
      *
      * @throws ResourceIOException
      */

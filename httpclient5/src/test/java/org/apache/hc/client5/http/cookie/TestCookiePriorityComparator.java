@@ -27,13 +27,13 @@
 
 package org.apache.hc.client5.http.cookie;
 
+import java.time.Instant;
 import java.util.Comparator;
-import java.util.Date;
 
 import org.apache.hc.client5.http.impl.cookie.BasicClientCookie;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test cases for {@link org.apache.hc.client5.http.cookie.CookiePriorityComparator}.
@@ -42,7 +42,7 @@ public class TestCookiePriorityComparator {
 
     private Comparator<Cookie> comparator;
 
-    @Before
+    @BeforeEach
     public void setup() {
         comparator = CookiePriorityComparator.INSTANCE;
     }
@@ -53,8 +53,8 @@ public class TestCookiePriorityComparator {
         cookie1.setPath("/a/b/");
         final BasicClientCookie cookie2 = new BasicClientCookie("name1", "value");
         cookie2.setPath("/a/");
-        Assert.assertTrue(comparator.compare(cookie1, cookie2) < 0);
-        Assert.assertTrue(comparator.compare(cookie2, cookie1) > 0);
+        Assertions.assertTrue(comparator.compare(cookie1, cookie2) < 0);
+        Assertions.assertTrue(comparator.compare(cookie2, cookie1) > 0);
     }
 
     @Test
@@ -63,8 +63,8 @@ public class TestCookiePriorityComparator {
         cookie1.setPath("/a");
         final BasicClientCookie cookie2 = new BasicClientCookie("name1", "value");
         cookie2.setPath("/a");
-        Assert.assertTrue(comparator.compare(cookie1, cookie2) == 0);
-        Assert.assertTrue(comparator.compare(cookie2, cookie1) == 0);
+        Assertions.assertEquals(0, comparator.compare(cookie1, cookie2));
+        Assertions.assertEquals(0, comparator.compare(cookie2, cookie1));
     }
 
     @Test
@@ -73,8 +73,8 @@ public class TestCookiePriorityComparator {
         cookie1.setPath("/a/");
         final BasicClientCookie cookie2 = new BasicClientCookie("name1", "value");
         cookie2.setPath("/a");
-        Assert.assertTrue(comparator.compare(cookie1, cookie2) < 0);
-        Assert.assertTrue(comparator.compare(cookie2, cookie1) > 0);
+        Assertions.assertTrue(comparator.compare(cookie1, cookie2) < 0);
+        Assertions.assertTrue(comparator.compare(cookie2, cookie1) > 0);
     }
 
     @Test
@@ -83,8 +83,8 @@ public class TestCookiePriorityComparator {
         cookie1.setPath(null);
         final BasicClientCookie cookie2 = new BasicClientCookie("name1", "value");
         cookie2.setPath("/");
-        Assert.assertTrue(comparator.compare(cookie1, cookie2) == 0);
-        Assert.assertTrue(comparator.compare(cookie2, cookie1) == 0);
+        Assertions.assertEquals(0, comparator.compare(cookie1, cookie2));
+        Assertions.assertEquals(0, comparator.compare(cookie2, cookie1));
     }
 
     @Test
@@ -93,20 +93,20 @@ public class TestCookiePriorityComparator {
         cookie1.setPath("/this");
         final BasicClientCookie cookie2 = new BasicClientCookie("name1", "value");
         cookie2.setPath("/that");
-        Assert.assertTrue(comparator.compare(cookie1, cookie2) == 0);
-        Assert.assertTrue(comparator.compare(cookie2, cookie1) == 0);
+        Assertions.assertEquals(0, comparator.compare(cookie1, cookie2));
+        Assertions.assertEquals(0, comparator.compare(cookie2, cookie1));
     }
 
     @Test
     public void testUnequalityCreationDate() {
         final BasicClientCookie cookie1 = new BasicClientCookie("name1", "value");
         cookie1.setPath("/blah");
-        cookie1.setCreationDate(new Date(System.currentTimeMillis() - 200000));
+        cookie1.setCreationDate(Instant.now().minusMillis(200000));
         final BasicClientCookie cookie2 = new BasicClientCookie("name1", "value");
         cookie2.setPath("/blah");
-        cookie2.setCreationDate(new Date(System.currentTimeMillis()));
-        Assert.assertTrue(comparator.compare(cookie1, cookie2) < 0);
-        Assert.assertTrue(comparator.compare(cookie2, cookie1) > 0);
+        cookie2.setCreationDate(Instant.now());
+        Assertions.assertTrue(comparator.compare(cookie1, cookie2) < 0);
+        Assertions.assertTrue(comparator.compare(cookie2, cookie1) > 0);
     }
 
 }

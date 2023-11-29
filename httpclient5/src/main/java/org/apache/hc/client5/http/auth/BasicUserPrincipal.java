@@ -28,6 +28,7 @@ package org.apache.hc.client5.http.auth;
 
 import java.io.Serializable;
 import java.security.Principal;
+import java.util.Objects;
 
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
@@ -71,9 +72,7 @@ public final class BasicUserPrincipal implements Principal, Serializable {
         }
         if (o instanceof BasicUserPrincipal) {
             final BasicUserPrincipal that = (BasicUserPrincipal) o;
-            if (LangUtils.equals(this.username, that.username)) {
-                return true;
-            }
+            return Objects.equals(this.username, that.username);
         }
         return false;
     }

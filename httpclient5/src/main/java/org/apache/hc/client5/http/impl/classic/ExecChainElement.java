@@ -48,16 +48,7 @@ class ExecChainElement {
     public ClassicHttpResponse execute(
             final ClassicHttpRequest request,
             final ExecChain.Scope scope) throws IOException, HttpException {
-        return handler.execute(request, scope, new ExecChain() {
-
-            @Override
-            public ClassicHttpResponse proceed(
-                    final ClassicHttpRequest request,
-                    final Scope scope) throws IOException, HttpException {
-                return next.execute(request, scope);
-            }
-
-        });
+        return handler.execute(request, scope, next != null ? next::execute : null);
     }
 
     @Override

@@ -27,10 +27,12 @@
 package org.apache.hc.client5.http.impl.cache;
 
 import java.io.InputStream;
-import java.util.Date;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Random;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
@@ -46,6 +48,7 @@ import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.ProtocolVersion;
 import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
 import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
@@ -53,8 +56,7 @@ import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.MessageSupport;
 import org.apache.hc.core5.util.ByteArrayBuffer;
-import org.apache.hc.core5.util.LangUtils;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 
 public class HttpTestUtils {
 
@@ -111,7 +113,7 @@ public class HttpTestUtils {
         return false;
     }
     /*
-     * Assert.asserts that two request or response bodies are byte-equivalent.
+     * Assertions.asserts that two request or response bodies are byte-equivalent.
      */
     public static boolean equivalent(final HttpEntity e1, final HttpEntity e2) throws Exception {
         final InputStream i1 = e1.getContent();
@@ -155,7 +157,7 @@ public class HttpTestUtils {
     }
 
     /*
-     * Assert.asserts that all the headers appearing in r1 also appear in r2
+     * Assertions.asserts that all the headers appearing in r1 also appear in r2
      * with the same canonical header values.
      */
     public static boolean isEndToEndHeaderSubset(final HttpMessage r1, final HttpMessage r2) {
@@ -172,7 +174,7 @@ public class HttpTestUtils {
     }
 
     /*
-     * Assert.asserts that message {@code r2} represents exactly the same
+     * Assertions.asserts that message {@code r2} represents exactly the same
      * message as {@code r1}, except for hop-by-hop headers. "When a cache
      * is semantically transparent, the client receives exactly the same
      * response (except for hop-by-hop headers) that it would have received had
@@ -186,7 +188,7 @@ public class HttpTestUtils {
         if (!entitiesEquivalent) {
             return false;
         }
-        final boolean statusLinesEquivalent = LangUtils.equals(r1.getReasonPhrase(), r2.getReasonPhrase())
+        final boolean statusLinesEquivalent = Objects.equals(r1.getReasonPhrase(), r2.getReasonPhrase())
                 && r1.getCode() == r2.getCode();
         if (!statusLinesEquivalent) {
             return false;
@@ -194,24 +196,24 @@ public class HttpTestUtils {
         return isEndToEndHeaderSubset(r1, r2);
     }
 
-    /* Assert.asserts that protocol versions equivalent. */
+    /* Assertions.asserts that protocol versions equivalent. */
     public static boolean equivalent(final ProtocolVersion v1, final ProtocolVersion v2) {
-        return LangUtils.equals(v1 != null ? v1 : HttpVersion.DEFAULT, v2 != null ? v2 : HttpVersion.DEFAULT );
+        return Objects.equals(v1 != null ? v1 : HttpVersion.DEFAULT, v2 != null ? v2 : HttpVersion.DEFAULT );
     }
 
-    /* Assert.asserts that two requests are morally equivalent. */
+    /* Assertions.asserts that two requests are morally equivalent. */
     public static boolean equivalent(final HttpRequest r1, final HttpRequest r2) {
         return equivalent(r1.getVersion(), r2.getVersion()) &&
-                LangUtils.equals(r1.getMethod(), r2.getMethod()) &&
-                LangUtils.equals(r1.getRequestUri(), r2.getRequestUri()) &&
+                Objects.equals(r1.getMethod(), r2.getMethod()) &&
+                Objects.equals(r1.getRequestUri(), r2.getRequestUri()) &&
                 isEndToEndHeaderSubset(r1, r2);
     }
 
-    /* Assert.asserts that two requests are morally equivalent. */
+    /* Assertions.asserts that two requests are morally equivalent. */
     public static boolean equivalent(final HttpResponse r1, final HttpResponse r2) {
         return equivalent(r1.getVersion(), r2.getVersion()) &&
                 r1.getCode() == r2.getCode() &&
-                LangUtils.equals(r1.getReasonPhrase(), r2.getReasonPhrase()) &&
+                Objects.equals(r1.getReasonPhrase(), r2.getReasonPhrase()) &&
                 isEndToEndHeaderSubset(r1, r2);
     }
 
@@ -236,99 +238,74 @@ public class HttpTestUtils {
         return new ByteArrayEntity(getRandomBytes(nbytes), null);
     }
 
-    public static HttpCacheEntry makeCacheEntry(final Date requestDate, final Date responseDate) {
-        final Date when = new Date((responseDate.getTime() + requestDate.getTime()) / 2);
+    public static HttpCacheEntry makeCacheEntry(final Instant requestDate, final Instant responseDate) {
+        final Duration diff = Duration.between(requestDate, responseDate);
+        final Instant when = requestDate.plusMillis(diff.toMillis() / 2);
         return makeCacheEntry(requestDate, responseDate, getStockHeaders(when));
     }
 
-    public static Header[] getStockHeaders(final Date when) {
-        final Header[] headers = {
-                new BasicHeader("Date", DateUtils.formatDate(when)),
+    public static Header[] getStockHeaders(final Instant when) {
+        return new Header[] {
+                new BasicHeader("Date", DateUtils.formatStandardDate(when)),
                 new BasicHeader("Server", "MockServer/1.0")
         };
-        return headers;
     }
 
-    public static HttpCacheEntry makeCacheEntry(final Date requestDate,
-            final Date responseDate, final Header[] headers) {
+    public static HttpCacheEntry makeCacheEntry(final Instant requestDate,
+                                                final Instant responseDate, final Header... headers) {
         final byte[] bytes = getRandomBytes(128);
         return makeCacheEntry(requestDate, responseDate, headers, bytes);
     }
 
-    public static HttpCacheEntry makeCacheEntry(final Date requestDate,
-            final Date responseDate, final Header[] headers, final byte[] bytes) {
-        final Map<String,String> variantMap = null;
-        return makeCacheEntry(requestDate, responseDate, headers, bytes,
-                variantMap);
+    public static HttpCacheEntry makeCacheEntry(final Instant requestDate,
+                                                final Instant responseDate, final Header[] headers, final byte[] bytes) {
+        return makeCacheEntry(requestDate, responseDate, headers, bytes, null);
     }
 
     public static HttpCacheEntry makeCacheEntry(final Map<String,String> variantMap) {
-        final Date now = new Date();
+        final Instant now = Instant.now();
         return makeCacheEntry(now, now, getStockHeaders(now),
                 getRandomBytes(128), variantMap);
     }
-
-    public static HttpCacheEntry makeCacheEntry(final Date requestDate,
-            final Date responseDate, final Header[] headers, final byte[] bytes,
+    @SuppressWarnings("deprecation")
+    public static HttpCacheEntry makeCacheEntry(final Instant requestDate,
+            final Instant responseDate, final Header[] headers, final byte[] bytes,
             final Map<String,String> variantMap) {
-        return new HttpCacheEntry(requestDate, responseDate, HttpStatus.SC_OK, headers, new HeapResource(bytes), variantMap);
+        return new HttpCacheEntry(DateUtils.toDate(requestDate), DateUtils.toDate(responseDate),
+                HttpStatus.SC_OK, headers, new HeapResource(bytes), variantMap);
     }
 
     public static HttpCacheEntry makeCacheEntry(final Header[] headers, final byte[] bytes) {
-        final Date now = new Date();
+        final Instant now = Instant.now();
         return makeCacheEntry(now, now, headers, bytes);
     }
 
     public static HttpCacheEntry makeCacheEntry(final byte[] bytes) {
-        return makeCacheEntry(getStockHeaders(new Date()), bytes);
+        final Instant now = Instant.now();
+        return makeCacheEntry(getStockHeaders(now), bytes);
     }
 
-    public static HttpCacheEntry makeCacheEntry(final Header[] headers) {
+    public static HttpCacheEntry makeCacheEntry(final Header... headers) {
         return makeCacheEntry(headers, getRandomBytes(128));
     }
 
     public static HttpCacheEntry makeCacheEntry() {
-        final Date now = new Date();
+        final Instant now = Instant.now();
         return makeCacheEntry(now, now);
-    }
-
-    public static HttpCacheEntry makeCacheEntryWithNoRequestMethodOrEntity(final Header[] headers) {
-        final Date now = new Date();
-        return new HttpCacheEntry(now, now, HttpStatus.SC_OK, headers, null, null);
-    }
-
-    public static HttpCacheEntry makeCacheEntryWithNoRequestMethod(final Header[] headers) {
-        final Date now = new Date();
-        return new HttpCacheEntry(now, now, HttpStatus.SC_OK, headers, new HeapResource(getRandomBytes(128)), null);
-    }
-
-    public static HttpCacheEntry make204CacheEntryWithNoRequestMethod(final Header[] headers) {
-        final Date now = new Date();
-        return new HttpCacheEntry(now, now, HttpStatus.SC_NO_CONTENT, headers, null, null);
-    }
-
-    public static HttpCacheEntry makeHeadCacheEntry(final Header[] headers) {
-        final Date now = new Date();
-        return new HttpCacheEntry(now, now, HttpStatus.SC_OK, headers, null, null);
-    }
-
-    public static HttpCacheEntry makeHeadCacheEntryWithNoRequestMethod(final Header[] headers) {
-        final Date now = new Date();
-        return new HttpCacheEntry(now, now, HttpStatus.SC_OK, headers, null, null);
     }
 
     public static ClassicHttpResponse make200Response() {
         final ClassicHttpResponse out = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
-        out.setHeader("Date", DateUtils.formatDate(new Date()));
+        out.setHeader("Date", DateUtils.formatStandardDate(Instant.now()));
         out.setHeader("Server", "MockOrigin/1.0");
         out.setHeader("Content-Length", "128");
         out.setEntity(makeBody(128));
         return out;
     }
 
-    public static final ClassicHttpResponse make200Response(final Date date, final String cacheControl) {
+    public static final ClassicHttpResponse make200Response(final Instant date, final String cacheControl) {
         final ClassicHttpResponse response = HttpTestUtils.make200Response();
-        response.setHeader("Date", DateUtils.formatDate(date));
+        response.setHeader("Date", DateUtils.formatStandardDate(date));
         response.setHeader("Cache-Control",cacheControl);
         response.setHeader("Etag","\"etag\"");
         return response;
@@ -349,15 +326,15 @@ public class HttpTestUtils {
                 break;
             }
         }
-        Assert.assertTrue(found110Warning);
+        Assertions.assertTrue(found110Warning);
     }
 
     public static ClassicHttpRequest makeDefaultRequest() {
-        return new BasicClassicHttpRequest("GET", "/");
+        return new BasicClassicHttpRequest(Method.GET.toString(), "/");
     }
 
     public static ClassicHttpRequest makeDefaultHEADRequest() {
-        return new BasicClassicHttpRequest("HEAD", "/");
+        return new BasicClassicHttpRequest(Method.HEAD.toString(), "/");
     }
 
     public static ClassicHttpResponse make500Response() {
@@ -369,5 +346,31 @@ public class HttpTestUtils {
         variants.put(key, value);
 
         return variants;
+    }
+
+
+    public static HttpCacheEntry makeCacheEntryWithNoRequestMethodOrEntity(final Header... headers) {
+        final Instant now = Instant.now();
+        return new HttpCacheEntry(now, now, HttpStatus.SC_OK, headers, null, null);
+    }
+
+    public static HttpCacheEntry makeCacheEntryWithNoRequestMethod(final Header... headers) {
+        final Instant now = Instant.now();
+        return new HttpCacheEntry(now, now, HttpStatus.SC_OK, headers, new HeapResource(getRandomBytes(128)), null);
+    }
+
+    public static HttpCacheEntry make204CacheEntryWithNoRequestMethod(final Header... headers) {
+        final Instant now = Instant.now();
+        return new HttpCacheEntry(now, now, HttpStatus.SC_NO_CONTENT, headers, null, null);
+    }
+
+    public static HttpCacheEntry makeHeadCacheEntry(final Header... headers) {
+        final Instant now = Instant.now();
+        return new HttpCacheEntry(now, now, HttpStatus.SC_OK, headers, null, null);
+    }
+
+    public static HttpCacheEntry makeHeadCacheEntryWithNoRequestMethod(final Header... headers) {
+        final Instant now = Instant.now();
+        return new HttpCacheEntry(now, now, HttpStatus.SC_OK, headers, null, null);
     }
 }

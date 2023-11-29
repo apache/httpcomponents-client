@@ -56,7 +56,7 @@ public final class PublicSuffixList {
     public PublicSuffixList(final DomainType type, final List<String> rules, final List<String> exceptions) {
         this.type = Args.notNull(type, "Domain type");
         this.rules = Collections.unmodifiableList(Args.notNull(rules, "Domain suffix rules"));
-        this.exceptions = Collections.unmodifiableList(exceptions != null ? exceptions : Collections.<String>emptyList());
+        this.exceptions = Collections.unmodifiableList(exceptions != null ? exceptions : Collections.emptyList());
     }
 
     public PublicSuffixList(final List<String> rules, final List<String> exceptions) {

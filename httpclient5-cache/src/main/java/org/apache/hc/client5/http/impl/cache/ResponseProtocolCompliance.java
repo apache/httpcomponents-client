@@ -27,8 +27,8 @@
 package org.apache.hc.client5.http.impl.cache;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import org.apache.hc.client5.http.ClientProtocolException;
@@ -85,7 +85,7 @@ class ResponseProtocolCompliance {
 
     private void warningsWithNonMatchingWarnDatesAreRemoved(
             final HttpResponse response) {
-        final Date responseDate = DateUtils.parseDate(response, HttpHeaders.DATE);
+        final Instant responseDate = DateUtils.parseStandardDate(response, HttpHeaders.DATE);
         if (responseDate == null) {
             return;
         }
@@ -100,8 +100,8 @@ class ResponseProtocolCompliance {
         boolean modified = false;
         for(final Header h : warningHeaders) {
             for(final WarningValue wv : WarningValue.getWarningValues(h)) {
-                final Date warnDate = wv.getWarnDate();
-                if (warnDate == null || warnDate.equals(responseDate)) {
+                final Instant warnInstant = wv.getWarnDate();
+                if (warnInstant == null || warnInstant.equals(responseDate)) {
                     newWarningHeaders.add(new BasicHeader(HeaderConstants.WARNING,wv.toString()));
                 } else {
                     modified = true;
@@ -133,7 +133,7 @@ class ResponseProtocolCompliance {
                     if (!first) {
                         buf.append(",");
                     }
-                    buf.append(elt.toString());
+                    buf.append(elt);
                     first = false;
                 }
             }
@@ -153,7 +153,7 @@ class ResponseProtocolCompliance {
 
     private void ensure206ContainsDateHeader(final HttpResponse response) {
         if (response.getFirstHeader(HttpHeaders.DATE) == null) {
-            response.addHeader(HttpHeaders.DATE, DateUtils.formatDate(new Date()));
+            response.addHeader(HttpHeaders.DATE, DateUtils.formatStandardDate(Instant.now()));
         }
 
     }

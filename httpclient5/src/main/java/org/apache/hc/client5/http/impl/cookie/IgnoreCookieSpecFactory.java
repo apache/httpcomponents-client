@@ -52,7 +52,7 @@ public class IgnoreCookieSpecFactory implements CookieSpecFactory {
         if (cookieSpec == null) {
             synchronized (this) {
                 if (cookieSpec == null) {
-                    this.cookieSpec = new IgnoreSpecSpec();
+                    this.cookieSpec = IgnoreSpecSpec.INSTANCE;
                 }
             }
         }

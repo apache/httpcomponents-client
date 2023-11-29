@@ -33,7 +33,6 @@ import java.util.List;
 import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
-import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.message.RequestLine;
 import org.apache.hc.core5.http.message.StatusLine;
@@ -69,20 +68,12 @@ final class LoggingAsyncClientExchangeHandler implements AsyncClientExchangeHand
 
     @Override
     public void produceRequest(final RequestChannel channel, final HttpContext context) throws HttpException, IOException {
-        handler.produceRequest(new RequestChannel() {
-
-            @Override
-            public void sendRequest(
-                    final HttpRequest request,
-                    final EntityDetails entityDetails,
-                    final HttpContext context) throws HttpException, IOException {
-                if (log.isDebugEnabled()) {
-                    log.debug(exchangeId + ": send request " + new RequestLine(request) + ", " +
-                            (entityDetails != null ? "entity len " + entityDetails.getContentLength() : "null entity"));
-                }
-                channel.sendRequest(request, entityDetails, context);
+        handler.produceRequest((request, entityDetails, context1) -> {
+            if (log.isDebugEnabled()) {
+                log.debug("{} send request {}, {}", exchangeId, new RequestLine(request),
+                        entityDetails != null ? "entity len " + entityDetails.getContentLength() : "null entity");
             }
-
+            channel.sendRequest(request, entityDetails, context1);
         }, context);
     }
 
@@ -94,7 +85,7 @@ final class LoggingAsyncClientExchangeHandler implements AsyncClientExchangeHand
     @Override
     public void produce(final DataStreamChannel channel) throws IOException {
         if (log.isDebugEnabled()) {
-            log.debug(exchangeId + ": produce request data");
+            log.debug("{}: produce request data", exchangeId);
         }
         handler.produce(new DataStreamChannel() {
 
@@ -106,7 +97,7 @@ final class LoggingAsyncClientExchangeHandler implements AsyncClientExchangeHand
             @Override
             public int write(final ByteBuffer src) throws IOException {
                 if (log.isDebugEnabled()) {
-                    log.debug(exchangeId + ": produce request data, len " + src.remaining() + " bytes");
+                    log.debug("{}: produce request data, len {} bytes", exchangeId, src.remaining());
                 }
                 return channel.write(src);
             }
@@ -114,7 +105,7 @@ final class LoggingAsyncClientExchangeHandler implements AsyncClientExchangeHand
             @Override
             public void endStream() throws IOException {
                 if (log.isDebugEnabled()) {
-                    log.debug(exchangeId + ": end of request data");
+                    log.debug("{}: end of request data", exchangeId);
                 }
                 channel.endStream();
             }
@@ -122,7 +113,7 @@ final class LoggingAsyncClientExchangeHandler implements AsyncClientExchangeHand
             @Override
             public void endStream(final List<? extends Header> trailers) throws IOException {
                 if (log.isDebugEnabled()) {
-                    log.debug(exchangeId + ": end of request data");
+                    log.debug("{}: end of request data", exchangeId);
                 }
                 channel.endStream(trailers);
             }
@@ -135,7 +126,7 @@ final class LoggingAsyncClientExchangeHandler implements AsyncClientExchangeHand
             final HttpResponse response,
             final HttpContext context) throws HttpException, IOException {
         if (log.isDebugEnabled()) {
-            log.debug(exchangeId + ": information response " + new StatusLine(response));
+            log.debug("{}: information response {}", exchangeId, new StatusLine(response));
         }
         handler.consumeInformation(response, context);
     }
@@ -146,8 +137,7 @@ final class LoggingAsyncClientExchangeHandler implements AsyncClientExchangeHand
             final EntityDetails entityDetails,
             final HttpContext context) throws HttpException, IOException {
         if (log.isDebugEnabled()) {
-            log.debug(exchangeId + ": consume response " + new StatusLine(response) + ", " +
-                    (entityDetails != null ? "entity len " + entityDetails.getContentLength() : " null entity"));
+            log.debug("{}: consume response {}, {}", exchangeId, new StatusLine(response), entityDetails != null ? "entity len " + entityDetails.getContentLength() : " null entity");
         }
         handler.consumeResponse(response, entityDetails, context);
     }
@@ -155,23 +145,18 @@ final class LoggingAsyncClientExchangeHandler implements AsyncClientExchangeHand
 
     @Override
     public void updateCapacity(final CapacityChannel capacityChannel) throws IOException {
-        handler.updateCapacity(new CapacityChannel() {
-
-            @Override
-            public void update(final int increment) throws IOException {
-                if (log.isDebugEnabled()) {
-                    log.debug(exchangeId + ": capacity update " + increment);
-                }
-                capacityChannel.update(increment);
+        handler.updateCapacity(increment -> {
+            if (log.isDebugEnabled()) {
+                log.debug("{} capacity update {}", exchangeId, increment);
             }
-
+            capacityChannel.update(increment);
         });
     }
 
     @Override
     public void consume(final ByteBuffer src) throws IOException {
         if (log.isDebugEnabled()) {
-            log.debug(exchangeId + ": consume response data, len " + src.remaining() + " bytes");
+            log.debug("{}: consume response data, len {} bytes", exchangeId, src.remaining());
         }
         handler.consume(src);
     }
@@ -179,7 +164,7 @@ final class LoggingAsyncClientExchangeHandler implements AsyncClientExchangeHand
     @Override
     public void streamEnd(final List<? extends Header> trailers) throws HttpException, IOException {
         if (log.isDebugEnabled()) {
-            log.debug(exchangeId + ": end of response data");
+            log.debug("{}: end of response data", exchangeId);
         }
         handler.streamEnd(trailers);
     }
@@ -187,7 +172,7 @@ final class LoggingAsyncClientExchangeHandler implements AsyncClientExchangeHand
     @Override
     public void failed(final Exception cause) {
         if (log.isDebugEnabled()) {
-            log.debug(exchangeId + ": execution failed: " + cause.getMessage());
+            log.debug("{}: execution failed: {}", exchangeId, cause.getMessage());
         }
         handler.failed(cause);
     }
@@ -195,7 +180,7 @@ final class LoggingAsyncClientExchangeHandler implements AsyncClientExchangeHand
     @Override
     public void cancel() {
         if (log.isDebugEnabled()) {
-            log.debug(exchangeId + ": execution cancelled");
+            log.debug("{}: execution cancelled", exchangeId);
         }
         handler.cancel();
     }

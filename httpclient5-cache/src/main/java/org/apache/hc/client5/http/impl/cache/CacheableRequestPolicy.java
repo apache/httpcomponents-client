@@ -42,7 +42,7 @@ import org.slf4j.LoggerFactory;
  */
 class CacheableRequestPolicy {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger LOG = LoggerFactory.getLogger(CacheableRequestPolicy.class);
 
     /**
      * Determines if an HttpRequest can be served from the cache.
@@ -56,19 +56,19 @@ class CacheableRequestPolicy {
 
         final ProtocolVersion pv = request.getVersion() != null ? request.getVersion() : HttpVersion.DEFAULT;
         if (HttpVersion.HTTP_1_1.compareToVersion(pv) != 0) {
-            log.debug("non-HTTP/1.1 request is not serveable from cache");
+            LOG.debug("non-HTTP/1.1 request is not serveable from cache");
             return false;
         }
 
         if (!method.equals(HeaderConstants.GET_METHOD) && !method.equals(HeaderConstants.HEAD_METHOD)) {
-            if (log.isDebugEnabled()) {
-                log.debug(method + " request is not serveable from cache");
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{} request is not serveable from cache", method);
             }
             return false;
         }
 
         if (request.countHeaders(HeaderConstants.PRAGMA) > 0) {
-            log.debug("request with Pragma header is not serveable from cache");
+            LOG.debug("request with Pragma header is not serveable from cache");
             return false;
         }
 
@@ -76,16 +76,16 @@ class CacheableRequestPolicy {
         while (it.hasNext()) {
             final HeaderElement cacheControlElement = it.next();
             if (HeaderConstants.CACHE_CONTROL_NO_STORE.equalsIgnoreCase(cacheControlElement.getName())) {
-                log.debug("Request with no-store is not serveable from cache");
+                LOG.debug("Request with no-store is not serveable from cache");
                 return false;
             }
             if (HeaderConstants.CACHE_CONTROL_NO_CACHE.equalsIgnoreCase(cacheControlElement.getName())) {
-                log.debug("Request with no-cache is not serveable from cache");
+                LOG.debug("Request with no-cache is not serveable from cache");
                 return false;
             }
         }
 
-        log.debug("Request is serveable from cache");
+        LOG.debug("Request is serveable from cache");
         return true;
     }
 

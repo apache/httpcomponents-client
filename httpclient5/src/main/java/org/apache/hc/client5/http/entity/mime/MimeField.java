@@ -58,7 +58,7 @@ public class MimeField {
         this.name = name;
         this.value = value;
         this.parameters = parameters != null ?
-                Collections.unmodifiableList(new ArrayList<>(parameters)) : Collections.<NameValuePair>emptyList();
+                Collections.unmodifiableList(new ArrayList<>(parameters)) : Collections.emptyList();
     }
 
     public MimeField(final MimeField from) {
@@ -84,7 +84,14 @@ public class MimeField {
             sb.append("; ");
             sb.append(parameter.getName());
             sb.append("=\"");
-            sb.append(parameter.getValue());
+            final String v = parameter.getValue();
+            for (int n = 0; n < v.length(); n++) {
+                final char ch = v.charAt(n);
+                if (ch == '"' || ch == '\\' ) {
+                    sb.append("\\");
+                }
+                sb.append(ch);
+            }
             sb.append("\"");
         }
         return sb.toString();

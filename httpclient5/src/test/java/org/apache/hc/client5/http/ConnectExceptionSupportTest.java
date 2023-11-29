@@ -31,8 +31,8 @@ import java.io.IOException;
 import java.net.InetAddress;
 
 import org.apache.hc.core5.http.HttpHost;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for exceptions.
@@ -43,14 +43,14 @@ public class ConnectExceptionSupportTest {
     @Test
     public void testConnectTimeoutExceptionFromNullMessageAndHost() {
         final ConnectTimeoutException ctx = ConnectExceptionSupport.createConnectTimeoutException(null, null);
-        Assert.assertEquals("Connect to remote endpoint timed out", ctx.getMessage());
+        Assertions.assertEquals("Connect to remote endpoint timed out", ctx.getMessage());
     }
 
     @Test
     public void testConnectTimeoutExceptionFromCause() {
         final IOException cause = new IOException("something awful");
         final ConnectTimeoutException ctx = ConnectExceptionSupport.createConnectTimeoutException(cause, null);
-        Assert.assertEquals("Connect to remote endpoint failed: something awful", ctx.getMessage());
+        Assertions.assertEquals("Connect to remote endpoint failed: something awful", ctx.getMessage());
     }
 
     @Test
@@ -58,7 +58,7 @@ public class ConnectExceptionSupportTest {
         final HttpHost target = new HttpHost("localhost");
         final IOException cause = new IOException();
         final ConnectTimeoutException ctx = ConnectExceptionSupport.createConnectTimeoutException(cause, target);
-        Assert.assertEquals("Connect to http://localhost timed out", ctx.getMessage());
+        Assertions.assertEquals("Connect to http://localhost timed out", ctx.getMessage());
     }
 
     @Test
@@ -67,21 +67,21 @@ public class ConnectExceptionSupportTest {
         final InetAddress remoteAddress = InetAddress.getByAddress(new byte[] {1,2,3,4});
         final IOException cause = new IOException();
         final ConnectTimeoutException ctx = ConnectExceptionSupport.createConnectTimeoutException(cause, target, remoteAddress);
-        Assert.assertEquals("Connect to http://localhost [/1.2.3.4] timed out", ctx.getMessage());
+        Assertions.assertEquals("Connect to http://localhost [/1.2.3.4] timed out", ctx.getMessage());
     }
 
     @Test
     public void testHttpHostConnectExceptionFromNullCause() {
         final HttpHostConnectException ctx = ConnectExceptionSupport.createHttpHostConnectException(null, null,
                 (InetAddress [])null);
-        Assert.assertEquals("Connect to remote endpoint refused", ctx.getMessage());
+        Assertions.assertEquals("Connect to remote endpoint refused", ctx.getMessage());
     }
 
     @Test
     public void testHttpHostConnectExceptionFromCause() {
         final IOException cause = new IOException("something awful");
         final HttpHostConnectException ctx = ConnectExceptionSupport.createHttpHostConnectException(cause, null);
-        Assert.assertEquals("Connect to remote endpoint failed: something awful", ctx.getMessage());
+        Assertions.assertEquals("Connect to remote endpoint failed: something awful", ctx.getMessage());
     }
 
     @Test
@@ -89,7 +89,7 @@ public class ConnectExceptionSupportTest {
         final HttpHost target = new HttpHost("localhost");
         final IOException cause = new IOException();
         final HttpHostConnectException ctx = ConnectExceptionSupport.createHttpHostConnectException(cause, target);
-        Assert.assertEquals("Connect to http://localhost refused", ctx.getMessage());
+        Assertions.assertEquals("Connect to http://localhost refused", ctx.getMessage());
     }
 
     @Test
@@ -100,7 +100,7 @@ public class ConnectExceptionSupportTest {
         final IOException cause = new IOException();
         final HttpHostConnectException ctx = ConnectExceptionSupport.createHttpHostConnectException(cause, target,
                 remoteAddress1, remoteAddress2);
-        Assert.assertEquals("Connect to http://localhost [/1.2.3.4, /5.6.7.8] refused", ctx.getMessage());
+        Assertions.assertEquals("Connect to http://localhost [/1.2.3.4, /5.6.7.8] refused", ctx.getMessage());
     }
 
 }

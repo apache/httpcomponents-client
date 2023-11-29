@@ -26,6 +26,8 @@
  */
 package org.apache.hc.client5.http.impl.classic;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -45,21 +47,15 @@ import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuil
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.concurrent.FutureCallback;
-import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
-import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.impl.bootstrap.HttpServer;
 import org.apache.hc.core5.http.impl.bootstrap.ServerBootstrap;
 import org.apache.hc.core5.http.io.HttpClientResponseHandler;
-import org.apache.hc.core5.http.io.HttpRequestHandler;
-import org.apache.hc.core5.http.protocol.HttpContext;
 import org.hamcrest.CoreMatchers;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 @SuppressWarnings("boxing") // test code
 public class TestFutureRequestExecutionService {
@@ -70,29 +66,19 @@ public class TestFutureRequestExecutionService {
 
     private final AtomicBoolean blocked = new AtomicBoolean(false);
 
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
-
-    @Before
+    @BeforeEach
     public void before() throws Exception {
         this.localServer = ServerBootstrap.bootstrap()
-                .register("/wait", new HttpRequestHandler() {
-
-            @Override
-            public void handle(
-                    final ClassicHttpRequest request,
-                    final ClassicHttpResponse response,
-                    final HttpContext context) throws HttpException, IOException {
-                try {
-                    while(blocked.get()) {
-                        Thread.sleep(10);
+                .register("/wait", (request, response, context) -> {
+                    try {
+                        while(blocked.get()) {
+                            Thread.sleep(10);
+                        }
+                    } catch (final InterruptedException e) {
+                        throw new IllegalStateException(e);
                     }
-                } catch (final InterruptedException e) {
-                    throw new IllegalStateException(e);
-                }
-                response.setCode(200);
-            }
-        }).create();
+                    response.setCode(200);
+                }).create();
 
         this.localServer.start();
         uri = "http://localhost:" + this.localServer.getLocalPort() + "/wait";
@@ -106,7 +92,7 @@ public class TestFutureRequestExecutionService {
         httpAsyncClientWithFuture = new FutureRequestExecutionService(httpClient, executorService);
     }
 
-    @After
+    @AfterEach
     public void after() throws Exception {
         blocked.set(false); // any remaining requests should unblock
         this.localServer.stop();
@@ -117,29 +103,27 @@ public class TestFutureRequestExecutionService {
     public void shouldExecuteSingleCall() throws InterruptedException, ExecutionException {
         final FutureTask<Boolean> task = httpAsyncClientWithFuture.execute(
             new HttpGet(uri), HttpClientContext.create(), new OkidokiHandler());
-        Assert.assertTrue("request should have returned OK", task.get().booleanValue());
+        Assertions.assertTrue(task.get(), "request should have returned OK");
     }
 
     @Test
     public void shouldCancel() throws InterruptedException, ExecutionException {
-        thrown.expect(CoreMatchers.anyOf(
-                CoreMatchers.instanceOf(CancellationException.class),
-                CoreMatchers.instanceOf(ExecutionException.class)));
-
         final FutureTask<Boolean> task = httpAsyncClientWithFuture.execute(
             new HttpGet(uri), HttpClientContext.create(), new OkidokiHandler());
         task.cancel(true);
-        task.get();
+        final Exception exception = Assertions.assertThrows(Exception.class, task::get);
+        assertThat(exception, CoreMatchers.anyOf(
+                CoreMatchers.instanceOf(CancellationException.class),
+                CoreMatchers.instanceOf(ExecutionException.class)));
     }
 
     @Test
     public void shouldTimeout() throws InterruptedException, ExecutionException, TimeoutException {
-        thrown.expect(TimeoutException.class);
-
         blocked.set(true);
         final FutureTask<Boolean> task = httpAsyncClientWithFuture.execute(
             new HttpGet(uri), HttpClientContext.create(), new OkidokiHandler());
-        task.get(10, TimeUnit.MILLISECONDS);
+        Assertions.assertThrows(TimeoutException.class, () ->
+                task.get(10, TimeUnit.MILLISECONDS));
     }
 
     @Test
@@ -153,8 +137,8 @@ public class TestFutureRequestExecutionService {
         }
         for (final Future<Boolean> task : tasks) {
             final Boolean b = task.get();
-            Assert.assertNotNull(b);
-            Assert.assertTrue("request should have returned OK", b.booleanValue());
+            Assertions.assertNotNull(b);
+            Assertions.assertTrue(b, "request should have returned OK");
         }
     }
 
@@ -169,11 +153,11 @@ public class TestFutureRequestExecutionService {
                     new OkidokiHandler(), new CountingCallback(latch));
             tasks.add(task);
         }
-        Assert.assertTrue(latch.await(5, TimeUnit.SECONDS));
+        Assertions.assertTrue(latch.await(5, TimeUnit.SECONDS));
         for (final Future<Boolean> task : tasks) {
             final Boolean b = task.get();
-            Assert.assertNotNull(b);
-            Assert.assertTrue("request should have returned OK", b.booleanValue());
+            Assertions.assertNotNull(b);
+            Assertions.assertTrue(b, "request should have returned OK");
         }
     }
 

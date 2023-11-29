@@ -36,9 +36,8 @@ import java.net.URL;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.CredentialsStore;
-import org.apache.hc.client5.http.auth.NTCredentials;
-import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
+import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
@@ -54,6 +53,7 @@ import org.apache.hc.core5.util.Args;
  * @since 4.3
  */
 @Contract(threading = ThreadingBehavior.SAFE)
+@SuppressWarnings("deprecation")
 public class SystemDefaultCredentialsProvider implements CredentialsStore {
 
     private final BasicCredentialsProvider internal;
@@ -118,19 +118,20 @@ public class SystemDefaultCredentialsProvider implements CredentialsStore {
                 // https.proxyUser/https.proxyPassword. We cannot simply use the protocol from
                 // the origin since a proxy retrieved from https.proxyHost/https.proxyPort will
                 // still use http as protocol
-                systemcreds = getProxyCredentials("http", authScope);
+                systemcreds = getProxyCredentials(URIScheme.HTTP.getId(), authScope);
                 if (systemcreds == null) {
-                    systemcreds = getProxyCredentials("https", authScope);
+                    systemcreds = getProxyCredentials(URIScheme.HTTPS.getId(), authScope);
                 }
             }
             if (systemcreds != null) {
                 final String domain = System.getProperty("http.auth.ntlm.domain");
                 if (domain != null) {
-                    return new NTCredentials(systemcreds.getUserName(), systemcreds.getPassword(), null, domain);
+                    return new org.apache.hc.client5.http.auth.NTCredentials(
+                            systemcreds.getUserName(), systemcreds.getPassword(), null, domain);
                 }
                 if (StandardAuthScheme.NTLM.equalsIgnoreCase(authScope.getSchemeName())) {
                     // Domain may be specified in a fully qualified user name
-                    return new NTCredentials(
+                    return new org.apache.hc.client5.http.auth.NTCredentials(
                             systemcreds.getUserName(), systemcreds.getPassword(), null, null);
                 }
                 return new UsernamePasswordCredentials(systemcreds.getUserName(), systemcreds.getPassword());

@@ -26,9 +26,7 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
-import java.io.Closeable;
 import java.io.File;
-import java.io.IOException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
@@ -122,14 +120,7 @@ public class CachingHttpClientBuilder extends HttpClientBuilder {
             } else {
                 final ManagedHttpCacheStorage managedStorage = new ManagedHttpCacheStorage(config);
                 if (this.deleteCache) {
-                    addCloseable(new Closeable() {
-
-                        @Override
-                        public void close() throws IOException {
-                            managedStorage.shutdown();
-                        }
-
-                    });
+                    addCloseable(managedStorage::shutdown);
                 } else {
                     addCloseable(managedStorage);
                 }
@@ -145,14 +136,7 @@ public class CachingHttpClientBuilder extends HttpClientBuilder {
         DefaultCacheRevalidator cacheRevalidator = null;
         if (config.getAsynchronousWorkers() > 0) {
             final ScheduledExecutorService executorService = new ScheduledThreadPoolExecutor(config.getAsynchronousWorkers());
-            addCloseable(new Closeable() {
-
-                @Override
-                public void close() throws IOException {
-                    executorService.shutdownNow();
-                }
-
-            });
+            addCloseable(executorService::shutdownNow);
             cacheRevalidator = new DefaultCacheRevalidator(
                     executorService,
                     this.schedulingStrategy != null ? this.schedulingStrategy : ImmediateSchedulingStrategy.INSTANCE);

@@ -33,7 +33,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.hc.core5.annotation.Contract;
@@ -50,8 +50,10 @@ import org.slf4j.LoggerFactory;
 @Contract(threading = ThreadingBehavior.SAFE)
 public final class PublicSuffixMatcherLoader {
 
+    private static final Logger LOG = LoggerFactory.getLogger(PublicSuffixMatcherLoader.class);
+
     private static PublicSuffixMatcher load(final InputStream in) throws IOException {
-        final List<PublicSuffixList> lists = new PublicSuffixListParser().parseByType(
+        final List<PublicSuffixList> lists = PublicSuffixListParser.INSTANCE.parseByType(
                 new InputStreamReader(in, StandardCharsets.UTF_8));
         return new PublicSuffixMatcher(lists);
     }
@@ -83,13 +85,10 @@ public final class PublicSuffixMatcherLoader {
                             DEFAULT_INSTANCE = load(url);
                         } catch (final IOException ex) {
                             // Should never happen
-                            final Logger log = LoggerFactory.getLogger(PublicSuffixMatcherLoader.class);
-                            if (log.isWarnEnabled()) {
-                                log.warn("Failure loading public suffix list from default resource", ex);
-                            }
+                            LOG.warn("Failure loading public suffix list from default resource", ex);
                         }
                     } else {
-                        DEFAULT_INSTANCE = new PublicSuffixMatcher(DomainType.ICANN, Arrays.asList("com"), null);
+                        DEFAULT_INSTANCE = new PublicSuffixMatcher(DomainType.ICANN, Collections.singletonList("com"), null);
                     }
                 }
             }

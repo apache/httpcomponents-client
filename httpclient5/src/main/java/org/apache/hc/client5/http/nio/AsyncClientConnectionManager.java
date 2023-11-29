@@ -131,4 +131,25 @@ public interface AsyncClientConnectionManager extends ModalCloseable {
             Object attachment,
             HttpContext context);
 
+    /**
+     * Upgrades transport security of the given endpoint by using the TLS security protocol.
+     *
+     * @param endpoint      the managed endpoint.
+     * @param attachment the attachment the upgrade attachment object.
+     * @param context the actual HTTP context.
+     * @param callback result callback.
+     *
+     * @since 5.2
+     */
+    default void upgrade(
+            AsyncConnectionEndpoint endpoint,
+            Object attachment,
+            HttpContext context,
+            FutureCallback<AsyncConnectionEndpoint> callback) {
+        upgrade(endpoint, attachment, context);
+        if (callback != null) {
+            callback.completed(endpoint);
+        }
+    }
+
 }

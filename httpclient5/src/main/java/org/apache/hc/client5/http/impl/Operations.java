@@ -41,14 +41,7 @@ import org.apache.hc.core5.concurrent.Cancellable;
  */
 public final class Operations {
 
-    private final static Cancellable NOOP_CANCELLABLE = new Cancellable() {
-
-        @Override
-        public boolean cancel() {
-            return false;
-        }
-
-    };
+    private final static Cancellable NOOP_CANCELLABLE = () -> false;
 
     /**
      * This class represents a {@link Future} in the completed state with a fixed result.
@@ -115,14 +108,7 @@ public final class Operations {
         if (future instanceof Cancellable) {
             return (Cancellable) future;
         }
-        return new Cancellable() {
-
-            @Override
-            public boolean cancel() {
-                return future.cancel(true);
-            }
-
-        };
+        return () -> future.cancel(true);
     }
 
 }

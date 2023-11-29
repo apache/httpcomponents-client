@@ -27,36 +27,59 @@
 package org.apache.hc.client5.testing.sync;
 
 import org.apache.hc.client5.http.classic.methods.HttpGet;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.io.BasicHttpClientConnectionManager;
+import org.apache.hc.client5.testing.classic.RandomHandler;
+import org.apache.hc.client5.testing.sync.extension.TestClientResources;
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
-import org.junit.Assert;
-import org.junit.Test;
+import org.apache.hc.core5.testing.classic.ClassicTestServer;
+import org.apache.hc.core5.util.Timeout;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
-public class TestBasicConnectionManager extends LocalServerTestBase {
+public class TestBasicConnectionManager {
+
+    public static final Timeout TIMEOUT = Timeout.ofMinutes(1);
+
+    @RegisterExtension
+    private TestClientResources testResources = new TestClientResources(URIScheme.HTTP, TIMEOUT);
 
     @Test
     public void testBasics() throws Exception {
-        this.clientBuilder.setConnectionManager(new BasicHttpClientConnectionManager());
+        final ClassicTestServer server = testResources.startServer(null, null, null);
+        server.registerHandler("/random/*", new RandomHandler());
+        final HttpHost target = testResources.targetHost();
 
-        final HttpHost target = start();
+        final CloseableHttpClient client = testResources.startClient(builder -> builder
+                .setConnectionManager(new BasicHttpClientConnectionManager())
+        );
+
         final HttpGet get = new HttpGet("/random/1024");
-        try (CloseableHttpResponse response = this.httpclient.execute(target, get)) {
-            Assert.assertEquals(200, response.getCode());
+        client.execute(target, get, response -> {
+            Assertions.assertEquals(200, response.getCode());
             EntityUtils.consume(response.getEntity());
-        }
+            return null;
+        });
     }
 
-    @Test(expected=IllegalStateException.class)
+    @Test
     public void testConnectionStillInUse() throws Exception {
-        this.clientBuilder.setConnectionManager(new BasicHttpClientConnectionManager());
+        final ClassicTestServer server = testResources.startServer(null, null, null);
+        server.registerHandler("/random/*", new RandomHandler());
+        final HttpHost target = testResources.targetHost();
 
-        final HttpHost target = start();
+        final CloseableHttpClient client = testResources.startClient(builder -> builder
+                .setConnectionManager(new BasicHttpClientConnectionManager())
+        );
+
         final HttpGet get1 = new HttpGet("/random/1024");
-        this.httpclient.execute(target, get1);
+        client.executeOpen(target, get1, null);
         final HttpGet get2 = new HttpGet("/random/1024");
-        this.httpclient.execute(target, get2);
+        Assertions.assertThrows(IllegalStateException.class, () ->
+                client.executeOpen(target, get2, null));
     }
 
 }

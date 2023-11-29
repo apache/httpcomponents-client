@@ -41,7 +41,7 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
  *
  * <p>
  * This comparator assumes that Path attributes of two cookies
- * path-match a commmon request-URI. Otherwise, the result of the
+ * path-match a common request-URI. Otherwise, the result of the
  * comparison is undefined.
  * </p>
  *

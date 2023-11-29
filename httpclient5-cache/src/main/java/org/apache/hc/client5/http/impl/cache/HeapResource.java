@@ -56,7 +56,7 @@ public class HeapResource extends Resource {
         if (byteArray != null) {
             return byteArray;
         }
-        throw new ResourceIOException("Resouce already dispoased");
+        throw new ResourceIOException("Resource already disposed");
     }
 
     @Override

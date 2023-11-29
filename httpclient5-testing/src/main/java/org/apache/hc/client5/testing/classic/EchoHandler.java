@@ -87,8 +87,7 @@ public class EchoHandler implements HttpRequestHandler {
             contentType = contentTypeStr == null ? null : ContentType.parse(contentTypeStr);
         }
 
-        final ByteArrayEntity bae = new ByteArrayEntity(data, contentType);
-        entity = bae;
+        entity = new ByteArrayEntity(data, contentType);
 
         response.setCode(HttpStatus.SC_OK);
         response.setEntity(entity);

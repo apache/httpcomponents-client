@@ -28,9 +28,15 @@
 package org.apache.hc.client5.http.impl.nio;
 
 import org.apache.hc.client5.http.DnsResolver;
+import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.SchemePortResolver;
+import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.config.TlsConfig;
 import org.apache.hc.client5.http.ssl.ConscryptClientTlsStrategy;
 import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
+import org.apache.hc.core5.function.Resolver;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
 import org.apache.hc.core5.pool.PoolConcurrencyPolicy;
@@ -74,11 +80,11 @@ public class PoolingAsyncClientConnectionManagerBuilder {
 
     private boolean systemProperties;
 
-    private int maxConnTotal = 0;
-    private int maxConnPerRoute = 0;
+    private int maxConnTotal;
+    private int maxConnPerRoute;
 
-    private TimeValue timeToLive;
-    private TimeValue validateAfterInactivity;
+    private Resolver<HttpRoute, ConnectionConfig> connectionConfigResolver;
+    private Resolver<HttpHost, TlsConfig> tlsConfigResolver;
 
     public static PoolingAsyncClientConnectionManagerBuilder create() {
         return new PoolingAsyncClientConnectionManagerBuilder();
@@ -146,10 +152,57 @@ public class PoolingAsyncClientConnectionManagerBuilder {
     }
 
     /**
-     * Sets maximum time to live for persistent connections
+     * Assigns the same {@link ConnectionConfig} for all routes.
+     *
+     * @since 5.2
      */
+    public final PoolingAsyncClientConnectionManagerBuilder setDefaultConnectionConfig(final ConnectionConfig config) {
+        this.connectionConfigResolver = (route) -> config;
+        return this;
+    }
+
+    /**
+     * Assigns {@link Resolver} of {@link ConnectionConfig} on a per route basis.
+     *
+     * @since 5.2
+     */
+    public final PoolingAsyncClientConnectionManagerBuilder setConnectionConfigResolver(
+            final Resolver<HttpRoute, ConnectionConfig> connectionConfigResolver) {
+        this.connectionConfigResolver = connectionConfigResolver;
+        return this;
+    }
+
+    /**
+     * Assigns the same {@link TlsConfig} for all hosts.
+     *
+     * @since 5.2
+     */
+    public final PoolingAsyncClientConnectionManagerBuilder setDefaultTlsConfig(final TlsConfig config) {
+        this.tlsConfigResolver = (host) -> config;
+        return this;
+    }
+
+    /**
+     * Assigns {@link Resolver} of {@link TlsConfig} on a per host basis.
+     *
+     * @since 5.2
+     */
+    public final PoolingAsyncClientConnectionManagerBuilder setTlsConfigResolver(
+            final Resolver<HttpHost, TlsConfig> tlsConfigResolver) {
+        this.tlsConfigResolver = tlsConfigResolver;
+        return this;
+    }
+
+    /**
+     * Sets maximum time to live for persistent connections
+     *
+     * @deprecated Use {@link #setDefaultConnectionConfig(ConnectionConfig)}
+     */
+    @Deprecated
     public final PoolingAsyncClientConnectionManagerBuilder setConnectionTimeToLive(final TimeValue timeToLive) {
-        this.timeToLive = timeToLive;
+        setDefaultConnectionConfig(ConnectionConfig.custom()
+                .setTimeToLive(timeToLive)
+                .build());
         return this;
     }
 
@@ -157,10 +210,13 @@ public class PoolingAsyncClientConnectionManagerBuilder {
      * Sets period after inactivity after which persistent
      * connections must be checked to ensure they are still valid.
      *
-     * @see org.apache.hc.core5.http.io.HttpClientConnection#isStale()
+     * @deprecated Use {@link #setConnectionConfigResolver(Resolver)}.
      */
+    @Deprecated
     public final PoolingAsyncClientConnectionManagerBuilder setValidateAfterInactivity(final TimeValue validateAfterInactivity) {
-        this.validateAfterInactivity = validateAfterInactivity;
+        setDefaultConnectionConfig(ConnectionConfig.custom()
+                .setValidateAfterInactivity(validateAfterInactivity)
+                .build());
         return this;
     }
 
@@ -194,14 +250,15 @@ public class PoolingAsyncClientConnectionManagerBuilder {
         }
         final PoolingAsyncClientConnectionManager poolingmgr = new PoolingAsyncClientConnectionManager(
                 RegistryBuilder.<TlsStrategy>create()
-                        .register("https", tlsStrategyCopy)
+                        .register(URIScheme.HTTPS.getId(), tlsStrategyCopy)
                         .build(),
                 poolConcurrencyPolicy,
                 poolReusePolicy,
-                timeToLive,
+                null,
                 schemePortResolver,
                 dnsResolver);
-        poolingmgr.setValidateAfterInactivity(this.validateAfterInactivity);
+        poolingmgr.setConnectionConfigResolver(connectionConfigResolver);
+        poolingmgr.setTlsConfigResolver(tlsConfigResolver);
         if (maxConnTotal > 0) {
             poolingmgr.setMaxTotal(maxConnTotal);
         }

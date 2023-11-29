@@ -29,6 +29,7 @@ package org.apache.hc.client5.http.impl.classic;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.Objects;
 
 import org.apache.hc.client5.http.CircularRedirectException;
 import org.apache.hc.client5.http.HttpRoute;
@@ -36,7 +37,6 @@ import org.apache.hc.client5.http.RedirectException;
 import org.apache.hc.client5.http.auth.AuthExchange;
 import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecChainHandler;
-import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.protocol.RedirectLocations;
@@ -55,9 +55,8 @@ import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
-import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
+import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
 import org.apache.hc.core5.util.Args;
-import org.apache.hc.core5.util.LangUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -76,7 +75,7 @@ import org.slf4j.LoggerFactory;
 @Internal
 public final class RedirectExec implements ExecChainHandler {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger LOG = LoggerFactory.getLogger(RedirectExec.class);
 
     private final RedirectStrategy redirectStrategy;
     private final HttpRoutePlanner routePlanner;
@@ -109,6 +108,7 @@ public final class RedirectExec implements ExecChainHandler {
 
         final RequestConfig config = context.getRequestConfig();
         final int maxRedirects = config.getMaxRedirects() > 0 ? config.getMaxRedirects() : 50;
+        ClassicHttpRequest originalRequest = scope.originalRequest;
         ClassicHttpRequest currentRequest = request;
         ExecChain.Scope currentScope = scope;
         for (int redirectCount = 0;;) {
@@ -118,8 +118,8 @@ public final class RedirectExec implements ExecChainHandler {
                 if (config.isRedirectsEnabled() && this.redirectStrategy.isRedirected(request, response, context)) {
                     final HttpEntity requestEntity = request.getEntity();
                     if (requestEntity != null && !requestEntity.isRepeatable()) {
-                        if (log.isDebugEnabled()) {
-                            log.debug(exchangeId + ": cannot redirect non-repeatable request");
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("{} cannot redirect non-repeatable request", exchangeId);
                         }
                         return response;
                     }
@@ -129,36 +129,9 @@ public final class RedirectExec implements ExecChainHandler {
                     redirectCount++;
 
                     final URI redirectUri = this.redirectStrategy.getLocationURI(currentRequest, response, context);
-                    if (log.isDebugEnabled()) {
-                        log.debug(exchangeId + ": redirect requested to location '" + redirectUri + "'");
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("{} redirect requested to location '{}'", exchangeId, redirectUri);
                     }
-                    if (!config.isCircularRedirectsAllowed()) {
-                        if (redirectLocations.contains(redirectUri)) {
-                            throw new CircularRedirectException("Circular redirect to '" + redirectUri + "'");
-                        }
-                    }
-                    redirectLocations.add(redirectUri);
-
-                    final ClassicHttpRequest originalRequest = scope.originalRequest;
-                    ClassicHttpRequest redirect = null;
-                    final int statusCode = response.getCode();
-                    switch (statusCode) {
-                        case HttpStatus.SC_MOVED_PERMANENTLY:
-                        case HttpStatus.SC_MOVED_TEMPORARILY:
-                            if (Method.POST.isSame(request.getMethod())) {
-                                redirect = new HttpGet(redirectUri);
-                            }
-                            break;
-                        case HttpStatus.SC_SEE_OTHER:
-                            if (!Method.GET.isSame(request.getMethod()) && !Method.HEAD.isSame(request.getMethod())) {
-                                redirect = new HttpGet(redirectUri);
-                            }
-                    }
-                    if (redirect == null) {
-                        redirect = new BasicClassicHttpRequest(originalRequest.getMethod(), redirectUri);
-                        redirect.setEntity(originalRequest.getEntity());
-                    }
-                    redirect.setHeaders(originalRequest.getHeaders());
 
                     final HttpHost newTarget = URIUtils.extractHost(redirectUri);
                     if (newTarget == null) {
@@ -166,23 +139,53 @@ public final class RedirectExec implements ExecChainHandler {
                                 redirectUri);
                     }
 
+                    if (!config.isCircularRedirectsAllowed()) {
+                        if (redirectLocations.contains(redirectUri)) {
+                            throw new CircularRedirectException("Circular redirect to '" + redirectUri + "'");
+                        }
+                    }
+                    redirectLocations.add(redirectUri);
+
+                    final int statusCode = response.getCode();
+                    final ClassicRequestBuilder redirectBuilder;
+                    switch (statusCode) {
+                        case HttpStatus.SC_MOVED_PERMANENTLY:
+                        case HttpStatus.SC_MOVED_TEMPORARILY:
+                            if (Method.POST.isSame(request.getMethod())) {
+                                redirectBuilder = ClassicRequestBuilder.get();
+                            } else {
+                                redirectBuilder = ClassicRequestBuilder.copy(originalRequest);
+                            }
+                            break;
+                        case HttpStatus.SC_SEE_OTHER:
+                            if (!Method.GET.isSame(request.getMethod()) && !Method.HEAD.isSame(request.getMethod())) {
+                                redirectBuilder = ClassicRequestBuilder.get();
+                            } else {
+                                redirectBuilder = ClassicRequestBuilder.copy(originalRequest);
+                            }
+                            break;
+                        default:
+                            redirectBuilder = ClassicRequestBuilder.copy(originalRequest);
+                    }
+                    redirectBuilder.setUri(redirectUri);
+
                     final HttpRoute currentRoute = currentScope.route;
-                    if (!LangUtils.equals(currentRoute.getTargetHost(), newTarget)) {
+                    if (!Objects.equals(currentRoute.getTargetHost(), newTarget)) {
                         final HttpRoute newRoute = this.routePlanner.determineRoute(newTarget, context);
-                        if (!LangUtils.equals(currentRoute, newRoute)) {
-                            if (log.isDebugEnabled()) {
-                                log.debug(exchangeId + ": new route required");
+                        if (!Objects.equals(currentRoute, newRoute)) {
+                            if (LOG.isDebugEnabled()) {
+                                LOG.debug("{} new route required", exchangeId);
                             }
                             final AuthExchange targetAuthExchange = context.getAuthExchange(currentRoute.getTargetHost());
-                            if (log.isDebugEnabled()) {
-                                log.debug(exchangeId + ": resetting target auth state");
+                            if (LOG.isDebugEnabled()) {
+                                LOG.debug("{} resetting target auth state", exchangeId);
                             }
                             targetAuthExchange.reset();
                             if (currentRoute.getProxyHost() != null) {
                                 final AuthExchange proxyAuthExchange = context.getAuthExchange(currentRoute.getProxyHost());
                                 if (proxyAuthExchange.isConnectionBased()) {
-                                    if (log.isDebugEnabled()) {
-                                        log.debug(exchangeId + ": resetting proxy auth state");
+                                    if (LOG.isDebugEnabled()) {
+                                        LOG.debug("{} resetting proxy auth state", exchangeId);
                                     }
                                     proxyAuthExchange.reset();
                                 }
@@ -196,10 +199,11 @@ public final class RedirectExec implements ExecChainHandler {
                         }
                     }
 
-                    if (log.isDebugEnabled()) {
-                        log.debug(exchangeId + ": redirecting to '" + redirectUri + "' via " + currentRoute);
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("{} redirecting to '{}' via {}", exchangeId, redirectUri, currentRoute);
                     }
-                    currentRequest = redirect;
+                    originalRequest = redirectBuilder.build();
+                    currentRequest = redirectBuilder.build();
                     RequestEntityProxy.enhance(currentRequest);
 
                     EntityUtils.consume(response.getEntity());
@@ -216,8 +220,8 @@ public final class RedirectExec implements ExecChainHandler {
                 try {
                     EntityUtils.consume(response.getEntity());
                 } catch (final IOException ioex) {
-                    if (log.isDebugEnabled()) {
-                        log.debug(exchangeId + ": I/O error while releasing connection", ioex);
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("{} I/O error while releasing connection", exchangeId, ioex);
                     }
                 } finally {
                     response.close();

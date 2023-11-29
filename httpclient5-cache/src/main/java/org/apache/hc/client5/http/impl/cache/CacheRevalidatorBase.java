@@ -94,7 +94,7 @@ class CacheRevalidatorBase implements Closeable {
     private final Set<String> pendingRequest;
     private final ConcurrentCountMap<String> failureCache;
 
-    final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger LOG = LoggerFactory.getLogger(CacheRevalidatorBase.class);
 
     /**
      * Create CacheValidator which will make ache revalidation requests
@@ -131,7 +131,7 @@ class CacheRevalidatorBase implements Closeable {
                     scheduledExecutor.schedule(command, executionTime);
                     pendingRequest.add(cacheKey);
                 } catch (final RejectedExecutionException ex) {
-                    log.debug("Revalidation of cache entry with key " + cacheKey + "could not be scheduled: " + ex);
+                    LOG.debug("Revalidation of cache entry with key {} could not be scheduled", cacheKey, ex);
                 }
             }
         }
