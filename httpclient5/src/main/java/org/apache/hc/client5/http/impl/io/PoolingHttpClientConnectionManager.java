@@ -408,9 +408,8 @@ public class PoolingHttpClientConnectionManager
                     LOG.debug("{} connection {} can be kept alive {}", ConnPoolSupport.getId(endpoint), ConnPoolSupport.getId(conn), s);
                 }
             } else {
-                if (this.log.isDebugEnabled()) {
-                    this.log.debug(ConnPoolSupport.getId(endpoint) + ": connection is not kept alive(isConsistent:{})", 
-                        conn.isConsistent());
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("{} connection is not kept alive(isConsistent:{})", ConnPoolSupport.getId(endpoint), conn.isConsistent());
                 }
             }
         } catch (final RuntimeException ex) {
