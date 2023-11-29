@@ -373,7 +373,8 @@ public class PoolingHttpClientConnectionManager
                 }
             } else {
                 if (this.log.isDebugEnabled()) {
-                    this.log.debug(ConnPoolSupport.getId(endpoint) + ": connection is not kept alive");
+                    this.log.debug(ConnPoolSupport.getId(endpoint) + ": connection is not kept alive(isConsistent:{})", 
+                        conn.isConsistent());
                 }
             }
         } catch (final RuntimeException ex) {
