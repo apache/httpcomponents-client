@@ -216,6 +216,14 @@ class InternalH2AsyncExecRuntime implements AsyncExecRuntime {
     }
 
     @Override
+    public void disconnectEndpoint() {
+        final Endpoint endpoint = sessionRef.get();
+        if (endpoint != null) {
+            endpoint.session.close(CloseMode.GRACEFUL);
+        }
+    }
+
+    @Override
     public void upgradeTls(final HttpClientContext context) {
         throw new UnsupportedOperationException();
     }

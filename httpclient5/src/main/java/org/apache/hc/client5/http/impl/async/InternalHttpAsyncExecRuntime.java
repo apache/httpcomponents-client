@@ -236,6 +236,14 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
     }
 
     @Override
+    public void disconnectEndpoint() {
+        final AsyncConnectionEndpoint endpoint = endpointRef.get();
+        if (endpoint != null) {
+            endpoint.close(CloseMode.GRACEFUL);
+        }
+    }
+
+    @Override
     public void upgradeTls(final HttpClientContext context) {
         upgradeTls(context, null);
     }

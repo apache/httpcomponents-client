@@ -107,6 +107,11 @@ public interface AsyncExecRuntime {
             FutureCallback<AsyncExecRuntime> callback);
 
     /**
+     * Disconnects the local endpoint from the initial hop in the connection route.
+     */
+    void disconnectEndpoint();
+
+    /**
      * Upgrades transport security of the active connection by using the TLS security protocol.
      *
      * @param context the execution context.
