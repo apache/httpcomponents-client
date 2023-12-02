@@ -1,9 +1,12 @@
-﻿Release 5.3 ALPHA1
-------------------
+﻿Release 5.3
+-------------------
 
-This is the first release in the 5.3 release series that introduces support for the Bearer
-authentication scheme (RFC 6750) and deprecates NTLM and GSS based experimental authentication
-schemes in favor of Basic / Bearer authentication with TLS.
+This is the first GA release in the 5.3 release series. This release finalizes the 5.3 APIs
+and also includes all bug fixes from the 5.2 release branch.
+
+The 5.3 release series introduces support for the Bearer authentication scheme (RFC 6750) and
+deprecates NTLM and GSS-based experimental authentication schemes in favor of Basic / Bearer
+authentication with TLS.
 
 Notable changes and features included in the 5.3 series:
 
@@ -11,7 +14,7 @@ Notable changes and features included in the 5.3 series:
 
 * Deprecation of the NTLM authentication scheme.
 
-* Deprecation of the GSS based experimental authentication schemes.
+* Deprecation of the GSS-based experimental authentication schemes.
 
 * Support for load distribution across multiple proxies.
 
@@ -19,7 +22,46 @@ Notable changes and features included in the 5.3 series:
 Change Log
 -------------------
 
-* GSS based experimental authentication schemes deprecated and disabled by default.
+* HTTPCLIENT-2310: Async Connect exec handler incorrectly pipes CONNECT requests through the main
+  request protocol chain.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Upgraded HttpCore to version 5.2.4.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* SEE OTHER redirect handling fix.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* HTTPCLIENT-2305: SSLConnectionSocketFactory allows Socket.connect() to be decorated (#499).
+  Contributed by Carter Kozak <ckozak at apache.org>
+
+* Add security warning to TrustStrategy implementations documentation (#490).
+  Contributed by Marcono1234 <Marcono1234 at users.noreply.github.com>
+
+* More consistent handling of OperationTimeoutException in MemcachedHttpCacheStorage.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Document exec chain behavior when automatic retries are enabled. (#480).
+  Contributed by cachescrubber <lars.uffmann at gmail.com>
+
+* HTTPCLIENT-2291: Fixed inconsistency in behavior between the class and async implementation
+  of the request re-execution. The async request retry exec will now restart request execution
+  from itself instead of from the very beginning of the execution chain.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+
+Release 5.3 ALPHA1
+------------------
+
+This is the first release in the 5.3 release series that introduces support for the Bearer
+authentication scheme (RFC 6750) and deprecates NTLM and GSS-based experimental authentication
+schemes in favor of Basic / Bearer authentication with TLS.
+
+
+Change Log
+-------------------
+
+* GSS-based experimental authentication schemes deprecated and disabled by default.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
 * NTLM scheme deprecated and disabled by default.
@@ -48,7 +90,7 @@ Change Log
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
 * Credentials interface should be able to represent different types of user credentials
-  including token based with no password.
+  including token-based with no password.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
 * Connection settings `timeToLive` and `validateAfterInactivity` set to zero to always
@@ -114,7 +156,7 @@ Notable changes and features included in the 5.2 series:
 
 * Migration to Java 8 Time primitives in State Management and Cache APIs.
 
-* Connection and TLS configuration on a per route basis.
+* Connection and TLS configuration on a per-route basis.
 
 * Base64 codec based on Commons Codec replaced with JRE Base64 codec.
   Dependency on Commons Codec dropped.
@@ -168,7 +210,7 @@ Change Log
 Release 5.2 BETA1
 ------------------
 
-This is the first BETA release in the 5.2 release series that upgrades minimal JRE
+This is the first BETA release in the 5.2 release series that upgrades the minimal JRE
 level to version 8 (8u251 is required) and includes several protocol level and
 API improvements. It also includes all bug fixes from the 5.1 branch.
 
@@ -188,7 +230,7 @@ Change Log
   a connect error (such as TLS handshake failure).
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
-* InternalAbstractHttpAsyncClient to create daemin threads.
+* InternalAbstractHttpAsyncClient to create daemon threads.
   Contributed by Richard Hernandez <riher at amazon.com>
 
 * HTTPCLIENT-2080: Added #getRetryInterval method to HttpRequestRetryStrategy for use
@@ -283,14 +325,14 @@ Change Log
 * Configurable IOReactor IO session decorator configurable.
   Contributed by Arturo Bernal <arturobernalg at gmail.com>
 
-* HTTPCLIENT-2182: access to SSLSession attributes via reflection disallowed as of Java 16.
+* HTTPCLIENT-2182: Access to SSLSession attributes via reflection is disallowed as of Java 16.
   Core TLS functions now use new Java 1.8 API introduced by 8u251 update.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
 * HTTPCLIENT-2135: TLS configuration on a per-host basis.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
-* RFC 7230: treat presence of userinfo in authority component in request URI as an HTTP
+* RFC 7230: Treat presence of userinfo in authority component in request URI as an HTTP
   protocol violation.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
@@ -306,7 +348,7 @@ Change Log
 * HTTPCLIENT-2120: support for H2 via HTTP/1.1 proxy.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
-* Moved connection management related settings from RequestConfig to new class ConnectionConfig.
+* Moved connection management-related settings from RequestConfig to new class ConnectionConfig.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
 * HTTPCLIENT-2139: Cookie Header HttpOnly attribute.
