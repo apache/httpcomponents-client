@@ -28,6 +28,7 @@
 package org.apache.hc.client5.http.impl.auth;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
@@ -49,22 +50,24 @@ public class DigestSchemeFactory implements AuthSchemeFactory {
      */
     public static final DigestSchemeFactory INSTANCE = new DigestSchemeFactory();
 
-    private final Charset charset;
 
     /**
-     * @since 5.1
+     * @param charset the {@link Charset} set to be used for encoding credentials. This parameter is ignored as UTF-8 is always used.
+     * @deprecated This constructor is deprecated to enforce the use of {@link StandardCharsets#UTF_8} encoding
+     * in compliance with RFC 7616 for HTTP Digest Access Authentication. Use the default constructor {@link #DigestSchemeFactory()} instead.
      */
+    @Deprecated
     public DigestSchemeFactory(final Charset charset) {
-        this.charset = charset;
+        super();
     }
 
     public DigestSchemeFactory() {
-        this(null);
+
     }
 
     @Override
     public AuthScheme create(final HttpContext context) {
-        return new DigestScheme(charset);
+        return new DigestScheme();
     }
 
 }
