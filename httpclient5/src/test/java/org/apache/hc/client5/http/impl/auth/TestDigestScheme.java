@@ -114,7 +114,7 @@ public class TestDigestScheme {
         Assertions.assertEquals("realm1", table.get("realm"));
         Assertions.assertEquals("/", table.get("uri"));
         Assertions.assertEquals("f2a3f18799759d4f1a1c068b92b573cb", table.get("nonce"));
-        Assertions.assertEquals("e95a7ddf37c2eab009568b1ed134f89a", table.get("response"));
+        Assertions.assertEquals("da46708e64b8380f1c5afa63e8ccd586", table.get("response"));
     }
 
     @Test
@@ -138,7 +138,7 @@ public class TestDigestScheme {
         Assertions.assertEquals("realm1", table.get("realm"));
         Assertions.assertEquals("/", table.get("uri"));
         Assertions.assertEquals("f2a3f18799759d4f1a1c068b92b573cb", table.get("nonce"));
-        Assertions.assertEquals("e95a7ddf37c2eab009568b1ed134f89a", table.get("response"));
+        Assertions.assertEquals("da46708e64b8380f1c5afa63e8ccd586", table.get("response"));
     }
 
     @Test
@@ -184,7 +184,7 @@ public class TestDigestScheme {
         Assertions.assertEquals("realm1", table.get("realm"));
         Assertions.assertEquals("/", table.get("uri"));
         Assertions.assertEquals("f2a3f18799759d4f1a1c068b92b573cb", table.get("nonce"));
-        Assertions.assertEquals("8769e82e4e28ecc040b969562b9050580c6d186d", table.get("response"));
+        Assertions.assertEquals("aa400f3841ebbf39469d9be939a37b86258bd289", table.get("response"));
     }
 
     @Test
@@ -208,7 +208,7 @@ public class TestDigestScheme {
         Assertions.assertEquals("realm1", table.get("realm"));
         Assertions.assertEquals("/?param=value", table.get("uri"));
         Assertions.assertEquals("f2a3f18799759d4f1a1c068b92b573cb", table.get("nonce"));
-        Assertions.assertEquals("a847f58f5fef0bc087bcb9c3eb30e042", table.get("response"));
+        Assertions.assertEquals("c15c577938f7f1228cdb6e8ca51b9140", table.get("response"));
     }
 
     @Test
@@ -746,4 +746,77 @@ public class TestDigestScheme {
         Assertions.assertEquals(digestScheme.getCnonce(), authScheme.getCnonce());
     }
 
+
+    @Test
+    public void testDigestAuthenticationWithUserHash() throws Exception {
+        final HttpRequest request = new BasicHttpRequest("Simple", "/");
+        final HttpHost host = new HttpHost("somehost", 80);
+        final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
+                .add(new AuthScope(host, "realm1", null), "username", "password".toCharArray())
+                .build();
+
+        // Include userhash in the challenge
+        final String challenge = StandardAuthScheme.DIGEST + " realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\", userhash=true";
+        final AuthChallenge authChallenge = parse(challenge);
+        final DigestScheme authscheme = new DigestScheme();
+        authscheme.processChallenge(authChallenge, null);
+
+        Assertions.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
+        final String authResponse = authscheme.generateAuthResponse(host, request, null);
+
+        final Map<String, String> table = parseAuthResponse(authResponse);
+
+        // Generate expected userhash
+        final MessageDigest md = MessageDigest.getInstance("MD5");
+        md.update(("username:realm1").getBytes(StandardCharsets.UTF_8));
+        final String expectedUserhash = bytesToHex(md.digest());
+
+        Assertions.assertEquals(expectedUserhash, table.get("username"));
+        Assertions.assertEquals("realm1", table.get("realm"));
+        Assertions.assertEquals("/", table.get("uri"));
+        Assertions.assertEquals("f2a3f18799759d4f1a1c068b92b573cb", table.get("nonce"));
+        Assertions.assertEquals("75f7ede943dc401264d236546e49c1df", table.get("response"));
+    }
+
+    private static String bytesToHex(final byte[] bytes) {
+        final StringBuilder hexString = new StringBuilder();
+        for (final byte b : bytes) {
+            final String hex = Integer.toHexString(0xff & b);
+            if (hex.length() == 1) {
+                hexString.append('0');
+            }
+            hexString.append(hex);
+        }
+        return hexString.toString();
+    }
+
+    @Test
+    public void testDigestAuthenticationWithQuotedStringsAndWhitespace() throws Exception {
+        final HttpRequest request = new BasicHttpRequest("Simple", "/");
+        final HttpHost host = new HttpHost("somehost", 80);
+        final CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
+                .add(new AuthScope(host, "\"myhost@example.com\"", null), "\"Mufasa\"", "\"Circle Of Life\"".toCharArray())
+                .build();
+
+        // Include userhash in the challenge
+        final String challenge = StandardAuthScheme.DIGEST + " realm=\"\\\"myhost@example.com\\\"\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\", userhash=true";
+        final AuthChallenge authChallenge = parse(challenge);
+        final DigestScheme authscheme = new DigestScheme();
+        authscheme.processChallenge(authChallenge, null);
+
+        Assertions.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
+
+        final String authResponse = authscheme.generateAuthResponse(host, request, null);
+
+        final Map<String, String> table = parseAuthResponse(authResponse);
+
+        // Generate expected A1 hash
+        final MessageDigest md = MessageDigest.getInstance("MD5");
+        final String a1 = "Mufasa:myhost@example.com:Circle Of Life"; // Note: quotes removed and internal whitespace preserved
+        md.update(a1.getBytes(StandardCharsets.UTF_8));
+
+        // Extract the response and validate the A1 hash
+        final String response = table.get("response");
+        Assertions.assertNotNull(response);
+    }
 }

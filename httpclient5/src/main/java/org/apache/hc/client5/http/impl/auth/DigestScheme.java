@@ -113,6 +113,24 @@ public class DigestScheme implements AuthScheme, Serializable {
     private boolean complete;
     private transient ByteArrayBuilder buffer;
 
+    /**
+     * Flag indicating whether username hashing is supported.
+     * <p>
+     * This flag is used to determine if the server supports hashing of the username
+     * as part of the Digest Access Authentication process. When set to {@code true},
+     * the client is expected to hash the username using the same algorithm used for
+     * hashing the credentials. This is in accordance with Section 3.4.4 of RFC 7616.
+     * </p>
+     * <p>
+     * The default value is {@code false}, indicating that username hashing is not
+     * supported. If the server requires username hashing (indicated by the
+     * {@code userhash} parameter in the  a header set to {@code true}),
+     * this flag should be set to {@code true} to comply with the server's requirements.
+     * </p>
+     */
+    private boolean userhashSupported = false;
+
+
     private String lastNonce;
     private long nounceCount;
     private String cnonce;
@@ -177,6 +195,10 @@ public class DigestScheme implements AuthScheme, Serializable {
         if (this.paramMap.isEmpty()) {
             throw new MalformedChallengeException("Missing digest auth parameters");
         }
+
+        final String userHashValue = this.paramMap.get("userhash");
+        this.userhashSupported = "true".equalsIgnoreCase(userHashValue);
+
         this.complete = true;
     }
 
@@ -319,6 +341,15 @@ public class DigestScheme implements AuthScheme, Serializable {
         }
         buffer.charset(charset);
 
+
+        String username = credentials.getUserName();
+
+        if (this.userhashSupported) {
+            final String usernameRealm = username + ":" + realm;
+            final byte[] hashedBytes = digester.digest(usernameRealm.getBytes(StandardCharsets.UTF_8));
+            username = formatHex(hashedBytes); // Convert to hex string
+        }
+
         a1 = null;
         a2 = null;
         // 3.2.2.2: Calculating digest
@@ -328,13 +359,13 @@ public class DigestScheme implements AuthScheme, Serializable {
             //      ":" unq(cnonce-value)
 
             // calculated one per session
-            buffer.append(credentials.getUserName()).append(":").append(realm).append(":").append(credentials.getUserPassword());
+            buffer.append(username).append(":").append(credentials.getUserPassword());
             final String checksum = formatHex(digester.digest(this.buffer.toByteArray()));
             buffer.reset();
             buffer.append(checksum).append(":").append(nonce).append(":").append(cnonce);
         } else {
             // unq(username-value) ":" unq(realm-value) ":" passwd
-            buffer.append(credentials.getUserName()).append(":").append(realm).append(":").append(credentials.getUserPassword());
+            buffer.append(username).append(":").append(credentials.getUserPassword());
         }
         a1 = buffer.toByteArray();
 
@@ -395,7 +426,7 @@ public class DigestScheme implements AuthScheme, Serializable {
         buffer.append(StandardAuthScheme.DIGEST + " ");
 
         final List<BasicNameValuePair> params = new ArrayList<>(20);
-        params.add(new BasicNameValuePair("username", credentials.getUserName()));
+        params.add(new BasicNameValuePair("username", username));
         params.add(new BasicNameValuePair("realm", realm));
         params.add(new BasicNameValuePair("nonce", nonce));
         params.add(new BasicNameValuePair("uri", uri));
@@ -411,6 +442,10 @@ public class DigestScheme implements AuthScheme, Serializable {
         }
         if (opaque != null) {
             params.add(new BasicNameValuePair("opaque", opaque));
+        }
+
+        if (this.userhashSupported) {
+            params.add(new BasicNameValuePair("userhash", "true"));
         }
 
         for (int i = 0; i < params.size(); i++) {
@@ -494,5 +529,4 @@ public class DigestScheme implements AuthScheme, Serializable {
     public String toString() {
         return getName() + this.paramMap;
     }
-
 }
