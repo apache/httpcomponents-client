@@ -75,7 +75,7 @@
     <jna.version>5.13.0</jna.version>
     <hc.stylecheck.version>1</hc.stylecheck.version>
     <rxjava.version>2.2.21</rxjava.version>
-    <api.comparison.version>5.2</api.comparison.version>
+    <api.comparison.version>5.3</api.comparison.version>
     <hc.animal-sniffer.signature.ignores>javax.net.ssl.SSLEngine,javax.net.ssl.SSLParameters,java.nio.ByteBuffer,java.nio.CharBuffer</hc.animal-sniffer.signature.ignores>
     <japicmp.version>0.15.4</japicmp.version>
   </properties>
