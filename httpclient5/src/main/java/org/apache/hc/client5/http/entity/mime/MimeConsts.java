@@ -34,5 +34,6 @@ final class MimeConsts {
 
     public static final String FIELD_PARAM_NAME      = "name";
     public static final String FIELD_PARAM_FILENAME  = "filename";
+    public static final String FIELD_PARAM_FILENAME_START  = "filename*";
 
 }

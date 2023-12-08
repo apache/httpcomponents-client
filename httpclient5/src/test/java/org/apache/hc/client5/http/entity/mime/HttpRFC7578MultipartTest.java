@@ -29,20 +29,20 @@ package org.apache.hc.client5.http.entity.mime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import org.apache.hc.client5.http.impl.auth.RFC5987Codec;
+import org.apache.hc.client5.http.utils.CodingException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 public class HttpRFC7578MultipartTest {
 
     @Test
-    public void testPercentDecodingWithTooShortMessage() throws Exception {
-        Assertions.assertThrows(java.lang.IllegalArgumentException.class, () ->
-                new HttpRFC7578Multipart.PercentCodec().decode("%".getBytes()));
+    public void testPercentDecodingWithTooShortMessage() {
+        Assertions.assertThrows(CodingException.class, () -> RFC5987Codec.decode("%"));
     }
 
     @Test
     public void testPercentDecodingWithValidMessages() throws Exception {
-        final HttpRFC7578Multipart.PercentCodec codec = new HttpRFC7578Multipart.PercentCodec();
         final String[][] tests = new String[][] {
                 {"test", "test"},
                 {"%20", " "},
@@ -54,7 +54,7 @@ public class HttpRFC7578MultipartTest {
 
         };
         for (final String[] test : tests) {
-            assertEquals(test[1], new String(codec.decode(test[0].getBytes())));
+            assertEquals(test[1], RFC5987Codec.decode(test[0]));
         }
     }
 
