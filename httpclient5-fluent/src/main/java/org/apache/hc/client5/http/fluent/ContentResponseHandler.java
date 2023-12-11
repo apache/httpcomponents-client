@@ -72,7 +72,7 @@ public class ContentResponseHandler extends AbstractHttpClientResponseHandler<Co
     public Content handleResponse(final ClassicHttpResponse response) throws IOException {
         final int statusCode = response.getCode();
         final HttpEntity entity = response.getEntity();
-        final byte[] contentBytes = (entity != null) ? EntityUtils.toByteArray(entity, MAX_MESSAGE_LENGTH) : new byte[0];
+        final byte[] contentBytes = (entity != null) ? ((statusCode >= 300) ? EntityUtils.toByteArray(entity, MAX_MESSAGE_LENGTH) : EntityUtils.toByteArray(entity)) : new byte[0];
         final ContentType contentType = (entity != null && entity.getContentType() != null) ? ContentType.parse(entity.getContentType()) : ContentType.DEFAULT_BINARY;
         final Content content = new Content(contentBytes, contentType);
         if (statusCode >= 300) {

@@ -31,12 +31,14 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 
 import org.apache.hc.client5.http.ClientProtocolException;
+import org.apache.hc.client5.http.HttpResponseException;
 import org.apache.hc.client5.http.fluent.Content;
 import org.apache.hc.client5.http.fluent.Request;
 import org.apache.hc.client5.testing.sync.extension.TestClientResources;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
@@ -79,6 +81,20 @@ public class TestFluent {
             }
             response.setEntity(responseEntity);
         });
+
+        // Handler for large content large message
+        server.registerHandler("/large-message", (request, response, context) -> {
+            final String largeContent = generateLargeString(10000); // Large content string
+            response.setEntity(new StringEntity(largeContent, ContentType.TEXT_PLAIN));
+        });
+
+        // Handler for large content large message with error
+        server.registerHandler("/large-message-error", (request, response, context) -> {
+            final String largeContent = generateLargeString(10000); // Large content string
+            response.setCode(HttpStatus.SC_REDIRECTION);
+            response.setEntity(new StringEntity(largeContent, ContentType.TEXT_PLAIN));
+        });
+
     }
 
     @Test
@@ -153,6 +169,40 @@ public class TestFluent {
             } finally {
                 tmpFile.delete();
             }
+        }
+    }
+
+    private String generateLargeString(final int size) {
+        final StringBuilder sb = new StringBuilder(size);
+        for (int i = 0; i < size; i++) {
+            sb.append("x");
+        }
+        return sb.toString();
+    }
+
+    @Test
+    public void testLargeResponse() throws Exception {
+
+        final HttpHost target = targetHost();
+        final String baseURL = "http://localhost:" + target.getPort();
+
+        final Content content = Request.get(baseURL + "/large-message").execute().returnContent();
+        Assertions.assertEquals(10000, content.asBytes().length);
+    }
+
+    @Test
+    public void testLargeResponseError() throws Exception {
+        final HttpHost target = targetHost();
+        final String baseURL = "http://localhost:" + target.getPort();
+
+        try {
+            Request.get(baseURL + "/large-message-error").execute().returnContent();
+            Assertions.fail("Expected an HttpResponseException to be thrown");
+        } catch (final HttpResponseException e) {
+            // Check if the content of the exception is less than or equal to 256 bytes
+            final byte[] contentBytes = e.getContentBytes();
+            Assertions.assertNotNull(contentBytes, "Content bytes should not be null");
+            Assertions.assertTrue(contentBytes.length <= 256, "Content length should be less or equal to 256 bytes");
         }
     }
 
