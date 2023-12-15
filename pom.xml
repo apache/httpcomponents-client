@@ -35,7 +35,7 @@
   <name>Apache HttpComponents Client Parent</name>
   <version>5.4-alpha1-SNAPSHOT</version>
   <description>Apache HttpComponents Client is a library of components for building client side HTTP services</description>
-  <url>https://hc.apache.org/httpcomponents-client-5.0.x/${project.version}/</url>
+  <url>https://hc.apache.org/httpcomponents-client-5.4.x/${project.version}/</url>
   <inceptionYear>1999</inceptionYear>
   <packaging>pom</packaging>
 
