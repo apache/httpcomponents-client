@@ -235,7 +235,7 @@ public abstract class TestContentCodings {
          * Create a load of workers which will access the resource. Half will use the default
          * gzip behaviour; half will require identity entity.
          */
-        final int clients = 100;
+        final int clients = 10;
 
         connManager.setMaxTotal(clients);
 

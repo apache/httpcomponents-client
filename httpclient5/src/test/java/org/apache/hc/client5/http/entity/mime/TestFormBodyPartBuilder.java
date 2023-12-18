@@ -51,7 +51,7 @@ public class TestFormBodyPartBuilder {
         Assertions.assertNotNull(header);
         assertFields(Arrays.asList(
                         new MimeField("Content-Disposition", "form-data; name=\"blah\""),
-                        new MimeField("Content-Type", "text/plain; charset=ISO-8859-1")),
+                        new MimeField("Content-Type", "text/plain; charset=UTF-8")),
                 header.getFields());
     }
 
@@ -70,7 +70,7 @@ public class TestFormBodyPartBuilder {
         Assertions.assertNotNull(header1);
         assertFields(Arrays.asList(
                         new MimeField("Content-Disposition", "form-data; name=\"blah\""),
-                        new MimeField("Content-Type", "text/plain; charset=ISO-8859-1")),
+                        new MimeField("Content-Type", "text/plain; charset=UTF-8")),
                 header1.getFields());
         final FileBody fileBody = new FileBody(new File("/path/stuff.bin"), ContentType.DEFAULT_BINARY);
         final FormBodyPart bodyPart2 = builder
@@ -114,7 +114,7 @@ public class TestFormBodyPartBuilder {
                 new MimeField("header3", "blah"),
                 new MimeField("header3", "blah"),
                 new MimeField("Content-Disposition", "form-data; name=\"blah\""),
-                new MimeField("Content-Type", "text/plain; charset=ISO-8859-1")),
+                new MimeField("Content-Type", "text/plain; charset=UTF-8")),
                 header1.getFields());
 
         final FormBodyPart bodyPart2 = builder
@@ -130,7 +130,7 @@ public class TestFormBodyPartBuilder {
                         new MimeField("header1", "blah"),
                         new MimeField("header2", "yada"),
                         new MimeField("Content-Disposition", "form-data; name=\"blah\""),
-                        new MimeField("Content-Type", "text/plain; charset=ISO-8859-1")),
+                        new MimeField("Content-Type", "text/plain; charset=UTF-8")),
                 header2.getFields());
 
         final FormBodyPart bodyPart3 = builder

@@ -156,7 +156,7 @@ public class TestMultipartEntityBuilder {
         out.close();
         Assertions.assertEquals("--xxxxxxxxxxxxxxxxxxxxxxxx\r\n" +
                 "Content-Disposition: multipart/form-data; name=\"test\"; filename=\"hello world\"\r\n" +
-                "Content-Type: text/plain; charset=ISO-8859-1\r\n" +
+                "Content-Type: text/plain; charset=UTF-8\r\n" +
                 "\r\n" +
                 helloWorld + "\r\n" +
                 "--xxxxxxxxxxxxxxxxxxxxxxxx--\r\n", out.toString(StandardCharsets.US_ASCII.name()));

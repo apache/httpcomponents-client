@@ -51,7 +51,7 @@ public class TestEntityBuilder {
         Assertions.assertNotNull(entity);
         Assertions.assertNotNull(entity.getContent());
         Assertions.assertNotNull(entity.getContentType());
-        Assertions.assertEquals("text/plain; charset=ISO-8859-1", entity.getContentType());
+        Assertions.assertEquals("text/plain; charset=UTF-8", entity.getContentType());
     }
 
     @Test
@@ -119,7 +119,7 @@ public class TestEntityBuilder {
         final HttpEntity entity = EntityBuilder.create().setText("stuff").gzipCompressed().build();
         Assertions.assertNotNull(entity);
         Assertions.assertNotNull(entity.getContentType());
-        Assertions.assertEquals("text/plain; charset=ISO-8859-1", entity.getContentType());
+        Assertions.assertEquals("text/plain; charset=UTF-8", entity.getContentType());
         Assertions.assertNotNull(entity.getContentEncoding());
         Assertions.assertEquals("gzip", entity.getContentEncoding());
     }

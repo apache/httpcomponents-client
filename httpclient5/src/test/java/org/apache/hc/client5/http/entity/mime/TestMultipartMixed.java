@@ -58,7 +58,7 @@ public class TestMultipartMixed {
                 new StringBody("this stuff", ContentType.DEFAULT_TEXT)).build();
         final MultipartPart p2 = MultipartPartBuilder.create(
                 new StringBody("that stuff", ContentType.create(
-                        ContentType.TEXT_PLAIN.getMimeType(), StandardCharsets.UTF_8))).build();
+                        ContentType.TEXT_PLAIN.getMimeType(), StandardCharsets.ISO_8859_1))).build();
         final MultipartPart p3 = MultipartPartBuilder.create(
                 new StringBody("all kind of stuff", ContentType.DEFAULT_TEXT)).build();
         final HttpStrictMultipart multipart = new HttpStrictMultipart(null, "foo",
@@ -70,15 +70,15 @@ public class TestMultipartMixed {
 
         final String expected =
             "--foo\r\n" +
-            "Content-Type: text/plain; charset=ISO-8859-1\r\n" +
+            "Content-Type: text/plain; charset=UTF-8\r\n" +
             "\r\n" +
             "this stuff\r\n" +
             "--foo\r\n" +
-            "Content-Type: text/plain; charset=UTF-8\r\n" +
+            "Content-Type: text/plain; charset=ISO-8859-1\r\n" +
             "\r\n" +
             "that stuff\r\n" +
             "--foo\r\n" +
-            "Content-Type: text/plain; charset=ISO-8859-1\r\n" +
+            "Content-Type: text/plain; charset=UTF-8\r\n" +
             "\r\n" +
             "all kind of stuff\r\n" +
             "--foo--\r\n";
@@ -102,7 +102,7 @@ public class TestMultipartMixed {
 
         final String expected =
                 "--foo\r\n" +
-                        "Content-Type: text/plain; charset=ISO-8859-1\r\n" +
+                        "Content-Type: text/plain; charset=UTF-8\r\n" +
                         "\r\n" +
                         "this stuff\r\n" +
                         "--foo\r\n" +

@@ -60,7 +60,7 @@ public class TestMultipartForm {
         final FormBodyPart p2 = FormBodyPartBuilder.create(
                 "field2",
                 new StringBody("that stuff", ContentType.create(
-                        ContentType.TEXT_PLAIN.getMimeType(), StandardCharsets.UTF_8))).build();
+                        ContentType.TEXT_PLAIN.getMimeType(), StandardCharsets.ISO_8859_1))).build();
         final FormBodyPart p3 = FormBodyPartBuilder.create(
                 "field3",
                 new StringBody("all kind of stuff", ContentType.DEFAULT_TEXT)).build();
@@ -74,17 +74,17 @@ public class TestMultipartForm {
         final String expected =
             "--foo\r\n" +
             "Content-Disposition: form-data; name=\"field1\"\r\n" +
-            "Content-Type: text/plain; charset=ISO-8859-1\r\n" +
+            "Content-Type: text/plain; charset=UTF-8\r\n" +
             "\r\n" +
             "this stuff\r\n" +
             "--foo\r\n" +
             "Content-Disposition: form-data; name=\"field2\"\r\n" +
-            "Content-Type: text/plain; charset=UTF-8\r\n" +
+            "Content-Type: text/plain; charset=ISO-8859-1\r\n" +
             "\r\n" +
             "that stuff\r\n" +
             "--foo\r\n" +
             "Content-Disposition: form-data; name=\"field3\"\r\n" +
-            "Content-Type: text/plain; charset=ISO-8859-1\r\n" +
+            "Content-Type: text/plain; charset=UTF-8\r\n" +
             "\r\n" +
             "all kind of stuff\r\n" +
             "--foo--\r\n";
@@ -111,7 +111,7 @@ public class TestMultipartForm {
         final String expected =
                 "--foo\r\n" +
                         "Content-Disposition: form-data; name=\"field1\"\r\n" +
-                        "Content-Type: text/plain; charset=ISO-8859-1\r\n" +
+                        "Content-Type: text/plain; charset=UTF-8\r\n" +
                         "\r\n" +
                         "this stuff\r\n" +
                         "--foo\r\n" +

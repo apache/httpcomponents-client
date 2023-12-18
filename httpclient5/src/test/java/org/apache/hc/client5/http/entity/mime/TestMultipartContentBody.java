@@ -41,7 +41,7 @@ public class TestMultipartContentBody {
         final StringBody b1 = new StringBody("text", ContentType.DEFAULT_TEXT);
         Assertions.assertEquals(4, b1.getContentLength());
 
-        Assertions.assertEquals("ISO-8859-1", b1.getCharset());
+        Assertions.assertEquals("UTF-8", b1.getCharset());
 
         Assertions.assertNull(b1.getFilename());
         Assertions.assertEquals("text/plain", b1.getMimeType());

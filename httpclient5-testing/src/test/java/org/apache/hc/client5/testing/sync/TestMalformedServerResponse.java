@@ -50,8 +50,8 @@ public class TestMalformedServerResponse {
 
     static class BrokenServerConnection extends DefaultBHttpServerConnection {
 
-        public BrokenServerConnection(final Http1Config h1Config) {
-            super(null, h1Config);
+        public BrokenServerConnection(final String scheme, final Http1Config h1Config) {
+            super(scheme, h1Config);
         }
 
         @Override
@@ -77,7 +77,7 @@ public class TestMalformedServerResponse {
 
         @Override
         public DefaultBHttpServerConnection createConnection(final Socket socket) throws IOException {
-            final BrokenServerConnection conn = new BrokenServerConnection(Http1Config.DEFAULT);
+            final BrokenServerConnection conn = new BrokenServerConnection("http", Http1Config.DEFAULT);
             conn.bind(socket);
             return conn;
         }

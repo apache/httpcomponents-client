@@ -49,7 +49,7 @@ public class TestMultipartPartBuilder {
         final Header header = part.getHeader();
         Assertions.assertNotNull(header);
         assertFields(Collections.singletonList(
-                new MimeField("Content-Type", "text/plain; charset=ISO-8859-1")),
+                new MimeField("Content-Type", "text/plain; charset=UTF-8")),
                 header.getFields());
     }
 
@@ -65,7 +65,7 @@ public class TestMultipartPartBuilder {
         final Header header1 = part1.getHeader();
         Assertions.assertNotNull(header1);
         assertFields(Collections.singletonList(
-                new MimeField("Content-Type", "text/plain; charset=ISO-8859-1")),
+                new MimeField("Content-Type", "text/plain; charset=UTF-8")),
                 header1.getFields());
         final FileBody fileBody = new FileBody(new File("/path/stuff.bin"), ContentType.DEFAULT_BINARY);
         final MultipartPart part2 = builder
@@ -105,7 +105,7 @@ public class TestMultipartPartBuilder {
                 new MimeField("header3", "blah"),
                 new MimeField("header3", "blah"),
                 new MimeField("header3", "blah"),
-                new MimeField("Content-Type", "text/plain; charset=ISO-8859-1")),
+                new MimeField("Content-Type", "text/plain; charset=UTF-8")),
                 header1.getFields());
 
         final MultipartPart part2 = builder
@@ -120,7 +120,7 @@ public class TestMultipartPartBuilder {
         assertFields(Arrays.asList(
                         new MimeField("header1", "blah"),
                         new MimeField("header2", "yada"),
-                        new MimeField("Content-Type", "text/plain; charset=ISO-8859-1")),
+                        new MimeField("Content-Type", "text/plain; charset=UTF-8")),
                 header2.getFields());
 
         final MultipartPart part3 = builder
