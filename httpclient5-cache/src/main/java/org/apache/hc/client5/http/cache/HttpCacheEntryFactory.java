@@ -29,27 +29,22 @@ package org.apache.hc.client5.http.cache;
 import java.net.URI;
 import java.time.Instant;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Set;
-import java.util.TreeSet;
 
 import org.apache.hc.client5.http.impl.cache.CacheKeyGenerator;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.annotation.Contract;
-import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.Header;
-import org.apache.hc.core5.http.HeaderElements;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpMessage;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
-import org.apache.hc.core5.http.MessageHeaders;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.HeaderGroup;
 import org.apache.hc.core5.http.message.MessageSupport;
@@ -64,39 +59,6 @@ import org.apache.hc.core5.util.Args;
 public class HttpCacheEntryFactory {
 
     public static final HttpCacheEntryFactory INSTANCE = new HttpCacheEntryFactory();
-
-    private final static Set<String> HOP_BY_HOP;
-
-    static {
-        final TreeSet<String> set = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
-        set.add(HttpHeaders.CONNECTION);
-        set.add(HttpHeaders.CONTENT_LENGTH);
-        set.add(HttpHeaders.TRANSFER_ENCODING);
-        set.add(HttpHeaders.HOST);
-        set.add(HttpHeaders.KEEP_ALIVE);
-        set.add(HttpHeaders.TE);
-        set.add(HttpHeaders.UPGRADE);
-        set.add(HttpHeaders.PROXY_AUTHORIZATION);
-        set.add("Proxy-Authentication-Info");
-        set.add(HttpHeaders.PROXY_AUTHENTICATE);
-        HOP_BY_HOP = Collections.unmodifiableSet(set);
-    }
-
-    @Internal
-    public static boolean isHopByHop(final String headerName) {
-        if (headerName == null) {
-            return false;
-        }
-        return HOP_BY_HOP.contains(headerName);
-    }
-
-    @Internal
-    public static boolean isHopByHop(final Header header) {
-        if (header == null) {
-            return false;
-        }
-        return isHopByHop(header.getName());
-    }
 
     private static HeaderGroup headers(final Iterator<Header> it) {
         final HeaderGroup headerGroup = new HeaderGroup();
@@ -115,7 +77,7 @@ public class HttpCacheEntryFactory {
                 headerGroup.addHeader(entryHeader);
             }
         }
-        final Set<String> responseHopByHop = HttpCacheEntryFactory.hopByHopConnectionSpecific(response);
+        final Set<String> responseHopByHop = MessageSupport.hopByHopConnectionSpecific(response);
         for (final Iterator<Header> it = response.headerIterator(); it.hasNext(); ) {
             final Header responseHeader = it.next();
             final String headerName = responseHeader.getName();
@@ -129,24 +91,8 @@ public class HttpCacheEntryFactory {
     /**
      * This method should be provided by the core
      */
-    static Set<String> hopByHopConnectionSpecific(final MessageHeaders headers) {
-        final Header connectionHeader = headers.getFirstHeader(HttpHeaders.CONNECTION);
-        final String connDirective = connectionHeader != null ? connectionHeader.getValue() : null;
-        // Disregard most common 'Close' and 'Keep-Alive' tokens
-        if (connDirective != null &&
-                !connDirective.equalsIgnoreCase(HeaderElements.CLOSE) &&
-                !connDirective.equalsIgnoreCase(HeaderElements.KEEP_ALIVE)) {
-            final TreeSet<String> result = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
-            result.addAll(HOP_BY_HOP);
-            result.addAll(MessageSupport.parseTokens(connectionHeader));
-            return result;
-        } else {
-            return HOP_BY_HOP;
-        }
-    }
-
     static HeaderGroup filterHopByHopHeaders(final HttpMessage message) {
-        final Set<String> hopByHop = hopByHopConnectionSpecific(message);
+        final Set<String> hopByHop = MessageSupport.hopByHopConnectionSpecific(message);
         final HeaderGroup headerGroup = new HeaderGroup();
         for (final Iterator<Header> it = message.headerIterator(); it.hasNext(); ) {
             final Header header = it.next();

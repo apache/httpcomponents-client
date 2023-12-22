@@ -33,6 +33,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.core5.http.message.MessageSupport;
 import org.apache.hc.core5.util.TimeValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -177,7 +178,7 @@ class CacheValidityPolicy {
         final Header age = entry.getFirstHeader(HttpHeaders.AGE);
         if (age != null) {
             final AtomicReference<String> firstToken = new AtomicReference<>();
-            CacheSupport.parseTokens(age, token -> firstToken.compareAndSet(null, token));
+            MessageSupport.parseTokens(age, token -> firstToken.compareAndSet(null, token));
             final long delta = CacheSupport.deltaSeconds(firstToken.get());
             if (delta == -1 && LOG.isDebugEnabled()) {
                 LOG.debug("Malformed Age value: {}", age);

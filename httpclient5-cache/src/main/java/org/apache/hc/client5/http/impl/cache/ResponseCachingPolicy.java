@@ -38,7 +38,7 @@ import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.ProtocolVersion;
-import org.apache.hc.core5.http.message.BasicTokenIterator;
+import org.apache.hc.core5.http.message.MessageSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -170,7 +170,7 @@ class ResponseCachingPolicy {
         }
 
         // Treat responses with `Vary: *` as essentially non-cacheable.
-        final Iterator<String> it = new BasicTokenIterator(response.headerIterator(HttpHeaders.VARY));
+        final Iterator<String> it = MessageSupport.iterateTokens(response, HttpHeaders.VARY);
         while (it.hasNext()) {
             final String token = it.next();
             if ("*".equals(token)) {
@@ -303,7 +303,7 @@ class ResponseCachingPolicy {
     }
 
     private boolean from1_0Origin(final HttpResponse response) {
-        final Iterator<String> it = new BasicTokenIterator(response.headerIterator(HttpHeaders.VIA));
+        final Iterator<String> it = MessageSupport.iterateTokens(response, HttpHeaders.VIA);
         if (it.hasNext()) {
             final String token = it.next();
             return token.startsWith("1.0 ") || token.startsWith("HTTP/1.0 ");

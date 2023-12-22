@@ -27,21 +27,14 @@
 package org.apache.hc.client5.http.impl.cache;
 
 import java.net.URI;
-import java.util.BitSet;
 import java.util.Objects;
-import java.util.function.Consumer;
 
 import org.apache.hc.client5.http.utils.URIUtils;
 import org.apache.hc.core5.annotation.Internal;
-import org.apache.hc.core5.http.FormattedHeader;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.MessageHeaders;
-import org.apache.hc.core5.http.message.ParserCursor;
-import org.apache.hc.core5.util.Args;
-import org.apache.hc.core5.util.CharArrayBuffer;
 import org.apache.hc.core5.util.TextUtils;
 import org.apache.hc.core5.util.TimeValue;
-import org.apache.hc.core5.util.Tokenizer;
 
 /**
  * HTTP cache support utilities.
@@ -50,39 +43,6 @@ import org.apache.hc.core5.util.Tokenizer;
  */
 @Internal
 public final class CacheSupport {
-
-    private static final BitSet COMMA = Tokenizer.INIT_BITSET(',');
-
-    // This method should be provided by MessageSupport from core
-    public static void parseTokens(final CharSequence src, final ParserCursor cursor, final Consumer<String> consumer) {
-        Args.notNull(src, "Source");
-        Args.notNull(cursor, "Cursor");
-        while (!cursor.atEnd()) {
-            final int pos = cursor.getPos();
-            if (src.charAt(pos) == ',') {
-                cursor.updatePos(pos + 1);
-            }
-            final String token = Tokenizer.INSTANCE.parseToken(src, cursor, COMMA);
-            if (consumer != null) {
-                consumer.accept(token);
-            }
-        }
-    }
-
-    // This method should be provided by MessageSupport from core
-    public static void parseTokens(final Header header, final Consumer<String> consumer) {
-        Args.notNull(header, "Header");
-        if (header instanceof FormattedHeader) {
-            final CharArrayBuffer buf = ((FormattedHeader) header).getBuffer();
-            final ParserCursor cursor = new ParserCursor(0, buf.length());
-            cursor.updatePos(((FormattedHeader) header).getValuePos());
-            parseTokens(buf, cursor, consumer);
-        } else {
-            final String value = header.getValue();
-            final ParserCursor cursor = new ParserCursor(0, value.length());
-            parseTokens(value, cursor, consumer);
-        }
-    }
 
     public static URI getLocationURI(final URI requestUri, final MessageHeaders response, final String headerName) {
         final Header h = response.getFirstHeader(headerName);

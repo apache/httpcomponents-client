@@ -56,6 +56,7 @@ import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.message.BasicHeaderElementIterator;
 import org.apache.hc.core5.http.message.BasicHeaderValueFormatter;
 import org.apache.hc.core5.http.message.BasicNameValuePair;
+import org.apache.hc.core5.http.message.MessageSupport;
 import org.apache.hc.core5.net.PercentCodec;
 import org.apache.hc.core5.net.URIAuthority;
 import org.apache.hc.core5.net.URIBuilder;
@@ -207,7 +208,7 @@ public class CacheKeyGenerator implements Resolver<URI, String> {
         final List<String> names = new ArrayList<>();
         for (final Iterator<Header> it = message.headerIterator(HttpHeaders.VARY); it.hasNext(); ) {
             final Header header = it.next();
-            CacheSupport.parseTokens(header, names::add);
+            MessageSupport.parseTokens(header, names::add);
         }
         return names;
     }

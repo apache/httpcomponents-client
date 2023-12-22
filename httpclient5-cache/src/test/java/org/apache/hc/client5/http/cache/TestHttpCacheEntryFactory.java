@@ -47,7 +47,6 @@ import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
 import org.apache.hc.core5.http.message.BasicHttpResponse;
 import org.apache.hc.core5.http.message.HeaderGroup;
-import org.apache.hc.core5.http.support.BasicResponseBuilder;
 import org.hamcrest.MatcherAssert;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -85,32 +84,6 @@ public class TestHttpCacheEntryFactory {
         response = new BasicHttpResponse(HttpStatus.SC_NOT_MODIFIED, "Not Modified");
 
         impl = new HttpCacheEntryFactory();
-    }
-
-    @Test
-    public void testHopByHopHeaders() {
-        Assertions.assertTrue(HttpCacheEntryFactory.isHopByHop("Connection"));
-        Assertions.assertTrue(HttpCacheEntryFactory.isHopByHop("connection"));
-        Assertions.assertTrue(HttpCacheEntryFactory.isHopByHop("coNNection"));
-        Assertions.assertFalse(HttpCacheEntryFactory.isHopByHop("Content-Type"));
-        Assertions.assertFalse(HttpCacheEntryFactory.isHopByHop("huh"));
-    }
-
-    @Test
-    public void testHopByHopHeadersConnectionSpecific() {
-        final HttpResponse response = BasicResponseBuilder.create(HttpStatus.SC_OK)
-                .addHeader(HttpHeaders.CONNECTION, "blah, blah, this, that")
-                .addHeader(HttpHeaders.CONTENT_TYPE, ContentType.TEXT_PLAIN.toString())
-                .build();
-        final Set<String> hopByHopConnectionSpecific = HttpCacheEntryFactory.hopByHopConnectionSpecific(response);
-        Assertions.assertTrue(hopByHopConnectionSpecific.contains("Connection"));
-        Assertions.assertTrue(hopByHopConnectionSpecific.contains("connection"));
-        Assertions.assertTrue(hopByHopConnectionSpecific.contains("coNNection"));
-        Assertions.assertFalse(hopByHopConnectionSpecific.contains("Content-Type"));
-        Assertions.assertTrue(hopByHopConnectionSpecific.contains("blah"));
-        Assertions.assertTrue(hopByHopConnectionSpecific.contains("Blah"));
-        Assertions.assertTrue(hopByHopConnectionSpecific.contains("This"));
-        Assertions.assertTrue(hopByHopConnectionSpecific.contains("That"));
     }
 
     @Test

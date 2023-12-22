@@ -221,7 +221,7 @@ class CachedResponseSuitabilityChecker {
             final Set<String> headerNames = new HashSet<>();
             while (it.hasNext()) {
                 final Header header = it.next();
-                CacheSupport.parseTokens(header, e -> {
+                MessageSupport.parseTokens(header, e -> {
                     headerNames.add(e.toLowerCase(Locale.ROOT));
                 });
             }

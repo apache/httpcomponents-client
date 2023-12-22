@@ -37,7 +37,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.function.Consumer;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
-import org.apache.hc.client5.http.cache.HttpCacheEntryFactory;
 import org.apache.hc.client5.http.cache.Resource;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.concurrent.FutureCallback;
@@ -57,6 +56,7 @@ import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.HeaderGroup;
+import org.apache.hc.core5.http.message.MessageSupport;
 import org.apache.hc.core5.util.ByteArrayBuffer;
 import org.junit.jupiter.api.Assertions;
 
@@ -116,7 +116,7 @@ public class HttpTestUtils {
      */
     public static boolean isEndToEndHeaderSubset(final HttpMessage r1, final HttpMessage r2) {
         for (final Header h : r1.getHeaders()) {
-            if (!HttpCacheEntryFactory.isHopByHop(h)) {
+            if (!MessageSupport.isHopByHop(h.getName())) {
                 final String r1val = getCanonicalHeaderValue(r1, h.getName());
                 final String r2val = getCanonicalHeaderValue(r2, h.getName());
                 if (!Objects.equals(r1val, r2val)) {
