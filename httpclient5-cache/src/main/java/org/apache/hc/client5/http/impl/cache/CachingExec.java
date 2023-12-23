@@ -29,6 +29,7 @@ package org.apache.hc.client5.http.impl.cache;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -583,7 +584,9 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
             }
         }
 
-        final ClassicHttpRequest conditionalRequest = conditionalRequestBuilder.buildConditionalRequestFromVariants(request, variantMap.keySet());
+        final ClassicHttpRequest conditionalRequest = conditionalRequestBuilder.buildConditionalRequestFromVariants(
+                request,
+                new ArrayList<>(variantMap.keySet()));
 
         final Instant requestDate = getCurrentDate();
         final ClassicHttpResponse backendResponse = chain.proceed(conditionalRequest, scope);

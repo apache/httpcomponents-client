@@ -95,12 +95,18 @@ public class ClientConfiguration {
 
     public final static void main(final String[] args) throws Exception {
 
+        // Create HTTP/1.1 protocol configuration
+        final Http1Config h1Config = Http1Config.custom()
+                .setMaxHeaderCount(200)
+                .setMaxLineLength(2000)
+                .build();
+
         // Use custom message parser / writer to customize the way HTTP
         // messages are parsed from and written out to the data stream.
         final HttpMessageParserFactory<ClassicHttpResponse> responseParserFactory = new DefaultHttpResponseParserFactory() {
 
             @Override
-            public HttpMessageParser<ClassicHttpResponse> create(final Http1Config h1Config) {
+            public HttpMessageParser<ClassicHttpResponse> create() {
                 final LineParser lineParser = new BasicLineParser() {
 
                     @Override
@@ -113,17 +119,12 @@ public class ClientConfiguration {
                     }
 
                 };
-                return new DefaultHttpResponseParser(lineParser, DefaultClassicHttpResponseFactory.INSTANCE, h1Config);
+                return new DefaultHttpResponseParser(h1Config, lineParser, DefaultClassicHttpResponseFactory.INSTANCE);
             }
 
         };
         final HttpMessageWriterFactory<ClassicHttpRequest> requestWriterFactory = new DefaultHttpRequestWriterFactory();
 
-        // Create HTTP/1.1 protocol configuration
-        final Http1Config h1Config = Http1Config.custom()
-                .setMaxHeaderCount(200)
-                .setMaxLineLength(2000)
-                .build();
         // Create connection configuration
         final CharCodingConfig connectionConfig = CharCodingConfig.custom()
                 .setMalformedInputAction(CodingErrorAction.IGNORE)

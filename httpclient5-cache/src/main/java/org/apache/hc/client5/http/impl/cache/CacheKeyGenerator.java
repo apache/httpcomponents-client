@@ -143,7 +143,7 @@ public class CacheKeyGenerator implements Resolver<URI, String> {
             }
         }
         builder.setFragment(null);
-        return builder.normalizeSyntax().build();
+        return builder.optimize().build();
     }
 
     /**

@@ -28,6 +28,7 @@
 package org.apache.hc.client5.http.impl.classic;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -88,15 +89,14 @@ public final class ContentCompressionExec implements ExecChainHandler {
             final boolean ignoreUnknown) {
 
         final boolean brotliSupported = BrotliDecompressingEntity.isAvailable();
-        final String[] encoding;
+        final List<String> encodings = new ArrayList<>(4);
+        encodings.add("gzip");
+        encodings.add("x-gzip");
+        encodings.add("deflate");
         if (brotliSupported) {
-            encoding = new String[] {"gzip", "x-gzip", "deflate", "br"};
-        } else {
-            encoding = new String[] {"gzip", "x-gzip", "deflate"};
+            encodings.add("br");
         }
-        this.acceptEncoding = MessageSupport.format(HttpHeaders.ACCEPT_ENCODING,
-                                                    acceptEncoding != null ? acceptEncoding.toArray(
-                                                        EMPTY_STRING_ARRAY) : encoding);
+        this.acceptEncoding = MessageSupport.headerOfTokens(HttpHeaders.ACCEPT_ENCODING, encodings);
 
         if (decoderRegistry != null) {
             this.decoderRegistry = decoderRegistry;

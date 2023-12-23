@@ -48,25 +48,53 @@ public class DefaultHttpResponseParserFactory implements HttpMessageParserFactor
 
     public static final DefaultHttpResponseParserFactory INSTANCE = new DefaultHttpResponseParserFactory();
 
+    private final Http1Config h1Config;
     private final LineParser lineParser;
     private final HttpResponseFactory<ClassicHttpResponse> responseFactory;
 
+    /**
+     * @since 5.4
+     */
     public DefaultHttpResponseParserFactory(
+            final Http1Config h1Config,
             final LineParser lineParser,
             final HttpResponseFactory<ClassicHttpResponse> responseFactory) {
         super();
+        this.h1Config = h1Config != null ? h1Config : Http1Config.DEFAULT;
         this.lineParser = lineParser != null ? lineParser : BasicLineParser.INSTANCE;
         this.responseFactory = responseFactory != null ? responseFactory : DefaultClassicHttpResponseFactory.INSTANCE;
     }
 
+    /**
+     * @since 5.4
+     */
+    public DefaultHttpResponseParserFactory(final Http1Config h1Config) {
+        this(h1Config, null, null);
+    }
+
+    public DefaultHttpResponseParserFactory(
+            final LineParser lineParser,
+            final HttpResponseFactory<ClassicHttpResponse> responseFactory) {
+        this(null, lineParser, responseFactory);
+    }
+
     public DefaultHttpResponseParserFactory(final HttpResponseFactory<ClassicHttpResponse> responseFactory) {
-        this(null, responseFactory);
+        this(null, null, responseFactory);
     }
 
     public DefaultHttpResponseParserFactory() {
-        this(null, null);
+        this(null, null, null);
     }
 
+    @Override
+    public HttpMessageParser<ClassicHttpResponse> create() {
+        return new LenientHttpResponseParser(this.lineParser, this.responseFactory, h1Config);
+    }
+
+    /**
+     * @deprecated Use {@link #create()}
+     */
+    @Deprecated
     @Override
     public HttpMessageParser<ClassicHttpResponse> create(final Http1Config h1Config) {
         return new LenientHttpResponseParser(this.lineParser, this.responseFactory, h1Config);

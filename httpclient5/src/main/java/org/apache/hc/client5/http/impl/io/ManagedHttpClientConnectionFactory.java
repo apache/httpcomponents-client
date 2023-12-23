@@ -81,9 +81,9 @@ public class ManagedHttpClientConnectionFactory implements HttpConnectionFactory
         this.h1Config = h1Config != null ? h1Config : Http1Config.DEFAULT;
         this.charCodingConfig = charCodingConfig != null ? charCodingConfig : CharCodingConfig.DEFAULT;
         this.requestWriterFactory = requestWriterFactory != null ? requestWriterFactory :
-                DefaultHttpRequestWriterFactory.INSTANCE;
+                new DefaultHttpRequestWriterFactory(this.h1Config);
         this.responseParserFactory = responseParserFactory != null ? responseParserFactory :
-                DefaultHttpResponseParserFactory.INSTANCE;
+                new DefaultHttpResponseParserFactory(this.h1Config);
         this.incomingContentStrategy = incomingContentStrategy != null ? incomingContentStrategy :
                 DefaultContentLengthStrategy.INSTANCE;
         this.outgoingContentStrategy = outgoingContentStrategy != null ? outgoingContentStrategy :

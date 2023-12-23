@@ -118,7 +118,7 @@ public class TestBasicScheme {
     public void testBasicAuthenticationDefaultCharsetUTF8() throws Exception {
         final HttpHost host  = new HttpHost("somehost", 80);
         final UsernamePasswordCredentials creds = new UsernamePasswordCredentials("test", TEST_UTF8_PASSWORD.toCharArray());
-        final BasicScheme authscheme = new BasicScheme(StandardCharsets.UTF_8);
+        final BasicScheme authscheme = new BasicScheme();
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         authscheme.initPreemptive(creds);
         final String authResponse = authscheme.generateAuthResponse(host, request, null);

@@ -49,7 +49,7 @@ public final class RequestSupport {
             final URIBuilder uriBuilder = new URIBuilder(path);
             uriBuilder.setFragment(null);
             uriBuilder.clearParameters();
-            uriBuilder.normalizeSyntax();
+            uriBuilder.optimize();
             final List<String> pathSegments = uriBuilder.getPathSegments();
 
             if (!pathSegments.isEmpty()) {

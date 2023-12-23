@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.nio.ByteBuffer;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -1127,7 +1128,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
         }
         final HttpRequest conditionalRequest = conditionalRequestBuilder.buildConditionalRequestFromVariants(
                 BasicRequestBuilder.copy(request).build(),
-                variantMap.keySet());
+                new ArrayList<>(variantMap.keySet()));
 
         final Instant requestDate = getCurrentDate();
         chainProceed(conditionalRequest, entityProducer, scope, chain, new AsyncExecCallback() {

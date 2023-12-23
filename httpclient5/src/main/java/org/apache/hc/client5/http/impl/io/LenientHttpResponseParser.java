@@ -65,7 +65,7 @@ public class LenientHttpResponseParser extends DefaultHttpResponseParser {
             final LineParser lineParser,
             final HttpResponseFactory<ClassicHttpResponse> responseFactory,
             final Http1Config h1Config) {
-        super(lineParser, responseFactory, h1Config);
+        super(h1Config, lineParser, responseFactory);
     }
 
     /**

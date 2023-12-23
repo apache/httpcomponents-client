@@ -46,8 +46,6 @@ import javax.net.ssl.SSLSocket;
 import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder;
-import org.apache.hc.client5.http.ssl.TrustAllStrategy;
-import org.apache.hc.client5.http.ssl.TrustSelfSignedStrategy;
 import org.apache.hc.client5.testing.SSLTestContexts;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.impl.bootstrap.HttpServer;
@@ -287,19 +285,9 @@ public class TestSSLSocketFactory {
     }
 
     @Test
-    public void testSSLTrustVerificationOverrideWithCustsom() throws Exception {
+    public void testSSLTrustVerificationOverrideWithCustom() throws Exception {
         final TrustStrategy trustStrategy = (chain, authType) -> chain.length == 1;
         testSSLTrustVerificationOverride(trustStrategy);
-    }
-
-    @Test
-    public void testSSLTrustVerificationOverrideWithTrustSelfSignedStrategy() throws Exception {
-        testSSLTrustVerificationOverride(TrustSelfSignedStrategy.INSTANCE);
-    }
-
-    @Test
-    public void testSSLTrustVerificationOverrideWithTrustAllStrategy() throws Exception {
-        testSSLTrustVerificationOverride(TrustAllStrategy.INSTANCE);
     }
 
     private void testSSLTrustVerificationOverride(final TrustStrategy trustStrategy)
