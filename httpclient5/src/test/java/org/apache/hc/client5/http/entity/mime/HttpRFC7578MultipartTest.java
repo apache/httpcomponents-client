@@ -29,17 +29,10 @@ package org.apache.hc.client5.http.entity.mime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.apache.hc.client5.http.impl.auth.RFC5987Codec;
-import org.apache.hc.client5.http.utils.CodingException;
-import org.junit.jupiter.api.Assertions;
+import org.apache.hc.core5.net.PercentCodec;
 import org.junit.jupiter.api.Test;
 
 public class HttpRFC7578MultipartTest {
-
-    @Test
-    public void testPercentDecodingWithTooShortMessage() {
-        Assertions.assertThrows(CodingException.class, () -> RFC5987Codec.decode("%"));
-    }
 
     @Test
     public void testPercentDecodingWithValidMessages() throws Exception {
@@ -54,7 +47,7 @@ public class HttpRFC7578MultipartTest {
 
         };
         for (final String[] test : tests) {
-            assertEquals(test[1], RFC5987Codec.decode(test[0]));
+            assertEquals(test[1], PercentCodec.RFC5987.decode(test[0]));
         }
     }
 

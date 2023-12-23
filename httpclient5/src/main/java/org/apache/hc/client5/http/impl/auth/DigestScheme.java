@@ -65,6 +65,7 @@ import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.http.message.BasicHeaderValueFormatter;
 import org.apache.hc.core5.http.message.BasicNameValuePair;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.net.PercentCodec;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.CharArrayBuffer;
 import org.slf4j.Logger;
@@ -350,7 +351,7 @@ public class DigestScheme implements AuthScheme, Serializable {
         String encodedUsername = null;
         // Check if 'username' has invalid characters and use 'username*'
         if (username != null && containsInvalidABNFChars(username)) {
-            encodedUsername = "UTF-8''" + RFC5987Codec.encode(username, StandardCharsets.UTF_8);
+            encodedUsername = "UTF-8''" + PercentCodec.RFC5987.encode(username);
         }
 
         final String usernameForDigest;

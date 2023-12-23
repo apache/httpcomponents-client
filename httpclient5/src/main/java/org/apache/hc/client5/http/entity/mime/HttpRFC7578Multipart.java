@@ -33,8 +33,8 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-import org.apache.hc.client5.http.impl.auth.RFC5987Codec;
 import org.apache.hc.core5.http.NameValuePair;
+import org.apache.hc.core5.net.PercentCodec;
 
 class HttpRFC7578Multipart extends AbstractMultipartFormat {
 
@@ -97,7 +97,7 @@ class HttpRFC7578Multipart extends AbstractMultipartFormat {
                         if (name.equalsIgnoreCase(MimeConsts.FIELD_PARAM_FILENAME) ||
                                 name.equalsIgnoreCase(MimeConsts.FIELD_PARAM_FILENAME_START)) {
                             final String encodedValue = name.equalsIgnoreCase(MimeConsts.FIELD_PARAM_FILENAME_START) ?
-                                    "UTF-8''" + RFC5987Codec.encode(value) : RFC5987Codec.encode(value);
+                                    "UTF-8''" + PercentCodec.RFC5987.encode(value) : PercentCodec.RFC5987.encode(value);
                             final byte[] encodedBytes = encodedValue.getBytes(StandardCharsets.US_ASCII);
                             out.write(encodedBytes);
                         } else {
