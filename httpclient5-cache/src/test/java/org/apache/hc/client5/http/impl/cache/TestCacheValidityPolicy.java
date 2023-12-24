@@ -152,9 +152,24 @@ public class TestCacheValidityPolicy {
     public void testFreshnessLifetimeIsSMaxAgeIfPresent() {
         final ResponseCacheControl cacheControl = ResponseCacheControl.builder()
                 .setSharedMaxAge(10)
+                .setMaxAge(5)
                 .build();
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
         assertEquals(TimeValue.ofSeconds(10), impl.getFreshnessLifetime(cacheControl, entry));
+    }
+
+    @Test
+    public void testSMaxAgeIsIgnoredWhenNotShared() {
+        final CacheConfig cacheConfig = CacheConfig.custom()
+                .setSharedCache(false)
+                .build();
+        impl = new CacheValidityPolicy(cacheConfig);
+        final ResponseCacheControl cacheControl = ResponseCacheControl.builder()
+                .setSharedMaxAge(10)
+                .setMaxAge(5)
+                .build();
+        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
+        assertEquals(TimeValue.ofSeconds(5), impl.getFreshnessLifetime(cacheControl, entry));
     }
 
     @Test

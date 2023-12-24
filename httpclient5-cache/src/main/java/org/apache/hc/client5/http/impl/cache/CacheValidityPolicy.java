@@ -42,6 +42,7 @@ class CacheValidityPolicy {
 
     private static final Logger LOG = LoggerFactory.getLogger(CacheValidityPolicy.class);
 
+    private final boolean shared;
     private final boolean useHeuristicCaching;
     private final float heuristicCoefficient;
     private final TimeValue heuristicDefaultLifetime;
@@ -55,6 +56,7 @@ class CacheValidityPolicy {
      */
     CacheValidityPolicy(final CacheConfig config) {
         super();
+        this.shared = config != null ? config.isSharedCache() : CacheConfig.DEFAULT.isSharedCache();
         this.useHeuristicCaching = config != null ? config.isHeuristicCachingEnabled() : CacheConfig.DEFAULT.isHeuristicCachingEnabled();
         this.heuristicCoefficient = config != null ? config.getHeuristicCoefficient() : CacheConfig.DEFAULT.getHeuristicCoefficient();
         this.heuristicDefaultLifetime = config != null ? config.getHeuristicDefaultLifetime() : CacheConfig.DEFAULT.getHeuristicDefaultLifetime();
@@ -87,12 +89,14 @@ class CacheValidityPolicy {
      */
     public TimeValue getFreshnessLifetime(final ResponseCacheControl responseCacheControl, final HttpCacheEntry entry) {
         // If the cache is shared and the s-maxage response directive is present, use its value
-        final long sharedMaxAge = responseCacheControl.getSharedMaxAge();
-        if (sharedMaxAge > -1) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Using s-maxage directive for freshness lifetime calculation: {} seconds", sharedMaxAge);
+        if (shared) {
+            final long sharedMaxAge = responseCacheControl.getSharedMaxAge();
+            if (sharedMaxAge > -1) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Using s-maxage directive for freshness lifetime calculation: {} seconds", sharedMaxAge);
+                }
+                return TimeValue.ofSeconds(sharedMaxAge);
             }
-            return TimeValue.ofSeconds(sharedMaxAge);
         }
 
         // If the max-age response directive is present, use its value
