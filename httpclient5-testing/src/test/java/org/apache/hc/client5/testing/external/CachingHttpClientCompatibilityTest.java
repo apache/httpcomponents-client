@@ -26,11 +26,7 @@
  */
 package org.apache.hc.client5.testing.external;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.net.ssl.SSLContext;
 
@@ -46,7 +42,7 @@ import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
 import org.apache.hc.core5.http.ClassicHttpResponse;
-import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpStatus;
@@ -85,6 +81,7 @@ public class CachingHttpClientCompatibilityTest {
         this.client = CachingHttpClients.custom()
                 .setCacheConfig(CacheConfig.custom()
                         .setMaxObjectSize(20480)
+                        .setHeuristicCachingEnabled(true)
                         .build())
                 .setResourceFactory(HeapResourceFactory.INSTANCE)
                 .setConnectionManager(this.connManager)
@@ -112,7 +109,7 @@ public class CachingHttpClientCompatibilityTest {
         System.out.println(buf);
     }
 
-    void execute() {
+    void execute() throws InterruptedException {
 
         // Initial ping
         {
@@ -130,73 +127,56 @@ public class CachingHttpClientCompatibilityTest {
                 logResult(TestResult.NOK, options, "(" + ex.getMessage() + ")");
             }
         }
-        // GET with links
+        // GET from cache
         {
             connManager.closeIdle(TimeValue.NEG_ONE_MILLISECOND);
-            final HttpCacheContext context = HttpCacheContext.create();
-            final Pattern linkPattern = Pattern.compile("^<(.*)>;rel=preload$");
-            final List<String> links = new ArrayList<>();
-            final HttpGet getRoot1 = new HttpGet("/");
-            try (ClassicHttpResponse response = client.executeOpen(target, getRoot1, context)) {
-                final int code = response.getCode();
-                final CacheResponseStatus cacheResponseStatus = context.getCacheResponseStatus();
-                EntityUtils.consume(response.getEntity());
-                if (code == HttpStatus.SC_OK && cacheResponseStatus == CacheResponseStatus.CACHE_MISS) {
-                    logResult(TestResult.OK, getRoot1, "200, " + cacheResponseStatus);
-                } else {
-                    logResult(TestResult.NOK, getRoot1, "(status " + code + ", " + cacheResponseStatus + ")");
-                }
-                for (final Header header: response.getHeaders("Link")) {
-                    final Matcher matcher = linkPattern.matcher(header.getValue());
-                    if (matcher.matches()) {
-                        links.add(matcher.group(1));
-                    }
-                }
-            } catch (final Exception ex) {
-                logResult(TestResult.NOK, getRoot1, "(" + ex.getMessage() + ")");
-            }
 
+            final String[] links = {"/", "/css/hc-maven.css", "/images/logos/httpcomponents.png"};
+
+            final HttpCacheContext context = HttpCacheContext.create();
             for (final String link: links) {
-                final HttpGet getLink = new HttpGet(link);
-                try (ClassicHttpResponse response = client.executeOpen(target, getLink, context)) {
+                final HttpGet httpGet1 = new HttpGet(link);
+                try (ClassicHttpResponse response = client.executeOpen(target, httpGet1, context)) {
                     final int code = response.getCode();
                     final CacheResponseStatus cacheResponseStatus = context.getCacheResponseStatus();
                     EntityUtils.consume(response.getEntity());
                     if (code == HttpStatus.SC_OK && cacheResponseStatus == CacheResponseStatus.CACHE_MISS) {
-                        logResult(TestResult.OK, getRoot1, "200, " + cacheResponseStatus);
+                        logResult(TestResult.OK, httpGet1, "200, " + cacheResponseStatus);
                     } else {
-                        logResult(TestResult.NOK, getRoot1, "(status " + code + ", " + cacheResponseStatus + ")");
+                        logResult(TestResult.NOK, httpGet1, "(status " + code + ", " + cacheResponseStatus + ")");
                     }
                 } catch (final Exception ex) {
-                    logResult(TestResult.NOK, getLink, "(" + ex.getMessage() + ")");
+                    logResult(TestResult.NOK, httpGet1, "(" + ex.getMessage() + ")");
                 }
-            }
-            final HttpGet getRoot2 = new HttpGet("/");
-            try (ClassicHttpResponse response = client.executeOpen(target, getRoot2, context)) {
-                final int code = response.getCode();
-                final CacheResponseStatus cacheResponseStatus = context.getCacheResponseStatus();
-                EntityUtils.consume(response.getEntity());
-                if (code == HttpStatus.SC_OK && cacheResponseStatus == CacheResponseStatus.VALIDATED) {
-                    logResult(TestResult.OK, getRoot2, "200, " + cacheResponseStatus);
-                } else {
-                    logResult(TestResult.NOK, getRoot2, "(status " + code + ", " + cacheResponseStatus + ")");
+                final HttpGet httpGet2 = new HttpGet(link);
+                try (ClassicHttpResponse response = client.executeOpen(target, httpGet2, context)) {
+                    final int code = response.getCode();
+                    final CacheResponseStatus cacheResponseStatus = context.getCacheResponseStatus();
+                    EntityUtils.consume(response.getEntity());
+                    if (code == HttpStatus.SC_OK && cacheResponseStatus == CacheResponseStatus.CACHE_HIT) {
+                        logResult(TestResult.OK, httpGet2, "200, " + cacheResponseStatus);
+                    } else {
+                        logResult(TestResult.NOK, httpGet2, "(status " + code + ", " + cacheResponseStatus + ")");
+                    }
+                } catch (final Exception ex) {
+                    logResult(TestResult.NOK, httpGet2, "(" + ex.getMessage() + ")");
                 }
-            } catch (final Exception ex) {
-                logResult(TestResult.NOK, getRoot2, "(" + ex.getMessage() + ")");
-            }
-            for (final String link: links) {
-                final HttpGet getLink = new HttpGet(link);
-                try (ClassicHttpResponse response = client.executeOpen(target, getLink, context)) {
+
+                Thread.sleep(2000);
+
+                final HttpGet httpGet3 = new HttpGet(link);
+                httpGet3.setHeader(HttpHeaders.CACHE_CONTROL, "max-age=0");
+                try (ClassicHttpResponse response = client.executeOpen(target, httpGet3, context)) {
                     final int code = response.getCode();
                     final CacheResponseStatus cacheResponseStatus = context.getCacheResponseStatus();
                     EntityUtils.consume(response.getEntity());
                     if (code == HttpStatus.SC_OK && cacheResponseStatus == CacheResponseStatus.VALIDATED) {
-                        logResult(TestResult.OK, getRoot2, "200, " + cacheResponseStatus);
+                        logResult(TestResult.OK, httpGet3, "200, " + cacheResponseStatus);
                     } else {
-                        logResult(TestResult.NOK, getRoot2, "(status " + code + ", " + cacheResponseStatus + ")");
+                        logResult(TestResult.NOK, httpGet3, "(status " + code + ", " + cacheResponseStatus + ")");
                     }
                 } catch (final Exception ex) {
-                    logResult(TestResult.NOK, getLink, "(" + ex.getMessage() + ")");
+                    logResult(TestResult.NOK, httpGet3, "(" + ex.getMessage() + ")");
                 }
             }
         }
