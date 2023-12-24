@@ -39,7 +39,6 @@ import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
-import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.Method;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.util.TimeValue;
@@ -66,7 +65,6 @@ class CachedHttpResponseGenerator {
     SimpleHttpResponse generateResponse(final HttpRequest request, final HttpCacheEntry entry) throws ResourceIOException {
         final Instant now = Instant.now();
         final SimpleHttpResponse response = new SimpleHttpResponse(entry.getStatus());
-        response.setVersion(HttpVersion.DEFAULT);
 
         response.setHeaders(entry.getHeaders());
 
