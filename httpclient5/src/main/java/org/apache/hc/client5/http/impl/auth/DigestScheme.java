@@ -373,13 +373,13 @@ public class DigestScheme implements AuthScheme, Serializable {
             //      ":" unq(cnonce-value)
 
             // calculated one per session
-            buffer.append(username).append(":").append(credentials.getUserPassword());
+            buffer.append(username).append(":").append(realm).append(":").append(credentials.getUserPassword());
             final String checksum = formatHex(digester.digest(this.buffer.toByteArray()));
             buffer.reset();
             buffer.append(checksum).append(":").append(nonce).append(":").append(cnonce);
         } else {
             // unq(username-value) ":" unq(realm-value) ":" passwd
-            buffer.append(username).append(":").append(credentials.getUserPassword());
+            buffer.append(username).append(":").append(realm).append(":").append(credentials.getUserPassword());
         }
         a1 = buffer.toByteArray();
 
