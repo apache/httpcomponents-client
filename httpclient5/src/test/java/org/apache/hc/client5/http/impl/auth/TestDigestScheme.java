@@ -114,7 +114,7 @@ public class TestDigestScheme {
         Assertions.assertEquals("realm1", table.get("realm"));
         Assertions.assertEquals("/", table.get("uri"));
         Assertions.assertEquals("f2a3f18799759d4f1a1c068b92b573cb", table.get("nonce"));
-        Assertions.assertEquals("da46708e64b8380f1c5afa63e8ccd586", table.get("response"));
+        Assertions.assertEquals("e95a7ddf37c2eab009568b1ed134f89a", table.get("response"));
     }
 
     @Test
@@ -138,7 +138,7 @@ public class TestDigestScheme {
         Assertions.assertEquals("realm1", table.get("realm"));
         Assertions.assertEquals("/", table.get("uri"));
         Assertions.assertEquals("f2a3f18799759d4f1a1c068b92b573cb", table.get("nonce"));
-        Assertions.assertEquals("da46708e64b8380f1c5afa63e8ccd586", table.get("response"));
+        Assertions.assertEquals("e95a7ddf37c2eab009568b1ed134f89a", table.get("response"));
     }
 
     @Test
@@ -184,7 +184,7 @@ public class TestDigestScheme {
         Assertions.assertEquals("realm1", table.get("realm"));
         Assertions.assertEquals("/", table.get("uri"));
         Assertions.assertEquals("f2a3f18799759d4f1a1c068b92b573cb", table.get("nonce"));
-        Assertions.assertEquals("aa400f3841ebbf39469d9be939a37b86258bd289", table.get("response"));
+        Assertions.assertEquals("8769e82e4e28ecc040b969562b9050580c6d186d", table.get("response"));
     }
 
     @Test
@@ -208,7 +208,7 @@ public class TestDigestScheme {
         Assertions.assertEquals("realm1", table.get("realm"));
         Assertions.assertEquals("/?param=value", table.get("uri"));
         Assertions.assertEquals("f2a3f18799759d4f1a1c068b92b573cb", table.get("nonce"));
-        Assertions.assertEquals("c15c577938f7f1228cdb6e8ca51b9140", table.get("response"));
+        Assertions.assertEquals("a847f58f5fef0bc087bcb9c3eb30e042", table.get("response"));
     }
 
     @Test
@@ -775,7 +775,7 @@ public class TestDigestScheme {
         Assertions.assertEquals("realm1", table.get("realm"));
         Assertions.assertEquals("/", table.get("uri"));
         Assertions.assertEquals("f2a3f18799759d4f1a1c068b92b573cb", table.get("nonce"));
-        Assertions.assertEquals("75f7ede943dc401264d236546e49c1df", table.get("response"));
+        Assertions.assertEquals("3b6561ceb73e5ffe9314a695179f23f9", table.get("response"));
     }
 
     private static String bytesToHex(final byte[] bytes) {
