@@ -55,6 +55,7 @@ import org.apache.hc.core5.util.Args;
  *
  * <p>
  * Key points:
+ * </p>
  * <ul>
  *     <li>A client MUST NOT generate an If-Range header field in a request that does not contain a Range header field.</li>
  *     <li>An origin server MUST ignore an If-Range header field received in a request for a target resource that does not support Range requests.</li>
@@ -62,7 +63,6 @@ import org.apache.hc.core5.util.Args;
  *     <li>A client MUST NOT generate an If-Range header field containing an HTTP-date unless the client has no entity tag for the corresponding representation and the date is a strong validator.</li>
  *     <li>A server that receives an If-Range header field on a Range request MUST evaluate the condition before performing the method.</li>
  * </ul>
- * </p>
  *
  * @since 5.4
  */
