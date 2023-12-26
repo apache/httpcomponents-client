@@ -1,7 +1,7 @@
 ﻿Release 5.4 ALPHA1
 -------------------
 
-This is the first ALPHA release in the 5.3 release series that improves HTTP protocol support
+This is the first ALPHA release in the 5.4 release series that improves HTTP protocol support
 by ensuring conformance to the latest HTTP specification (RFC 9110, RFC 9111, RFC 7616,
 RFC 7617), ensures compatibility with Java Virtual Threads by replacing 'synchronized' keywords
 in critical sections with Java lock primitives. The HTTP caching protocol layer has also been
@@ -13,7 +13,7 @@ with object serialization) created with any earlier version MUST be flushed and 
 or the cache backend MUST be configured to use the old deprecated cache entry serializer.
 
 
-Notable changes and features included in the 5.3 series:
+Notable changes and features included in the 5.4 series:
 
 * Improved conformance to RFC 9110 (HTTP Semantics), RFC 7616 (HTTP Digest Access
   Authentication), RFC 2617 (’Basic’ HTTP Authentication Scheme).
