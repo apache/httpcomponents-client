@@ -31,6 +31,7 @@ import java.time.Instant;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
+import org.apache.hc.client5.http.cache.ResponseCacheControl;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.message.MessageSupport;

@@ -30,6 +30,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Iterator;
 
+import org.apache.hc.client5.http.cache.ResponseCacheControl;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpRequest;

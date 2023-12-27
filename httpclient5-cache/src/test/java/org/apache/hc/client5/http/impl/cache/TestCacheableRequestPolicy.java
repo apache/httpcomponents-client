@@ -26,6 +26,7 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
+import org.apache.hc.client5.http.cache.RequestCacheControl;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;

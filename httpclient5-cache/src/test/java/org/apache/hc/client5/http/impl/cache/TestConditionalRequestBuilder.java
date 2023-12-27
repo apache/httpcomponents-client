@@ -31,6 +31,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
+import org.apache.hc.client5.http.cache.RequestCacheControl;
+import org.apache.hc.client5.http.cache.ResponseCacheControl;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHeaders;

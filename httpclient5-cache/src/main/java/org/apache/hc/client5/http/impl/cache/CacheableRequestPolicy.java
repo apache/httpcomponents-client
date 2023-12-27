@@ -26,6 +26,7 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
+import org.apache.hc.client5.http.cache.RequestCacheControl;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.Method;
