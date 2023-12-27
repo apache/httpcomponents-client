@@ -25,10 +25,9 @@
  *
  */
 
-package org.apache.hc.client5.http.impl.cache;
+package org.apache.hc.client5.http.cache;
 
 import org.apache.hc.core5.annotation.Contract;
-import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 
 /**
@@ -37,9 +36,8 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
  *
  * @since 5.4
  */
-@Internal
 @Contract(threading = ThreadingBehavior.IMMUTABLE)
-interface CacheControl {
+public interface CacheControl {
 
     /**
      * Returns the max-age value from the Cache-Control header.

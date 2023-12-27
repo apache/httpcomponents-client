@@ -29,6 +29,8 @@ package org.apache.hc.client5.http.impl.cache;
 import java.time.Instant;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
+import org.apache.hc.client5.http.cache.RequestCacheControl;
+import org.apache.hc.client5.http.cache.ResponseCacheControl;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHost;

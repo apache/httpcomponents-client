@@ -25,7 +25,7 @@
  *
  */
 
-package org.apache.hc.client5.http.impl.cache;
+package org.apache.hc.client5.http.cache;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -33,11 +33,10 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.hc.core5.annotation.Contract;
-import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 
 /**
- * Represents the values of the Cache-Control header in an HTTP response, which indicate whether and for how long
+ * Represents the value of the Cache-Control header in an HTTP response, which indicate whether and for how long
  * the response can be cached by the client and intermediary proxies.
  * <p>
  * The class provides methods to retrieve the maximum age of the response and the maximum age that applies to shared
@@ -50,9 +49,8 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
  *
  * @since 5.4
  */
-@Internal
 @Contract(threading = ThreadingBehavior.IMMUTABLE)
-final class ResponseCacheControl implements CacheControl {
+public final class ResponseCacheControl implements CacheControl {
 
     /**
      * The max-age directive value.
@@ -339,11 +337,11 @@ final class ResponseCacheControl implements CacheControl {
             return buf.toString();
     }
 
-    static Builder builder() {
+    public static Builder builder() {
         return new Builder();
     }
 
-    static class Builder {
+    public static class Builder {
 
         private long maxAge = -1;
         private long sharedMaxAge = -1;
@@ -474,15 +472,6 @@ final class ResponseCacheControl implements CacheControl {
 
         public Builder setMustUnderstand(final boolean mustUnderstand) {
             this.mustUnderstand = mustUnderstand;
-            return this;
-        }
-
-        public boolean isNoTransform() {
-            return noStore;
-        }
-
-        public Builder setNoTransform(final boolean noTransform) {
-            this.noTransform = noTransform;
             return this;
         }
 

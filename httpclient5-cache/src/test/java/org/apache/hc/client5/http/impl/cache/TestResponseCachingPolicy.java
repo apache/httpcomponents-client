@@ -35,6 +35,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Random;
 
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
+import org.apache.hc.client5.http.cache.ResponseCacheControl;
 import org.apache.hc.client5.http.classic.methods.HttpOptions;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.HttpHeaders;

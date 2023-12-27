@@ -34,6 +34,8 @@ import java.util.function.BiConsumer;
 
 import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
+import org.apache.hc.client5.http.cache.RequestCacheControl;
+import org.apache.hc.client5.http.cache.ResponseCacheControl;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
@@ -160,7 +162,7 @@ class CacheControlHeaderParser {
      */
     public final ResponseCacheControl parseResponse(final Iterator<Header> headerIterator) {
         Args.notNull(headerIterator, "headerIterator");
-        final ResponseCacheControl.Builder builder = new ResponseCacheControl.Builder();
+        final ResponseCacheControl.Builder builder = ResponseCacheControl.builder();
         parse(headerIterator, (name, value) -> {
             if (name.equalsIgnoreCase(HeaderConstants.CACHE_CONTROL_S_MAX_AGE)) {
                 builder.setSharedMaxAge(parseSeconds(name, value));
@@ -224,7 +226,7 @@ class CacheControlHeaderParser {
      */
     public final RequestCacheControl parseRequest(final Iterator<Header> headerIterator) {
         Args.notNull(headerIterator, "headerIterator");
-        final RequestCacheControl.Builder builder = new RequestCacheControl.Builder();
+        final RequestCacheControl.Builder builder = RequestCacheControl.builder();
         parse(headerIterator, (name, value) -> {
             if (name.equalsIgnoreCase(HeaderConstants.CACHE_CONTROL_MAX_AGE)) {
                 builder.setMaxAge(parseSeconds(name, value));
