@@ -27,9 +27,6 @@
 
 package org.apache.hc.client5.http;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.apache.hc.client5.http.auth.AuthCache;
 import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
@@ -38,32 +35,20 @@ import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.cookie.CookieSpecFactory;
 import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
-import org.apache.hc.client5.http.impl.auth.BasicScheme;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
-import org.apache.hc.client5.http.routing.RoutingSupport;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.protocol.BasicHttpContext;
-import org.apache.hc.core5.util.Args;
 
 /**
  * {@link HttpClientContext} builder.
  *
  * @since 5.2
  */
-public class ContextBuilder {
+public class ContextBuilder extends AbstractClientContextBuilder<HttpClientContext> {
 
-    private final SchemePortResolver schemePortResolver;
-
-    private Lookup<CookieSpecFactory> cookieSpecRegistry;
-    private Lookup<AuthSchemeFactory> authSchemeRegistry;
-    private CookieStore cookieStore;
-    private CredentialsProvider credentialsProvider;
-    private AuthCache authCache;
-    private Map<HttpHost, AuthScheme> authSchemeMap;
-
-    ContextBuilder(final SchemePortResolver schemePortResolver) {
-        this.schemePortResolver = schemePortResolver != null ? schemePortResolver : DefaultSchemePortResolver.INSTANCE;
+    protected ContextBuilder(final SchemePortResolver schemePortResolver) {
+        super(schemePortResolver);
     }
 
     public static ContextBuilder create(final SchemePortResolver schemePortResolver) {
@@ -74,60 +59,51 @@ public class ContextBuilder {
         return new ContextBuilder(DefaultSchemePortResolver.INSTANCE);
     }
 
+    @Override
     public ContextBuilder useCookieSpecRegistry(final Lookup<CookieSpecFactory> cookieSpecRegistry) {
-        this.cookieSpecRegistry = cookieSpecRegistry;
+        super.useCookieSpecRegistry(cookieSpecRegistry);
         return this;
     }
 
+    @Override
     public ContextBuilder useAuthSchemeRegistry(final Lookup<AuthSchemeFactory> authSchemeRegistry) {
-        this.authSchemeRegistry = authSchemeRegistry;
+        super.useAuthSchemeRegistry(authSchemeRegistry);
         return this;
     }
 
+    @Override
     public ContextBuilder useCookieStore(final CookieStore cookieStore) {
-        this.cookieStore = cookieStore;
+        super.useCookieStore(cookieStore);
         return this;
     }
 
+    @Override
     public ContextBuilder useCredentialsProvider(final CredentialsProvider credentialsProvider) {
-        this.credentialsProvider = credentialsProvider;
+        super.useCredentialsProvider(credentialsProvider);
         return this;
     }
 
+    @Override
     public ContextBuilder useAuthCache(final AuthCache authCache) {
-        this.authCache = authCache;
+        super.useAuthCache(authCache);
         return this;
     }
 
+    @Override
     public ContextBuilder preemptiveAuth(final HttpHost host, final AuthScheme authScheme) {
-        Args.notNull(host, "HTTP host");
-        if (authSchemeMap == null) {
-            authSchemeMap = new HashMap<>();
-        }
-        authSchemeMap.put(RoutingSupport.normalize(host, schemePortResolver), authScheme);
+        super.preemptiveAuth(host, authScheme);
         return this;
     }
 
+    @Override
     public ContextBuilder preemptiveBasicAuth(final HttpHost host, final UsernamePasswordCredentials credentials) {
-        Args.notNull(host, "HTTP host");
-        final BasicScheme authScheme = new BasicScheme();
-        authScheme.initPreemptive(credentials);
-        preemptiveAuth(host, authScheme);
+        super.preemptiveBasicAuth(host, credentials);
         return this;
     }
-    public HttpClientContext build() {
-        final HttpClientContext context = new HttpClientContext(new BasicHttpContext());
-        context.setCookieSpecRegistry(cookieSpecRegistry);
-        context.setAuthSchemeRegistry(authSchemeRegistry);
-        context.setCookieStore(cookieStore);
-        context.setCredentialsProvider(credentialsProvider);
-        context.setAuthCache(authCache);
-        if (authSchemeMap != null) {
-            for (final Map.Entry<HttpHost, AuthScheme> entry : authSchemeMap.entrySet()) {
-                context.resetAuthExchange(entry.getKey(), entry.getValue());
-            }
-        }
-        return context;
+
+    @Override
+    protected HttpClientContext createContext() {
+        return new HttpClientContext(new BasicHttpContext());
     }
 
 }
