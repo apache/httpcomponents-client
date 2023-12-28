@@ -341,6 +341,8 @@ public final class ResponseCacheControl implements CacheControl {
         return new Builder();
     }
 
+    public static final ResponseCacheControl DEFAULT = builder().build();
+
     public static class Builder {
 
         private long maxAge = -1;

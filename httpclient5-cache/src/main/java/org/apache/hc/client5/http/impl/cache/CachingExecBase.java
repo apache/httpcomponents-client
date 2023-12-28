@@ -26,7 +26,6 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
-import java.io.IOException;
 import java.time.Instant;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -122,10 +121,6 @@ public class CachingExecBase {
 
     SimpleHttpResponse generateGatewayTimeout() {
         return SimpleHttpResponse.create(HttpStatus.SC_GATEWAY_TIMEOUT, "Gateway Timeout");
-    }
-
-    SimpleHttpResponse unvalidatedCacheHit(final HttpRequest request, final HttpCacheEntry entry) throws IOException {
-        return responseGenerator.generateResponse(request, entry);
     }
 
     Instant getCurrentDate() {

@@ -70,7 +70,7 @@ import org.slf4j.LoggerFactory;
  * </p>
  */
 @Internal
-@Contract(threading = ThreadingBehavior.SAFE)
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 class CacheControlHeaderParser {
 
     /**
