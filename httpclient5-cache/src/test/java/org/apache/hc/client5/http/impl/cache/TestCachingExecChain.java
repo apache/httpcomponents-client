@@ -27,7 +27,6 @@
 package org.apache.hc.client5.http.impl.cache;
 
 
-import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
@@ -50,7 +49,6 @@ import org.apache.hc.client5.http.classic.ExecChain;
 import org.apache.hc.client5.http.classic.ExecRuntime;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpOptions;
-import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
@@ -91,6 +89,7 @@ public class TestCachingExecChain {
     HttpCache cache;
     CachingExec impl;
     CacheConfig customConfig;
+    ExecChain.Scope scope;
 
     @BeforeEach
     public void setUp() {
@@ -101,6 +100,7 @@ public class TestCachingExecChain {
         context = HttpCacheContext.create();
         entry = HttpTestUtils.makeCacheEntry();
         customConfig = CacheConfig.DEFAULT;
+        scope = new ExecChain.Scope("test", route, request, mockExecRuntime, context);
 
         cache = Mockito.spy(new BasicHttpCache());
 
@@ -900,7 +900,7 @@ public class TestCachingExecChain {
         originResponse.setHeader("Date", DateUtils.formatStandardDate(responseGenerated));
         originResponse.setHeader("ETag", "\"etag\"");
 
-        impl.cacheAndReturnResponse("exchange-id", host, request, originResponse, requestSent, responseReceived);
+        impl.cacheAndReturnResponse(host, request, scope, originResponse, requestSent, responseReceived);
 
         Mockito.verify(cache, Mockito.never()).store(
                 Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
@@ -936,7 +936,7 @@ public class TestCachingExecChain {
                 Mockito.eq(requestSent),
                 Mockito.eq(responseReceived))).thenReturn(new CacheHit("key", httpCacheEntry));
 
-        impl.cacheAndReturnResponse("exchange-id", host, request, originResponse, requestSent, responseReceived);
+        impl.cacheAndReturnResponse(host, request, scope, originResponse, requestSent, responseReceived);
 
         Mockito.verify(mockCache).store(
                 Mockito.any(),
@@ -957,53 +957,14 @@ public class TestCachingExecChain {
     }
 
     @Test
-    public void testSetsRequestInContextOnCacheHit() throws Exception {
-        final ClassicHttpResponse response = HttpTestUtils.make200Response();
-        response.setHeader("Cache-Control", "max-age=3600");
-        Mockito.when(mockExecChain.proceed(RequestEquivalent.eq(request), Mockito.any())).thenReturn(response);
-
-        final HttpClientContext ctx = HttpClientContext.create();
-        impl.execute(request, new ExecChain.Scope("test", route, request, mockExecRuntime, context), mockExecChain);
-        impl.execute(request, new ExecChain.Scope("test", route, request, mockExecRuntime, ctx), mockExecChain);
-        if (!HttpTestUtils.equivalent(request, ctx.getRequest())) {
-            assertSame(request, ctx.getRequest());
-        }
-    }
-
-    @Test
-    public void testSetsResponseInContextOnCacheHit() throws Exception {
-        final ClassicHttpResponse response = HttpTestUtils.make200Response();
-        response.setHeader("Cache-Control", "max-age=3600");
-        Mockito.when(mockExecChain.proceed(RequestEquivalent.eq(request), Mockito.any())).thenReturn(response);
-
-        final HttpClientContext ctx = HttpClientContext.create();
-        impl.execute(request, new ExecChain.Scope("test", route, request, mockExecRuntime, context), mockExecChain);
-        final ClassicHttpResponse result = impl.execute(request, new ExecChain.Scope("test", route, request, mockExecRuntime, ctx), null);
-        if (!HttpTestUtils.equivalent(result, ctx.getResponse())) {
-            assertSame(result, ctx.getResponse());
-        }
-    }
-
-    @Test
-    public void testSetsRequestSentInContextOnCacheHit() throws Exception {
-        final ClassicHttpResponse response = HttpTestUtils.make200Response();
-        response.setHeader("Cache-Control", "max-age=3600");
-        Mockito.when(mockExecChain.proceed(RequestEquivalent.eq(request), Mockito.any())).thenReturn(response);
-
-        final HttpClientContext ctx = HttpClientContext.create();
-        impl.execute(request, new ExecChain.Scope("test", route, request, mockExecRuntime, context), mockExecChain);
-        impl.execute(request, new ExecChain.Scope("test", route, request, mockExecRuntime, ctx), mockExecChain);
-    }
-
-    @Test
     public void testCanCacheAResponseWithoutABody() throws Exception {
         final ClassicHttpResponse response = new BasicClassicHttpResponse(HttpStatus.SC_NO_CONTENT, "No Content");
         response.setHeader("Date", DateUtils.formatStandardDate(Instant.now()));
         response.setHeader("Cache-Control", "max-age=300");
         Mockito.when(mockExecChain.proceed(RequestEquivalent.eq(request), Mockito.any())).thenReturn(response);
 
-        impl.execute(request, new ExecChain.Scope("test", route, request, mockExecRuntime, context), mockExecChain);
-        impl.execute(request, new ExecChain.Scope("test", route, request, mockExecRuntime, context), mockExecChain);
+        impl.execute(request, scope, mockExecChain);
+        impl.execute(request, scope, mockExecChain);
 
         Mockito.verify(mockExecChain).proceed(Mockito.any(), Mockito.any());
     }
@@ -1148,16 +1109,16 @@ public class TestCachingExecChain {
         response.setHeader("Cache-Control", "max-age=3600");
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(response);
 
-        impl.execute(request, new ExecChain.Scope("test", route, request, mockExecRuntime, context), mockExecChain);
+        impl.execute(request, scope, mockExecChain);
 
         Mockito.verify(mockExecChain, Mockito.times(1)).proceed(Mockito.any(), Mockito.any());
 
         request.setAuthority(new URIAuthority("bar.example.com"));
-        impl.execute(request, new ExecChain.Scope("test", route, request, mockExecRuntime, context), mockExecChain);
+        impl.execute(request, scope, mockExecChain);
 
         Mockito.verify(mockExecChain, Mockito.times(2)).proceed(Mockito.any(), Mockito.any());
 
-        impl.execute(request, new ExecChain.Scope("test", route, request, mockExecRuntime, context), mockExecChain);
+        impl.execute(request, scope, mockExecChain);
 
         Mockito.verify(mockExecChain, Mockito.times(2)).proceed(Mockito.any(), Mockito.any());
     }
@@ -1255,8 +1216,6 @@ public class TestCachingExecChain {
         backendResponse.setHeader("Cache-Control", "public, max-age=3600");
         backendResponse.setHeader("ETag", "\"etag\"");
 
-        final ExecChain.Scope scope = new ExecChain.Scope("test", route, request, mockExecRuntime, context);
-
         final Header[] headers = new Header[5];
         for (int i = 0; i < headers.length; i++) {
             headers[i] = new BasicHeader("header" + i, "value" + i);
@@ -1274,7 +1233,7 @@ public class TestCachingExecChain {
                 .thenReturn(new CacheHit("key", cacheEntry));
 
         // Call cacheAndReturnResponse with 304 Not Modified response
-        final ClassicHttpResponse cachedResponse = impl.cacheAndReturnResponse("exchange-id", host, request, backendResponse, requestSent, responseReceived);
+        final ClassicHttpResponse cachedResponse = impl.cacheAndReturnResponse(host, request, scope, backendResponse, requestSent, responseReceived);
 
         // Verify cache entry is updated
         Mockito.verify(mockCache).update(

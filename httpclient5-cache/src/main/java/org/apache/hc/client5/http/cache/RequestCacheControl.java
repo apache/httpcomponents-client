@@ -47,15 +47,8 @@ public final class RequestCacheControl implements CacheControl {
     private final boolean onlyIfCached;
     private final long staleIfError;
 
-    /**
-     * Flag for the 'no-transform' Cache-Control directive.
-     * If this field is true, then the 'no-transform' directive is present in the Cache-Control header.
-     * According to RFC 'no-transform' directive indicates that the cache MUST NOT transform the payload.
-     */
-    private final boolean noTransform;
-
     RequestCacheControl(final long maxAge, final long maxStale, final long minFresh, final boolean noCache,
-                               final boolean noStore, final boolean onlyIfCached, final long staleIfError, final boolean noTransform) {
+                               final boolean noStore, final boolean onlyIfCached, final long staleIfError) {
         this.maxAge = maxAge;
         this.maxStale = maxStale;
         this.minFresh = minFresh;
@@ -63,7 +56,6 @@ public final class RequestCacheControl implements CacheControl {
         this.noStore = noStore;
         this.onlyIfCached = onlyIfCached;
         this.staleIfError = staleIfError;
-        this.noTransform = noTransform;
     }
 
     /**
@@ -144,7 +136,7 @@ public final class RequestCacheControl implements CacheControl {
             buf.append("max-stale=").append(maxStale).append(",");
         }
         if (minFresh >= 0) {
-            buf.append("max-fresh=").append(minFresh).append(",");
+            buf.append("min-fresh=").append(minFresh).append(",");
         }
         if (noCache) {
             buf.append("no-cache").append(",");
@@ -158,9 +150,6 @@ public final class RequestCacheControl implements CacheControl {
         if (staleIfError >= 0) {
             buf.append("stale-if-error").append(staleIfError).append(",");
         }
-        if (noTransform) {
-            buf.append("no-transform").append(",");
-        }
         if (buf.charAt(buf.length() - 1) == ',') {
             buf.setLength(buf.length() - 1);
         }
@@ -172,6 +161,8 @@ public final class RequestCacheControl implements CacheControl {
         return new Builder();
     }
 
+    public static final RequestCacheControl DEFAULT = builder().build();
+
     public static class Builder {
 
         private long maxAge = -1;
@@ -181,7 +172,6 @@ public final class RequestCacheControl implements CacheControl {
         private boolean noStore;
         private boolean onlyIfCached;
         private long staleIfError = -1;
-        private boolean noTransform;
 
         Builder() {
         }
@@ -249,18 +239,8 @@ public final class RequestCacheControl implements CacheControl {
             return this;
         }
 
-        public boolean isNoTransform() {
-            return noTransform;
-        }
-
-        public Builder setNoTransform(final boolean noTransform) {
-            this.noTransform = noTransform;
-            return this;
-        }
-
-
         public RequestCacheControl build() {
-            return new RequestCacheControl(maxAge, maxStale, minFresh, noCache, noStore, onlyIfCached, staleIfError, noTransform);
+            return new RequestCacheControl(maxAge, maxStale, minFresh, noCache, noStore, onlyIfCached, staleIfError);
         }
 
     }

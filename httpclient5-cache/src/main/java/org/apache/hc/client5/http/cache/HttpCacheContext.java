@@ -45,6 +45,21 @@ public class HttpCacheContext extends HttpClientContext {
      */
     public static final String CACHE_RESPONSE_STATUS = "http.cache.response.status";
 
+    /**
+     * @since 5.4
+     */
+    public static final String CACHE_ENTRY = "http.cache.entry";
+
+    /**
+     * @since 5.4
+     */
+    public static final String CACHE_REQUEST_CONTROL = "http.cache.request.control";
+
+    /**
+     * @since 5.4
+     */
+    public static final String CACHE_RESPONSE_CONTROL = "http.cache.response.control";
+
     public static HttpCacheContext adapt(final HttpContext context) {
         if (context instanceof HttpCacheContext) {
             return (HttpCacheContext) context;
@@ -67,6 +82,57 @@ public class HttpCacheContext extends HttpClientContext {
 
     public CacheResponseStatus getCacheResponseStatus() {
         return getAttribute(CACHE_RESPONSE_STATUS, CacheResponseStatus.class);
+    }
+
+    /**
+     * @since 5.4
+     */
+    public void setCacheResponseStatus(final CacheResponseStatus status) {
+        setAttribute(CACHE_RESPONSE_STATUS, status);
+    }
+
+    /**
+     * @since 5.4
+     */
+    public RequestCacheControl getRequestCacheControl() {
+        final RequestCacheControl cacheControl = getAttribute(CACHE_REQUEST_CONTROL, RequestCacheControl.class);
+        return cacheControl != null ? cacheControl : RequestCacheControl.DEFAULT;
+    }
+
+    /**
+     * @since 5.4
+     */
+    public void setRequestCacheControl(final RequestCacheControl requestCacheControl) {
+        setAttribute(CACHE_REQUEST_CONTROL, requestCacheControl);
+    }
+
+    /**
+     * @since 5.4
+     */
+    public ResponseCacheControl getResponseCacheControl() {
+        final ResponseCacheControl cacheControl = getAttribute(CACHE_RESPONSE_CONTROL, ResponseCacheControl.class);
+        return cacheControl != null ? cacheControl : ResponseCacheControl.DEFAULT;
+    }
+
+    /**
+     * @since 5.4
+     */
+    public void setResponseCacheControl(final ResponseCacheControl responseCacheControl) {
+        setAttribute(CACHE_RESPONSE_CONTROL, responseCacheControl);
+    }
+
+    /**
+     * @since 5.4
+     */
+    public HttpCacheEntry getCacheEntry() {
+        return getAttribute(CACHE_ENTRY, HttpCacheEntry.class);
+    }
+
+    /**
+     * @since 5.4
+     */
+    public void setCacheEntry(final HttpCacheEntry entry) {
+        setAttribute(CACHE_ENTRY, entry);
     }
 
 }
