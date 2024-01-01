@@ -515,21 +515,20 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
             final ResponseCacheControl responseCacheControl = CacheControlHeaderParser.INSTANCE.parse(backendResponse);
             final boolean cacheable = responseCachingPolicy.isResponseCacheable(responseCacheControl, request, backendResponse);
             if (cacheable) {
-                cachingConsumerRef.set(new CachingAsyncDataConsumer(exchangeId, asyncExecCallback, backendResponse, entityDetails));
                 storeRequestIfModifiedSinceFor304Response(request, backendResponse);
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("{} caching backend response", exchangeId);
+                }
+                final CachingAsyncDataConsumer cachingDataConsumer = new CachingAsyncDataConsumer(
+                        exchangeId, asyncExecCallback, backendResponse, entityDetails);
+                cachingConsumerRef.set(cachingDataConsumer);
+                return cachingDataConsumer;
             } else {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("{} backend response is not cacheable", exchangeId);
                 }
+                return asyncExecCallback.handleResponse(backendResponse, entityDetails);
             }
-            final CachingAsyncDataConsumer cachingDataConsumer = cachingConsumerRef.get();
-            if (cachingDataConsumer != null) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("{} caching backend response", exchangeId);
-                }
-                return cachingDataConsumer;
-            }
-            return asyncExecCallback.handleResponse(backendResponse, entityDetails);
         }
 
         @Override
@@ -576,13 +575,87 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
 
         }
 
+        void triggerCachedResponse(final HttpCacheEntry entry) {
+            try {
+                final SimpleHttpResponse cacheResponse = responseGenerator.generateResponse(request, entry);
+                triggerResponse(cacheResponse, scope, asyncExecCallback);
+            } catch (final ResourceIOException ex) {
+                asyncExecCallback.failed(ex);
+            }
+        }
+
         @Override
         public void completed() {
             final String exchangeId = scope.exchangeId;
             final CachingAsyncDataConsumer cachingDataConsumer = cachingConsumerRef.getAndSet(null);
-            if (cachingDataConsumer != null && !cachingDataConsumer.writtenThrough.get()) {
-                final ByteArrayBuffer buffer = cachingDataConsumer.bufferRef.getAndSet(null);
-                final HttpResponse backendResponse = cachingDataConsumer.backendResponse;
+            if (cachingDataConsumer == null || cachingDataConsumer.writtenThrough.get()) {
+                asyncExecCallback.completed();
+                return;
+            }
+            final HttpResponse backendResponse = cachingDataConsumer.backendResponse;
+            final ByteArrayBuffer buffer = cachingDataConsumer.bufferRef.getAndSet(null);
+
+            // Handle 304 Not Modified responses
+            if (backendResponse.getCode() == HttpStatus.SC_NOT_MODIFIED) {
+                responseCache.match(target, request, new FutureCallback<CacheMatch>() {
+
+                    @Override
+                    public void completed(final CacheMatch result) {
+                        final CacheHit hit = result != null ? result.hit : null;
+                        if (hit != null) {
+                            if (LOG.isDebugEnabled()) {
+                                LOG.debug("{} existing cache entry found, updating cache entry", exchangeId);
+                            }
+                            responseCache.update(
+                                    hit,
+                                    target,
+                                    request,
+                                    backendResponse,
+                                    requestDate,
+                                    responseDate,
+                                    new FutureCallback<CacheHit>() {
+
+                                        @Override
+                                        public void completed(final CacheHit updated) {
+                                            if (LOG.isDebugEnabled()) {
+                                                LOG.debug("{} cache entry updated, generating response from updated entry", exchangeId);
+                                            }
+                                            triggerCachedResponse(updated.entry);
+                                        }
+                                        @Override
+                                        public void failed(final Exception cause) {
+                                            if (LOG.isDebugEnabled()) {
+                                                LOG.debug("{} request failed: {}", exchangeId, cause.getMessage());
+                                            }
+                                            asyncExecCallback.failed(cause);
+                                        }
+
+                                        @Override
+                                        public void cancelled() {
+                                            if (LOG.isDebugEnabled()) {
+                                                LOG.debug("{} cache entry updated aborted", exchangeId);
+                                            }
+                                            asyncExecCallback.failed(new InterruptedIOException());
+                                        }
+
+                                    });
+                        } else {
+                            triggerNewCacheEntryResponse(backendResponse, responseDate, buffer);
+                        }
+                    }
+
+                    @Override
+                    public void failed(final Exception cause) {
+                        asyncExecCallback.failed(cause);
+                    }
+
+                    @Override
+                    public void cancelled() {
+                        asyncExecCallback.failed(new InterruptedIOException());
+                    }
+
+                });
+            } else {
                 if (cacheConfig.isFreshnessCheckEnabled()) {
                     final CancellableDependency operation = scope.cancellableDependency;
                     operation.setDependency(responseCache.match(target, request, new FutureCallback<CacheMatch>() {
@@ -594,12 +667,7 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                                 if (LOG.isDebugEnabled()) {
                                     LOG.debug("{} backend already contains fresher cache entry", exchangeId);
                                 }
-                                try {
-                                    final SimpleHttpResponse cacheResponse = responseGenerator.generateResponse(request, hit.entry);
-                                    triggerResponse(cacheResponse, scope, asyncExecCallback);
-                                } catch (final ResourceIOException ex) {
-                                    asyncExecCallback.failed(ex);
-                                }
+                                triggerCachedResponse(hit.entry);
                             } else {
                                 triggerNewCacheEntryResponse(backendResponse, responseDate, buffer);
                             }
@@ -619,8 +687,6 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                 } else {
                     triggerNewCacheEntryResponse(backendResponse, responseDate, buffer);
                 }
-            } else {
-                asyncExecCallback.completed();
             }
         }
 
@@ -1183,69 +1249,6 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                     final EntityDetails entityDetails) throws HttpException, IOException {
                 final Instant responseDate = getCurrentDate();
                 final AsyncExecCallback callback;
-                // Handle 304 Not Modified responses
-                if (backendResponse.getCode() == HttpStatus.SC_NOT_MODIFIED) {
-                    responseCache.match(target, request, new FutureCallback<CacheMatch>() {
-                        @Override
-                        public void completed(final CacheMatch result) {
-                            final CacheHit hit = result != null ? result.hit : null;
-                            if (hit != null) {
-                                if (LOG.isDebugEnabled()) {
-                                    LOG.debug("{} existing cache entry found, updating cache entry", exchangeId);
-                                }
-                                responseCache.update(
-                                        hit,
-                                        target,
-                                        request,
-                                        backendResponse,
-                                        requestDate,
-                                        responseDate,
-                                        new FutureCallback<CacheHit>() {
-
-                                            @Override
-                                            public void completed(final CacheHit updated) {
-                                                try {
-                                                    if (LOG.isDebugEnabled()) {
-                                                        LOG.debug("{} cache entry updated, generating response from updated entry", exchangeId);
-                                                    }
-                                                    final SimpleHttpResponse cacheResponse = responseGenerator.generateResponse(request, updated.entry);
-                                                    triggerResponse(cacheResponse, scope, asyncExecCallback);
-                                                } catch (final ResourceIOException ex) {
-                                                    asyncExecCallback.failed(ex);
-                                                }
-                                            }
-                                            @Override
-                                            public void failed(final Exception cause) {
-                                                if (LOG.isDebugEnabled()) {
-                                                    LOG.debug("{} request failed: {}", exchangeId, cause.getMessage());
-                                                }
-                                                asyncExecCallback.failed(cause);
-                                            }
-
-                                            @Override
-                                            public void cancelled() {
-                                                if (LOG.isDebugEnabled()) {
-                                                    LOG.debug("{} cache entry updated aborted", exchangeId);
-                                                }
-                                                asyncExecCallback.failed(new InterruptedIOException());
-                                            }
-
-                                        });
-                            }
-                        }
-
-                        @Override
-                        public void failed(final Exception cause) {
-                            asyncExecCallback.failed(cause);
-                        }
-
-                        @Override
-                        public void cancelled() {
-                            asyncExecCallback.failed(new InterruptedIOException());
-                        }
-                    });
-                }
-
                 if (backendResponse.getCode() != HttpStatus.SC_NOT_MODIFIED) {
                     callback = new BackendResponseHandler(target, request, requestDate, responseDate, scope, asyncExecCallback);
                 } else {

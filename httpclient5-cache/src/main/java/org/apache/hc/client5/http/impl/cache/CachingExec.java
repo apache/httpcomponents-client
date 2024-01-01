@@ -454,12 +454,16 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
         final boolean cacheable = responseCachingPolicy.isResponseCacheable(responseCacheControl, request, backendResponse);
         if (cacheable) {
             storeRequestIfModifiedSinceFor304Response(request, backendResponse);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{} caching backend response", exchangeId);
+            }
             return cacheAndReturnResponse(exchangeId, target, request, backendResponse, requestDate, responseDate);
+        } else {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("{} backend response is not cacheable", exchangeId);
+            }
+            return backendResponse;
         }
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("{} backend response is not cacheable", exchangeId);
-        }
-        return backendResponse;
     }
 
     ClassicHttpResponse cacheAndReturnResponse(
@@ -469,12 +473,9 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
             final ClassicHttpResponse backendResponse,
             final Instant requestSent,
             final Instant responseReceived) throws IOException {
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("{} caching backend response", exchangeId);
-        }
-
+        final int statusCode = backendResponse.getCode();
         // handle 304 Not Modified responses
-        if (backendResponse.getCode() == HttpStatus.SC_NOT_MODIFIED) {
+        if (statusCode == HttpStatus.SC_NOT_MODIFIED) {
             final CacheMatch result = responseCache.match(target ,request);
             final CacheHit hit = result != null ? result.hit : null;
             if (hit != null) {
@@ -514,7 +515,7 @@ class CachingExec extends CachingExecBase implements ExecChainHandler {
         backendResponse.close();
 
         CacheHit hit;
-        if (cacheConfig.isFreshnessCheckEnabled()) {
+        if (cacheConfig.isFreshnessCheckEnabled() && statusCode != HttpStatus.SC_NOT_MODIFIED) {
             final CacheMatch result = responseCache.match(target ,request);
             hit = result != null ? result.hit : null;
             if (HttpCacheEntry.isNewer(hit != null ? hit.entry : null, backendResponse)) {
