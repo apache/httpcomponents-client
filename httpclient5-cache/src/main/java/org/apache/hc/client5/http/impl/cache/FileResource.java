@@ -109,4 +109,12 @@ public class FileResource extends Resource {
         }
     }
 
+    @Override
+    public String toString() {
+        return "[" +
+                "file=" + getFile() + "," +
+                "len=" + length() +
+                ']';
+    }
+
 }

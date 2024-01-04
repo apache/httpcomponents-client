@@ -74,4 +74,12 @@ public class HeapResource extends Resource {
         this.arrayRef.set(null);
     }
 
+    @Override
+    public String toString() {
+        return "[" +
+                "heap," +
+                "len=" + length() +
+                ']';
+    }
+
 }
