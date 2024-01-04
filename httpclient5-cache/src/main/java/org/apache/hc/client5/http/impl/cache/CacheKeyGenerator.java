@@ -199,7 +199,7 @@ public class CacheKeyGenerator implements Resolver<URI, String> {
     /**
      * Returns all variant names contained in {@literal VARY} headers of the given message.
      *
-     * @since 5.3
+     * @since 5.4
      */
     public static List<String> variantNames(final MessageHeaders message) {
         if (message == null) {
@@ -269,7 +269,7 @@ public class CacheKeyGenerator implements Resolver<URI, String> {
      * @param variantNames variant names
      * @return variant key
      *
-     * @since 5.3
+     * @since 5.4
      */
     public String generateVariantKey(final HttpRequest request, final Collection<String> variantNames) {
         Args.notNull(variantNames, "Variant names");

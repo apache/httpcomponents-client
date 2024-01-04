@@ -198,7 +198,7 @@ public class CacheConfig implements Cloneable {
      *
      * @return {@code true} if HTTP/1.1 responses with query strings should never be cached;
      * {@code false} otherwise.
-     * @since 5.3
+     * @since 5.4
      */
     public boolean isNeverCacheHTTP11ResponsesWithQuery() {
         return neverCacheHTTP11ResponsesWithQuery;

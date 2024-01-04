@@ -28,7 +28,7 @@
 package org.apache.hc.client5.http.impl.cache;
 
 /**
- * @since 5.3
+ * @since 5.4
  */
 enum CacheSuitability {
 

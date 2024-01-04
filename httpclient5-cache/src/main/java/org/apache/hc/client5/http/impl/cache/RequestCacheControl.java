@@ -35,7 +35,7 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
  * Represents the values of the Cache-Control header in an HTTP request, which indicate whether and for how long
  * the client is willing to cache the response.
  *
- * @since 5.3
+ * @since 5.4
  */
 @Internal
 @Contract(threading = ThreadingBehavior.IMMUTABLE)

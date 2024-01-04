@@ -39,7 +39,7 @@ import org.apache.hc.core5.util.TimeValue;
 /**
  * HTTP cache support utilities.
  *
- * @since 5.3
+ * @since 5.4
  */
 @Internal
 public final class CacheSupport {

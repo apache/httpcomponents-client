@@ -78,7 +78,7 @@ class CachedResponseSuitabilityChecker {
      * Determine if I can utilize the given {@link HttpCacheEntry} to respond to the given
      * {@link HttpRequest}.
      *
-     * @since 5.3
+     * @since 5.4
      */
     public CacheSuitability assessSuitability(final RequestCacheControl requestCacheControl,
                                               final ResponseCacheControl responseCacheControl,

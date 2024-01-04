@@ -48,7 +48,7 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
  * constructor to create an instance with both values set to -1, indicating that the header was not present in the
  * response.
  *
- * @since 5.3
+ * @since 5.4
  */
 @Internal
 @Contract(threading = ThreadingBehavior.IMMUTABLE)

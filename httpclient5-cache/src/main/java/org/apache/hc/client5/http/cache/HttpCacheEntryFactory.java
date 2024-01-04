@@ -53,7 +53,7 @@ import org.apache.hc.core5.util.Args;
 /**
  * {@link HttpCacheEntry} factory.
  *
- * @since 5.3
+ * @since 5.4
  */
 @Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class HttpCacheEntryFactory {

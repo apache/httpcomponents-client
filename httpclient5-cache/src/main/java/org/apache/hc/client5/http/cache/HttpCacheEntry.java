@@ -343,7 +343,7 @@ public class HttpCacheEntry implements MessageHeaders, Serializable {
     }
 
     /**
-     * @since 5.3
+     * @since 5.4
      */
     public MessageHeaders responseHeaders() {
         return responseHeaders;
@@ -415,7 +415,7 @@ public class HttpCacheEntry implements MessageHeaders, Serializable {
     /**
      * Returns all known variants.
      *
-     * @since 5.3
+     * @since 5.4
      */
     public Set<String> getVariants() {
         return variants != null ? variants : Collections.emptySet();
@@ -441,28 +441,28 @@ public class HttpCacheEntry implements MessageHeaders, Serializable {
     }
 
     /**
-     * @since 5.3
+     * @since 5.4
      */
     public String getRequestURI() {
         return requestURI;
     }
 
     /**
-     * @since 5.3
+     * @since 5.4
      */
     public MessageHeaders requestHeaders() {
         return requestHeaders;
     }
 
     /**
-     * @since 5.3
+     * @since 5.4
      */
     public Iterator<Header> requestHeaderIterator() {
         return requestHeaders.headerIterator();
     }
 
     /**
-     * @since 5.3
+     * @since 5.4
      */
     public Iterator<Header> requestHeaderIterator(final String headerName) {
         return requestHeaders.headerIterator(headerName);
@@ -473,7 +473,7 @@ public class HttpCacheEntry implements MessageHeaders, Serializable {
      * by comparing values of their {@literal DATE} header. In case the given entry, or the message,
      * or their {@literal DATE} headers are null, this method returns {@code false}.
      *
-     * @since 5.3
+     * @since 5.4
      */
     public static boolean isNewer(final HttpCacheEntry entry, final MessageHeaders message) {
         if (entry == null || message == null) {

@@ -71,7 +71,7 @@ class ResponseCachingPolicy {
      *                                              {@code false} to cache if explicit cache headers are found.
      * @param neverCache1_1ResponsesWithQueryString {@code true} to never cache HTTP 1.1 responses with a query string,
      *                                              {@code false} to cache if explicit cache headers are found.
-     * @since 5.3
+     * @since 5.4
      */
     public ResponseCachingPolicy(
              final boolean sharedCache,

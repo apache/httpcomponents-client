@@ -69,7 +69,7 @@ import org.slf4j.LoggerFactory;
  * entry serialization and deserialization. It also includes a default buffer size of 8192 bytes, which can be
  * overridden by specifying a different buffer size in the constructor.
  *
- * @since 5.3
+ * @since 5.4
  */
 @Contract(threading = ThreadingBehavior.STATELESS)
 public class HttpByteArrayCacheEntrySerializer implements HttpCacheEntrySerializer<byte[]> {
