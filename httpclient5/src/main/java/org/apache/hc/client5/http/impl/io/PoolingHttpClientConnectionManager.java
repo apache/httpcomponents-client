@@ -76,7 +76,6 @@ import org.apache.hc.core5.pool.PoolReusePolicy;
 import org.apache.hc.core5.pool.PoolStats;
 import org.apache.hc.core5.pool.StrictConnPool;
 import org.apache.hc.core5.util.Args;
-import org.apache.hc.core5.util.Asserts;
 import org.apache.hc.core5.util.Deadline;
 import org.apache.hc.core5.util.Identifiable;
 import org.apache.hc.core5.util.TimeValue;
@@ -673,7 +672,9 @@ public class PoolingHttpClientConnectionManager
         PoolEntry<HttpRoute, ManagedHttpClientConnection> getValidatedPoolEntry() {
             final PoolEntry<HttpRoute, ManagedHttpClientConnection> poolEntry = getPoolEntry();
             final ManagedHttpClientConnection connection = poolEntry.getConnection();
-            Asserts.check(connection != null && connection.isOpen(), "Endpoint is not connected");
+            if (connection == null || !connection.isOpen()) {
+                throw new ConnectionShutdownException();
+            }
             return poolEntry;
         }
 
