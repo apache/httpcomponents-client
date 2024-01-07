@@ -42,11 +42,7 @@ public class SystemDefaultDnsResolver implements DnsResolver {
     public InetAddress[] resolve(final String host) throws UnknownHostException {
         try {
             // Try resolving using the default resolver
-            final InetAddress[] resolvedAddresses = InetAddress.getAllByName(host);
-            if (resolvedAddresses == null || resolvedAddresses.length == 0) {
-                throw new UnknownHostException(host);
-            }
-            return resolvedAddresses;
+            return InetAddress.getAllByName(host);
         } catch (final UnknownHostException e) {
             // If default resolver fails, try stripping the IPv6 zone ID and resolving again
             String strippedHost = null;
