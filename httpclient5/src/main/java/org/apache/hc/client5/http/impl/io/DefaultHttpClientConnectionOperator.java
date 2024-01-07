@@ -146,7 +146,7 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
             if (LOG.isDebugEnabled()) {
                 LOG.debug("{} resolved to {}", host.getHostName(), remoteAddresses == null ? "null" : Arrays.asList(remoteAddresses));
             }
-            
+
             if (remoteAddresses == null || remoteAddresses.length == 0) {
               throw new UnknownHostException(host.getHostName());
           }
