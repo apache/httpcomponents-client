@@ -111,6 +111,9 @@ final class MultihomeIOSessionRequester {
         final InetAddress[] remoteAddresses;
         try {
             remoteAddresses = dnsResolver.resolve(remoteEndpoint.getHostName());
+            if (remoteAddresses == null || remoteAddresses.length == 0) {
+              throw new UnknownHostException(remoteEndpoint.getHostName());
+            }
         } catch (final UnknownHostException ex) {
             future.failed(ex);
             return future;
