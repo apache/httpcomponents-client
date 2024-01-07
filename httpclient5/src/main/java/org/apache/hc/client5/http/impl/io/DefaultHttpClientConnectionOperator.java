@@ -32,6 +32,7 @@ import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.net.Socket;
 import java.net.SocketAddress;
+import java.net.UnknownHostException;
 import java.util.Arrays;
 
 import org.apache.hc.client5.http.ConnectExceptionSupport;
@@ -143,8 +144,12 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
             remoteAddresses = this.dnsResolver.resolve(host.getHostName());
 
             if (LOG.isDebugEnabled()) {
-                LOG.debug("{} resolved to {}", host.getHostName(), Arrays.asList(remoteAddresses));
+                LOG.debug("{} resolved to {}", host.getHostName(), remoteAddresses == null ? "null" : Arrays.asList(remoteAddresses));
             }
+            
+            if (remoteAddresses == null || remoteAddresses.length == 0) {
+              throw new UnknownHostException(host.getHostName());
+          }
         }
 
         final Timeout soTimeout = socketConfig.getSoTimeout();
