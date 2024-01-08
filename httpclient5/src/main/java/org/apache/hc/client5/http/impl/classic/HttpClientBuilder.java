@@ -751,7 +751,11 @@ public class HttpClientBuilder {
         }
         HttpClientConnectionManager connManagerCopy = this.connManager;
         if (connManagerCopy == null) {
-            connManagerCopy = PoolingHttpClientConnectionManagerBuilder.create().build();
+            final PoolingHttpClientConnectionManagerBuilder connectionManagerBuilder = PoolingHttpClientConnectionManagerBuilder.create();
+            if (systemProperties) {
+                connectionManagerBuilder.useSystemProperties();
+            }
+            connManagerCopy = connectionManagerBuilder.build();
         }
         ConnectionReuseStrategy reuseStrategyCopy = this.reuseStrategy;
         if (reuseStrategyCopy == null) {
