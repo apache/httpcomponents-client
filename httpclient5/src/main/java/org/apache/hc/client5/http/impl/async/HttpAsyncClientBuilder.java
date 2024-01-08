@@ -779,7 +779,11 @@ public class HttpAsyncClientBuilder {
     public CloseableHttpAsyncClient build() {
         AsyncClientConnectionManager connManagerCopy = this.connManager;
         if (connManagerCopy == null) {
-            connManagerCopy = PoolingAsyncClientConnectionManagerBuilder.create().build();
+            final PoolingAsyncClientConnectionManagerBuilder connectionManagerBuilder = PoolingAsyncClientConnectionManagerBuilder.create();
+            if (systemProperties) {
+                connectionManagerBuilder.useSystemProperties();
+            }
+            connManagerCopy = connectionManagerBuilder.build();
         }
 
         ConnectionKeepAliveStrategy keepAliveStrategyCopy = this.keepAliveStrategy;
