@@ -26,16 +26,18 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
-import java.util.List;
+import java.util.Collection;
 
 import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.ResponseCacheControl;
+import org.apache.hc.client5.http.validator.ETag;
 import org.apache.hc.core5.function.Factory;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.message.MessageSupport;
+import org.apache.hc.core5.http.message.BufferedHeader;
+import org.apache.hc.core5.util.CharArrayBuffer;
 
 class ConditionalRequestBuilder<T extends HttpRequest> {
 
@@ -59,9 +61,9 @@ class ConditionalRequestBuilder<T extends HttpRequest> {
     public T buildConditionalRequest(final ResponseCacheControl cacheControl, final T request, final HttpCacheEntry cacheEntry) {
         final T newRequest = messageCopier.create(request);
 
-        final Header eTag = cacheEntry.getFirstHeader(HttpHeaders.ETAG);
+        final ETag eTag = cacheEntry.getETag();
         if (eTag != null) {
-            newRequest.setHeader(HttpHeaders.IF_NONE_MATCH, eTag.getValue());
+            newRequest.setHeader(HttpHeaders.IF_NONE_MATCH, eTag.toString());
         }
         final Header lastModified = cacheEntry.getFirstHeader(HttpHeaders.LAST_MODIFIED);
         if (lastModified != null) {
@@ -85,9 +87,20 @@ class ConditionalRequestBuilder<T extends HttpRequest> {
      * @param variants
      * @return the wrapped request
      */
-    public T buildConditionalRequestFromVariants(final T request, final List<String> variants) {
+    public T buildConditionalRequestFromVariants(final T request, final Collection<ETag> variants) {
         final T newRequest = messageCopier.create(request);
-        newRequest.setHeader(MessageSupport.headerOfTokens(HttpHeaders.IF_NONE_MATCH, variants));
+        final CharArrayBuffer buffer = new CharArrayBuffer(256);
+        buffer.append(HttpHeaders.IF_NONE_MATCH);
+        buffer.append(": ");
+        int i = 0;
+        for (final ETag variant : variants) {
+            if (i > 0) {
+                buffer.append(", ");
+            }
+            variant.format(buffer);
+            i++;
+        }
+        newRequest.setHeader(BufferedHeader.create(buffer));
         return newRequest;
     }
 

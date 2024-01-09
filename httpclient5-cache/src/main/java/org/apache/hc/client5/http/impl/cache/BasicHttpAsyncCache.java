@@ -33,7 +33,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -46,11 +45,11 @@ import org.apache.hc.client5.http.cache.Resource;
 import org.apache.hc.client5.http.cache.ResourceFactory;
 import org.apache.hc.client5.http.cache.ResourceIOException;
 import org.apache.hc.client5.http.impl.Operations;
+import org.apache.hc.client5.http.validator.ETag;
 import org.apache.hc.core5.concurrent.CallbackContribution;
 import org.apache.hc.core5.concurrent.Cancellable;
 import org.apache.hc.core5.concurrent.ComplexCancellable;
 import org.apache.hc.core5.concurrent.FutureCallback;
-import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
@@ -520,10 +519,10 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("Evicting root cache entry {}", rootKey);
                     }
-                    final Header existingETag = root.getFirstHeader(HttpHeaders.ETAG);
-                    final Header newETag = response.getFirstHeader(HttpHeaders.ETAG);
+                    final ETag existingETag = root.getETag();
+                    final ETag newETag = ETag.get(response);
                     if (existingETag != null && newETag != null &&
-                            !Objects.equals(existingETag.getValue(), newETag.getValue()) &&
+                            !ETag.strongCompare(existingETag, newETag) &&
                             !HttpCacheEntry.isNewer(root, response)) {
                         evictAll(root, rootKey);
                     }

@@ -27,19 +27,26 @@
 package org.apache.hc.client5.http.impl.cache;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
+import org.apache.hc.client5.http.HeadersMatcher;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.RequestCacheControl;
 import org.apache.hc.client5.http.cache.ResponseCacheControl;
 import org.apache.hc.client5.http.utils.DateUtils;
+import org.apache.hc.client5.http.validator.ETag;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
+import org.apache.hc.core5.http.message.MessageSupport;
 import org.apache.hc.core5.http.support.BasicRequestBuilder;
+import org.hamcrest.MatcherAssert;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -76,11 +83,11 @@ public class TestConditionalRequestBuilder {
         Assertions.assertEquals(theUri, newRequest.getRequestUri());
         Assertions.assertEquals(2, newRequest.getHeaders().length);
 
-        Assertions.assertEquals("Accept-Encoding", newRequest.getHeaders()[0].getName());
-        Assertions.assertEquals("gzip", newRequest.getHeaders()[0].getValue());
-
-        Assertions.assertEquals("If-Modified-Since", newRequest.getHeaders()[1].getName());
-        Assertions.assertEquals(lastModified, newRequest.getHeaders()[1].getValue());
+        MatcherAssert.assertThat(
+                newRequest.getHeaders(),
+                HeadersMatcher.same(
+                        new BasicHeader("Accept-Encoding", "gzip"),
+                        new BasicHeader("If-Modified-Since", lastModified)));
     }
 
     @Test
@@ -110,14 +117,16 @@ public class TestConditionalRequestBuilder {
     public void testBuildConditionalRequestWithETag() {
         final String theMethod = "GET";
         final String theUri = "/theuri";
-        final String theETag = "this is my eTag";
+        final String theETag = "\"this is my eTag\"";
 
         final HttpRequest basicRequest = new BasicHttpRequest(theMethod, theUri);
         basicRequest.addHeader("Accept-Encoding", "gzip");
 
+        final Instant now = Instant.now();
+
         final Header[] headers = new Header[] {
-                new BasicHeader("Date", DateUtils.formatStandardDate(Instant.now())),
-                new BasicHeader("Last-Modified", DateUtils.formatStandardDate(Instant.now())),
+                new BasicHeader("Date", DateUtils.formatStandardDate(now)),
+                new BasicHeader("Last-Modified", DateUtils.formatStandardDate(now)),
                 new BasicHeader("ETag", theETag) };
 
         final HttpCacheEntry cacheEntry = HttpTestUtils.makeCacheEntry(headers);
@@ -128,13 +137,12 @@ public class TestConditionalRequestBuilder {
         Assertions.assertEquals(theMethod, newRequest.getMethod());
         Assertions.assertEquals(theUri, newRequest.getRequestUri());
 
-        Assertions.assertEquals(3, newRequest.getHeaders().length);
-
-        Assertions.assertEquals("Accept-Encoding", newRequest.getHeaders()[0].getName());
-        Assertions.assertEquals("gzip", newRequest.getHeaders()[0].getValue());
-
-        Assertions.assertEquals("If-None-Match", newRequest.getHeaders()[1].getName());
-        Assertions.assertEquals(theETag, newRequest.getHeaders()[1].getValue());
+        MatcherAssert.assertThat(
+                newRequest.getHeaders(),
+                HeadersMatcher.same(
+                        new BasicHeader("Accept-Encoding", "gzip"),
+                        new BasicHeader("If-None-Match", theETag),
+                        new BasicHeader("If-Modified-Since", DateUtils.formatStandardDate(now))));
     }
 
     @Test
@@ -260,25 +268,21 @@ public class TestConditionalRequestBuilder {
 
     @Test
     public void testBuildConditionalRequestFromVariants() throws Exception {
-        final String etag1 = "\"123\"";
-        final String etag2 = "\"456\"";
-        final String etag3 = "\"789\"";
+        final ETag etag1 = new ETag("123");
+        final ETag etag2 = new ETag("456");
+        final ETag etag3 = new ETag("789");
 
-        final List<String> variantEntries = Arrays.asList(etag1, etag2, etag3);
+        final List<ETag> variantEntries = Arrays.asList(etag1, etag2, etag3);
 
         final HttpRequest conditional = impl.buildConditionalRequestFromVariants(request, variantEntries);
 
-        // seems like a lot of work, but necessary, check for existence and exclusiveness
-        String ifNoneMatch = conditional.getFirstHeader(HttpHeaders.IF_NONE_MATCH).getValue();
-        Assertions.assertTrue(ifNoneMatch.contains(etag1));
-        Assertions.assertTrue(ifNoneMatch.contains(etag2));
-        Assertions.assertTrue(ifNoneMatch.contains(etag3));
-        ifNoneMatch = ifNoneMatch.replace(etag1, "");
-        ifNoneMatch = ifNoneMatch.replace(etag2, "");
-        ifNoneMatch = ifNoneMatch.replace(etag3, "");
-        ifNoneMatch = ifNoneMatch.replace(",","");
-        ifNoneMatch = ifNoneMatch.replace(" ", "");
-        Assertions.assertEquals(ifNoneMatch, "");
+
+        final Iterator<String> it = MessageSupport.iterateTokens(conditional, HttpHeaders.IF_NONE_MATCH);
+        final List<ETag> etags = new ArrayList<>();
+        while (it.hasNext()) {
+            etags.add(ETag.parse(it.next()));
+        }
+        MatcherAssert.assertThat(etags, Matchers.containsInAnyOrder(etag1, etag2, etag3));
     }
 
 }

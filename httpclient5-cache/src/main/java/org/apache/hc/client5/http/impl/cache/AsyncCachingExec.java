@@ -30,7 +30,6 @@ import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.nio.ByteBuffer;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -55,6 +54,7 @@ import org.apache.hc.client5.http.cache.ResponseCacheControl;
 import org.apache.hc.client5.http.impl.ExecSupport;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.schedule.SchedulingStrategy;
+import org.apache.hc.client5.http.validator.ETag;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.concurrent.CancellableDependency;
@@ -1206,16 +1206,17 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
             final Collection<CacheHit> variants) {
         final String exchangeId = scope.exchangeId;
         final CancellableDependency operation = scope.cancellableDependency;
-        final Map<String, CacheHit> variantMap = new HashMap<>();
+        final Map<ETag, CacheHit> variantMap = new HashMap<>();
         for (final CacheHit variant : variants) {
-            final Header header = variant.entry.getFirstHeader(HttpHeaders.ETAG);
-            if (header != null) {
-                variantMap.put(header.getValue(), variant);
+            final ETag eTag = variant.entry.getETag();
+            if (eTag != null) {
+                variantMap.put(eTag, variant);
             }
         }
+
         final HttpRequest conditionalRequest = conditionalRequestBuilder.buildConditionalRequestFromVariants(
-                BasicRequestBuilder.copy(request).build(),
-                new ArrayList<>(variantMap.keySet()));
+                request,
+                variantMap.keySet());
 
         final Instant requestDate = getCurrentDate();
         chainProceed(conditionalRequest, entityProducer, scope, chain, new AsyncExecCallback() {
@@ -1270,14 +1271,13 @@ class AsyncCachingExec extends CachingExecBase implements AsyncExecChainHandler 
                 if (backendResponse.getCode() != HttpStatus.SC_NOT_MODIFIED) {
                     callback = new BackendResponseHandler(target, request, requestDate, responseDate, scope, asyncExecCallback);
                 } else {
-                    final Header resultEtagHeader = backendResponse.getFirstHeader(HttpHeaders.ETAG);
-                    if (resultEtagHeader == null) {
+                    final ETag resultEtag = ETag.get(backendResponse);
+                    if (resultEtag == null) {
                         if (LOG.isDebugEnabled()) {
                             LOG.debug("{} 304 response did not contain ETag", exchangeId);
                         }
                         callback = new AsyncExecCallbackWrapper(() -> callBackend(target, request, entityProducer, scope, chain, asyncExecCallback), asyncExecCallback::failed);
                     } else {
-                        final String resultEtag = resultEtagHeader.getValue();
                         final CacheHit match = variantMap.get(resultEtag);
                         if (match == null) {
                             if (LOG.isDebugEnabled()) {
