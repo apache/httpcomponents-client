@@ -41,8 +41,8 @@ import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.RequestCacheControl;
 import org.apache.hc.client5.http.cache.ResponseCacheControl;
 import org.apache.hc.client5.http.utils.DateUtils;
+import org.apache.hc.client5.http.validator.ETag;
 import org.apache.hc.core5.http.Header;
-import org.apache.hc.core5.http.HeaderElement;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpStatus;
@@ -332,13 +332,14 @@ class CachedResponseSuitabilityChecker {
      * @return boolean does the etag validator match
      */
     boolean etagValidatorMatches(final HttpRequest request, final HttpCacheEntry entry) {
-        final Header etagHeader = entry.getFirstHeader(HttpHeaders.ETAG);
-        final String etag = (etagHeader != null) ? etagHeader.getValue() : null;
-        final Iterator<HeaderElement> it = MessageSupport.iterate(request, HttpHeaders.IF_NONE_MATCH);
+        final ETag etag = entry.getETag();
+        if (etag == null) {
+            return false;
+        }
+        final Iterator<String> it = MessageSupport.iterateTokens(request, HttpHeaders.IF_NONE_MATCH);
         while (it.hasNext()) {
-            final HeaderElement elt = it.next();
-            final String reqEtag = elt.toString();
-            if (("*".equals(reqEtag) && etag != null) || reqEtag.equals(etag)) {
+            final String token = it.next();
+            if ("*".equals(token) || ETag.weakCompare(etag, ETag.parse(token))) {
                 return true;
             }
         }

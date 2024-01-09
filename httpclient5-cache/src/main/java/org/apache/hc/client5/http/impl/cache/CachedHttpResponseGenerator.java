@@ -33,6 +33,7 @@ import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.Resource;
 import org.apache.hc.client5.http.cache.ResourceIOException;
 import org.apache.hc.client5.http.utils.DateUtils;
+import org.apache.hc.client5.http.validator.ETag;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHeaders;
@@ -108,9 +109,9 @@ class CachedHttpResponseGenerator {
 
         // - ETag and/or Content-Location, if the header would have been sent
         //   in a 200 response to the same request
-        final Header etagHeader = entry.getFirstHeader(HttpHeaders.ETAG);
-        if (etagHeader != null) {
-            response.addHeader(etagHeader);
+        final ETag eTag = entry.getETag();
+        if (eTag != null) {
+            response.addHeader(new BasicHeader(HttpHeaders.ETAG, eTag.toString()));
         }
 
         final Header contentLocationHeader = entry.getFirstHeader(HttpHeaders.CONTENT_LOCATION);
@@ -142,7 +143,7 @@ class CachedHttpResponseGenerator {
         //above listed fields unless said metadata exists for the purpose of
         //guiding cache updates (e.g., Last-Modified might be useful if the
         //response does not have an ETag field).
-        if (etagHeader == null) {
+        if (eTag == null) {
             final Header lastModifiedHeader = entry.getFirstHeader(HttpHeaders.LAST_MODIFIED);
             if (lastModifiedHeader != null) {
                 response.addHeader(lastModifiedHeader);

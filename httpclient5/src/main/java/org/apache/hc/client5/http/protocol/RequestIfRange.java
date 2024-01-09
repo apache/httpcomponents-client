@@ -33,6 +33,8 @@ import java.io.IOException;
 import java.time.Instant;
 
 import org.apache.hc.client5.http.utils.DateUtils;
+import org.apache.hc.client5.http.validator.ETag;
+import org.apache.hc.client5.http.validator.ValidatorType;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.EntityDetails;
@@ -106,10 +108,10 @@ public class RequestIfRange implements HttpRequestInterceptor {
             throw new ProtocolException("Request with 'If-Range' header must also contain a 'Range' header.");
         }
 
-        final Header eTag = request.getFirstHeader(HttpHeaders.ETAG);
+        final ETag eTag = ETag.get(request);
 
         // If there's a weak ETag in the If-Range header, throw an exception
-        if (eTag != null && eTag.getValue().startsWith("W/")) {
+        if (eTag != null && eTag.getType() == ValidatorType.WEAK) {
             throw new ProtocolException("'If-Range' header must not contain a weak entity tag.");
         }
 

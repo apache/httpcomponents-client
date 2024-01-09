@@ -40,6 +40,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import org.apache.hc.client5.http.utils.DateUtils;
+import org.apache.hc.client5.http.validator.ETag;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
@@ -79,6 +80,8 @@ public class HttpCacheEntry implements MessageHeaders, Serializable {
     private final AtomicReference<Instant> expiresRef;
     private final AtomicReference<Instant> lastModifiedRef;
 
+    private final AtomicReference<ETag> eTagRef;
+
     /**
      * Internal constructor that makes no validation of the input parameters and makes
      * no copies of the original client request and the origin response.
@@ -107,6 +110,7 @@ public class HttpCacheEntry implements MessageHeaders, Serializable {
         this.dateRef = new AtomicReference<>();
         this.expiresRef = new AtomicReference<>();
         this.lastModifiedRef = new AtomicReference<>();
+        this.eTagRef = new AtomicReference<>();
     }
 
     /**
@@ -179,6 +183,7 @@ public class HttpCacheEntry implements MessageHeaders, Serializable {
         this.dateRef = new AtomicReference<>();
         this.expiresRef = new AtomicReference<>();
         this.lastModifiedRef = new AtomicReference<>();
+        this.eTagRef = new AtomicReference<>();
     }
 
     /**
@@ -394,6 +399,23 @@ public class HttpCacheEntry implements MessageHeaders, Serializable {
      */
     public Instant getLastModified() {
         return getInstant(lastModifiedRef, HttpHeaders.LAST_MODIFIED);
+    }
+
+    /**
+     * @since 5.4
+     */
+    public ETag getETag() {
+        ETag eTag = eTagRef.get();
+        if (eTag == null) {
+            eTag = ETag.get(this);
+            if (eTag == null) {
+                return null;
+            }
+            if (!eTagRef.compareAndSet(null, eTag)) {
+                eTag = eTagRef.get();
+            }
+        }
+        return eTag;
     }
 
     /**

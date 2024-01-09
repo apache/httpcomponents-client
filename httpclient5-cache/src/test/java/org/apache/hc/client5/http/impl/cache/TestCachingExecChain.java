@@ -50,6 +50,7 @@ import org.apache.hc.client5.http.classic.ExecRuntime;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpOptions;
 import org.apache.hc.client5.http.utils.DateUtils;
+import org.apache.hc.client5.http.validator.ETag;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.Header;
@@ -997,20 +998,20 @@ public class TestCachingExecChain {
         final Instant now = Instant.now();
 
         final ClassicHttpRequest req1 = new HttpGet("http://foo.example.com/");
-        req1.addHeader("If-None-Match", "etag");
+        req1.addHeader("If-None-Match", "\"etag\"");
 
         final ClassicHttpRequest req2 = new HttpGet("http://foo.example.com/");
-        req2.addHeader("If-None-Match", "etag");
+        req2.addHeader("If-None-Match", "\"etag\"");
 
         final ClassicHttpResponse resp1 = HttpTestUtils.make304Response();
         resp1.setHeader("Date", DateUtils.formatStandardDate(now));
         resp1.setHeader("Cache-Control", "max-age=1");
-        resp1.setHeader("Etag", "etag");
+        resp1.setHeader("Etag", "\"etag\"");
 
         final ClassicHttpResponse resp2 = HttpTestUtils.make304Response();
         resp2.setHeader("Date", DateUtils.formatStandardDate(now));
         resp2.setHeader("Cache-Control", "max-age=1");
-        resp1.setHeader("Etag", "etag");
+        resp1.setHeader("Etag", "\"etag\"");
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
 
@@ -1020,9 +1021,9 @@ public class TestCachingExecChain {
         final ClassicHttpResponse result2 = execute(req2);
 
         Assertions.assertEquals(HttpStatus.SC_NOT_MODIFIED, result1.getCode());
-        Assertions.assertEquals("etag", result1.getFirstHeader("Etag").getValue());
+        Assertions.assertEquals(new ETag("etag"), ETag.get(result1));
         Assertions.assertEquals(HttpStatus.SC_NOT_MODIFIED, result2.getCode());
-        Assertions.assertEquals("etag", result2.getFirstHeader("Etag").getValue());
+        Assertions.assertEquals(new ETag("etag"), ETag.get(result2));
     }
 
     @Test
@@ -1031,21 +1032,21 @@ public class TestCachingExecChain {
         final Instant now = Instant.now();
 
         final ClassicHttpRequest req1 = new HttpGet("http://foo.example.com/");
-        req1.addHeader("If-None-Match", "etag");
+        req1.addHeader("If-None-Match", "\"etag\"");
 
         final ClassicHttpRequest req2 = new HttpGet("http://foo.example.com/");
-        req2.addHeader("If-None-Match", "etag");
+        req2.addHeader("If-None-Match", "\"etag\"");
 
         final ClassicHttpResponse resp1 = HttpTestUtils.make304Response();
         resp1.setHeader("Date", DateUtils.formatStandardDate(now));
         resp1.setHeader("Cache-Control", "max-age=1");
-        resp1.setHeader("Etag", "etag");
+        resp1.setHeader("Etag", "\"etag\"");
         resp1.setHeader("Vary", "Accept-Encoding");
 
         final ClassicHttpResponse resp2 = HttpTestUtils.make304Response();
         resp2.setHeader("Date", DateUtils.formatStandardDate(now));
         resp2.setHeader("Cache-Control", "max-age=1");
-        resp1.setHeader("Etag", "etag");
+        resp1.setHeader("Etag", "\"etag\"");
         resp1.setHeader("Vary", "Accept-Encoding");
 
         Mockito.when(mockExecChain.proceed(Mockito.any(), Mockito.any())).thenReturn(resp1);
@@ -1057,9 +1058,9 @@ public class TestCachingExecChain {
         final ClassicHttpResponse result2 = execute(req2);
 
         Assertions.assertEquals(HttpStatus.SC_NOT_MODIFIED, result1.getCode());
-        Assertions.assertEquals("etag", result1.getFirstHeader("Etag").getValue());
+        Assertions.assertEquals(new ETag("etag"), ETag.get(result1));
         Assertions.assertEquals(HttpStatus.SC_NOT_MODIFIED, result2.getCode());
-        Assertions.assertEquals("etag", result2.getFirstHeader("Etag").getValue());
+        Assertions.assertEquals(new ETag("etag"), ETag.get(result2));
     }
 
     @Test
