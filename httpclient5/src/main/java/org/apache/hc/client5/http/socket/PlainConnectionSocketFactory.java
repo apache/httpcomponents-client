@@ -63,7 +63,7 @@ public class PlainConnectionSocketFactory implements ConnectionSocketFactory {
 
     @Override
     public Socket createSocket(final Proxy proxy, final HttpContext context) throws IOException {
-        return proxy != null ? new Socket(proxy) : new Socket();
+        return new Socket(proxy);
     }
 
     @Override

@@ -160,7 +160,7 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
             final InetAddress address = remoteAddresses[i];
             final boolean last = i == remoteAddresses.length - 1;
 
-            Socket sock = sf.createSocket(proxy, context);
+            Socket sock = proxy != null ? sf.createSocket(proxy, context) : sf.createSocket(context);
             if (soTimeout != null) {
                 sock.setSoTimeout(soTimeout.toMillisecondsIntBound());
             }

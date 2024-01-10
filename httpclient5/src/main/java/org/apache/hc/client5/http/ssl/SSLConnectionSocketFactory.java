@@ -206,7 +206,7 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
 
     @Override
     public Socket createSocket(final Proxy proxy, final HttpContext context) throws IOException {
-        return proxy != null ? new Socket(proxy) : new Socket();
+        return new Socket(proxy);
     }
 
     @Override
