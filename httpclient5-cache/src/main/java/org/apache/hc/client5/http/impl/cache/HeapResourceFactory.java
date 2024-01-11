@@ -57,12 +57,16 @@ public class HeapResourceFactory implements ResourceFactory {
         return new HeapResource(content != null ? content.clone() : null);
     }
 
+    /**
+     * @deprecated Do not use.
+     */
+    @Deprecated
     @Override
     public Resource copy(
             final String requestId,
             final Resource resource) throws ResourceIOException {
         Args.notNull(resource, "Resource");
-        return new HeapResource(resource.get());
+        return resource;
     }
 
 }

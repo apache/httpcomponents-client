@@ -61,13 +61,9 @@ public interface ResourceFactory {
     Resource generate(String requestId, byte[] content, int off, int len) throws ResourceIOException;
 
     /**
-     * Clones an existing {@link Resource}.
-     * @param requestId unique identifier provided to associate
-     *   with the cloned response body.
-     * @param resource the original response body to clone.
-     * @return the {@code Resource} copy
-     * @throws ResourceIOException
+     * @deprecated Do not use.
      */
+    @Deprecated
     Resource copy(String requestId, Resource resource) throws ResourceIOException;
 
 }
