@@ -46,6 +46,7 @@ import org.apache.hc.client5.http.cache.ResourceFactory;
 import org.apache.hc.client5.http.cache.ResourceIOException;
 import org.apache.hc.client5.http.impl.Operations;
 import org.apache.hc.client5.http.validator.ETag;
+import org.apache.hc.client5.http.validator.ValidatorType;
 import org.apache.hc.core5.concurrent.CallbackContribution;
 import org.apache.hc.core5.concurrent.Cancellable;
 import org.apache.hc.core5.concurrent.ComplexCancellable;
@@ -399,7 +400,11 @@ class BasicHttpAsyncCache implements HttpAsyncCache {
         }
         final Resource resource;
         try {
-            resource = content != null ? resourceFactory.generate(request.getRequestUri(), content.array(), 0, content.length()) : null;
+            final ETag eTag = ETag.get(originResponse);
+            resource = content != null ? resourceFactory.generate(
+                    rootKey,
+                    eTag != null && eTag.getType() == ValidatorType.STRONG ? eTag.getValue() : null,
+                    content.array(), 0, content.length()) : null;
         } catch (final ResourceIOException ex) {
             if (LOG.isWarnEnabled()) {
                 LOG.warn("I/O error creating cache entry with key {}", rootKey);

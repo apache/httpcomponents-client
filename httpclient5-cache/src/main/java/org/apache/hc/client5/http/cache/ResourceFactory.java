@@ -61,6 +61,23 @@ public interface ResourceFactory {
     Resource generate(String requestId, byte[] content, int off, int len) throws ResourceIOException;
 
     /**
+     * Creates a {@link Resource} from a given response body.
+     * @param requestId a unique identifier for this particular response body.
+     * @param eTag eTag Strong (unique) identifier for the resource entity
+     *             with the given requestId, or {@code null} when not given
+     *             or is weak (non-unique).
+     * @param content byte array that represents the origin HTTP response body.
+     * @param off   the start offset in the array.
+     * @param len   the number of bytes to read from the array.
+     * @return a {@code Resource} containing however much of
+     *   the response body was successfully read.
+     * @throws ResourceIOException
+     */
+    default Resource generate(String requestId, String eTag, byte[] content, int off, int len) throws ResourceIOException {
+        return generate(requestId, content, off, len);
+    }
+
+    /**
      * @deprecated Do not use.
      */
     @Deprecated
