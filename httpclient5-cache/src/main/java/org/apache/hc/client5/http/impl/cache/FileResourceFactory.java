@@ -29,13 +29,17 @@ package org.apache.hc.client5.http.impl.cache;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 import org.apache.hc.client5.http.cache.Resource;
 import org.apache.hc.client5.http.cache.ResourceFactory;
 import org.apache.hc.client5.http.cache.ResourceIOException;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.net.PercentCodec;
 import org.apache.hc.core5.util.Args;
+import org.apache.hc.core5.util.TextUtils;
 
 /**
  * Generates {@link Resource} instances whose body is stored in a temporary file.
@@ -46,37 +50,44 @@ import org.apache.hc.core5.util.Args;
 public class FileResourceFactory implements ResourceFactory {
 
     private final File cacheDir;
-    private final BasicIdGenerator idgen;
 
     public FileResourceFactory(final File cacheDir) {
         super();
         this.cacheDir = cacheDir;
-        this.idgen = new BasicIdGenerator();
     }
 
-    private File generateUniqueCacheFile(final String requestId) {
-        final StringBuilder buffer = new StringBuilder();
-        this.idgen.generate(buffer);
-        buffer.append('.');
-        final int len = Math.min(requestId.length(), 100);
-        for (int i = 0; i < len; i++) {
-            final char ch = requestId.charAt(i);
-            if (Character.isLetterOrDigit(ch) || ch == '.') {
-                buffer.append(ch);
-            } else {
-                buffer.append('-');
+    static String generateUniqueCacheFileName(final String requestId, final String eTag, final byte[] content, final int off, final int len) {
+        final StringBuilder buf = new StringBuilder();
+        if (eTag != null) {
+            PercentCodec.RFC3986.encode(buf, eTag);
+            buf.append('@');
+        } else if (content != null) {
+            final MessageDigest sha256;
+            try {
+                sha256 = MessageDigest.getInstance("SHA-256");
+            } catch (final NoSuchAlgorithmException ex) {
+                throw new IllegalStateException(ex);
             }
+            sha256.update(content, off, len);
+            buf.append(TextUtils.toHexString(sha256.digest()));
+            buf.append('@');
         }
-        return new File(this.cacheDir, buffer.toString());
+        PercentCodec.RFC3986.encode(buf, requestId);
+        return buf.toString();
     }
 
+    /**
+     * @since 5.4
+     */
     @Override
     public Resource generate(
             final String requestId,
+            final String eTag,
             final byte[] content, final int off, final int len) throws ResourceIOException {
         Args.notNull(requestId, "Request id");
-        final File file = generateUniqueCacheFile(requestId);
-        try (FileOutputStream outStream = new FileOutputStream(file)) {
+        final String filename = generateUniqueCacheFileName(requestId, eTag, content, off, len);
+        final File file = new File(cacheDir, filename);
+        try (FileOutputStream outStream = new FileOutputStream(file, false)) {
             if (content != null) {
                 outStream.write(content, off, len);
             }
@@ -87,9 +98,21 @@ public class FileResourceFactory implements ResourceFactory {
     }
 
     @Override
+    public Resource generate(final String requestId, final byte[] content, final int off, final int len) throws ResourceIOException {
+        if (content != null) {
+            return generate(requestId, null, content, off, len);
+        } else {
+            return generate(requestId, null, null, 0, 0);
+        }
+    }
+
+    @Override
     public Resource generate(final String requestId, final byte[] content) throws ResourceIOException {
-        Args.notNull(content, "Content");
-        return generate(requestId, content, 0, content.length);
+        if (content != null) {
+            return generate(requestId, null, content, 0, content.length);
+        } else {
+            return generate(requestId, null, null, 0, 0);
+        }
     }
 
     /**
