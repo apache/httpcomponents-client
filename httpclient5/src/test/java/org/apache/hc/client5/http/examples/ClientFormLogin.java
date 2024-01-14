@@ -72,7 +72,7 @@ public class ClientFormLogin {
                     .addParameter("IDToken1", "username")
                     .addParameter("IDToken2", "password")
                     .build();
-            httpclient.execute(httpget, response -> {
+            httpclient.execute(login, response -> {
                 System.out.println("----------------------------------------");
                 System.out.println("Login form get: " + response.getCode() + " " + response.getReasonPhrase());
                 EntityUtils.consume(response.getEntity());
