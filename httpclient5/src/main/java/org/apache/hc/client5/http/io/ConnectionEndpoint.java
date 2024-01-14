@@ -29,6 +29,7 @@ package org.apache.hc.client5.http.io;
 
 import java.io.IOException;
 
+import org.apache.hc.client5.http.EndpointInfo;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
@@ -96,6 +97,15 @@ public abstract class ConnectionEndpoint implements ModalCloseable {
      * @param timeout timeout value
      */
     public abstract void setSocketTimeout(Timeout timeout);
+
+    /**
+     * Returns information about the endpoint or {@code null} when not connected.
+     *
+     * @since 5.4
+     */
+    public EndpointInfo getInfo() {
+        return null;
+    }
 
     /**
      * @since 5.4

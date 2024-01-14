@@ -32,6 +32,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.apache.hc.client5.http.EndpointInfo;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.classic.ExecRuntime;
 import org.apache.hc.client5.http.config.RequestConfig;
@@ -191,6 +192,12 @@ class InternalExecRuntime implements ExecRuntime, Cancellable {
             log.debug("{} upgrading endpoint", ConnPoolSupport.getId(endpoint));
         }
         manager.upgrade(endpoint, context);
+    }
+
+    @Override
+    public EndpointInfo getEndpointInfo() {
+        final ConnectionEndpoint endpoint = endpointRef.get();
+        return endpoint != null ? endpoint.getInfo() : null;
     }
 
     @Override

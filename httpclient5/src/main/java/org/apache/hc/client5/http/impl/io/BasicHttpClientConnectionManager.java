@@ -38,6 +38,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.hc.client5.http.DnsResolver;
+import org.apache.hc.client5.http.EndpointInfo;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.config.ConnectionConfig;
@@ -682,6 +683,18 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
                 LOG.debug("{} Executing exchange {}", id, exchangeId);
             }
             return requestExecutor.execute(request, getValidatedConnection(), context);
+        }
+
+        /**
+         * @since 5.4
+         */
+        @Override
+        public EndpointInfo getInfo() {
+            final ManagedHttpClientConnection connection = this.connRef.get();
+            if (connection != null && connection.isOpen()) {
+                return new EndpointInfo(connection.getProtocolVersion(), connection.getSSLSession());
+            }
+            return null;
         }
 
     }

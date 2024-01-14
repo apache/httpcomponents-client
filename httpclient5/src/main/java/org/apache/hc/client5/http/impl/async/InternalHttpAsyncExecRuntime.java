@@ -30,6 +30,7 @@ package org.apache.hc.client5.http.impl.async;
 import java.io.InterruptedIOException;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.apache.hc.client5.http.EndpointInfo;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.async.AsyncExecRuntime;
 import org.apache.hc.client5.http.config.RequestConfig;
@@ -264,6 +265,11 @@ class InternalHttpAsyncExecRuntime implements AsyncExecRuntime {
             }
 
         });
+    }
+
+    public EndpointInfo getEndpointInfo() {
+        final AsyncConnectionEndpoint endpoint = endpointRef.get();
+        return endpoint != null ? endpoint.getInfo() : null;
     }
 
     @Override
