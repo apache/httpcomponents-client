@@ -30,6 +30,7 @@ package org.apache.hc.client5.http.nio;
 import java.io.IOException;
 import java.util.concurrent.Future;
 
+import org.apache.hc.client5.http.EndpointInfo;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.concurrent.BasicFuture;
@@ -199,6 +200,15 @@ public abstract class AsyncConnectionEndpoint implements ModalCloseable {
             final AsyncResponseConsumer<T> responseConsumer,
             final FutureCallback<T> callback) {
         return execute(id, requestProducer, responseConsumer, null, null, callback);
+    }
+
+    /**
+     * Returns information about the endpoint or {@code null} when not connected.
+     *
+     * @since 5.4
+     */
+    public EndpointInfo getInfo() {
+        return null;
     }
 
 }

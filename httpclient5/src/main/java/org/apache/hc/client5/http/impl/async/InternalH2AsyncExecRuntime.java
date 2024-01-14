@@ -30,6 +30,7 @@ package org.apache.hc.client5.http.impl.async;
 import java.io.InterruptedIOException;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.apache.hc.client5.http.EndpointInfo;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.async.AsyncExecRuntime;
 import org.apache.hc.client5.http.config.RequestConfig;
@@ -48,6 +49,8 @@ import org.apache.hc.core5.http.nio.command.RequestExecutionCommand;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.reactor.Command;
 import org.apache.hc.core5.reactor.IOSession;
+import org.apache.hc.core5.reactor.ssl.TlsDetails;
+import org.apache.hc.core5.reactor.ssl.TransportSecurityLayer;
 import org.apache.hc.core5.util.Identifiable;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
@@ -231,6 +234,17 @@ class InternalH2AsyncExecRuntime implements AsyncExecRuntime {
     @Override
     public void upgradeTls(final HttpClientContext context, final FutureCallback<AsyncExecRuntime> callback) {
         throw new UnsupportedOperationException();
+    }
+
+    public EndpointInfo getEndpointInfo() {
+        final Endpoint endpoint = sessionRef.get();
+        if (endpoint != null && endpoint.session.isOpen()) {
+            if (endpoint.session instanceof TransportSecurityLayer) {
+                final TlsDetails tlsDetails = ((TransportSecurityLayer) endpoint.session).getTlsDetails();
+                return new EndpointInfo(HttpVersion.HTTP_2, tlsDetails != null ? tlsDetails.getSSLSession() : null);
+            }
+        }
+        return null;
     }
 
     @Override

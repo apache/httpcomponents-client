@@ -37,6 +37,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.hc.client5.http.DnsResolver;
+import org.apache.hc.client5.http.EndpointInfo;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.config.ConnectionConfig;
@@ -750,6 +751,19 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
             connection.submitCommand(
                     new RequestExecutionCommand(exchangeHandler, pushHandlerFactory, context),
                     Command.Priority.NORMAL);
+        }
+
+        @Override
+        public EndpointInfo getInfo() {
+            final PoolEntry<HttpRoute, ManagedAsyncClientConnection> poolEntry = poolEntryRef.get();
+            if (poolEntry != null) {
+                final ManagedAsyncClientConnection connection = poolEntry.getConnection();
+                if (connection != null && connection.isOpen()) {
+                    final TlsDetails tlsDetails = connection.getTlsDetails();
+                    return new EndpointInfo(connection.getProtocolVersion(), tlsDetails != null ? tlsDetails.getSSLSession() : null);
+                }
+            }
+            return null;
         }
 
     }

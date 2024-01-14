@@ -36,6 +36,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.hc.client5.http.DnsResolver;
+import org.apache.hc.client5.http.EndpointInfo;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.config.ConnectionConfig;
@@ -773,5 +774,21 @@ public class PoolingHttpClientConnectionManager
             return requestExecutor.execute(request, connection, context);
         }
 
+        /**
+         * @since 5.4
+         */
+        @Override
+        public EndpointInfo getInfo() {
+            final PoolEntry<HttpRoute, ManagedHttpClientConnection> poolEntry = poolEntryRef.get();
+            if (poolEntry != null) {
+                final ManagedHttpClientConnection connection = poolEntry.getConnection();
+                if (connection != null && connection.isOpen()) {
+                    return new EndpointInfo(connection.getProtocolVersion(), connection.getSSLSession());
+                }
+            }
+            return null;
+        }
+
     }
+
 }

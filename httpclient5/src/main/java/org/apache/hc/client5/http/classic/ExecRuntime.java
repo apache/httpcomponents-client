@@ -29,6 +29,7 @@ package org.apache.hc.client5.http.classic;
 
 import java.io.IOException;
 
+import org.apache.hc.client5.http.EndpointInfo;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.annotation.Internal;
@@ -120,6 +121,13 @@ public interface ExecRuntime {
      * @param context the execution context.
      */
     void upgradeTls(HttpClientContext context) throws IOException;
+
+    /**
+     * Returns information about the underlying endpoint when connected or {@code null} otherwise.
+     */
+    default EndpointInfo getEndpointInfo() {
+        return null;
+    }
 
     /**
      * Executes HTTP request using the given context.
